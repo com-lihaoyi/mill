@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Mill Build Tool v1.0.0 Release Highlights :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/blog/13-mill-build-tool-v1-0-0.html">
-    <link rel="prev" href="14-bash-zsh-completion.html">
-    <link rel="next" href="12-direct-style-build-tool.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/blog/13-mill-build-tool-v1-0-0.html" />
+    <link rel="prev" href="14-bash-zsh-completion.html" />
+    <link rel="next" href="12-direct-style-build-tool.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -232,7 +233,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/13-mill-build-tool-v1-0-0.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -285,7 +286,7 @@ JVM ecosystem, and this has always applied to JVM command-line tooling as well. 
 previously used a <a href="../mill/depth/process-architecture.html" class="xref page">long-lived background daemons</a> to
 try and mitigate the problem, but even if the heavyweight background daemon is long-lived,
 the lightweight launcher/client process still adds a substantial overhead. With
-Mill&#8217;s Graal Native Image launcher, Mill&#8217;s command-line experience feels as snappy
+Mill’s Graal Native Image launcher, Mill’s command-line experience feels as snappy
 as any native binary, because it is one!</p>
 </div>
 <div class="paragraph">
@@ -298,7 +299,7 @@ Native Image Binaries with Graal VM</a> for more details.</p>
 <div class="sect2">
 <h3 id="_jvm_free_installation_and_bootstrapping"><a class="anchor" href="#_jvm_free_installation_and_bootstrapping"></a>JVM-free Installation and Bootstrapping</h3>
 <div class="paragraph">
-<p>One consequence of using a Graal native launcher is that Mill&#8217;s launcher
+<p>One consequence of using a Graal native launcher is that Mill’s launcher
 no longer needs a JVM pre-installed in order to run. The launcher binary is self-contained,
 and is able to download and cache any JVM it needs in order to start itself or other Java
 processes.</p>
@@ -327,10 +328,10 @@ scenarios.</p>
 </div>
 <div class="paragraph">
 <p>With this change, Mill becomes one of the few CLI tools that is truly zero-install: by using
-Mill&#8217;s <a href="../mill/cli/installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a>
-(an idea borrowed from Gradle&#8217;s <code>./gradlew</code> and Maven&#8217;s <code>./mvnw</code>) you can run <code>./mill</code> on any
+Mill’s <a href="../mill/cli/installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a>
+(an idea borrowed from Gradle’s <code>./gradlew</code> and Maven’s <code>./mvnw</code>) you can run <code>./mill</code> on any
 clean Mac, Linux, or Windows or development machine or CI worker and have it bootstrap everything
-necessary with zero installation up front. That&#8217;s pretty unique among the wide variety
+necessary with zero installation up front. That’s pretty unique among the wide variety
 of CLI tools out there, and should hopefully make it convenient for Mill users to build their
 JVM projects on the wide variety of different environments out there in the wild.</p>
 </div>
@@ -374,7 +375,7 @@ $ ./mill foo.runBackground</code></pre>
 <p>While this is not rocket science, we expect that this will be a significant quality-of-life
 improvement to everyone using Mill. Nobody memorizes the names of every module and task within
 a large project, and using <code>./mill resolve</code> to try and list things or opening your IDE to rely
-on in-code autocomplete can be tedious and annoying. Mill&#8217;s Bash/Zsh tab-completion relies on
+on in-code autocomplete can be tedious and annoying. Mill’s Bash/Zsh tab-completion relies on
 the same underlying infrastructure that powers <code>./mill resolve</code> and other existing functionality,
 but integrates it nicely into your shell so you have a smooth experience exploring and interacting
 with your build from the command line</p>
@@ -393,15 +394,15 @@ did not write to the filesystem, there was never enforcement of these expectatio
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends Module {
   def bannedWriteTask = Task {
-    os.write(BuildCtx.workspaceRoot / "banned-path", "hello")  // bad!
+    os.write(BuildCtx.workspaceRoot / &quot;banned-path&quot;, &quot;hello&quot;)  // bad!
   }
 
-  os.write(moduleDir / "banned-write.txt", "hello") // bad!
+  os.write(moduleDir / &quot;banned-write.txt&quot;, &quot;hello&quot;) // bad!
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This meant it was possible to write code that violated Mill&#8217;s internal expectations,
+<p>This meant it was possible to write code that violated Mill’s internal expectations,
 which could cause all sorts of things to go wrong: cache invalidation issues, race
 conditions, etc. So onboarding new developers to use
 Mill often resulted in a long process to teach them these conventions since the tool
@@ -409,7 +410,7 @@ itself would not give any feedback until things loudly (or worse, silently!) mis
 </div>
 <div class="paragraph">
 <p>In Mill 1.0.0, most common filesystem read/write APIs have been instrumented to check
-that they are not misused. That means code that violates Mill&#8217;s conventions raises an
+that they are not misused. That means code that violates Mill’s conventions raises an
 immediate error:</p>
 </div>
 <div class="listingblock">
@@ -420,11 +421,11 @@ error: ...Writing to banned-path not allowed during execution of `foo.bannedWrit
 </div>
 <div class="paragraph">
 <p>These sandboxes are not intended to be fully hermetic: there are escape hatches
-(e.g. <code>BuildCtx.withFilesystemCheckerDisabled{ &#8230;&#8203; }</code>), not all APIs are instrumented
+(e.g. <code>BuildCtx.withFilesystemCheckerDisabled{ ...​ }</code>), not all APIs are instrumented
 (e.g. direct use of <code>java.io.</code>/<code>java.nio</code>), and they are not intended to be a security
 boundary against malicious code. Rather, they are meant to be simple guardrails to nudge
-developers in the right direction to follow Mill&#8217;s conventions and coding style, so
-that developers will naturally fall into configuring Mill the "right" way that leads
+developers in the right direction to follow Mill’s conventions and coding style, so
+that developers will naturally fall into configuring Mill the &quot;right&quot; way that leads
 to the fewest surprises.</p>
 </div>
 <div class="paragraph">
@@ -434,11 +435,11 @@ to the fewest surprises.</p>
 <div class="sect2">
 <h3 id="_yaml_build_headers_for_early_configuration"><a class="anchor" href="#_yaml_build_headers_for_early_configuration"></a>YAML Build Headers for Early Configuration</h3>
 <div class="paragraph">
-<p>Mill now supports a build header comment syntax for "early" configuration that needs to be processed
+<p>Mill now supports a build header comment syntax for &quot;early&quot; configuration that needs to be processed
 before the main <code>build.mill</code> file is compiled and evaluated, and
-contains configuration like the <code>mill-version</code>, <code>mill-jvm-version</code>, the <code>build.mill</code> file&#8217;s <code>mvnDeps</code>
-(separate from your application code&#8217;s <code>mvnDeps</code>!) in a single <code>//|</code>-prefixed comment block.
-This is reminiscent of <a href="https://jekyllrb.com/docs/front-matter/">Jekyll FrontMatter</a> or Python&#8217;s
+contains configuration like the <code>mill-version</code>, <code>mill-jvm-version</code>, the <code>build.mill</code> file’s <code>mvnDeps</code>
+(separate from your application code’s <code>mvnDeps</code>!) in a single <code>//|</code>-prefixed comment block.
+This is reminiscent of <a href="https://jekyllrb.com/docs/front-matter/">Jekyll FrontMatter</a> or Python’s
 <a href="https://peps.python.org/pep-0723/">PEP723 Inline script metadata</a>:</p>
 </div>
 <div class="listingblock">
@@ -479,18 +480,18 @@ package build
 </div>
 <div class="paragraph">
 <p>These are all configuration values that need to be used early on in the Mill
-bootstrapping process, and thus we couldn&#8217;t rely on them being configured in the "main"
+bootstrapping process, and thus we couldn’t rely on them being configured in the &quot;main&quot;
 <code>build.mill</code> config-as-code. For example, before even compiling your <code>build.mill</code>, Mill
 already needs to know what version of Mill you want to use and what JVM to run it on!</p>
 </div>
 <div class="paragraph">
-<p>With Mill&#8217;s YAML build headers, we can consolidate this zoo of different configuration
+<p>With Mill’s YAML build headers, we can consolidate this zoo of different configuration
 styles into a single compact block at the top of every <code>build.mill</code>. While the older
 configuration styles continue to be supported for migration-compatibility, using
-Mill&#8217;s build headers is the recommended approach for configuring these values going forward.</p>
+Mill’s build headers is the recommended approach for configuring these values going forward.</p>
 </div>
 <div class="paragraph">
-<p>Lastly, build headers are expected to future-proof this "early" configuration
+<p>Lastly, build headers are expected to future-proof this &quot;early&quot; configuration
 and allow all sorts of interesting use cases in future. For example, we can extend this
 format to support running self-contained Java/Scala/Kotlin scripts that contain both their
 dependency configuration and code, similar to
@@ -525,7 +526,7 @@ supporting Kotlin-JS and Kotlin-Android projects.</p>
 <p>With 1.0.0, Kotlin support in Mill is no longer experimental, and we are enabling
 binary-compatibility enforcement for <code>mill.kotlinlib</code> just as we already have for
 <code>mill.javalib</code> and <code>mill.scalalib</code>. We hope that you will try out Mill in your Kotlin
-projects, and let us know how it goes in <a href="https://github.com/com-lihaoyi/mill/discussions">Mill&#8217;s Github Discussions</a>.</p>
+projects, and let us know how it goes in <a href="https://github.com/com-lihaoyi/mill/discussions">Mill’s Github Discussions</a>.</p>
 </div>
 <div class="paragraph">
 <p>See the docs for <a href="../mill/kotlinlib/intro.html" class="xref page">Building Kotlin with Mill</a> for more details</p>
@@ -534,7 +535,7 @@ projects, and let us know how it goes in <a href="https://github.com/com-lihaoyi
 <div class="sect2">
 <h3 id="_mill_support_for_android_builds"><a class="anchor" href="#_mill_support_for_android_builds"></a>Mill Support for Android Builds</h3>
 <div class="paragraph">
-<p>A huge amount of work went into 1.0.0 improving Mill&#8217;s support for Android builds. Android
+<p>A huge amount of work went into 1.0.0 improving Mill’s support for Android builds. Android
 apps have traditionally only been buildable using Gradle, and Mill is one of the only
 other build tools that you can use as an alternative. While
 in 0.12.x Android support was a demo-quality integration, in 1.0.0 it has been
@@ -545,13 +546,13 @@ sample apps available in the Android ecosystem.</p>
 <p>For example, Mill is now able to build, run, and test the <a href="https://github.com/android/compose-samples/tree/main/JetLagged">JetLagged Android Example App</a>:</p>
 </div>
 <div class="paragraph">
-<p><span class="image"><img src="_images/AndroidJetLagged.png" alt="AndroidJetLagged"></span></p>
+<p><span class="image"><img src="_images/AndroidJetLagged.png" alt="AndroidJetLagged" /></span></p>
 </div>
 <div class="paragraph">
 <p>As well as the <a href="https://android.googlesource.com/platform/ndk/+/froyo-release/samples/san-angeles">San Angeles NDK example</a>:</p>
 </div>
 <div class="paragraph">
-<p><span class="image"><img src="_images/AndroidSanAngeles.png" alt="AndroidSanAngeles"></span></p>
+<p><span class="image"><img src="_images/AndroidSanAngeles.png" alt="AndroidSanAngeles" /></span></p>
 </div>
 <div class="paragraph">
 <p>This work was done by the folks <a href="https://www.vaslabs.io/">VasLabs</a>, who put in an
@@ -572,10 +573,10 @@ will be fleshing out the Mill Android docs over the following weeks and months a
 writing up blog posts on our experience integrating Mill with the Android toolchain
 But if you are unsatisfied with Gradle and interested in trying out an
 alternate Android build tool, you should definitely take a look and try it out
-and let us know how it goes in <a href="https://github.com/com-lihaoyi/mill/discussions">Mill&#8217;s Github Discussions</a>.</p>
+and let us know how it goes in <a href="https://github.com/com-lihaoyi/mill/discussions">Mill’s Github Discussions</a>.</p>
 </div>
 <div class="paragraph">
-<p>See Mill&#8217;s docs for <a href="../mill/android/java.html" class="xref page">Android Java Projects</a> or
+<p>See Mill’s docs for <a href="../mill/android/java.html" class="xref page">Android Java Projects</a> or
 <a href="../mill/android/java.html" class="xref page">Android Kotlin Projects</a> for more details.</p>
 </div>
 </div>
@@ -594,12 +595,12 @@ navigate around your build graph as easily as you can any application codebase i
 or Kotlin:</p>
 </div>
 <div class="paragraph">
-<p><span class="image"><img src="_images/IntelliJAutoComplete.png" alt="IntelliJAutoComplete"></span></p>
+<p><span class="image"><img src="_images/IntelliJAutoComplete.png" alt="IntelliJAutoComplete" /></span></p>
 </div>
 <div class="paragraph">
 <p>But even so, there was a ton of room for improvement.
-Many PRs went into improving Mill&#8217;s IDE support with IntelliJ and VSCode, which
-goes through the "BSP" <a href="https://github.com/build-server-protocol/build-server-protocol">build-server-protocol</a>:</p>
+Many PRs went into improving Mill’s IDE support with IntelliJ and VSCode, which
+goes through the &quot;BSP&quot; <a href="https://github.com/build-server-protocol/build-server-protocol">build-server-protocol</a>:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -647,7 +648,7 @@ Mill to talk to these IDEs and pass the necessary data so the IDEs can do their 
 <p>Improving IDE support is a grind: lots of fiddling with undocumented APIs and
 undocumented behavior, with bugs randomly scattered across organizational boundaries
 (some in Mill, some in IntelliJ, some in VSCode). But hopefully this work will provide
-a smoother experience for anyone getting using Mill, and improve upon Mill&#8217;s
+a smoother experience for anyone getting using Mill, and improve upon Mill’s
 ability to provide a best-in-class IDE experience for your build system.</p>
 </div>
 </div>
@@ -656,7 +657,7 @@ ability to provide a best-in-class IDE experience for your build system.</p>
 <div class="paragraph">
 <p>Mill 1.0.0 runs your build logic with a much more minimal JVM classpath than earlier versions.
 We expect that this will provide faster downloads, speedup compiles, and also allow
-better long-term backwards compatibility as the Mill project itself and user&#8217;s
+better long-term backwards compatibility as the Mill project itself and user’s
 Mill builds both evolve over time.</p>
 </div>
 <div class="ulist">
@@ -664,14 +665,14 @@ Mill builds both evolve over time.</p>
 <li>
 <p>Mill 0.12.x compiled and ran your <code>build.mill</code> with the entire Mill assembly jar
 on the classpath. That meant that
-your <code>build.mill</code> could access all of Mill&#8217;s internal code and dependencies,
+your <code>build.mill</code> could access all of Mill’s internal code and dependencies,
 and versions of dependencies used by Mill are pinned and unchangeable
 (e.g. see <a href="https://github.com/com-lihaoyi/mill/issues/2985">#2985</a>)</p>
 </li>
 <li>
 <p>Mill 1.0.0 compiles and runs your <code>build.mill</code> with only the code and
 dependencies that it actually requires on the classpath, with the rest of
-Mill&#8217;s internal code and internal dependencies isolated via subprocess or
+Mill’s internal code and internal dependencies isolated via subprocess or
 classloader isolation, with interop happening through a narrow interface</p>
 </li>
 </ul>
@@ -683,21 +684,21 @@ classloader isolation, with interop happening through a narrow interface</p>
 <ul>
 <li>
 <p>You are now much free-er to use or upgrade third-party dependencies
-in your <code>build.mill</code> via <code>//| mvnDeps</code>: they will not conflict with Mill&#8217;s internal
+in your <code>build.mill</code> via <code>//| mvnDeps</code>: they will not conflict with Mill’s internal
 dependencies, and are not pinned to the versions that Mill uses. This is important
 because <a href="../mill/comparisons/why-mill.html#_extensibility" class="xref page">extending Mill
 with third-party libraries</a> is a core part of its unique value proposition.</p>
 </li>
 <li>
 <p>Mill can evolve much more freely without worrying about breaking user code. All
-of Mill&#8217;s internal code is now completely hidden from the user, so users don&#8217;t
+of Mill’s internal code is now completely hidden from the user, so users don’t
 need to worry about accidentally depending on some internal class or static method
 that may change and cause breakage when they upgrade.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Clean classpaths aren&#8217;t a "feature" in the common sense of the word, but regardless
+<p>Clean classpaths aren’t a &quot;feature&quot; in the common sense of the word, but regardless
 we hope that this classpath cleanup will pay dividends over time.</p>
 </div>
 </div>
@@ -762,9 +763,9 @@ Maven, Gradle or SBT</p>
 </main>
 </div>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
-<script async src="../_/js/vendor/highlight.js"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>
 <script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
-<script async src="../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>

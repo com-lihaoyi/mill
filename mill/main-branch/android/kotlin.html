@@ -708,7 +708,7 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-20-792b71/mill-dist-1.0.3-20-792b71-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-21-ccff31/mill-dist-1.0.3-21-ccff31-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -760,7 +760,7 @@ import coursier.maven.MavenRepository</code></pre>
     def junit4Version = &quot;4.13.2&quot;
   }
 
-  object it extends AndroidAppKotlinInstrumentedTests, AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppKotlinInstrumentedTests {
 
     // TODO currently instrumented tests debug mode
     // is coupled with the app debug mode. Fix so

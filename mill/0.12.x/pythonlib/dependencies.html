@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Python Library Dependencies :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/pythonlib/dependencies.html">
-    <link rel="prev" href="module-config.html">
-    <link rel="next" href="linting.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/pythonlib/dependencies.html" />
+    <link rel="prev" href="module-config.html" />
+    <link rel="next" href="linting.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -648,7 +649,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -675,9 +676,9 @@ import mill._, pythonlib._
 
 object `package` extends RootModule with PythonModule {
   def pythonDeps = Seq(
-    "numpy==2.1.2",
-    "pandas~=2.2.3",
-    "jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl"
+    &quot;numpy==2.1.2&quot;,
+    &quot;pandas~=2.2.3&quot;,
+    &quot;jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl&quot;
   )
 }</code></pre>
 </div>
@@ -698,7 +699,7 @@ constraints, or even direct references to wheels.</p>
 <h3 id="_adding_dependencies_via_requirements_txt_files"><a class="anchor" href="#_adding_dependencies_via_requirements_txt_files"></a>Adding Dependencies via requirements.txt files</h3>
 <div class="paragraph">
 <p>You can also read dependencies from <code>requirements.txt</code> files. This can be
-useful if you&#8217;re migrating an existing project to mill.</p>
+useful if you’re migrating an existing project to mill.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-pythonlib-dependencies-2-pip-requirements.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/pythonlib/dependencies/2-pip-requirements">browse</a>)</div>
@@ -708,7 +709,7 @@ import mill._, pythonlib._
 
 object `package` extends RootModule with PythonModule {
   def pythonRequirementFiles = Task.Sources {
-    moduleDir / "requirements.txt"
+    moduleDir / &quot;requirements.txt&quot;
   }
 }</code></pre>
 </div>
@@ -739,7 +740,7 @@ import mill._, pythonlib._
 
 object `package` extends RootModule with PythonModule {
   def unmanagedWheels: T[Seq[PathRef]] = Task.Input {
-    Seq.from(os.list(moduleDir / "lib").map(PathRef(_)))
+    Seq.from(os.list(moduleDir / &quot;lib&quot;).map(PathRef(_)))
   }
 }</code></pre>
 </div>
@@ -765,7 +766,7 @@ Hello, world!</code></pre>
 <p>You can also override <code>unmanagedWheels</code> to point it at wheels that you want to
 download from arbitrary URLs.
 <code>requests.get</code> comes from the <a href="https://github.com/com-lihaoyi/requests-scala">Requests-Scala</a>
-library, one of Mill&#8217;s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
+library, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-pythonlib-dependencies-4-downloading-unmanaged-wheels.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/pythonlib/dependencies/4-downloading-unmanaged-wheels">browse</a>)</div>
@@ -775,8 +776,8 @@ import mill._, pythonlib._
 
 object `package` extends RootModule with PythonModule {
   def unmanagedWheels = Task {
-    val name = "jinja2-3.1.4-py3-none-any.whl"
-    val url = s"https://github.com/pallets/jinja/releases/download/3.1.4/$name"
+    val name = &quot;jinja2-3.1.4-py3-none-any.whl&quot;
+    val url = s&quot;https://github.com/pallets/jinja/releases/download/3.1.4/$name&quot;
     os.write(Task.dest / name, requests.get.stream(url))
     Seq(PathRef(Task.dest / name))
   }
@@ -792,12 +793,12 @@ Hello, world!</code></pre>
 <div class="paragraph">
 <p>Tasks like <code>unmanagedWheels</code> and <code>pythonDeps</code> are cached, so your wheel is downloaded only
 once and re-used indefinitely after that. This is usually not a problem, because usually URLs
-follow the rule that <a href="https://www.w3.org/Provider/Style/URI">Cool URIs don&#8217;t change</a>, and so files
+follow the rule that <a href="https://www.w3.org/Provider/Style/URI">Cool URIs don’t change</a>, and so files
 downloaded from the same URL will always contain the same contents.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -807,12 +808,12 @@ downloaded it from somewhere, <code>requests.get</code> does not know how to pul
 dependencies or de-duplicate different versions on the classpath. All the same caveats you need
 to worry about when dealing with <a href="#_unmanaged_wheels">unmanaged wheels</a> apply here as well. In
 case you <strong>do</strong> want mill to take care of managing dependencies of a package which is not
-available on PyPI, you shouldn&#8217;t get that package in <code>unmanagedWheels</code> (like we did in the
+available on PyPI, you shouldn’t get that package in <code>unmanagedWheels</code> (like we did in the
 example above). Instead, you can declare the dependency as a regular <code>pythonDep</code>
 <a href="https://peps.python.org/pep-0440/#direct-references">as a direct URL that pip understands</a>.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 </div>
@@ -834,11 +835,11 @@ import mill._, pythonlib._
 object foo extends PythonModule {
 
   def pythonDeps = Seq(
-    "testpkg-jodersky==0.0.1" // a test package, only available on test.pypi.org
+    &quot;testpkg-jodersky==0.0.1&quot; // a test package, only available on test.pypi.org
   )
 
   // override this task to add or replace the package indexes
-  def indexes = super.indexes() ++ Seq("https://test.pypi.org/simple/")
+  def indexes = super.indexes() ++ Seq(&quot;https://test.pypi.org/simple/&quot;)
 }</code></pre>
 </div>
 </div>
@@ -859,9 +860,9 @@ an environment variable:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends PythonModule {
-  def indexPassword = Task.Input { Task.env.apply("COMPANY_PASSWORD") }
+  def indexPassword = Task.Input { Task.env.apply(&quot;COMPANY_PASSWORD&quot;) }
   def indexes = Task {
-    Seq(s"https://username:${indexPassword()}@pypi.company.com/simple")
+    Seq(s&quot;https://username:${indexPassword()}@pypi.company.com/simple&quot;)
   }
 }</code></pre>
 </div>
@@ -882,7 +883,7 @@ an environment variable:</p>
 <h2 id="_debugging"><a class="anchor" href="#_debugging"></a>Debugging</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In case anything goes wrong, or if you&#8217;re just curious, you can see what
+<p>In case anything goes wrong, or if you’re just curious, you can see what
 arguments mill passes to <code>pip install</code> by looking at the output of the
 <code>pipInstallArgs</code> task.</p>
 </div>
@@ -894,12 +895,12 @@ import mill._, pythonlib._
 
 object `package` extends RootModule with PythonModule {
   def pythonDeps = Seq(
-    "numpy==2.1.2",
-    "pandas~=2.2.3",
-    "jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl"
+    &quot;numpy==2.1.2&quot;,
+    &quot;pandas~=2.2.3&quot;,
+    &quot;jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl&quot;
   )
 
-  def indexes = Seq("invalid_index")
+  def indexes = Seq(&quot;invalid_index&quot;)
 }</code></pre>
 </div>
 </div>
@@ -907,16 +908,16 @@ object `package` extends RootModule with PythonModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show pipInstallArgs
 {
-  "args": [
-    "--index-url",
-    "invalid_index",
-    "mypy==1.13.0",
-    "pex==2.24.1",
-    "numpy==2.1.2",
-    "pandas~=2.2.3",
-    "jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl"
+  &quot;args&quot;: [
+    &quot;--index-url&quot;,
+    &quot;invalid_index&quot;,
+    &quot;mypy==1.13.0&quot;,
+    &quot;pex==2.24.1&quot;,
+    &quot;numpy==2.1.2&quot;,
+    &quot;pandas~=2.2.3&quot;,
+    &quot;jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl&quot;
   ],
-  "sig": ...
+  &quot;sig&quot;: ...
 }</code></pre>
 </div>
 </div>
@@ -931,9 +932,9 @@ object `package` extends RootModule with PythonModule {
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

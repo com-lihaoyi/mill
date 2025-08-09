@@ -1,18 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Python Web Project Examples :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/pythonlib/web-examples.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/pythonlib/web-examples.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,7 +41,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -62,9 +63,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -646,7 +647,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -658,7 +659,7 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>This page provides examples of using Mill as a build tool for Python web applications.
-It includes setting up a basic "Hello, World!" application and developing a fully
+It includes setting up a basic &quot;Hello, World!&quot; application and developing a fully
 functional <a href="https://todomvc.com/">TodoMVC</a> app with Flask and Django, showcasing best practices
 for project organization, scalability, and maintainability.</p>
 </div>
@@ -668,7 +669,7 @@ for project organization, scalability, and maintainability.</p>
 <h2 id="_flask_hello_world_app"><a class="anchor" href="#_flask_hello_world_app"></a>Flask Hello World App</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This example uses Mill to manage a Flask app that serves <code>"Hello, Mill!"</code>
+<p>This example uses Mill to manage a Flask app that serves <code>&quot;Hello, Mill!&quot;</code>
 at the root URL (<code>/</code>), with Flask installed as a dependency
 and tests enabled using <code>unittest</code>.</p>
 </div>
@@ -680,9 +681,9 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
 
-  def pythonDeps = Seq("flask==3.1.0")
+  def pythonDeps = Seq(&quot;flask==3.1.0&quot;)
 
   object test extends PythonTests with TestModule.Unittest
 
@@ -723,7 +724,7 @@ OK
 <p>This is a <code>Flask</code>-based <a href="https://todomvc.com/">TodoMVC</a> application managed and built using <code>Mill</code>.
 It allows users to <code>add</code>, <code>edit</code>, <code>delete</code>, and <code>view</code> tasks stored in a Python Data Structure.
 Tasks can be filtered as <code>all</code>, <code>active</code>, or <code>completed</code> based on their state.
-The application demonstrates dynamic rendering using Flask&#8217;s routing and templating features.</p>
+The application demonstrates dynamic rendering using Flask’s routing and templating features.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-pythonlib-web-2-todo-flask.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/pythonlib/web/2-todo-flask">browse</a>)</div>
@@ -733,9 +734,9 @@ import mill._, pythonlib._
 
 object todo extends PythonModule {
 
-  def mainScript = Task.Source { "src/app.py" }
+  def mainScript = Task.Source { &quot;src/app.py&quot; }
 
-  def pythonDeps = Seq("flask==3.1.0", "Flask-SQLAlchemy==3.1.1", "Flask-WTF==1.2.2")
+  def pythonDeps = Seq(&quot;flask==3.1.0&quot;, &quot;Flask-SQLAlchemy==3.1.1&quot;, &quot;Flask-WTF==1.2.2&quot;)
 
   object test extends PythonTests with TestModule.Unittest
   object itest extends PythonTests with TestModule.Unittest
@@ -749,7 +750,7 @@ object todo extends PythonModule {
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Serving HTML templates</strong> using <strong>Jinja2</strong> (Flask&#8217;s default templating engine).</p>
+<p><strong>Serving HTML templates</strong> using <strong>Jinja2</strong> (Flask’s default templating engine).</p>
 </li>
 <li>
 <p><strong>Managing static files</strong> such as JavaScript, CSS, and images.</p>
@@ -813,7 +814,7 @@ OK
 <div class="paragraph">
 <p>This example demonstrates a minimal <code>Django</code> application managed with Mill.
 It features a simple view that returns <code>&lt;h1&gt;Hello, Mill!&lt;/h1&gt;</code> and
-includes <code>Django&#8217;s</code> core functionality for <code>testing</code> and <code>running</code> a development server.</p>
+includes <code>Django’s</code> core functionality for <code>testing</code> and <code>running</code> a development server.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-pythonlib-web-3-hello-django.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/pythonlib/web/3-hello-django">browse</a>)</div>
@@ -823,9 +824,9 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { "src/manage.py" }
+  def mainScript = Task.Source { &quot;src/manage.py&quot; }
 
-  def pythonDeps = Seq("django==5.1.4")
+  def pythonDeps = Seq(&quot;django==5.1.4&quot;)
 
 }</code></pre>
 </div>
@@ -861,7 +862,7 @@ OK
 <div class="sectionbody">
 <div class="paragraph">
 <p>This <code>Django</code> <a href="https://todomvc.com/">TodoMVC</a> example is a task management application built using <code>Mill</code> Build Tool.
-It features dynamic <code>HTML</code> rendering with <code>Django&#8217;s</code> template engine, <code>CRUD</code> operations with
+It features dynamic <code>HTML</code> rendering with <code>Django’s</code> template engine, <code>CRUD</code> operations with
 Django <code>ORM</code>, and efficient form handling for managing tasks.</p>
 </div>
 <div class="listingblock">
@@ -872,9 +873,9 @@ import mill._, pythonlib._
 
 object todo extends PythonModule {
 
-  def mainScript = Task.Source { "src/manage.py" }
+  def mainScript = Task.Source { &quot;src/manage.py&quot; }
 
-  def pythonDeps = Seq("django==5.1.4")
+  def pythonDeps = Seq(&quot;django==5.1.4&quot;)
 
 }</code></pre>
 </div>
@@ -885,7 +886,7 @@ object todo extends PythonModule {
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Serving HTML templates</strong> using <strong>Django&#8217;s template engine</strong>.</p>
+<p><strong>Serving HTML templates</strong> using <strong>Django’s template engine</strong>.</p>
 </li>
 <li>
 <p><strong>Managing static files</strong> such as JavaScript, CSS, and images.</p>
@@ -897,7 +898,7 @@ object todo extends PythonModule {
 <p><strong>Filtering and managing tasks</strong> using SQLite database.</p>
 </li>
 <li>
-<p><strong>Unit + Integration testing</strong> using Django&#8217;s inbuilt testing framework.</p>
+<p><strong>Unit + Integration testing</strong> using Django’s inbuilt testing framework.</p>
 </li>
 <li>
 <p><strong>URL routing</strong> and <strong>views</strong> for CRUD operations.</p>
@@ -951,9 +952,9 @@ test_toggle_todo_view (main.tests.TodoAppTests...) ... ok
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>The Mill Process Architecture :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/depth/process-architecture.html">
-    <link rel="prev" href="parallelism.html">
-    <link rel="next" href="sandboxing.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/depth/process-architecture.html" />
+    <link rel="prev" href="parallelism.html" />
+    <link rel="next" href="sandboxing.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +653,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -669,344 +670,343 @@ a running Mill process is shown below:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="990px" height="430px"
- viewBox="0.00 0.00 990.27 430.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="990px" height="430px" viewBox="0.00 0.00 990.27 430.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 426.4)">
 <title>G</title>
-<g id="clust2" class="cluster">
-<title>cluster_out</title>
-<polygon fill="transparent" stroke="black" points="281.6,-8 281.6,-402 408.54,-402 408.54,-8 281.6,-8"/>
-<text text-anchor="middle" x="345.07" y="-385.4" font-family="Times,serif" font-size="14.00">out/</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_mill_server_folder</title>
-<polygon fill="transparent" stroke="black" points="299.52,-218 299.52,-369 390.62,-369 390.62,-218 299.52,-218"/>
-<text text-anchor="middle" x="345.07" y="-352.4" font-family="Times,serif" font-size="14.00">mill&#45;daemon/</text>
-</g>
-<g id="clust4" class="cluster">
-<title>cluster_out_foo_folder</title>
-<polygon fill="transparent" stroke="black" points="289.6,-16 289.6,-210 400.54,-210 400.54,-16 289.6,-16"/>
-<text text-anchor="middle" x="345.07" y="-193.4" font-family="Times,serif" font-size="14.00">foo/</text>
-</g>
 <g id="clust5" class="cluster">
 <title>cluster_server</title>
-<polygon fill="transparent" stroke="black" points="416.54,-103 416.54,-409 974.27,-409 974.27,-103 416.54,-103"/>
+<polygon fill="transparent" stroke="black" points="416.54,-103 416.54,-409 974.27,-409 974.27,-103 416.54,-103"></polygon>
 <text text-anchor="middle" x="695.41" y="-392.4" font-family="Times,serif" font-size="14.00">mill daemon</text>
 </g>
 <g id="clust6" class="cluster">
 <title>cluster_classloder</title>
-<polygon fill="transparent" stroke="black" points="424.54,-111 424.54,-301 966.27,-301 966.27,-111 424.54,-111"/>
+<polygon fill="transparent" stroke="black" points="424.54,-111 424.54,-301 966.27,-301 966.27,-111 424.54,-111"></polygon>
 <text text-anchor="middle" x="695.41" y="-284.4" font-family="Times,serif" font-size="14.00">URLClassLoader</text>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_build</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="432.54,-119 432.54,-268 958.27,-268 958.27,-119 432.54,-119"/>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="432.54,-119 432.54,-268 958.27,-268 958.27,-119 432.54,-119"></polygon>
 <text text-anchor="middle" x="695.41" y="-251.4" font-family="Times,serif" font-size="14.00">build</text>
 </g>
 <g id="clust8" class="cluster">
 <title>cluster_foo</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="440.54,-127 440.54,-235 950.27,-235 950.27,-127 440.54,-127"/>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="440.54,-127 440.54,-235 950.27,-235 950.27,-127 440.54,-127"></polygon>
 <text text-anchor="middle" x="695.41" y="-218.4" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
 <g id="clust1" class="cluster">
 <title>cluster_client</title>
-<polygon fill="transparent" stroke="black" points="131.08,-261 131.08,-369 269.6,-369 269.6,-261 131.08,-261"/>
+<polygon fill="transparent" stroke="black" points="131.08,-261 131.08,-369 269.6,-369 269.6,-261 131.08,-261"></polygon>
 <text text-anchor="middle" x="200.34" y="-352.4" font-family="Times,serif" font-size="14.00">mill launcher</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_out</title>
+<polygon fill="transparent" stroke="black" points="281.6,-8 281.6,-402 408.54,-402 408.54,-8 281.6,-8"></polygon>
+<text text-anchor="middle" x="345.07" y="-385.4" font-family="Times,serif" font-size="14.00">out/</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_mill_server_folder</title>
+<polygon fill="transparent" stroke="black" points="299.52,-218 299.52,-369 390.62,-369 390.62,-218 299.52,-218"></polygon>
+<text text-anchor="middle" x="345.07" y="-352.4" font-family="Times,serif" font-size="14.00">mill-daemon/</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_out_foo_folder</title>
+<polygon fill="transparent" stroke="black" points="289.6,-16 289.6,-210 400.54,-210 400.54,-16 289.6,-16"></polygon>
+<text text-anchor="middle" x="345.07" y="-193.4" font-family="Times,serif" font-size="14.00">foo/</text>
 </g>
 <!-- launcher&#45;stdin -->
 <g id="node1" class="node">
-<title>launcher&#45;stdin</title>
-<polygon fill="white" stroke="black" stroke-width="0" points="99.62,-422.3 3.46,-422.3 3.46,-397.7 99.62,-397.7 99.62,-422.3"/>
-<text text-anchor="middle" x="51.54" y="-405.8" font-family="Times,serif" font-size="14.00">launcher&#45;stdin</text>
+<title>launcher-stdin</title>
+<polygon fill="white" stroke="black" stroke-width="0" points="99.62,-422.3 3.46,-422.3 3.46,-397.7 99.62,-397.7 99.62,-422.3"></polygon>
+<text text-anchor="middle" x="51.54" y="-405.8" font-family="Times,serif" font-size="14.00">launcher-stdin</text>
 </g>
 <!-- Socket -->
 <g id="node6" class="node">
 <title>Socket</title>
-<polygon fill="white" stroke="black" points="227.45,-336.3 173.24,-336.3 173.24,-311.7 227.45,-311.7 227.45,-336.3"/>
+<polygon fill="white" stroke="black" points="227.45,-336.3 173.24,-336.3 173.24,-311.7 227.45,-311.7 227.45,-336.3"></polygon>
 <text text-anchor="middle" x="200.34" y="-319.8" font-family="Times,serif" font-size="14.00">Socket</text>
 </g>
 <!-- launcher&#45;stdin&#45;&gt;Socket -->
 <g id="edge1" class="edge">
-<title>launcher&#45;stdin&#45;&gt;Socket</title>
-<path fill="none" stroke="black" d="M83.42,-397.59C90.02,-394.65 96.86,-391.39 103.08,-388 128.3,-374.27 155.4,-355.89 174.4,-342.35"/>
-<polygon fill="black" stroke="black" points="176.45,-345.19 182.52,-336.51 172.36,-339.51 176.45,-345.19"/>
+<title>launcher-stdin-&gt;Socket</title>
+<path fill="none" stroke="black" d="M83.42,-397.59C90.02,-394.65 96.86,-391.39 103.08,-388 128.3,-374.27 155.4,-355.89 174.4,-342.35"></path>
+<polygon fill="black" stroke="black" points="176.45,-345.19 182.52,-336.51 172.36,-339.51 176.45,-345.19"></polygon>
 </g>
 <!-- launcher&#45;stdout -->
 <g id="node2" class="node">
-<title>launcher&#45;stdout</title>
-<polygon fill="white" stroke="black" stroke-width="0" points="103.12,-379.3 -0.04,-379.3 -0.04,-354.7 103.12,-354.7 103.12,-379.3"/>
-<text text-anchor="middle" x="51.54" y="-362.8" font-family="Times,serif" font-size="14.00">launcher&#45;stdout</text>
+<title>launcher-stdout</title>
+<polygon fill="white" stroke="black" stroke-width="0" points="103.12,-379.3 -0.04,-379.3 -0.04,-354.7 103.12,-354.7 103.12,-379.3"></polygon>
+<text text-anchor="middle" x="51.54" y="-362.8" font-family="Times,serif" font-size="14.00">launcher-stdout</text>
 </g>
 <!-- launcher&#45;stdout&#45;&gt;Socket -->
 <g id="edge3" class="edge">
-<title>launcher&#45;stdout&#45;&gt;Socket</title>
-<path fill="none" stroke="black" d="M104.33,-351.83C127.54,-345.03 153.92,-337.31 172.98,-331.72"/>
-<polygon fill="black" stroke="black" points="103.22,-348.51 94.61,-354.68 105.19,-355.23 103.22,-348.51"/>
+<title>launcher-stdout-&gt;Socket</title>
+<path fill="none" stroke="black" d="M104.33,-351.83C127.54,-345.03 153.92,-337.31 172.98,-331.72"></path>
+<polygon fill="black" stroke="black" points="103.22,-348.51 94.61,-354.68 105.19,-355.23 103.22,-348.51"></polygon>
 </g>
 <!-- launcher&#45;stderr -->
 <g id="node3" class="node">
-<title>launcher&#45;stderr</title>
-<polygon fill="white" stroke="black" stroke-width="0" points="101.77,-336.3 1.31,-336.3 1.31,-311.7 101.77,-311.7 101.77,-336.3"/>
-<text text-anchor="middle" x="51.54" y="-319.8" font-family="Times,serif" font-size="14.00">launcher&#45;stderr</text>
+<title>launcher-stderr</title>
+<polygon fill="white" stroke="black" stroke-width="0" points="101.77,-336.3 1.31,-336.3 1.31,-311.7 101.77,-311.7 101.77,-336.3"></polygon>
+<text text-anchor="middle" x="51.54" y="-319.8" font-family="Times,serif" font-size="14.00">launcher-stderr</text>
 </g>
 <!-- launcher&#45;stderr&#45;&gt;Socket -->
 <g id="edge2" class="edge">
-<title>launcher&#45;stderr&#45;&gt;Socket</title>
-<path fill="none" stroke="black" d="M112.08,-324C133.27,-324 156.07,-324 173.04,-324"/>
-<polygon fill="black" stroke="black" points="111.83,-320.5 101.83,-324 111.83,-327.5 111.83,-320.5"/>
+<title>launcher-stderr-&gt;Socket</title>
+<path fill="none" stroke="black" d="M112.08,-324C133.27,-324 156.07,-324 173.04,-324"></path>
+<polygon fill="black" stroke="black" points="111.83,-320.5 101.83,-324 111.83,-327.5 111.83,-320.5"></polygon>
 </g>
 <!-- launcher&#45;exit -->
 <g id="node4" class="node">
-<title>launcher&#45;exit</title>
-<polygon fill="white" stroke="black" stroke-width="0" points="96.39,-293.3 6.69,-293.3 6.69,-268.7 96.39,-268.7 96.39,-293.3"/>
-<text text-anchor="middle" x="51.54" y="-276.8" font-family="Times,serif" font-size="14.00">launcher&#45;exit</text>
+<title>launcher-exit</title>
+<polygon fill="white" stroke="black" stroke-width="0" points="96.39,-293.3 6.69,-293.3 6.69,-268.7 96.39,-268.7 96.39,-293.3"></polygon>
+<text text-anchor="middle" x="51.54" y="-276.8" font-family="Times,serif" font-size="14.00">launcher-exit</text>
 </g>
 <!-- MillLauncherMain -->
 <g id="node7" class="node">
 <title>MillLauncherMain</title>
-<polygon fill="white" stroke="black" points="261.37,-293.3 139.32,-293.3 139.32,-268.7 261.37,-268.7 261.37,-293.3"/>
+<polygon fill="white" stroke="black" points="261.37,-293.3 139.32,-293.3 139.32,-268.7 261.37,-268.7 261.37,-293.3"></polygon>
 <text text-anchor="middle" x="200.34" y="-276.8" font-family="Times,serif" font-size="14.00">MillLauncherMain</text>
 </g>
 <!-- launcher&#45;exit&#45;&gt;MillLauncherMain -->
 <g id="edge5" class="edge">
-<title>launcher&#45;exit&#45;&gt;MillLauncherMain</title>
-<path fill="none" stroke="black" d="M106.59,-281C117.24,-281 128.48,-281 139.31,-281"/>
-<polygon fill="black" stroke="black" points="106.59,-277.5 96.59,-281 106.59,-284.5 106.59,-277.5"/>
+<title>launcher-exit-&gt;MillLauncherMain</title>
+<path fill="none" stroke="black" d="M106.59,-281C117.24,-281 128.48,-281 139.31,-281"></path>
+<polygon fill="black" stroke="black" points="106.59,-277.5 96.59,-281 106.59,-284.5 106.59,-277.5"></polygon>
 </g>
 <!-- launcher&#45;args -->
 <g id="node5" class="node">
-<title>launcher&#45;args</title>
-<polygon fill="white" stroke="black" stroke-width="0" points="97.72,-250.3 5.37,-250.3 5.37,-225.7 97.72,-225.7 97.72,-250.3"/>
-<text text-anchor="middle" x="51.54" y="-233.8" font-family="Times,serif" font-size="14.00">launcher&#45;args</text>
+<title>launcher-args</title>
+<polygon fill="white" stroke="black" stroke-width="0" points="97.72,-250.3 5.37,-250.3 5.37,-225.7 97.72,-225.7 97.72,-250.3"></polygon>
+<text text-anchor="middle" x="51.54" y="-233.8" font-family="Times,serif" font-size="14.00">launcher-args</text>
 </g>
 <!-- launcher&#45;args&#45;&gt;MillLauncherMain -->
 <g id="edge4" class="edge">
-<title>launcher&#45;args&#45;&gt;MillLauncherMain</title>
-<path fill="none" stroke="black" d="M94.61,-250.32C111.04,-255.14 130.05,-260.7 147.33,-265.76"/>
-<polygon fill="black" stroke="black" points="146.69,-269.22 157.27,-268.68 148.66,-262.51 146.69,-269.22"/>
+<title>launcher-args-&gt;MillLauncherMain</title>
+<path fill="none" stroke="black" d="M94.61,-250.32C111.04,-255.14 130.05,-260.7 147.33,-265.76"></path>
+<polygon fill="black" stroke="black" points="146.69,-269.22 157.27,-268.68 148.66,-262.51 146.69,-269.22"></polygon>
 </g>
 <!-- socketPort -->
 <g id="node9" class="node">
 <title>socketPort</title>
-<polygon fill="white" stroke="black" stroke-width="0" points="382.67,-336.3 307.47,-336.3 307.47,-311.7 382.67,-311.7 382.67,-336.3"/>
+<polygon fill="white" stroke="black" stroke-width="0" points="382.67,-336.3 307.47,-336.3 307.47,-311.7 382.67,-311.7 382.67,-336.3"></polygon>
 <text text-anchor="middle" x="345.07" y="-319.8" font-family="Times,serif" font-size="14.00">socketPort</text>
 </g>
 <!-- Socket&#45;&gt;socketPort -->
 <g id="edge16" class="edge">
-<title>Socket&#45;&gt;socketPort</title>
-<path fill="none" stroke="black" d="M237.8,-324C255.87,-324 277.9,-324 297.2,-324"/>
-<polygon fill="black" stroke="black" points="237.52,-320.5 227.52,-324 237.52,-327.5 237.52,-320.5"/>
-<polygon fill="black" stroke="black" points="297.31,-327.5 307.31,-324 297.31,-320.5 297.31,-327.5"/>
+<title>Socket-&gt;socketPort</title>
+<path fill="none" stroke="black" d="M237.8,-324C255.87,-324 277.9,-324 297.2,-324"></path>
+<polygon fill="black" stroke="black" points="237.52,-320.5 227.52,-324 237.52,-327.5 237.52,-320.5"></polygon>
+<polygon fill="black" stroke="black" points="297.31,-327.5 307.31,-324 297.31,-320.5 297.31,-327.5"></polygon>
 </g>
 <!-- runArgs -->
 <g id="node8" class="node">
 <title>runArgs</title>
-<polygon fill="white" stroke="black" stroke-width="0" points="375.94,-293.3 314.2,-293.3 314.2,-268.7 375.94,-268.7 375.94,-293.3"/>
+<polygon fill="white" stroke="black" stroke-width="0" points="375.94,-293.3 314.2,-293.3 314.2,-268.7 375.94,-268.7 375.94,-293.3"></polygon>
 <text text-anchor="middle" x="345.07" y="-276.8" font-family="Times,serif" font-size="14.00">runArgs</text>
 </g>
 <!-- MillLauncherMain&#45;&gt;runArgs -->
 <g id="edge6" class="edge">
-<title>MillLauncherMain&#45;&gt;runArgs</title>
-<path fill="none" stroke="black" d="M261.46,-281C275.77,-281 290.69,-281 303.86,-281"/>
-<polygon fill="black" stroke="black" points="303.99,-284.5 313.99,-281 303.99,-277.5 303.99,-284.5"/>
+<title>MillLauncherMain-&gt;runArgs</title>
+<path fill="none" stroke="black" d="M261.46,-281C275.77,-281 290.69,-281 303.86,-281"></path>
+<polygon fill="black" stroke="black" points="303.99,-284.5 313.99,-281 303.99,-277.5 303.99,-284.5"></polygon>
 </g>
 <!-- exitCode -->
 <g id="node10" class="node">
 <title>exitCode</title>
-<polygon fill="white" stroke="black" stroke-width="0" points="378.12,-250.3 312.02,-250.3 312.02,-225.7 378.12,-225.7 378.12,-250.3"/>
+<polygon fill="white" stroke="black" stroke-width="0" points="378.12,-250.3 312.02,-250.3 312.02,-225.7 378.12,-225.7 378.12,-250.3"></polygon>
 <text text-anchor="middle" x="345.07" y="-233.8" font-family="Times,serif" font-size="14.00">exitCode</text>
 </g>
 <!-- MillLauncherMain&#45;&gt;exitCode -->
 <g id="edge15" class="edge">
-<title>MillLauncherMain&#45;&gt;exitCode</title>
-<path fill="none" stroke="black" d="M252.08,-265.71C271.95,-259.73 294.16,-253.04 311.78,-247.73"/>
-<polygon fill="black" stroke="black" points="250.81,-262.44 242.24,-268.68 252.83,-269.14 250.81,-262.44"/>
+<title>MillLauncherMain-&gt;exitCode</title>
+<path fill="none" stroke="black" d="M252.08,-265.71C271.95,-259.73 294.16,-253.04 311.78,-247.73"></path>
+<polygon fill="black" stroke="black" points="250.81,-262.44 242.24,-268.68 252.83,-269.14 250.81,-262.44"></polygon>
 </g>
 <!-- MillDaemonMain -->
 <g id="node16" class="node">
 <title>MillDaemonMain</title>
-<polygon fill="white" stroke="black" points="547.2,-333.3 430.02,-333.3 430.02,-308.7 547.2,-308.7 547.2,-333.3"/>
+<polygon fill="white" stroke="black" points="547.2,-333.3 430.02,-333.3 430.02,-308.7 547.2,-308.7 547.2,-333.3"></polygon>
 <text text-anchor="middle" x="488.61" y="-316.8" font-family="Times,serif" font-size="14.00">MillDaemonMain</text>
 </g>
 <!-- runArgs&#45;&gt;MillDaemonMain -->
 <g id="edge11" class="edge">
-<title>runArgs&#45;&gt;MillDaemonMain</title>
-<path fill="none" stroke="black" d="M376.09,-289.48C392.96,-294.25 414.51,-300.34 434.17,-305.9"/>
-<polygon fill="black" stroke="black" points="433.36,-309.31 443.93,-308.66 435.26,-302.57 433.36,-309.31"/>
+<title>runArgs-&gt;MillDaemonMain</title>
+<path fill="none" stroke="black" d="M376.09,-289.48C392.96,-294.25 414.51,-300.34 434.17,-305.9"></path>
+<polygon fill="black" stroke="black" points="433.36,-309.31 443.93,-308.66 435.26,-302.57 433.36,-309.31"></polygon>
 </g>
 <!-- ServerSocket -->
 <g id="node18" class="node">
 <title>ServerSocket</title>
-<polygon fill="white" stroke="black" points="533.75,-376.3 443.47,-376.3 443.47,-351.7 533.75,-351.7 533.75,-376.3"/>
+<polygon fill="white" stroke="black" points="533.75,-376.3 443.47,-376.3 443.47,-351.7 533.75,-351.7 533.75,-376.3"></polygon>
 <text text-anchor="middle" x="488.61" y="-359.8" font-family="Times,serif" font-size="14.00">ServerSocket</text>
 </g>
 <!-- socketPort&#45;&gt;ServerSocket -->
 <g id="edge17" class="edge">
-<title>socketPort&#45;&gt;ServerSocket</title>
-<path fill="none" stroke="black" d="M392.85,-337.22C406.09,-340.96 420.61,-345.07 434.22,-348.91"/>
-<polygon fill="black" stroke="black" points="393.46,-333.76 382.89,-334.41 391.56,-340.49 393.46,-333.76"/>
-<polygon fill="black" stroke="black" points="433.36,-352.3 443.93,-351.66 435.26,-345.57 433.36,-352.3"/>
+<title>socketPort-&gt;ServerSocket</title>
+<path fill="none" stroke="black" d="M392.85,-337.22C406.09,-340.96 420.61,-345.07 434.22,-348.91"></path>
+<polygon fill="black" stroke="black" points="393.46,-333.76 382.89,-334.41 391.56,-340.49 393.46,-333.76"></polygon>
+<polygon fill="black" stroke="black" points="433.36,-352.3 443.93,-351.66 435.26,-345.57 433.36,-352.3"></polygon>
 </g>
 <!-- exitCode&#45;&gt;MillDaemonMain -->
 <g id="edge14" class="edge">
-<title>exitCode&#45;&gt;MillDaemonMain</title>
-<path fill="none" stroke="black" d="M387.89,-250.64C394.95,-253.36 402.08,-256.49 408.54,-260 433.67,-273.66 459.26,-295.05 474.27,-308.53"/>
-<polygon fill="black" stroke="black" points="388.96,-247.31 378.37,-247.19 386.58,-253.89 388.96,-247.31"/>
+<title>exitCode-&gt;MillDaemonMain</title>
+<path fill="none" stroke="black" d="M387.89,-250.64C394.95,-253.36 402.08,-256.49 408.54,-260 433.67,-273.66 459.26,-295.05 474.27,-308.53"></path>
+<polygon fill="black" stroke="black" points="388.96,-247.31 378.37,-247.19 386.58,-253.89 388.96,-247.31"></polygon>
 </g>
 <!-- compile.json -->
 <g id="node11" class="node">
 <title>compile.json</title>
-<polygon fill="white" stroke="black" stroke-width="0" points="389.01,-177.3 301.14,-177.3 301.14,-152.7 389.01,-152.7 389.01,-177.3"/>
+<polygon fill="white" stroke="black" stroke-width="0" points="389.01,-177.3 301.14,-177.3 301.14,-152.7 389.01,-152.7 389.01,-177.3"></polygon>
 <text text-anchor="middle" x="345.07" y="-160.8" font-family="Times,serif" font-size="14.00">compile.json</text>
 </g>
 <!-- foo.compile -->
 <g id="node22" class="node">
 <title>foo.compile</title>
-<polygon fill="white" stroke="black" points="673.74,-182.3 590.22,-182.3 590.22,-157.7 673.74,-157.7 673.74,-182.3"/>
+<polygon fill="white" stroke="black" points="673.74,-182.3 590.22,-182.3 590.22,-157.7 673.74,-157.7 673.74,-182.3"></polygon>
 <text text-anchor="middle" x="631.98" y="-165.8" font-family="Times,serif" font-size="14.00">foo.compile</text>
 </g>
 <!-- compile.json&#45;&gt;foo.compile -->
 <g id="edge21" class="edge">
-<title>compile.json&#45;&gt;foo.compile</title>
-<path fill="none" stroke="black" d="M399.33,-165.93C451.01,-166.84 528.91,-168.21 579.86,-169.1"/>
-<polygon fill="black" stroke="black" points="399.09,-162.43 389.03,-165.75 398.97,-169.43 399.09,-162.43"/>
-<polygon fill="black" stroke="black" points="579.92,-172.6 589.98,-169.28 580.05,-165.61 579.92,-172.6"/>
+<title>compile.json-&gt;foo.compile</title>
+<path fill="none" stroke="black" d="M399.33,-165.93C451.01,-166.84 528.91,-168.21 579.86,-169.1"></path>
+<polygon fill="black" stroke="black" points="399.09,-162.43 389.03,-165.75 398.97,-169.43 399.09,-162.43"></polygon>
+<polygon fill="black" stroke="black" points="579.92,-172.6 589.98,-169.28 580.05,-165.61 579.92,-172.6"></polygon>
 </g>
 <!-- compile.dest -->
 <g id="node12" class="node">
 <title>compile.dest</title>
-<polygon fill="white" stroke="black" stroke-width="0" points="388.72,-134.3 301.42,-134.3 301.42,-109.7 388.72,-109.7 388.72,-134.3"/>
+<polygon fill="white" stroke="black" stroke-width="0" points="388.72,-134.3 301.42,-134.3 301.42,-109.7 388.72,-109.7 388.72,-134.3"></polygon>
 <text text-anchor="middle" x="345.07" y="-117.8" font-family="Times,serif" font-size="14.00">compile.dest</text>
 </g>
 <!-- compile.dest&#45;&gt;foo.compile -->
 <g id="edge20" class="edge">
-<title>compile.dest&#45;&gt;foo.compile</title>
-<path fill="none" stroke="black" d="M398.69,-130.86C450.48,-139.59 529.03,-152.82 580.18,-161.44"/>
-<polygon fill="black" stroke="black" points="399.17,-127.4 388.73,-129.19 398.01,-134.3 399.17,-127.4"/>
-<polygon fill="black" stroke="black" points="579.9,-164.94 590.35,-163.15 581.07,-158.04 579.9,-164.94"/>
+<title>compile.dest-&gt;foo.compile</title>
+<path fill="none" stroke="black" d="M398.69,-130.86C450.48,-139.59 529.03,-152.82 580.18,-161.44"></path>
+<polygon fill="black" stroke="black" points="399.17,-127.4 388.73,-129.19 398.01,-134.3 399.17,-127.4"></polygon>
+<polygon fill="black" stroke="black" points="579.9,-164.94 590.35,-163.15 581.07,-158.04 579.9,-164.94"></polygon>
 </g>
 <!-- assembly.json -->
 <g id="node13" class="node">
 <title>assembly.json</title>
-<polygon fill="white" stroke="black" stroke-width="0" points="392.51,-91.3 297.64,-91.3 297.64,-66.7 392.51,-66.7 392.51,-91.3"/>
+<polygon fill="white" stroke="black" stroke-width="0" points="392.51,-91.3 297.64,-91.3 297.64,-66.7 392.51,-66.7 392.51,-91.3"></polygon>
 <text text-anchor="middle" x="345.07" y="-74.8" font-family="Times,serif" font-size="14.00">assembly.json</text>
 </g>
 <!-- foo.assembly -->
 <g id="node24" class="node">
 <title>foo.assembly</title>
-<polygon fill="white" stroke="black" points="942.4,-159.3 851.88,-159.3 851.88,-134.7 942.4,-134.7 942.4,-159.3"/>
+<polygon fill="white" stroke="black" points="942.4,-159.3 851.88,-159.3 851.88,-134.7 942.4,-134.7 942.4,-159.3"></polygon>
 <text text-anchor="middle" x="897.14" y="-142.8" font-family="Times,serif" font-size="14.00">foo.assembly</text>
 </g>
 <!-- assembly.json&#45;&gt;foo.assembly -->
 <g id="edge23" class="edge">
-<title>assembly.json&#45;&gt;foo.assembly</title>
-<path fill="none" stroke="black" d="M402.89,-81.8C491.64,-86.83 668.33,-99.43 816.01,-126 825.16,-127.65 834.8,-129.8 844.09,-132.1"/>
-<polygon fill="black" stroke="black" points="402.94,-78.3 392.76,-81.24 402.56,-85.29 402.94,-78.3"/>
-<polygon fill="black" stroke="black" points="843.45,-135.55 854,-134.63 845.18,-128.76 843.45,-135.55"/>
+<title>assembly.json-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M402.89,-81.8C491.64,-86.83 668.33,-99.43 816.01,-126 825.16,-127.65 834.8,-129.8 844.09,-132.1"></path>
+<polygon fill="black" stroke="black" points="402.94,-78.3 392.76,-81.24 402.56,-85.29 402.94,-78.3"></polygon>
+<polygon fill="black" stroke="black" points="843.45,-135.55 854,-134.63 845.18,-128.76 843.45,-135.55"></polygon>
 </g>
 <!-- assembly.dest -->
 <g id="node14" class="node">
 <title>assembly.dest</title>
-<polygon fill="white" stroke="black" stroke-width="0" points="392.22,-48.3 297.92,-48.3 297.92,-23.7 392.22,-23.7 392.22,-48.3"/>
+<polygon fill="white" stroke="black" stroke-width="0" points="392.22,-48.3 297.92,-48.3 297.92,-23.7 392.22,-23.7 392.22,-48.3"></polygon>
 <text text-anchor="middle" x="345.07" y="-31.8" font-family="Times,serif" font-size="14.00">assembly.dest</text>
 </g>
 <!-- assembly.dest&#45;&gt;foo.assembly -->
 <g id="edge22" class="edge">
-<title>assembly.dest&#45;&gt;foo.assembly</title>
-<path fill="none" stroke="black" d="M402.38,-38.82C491.89,-44.56 671.29,-61.2 816.01,-107 833.52,-112.54 851.94,-121.49 866.69,-129.51"/>
-<polygon fill="black" stroke="black" points="402.38,-35.32 392.18,-38.19 401.94,-42.3 402.38,-35.32"/>
-<polygon fill="black" stroke="black" points="865.37,-132.79 875.81,-134.61 868.79,-126.68 865.37,-132.79"/>
+<title>assembly.dest-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M402.38,-38.82C491.89,-44.56 671.29,-61.2 816.01,-107 833.52,-112.54 851.94,-121.49 866.69,-129.51"></path>
+<polygon fill="black" stroke="black" points="402.38,-35.32 392.18,-38.19 401.94,-42.3 402.38,-35.32"></polygon>
+<polygon fill="black" stroke="black" points="865.37,-132.79 875.81,-134.61 868.79,-126.68 865.37,-132.79"></polygon>
 </g>
 <!-- PromptLogger -->
 <g id="node15" class="node">
 <title>PromptLogger</title>
-<polygon fill="white" stroke="black" points="680.63,-376.3 583.33,-376.3 583.33,-351.7 680.63,-351.7 680.63,-376.3"/>
+<polygon fill="white" stroke="black" points="680.63,-376.3 583.33,-376.3 583.33,-351.7 680.63,-351.7 680.63,-376.3"></polygon>
 <text text-anchor="middle" x="631.98" y="-359.8" font-family="Times,serif" font-size="14.00">PromptLogger</text>
 </g>
 <!-- daemon&#45;stdout -->
 <g id="node19" class="node">
-<title>daemon&#45;stdout</title>
-<polygon fill="white" stroke="black" stroke-width="0" points="816.12,-376.3 716.7,-376.3 716.7,-351.7 816.12,-351.7 816.12,-376.3"/>
-<text text-anchor="middle" x="766.41" y="-359.8" font-family="Times,serif" font-size="14.00">daemon&#45;stdout</text>
+<title>daemon-stdout</title>
+<polygon fill="white" stroke="black" stroke-width="0" points="816.12,-376.3 716.7,-376.3 716.7,-351.7 816.12,-351.7 816.12,-376.3"></polygon>
+<text text-anchor="middle" x="766.41" y="-359.8" font-family="Times,serif" font-size="14.00">daemon-stdout</text>
 </g>
 <!-- PromptLogger&#45;&gt;daemon&#45;stdout -->
 <g id="edge19" class="edge">
-<title>PromptLogger&#45;&gt;daemon&#45;stdout</title>
-<path fill="none" stroke="black" d="M690.83,-364C699.49,-364 708.34,-364 716.78,-364"/>
-<polygon fill="black" stroke="black" points="690.79,-360.5 680.79,-364 690.79,-367.5 690.79,-360.5"/>
+<title>PromptLogger-&gt;daemon-stdout</title>
+<path fill="none" stroke="black" d="M690.83,-364C699.49,-364 708.34,-364 716.78,-364"></path>
+<polygon fill="black" stroke="black" points="690.79,-360.5 680.79,-364 690.79,-367.5 690.79,-360.5"></polygon>
 </g>
 <!-- daemon&#45;stderr -->
 <g id="node20" class="node">
-<title>daemon&#45;stderr</title>
-<polygon fill="white" stroke="black" stroke-width="0" points="814.76,-333.3 718.06,-333.3 718.06,-308.7 814.76,-308.7 814.76,-333.3"/>
-<text text-anchor="middle" x="766.41" y="-316.8" font-family="Times,serif" font-size="14.00">daemon&#45;stderr</text>
+<title>daemon-stderr</title>
+<polygon fill="white" stroke="black" stroke-width="0" points="814.76,-333.3 718.06,-333.3 718.06,-308.7 814.76,-308.7 814.76,-333.3"></polygon>
+<text text-anchor="middle" x="766.41" y="-316.8" font-family="Times,serif" font-size="14.00">daemon-stderr</text>
 </g>
 <!-- PromptLogger&#45;&gt;daemon&#45;stderr -->
 <g id="edge18" class="edge">
-<title>PromptLogger&#45;&gt;daemon&#45;stderr</title>
-<path fill="none" stroke="black" d="M680.77,-348.48C696.12,-343.5 712.91,-338.05 727.46,-333.32"/>
-<polygon fill="black" stroke="black" points="679.36,-345.26 670.93,-351.68 681.52,-351.92 679.36,-345.26"/>
+<title>PromptLogger-&gt;daemon-stderr</title>
+<path fill="none" stroke="black" d="M680.77,-348.48C696.12,-343.5 712.91,-338.05 727.46,-333.32"></path>
+<polygon fill="black" stroke="black" points="679.36,-345.26 670.93,-351.68 681.52,-351.92 679.36,-345.26"></polygon>
 </g>
 <!-- Evaluator -->
 <g id="node17" class="node">
 <title>Evaluator</title>
-<polygon fill="white" stroke="black" points="667.41,-333.3 596.56,-333.3 596.56,-308.7 667.41,-308.7 667.41,-333.3"/>
+<polygon fill="white" stroke="black" points="667.41,-333.3 596.56,-333.3 596.56,-308.7 667.41,-308.7 667.41,-333.3"></polygon>
 <text text-anchor="middle" x="631.98" y="-316.8" font-family="Times,serif" font-size="14.00">Evaluator</text>
 </g>
 <!-- MillDaemonMain&#45;&gt;Evaluator -->
 <g id="edge12" class="edge">
-<title>MillDaemonMain&#45;&gt;Evaluator</title>
-<path fill="none" stroke="black" d="M557.74,-321C567.39,-321 577.12,-321 586.18,-321"/>
-<polygon fill="black" stroke="black" points="557.52,-317.5 547.52,-321 557.52,-324.5 557.52,-317.5"/>
-<polygon fill="black" stroke="black" points="586.47,-324.5 596.47,-321 586.47,-317.5 586.47,-324.5"/>
+<title>MillDaemonMain-&gt;Evaluator</title>
+<path fill="none" stroke="black" d="M557.74,-321C567.39,-321 577.12,-321 586.18,-321"></path>
+<polygon fill="black" stroke="black" points="557.52,-317.5 547.52,-321 557.52,-324.5 557.52,-317.5"></polygon>
+<polygon fill="black" stroke="black" points="586.47,-324.5 596.47,-321 586.47,-317.5 586.47,-324.5"></polygon>
 </g>
 <!-- ServerSocket&#45;&gt;PromptLogger -->
 <g id="edge13" class="edge">
-<title>ServerSocket&#45;&gt;PromptLogger</title>
-<path fill="none" stroke="black" d="M544.02,-364C556.82,-364 570.37,-364 582.87,-364"/>
-<polygon fill="black" stroke="black" points="543.95,-360.5 533.95,-364 543.95,-367.5 543.95,-360.5"/>
+<title>ServerSocket-&gt;PromptLogger</title>
+<path fill="none" stroke="black" d="M544.02,-364C556.82,-364 570.37,-364 582.87,-364"></path>
+<polygon fill="black" stroke="black" points="543.95,-360.5 533.95,-364 543.95,-367.5 543.95,-360.5"></polygon>
 </g>
 <!-- foo.sources -->
 <g id="node21" class="node">
 <title>foo.sources</title>
-<polygon fill="white" stroke="black" points="528.75,-202.3 448.47,-202.3 448.47,-177.7 528.75,-177.7 528.75,-202.3"/>
+<polygon fill="white" stroke="black" points="528.75,-202.3 448.47,-202.3 448.47,-177.7 528.75,-177.7 528.75,-202.3"></polygon>
 <text text-anchor="middle" x="488.61" y="-185.8" font-family="Times,serif" font-size="14.00">foo.sources</text>
 </g>
 <!-- foo.sources&#45;&gt;foo.compile -->
 <g id="edge7" class="edge">
-<title>foo.sources&#45;&gt;foo.compile</title>
-<path fill="none" stroke="black" d="M528.99,-184.43C544.82,-182.19 563.28,-179.58 580.11,-177.2"/>
-<polygon fill="black" stroke="black" points="580.93,-180.62 590.34,-175.75 579.95,-173.69 580.93,-180.62"/>
+<title>foo.sources-&gt;foo.compile</title>
+<path fill="none" stroke="black" d="M528.99,-184.43C544.82,-182.19 563.28,-179.58 580.11,-177.2"></path>
+<polygon fill="black" stroke="black" points="580.93,-180.62 590.34,-175.75 579.95,-173.69 580.93,-180.62"></polygon>
 </g>
 <!-- foo.classPath -->
 <g id="node23" class="node">
 <title>foo.classPath</title>
-<polygon fill="white" stroke="black" points="811.67,-202.3 721.15,-202.3 721.15,-177.7 811.67,-177.7 811.67,-202.3"/>
+<polygon fill="white" stroke="black" points="811.67,-202.3 721.15,-202.3 721.15,-177.7 811.67,-177.7 811.67,-202.3"></polygon>
 <text text-anchor="middle" x="766.41" y="-185.8" font-family="Times,serif" font-size="14.00">foo.classPath</text>
 </g>
 <!-- foo.compile&#45;&gt;foo.classPath -->
 <g id="edge8" class="edge">
-<title>foo.compile&#45;&gt;foo.classPath</title>
-<path fill="none" stroke="black" d="M673.8,-176.16C685.67,-177.96 698.83,-179.94 711.38,-181.84"/>
-<polygon fill="black" stroke="black" points="710.87,-185.3 721.28,-183.34 711.92,-178.38 710.87,-185.3"/>
+<title>foo.compile-&gt;foo.classPath</title>
+<path fill="none" stroke="black" d="M673.8,-176.16C685.67,-177.96 698.83,-179.94 711.38,-181.84"></path>
+<polygon fill="black" stroke="black" points="710.87,-185.3 721.28,-183.34 711.92,-178.38 710.87,-185.3"></polygon>
 </g>
 <!-- foo.classPath&#45;&gt;foo.assembly -->
 <g id="edge9" class="edge">
-<title>foo.classPath&#45;&gt;foo.assembly</title>
-<path fill="none" stroke="black" d="M804.3,-177.68C818.44,-172.95 834.76,-167.5 849.68,-162.52"/>
-<polygon fill="black" stroke="black" points="850.87,-165.81 859.25,-159.32 848.66,-159.17 850.87,-165.81"/>
+<title>foo.classPath-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M804.3,-177.68C818.44,-172.95 834.76,-167.5 849.68,-162.52"></path>
+<polygon fill="black" stroke="black" points="850.87,-165.81 859.25,-159.32 848.66,-159.17 850.87,-165.81"></polygon>
 </g>
 <!-- foo.resources -->
 <g id="node25" class="node">
 <title>foo.resources</title>
-<polygon fill="white" stroke="black" points="811.93,-159.3 720.9,-159.3 720.9,-134.7 811.93,-134.7 811.93,-159.3"/>
+<polygon fill="white" stroke="black" points="811.93,-159.3 720.9,-159.3 720.9,-134.7 811.93,-134.7 811.93,-159.3"></polygon>
 <text text-anchor="middle" x="766.41" y="-142.8" font-family="Times,serif" font-size="14.00">foo.resources</text>
 </g>
 <!-- foo.resources&#45;&gt;foo.assembly -->
 <g id="edge10" class="edge">
-<title>foo.resources&#45;&gt;foo.assembly</title>
-<path fill="none" stroke="black" d="M812.07,-147C821.67,-147 831.91,-147 841.82,-147"/>
-<polygon fill="black" stroke="black" points="841.99,-150.5 851.99,-147 841.99,-143.5 841.99,-150.5"/>
+<title>foo.resources-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M812.07,-147C821.67,-147 831.91,-147 841.82,-147"></path>
+<polygon fill="black" stroke="black" points="841.99,-150.5 851.99,-147 841.99,-143.5 841.99,-150.5"></polygon>
 </g>
 </g>
 </svg>
@@ -1047,7 +1047,7 @@ is actually running in the long-lived Mill daemon.</p>
 <p>The Mill daemon sometimes is shut down and needs to be restarted, e.g. if Mill
 version changed, or the user used <code>Ctrl-C</code> to interrupt the ongoing computation.
 In such a scenario, the Mill launcher will automatically restart the daemon the next
-time it is run, so apart from a slight performance penalty from starting a "cold"
+time it is run, so apart from a slight performance penalty from starting a &quot;cold&quot;
 Mill daemon such shutdowns and restarts should be mostly invisible to the user.</p>
 </div>
 </div>
@@ -1086,7 +1086,7 @@ exit code, but the Mill daemon remains alive and ready to serve to the next Mill
 launcher that connects to it</p>
 </div>
 <div class="paragraph">
-<p>For a more detailed discussion of what exactly goes into "execution", see
+<p>For a more detailed discussion of what exactly goes into &quot;execution&quot;, see
 <a href="evaluation-model.html" class="xref page">The Mill Evaluation Model</a>.</p>
 </div>
 </div>
@@ -1095,7 +1095,7 @@ launcher that connects to it</p>
 <h2 id="_the_out_folder"><a class="anchor" href="#_the_out_folder"></a>The Out Folder</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <code>out/</code> directory is where most of Mill&#8217;s state lives on disk, both build-task state
+<p>The <code>out/</code> directory is where most of Mill’s state lives on disk, both build-task state
 such as the <code>foo/compile.json</code> metadata cache for <code>foo.compile</code>, or the <code>foo/compile.dest</code>
 which stores any generated files or binaries. It also contains <code>mill-daemon/</code> folder which
 is used to pass data back and forth between the launcher and daemon: the <code>runArgs</code>, <code>exitCode</code>,
@@ -1103,8 +1103,8 @@ etc.</p>
 </div>
 <div class="paragraph">
 <p>Each task during evaluation reads and writes from its own designated paths in the <code>out/</code>
-folder. Each task&#8217;s files are not touched by any other tasks, nor are they used in the rest
-of the Mill architecture: they are solely meant to serve each task&#8217;s caching and filesystem
+folder. Each task’s files are not touched by any other tasks, nor are they used in the rest
+of the Mill architecture: they are solely meant to serve each task’s caching and filesystem
 needs.</p>
 </div>
 <div class="paragraph">
@@ -1122,9 +1122,9 @@ found at <a href="../fundamentals/out-dir.html" class="xref page">The Output Dir
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

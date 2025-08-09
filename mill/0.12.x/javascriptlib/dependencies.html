@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Typescript Library Dependencies :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/javascriptlib/dependencies.html">
-    <link rel="prev" href="intro.html">
-    <link rel="next" href="module-config.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/javascriptlib/dependencies.html" />
+    <link rel="prev" href="intro.html" />
+    <link rel="next" href="module-config.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -648,7 +649,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -674,8 +675,8 @@ for `TypescriptModule`s.</p>
 import mill._, javascriptlib._
 
 object foo extends TypeScriptModule {
-  def npmDeps = Seq("lodash@4.17.21")
-  def npmDevDeps = Seq("@types/lodash@4.17.13")
+  def npmDeps = Seq(&quot;lodash@4.17.21&quot;)
+  def npmDevDeps = Seq(&quot;@types/lodash@4.17.13&quot;)
 }</code></pre>
 </div>
 </div>
@@ -702,7 +703,7 @@ Sorted with lodash: [a,b,e,k,l,m,o,p]</code></pre>
 import mill._, javascriptlib._
 
 object foo extends TypeScriptModule {
-  def unmanagedDeps = Seq.from(os.list(moduleDir / "lib").map(PathRef(_)))
+  def unmanagedDeps = Seq.from(os.list(moduleDir / &quot;lib&quot;).map(PathRef(_)))
 }</code></pre>
 </div>
 </div>
@@ -736,7 +737,7 @@ Sorted with lodash: [a,b,e,k,l,m,o,p]</code></pre>
 <p>You can also override <code>unmanagedDeps</code> to point it at wheels that you want to
 download from arbitrary URLs.
 <code>requests.get</code> comes from the <a href="https://github.com/com-lihaoyi/requests-scala">Requests-Scala</a>
-library, one of Mill&#8217;s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
+library, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-javascriptlib-dependencies-3-downloading-unmanaged-packages.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javascriptlib/dependencies/3-downloading-unmanaged-packages">browse</a>)</div>
@@ -746,8 +747,8 @@ import mill._, javascriptlib._
 
 object foo extends TypeScriptModule {
   def unmanagedDeps = Task {
-    val name = "lodash-4.17.21.tgz"
-    val url = "https://github.com/lodash/lodash/archive/refs/tags/4.17.21.tar.gz"
+    val name = &quot;lodash-4.17.21.tgz&quot;
+    val url = &quot;https://github.com/lodash/lodash/archive/refs/tags/4.17.21.tar.gz&quot;
     os.write(Task.dest / name, requests.get.stream(url))
     Seq(PathRef(Task.dest / name))
   }
@@ -763,12 +764,12 @@ Sorted with lodash: [a,b,e,k,l,m,o,p]</code></pre>
 <div class="paragraph">
 <p>Tasks like <code>unmanagedDeps</code> and <code>npmDeps</code> are cached, so your package is downloaded only
 once and re-used indefinitely after that. This is usually not a problem, because usually URLs
-follow the rule that <a href="https://www.w3.org/Provider/Style/URI">Cool URIs don&#8217;t change</a>, and so files
+follow the rule that <a href="https://www.w3.org/Provider/Style/URI">Cool URIs don’t change</a>, and so files
 downloaded from the same URL will always contain the same contents.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -778,11 +779,11 @@ downloaded it from somewhere, <code>requests.get</code> does not know how to pul
 dependencies or de-duplicate different versions.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>In case you <strong>do</strong> want mill to take care of managing dependencies of a package,
-you shouldn&#8217;t get that package in <code>unmanagedDeps</code> (like we did in the
+you shouldn’t get that package in <code>unmanagedDeps</code> (like we did in the
 example above). Instead, you can declare the dependency as a regular <code>npmDeps</code> and <code>npmDevDeps</code></p>
 </div>
 </div>
@@ -797,8 +798,8 @@ example above). Instead, you can declare the dependency as a regular <code>npmDe
 import mill._, javascriptlib._
 
 object foo extends TypeScriptModule {
-  def npmDeps = Seq("lodash@4.17.21")
-  def npmDevDeps = Seq("@types/lodash@4.17.13")
+  def npmDeps = Seq(&quot;lodash@4.17.21&quot;)
+  def npmDevDeps = Seq(&quot;@types/lodash@4.17.13&quot;)
 }</code></pre>
 </div>
 </div>
@@ -840,9 +841,9 @@ https://registry.npmmirror.com</code></pre>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

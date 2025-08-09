@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>How JVM Executable Assembly Jars Work :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/blog/5-executable-jars.html">
-    <link rel="prev" href="6-garbage-collector-perf.html">
-    <link rel="next" href="4-flaky-tests.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/blog/5-executable-jars.html" />
+    <link rel="prev" href="6-garbage-collector-perf.html" />
+    <link rel="next" href="4-flaky-tests.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -232,7 +233,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/5-executable-jars.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -250,7 +251,7 @@ assembly jars it creates are directly executable:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.assembly # generate the assembly jar
-"ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar"
+&quot;ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar&quot;
 
 &gt; out/foo/assembly.dest/out.jar # run the assembly jar directly
 Hello World</code></pre>
@@ -267,16 +268,16 @@ code built with Mill fit more nicely into command-line centric workflows common 
 software systems.</p>
 </div>
 <div class="paragraph">
-<p>This article will discuss how Mill&#8217;s executable assemblies are implemented, so perhaps
+<p>This article will discuss how Mill’s executable assemblies are implemented, so perhaps
 other build tools and toolchains will be able to provide the same convenience</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_trying_out_mills_executable_assemblies"><a class="anchor" href="#_trying_out_mills_executable_assemblies"></a>Trying Out Mill&#8217;s Executable Assemblies</h2>
+<h2 id="_trying_out_mills_executable_assemblies"><a class="anchor" href="#_trying_out_mills_executable_assemblies"></a>Trying Out Mill’s Executable Assemblies</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To try out Mill&#8217;s executable assembly jars, you can reproduce the above steps
+<p>To try out Mill’s executable assembly jars, you can reproduce the above steps
 with the following code and config:</p>
 </div>
 <div class="listingblock">
@@ -294,7 +295,7 @@ package foo;
 
 public class Foo{
   public static void main(String[] args){
-    System.out.println("Hello World");
+    System.out.println(&quot;Hello World&quot;);
   }
 }</code></pre>
 </div>
@@ -302,14 +303,14 @@ public class Foo{
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.assembly
-"ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar"
+&quot;ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar&quot;
 
 &gt; /Users/lihaoyi/test/out/foo/assembly.dest/out.jar
 Hello World</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s <code>JavaModule</code>s come with <code>.assembly</code> tasks built in by default, without needing
+<p>Mill’s <code>JavaModule</code>s come with <code>.assembly</code> tasks built in by default, without needing
 to install plugins like is necessary in other build tools like
 <a href="https://maven.apache.org/plugins/maven-assembly-plugin/usage.html">Maven</a> or
 <a href="https://github.com/sbt/sbt-assembly">sbt</a>.</p>
@@ -331,14 +332,14 @@ possible, we first need to understand what a <code>.jar</code> file is.</p>
 <h2 id="_what_is_an_assembly_jar"><a class="anchor" href="#_what_is_an_assembly_jar"></a>What is an Assembly Jar?</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>An "assembly" jar is just a jar file that includes all transitive dependencies.
-What makes an assembly different from a "normal" jar is that it should (in theory) contain
-everything needed to run you JVM program. In contrast, most "normal" jars do not contain
+<p>An &quot;assembly&quot; jar is just a jar file that includes all transitive dependencies.
+What makes an assembly different from a &quot;normal&quot; jar is that it should (in theory) contain
+everything needed to run you JVM program. In contrast, most &quot;normal&quot; jars do not contain
 their dependencies, and you need to separately go download those dependencies and pass them in
 via <code>-classpath</code>/<code>-cp</code> before you can run your Java program.</p>
 </div>
 <div class="paragraph">
-<p>One thing that many people don&#8217;t know is that jar files are just zip files. You can see
+<p>One thing that many people don’t know is that jar files are just zip files. You can see
 that from the command line, where although you normally use <code>jar tf</code> to list the contents
 of a <code>.jar</code> file, <code>unzip -l</code> works as well:</p>
 </div>
@@ -400,47 +401,46 @@ that we use to make the <code>out.jar</code> file executable</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>A <a href="https://en.wikipedia.org/wiki/ZIP_(file_format)">zip file</a> is an archive made of multiple smaller files, individually compressed,
-concatenated together followed by a "central directory" containing the <em>reverse offsets</em> of
+concatenated together followed by a &quot;central directory&quot; containing the <em>reverse offsets</em> of
 every file within the archive, relative to the central directory.</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="388px" height="87px"
- viewBox="0.00 0.00 387.69 87.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="388px" height="87px" viewBox="0.00 0.00 387.69 87.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 83.4)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-83.4 383.69,-83.4 383.69,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-83.4 383.69,-83.4 383.69,4 -4,4"></polygon>
 <text text-anchor="middle" x="189.85" y="-8.2" font-family="Times,serif" font-size="14.00">archive.zip</text>
 <!-- zip -->
 <g id="node1" class="node">
 <title>zip</title>
-<polygon fill="white" stroke="black" points="0,-25.3 0,-50.1 379.69,-50.1 379.69,-25.3 0,-25.3"/>
+<polygon fill="white" stroke="black" points="0,-25.3 0,-50.1 379.69,-50.1 379.69,-25.3 0,-25.3"></polygon>
 <text text-anchor="middle" x="34.25" y="-33.5" font-family="Times,serif" font-size="14.00">Foo.class</text>
-<polyline fill="none" stroke="black" points="68.49,-25.3 68.49,-50.1 "/>
+<polyline fill="none" stroke="black" points="68.49,-25.3 68.49,-50.1"></polyline>
 <text text-anchor="middle" x="123.35" y="-33.5" font-family="Times,serif" font-size="14.00">MANIFEST.MF</text>
-<polyline fill="none" stroke="black" points="178.21,-25.3 178.21,-50.1 "/>
+<polyline fill="none" stroke="black" points="178.21,-25.3 178.21,-50.1"></polyline>
 <text text-anchor="middle" x="224.89" y="-33.5" font-family="Times,serif" font-size="14.00">...other files...</text>
-<polyline fill="none" stroke="black" points="271.57,-25.3 271.57,-50.1 "/>
+<polyline fill="none" stroke="black" points="271.57,-25.3 271.57,-50.1"></polyline>
 <text text-anchor="middle" x="325.63" y="-33.5" font-family="Times,serif" font-size="14.00">central directory</text>
 </g>
 <!-- zip&#45;&gt;zip -->
 <g id="edge1" class="edge">
-<title>zip:n&#45;&gt;zip:n</title>
-<path fill="none" stroke="black" d="M325.85,-49.7C334.85,-54.6 334.85,-62.6 224.85,-62.6 169.85,-62.6 142.35,-60.6 129.72,-57.99"/>
-<polygon fill="black" stroke="black" points="132.48,-55.83 123.85,-49.7 126.77,-59.88 132.48,-55.83"/>
+<title>zip:n-&gt;zip:n</title>
+<path fill="none" stroke="black" d="M325.85,-49.7C334.85,-54.6 334.85,-62.6 224.85,-62.6 169.85,-62.6 142.35,-60.6 129.72,-57.99"></path>
+<polygon fill="black" stroke="black" points="132.48,-55.83 123.85,-49.7 126.77,-59.88 132.48,-55.83"></polygon>
 <text text-anchor="middle" x="189.85" y="-66.8" font-family="Times,serif" font-size="14.00">reverse offsets</text>
 </g>
 <!-- zip&#45;&gt;zip -->
 <g id="edge2" class="edge">
-<title>zip:n&#45;&gt;zip:n</title>
-<path fill="none" stroke="black" d="M325.85,-49.7C334.85,-54.6 334.85,-62.6 179.85,-62.6 95.08,-62.6 56.67,-60.21 40.74,-57.24"/>
-<polygon fill="black" stroke="black" points="43.18,-54.72 33.85,-49.7 38.01,-59.44 43.18,-54.72"/>
+<title>zip:n-&gt;zip:n</title>
+<path fill="none" stroke="black" d="M325.85,-49.7C334.85,-54.6 334.85,-62.6 179.85,-62.6 95.08,-62.6 56.67,-60.21 40.74,-57.24"></path>
+<polygon fill="black" stroke="black" points="43.18,-54.72 33.85,-49.7 38.01,-59.44 43.18,-54.72"></polygon>
 </g>
 <!-- zip&#45;&gt;zip -->
 <g id="edge3" class="edge">
-<title>zip:n&#45;&gt;zip:n</title>
-<path fill="none" stroke="black" d="M325.85,-49.7C334.85,-54.6 334.85,-62.6 275.35,-62.6 250.71,-62.6 236.27,-61.23 228.45,-59.27"/>
-<polygon fill="black" stroke="black" points="231.65,-57.82 224.85,-49.7 225.1,-60.29 231.65,-57.82"/>
+<title>zip:n-&gt;zip:n</title>
+<path fill="none" stroke="black" d="M325.85,-49.7C334.85,-54.6 334.85,-62.6 275.35,-62.6 250.71,-62.6 236.27,-61.23 228.45,-59.27"></path>
+<polygon fill="black" stroke="black" points="231.65,-57.82 224.85,-49.7 225.1,-60.29 231.65,-57.82"></polygon>
 </g>
 </g>
 </svg>
@@ -484,11 +484,10 @@ will be able to extract the zip.</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="479px" height="119px"
- viewBox="0.00 0.00 479.49 119.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="479px" height="119px" viewBox="0.00 0.00 479.49 119.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 115.4)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-115.4 475.49,-115.4 475.49,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-115.4 475.49,-115.4 475.49,4 -4,4"></polygon>
 <text text-anchor="middle" x="235.75" y="-8.2" font-family="Times,serif" font-size="14.00">archive.zip</text>
 <!-- extra_label -->
 <g id="node1" class="node">
@@ -497,40 +496,40 @@ will be able to extract the zip.</p>
 <!-- zip -->
 <g id="node2" class="node">
 <title>zip</title>
-<polygon fill="white" stroke="black" points="0,-25.3 0,-50.1 471.49,-50.1 471.49,-25.3 0,-25.3"/>
+<polygon fill="white" stroke="black" points="0,-25.3 0,-50.1 471.49,-50.1 471.49,-25.3 0,-25.3"></polygon>
 <text text-anchor="middle" x="45.9" y="-33.5" font-family="Times,serif" font-size="14.00">...extra data...</text>
-<polyline fill="none" stroke="black" points="91.8,-25.3 91.8,-50.1 "/>
+<polyline fill="none" stroke="black" points="91.8,-25.3 91.8,-50.1"></polyline>
 <text text-anchor="middle" x="126.05" y="-33.5" font-family="Times,serif" font-size="14.00">Foo.class</text>
-<polyline fill="none" stroke="black" points="160.29,-25.3 160.29,-50.1 "/>
+<polyline fill="none" stroke="black" points="160.29,-25.3 160.29,-50.1"></polyline>
 <text text-anchor="middle" x="215.15" y="-33.5" font-family="Times,serif" font-size="14.00">MANIFEST.MF</text>
-<polyline fill="none" stroke="black" points="270.01,-25.3 270.01,-50.1 "/>
+<polyline fill="none" stroke="black" points="270.01,-25.3 270.01,-50.1"></polyline>
 <text text-anchor="middle" x="316.69" y="-33.5" font-family="Times,serif" font-size="14.00">...other files...</text>
-<polyline fill="none" stroke="black" points="363.37,-25.3 363.37,-50.1 "/>
+<polyline fill="none" stroke="black" points="363.37,-25.3 363.37,-50.1"></polyline>
 <text text-anchor="middle" x="417.43" y="-33.5" font-family="Times,serif" font-size="14.00">central directory</text>
 </g>
 <!-- extra_label&#45;&gt;zip -->
 <g id="edge1" class="edge">
-<title>extra_label:s&#45;&gt;zip:n</title>
-<path fill="none" stroke="red" stroke-width="3" d="M45.75,-86.6C45.75,-74.6 45.75,-69.35 45.75,-60.72"/>
-<polygon fill="red" stroke="red" stroke-width="3" points="49.25,-60.6 45.75,-50.6 42.25,-60.6 49.25,-60.6"/>
+<title>extra_label:s-&gt;zip:n</title>
+<path fill="none" stroke="red" stroke-width="3" d="M45.75,-86.6C45.75,-74.6 45.75,-69.35 45.75,-60.72"></path>
+<polygon fill="red" stroke="red" stroke-width="3" points="49.25,-60.6 45.75,-50.6 42.25,-60.6 49.25,-60.6"></polygon>
 </g>
 <!-- zip&#45;&gt;zip -->
 <g id="edge2" class="edge">
-<title>zip:n&#45;&gt;zip:n</title>
-<path fill="none" stroke="black" d="M417.75,-49.7C426.75,-60.6 426.75,-80.6 316.25,-80.6 233.37,-80.6 212.65,-69.35 211.27,-59.13"/>
-<polygon fill="black" stroke="black" points="214.57,-60.29 214.75,-49.7 208,-57.87 214.57,-60.29"/>
+<title>zip:n-&gt;zip:n</title>
+<path fill="none" stroke="black" d="M417.75,-49.7C426.75,-60.6 426.75,-80.6 316.25,-80.6 233.37,-80.6 212.65,-69.35 211.27,-59.13"></path>
+<polygon fill="black" stroke="black" points="214.57,-60.29 214.75,-49.7 208,-57.87 214.57,-60.29"></polygon>
 </g>
 <!-- zip&#45;&gt;zip -->
 <g id="edge3" class="edge">
-<title>zip:n&#45;&gt;zip:n</title>
-<path fill="none" stroke="black" d="M417.75,-49.7C426.75,-60.6 426.75,-80.6 271.75,-80.6 156.71,-80.6 127.05,-69.58 123.08,-59.45"/>
-<polygon fill="black" stroke="black" points="126.48,-60.27 125.75,-49.7 119.73,-58.42 126.48,-60.27"/>
+<title>zip:n-&gt;zip:n</title>
+<path fill="none" stroke="black" d="M417.75,-49.7C426.75,-60.6 426.75,-80.6 271.75,-80.6 156.71,-80.6 127.05,-69.58 123.08,-59.45"></path>
+<polygon fill="black" stroke="black" points="126.48,-60.27 125.75,-49.7 119.73,-58.42 126.48,-60.27"></polygon>
 </g>
 <!-- zip&#45;&gt;zip -->
 <g id="edge4" class="edge">
-<title>zip:n&#45;&gt;zip:n</title>
-<path fill="none" stroke="black" d="M417.75,-49.7C426.75,-60.6 426.75,-80.6 367.25,-80.6 322.16,-80.6 311.24,-69.11 312.51,-58.81"/>
-<polygon fill="black" stroke="black" points="315.7,-60.24 316.75,-49.7 309.35,-57.29 315.7,-60.24"/>
+<title>zip:n-&gt;zip:n</title>
+<path fill="none" stroke="black" d="M417.75,-49.7C426.75,-60.6 426.75,-80.6 367.25,-80.6 322.16,-80.6 311.24,-69.11 312.51,-58.81"></path>
+<polygon fill="black" stroke="black" points="315.7,-60.24 316.75,-49.7 309.35,-57.29 315.7,-60.24"></polygon>
 </g>
 </g>
 </svg>
@@ -561,23 +560,22 @@ So we can prepend a bash script to our <code>.jar</code> file to</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Run <code>java</code> with the current executable <code>"$0"</code> as the classpath</p>
+<p>Run <code>java</code> with the current executable <code>&quot;$0&quot;</code> as the classpath</p>
 </li>
 <li>
-<p>Pass any of the current executable&#8217;s command-line arguments `"$@"`as the Java program&#8217;s command-line arguments</p>
+<p>Pass any of the current executable’s command-line arguments `&quot;$@&quot;`as the Java program’s command-line arguments</p>
 </li>
 <li>
-<p>Allow configuration of the <code>java</code> process (since we&#8217;re no longer calling it ourselves) via a <code>JAVA_OPTS</code> environment variable</p>
+<p>Allow configuration of the <code>java</code> process (since we’re no longer calling it ourselves) via a <code>JAVA_OPTS</code> environment variable</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
 <center>
-<svg width="765px" height="214px"
- viewBox="0.00 0.00 764.93 213.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="765px" height="214px" viewBox="0.00 0.00 764.93 213.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 209.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-209.8 760.93,-209.8 760.93,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-209.8 760.93,-209.8 760.93,4 -4,4"></polygon>
 <text text-anchor="middle" x="378.46" y="-8.2" font-family="Times,serif" font-size="14.00">out.jar</text>
 <!-- left -->
 <g id="node1" class="node">
@@ -588,22 +586,22 @@ So we can prepend a bash script to our <code>.jar</code> file to</p>
 <!-- zip -->
 <g id="node3" class="node">
 <title>zip</title>
-<polygon fill="white" stroke="black" points="0,-102.9 0,-127.7 677.52,-127.7 677.52,-102.9 0,-102.9"/>
-<text text-anchor="middle" x="148.91" y="-111.1" font-family="Times,serif" font-size="14.00">exec java $JAVA_OPTS &#45;cp &quot;$0&quot; &#39;foo.Foo&#39; &quot;$@&quot;</text>
-<polyline fill="none" stroke="black" points="297.83,-102.9 297.83,-127.7 "/>
+<polygon fill="white" stroke="black" points="0,-102.9 0,-127.7 677.52,-127.7 677.52,-102.9 0,-102.9"></polygon>
+<text text-anchor="middle" x="148.91" y="-111.1" font-family="Times,serif" font-size="14.00">exec java $JAVA_OPTS -cp &quot;$0&quot; &apos;foo.Foo&apos; &quot;$@&quot;</text>
+<polyline fill="none" stroke="black" points="297.83,-102.9 297.83,-127.7"></polyline>
 <text text-anchor="middle" x="332.07" y="-111.1" font-family="Times,serif" font-size="14.00">Foo.class</text>
-<polyline fill="none" stroke="black" points="366.32,-102.9 366.32,-127.7 "/>
+<polyline fill="none" stroke="black" points="366.32,-102.9 366.32,-127.7"></polyline>
 <text text-anchor="middle" x="421.18" y="-111.1" font-family="Times,serif" font-size="14.00">MANIFEST.MF</text>
-<polyline fill="none" stroke="black" points="476.03,-102.9 476.03,-127.7 "/>
+<polyline fill="none" stroke="black" points="476.03,-102.9 476.03,-127.7"></polyline>
 <text text-anchor="middle" x="522.72" y="-111.1" font-family="Times,serif" font-size="14.00">...other files...</text>
-<polyline fill="none" stroke="black" points="569.4,-102.9 569.4,-127.7 "/>
+<polyline fill="none" stroke="black" points="569.4,-102.9 569.4,-127.7"></polyline>
 <text text-anchor="middle" x="623.46" y="-111.1" font-family="Times,serif" font-size="14.00">central directory</text>
 </g>
 <!-- left&#45;&gt;zip -->
 <g id="edge4" class="edge">
-<title>left&#45;&gt;zip:n</title>
-<path fill="none" stroke="red" stroke-width="3" d="M148.76,-164.37C148.76,-156.6 148.76,-147.37 148.76,-138.29"/>
-<polygon fill="red" stroke="red" stroke-width="3" points="152.26,-138.2 148.76,-128.2 145.26,-138.2 152.26,-138.2"/>
+<title>left-&gt;zip:n</title>
+<path fill="none" stroke="red" stroke-width="3" d="M148.76,-164.37C148.76,-156.6 148.76,-147.37 148.76,-138.29"></path>
+<polygon fill="red" stroke="red" stroke-width="3" points="152.26,-138.2 148.76,-128.2 145.26,-138.2 152.26,-138.2"></polygon>
 </g>
 <!-- right -->
 <g id="node2" class="node">
@@ -613,27 +611,27 @@ So we can prepend a bash script to our <code>.jar</code> file to</p>
 </g>
 <!-- zip&#45;&gt;right -->
 <g id="edge5" class="edge">
-<title>zip:s&#45;&gt;right</title>
-<path fill="none" stroke="red" stroke-width="3" d="M623.76,-92.31C623.76,-83.23 623.76,-74 623.76,-66.23"/>
-<polygon fill="red" stroke="red" stroke-width="3" points="620.26,-92.4 623.76,-102.4 627.26,-92.4 620.26,-92.4"/>
+<title>zip:s-&gt;right</title>
+<path fill="none" stroke="red" stroke-width="3" d="M623.76,-92.31C623.76,-83.23 623.76,-74 623.76,-66.23"></path>
+<polygon fill="red" stroke="red" stroke-width="3" points="620.26,-92.4 623.76,-102.4 627.26,-92.4 620.26,-92.4"></polygon>
 </g>
 <!-- zip&#45;&gt;zip -->
 <g id="edge1" class="edge">
-<title>zip:n&#45;&gt;zip:n</title>
-<path fill="none" stroke="black" d="M623.76,-127.3C632.76,-139.53 632.76,-162.2 522.26,-162.2 436.79,-162.2 417.43,-148.64 417.21,-136.84"/>
-<polygon fill="black" stroke="black" points="420.55,-137.89 420.76,-127.3 413.99,-135.45 420.55,-137.89"/>
+<title>zip:n-&gt;zip:n</title>
+<path fill="none" stroke="black" d="M623.76,-127.3C632.76,-139.53 632.76,-162.2 522.26,-162.2 436.79,-162.2 417.43,-148.64 417.21,-136.84"></path>
+<polygon fill="black" stroke="black" points="420.55,-137.89 420.76,-127.3 413.99,-135.45 420.55,-137.89"></polygon>
 </g>
 <!-- zip&#45;&gt;zip -->
 <g id="edge2" class="edge">
-<title>zip:n&#45;&gt;zip:n</title>
-<path fill="none" stroke="black" d="M623.76,-127.3C632.76,-139.53 632.76,-162.2 477.76,-162.2 357.88,-162.2 330.72,-148.64 328.73,-136.84"/>
-<polygon fill="black" stroke="black" points="332.06,-137.89 331.76,-127.3 325.39,-135.77 332.06,-137.89"/>
+<title>zip:n-&gt;zip:n</title>
+<path fill="none" stroke="black" d="M623.76,-127.3C632.76,-139.53 632.76,-162.2 477.76,-162.2 357.88,-162.2 330.72,-148.64 328.73,-136.84"></path>
+<polygon fill="black" stroke="black" points="332.06,-137.89 331.76,-127.3 325.39,-135.77 332.06,-137.89"></polygon>
 </g>
 <!-- zip&#45;&gt;zip -->
 <g id="edge3" class="edge">
-<title>zip:n&#45;&gt;zip:n</title>
-<path fill="none" stroke="black" d="M623.76,-127.3C632.76,-139.53 632.76,-162.2 573.26,-162.2 526.77,-162.2 516.61,-148.37 518.67,-136.48"/>
-<polygon fill="black" stroke="black" points="521.89,-137.86 522.76,-127.3 515.5,-135.01 521.89,-137.86"/>
+<title>zip:n-&gt;zip:n</title>
+<path fill="none" stroke="black" d="M623.76,-127.3C632.76,-139.53 632.76,-162.2 573.26,-162.2 526.77,-162.2 516.61,-148.37 518.67,-136.48"></path>
+<polygon fill="black" stroke="black" points="521.89,-137.86 522.76,-127.3 515.5,-135.01 521.89,-137.86"></polygon>
 </g>
 </g>
 </svg>
@@ -641,27 +639,27 @@ So we can prepend a bash script to our <code>.jar</code> file to</p>
 </center>
 </div>
 <div class="paragraph">
-<p>If you use <code>less out.jar</code> to look at what&#8217;s inside the Jar file, it looks like this:</p>
+<p>If you use <code>less out.jar</code> to look at what’s inside the Jar file, it looks like this:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; exec java $JAVA_OPTS -cp "$0" 'foo.Foo' "$@"
-PK^C^D^T^@^H^H^H^@&lt;B5&gt;`"Z^@^@^@^@^@^@^@^@^@^@^@^@^T^@^Q^@META-INF/MANIFEST.MFUT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^Pvgeɱ
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; exec java $JAVA_OPTS -cp &quot;$0&quot; 'foo.Foo' &quot;$@&quot;
+PK^C^D^T^@^H^H^H^@&lt;B5&gt;`&quot;Z^@^@^@^@^@^@^@^@^@^@^@^@^T^@^Q^@META-INF/MANIFEST.MFUT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^Pvgeɱ
 &lt;80&gt; ^P^@&lt;D0&gt;&lt;FD&gt;&lt;C0&gt;^?&lt;B8&gt;^_81s&lt;C9&gt;1&lt;A1&gt;&lt;CD&gt;-&lt;DA&gt;^OR^P&lt;C4&gt;^Cu&lt;E9&gt;&lt;EF&gt;ESC^Z{&lt;EB&gt;&lt;8B&gt;&lt;DC&gt;JNcҕ&lt;FA&gt;(&lt;D2&gt;&lt;.&lt;DA&gt;=&lt;F1&gt;L7&lt;ED&gt;&lt;8F&gt;&lt;C7&gt;XjE&lt;A3&gt;^W&lt;AB&gt;^]ٕl&lt;CE&gt;n&lt;B3&gt;
 N&lt;91&gt;&lt;FA&gt;%&lt;FD&gt;3ri^T*&lt;8F&gt;&lt;E1&gt;1&lt;8B&gt;&lt;E8&gt;CD&lt;81&gt;&lt;82&gt;^WPK^G^HB?^Xo[^@^@^@n^@^@^@PK^C^D
-^@^@^@^@^@&lt;B5&gt;`"Z^@^@^@^@^@^@^@^@^@^@^@^@       ^@^Q^@META-INF/UT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^PvgPK^C^D
-^@^@^@^@^@&lt;B5&gt;`"Z^@^@^@^@^@^@^@^@^@^@^@^@^D^@^Q^@foo/UT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^PvgPK^C^D^T^@^H^H^H^@&lt;B5&gt;`"Z^@^@^@^@^@^@^@^@^@^@^@^@^M^@^Q^@foo/Foo.classUT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^Pvgm&lt;90&gt;&lt;CB&gt;J&lt;C3&gt;@^T&lt;86&gt;&lt;FF&gt;&lt;D3&gt;[&lt;9A&gt;4&lt;DA&gt;&lt;DA&gt;&lt;DA&gt;z-&lt;E8&gt;BH]&lt;&lt;98&gt;^G&lt;A8&gt;&lt;BA&gt;^Q&lt;8A&gt;&lt;8B&gt;&lt;A0&gt;B&lt;A4&gt;.\&lt;A5&gt;&lt;ED&gt;X&lt;A6&gt;L2^R^S&lt;C1&gt;&lt;C7&gt;҅&lt;82&gt;^K^_&lt;C0&gt;&lt;87&gt;^R&lt;CF&gt;^DA&lt;85&gt;&lt;CE&gt;&lt;E2&gt;&lt;DC&gt;&lt;E6&gt;&lt;FB&gt;&lt;FF&gt;^C&lt;E7&gt;&lt;&lt;F3&gt;&lt;EB&gt;&lt;FD&gt;^C&lt;C0&gt;      &lt;FA&gt;^NJ([&lt;A8&gt;&lt;B8&gt;&lt;A8&gt;&lt;A2&gt;Fh-&lt;A2&gt;&lt;C7&gt;&lt;C8&gt;WQ2&lt;F7&gt;/'^K1&lt;CD&gt;^H&lt;B5&gt;c&lt;99&gt;&lt;C8&gt;&lt;EC&gt;&lt;94&gt;P&lt;F6&gt;^FcESCu&lt;D8&gt;^V^^\^W^M&lt;B8&gt;&lt;FF&gt;&lt;F0&gt;&lt;F0&gt;&lt;E9&gt;!^S1S:gQ7(~&lt;A4&gt;&lt;F6&gt;&lt;AF&gt;R&lt;99&gt;da&lt;96&gt;&lt;8A&gt;(^^ֱJh&lt;9C&gt;^K&lt;A5&gt;&lt;F4&gt;ލN&lt;D5&gt;&lt;CC&gt;A^Kk^V&lt;DA&gt;.:X't&lt;96&gt;&lt;88&gt;^Hֽ&lt;E9&gt;T®^&lt;F0&gt;ga&lt;C6&gt;&lt;E3&gt;&lt;F9&gt;p0&lt;B6&gt;&lt;D0&gt;c&lt;E8&gt;Nk^?&lt;A4&gt;5&lt;A1&gt;r&lt;A6&gt;g&lt;82&gt;&lt;D0&gt;^Ld".&lt;F2&gt;x"&lt;D2&gt;&lt;EB&gt;h&lt;A2&gt;xR&lt;89&gt;#&lt;C9&gt;&amp;=&lt;EF&gt;v&lt;99&gt;^K&lt;C1&gt;     u&lt;&lt;9E&gt;N&lt;C5&gt;H^Z&lt;B8&gt;&lt;CE&gt;^G^F&lt;C3&gt;&gt;&lt;BA&gt;|#&lt;F3&gt;J s%&lt;8E&gt;ESC&lt;DC&gt;&lt;F5&gt;9^S&lt;E7&gt;&lt;EA&gt;&lt;E1&gt;ESC&lt;E8&gt;&lt;99&gt;^K&lt;C2&gt;&amp;&lt;C7&gt;Z1,&lt;C3&gt;&lt;C6&gt;^V&lt;B6&gt;^?ЃB
-&lt;D8&gt;/&lt;B0&gt;&lt;DA&gt;+&lt;AF&gt;h&lt;FE&gt;&lt;E2&gt;N&lt;E1&gt;]&lt;E5&gt;&lt;B3&gt;^Z&lt;E1&gt;N&lt;B1&gt;e&lt;F7&gt;ESCPK^G^H&lt;94&gt;r+6 ^A^@^@&lt;9F&gt;^A^@^@PK^A^B^T^@^T^@^H^H^H^@&lt;B5&gt;`"ZB?^^Xo[^@^@^@n^@^@^@^T^@   ^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@META-INF/MANIFEST.MFUT^E^@^G&lt;97&gt;^PvgPK^A^B
+^@^@^@^@^@&lt;B5&gt;`&quot;Z^@^@^@^@^@^@^@^@^@^@^@^@       ^@^Q^@META-INF/UT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^PvgPK^C^D
+^@^@^@^@^@&lt;B5&gt;`&quot;Z^@^@^@^@^@^@^@^@^@^@^@^@^D^@^Q^@foo/UT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^PvgPK^C^D^T^@^H^H^H^@&lt;B5&gt;`&quot;Z^@^@^@^@^@^@^@^@^@^@^@^@^M^@^Q^@foo/Foo.classUT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^Pvgm&lt;90&gt;&lt;CB&gt;J&lt;C3&gt;@^T&lt;86&gt;&lt;FF&gt;&lt;D3&gt;[&lt;9A&gt;4&lt;DA&gt;&lt;DA&gt;&lt;DA&gt;z-&lt;E8&gt;BH]&lt;&lt;98&gt;^G&lt;A8&gt;&lt;BA&gt;^Q&lt;8A&gt;&lt;8B&gt;&lt;A0&gt;B&lt;A4&gt;.\&lt;A5&gt;&lt;ED&gt;X&lt;A6&gt;L2^R^S&lt;C1&gt;&lt;C7&gt;҅&lt;82&gt;^K^_&lt;C0&gt;&lt;87&gt;^R&lt;CF&gt;^DA&lt;85&gt;&lt;CE&gt;&lt;E2&gt;&lt;DC&gt;&lt;E6&gt;&lt;FB&gt;&lt;FF&gt;^C&lt;E7&gt;&lt;&lt;F3&gt;&lt;EB&gt;&lt;FD&gt;^C&lt;C0&gt;      &lt;FA&gt;^NJ([&lt;A8&gt;&lt;B8&gt;&lt;A8&gt;&lt;A2&gt;Fh-&lt;A2&gt;&lt;C7&gt;&lt;C8&gt;WQ2&lt;F7&gt;/'^K1&lt;CD&gt;^H&lt;B5&gt;c&lt;99&gt;&lt;C8&gt;&lt;EC&gt;&lt;94&gt;P&lt;F6&gt;^FcESCu&lt;D8&gt;^V^^\^W^M&lt;B8&gt;&lt;FF&gt;&lt;F0&gt;&lt;F0&gt;&lt;E9&gt;!^S1S:gQ7(~&lt;A4&gt;&lt;F6&gt;&lt;AF&gt;R&lt;99&gt;da&lt;96&gt;&lt;8A&gt;(^^ֱJh&lt;9C&gt;^K&lt;A5&gt;&lt;F4&gt;ލN&lt;D5&gt;&lt;CC&gt;A^Kk^V&lt;DA&gt;.:X't&lt;96&gt;&lt;88&gt;^Hֽ&lt;E9&gt;T&reg;^&lt;F0&gt;ga&lt;C6&gt;&lt;E3&gt;&lt;F9&gt;p0&lt;B6&gt;&lt;D0&gt;c&lt;E8&gt;Nk^?&lt;A4&gt;5&lt;A1&gt;r&lt;A6&gt;g&lt;82&gt;&lt;D0&gt;^Ld&quot;.&lt;F2&gt;x&quot;&lt;D2&gt;&lt;EB&gt;h&lt;A2&gt;xR&lt;89&gt;#&lt;C9&gt;&amp;=&lt;EF&gt;v&lt;99&gt;^K&lt;C1&gt;     u&lt;&lt;9E&gt;N&lt;C5&gt;H^Z&lt;B8&gt;&lt;CE&gt;^G^F&lt;C3&gt;&gt;&lt;BA&gt;|#&lt;F3&gt;J s%&lt;8E&gt;ESC&lt;DC&gt;&lt;F5&gt;9^S&lt;E7&gt;&lt;EA&gt;&lt;E1&gt;ESC&lt;E8&gt;&lt;99&gt;^K&lt;C2&gt;&amp;&lt;C7&gt;Z1,&lt;C3&gt;&lt;C6&gt;^V&lt;B6&gt;^?ЃB
+&lt;D8&gt;/&lt;B0&gt;&lt;DA&gt;+&lt;AF&gt;h&lt;FE&gt;&lt;E2&gt;N&lt;E1&gt;]&lt;E5&gt;&lt;B3&gt;^Z&lt;E1&gt;N&lt;B1&gt;e&lt;F7&gt;ESCPK^G^H&lt;94&gt;r+6 ^A^@^@&lt;9F&gt;^A^@^@PK^A^B^T^@^T^@^H^H^H^@&lt;B5&gt;`&quot;ZB?^^Xo[^@^@^@n^@^@^@^T^@   ^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@META-INF/MANIFEST.MFUT^E^@^G&lt;97&gt;^PvgPK^A^B
 ^@
-^@^@^@^@^@&lt;B5&gt;`"Z^@^@^@^@^@^@^@^@^@^@^@^@       ^@      ^@^@^@^@^@^@^@^@^@^@^@&lt;AE&gt;^@^@^@META-INF/UT^E^@^G&lt;97&gt;^PvgPK^A^B
+^@^@^@^@^@&lt;B5&gt;`&quot;Z^@^@^@^@^@^@^@^@^@^@^@^@       ^@      ^@^@^@^@^@^@^@^@^@^@^@&lt;AE&gt;^@^@^@META-INF/UT^E^@^G&lt;97&gt;^PvgPK^A^B
 ^@
-^@^@^@^@^@&lt;B5&gt;`"Z^@^@^@^@^@^@^@^@^@^@^@^@^D^@   ^@^@^@^@^@^@^@^@^@^@^@&lt;E6&gt;^@^@^@foo/UT^E^@^G&lt;97&gt;^PvgPK^A^B^T^@^T^@^H^H^H^@&lt;B5&gt;`"Z&lt;94&gt;r+6 ^A^@^@&lt;9F&gt;^A^@^@^M^@     ^@^@^@^@^@^@^@^@^@^@^@^Y^A^@^@foo/Foo.classUT^E^@^G&lt;97&gt;^PvgPK^E^F^@^@^@^@^D^@^D^@
+^@^@^@^@^@&lt;B5&gt;`&quot;Z^@^@^@^@^@^@^@^@^@^@^@^@^D^@   ^@^@^@^@^@^@^@^@^@^@^@&lt;E6&gt;^@^@^@foo/UT^E^@^G&lt;97&gt;^PvgPK^A^B^T^@^T^@^H^H^H^@&lt;B5&gt;`&quot;Z&lt;94&gt;r+6 ^A^@^@&lt;9F&gt;^A^@^@^M^@     ^@^@^@^@^@^@^@^@^@^@^@^Y^A^@^@foo/Foo.classUT^E^@^G&lt;97&gt;^PvgPK^E^F^@^@^@^@^D^@^D^@
 ^A^@^@&lt;85&gt;^B^@^@^@^@
 /Users/lihaoyi/test/out/foo/assembly.dest/out.jar (END)</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Here, you can see a single line of <code>exec java $JAVA_OPTS -cp "$0" 'foo.Foo' "$@"</code> which
+<p>Here, you can see a single line of <code>exec java $JAVA_OPTS -cp &quot;$0&quot; 'foo.Foo' &quot;$@&quot;</code> which
 is the bash script we prepended to the zip, followed by the un-intelligible compressed
 class file data that makes up the <code>.jar</code>. Since now you are running the Java program
 via <code>./out.jar</code> instead of <code>java -jar</code>, we expose the <code>JAVA_OPTS</code> environment variable
@@ -677,13 +675,13 @@ as a way to pass flags to the <code>java</code> command that ends up being run.]
 environments like Linux or Mac, but not on the Windows machines which are also very common.</p>
 </div>
 <div class="paragraph">
-<p>To fix this, we can replace our shell script zip prefix with a "universal" script that
+<p>To fix this, we can replace our shell script zip prefix with a &quot;universal&quot; script that
 is both a valid <code>.sh</code> program as well as valid <code>.bat</code> program, the latter being the
 standard windows command line language. Thus, instead of:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; exec java  $JAVA_OPTS -cp "$0" 'foo.Foo' "$@"</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; exec java  $JAVA_OPTS -cp &quot;$0&quot; 'foo.Foo' &quot;$@&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -693,13 +691,13 @@ standard windows command line language. Thus, instead of:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">@ 2&gt;/dev/null # 2&gt;nul &amp; echo off &amp; goto BOF
 :
-exec java  $JAVA_OPTS -cp "$0" 'foo.Foo' "$@"
+exec java  $JAVA_OPTS -cp &quot;$0&quot; 'foo.Foo' &quot;$@&quot;
 exit
 
 :BOF
 setlocal
 @echo off
-java  %JAVA_OPTS% -cp "%~dpnx0" foo.Foo %*
+java  %JAVA_OPTS% -cp &quot;%~dpnx0&quot; foo.Foo %*
 endlocal
 exit /B %errorlevel%</code></pre>
 </div>
@@ -758,25 +756,25 @@ pre-pended to the blobs of compressed classfile data that make up the rest of th
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">@ 2&gt;/dev/null # 2&gt;nul &amp; echo off &amp; goto BOF
 :
-exec java  $JAVA_OPTS -cp "$0" 'foo.Foo' "$@"
+exec java  $JAVA_OPTS -cp &quot;$0&quot; 'foo.Foo' &quot;$@&quot;
 exit
 
 :BOF
 setlocal
 @echo off
-java  %JAVA_OPTS% -cp "%~dpnx0" foo.Foo %*
+java  %JAVA_OPTS% -cp &quot;%~dpnx0&quot; foo.Foo %*
 endlocal
 exit /B %errorlevel%
-PK^C^D^T^@^H^H^H^@&lt;B5&gt;`"Z^@^@^@^@^@^@^@^@^@^@^@^@^T^@^Q^@META-INF/MANIFEST.MFUT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^Pvgeɱ
+PK^C^D^T^@^H^H^H^@&lt;B5&gt;`&quot;Z^@^@^@^@^@^@^@^@^@^@^@^@^T^@^Q^@META-INF/MANIFEST.MFUT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^Pvgeɱ
 &lt;80&gt; ^P^@&lt;D0&gt;&lt;FD&gt;&lt;C0&gt;^?&lt;B8&gt;^_81s&lt;C9&gt;1&lt;A1&gt;&lt;CD&gt;-&lt;DA&gt;^OR^P&lt;C4&gt;^Cu&lt;E9&gt;&lt;EF&gt;ESC^Z{&lt;EB&gt;&lt;8B&gt;&lt;DC&gt;JNcҕ&lt;FA&gt;(&lt;D2&gt;&lt;.&lt;DA&gt;=&lt;F1&gt;L7&lt;ED&gt;&lt;8F&gt;&lt;C7&gt;XjE&lt;A3&gt;^W&lt;AB&gt;^]ٕl&lt;CE&gt;n&lt;B3&gt;
 N&lt;91&gt;&lt;FA&gt;%&lt;FD&gt;3ri^T*&lt;8F&gt;&lt;E1&gt;1&lt;8B&gt;&lt;E8&gt;CD&lt;81&gt;&lt;82&gt;^WPK^G^HB?^Xo[^@^@^@n^@^@^@PK^C^D
-^@^@^@^@^@&lt;B5&gt;`"Z^@^@^@^@^@^@^@^@^@^@^@^@       ^@^Q^@META-INF/UT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^PvgPK^C^D
-^@^@^@^@^@&lt;B5&gt;`"Z^@^@^@^@^@^@^@^@^@^@^@^@^D^@^Q^@foo/UT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^PvgPK^C^D^T^@^H^H^H^@&lt;B5&gt;`"Z^@^@^@^@^@^@^@^@^@^@^@^@^M^@^Q^@foo/Foo.classUT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^Pvgm&lt;90&gt;&lt;CB&gt;J&lt;C3&gt;@^T&lt;86&gt;&lt;FF&gt;&lt;D3&gt;[&lt;9A&gt;4&lt;DA&gt;&lt;DA&gt;&lt;DA&gt;z-&lt;E8&gt;BH]&lt;&lt;98&gt;^G&lt;A8&gt;&lt;BA&gt;^Q&lt;8A&gt;&lt;8B&gt;&lt;A0&gt;B&lt;A4&gt;.\&lt;A5&gt;&lt;ED&gt;X&lt;A6&gt;L2^R^S&lt;C1&gt;&lt;C7&gt;҅&lt;82&gt;^K^_&lt;C0&gt;&lt;87&gt;^R&lt;CF&gt;^DA&lt;85&gt;&lt;CE&gt;&lt;E2&gt;&lt;DC&gt;&lt;E6&gt;&lt;FB&gt;&lt;FF&gt;^C&lt;E7&gt;&lt;&lt;F3&gt;&lt;EB&gt;&lt;FD&gt;^C&lt;C0&gt;      &lt;FA&gt;^NJ([&lt;A8&gt;&lt;B8&gt;&lt;A8&gt;&lt;A2&gt;Fh-&lt;A2&gt;&lt;C7&gt;&lt;C8&gt;WQ2&lt;F7&gt;/'^K1&lt;CD&gt;^H&lt;B5&gt;c&lt;99&gt;&lt;C8&gt;&lt;EC&gt;&lt;94&gt;P&lt;F6&gt;^FcESCu&lt;D8&gt;^V^^\^W^M&lt;B8&gt;&lt;FF&gt;&lt;F0&gt;&lt;F0&gt;&lt;E9&gt;!^S1S:gQ7(~&lt;A4&gt;&lt;F6&gt;&lt;AF&gt;R&lt;99&gt;da&lt;96&gt;&lt;8A&gt;(^^ֱJh&lt;9C&gt;^K&lt;A5&gt;&lt;F4&gt;ލN&lt;D5&gt;&lt;CC&gt;A^Kk^V&lt;DA&gt;.:X't&lt;96&gt;&lt;88&gt;^Hֽ&lt;E9&gt;T®^&lt;F0&gt;ga&lt;C6&gt;&lt;E3&gt;&lt;F9&gt;p0&lt;B6&gt;&lt;D0&gt;c&lt;E8&gt;Nk^?&lt;A4&gt;5&lt;A1&gt;r&lt;A6&gt;g&lt;82&gt;&lt;D0&gt;^Ld".&lt;F2&gt;x"&lt;D2&gt;&lt;EB&gt;h&lt;A2&gt;xR&lt;89&gt;#&lt;C9&gt;&amp;=&lt;EF&gt;v&lt;99&gt;^K&lt;C1&gt;     u&lt;&lt;9E&gt;N&lt;C5&gt;H^Z&lt;B8&gt;&lt;CE&gt;^G^F&lt;C3&gt;&gt;&lt;BA&gt;|#&lt;F3&gt;J s%&lt;8E&gt;ESC&lt;DC&gt;&lt;F5&gt;9^S&lt;E7&gt;&lt;EA&gt;&lt;E1&gt;ESC&lt;E8&gt;&lt;99&gt;^K&lt;C2&gt;&amp;&lt;C7&gt;Z1,&lt;C3&gt;&lt;C6&gt;^V&lt;B6&gt;^?ЃB
-&lt;D8&gt;/&lt;B0&gt;&lt;DA&gt;+&lt;AF&gt;h&lt;FE&gt;&lt;E2&gt;N&lt;E1&gt;]&lt;E5&gt;&lt;B3&gt;^Z&lt;E1&gt;N&lt;B1&gt;e&lt;F7&gt;ESCPK^G^H&lt;94&gt;r+6 ^A^@^@&lt;9F&gt;^A^@^@PK^A^B^T^@^T^@^H^H^H^@&lt;B5&gt;`"ZB?^^Xo[^@^@^@n^@^@^@^T^@   ^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@META-INF/MANIFEST.MFUT^E^@^G&lt;97&gt;^PvgPK^A^B
+^@^@^@^@^@&lt;B5&gt;`&quot;Z^@^@^@^@^@^@^@^@^@^@^@^@       ^@^Q^@META-INF/UT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^PvgPK^C^D
+^@^@^@^@^@&lt;B5&gt;`&quot;Z^@^@^@^@^@^@^@^@^@^@^@^@^D^@^Q^@foo/UT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^PvgPK^C^D^T^@^H^H^H^@&lt;B5&gt;`&quot;Z^@^@^@^@^@^@^@^@^@^@^@^@^M^@^Q^@foo/Foo.classUT^M^@^G&lt;97&gt;^Pvg&lt;97&gt;^Pvg&lt;97&gt;^Pvgm&lt;90&gt;&lt;CB&gt;J&lt;C3&gt;@^T&lt;86&gt;&lt;FF&gt;&lt;D3&gt;[&lt;9A&gt;4&lt;DA&gt;&lt;DA&gt;&lt;DA&gt;z-&lt;E8&gt;BH]&lt;&lt;98&gt;^G&lt;A8&gt;&lt;BA&gt;^Q&lt;8A&gt;&lt;8B&gt;&lt;A0&gt;B&lt;A4&gt;.\&lt;A5&gt;&lt;ED&gt;X&lt;A6&gt;L2^R^S&lt;C1&gt;&lt;C7&gt;҅&lt;82&gt;^K^_&lt;C0&gt;&lt;87&gt;^R&lt;CF&gt;^DA&lt;85&gt;&lt;CE&gt;&lt;E2&gt;&lt;DC&gt;&lt;E6&gt;&lt;FB&gt;&lt;FF&gt;^C&lt;E7&gt;&lt;&lt;F3&gt;&lt;EB&gt;&lt;FD&gt;^C&lt;C0&gt;      &lt;FA&gt;^NJ([&lt;A8&gt;&lt;B8&gt;&lt;A8&gt;&lt;A2&gt;Fh-&lt;A2&gt;&lt;C7&gt;&lt;C8&gt;WQ2&lt;F7&gt;/'^K1&lt;CD&gt;^H&lt;B5&gt;c&lt;99&gt;&lt;C8&gt;&lt;EC&gt;&lt;94&gt;P&lt;F6&gt;^FcESCu&lt;D8&gt;^V^^\^W^M&lt;B8&gt;&lt;FF&gt;&lt;F0&gt;&lt;F0&gt;&lt;E9&gt;!^S1S:gQ7(~&lt;A4&gt;&lt;F6&gt;&lt;AF&gt;R&lt;99&gt;da&lt;96&gt;&lt;8A&gt;(^^ֱJh&lt;9C&gt;^K&lt;A5&gt;&lt;F4&gt;ލN&lt;D5&gt;&lt;CC&gt;A^Kk^V&lt;DA&gt;.:X't&lt;96&gt;&lt;88&gt;^Hֽ&lt;E9&gt;T&reg;^&lt;F0&gt;ga&lt;C6&gt;&lt;E3&gt;&lt;F9&gt;p0&lt;B6&gt;&lt;D0&gt;c&lt;E8&gt;Nk^?&lt;A4&gt;5&lt;A1&gt;r&lt;A6&gt;g&lt;82&gt;&lt;D0&gt;^Ld&quot;.&lt;F2&gt;x&quot;&lt;D2&gt;&lt;EB&gt;h&lt;A2&gt;xR&lt;89&gt;#&lt;C9&gt;&amp;=&lt;EF&gt;v&lt;99&gt;^K&lt;C1&gt;     u&lt;&lt;9E&gt;N&lt;C5&gt;H^Z&lt;B8&gt;&lt;CE&gt;^G^F&lt;C3&gt;&gt;&lt;BA&gt;|#&lt;F3&gt;J s%&lt;8E&gt;ESC&lt;DC&gt;&lt;F5&gt;9^S&lt;E7&gt;&lt;EA&gt;&lt;E1&gt;ESC&lt;E8&gt;&lt;99&gt;^K&lt;C2&gt;&amp;&lt;C7&gt;Z1,&lt;C3&gt;&lt;C6&gt;^V&lt;B6&gt;^?ЃB
+&lt;D8&gt;/&lt;B0&gt;&lt;DA&gt;+&lt;AF&gt;h&lt;FE&gt;&lt;E2&gt;N&lt;E1&gt;]&lt;E5&gt;&lt;B3&gt;^Z&lt;E1&gt;N&lt;B1&gt;e&lt;F7&gt;ESCPK^G^H&lt;94&gt;r+6 ^A^@^@&lt;9F&gt;^A^@^@PK^A^B^T^@^T^@^H^H^H^@&lt;B5&gt;`&quot;ZB?^^Xo[^@^@^@n^@^@^@^T^@   ^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@META-INF/MANIFEST.MFUT^E^@^G&lt;97&gt;^PvgPK^A^B
 ^@
-^@^@^@^@^@&lt;B5&gt;`"Z^@^@^@^@^@^@^@^@^@^@^@^@       ^@      ^@^@^@^@^@^@^@^@^@^@^@&lt;AE&gt;^@^@^@META-INF/UT^E^@^G&lt;97&gt;^PvgPK^A^B
+^@^@^@^@^@&lt;B5&gt;`&quot;Z^@^@^@^@^@^@^@^@^@^@^@^@       ^@      ^@^@^@^@^@^@^@^@^@^@^@&lt;AE&gt;^@^@^@META-INF/UT^E^@^G&lt;97&gt;^PvgPK^A^B
 ^@
-^@^@^@^@^@&lt;B5&gt;`"Z^@^@^@^@^@^@^@^@^@^@^@^@^D^@   ^@^@^@^@^@^@^@^@^@^@^@&lt;E6&gt;^@^@^@foo/UT^E^@^G&lt;97&gt;^PvgPK^A^B^T^@^T^@^H^H^H^@&lt;B5&gt;`"Z&lt;94&gt;r+6 ^A^@^@&lt;9F&gt;^A^@^@^M^@     ^@^@^@^@^@^@^@^@^@^@^@^Y^A^@^@foo/Foo.classUT^E^@^G&lt;97&gt;^PvgPK^E^F^@^@^@^@^D^@^D^@
+^@^@^@^@^@&lt;B5&gt;`&quot;Z^@^@^@^@^@^@^@^@^@^@^@^@^D^@   ^@^@^@^@^@^@^@^@^@^@^@&lt;E6&gt;^@^@^@foo/UT^E^@^G&lt;97&gt;^PvgPK^A^B^T^@^T^@^H^H^H^@&lt;B5&gt;`&quot;Z&lt;94&gt;r+6 ^A^@^@&lt;9F&gt;^A^@^@^M^@     ^@^@^@^@^@^@^@^@^@^@^@^Y^A^@^@foo/Foo.classUT^E^@^G&lt;97&gt;^PvgPK^E^F^@^@^@^@^D^@^D^@
 ^A^@^@&lt;85&gt;^B^@^@^@^@
 /Users/lihaoyi/test/out/foo/assembly.dest/out.jar (END)</code></pre>
 </div>
@@ -787,7 +785,7 @@ N&lt;91&gt;&lt;FA&gt;%&lt;FD&gt;3ri^T*&lt;8F&gt;&lt;E1&gt;1&lt;8B&gt;&lt;E8&gt;C
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.assembly # generate the assembly jar
-"ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar"
+&quot;ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar&quot;
 
 &gt; out/foo/assembly.dest/out.jar # run the assembly jar directly
 Hello World</code></pre>
@@ -800,7 +798,7 @@ Hello World</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.assembly
-"ref:v0:bd2c6c70:C:\\Users\\haoyi\\test\\out\\foo\\assembly.dest\\out.jar"
+&quot;ref:v0:bd2c6c70:C:\\Users\\haoyi\\test\\out\\foo\\assembly.dest\\out.jar&quot;
 
 &gt; cp out\foo\assembly.dest\out.jar out.bat
 
@@ -844,9 +842,9 @@ Java programs and codebase feel like a first class citizen on the command-line.<
 </main>
 </div>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
-<script async src="../_/js/vendor/highlight.js"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>
 <script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
-<script async src="../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>

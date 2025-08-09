@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Java Build Examples :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/javalib/build-examples.html">
-    <link rel="prev" href="publishing.html">
-    <link rel="next" href="web-examples.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/javalib/build-examples.html" />
+    <link rel="prev" href="publishing.html" />
+    <link rel="next" href="web-examples.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -648,7 +649,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -673,41 +674,41 @@ import mill._, javalib._, publish._
 
 def sharedCompileIvyDeps = Task {
   Agg(
-    ivy"com.google.auto.service:auto-service:1.0.1",
-    ivy"com.google.code.findbugs:jsr305:3.0.2",
-    ivy"org.checkerframework:checker-compat-qual:2.5.5",
-    ivy"com.ibm.icu:icu4j:73.1"
+    ivy&quot;com.google.auto.service:auto-service:1.0.1&quot;,
+    ivy&quot;com.google.code.findbugs:jsr305:3.0.2&quot;,
+    ivy&quot;org.checkerframework:checker-compat-qual:2.5.5&quot;,
+    ivy&quot;com.ibm.icu:icu4j:73.1&quot;
   )
 }
 
 object jimfs extends PublishModule with MavenModule {
-  def publishVersion = "1.3.3.7"
+  def publishVersion = &quot;1.3.3.7&quot;
 
   def pomSettings = PomSettings(
     description = artifactName(),
-    organization = "com.google",
-    url = "https://github.com/google/jimfs",
+    organization = &quot;com.google&quot;,
+    url = &quot;https://github.com/google/jimfs&quot;,
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(owner = "google", repo = "jimfs"),
+    versionControl = VersionControl.github(owner = &quot;google&quot;, repo = &quot;jimfs&quot;),
     developers = Nil
   )
 
   def ivyDeps = sharedCompileIvyDeps() ++ Agg(
-    ivy"com.google.guava:guava:31.1-android"
+    ivy&quot;com.google.guava:guava:31.1-android&quot;
   )
 
-  def javacOptions = Seq("-processor", "com.google.auto.service.processor.AutoServiceProcessor")
+  def javacOptions = Seq(&quot;-processor&quot;, &quot;com.google.auto.service.processor.AutoServiceProcessor&quot;)
 
   object test extends MavenTests {
     def ivyDeps = sharedCompileIvyDeps() ++ Agg(
-      ivy"junit:junit:4.13.2",
-      ivy"com.google.guava:guava-testlib:31.1-android",
-      ivy"com.google.truth:truth:1.1.3",
-      ivy"com.github.sbt:junit-interface:0.13.2",
-      ivy"com.ibm.icu:icu4j:73.1"
+      ivy&quot;junit:junit:4.13.2&quot;,
+      ivy&quot;com.google.guava:guava-testlib:31.1-android&quot;,
+      ivy&quot;com.google.truth:truth:1.1.3&quot;,
+      ivy&quot;com.github.sbt:junit-interface:0.13.2&quot;,
+      ivy&quot;com.ibm.icu:icu4j:73.1&quot;
     )
 
-    def testFramework = "com.novocode.junit.JUnitFramework"
+    def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
   }
 }</code></pre>
 </div>
@@ -750,36 +751,36 @@ import contrib.jmh.JmhModule
 object `package` extends RootModule with PublishModule with MavenModule {
 
   object ZincWorkerJava11 extends ZincWorkerModule {
-    def jvmId = "temurin:11.0.24"
+    def jvmId = &quot;temurin:11.0.24&quot;
   }
 
   override def zincWorker = ModuleRef(ZincWorkerJava11)
-  def javacOptions = Seq("-encoding", "UTF-8")
-  def publishVersion = "2.17.0-SNAPSHOT"
+  def javacOptions = Seq(&quot;-encoding&quot;, &quot;UTF-8&quot;)
+  def publishVersion = &quot;2.17.0-SNAPSHOT&quot;
 
   def pomSettings = PomSettings(
     description = artifactName(),
-    organization = "org.apache.commons",
-    url = "https://github.com/apache/commons-io",
+    organization = &quot;org.apache.commons&quot;,
+    url = &quot;https://github.com/apache/commons-io&quot;,
     licenses = Seq(License.`Apache-2.0`),
-    versionControl = VersionControl.github(owner = "apache", repo = "commons-io"),
+    versionControl = VersionControl.github(owner = &quot;apache&quot;, repo = &quot;commons-io&quot;),
     developers = Nil
   )
 
   object test extends MavenTests with TestModule.Junit5 with JmhModule {
     def testSandboxWorkingDir = false
-    def jmhCoreVersion = "1.37"
+    def jmhCoreVersion = &quot;1.37&quot;
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"org.junit.jupiter:junit-jupiter:5.10.3",
-      ivy"org.junit-pioneer:junit-pioneer:1.9.1",
-      ivy"net.bytebuddy:byte-buddy:1.14.18",
-      ivy"net.bytebuddy:byte-buddy-agent:1.14.18",
-      ivy"org.mockito:mockito-inline:4.11.0",
-      ivy"com.google.jimfs:jimfs:1.3.0",
-      ivy"org.apache.commons:commons-lang3:3.14.0",
-      ivy"commons-codec:commons-codec:1.17.1",
-      ivy"org.openjdk.jmh:jmh-core:1.37",
-      ivy"org.openjdk.jmh:jmh-generator-annprocess:1.37"
+      ivy&quot;org.junit.jupiter:junit-jupiter:5.10.3&quot;,
+      ivy&quot;org.junit-pioneer:junit-pioneer:1.9.1&quot;,
+      ivy&quot;net.bytebuddy:byte-buddy:1.14.18&quot;,
+      ivy&quot;net.bytebuddy:byte-buddy-agent:1.14.18&quot;,
+      ivy&quot;org.mockito:mockito-inline:4.11.0&quot;,
+      ivy&quot;com.google.jimfs:jimfs:1.3.0&quot;,
+      ivy&quot;org.apache.commons:commons-lang3:3.14.0&quot;,
+      ivy&quot;commons-codec:commons-codec:1.17.1&quot;,
+      ivy&quot;org.openjdk.jmh:jmh-core:1.37&quot;,
+      ivy&quot;org.openjdk.jmh:jmh-generator-annprocess:1.37&quot;
     )
   }
 }</code></pre>
@@ -849,9 +850,9 @@ written in Java, built using the Mill build tool.</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

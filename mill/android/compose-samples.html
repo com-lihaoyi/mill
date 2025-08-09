@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Android Jetpack Compose :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/android/compose-samples.html">
-    <link rel="prev" href="android-linting.html">
-    <link rel="next" href="hilt-sample.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/android/compose-samples.html" />
+    <link rel="prev" href="android-linting.html" />
+    <link rel="next" href="hilt-sample.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +653,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -690,8 +691,8 @@ official <a href="https://github.com/android/compose-samples">compose samples</a
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, androidlib.*, kotlinlib.*
 
 object Versions {
-  val kotlinVersion = "2.1.20"
-  val kotlinLanguageVersion = "1.9"
+  val kotlinVersion = &quot;2.1.20&quot;
+  val kotlinLanguageVersion = &quot;1.9&quot;
 
   val androidCompileSdk = 33
   val androidMinSdk = 21
@@ -704,7 +705,7 @@ object Versions {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object androidSdkModule0 extends AndroidSdkModule {
-  def buildToolsVersion = "35.0.0"
+  def buildToolsVersion = &quot;35.0.0&quot;
 }
 
 object JetLagged extends mill.api.Module {
@@ -717,77 +718,77 @@ object JetLagged extends mill.api.Module {
 
     // FIXME: ideally R8 should compile without erroring, but the app seems to be working
     // without some reportedly missing classes.
-    override def androidR8Args = Seq("--map-diagnostics", "error", "warning")
+    override def androidR8Args = Seq(&quot;--map-diagnostics&quot;, &quot;error&quot;, &quot;warning&quot;)
 
     override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false
-      ).withDefaultProguardFile("proguard-android-optimize.txt")
+      ).withDefaultProguardFile(&quot;proguard-android-optimize.txt&quot;)
         .withProguardLocalFiles(
           Seq(
-            moduleDir / "proguard-rules.pro"
+            moduleDir / &quot;proguard-rules.pro&quot;
           )
         )
     }
 
-    override def androidApplicationNamespace = "com.example.jetlagged"
+    override def androidApplicationNamespace = &quot;com.example.jetlagged&quot;
 
-    override def androidApplicationId = "com.example.jetlagged"
+    override def androidApplicationId = &quot;com.example.jetlagged&quot;
 
     override def kotlincOptions = super.kotlincOptions() ++ Seq(
-      "-jvm-target",
-      "17"
+      &quot;-jvm-target&quot;,
+      &quot;17&quot;
     )
 
     def bomMvnDeps = super.mvnDeps() ++ Seq(
-      mvn"androidx.compose:compose-bom:2025.05.00"
+      mvn&quot;androidx.compose:compose-bom:2025.05.00&quot;
     )
 
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"com.google.accompanist:accompanist-adaptive:0.37.3",
-      mvn"androidx.appcompat:appcompat:1.7.0",
-      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2",
-      mvn"androidx.concurrent:concurrent-futures:1.1.0",
-      mvn"androidx.core:core-ktx:1.16.0",
-      mvn"androidx.activity:activity-compose:1.10.1",
-      mvn"androidx.lifecycle:lifecycle-common:2.9.0",
-      mvn"androidx.lifecycle:lifecycle-process:2.9.0",
-      mvn"androidx.lifecycle:lifecycle-runtime-compose:2.9.0",
-      mvn"androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0",
-      mvn"androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0",
-      mvn"androidx.navigation:navigation-compose:2.9.0",
-      mvn"androidx.emoji2:emoji2:1.5.0",
-      mvn"androidx.emoji2:emoji2-views:1.5.0",
-      mvn"androidx.emoji2:emoji2-bundled:1.5.0",
-      mvn"androidx.window:window:1.4.0",
-      mvn"androidx.window.extensions.core:core:1.0.0",
-      mvn"androidx.constraintlayout:constraintlayout-compose:1.1.1",
-      mvn"io.coil-kt:coil-compose:2.7.0",
-      mvn"androidx.customview:customview-poolingcontainer:1.0.0",
-      mvn"androidx.tracing:tracing:1.2.0",
-      mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1",
+      mvn&quot;com.google.accompanist:accompanist-adaptive:0.37.3&quot;,
+      mvn&quot;androidx.appcompat:appcompat:1.7.0&quot;,
+      mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2&quot;,
+      mvn&quot;androidx.concurrent:concurrent-futures:1.1.0&quot;,
+      mvn&quot;androidx.core:core-ktx:1.16.0&quot;,
+      mvn&quot;androidx.activity:activity-compose:1.10.1&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-common:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-process:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-runtime-compose:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0&quot;,
+      mvn&quot;androidx.navigation:navigation-compose:2.9.0&quot;,
+      mvn&quot;androidx.emoji2:emoji2:1.5.0&quot;,
+      mvn&quot;androidx.emoji2:emoji2-views:1.5.0&quot;,
+      mvn&quot;androidx.emoji2:emoji2-bundled:1.5.0&quot;,
+      mvn&quot;androidx.window:window:1.4.0&quot;,
+      mvn&quot;androidx.window.extensions.core:core:1.0.0&quot;,
+      mvn&quot;androidx.constraintlayout:constraintlayout-compose:1.1.1&quot;,
+      mvn&quot;io.coil-kt:coil-compose:2.7.0&quot;,
+      mvn&quot;androidx.customview:customview-poolingcontainer:1.0.0&quot;,
+      mvn&quot;androidx.tracing:tracing:1.2.0&quot;,
+      mvn&quot;org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1&quot;,
 
       // version is resolved from compose-bom
-      mvn"androidx.compose.runtime:runtime",
-      mvn"androidx.compose.foundation:foundation",
-      mvn"androidx.compose.foundation:foundation-layout",
-      mvn"androidx.compose.ui:ui-util",
-      mvn"androidx.compose.material3:material3",
-      mvn"androidx.compose.animation:animation",
-      mvn"androidx.compose.animation:animation-tooling-internal",
-      mvn"androidx.compose.material:material-icons-extended",
-      mvn"androidx.compose.material:material",
-      mvn"androidx.compose.material3:material3-window-size-class",
-      mvn"androidx.compose.ui:ui-text-google-fonts",
-      mvn"androidx.compose.ui:ui-tooling-preview",
-      mvn"androidx.compose.ui:ui-unit",
-      mvn"androidx.compose.ui:ui-text",
-      mvn"androidx.compose.ui:ui-graphics",
+      mvn&quot;androidx.compose.runtime:runtime&quot;,
+      mvn&quot;androidx.compose.foundation:foundation&quot;,
+      mvn&quot;androidx.compose.foundation:foundation-layout&quot;,
+      mvn&quot;androidx.compose.ui:ui-util&quot;,
+      mvn&quot;androidx.compose.material3:material3&quot;,
+      mvn&quot;androidx.compose.animation:animation&quot;,
+      mvn&quot;androidx.compose.animation:animation-tooling-internal&quot;,
+      mvn&quot;androidx.compose.material:material-icons-extended&quot;,
+      mvn&quot;androidx.compose.material:material&quot;,
+      mvn&quot;androidx.compose.material3:material3-window-size-class&quot;,
+      mvn&quot;androidx.compose.ui:ui-text-google-fonts&quot;,
+      mvn&quot;androidx.compose.ui:ui-tooling-preview&quot;,
+      mvn&quot;androidx.compose.ui:ui-unit&quot;,
+      mvn&quot;androidx.compose.ui:ui-text&quot;,
+      mvn&quot;androidx.compose.ui:ui-graphics&quot;,
 
       // debug dependencies
-      mvn"androidx.compose.ui:ui-tooling",
-      mvn"androidx.compose.ui:ui-test-manifest"
+      mvn&quot;androidx.compose.ui:ui-tooling&quot;,
+      mvn&quot;androidx.compose.ui:ui-test-manifest&quot;
     )
 
     def androidEnableCompose = true
@@ -803,7 +804,7 @@ object JetLagged extends mill.api.Module {
           AndroidTestModule.AndroidJUnit {
 
       def bomMvnDeps = super.mvnDeps() ++ Seq(
-        mvn"androidx.compose:compose-bom:2025.05.00"
+        mvn&quot;androidx.compose:compose-bom:2025.05.00&quot;
       )
 
       // TODO consider defaulting this to the parent app value
@@ -816,18 +817,18 @@ object JetLagged extends mill.api.Module {
 
       // FIXME: ideally R8 should compile without erroring, but the app seems to be working
       // without some reportedly missing classes.
-      override def androidR8Args = Seq("--map-diagnostics", "error", "warning")
+      override def androidR8Args = Seq(&quot;--map-diagnostics&quot;, &quot;error&quot;, &quot;warning&quot;)
 
       def mvnDeps = super.mvnDeps() ++ Seq(
-        mvn"junit:junit:4.13.2",
-        mvn"androidx.test:core:1.6.1",
-        mvn"androidx.test:runner:1.6.1",
-        mvn"androidx.test.espresso:espresso-core:3.6.1",
-        mvn"androidx.test:rules:1.6.1",
-        mvn"androidx.test.ext:junit:1.2.1",
-        mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2",
-        mvn"androidx.compose.ui:ui-test",
-        mvn"androidx.compose.ui:ui-test-junit4"
+        mvn&quot;junit:junit:4.13.2&quot;,
+        mvn&quot;androidx.test:core:1.6.1&quot;,
+        mvn&quot;androidx.test:runner:1.6.1&quot;,
+        mvn&quot;androidx.test.espresso:espresso-core:3.6.1&quot;,
+        mvn&quot;androidx.test:rules:1.6.1&quot;,
+        mvn&quot;androidx.test.ext:junit:1.2.1&quot;,
+        mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2&quot;,
+        mvn&quot;androidx.compose.ui:ui-test&quot;,
+        mvn&quot;androidx.compose.ui:ui-test-junit4&quot;
       )
     }
   }
@@ -843,79 +844,79 @@ object JetNews extends mill.api.Module {
 
     // FIXME: ideally R8 should compile without erroring, but the app seems to be working
     // without some reportedly missing classes.
-    override def androidR8Args = Seq("--map-diagnostics", "error", "warning")
+    override def androidR8Args = Seq(&quot;--map-diagnostics&quot;, &quot;error&quot;, &quot;warning&quot;)
 
     override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false
-      ).withDefaultProguardFile("proguard-android-optimize.txt")
+      ).withDefaultProguardFile(&quot;proguard-android-optimize.txt&quot;)
         .withProguardLocalFiles(
           Seq(
-            moduleDir / "proguard-rules.pro"
+            moduleDir / &quot;proguard-rules.pro&quot;
           )
         )
     }
 
-    override def androidApplicationNamespace = "com.example.jetnews"
+    override def androidApplicationNamespace = &quot;com.example.jetnews&quot;
 
-    override def androidApplicationId = "com.example.jetnews"
+    override def androidApplicationId = &quot;com.example.jetnews&quot;
 
     override def kotlincOptions = super.kotlincOptions() ++ Seq(
-      "-jvm-target",
-      "17"
+      &quot;-jvm-target&quot;,
+      &quot;17&quot;
     )
 
     def bomMvnDeps = super.mvnDeps() ++ Seq(
-      mvn"androidx.compose:compose-bom:2025.05.00"
+      mvn&quot;androidx.compose:compose-bom:2025.05.00&quot;
     )
 
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"com.google.accompanist:accompanist-adaptive:0.37.3",
-      mvn"androidx.appcompat:appcompat:1.7.0",
-      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2",
-      mvn"androidx.concurrent:concurrent-futures:1.1.0",
-      mvn"androidx.core:core-ktx:1.16.0",
-      mvn"androidx.activity:activity-compose:1.10.1",
-      mvn"androidx.lifecycle:lifecycle-common:2.9.0",
-      mvn"androidx.lifecycle:lifecycle-process:2.9.0",
-      mvn"androidx.lifecycle:lifecycle-runtime-compose:2.9.0",
-      mvn"androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0",
-      mvn"androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0",
-      mvn"androidx.navigation:navigation-compose:2.9.0",
-      mvn"androidx.emoji2:emoji2:1.5.0",
-      mvn"androidx.emoji2:emoji2-views:1.5.0",
-      mvn"androidx.emoji2:emoji2-bundled:1.5.0",
-      mvn"androidx.window:window:1.4.0",
-      mvn"androidx.window.extensions.core:core:1.0.0",
-      mvn"androidx.constraintlayout:constraintlayout-compose:1.1.1",
-      mvn"io.coil-kt:coil-compose:2.7.0",
-      mvn"androidx.customview:customview-poolingcontainer:1.0.0",
-      mvn"androidx.tracing:tracing:1.2.0",
-      mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1",
-      mvn"androidx.glance:glance-appwidget:1.2.0-alpha01",
-      mvn"androidx.glance:glance-material3:1.2.0-alpha01",
+      mvn&quot;com.google.accompanist:accompanist-adaptive:0.37.3&quot;,
+      mvn&quot;androidx.appcompat:appcompat:1.7.0&quot;,
+      mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2&quot;,
+      mvn&quot;androidx.concurrent:concurrent-futures:1.1.0&quot;,
+      mvn&quot;androidx.core:core-ktx:1.16.0&quot;,
+      mvn&quot;androidx.activity:activity-compose:1.10.1&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-common:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-process:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-runtime-compose:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0&quot;,
+      mvn&quot;androidx.navigation:navigation-compose:2.9.0&quot;,
+      mvn&quot;androidx.emoji2:emoji2:1.5.0&quot;,
+      mvn&quot;androidx.emoji2:emoji2-views:1.5.0&quot;,
+      mvn&quot;androidx.emoji2:emoji2-bundled:1.5.0&quot;,
+      mvn&quot;androidx.window:window:1.4.0&quot;,
+      mvn&quot;androidx.window.extensions.core:core:1.0.0&quot;,
+      mvn&quot;androidx.constraintlayout:constraintlayout-compose:1.1.1&quot;,
+      mvn&quot;io.coil-kt:coil-compose:2.7.0&quot;,
+      mvn&quot;androidx.customview:customview-poolingcontainer:1.0.0&quot;,
+      mvn&quot;androidx.tracing:tracing:1.2.0&quot;,
+      mvn&quot;org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1&quot;,
+      mvn&quot;androidx.glance:glance-appwidget:1.2.0-alpha01&quot;,
+      mvn&quot;androidx.glance:glance-material3:1.2.0-alpha01&quot;,
 
       // version is resolved from compose-bom
-      mvn"androidx.compose.runtime:runtime",
-      mvn"androidx.compose.foundation:foundation",
-      mvn"androidx.compose.foundation:foundation-layout",
-      mvn"androidx.compose.ui:ui-util",
-      mvn"androidx.compose.material3:material3",
-      mvn"androidx.compose.animation:animation",
-      mvn"androidx.compose.animation:animation-tooling-internal",
-      mvn"androidx.compose.material:material-icons-extended",
-      mvn"androidx.compose.material:material",
-      mvn"androidx.compose.material3:material3-window-size-class",
-      mvn"androidx.compose.ui:ui-text-google-fonts",
-      mvn"androidx.compose.ui:ui-tooling-preview",
-      mvn"androidx.compose.ui:ui-unit",
-      mvn"androidx.compose.ui:ui-text",
-      mvn"androidx.compose.ui:ui-graphics",
+      mvn&quot;androidx.compose.runtime:runtime&quot;,
+      mvn&quot;androidx.compose.foundation:foundation&quot;,
+      mvn&quot;androidx.compose.foundation:foundation-layout&quot;,
+      mvn&quot;androidx.compose.ui:ui-util&quot;,
+      mvn&quot;androidx.compose.material3:material3&quot;,
+      mvn&quot;androidx.compose.animation:animation&quot;,
+      mvn&quot;androidx.compose.animation:animation-tooling-internal&quot;,
+      mvn&quot;androidx.compose.material:material-icons-extended&quot;,
+      mvn&quot;androidx.compose.material:material&quot;,
+      mvn&quot;androidx.compose.material3:material3-window-size-class&quot;,
+      mvn&quot;androidx.compose.ui:ui-text-google-fonts&quot;,
+      mvn&quot;androidx.compose.ui:ui-tooling-preview&quot;,
+      mvn&quot;androidx.compose.ui:ui-unit&quot;,
+      mvn&quot;androidx.compose.ui:ui-text&quot;,
+      mvn&quot;androidx.compose.ui:ui-graphics&quot;,
 
       // debug dependencies
-      mvn"androidx.compose.ui:ui-tooling",
-      mvn"androidx.compose.ui:ui-test-manifest"
+      mvn&quot;androidx.compose.ui:ui-tooling&quot;,
+      mvn&quot;androidx.compose.ui:ui-test-manifest&quot;
     )
 
     def androidEnableCompose = true
@@ -931,7 +932,7 @@ object JetNews extends mill.api.Module {
           AndroidTestModule.AndroidJUnit {
 
       def bomMvnDeps = super.mvnDeps() ++ Seq(
-        mvn"androidx.compose:compose-bom:2025.05.00"
+        mvn&quot;androidx.compose:compose-bom:2025.05.00&quot;
       )
 
       // TODO consider defaulting this to the parent app value
@@ -944,18 +945,18 @@ object JetNews extends mill.api.Module {
 
       // FIXME: ideally R8 should compile without erroring, but the app seems to be working
       // without some reportedly missing classes.
-      override def androidR8Args = Seq("--map-diagnostics", "error", "warning")
+      override def androidR8Args = Seq(&quot;--map-diagnostics&quot;, &quot;error&quot;, &quot;warning&quot;)
 
       def mvnDeps = super.mvnDeps() ++ Seq(
-        mvn"junit:junit:4.13.2",
-        mvn"androidx.test:core:1.6.1",
-        mvn"androidx.test:runner:1.6.1",
-        mvn"androidx.test.espresso:espresso-core:3.6.1",
-        mvn"androidx.test:rules:1.6.1",
-        mvn"androidx.test.ext:junit:1.2.1",
-        mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2",
-        mvn"androidx.compose.ui:ui-test",
-        mvn"androidx.compose.ui:ui-test-junit4"
+        mvn&quot;junit:junit:4.13.2&quot;,
+        mvn&quot;androidx.test:core:1.6.1&quot;,
+        mvn&quot;androidx.test:runner:1.6.1&quot;,
+        mvn&quot;androidx.test.espresso:espresso-core:3.6.1&quot;,
+        mvn&quot;androidx.test:rules:1.6.1&quot;,
+        mvn&quot;androidx.test.ext:junit:1.2.1&quot;,
+        mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2&quot;,
+        mvn&quot;androidx.compose.ui:ui-test&quot;,
+        mvn&quot;androidx.compose.ui:ui-test-junit4&quot;
       )
     }
   }
@@ -980,42 +981,42 @@ The following example is for building, testing and running JetNews.</p>
 
 &gt; ./mill show JetNews.app.androidRun --activity com.example.jetnews.ui.MainActivity
 [
-  "Starting: Intent { cmp=com.example.jetnews/.ui.MainActivity }",
-  "Status: ok",
-  "LaunchState: COLD",
-  "Activity: com.example.jetnews/.ui.MainActivity",
-  "TotalTime: ...",
-  "WaitTime: ...",
-  "Complete"
+  &quot;Starting: Intent { cmp=com.example.jetnews/.ui.MainActivity }&quot;,
+  &quot;Status: ok&quot;,
+  &quot;LaunchState: COLD&quot;,
+  &quot;Activity: com.example.jetnews/.ui.MainActivity&quot;,
+  &quot;TotalTime: ...&quot;,
+  &quot;WaitTime: ...&quot;,
+  &quot;Complete&quot;
 ]
 
 &gt; ./mill show JetNews.app.androidTest
 {
-  "msg": "",
-  "results": [
+  &quot;msg&quot;: &quot;&quot;,
+  &quot;results&quot;: [
     {
-      "fullyQualifiedName": "com.example.jetnews.HomeScreenTests.postsContainError_snackbarShown",
-      "selector": "com.example.jetnews.HomeScreenTests.postsContainError_snackbarShown",
-      "duration": ...,
-      "status": "Success"
+      &quot;fullyQualifiedName&quot;: &quot;com.example.jetnews.HomeScreenTests.postsContainError_snackbarShown&quot;,
+      &quot;selector&quot;: &quot;com.example.jetnews.HomeScreenTests.postsContainError_snackbarShown&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
     },
     {
-      "fullyQualifiedName": "com.example.jetnews.JetnewsTests.app_opensArticle",
-      "selector": "com.example.jetnews.JetnewsTests.app_opensArticle",
-      "duration": ...,
-      "status": "Success"
+      &quot;fullyQualifiedName&quot;: &quot;com.example.jetnews.JetnewsTests.app_opensArticle&quot;,
+      &quot;selector&quot;: &quot;com.example.jetnews.JetnewsTests.app_opensArticle&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
     },
     {
-      "fullyQualifiedName": "com.example.jetnews.JetnewsTests.app_launches",
-      "selector": "com.example.jetnews.JetnewsTests.app_launches",
-      "duration": ...,
-      "status": "Success"
+      &quot;fullyQualifiedName&quot;: &quot;com.example.jetnews.JetnewsTests.app_launches&quot;,
+      &quot;selector&quot;: &quot;com.example.jetnews.JetnewsTests.app_launches&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
     },
     {
-      "fullyQualifiedName": "com.example.jetnews.JetnewsTests.app_opensInterests",
-      "selector": "com.example.jetnews.JetnewsTests.app_opensInterests",
-      "duration": ...,
-      "status": "Success"
+      &quot;fullyQualifiedName&quot;: &quot;com.example.jetnews.JetnewsTests.app_opensInterests&quot;,
+      &quot;selector&quot;: &quot;com.example.jetnews.JetnewsTests.app_opensInterests&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
     }
   ]
 }
@@ -1040,9 +1041,9 @@ their Gradle configuration to Mill and using R8 to optimise the App in a similar
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

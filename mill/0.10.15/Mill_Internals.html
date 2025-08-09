@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Mill Internals :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/depth/design-principles.html">
-    <link rel="prev" href="Using_Plugins.html">
-    <link rel="next" href="Contrib_Plugins.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/depth/design-principles.html" />
+    <link rel="prev" href="Using_Plugins.html" />
+    <link rel="next" href="Contrib_Plugins.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -330,7 +331,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -342,9 +343,9 @@
 <h2 id="_mill_design_principles"><a class="anchor" href="#_mill_design_principles"></a>Mill Design Principles</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>A lot of Mill&#8217;s design principles are intended to fix SBT&#8217;s flaws, as described
+<p>A lot of Mill’s design principles are intended to fix SBT’s flaws, as described
 in the blog post
-<a href="http://www.lihaoyi.com/post/SowhatswrongwithSBT.html">What&#8217;s wrong with SBT</a>,
+<a href="http://www.lihaoyi.com/post/SowhatswrongwithSBT.html">What’s wrong with SBT</a>,
 building on the best ideas from tools like <a href="https://github.com/cvogt/cbt">CBT</a>
 and <a href="https://bazel.build/">Bazel</a>, and the ideas from my blog post
 <a href="http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html">Build Tools as
@@ -355,15 +356,15 @@ from!</p>
 <div class="sect2">
 <h3 id="_dependency_graph_first"><a class="anchor" href="#_dependency_graph_first"></a>Dependency graph first</h3>
 <div class="paragraph">
-<p>Mill&#8217;s most important abstraction is the dependency graph of <code>Task</code>s.
-Constructed using the <code>T {&#8230;&#8203;}</code> <code>T.task {&#8230;&#8203;}</code> <code>T.command {&#8230;&#8203;}</code> syntax, these
+<p>Mill’s most important abstraction is the dependency graph of <code>Task</code>s.
+Constructed using the <code>T {...​}</code> <code>T.task {...​}</code> <code>T.command {...​}</code> syntax, these
 track the dependencies between steps of a build, so those steps can be executed
 in the correct order, queried, or parallelized.</p>
 </div>
 <div class="paragraph">
 <p>While Mill provides helpers like <code>ScalaModule</code> and other things you can use to
 quickly instantiate a bunch of related tasks (resolve dependencies, find
-sources, compile, package into jar, &#8230;&#8203;) these are secondary. When Mill
+sources, compile, package into jar, ...​) these are secondary. When Mill
 executes, the dependency graph is what matters: any other mode of organization
 (hierarchies, modules, inheritance, etc.) is only important to create this
 dependency graph of <code>Task</code>s.</p>
@@ -378,27 +379,27 @@ the same as referencing a target in Scala code, <code>Foo.bar.baz</code></p>
 <div class="paragraph">
 <p>Everything that you can run from the command line lives in an object hierarchy
 in your <code>build.sc</code> file. Different parts of the hierarchy can have different
-<code>Target</code>s available: just add a new <code>def foo = T {&#8230;&#8203;}</code> somewhere and you&#8217;ll be
+<code>Target</code>s available: just add a new <code>def foo = T {...​}</code> somewhere and you’ll be
 able to run it.</p>
 </div>
 <div class="paragraph">
 <p>Cross builds, using the <code>Cross</code> data structure, are just another kind of node in
-the object hierarchy. The only difference is syntax: from the command line you&#8217;d
+the object hierarchy. The only difference is syntax: from the command line you’d
 run something via <code>mill core.cross[a].printIt</code> while from code you use
-<code>core.cross("a").printIt</code> due to different restrictions in Scala/Bash syntax.</p>
+<code>core.cross(&quot;a&quot;).printIt</code> due to different restrictions in Scala/Bash syntax.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_caching_by_default"><a class="anchor" href="#_caching_by_default"></a>Caching by default</h3>
 <div class="paragraph">
-<p>Every <code>Target</code> in a build, defined by <code>def foo = T {&#8230;&#8203;}</code>, is cached by default.
+<p>Every <code>Target</code> in a build, defined by <code>def foo = T {...​}</code>, is cached by default.
 Currently this is done using a <code>foo.json</code> file in the <code>out/</code> folder. The
 <code>Target</code> is also provided a <code>foo.dest/</code> path on the filesystem dedicated to it, for
 it to store output files etc.</p>
 </div>
 <div class="paragraph">
 <p>This happens whether you want it to or not. Every <code>Target</code> is cached, not just
-the "slow" ones like <code>compile</code> or <code>assembly</code>.</p>
+the &quot;slow&quot; ones like <code>compile</code> or <code>assembly</code>.</p>
 </div>
 <div class="paragraph">
 <p>Caching is keyed on the <code>.hashCode</code> of the returned value. For <code>Target</code>s
@@ -426,10 +427,10 @@ previous process left off.</p>
 </div>
 <div class="paragraph">
 <p>Minimizing startup time means aggressive caching, as well as minimizing the
-total amount of bytecode used: Mill&#8217;s current 1-2s startup time is dominated by
+total amount of bytecode used: Mill’s current 1-2s startup time is dominated by
 JVM classloading. In future, we may have a long lived console or
 nailgun/drip-based server/client models to speed up interactive usage, but we
-should always keep "cold" startup as fast as possible.</p>
+should always keep &quot;cold&quot; startup as fast as possible.</p>
 </div>
 </div>
 <div class="sect2">
@@ -444,7 +445,7 @@ sorts of useful operations on the graph before running it:</p>
 <ul>
 <li>
 <p>Given a Target the user wants to run, pre-compute and display what targets
-will be evaluated ("dry run"), without running them</p>
+will be evaluated (&quot;dry run&quot;), without running them</p>
 </li>
 <li>
 <p>Automatically parallelize different parts of the dependency graph that do not
@@ -455,10 +456,10 @@ machines like Bazel/Pants can</p>
 <p>Visualize the dependency graph easily, e.g. by dumping to a DOT file</p>
 </li>
 <li>
-<p>Query the graph, e.g. "why does this thing depend on that other thing?"</p>
+<p>Query the graph, e.g. &quot;why does this thing depend on that other thing?&quot;</p>
 </li>
 <li>
-<p>Avoid running tasks "halfway": if a Target&#8217;s upstream Targets fail, we can
+<p>Avoid running tasks &quot;halfway&quot;: if a Target’s upstream Targets fail, we can
 skip the Target completely rather than running halfway and then bailing out
 with an exception</p>
 </li>
@@ -466,15 +467,15 @@ with an exception</p>
 </div>
 <div class="paragraph">
 <p>In order to avoid making people using <code>.map</code> and <code>.zip</code> all over the place when
-defining their <code>Task</code>s, we use the <code>T {&#8230;&#8203;}</code>/<code>T.task {&#8230;&#8203;}</code>/<code>T.command {&#8230;&#8203;}</code>
-macros which allow you to use <code>Task#apply()</code> within the block to "extract" a
+defining their <code>Task</code>s, we use the <code>T {...​}</code>/<code>T.task {...​}</code>/<code>T.command {...​}</code>
+macros which allow you to use <code>Task#apply()</code> within the block to &quot;extract&quot; a
 value.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def test() = T.command {
   TestRunner.apply(
-   "mill.UTestFramework",
+   &quot;mill.UTestFramework&quot;,
    runDepClasspath().map(_.path) :+ compile().path,
    Seq(compile().path)
 
@@ -489,7 +490,7 @@ value.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def test() = T.command { T.zipMap(runDepClasspath, compile, compile) {
   (runDepClasspath1, compile2, compile3) =&gt;
   TestRunner.apply(
-    "mill.UTestFramework",
+    &quot;mill.UTestFramework&quot;,
     runDepClasspath1.map(_.path) :+ compile2.path,
     Seq(compile3.path)
   )
@@ -497,9 +498,9 @@ value.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>This is similar to SBT&#8217;s <code>:=</code>/<code>.value</code> macros, or <code>scala-async</code>'s
-<code>async</code>/<code>await</code>. Like those, the <code>T {&#8230;&#8203;}</code> macro should let users program most of
-their code in a "direct" style and have it "automatically" lifted into a graph
+<p>This is similar to SBT’s <code>:=</code>/<code>.value</code> macros, or <code>scala-async</code>'s
+<code>async</code>/<code>await</code>. Like those, the <code>T {...​}</code> macro should let users program most of
+their code in a &quot;direct&quot; style and have it &quot;automatically&quot; lifted into a graph
 of <code>Task</code>s.</p>
 </div>
 </div>
@@ -518,7 +519,7 @@ flexible, where other build tools in the past have failed?</p>
 <div class="ulist">
 <ul>
 <li>
-<p>What "Tasks" depends on what?</p>
+<p>What &quot;Tasks&quot; depends on what?</p>
 </li>
 <li>
 <p>How do I define my own tasks?</p>
@@ -530,7 +531,7 @@ flexible, where other build tools in the past have failed?</p>
 <p>What needs to run in what order to do what I want?</p>
 </li>
 <li>
-<p>What can be parallelized and what can&#8217;t?</p>
+<p>What can be parallelized and what can’t?</p>
 </li>
 <li>
 <p>How do tasks pass data to each other? What data do they pass?</p>
@@ -543,10 +544,10 @@ flexible, where other build tools in the past have failed?</p>
 </li>
 <li>
 <p>How do you deal with the repetition inherent in a build? (e.g. compile, run &amp;
-test tasks for every "module")</p>
+test tasks for every &quot;module&quot;)</p>
 </li>
 <li>
-<p>What is a "Module"? How do they relate to "Tasks"?</p>
+<p>What is a &quot;Module&quot;? How do they relate to &quot;Tasks&quot;?</p>
 </li>
 <li>
 <p>How do you configure a Module to do something different?</p>
@@ -557,9 +558,9 @@ test tasks for every "module")</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>These are a lot of questions to answer, and we haven&#8217;t even started talking
+<p>These are a lot of questions to answer, and we haven’t even started talking
 about the actually compiling/running any code yet! If each such facet of a build
-was modelled separately, it&#8217;s easy to have an explosion of different concepts
+was modelled separately, it’s easy to have an explosion of different concepts
 that would make a build tool hard to understand.</p>
 </div>
 <div class="paragraph">
@@ -589,7 +590,7 @@ concepts:</p>
 </div>
 <div class="paragraph">
 <p>These concepts are already familiar to anyone experienced in Scala (or any other
-programming language...), but are enough to answer all of the complicated
+programming language&hellip;), but are enough to answer all of the complicated
 build-related questions listed above.</p>
 </div>
 </div>
@@ -628,7 +629,7 @@ example, a <code>Target</code> at position <code>core.test.compile</code> would:
 <div class="paragraph">
 <p>From the position of any <code>Target</code> within the object hierarchy, you immediately
 know how to run it, find its output files, find any caches, or refer to it from
-other <code>Target</code>s. You know up-front where the <code>Target</code>s data "lives" on disk, and
+other <code>Target</code>s. You know up-front where the <code>Target</code>s data &quot;lives&quot; on disk, and
 are sure that it will never clash with any other <code>Target</code>s data.</p>
 </div>
 </div>
@@ -637,8 +638,8 @@ are sure that it will never clash with any other <code>Target</code>s data.</p>
 <h2 id="_the_call_graph"><a class="anchor" href="#_the_call_graph"></a>The Call Graph</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Scala call graph of "which target references which other target" is core to
-how Mill operates. This graph is reified via the <code>T {&#8230;&#8203;}</code> macro to make it
+<p>The Scala call graph of &quot;which target references which other target&quot; is core to
+how Mill operates. This graph is reified via the <code>T {...​}</code> macro to make it
 available to the Mill execution engine at runtime. The call graph tells you:</p>
 </div>
 <div class="ulist">
@@ -663,7 +664,7 @@ its return value)</p>
 </li>
 <li>
 <p>Defining your own task that depends on others is as simple as <code>def foo =
-T {&#8230;&#8203;}</code></p>
+T {...​}</code></p>
 </li>
 </ul>
 </div>
@@ -686,7 +687,7 @@ knowing what <code>Target</code> depends on what other <code>Target</code>s, and
 does on its inputs!</p>
 </div>
 <div class="paragraph">
-<p>With Mill, you can take the Scala call graph, wrap everything in the <code>T {&#8230;&#8203;}</code>
+<p>With Mill, you can take the Scala call graph, wrap everything in the <code>T {...​}</code>
 macro, and get a <code>Target</code>-dependency graph that matches exactly the call-graph
 you already had:</p>
 </div>
@@ -723,7 +724,7 @@ a build:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Scala "project"s with multiple related <code>Target</code>s within them, are just a
+<p>Scala &quot;project&quot;s with multiple related <code>Target</code>s within them, are just a
 <code>Trait</code> you instantiate</p>
 </li>
 <li>
@@ -749,7 +750,7 @@ multiple times, each instance with its own distinct set of <code>Target</code>s<
 can instantiate over and over, and you can override the things you want to
 customize. Similarly, in Mill, you bundle up common parts of a build into
 <code>trait</code>s you can instantiate over and over, and you can override the things you
-want to customize. "Subprojects", "cross-builds", and many other concepts are
+want to customize. &quot;Subprojects&quot;, &quot;cross-builds&quot;, and many other concepts are
 reduced to simply instantiating a <code>trait</code> over and over, with tweaks.</p>
 </div>
 </div>
@@ -763,7 +764,7 @@ reduced to simply instantiating a <code>trait</code> over and over, with tweaks.
 <p>Mill is built as a substitute for SBT, whose problems are
 <a href="http://www.lihaoyi.com/post/SowhatswrongwithSBT.html">described here</a>.
 Nevertheless, Mill takes on some parts of SBT (builds written in Scala, Task
-graph with an Applicative "idiom bracket" macro) where it makes sense.</p>
+graph with an Applicative &quot;idiom bracket&quot; macro) where it makes sense.</p>
 </div>
 </div>
 <div class="sect2">
@@ -786,7 +787,7 @@ happens via:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">do_something(name="blah")</code></pre>
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">do_something(name=&quot;blah&quot;)</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -794,39 +795,39 @@ happens via:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">do_other_thing(dependencies=["blah"])</code></pre>
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">do_other_thing(dependencies=[&quot;blah&quot;])</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>where <code>"blah"</code> is a global identifier that is often constructed programmatically
+<p>where <code>&quot;blah&quot;</code> is a global identifier that is often constructed programmatically
 via string concatenation and passed around. This is quite challenging.</p>
 </div>
 <div class="paragraph">
-<p>Having the two layers be “just python” is great since people know python, but I
-think it&#8217;s unnecessary to have two layers ("evaluating macros" and "evaluating rule
-impls") that are almost exactly the same, and I think making them interact via
+<p>Having the two layers be &ldquo;just python&rdquo; is great since people know python, but I
+think it’s unnecessary to have two layers (&quot;evaluating macros&quot; and &quot;evaluating rule
+impls&quot;) that are almost exactly the same, and I think making them interact via
 return values rather than via a global namespace of programmatically-constructed
 strings would make it easier to follow.</p>
 </div>
 <div class="paragraph">
-<p>With Mill, I’m trying to collapse Bazel’s Python layer 1 &amp; 2 into just 1 layer
+<p>With Mill, I&rsquo;m trying to collapse Bazel&rsquo;s Python layer 1 &amp; 2 into just 1 layer
 of Scala, and have it define its dependency graph/hierarchy by returning
-values, rather than by calling global-side-effecting APIs. I&#8217;ve had trouble
+values, rather than by calling global-side-effecting APIs. I’ve had trouble
 trying to teach people how-to-bazel at work, and am pretty sure we can make
-something that&#8217;s easier to use.</p>
+something that’s easier to use.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_scala_rx"><a class="anchor" href="#_scala_rx"></a>Scala.Rx</h3>
 <div class="paragraph">
-<p>Mill&#8217;s "direct-style" applicative syntax is inspired by my old
+<p>Mill’s &quot;direct-style&quot; applicative syntax is inspired by my old
 <a href="https://github.com/lihaoyi/scala.rx">Scala.Rx</a> project. While there are
 differences (Mill captures the dependency graph lexically using Macros, Scala.Rx
 captures it at runtime), they are pretty similar.</p>
 </div>
 <div class="paragraph">
-<p>The end-goal is the same: to write code in a "direct style" and have it
-automatically "lifted" into a dependency graph, which you can introspect and use
+<p>The end-goal is the same: to write code in a &quot;direct style&quot; and have it
+automatically &quot;lifted&quot; into a dependency graph, which you can introspect and use
 for incremental updates at runtime.</p>
 </div>
 <div class="paragraph">
@@ -839,7 +840,7 @@ for incremental updates at runtime.</p>
 <div class="paragraph">
 <p>Mill looks a lot like <a href="https://github.com/cvogt/cbt">CBT</a>. The inheritance based
 model for customizing <code>Module</code>s/<code>ScalaModule</code>s comes straight from there, as
-does the "command line path matches Scala selector path" idea. Most other things
+does the &quot;command line path matches Scala selector path&quot; idea. Most other things
 are different though: the reified dependency graph, the execution model, the
 caching module all follow Bazel more than they do CBT</p>
 </div>
@@ -855,9 +856,9 @@ caching module all follow Bazel more than they do CBT</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

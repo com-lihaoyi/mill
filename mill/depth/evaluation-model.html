@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>The Mill Evaluation Model :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/depth/evaluation-model.html">
-    <link rel="prev" href="../large/multi-language-builds.html">
-    <link rel="next" href="caching.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/depth/evaluation-model.html" />
+    <link rel="prev" href="../large/multi-language-builds.html" />
+    <link rel="next" href="caching.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +653,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -693,7 +694,7 @@ object bar extends JavaModule {
 
   /** Generate resources using lineCount of sources */
   override def resources = Task {
-    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    os.write(Task.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
     Seq(PathRef(Task.dest))
   }
 }</code></pre>
@@ -798,63 +799,62 @@ were selected by selector:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="206px" height="154px"
- viewBox="0.00 0.00 205.87 154.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="206px" height="154px" viewBox="0.00 0.00 205.87 154.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 150.4)">
 <title>G</title>
 <!-- build -->
 <g id="node1" class="node">
 <title>build</title>
-<polygon fill="white" stroke="black" points="121.41,-146.3 76.85,-146.3 76.85,-121.7 121.41,-121.7 121.41,-146.3"/>
+<polygon fill="white" stroke="black" points="121.41,-146.3 76.85,-146.3 76.85,-121.7 121.41,-121.7 121.41,-146.3"></polygon>
 <text text-anchor="middle" x="99.13" y="-129.8" font-family="Times,serif" font-size="14.00">build</text>
 </g>
 <!-- foo -->
 <g id="node2" class="node">
 <title>foo</title>
-<polygon fill="white" stroke="black" points="90.29,-85.5 55.97,-85.5 55.97,-60.9 90.29,-60.9 90.29,-85.5"/>
+<polygon fill="white" stroke="black" points="90.29,-85.5 55.97,-85.5 55.97,-60.9 90.29,-60.9 90.29,-85.5"></polygon>
 <text text-anchor="middle" x="73.13" y="-69" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
 <!-- build&#45;&gt;foo -->
 <g id="edge1" class="edge">
-<title>build&#45;&gt;foo</title>
-<path fill="none" stroke="black" d="M94.12,-121.66C90.74,-114.02 86.18,-103.71 82.17,-94.65"/>
-<polygon fill="black" stroke="black" points="85.37,-93.23 78.13,-85.5 78.97,-96.06 85.37,-93.23"/>
+<title>build-&gt;foo</title>
+<path fill="none" stroke="black" d="M94.12,-121.66C90.74,-114.02 86.18,-103.71 82.17,-94.65"></path>
+<polygon fill="black" stroke="black" points="85.37,-93.23 78.13,-85.5 78.97,-96.06 85.37,-93.23"></polygon>
 </g>
 <!-- bar -->
 <g id="node4" class="node">
 <title>bar</title>
-<polygon fill="white" stroke="black" points="156.01,-85.5 122.25,-85.5 122.25,-60.9 156.01,-60.9 156.01,-85.5"/>
+<polygon fill="white" stroke="black" points="156.01,-85.5 122.25,-85.5 122.25,-60.9 156.01,-60.9 156.01,-85.5"></polygon>
 <text text-anchor="middle" x="139.13" y="-69" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- build&#45;&gt;bar -->
 <g id="edge3" class="edge">
-<title>build&#45;&gt;bar</title>
-<path fill="none" stroke="black" d="M106.84,-121.66C112.21,-113.77 119.51,-103.05 125.8,-93.79"/>
-<polygon fill="black" stroke="black" points="128.71,-95.74 131.44,-85.5 122.92,-91.8 128.71,-95.74"/>
+<title>build-&gt;bar</title>
+<path fill="none" stroke="black" d="M106.84,-121.66C112.21,-113.77 119.51,-103.05 125.8,-93.79"></path>
+<polygon fill="black" stroke="black" points="128.71,-95.74 131.44,-85.5 122.92,-91.8 128.71,-95.74"></polygon>
 </g>
 <!-- foo.assembly -->
 <g id="node3" class="node">
 <title>foo.assembly</title>
-<polygon fill="white" stroke="black" points="90.39,-24.7 -0.13,-24.7 -0.13,-0.1 90.39,-0.1 90.39,-24.7"/>
+<polygon fill="white" stroke="black" points="90.39,-24.7 -0.13,-24.7 -0.13,-0.1 90.39,-0.1 90.39,-24.7"></polygon>
 <text text-anchor="middle" x="45.13" y="-8.2" font-family="Times,serif" font-size="14.00">foo.assembly</text>
 </g>
 <!-- foo&#45;&gt;foo.assembly -->
 <g id="edge2" class="edge">
-<title>foo&#45;&gt;foo.assembly</title>
-<path fill="none" stroke="black" d="M67.73,-60.86C64.09,-53.22 59.18,-42.91 54.87,-33.85"/>
-<polygon fill="black" stroke="black" points="57.97,-32.23 50.51,-24.7 51.65,-35.24 57.97,-32.23"/>
+<title>foo-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M67.73,-60.86C64.09,-53.22 59.18,-42.91 54.87,-33.85"></path>
+<polygon fill="black" stroke="black" points="57.97,-32.23 50.51,-24.7 51.65,-35.24 57.97,-32.23"></polygon>
 </g>
 <!-- bar.assembly -->
 <g id="node5" class="node">
 <title>bar.assembly</title>
-<polygon fill="white" stroke="black" points="198.11,-24.7 108.15,-24.7 108.15,-0.1 198.11,-0.1 198.11,-24.7"/>
+<polygon fill="white" stroke="black" points="198.11,-24.7 108.15,-24.7 108.15,-0.1 198.11,-0.1 198.11,-24.7"></polygon>
 <text text-anchor="middle" x="153.13" y="-8.2" font-family="Times,serif" font-size="14.00">bar.assembly</text>
 </g>
 <!-- bar&#45;&gt;bar.assembly -->
 <g id="edge4" class="edge">
-<title>bar&#45;&gt;bar.assembly</title>
-<path fill="none" stroke="black" d="M141.83,-60.86C143.61,-53.38 146,-43.35 148.12,-34.43"/>
-<polygon fill="black" stroke="black" points="151.53,-35.24 150.44,-24.7 144.72,-33.62 151.53,-35.24"/>
+<title>bar-&gt;bar.assembly</title>
+<path fill="none" stroke="black" d="M141.83,-60.86C143.61,-53.38 146,-43.35 148.12,-34.43"></path>
+<polygon fill="black" stroke="black" points="151.53,-35.24 150.44,-24.7 144.72,-33.62 151.53,-35.24"></polygon>
 </g>
 </g>
 </svg>
@@ -883,157 +883,156 @@ as shown below:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="620px" height="248px"
- viewBox="0.00 0.00 619.73 248.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="620px" height="248px" viewBox="0.00 0.00 619.73 248.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
 <title>G</title>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"/>
-<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"/>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"></polygon>
 <text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"></polygon>
+<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">
 <title>foo.sources</title>
-<polygon fill="white" stroke="black" points="96.21,-156.3 15.93,-156.3 15.93,-131.7 96.21,-131.7 96.21,-156.3"/>
+<polygon fill="white" stroke="black" points="96.21,-156.3 15.93,-156.3 15.93,-131.7 96.21,-131.7 96.21,-156.3"></polygon>
 <text text-anchor="middle" x="56.07" y="-139.8" font-family="Times,serif" font-size="14.00">foo.sources</text>
 </g>
 <!-- foo.compile -->
 <g id="node2" class="node">
 <title>foo.compile</title>
-<polygon fill="white" stroke="black" points="215.53,-156.3 132.01,-156.3 132.01,-131.7 215.53,-131.7 215.53,-156.3"/>
+<polygon fill="white" stroke="black" points="215.53,-156.3 132.01,-156.3 132.01,-131.7 215.53,-131.7 215.53,-156.3"></polygon>
 <text text-anchor="middle" x="173.77" y="-139.8" font-family="Times,serif" font-size="14.00">foo.compile</text>
 </g>
 <!-- foo.sources&#45;&gt;foo.compile -->
 <g id="edge1" class="edge">
-<title>foo.sources&#45;&gt;foo.compile</title>
-<path fill="none" stroke="black" d="M96.24,-144C104.53,-144 113.4,-144 122.05,-144"/>
-<polygon fill="black" stroke="black" points="122.06,-147.5 132.06,-144 122.06,-140.5 122.06,-147.5"/>
+<title>foo.sources-&gt;foo.compile</title>
+<path fill="none" stroke="black" d="M96.24,-144C104.53,-144 113.4,-144 122.05,-144"></path>
+<polygon fill="black" stroke="black" points="122.06,-147.5 132.06,-144 122.06,-140.5 122.06,-147.5"></polygon>
 </g>
 <!-- foo.classPath -->
 <g id="node3" class="node">
 <title>foo.classPath</title>
-<polygon fill="white" stroke="black" points="342.96,-156.3 252.44,-156.3 252.44,-131.7 342.96,-131.7 342.96,-156.3"/>
+<polygon fill="white" stroke="black" points="342.96,-156.3 252.44,-156.3 252.44,-131.7 342.96,-131.7 342.96,-156.3"></polygon>
 <text text-anchor="middle" x="297.7" y="-139.8" font-family="Times,serif" font-size="14.00">foo.classPath</text>
 </g>
 <!-- foo.compile&#45;&gt;foo.classPath -->
 <g id="edge2" class="edge">
-<title>foo.compile&#45;&gt;foo.classPath</title>
-<path fill="none" stroke="black" d="M215.71,-144C224.16,-144 233.2,-144 242.05,-144"/>
-<polygon fill="black" stroke="black" points="242.31,-147.5 252.31,-144 242.31,-140.5 242.31,-147.5"/>
+<title>foo.compile-&gt;foo.classPath</title>
+<path fill="none" stroke="black" d="M215.71,-144C224.16,-144 233.2,-144 242.05,-144"></path>
+<polygon fill="black" stroke="black" points="242.31,-147.5 252.31,-144 242.31,-140.5 242.31,-147.5"></polygon>
 </g>
 <!-- foo.assembly -->
 <g id="node4" class="node">
 <title>foo.assembly</title>
-<polygon fill="white" stroke="black" points="470.39,-177.3 379.87,-177.3 379.87,-152.7 470.39,-152.7 470.39,-177.3"/>
+<polygon fill="white" stroke="black" points="470.39,-177.3 379.87,-177.3 379.87,-152.7 470.39,-152.7 470.39,-177.3"></polygon>
 <text text-anchor="middle" x="425.13" y="-160.8" font-family="Times,serif" font-size="14.00">foo.assembly</text>
 </g>
 <!-- foo.classPath&#45;&gt;foo.assembly -->
 <g id="edge3" class="edge">
-<title>foo.classPath&#45;&gt;foo.assembly</title>
-<path fill="none" stroke="black" d="M342.92,-151.4C351.63,-152.86 360.87,-154.41 369.87,-155.91"/>
-<polygon fill="black" stroke="black" points="369.44,-159.39 379.88,-157.59 370.6,-152.49 369.44,-159.39"/>
+<title>foo.classPath-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M342.92,-151.4C351.63,-152.86 360.87,-154.41 369.87,-155.91"></path>
+<polygon fill="black" stroke="black" points="369.44,-159.39 379.88,-157.59 370.6,-152.49 369.44,-159.39"></polygon>
 </g>
 <!-- bar.compile -->
 <g id="node7" class="node">
 <title>bar.compile</title>
-<polygon fill="white" stroke="black" points="339.18,-83.3 256.22,-83.3 256.22,-58.7 339.18,-58.7 339.18,-83.3"/>
+<polygon fill="white" stroke="black" points="339.18,-83.3 256.22,-83.3 256.22,-58.7 339.18,-58.7 339.18,-83.3"></polygon>
 <text text-anchor="middle" x="297.7" y="-66.8" font-family="Times,serif" font-size="14.00">bar.compile</text>
 </g>
 <!-- foo.classPath&#45;&gt;bar.compile -->
 <g id="edge11" class="edge">
-<title>foo.classPath&#45;&gt;bar.compile</title>
-<path fill="none" stroke="black" d="M297.7,-131.25C297.7,-118.7 297.7,-106.16 297.7,-93.61"/>
-<polygon fill="black" stroke="black" points="301.2,-93.55 297.7,-83.55 294.2,-93.55 301.2,-93.55"/>
+<title>foo.classPath-&gt;bar.compile</title>
+<path fill="none" stroke="black" d="M297.7,-131.25C297.7,-118.7 297.7,-106.16 297.7,-93.61"></path>
+<polygon fill="black" stroke="black" points="301.2,-93.55 297.7,-83.55 294.2,-93.55 301.2,-93.55"></polygon>
 </g>
 <!-- bar.classPath -->
 <g id="node8" class="node">
 <title>bar.classPath</title>
-<polygon fill="white" stroke="black" points="470.1,-83.3 380.16,-83.3 380.16,-58.7 470.1,-58.7 470.1,-83.3"/>
+<polygon fill="white" stroke="black" points="470.1,-83.3 380.16,-83.3 380.16,-58.7 470.1,-58.7 470.1,-83.3"></polygon>
 <text text-anchor="middle" x="425.13" y="-66.8" font-family="Times,serif" font-size="14.00">bar.classPath</text>
 </g>
 <!-- foo.classPath&#45;&gt;bar.classPath -->
 <g id="edge12" class="edge">
-<title>foo.classPath&#45;&gt;bar.classPath</title>
-<path fill="none" stroke="black" d="M322.83,-131.57C329.72,-127.93 337.19,-123.88 344,-120 361.53,-110.01 380.83,-98.23 396.09,-88.73"/>
-<polygon fill="black" stroke="black" points="397.95,-91.69 404.57,-83.42 394.24,-85.76 397.95,-91.69"/>
+<title>foo.classPath-&gt;bar.classPath</title>
+<path fill="none" stroke="black" d="M322.83,-131.57C329.72,-127.93 337.19,-123.88 344,-120 361.53,-110.01 380.83,-98.23 396.09,-88.73"></path>
+<polygon fill="black" stroke="black" points="397.95,-91.69 404.57,-83.42 394.24,-85.76 397.95,-91.69"></polygon>
 </g>
 <!-- foo.resources -->
 <g id="node5" class="node">
 <title>foo.resources</title>
-<polygon fill="white" stroke="black" points="343.22,-199.3 252.19,-199.3 252.19,-174.7 343.22,-174.7 343.22,-199.3"/>
+<polygon fill="white" stroke="black" points="343.22,-199.3 252.19,-199.3 252.19,-174.7 343.22,-174.7 343.22,-199.3"></polygon>
 <text text-anchor="middle" x="297.7" y="-182.8" font-family="Times,serif" font-size="14.00">foo.resources</text>
 </g>
 <!-- foo.resources&#45;&gt;foo.assembly -->
 <g id="edge4" class="edge">
-<title>foo.resources&#45;&gt;foo.assembly</title>
-<path fill="none" stroke="black" d="M343.28,-179.18C351.87,-177.67 360.96,-176.08 369.83,-174.52"/>
-<polygon fill="black" stroke="black" points="370.45,-177.97 379.7,-172.79 369.24,-171.07 370.45,-177.97"/>
+<title>foo.resources-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M343.28,-179.18C351.87,-177.67 360.96,-176.08 369.83,-174.52"></path>
+<polygon fill="black" stroke="black" points="370.45,-177.97 379.7,-172.79 369.24,-171.07 370.45,-177.97"></polygon>
 </g>
 <!-- bar.sources -->
 <g id="node6" class="node">
 <title>bar.sources</title>
-<polygon fill="white" stroke="black" points="213.63,-61.3 133.92,-61.3 133.92,-36.7 213.63,-36.7 213.63,-61.3"/>
+<polygon fill="white" stroke="black" points="213.63,-61.3 133.92,-61.3 133.92,-36.7 213.63,-36.7 213.63,-61.3"></polygon>
 <text text-anchor="middle" x="173.77" y="-44.8" font-family="Times,serif" font-size="14.00">bar.sources</text>
 </g>
 <!-- bar.sources&#45;&gt;bar.compile -->
 <g id="edge5" class="edge">
-<title>bar.sources&#45;&gt;bar.compile</title>
-<path fill="none" stroke="black" d="M213.69,-56.02C223.93,-57.87 235.14,-59.89 245.91,-61.84"/>
-<polygon fill="black" stroke="black" points="245.59,-65.34 256.06,-63.67 246.84,-58.45 245.59,-65.34"/>
+<title>bar.sources-&gt;bar.compile</title>
+<path fill="none" stroke="black" d="M213.69,-56.02C223.93,-57.87 235.14,-59.89 245.91,-61.84"></path>
+<polygon fill="black" stroke="black" points="245.59,-65.34 256.06,-63.67 246.84,-58.45 245.59,-65.34"></polygon>
 </g>
 <!-- bar.lineCount -->
 <g id="node10" class="node">
 <title>bar.lineCount</title>
-<polygon fill="white" stroke="black" points="343.8,-40.3 251.6,-40.3 251.6,-15.7 343.8,-15.7 343.8,-40.3"/>
+<polygon fill="white" stroke="black" points="343.8,-40.3 251.6,-40.3 251.6,-15.7 343.8,-15.7 343.8,-40.3"></polygon>
 <text text-anchor="middle" x="297.7" y="-23.8" font-family="Times,serif" font-size="14.00">bar.lineCount</text>
 </g>
 <!-- bar.sources&#45;&gt;bar.lineCount -->
 <g id="edge8" class="edge">
-<title>bar.sources&#45;&gt;bar.lineCount</title>
-<path fill="none" stroke="black" d="M213.69,-42.3C222.49,-40.78 232,-39.14 241.34,-37.54"/>
-<polygon fill="black" stroke="black" points="242.09,-40.96 251.35,-35.81 240.91,-34.06 242.09,-40.96"/>
+<title>bar.sources-&gt;bar.lineCount</title>
+<path fill="none" stroke="black" d="M213.69,-42.3C222.49,-40.78 232,-39.14 241.34,-37.54"></path>
+<polygon fill="black" stroke="black" points="242.09,-40.96 251.35,-35.81 240.91,-34.06 242.09,-40.96"></polygon>
 </g>
 <!-- bar.compile&#45;&gt;bar.classPath -->
 <g id="edge6" class="edge">
-<title>bar.compile&#45;&gt;bar.classPath</title>
-<path fill="none" stroke="black" d="M339.08,-71C348.96,-71 359.69,-71 370.1,-71"/>
-<polygon fill="black" stroke="black" points="370.36,-74.5 380.36,-71 370.36,-67.5 370.36,-74.5"/>
+<title>bar.compile-&gt;bar.classPath</title>
+<path fill="none" stroke="black" d="M339.08,-71C348.96,-71 359.69,-71 370.1,-71"></path>
+<polygon fill="black" stroke="black" points="370.36,-74.5 380.36,-71 370.36,-67.5 370.36,-74.5"></polygon>
 </g>
 <!-- bar.assembly -->
 <g id="node9" class="node">
 <title>bar.assembly</title>
-<polygon fill="white" stroke="black" points="595.97,-61.3 506.02,-61.3 506.02,-36.7 595.97,-36.7 595.97,-61.3"/>
+<polygon fill="white" stroke="black" points="595.97,-61.3 506.02,-61.3 506.02,-36.7 595.97,-36.7 595.97,-61.3"></polygon>
 <text text-anchor="middle" x="551" y="-44.8" font-family="Times,serif" font-size="14.00">bar.assembly</text>
 </g>
 <!-- bar.classPath&#45;&gt;bar.assembly -->
 <g id="edge7" class="edge">
-<title>bar.classPath&#45;&gt;bar.assembly</title>
-<path fill="none" stroke="black" d="M470.15,-63.18C478.55,-61.69 487.42,-60.11 496.09,-58.57"/>
-<polygon fill="black" stroke="black" points="496.89,-61.99 506.12,-56.79 495.66,-55.1 496.89,-61.99"/>
+<title>bar.classPath-&gt;bar.assembly</title>
+<path fill="none" stroke="black" d="M470.15,-63.18C478.55,-61.69 487.42,-60.11 496.09,-58.57"></path>
+<polygon fill="black" stroke="black" points="496.89,-61.99 506.12,-56.79 495.66,-55.1 496.89,-61.99"></polygon>
 </g>
 <!-- bar.resources -->
 <g id="node11" class="node">
 <title>bar.resources</title>
-<polygon fill="white" stroke="black" points="470.36,-40.3 379.9,-40.3 379.9,-15.7 470.36,-15.7 470.36,-40.3"/>
+<polygon fill="white" stroke="black" points="470.36,-40.3 379.9,-40.3 379.9,-15.7 470.36,-15.7 470.36,-40.3"></polygon>
 <text text-anchor="middle" x="425.13" y="-23.8" font-family="Times,serif" font-size="14.00">bar.resources</text>
 </g>
 <!-- bar.lineCount&#45;&gt;bar.resources -->
 <g id="edge9" class="edge">
-<title>bar.lineCount&#45;&gt;bar.resources</title>
-<path fill="none" stroke="black" d="M343.98,-28C352.26,-28 360.99,-28 369.51,-28"/>
-<polygon fill="black" stroke="black" points="369.75,-31.5 379.75,-28 369.75,-24.5 369.75,-31.5"/>
+<title>bar.lineCount-&gt;bar.resources</title>
+<path fill="none" stroke="black" d="M343.98,-28C352.26,-28 360.99,-28 369.51,-28"></path>
+<polygon fill="black" stroke="black" points="369.75,-31.5 379.75,-28 369.75,-24.5 369.75,-31.5"></polygon>
 </g>
 <!-- bar.resources&#45;&gt;bar.assembly -->
 <g id="edge10" class="edge">
-<title>bar.resources&#45;&gt;bar.assembly</title>
-<path fill="none" stroke="black" d="M470.5,-35.52C478.78,-36.93 487.52,-38.41 496.05,-39.85"/>
-<polygon fill="black" stroke="black" points="495.49,-43.31 505.94,-41.53 496.66,-36.41 495.49,-43.31"/>
+<title>bar.resources-&gt;bar.assembly</title>
+<path fill="none" stroke="black" d="M470.5,-35.52C478.78,-36.93 487.52,-38.41 496.05,-39.85"></path>
+<polygon fill="black" stroke="black" points="495.49,-43.31 505.94,-41.53 496.66,-36.41 495.49,-43.31"></polygon>
 </g>
 </g>
 </svg>
@@ -1067,157 +1066,156 @@ would invalidate and cause evaluation of the tasks highlighted in red below:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="620px" height="248px"
- viewBox="0.00 0.00 619.73 248.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="620px" height="248px" viewBox="0.00 0.00 619.73 248.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
 <title>G</title>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"/>
-<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"/>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"></polygon>
 <text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"></polygon>
+<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">
 <title>foo.sources</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="96.21,-156.3 15.93,-156.3 15.93,-131.7 96.21,-131.7 96.21,-156.3"/>
+<polygon fill="white" stroke="red" stroke-width="2" points="96.21,-156.3 15.93,-156.3 15.93,-131.7 96.21,-131.7 96.21,-156.3"></polygon>
 <text text-anchor="middle" x="56.07" y="-139.8" font-family="Times,serif" font-size="14.00">foo.sources</text>
 </g>
 <!-- foo.compile -->
 <g id="node2" class="node">
 <title>foo.compile</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="215.53,-156.3 132.01,-156.3 132.01,-131.7 215.53,-131.7 215.53,-156.3"/>
+<polygon fill="white" stroke="red" stroke-width="2" points="215.53,-156.3 132.01,-156.3 132.01,-131.7 215.53,-131.7 215.53,-156.3"></polygon>
 <text text-anchor="middle" x="173.77" y="-139.8" font-family="Times,serif" font-size="14.00">foo.compile</text>
 </g>
 <!-- foo.sources&#45;&gt;foo.compile -->
 <g id="edge1" class="edge">
-<title>foo.sources&#45;&gt;foo.compile</title>
-<path fill="none" stroke="red" stroke-width="2" d="M96.24,-144C104.53,-144 113.4,-144 122.05,-144"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="122.06,-147.5 132.06,-144 122.06,-140.5 122.06,-147.5"/>
+<title>foo.sources-&gt;foo.compile</title>
+<path fill="none" stroke="red" stroke-width="2" d="M96.24,-144C104.53,-144 113.4,-144 122.05,-144"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="122.06,-147.5 132.06,-144 122.06,-140.5 122.06,-147.5"></polygon>
 </g>
 <!-- foo.classPath -->
 <g id="node3" class="node">
 <title>foo.classPath</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="342.96,-156.3 252.44,-156.3 252.44,-131.7 342.96,-131.7 342.96,-156.3"/>
+<polygon fill="white" stroke="red" stroke-width="2" points="342.96,-156.3 252.44,-156.3 252.44,-131.7 342.96,-131.7 342.96,-156.3"></polygon>
 <text text-anchor="middle" x="297.7" y="-139.8" font-family="Times,serif" font-size="14.00">foo.classPath</text>
 </g>
 <!-- foo.compile&#45;&gt;foo.classPath -->
 <g id="edge2" class="edge">
-<title>foo.compile&#45;&gt;foo.classPath</title>
-<path fill="none" stroke="red" stroke-width="2" d="M215.71,-144C224.16,-144 233.2,-144 242.05,-144"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="242.31,-147.5 252.31,-144 242.31,-140.5 242.31,-147.5"/>
+<title>foo.compile-&gt;foo.classPath</title>
+<path fill="none" stroke="red" stroke-width="2" d="M215.71,-144C224.16,-144 233.2,-144 242.05,-144"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="242.31,-147.5 252.31,-144 242.31,-140.5 242.31,-147.5"></polygon>
 </g>
 <!-- foo.assembly -->
 <g id="node4" class="node">
 <title>foo.assembly</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="470.39,-177.3 379.87,-177.3 379.87,-152.7 470.39,-152.7 470.39,-177.3"/>
+<polygon fill="white" stroke="red" stroke-width="2" points="470.39,-177.3 379.87,-177.3 379.87,-152.7 470.39,-152.7 470.39,-177.3"></polygon>
 <text text-anchor="middle" x="425.13" y="-160.8" font-family="Times,serif" font-size="14.00">foo.assembly</text>
 </g>
 <!-- foo.classPath&#45;&gt;foo.assembly -->
 <g id="edge3" class="edge">
-<title>foo.classPath&#45;&gt;foo.assembly</title>
-<path fill="none" stroke="red" stroke-width="2" d="M342.92,-151.4C351.63,-152.86 360.87,-154.41 369.87,-155.91"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="369.44,-159.39 379.88,-157.59 370.6,-152.49 369.44,-159.39"/>
+<title>foo.classPath-&gt;foo.assembly</title>
+<path fill="none" stroke="red" stroke-width="2" d="M342.92,-151.4C351.63,-152.86 360.87,-154.41 369.87,-155.91"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="369.44,-159.39 379.88,-157.59 370.6,-152.49 369.44,-159.39"></polygon>
 </g>
 <!-- bar.compile -->
 <g id="node7" class="node">
 <title>bar.compile</title>
-<polygon fill="white" stroke="black" points="339.18,-83.3 256.22,-83.3 256.22,-58.7 339.18,-58.7 339.18,-83.3"/>
+<polygon fill="white" stroke="black" points="339.18,-83.3 256.22,-83.3 256.22,-58.7 339.18,-58.7 339.18,-83.3"></polygon>
 <text text-anchor="middle" x="297.7" y="-66.8" font-family="Times,serif" font-size="14.00">bar.compile</text>
 </g>
 <!-- foo.classPath&#45;&gt;bar.compile -->
 <g id="edge11" class="edge">
-<title>foo.classPath&#45;&gt;bar.compile</title>
-<path fill="none" stroke="black" d="M297.7,-131.25C297.7,-118.7 297.7,-106.16 297.7,-93.61"/>
-<polygon fill="black" stroke="black" points="301.2,-93.55 297.7,-83.55 294.2,-93.55 301.2,-93.55"/>
+<title>foo.classPath-&gt;bar.compile</title>
+<path fill="none" stroke="black" d="M297.7,-131.25C297.7,-118.7 297.7,-106.16 297.7,-93.61"></path>
+<polygon fill="black" stroke="black" points="301.2,-93.55 297.7,-83.55 294.2,-93.55 301.2,-93.55"></polygon>
 </g>
 <!-- bar.classPath -->
 <g id="node8" class="node">
 <title>bar.classPath</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="470.1,-83.3 380.16,-83.3 380.16,-58.7 470.1,-58.7 470.1,-83.3"/>
+<polygon fill="white" stroke="red" stroke-width="2" points="470.1,-83.3 380.16,-83.3 380.16,-58.7 470.1,-58.7 470.1,-83.3"></polygon>
 <text text-anchor="middle" x="425.13" y="-66.8" font-family="Times,serif" font-size="14.00">bar.classPath</text>
 </g>
 <!-- foo.classPath&#45;&gt;bar.classPath -->
 <g id="edge12" class="edge">
-<title>foo.classPath&#45;&gt;bar.classPath</title>
-<path fill="none" stroke="red" stroke-width="2" d="M322.83,-131.57C329.72,-127.93 337.19,-123.88 344,-120 361.53,-110.01 380.83,-98.23 396.09,-88.73"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="397.95,-91.69 404.57,-83.42 394.24,-85.76 397.95,-91.69"/>
+<title>foo.classPath-&gt;bar.classPath</title>
+<path fill="none" stroke="red" stroke-width="2" d="M322.83,-131.57C329.72,-127.93 337.19,-123.88 344,-120 361.53,-110.01 380.83,-98.23 396.09,-88.73"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="397.95,-91.69 404.57,-83.42 394.24,-85.76 397.95,-91.69"></polygon>
 </g>
 <!-- foo.resources -->
 <g id="node5" class="node">
 <title>foo.resources</title>
-<polygon fill="white" stroke="black" points="343.22,-199.3 252.19,-199.3 252.19,-174.7 343.22,-174.7 343.22,-199.3"/>
+<polygon fill="white" stroke="black" points="343.22,-199.3 252.19,-199.3 252.19,-174.7 343.22,-174.7 343.22,-199.3"></polygon>
 <text text-anchor="middle" x="297.7" y="-182.8" font-family="Times,serif" font-size="14.00">foo.resources</text>
 </g>
 <!-- foo.resources&#45;&gt;foo.assembly -->
 <g id="edge4" class="edge">
-<title>foo.resources&#45;&gt;foo.assembly</title>
-<path fill="none" stroke="black" d="M343.28,-179.18C351.87,-177.67 360.96,-176.08 369.83,-174.52"/>
-<polygon fill="black" stroke="black" points="370.45,-177.97 379.7,-172.79 369.24,-171.07 370.45,-177.97"/>
+<title>foo.resources-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M343.28,-179.18C351.87,-177.67 360.96,-176.08 369.83,-174.52"></path>
+<polygon fill="black" stroke="black" points="370.45,-177.97 379.7,-172.79 369.24,-171.07 370.45,-177.97"></polygon>
 </g>
 <!-- bar.sources -->
 <g id="node6" class="node">
 <title>bar.sources</title>
-<polygon fill="white" stroke="black" points="213.63,-61.3 133.92,-61.3 133.92,-36.7 213.63,-36.7 213.63,-61.3"/>
+<polygon fill="white" stroke="black" points="213.63,-61.3 133.92,-61.3 133.92,-36.7 213.63,-36.7 213.63,-61.3"></polygon>
 <text text-anchor="middle" x="173.77" y="-44.8" font-family="Times,serif" font-size="14.00">bar.sources</text>
 </g>
 <!-- bar.sources&#45;&gt;bar.compile -->
 <g id="edge5" class="edge">
-<title>bar.sources&#45;&gt;bar.compile</title>
-<path fill="none" stroke="black" d="M213.69,-56.02C223.93,-57.87 235.14,-59.89 245.91,-61.84"/>
-<polygon fill="black" stroke="black" points="245.59,-65.34 256.06,-63.67 246.84,-58.45 245.59,-65.34"/>
+<title>bar.sources-&gt;bar.compile</title>
+<path fill="none" stroke="black" d="M213.69,-56.02C223.93,-57.87 235.14,-59.89 245.91,-61.84"></path>
+<polygon fill="black" stroke="black" points="245.59,-65.34 256.06,-63.67 246.84,-58.45 245.59,-65.34"></polygon>
 </g>
 <!-- bar.lineCount -->
 <g id="node10" class="node">
 <title>bar.lineCount</title>
-<polygon fill="white" stroke="black" points="343.8,-40.3 251.6,-40.3 251.6,-15.7 343.8,-15.7 343.8,-40.3"/>
+<polygon fill="white" stroke="black" points="343.8,-40.3 251.6,-40.3 251.6,-15.7 343.8,-15.7 343.8,-40.3"></polygon>
 <text text-anchor="middle" x="297.7" y="-23.8" font-family="Times,serif" font-size="14.00">bar.lineCount</text>
 </g>
 <!-- bar.sources&#45;&gt;bar.lineCount -->
 <g id="edge8" class="edge">
-<title>bar.sources&#45;&gt;bar.lineCount</title>
-<path fill="none" stroke="black" d="M213.69,-42.3C222.49,-40.78 232,-39.14 241.34,-37.54"/>
-<polygon fill="black" stroke="black" points="242.09,-40.96 251.35,-35.81 240.91,-34.06 242.09,-40.96"/>
+<title>bar.sources-&gt;bar.lineCount</title>
+<path fill="none" stroke="black" d="M213.69,-42.3C222.49,-40.78 232,-39.14 241.34,-37.54"></path>
+<polygon fill="black" stroke="black" points="242.09,-40.96 251.35,-35.81 240.91,-34.06 242.09,-40.96"></polygon>
 </g>
 <!-- bar.compile&#45;&gt;bar.classPath -->
 <g id="edge6" class="edge">
-<title>bar.compile&#45;&gt;bar.classPath</title>
-<path fill="none" stroke="black" d="M339.08,-71C348.96,-71 359.69,-71 370.1,-71"/>
-<polygon fill="black" stroke="black" points="370.36,-74.5 380.36,-71 370.36,-67.5 370.36,-74.5"/>
+<title>bar.compile-&gt;bar.classPath</title>
+<path fill="none" stroke="black" d="M339.08,-71C348.96,-71 359.69,-71 370.1,-71"></path>
+<polygon fill="black" stroke="black" points="370.36,-74.5 380.36,-71 370.36,-67.5 370.36,-74.5"></polygon>
 </g>
 <!-- bar.assembly -->
 <g id="node9" class="node">
 <title>bar.assembly</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="595.97,-61.3 506.02,-61.3 506.02,-36.7 595.97,-36.7 595.97,-61.3"/>
+<polygon fill="white" stroke="red" stroke-width="2" points="595.97,-61.3 506.02,-61.3 506.02,-36.7 595.97,-36.7 595.97,-61.3"></polygon>
 <text text-anchor="middle" x="551" y="-44.8" font-family="Times,serif" font-size="14.00">bar.assembly</text>
 </g>
 <!-- bar.classPath&#45;&gt;bar.assembly -->
 <g id="edge7" class="edge">
-<title>bar.classPath&#45;&gt;bar.assembly</title>
-<path fill="none" stroke="red" stroke-width="2" d="M470.15,-63.18C478.55,-61.69 487.42,-60.11 496.09,-58.57"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="496.89,-61.99 506.12,-56.79 495.66,-55.1 496.89,-61.99"/>
+<title>bar.classPath-&gt;bar.assembly</title>
+<path fill="none" stroke="red" stroke-width="2" d="M470.15,-63.18C478.55,-61.69 487.42,-60.11 496.09,-58.57"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="496.89,-61.99 506.12,-56.79 495.66,-55.1 496.89,-61.99"></polygon>
 </g>
 <!-- bar.resources -->
 <g id="node11" class="node">
 <title>bar.resources</title>
-<polygon fill="white" stroke="black" points="470.36,-40.3 379.9,-40.3 379.9,-15.7 470.36,-15.7 470.36,-40.3"/>
+<polygon fill="white" stroke="black" points="470.36,-40.3 379.9,-40.3 379.9,-15.7 470.36,-15.7 470.36,-40.3"></polygon>
 <text text-anchor="middle" x="425.13" y="-23.8" font-family="Times,serif" font-size="14.00">bar.resources</text>
 </g>
 <!-- bar.lineCount&#45;&gt;bar.resources -->
 <g id="edge9" class="edge">
-<title>bar.lineCount&#45;&gt;bar.resources</title>
-<path fill="none" stroke="black" d="M343.98,-28C352.26,-28 360.99,-28 369.51,-28"/>
-<polygon fill="black" stroke="black" points="369.75,-31.5 379.75,-28 369.75,-24.5 369.75,-31.5"/>
+<title>bar.lineCount-&gt;bar.resources</title>
+<path fill="none" stroke="black" d="M343.98,-28C352.26,-28 360.99,-28 369.51,-28"></path>
+<polygon fill="black" stroke="black" points="369.75,-31.5 379.75,-28 369.75,-24.5 369.75,-31.5"></polygon>
 </g>
 <!-- bar.resources&#45;&gt;bar.assembly -->
 <g id="edge10" class="edge">
-<title>bar.resources&#45;&gt;bar.assembly</title>
-<path fill="none" stroke="black" d="M470.5,-35.52C478.78,-36.93 487.52,-38.41 496.05,-39.85"/>
-<polygon fill="black" stroke="black" points="495.49,-43.31 505.94,-41.53 496.66,-36.41 495.49,-43.31"/>
+<title>bar.resources-&gt;bar.assembly</title>
+<path fill="none" stroke="black" d="M470.5,-35.52C478.78,-36.93 487.52,-38.41 496.05,-39.85"></path>
+<polygon fill="black" stroke="black" points="495.49,-43.31 505.94,-41.53 496.66,-36.41 495.49,-43.31"></polygon>
 </g>
 </g>
 </svg>
@@ -1230,157 +1228,156 @@ would invalidate and cause evaluation of the tasks highlighted in red below:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="620px" height="248px"
- viewBox="0.00 0.00 619.73 248.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="620px" height="248px" viewBox="0.00 0.00 619.73 248.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
 <title>G</title>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"/>
-<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"/>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"></polygon>
 <text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"></polygon>
+<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">
 <title>foo.sources</title>
-<polygon fill="white" stroke="black" points="96.21,-156.3 15.93,-156.3 15.93,-131.7 96.21,-131.7 96.21,-156.3"/>
+<polygon fill="white" stroke="black" points="96.21,-156.3 15.93,-156.3 15.93,-131.7 96.21,-131.7 96.21,-156.3"></polygon>
 <text text-anchor="middle" x="56.07" y="-139.8" font-family="Times,serif" font-size="14.00">foo.sources</text>
 </g>
 <!-- foo.compile -->
 <g id="node2" class="node">
 <title>foo.compile</title>
-<polygon fill="white" stroke="black" points="215.53,-156.3 132.01,-156.3 132.01,-131.7 215.53,-131.7 215.53,-156.3"/>
+<polygon fill="white" stroke="black" points="215.53,-156.3 132.01,-156.3 132.01,-131.7 215.53,-131.7 215.53,-156.3"></polygon>
 <text text-anchor="middle" x="173.77" y="-139.8" font-family="Times,serif" font-size="14.00">foo.compile</text>
 </g>
 <!-- foo.sources&#45;&gt;foo.compile -->
 <g id="edge1" class="edge">
-<title>foo.sources&#45;&gt;foo.compile</title>
-<path fill="none" stroke="black" d="M96.24,-144C104.53,-144 113.4,-144 122.05,-144"/>
-<polygon fill="black" stroke="black" points="122.06,-147.5 132.06,-144 122.06,-140.5 122.06,-147.5"/>
+<title>foo.sources-&gt;foo.compile</title>
+<path fill="none" stroke="black" d="M96.24,-144C104.53,-144 113.4,-144 122.05,-144"></path>
+<polygon fill="black" stroke="black" points="122.06,-147.5 132.06,-144 122.06,-140.5 122.06,-147.5"></polygon>
 </g>
 <!-- foo.classPath -->
 <g id="node3" class="node">
 <title>foo.classPath</title>
-<polygon fill="white" stroke="black" points="342.96,-156.3 252.44,-156.3 252.44,-131.7 342.96,-131.7 342.96,-156.3"/>
+<polygon fill="white" stroke="black" points="342.96,-156.3 252.44,-156.3 252.44,-131.7 342.96,-131.7 342.96,-156.3"></polygon>
 <text text-anchor="middle" x="297.7" y="-139.8" font-family="Times,serif" font-size="14.00">foo.classPath</text>
 </g>
 <!-- foo.compile&#45;&gt;foo.classPath -->
 <g id="edge2" class="edge">
-<title>foo.compile&#45;&gt;foo.classPath</title>
-<path fill="none" stroke="black" d="M215.71,-144C224.16,-144 233.2,-144 242.05,-144"/>
-<polygon fill="black" stroke="black" points="242.31,-147.5 252.31,-144 242.31,-140.5 242.31,-147.5"/>
+<title>foo.compile-&gt;foo.classPath</title>
+<path fill="none" stroke="black" d="M215.71,-144C224.16,-144 233.2,-144 242.05,-144"></path>
+<polygon fill="black" stroke="black" points="242.31,-147.5 252.31,-144 242.31,-140.5 242.31,-147.5"></polygon>
 </g>
 <!-- foo.assembly -->
 <g id="node4" class="node">
 <title>foo.assembly</title>
-<polygon fill="white" stroke="black" points="470.39,-177.3 379.87,-177.3 379.87,-152.7 470.39,-152.7 470.39,-177.3"/>
+<polygon fill="white" stroke="black" points="470.39,-177.3 379.87,-177.3 379.87,-152.7 470.39,-152.7 470.39,-177.3"></polygon>
 <text text-anchor="middle" x="425.13" y="-160.8" font-family="Times,serif" font-size="14.00">foo.assembly</text>
 </g>
 <!-- foo.classPath&#45;&gt;foo.assembly -->
 <g id="edge3" class="edge">
-<title>foo.classPath&#45;&gt;foo.assembly</title>
-<path fill="none" stroke="black" d="M342.92,-151.4C351.63,-152.86 360.87,-154.41 369.87,-155.91"/>
-<polygon fill="black" stroke="black" points="369.44,-159.39 379.88,-157.59 370.6,-152.49 369.44,-159.39"/>
+<title>foo.classPath-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M342.92,-151.4C351.63,-152.86 360.87,-154.41 369.87,-155.91"></path>
+<polygon fill="black" stroke="black" points="369.44,-159.39 379.88,-157.59 370.6,-152.49 369.44,-159.39"></polygon>
 </g>
 <!-- bar.compile -->
 <g id="node7" class="node">
 <title>bar.compile</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="339.18,-83.3 256.22,-83.3 256.22,-58.7 339.18,-58.7 339.18,-83.3"/>
+<polygon fill="white" stroke="red" stroke-width="2" points="339.18,-83.3 256.22,-83.3 256.22,-58.7 339.18,-58.7 339.18,-83.3"></polygon>
 <text text-anchor="middle" x="297.7" y="-66.8" font-family="Times,serif" font-size="14.00">bar.compile</text>
 </g>
 <!-- foo.classPath&#45;&gt;bar.compile -->
 <g id="edge11" class="edge">
-<title>foo.classPath&#45;&gt;bar.compile</title>
-<path fill="none" stroke="black" d="M297.7,-131.25C297.7,-118.7 297.7,-106.16 297.7,-93.61"/>
-<polygon fill="black" stroke="black" points="301.2,-93.55 297.7,-83.55 294.2,-93.55 301.2,-93.55"/>
+<title>foo.classPath-&gt;bar.compile</title>
+<path fill="none" stroke="black" d="M297.7,-131.25C297.7,-118.7 297.7,-106.16 297.7,-93.61"></path>
+<polygon fill="black" stroke="black" points="301.2,-93.55 297.7,-83.55 294.2,-93.55 301.2,-93.55"></polygon>
 </g>
 <!-- bar.classPath -->
 <g id="node8" class="node">
 <title>bar.classPath</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="470.1,-83.3 380.16,-83.3 380.16,-58.7 470.1,-58.7 470.1,-83.3"/>
+<polygon fill="white" stroke="red" stroke-width="2" points="470.1,-83.3 380.16,-83.3 380.16,-58.7 470.1,-58.7 470.1,-83.3"></polygon>
 <text text-anchor="middle" x="425.13" y="-66.8" font-family="Times,serif" font-size="14.00">bar.classPath</text>
 </g>
 <!-- foo.classPath&#45;&gt;bar.classPath -->
 <g id="edge12" class="edge">
-<title>foo.classPath&#45;&gt;bar.classPath</title>
-<path fill="none" stroke="black" d="M322.83,-131.57C329.72,-127.93 337.19,-123.88 344,-120 361.53,-110.01 380.83,-98.23 396.09,-88.73"/>
-<polygon fill="black" stroke="black" points="397.95,-91.69 404.57,-83.42 394.24,-85.76 397.95,-91.69"/>
+<title>foo.classPath-&gt;bar.classPath</title>
+<path fill="none" stroke="black" d="M322.83,-131.57C329.72,-127.93 337.19,-123.88 344,-120 361.53,-110.01 380.83,-98.23 396.09,-88.73"></path>
+<polygon fill="black" stroke="black" points="397.95,-91.69 404.57,-83.42 394.24,-85.76 397.95,-91.69"></polygon>
 </g>
 <!-- foo.resources -->
 <g id="node5" class="node">
 <title>foo.resources</title>
-<polygon fill="white" stroke="black" points="343.22,-199.3 252.19,-199.3 252.19,-174.7 343.22,-174.7 343.22,-199.3"/>
+<polygon fill="white" stroke="black" points="343.22,-199.3 252.19,-199.3 252.19,-174.7 343.22,-174.7 343.22,-199.3"></polygon>
 <text text-anchor="middle" x="297.7" y="-182.8" font-family="Times,serif" font-size="14.00">foo.resources</text>
 </g>
 <!-- foo.resources&#45;&gt;foo.assembly -->
 <g id="edge4" class="edge">
-<title>foo.resources&#45;&gt;foo.assembly</title>
-<path fill="none" stroke="black" d="M343.28,-179.18C351.87,-177.67 360.96,-176.08 369.83,-174.52"/>
-<polygon fill="black" stroke="black" points="370.45,-177.97 379.7,-172.79 369.24,-171.07 370.45,-177.97"/>
+<title>foo.resources-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M343.28,-179.18C351.87,-177.67 360.96,-176.08 369.83,-174.52"></path>
+<polygon fill="black" stroke="black" points="370.45,-177.97 379.7,-172.79 369.24,-171.07 370.45,-177.97"></polygon>
 </g>
 <!-- bar.sources -->
 <g id="node6" class="node">
 <title>bar.sources</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="213.63,-61.3 133.92,-61.3 133.92,-36.7 213.63,-36.7 213.63,-61.3"/>
+<polygon fill="white" stroke="red" stroke-width="2" points="213.63,-61.3 133.92,-61.3 133.92,-36.7 213.63,-36.7 213.63,-61.3"></polygon>
 <text text-anchor="middle" x="173.77" y="-44.8" font-family="Times,serif" font-size="14.00">bar.sources</text>
 </g>
 <!-- bar.sources&#45;&gt;bar.compile -->
 <g id="edge5" class="edge">
-<title>bar.sources&#45;&gt;bar.compile</title>
-<path fill="none" stroke="red" stroke-width="2" d="M213.69,-56.02C223.93,-57.87 235.14,-59.89 245.91,-61.84"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="245.59,-65.34 256.06,-63.67 246.84,-58.45 245.59,-65.34"/>
+<title>bar.sources-&gt;bar.compile</title>
+<path fill="none" stroke="red" stroke-width="2" d="M213.69,-56.02C223.93,-57.87 235.14,-59.89 245.91,-61.84"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="245.59,-65.34 256.06,-63.67 246.84,-58.45 245.59,-65.34"></polygon>
 </g>
 <!-- bar.lineCount -->
 <g id="node10" class="node">
 <title>bar.lineCount</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="343.8,-40.3 251.6,-40.3 251.6,-15.7 343.8,-15.7 343.8,-40.3"/>
+<polygon fill="white" stroke="red" stroke-width="2" points="343.8,-40.3 251.6,-40.3 251.6,-15.7 343.8,-15.7 343.8,-40.3"></polygon>
 <text text-anchor="middle" x="297.7" y="-23.8" font-family="Times,serif" font-size="14.00">bar.lineCount</text>
 </g>
 <!-- bar.sources&#45;&gt;bar.lineCount -->
 <g id="edge8" class="edge">
-<title>bar.sources&#45;&gt;bar.lineCount</title>
-<path fill="none" stroke="red" stroke-width="2" d="M213.69,-42.3C222.49,-40.78 232,-39.14 241.34,-37.54"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="242.09,-40.96 251.35,-35.81 240.91,-34.06 242.09,-40.96"/>
+<title>bar.sources-&gt;bar.lineCount</title>
+<path fill="none" stroke="red" stroke-width="2" d="M213.69,-42.3C222.49,-40.78 232,-39.14 241.34,-37.54"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="242.09,-40.96 251.35,-35.81 240.91,-34.06 242.09,-40.96"></polygon>
 </g>
 <!-- bar.compile&#45;&gt;bar.classPath -->
 <g id="edge6" class="edge">
-<title>bar.compile&#45;&gt;bar.classPath</title>
-<path fill="none" stroke="red" stroke-width="2" d="M339.08,-71C348.96,-71 359.69,-71 370.1,-71"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="370.36,-74.5 380.36,-71 370.36,-67.5 370.36,-74.5"/>
+<title>bar.compile-&gt;bar.classPath</title>
+<path fill="none" stroke="red" stroke-width="2" d="M339.08,-71C348.96,-71 359.69,-71 370.1,-71"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="370.36,-74.5 380.36,-71 370.36,-67.5 370.36,-74.5"></polygon>
 </g>
 <!-- bar.assembly -->
 <g id="node9" class="node">
 <title>bar.assembly</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="595.97,-61.3 506.02,-61.3 506.02,-36.7 595.97,-36.7 595.97,-61.3"/>
+<polygon fill="white" stroke="red" stroke-width="2" points="595.97,-61.3 506.02,-61.3 506.02,-36.7 595.97,-36.7 595.97,-61.3"></polygon>
 <text text-anchor="middle" x="551" y="-44.8" font-family="Times,serif" font-size="14.00">bar.assembly</text>
 </g>
 <!-- bar.classPath&#45;&gt;bar.assembly -->
 <g id="edge7" class="edge">
-<title>bar.classPath&#45;&gt;bar.assembly</title>
-<path fill="none" stroke="red" stroke-width="2" d="M470.15,-63.18C478.55,-61.69 487.42,-60.11 496.09,-58.57"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="496.89,-61.99 506.12,-56.79 495.66,-55.1 496.89,-61.99"/>
+<title>bar.classPath-&gt;bar.assembly</title>
+<path fill="none" stroke="red" stroke-width="2" d="M470.15,-63.18C478.55,-61.69 487.42,-60.11 496.09,-58.57"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="496.89,-61.99 506.12,-56.79 495.66,-55.1 496.89,-61.99"></polygon>
 </g>
 <!-- bar.resources -->
 <g id="node11" class="node">
 <title>bar.resources</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="470.36,-40.3 379.9,-40.3 379.9,-15.7 470.36,-15.7 470.36,-40.3"/>
+<polygon fill="white" stroke="red" stroke-width="2" points="470.36,-40.3 379.9,-40.3 379.9,-15.7 470.36,-15.7 470.36,-40.3"></polygon>
 <text text-anchor="middle" x="425.13" y="-23.8" font-family="Times,serif" font-size="14.00">bar.resources</text>
 </g>
 <!-- bar.lineCount&#45;&gt;bar.resources -->
 <g id="edge9" class="edge">
-<title>bar.lineCount&#45;&gt;bar.resources</title>
-<path fill="none" stroke="red" stroke-width="2" d="M343.98,-28C352.26,-28 360.99,-28 369.51,-28"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="369.75,-31.5 379.75,-28 369.75,-24.5 369.75,-31.5"/>
+<title>bar.lineCount-&gt;bar.resources</title>
+<path fill="none" stroke="red" stroke-width="2" d="M343.98,-28C352.26,-28 360.99,-28 369.51,-28"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="369.75,-31.5 379.75,-28 369.75,-24.5 369.75,-31.5"></polygon>
 </g>
 <!-- bar.resources&#45;&gt;bar.assembly -->
 <g id="edge10" class="edge">
-<title>bar.resources&#45;&gt;bar.assembly</title>
-<path fill="none" stroke="red" stroke-width="2" d="M470.5,-35.52C478.78,-36.93 487.52,-38.41 496.05,-39.85"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="495.49,-43.31 505.94,-41.53 496.66,-36.41 495.49,-43.31"/>
+<title>bar.resources-&gt;bar.assembly</title>
+<path fill="none" stroke="red" stroke-width="2" d="M470.5,-35.52C478.78,-36.93 487.52,-38.41 496.05,-39.85"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="495.49,-43.31 505.94,-41.53 496.66,-36.41 495.49,-43.31"></polygon>
 </g>
 </g>
 </svg>
@@ -1444,7 +1441,7 @@ and <code>package.mill</code> files? This is called bootstrapping, and proceeds 
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Mill&#8217;s <a href="../cli/installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a> first checks
+<p>Mill’s <a href="../cli/installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a> first checks
 if the right version of Mill is already present, and if not it downloads the launcher executable
 (either <a href="../cli/installation-ide.html#_mill_native_and_jvm_executables" class="xref page">a JVM assembly jar or
 Graal native image</a>) to <code>~/.cache/mill/download</code></p>
@@ -1507,10 +1504,10 @@ graph or module hierarchy, as all <a href="#_resolution">Resolution</a> logic ha
 </div>
 <div class="paragraph">
 <p>This should not be a problem for most builds, but it is something to be aware
-of. In general, we have found that having "two places" to put code - outside of
+of. In general, we have found that having &quot;two places&quot; to put code - outside of
 <code>Task</code>s to run during <a href="#_planning">Planning</a> or inside of <code>Task</code>s to run during
 <a href="#Evaluation">[Evaluation]</a> - is generally enough flexibility for most use cases. You
-can generally just write "direct style" business logic you need - in the example
+can generally just write &quot;direct style&quot; business logic you need - in the example
 above counting the lints in <code>allSourceFiles</code> - and Mill handles all the caching,
 invalidation, and parallelism for you without any additional work.</p>
 </div>
@@ -1532,9 +1529,9 @@ Mill build discoverable even as the <code>build.mill</code> codebase grows.</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

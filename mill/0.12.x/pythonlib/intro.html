@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Building Python with Mill :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/pythonlib/intro.html">
-    <link rel="prev" href="../kotlinlib/web-examples.html">
-    <link rel="next" href="module-config.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/pythonlib/intro.html" />
+    <link rel="prev" href="../kotlinlib/web-examples.html" />
+    <link rel="next" href="module-config.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -648,7 +649,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -676,7 +677,7 @@ complexity to show you the key features and usage of the Mill build tool.</p>
 <div class="paragraph">
 <p>The other pages of this section of the documentation go into more depth into individual features,
 with more examples of how to use Mill for python and more details of how the Mill
-build tool works. They aren&#8217;t intended to be read comprehensively top-to-bottom, but
+build tool works. They aren’t intended to be read comprehensively top-to-bottom, but
 rather looked up when you have a particular interest e.g. in
 <a href="testing.html" class="xref page">testing</a>,
 <a href="publishing.html" class="xref page">publishing</a>,
@@ -684,12 +685,12 @@ rather looked up when you have a particular interest e.g. in
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Mill&#8217;s Python support is still under active development, and you can expect
+Mill’s Python support is still under active development, and you can expect
 the APIs to evolve over time. Nevertheless, it is complete enough to support most
 common tasks like <a href="dependencies.html" class="xref page">downloading dependencies from PyPI</a>,
 <a href="testing.html" class="xref page">running tests</a>,
@@ -700,7 +701,7 @@ that especially benefit large multi-module codebases and monorepos.
 Please try it out and let us know on Github if you hit any issues!
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 </div>
@@ -715,9 +716,9 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
 
-  def pythonDeps = Seq("Jinja2==3.1.4")
+  def pythonDeps = Seq(&quot;Jinja2==3.1.4&quot;)
 
   object test extends PythonTests with TestModule.Unittest
 
@@ -734,11 +735,11 @@ or browse the full sources via the <strong>browse</strong> link.
 Ensure you have a JVM installed; the <code>./mill</code> script manages all other dependencies.
 All examples, from simple hello-world projects on this page to advanced
 <a href="web-examples.html" class="xref page">web build examples</a>
-are fully executable and tested in Mill’s CI workflows.</p>
+are fully executable and tested in Mill&rsquo;s CI workflows.</p>
 </div>
 <div class="paragraph">
 <p>The source code for this module lives in the <code>src/</code> folder.
-Output for this module (typeChecked files, resolved dependency lists, ...​) lives in <code>out/</code>.</p>
+Output for this module (typeChecked files, resolved dependency lists, &hellip;​) lives in <code>out/</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -794,7 +795,7 @@ Inputs:
 &gt; ./mill foo.typeCheck  # TypeCheck the Python Files and notify errors
 Success: no issues found in 1 source file
 
-&gt; ./mill foo.run --text "Hello Mill"  # run the main method with arguments
+&gt; ./mill foo.run --text &quot;Hello Mill&quot;  # run the main method with arguments
 &lt;h1&gt;Hello Mill&lt;/h1&gt;
 
 &gt; ./mill foo.test
@@ -806,15 +807,15 @@ OK
 ...
 
 &gt; ./mill show foo.bundle # Creates Bundle for the python file
-".../out/foo/bundle.dest/bundle.pex"
+&quot;.../out/foo/bundle.dest/bundle.pex&quot;
 
-&gt; out/foo/bundle.dest/bundle.pex --text "Hello Mill" # running the PEX binary outside of Mill
+&gt; out/foo/bundle.dest/bundle.pex --text &quot;Hello Mill&quot; # running the PEX binary outside of Mill
 &lt;h1&gt;Hello Mill&lt;/h1&gt;
 
 &gt; sed -i.bak 's/print(main())/print(maaain())/g' foo/src/foo.py
 
 &gt; ./mill foo.typeCheck # if we make a typo in a method name, mypy flags it
-error: ...Name "maaain" is not defined...</code></pre>
+error: ...Name &quot;maaain&quot; is not defined...</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -825,7 +826,7 @@ You can also use <code>show</code> to make Mill print out the metadata output fo
 </div>
 <div class="paragraph">
 <p>You can run mill <code>resolve __</code> to see a full list of the different tasks that are available,
-<code>mill resolve _</code> to see the tasks within foo, <code>mill inspect typeCheck</code> to inspect a task’s doc-comment
+<code>mill resolve _</code> to see the tasks within foo, <code>mill inspect typeCheck</code> to inspect a task&rsquo;s doc-comment
 documentation or what it depends on, or <code>mill show foo.typeCheck</code> to show the output of any task.</p>
 </div>
 <div class="paragraph">
@@ -852,11 +853,11 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
 
   /** All Python source files in this module, recursively from the source directories.*/
   def allSourceFiles: T[Seq[PathRef]] = Task {
-    sources().flatMap(src =&gt; os.walk(src.path).filter(_.ext == "py").map(PathRef(_)))
+    sources().flatMap(src =&gt; os.walk(src.path).filter(_.ext == &quot;py&quot;).map(PathRef(_)))
   }
 
   /** Total number of lines in module source files */
@@ -866,9 +867,9 @@ object foo extends PythonModule {
 
   /** Generate resources using lineCount of sources */
   override def resources = Task {
-    val resourcesDir = Task.dest / "resources"
+    val resourcesDir = Task.dest / &quot;resources&quot;
     os.makeDir.all(resourcesDir)
-    os.write(resourcesDir / "line-count.txt", "" + lineCount())
+    os.write(resourcesDir / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
@@ -883,76 +884,75 @@ provided by <code>PythonModule</code> (labelled <code>resources.super</code> bel
 </div>
 <div class="paragraph">
 <center>
-<svg width="481px" height="76px"
- viewBox="0.00 0.00 480.78 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="481px" height="76px" viewBox="0.00 0.00 480.78 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 476.78,-71.8 476.78,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 476.78,-71.8 476.78,4 -4,4"></polygon>
 <!-- allSourceFiles -->
 <g id="node1" class="node">
 <title>allSourceFiles</title>
-<polygon fill="white" stroke="white" points="96.14,-67.7 -0.05,-67.7 -0.05,-43.1 96.14,-43.1 96.14,-67.7"/>
+<polygon fill="white" stroke="white" points="96.14,-67.7 -0.05,-67.7 -0.05,-43.1 96.14,-43.1 96.14,-67.7"></polygon>
 <text text-anchor="middle" x="48.05" y="-51.2" font-family="Times,serif" font-size="14.00">allSourceFiles</text>
 </g>
 <!-- lineCount -->
 <g id="node2" class="node">
 <title>lineCount</title>
-<polygon fill="white" stroke="black" points="219.15,-67.7 147.7,-67.7 147.7,-43.1 219.15,-43.1 219.15,-67.7"/>
+<polygon fill="white" stroke="black" points="219.15,-67.7 147.7,-67.7 147.7,-43.1 219.15,-43.1 219.15,-67.7"></polygon>
 <text text-anchor="middle" x="183.43" y="-51.2" font-family="Times,serif" font-size="14.00">lineCount</text>
 </g>
 <!-- allSourceFiles&#45;&gt;lineCount -->
 <g id="edge1" class="edge">
-<title>allSourceFiles&#45;&gt;lineCount</title>
-<path fill="none" stroke="black" d="M96.45,-55.4C109.8,-55.4 124.28,-55.4 137.49,-55.4"/>
-<polygon fill="black" stroke="black" points="137.76,-58.9 147.76,-55.4 137.76,-51.9 137.76,-58.9"/>
+<title>allSourceFiles-&gt;lineCount</title>
+<path fill="none" stroke="black" d="M96.45,-55.4C109.8,-55.4 124.28,-55.4 137.49,-55.4"></path>
+<polygon fill="black" stroke="black" points="137.76,-58.9 147.76,-55.4 137.76,-51.9 137.76,-58.9"></polygon>
 </g>
 <!-- resources -->
 <g id="node3" class="node">
 <title>resources</title>
-<polygon fill="white" stroke="black" points="339.55,-45.7 270.84,-45.7 270.84,-21.1 339.55,-21.1 339.55,-45.7"/>
+<polygon fill="white" stroke="black" points="339.55,-45.7 270.84,-45.7 270.84,-21.1 339.55,-21.1 339.55,-45.7"></polygon>
 <text text-anchor="middle" x="305.19" y="-29.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- lineCount&#45;&gt;resources -->
 <g id="edge2" class="edge">
-<title>lineCount&#45;&gt;resources</title>
-<path fill="none" stroke="black" d="M219.07,-49.04C231.95,-46.67 246.74,-43.95 260.34,-41.46"/>
-<polygon fill="black" stroke="black" points="261.25,-44.85 270.46,-39.6 259.99,-37.96 261.25,-44.85"/>
+<title>lineCount-&gt;resources</title>
+<path fill="none" stroke="black" d="M219.07,-49.04C231.95,-46.67 246.74,-43.95 260.34,-41.46"></path>
+<polygon fill="black" stroke="black" points="261.25,-44.85 270.46,-39.6 259.99,-37.96 261.25,-44.85"></polygon>
 </g>
 <!-- ... -->
 <g id="node4" class="node">
 <title>...</title>
-<polygon fill="white" stroke="white" points="402.37,-45.7 375.36,-45.7 375.36,-21.1 402.37,-21.1 402.37,-45.7"/>
+<polygon fill="white" stroke="white" points="402.37,-45.7 375.36,-45.7 375.36,-21.1 402.37,-21.1 402.37,-45.7"></polygon>
 <text text-anchor="middle" x="388.87" y="-29.2" font-family="Times,serif" font-size="14.00">...</text>
 </g>
 <!-- resources&#45;&gt;... -->
 <g id="edge3" class="edge">
-<title>resources&#45;&gt;...</title>
-<path fill="none" stroke="black" d="M339.89,-33.4C348.37,-33.4 357.27,-33.4 365.08,-33.4"/>
-<polygon fill="black" stroke="black" points="365.22,-36.9 375.22,-33.4 365.22,-29.9 365.22,-36.9"/>
+<title>resources-&gt;...</title>
+<path fill="none" stroke="black" d="M339.89,-33.4C348.37,-33.4 357.27,-33.4 365.08,-33.4"></path>
+<polygon fill="black" stroke="black" points="365.22,-36.9 375.22,-33.4 365.22,-29.9 365.22,-36.9"></polygon>
 </g>
 <!-- run -->
 <g id="node5" class="node">
 <title>run</title>
-<polygon fill="white" stroke="white" points="472.61,-45.7 438.29,-45.7 438.29,-21.1 472.61,-21.1 472.61,-45.7"/>
+<polygon fill="white" stroke="white" points="472.61,-45.7 438.29,-45.7 438.29,-21.1 472.61,-21.1 472.61,-45.7"></polygon>
 <text text-anchor="middle" x="455.45" y="-29.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- ...&#45;&gt;run -->
 <g id="edge4" class="edge">
-<title>...&#45;&gt;run</title>
-<path fill="none" stroke="black" d="M402.32,-33.4C409.51,-33.4 418.85,-33.4 427.63,-33.4"/>
-<polygon fill="black" stroke="black" points="427.88,-36.9 437.88,-33.4 427.88,-29.9 427.88,-36.9"/>
+<title>...-&gt;run</title>
+<path fill="none" stroke="black" d="M402.32,-33.4C409.51,-33.4 418.85,-33.4 427.63,-33.4"></path>
+<polygon fill="black" stroke="black" points="427.88,-36.9 437.88,-33.4 427.88,-29.9 427.88,-36.9"></polygon>
 </g>
 <!-- resources.super -->
 <g id="node6" class="node">
 <title>resources.super</title>
-<polygon fill="white" stroke="white" points="234.6,-24.7 132.25,-24.7 132.25,-0.1 234.6,-0.1 234.6,-24.7"/>
+<polygon fill="white" stroke="white" points="234.6,-24.7 132.25,-24.7 132.25,-0.1 234.6,-0.1 234.6,-24.7"></polygon>
 <text text-anchor="middle" x="183.43" y="-8.2" font-family="Times,serif" font-size="14.00">resources.super</text>
 </g>
 <!-- resources.super&#45;&gt;resources -->
 <g id="edge5" class="edge">
-<title>resources.super&#45;&gt;resources</title>
-<path fill="none" stroke="black" d="M234.87,-21.25C243.51,-22.76 252.41,-24.32 260.84,-25.8"/>
-<polygon fill="black" stroke="black" points="260.38,-29.27 270.84,-27.55 261.59,-22.38 260.38,-29.27"/>
+<title>resources.super-&gt;resources</title>
+<path fill="none" stroke="black" d="M234.87,-21.25C243.51,-22.76 252.41,-24.32 260.84,-25.8"></path>
+<polygon fill="black" stroke="black" points="260.38,-29.27 270.84,-27.55 261.59,-22.38 260.38,-29.27"></polygon>
 </g>
 </g>
 </svg>
@@ -990,13 +990,13 @@ The <code>override</code> keyword is optional in Mill. This generated file can t
 and used at runtime, as see in the output of <code>mill run</code>.</p>
 </div>
 <div class="paragraph">
-<p>If you’re not familiar with what tasks you can <code>override</code> or how they are related,
+<p>If you&rsquo;re not familiar with what tasks you can <code>override</code> or how they are related,
 you can explore the existing tasks via autocomplete in your IDE, or use the
 <a href="https://mill-build.org/mill/main-branch/cli/builtin-commands.html#_visualize">mill visualize</a>.</p>
 </div>
 <div class="paragraph">
 <p><code>os.read.lines</code> and <code>os.write</code> come from the <a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a> library,
-which is one of Mill’s <a href="https://mill-build.org/mill/main-branch/fundamentals/bundled-libraries.html">Bundled Libraries</a>.
+which is one of Mill&rsquo;s <a href="https://mill-build.org/mill/main-branch/fundamentals/bundled-libraries.html">Bundled Libraries</a>.
 You can also import any other library you want from Maven Central using
 <a href="https://mill-build.org/mill/main-branch/extending/import-ivy-plugins.html">import $ivy</a>,
 so you are not limited to what is bundled with Mill.</p>
@@ -1022,18 +1022,18 @@ build logic remains performant and maintainable even as the complexity of your p
 import mill._, pythonlib._
 
 trait MyModule extends PythonModule {
-  def resources = super.resources() ++ Seq(PathRef(moduleDir / "res"))
+  def resources = super.resources() ++ Seq(PathRef(moduleDir / &quot;res&quot;))
   object test extends PythonTests with TestModule.Unittest
 }
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
 }
 
 object bar extends MyModule {
-  def mainScript = Task.Source { "src/bar.py" }
-  def pythonDeps = Seq("Jinja2==3.1.4")
+  def mainScript = Task.Source { &quot;src/bar.py&quot; }
+  def pythonDeps = Seq(&quot;Jinja2==3.1.4&quot;)
 }</code></pre>
 </div>
 </div>
@@ -1114,7 +1114,7 @@ OK
 </div>
 </div>
 <div class="paragraph">
-<p>Mill’s evaluator will ensure that the modules are compiled in the right order, and recompiled
+<p>Mill&rsquo;s evaluator will ensure that the modules are compiled in the right order, and recompiled
 as necessary when source code in each module changes. The unique path on disk that Mill
 automatically assigns each task also ensures you do not need to worry about choosing a path on
 disk to cache outputs, or filesystem collisions if multiple tasks write to the same path.</p>
@@ -1129,8 +1129,8 @@ tasks.</p>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 1. Wildcards and brace-expansion</caption>
 <colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
+<col style="width: 50%;" />
+<col style="width: 50%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -1182,9 +1182,9 @@ preceding it with a backslash (<code>\</code>).</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

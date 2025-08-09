@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Gitlab :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/contrib/gitlab.html">
-    <link rel="prev" href="flyway.html">
-    <link rel="next" href="jmh.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/contrib/gitlab.html" />
+    <link rel="prev" href="flyway.html" />
+    <link rel="next" href="jmh.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +653,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -682,7 +683,7 @@ gitlab CI/CD pipeline.</p>
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION"]
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION&quot;]
 package build
 
 import mill._, scalalib._, mill.scalalib.publish._
@@ -690,12 +691,12 @@ import mill.contrib.gitlab._
 
 object lib extends ScalaModule with GitlabPublishModule {
   // PublishModule requirements:
-  override def publishVersion = "0.0.1"
+  override def publishVersion = &quot;0.0.1&quot;
   override def pomSettings = ??? // PomSettings(...)
 
   // GitlabPublishModule requirements
   // 42 is the project id in your gitlab
-  override def publishRepository = ProjectRepository("https://gitlab.local", 42)
+  override def publishRepository = ProjectRepository(&quot;https://gitlab.local&quot;, 42)
 }</code></pre>
 </div>
 </div>
@@ -765,9 +766,9 @@ personal access token, then deploy token and lastly ci job token. Default search
 <div class="title"><code>build.mill</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
-  override def personalTokenEnv = "MY_TOKEN"
-  override def deployTokenFile: os.Path = os.root/"etc"/"tokens"/"gitlab-deploy-token"
-  override def personalTokenFileWD = os.RelPath(".mill/gitlab/token.file")
+  override def personalTokenEnv = &quot;MY_TOKEN&quot;
+  override def deployTokenFile: os.Path = os.root/&quot;etc&quot;/&quot;tokens&quot;/&quot;gitlab-deploy-token&quot;
+  override def personalTokenFileWD = os.RelPath(&quot;.mill/gitlab/token.file&quot;)
 }</code></pre>
 </div>
 </div>
@@ -783,7 +784,7 @@ personal access token, then deploy token and lastly ci job token. Default search
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION"]
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION&quot;]
 
 package build
 // Personal, Env, Deploy etc types
@@ -792,20 +793,20 @@ import mill.contrib.gitlab.GitlabTokenLookup._
 override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
   // Just to add to default sequence set: super.tokenSearchOrder ++ Seq(...
   override def tokenSearchOrder: Seq[GitlabToken] = Seq(
-    Personal(Env("MY_PRIVATE_TOKEN")),
-    Personal(Property("gitlab.private-token")),
-    Deploy(WorkspaceFile(os.up/"deploy-token")),
-    Deploy(File(os.root/"etc"/"gitlab-deploy-token")),
+    Personal(Env(&quot;MY_PRIVATE_TOKEN&quot;)),
+    Personal(Property(&quot;gitlab.private-token&quot;)),
+    Deploy(WorkspaceFile(os.up/&quot;deploy-token&quot;)),
+    Deploy(File(os.root/&quot;etc&quot;/&quot;gitlab-deploy-token&quot;)),
     Deploy(Custom(myCustomTokenSource)),
-    CustomHeader("my-header", Custom(myCustomTokenSource))
+    CustomHeader(&quot;my-header&quot;, Custom(myCustomTokenSource))
   )
 
-  def myCustomTokenSource(): Result[String] = Right("foo")
+  def myCustomTokenSource(): Result[String] = Right(&quot;foo&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>There are two things happening here. First Gitlab needs right kind of token for right header.<code>Personal</code> creates "Private-Token" header, <code>Deploy</code> produces "Deploy-Token" and <code>CIJob</code> creates "Job-Token". Finally, any custom header can be set with <code>CustomHeader</code>.</p>
+<p>There are two things happening here. First Gitlab needs right kind of token for right header.<code>Personal</code> creates &quot;Private-Token&quot; header, <code>Deploy</code> produces &quot;Deploy-Token&quot; and <code>CIJob</code> creates &quot;Job-Token&quot;. Finally, any custom header can be set with <code>CustomHeader</code>.</p>
 </div>
 <div class="paragraph">
 <p>Secondly, after token type plugin needs information where to load token from. There are five possibilities</p>
@@ -825,7 +826,7 @@ override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
 <p><code>WorkspaceFile</code>: File relative to workspace root.</p>
 </li>
 <li>
-<p><code>Custom</code>: Any <code>() &#8658; Result[String]</code> function</p>
+<p><code>Custom</code>: Any <code>() ⇒ Result[String]</code> function</p>
 </li>
 </ol>
 </div>
@@ -856,8 +857,8 @@ override def gitlabHeaders(
     GitlabAuthHeaders(
       accessHeader ++ Seq(
         // Inject completely custom http headers
-        "header1" -&gt; "value1",
-        "header2" -&gt; "value2"
+        &quot;header1&quot; -&gt; &quot;value1&quot;,
+        &quot;header2&quot; -&gt; &quot;value2&quot;
       )
     )
   )
@@ -865,7 +866,7 @@ override def gitlabHeaders(
 </div>
 </div>
 <div class="paragraph">
-<p>This example uses default token resolving logic and injects 2 custom headers ("header1" and "header2") to http requests to gitlab. Note that in this particular example, if token lookup fails, it is silently ignored (access.fold..)</p>
+<p>This example uses default token resolving logic and injects 2 custom headers (&quot;header1&quot; and &quot;header2&quot;) to http requests to gitlab. Note that in this particular example, if token lookup fails, it is silently ignored (access.fold..)</p>
 </div>
 </div>
 <div class="sect2">
@@ -884,7 +885,7 @@ override def gitlabHeaders(
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION"]
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION&quot;]
 
 import mill._, scalalib._, mill.scalalib.publish._
 import coursier.MavenRepository
@@ -894,8 +895,8 @@ import mill.contrib.gitlab._
 // DON'T DO THIS
 def repositoriesTask = Task.Anon {
   super.repositoriesTask() ++ Seq(
-    MavenRepository("https://gitlab.local/api/v4/projects/42/packages/maven",
-      Some(Authentication(Seq(("Private-Token", "&lt;&lt;private-token&gt;&gt;"))))))
+    MavenRepository(&quot;https://gitlab.local/api/v4/projects/42/packages/maven&quot;,
+      Some(Authentication(Seq((&quot;Private-Token&quot;, &quot;&lt;&lt;private-token&gt;&gt;&quot;))))))
 }</code></pre>
 </div>
 </div>
@@ -906,21 +907,21 @@ provides trait <code>GitlabMavenRepository</code> to ease that.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION"]
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION&quot;]
 
 object myPackageRepository extends GitlabMavenRepository {
   // Customize if needed, omit if unnecessary
   // override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {}
 
   // Needed. Can also be ProjectRepository or InstanceRepository, depending on your gitlab instance
-  def gitlabRepository = GroupRepository("https://gitlab.local", "MY_GITLAB_GROUP")
+  def gitlabRepository = GroupRepository(&quot;https://gitlab.local&quot;, &quot;MY_GITLAB_GROUP&quot;)
 }
 
 object myModule extends ScalaModule {
   def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++
       Seq(
-        MavenRepository("https://oss.sonatype.org/content/repositories/releases"),
+        MavenRepository(&quot;https://oss.sonatype.org/content/repositories/releases&quot;),
         myPackageRegistry.mavenRepository()
       )
   }
@@ -950,19 +951,19 @@ object myModule extends ScalaModule {
 <div class="ulist">
 <ul>
 <li>
-<p>Some maven / gitlab feature I&#8217;m missing?</p>
+<p>Some maven / gitlab feature I’m missing?</p>
 </li>
 <li>
 <p>More configuration, timeouts etc</p>
 </li>
 <li>
-<p>Some other common token source / type I&#8217;ve overlooked</p>
+<p>Some other common token source / type I’ve overlooked</p>
 </li>
 <li>
 <p>Container registry support with docker module</p>
 </li>
 <li>
-<p>Other Gitlab auth methods? (deploy keys?, &#8230;&#8203;)</p>
+<p>Other Gitlab auth methods? (deploy keys?, ...​)</p>
 </li>
 <li>
 <p>Tested with Gitlab 15.2.2. Older versions might not work</p>
@@ -1009,9 +1010,9 @@ modules source code</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

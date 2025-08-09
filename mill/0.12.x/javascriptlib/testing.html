@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Testing Typescript Projects :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/javascriptlib/testing.html">
-    <link rel="prev" href="module-config.html">
-    <link rel="next" href="linting.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/javascriptlib/testing.html" />
+    <link rel="prev" href="module-config.html" />
+    <link rel="next" href="linting.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -648,7 +649,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -760,7 +761,7 @@ Tests:...4 passed, 4 total...
 import mill._, javascriptlib._
 
 object bar extends TypeScriptModule {
-  def npmDeps = Seq("immutable@4.3.7")
+  def npmDeps = Seq(&quot;immutable@4.3.7&quot;)
   object test extends TypeScriptTests with TestModule.Jest
 }
 
@@ -814,19 +815,19 @@ object client extends ReactScriptsModule
 object server extends TypeScriptModule {
 
   def npmDeps =
-    Seq("@types/cors@^2.8.17", "@types/express@^5.0.0", "cors@^2.8.5", "express@^4.21.1")
+    Seq(&quot;@types/cors@^2.8.17&quot;, &quot;@types/express@^5.0.0&quot;, &quot;cors@^2.8.5&quot;, &quot;express@^4.21.1&quot;)
 
   /** Bundle client as resource */
   def resources = Task {
-    os.copy(client.bundle().path, Task.dest / "build")
+    os.copy(client.bundle().path, Task.dest / &quot;build&quot;)
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  override def forkEnv = super.forkEnv() + ("PORT" -&gt; "4000")
+  override def forkEnv = super.forkEnv() + (&quot;PORT&quot; -&gt; &quot;4000&quot;)
 
   object test extends TypeScriptTests with TestModule.Cypress {
     def service = server
-    def port = "4000"
+    def port = &quot;4000&quot;
   }
 }</code></pre>
 </div>
@@ -864,19 +865,19 @@ object client extends ReactScriptsModule
 object server extends TypeScriptModule {
 
   def npmDeps =
-    Seq("@types/cors@^2.8.17", "@types/express@^5.0.0", "cors@^2.8.5", "express@^4.21.1")
+    Seq(&quot;@types/cors@^2.8.17&quot;, &quot;@types/express@^5.0.0&quot;, &quot;cors@^2.8.5&quot;, &quot;express@^4.21.1&quot;)
 
   /** Bundle client as resource */
   def resources = Task {
-    os.copy(client.bundle().path, Task.dest / "build")
+    os.copy(client.bundle().path, Task.dest / &quot;build&quot;)
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  def forkEnv = super.forkEnv() + ("PORT" -&gt; "3000")
+  def forkEnv = super.forkEnv() + (&quot;PORT&quot; -&gt; &quot;3000&quot;)
 
   object test extends TypeScriptTests with TestModule.PlayWright {
     def service = server
-    def port = "6000"
+    def port = &quot;6000&quot;
   }
 }</code></pre>
 </div>
@@ -908,9 +909,9 @@ and kill the service once completed</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

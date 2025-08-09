@@ -691,7 +691,7 @@ official <a href="https://github.com/android/compose-samples">compose samples</a
 <h2 id="_android_mill_setup_for_building_jetlagged_and_jetnews"><a class="anchor" href="#_android_mill_setup_for_building_jetlagged_and_jetnews"></a>Android Mill Setup for building JetLagged and JetNews</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-20-792b71/mill-dist-1.0.3-20-792b71-example-thirdparty-android-compose-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/thirdparty/android-compose-samples">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-21-ccff31/mill-dist-1.0.3-21-ccff31-example-thirdparty-android-compose-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/thirdparty/android-compose-samples">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, androidlib.*, kotlinlib.*
 
@@ -805,8 +805,7 @@ object JetLagged extends mill.api.Module {
 
     def androidMinSdk = Versions.androidMinSdk
 
-    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule,
-          AndroidTestModule.AndroidJUnit {
+    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule {
 
       def bomMvnDeps = super.mvnDeps() ++ Seq(
         mvn&quot;androidx.compose:compose-bom:2025.05.00&quot;
@@ -933,8 +932,7 @@ object JetNews extends mill.api.Module {
 
     def androidMinSdk = Versions.androidMinSdk
 
-    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule,
-          AndroidTestModule.AndroidJUnit {
+    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule {
 
       def bomMvnDeps = super.mvnDeps() ++ Seq(
         mvn&quot;androidx.compose:compose-bom:2025.05.00&quot;

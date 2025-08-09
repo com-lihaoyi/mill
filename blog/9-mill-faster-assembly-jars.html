@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Fast Incremental JVM Assembly Jar Creation with Mill :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/blog/9-mill-faster-assembly-jars.html">
-    <link rel="prev" href="10-bytecode-callgraph-analysis.html">
-    <link rel="next" href="8-what-is-a-build-tool.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/blog/9-mill-faster-assembly-jars.html" />
+    <link rel="prev" href="10-bytecode-callgraph-analysis.html" />
+    <link rel="next" href="8-what-is-a-build-tool.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -232,7 +233,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/9-mill-faster-assembly-jars.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -258,7 +259,7 @@ saving time you would otherwise spend waiting for your assembly to be created.</
 </div>
 <div class="paragraph">
 <p>An assembly jar is a jar file containing both the compiled code for an application,
-as well as its upstream dependencies. This is in contrast to "normal" jar files which
+as well as its upstream dependencies. This is in contrast to &quot;normal&quot; jar files which
 contain only the local code and not that of upstream libraries. Assembly jars are convenient
 because they are self contained: contains all the code and classpath resources
 necessary to run, without needing any additional upstream dependencies to be first
@@ -280,7 +281,7 @@ artifacts, which makes the JVM assembly jar pretty large.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -290,12 +291,12 @@ you do not actually need to include <code>spark-core</code> and <code>spark-sql<
 as the Spark cluster will provide them. Nevertheless, any JVM
 developer will likely encounter scenarios where large assemblies are necessary,
 whether due to third-party libraries or non-spark frameworks. Similarly, although
-the example Spark code is in Scala since that&#8217;s what Spark uses, the same techniques
+the example Spark code is in Scala since that’s what Spark uses, the same techniques
 apply to any JVM language you may want to pack into a
 self-contained assembly jar.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -308,18 +309,18 @@ object Foo {
   case class Transaction(id: Int, category: String, amount: Double)
 
   def computeSummary(transactions: Dataset[Transaction]): DataFrame = {
-    transactions.groupBy("category")
+    transactions.groupBy(&quot;category&quot;)
       .agg(
-        sum("amount").alias("total_amount"),
-        avg("amount").alias("average_amount"),
-        count("amount").alias("transaction_count")
+        sum(&quot;amount&quot;).alias(&quot;total_amount&quot;),
+        avg(&quot;amount&quot;).alias(&quot;average_amount&quot;),
+        count(&quot;amount&quot;).alias(&quot;transaction_count&quot;)
       )
   }
 
   def main(args: Array[String]): Unit = {
     val spark = SparkSession.builder()
-      .appName("SparkExample")
-      .master("local[*]")
+      .appName(&quot;SparkExample&quot;)
+      .master(&quot;local[*]&quot;)
       .getOrCreate()
 
     val resourcePath: String = args(0)
@@ -327,14 +328,14 @@ object Foo {
     import spark.implicits._
 
     val df = spark.read
-      .option("header", "true")
-      .option("inferSchema", "true")
+      .option(&quot;header&quot;, &quot;true&quot;)
+      .option(&quot;inferSchema&quot;, &quot;true&quot;)
       .csv(resourcePath)
 
     val transactionsDS: Dataset[Transaction] = df.as[Transaction]
     val summaryDF = computeSummary(transactionsDS)
 
-    println("Summary Statistics by Category:")
+    println(&quot;Summary Statistics by Category:&quot;)
     summaryDF.show()
 
     spark.stop()
@@ -357,7 +358,7 @@ and <a href="https://maven.apache.org/">Maven</a></p>
 <div class="paragraph">
 <p>The Mill build config for this project is shown below, setting the <code>scalaVersion</code>
 and the <code>mvnDeps</code>. There is a wrinkle in needing override <code>def prependShellScript</code>,
-because Mill&#8217;s <a href="5-executable-jars.html" class="xref page">executable assembly jars</a> don&#8217;t work
+because Mill’s <a href="5-executable-jars.html" class="xref page">executable assembly jars</a> don’t work
 for large assemblies like this one.</p>
 </div>
 <div class="listingblock">
@@ -366,13 +367,13 @@ for large assemblies like this one.</p>
 import mill._, scalalib._
 
 object `package` extends  SbtModule {
-  def scalaVersion = "2.12.19"
+  def scalaVersion = &quot;2.12.19&quot;
   def mvnDeps = Seq(
-    mvn"org.apache.spark::spark-core:3.5.4",
-    mvn"org.apache.spark::spark-sql:3.5.4"
+    mvn&quot;org.apache.spark::spark-core:3.5.4&quot;,
+    mvn&quot;org.apache.spark::spark-sql:3.5.4&quot;
   )
 
-  def prependShellScript = ""
+  def prependShellScript = &quot;&quot;
 }</code></pre>
 </div>
 </div>
@@ -384,7 +385,7 @@ to build an assembly that we can run using <code>java -jar</code>:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show assembly
-".../out/assembly.dest/out.jar"
+&quot;.../out/assembly.dest/out.jar&quot;
 Total time: 27s
 
 $ ls -lh out/assembly.dest/out.jar
@@ -413,19 +414,19 @@ that built in by default.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">lazy val root = (project in file("."))
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">lazy val root = (project in file(&quot;.&quot;))
   .enablePlugins(AssemblyPlugin) // Enables sbt-assembly
   .settings(
-    name := "spark-app",
-    version := "0.1",
-    scalaVersion := "2.12.19",
+    name := &quot;spark-app&quot;,
+    version := &quot;0.1&quot;,
+    scalaVersion := &quot;2.12.19&quot;,
     libraryDependencies ++= Seq(
-      "org.apache.spark" %% "spark-core" % "3.5.4",
-      "org.apache.spark" %% "spark-sql" % "3.5.4",
+      &quot;org.apache.spark&quot; %% &quot;spark-core&quot; % &quot;3.5.4&quot;,
+      &quot;org.apache.spark&quot; %% &quot;spark-sql&quot; % &quot;3.5.4&quot;,
     ),
     assembly / assemblyMergeStrategy := {
-      case PathList("META-INF", "services", _*) =&gt; MergeStrategy.concat
-      case PathList("META-INF", xs @ _*) =&gt; MergeStrategy.discard
+      case PathList(&quot;META-INF&quot;, &quot;services&quot;, _*) =&gt; MergeStrategy.concat
+      case PathList(&quot;META-INF&quot;, xs @ _*) =&gt; MergeStrategy.discard
       case x =&gt; MergeStrategy.first
     }
   )</code></pre>
@@ -466,9 +467,9 @@ that requires you enable <code>maven-compiler-plugin</code> and <code>maven-scal
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
+         xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
     &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
 
     &lt;groupId&gt;com.example&lt;/groupId&gt;
@@ -576,7 +577,7 @@ Total time: 20s
 <p>We can see all 3 build tools take about 20s to build the assembly, with some
 variation expected from run to run. All three jars are about the same size (~212mb),
 which makes sense since they should contain the same local code and same
-upstream dependencies. While 20s is a bit long, it&#8217;s not that surprising
+upstream dependencies. While 20s is a bit long, it’s not that surprising
 since the tool has to compress ~212mb of dependencies to assemble the into a jar file.</p>
 </div>
 </div>
@@ -593,10 +594,10 @@ the code and re-build the assembly:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo "class dummy" &gt;&gt; src/main/scala/foo/Foo.scala
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo &quot;class dummy&quot; &gt;&gt; src/main/scala/foo/Foo.scala
 
 &gt; ./mill show assembly
-".../out/assembly.dest/out.jar"
+&quot;.../out/assembly.dest/out.jar&quot;
 Total time: 1s
 
 &gt; sbt assembly
@@ -630,13 +631,13 @@ foo/dummy.class</code></pre>
 <p>You can try making other code changes, e.g. to the body of the spark program itself,
 and running the output jar with <code>java -jar</code> to see that your changes are indeed
 taking effect. So the question you may ask is: how is it that Mill is able to
-rebuild it&#8217;s output assembly jar in ~1s, while other build tools are
+rebuild it’s output assembly jar in ~1s, while other build tools are
 spending a whole ~20s rebuilding it?</p>
 </div>
 <div class="sect2">
 <h3 id="_multi_step_assemblies"><a class="anchor" href="#_multi_step_assemblies"></a>Multi-Step Assemblies</h3>
 <div class="paragraph">
-<p>The trick to Mill&#8217;s fast incremental rebuilding of assembly jars is to split the
+<p>The trick to Mill’s fast incremental rebuilding of assembly jars is to split the
 assembly jar creation into three phases.</p>
 </div>
 <div class="paragraph">
@@ -646,11 +647,10 @@ the module being assembled, compress all their files and assemble them into a <c
 </div>
 <div class="paragraph">
 <center>
-<svg width="282px" height="119px"
- viewBox="0.00 0.00 282.44 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="282px" height="119px" viewBox="0.00 0.00 282.44 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 278.44,-114.8 278.44,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 278.44,-114.8 278.44,4 -4,4"></polygon>
 <!-- third_party_libraries -->
 <g id="node1" class="node">
 <title>third_party_libraries</title>
@@ -659,14 +659,14 @@ the module being assembled, compress all their files and assemble them into a <c
 <!-- assembly (slow) -->
 <g id="node2" class="node">
 <title>assembly (slow)</title>
-<polygon fill="none" stroke="black" points="274.62,-67.7 166.89,-67.7 166.89,-43.1 274.62,-43.1 274.62,-67.7"/>
+<polygon fill="none" stroke="black" points="274.62,-67.7 166.89,-67.7 166.89,-43.1 274.62,-43.1 274.62,-67.7"></polygon>
 <text text-anchor="middle" x="220.76" y="-51.2" font-family="Times,serif" font-size="14.00">assembly (slow)</text>
 </g>
 <!-- third_party_libraries&#45;&gt;assembly (slow) -->
 <g id="edge1" class="edge">
-<title>third_party_libraries&#45;&gt;assembly (slow)</title>
-<path fill="none" stroke="black" d="M110.44,-86.08C127.75,-81.22 147.81,-75.59 165.97,-70.49"/>
-<polygon fill="black" stroke="black" points="167.16,-73.8 175.84,-67.72 165.27,-67.06 167.16,-73.8"/>
+<title>third_party_libraries-&gt;assembly (slow)</title>
+<path fill="none" stroke="black" d="M110.44,-86.08C127.75,-81.22 147.81,-75.59 165.97,-70.49"></path>
+<polygon fill="black" stroke="black" points="167.16,-73.8 175.84,-67.72 165.27,-67.06 167.16,-73.8"></polygon>
 </g>
 <!-- local_dependencies -->
 <g id="node3" class="node">
@@ -675,9 +675,9 @@ the module being assembled, compress all their files and assemble them into a <c
 </g>
 <!-- local_dependencies&#45;&gt;assembly (slow) -->
 <g id="edge2" class="edge">
-<title>local_dependencies&#45;&gt;assembly (slow)</title>
-<path fill="none" stroke="black" d="M128.42,-55.4C137.81,-55.4 147.51,-55.4 156.92,-55.4"/>
-<polygon fill="black" stroke="black" points="156.99,-58.9 166.99,-55.4 156.99,-51.9 156.99,-58.9"/>
+<title>local_dependencies-&gt;assembly (slow)</title>
+<path fill="none" stroke="black" d="M128.42,-55.4C137.81,-55.4 147.51,-55.4 156.92,-55.4"></path>
+<polygon fill="black" stroke="black" points="156.99,-58.9 166.99,-55.4 156.99,-51.9 156.99,-58.9"></polygon>
 </g>
 <!-- current_module -->
 <g id="node4" class="node">
@@ -686,9 +686,9 @@ the module being assembled, compress all their files and assemble them into a <c
 </g>
 <!-- current_module&#45;&gt;assembly (slow) -->
 <g id="edge3" class="edge">
-<title>current_module&#45;&gt;assembly (slow)</title>
-<path fill="none" stroke="black" d="M110.44,-24.72C127.75,-29.58 147.81,-35.21 165.97,-40.31"/>
-<polygon fill="black" stroke="black" points="165.27,-43.74 175.84,-43.08 167.16,-37 165.27,-43.74"/>
+<title>current_module-&gt;assembly (slow)</title>
+<path fill="none" stroke="black" d="M110.44,-24.72C127.75,-29.58 147.81,-35.21 165.97,-40.31"></path>
+<polygon fill="black" stroke="black" points="165.27,-43.74 175.84,-43.08 167.16,-37 165.27,-43.74"></polygon>
 </g>
 </g>
 </svg>
@@ -702,11 +702,10 @@ added one-by-one to construct the final jar:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="736px" height="97px"
- viewBox="0.00 0.00 735.54 96.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="736px" height="97px" viewBox="0.00 0.00 735.54 96.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 92.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-92.8 731.54,-92.8 731.54,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-92.8 731.54,-92.8 731.54,4 -4,4"></polygon>
 <!-- third_party_libraries -->
 <g id="node1" class="node">
 <title>third_party_libraries</title>
@@ -715,38 +714,38 @@ added one-by-one to construct the final jar:</p>
 <!-- upstream_thirdparty_assembly (slow) -->
 <g id="node2" class="node">
 <title>upstream_thirdparty_assembly (slow)</title>
-<polygon fill="none" stroke="black" points="394.9,-88.7 167.13,-88.7 167.13,-64.1 394.9,-64.1 394.9,-88.7"/>
+<polygon fill="none" stroke="black" points="394.9,-88.7 167.13,-88.7 167.13,-64.1 394.9,-64.1 394.9,-88.7"></polygon>
 <text text-anchor="middle" x="281.02" y="-72.2" font-family="Times,serif" font-size="14.00">upstream_thirdparty_assembly (slow)</text>
 </g>
 <!-- third_party_libraries&#45;&gt;upstream_thirdparty_assembly (slow) -->
 <g id="edge1" class="edge">
-<title>third_party_libraries&#45;&gt;upstream_thirdparty_assembly (slow)</title>
-<path fill="none" stroke="black" d="M131.17,-76.4C139.46,-76.4 148.16,-76.4 157,-76.4"/>
-<polygon fill="black" stroke="black" points="157.05,-79.9 167.05,-76.4 157.05,-72.9 157.05,-79.9"/>
+<title>third_party_libraries-&gt;upstream_thirdparty_assembly (slow)</title>
+<path fill="none" stroke="black" d="M131.17,-76.4C139.46,-76.4 148.16,-76.4 157,-76.4"></path>
+<polygon fill="black" stroke="black" points="157.05,-79.9 167.05,-76.4 157.05,-72.9 157.05,-79.9"></polygon>
 </g>
 <!-- upstream_assembly (fast) -->
 <g id="node3" class="node">
 <title>upstream_assembly (fast)</title>
-<polygon fill="none" stroke="black" points="590.63,-67.7 430.74,-67.7 430.74,-43.1 590.63,-43.1 590.63,-67.7"/>
+<polygon fill="none" stroke="black" points="590.63,-67.7 430.74,-67.7 430.74,-43.1 590.63,-43.1 590.63,-67.7"></polygon>
 <text text-anchor="middle" x="510.68" y="-51.2" font-family="Times,serif" font-size="14.00">upstream_assembly (fast)</text>
 </g>
 <!-- upstream_thirdparty_assembly (slow)&#45;&gt;upstream_assembly (fast) -->
 <g id="edge2" class="edge">
-<title>upstream_thirdparty_assembly (slow)&#45;&gt;upstream_assembly (fast)</title>
-<path fill="none" stroke="black" d="M395.18,-65.96C403.75,-65.17 412.33,-64.38 420.71,-63.61"/>
-<polygon fill="black" stroke="black" points="421.19,-67.08 430.83,-62.67 420.55,-60.11 421.19,-67.08"/>
+<title>upstream_thirdparty_assembly (slow)-&gt;upstream_assembly (fast)</title>
+<path fill="none" stroke="black" d="M395.18,-65.96C403.75,-65.17 412.33,-64.38 420.71,-63.61"></path>
+<polygon fill="black" stroke="black" points="421.19,-67.08 430.83,-62.67 420.55,-60.11 421.19,-67.08"></polygon>
 </g>
 <!-- assembly (fast) -->
 <g id="node5" class="node">
 <title>assembly (fast)</title>
-<polygon fill="none" stroke="black" points="727.6,-45.7 626.34,-45.7 626.34,-21.1 727.6,-21.1 727.6,-45.7"/>
+<polygon fill="none" stroke="black" points="727.6,-45.7 626.34,-45.7 626.34,-21.1 727.6,-21.1 727.6,-45.7"></polygon>
 <text text-anchor="middle" x="676.97" y="-29.2" font-family="Times,serif" font-size="14.00">assembly (fast)</text>
 </g>
 <!-- upstream_assembly (fast)&#45;&gt;assembly (fast) -->
 <g id="edge4" class="edge">
-<title>upstream_assembly (fast)&#45;&gt;assembly (fast)</title>
-<path fill="none" stroke="black" d="M590.46,-44.85C599.12,-43.69 607.84,-42.52 616.22,-41.4"/>
-<polygon fill="black" stroke="black" points="616.8,-44.86 626.25,-40.06 615.87,-37.92 616.8,-44.86"/>
+<title>upstream_assembly (fast)-&gt;assembly (fast)</title>
+<path fill="none" stroke="black" d="M590.46,-44.85C599.12,-43.69 607.84,-42.52 616.22,-41.4"></path>
+<polygon fill="black" stroke="black" points="616.8,-44.86 626.25,-40.06 615.87,-37.92 616.8,-44.86"></polygon>
 </g>
 <!-- local_dependencies -->
 <g id="node4" class="node">
@@ -755,9 +754,9 @@ added one-by-one to construct the final jar:</p>
 </g>
 <!-- local_dependencies&#45;&gt;upstream_assembly (fast) -->
 <g id="edge3" class="edge">
-<title>local_dependencies&#45;&gt;upstream_assembly (fast)</title>
-<path fill="none" stroke="black" d="M343.93,-39.38C367.52,-41.66 394.91,-44.31 420.54,-46.79"/>
-<polygon fill="black" stroke="black" points="420.35,-50.28 430.64,-47.76 421.03,-43.32 420.35,-50.28"/>
+<title>local_dependencies-&gt;upstream_assembly (fast)</title>
+<path fill="none" stroke="black" d="M343.93,-39.38C367.52,-41.66 394.91,-44.31 420.54,-46.79"></path>
+<polygon fill="black" stroke="black" points="420.35,-50.28 430.64,-47.76 421.03,-43.32 420.35,-50.28"></polygon>
 </g>
 <!-- current_module -->
 <g id="node6" class="node">
@@ -766,9 +765,9 @@ added one-by-one to construct the final jar:</p>
 </g>
 <!-- current_module&#45;&gt;assembly (fast) -->
 <g id="edge5" class="edge">
-<title>current_module&#45;&gt;assembly (fast)</title>
-<path fill="none" stroke="black" d="M563.21,-18.99C580.05,-21.14 598.88,-23.55 616.27,-25.77"/>
-<polygon fill="black" stroke="black" points="615.95,-29.26 626.31,-27.05 616.83,-22.31 615.95,-29.26"/>
+<title>current_module-&gt;assembly (fast)</title>
+<path fill="none" stroke="black" d="M563.21,-18.99C580.05,-21.14 598.88,-23.55 616.27,-25.77"></path>
+<polygon fill="black" stroke="black" points="615.95,-29.26 626.31,-27.05 616.83,-22.31 615.95,-29.26"></polygon>
 </g>
 </g>
 </svg>
@@ -800,11 +799,10 @@ of creating the assemblies from scratch:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="736px" height="97px"
- viewBox="0.00 0.00 735.54 96.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="736px" height="97px" viewBox="0.00 0.00 735.54 96.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 92.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-92.8 731.54,-92.8 731.54,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-92.8 731.54,-92.8 731.54,4 -4,4"></polygon>
 <!-- third_party_libraries -->
 <g id="node1" class="node">
 <title>third_party_libraries</title>
@@ -813,38 +811,38 @@ of creating the assemblies from scratch:</p>
 <!-- upstream_thirdparty_assembly (slow) -->
 <g id="node2" class="node">
 <title>upstream_thirdparty_assembly (slow)</title>
-<polygon fill="none" stroke="red" stroke-width="2" points="394.9,-88.7 167.13,-88.7 167.13,-64.1 394.9,-64.1 394.9,-88.7"/>
+<polygon fill="none" stroke="red" stroke-width="2" points="394.9,-88.7 167.13,-88.7 167.13,-64.1 394.9,-64.1 394.9,-88.7"></polygon>
 <text text-anchor="middle" x="281.02" y="-72.2" font-family="Times,serif" font-size="14.00">upstream_thirdparty_assembly (slow)</text>
 </g>
 <!-- third_party_libraries&#45;&gt;upstream_thirdparty_assembly (slow) -->
 <g id="edge1" class="edge">
-<title>third_party_libraries&#45;&gt;upstream_thirdparty_assembly (slow)</title>
-<path fill="none" stroke="red" stroke-width="2" d="M131.17,-76.4C139.46,-76.4 148.16,-76.4 157,-76.4"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="157.05,-79.9 167.05,-76.4 157.05,-72.9 157.05,-79.9"/>
+<title>third_party_libraries-&gt;upstream_thirdparty_assembly (slow)</title>
+<path fill="none" stroke="red" stroke-width="2" d="M131.17,-76.4C139.46,-76.4 148.16,-76.4 157,-76.4"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="157.05,-79.9 167.05,-76.4 157.05,-72.9 157.05,-79.9"></polygon>
 </g>
 <!-- upstream_assembly (fast) -->
 <g id="node3" class="node">
 <title>upstream_assembly (fast)</title>
-<polygon fill="none" stroke="red" stroke-width="2" points="590.63,-67.7 430.74,-67.7 430.74,-43.1 590.63,-43.1 590.63,-67.7"/>
+<polygon fill="none" stroke="red" stroke-width="2" points="590.63,-67.7 430.74,-67.7 430.74,-43.1 590.63,-43.1 590.63,-67.7"></polygon>
 <text text-anchor="middle" x="510.68" y="-51.2" font-family="Times,serif" font-size="14.00">upstream_assembly (fast)</text>
 </g>
 <!-- upstream_thirdparty_assembly (slow)&#45;&gt;upstream_assembly (fast) -->
 <g id="edge2" class="edge">
-<title>upstream_thirdparty_assembly (slow)&#45;&gt;upstream_assembly (fast)</title>
-<path fill="none" stroke="red" stroke-width="2" d="M395.18,-65.96C403.75,-65.17 412.33,-64.38 420.71,-63.61"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="421.19,-67.08 430.83,-62.67 420.55,-60.11 421.19,-67.08"/>
+<title>upstream_thirdparty_assembly (slow)-&gt;upstream_assembly (fast)</title>
+<path fill="none" stroke="red" stroke-width="2" d="M395.18,-65.96C403.75,-65.17 412.33,-64.38 420.71,-63.61"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="421.19,-67.08 430.83,-62.67 420.55,-60.11 421.19,-67.08"></polygon>
 </g>
 <!-- assembly (fast) -->
 <g id="node5" class="node">
 <title>assembly (fast)</title>
-<polygon fill="none" stroke="red" stroke-width="2" points="727.6,-45.7 626.34,-45.7 626.34,-21.1 727.6,-21.1 727.6,-45.7"/>
+<polygon fill="none" stroke="red" stroke-width="2" points="727.6,-45.7 626.34,-45.7 626.34,-21.1 727.6,-21.1 727.6,-45.7"></polygon>
 <text text-anchor="middle" x="676.97" y="-29.2" font-family="Times,serif" font-size="14.00">assembly (fast)</text>
 </g>
 <!-- upstream_assembly (fast)&#45;&gt;assembly (fast) -->
 <g id="edge4" class="edge">
-<title>upstream_assembly (fast)&#45;&gt;assembly (fast)</title>
-<path fill="none" stroke="red" stroke-width="2" d="M590.46,-44.85C599.12,-43.69 607.84,-42.52 616.22,-41.4"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="616.8,-44.86 626.25,-40.06 615.87,-37.92 616.8,-44.86"/>
+<title>upstream_assembly (fast)-&gt;assembly (fast)</title>
+<path fill="none" stroke="red" stroke-width="2" d="M590.46,-44.85C599.12,-43.69 607.84,-42.52 616.22,-41.4"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="616.8,-44.86 626.25,-40.06 615.87,-37.92 616.8,-44.86"></polygon>
 </g>
 <!-- local_dependencies -->
 <g id="node4" class="node">
@@ -853,9 +851,9 @@ of creating the assemblies from scratch:</p>
 </g>
 <!-- local_dependencies&#45;&gt;upstream_assembly (fast) -->
 <g id="edge3" class="edge">
-<title>local_dependencies&#45;&gt;upstream_assembly (fast)</title>
-<path fill="none" stroke="black" d="M343.93,-39.38C367.52,-41.66 394.91,-44.31 420.54,-46.79"/>
-<polygon fill="black" stroke="black" points="420.35,-50.28 430.64,-47.76 421.03,-43.32 420.35,-50.28"/>
+<title>local_dependencies-&gt;upstream_assembly (fast)</title>
+<path fill="none" stroke="black" d="M343.93,-39.38C367.52,-41.66 394.91,-44.31 420.54,-46.79"></path>
+<polygon fill="black" stroke="black" points="420.35,-50.28 430.64,-47.76 421.03,-43.32 420.35,-50.28"></polygon>
 </g>
 <!-- current_module -->
 <g id="node6" class="node">
@@ -864,9 +862,9 @@ of creating the assemblies from scratch:</p>
 </g>
 <!-- current_module&#45;&gt;assembly (fast) -->
 <g id="edge5" class="edge">
-<title>current_module&#45;&gt;assembly (fast)</title>
-<path fill="none" stroke="black" d="M563.21,-18.99C580.05,-21.14 598.88,-23.55 616.27,-25.77"/>
-<polygon fill="black" stroke="black" points="615.95,-29.26 626.31,-27.05 616.83,-22.31 615.95,-29.26"/>
+<title>current_module-&gt;assembly (fast)</title>
+<path fill="none" stroke="black" d="M563.21,-18.99C580.05,-21.14 598.88,-23.55 616.27,-25.77"></path>
+<polygon fill="black" stroke="black" points="615.95,-29.26 626.31,-27.05 616.83,-22.31 615.95,-29.26"></polygon>
 </g>
 </g>
 </svg>
@@ -879,11 +877,10 @@ of creating the assemblies from scratch:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="736px" height="97px"
- viewBox="0.00 0.00 735.54 96.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="736px" height="97px" viewBox="0.00 0.00 735.54 96.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 92.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-92.8 731.54,-92.8 731.54,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-92.8 731.54,-92.8 731.54,4 -4,4"></polygon>
 <!-- third_party_libraries -->
 <g id="node1" class="node">
 <title>third_party_libraries</title>
@@ -892,38 +889,38 @@ of creating the assemblies from scratch:</p>
 <!-- upstream_thirdparty_assembly (slow) -->
 <g id="node2" class="node">
 <title>upstream_thirdparty_assembly (slow)</title>
-<polygon fill="none" stroke="black" points="394.9,-88.7 167.13,-88.7 167.13,-64.1 394.9,-64.1 394.9,-88.7"/>
+<polygon fill="none" stroke="black" points="394.9,-88.7 167.13,-88.7 167.13,-64.1 394.9,-64.1 394.9,-88.7"></polygon>
 <text text-anchor="middle" x="281.02" y="-72.2" font-family="Times,serif" font-size="14.00">upstream_thirdparty_assembly (slow)</text>
 </g>
 <!-- third_party_libraries&#45;&gt;upstream_thirdparty_assembly (slow) -->
 <g id="edge1" class="edge">
-<title>third_party_libraries&#45;&gt;upstream_thirdparty_assembly (slow)</title>
-<path fill="none" stroke="black" d="M131.17,-76.4C139.46,-76.4 148.16,-76.4 157,-76.4"/>
-<polygon fill="black" stroke="black" points="157.05,-79.9 167.05,-76.4 157.05,-72.9 157.05,-79.9"/>
+<title>third_party_libraries-&gt;upstream_thirdparty_assembly (slow)</title>
+<path fill="none" stroke="black" d="M131.17,-76.4C139.46,-76.4 148.16,-76.4 157,-76.4"></path>
+<polygon fill="black" stroke="black" points="157.05,-79.9 167.05,-76.4 157.05,-72.9 157.05,-79.9"></polygon>
 </g>
 <!-- upstream_assembly (fast) -->
 <g id="node3" class="node">
 <title>upstream_assembly (fast)</title>
-<polygon fill="none" stroke="red" stroke-width="2" points="590.63,-67.7 430.74,-67.7 430.74,-43.1 590.63,-43.1 590.63,-67.7"/>
+<polygon fill="none" stroke="red" stroke-width="2" points="590.63,-67.7 430.74,-67.7 430.74,-43.1 590.63,-43.1 590.63,-67.7"></polygon>
 <text text-anchor="middle" x="510.68" y="-51.2" font-family="Times,serif" font-size="14.00">upstream_assembly (fast)</text>
 </g>
 <!-- upstream_thirdparty_assembly (slow)&#45;&gt;upstream_assembly (fast) -->
 <g id="edge2" class="edge">
-<title>upstream_thirdparty_assembly (slow)&#45;&gt;upstream_assembly (fast)</title>
-<path fill="none" stroke="black" d="M395.18,-65.96C403.75,-65.17 412.33,-64.38 420.71,-63.61"/>
-<polygon fill="black" stroke="black" points="421.19,-67.08 430.83,-62.67 420.55,-60.11 421.19,-67.08"/>
+<title>upstream_thirdparty_assembly (slow)-&gt;upstream_assembly (fast)</title>
+<path fill="none" stroke="black" d="M395.18,-65.96C403.75,-65.17 412.33,-64.38 420.71,-63.61"></path>
+<polygon fill="black" stroke="black" points="421.19,-67.08 430.83,-62.67 420.55,-60.11 421.19,-67.08"></polygon>
 </g>
 <!-- assembly (fast) -->
 <g id="node5" class="node">
 <title>assembly (fast)</title>
-<polygon fill="none" stroke="red" stroke-width="2" points="727.6,-45.7 626.34,-45.7 626.34,-21.1 727.6,-21.1 727.6,-45.7"/>
+<polygon fill="none" stroke="red" stroke-width="2" points="727.6,-45.7 626.34,-45.7 626.34,-21.1 727.6,-21.1 727.6,-45.7"></polygon>
 <text text-anchor="middle" x="676.97" y="-29.2" font-family="Times,serif" font-size="14.00">assembly (fast)</text>
 </g>
 <!-- upstream_assembly (fast)&#45;&gt;assembly (fast) -->
 <g id="edge4" class="edge">
-<title>upstream_assembly (fast)&#45;&gt;assembly (fast)</title>
-<path fill="none" stroke="red" stroke-width="2" d="M590.46,-44.85C599.12,-43.69 607.84,-42.52 616.22,-41.4"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="616.8,-44.86 626.25,-40.06 615.87,-37.92 616.8,-44.86"/>
+<title>upstream_assembly (fast)-&gt;assembly (fast)</title>
+<path fill="none" stroke="red" stroke-width="2" d="M590.46,-44.85C599.12,-43.69 607.84,-42.52 616.22,-41.4"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="616.8,-44.86 626.25,-40.06 615.87,-37.92 616.8,-44.86"></polygon>
 </g>
 <!-- local_dependencies -->
 <g id="node4" class="node">
@@ -932,9 +929,9 @@ of creating the assemblies from scratch:</p>
 </g>
 <!-- local_dependencies&#45;&gt;upstream_assembly (fast) -->
 <g id="edge3" class="edge">
-<title>local_dependencies&#45;&gt;upstream_assembly (fast)</title>
-<path fill="none" stroke="red" stroke-width="2" d="M343.93,-39.38C367.52,-41.66 394.91,-44.31 420.54,-46.79"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="420.35,-50.28 430.64,-47.76 421.03,-43.32 420.35,-50.28"/>
+<title>local_dependencies-&gt;upstream_assembly (fast)</title>
+<path fill="none" stroke="red" stroke-width="2" d="M343.93,-39.38C367.52,-41.66 394.91,-44.31 420.54,-46.79"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="420.35,-50.28 430.64,-47.76 421.03,-43.32 420.35,-50.28"></polygon>
 </g>
 <!-- current_module -->
 <g id="node6" class="node">
@@ -943,9 +940,9 @@ of creating the assemblies from scratch:</p>
 </g>
 <!-- current_module&#45;&gt;assembly (fast) -->
 <g id="edge5" class="edge">
-<title>current_module&#45;&gt;assembly (fast)</title>
-<path fill="none" stroke="black" d="M563.21,-18.99C580.05,-21.14 598.88,-23.55 616.27,-25.77"/>
-<polygon fill="black" stroke="black" points="615.95,-29.26 626.31,-27.05 616.83,-22.31 615.95,-29.26"/>
+<title>current_module-&gt;assembly (fast)</title>
+<path fill="none" stroke="black" d="M563.21,-18.99C580.05,-21.14 598.88,-23.55 616.27,-25.77"></path>
+<polygon fill="black" stroke="black" points="615.95,-29.26 626.31,-27.05 616.83,-22.31 615.95,-29.26"></polygon>
 </g>
 </g>
 </svg>
@@ -958,11 +955,10 @@ of creating the assemblies from scratch:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="736px" height="97px"
- viewBox="0.00 0.00 735.54 96.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="736px" height="97px" viewBox="0.00 0.00 735.54 96.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 92.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-92.8 731.54,-92.8 731.54,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-92.8 731.54,-92.8 731.54,4 -4,4"></polygon>
 <!-- third_party_libraries -->
 <g id="node1" class="node">
 <title>third_party_libraries</title>
@@ -971,38 +967,38 @@ of creating the assemblies from scratch:</p>
 <!-- upstream_thirdparty_assembly (slow) -->
 <g id="node2" class="node">
 <title>upstream_thirdparty_assembly (slow)</title>
-<polygon fill="none" stroke="black" points="394.9,-88.7 167.13,-88.7 167.13,-64.1 394.9,-64.1 394.9,-88.7"/>
+<polygon fill="none" stroke="black" points="394.9,-88.7 167.13,-88.7 167.13,-64.1 394.9,-64.1 394.9,-88.7"></polygon>
 <text text-anchor="middle" x="281.02" y="-72.2" font-family="Times,serif" font-size="14.00">upstream_thirdparty_assembly (slow)</text>
 </g>
 <!-- third_party_libraries&#45;&gt;upstream_thirdparty_assembly (slow) -->
 <g id="edge1" class="edge">
-<title>third_party_libraries&#45;&gt;upstream_thirdparty_assembly (slow)</title>
-<path fill="none" stroke="black" d="M131.17,-76.4C139.46,-76.4 148.16,-76.4 157,-76.4"/>
-<polygon fill="black" stroke="black" points="157.05,-79.9 167.05,-76.4 157.05,-72.9 157.05,-79.9"/>
+<title>third_party_libraries-&gt;upstream_thirdparty_assembly (slow)</title>
+<path fill="none" stroke="black" d="M131.17,-76.4C139.46,-76.4 148.16,-76.4 157,-76.4"></path>
+<polygon fill="black" stroke="black" points="157.05,-79.9 167.05,-76.4 157.05,-72.9 157.05,-79.9"></polygon>
 </g>
 <!-- upstream_assembly (fast) -->
 <g id="node3" class="node">
 <title>upstream_assembly (fast)</title>
-<polygon fill="none" stroke="black" points="590.63,-67.7 430.74,-67.7 430.74,-43.1 590.63,-43.1 590.63,-67.7"/>
+<polygon fill="none" stroke="black" points="590.63,-67.7 430.74,-67.7 430.74,-43.1 590.63,-43.1 590.63,-67.7"></polygon>
 <text text-anchor="middle" x="510.68" y="-51.2" font-family="Times,serif" font-size="14.00">upstream_assembly (fast)</text>
 </g>
 <!-- upstream_thirdparty_assembly (slow)&#45;&gt;upstream_assembly (fast) -->
 <g id="edge2" class="edge">
-<title>upstream_thirdparty_assembly (slow)&#45;&gt;upstream_assembly (fast)</title>
-<path fill="none" stroke="black" d="M395.18,-65.96C403.75,-65.17 412.33,-64.38 420.71,-63.61"/>
-<polygon fill="black" stroke="black" points="421.19,-67.08 430.83,-62.67 420.55,-60.11 421.19,-67.08"/>
+<title>upstream_thirdparty_assembly (slow)-&gt;upstream_assembly (fast)</title>
+<path fill="none" stroke="black" d="M395.18,-65.96C403.75,-65.17 412.33,-64.38 420.71,-63.61"></path>
+<polygon fill="black" stroke="black" points="421.19,-67.08 430.83,-62.67 420.55,-60.11 421.19,-67.08"></polygon>
 </g>
 <!-- assembly (fast) -->
 <g id="node5" class="node">
 <title>assembly (fast)</title>
-<polygon fill="none" stroke="red" stroke-width="2" points="727.6,-45.7 626.34,-45.7 626.34,-21.1 727.6,-21.1 727.6,-45.7"/>
+<polygon fill="none" stroke="red" stroke-width="2" points="727.6,-45.7 626.34,-45.7 626.34,-21.1 727.6,-21.1 727.6,-45.7"></polygon>
 <text text-anchor="middle" x="676.97" y="-29.2" font-family="Times,serif" font-size="14.00">assembly (fast)</text>
 </g>
 <!-- upstream_assembly (fast)&#45;&gt;assembly (fast) -->
 <g id="edge4" class="edge">
-<title>upstream_assembly (fast)&#45;&gt;assembly (fast)</title>
-<path fill="none" stroke="black" d="M590.46,-44.85C599.12,-43.69 607.84,-42.52 616.22,-41.4"/>
-<polygon fill="black" stroke="black" points="616.8,-44.86 626.25,-40.06 615.87,-37.92 616.8,-44.86"/>
+<title>upstream_assembly (fast)-&gt;assembly (fast)</title>
+<path fill="none" stroke="black" d="M590.46,-44.85C599.12,-43.69 607.84,-42.52 616.22,-41.4"></path>
+<polygon fill="black" stroke="black" points="616.8,-44.86 626.25,-40.06 615.87,-37.92 616.8,-44.86"></polygon>
 </g>
 <!-- local_dependencies -->
 <g id="node4" class="node">
@@ -1011,9 +1007,9 @@ of creating the assemblies from scratch:</p>
 </g>
 <!-- local_dependencies&#45;&gt;upstream_assembly (fast) -->
 <g id="edge3" class="edge">
-<title>local_dependencies&#45;&gt;upstream_assembly (fast)</title>
-<path fill="none" stroke="black" d="M343.93,-39.38C367.52,-41.66 394.91,-44.31 420.54,-46.79"/>
-<polygon fill="black" stroke="black" points="420.35,-50.28 430.64,-47.76 421.03,-43.32 420.35,-50.28"/>
+<title>local_dependencies-&gt;upstream_assembly (fast)</title>
+<path fill="none" stroke="black" d="M343.93,-39.38C367.52,-41.66 394.91,-44.31 420.54,-46.79"></path>
+<polygon fill="black" stroke="black" points="420.35,-50.28 430.64,-47.76 421.03,-43.32 420.35,-50.28"></polygon>
 </g>
 <!-- current_module -->
 <g id="node6" class="node">
@@ -1022,9 +1018,9 @@ of creating the assemblies from scratch:</p>
 </g>
 <!-- current_module&#45;&gt;assembly (fast) -->
 <g id="edge5" class="edge">
-<title>current_module&#45;&gt;assembly (fast)</title>
-<path fill="none" stroke="red" stroke-width="2" d="M563.21,-18.99C580.05,-21.14 598.88,-23.55 616.27,-25.77"/>
-<polygon fill="red" stroke="red" stroke-width="2" points="615.95,-29.26 626.31,-27.05 616.83,-22.31 615.95,-29.26"/>
+<title>current_module-&gt;assembly (fast)</title>
+<path fill="none" stroke="red" stroke-width="2" d="M563.21,-18.99C580.05,-21.14 598.88,-23.55 616.27,-25.77"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="615.95,-29.26 626.31,-27.05 616.83,-22.31 615.95,-29.26"></polygon>
 </g>
 </g>
 </svg>
@@ -1032,7 +1028,7 @@ of creating the assemblies from scratch:</p>
 </center>
 </div>
 <div class="paragraph">
-<p>Building an assembly "clean" requires running all three steps and is just
+<p>Building an assembly &quot;clean&quot; requires running all three steps and is just
 as slow as the naive one-step assembly creation, as is the case where you change third
 party dependencies. But in practice these scenarios tend to happen relatively infrequently:
 perhaps once a day, or even less. In contrast, the scenarios where you are changing
@@ -1075,34 +1071,33 @@ file e.g. <code>Foo.class</code> or <code>MANIFEST.MF</code> compressed separate
 </div>
 <div class="paragraph">
 <center>
-<svg width="397px" height="87px"
- viewBox="0.00 0.00 396.95 87.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="397px" height="87px" viewBox="0.00 0.00 396.95 87.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 83.4)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-83.4 392.95,-83.4 392.95,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-83.4 392.95,-83.4 392.95,4 -4,4"></polygon>
 <text text-anchor="middle" x="194.47" y="-8.2" font-family="Times,serif" font-size="14.00">archive.zip</text>
 <!-- zip -->
 <g id="node1" class="node">
 <title>zip</title>
-<polygon fill="white" stroke="black" points="0,-25.3 0,-50.1 388.95,-50.1 388.95,-25.3 0,-25.3"/>
+<polygon fill="white" stroke="black" points="0,-25.3 0,-50.1 388.95,-50.1 388.95,-25.3 0,-25.3"></polygon>
 <text text-anchor="middle" x="85.56" y="-33.5" font-family="Times,serif" font-size="14.00">...thirdparty dependencies...</text>
-<polyline fill="none" stroke="black" points="171.12,-25.3 171.12,-50.1 "/>
+<polyline fill="none" stroke="black" points="171.12,-25.3 171.12,-50.1"></polyline>
 <text text-anchor="middle" x="225.97" y="-33.5" font-family="Times,serif" font-size="14.00">MANIFEST.MF</text>
-<polyline fill="none" stroke="black" points="280.83,-25.3 280.83,-50.1 "/>
+<polyline fill="none" stroke="black" points="280.83,-25.3 280.83,-50.1"></polyline>
 <text text-anchor="middle" x="334.89" y="-33.5" font-family="Times,serif" font-size="14.00">central directory</text>
 </g>
 <!-- zip&#45;&gt;zip -->
 <g id="edge1" class="edge">
-<title>zip:n&#45;&gt;zip:n</title>
-<path fill="none" stroke="black" d="M334.47,-49.7C343.47,-54.6 343.47,-62.6 279.97,-62.6 253.19,-62.6 237.7,-61.18 229.42,-59.16"/>
-<polygon fill="black" stroke="black" points="232.55,-57.58 225.47,-49.7 226.09,-60.28 232.55,-57.58"/>
+<title>zip:n-&gt;zip:n</title>
+<path fill="none" stroke="black" d="M334.47,-49.7C343.47,-54.6 343.47,-62.6 279.97,-62.6 253.19,-62.6 237.7,-61.18 229.42,-59.16"></path>
+<polygon fill="black" stroke="black" points="232.55,-57.58 225.47,-49.7 226.09,-60.28 232.55,-57.58"></polygon>
 <text text-anchor="middle" x="194.47" y="-66.8" font-family="Times,serif" font-size="14.00">reverse offsets</text>
 </g>
 <!-- zip&#45;&gt;zip -->
 <g id="edge2" class="edge">
-<title>zip:n&#45;&gt;zip:n</title>
-<path fill="none" stroke="black" d="M334.47,-49.7C343.47,-54.6 343.47,-62.6 209.97,-62.6 139.57,-62.6 106.3,-60.38 91.89,-57.55"/>
-<polygon fill="black" stroke="black" points="94.51,-55.23 85.47,-49.7 89.09,-59.66 94.51,-55.23"/>
+<title>zip:n-&gt;zip:n</title>
+<path fill="none" stroke="black" d="M334.47,-49.7C343.47,-54.6 343.47,-62.6 209.97,-62.6 139.57,-62.6 106.3,-60.38 91.89,-57.55"></path>
+<polygon fill="black" stroke="black" points="94.51,-55.23 85.47,-49.7 89.09,-59.66 94.51,-55.23"></polygon>
 </g>
 </g>
 </svg>
@@ -1118,42 +1113,41 @@ files left untouched and in place.</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="465px" height="87px"
- viewBox="0.00 0.00 465.44 87.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="465px" height="87px" viewBox="0.00 0.00 465.44 87.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 83.4)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-83.4 461.44,-83.4 461.44,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-83.4 461.44,-83.4 461.44,4 -4,4"></polygon>
 <text text-anchor="middle" x="228.72" y="-8.2" font-family="Times,serif" font-size="14.00">archive.zip</text>
 <!-- zip -->
 <g id="node1" class="node">
 <title>zip</title>
-<polygon fill="white" stroke="black" points="0,-25.3 0,-50.1 457.44,-50.1 457.44,-25.3 0,-25.3"/>
+<polygon fill="white" stroke="black" points="0,-25.3 0,-50.1 457.44,-50.1 457.44,-25.3 0,-25.3"></polygon>
 <text text-anchor="middle" x="85.56" y="-33.5" font-family="Times,serif" font-size="14.00">...thirdparty dependencies...</text>
-<polyline fill="none" stroke="black" points="171.12,-25.3 171.12,-50.1 "/>
+<polyline fill="none" stroke="black" points="171.12,-25.3 171.12,-50.1"></polyline>
 <text text-anchor="middle" x="225.97" y="-33.5" font-family="Times,serif" font-size="14.00">MANIFEST.MF</text>
-<polyline fill="none" stroke="black" points="280.83,-25.3 280.83,-50.1 "/>
+<polyline fill="none" stroke="black" points="280.83,-25.3 280.83,-50.1"></polyline>
 <text text-anchor="middle" x="315.08" y="-33.5" font-family="Times,serif" font-size="14.00">Foo.class</text>
-<polyline fill="none" stroke="black" points="349.32,-25.3 349.32,-50.1 "/>
+<polyline fill="none" stroke="black" points="349.32,-25.3 349.32,-50.1"></polyline>
 <text text-anchor="middle" x="403.38" y="-33.5" font-family="Times,serif" font-size="14.00">central directory</text>
 </g>
 <!-- zip&#45;&gt;zip -->
 <g id="edge1" class="edge">
-<title>zip:n&#45;&gt;zip:n</title>
-<path fill="none" stroke="black" d="M403.72,-49.7C412.72,-54.6 412.72,-62.6 314.72,-62.6 267.25,-62.6 242.78,-60.72 231.18,-58.23"/>
-<polygon fill="black" stroke="black" points="234.06,-56.24 225.72,-49.7 228.16,-60.01 234.06,-56.24"/>
+<title>zip:n-&gt;zip:n</title>
+<path fill="none" stroke="black" d="M403.72,-49.7C412.72,-54.6 412.72,-62.6 314.72,-62.6 267.25,-62.6 242.78,-60.72 231.18,-58.23"></path>
+<polygon fill="black" stroke="black" points="234.06,-56.24 225.72,-49.7 228.16,-60.01 234.06,-56.24"></polygon>
 <text text-anchor="middle" x="228.72" y="-66.8" font-family="Times,serif" font-size="14.00">reverse offsets</text>
 </g>
 <!-- zip&#45;&gt;zip -->
 <g id="edge2" class="edge">
-<title>zip:n&#45;&gt;zip:n</title>
-<path fill="none" stroke="black" d="M403.72,-49.7C412.72,-54.6 412.72,-62.6 244.72,-62.6 150.88,-62.6 109.45,-60.1 92.74,-57.05"/>
-<polygon fill="black" stroke="black" points="95.16,-54.51 85.72,-49.7 90.1,-59.35 95.16,-54.51"/>
+<title>zip:n-&gt;zip:n</title>
+<path fill="none" stroke="black" d="M403.72,-49.7C412.72,-54.6 412.72,-62.6 244.72,-62.6 150.88,-62.6 109.45,-60.1 92.74,-57.05"></path>
+<polygon fill="black" stroke="black" points="95.16,-54.51 85.72,-49.7 90.1,-59.35 95.16,-54.51"></polygon>
 </g>
 <!-- zip&#45;&gt;zip -->
 <g id="edge3" class="edge">
-<title>zip:n&#45;&gt;zip:n</title>
-<path fill="none" stroke="black" d="M403.72,-49.7C412.72,-54.6 412.72,-62.6 359.22,-62.6 337.49,-62.6 324.58,-61.28 317.52,-59.38"/>
-<polygon fill="black" stroke="black" points="320.86,-58.33 314.72,-49.7 314.14,-60.28 320.86,-58.33"/>
+<title>zip:n-&gt;zip:n</title>
+<path fill="none" stroke="black" d="M403.72,-49.7C412.72,-54.6 412.72,-62.6 359.22,-62.6 337.49,-62.6 324.58,-61.28 317.52,-59.38"></path>
+<polygon fill="black" stroke="black" points="320.86,-58.33 314.72,-49.7 314.14,-60.28 320.86,-58.33"></polygon>
 </g>
 </g>
 </svg>
@@ -1165,11 +1159,11 @@ files left untouched and in place.</p>
 making such an operation <em>O(added-files)</em> rather than <em>O(total-number-of-files)</em>. You only
 need to compress the additional files. You also need to update/rewrite the central directory
 after the last added file with updated pointer offsets, but the central directory is
-typically small so such an update/rewrite doesn&#8217;t materially slow things down.</p>
+typically small so such an update/rewrite doesn’t materially slow things down.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -1181,7 +1175,7 @@ moves to the three-stage assembly described here for better performance when ite
 and generating assemblies from multi-module projects.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 <div class="sect2">
@@ -1198,7 +1192,7 @@ when the file is large, and allows the upstream assembly to be re-used later.</p
 </li>
 <li>
 <p>Opens that copy using <code>java.nio.file.FileSystems.newFileSystem</code>, which allows you
-to open an existing jar file by passing in <code>new URI("jar", path, null)</code></p>
+to open an existing jar file by passing in <code>new URI(&quot;jar&quot;, path, null)</code></p>
 </li>
 <li>
 <p>Modifies the returned <code>java.nio.file.FileSystem</code> using normal <code>java.nio.file.File</code>
@@ -1207,7 +1201,7 @@ operations</p>
 </ol>
 </div>
 <div class="paragraph">
-<p>Calling <code>FileSystems.newFileSystem</code> with a <code>"jar"</code> URL returns a
+<p>Calling <code>FileSystems.newFileSystem</code> with a <code>&quot;jar&quot;</code> URL returns a
 <a href="https://github.com/openjdk/jdk/blob/master/src/jdk.zipfs/share/classes/jdk/nio/zipfs/ZipFileSystem.java">ZipFileSystem</a>.
 <code>ZipFileSystem</code> basically implements all the normal <code>java.nio.file.File.*</code> operations that
 normally modifies files on disk, and replaces them with versions to instead modify
@@ -1219,7 +1213,7 @@ to un-pack and re-pack the entire archive.</p>
 <div class="paragraph">
 <p>While we discussed how adding files
 to a jar can be done efficiently, there is also subtlety around other operations such
-as modifying files, removing files, etc. which are less trivial. But the JDK&#8217;s built in
+as modifying files, removing files, etc. which are less trivial. But the JDK’s built in
 <code>ZipFileSystem</code> implements all these in a reasonable manner, and what is important is that
 it allows Mill to incrementally update its assembly jars in (more or less)
 <em>O(size-of-local-code)</em>, which is typically much smaller than the
@@ -1237,20 +1231,20 @@ generated assembly jars, in the example shown above it sped up Spark assembly ja
 from ~20s to ~1s v.s. the equivalent workflow in other build tools like Maven or <code>sbt</code>.
 This speedup can apply to any JVM codebase, although the benefit would depend on the
 size of your local application code and its transitive dependencies. There is some overhead
-to "clean build" assembly jars from scratch, but such scenarios typically happen much
-less frequently than the "incremental update" scenario, and so the tradeoff can be worth it.</p>
+to &quot;clean build&quot; assembly jars from scratch, but such scenarios typically happen much
+less frequently than the &quot;incremental update&quot; scenario, and so the tradeoff can be worth it.</p>
 </div>
 <div class="paragraph">
-<p>Mill splits its assembly jars into three hardcoded "layers", but more sophisticated
+<p>Mill splits its assembly jars into three hardcoded &quot;layers&quot;, but more sophisticated
 update schemes are also possible. One could imagine a build tool that keeps track of
 what files were put into the assembly jar previously, diff-ed that against the current
 set of files, and did the copy-and-update only updating the files within the jar that
 have changed outside of it. That would allow much more fine-grained incremental
 updates to be done to the assembly jar, which may matter in large codebases where
-Mill&#8217;s hardcoded three-layer split aren&#8217;t sufficient to keep things fast.</p>
+Mill’s hardcoded three-layer split aren’t sufficient to keep things fast.</p>
 </div>
 <div class="paragraph">
-<p>It turns out there&#8217;s no magic in Mill&#8217;s fast assembly generation: just careful use of
+<p>It turns out there’s no magic in Mill’s fast assembly generation: just careful use of
 the available APIs provided by the underlying JVM platform. Hopefully this approach
 can eventually make its way to other build tools like Maven or <code>sbt</code>, so everyone can
 benefit from the fast assembly jar creation that Mill provides today.</p>
@@ -1266,9 +1260,9 @@ benefit from the fast assembly jar creation that Mill provides today.</p>
 </main>
 </div>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
-<script async src="../_/js/vendor/highlight.js"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>
 <script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
-<script async src="../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>

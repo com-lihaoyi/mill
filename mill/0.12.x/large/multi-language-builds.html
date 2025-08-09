@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Multi-Language Builds :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/large/multi-language-builds.html">
-    <link rel="prev" href="multi-file-builds.html">
-    <link rel="next" href="../depth/execution-model.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/large/multi-language-builds.html" />
+    <link rel="prev" href="multi-file-builds.html" />
+    <link rel="next" href="../depth/execution-model.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -648,7 +649,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -665,30 +666,30 @@ import mill._, javascriptlib._, pythonlib._, javalib._
 object client extends ReactScriptsModule
 
 object `sentiment-analysis` extends PythonModule {
-  def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
+  def mainScript = Task.Source { millSourcePath / &quot;src&quot; / &quot;foo.py&quot; }
 
-  def pythonDeps = Seq("textblob==0.19.0")
+  def pythonDeps = Seq(&quot;textblob==0.19.0&quot;)
 
   object test extends PythonTests with pythonlib.TestModule.Unittest
 }
 
 object server extends JavaModule {
   def ivyDeps = Agg(
-    ivy"org.springframework.boot:spring-boot-starter-web:2.5.6",
-    ivy"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
+    ivy&quot;org.springframework.boot:spring-boot-starter-web:2.5.6&quot;,
+    ivy&quot;org.springframework.boot:spring-boot-starter-actuator:2.5.6&quot;
   )
 
   /** Bundle client &amp; sentiment-analysis as resource */
   def resources = Task.Sources {
-    os.copy(client.bundle().path, Task.dest / "static")
-    os.makeDir.all(Task.dest / "analysis")
-    os.copy(`sentiment-analysis`.bundle().path, Task.dest / "analysis" / "analysis.pex")
+    os.copy(client.bundle().path, Task.dest / &quot;static&quot;)
+    os.makeDir.all(Task.dest / &quot;analysis&quot;)
+    os.copy(`sentiment-analysis`.bundle().path, Task.dest / &quot;analysis&quot; / &quot;analysis.pex&quot;)
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
   object test extends JavaTests with javalib.TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
+      ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
     )
   }
 }</code></pre>
@@ -732,7 +733,7 @@ OK
 &gt; curl http://localhost:8086
 ...&lt;title&gt;Sentiment Analysis Tool&lt;/title&gt;...
 
-&gt; curl -X POST http://localhost:8086/api/analysis -H "Content-Type: text/plain" --data "This is awesome!" # Make request to the analysis api
+&gt; curl -X POST http://localhost:8086/api/analysis -H &quot;Content-Type: text/plain&quot; --data &quot;This is awesome!&quot; # Make request to the analysis api
 Positive sentiment (polarity: 1.0)
 
 &gt; mill clean server.runBackground</code></pre>
@@ -747,9 +748,9 @@ Positive sentiment (polarity: 1.0)
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Mill as a Direct Style Build Tool :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/blog/12-direct-style-build-tool.html">
-    <link rel="prev" href="13-mill-build-tool-v1-0-0.html">
-    <link rel="next" href="11-jvm-test-parallelism.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/blog/12-direct-style-build-tool.html" />
+    <link rel="prev" href="13-mill-build-tool-v1-0-0.html" />
+    <link rel="next" href="11-jvm-test-parallelism.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -232,7 +233,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/12-direct-style-build-tool.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -250,7 +251,7 @@
 <p><a href="https://mill-build.org">Mill</a> is a JVM build tool that targets Java/Scala/Kotlin and has
 potential to serve the large-monorepo codebases that Bazel currently serves. Mill has good
 traction among its users, benchmarks that demonstrate 3-6x faster builds than its competitors,
-and a unique "direct-style" design that make it easy to use and extend. This page discusses
+and a unique &quot;direct-style&quot; design that make it easy to use and extend. This page discusses
 one of the most interesting design decisions in Mill, and how it sets Mill apart from
 other build tools on the market.</p>
 </div>
@@ -284,7 +285,7 @@ we will mostly discuss Mill.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The Mill build tool was started in 2017, an exploration of the ideas I
-found when learning to use Google&#8217;s <a href="https://bazel.build/">Bazel</a> build tool.
+found when learning to use Google’s <a href="https://bazel.build/">Bazel</a> build tool.
 At a glance, Mill looks similar to other build tools you may be familiar with, with a
 <code>build.mill</code> file in the root of a project defining the dependencies and testing
 setup for a module:</p>
@@ -296,8 +297,8 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   def mvnDeps = Seq(
-    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+    mvn&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    mvn&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
   )
 
   object test extends JavaTests with TestModule.Junit4
@@ -324,7 +325,7 @@ Test foo.FooTest.testSimple finished, ...
 0 failed, 0 ignored, 2 total, ...
 
 &gt; ./mill show foo.assembly
-".../out/foo/assembly.dest/out.jar"
+&quot;.../out/foo/assembly.dest/out.jar&quot;
 
 &gt; ./out/foo/assembly.dest/out.jar --text hello
 &lt;h1&gt;hello&lt;/h1&gt;</code></pre>
@@ -347,7 +348,7 @@ and <a href="../mill/extending/example-python-support.html" class="xref page">Py
 <p>Mill also works well with <a href="../mill/large/large.html" class="xref page">large builds</a>: its build logic can be
 <a href="../mill/large/multi-file-builds.html" class="xref page">split into multiple folders</a>, is incrementally compiled,
 lazily initialized, and automatically cached and parallelized. That means that even large
-codebases can remain fast and responsive: Mill&#8217;s own build easily manages over 400 modules,
+codebases can remain fast and responsive: Mill’s own build easily manages over 400 modules,
 and the tool can likely handle thousands of modules without issue.</p>
 </div>
 </div>
@@ -356,7 +357,7 @@ and the tool can likely handle thousands of modules without issue.</p>
 <h2 id="_the_react_js_of_build_tools"><a class="anchor" href="#_the_react_js_of_build_tools"></a>The React.js of Build Tools</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>We&#8217;ve briefly covered what Mill is above, but one question remains: why Mill?
+<p>We’ve briefly covered what Mill is above, but one question remains: why Mill?
 Why not one of the other 100 build tools out there?</p>
 </div>
 <div class="paragraph">
@@ -368,17 +369,17 @@ weeks suddenly took days, requiring a fraction of the code and complexity that t
 previously took to implement</p>
 </div>
 <div class="paragraph">
-<p>React&#8217;s two most important innovations are:</p>
+<p>React’s two most important innovations are:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Letting users write "direct style" code to define their UI - Javascript functions that
-directly returned the HTML structure you wanted - rather than a "code behind"
+<p>Letting users write &quot;direct style&quot; code to define their UI - Javascript functions that
+directly returned the HTML structure you wanted - rather than a &quot;code behind&quot;
 approach of registering callbacks to mutate the UI in response to events</p>
 </li>
 <li>
-<p>Using a single "general purpose" programming language for your UI, rather than splitting
+<p>Using a single &quot;general purpose&quot; programming language for your UI, rather than splitting
 your logic into multiple special-purpose domain-specific languages</p>
 </li>
 </ol>
@@ -391,7 +392,7 @@ your logic into multiple special-purpose domain-specific languages</p>
 etc. - all of those are only in service of the two fundamental ideas. e.g. At Dropbox we
 used React for years without JSX, and many of the later frameworks inspired by React
 provide a similar experience but use other techniques to replace virtual dom diffing.
-Furthermore, React isn&#8217;t limited to the HTML UIs, with the same techniques being
+Furthermore, React isn’t limited to the HTML UIs, with the same techniques being
 used to manage <a href="https://reactnative.dev/">mobile app UIs</a>,
 <a href="https://github.com/vadimdemedes/ink">terminal UIs</a>, and many other scenarios</p>
 </div>
@@ -406,7 +407,7 @@ and these ideas give Mill some unique properties as a build tool.</p>
 <div class="sect2">
 <h3 id="_direct_style_builds"><a class="anchor" href="#_direct_style_builds"></a>Direct-Style Builds</h3>
 <div class="paragraph">
-<p>One key aspect of React.js is that you wrote your code to generate your web UI "directly":</p>
+<p>One key aspect of React.js is that you wrote your code to generate your web UI &quot;directly&quot;:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -431,23 +432,23 @@ their React code and React.js does all the rest</p>
 <p>Before React you always had a tradeoff: do you re-render the whole UI every update (which
 is easy to implement naively, but wasteful and disruptive to users) or do you do fine-grained UI
 updates (which was difficult to implement, but efficient and user-friendly). React eliminated that
-tradeoff, letting the developer write "naive" code as if they were re-rendering the entire
+tradeoff, letting the developer write &quot;naive&quot; code as if they were re-rendering the entire
 UI, while automatically optimizing it to be performant and provide a first-class user experience.</p>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s approach as a build tool is similar:</p>
+<p>Mill’s approach as a build tool is similar:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Most existing build tools involve registering "task" callbacks to tell the build tool what
+<p>Most existing build tools involve registering &quot;task&quot; callbacks to tell the build tool what
 to do when certain actions happen or certain files change. These callbacks mutate the filesystem
 in an ad-hoc manner, often recursively triggering further callbacks. It is up to the developer
 to make sure that these callbacks and filesystem updates end up converging such that
 your build outputs ends up containing the files you want.</p>
 </li>
 <li>
-<p>With Mill, you instead write "direct-style" code: normal functions that call other
+<p>With Mill, you instead write &quot;direct-style&quot; code: normal functions that call other
 functions and end up returning the final metadata or files that were generated.
 Mill handles the work of computing these functions efficiently: automatically caching,
 parallelizing, and optimizing your build. The developer writes naive code computing and
@@ -463,25 +464,25 @@ them into classfiles, and then the <code>jar</code> executable to package them t
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mainClass: T[Option[String]] = Some("foo.Foo")
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mainClass: T[Option[String]] = Some(&quot;foo.Foo&quot;)
 
-def sources = Task.Source("src")
-def resources = Task.Source("resources")
+def sources = Task.Source(&quot;src&quot;)
+def resources = Task.Source(&quot;resources&quot;)
 
 def compile = Task {
   val allSources = os.walk(sources().path)
-  os.proc("javac", allSources, "-d", Task.dest).call()
+  os.proc(&quot;javac&quot;, allSources, &quot;-d&quot;, Task.dest).call()
   PathRef(Task.dest)
 }
 
 def assembly = Task {
   for(p &lt;- Seq(compile(), resources())) os.copy(p.path, Task.dest, mergeFolders = true)
 
-  val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
-  os.proc("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", ".")
+  val mainFlags = mainClass().toSeq.flatMap(Seq(&quot;-e&quot;, _))
+  os.proc(&quot;jar&quot;, &quot;-c&quot;, mainFlags, &quot;-f&quot;, Task.dest / &quot;assembly.jar&quot;, &quot;.&quot;)
     .call(cwd = Task.dest)
 
-  PathRef(Task.dest / "assembly.jar")
+  PathRef(Task.dest / &quot;assembly.jar&quot;)
 }</code></pre>
 </div>
 </div>
@@ -491,64 +492,63 @@ and the arrows representing the <em>data-flow</em> between them:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="280px" height="119px"
- viewBox="0.00 0.00 280.41 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 276.41,-114.8 276.41,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 276.41,-114.8 276.41,4 -4,4"></polygon>
 <!-- sources -->
 <g id="node1" class="node">
 <title>sources</title>
-<polygon fill="white" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"/>
+<polygon fill="white" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"></polygon>
 <text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
 </g>
 <!-- compile -->
 <g id="node2" class="node">
 <title>compile</title>
-<polygon fill="white" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"/>
+<polygon fill="white" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
 <!-- sources&#45;&gt;compile -->
 <g id="edge1" class="edge">
-<title>sources&#45;&gt;compile</title>
-<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"/>
-<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"/>
+<title>sources-&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"></path>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"></polygon>
 </g>
 <!-- assembly -->
 <g id="node3" class="node">
 <title>assembly</title>
-<polygon fill="white" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"/>
+<polygon fill="white" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"></polygon>
 <text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
 </g>
 <!-- compile&#45;&gt;assembly -->
 <g id="edge2" class="edge">
-<title>compile&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"/>
-<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"/>
+<title>compile-&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"></path>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"></polygon>
 </g>
 <!-- resources -->
 <g id="node4" class="node">
 <title>resources</title>
-<polygon fill="white" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"/>
+<polygon fill="white" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- resources&#45;&gt;assembly -->
 <g id="edge3" class="edge">
-<title>resources&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"/>
-<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"/>
+<title>resources-&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"></path>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"></polygon>
 </g>
 <!-- mainClass -->
 <g id="node5" class="node">
 <title>mainClass</title>
-<polygon fill="white" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"/>
+<polygon fill="white" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
 </g>
 <!-- mainClass&#45;&gt;assembly -->
 <g id="edge4" class="edge">
-<title>mainClass&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"/>
-<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"/>
+<title>mainClass-&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"></path>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"></polygon>
 </g>
 </g>
 </svg>
@@ -556,8 +556,8 @@ and the arrows representing the <em>data-flow</em> between them:</p>
 </center>
 </div>
 <div class="paragraph">
-<p>This example does not use any of Mill&#8217;s builtin support for building Java or
-Scala projects, and instead builds a pipeline "from scratch" using Mill
+<p>This example does not use any of Mill’s builtin support for building Java or
+Scala projects, and instead builds a pipeline &quot;from scratch&quot; using Mill
 tasks and <code>javac</code>/<code>jar</code> subprocesses. We define <code>Task.Source</code> folders and
 plain <code>Task</code>s that depend on them, implementing entirely in our own code.</p>
 </div>
@@ -567,8 +567,8 @@ plain <code>Task</code>s that depend on them, implementing entirely in our own c
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>It looks almost identical to the equivalent "naive" code you would write without using
-a build tool! If you remove the <code>Task{&#8230;&#8203;}</code> wrappers, you could run the code and it would
+<p>It looks almost identical to the equivalent &quot;naive&quot; code you would write without using
+a build tool! If you remove the <code>Task{...​}</code> wrappers, you could run the code and it would
 behave as a naive script running top-to-bottom every time and generating your
 <code>assembly.jar</code> from scratch. But Mill allows you to take such naive code and turn it
 into a build pipeline with parallelism, caching, invalidation, and so on.</p>
@@ -577,7 +577,7 @@ into a build pipeline with parallelism, caching, invalidation, and so on.</p>
 <p>You do not see any logic at all related to parallelism, caching, invalidation in the code
 at all! No <code>mtime</code> checks, no computing cache keys, no locks, no serializing and
 de-serializing of data on disk. Mill handles all this for you automatically, so you just
-need to write your "naive" code and Mill will provide all the "build tool stuff" for free.</p>
+need to write your &quot;naive&quot; code and Mill will provide all the &quot;build tool stuff&quot; for free.</p>
 </li>
 </ol>
 </div>
@@ -589,21 +589,21 @@ those functions. Below, we can see IntelliJ resolve <code>compile</code> to the 
 definition in <code>build.foo</code>, allowing us to jump to it if we want to see what it does:</p>
 </div>
 <div class="paragraph">
-<p><span class="image"><img src="../mill/_images/unique/IntellijDefinition.png" alt="IntellijDefinition"></span></p>
+<p><span class="image"><img src="../mill/_images/unique/IntellijDefinition.png" alt="IntellijDefinition" /></span></p>
 </div>
 <div class="paragraph">
 <p>In the <code>JavaModule</code> example earlier, IntelliJ is able to see the <code>def mvnDeps</code> configuration
 override, and find the exact override definitions in the parent class hierarchy:</p>
 </div>
 <div class="paragraph">
-<p><span class="image"><img src="../mill/_images/unique/IntellijOverride.png" alt="IntellijOverride"></span></p>
+<p><span class="image"><img src="../mill/_images/unique/IntellijOverride.png" alt="IntellijOverride" /></span></p>
 </div>
 <div class="paragraph">
-<p>This "direct style" doesn&#8217;t just make navigating your build easy for IDEs: human programmers
+<p>This &quot;direct style&quot; doesn’t just make navigating your build easy for IDEs: human programmers
 are <em>also</em> used to navigating in and out of function calls, up and down class hierarchies,
-and so on. Thus for a developer configuring or maintaining their build system, Mill&#8217;s direct
+and so on. Thus for a developer configuring or maintaining their build system, Mill’s direct
 style means they easier time understanding what is going on, especially compared to the
-classic "callbacks forests" you may have come to expect from build tools. However,
+classic &quot;callbacks forests&quot; you may have come to expect from build tools. However,
 both of these benefits require that the IDE and the human understands the code in the
 first place, which leads to the second major design decision:</p>
 </div>
@@ -617,7 +617,7 @@ was at the time.</p>
 </div>
 <div class="paragraph">
 <p>In 2014, web UIs were implemented in some HTML <em>templating language</em> with separate CSS
-source files, and "code behind" Javascript logic hooked in. This allowed separation of
+source files, and &quot;code behind&quot; Javascript logic hooked in. This allowed separation of
 concerns: a graphic designer could edit the HTML and CSS without needing to know
 Javascript, and a programmer could edit the Javascript without needing to be an expert
 in HTML/CSS. And so writing frontend code in three languages in three separate files
@@ -644,12 +644,12 @@ to have one file in one language containing everything you need to know about a
 UI component, rather than needing to tab between three files in three different languages.</p>
 </li>
 <li>
-<p>It removed the separate second-class "templating language". While the "platonic ideal"
+<p>It removed the separate second-class &quot;templating language&quot;. While the &quot;platonic ideal&quot;
 was people writing HTML/CSS/JS, the HTML often ended up being <a href="https://jinja.palletsprojects.com/">Jinja2</a>,
 <a href="https://haml.info/">HAML</a>, or <a href="https://mustache.github.io/">Mustache</a> templates instead,
 and the CSS usually ended up being replaced by <a href="https://sass-lang.com/">SASS</a> or
 <a href="https://lesscss.org/">LESS</a>. While Javascript was by no means perfect, having
-everything in a single "real" programming language was a breath of fresh air
+everything in a single &quot;real&quot; programming language was a breath of fresh air
 over tabbing between three different languages each with their own half-baked version
 of language features like if-else, loops, functions, etc.</p>
 </li>
@@ -657,7 +657,7 @@ of language features like if-else, loops, functions, etc.</p>
 </div>
 <div class="paragraph">
 <p>The story for build tools is similar: the traditional wisdom has been
-to implement your build logic in some limited "build language", in the past often
+to implement your build logic in some limited &quot;build language&quot;, in the past often
 XML (e.g. for <a href="https://maven.apache.org/">Maven</a>, <a href="https://github.com/dotnet/msbuild">MSBuild</a>),
 nowadays often JSON/TOML/YAML (e.g. <a href="https://github.com/rust-lang/cargo">Cargo</a>), with
 logic split out into separate shell scripts or plugins. While this worked, it always
@@ -671,12 +671,12 @@ languages. Templated-Bash-in-Yaml is a common outcome, Bazel makes you write
 <a href="https://bazel.build/reference/be/make-variables">make-interpolated Bash in pseudo-Python</a>,
 Maven makes you choose between XML+Java to write plugins or
 Bash-in-XML <a href="https://maven.apache.org/plugins/maven-antrun-plugin/">Ant scripts</a>.
-Most build tools using "simple" config languages would inevitably find logic pushed
+Most build tools using &quot;simple&quot; config languages would inevitably find logic pushed
 into shell scripts within the build, or the entire build tool itself wrapped in a shell
 script to provide the flexibility a project needs</p>
 </li>
 <li>
-<p>These "simple build languages" would always start off simple, but eventually grow
+<p>These &quot;simple build languages&quot; would always start off simple, but eventually grow
 real programming language features: not just if-else, loops, functions, inheritance, but
 also package managers, package repositories, profilers, debuggers, and
 more. These were always ad-hoc, designed and implemented in their own weird and
@@ -686,17 +686,17 @@ a real programming language.</p>
 </ol>
 </div>
 <div class="paragraph">
-<p><em>"Config metadata turns into templating language turns into general-purpose language"</em>
-is a tale as old as time. Whether it&#8217;s HTML templating using <a href="https://jinja.palletsprojects.com/en/stable/templates/">Jinja2</a>,
+<p><em>&quot;Config metadata turns into templating language turns into general-purpose language&quot;</em>
+is a tale as old as time. Whether it’s HTML templating using <a href="https://jinja.palletsprojects.com/en/stable/templates/">Jinja2</a>,
 CI configuration using <a href="https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/evaluate-expressions-in-workflows-and-actions">Github Actions Config Expressions</a>,
 or infrastructure-as-code systems like <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html">Cloudformation Functions</a>
 or <a href="https://helm.sh/docs/chart_best_practices/templates/">Helm Charts</a>. While the allure
-of using a "simple" config language is strong, many systems inevitably end up growing
+of using a &quot;simple&quot; config language is strong, many systems inevitably end up growing
 so many programming-language features that you would have been better off using a
 general-purpose language to start off with.</p>
 </div>
 <div class="paragraph">
-<p>Mill follows React.js with its "One General-Purpose Language" approach:</p>
+<p>Mill follows React.js with its &quot;One General-Purpose Language&quot; approach:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -729,7 +729,7 @@ insufficiently flexible config languages are chosen.</p>
 <li>
 <p>You <em>already know</em> how programming languages works: not just conditionals loops and functions,
 but also classes, inheritance, overrides, typechecking, IDE navigation, package repositories
-and library ecosystem (in Mill&#8217;s case, you can use everything on Java&#8217;s Maven Central repository).
+and library ecosystem (in Mill’s case, you can use everything on Java’s Maven Central repository).
 Rather than dealing with half-baked versions of these features that specialized languages
 inevitable grow, Mill lets you use the real thing right off the bat.</p>
 </li>
@@ -740,18 +740,18 @@ inevitable grow, Mill lets you use the real thing right off the bat.</p>
 IDE can help you understand them:</p>
 </div>
 <div class="paragraph">
-<p><span class="image"><img src="../mill/_images/unique/IntellijDocs.png" alt="IntellijDocs"></span></p>
+<p><span class="image"><img src="../mill/_images/unique/IntellijDocs.png" alt="IntellijDocs" /></span></p>
 </div>
 <div class="paragraph">
 <p>And if you make an error, e.g. you typo-ed <code>resources</code> as <code>reources</code>, your IDE will
 immediately flag it for you even before you run the build:</p>
 </div>
 <div class="paragraph">
-<p><span class="image"><img src="../mill/_images/unique/IntellijError.png" alt="IntellijError"></span></p>
+<p><span class="image"><img src="../mill/_images/unique/IntellijError.png" alt="IntellijError" /></span></p>
 </div>
 <div class="paragraph">
 <p>While all IDEs have good support for understanding JSON/TOML/YAML/XML, the support for
-understanding <em>a particular tool&#8217;s dialect of templated-bash-in-yaml</em> is much more spotty.
+understanding <em>a particular tool’s dialect of templated-bash-in-yaml</em> is much more spotty.
 Even IntelliJ, the gold standard, usually cannot provide more than basic assistance
 editing templated-bash-in-yaml configs file. In contrast, IDE support
 for a widely-used general purpose programming language is much more solid.</p>
@@ -792,7 +792,7 @@ build tool like Bazel!)</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s direct style code and use of a general-purpose language makes it unique among
+<p>Mill’s direct style code and use of a general-purpose language makes it unique among
 build tools, just like how React.js was unique among UI frameworks when it was first released
 in 2014. With these two key design features, Mill makes understanding and maintaining your build
 an order of magnitude easier than traditional tools, democratizing project builds so anyone
@@ -843,7 +843,7 @@ are superficially different, underneath there is a ton of similarity. Concepts l
 classfiles, jars, assemblies, classpaths, dependency management and publishing
 artifacts, IDEs, debuggers, profilers, many third-party libraries, are all shared and identical
 between the various JVM languages. Mill provides a first class Java and Scala experience,
-with growing support for Kotlin and Android. Mill&#8217;s easy extensibility
+with growing support for Kotlin and Android. Mill’s easy extensibility
 means integrating new tools into Mill takes hours rather than days or weeks.</p>
 </div>
 <div class="paragraph">
@@ -905,8 +905,8 @@ benefits on my company blog at the time:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>There is no doubt that if set up correctly, Bazel is a great experience that "just
-works", and with a single command you can do anything that you could want to do in a codebase.</p>
+<p>There is no doubt that if set up correctly, Bazel is a great experience that &quot;just
+works&quot;, and with a single command you can do anything that you could want to do in a codebase.</p>
 </div>
 <div class="paragraph">
 <p>But of those 25 companies I interviewed, basically everyone was having a hard time adopting Bazel.
@@ -917,13 +917,13 @@ a ferociously complex tool, and although some of that complexity is inherent, mu
 incidental, and some of it is to support projects at a scale beyond what most teams would encounter.</p>
 </div>
 <div class="paragraph">
-<p>I think there is room for a lightweight monorepo build tool that provides maybe 50% of Bazel&#8217;s
+<p>I think there is room for a lightweight monorepo build tool that provides maybe 50% of Bazel’s
 functionality, but at 10% the complexity:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Most companies are not Google, don&#8217;t operate at Google-scale, do not have Google-level
+<p>Most companies are not Google, don’t operate at Google-scale, do not have Google-level
 problems, and may not need all the most advanced features that Bazel provides</p>
 </li>
 <li>
@@ -939,13 +939,13 @@ extensibility. Mill
 can already work with a wide variety of programming languages,
 from JVM languages like <a href="../mill/javalib/intro.html" class="xref page">Java</a>/<a href="../mill/scalalib/intro.html" class="xref page">Scala</a>/<a href="../mill/kotlinlib/intro.html" class="xref page">Kotlin</a>
 to <a href="../mill/extending/example-typescript-support.html" class="xref page">Typescript</a> and
-<a href="../mill/extending/example-python-support.html" class="xref page">Python</a>. Mill&#8217;s features are not as
+<a href="../mill/extending/example-python-support.html" class="xref page">Python</a>. Mill’s features are not as
 highly-scalable as their Bazel equivalents, but they are provided in a lighter-weight,
 easier-to-use fashion suitable for organizations with less than 1,000 engineers
 who cannot afford the <code>O(1 person decade)</code> it takes to adopt Bazel in their organization.</p>
 </div>
 <div class="paragraph">
-<p>For most companies, their problems with Bazel aren&#8217;t its scalability or feature set,
+<p>For most companies, their problems with Bazel aren’t its scalability or feature set,
 but its complexity. While Mill can never compete with Bazel for the largest-scale deployments
 by its most sophisticated users, the bulk of users operate at a somewhat smaller scale and
 need something easier than Bazel. Mill could be that easy monorepo build tool for them to use.</p>
@@ -960,8 +960,8 @@ need something easier than Bazel. Mill could be that easy monorepo build tool fo
 <p>10 years ago React.js democratized front-end Web UIs: what previously took intricate
 surgery to properly wire up event handlers and UI mutations in three separate languages
 became a straightforward task of naively returning the UI you want to render. Previously
-challenging tasks (e.g. "make a loading bar that is kept in sync with the text on screen as
-a file is uploaded") became trivial, and now anyone can probably fumble through a basic
+challenging tasks (e.g. &quot;make a loading bar that is kept in sync with the text on screen as
+a file is uploaded&quot;) became trivial, and now anyone can probably fumble through a basic
 interactive website without getting lost in callback hell.</p>
 </div>
 <div class="paragraph">
@@ -969,7 +969,7 @@ interactive website without getting lost in callback hell.</p>
 configuring and maintaining a build-system often requires juggling multiple different
 templating/config/scripting languages in an intricate dance of callbacks and filesystem
 mutations. Like React.js, Mill collapses all this complexity, letting you write naive
-"direct-style" code in a single language while getting all the benefits of caching and
+&quot;direct-style&quot; code in a single language while getting all the benefits of caching and
 parallelism, making previously challenging build pipelines implementations trivial.</p>
 </div>
 <div class="paragraph">
@@ -981,7 +981,7 @@ still be significant.</p>
 </div>
 <div class="paragraph">
 <p>Going forward, I expect to pursue both paths: Mill as a better Java build tool, Mill as
-an easier Monorepo build tool, leveraging Mill&#8217;s unique direct style to make the build
+an easier Monorepo build tool, leveraging Mill’s unique direct style to make the build
 tool experience easier. If anyone out there is interested in collaborating on improving
 the build tool, <a href="https://github.com/com-lihaoyi/mill/discussions">reach out on Github</a> or Discord and let me know!!</p>
 </div>
@@ -996,9 +996,9 @@ the build tool, <a href="https://github.com/com-lihaoyi/mill/discussions">reach 
 </main>
 </div>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
-<script async src="../_/js/vendor/highlight.js"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>
 <script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
-<script async src="../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>

@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Mill Command-Line Flags :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/cli/flags.html">
-    <link rel="prev" href="installation-ide.html">
-    <link rel="next" href="builtin-commands.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/cli/flags.html" />
+    <link rel="prev" href="installation-ide.html" />
+    <link rel="next" href="builtin-commands.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +653,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -784,7 +785,7 @@ Please see the documentation at https://mill-build.org for more details</code></
 <p>By default, Mill runs tasks in a long-lived background daemon. While this is good for
 performance (as it avoids paying the server startup time each command), it is incompatible
 with tasks like <code>.repl</code> which require a direct <code>stdin</code>/<code>stdout</code> forwarding connection to
-the user&#8217;s terminal. <code>--interactive</code>/<code>-i</code> instead runs tasks in a short-lived background
+the user’s terminal. <code>--interactive</code>/<code>-i</code> instead runs tasks in a short-lived background
 server with proper port pipe forwarding configured, which enables tasks like <code>.repl</code> to run
 while paying what higher startup overhead.</p>
 </div>
@@ -792,7 +793,7 @@ while paying what higher startup overhead.</p>
 <div class="sect2">
 <h3 id="_watch_w"><a class="anchor" href="#_watch_w"></a><code>--watch</code>/<code>-w</code></h3>
 <div class="paragraph">
-<p>You can use the <code>--watch</code> flag to make Mill watch a task&#8217;s inputs,
+<p>You can use the <code>--watch</code> flag to make Mill watch a task’s inputs,
 re-evaluating the task as necessary when the inputs
 change:</p>
 </div>
@@ -805,8 +806,8 @@ change:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s <code>--watch</code> flag watches both the files you are building using Mill, as
-well as Mill&#8217;s own <code>build.mill</code> file and anything it imports, so any changes to
+<p>Mill’s <code>--watch</code> flag watches both the files you are building using Mill, as
+well as Mill’s own <code>build.mill</code> file and anything it imports, so any changes to
 your <code>build.mill</code> will automatically get picked up.</p>
 </div>
 <div class="paragraph">
@@ -843,7 +844,7 @@ Defaults to the number of cores available on your system.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>You can also set Mill&#8217;s parallelism to some multiple of the number of cores, e.g.
+<p>You can also set Mill’s parallelism to some multiple of the number of cores, e.g.
 <code>-j0.5C</code> to use half as many threads as cores, or <code>-j2C</code> to use twice as many threads as cores.
 These can be useful as <a href="build-header.html#_repo_level_mill_options" class="xref page">cli/build-header.adoc#_repo_level_mill_options</a> to configure an appropriate level
 of parallelism that scales based on the number of cores available (which might differ
@@ -861,9 +862,9 @@ between e.g. developer laptops and CI machines)</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

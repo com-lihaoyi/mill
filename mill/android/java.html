@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Android Java Projects :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/android/java.html">
-    <link rel="prev" href="android-initial-setup.html">
-    <link rel="next" href="kotlin.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/android/java.html" />
+    <link rel="prev" href="android-initial-setup.html" />
+    <link rel="next" href="kotlin.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +653,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -715,7 +716,7 @@ import mill.*, androidlib.*, scalalib.*</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object androidSdkModule0 extends AndroidSdkModule {
-  def buildToolsVersion = "35.0.0"
+  def buildToolsVersion = &quot;35.0.0&quot;
 }</code></pre>
 </div>
 </div>
@@ -728,8 +729,8 @@ import mill.*, androidlib.*, scalalib.*</code></pre>
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
-  def androidApplicationId = "com.helloworld.app"
-  def androidApplicationNamespace = "com.helloworld.app"
+  def androidApplicationId = &quot;com.helloworld.app&quot;
+  def androidApplicationNamespace = &quot;com.helloworld.app&quot;
 
   /**
    * Configuration for ReleaseKey
@@ -737,15 +738,15 @@ import mill.*, androidlib.*, scalalib.*</code></pre>
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyName: Option[String] = Some(&quot;releaseKey.jks&quot;)
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
 
-  override def androidVirtualDeviceIdentifier: String = "java-test"
+  override def androidVirtualDeviceIdentifier: String = &quot;java-test&quot;
 
   object test extends AndroidAppTests, TestModule.Junit4 {
-    def junit4Version = "4.13.2"
+    def junit4Version = &quot;4.13.2&quot;
   }
 
   object it extends AndroidAppInstrumentedTests, AndroidTestModule.AndroidJUnit {
@@ -757,10 +758,10 @@ import mill.*, androidlib.*, scalalib.*</code></pre>
      * resolution resolves conflicts between androidJvm and jvm platform types
      */
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"androidx.test.ext:junit:1.2.1",
-      mvn"androidx.test:runner:1.6.2",
-      mvn"androidx.test.espresso:espresso-core:3.5.1",
-      mvn"junit:junit:4.13.2"
+      mvn&quot;androidx.test.ext:junit:1.2.1&quot;,
+      mvn&quot;androidx.test:runner:1.6.2&quot;,
+      mvn&quot;androidx.test.espresso:espresso-core:3.5.1&quot;,
+      mvn&quot;junit:junit:4.13.2&quot;
     )
   }
 
@@ -770,7 +771,7 @@ import mill.*, androidlib.*, scalalib.*</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.androidApk
-".../out/app/androidApk.dest/app.apk"</code></pre>
+&quot;.../out/app/androidApk.dest/app.apk&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -779,7 +780,7 @@ code, generates Android resources, converts Java bytecode to DEX format, package
 into an APK, optimizes the APK using <code>zipalign</code>, and finally signs it.</p>
 </div>
 <div class="paragraph">
-<p>This Mill build configuration is designed to build a simple "Hello World" Android application.
+<p>This Mill build configuration is designed to build a simple &quot;Hello World&quot; Android application.
 By extending <code>AndroidAppModule</code>, we leverage its predefined Android build tasks, ensuring that
 all necessary steps (resource generation, APK creation, and signing) are executed automatically.</p>
 </div>
@@ -811,7 +812,7 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 ...compiling 1 Java source...
 
 &gt; cat out/app/test/testForked.dest/out.json
-["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.textSize_isCorrect","selector":"com.helloworld.ExampleUnitTest.textSize_isCorrect","duration":...,"status":"Success"}]]</code></pre>
+[&quot;&quot;,[{&quot;fullyQualifiedName&quot;:&quot;com.helloworld.ExampleUnitTest.textSize_isCorrect&quot;,&quot;selector&quot;:&quot;com.helloworld.ExampleUnitTest.textSize_isCorrect&quot;,&quot;duration&quot;:...,&quot;status&quot;:&quot;Success&quot;}]]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -830,13 +831,13 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 &gt; ./mill show app.it
 ...
 {
-  "msg": "",
-  "results": [
+  &quot;msg&quot;: &quot;&quot;,
+  &quot;results&quot;: [
     {
-      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
-      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
-      "duration": ...,
-      "status": "Success"
+      &quot;fullyQualifiedName&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
+      &quot;selector&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
     }
   ]
 }
@@ -845,11 +846,11 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 &gt; cat out/app/it/testForked.dest/test-report.xml
 ...
 &lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;testsuites tests="1" failures="0" errors="0" skipped="0" time="..."&gt;
-        &lt;testsuite name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" tests="1" failures="0" errors="0" skipped="0" time="0.0" timestamp="..."&gt;
+&lt;testsuites tests=&quot;1&quot; failures=&quot;0&quot; errors=&quot;0&quot; skipped=&quot;0&quot; time=&quot;...&quot;&gt;
+        &lt;testsuite name=&quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot; tests=&quot;1&quot; failures=&quot;0&quot; errors=&quot;0&quot; skipped=&quot;0&quot; time=&quot;0.0&quot; timestamp=&quot;...&quot;&gt;
         &lt;properties&gt;
       &lt;/properties&gt;
-        &lt;testcase classname="com.helloworld.app.ExampleInstrumentedTest.useAppContext" name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" time="..."&gt;
+        &lt;testcase classname=&quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot; name=&quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot; time=&quot;...&quot;&gt;
         &lt;/testcase&gt;
       &lt;/testsuite&gt;
       &lt;/testsuites&gt;
@@ -870,7 +871,7 @@ destroyAndroidVirtualDevice command destroys the AVD.
 The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.</p>
 </div>
 <div class="paragraph">
-<p>This example demonstrates how to create a basic "Hello World" Android application
+<p>This example demonstrates how to create a basic &quot;Hello World&quot; Android application
 using the Mill build tool. It outlines the minimum setup required to compile Java code,
 package it into an APK, and run the app on an Android device.</p>
 </div>
@@ -907,7 +908,7 @@ everything from compiling the code to generating a signed APK for distribution.<
 <p><strong>Compiling Java code</strong>: The module compiles your Java code into <code>.class</code> files, which is the first step in creating an Android app.</p>
 </li>
 <li>
-<p><strong>Packaging into JAR</strong>: It then packages the compiled <code>.class</code> files into a JAR file, which is necessary before converting to Android&#8217;s format.</p>
+<p><strong>Packaging into JAR</strong>: It then packages the compiled <code>.class</code> files into a JAR file, which is necessary before converting to Android’s format.</p>
 </li>
 <li>
 <p><strong>Converting to DEX format</strong>: The JAR file is converted into DEX format, which is the executable format for Android applications.</p>
@@ -924,7 +925,7 @@ everything from compiling the code to generating a signed APK for distribution.<
 </ol>
 </div>
 <div class="paragraph">
-<p>After creating Simple Android Application now let&#8217;s focus on how to create Android App Bundle Using Mill Build Tool</p>
+<p>After creating Simple Android Application now let’s focus on how to create Android App Bundle Using Mill Build Tool</p>
 </div>
 </div>
 </div>
@@ -947,7 +948,7 @@ Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management s
 import mill.*, androidlib.*
 
 object androidSdkModule0 extends AndroidSdkModule {
-  def buildToolsVersion = "35.0.0"
+  def buildToolsVersion = &quot;35.0.0&quot;
 }
 
 object bundle extends AndroidAppBundle {
@@ -960,20 +961,20 @@ object bundle extends AndroidAppBundle {
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  def androidApplicationId = "com.helloworld.app"
-  def androidApplicationNamespace = "com.helloworld.app"
+  def androidApplicationId = &quot;com.helloworld.app&quot;
+  def androidApplicationNamespace = &quot;com.helloworld.app&quot;
 
-  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyName: Option[String] = Some(&quot;releaseKey.jks&quot;)
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show bundle.androidBundle
-".../out/bundle/androidBundle.dest/signedBundle.aab"</code></pre>
+&quot;.../out/bundle/androidBundle.dest/signedBundle.aab&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -981,7 +982,7 @@ object bundle extends AndroidAppBundle {
 and then building Android Bundle Zip then Creation of Android App Bundle and finally signs it.</p>
 </div>
 <div class="paragraph">
-<p>This Mill build configuration is designed to build a simple "Hello World" Android App Bundle.
+<p>This Mill build configuration is designed to build a simple &quot;Hello World&quot; Android App Bundle.
 By extending <code>AndroidAppBundle</code>, we leverage its predefined Android App Bundle build tasks,
 ensuring that all necessary steps (generation, creation, and signing) are executed automatically.</p>
 </div>
@@ -1049,9 +1050,9 @@ This zip follows the Android App Bundle format, as outlined in the official docu
 <p>R8 is a code shrinker and obfuscator for Android applications. Is designed to optimize the size of the APK
 while maintaining the functionality of the app.
 When using R8, you can configure the rules for code shrinking and obfuscation in a ProGuard configuration file.
-R8 relies on ProGuard rules files to adjust its default behavior and gain a better understanding of your app’s structure,
+R8 relies on ProGuard rules files to adjust its default behavior and gain a better understanding of your app&rsquo;s structure,
 such as identifying the classes that act as entry points. While you can modify some of these rules files,
-certain rules may be automatically generated by compile-time tools (like AAPT2) or inherited from your app’s library dependencies.
+certain rules may be automatically generated by compile-time tools (like AAPT2) or inherited from your app&rsquo;s library dependencies.
 You need 2 files on the root of your project:</p>
 </div>
 <div class="ulist">
@@ -1082,15 +1083,15 @@ More informations about the R8 in general and about the Proguard rules files can
 import mill.*, androidlib.*, scalalib.*
 
 object androidSdkModule0 extends AndroidSdkModule { <i class="conum" data-value="1"></i><b>(1)</b>
-  def buildToolsVersion = "35.0.0"
+  def buildToolsVersion = &quot;35.0.0&quot;
 }
 
 object app extends AndroidR8AppModule { <i class="conum" data-value="2"></i><b>(2)</b>
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
-  def androidApplicationId = "com.helloworld.app"
-  def androidApplicationNamespace = "com.helloworld.app"
+  def androidApplicationId = &quot;com.helloworld.app&quot;
+  def androidApplicationNamespace = &quot;com.helloworld.app&quot;
 
   /**
    * Configuration for ReleaseKey
@@ -1098,18 +1099,18 @@ object app extends AndroidR8AppModule { <i class="conum" data-value="2"></i><b>(
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyName: Option[String] = Some(&quot;releaseKey.jks&quot;)
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
 
-  override def androidVirtualDeviceIdentifier: String = "java-test"
+  override def androidVirtualDeviceIdentifier: String = &quot;java-test&quot;
   override def androidIsDebug: T[Boolean] = Task { false }
 
   override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
     super.androidReleaseSettings().withProguardLocalFiles(
       Seq(
-        moduleDir / "proguard-rules.pro"
+        moduleDir / &quot;proguard-rules.pro&quot;
       )
     )
   }
@@ -1117,7 +1118,7 @@ object app extends AndroidR8AppModule { <i class="conum" data-value="2"></i><b>(
   // Unit tests for the application
   object test extends AndroidAppTests, TestModule.Junit4 {
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"junit:junit:4.13.2"
+      mvn&quot;junit:junit:4.13.2&quot;
     )
   }
 
@@ -1133,16 +1134,16 @@ object app extends AndroidR8AppModule { <i class="conum" data-value="2"></i><b>(
     override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(isMinifyEnabled = false).withProguardLocalFiles(
         Seq(
-          moduleDir / "test-proguard-rules.pro"
+          moduleDir / &quot;test-proguard-rules.pro&quot;
         )
       )
     }
 
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"androidx.test.ext:junit:1.2.1",
-      mvn"androidx.test:runner:1.6.2",
-      mvn"androidx.test.espresso:espresso-core:3.5.1",
-      mvn"junit:junit:4.13.2"
+      mvn&quot;androidx.test.ext:junit:1.2.1&quot;,
+      mvn&quot;androidx.test:runner:1.6.2&quot;,
+      mvn&quot;androidx.test.espresso:espresso-core:3.5.1&quot;,
+      mvn&quot;junit:junit:4.13.2&quot;
     )
   }
 
@@ -1151,7 +1152,7 @@ object app extends AndroidR8AppModule { <i class="conum" data-value="2"></i><b>(
 </div>
 <div class="colist arabic">
 <table>
-<tr>
+<tbody><tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
 <td>Create and configure an Android SDK module to manage Android SDK paths and tools.</td>
 </tr>
@@ -1159,7 +1160,7 @@ object app extends AndroidR8AppModule { <i class="conum" data-value="2"></i><b>(
 <td><i class="conum" data-value="2"></i><b>2</b></td>
 <td>The actual Android application</td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1176,13 +1177,13 @@ object app extends AndroidR8AppModule { <i class="conum" data-value="2"></i><b>(
 &gt; ./mill show app.it
 ...
 {
-  "msg": "",
-  "results": [
+  &quot;msg&quot;: &quot;&quot;,
+  &quot;results&quot;: [
     {
-      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
-      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
-      "duration": ...,
-      "status": "Success"
+      &quot;fullyQualifiedName&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
+      &quot;selector&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
     }
   ]
 }
@@ -1211,7 +1212,7 @@ After the emulator is started, you can run the <code>androidReleaseInstall</code
 and are used in the app. They are usually used for performance reasons or to use
 libraries that are not available in Java/Kotlin.
 This example shows how to use native libraries in the app.
-The native library is a simple C library that returns a string "Hello from C"
+The native library is a simple C library that returns a string &quot;Hello from C&quot;
 and is used in the app to show a toast with the string. In my example i used also
 one of the core C/C  libraires that can be used in the android and are already given ( &lt;android/log.h&gt; ).
 There is a list of the core C/C++ libraries that can be used in the android here:
@@ -1226,15 +1227,15 @@ import mill.*, androidlib.*, scalalib.*
 import mill.api.BuildCtx
 
 object androidSdkModule0 extends AndroidSdkModule {
-  def buildToolsVersion = "35.0.0"
+  def buildToolsVersion = &quot;35.0.0&quot;
 }
 
 object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i><b>(1)</b>
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
-  def androidApplicationId = "com.helloworld.app"
-  def androidApplicationNamespace = "com.helloworld.app"
+  def androidApplicationId = &quot;com.helloworld.app&quot;
+  def androidApplicationNamespace = &quot;com.helloworld.app&quot;
 
   /**
    * Configuration for ReleaseKey
@@ -1242,15 +1243,15 @@ object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i>
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
 
-  override def androidVirtualDeviceIdentifier: String = "java-test"
+  override def androidVirtualDeviceIdentifier: String = &quot;java-test&quot;
 
   def androidExternalNativeLibs = Task { <i class="conum" data-value="2"></i><b>(2)</b>
     Seq(
-      PathRef(BuildCtx.workspaceRoot / "app/src/main/cpp/native-lib.cpp")
+      PathRef(BuildCtx.workspaceRoot / &quot;app/src/main/cpp/native-lib.cpp&quot;)
     )
   }
 
@@ -1263,10 +1264,10 @@ object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i>
      * resolution resolves conflicts between androidJvm and jvm platform types
      */
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"androidx.test.ext:junit:1.2.1",
-      mvn"androidx.test:runner:1.6.2",
-      mvn"androidx.test.espresso:espresso-core:3.5.1",
-      mvn"junit:junit:4.13.2"
+      mvn&quot;androidx.test.ext:junit:1.2.1&quot;,
+      mvn&quot;androidx.test:runner:1.6.2&quot;,
+      mvn&quot;androidx.test.espresso:espresso-core:3.5.1&quot;,
+      mvn&quot;junit:junit:4.13.2&quot;
     )
   }
 
@@ -1275,7 +1276,7 @@ object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i>
 </div>
 <div class="colist arabic">
 <table>
-<tr>
+<tbody><tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
 <td>You need to extend AndroidNativeLibs trait to use native libraries in the app.</td>
 </tr>
@@ -1283,12 +1284,12 @@ object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
 <td>This is the path to the native library that will be used in the app.</td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.androidApk
-".../out/app/androidApk.dest/app.apk"
+&quot;.../out/app/androidApk.dest/app.apk&quot;
 
 &gt; ./mill show app.createAndroidVirtualDevice
 ...Name: java-test, DeviceId: medium_phone...
@@ -1301,13 +1302,13 @@ object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i>
 &gt; ./mill show app.it
 ...
 {
-  "msg": "",
-  "results": [
+  &quot;msg&quot;: &quot;&quot;,
+  &quot;results&quot;: [
     {
-      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp",
-      "selector": "com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp",
-      "duration": ...,
-      "status": "Success"
+      &quot;fullyQualifiedName&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp&quot;,
+      &quot;selector&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
     }
   ]
 }
@@ -1329,9 +1330,9 @@ object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

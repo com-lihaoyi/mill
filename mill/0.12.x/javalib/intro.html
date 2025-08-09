@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Building Java with Mill :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/javalib/intro.html">
-    <link rel="prev" href="../index.html">
-    <link rel="next" href="module-config.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/javalib/intro.html" />
+    <link rel="prev" href="../index.html" />
+    <link rel="next" href="module-config.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -648,7 +649,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -666,7 +667,7 @@ complexity to show you the key features and usage of the Mill build tool.</p>
 <div class="paragraph">
 <p>The other pages of this section of the documentation go into more depth into individual features,
 with more examples of how to use Mill for Java and more details of how the Mill
-build tool works. They aren&#8217;t intended to be read comprehensively top-to-bottom, but
+build tool works. They aren’t intended to be read comprehensively top-to-bottom, but
 rather looked up when you have a particular interest e.g. in
 <a href="testing.html" class="xref page">testing</a>,
 <a href="publishing.html" class="xref page">publishing</a>,
@@ -685,13 +686,13 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   def ivyDeps = Agg(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
   )
 
   object test extends JavaTests with TestModule.Junit4 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"com.google.guava:guava:33.3.0-jre"
+      ivy&quot;com.google.guava:guava:33.3.0-jre&quot;
     )
   }
 }</code></pre>
@@ -709,7 +710,7 @@ that you have some version of the JVM installed; the <code>./mill</code> script
 (<code>./mill.bat</code> on windows) takes
 care of any further dependencies that need to be downloaded. All examples
 in this documentation site are executable and are continually exercised as
-part of Mill&#8217;s CI workflows, and they range from the simple hello-world
+part of Mill’s CI workflows, and they range from the simple hello-world
 projects on this page to more sophisticated
 <a href="web-examples.html" class="xref page">web build examples</a> or
 <a href="build-examples.html" class="xref page">example
@@ -717,7 +718,7 @@ builds for real-world projects</a></p>
 </div>
 <div class="paragraph">
 <p>The source code for this module lives in the <code>src/</code> folder.
-Output for this module (compiled files, resolved dependency lists, &#8230;&#8203;)
+Output for this module (compiled files, resolved dependency lists, ...​)
 lives in <code>out/</code>.</p>
 </div>
 <div class="listingblock">
@@ -743,19 +744,19 @@ out/foo/
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The default Mill source folder layout <code>foo/src/</code> differs from that of Maven/Gradle&#8217;s
+The default Mill source folder layout <code>foo/src/</code> differs from that of Maven/Gradle’s
 <code>foo/src/main/java/</code>.
 If you wish to use the Maven source folder layout, e.g. for migrating
 an existing codebase, you should use
 <a href="#_maven_compatible_modules">Maven-Compatible Modules</a>
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>This example project uses two third-party dependencies - <a href="https://argparse4j.github.io/">ArgParse4J</a> for CLI
@@ -803,7 +804,7 @@ Test run foo.FooTest finished: 0 failed, 0 ignored, 2 total, ...
 &gt; ./mill foo.assembly # bundle classfiles and libraries into a jar for deployment
 
 &gt; ./mill show foo.assembly # show the output of the assembly task
-".../out/foo/assembly.dest/out.jar"
+&quot;.../out/foo/assembly.dest/out.jar&quot;
 
 &gt; java -jar ./out/foo/assembly.dest/out.jar --text hello
 &lt;h1&gt;hello&lt;/h1&gt;
@@ -847,7 +848,7 @@ $ mill -w compile    # watch input files and re-compile whenever a file changes<
 <div class="paragraph">
 <p>You can run <code>mill resolve __</code> to see a full list of the different tasks that
 are available, <code>mill resolve _</code> to see the tasks within <code>foo</code>,
-<code>mill inspect compile</code> to inspect a task&#8217;s doc-comment documentation or what
+<code>mill inspect compile</code> to inspect a task’s doc-comment documentation or what
 it depends on, or <code>mill show foo.scalaVersion</code> to show the output of any task.</p>
 </div>
 <div class="paragraph">
@@ -890,7 +891,7 @@ object foo extends JavaModule {
 
   /** Generate resources using lineCount of sources */
   override def resources = Task {
-    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    os.write(Task.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 }</code></pre>
@@ -908,64 +909,63 @@ folder of the new task which contains a <code>lint-count.txt</code> file we writ
 </div>
 <div class="paragraph">
 <center>
-<svg width="418px" height="76px"
- viewBox="0.00 0.00 418.28 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="418px" height="76px" viewBox="0.00 0.00 418.28 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 414.28,-71.8 414.28,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 414.28,-71.8 414.28,4 -4,4"></polygon>
 <!-- allSourceFiles -->
 <g id="node1" class="node">
 <title>allSourceFiles</title>
-<polygon fill="white" stroke="white" points="96.14,-67.7 -0.05,-67.7 -0.05,-43.1 96.14,-43.1 96.14,-67.7"/>
+<polygon fill="white" stroke="white" points="96.14,-67.7 -0.05,-67.7 -0.05,-43.1 96.14,-43.1 96.14,-67.7"></polygon>
 <text text-anchor="middle" x="48.05" y="-51.2" font-family="Times,serif" font-size="14.00">allSourceFiles</text>
 </g>
 <!-- lineCount -->
 <g id="node2" class="node">
 <title>lineCount</title>
-<polygon fill="white" stroke="black" points="219.15,-67.7 147.7,-67.7 147.7,-43.1 219.15,-43.1 219.15,-67.7"/>
+<polygon fill="white" stroke="black" points="219.15,-67.7 147.7,-67.7 147.7,-43.1 219.15,-43.1 219.15,-67.7"></polygon>
 <text text-anchor="middle" x="183.43" y="-51.2" font-family="Times,serif" font-size="14.00">lineCount</text>
 </g>
 <!-- allSourceFiles&#45;&gt;lineCount -->
 <g id="edge1" class="edge">
-<title>allSourceFiles&#45;&gt;lineCount</title>
-<path fill="none" stroke="black" d="M96.45,-55.4C109.8,-55.4 124.28,-55.4 137.49,-55.4"/>
-<polygon fill="black" stroke="black" points="137.76,-58.9 147.76,-55.4 137.76,-51.9 137.76,-58.9"/>
+<title>allSourceFiles-&gt;lineCount</title>
+<path fill="none" stroke="black" d="M96.45,-55.4C109.8,-55.4 124.28,-55.4 137.49,-55.4"></path>
+<polygon fill="black" stroke="black" points="137.76,-58.9 147.76,-55.4 137.76,-51.9 137.76,-58.9"></polygon>
 </g>
 <!-- resources -->
 <g id="node3" class="node">
 <title>resources</title>
-<polygon fill="white" stroke="black" points="339.55,-45.7 270.84,-45.7 270.84,-21.1 339.55,-21.1 339.55,-45.7"/>
+<polygon fill="white" stroke="black" points="339.55,-45.7 270.84,-45.7 270.84,-21.1 339.55,-21.1 339.55,-45.7"></polygon>
 <text text-anchor="middle" x="305.19" y="-29.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- lineCount&#45;&gt;resources -->
 <g id="edge2" class="edge">
-<title>lineCount&#45;&gt;resources</title>
-<path fill="none" stroke="black" d="M219.07,-49.04C231.95,-46.67 246.74,-43.95 260.34,-41.46"/>
-<polygon fill="black" stroke="black" points="261.25,-44.85 270.46,-39.6 259.99,-37.96 261.25,-44.85"/>
+<title>lineCount-&gt;resources</title>
+<path fill="none" stroke="black" d="M219.07,-49.04C231.95,-46.67 246.74,-43.95 260.34,-41.46"></path>
+<polygon fill="black" stroke="black" points="261.25,-44.85 270.46,-39.6 259.99,-37.96 261.25,-44.85"></polygon>
 </g>
 <!-- run -->
 <g id="node4" class="node">
 <title>run</title>
-<polygon fill="white" stroke="white" points="410.11,-45.7 375.79,-45.7 375.79,-21.1 410.11,-21.1 410.11,-45.7"/>
+<polygon fill="white" stroke="white" points="410.11,-45.7 375.79,-45.7 375.79,-21.1 410.11,-21.1 410.11,-45.7"></polygon>
 <text text-anchor="middle" x="392.95" y="-29.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- resources&#45;&gt;run -->
 <g id="edge3" class="edge">
-<title>resources&#45;&gt;run</title>
-<path fill="none" stroke="black" d="M339.59,-33.4C348.23,-33.4 357.4,-33.4 365.61,-33.4"/>
-<polygon fill="black" stroke="black" points="365.74,-36.9 375.74,-33.4 365.74,-29.9 365.74,-36.9"/>
+<title>resources-&gt;run</title>
+<path fill="none" stroke="black" d="M339.59,-33.4C348.23,-33.4 357.4,-33.4 365.61,-33.4"></path>
+<polygon fill="black" stroke="black" points="365.74,-36.9 375.74,-33.4 365.74,-29.9 365.74,-36.9"></polygon>
 </g>
 <!-- resources.super -->
 <g id="node5" class="node">
 <title>resources.super</title>
-<polygon fill="white" stroke="white" points="234.6,-24.7 132.25,-24.7 132.25,-0.1 234.6,-0.1 234.6,-24.7"/>
+<polygon fill="white" stroke="white" points="234.6,-24.7 132.25,-24.7 132.25,-0.1 234.6,-0.1 234.6,-24.7"></polygon>
 <text text-anchor="middle" x="183.43" y="-8.2" font-family="Times,serif" font-size="14.00">resources.super</text>
 </g>
 <!-- resources.super&#45;&gt;resources -->
 <g id="edge4" class="edge">
-<title>resources.super&#45;&gt;resources</title>
-<path fill="none" stroke="black" d="M234.87,-21.25C243.51,-22.76 252.41,-24.32 260.84,-25.8"/>
-<polygon fill="black" stroke="black" points="260.38,-29.27 270.84,-27.55 261.59,-22.38 260.38,-29.27"/>
+<title>resources.super-&gt;resources</title>
+<path fill="none" stroke="black" d="M234.87,-21.25C243.51,-22.76 252.41,-24.32 260.84,-25.8"></path>
+<polygon fill="black" stroke="black" points="260.38,-29.27 270.84,-27.55 261.59,-22.38 260.38,-29.27"></polygon>
 </g>
 </g>
 </svg>
@@ -977,7 +977,7 @@ folder of the new task which contains a <code>lint-count.txt</code> file we writ
 <li>
 <p><code>os.read.lines</code> and <code>os.write</code> come
 from the <a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a> library, which is
-one of Mill&#8217;s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.
+one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.
 You can also import any JVM library you want from Maven Central using
 <a href="../extending/import-ivy-plugins.html" class="xref page">import $ivy</a>, so you are not limited
 to what is bundled with Mill.</p>
@@ -1009,7 +1009,7 @@ Inputs:
 </div>
 </div>
 <div class="paragraph">
-<p>If you&#8217;re not familiar with what tasks you can <code>override</code> or how they are related,
+<p>If you’re not familiar with what tasks you can <code>override</code> or how they are related,
 you can explore the existing tasks via autocomplete in your IDE, or use the
 <a href="../cli/builtin-commands.html#_visualize" class="xref page">mill visualize</a>.</p>
 </div>
@@ -1040,14 +1040,14 @@ trait MyModule extends JavaModule {
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
   def ivyDeps = Agg(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0"
+    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;
   )
 }
 
 object bar extends MyModule {
   def ivyDeps = Agg(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
   )
 }</code></pre>
 </div>
@@ -1124,7 +1124,7 @@ Bar.value: &lt;h1&gt;world&lt;/h1&gt;
 </div>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s evaluator will ensure that the modules are compiled in the right
+<p>Mill’s evaluator will ensure that the modules are compiled in the right
 order, and recompiled as necessary when source code in each module changes.
 The unique path on disk that Mill automatically assigns each task also ensures
 you do not need to worry about choosing a path on disk to cache outputs, or
@@ -1140,8 +1140,8 @@ tasks.</p>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 1. Wildcards and brace-expansion</caption>
 <colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
+<col style="width: 50%;" />
+<col style="width: 50%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -1188,9 +1188,9 @@ preceding it with a backslash (<code>\</code>).</p>
 <h2 id="_maven_compatible_modules"><a class="anchor" href="#_maven_compatible_modules"></a>Maven-Compatible Modules</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill&#8217;s default folder layout of <code>foo/src/</code> and <code>foo/test/src</code> differs from that
-of Maven or Gradle&#8217;s <code>foo/src/main/java/</code> and <code>foo/src/test/java/</code>. If you are
-migrating an existing codebase, you can use Mill&#8217;s <code>MavenModule</code> and
+<p>Mill’s default folder layout of <code>foo/src/</code> and <code>foo/test/src</code> differs from that
+of Maven or Gradle’s <code>foo/src/main/java/</code> and <code>foo/src/test/java/</code>. If you are
+migrating an existing codebase, you can use Mill’s <code>MavenModule</code> and
 <code>MavenTests</code> as shown below to preserve filesystem compatibility with an existing
 Maven or Gradle build:</p>
 </div>
@@ -1220,7 +1220,7 @@ that uses the more verbose folder layout of Maven, SBT, and other tools:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Rather than Mill&#8217;s</p>
+<p>Rather than Mill’s</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1270,18 +1270,18 @@ and you can browse each respective page if you want to learn more.</p>
 import mill._, javalib._, publish._
 
 trait MyModule extends JavaModule with PublishModule {
-  def publishVersion = "0.0.1"
+  def publishVersion = &quot;0.0.1&quot;
 
   def pomSettings = PomSettings(
-    description = "Hello",
-    organization = "com.lihaoyi",
-    url = "https://github.com/lihaoyi/example",
+    description = &quot;Hello&quot;,
+    organization = &quot;com.lihaoyi&quot;,
+    url = &quot;https://github.com/lihaoyi/example&quot;,
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("lihaoyi", "example"),
-    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
+    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
   )
 
-  def ivyDeps = Agg(ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE")
+  def ivyDeps = Agg(ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;)
 
   object test extends JavaTests with TestModule.Junit4
 }
@@ -1291,15 +1291,15 @@ object foo extends MyModule {
 
   def generatedSources = Task {
     os.write(
-      Task.dest / "Version.java",
-      s"""
+      Task.dest / &quot;Version.java&quot;,
+      s&quot;&quot;&quot;
 package foo;
 public class Version {
     public static String value() {
-        return "${publishVersion()}";
+        return &quot;${publishVersion()}&quot;;
     }
 }
-      """.stripMargin
+      &quot;&quot;&quot;.stripMargin
     )
     Seq(PathRef(Task.dest))
   }
@@ -1380,7 +1380,7 @@ Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
 ...
 
 &gt; mill show foo.assembly # mac/linux
-".../out/foo/assembly.dest/out.jar"
+&quot;.../out/foo/assembly.dest/out.jar&quot;
 
 &gt; ./out/foo/assembly.dest/out.jar # mac/linux
 foo version 0.0.1
@@ -1400,9 +1400,9 @@ Qux.value: 31337</code></pre>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

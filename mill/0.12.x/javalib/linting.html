@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Linting Java Projects :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/javalib/linting.html">
-    <link rel="prev" href="testing.html">
-    <link rel="next" href="publishing.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/javalib/linting.html" />
+    <link rel="prev" href="testing.html" />
+    <link rel="next" href="publishing.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -648,7 +649,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -668,7 +669,7 @@ codebases using the Mill build tool</p>
 <h2 id="_linting_with_errorprone"><a class="anchor" href="#_linting_with_errorprone"></a>Linting with ErrorProne</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="https://errorprone.info/index">Error Prone</a> augments the Java compiler&#8217;s type
+<p><a href="https://errorprone.info/index">Error Prone</a> augments the Java compiler’s type
 checker and detect common mistakes at compile time. Mill supports ErrorProne via
 <code>ErrorProneModule</code>: mix <code>ErrorProneModule</code> into your <code>JavaModule</code> and it will
 automatically run with every compilation.</p>
@@ -680,7 +681,7 @@ automatically run with every compilation.</p>
 import mill._, javalib._, errorprone._
 
 object `package` extends RootModule with JavaModule with ErrorProneModule {
-  def errorProneOptions = Seq("-XepAllErrorsAsWarnings")
+  def errorProneOptions = Seq(&quot;-XepAllErrorsAsWarnings&quot;)
 }</code></pre>
 </div>
 </div>
@@ -712,7 +713,7 @@ the <code>error-prone</code> compiler plugin automatically detects various kind 
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show errorProneOptions
 [
-  "-XepAllErrorsAsWarnings"
+  &quot;-XepAllErrorsAsWarnings&quot;
 ]
 
 &gt; ./mill compile
@@ -751,7 +752,7 @@ Find the list of versions and changlog at <a href="https://github.com/google/err
 <dt class="hdlist1"><code>def errorProneOptions: T[Seq[String]]</code></dt>
 <dd>
 <p> Options directly given to the <code>error-prone</code> processor.
-Those are documented as "flags" at <a href="https://errorprone.info/docs/flags" class="bare">https://errorprone.info/docs/flags</a></p>
+Those are documented as &quot;flags&quot; at <a href="https://errorprone.info/docs/flags" class="bare">https://errorprone.info/docs/flags</a></p>
 </dd>
 </dl>
 </div>
@@ -772,7 +773,7 @@ Those are documented as "flags" at <a href="https://errorprone.info/docs/flags" 
 import mill._, javalib._, checkstyle._
 
 object `package` extends RootModule with CheckstyleModule {
-  def checkstyleVersion = "9.3"
+  def checkstyleVersion = &quot;9.3&quot;
 }</code></pre>
 </div>
 </div>
@@ -878,7 +879,7 @@ object foo extends Module {
   trait MyModule extends JavaModule with CheckstyleModule {
 
     override def checkstyleConfig = Task {
-      api.PathRef(Task.workspace / "checkstyle-config.xml")
+      api.PathRef(Task.workspace / &quot;checkstyle-config.xml&quot;)
     }
   }
 }</code></pre>
@@ -945,8 +946,8 @@ object foo extends JavaModule with CheckstyleXsltModule {
     override def checkstyleXsltReports = Task {
       Set(
         CheckstyleXsltReport(
-          PathRef(millSourcePath / "checkstyle-no-frames.xml"),
-          PathRef(Task.dest / "checkstyle-no-frames.html"),
+          PathRef(millSourcePath / &quot;checkstyle-no-frames.xml&quot;),
+          PathRef(Task.dest / &quot;checkstyle-no-frames.html&quot;),
         )
       )
   }
@@ -981,7 +982,7 @@ object `package` extends RootModule with PalantirFormatModule</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">public class A {
 
     public static void main(String[] args) {
-    System.out.println("hello"); // indentation should be fixed
+    System.out.println(&quot;hello&quot;); // indentation should be fixed
     }
 }</code></pre>
 </div>
@@ -1020,7 +1021,7 @@ error: ...palantirformat aborted due to format error(s) (or invalid plugin setti
 <p>If entering the long fully-qualified module name
 <code>mill.javalib.palantirformat/</code> is tedious, you can add
 an <a href="../fundamentals/modules.html#_aliasing_external_modules" class="xref page">External Module Alias</a>
-to give it a shorter name that&#8217;s easier to type</p>
+to give it a shorter name that’s easier to type</p>
 </div>
 </div>
 </div>
@@ -1067,9 +1068,9 @@ the mill-mima documentation for more details:</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

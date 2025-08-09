@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Linting Scala Projects :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/scalalib/linting.html">
-    <link rel="prev" href="testing.html">
-    <link rel="next" href="publishing.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/scalalib/linting.html" />
+    <link rel="prev" href="testing.html" />
+    <link rel="next" href="publishing.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +653,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -723,10 +724,10 @@ shown below:</p>
 import mill.*, scalalib.*
 
 object `package` extends ScalaModule {
-  def scalaVersion = "2.13.11"
-  def compileMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.15")
-  def scalacPluginMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.15")
-  def scalacOptions = Seq("-P:acyclic:force")
+  def scalaVersion = &quot;2.13.11&quot;
+  def compileMvnDeps = Seq(mvn&quot;com.lihaoyi:::acyclic:0.3.15&quot;)
+  def scalacPluginMvnDeps = Seq(mvn&quot;com.lihaoyi:::acyclic:0.3.15&quot;)
+  def scalacOptions = Seq(&quot;-P:acyclic:force&quot;)
 }</code></pre>
 </div>
 </div>
@@ -737,7 +738,7 @@ object `package` extends ScalaModule {
 object Foo {
   val value = 123
   def main(args: Array[String]): Unit = {
-    println("hello " + Bar)
+    println(&quot;hello &quot; + Bar)
   }
 }</code></pre>
 </div>
@@ -747,7 +748,7 @@ object Foo {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 object Bar {
-  val value = Foo + " world"
+  val value = Foo + &quot; world&quot;
 }</code></pre>
 </div>
 </div>
@@ -760,11 +761,11 @@ object Bar {
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill compile
 error: Unwanted cyclic dependency
 ...src/Bar.scala...
-  val value = Foo + " world"
+  val value = Foo + &quot; world&quot;
               ^
 symbol: object Foo
 ...src/Foo.scala...
-    println("hello " + Bar)
+    println(&quot;hello &quot; + Bar)
                        ^
 symbol: object Bar</code></pre>
 </div>
@@ -794,7 +795,7 @@ done compiling</code></pre>
 import mill.*, scalalib.*
 
 object `package` extends ScalaModule {
-  def scalaVersion = "3.7.1"
+  def scalaVersion = &quot;3.7.1&quot;
 }</code></pre>
 </div>
 </div>
@@ -802,15 +803,15 @@ object `package` extends ScalaModule {
 <div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/scalalib/linting/1-scalafmt/.scalafmt.conf">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala"># Newer versions won't work with Java 8!
-version = "3.7.15"
+version = &quot;3.7.15&quot;
 runner.dialect = scala213</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Mill supports code formatting via <a href="https://scalameta.org/scalafmt/">scalafmt</a> out of the box.
-You can reformat your project&#8217;s code globally with <code>mill mill.scalalib.scalafmt/</code> command,
+You can reformat your project’s code globally with <code>mill mill.scalalib.scalafmt/</code> command,
 specific modules via <code>mill mill.scalalib.scalafmt/ '{foo,bar}.sources</code>
-or only check the code&#8217;s format with <code>+mill mill.scalalib.scalafmt/checkFormatAll</code>.
+or only check the code’s format with <code>+mill mill.scalalib.scalafmt/checkFormatAll</code>.
 By default, ScalaFmt checks for a <code>.scalafmt.conf</code> file at the root of repository.</p>
 </div>
 <div class="listingblock">
@@ -822,7 +823,7 @@ def main(args:
 Array[String
 ]
 ):Unit=
-{println("hello world")
+{println(&quot;hello world&quot;)
 }
 }
 
@@ -835,7 +836,7 @@ error: ...Found 1 misformatted files
 &gt; cat src/Foo.scala
 package foo
 object Foo {
-  def main(args: Array[String]): Unit = { println("hello world") }
+  def main(args: Array[String]): Unit = { println(&quot;hello world&quot;) }
 }
 
 &gt; ./mill mill.scalalib.scalafmt/checkFormatAll
@@ -847,7 +848,7 @@ Everything is formatted already</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo "maxColumn: 50" &gt;&gt; .scalafmt.conf
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo &quot;maxColumn: 50&quot; &gt;&gt; .scalafmt.conf
 
 &gt; ./mill mill.scalalib.scalafmt/
 
@@ -855,7 +856,7 @@ Everything is formatted already</code></pre>
 package foo
 object Foo {
   def main(args: Array[String]): Unit = {
-    println("hello world")
+    println(&quot;hello world&quot;)
   }
 }</code></pre>
 </div>
@@ -864,7 +865,7 @@ object Foo {
 <p>If entering the long fully-qualified module name <code>mill.scalalib.scalafmt/</code>
 is tedious, you can add
 an <a href="../fundamentals/modules.html#_aliasing_external_modules" class="xref page">External Module Alias</a>
-to give it a shorter name that&#8217;s easier to type</p>
+to give it a shorter name that’s easier to type</p>
 </div>
 </div>
 </div>
@@ -873,7 +874,7 @@ to give it a shorter name that&#8217;s easier to type</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>If your project has file groups each requiring different formatting,
-you may want to give Mill&#8217;s <a href="https://github.com/diffplug/spotless">Spotless</a> plugin a try.
+you may want to give Mill’s <a href="https://github.com/diffplug/spotless">Spotless</a> plugin a try.
 It supports formatting all files with a single command
 as opposed to using a different plugin/command for each group.</p>
 </div>
@@ -892,7 +893,7 @@ import mill.scalalib.CrossScalaModule
 import mill.javalib.spotless.SpotlessModule
 
 object `package` extends SpotlessModule {
-  object lib extends Cross[LibModule]("2.13.15", "3.7.0")
+  object lib extends Cross[LibModule](&quot;2.13.15&quot;, &quot;3.7.0&quot;)
   trait LibModule extends CrossScalaModule
 }</code></pre>
 </div>
@@ -909,7 +910,7 @@ public class A {
  * Some javadoc.
  */
 public static void main(String[] args) {
-System.out.println("A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.");
+System.out.println(&quot;A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.&quot;);
 UsedB.someMethod();
 UsedA.someMethod();
 }
@@ -936,14 +937,14 @@ case object T extends B
 <div class="listingblock">
 <div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/scalalib/linting/4-spotless/.scalafmt.conf">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">version = "3.8.5"
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">version = &quot;3.8.5&quot;
 runner.dialect = scala213</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">.scalafmt3.conf (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/scalalib/linting/4-spotless/.scalafmt3.conf">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">version = "3.8.5"
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">version = &quot;3.8.5&quot;
 runner.dialect = scala3</code></pre>
 </div>
 </div>
@@ -952,39 +953,39 @@ runner.dialect = scala3</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">[
   {
-    "includes": [
-      "glob:**.java"
+    &quot;includes&quot;: [
+      &quot;glob:**.java&quot;
     ],
-    "steps": [
+    &quot;steps&quot;: [
       {
-        "$type": "PalantirJavaFormat"
+        &quot;$type&quot;: &quot;PalantirJavaFormat&quot;
       }
     ]
   },
   {
-    "includes": [
-      "glob:**.scala"
+    &quot;includes&quot;: [
+      &quot;glob:**.scala&quot;
     ],
-    "excludes": [
-      "glob:**/src-3**"
+    &quot;excludes&quot;: [
+      &quot;glob:**/src-3**&quot;
     ],
-    "steps": [
+    &quot;steps&quot;: [
       {
-        "$type": "ScalaFmt",
-        "version": "3.8.5"
+        &quot;$type&quot;: &quot;ScalaFmt&quot;,
+        &quot;version&quot;: &quot;3.8.5&quot;
       }
     ]
   },
   {
-    "includes": [
-      "glob:**/src-3**",
-      "glob:build.mill"
+    &quot;includes&quot;: [
+      &quot;glob:**/src-3**&quot;,
+      &quot;glob:build.mill&quot;
     ],
-    "steps": [
+    &quot;steps&quot;: [
       {
-        "$type": "ScalaFmt",
-        "version": "3.8.5",
-        "configFile": ".scalafmt3.conf"
+        &quot;$type&quot;: &quot;ScalaFmt&quot;,
+        &quot;version&quot;: &quot;3.8.5&quot;,
+        &quot;configFile&quot;: &quot;.scalafmt3.conf&quot;
       }
     ]
   }
@@ -1009,7 +1010,7 @@ runner.dialect = scala3</code></pre>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -1018,11 +1019,11 @@ Most fields have default values and can be omitted in the JSON file.
 An example is the <code>ScalaFmt.configFile</code> field that references the <code>.scalafmt.conf</code> file.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -1031,11 +1032,11 @@ If no <code>.scalafmt.conf</code> file is provided, the default configuration fr
 Otherwise, you must also specify the <code>ScalaFmt.version</code> field in the JSON file.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -1044,7 +1045,7 @@ as <code>.mill</code> files use Scala 3 syntax, we need the <code>.scalafmt.conf
 configure ScalaFmt to use Scala 3 compatible formatting
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>Next, we run the inherited <code>spotless</code> command to check/apply the format specifications.</p>
@@ -1085,7 +1086,7 @@ formatted 4 files
 </div>
 <div class="admonitionblock tip">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-tip" title="Tip"></i>
 </td>
@@ -1094,7 +1095,7 @@ As shown, for a multi-module project, it is sufficient to extend <code>SpotlessM
 build root module and define a format specification for each use-case.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>You can also run <code>spotless</code> <a href="../fundamentals/modules.html#_external_modules" class="xref page">globally</a>
@@ -1141,7 +1142,7 @@ public class A {
  * Some javadoc.
  */
 public static void main(String[] args) {
-System.out.println("A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.");
+System.out.println(&quot;A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.&quot;);
 UsedB.someMethod();
 UsedA.someMethod();
 }
@@ -1153,7 +1154,7 @@ UsedA.someMethod();
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -1162,13 +1163,13 @@ Since no <code>.spotless-formats.json</code> file is present, a default list of 
 The default is meant for use cases where some basic formatting is sufficient.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init . -b main
 &gt; git add .gitignore build.mill src/A.java
-&gt; git commit -a -m "1"</code></pre>
+&gt; git commit -a -m &quot;1&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1176,7 +1177,7 @@ The default is meant for use cases where some basic formatting is sufficient.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo " module hello {}" &gt; src/module-info.java  # content has leading space at start
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo &quot; module hello {}&quot; &gt; src/module-info.java  # content has leading space at start
 
 &gt; ./mill spotless --check
 format errors in build.mill
@@ -1215,7 +1216,7 @@ formatted 1 files</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git add src/module-info.java        # stage and
-&gt; git commit -a -m "2"                # commit changes
+&gt; git commit -a -m &quot;2&quot;                # commit changes
 
 &gt; ./mill ratchet --check HEAD^ HEAD   # format changes between last 2 commits
 ratchet found changes in 1 files
@@ -1224,7 +1225,7 @@ ratchet found changes in 1 files
 </div>
 <div class="admonitionblock caution">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-caution" title="Caution"></i>
 </td>
@@ -1233,7 +1234,7 @@ CI actions may require additional
 <a href="https://github.com/diffplug/spotless/tree/main/plugin-gradle#using-ratchetfrom-on-ci-systems">setup</a>.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>The <code>ratchet</code> command is also available globally.</p>
@@ -1263,16 +1264,16 @@ import mill.*, scalalib.*
 import mill.contrib.scoverage.*
 
 object `package` extends ScoverageModule {
-  def scoverageVersion = "2.1.0"
-  def scalaVersion = "3.7.1"
+  def scoverageVersion = &quot;2.1.0&quot;
+  def scalaVersion = &quot;3.7.1&quot;
   def mvnDeps = Seq(
-    mvn"com.lihaoyi::scalatags:0.13.1",
-    mvn"com.lihaoyi::mainargs:0.7.6"
+    mvn&quot;com.lihaoyi::scalatags:0.13.1&quot;,
+    mvn&quot;com.lihaoyi::mainargs:0.7.6&quot;
   )
 
   object test extends ScoverageTests /*with TestModule.Utest */ {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
-    def testFramework = "utest.runner.Framework"
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.9&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
 </div>
@@ -1355,9 +1356,9 @@ the mill-mima documentation for more details:</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

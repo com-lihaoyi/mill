@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Installation :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/Scala_Installation_IDE_Support.html">
-    <link rel="prev" href="Intro_to_Mill.html">
-    <link rel="next" href="Getting_Started.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/Scala_Installation_IDE_Support.html" />
+    <link rel="prev" href="Intro_to_Mill.html" />
+    <link rel="next" href="Getting_Started.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -330,7 +331,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -360,7 +361,7 @@ If that version is not installed locally, it will be downloading for you.</p>
 <p>We plan to merge both script in the future.</p>
 </div>
 <div class="sect2">
-<h3 id="_mills_bootstrap_script_linuxos_x_only"><a class="anchor" href="#_mills_bootstrap_script_linuxos_x_only"></a>Mill&#8217;s Bootstrap Script (Linux/OS-X Only)</h3>
+<h3 id="_mills_bootstrap_script_linuxos_x_only"><a class="anchor" href="#_mills_bootstrap_script_linuxos_x_only"></a>Mill’s Bootstrap Script (Linux/OS-X Only)</h3>
 <div class="paragraph">
 <p>If you are using Mill in a codebase, you can commit the bootstrap launcher as a
 <code>./mill</code> script in the project folder:</p>
@@ -452,7 +453,7 @@ var, <code>.mill-version</code> file, <code>--mill-version</code> option) and ca
 <a href="https://github.com/com-lihaoyi/mill/releases/download/0.10.15/0.10.15-assembly">Github releases</a>, and save it as <code>mill.bat</code>.</p>
 </div>
 <div class="paragraph">
-<p>If you&#8217;re using <a href="https://scoop.sh">Scoop</a> you can install Mill via</p>
+<p>If you’re using <a href="https://scoop.sh">Scoop</a> you can install Mill via</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -463,7 +464,7 @@ var, <code>.mill-version</code> file, <code>--mill-version</code> option) and ca
 <div class="sect2">
 <h3 id="_wsl_msys2_cycgin_git_bash"><a class="anchor" href="#_wsl_msys2_cycgin_git_bash"></a>WSL / MSYS2 / Cycgin / Git-Bash</h3>
 <div class="paragraph">
-<p>Mill also works on "sh" environments on Windows (e.g.,
+<p>Mill also works on &quot;sh&quot; environments on Windows (e.g.,
 <a href="https://www.msys2.org">MSYS2</a>,
 <a href="https://www.cygwin.com">Cygwin</a>,
 <a href="https://gitforwindows.org">Git-Bash</a>,
@@ -482,7 +483,7 @@ section. Note that:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sed -i '0,/-cp &quot;\$0&quot;/{s/-cp &quot;\$0&quot;/-cp `cygpath -w &quot;\$0&quot;`/}; 0,/-cp &quot;\$0&quot;/{s/-cp &quot;\$0&quot;/-cp `cygpath -w &quot;\$0&quot;`/}' /usr/local/bin/mill</code></pre>
 </div>
 </div>
 </div>
@@ -490,7 +491,7 @@ section. Note that:</p>
 <h3 id="_docker"><a class="anchor" href="#_docker"></a>Docker</h3>
 <div class="paragraph">
 <p>You can download and run
-a <a href="https://hub.docker.com/r/nightscape/scala-mill/">"Docker image containing OpenJDK, Scala and Mill"</a> using</p>
+a <a href="https://hub.docker.com/r/nightscape/scala-mill/">&quot;Docker image containing OpenJDK, Scala and Mill&quot;</a> using</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -502,12 +503,12 @@ docker run -it nightscape/scala-mill</code></pre>
 <div class="sect2">
 <h3 id="_manual"><a class="anchor" href="#_manual"></a>Manual</h3>
 <div class="paragraph">
-<p>To get started, download Mill and install it into your HOME ".local/bin" via the following
+<p>To get started, download Mill and install it into your HOME &quot;.local/bin&quot; via the following
 <code>curl</code>/<code>chmod</code> command:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sh -c "curl -L https://github.com/com-lihaoyi/mill/releases/download/0.10.15/0.10.15 &gt; ~/.local/bin/mill &amp;&amp; chmod +x ~/.local/bin/mill"</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sh -c &quot;curl -L https://github.com/com-lihaoyi/mill/releases/download/0.10.15/0.10.15 &gt; ~/.local/bin/mill &amp;&amp; chmod +x ~/.local/bin/mill&quot;</code></pre>
 </div>
 </div>
 </div>
@@ -524,7 +525,7 @@ interactive mode.</p>
 <h2 id="_updating_mill"><a class="anchor" href="#_updating_mill"></a>Updating Mill</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>If you have installed Mill via the recommended <a href="#_bootstrap_scripts"><code>Bootstrap Script</code></a> method, you don&#8217;t need to install multiple version of Mill explicitly.</p>
+<p>If you have installed Mill via the recommended <a href="#_bootstrap_scripts"><code>Bootstrap Script</code></a> method, you don’t need to install multiple version of Mill explicitly.</p>
 </div>
 <div class="paragraph">
 <p>Follow the next <a href="#_overriding_mill_versions">Overriding Mill Versions</a> section for details.</p>
@@ -546,7 +547,7 @@ interactive mode.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>echo "0.5.0" &gt; .mill-version</pre>
+<pre>echo &quot;0.5.0&quot; &gt; .mill-version</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -583,7 +584,7 @@ interactive mode.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-tip" title="Tip"></i>
 </td>
@@ -591,7 +592,7 @@ interactive mode.</p>
 Scala Steward can also <a href="Configuration.html#_keeping_up_to_date_with_scala_steward" class="xref page">scan your project dependencies</a> and keep them up-to-date.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 <div class="sect2">
@@ -618,9 +619,9 @@ are
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

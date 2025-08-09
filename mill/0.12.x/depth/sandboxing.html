@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Mill Sandboxing :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/depth/sandboxing.html">
-    <link rel="prev" href="process-architecture.html">
-    <link rel="next" href="design-principles.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/depth/sandboxing.html" />
+    <link rel="prev" href="process-architecture.html" />
+    <link rel="next" href="design-principles.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -648,7 +649,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -669,7 +670,7 @@ the filesystem operations of other tasks that may be occurring in parallel.</p>
 <div class="sect2">
 <h3 id="_task_dest"><a class="anchor" href="#_task_dest"></a><code>Task.dest</code></h3>
 <div class="paragraph">
-<p>The standard way of working with a task&#8217;s <code>.dest/</code> folder is through the <code>Task.dest</code>
+<p>The standard way of working with a task’s <code>.dest/</code> folder is through the <code>Task.dest</code>
 property. This is available within any task, and gives you access to the
 <code>out/&lt;module-names&gt;/&lt;task-name&gt;.dest/</code> folder to use. The <code>.dest/</code> folder for
 each task is lazily initialized when <code>Task.dest</code> is referenced and used:</p>
@@ -696,7 +697,7 @@ object foo extends Module {
 <h3 id="_task_os_pwd_redirection"><a class="anchor" href="#_task_os_pwd_redirection"></a>Task <code>os.pwd</code> redirection</h3>
 <div class="paragraph">
 <p>Mill also redirects the <code>os.pwd</code> property from <a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a>,
-such that that also points towards a running task&#8217;s own <code>.dest/</code> folder</p>
+such that that also points towards a running task’s own <code>.dest/</code> folder</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -717,7 +718,7 @@ its <code>os.getcwd()</code>, which is our <code>osProcTask.dest/</code> sandbox
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def osProcTask = Task {
-  println(os.call(("python3", "-c", "import os; print(os.getcwd())"), cwd = Task.dest).out.trim())
+  println(os.call((&quot;python3&quot;, &quot;-c&quot;, &quot;import os; print(os.getcwd())&quot;), cwd = Task.dest).out.trim())
 }</code></pre>
 </div>
 </div>
@@ -733,7 +734,7 @@ its <code>os.getcwd()</code>, which is our <code>osProcTask.dest/</code> sandbox
 <div class="paragraph">
 <p>Lastly, there is the possibily of calling <code>os.pwd</code> outside of a task. When outside of
 a task there is no <code>.dest/</code> folder associated, so instead Mill will redirect <code>os.pwd</code>
-towards an empty <code>sandbox/</code> folder in <code>out/mill-server/&#8230;&#8203;</code>:</p>
+towards an empty <code>sandbox/</code> folder in <code>out/mill-server/...​</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -749,13 +750,13 @@ def externalPwdTask = Task { println(externalPwd.toString) }</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_limitations_of_mills_sandboxing"><a class="anchor" href="#_limitations_of_mills_sandboxing"></a>Limitations of Mill&#8217;s Sandboxing</h3>
+<h3 id="_limitations_of_mills_sandboxing"><a class="anchor" href="#_limitations_of_mills_sandboxing"></a>Limitations of Mill’s Sandboxing</h3>
 <div class="paragraph">
-<p>Mill&#8217;s approach to filesystem sandboxing is designed to avoid accidental interference
+<p>Mill’s approach to filesystem sandboxing is designed to avoid accidental interference
 between different Mill tasks. It is not designed to block intentional misbehavior, and
 tasks are always able to traverse the filesystem and do whatever they want. Furthermore,
-Mill&#8217;s redirection of <code>os.pwd</code> does not apply to <code>java.io</code> or <code>java.nio</code> APIs, which are
-outside of Mill&#8217;s control.</p>
+Mill’s redirection of <code>os.pwd</code> does not apply to <code>java.io</code> or <code>java.nio</code> APIs, which are
+outside of Mill’s control.</p>
 </div>
 <div class="paragraph">
 <p>However, by setting <code>os.pwd</code> to safe sandbox folders, we hope to minimize the cases where
@@ -801,7 +802,7 @@ operations at the same time, writing out a <code>generated.html</code> file and 
 
 public class Foo {
   public static String generateHtml(String text) {
-    return "&lt;h1&gt;" + text + "&lt;/h1&gt;";
+    return &quot;&lt;h1&gt;&quot; + text + &quot;&lt;/h1&gt;&quot;;
   }
 }</code></pre>
 </div>
@@ -819,10 +820,10 @@ import org.junit.Test;
 public class FooTests {
   @Test
   public void simple() throws Exception {
-    String result = Foo.generateHtml("hello");
-    Path path = Paths.get("generated.html");
+    String result = Foo.generateHtml(&quot;hello&quot;);
+    Path path = Paths.get(&quot;generated.html&quot;);
     Files.write(path, result.getBytes());
-    assertEquals("&lt;h1&gt;hello&lt;/h1&gt;", Files.readString(path));
+    assertEquals(&quot;&lt;h1&gt;hello&lt;/h1&gt;&quot;, Files.readString(path));
   }
 }</code></pre>
 </div>
@@ -834,7 +835,7 @@ public class FooTests {
 
 public class Bar {
   public static String generateHtml(String text) {
-    return "&lt;p&gt;" + text + "&lt;/p&gt;";
+    return &quot;&lt;p&gt;&quot; + text + &quot;&lt;/p&gt;&quot;;
   }
 }</code></pre>
 </div>
@@ -852,10 +853,10 @@ import org.junit.Test;
 public class BarTests {
   @Test
   public void simple() throws Exception {
-    String result = Bar.generateHtml("world");
-    Path path = Paths.get("generated.html");
+    String result = Bar.generateHtml(&quot;world&quot;);
+    Path path = Paths.get(&quot;generated.html&quot;);
     Files.write(path, result.getBytes());
-    assertEquals("&lt;p&gt;world&lt;/p&gt;", Files.readString(path));
+    assertEquals(&quot;&lt;p&gt;world&lt;/p&gt;&quot;, Files.readString(path));
   }
 }</code></pre>
 </div>
@@ -870,12 +871,12 @@ public class BarTests {
 </div>
 <div class="paragraph">
 <p>Without sandboxing, due to the tests running in parallel, there is a race condition:
-it&#8217;s possible that <code>FooTests</code> may write the file, <code>BarTests</code> write over it, before
+it’s possible that <code>FooTests</code> may write the file, <code>BarTests</code> write over it, before
 <code>FooTests</code> reads the output from <code>BarTests</code>. That would cause non-deterministic
 flaky failures in your test suite that can be very difficult to debug and resolve.</p>
 </div>
 <div class="paragraph">
-<p>With Mill&#8217;s test sandboxing, each test runs in a separate folder: the <code>.dest</code> folder
+<p>With Mill’s test sandboxing, each test runs in a separate folder: the <code>.dest</code> folder
 of the respective task and module. For example:</p>
 </div>
 <div class="ulist">
@@ -889,7 +890,7 @@ of the respective task and module. For example:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>As a result, each test&#8217;s <code>generated.html</code> file is written to its own dedicated
+<p>As a result, each test’s <code>generated.html</code> file is written to its own dedicated
 working directory, without colliding with each other on disk:</p>
 </div>
 <div class="listingblock">
@@ -912,7 +913,7 @@ one another, which helps keep tests stable and deterministic even when run in
 parallel</p>
 </div>
 <div class="paragraph">
-<p>Like Mill&#8217;s Task sandboxing, Mill&#8217;s Test sandboxing does not guard against
+<p>Like Mill’s Task sandboxing, Mill’s Test sandboxing does not guard against
 intentional misbehavior: tests can still walk the filesystem from the
 sandbox folder via <code>..</code> or from the root folder <code>/</code> or home folder <code>~/</code>.
 Nevertheless, it should add some simple guardrails to prevent many common
@@ -925,7 +926,7 @@ quickly and reliably</p>
 <h2 id="_breaking_out_of_sandbox_folders"><a class="anchor" href="#_breaking_out_of_sandbox_folders"></a>Breaking Out Of Sandbox Folders</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill&#8217;s sandboxing approach is best effort: while it tries to guide you into using
+<p>Mill’s sandboxing approach is best effort: while it tries to guide you into using
 isolated sandbox folders, Mill cannot guarantee it, and in fact provides the
 <code>Task.workspace</code> property and <code>MILL_WORKSPACE_ROOT</code> environment variable to reference the
 project root folder for scenarios where you may need it. This can be useful for a variety
@@ -977,7 +978,7 @@ workspace root via the <code>MILL_WORKSPACE_ROOT</code> environment variable</p>
 
 public class Foo {
   public static String generateHtml(String text) {
-    return "&lt;h1&gt;" + text + "&lt;/h1&gt;";
+    return &quot;&lt;h1&gt;&quot; + text + &quot;&lt;/h1&gt;&quot;;
   }
 }</code></pre>
 </div>
@@ -996,13 +997,13 @@ import org.junit.Test;
 public class FooTests {
   @Test
   public void simple() throws Exception {
-    String workspaceRoot = System.getenv("MILL_WORKSPACE_ROOT");
+    String workspaceRoot = System.getenv(&quot;MILL_WORKSPACE_ROOT&quot;);
 
     for (Path subpath : Files.list(Paths.get(workspaceRoot)).collect(Collectors.toList())) {
       String result = Foo.generateHtml(subpath.getFileName().toString());
-      Path tmppath = Paths.get(subpath.getFileName() + ".html");
+      Path tmppath = Paths.get(subpath.getFileName() + &quot;.html&quot;);
       Files.write(tmppath, result.getBytes());
-      assertEquals("&lt;h1&gt;" + subpath.getFileName() + "&lt;/h1&gt;", Files.readString(tmppath));
+      assertEquals(&quot;&lt;h1&gt;&quot; + subpath.getFileName() + &quot;&lt;/h1&gt;&quot;, Files.readString(tmppath));
     }
   }
 }</code></pre>
@@ -1029,11 +1030,11 @@ public class FooTests {
 <h2 id="_limitations"><a class="anchor" href="#_limitations"></a>Limitations</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill&#8217;s approach to filesystem sandboxing is designed to avoid accidental interference
+<p>Mill’s approach to filesystem sandboxing is designed to avoid accidental interference
 between different Mill tasks. It is not designed to block intentional misbehavior, and
 tasks are always able to traverse the filesystem and do whatever they want. Furthermore,
-Mill&#8217;s redirection of <code>os.pwd</code> does not apply to <code>java.io</code> or <code>java.nio</code> APIs, which are
-outside of Mill&#8217;s control.</p>
+Mill’s redirection of <code>os.pwd</code> does not apply to <code>java.io</code> or <code>java.nio</code> APIs, which are
+outside of Mill’s control.</p>
 </div>
 <div class="paragraph">
 <p>However, by setting <code>os.pwd</code> to safe sandbox folders, we hope to minimize the cases where
@@ -1050,9 +1051,9 @@ someone accidentally causes issues with their build by doing the wrong thing.</p
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

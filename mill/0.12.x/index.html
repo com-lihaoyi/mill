@@ -1,19 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Mill: A Better JVM Build Tool :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/index.html">
-    <link rel="next" href="javalib/intro.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/index.html" />
+    <link rel="next" href="javalib/intro.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -44,7 +42,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -63,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -647,7 +648,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -658,8 +659,8 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc"><span class="image"><img src="https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=stable-version&amp;versionPrefix=0.12.14&amp;versionSuffix=0.12.14" alt="d"></span></a>
-<a href="https://central.sonatype.com/artifact/com.lihaoyi/mill-dist"><span class="image"><img src="https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=unstable-version&amp;versionPrefix=0.12." alt="Maven Central Version"></span></a></p>
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc"><span class="image"><img src="https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=stable-version&amp;versionPrefix=0.12.14&amp;versionSuffix=0.12.14" alt="d" /></span></a>
+<a href="https://central.sonatype.com/artifact/com.lihaoyi/mill-dist"><span class="image"><img src="https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=unstable-version&amp;versionPrefix=0.12." alt="Maven Central Version" /></span></a></p>
 </div>
 <div class="paragraph">
 <p>Mill is a JVM build tool that supports Java, Scala, and Kotlin:</p>
@@ -684,7 +685,7 @@ and are <a href="comparisons/why-mill.html#_extending_mill" class="xref page">ea
 <p>Although the Java compiler is very fast and the Java language is easy to learn,
 JVM build tools have a reputation for being sluggish and confusing. Mill tries to
 offer a better alternative, letting your build system take full advantage of the
-Java platform&#8217;s performance and usability.</p>
+Java platform’s performance and usability.</p>
 </div>
 <div class="paragraph">
 <p>If you prefer a video introduction to Mill, see:</p>
@@ -696,7 +697,7 @@ Java platform&#8217;s performance and usability.</p>
 GeeCon Krakow 16 May 2025</p>
 </li>
 <li>
-<p><a href="https://www.youtube.com/watch?v=fyf2AWUyq24">Video: Solving Scala&#8217;s Build Problem with the Mill Build Tool</a>, SF Scala Meetup 22 April 2025</p>
+<p><a href="https://www.youtube.com/watch?v=fyf2AWUyq24">Video: Solving Scala’s Build Problem with the Mill Build Tool</a>, SF Scala Meetup 22 April 2025</p>
 </li>
 </ul>
 </div>
@@ -713,8 +714,8 @@ codebase (built using Maven, Gradle, or SBT) to Mill, see:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
+<col style="width: 50%;" />
+<col style="width: 50%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -740,20 +741,20 @@ codebase (built using Maven, Gradle, or SBT) to Mill, see:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
+<col style="width: 33.3333%;" />
+<col style="width: 33.3333%;" />
+<col style="width: 33.3334%;" />
 </colgroup>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><a href="javalib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-java.svg" alt="java" width="32"></span> Java with Mill</a></p>
+<p><a href="javalib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-java.svg" alt="java" width="32" /></span> Java with Mill</a></p>
 </div></div></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><a href="scalalib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-scala.svg" alt="scala" width="20"></span> Scala with Mill</a></p>
+<p><a href="scalalib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-scala.svg" alt="scala" width="20" /></span> Scala with Mill</a></p>
 </div></div></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><a href="kotlinlib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-kotlin.svg" alt="kotlin" width="28"></span> Kotlin with Mill</a></p>
+<p><a href="kotlinlib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-kotlin.svg" alt="kotlin" width="28" /></span> Kotlin with Mill</a></p>
 </div></div></td>
 </tr>
 </tbody>
@@ -781,7 +782,7 @@ etc. This lets you focus on your actual project and spend less time
 fiddling with tooling and plugins.</p>
 </li>
 <li>
-<p><strong>Maintainability</strong>: Mill&#8217;s config and <a href="javalib/intro.html#_custom_build_logic" class="xref page">custom logic</a>
+<p><strong>Maintainability</strong>: Mill’s config and <a href="javalib/intro.html#_custom_build_logic" class="xref page">custom logic</a>
 is written in <a href="depth/why-scala.html" class="xref page">concise type-checked JVM code</a>,
 with an immutable <a href="depth/design-principles.html" class="xref page">module tree and task graph</a>. This
 catches configuration issues early, and helps both humans and IDEs
@@ -790,11 +791,11 @@ catches configuration issues early, and helps both humans and IDEs
 understand your Mill build better than any other build system</p>
 </li>
 <li>
-<p><strong>Flexibility</strong>: Mill&#8217;s tasks and modules allow anything from adding
+<p><strong>Flexibility</strong>: Mill’s tasks and modules allow anything from adding
 <a href="fundamentals/tasks.html#primitive-tasks" class="xref page">simple build steps</a>, up to
 entire <a href="extending/example-python-support.html" class="xref page">language toolchains</a>.
 You can <a href="extending/import-ivy-plugins.html" class="xref page">import any JVM library</a> in your build,
-use Mill&#8217;s rich ecosystem of <a href="extending/thirdparty-plugins.html" class="xref page">Third-Party Mill Plugins</a>,
+use Mill’s rich ecosystem of <a href="extending/thirdparty-plugins.html" class="xref page">Third-Party Mill Plugins</a>,
 or <a href="extending/writing-plugins.html" class="xref page">write plugins yourself</a> and
 publish them to Maven Central for others to use.</p>
 </li>
@@ -829,20 +830,20 @@ build tools, check out these pages:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
+<col style="width: 33.3333%;" />
+<col style="width: 33.3333%;" />
+<col style="width: 33.3334%;" />
 </colgroup>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><a href="comparisons/maven.html" class="xref page"><span class="image"><img src="_images/index/maven.png" alt="maven" width="24"></span> Mill vs Maven</a></p>
+<p><a href="comparisons/maven.html" class="xref page"><span class="image"><img src="_images/index/maven.png" alt="maven" width="24" /></span> Mill vs Maven</a></p>
 </div></div></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><a href="comparisons/gradle.html" class="xref page"><span class="image"><img src="_images/index/gradle.svg" alt="gradle" width="32"></span> Mill vs Gradle</a></p>
+<p><a href="comparisons/gradle.html" class="xref page"><span class="image"><img src="_images/index/gradle.svg" alt="gradle" width="32" /></span> Mill vs Gradle</a></p>
 </div></div></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><a href="comparisons/sbt.html" class="xref page"><span class="image"><img src="_images/index/sbt.png" alt="sbt" width="32"></span> Mill vs <code>sbt</code></a></p>
+<p><a href="comparisons/sbt.html" class="xref page"><span class="image"><img src="_images/index/sbt.png" alt="sbt" width="32" /></span> Mill vs <code>sbt</code></a></p>
 </div></div></td>
 </tr>
 </tbody>
@@ -858,8 +859,8 @@ below links to the relevant part of the documentation and examples for each tool
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
+<col style="width: 50%;" />
+<col style="width: 50%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -1055,9 +1056,9 @@ with details on what you need and we can make an arrangement.</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Modules :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/modules.html">
-    <link rel="prev" href="tasks.html">
-    <link rel="next" href="out-dir.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/modules.html" />
+    <link rel="prev" href="tasks.html" />
+    <link rel="next" href="out-dir.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -648,7 +649,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -674,7 +675,7 @@ of related <code>Task</code>s and sub-<code>Module</code>s while allowing custom
 </ol>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s comes with built in modules such as <code>mill.scalalib.ScalaModule</code> and
+<p>Mill’s comes with built in modules such as <code>mill.scalalib.ScalaModule</code> and
 <code>mill.scalalib.CrossSbtModule</code>, but you can also define your own modules to do
 things that are not built-in to Mill.</p>
 </div>
@@ -695,73 +696,72 @@ for the following <code>build.mill</code>:</p>
 import mill._
 
 object foo extends Module {
-  def bar = Task { "hello" }
+  def bar = Task { &quot;hello&quot; }
   object qux extends Module {
-    def baz = Task { "world" }
+    def baz = Task { &quot;world&quot; }
   }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <center>
-<svg width="153px" height="215px"
- viewBox="0.00 0.00 153.06 215.20" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="153px" height="215px" viewBox="0.00 0.00 153.06 215.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 211.2)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-211.2 149.06,-211.2 149.06,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-211.2 149.06,-211.2 149.06,4 -4,4"></polygon>
 <!-- root&#45;module -->
 <g id="node1" class="node">
-<title>root&#45;module</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="121.75,-207.1 36.34,-207.1 36.34,-182.5 121.75,-182.5 121.75,-207.1"/>
-<text text-anchor="middle" x="79.04" y="-190.6" font-family="Times,serif" font-size="14.00">root&#45;module</text>
+<title>root-module</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="121.75,-207.1 36.34,-207.1 36.34,-182.5 121.75,-182.5 121.75,-207.1"></polygon>
+<text text-anchor="middle" x="79.04" y="-190.6" font-family="Times,serif" font-size="14.00">root-module</text>
 </g>
 <!-- foo -->
 <g id="node2" class="node">
 <title>foo</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="96.21,-146.3 61.88,-146.3 61.88,-121.7 96.21,-121.7 96.21,-146.3"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="96.21,-146.3 61.88,-146.3 61.88,-121.7 96.21,-121.7 96.21,-146.3"></polygon>
 <text text-anchor="middle" x="79.04" y="-129.8" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
 <!-- root&#45;module&#45;&gt;foo -->
 <g id="edge1" class="edge">
-<title>root&#45;module&#45;&gt;foo</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M79.04,-182.46C79.04,-175.06 79.04,-165.16 79.04,-156.32"/>
-<polygon fill="black" stroke="black" points="82.54,-156.3 79.04,-146.3 75.54,-156.3 82.54,-156.3"/>
+<title>root-module-&gt;foo</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M79.04,-182.46C79.04,-175.06 79.04,-165.16 79.04,-156.32"></path>
+<polygon fill="black" stroke="black" points="82.54,-156.3 79.04,-146.3 75.54,-156.3 82.54,-156.3"></polygon>
 </g>
 <!-- foo.qux -->
 <g id="node3" class="node">
 <title>foo.qux</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="70.71,-85.5 11.38,-85.5 11.38,-60.9 70.71,-60.9 70.71,-85.5"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="70.71,-85.5 11.38,-85.5 11.38,-60.9 70.71,-60.9 70.71,-85.5"></polygon>
 <text text-anchor="middle" x="41.04" y="-69" font-family="Times,serif" font-size="14.00">foo.qux</text>
 </g>
 <!-- foo&#45;&gt;foo.qux -->
 <g id="edge2" class="edge">
-<title>foo&#45;&gt;foo.qux</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M71.72,-121.66C66.67,-113.85 59.83,-103.27 53.89,-94.08"/>
-<polygon fill="black" stroke="black" points="56.72,-92 48.35,-85.5 50.84,-95.8 56.72,-92"/>
+<title>foo-&gt;foo.qux</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M71.72,-121.66C66.67,-113.85 59.83,-103.27 53.89,-94.08"></path>
+<polygon fill="black" stroke="black" points="56.72,-92 48.35,-85.5 50.84,-95.8 56.72,-92"></polygon>
 </g>
 <!-- foo.bar -->
 <g id="node5" class="node">
 <title>foo.bar</title>
-<polygon fill="white" stroke="black" points="145.08,-85.5 89.01,-85.5 89.01,-60.9 145.08,-60.9 145.08,-85.5"/>
+<polygon fill="white" stroke="black" points="145.08,-85.5 89.01,-85.5 89.01,-60.9 145.08,-60.9 145.08,-85.5"></polygon>
 <text text-anchor="middle" x="117.04" y="-69" font-family="Times,serif" font-size="14.00">foo.bar</text>
 </g>
 <!-- foo&#45;&gt;foo.bar -->
 <g id="edge4" class="edge">
-<title>foo&#45;&gt;foo.bar</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M86.37,-121.66C91.42,-113.85 98.26,-103.27 104.2,-94.08"/>
-<polygon fill="black" stroke="black" points="107.25,-95.8 109.74,-85.5 101.37,-92 107.25,-95.8"/>
+<title>foo-&gt;foo.bar</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M86.37,-121.66C91.42,-113.85 98.26,-103.27 104.2,-94.08"></path>
+<polygon fill="black" stroke="black" points="107.25,-95.8 109.74,-85.5 101.37,-92 107.25,-95.8"></polygon>
 </g>
 <!-- foo.qux.baz -->
 <g id="node4" class="node">
 <title>foo.qux.baz</title>
-<polygon fill="white" stroke="black" points="82.13,-24.7 -0.04,-24.7 -0.04,-0.1 82.13,-0.1 82.13,-24.7"/>
+<polygon fill="white" stroke="black" points="82.13,-24.7 -0.04,-24.7 -0.04,-0.1 82.13,-0.1 82.13,-24.7"></polygon>
 <text text-anchor="middle" x="41.04" y="-8.2" font-family="Times,serif" font-size="14.00">foo.qux.baz</text>
 </g>
 <!-- foo.qux&#45;&gt;foo.qux.baz -->
 <g id="edge3" class="edge">
-<title>foo.qux&#45;&gt;foo.qux.baz</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M41.04,-60.86C41.04,-53.46 41.04,-43.56 41.04,-34.72"/>
-<polygon fill="black" stroke="black" points="44.54,-34.7 41.04,-24.7 37.54,-34.7 44.54,-34.7"/>
+<title>foo.qux-&gt;foo.qux.baz</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M41.04,-60.86C41.04,-53.46 41.04,-43.56 41.04,-34.72"></path>
+<polygon fill="black" stroke="black" points="44.54,-34.7 41.04,-24.7 37.54,-34.7 44.54,-34.7"></polygon>
 </g>
 </g>
 </svg>
@@ -791,16 +791,16 @@ respectively.</p>
 &gt; ./mill foo.qux.baz
 
 &gt; ./mill show foo.bar
-"hello"
+&quot;hello&quot;
 
 &gt; ./mill show foo.qux.baz
-"world"
+&quot;world&quot;
 
 &gt; cat ./out/foo/bar.json # task output path follows module hierarchy
-..."value": "hello"...
+...&quot;value&quot;: &quot;hello&quot;...
 
 &gt; cat ./out/foo/qux/baz.json
-..."value": "world"...</code></pre>
+...&quot;value&quot;: &quot;world&quot;...</code></pre>
 </div>
 </div>
 </div>
@@ -819,16 +819,16 @@ adding additional <code>def</code>s, etc.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait FooModule extends Module {
   def bar: T[String] // required override
-  def qux = Task { bar() + " world" }
+  def qux = Task { bar() + &quot; world&quot; }
 }
 
 object foo1 extends FooModule {
-  def bar = "hello"
+  def bar = &quot;hello&quot;
   def qux = super.qux().toUpperCase // refer to overridden value via super
 }
 object foo2 extends FooModule {
-  def bar = "hi"
-  def baz = Task { qux() + " I am Cow" } // add a new `def`
+  def bar = &quot;hi&quot;
+  def baz = Task { qux() + &quot; I am Cow&quot; } // add a new `def`
 }</code></pre>
 </div>
 </div>
@@ -839,135 +839,134 @@ the task graph</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="522px" height="154px"
- viewBox="0.00 0.00 521.81 154.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="522px" height="154px" viewBox="0.00 0.00 521.81 154.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 150.4)">
 <title>G</title>
 <!-- root&#45;module -->
 <g id="node1" class="node">
-<title>root&#45;module</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="266.23,-146.3 180.81,-146.3 180.81,-121.7 266.23,-121.7 266.23,-146.3"/>
-<text text-anchor="middle" x="223.52" y="-129.8" font-family="Times,serif" font-size="14.00">root&#45;module</text>
+<title>root-module</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="266.23,-146.3 180.81,-146.3 180.81,-121.7 266.23,-121.7 266.23,-146.3"></polygon>
+<text text-anchor="middle" x="223.52" y="-129.8" font-family="Times,serif" font-size="14.00">root-module</text>
 </g>
 <!-- foo1 -->
 <g id="node2" class="node">
 <title>foo1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="203.18,-85.5 161.86,-85.5 161.86,-60.9 203.18,-60.9 203.18,-85.5"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="203.18,-85.5 161.86,-85.5 161.86,-60.9 203.18,-60.9 203.18,-85.5"></polygon>
 <text text-anchor="middle" x="182.52" y="-69" font-family="Times,serif" font-size="14.00">foo1</text>
 </g>
 <!-- root&#45;module&#45;&gt;foo1 -->
 <g id="edge1" class="edge">
-<title>root&#45;module&#45;&gt;foo1</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M215.61,-121.66C210.11,-113.77 202.63,-103.05 196.18,-93.79"/>
-<polygon fill="black" stroke="black" points="198.99,-91.7 190.4,-85.5 193.25,-95.71 198.99,-91.7"/>
+<title>root-module-&gt;foo1</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M215.61,-121.66C210.11,-113.77 202.63,-103.05 196.18,-93.79"></path>
+<polygon fill="black" stroke="black" points="198.99,-91.7 190.4,-85.5 193.25,-95.71 198.99,-91.7"></polygon>
 </g>
 <!-- foo2 -->
 <g id="node3" class="node">
 <title>foo2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.18,-85.5 335.86,-85.5 335.86,-60.9 377.18,-60.9 377.18,-85.5"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.18,-85.5 335.86,-85.5 335.86,-60.9 377.18,-60.9 377.18,-85.5"></polygon>
 <text text-anchor="middle" x="356.52" y="-69" font-family="Times,serif" font-size="14.00">foo2</text>
 </g>
 <!-- root&#45;module&#45;&gt;foo2 -->
 <g id="edge5" class="edge">
-<title>root&#45;module&#45;&gt;foo2</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M249.16,-121.66C271.22,-111.91 303.08,-97.83 326.36,-87.53"/>
-<polygon fill="black" stroke="black" points="328.02,-90.62 335.75,-83.38 325.19,-84.22 328.02,-90.62"/>
+<title>root-module-&gt;foo2</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M249.16,-121.66C271.22,-111.91 303.08,-97.83 326.36,-87.53"></path>
+<polygon fill="black" stroke="black" points="328.02,-90.62 335.75,-83.38 325.19,-84.22 328.02,-90.62"></polygon>
 </g>
 <!-- foo1.bar -->
 <g id="node4" class="node">
 <title>foo1.bar</title>
-<polygon fill="white" stroke="black" points="63.05,-24.7 -0.02,-24.7 -0.02,-0.1 63.05,-0.1 63.05,-24.7"/>
+<polygon fill="white" stroke="black" points="63.05,-24.7 -0.02,-24.7 -0.02,-0.1 63.05,-0.1 63.05,-24.7"></polygon>
 <text text-anchor="middle" x="31.52" y="-8.2" font-family="Times,serif" font-size="14.00">foo1.bar</text>
 </g>
 <!-- foo1&#45;&gt;foo1.bar -->
 <g id="edge2" class="edge">
-<title>foo1&#45;&gt;foo1.bar</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M161.84,-64.15C138.33,-54.99 99.42,-39.84 70.23,-28.48"/>
-<polygon fill="black" stroke="black" points="71.33,-25.15 60.74,-24.78 68.79,-31.67 71.33,-25.15"/>
+<title>foo1-&gt;foo1.bar</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M161.84,-64.15C138.33,-54.99 99.42,-39.84 70.23,-28.48"></path>
+<polygon fill="black" stroke="black" points="71.33,-25.15 60.74,-24.78 68.79,-31.67 71.33,-25.15"></polygon>
 </g>
 <!-- foo1.super.qux -->
 <g id="node5" class="node">
 <title>foo1.super.qux</title>
-<polygon fill="white" stroke="black" points="181.5,-24.7 81.54,-24.7 81.54,-0.1 181.5,-0.1 181.5,-24.7"/>
+<polygon fill="white" stroke="black" points="181.5,-24.7 81.54,-24.7 81.54,-0.1 181.5,-0.1 181.5,-24.7"></polygon>
 <text text-anchor="middle" x="131.52" y="-8.2" font-family="Times,serif" font-size="14.00">foo1.super.qux</text>
 </g>
 <!-- foo1&#45;&gt;foo1.super.qux -->
 <g id="edge3" class="edge">
-<title>foo1&#45;&gt;foo1.super.qux</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M172.68,-60.86C165.7,-52.81 156.15,-41.8 148.01,-32.42"/>
-<polygon fill="black" stroke="black" points="150.52,-29.96 141.32,-24.7 145.23,-34.55 150.52,-29.96"/>
+<title>foo1-&gt;foo1.super.qux</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M172.68,-60.86C165.7,-52.81 156.15,-41.8 148.01,-32.42"></path>
+<polygon fill="black" stroke="black" points="150.52,-29.96 141.32,-24.7 145.23,-34.55 150.52,-29.96"></polygon>
 </g>
 <!-- foo1.qux -->
 <g id="node6" class="node">
 <title>foo1.qux</title>
-<polygon fill="white" stroke="black" points="265.68,-24.7 199.36,-24.7 199.36,-0.1 265.68,-0.1 265.68,-24.7"/>
+<polygon fill="white" stroke="black" points="265.68,-24.7 199.36,-24.7 199.36,-0.1 265.68,-0.1 265.68,-24.7"></polygon>
 <text text-anchor="middle" x="232.52" y="-8.2" font-family="Times,serif" font-size="14.00">foo1.qux</text>
 </g>
 <!-- foo1&#45;&gt;foo1.qux -->
 <g id="edge4" class="edge">
-<title>foo1&#45;&gt;foo1.qux</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M192.16,-60.86C199.01,-52.81 208.36,-41.8 216.35,-32.42"/>
-<polygon fill="black" stroke="black" points="219.1,-34.59 222.91,-24.7 213.76,-30.05 219.1,-34.59"/>
+<title>foo1-&gt;foo1.qux</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M192.16,-60.86C199.01,-52.81 208.36,-41.8 216.35,-32.42"></path>
+<polygon fill="black" stroke="black" points="219.1,-34.59 222.91,-24.7 213.76,-30.05 219.1,-34.59"></polygon>
 </g>
 <!-- foo2.bar -->
 <g id="node7" class="node">
 <title>foo2.bar</title>
-<polygon fill="white" stroke="black" points="347.05,-24.7 283.98,-24.7 283.98,-0.1 347.05,-0.1 347.05,-24.7"/>
+<polygon fill="white" stroke="black" points="347.05,-24.7 283.98,-24.7 283.98,-0.1 347.05,-0.1 347.05,-24.7"></polygon>
 <text text-anchor="middle" x="315.52" y="-8.2" font-family="Times,serif" font-size="14.00">foo2.bar</text>
 </g>
 <!-- foo2&#45;&gt;foo2.bar -->
 <g id="edge6" class="edge">
-<title>foo2&#45;&gt;foo2.bar</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M348.61,-60.86C343.11,-52.97 335.63,-42.25 329.18,-32.99"/>
-<polygon fill="black" stroke="black" points="331.99,-30.9 323.4,-24.7 326.25,-34.91 331.99,-30.9"/>
+<title>foo2-&gt;foo2.bar</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M348.61,-60.86C343.11,-52.97 335.63,-42.25 329.18,-32.99"></path>
+<polygon fill="black" stroke="black" points="331.99,-30.9 323.4,-24.7 326.25,-34.91 331.99,-30.9"></polygon>
 </g>
 <!-- foo2.qux -->
 <g id="node8" class="node">
 <title>foo2.qux</title>
-<polygon fill="white" stroke="black" points="431.68,-24.7 365.36,-24.7 365.36,-0.1 431.68,-0.1 431.68,-24.7"/>
+<polygon fill="white" stroke="black" points="431.68,-24.7 365.36,-24.7 365.36,-0.1 431.68,-0.1 431.68,-24.7"></polygon>
 <text text-anchor="middle" x="398.52" y="-8.2" font-family="Times,serif" font-size="14.00">foo2.qux</text>
 </g>
 <!-- foo2&#45;&gt;foo2.qux -->
 <g id="edge7" class="edge">
-<title>foo2&#45;&gt;foo2.qux</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M364.62,-60.86C370.25,-52.97 377.91,-42.25 384.53,-32.99"/>
-<polygon fill="black" stroke="black" points="387.48,-34.87 390.44,-24.7 381.78,-30.81 387.48,-34.87"/>
+<title>foo2-&gt;foo2.qux</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M364.62,-60.86C370.25,-52.97 377.91,-42.25 384.53,-32.99"></path>
+<polygon fill="black" stroke="black" points="387.48,-34.87 390.44,-24.7 381.78,-30.81 387.48,-34.87"></polygon>
 </g>
 <!-- foo2.baz -->
 <g id="node9" class="node">
 <title>foo2.baz</title>
-<polygon fill="white" stroke="black" points="513.61,-24.7 449.43,-24.7 449.43,-0.1 513.61,-0.1 513.61,-24.7"/>
+<polygon fill="white" stroke="black" points="513.61,-24.7 449.43,-24.7 449.43,-0.1 513.61,-0.1 513.61,-24.7"></polygon>
 <text text-anchor="middle" x="481.52" y="-8.2" font-family="Times,serif" font-size="14.00">foo2.baz</text>
 </g>
 <!-- foo2&#45;&gt;foo2.baz -->
 <g id="edge8" class="edge">
-<title>foo2&#45;&gt;foo2.baz</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M377.44,-62.36C396.66,-53.32 425.47,-39.76 447.91,-29.21"/>
-<polygon fill="black" stroke="black" points="449.54,-32.31 457.09,-24.89 446.56,-25.98 449.54,-32.31"/>
+<title>foo2-&gt;foo2.baz</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M377.44,-62.36C396.66,-53.32 425.47,-39.76 447.91,-29.21"></path>
+<polygon fill="black" stroke="black" points="449.54,-32.31 457.09,-24.89 446.56,-25.98 449.54,-32.31"></polygon>
 </g>
 <!-- foo1.bar&#45;&gt;foo1.super.qux -->
 <g id="edge9" class="edge">
-<title>foo1.bar&#45;&gt;foo1.super.qux</title>
-<path fill="none" stroke="black" d="M63.16,-12.4C65.81,-12.4 68.45,-12.4 71.1,-12.4"/>
-<polygon fill="black" stroke="black" points="71.32,-15.9 81.32,-12.4 71.32,-8.9 71.32,-15.9"/>
+<title>foo1.bar-&gt;foo1.super.qux</title>
+<path fill="none" stroke="black" d="M63.16,-12.4C65.81,-12.4 68.45,-12.4 71.1,-12.4"></path>
+<polygon fill="black" stroke="black" points="71.32,-15.9 81.32,-12.4 71.32,-8.9 71.32,-15.9"></polygon>
 </g>
 <!-- foo1.super.qux&#45;&gt;foo1.qux -->
 <g id="edge10" class="edge">
-<title>foo1.super.qux&#45;&gt;foo1.qux</title>
-<path fill="none" stroke="black" d="M181.62,-12.4C184.08,-12.4 186.54,-12.4 189,-12.4"/>
-<polygon fill="black" stroke="black" points="189.12,-15.9 199.12,-12.4 189.12,-8.9 189.12,-15.9"/>
+<title>foo1.super.qux-&gt;foo1.qux</title>
+<path fill="none" stroke="black" d="M181.62,-12.4C184.08,-12.4 186.54,-12.4 189,-12.4"></path>
+<polygon fill="black" stroke="black" points="189.12,-15.9 199.12,-12.4 189.12,-8.9 189.12,-15.9"></polygon>
 </g>
 <!-- foo2.bar&#45;&gt;foo2.qux -->
 <g id="edge11" class="edge">
-<title>foo2.bar&#45;&gt;foo2.qux</title>
-<path fill="none" stroke="black" d="M347.29,-12.4C349.92,-12.4 352.54,-12.4 355.17,-12.4"/>
-<polygon fill="black" stroke="black" points="355.3,-15.9 365.3,-12.4 355.3,-8.9 355.3,-15.9"/>
+<title>foo2.bar-&gt;foo2.qux</title>
+<path fill="none" stroke="black" d="M347.29,-12.4C349.92,-12.4 352.54,-12.4 355.17,-12.4"></path>
+<polygon fill="black" stroke="black" points="355.3,-15.9 365.3,-12.4 355.3,-8.9 355.3,-15.9"></polygon>
 </g>
 <!-- foo2.qux&#45;&gt;foo2.baz -->
 <g id="edge12" class="edge">
-<title>foo2.qux&#45;&gt;foo2.baz</title>
-<path fill="none" stroke="black" d="M431.91,-12.4C434.36,-12.4 436.82,-12.4 439.27,-12.4"/>
-<polygon fill="black" stroke="black" points="439.35,-15.9 449.35,-12.4 439.35,-8.9 439.35,-15.9"/>
+<title>foo2.qux-&gt;foo2.baz</title>
+<path fill="none" stroke="black" d="M431.91,-12.4C434.36,-12.4 436.82,-12.4 439.27,-12.4"></path>
+<polygon fill="black" stroke="black" points="439.35,-15.9 449.35,-12.4 439.35,-8.9 439.35,-15.9"></polygon>
 </g>
 </g>
 </svg>
@@ -975,29 +974,29 @@ the task graph</p>
 </center>
 </div>
 <div class="paragraph">
-<p>Note that the <code>override</code> keyword is optional in mill, as is <code>T{&#8230;&#8203;}</code> wrapper.</p>
+<p>Note that the <code>override</code> keyword is optional in mill, as is <code>T{...​}</code> wrapper.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo1.bar
-"hello"
+&quot;hello&quot;
 
 &gt; ./mill show foo1.qux
-"HELLO WORLD"
+&quot;HELLO WORLD&quot;
 
 &gt; ./mill show foo2.bar
-"hi"
+&quot;hi&quot;
 
 &gt; ./mill show foo2.qux
-"hi world"
+&quot;hi world&quot;
 
 &gt; ./mill show foo2.baz
-"hi world I am Cow"</code></pre>
+&quot;hi world I am Cow&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The built-in <code>mill.scalalib</code> package uses this to define <code>ScalaModule</code>,
-<code>SbtModule</code> and <code>TestScalaModule</code>, etc. which contain a set of "standard"
+<code>SbtModule</code> and <code>TestScalaModule</code>, etc. which contain a set of &quot;standard&quot;
 operations such as <code>compile</code>, <code>jar</code> or <code>assembly</code> that you may expect from a
 typical Scala module.</p>
 </div>
@@ -1017,8 +1016,8 @@ module expects its input files to be on disk.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait MyModule extends Module {
-  def sources = Task.Source("sources")
-  def task = Task { "hello " + os.list(sources().path).map(os.read(_)).mkString(" ") }
+  def sources = Task.Source(&quot;sources&quot;)
+  def task = Task { &quot;hello &quot; + os.list(sources().path).map(os.read(_)).mkString(&quot; &quot;) }
 }
 
 object outer extends MyModule {
@@ -1028,100 +1027,99 @@ object outer extends MyModule {
 </div>
 <div class="paragraph">
 <center>
-<svg width="361px" height="215px"
- viewBox="0.00 0.00 360.66 215.20" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="361px" height="215px" viewBox="0.00 0.00 360.66 215.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 211.2)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-211.2 356.66,-211.2 356.66,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-211.2 356.66,-211.2 356.66,4 -4,4"></polygon>
 <!-- root&#45;module -->
 <g id="node1" class="node">
-<title>root&#45;module</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="186.83,-207.1 101.41,-207.1 101.41,-182.5 186.83,-182.5 186.83,-207.1"/>
-<text text-anchor="middle" x="144.12" y="-190.6" font-family="Times,serif" font-size="14.00">root&#45;module</text>
+<title>root-module</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="186.83,-207.1 101.41,-207.1 101.41,-182.5 186.83,-182.5 186.83,-207.1"></polygon>
+<text text-anchor="middle" x="144.12" y="-190.6" font-family="Times,serif" font-size="14.00">root-module</text>
 </g>
 <!-- outer -->
 <g id="node2" class="node">
 <title>outer</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="166.39,-146.3 121.86,-146.3 121.86,-121.7 166.39,-121.7 166.39,-146.3"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="166.39,-146.3 121.86,-146.3 121.86,-121.7 166.39,-121.7 166.39,-146.3"></polygon>
 <text text-anchor="middle" x="144.12" y="-129.8" font-family="Times,serif" font-size="14.00">outer</text>
 </g>
 <!-- root&#45;module&#45;&gt;outer -->
 <g id="edge3" class="edge">
-<title>root&#45;module&#45;&gt;outer</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M144.12,-182.46C144.12,-175.06 144.12,-165.16 144.12,-156.32"/>
-<polygon fill="black" stroke="black" points="147.62,-156.3 144.12,-146.3 140.62,-156.3 147.62,-156.3"/>
+<title>root-module-&gt;outer</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M144.12,-182.46C144.12,-175.06 144.12,-165.16 144.12,-156.32"></path>
+<polygon fill="black" stroke="black" points="147.62,-156.3 144.12,-146.3 140.62,-156.3 147.62,-156.3"></polygon>
 </g>
 <!-- outer.sources -->
 <g id="node3" class="node">
 <title>outer.sources</title>
-<polygon fill="white" stroke="black" points="90.37,-85.5 -0.12,-85.5 -0.12,-60.9 90.37,-60.9 90.37,-85.5"/>
+<polygon fill="white" stroke="black" points="90.37,-85.5 -0.12,-85.5 -0.12,-60.9 90.37,-60.9 90.37,-85.5"></polygon>
 <text text-anchor="middle" x="45.12" y="-69" font-family="Times,serif" font-size="14.00">outer.sources</text>
 </g>
 <!-- outer&#45;&gt;outer.sources -->
 <g id="edge7" class="edge">
-<title>outer&#45;&gt;outer.sources</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M125.03,-121.66C110.24,-112.88 89.54,-100.58 72.91,-90.7"/>
-<polygon fill="black" stroke="black" points="74.54,-87.6 64.15,-85.5 70.96,-93.62 74.54,-87.6"/>
+<title>outer-&gt;outer.sources</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M125.03,-121.66C110.24,-112.88 89.54,-100.58 72.91,-90.7"></path>
+<polygon fill="black" stroke="black" points="74.54,-87.6 64.15,-85.5 70.96,-93.62 74.54,-87.6"></polygon>
 </g>
 <!-- outer.task -->
 <g id="node4" class="node">
 <title>outer.task</title>
-<polygon fill="white" stroke="black" points="179.44,-85.5 108.81,-85.5 108.81,-60.9 179.44,-60.9 179.44,-85.5"/>
+<polygon fill="white" stroke="black" points="179.44,-85.5 108.81,-85.5 108.81,-60.9 179.44,-60.9 179.44,-85.5"></polygon>
 <text text-anchor="middle" x="144.12" y="-69" font-family="Times,serif" font-size="14.00">outer.task</text>
 </g>
 <!-- outer&#45;&gt;outer.task -->
 <g id="edge8" class="edge">
-<title>outer&#45;&gt;outer.task</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M144.12,-121.66C144.12,-114.26 144.12,-104.36 144.12,-95.52"/>
-<polygon fill="black" stroke="black" points="147.62,-95.5 144.12,-85.5 140.62,-95.5 147.62,-95.5"/>
+<title>outer-&gt;outer.task</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M144.12,-121.66C144.12,-114.26 144.12,-104.36 144.12,-95.52"></path>
+<polygon fill="black" stroke="black" points="147.62,-95.5 144.12,-85.5 140.62,-95.5 147.62,-95.5"></polygon>
 </g>
 <!-- outer.inner -->
 <g id="node7" class="node">
 <title>outer.inner</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="274.65,-85.5 197.59,-85.5 197.59,-60.9 274.65,-60.9 274.65,-85.5"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="274.65,-85.5 197.59,-85.5 197.59,-60.9 274.65,-60.9 274.65,-85.5"></polygon>
 <text text-anchor="middle" x="236.12" y="-69" font-family="Times,serif" font-size="14.00">outer.inner</text>
 </g>
 <!-- outer&#45;&gt;outer.inner -->
 <g id="edge4" class="edge">
-<title>outer&#45;&gt;outer.inner</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M161.86,-121.66C175.48,-112.96 194.49,-100.81 209.87,-90.98"/>
-<polygon fill="black" stroke="black" points="211.9,-93.84 218.44,-85.5 208.13,-87.94 211.9,-93.84"/>
+<title>outer-&gt;outer.inner</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M161.86,-121.66C175.48,-112.96 194.49,-100.81 209.87,-90.98"></path>
+<polygon fill="black" stroke="black" points="211.9,-93.84 218.44,-85.5 208.13,-87.94 211.9,-93.84"></polygon>
 </g>
 <!-- outer.sources&#45;&gt;outer.task -->
 <g id="edge1" class="edge">
-<title>outer.sources&#45;&gt;outer.task</title>
-<path fill="none" stroke="black" d="M90.37,-73.2C93,-73.2 95.64,-73.2 98.27,-73.2"/>
-<polygon fill="black" stroke="black" points="98.43,-76.7 108.43,-73.2 98.43,-69.7 98.43,-76.7"/>
+<title>outer.sources-&gt;outer.task</title>
+<path fill="none" stroke="black" d="M90.37,-73.2C93,-73.2 95.64,-73.2 98.27,-73.2"></path>
+<polygon fill="black" stroke="black" points="98.43,-76.7 108.43,-73.2 98.43,-69.7 98.43,-76.7"></polygon>
 </g>
 <!-- outer.inner.sources -->
 <g id="node5" class="node">
 <title>outer.inner.sources</title>
-<polygon fill="white" stroke="black" points="231.13,-24.7 109.11,-24.7 109.11,-0.1 231.13,-0.1 231.13,-24.7"/>
+<polygon fill="white" stroke="black" points="231.13,-24.7 109.11,-24.7 109.11,-0.1 231.13,-0.1 231.13,-24.7"></polygon>
 <text text-anchor="middle" x="170.12" y="-8.2" font-family="Times,serif" font-size="14.00">outer.inner.sources</text>
 </g>
 <!-- outer.inner.task -->
 <g id="node6" class="node">
 <title>outer.inner.task</title>
-<polygon fill="white" stroke="black" points="352.7,-24.7 249.54,-24.7 249.54,-0.1 352.7,-0.1 352.7,-24.7"/>
+<polygon fill="white" stroke="black" points="352.7,-24.7 249.54,-24.7 249.54,-0.1 352.7,-0.1 352.7,-24.7"></polygon>
 <text text-anchor="middle" x="301.12" y="-8.2" font-family="Times,serif" font-size="14.00">outer.inner.task</text>
 </g>
 <!-- outer.inner.sources&#45;&gt;outer.inner.task -->
 <g id="edge2" class="edge">
-<title>outer.inner.sources&#45;&gt;outer.inner.task</title>
-<path fill="none" stroke="black" d="M231.27,-12.4C233.94,-12.4 236.6,-12.4 239.27,-12.4"/>
-<polygon fill="black" stroke="black" points="239.55,-15.9 249.55,-12.4 239.55,-8.9 239.55,-15.9"/>
+<title>outer.inner.sources-&gt;outer.inner.task</title>
+<path fill="none" stroke="black" d="M231.27,-12.4C233.94,-12.4 236.6,-12.4 239.27,-12.4"></path>
+<polygon fill="black" stroke="black" points="239.55,-15.9 249.55,-12.4 239.55,-8.9 239.55,-15.9"></polygon>
 </g>
 <!-- outer.inner&#45;&gt;outer.inner.sources -->
 <g id="edge5" class="edge">
-<title>outer.inner&#45;&gt;outer.inner.sources</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M223.4,-60.86C214.08,-52.57 201.25,-41.13 190.52,-31.57"/>
-<polygon fill="black" stroke="black" points="192.6,-28.74 182.81,-24.7 187.95,-33.97 192.6,-28.74"/>
+<title>outer.inner-&gt;outer.inner.sources</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M223.4,-60.86C214.08,-52.57 201.25,-41.13 190.52,-31.57"></path>
+<polygon fill="black" stroke="black" points="192.6,-28.74 182.81,-24.7 187.95,-33.97 192.6,-28.74"></polygon>
 </g>
 <!-- outer.inner&#45;&gt;outer.inner.task -->
 <g id="edge6" class="edge">
-<title>outer.inner&#45;&gt;outer.inner.task</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M248.66,-60.86C257.83,-52.57 270.46,-41.13 281.04,-31.57"/>
-<polygon fill="black" stroke="black" points="283.56,-34.01 288.63,-24.7 278.86,-28.82 283.56,-34.01"/>
+<title>outer.inner-&gt;outer.inner.task</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M248.66,-60.86C257.83,-52.57 270.46,-41.13 281.04,-31.57"></path>
+<polygon fill="black" stroke="black" points="283.56,-34.01 288.63,-24.7 278.86,-28.82 283.56,-34.01"></polygon>
 </g>
 </g>
 </svg>
@@ -1143,23 +1141,23 @@ object outer extends MyModule {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show outer.task
-"hello contents of file inside outer/sources/"
+&quot;hello contents of file inside outer/sources/&quot;
 
 &gt; ./mill show outer.inner.task
-"hello contents of file inside outer/inner/sources/"</code></pre>
+&quot;hello contents of file inside outer/inner/sources/&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>You should use <code>millSourcePath</code> to set the source folders of your
-modules to match the build structure. In almost every case, a module&#8217;s source files
-live at some relative path within the module&#8217;s folder, and using <code>millSourcePath</code>
-ensures that the relative path to the module&#8217;s source files remains the same
+modules to match the build structure. In almost every case, a module’s source files
+live at some relative path within the module’s folder, and using <code>millSourcePath</code>
+ensures that the relative path to the module’s source files remains the same
 regardless of where your module lives in the build hierarchy.</p>
 </div>
 <div class="paragraph">
 <p>E.g. for <code>mill.scalalib.ScalaModule</code>, the Scala source code is assumed by
-default to be in <code>millSourcePath / "src"</code> while resources are automatically
-assumed to be in <code>millSourcePath / "resources"</code>.</p>
+default to be in <code>millSourcePath / &quot;src&quot;</code> while resources are automatically
+assumed to be in <code>millSourcePath / &quot;resources&quot;</code>.</p>
 </div>
 <div class="paragraph">
 <p>You can also override <code>millSourcePath</code>:</p>
@@ -1167,7 +1165,7 @@ assumed to be in <code>millSourcePath / "resources"</code>.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object outer2 extends MyModule {
-  def millSourcePath = super.millSourcePath / "nested"
+  def millSourcePath = super.millSourcePath / &quot;nested&quot;
   object inner extends MyModule
 }</code></pre>
 </div>
@@ -1175,19 +1173,19 @@ assumed to be in <code>millSourcePath / "resources"</code>.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show outer2.task
-"hello contents of file inside outer2/nested/sources/"
+&quot;hello contents of file inside outer2/nested/sources/&quot;
 
 &gt; ./mill show outer2.inner.task
-"hello contents of file inside outer2/nested/inner/sources/"</code></pre>
+&quot;hello contents of file inside outer2/nested/inner/sources/&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Any overrides propagate down to the module&#8217;s children: in the above example,
+<p>Any overrides propagate down to the module’s children: in the above example,
 <code>outer2</code> would have its <code>millSourcePath</code> be <code>outer2/nested/</code> while
 <code>outer.inner</code> would have its <code>millSourcePath</code> be <code>outer2/nested/inner/</code>.</p>
 </div>
 <div class="paragraph">
-<p>Note that <code>millSourcePath</code> is meant to be used for a module&#8217;s input source
+<p>Note that <code>millSourcePath</code> is meant to be used for a module’s input source
 files: source code, config files, library binaries, etc. Output is always in
 the <code>out/</code> folder and cannot be changed, e.g. even with the overridden
 <code>millSourcePath</code> the output paths are still the default <code>./out/outer2</code> and
@@ -1196,28 +1194,28 @@ the <code>out/</code> folder and cannot be changed, e.g. even with the overridde
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat ./out/outer2/task.json
-..."value": "hello contents of file inside outer2/nested/sources/"...
+...&quot;value&quot;: &quot;hello contents of file inside outer2/nested/sources/&quot;...
 
 &gt; cat ./out/outer2/inner/task.json
-..."value": "hello contents of file inside outer2/nested/inner/sources/"...</code></pre>
+...&quot;value&quot;: &quot;hello contents of file inside outer2/nested/inner/sources/&quot;...</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
 <strong><code>os.pwd</code> of the Mill process is set to an empty <code>sandbox/</code> folder by default.</strong>
-When defining a module&#8217;s source files, you should always use <code>millSourcePath</code> to ensure the
-paths defined are relative to the module&#8217;s root folder, so the module logic can continue
+When defining a module’s source files, you should always use <code>millSourcePath</code> to ensure the
+paths defined are relative to the module’s root folder, so the module logic can continue
 to work even if moved into a different subfolder. In the rare case where you need the
 Mill project root path, and you truly know what you are doing, you can call
 g`mill.api.WorkspaceRoot.workspaceRoot`.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 </div>
@@ -1234,18 +1232,18 @@ that depends on the original via <code>super</code>:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait Foo extends Module {
-  def sourceRoots = Task.Sources("src")
+  def sourceRoots = Task.Sources(&quot;src&quot;)
   def sourceContents = Task {
     sourceRoots()
       .flatMap(pref =&gt; os.walk(pref.path))
-      .filter(_.ext == "txt")
+      .filter(_.ext == &quot;txt&quot;)
       .sorted
       .map(os.read(_))
   }
 }
 
 trait Bar extends Foo {
-  def additionalSources = Task.Sources("src2")
+  def additionalSources = Task.Sources(&quot;src2&quot;)
   def sourceRoots = Task { super.sourceRoots() ++ additionalSources() }
 }
 
@@ -1254,52 +1252,51 @@ object bar extends Bar</code></pre>
 </div>
 <div class="paragraph">
 <center>
-<svg width="451px" height="76px"
- viewBox="0.00 0.00 450.67 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="451px" height="76px" viewBox="0.00 0.00 450.67 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 446.67,-71.8 446.67,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 446.67,-71.8 446.67,4 -4,4"></polygon>
 <!-- bar.sourceRoots.super -->
 <g id="node1" class="node">
 <title>bar.sourceRoots.super</title>
-<polygon fill="white" stroke="black" points="140.6,-67.7 -0.2,-67.7 -0.2,-43.1 140.6,-43.1 140.6,-67.7"/>
+<polygon fill="white" stroke="black" points="140.6,-67.7 -0.2,-67.7 -0.2,-43.1 140.6,-43.1 140.6,-67.7"></polygon>
 <text text-anchor="middle" x="70.2" y="-51.2" font-family="Times,serif" font-size="14.00">bar.sourceRoots.super</text>
 </g>
 <!-- bar.sourceRoots -->
 <g id="node2" class="node">
 <title>bar.sourceRoots</title>
-<polygon fill="white" stroke="black" points="282.77,-45.7 176.61,-45.7 176.61,-21.1 282.77,-21.1 282.77,-45.7"/>
+<polygon fill="white" stroke="black" points="282.77,-45.7 176.61,-45.7 176.61,-21.1 282.77,-21.1 282.77,-45.7"></polygon>
 <text text-anchor="middle" x="229.69" y="-29.2" font-family="Times,serif" font-size="14.00">bar.sourceRoots</text>
 </g>
 <!-- bar.sourceRoots.super&#45;&gt;bar.sourceRoots -->
 <g id="edge1" class="edge">
-<title>bar.sourceRoots.super&#45;&gt;bar.sourceRoots</title>
-<path fill="none" stroke="black" d="M140.74,-45.69C149.29,-44.49 157.99,-43.28 166.43,-42.1"/>
-<polygon fill="black" stroke="black" points="167.14,-45.53 176.56,-40.68 166.17,-38.6 167.14,-45.53"/>
+<title>bar.sourceRoots.super-&gt;bar.sourceRoots</title>
+<path fill="none" stroke="black" d="M140.74,-45.69C149.29,-44.49 157.99,-43.28 166.43,-42.1"></path>
+<polygon fill="black" stroke="black" points="167.14,-45.53 176.56,-40.68 166.17,-38.6 167.14,-45.53"></polygon>
 </g>
 <!-- bar.sourceContents -->
 <g id="node3" class="node">
 <title>bar.sourceContents</title>
-<polygon fill="white" stroke="black" points="442.51,-45.7 319.14,-45.7 319.14,-21.1 442.51,-21.1 442.51,-45.7"/>
+<polygon fill="white" stroke="black" points="442.51,-45.7 319.14,-45.7 319.14,-21.1 442.51,-21.1 442.51,-45.7"></polygon>
 <text text-anchor="middle" x="380.83" y="-29.2" font-family="Times,serif" font-size="14.00">bar.sourceContents</text>
 </g>
 <!-- bar.sourceRoots&#45;&gt;bar.sourceContents -->
 <g id="edge2" class="edge">
-<title>bar.sourceRoots&#45;&gt;bar.sourceContents</title>
-<path fill="none" stroke="black" d="M282.85,-33.4C291.24,-33.4 300.05,-33.4 308.8,-33.4"/>
-<polygon fill="black" stroke="black" points="309,-36.9 319,-33.4 309,-29.9 309,-36.9"/>
+<title>bar.sourceRoots-&gt;bar.sourceContents</title>
+<path fill="none" stroke="black" d="M282.85,-33.4C291.24,-33.4 300.05,-33.4 308.8,-33.4"></path>
+<polygon fill="black" stroke="black" points="309,-36.9 319,-33.4 309,-29.9 309,-36.9"></polygon>
 </g>
 <!-- bar.additionalSources -->
 <g id="node4" class="node">
 <title>bar.additionalSources</title>
-<polygon fill="white" stroke="black" points="138.88,-24.7 1.52,-24.7 1.52,-0.1 138.88,-0.1 138.88,-24.7"/>
+<polygon fill="white" stroke="black" points="138.88,-24.7 1.52,-24.7 1.52,-0.1 138.88,-0.1 138.88,-24.7"></polygon>
 <text text-anchor="middle" x="70.2" y="-8.2" font-family="Times,serif" font-size="14.00">bar.additionalSources</text>
 </g>
 <!-- bar.additionalSources&#45;&gt;bar.sourceRoots -->
 <g id="edge3" class="edge">
-<title>bar.additionalSources&#45;&gt;bar.sourceRoots</title>
-<path fill="none" stroke="black" d="M138.91,-21.43C147.99,-22.64 157.28,-23.88 166.27,-25.08"/>
-<polygon fill="black" stroke="black" points="165.89,-28.56 176.26,-26.41 166.81,-21.62 165.89,-28.56"/>
+<title>bar.additionalSources-&gt;bar.sourceRoots</title>
+<path fill="none" stroke="black" d="M138.91,-21.43C147.99,-22.64 157.28,-23.88 166.27,-25.08"></path>
+<polygon fill="black" stroke="black" points="165.89,-28.56 176.26,-26.41 166.81,-21.62 165.89,-28.56"></polygon>
 </g>
 </g>
 </svg>
@@ -1310,8 +1307,8 @@ object bar extends Bar</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar.sourceContents # includes both source folders
 [
-  "File Data From src/",
-  "File Data From src2/"
+  &quot;File Data From src/&quot;,
+  &quot;File Data From src2/&quot;
 ]</code></pre>
 </div>
 </div>
@@ -1332,13 +1329,13 @@ import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   def ivyDeps = Agg(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
   )
 
   object test extends JavaTests with TestModule.Junit4 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"com.google.guava:guava:33.3.0-jre"
+      ivy&quot;com.google.guava:guava:33.3.0-jre&quot;
     )
   }
 }</code></pre>
@@ -1405,7 +1402,7 @@ module hierarchy.</p>
 <h2 id="_use_case_diy_java_modules"><a class="anchor" href="#_use_case_diy_java_modules"></a>Use Case: DIY Java Modules</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This section puts together what we&#8217;ve learned about <code>Task</code>s and <code>Module</code>s
+<p>This section puts together what we’ve learned about <code>Task</code>s and <code>Module</code>s
 so far into a worked example: implementing our own minimal version of
 <code>mill.scalalib.JavaModule</code> from first principles.</p>
 </div>
@@ -1420,12 +1417,12 @@ trait DiyJavaModule extends Module {
   def mainClass: T[Option[String]] = None
 
   def upstream: T[Seq[PathRef]] = Task { Task.traverse(moduleDeps)(_.classPath)().flatten }
-  def sources = Task.Source("src")
+  def sources = Task.Source(&quot;src&quot;)
 
   def compile = Task {
     val allSources = os.walk(sources().path)
-    val cpFlag = Seq("-cp", upstream().map(_.path).mkString(":"))
-    os.proc("javac", cpFlag, allSources, "-d", Task.dest).call()
+    val cpFlag = Seq(&quot;-cp&quot;, upstream().map(_.path).mkString(&quot;:&quot;))
+    os.proc(&quot;javac&quot;, cpFlag, allSources, &quot;-d&quot;, Task.dest).call()
     PathRef(Task.dest)
   }
 
@@ -1434,11 +1431,11 @@ trait DiyJavaModule extends Module {
   def assembly = Task {
     for (cp &lt;- classPath()) os.copy(cp.path, Task.dest, mergeFolders = true)
 
-    val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
-    os.proc("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", ".")
+    val mainFlags = mainClass().toSeq.flatMap(Seq(&quot;-e&quot;, _))
+    os.proc(&quot;jar&quot;, &quot;-c&quot;, mainFlags, &quot;-f&quot;, Task.dest / &quot;assembly.jar&quot;, &quot;.&quot;)
       .call(cwd = Task.dest)
 
-    PathRef(Task.dest / "assembly.jar")
+    PathRef(Task.dest / &quot;assembly.jar&quot;)
   }
 }</code></pre>
 </div>
@@ -1450,85 +1447,84 @@ needs to be inherited by a concrete <code>object</code> before it can be used.</
 </div>
 <div class="paragraph">
 <center>
-<svg width="410px" height="132px"
- viewBox="0.00 0.00 409.51 132.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="410px" height="132px" viewBox="0.00 0.00 409.51 132.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 128.0)">
 <title>G</title>
 <g id="clust1" class="cluster">
 <title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-116 393.51,-116 393.51,-8 8,-8"/>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-116 393.51,-116 393.51,-8 8,-8"></polygon>
 <text text-anchor="middle" x="200.75" y="-99.4" font-family="Times,serif" font-size="14.00">DiyJavaModule</text>
 </g>
 <!-- n0 -->
 <g id="node1" class="node">
 <title>n0</title>
-<polygon fill="white" stroke="transparent" points="45.49,-59.5 44.49,-59.5 44.49,-58.5 45.49,-58.5 45.49,-59.5"/>
+<polygon fill="white" stroke="transparent" points="45.49,-59.5 44.49,-59.5 44.49,-58.5 45.49,-58.5 45.49,-59.5"></polygon>
 </g>
 <!-- compile -->
 <g id="node2" class="node">
 <title>compile</title>
-<polygon fill="white" stroke="black" points="171.13,-40.3 109.93,-40.3 109.93,-15.7 171.13,-15.7 171.13,-40.3"/>
+<polygon fill="white" stroke="black" points="171.13,-40.3 109.93,-40.3 109.93,-15.7 171.13,-15.7 171.13,-40.3"></polygon>
 <text text-anchor="middle" x="140.53" y="-23.8" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
 <!-- n0&#45;&gt;compile -->
 <g id="edge1" class="edge">
-<title>n0&#45;&gt;compile</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M46.06,-58.98C47.61,-58.46 75.39,-49.26 100.26,-41.01"/>
-<polygon fill="black" stroke="black" points="101.55,-44.27 109.94,-37.8 99.35,-37.63 101.55,-44.27"/>
+<title>n0-&gt;compile</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M46.06,-58.98C47.61,-58.46 75.39,-49.26 100.26,-41.01"></path>
+<polygon fill="black" stroke="black" points="101.55,-44.27 109.94,-37.8 99.35,-37.63 101.55,-44.27"></polygon>
 </g>
 <!-- classPath -->
 <g id="node3" class="node">
 <title>classPath</title>
-<polygon fill="white" stroke="black" points="278.34,-40.3 210.15,-40.3 210.15,-15.7 278.34,-15.7 278.34,-40.3"/>
+<polygon fill="white" stroke="black" points="278.34,-40.3 210.15,-40.3 210.15,-15.7 278.34,-15.7 278.34,-40.3"></polygon>
 <text text-anchor="middle" x="244.24" y="-23.8" font-family="Times,serif" font-size="14.00">classPath</text>
 </g>
 <!-- n0&#45;&gt;classPath -->
 <g id="edge2" class="edge">
-<title>n0&#45;&gt;classPath</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M46.04,-59C48.18,-59 117.08,-58.91 171.08,-49 180.7,-47.23 190.87,-44.7 200.45,-42"/>
-<polygon fill="black" stroke="black" points="201.56,-45.33 210.17,-39.16 199.59,-38.61 201.56,-45.33"/>
+<title>n0-&gt;classPath</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M46.04,-59C48.18,-59 117.08,-58.91 171.08,-49 180.7,-47.23 190.87,-44.7 200.45,-42"></path>
+<polygon fill="black" stroke="black" points="201.56,-45.33 210.17,-39.16 199.59,-38.61 201.56,-45.33"></polygon>
 </g>
 <!-- compile&#45;&gt;classPath -->
 <g id="edge5" class="edge">
-<title>compile&#45;&gt;classPath</title>
-<path fill="none" stroke="black" d="M171.22,-28C180.18,-28 190.2,-28 199.86,-28"/>
-<polygon fill="black" stroke="black" points="200.12,-31.5 210.12,-28 200.12,-24.5 200.12,-31.5"/>
+<title>compile-&gt;classPath</title>
+<path fill="none" stroke="black" d="M171.22,-28C180.18,-28 190.2,-28 199.86,-28"></path>
+<polygon fill="black" stroke="black" points="200.12,-31.5 210.12,-28 200.12,-24.5 200.12,-31.5"></polygon>
 </g>
 <!-- assembly -->
 <g id="node5" class="node">
 <title>assembly</title>
-<polygon fill="white" stroke="black" points="385.56,-61.3 317.36,-61.3 317.36,-36.7 385.56,-36.7 385.56,-61.3"/>
+<polygon fill="white" stroke="black" points="385.56,-61.3 317.36,-61.3 317.36,-36.7 385.56,-36.7 385.56,-61.3"></polygon>
 <text text-anchor="middle" x="351.46" y="-44.8" font-family="Times,serif" font-size="14.00">assembly</text>
 </g>
 <!-- classPath&#45;&gt;assembly -->
 <g id="edge6" class="edge">
-<title>classPath&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M278.53,-34.64C287.74,-36.48 297.86,-38.5 307.53,-40.43"/>
-<polygon fill="black" stroke="black" points="306.89,-43.87 317.38,-42.4 308.26,-37.01 306.89,-43.87"/>
+<title>classPath-&gt;assembly</title>
+<path fill="none" stroke="black" d="M278.53,-34.64C287.74,-36.48 297.86,-38.5 307.53,-40.43"></path>
+<polygon fill="black" stroke="black" points="306.89,-43.87 317.38,-42.4 308.26,-37.01 306.89,-43.87"></polygon>
 </g>
 <!-- mainClass -->
 <g id="node4" class="node">
 <title>mainClass</title>
-<polygon fill="white" stroke="black" points="281.57,-83.3 206.92,-83.3 206.92,-58.7 281.57,-58.7 281.57,-83.3"/>
+<polygon fill="white" stroke="black" points="281.57,-83.3 206.92,-83.3 206.92,-58.7 281.57,-58.7 281.57,-83.3"></polygon>
 <text text-anchor="middle" x="244.24" y="-66.8" font-family="Times,serif" font-size="14.00">mainClass</text>
 </g>
 <!-- mainClass&#45;&gt;assembly -->
 <g id="edge3" class="edge">
-<title>mainClass&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M281.45,-63.43C289.83,-61.68 298.82,-59.8 307.45,-57.99"/>
-<polygon fill="black" stroke="black" points="308.29,-61.39 317.36,-55.92 306.86,-54.54 308.29,-61.39"/>
+<title>mainClass-&gt;assembly</title>
+<path fill="none" stroke="black" d="M281.45,-63.43C289.83,-61.68 298.82,-59.8 307.45,-57.99"></path>
+<polygon fill="black" stroke="black" points="308.29,-61.39 317.36,-55.92 306.86,-54.54 308.29,-61.39"></polygon>
 </g>
 <!-- sources -->
 <g id="node6" class="node">
 <title>sources</title>
-<polygon fill="white" stroke="black" points="73.97,-40.3 16.01,-40.3 16.01,-15.7 73.97,-15.7 73.97,-40.3"/>
+<polygon fill="white" stroke="black" points="73.97,-40.3 16.01,-40.3 16.01,-15.7 73.97,-15.7 73.97,-40.3"></polygon>
 <text text-anchor="middle" x="44.99" y="-23.8" font-family="Times,serif" font-size="14.00">sources</text>
 </g>
 <!-- sources&#45;&gt;compile -->
 <g id="edge4" class="edge">
-<title>sources&#45;&gt;compile</title>
-<path fill="none" stroke="black" d="M74.05,-28C82.09,-28 91,-28 99.61,-28"/>
-<polygon fill="black" stroke="black" points="99.86,-31.5 109.86,-28 99.86,-24.5 99.86,-31.5"/>
+<title>sources-&gt;compile</title>
+<path fill="none" stroke="black" d="M74.05,-28C82.09,-28 91,-28 99.61,-28"></path>
+<polygon fill="black" stroke="black" points="99.86,-31.5 109.86,-28 99.86,-24.5 99.86,-31.5"></polygon>
 </g>
 </g>
 </svg>
@@ -1556,7 +1552,7 @@ name for the jar of each module. Users can override it if they want, but
 having a default is very convenient</p>
 </li>
 <li>
-<p><code>def cpFlag</code> is not a task or task, it&#8217;s just a normal helper method.</p>
+<p><code>def cpFlag</code> is not a task or task, it’s just a normal helper method.</p>
 </li>
 </ul>
 </div>
@@ -1567,14 +1563,14 @@ having a default is very convenient</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends DiyJavaModule {
   def moduleDeps = Seq(bar)
-  def mainClass = Some("foo.Foo")
+  def mainClass = Some(&quot;foo.Foo&quot;)
 
   object bar extends DiyJavaModule
 }
 
 object qux extends DiyJavaModule {
   def moduleDeps = Seq(foo)
-  def mainClass = Some("qux.Qux")
+  def mainClass = Some(&quot;qux.Qux&quot;)
 }</code></pre>
 </div>
 </div>
@@ -1585,210 +1581,209 @@ according to our overrides for <code>moduleDeps</code></p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="847px" height="364px"
- viewBox="0.00 0.00 847.08 364.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="847px" height="364px" viewBox="0.00 0.00 847.08 364.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="157.76,-124 157.76,-232 698.19,-232 698.19,-124 157.76,-124"/>
-<text text-anchor="middle" x="427.98" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
-</g>
 <g id="clust3" class="cluster">
 <title>cluster_2</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="303.84,-8 303.84,-116 831.08,-116 831.08,-8 303.84,-8"/>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="303.84,-8 303.84,-116 831.08,-116 831.08,-8 303.84,-8"></polygon>
 <text text-anchor="middle" x="567.46" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="157.76,-124 157.76,-232 698.19,-232 698.19,-124 157.76,-124"></polygon>
+<text text-anchor="middle" x="427.98" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
 <g id="clust1" class="cluster">
 <title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 567.65,-348 567.65,-240 8,-240"/>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 567.65,-348 567.65,-240 8,-240"></polygon>
 <text text-anchor="middle" x="287.82" y="-331.4" font-family="Times,serif" font-size="14.00">foo.bar</text>
 </g>
 <!-- foo.bar.sources -->
 <g id="node1" class="node">
 <title>foo.bar.sources</title>
-<polygon fill="white" stroke="black" points="117.27,-272.3 16.24,-272.3 16.24,-247.7 117.27,-247.7 117.27,-272.3"/>
+<polygon fill="white" stroke="black" points="117.27,-272.3 16.24,-272.3 16.24,-247.7 117.27,-247.7 117.27,-272.3"></polygon>
 <text text-anchor="middle" x="66.76" y="-255.8" font-family="Times,serif" font-size="14.00">foo.bar.sources</text>
 </g>
 <!-- foo.bar.compile -->
 <g id="node2" class="node">
 <title>foo.bar.compile</title>
-<polygon fill="white" stroke="black" points="257.97,-272.3 153.7,-272.3 153.7,-247.7 257.97,-247.7 257.97,-272.3"/>
+<polygon fill="white" stroke="black" points="257.97,-272.3 153.7,-272.3 153.7,-247.7 257.97,-247.7 257.97,-272.3"></polygon>
 <text text-anchor="middle" x="205.83" y="-255.8" font-family="Times,serif" font-size="14.00">foo.bar.compile</text>
 </g>
 <!-- foo.bar.sources&#45;&gt;foo.bar.compile -->
 <g id="edge1" class="edge">
-<title>foo.bar.sources&#45;&gt;foo.bar.compile</title>
-<path fill="none" stroke="black" d="M117.63,-260C126,-260 134.76,-260 143.37,-260"/>
-<polygon fill="black" stroke="black" points="143.38,-263.5 153.38,-260 143.38,-256.5 143.38,-263.5"/>
+<title>foo.bar.sources-&gt;foo.bar.compile</title>
+<path fill="none" stroke="black" d="M117.63,-260C126,-260 134.76,-260 143.37,-260"></path>
+<polygon fill="black" stroke="black" points="143.38,-263.5 153.38,-260 143.38,-256.5 143.38,-263.5"></polygon>
 </g>
 <!-- foo.bar.classPath -->
 <g id="node5" class="node">
 <title>foo.bar.classPath</title>
-<polygon fill="white" stroke="black" points="408.72,-272.3 297.45,-272.3 297.45,-247.7 408.72,-247.7 408.72,-272.3"/>
+<polygon fill="white" stroke="black" points="408.72,-272.3 297.45,-272.3 297.45,-247.7 408.72,-247.7 408.72,-272.3"></polygon>
 <text text-anchor="middle" x="353.08" y="-255.8" font-family="Times,serif" font-size="14.00">foo.bar.classPath</text>
 </g>
 <!-- foo.bar.compile&#45;&gt;foo.bar.classPath -->
 <g id="edge2" class="edge">
-<title>foo.bar.compile&#45;&gt;foo.bar.classPath</title>
-<path fill="none" stroke="black" d="M258.04,-260C267.5,-260 277.49,-260 287.28,-260"/>
-<polygon fill="black" stroke="black" points="287.39,-263.5 297.39,-260 287.39,-256.5 287.39,-263.5"/>
+<title>foo.bar.compile-&gt;foo.bar.classPath</title>
+<path fill="none" stroke="black" d="M258.04,-260C267.5,-260 277.49,-260 287.28,-260"></path>
+<polygon fill="black" stroke="black" points="287.39,-263.5 297.39,-260 287.39,-256.5 287.39,-263.5"></polygon>
 </g>
 <!-- foo.bar.mainClass -->
 <g id="node3" class="node">
 <title>foo.bar.mainClass</title>
-<polygon fill="white" stroke="black" points="411.95,-315.3 294.22,-315.3 294.22,-290.7 411.95,-290.7 411.95,-315.3"/>
+<polygon fill="white" stroke="black" points="411.95,-315.3 294.22,-315.3 294.22,-290.7 411.95,-290.7 411.95,-315.3"></polygon>
 <text text-anchor="middle" x="353.08" y="-298.8" font-family="Times,serif" font-size="14.00">foo.bar.mainClass</text>
 </g>
 <!-- foo.bar.assembly -->
 <g id="node4" class="node">
 <title>foo.bar.assembly</title>
-<polygon fill="white" stroke="black" points="559.47,-293.3 448.2,-293.3 448.2,-268.7 559.47,-268.7 559.47,-293.3"/>
+<polygon fill="white" stroke="black" points="559.47,-293.3 448.2,-293.3 448.2,-268.7 559.47,-268.7 559.47,-293.3"></polygon>
 <text text-anchor="middle" x="503.83" y="-276.8" font-family="Times,serif" font-size="14.00">foo.bar.assembly</text>
 </g>
 <!-- foo.bar.mainClass&#45;&gt;foo.bar.assembly -->
 <g id="edge4" class="edge">
-<title>foo.bar.mainClass&#45;&gt;foo.bar.assembly</title>
-<path fill="none" stroke="black" d="M412.02,-294.43C420.46,-293.18 429.2,-291.89 437.78,-290.62"/>
-<polygon fill="black" stroke="black" points="438.35,-294.07 447.73,-289.15 437.33,-287.15 438.35,-294.07"/>
+<title>foo.bar.mainClass-&gt;foo.bar.assembly</title>
+<path fill="none" stroke="black" d="M412.02,-294.43C420.46,-293.18 429.2,-291.89 437.78,-290.62"></path>
+<polygon fill="black" stroke="black" points="438.35,-294.07 447.73,-289.15 437.33,-287.15 438.35,-294.07"></polygon>
 </g>
 <!-- foo.bar.classPath&#45;&gt;foo.bar.assembly -->
 <g id="edge3" class="edge">
-<title>foo.bar.classPath&#45;&gt;foo.bar.assembly</title>
-<path fill="none" stroke="black" d="M409.05,-267.76C418.51,-269.1 428.42,-270.49 438.11,-271.86"/>
-<polygon fill="black" stroke="black" points="437.7,-275.34 448.09,-273.27 438.68,-268.41 437.7,-275.34"/>
+<title>foo.bar.classPath-&gt;foo.bar.assembly</title>
+<path fill="none" stroke="black" d="M409.05,-267.76C418.51,-269.1 428.42,-270.49 438.11,-271.86"></path>
+<polygon fill="black" stroke="black" points="437.7,-275.34 448.09,-273.27 438.68,-268.41 437.7,-275.34"></polygon>
 </g>
 <!-- foo.compile -->
 <g id="node7" class="node">
 <title>foo.compile</title>
-<polygon fill="white" stroke="black" points="394.84,-156.3 311.32,-156.3 311.32,-131.7 394.84,-131.7 394.84,-156.3"/>
+<polygon fill="white" stroke="black" points="394.84,-156.3 311.32,-156.3 311.32,-131.7 394.84,-131.7 394.84,-156.3"></polygon>
 <text text-anchor="middle" x="353.08" y="-139.8" font-family="Times,serif" font-size="14.00">foo.compile</text>
 </g>
 <!-- foo.bar.classPath&#45;&gt;foo.compile -->
 <g id="edge5" class="edge">
-<title>foo.bar.classPath&#45;&gt;foo.compile</title>
-<path fill="none" stroke="black" d="M353.08,-247.49C353.08,-220.65 353.08,-193.81 353.08,-166.97"/>
-<polygon fill="black" stroke="black" points="356.58,-166.69 353.08,-156.69 349.58,-166.69 356.58,-166.69"/>
+<title>foo.bar.classPath-&gt;foo.compile</title>
+<path fill="none" stroke="black" d="M353.08,-247.49C353.08,-220.65 353.08,-193.81 353.08,-166.97"></path>
+<polygon fill="black" stroke="black" points="356.58,-166.69 353.08,-156.69 349.58,-166.69 356.58,-166.69"></polygon>
 </g>
 <!-- foo.classPath -->
 <g id="node10" class="node">
 <title>foo.classPath</title>
-<polygon fill="white" stroke="black" points="549.09,-156.3 458.57,-156.3 458.57,-131.7 549.09,-131.7 549.09,-156.3"/>
+<polygon fill="white" stroke="black" points="549.09,-156.3 458.57,-156.3 458.57,-131.7 549.09,-131.7 549.09,-156.3"></polygon>
 <text text-anchor="middle" x="503.83" y="-139.8" font-family="Times,serif" font-size="14.00">foo.classPath</text>
 </g>
 <!-- foo.bar.classPath&#45;&gt;foo.classPath -->
 <g id="edge11" class="edge">
-<title>foo.bar.classPath&#45;&gt;foo.classPath</title>
-<path fill="none" stroke="black" d="M394.61,-247.57C400.9,-244.46 406.97,-240.65 412.01,-236 437.75,-212.3 422.15,-189.56 448.01,-166 449.71,-164.46 451.52,-163.02 453.43,-161.67"/>
-<polygon fill="black" stroke="black" points="455.47,-164.53 462.23,-156.37 451.86,-158.53 455.47,-164.53"/>
+<title>foo.bar.classPath-&gt;foo.classPath</title>
+<path fill="none" stroke="black" d="M394.61,-247.57C400.9,-244.46 406.97,-240.65 412.01,-236 437.75,-212.3 422.15,-189.56 448.01,-166 449.71,-164.46 451.52,-163.02 453.43,-161.67"></path>
+<polygon fill="black" stroke="black" points="455.47,-164.53 462.23,-156.37 451.86,-158.53 455.47,-164.53"></polygon>
 </g>
 <!-- foo.sources -->
 <g id="node6" class="node">
 <title>foo.sources</title>
-<polygon fill="white" stroke="black" points="245.97,-156.3 165.69,-156.3 165.69,-131.7 245.97,-131.7 245.97,-156.3"/>
+<polygon fill="white" stroke="black" points="245.97,-156.3 165.69,-156.3 165.69,-131.7 245.97,-131.7 245.97,-156.3"></polygon>
 <text text-anchor="middle" x="205.83" y="-139.8" font-family="Times,serif" font-size="14.00">foo.sources</text>
 </g>
 <!-- foo.sources&#45;&gt;foo.compile -->
 <g id="edge6" class="edge">
-<title>foo.sources&#45;&gt;foo.compile</title>
-<path fill="none" stroke="black" d="M246.14,-144C263.07,-144 283.09,-144 301.15,-144"/>
-<polygon fill="black" stroke="black" points="301.22,-147.5 311.22,-144 301.22,-140.5 301.22,-147.5"/>
+<title>foo.sources-&gt;foo.compile</title>
+<path fill="none" stroke="black" d="M246.14,-144C263.07,-144 283.09,-144 301.15,-144"></path>
+<polygon fill="black" stroke="black" points="301.22,-147.5 311.22,-144 301.22,-140.5 301.22,-147.5"></polygon>
 </g>
 <!-- foo.compile&#45;&gt;foo.classPath -->
 <g id="edge7" class="edge">
-<title>foo.compile&#45;&gt;foo.classPath</title>
-<path fill="none" stroke="black" d="M394.73,-144C411.27,-144 430.63,-144 448.36,-144"/>
-<polygon fill="black" stroke="black" points="448.58,-147.5 458.58,-144 448.58,-140.5 448.58,-147.5"/>
+<title>foo.compile-&gt;foo.classPath</title>
+<path fill="none" stroke="black" d="M394.73,-144C411.27,-144 430.63,-144 448.36,-144"></path>
+<polygon fill="black" stroke="black" points="448.58,-147.5 458.58,-144 448.58,-140.5 448.58,-147.5"></polygon>
 </g>
 <!-- foo.mainClass -->
 <g id="node8" class="node">
 <title>foo.mainClass</title>
-<polygon fill="white" stroke="black" points="552.32,-199.3 455.34,-199.3 455.34,-174.7 552.32,-174.7 552.32,-199.3"/>
+<polygon fill="white" stroke="black" points="552.32,-199.3 455.34,-199.3 455.34,-174.7 552.32,-174.7 552.32,-199.3"></polygon>
 <text text-anchor="middle" x="503.83" y="-182.8" font-family="Times,serif" font-size="14.00">foo.mainClass</text>
 </g>
 <!-- foo.assembly -->
 <g id="node9" class="node">
 <title>foo.assembly</title>
-<polygon fill="white" stroke="black" points="690.32,-177.3 599.8,-177.3 599.8,-152.7 690.32,-152.7 690.32,-177.3"/>
+<polygon fill="white" stroke="black" points="690.32,-177.3 599.8,-177.3 599.8,-152.7 690.32,-152.7 690.32,-177.3"></polygon>
 <text text-anchor="middle" x="645.06" y="-160.8" font-family="Times,serif" font-size="14.00">foo.assembly</text>
 </g>
 <!-- foo.mainClass&#45;&gt;foo.assembly -->
 <g id="edge9" class="edge">
-<title>foo.mainClass&#45;&gt;foo.assembly</title>
-<path fill="none" stroke="black" d="M552.36,-179.49C564.3,-177.6 577.2,-175.56 589.46,-173.63"/>
-<polygon fill="black" stroke="black" points="590.23,-177.05 599.57,-172.03 589.14,-170.13 590.23,-177.05"/>
+<title>foo.mainClass-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M552.36,-179.49C564.3,-177.6 577.2,-175.56 589.46,-173.63"></path>
+<polygon fill="black" stroke="black" points="590.23,-177.05 599.57,-172.03 589.14,-170.13 590.23,-177.05"></polygon>
 </g>
 <!-- foo.classPath&#45;&gt;foo.assembly -->
 <g id="edge8" class="edge">
-<title>foo.classPath&#45;&gt;foo.assembly</title>
-<path fill="none" stroke="black" d="M549.27,-150.7C562.08,-152.63 576.2,-154.76 589.55,-156.78"/>
-<polygon fill="black" stroke="black" points="589.16,-160.26 599.57,-158.29 590.21,-153.34 589.16,-160.26"/>
+<title>foo.classPath-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M549.27,-150.7C562.08,-152.63 576.2,-154.76 589.55,-156.78"></path>
+<polygon fill="black" stroke="black" points="589.16,-160.26 599.57,-158.29 590.21,-153.34 589.16,-160.26"></polygon>
 </g>
 <!-- qux.compile -->
 <g id="node12" class="node">
 <title>qux.compile</title>
-<polygon fill="white" stroke="black" points="546.43,-83.3 461.23,-83.3 461.23,-58.7 546.43,-58.7 546.43,-83.3"/>
+<polygon fill="white" stroke="black" points="546.43,-83.3 461.23,-83.3 461.23,-58.7 546.43,-58.7 546.43,-83.3"></polygon>
 <text text-anchor="middle" x="503.83" y="-66.8" font-family="Times,serif" font-size="14.00">qux.compile</text>
 </g>
 <!-- foo.classPath&#45;&gt;qux.compile -->
 <g id="edge12" class="edge">
-<title>foo.classPath&#45;&gt;qux.compile</title>
-<path fill="none" stroke="black" d="M503.83,-131.25C503.83,-118.7 503.83,-106.16 503.83,-93.61"/>
-<polygon fill="black" stroke="black" points="507.33,-93.55 503.83,-83.55 500.33,-93.55 507.33,-93.55"/>
+<title>foo.classPath-&gt;qux.compile</title>
+<path fill="none" stroke="black" d="M503.83,-131.25C503.83,-118.7 503.83,-106.16 503.83,-93.61"></path>
+<polygon fill="black" stroke="black" points="507.33,-93.55 503.83,-83.55 500.33,-93.55 507.33,-93.55"></polygon>
 </g>
 <!-- qux.classPath -->
 <g id="node15" class="node">
 <title>qux.classPath</title>
-<polygon fill="white" stroke="black" points="691.16,-83.3 598.97,-83.3 598.97,-58.7 691.16,-58.7 691.16,-83.3"/>
+<polygon fill="white" stroke="black" points="691.16,-83.3 598.97,-83.3 598.97,-58.7 691.16,-58.7 691.16,-83.3"></polygon>
 <text text-anchor="middle" x="645.06" y="-66.8" font-family="Times,serif" font-size="14.00">qux.classPath</text>
 </g>
 <!-- foo.classPath&#45;&gt;qux.classPath -->
 <g id="edge13" class="edge">
-<title>foo.classPath&#45;&gt;qux.classPath</title>
-<path fill="none" stroke="black" d="M540.93,-131.66C549.82,-128.23 559.21,-124.26 567.65,-120 585.36,-111.06 604.13,-99.06 618.63,-89.18"/>
-<polygon fill="black" stroke="black" points="620.83,-91.91 627.06,-83.34 616.85,-86.16 620.83,-91.91"/>
+<title>foo.classPath-&gt;qux.classPath</title>
+<path fill="none" stroke="black" d="M540.93,-131.66C549.82,-128.23 559.21,-124.26 567.65,-120 585.36,-111.06 604.13,-99.06 618.63,-89.18"></path>
+<polygon fill="black" stroke="black" points="620.83,-91.91 627.06,-83.34 616.85,-86.16 620.83,-91.91"></polygon>
 </g>
 <!-- qux.sources -->
 <g id="node11" class="node">
 <title>qux.sources</title>
-<polygon fill="white" stroke="black" points="394.56,-83.3 311.6,-83.3 311.6,-58.7 394.56,-58.7 394.56,-83.3"/>
+<polygon fill="white" stroke="black" points="394.56,-83.3 311.6,-83.3 311.6,-58.7 394.56,-58.7 394.56,-83.3"></polygon>
 <text text-anchor="middle" x="353.08" y="-66.8" font-family="Times,serif" font-size="14.00">qux.sources</text>
 </g>
 <!-- qux.sources&#45;&gt;qux.compile -->
 <g id="edge14" class="edge">
-<title>qux.sources&#45;&gt;qux.compile</title>
-<path fill="none" stroke="black" d="M394.34,-71C411.76,-71 432.37,-71 450.93,-71"/>
-<polygon fill="black" stroke="black" points="450.99,-74.5 460.99,-71 450.99,-67.5 450.99,-74.5"/>
+<title>qux.sources-&gt;qux.compile</title>
+<path fill="none" stroke="black" d="M394.34,-71C411.76,-71 432.37,-71 450.93,-71"></path>
+<polygon fill="black" stroke="black" points="450.99,-74.5 460.99,-71 450.99,-67.5 450.99,-74.5"></polygon>
 </g>
 <!-- qux.compile&#45;&gt;qux.classPath -->
 <g id="edge15" class="edge">
-<title>qux.compile&#45;&gt;qux.classPath</title>
-<path fill="none" stroke="black" d="M546.61,-71C559.88,-71 574.78,-71 588.85,-71"/>
-<polygon fill="black" stroke="black" points="588.92,-74.5 598.92,-71 588.92,-67.5 588.92,-74.5"/>
+<title>qux.compile-&gt;qux.classPath</title>
+<path fill="none" stroke="black" d="M546.61,-71C559.88,-71 574.78,-71 588.85,-71"></path>
+<polygon fill="black" stroke="black" points="588.92,-74.5 598.92,-71 588.92,-67.5 588.92,-74.5"></polygon>
 </g>
 <!-- qux.mainClass -->
 <g id="node13" class="node">
 <title>qux.mainClass</title>
-<polygon fill="white" stroke="black" points="694.39,-40.3 595.74,-40.3 595.74,-15.7 694.39,-15.7 694.39,-40.3"/>
+<polygon fill="white" stroke="black" points="694.39,-40.3 595.74,-40.3 595.74,-15.7 694.39,-15.7 694.39,-40.3"></polygon>
 <text text-anchor="middle" x="645.06" y="-23.8" font-family="Times,serif" font-size="14.00">qux.mainClass</text>
 </g>
 <!-- qux.assembly -->
 <g id="node14" class="node">
 <title>qux.assembly</title>
-<polygon fill="white" stroke="black" points="822.88,-61.3 730.68,-61.3 730.68,-36.7 822.88,-36.7 822.88,-61.3"/>
+<polygon fill="white" stroke="black" points="822.88,-61.3 730.68,-61.3 730.68,-36.7 822.88,-36.7 822.88,-61.3"></polygon>
 <text text-anchor="middle" x="776.78" y="-44.8" font-family="Times,serif" font-size="14.00">qux.assembly</text>
 </g>
 <!-- qux.mainClass&#45;&gt;qux.assembly -->
 <g id="edge10" class="edge">
-<title>qux.mainClass&#45;&gt;qux.assembly</title>
-<path fill="none" stroke="black" d="M694.73,-35.88C703.1,-37.23 711.86,-38.65 720.39,-40.03"/>
-<polygon fill="black" stroke="black" points="719.83,-43.49 730.27,-41.63 720.95,-36.58 719.83,-43.49"/>
+<title>qux.mainClass-&gt;qux.assembly</title>
+<path fill="none" stroke="black" d="M694.73,-35.88C703.1,-37.23 711.86,-38.65 720.39,-40.03"></path>
+<polygon fill="black" stroke="black" points="719.83,-43.49 730.27,-41.63 720.95,-36.58 719.83,-43.49"></polygon>
 </g>
 <!-- qux.classPath&#45;&gt;qux.assembly -->
 <g id="edge16" class="edge">
-<title>qux.classPath&#45;&gt;qux.assembly</title>
-<path fill="none" stroke="black" d="M691.43,-63.31C700.87,-61.71 710.91,-60 720.65,-58.35"/>
-<polygon fill="black" stroke="black" points="721.38,-61.78 730.65,-56.65 720.21,-54.87 721.38,-61.78"/>
+<title>qux.classPath-&gt;qux.assembly</title>
+<path fill="none" stroke="black" d="M691.43,-63.31C700.87,-61.71 710.91,-60 720.65,-58.35"></path>
+<polygon fill="black" stroke="black" points="721.38,-61.78 730.65,-56.65 720.21,-54.87 721.38,-61.78"></polygon>
 </g>
 </g>
 </svg>
@@ -1802,13 +1797,13 @@ according to our overrides for <code>moduleDeps</code></p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill showNamed __.sources
 {
-  "foo.sources": ".../foo/src",
-  "foo.bar.sources": ".../foo/bar/src",
-  "qux.sources": ".../qux/src"
+  &quot;foo.sources&quot;: &quot;.../foo/src&quot;,
+  &quot;foo.bar.sources&quot;: &quot;.../foo/bar/src&quot;,
+  &quot;qux.sources&quot;: &quot;.../qux/src&quot;
 }
 
 &gt; ./mill show qux.assembly
-".../out/qux/assembly.dest/assembly.jar"
+&quot;.../out/qux/assembly.dest/assembly.jar&quot;
 
 &gt; java -jar out/qux/assembly.dest/assembly.jar
 Foo.value: 31337
@@ -1816,7 +1811,7 @@ Bar.value: 271828
 Qux.value: 9000
 
 &gt; ./mill show foo.assembly
-".../out/foo/assembly.dest/assembly.jar"
+&quot;.../out/foo/assembly.dest/assembly.jar&quot;
 
 &gt; java -jar out/foo/assembly.dest/assembly.jar
 Foo.value: 31337
@@ -1855,9 +1850,9 @@ import mill._, javalib._
 import mill.define.TaskModule
 
 object foo extends TaskModule {
-  override def defaultCommandName() = "bar"
-  def bar() = Task.Command { println("Hello Bar") }
-  def qux() = Task.Command { println("Hello Qux") }
+  override def defaultCommandName() = &quot;bar&quot;
+  def bar() = Task.Command { println(&quot;Hello Bar&quot;) }
+  def qux() = Task.Command { println(&quot;Hello Qux&quot;) }
 }</code></pre>
 </div>
 </div>
@@ -1880,7 +1875,7 @@ Hello Qux</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Default tasks are a convenience that is often used when a module has one "obvious"
+<p>Default tasks are a convenience that is often used when a module has one &quot;obvious&quot;
 task to run, e.g. Mill <code>TestModule`s have `test</code> as the default command name.</p>
 </div>
 </div>
@@ -1897,13 +1892,13 @@ import mill.scalalib._
 
 object `hyphenated-module` extends Module {
   def `hyphenated-task` = Task {
-    println("hyphenated task in a hyphenated module.")
+    println(&quot;hyphenated task in a hyphenated module.&quot;)
   }
 }
 
 object unhyphenatedModule extends Module {
   def unhyphenated_task = Task {
-    println("unhyphenated task in an unhyphenated module.")
+    println(&quot;unhyphenated task in an unhyphenated module.&quot;)
   }
 }</code></pre>
 </div>
@@ -2002,7 +1997,7 @@ def myAutoformat = mill.javalib.palantirformat.PalantirFormatModule</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat foo/src/foo/Foo.java # starts off unformatted
-package foo;public class Foo{ public static void main(String[] args) {System.out.println("Hello World!");}}
+package foo;public class Foo{ public static void main(String[] args) {System.out.println(&quot;Hello World!&quot;);}}
 
 &gt; mill myAutoformat # easier to type than `./mill mill.javalib.palantirformat/`
 
@@ -2010,7 +2005,7 @@ package foo;public class Foo{ public static void main(String[] args) {System.out
 package foo;
 public class Foo {
   public static void main(String[] args) {
-    System.out.println("Hello World!");
+    System.out.println(&quot;Hello World!&quot;);
   }
 }</code></pre>
 </div>
@@ -2026,7 +2021,7 @@ public class Foo {
 somewhere in your build. A naive <code>def upstreamModule: FooModule</code>
 would create a module alias, which is often not what you want since the referenced
 module already has a place in your build hierarchy. In such scenarios, you can use
-a <code>ModuleRef(&#8230;&#8203;)</code> to wrap the abstract module, such that the abstract <code>def</code> does
+a <code>ModuleRef(...​)</code> to wrap the abstract module, such that the abstract <code>def</code> does
 not participate in task query resolution:</p>
 </div>
 <div class="listingblock">
@@ -2075,9 +2070,9 @@ error: resolve Cannot resolve foo.upstreamModule...</code></pre>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>
