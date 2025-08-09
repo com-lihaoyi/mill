@@ -20,8 +20,7 @@ object MillInitGatlingTests extends GitRepoIntegrationTestSuite {
       eval("__.publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
       eval("__.test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
 
-      """Scaladoc generation and some tests fail
-        |project benchmarks (in folder gatling-benchmarks) is not imported""".stripMargin
+      "scaladoc generation and some tests fail"
     }
   }
 }

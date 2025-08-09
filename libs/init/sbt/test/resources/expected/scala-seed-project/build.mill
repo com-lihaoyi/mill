@@ -5,6 +5,7 @@ import mill.javalib.publish._
 import mill.scalalib._
 
 object `package` extends PublishModule with SbtModule {
+
   def scalaVersion = "2.13.12"
 
   def pomSettings = PomSettings(

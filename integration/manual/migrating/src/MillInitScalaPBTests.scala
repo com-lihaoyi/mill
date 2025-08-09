@@ -14,8 +14,7 @@ object MillInitScalaPBTests extends GitRepoIntegrationTestSuite {
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("__.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
+      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
 
       "requires sbt-projectmatrix"
     }

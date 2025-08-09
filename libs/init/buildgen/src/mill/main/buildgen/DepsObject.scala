@@ -4,25 +4,33 @@ import mill.internal.Util.backtickWrap
 
 import scala.collection.mutable
 
-case class DepsObject(name: String, depNames: mutable.Map[String, String] = mutable.Map()) {
-  private val usedNames = mutable.Set.empty[String]
-  val artifactRegex = """:([^:"]+)[:"]""".r
+case class DepsObject(name: String, refsByDep: mutable.Map[String, String] = mutable.Map.empty) {
+  private val artifactRegex = """:([^:"]+)[:"]""".r
 
-  def renderName(dep: String) = {
-    var depName = depNames.getOrElse(dep, null)
-    if (depName == null) {
+  def renderRef(dep: String) = {
+    /*
+      We use the artifact name as the seed for the reference. When a name collision occurs, a suffix
+      is added that starts with the '#' character. This forces backticks in the rendered name
+      making the "duplicate" stand out visually in the output. The reference without backticks is
+      saved in the map so that it is grouped together with the "original", on sort, in the output.
+      Example output:
+        val catsCore = mvn"org.typelevel::cats-core:2.0.0"
+        val `catsCore#1` = mvn"org.typelevel::cats-core:2.6.1"
+        val disciplineCore = mvn"org.typelevel::discipline-core::1.7.0"
+        val `disciplineCore#1` = mvn"org.typelevel::discipline-core:1.7.0"
+        val disciplineMunit = mvn"org.typelevel::discipline-munit:2.0.0"
+        val `disciplineMunit#1` = mvn"org.typelevel::discipline-munit::2.0.0"
+     */
+    var ref = refsByDep.getOrElse(dep, null)
+    if (ref == null) {
       val artifact = artifactRegex.findFirstMatchIn(dep).get.group(1)
-      depName = artifact.split("\\W") match
+      ref = artifact.split("\\W") match
         case Array(head) => head
         case parts => parts.tail.map(_.capitalize).mkString(parts.head, "", "")
-      val count = usedNames.count(_.startsWith(depName))
-      // we want the "duplicates" to stand out visually
-      // using '#' forces backticks in the final name
-      depName = depName + (if (count == 0) "" else s"#$count")
-      usedNames += depName
-      depName = backtickWrap(depName)
-      depNames.put(dep, depName)
+      val count = refsByDep.valuesIterator.count(_.startsWith(ref))
+      if (count > 0) ref = ref + s"#$count"
+      refsByDep.put(dep, ref)
     }
-    name + "." + depName
+    name + "." + backtickWrap(ref)
   }
 }

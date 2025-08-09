@@ -1,9 +1,267 @@
 package build
 
 import mill.api._
+import mill.javalib._
+import mill.javalib.publish._
 import mill.scalalib._
 
 object `package` extends Module {
+
+  object common extends SbtMultiProjectExampleModule {
+
+    def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
+
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      Deps.logbackClassic,
+      Deps.logstashLogbackEncoder,
+      Deps.scalaLogging,
+      Deps.jclOverSlf4j,
+      Deps.config,
+      Deps.akkaStream
+    )
+
+    def pomSettings = PomSettings(
+      "This is the common module.",
+      "com.pbassiner",
+      "https://github.com/com-lihaoyi/mill",
+      Seq(License(
+        "Apache-2.0",
+        "Apache-2.0",
+        "https://www.apache.org/licenses/LICENSE-2.0.txt",
+        false,
+        false,
+        ""
+      )),
+      VersionControl(
+        Some("https://github.com/com-lihaoyi/mill"),
+        Some("scm:git:https://github.com/com-lihaoyi/mill.git"),
+        None,
+        None
+      ),
+      Seq(
+        Developer("johnd", "John Doe", "https://example.com/johnd", None, None)
+      )
+    )
+
+    object test extends SbtTests with TestModule.ScalaTest {
+
+      def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
+        Seq(Deps.scalatest, Deps.scalacheck)
+    }
+
+    object nested extends SbtMultiProjectExampleModule {
+
+      def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
+
+      def mvnDeps = super.mvnDeps() ++ Seq(Deps.nettyTransportNativeEpoll)
+
+      def pomSettings = PomSettings(
+        "This is an sbt sample project for testing Mill's init command.",
+        "com.pbassiner",
+        "https://github.com/com-lihaoyi/mill",
+        Seq(License(
+          "Apache-2.0",
+          "Apache-2.0",
+          "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          false,
+          false,
+          ""
+        )),
+        VersionControl(
+          Some("https://github.com/com-lihaoyi/mill"),
+          Some("scm:git:https://github.com/com-lihaoyi/mill.git"),
+          None,
+          None
+        ),
+        Seq(Developer(
+          "johnd",
+          "John Doe",
+          "https://example.com/johnd",
+          None,
+          None
+        ))
+      )
+    }
+  }
+
+  object multi1 extends SbtMultiProjectExampleModule {
+
+    def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8", "-V")
+
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      Deps.logbackClassic,
+      Deps.logstashLogbackEncoder,
+      Deps.scalaLogging,
+      Deps.jclOverSlf4j,
+      Deps.config,
+      Deps.akkaStream,
+      Deps.monocleCore,
+      Deps.monocleMacro
+    )
+
+    def moduleDeps = super.moduleDeps ++ Seq(build.common)
+
+    def pomSettings = PomSettings(
+      "This is an sbt sample project for testing Mill's init command.",
+      "com.pbassiner",
+      "https://github.com/com-lihaoyi/mill",
+      Seq(License(
+        "Apache-2.0",
+        "Apache-2.0",
+        "https://www.apache.org/licenses/LICENSE-2.0.txt",
+        false,
+        false,
+        ""
+      )),
+      VersionControl(
+        Some("https://github.com/com-lihaoyi/mill"),
+        Some("scm:git:https://github.com/com-lihaoyi/mill.git"),
+        None,
+        None
+      ),
+      Seq(
+        Developer("johnd", "John Doe", "https://example.com/johnd", None, None)
+      )
+    )
+
+    object test extends SbtTests with TestModule.ScalaTest {
+
+      def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
+        Seq(Deps.scalatest, Deps.scalacheck)
+    }
+
+    object nested extends SbtMultiProjectExampleModule {
+
+      def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
+
+      def mvnDeps = super.mvnDeps() ++ Seq(Deps.nettyTransportNativeEpoll)
+
+      def pomSettings = PomSettings(
+        "This is an sbt sample project for testing Mill's init command.",
+        "com.pbassiner",
+        "https://github.com/com-lihaoyi/mill",
+        Seq(License(
+          "Apache-2.0",
+          "Apache-2.0",
+          "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          false,
+          false,
+          ""
+        )),
+        VersionControl(
+          Some("https://github.com/com-lihaoyi/mill"),
+          Some("scm:git:https://github.com/com-lihaoyi/mill.git"),
+          None,
+          None
+        ),
+        Seq(Developer(
+          "johnd",
+          "John Doe",
+          "https://example.com/johnd",
+          None,
+          None
+        ))
+      )
+    }
+  }
+
+  object multi2 extends SbtMultiProjectExampleModule {
+
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      Deps.logbackClassic,
+      Deps.logstashLogbackEncoder,
+      Deps.scalaLogging,
+      Deps.jclOverSlf4j,
+      Deps.config,
+      Deps.akkaStream,
+      Deps.pureconfig
+    )
+
+    def moduleDeps = super.moduleDeps ++ Seq(build.common)
+
+    def pomSettings = PomSettings(
+      "This is an sbt sample project for testing Mill's init command.",
+      "com.pbassiner",
+      "https://github.com/com-lihaoyi/mill",
+      Seq(License(
+        "Apache-2.0",
+        "Apache-2.0",
+        "https://www.apache.org/licenses/LICENSE-2.0.txt",
+        false,
+        false,
+        ""
+      )),
+      VersionControl(
+        Some("https://github.com/com-lihaoyi/mill"),
+        Some("scm:git:https://github.com/com-lihaoyi/mill.git"),
+        None,
+        None
+      ),
+      Seq(
+        Developer("johnd", "John Doe", "https://example.com/johnd", None, None)
+      )
+    )
+
+    object test extends SbtTests with TestModule.ScalaTest {
+
+      def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
+        Seq(Deps.scalatest, Deps.scalacheck)
+    }
+
+    object nested extends SbtMultiProjectExampleModule {
+
+      def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
+
+      def mvnDeps = super.mvnDeps() ++ Seq(Deps.nettyTransportNativeEpoll)
+
+      def pomSettings = PomSettings(
+        "This is an sbt sample project for testing Mill's init command.",
+        "com.pbassiner",
+        "https://github.com/com-lihaoyi/mill",
+        Seq(License(
+          "Apache-2.0",
+          "Apache-2.0",
+          "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          false,
+          false,
+          ""
+        )),
+        VersionControl(
+          Some("https://github.com/com-lihaoyi/mill"),
+          Some("scm:git:https://github.com/com-lihaoyi/mill.git"),
+          None,
+          None
+        ),
+        Seq(Developer(
+          "johnd",
+          "John Doe",
+          "https://example.com/johnd",
+          None,
+          None
+        ))
+      )
+    }
+  }
+
+  trait SbtMultiProjectExampleModule extends PublishModule with SbtModule {
+
+    def scalaVersion = "2.12.3"
+
+    def scalacOptions = super.scalacOptions() ++ Seq(
+      "-unchecked",
+      "-feature",
+      "-language:existentials",
+      "-language:higherKinds",
+      "-language:implicitConversions",
+      "-language:postfixOps",
+      "-deprecation"
+    )
+
+    def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++
+      Seq(Deps.wartremover)
+
+    def publishVersion = "0.1.0-SNAPSHOT"
+  }
 
   object Deps {
     val akkaStream = mvn"com.typesafe.akka::akka-stream:2.5.6"
@@ -15,6 +273,9 @@ object `package` extends Module {
       mvn"net.logstash.logback:logstash-logback-encoder:4.11"
     val monocleCore = mvn"com.github.julien-truffaut::monocle-core:1.4.0"
     val monocleMacro = mvn"com.github.julien-truffaut::monocle-macro:1.4.0"
+
+    val nettyTransportNativeEpoll =
+      mvn"io.netty:netty-transport-native-epoll:4.1.118.Final;classifier=linux-x86_64;exclude=io.netty:netty-transport-native-epoll"
     val pureconfig = mvn"com.github.pureconfig::pureconfig:0.8.0"
     val scalaLogging = mvn"com.typesafe.scala-logging::scala-logging:3.7.2"
     val scalacheck = mvn"org.scalacheck::scalacheck:1.13.5"

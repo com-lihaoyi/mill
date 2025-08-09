@@ -22,7 +22,7 @@ object MillInitScoptTests extends GitRepoIntegrationTestSuite {
       eval("__.publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("__.test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
 
-      "requires verify test framework"
+      "test modules skipped due to unsupported framework"
     }
   }
 }

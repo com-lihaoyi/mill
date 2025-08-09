@@ -8,10 +8,14 @@ import scala.util.Using
 
 @mainargs.main
 case class SbtBuildGenMainArgs(
-    @mainargs.arg(short = 'D')
+    @mainargs.arg(short = 'd')
     depsObjectName: String = "Deps",
     @mainargs.arg(short = 't')
     testModuleName: String = "test",
+    @mainargs.arg(short = 'B')
+    noBaseTraits: mainargs.Flag,
+    @mainargs.arg(short = 'M')
+    noMerge: mainargs.Flag,
     @mainargs.arg(short = 'c')
     sbtCmd: Option[String],
     sbtOptions: mainargs.Leftover[String]
@@ -24,19 +28,6 @@ object SbtBuildGenMain {
 
     val args0 = mainargs.ParserForClass[SbtBuildGenMainArgs].constructOrExit(args.toSeq)
     import args0.{getClass as _, *}
-
-    val jar =
-      Using.resource(getClass.getResourceAsStream(BuildInfo.exportscriptAssemblyResource))(os.temp(
-        _,
-        suffix = ".jar"
-      ))
-    val exportDir = os.temp.dir()
-    // run export with "+" to generate a file per project and cross scala version
-    val script = Seq(
-      s"set SettingKey[(File, String)](\"millInitExportArgs\") in Global := (file(${literalize(exportDir.toString())}), ${literalize(testModuleName)})",
-      s"apply -cp ${literalize(jar.toString())} mill.main.sbt.ExportSbtBuildScript",
-      s"+millInitExportModule"
-    )
 
     val cmd = sbtCmd.getOrElse:
       Either.cond(
@@ -52,13 +43,28 @@ object SbtBuildGenMain {
           else cmd,
         identity
       )
+    val jar =
+      Using.resource(getClass.getResourceAsStream(BuildInfo.exportscriptAssemblyResource))(os.temp(
+        _,
+        suffix = ".jar"
+      ))
+    val exportDir = os.temp.dir()
+    // Run export with "+" to generate a file per project and cross Scala version.
+    // NOTE: SBT can generate duplicate files for modules. If a project "foo" defines 3 cross
+    // Scala versions and another module "bar" specifies 2 of those cross Scala versions, a
+    // duplicate file will be generated for module "bar".
+    val script = Seq(
+      s"set SettingKey[(File, String)](\"millInitExportArgs\") in Global := (file(${literalize(exportDir.toString())}), ${literalize(testModuleName)})",
+      s"apply -cp ${literalize(jar.toString())} mill.main.sbt.ExportSbtBuildScript",
+      s"+millInitExportBuild"
+    )
     os.proc(cmd, sbtOptions.value, script).call(stdout = os.Inherit, stderr = os.Inherit)
 
-    // ((moduleDir, isCrossPlatform), module)
+    // ((moduleDir, isCrossPlatform), ModuleRepr)
     type SbtModuleRepr = ((Seq[String], Boolean), ModuleRepr)
     val sbtModules = os.list.stream(exportDir).map(path =>
       upickle.default.read[SbtModuleRepr](path.toNIO)
-    ).toSeq.distinct // a duplicate was returned in "scrypto" test
+    ).toSeq.distinct // eliminate any cross version duplicates
     if (sbtModules.isEmpty) {
       sys.error(s"no modules found using $cmd")
     }
@@ -66,7 +72,7 @@ object SbtBuildGenMain {
     def toModule(crossVersionModules: Seq[ModuleRepr]): ModuleRepr =
       if (crossVersionModules.tail.isEmpty) crossVersionModules.head // not cross version
       else
-        // compute the base config for all cross versions
+        // compute the base config for cross versions
         val module = crossVersionModules.iterator.reduce: (m1, m2) =>
           m1.copy(
             configs = ModuleConfig.abstracted(m1.configs, m2.configs),
@@ -79,18 +85,16 @@ object SbtBuildGenMain {
                 ))
               case (m1, m2) => m1.orElse(m2)
           )
-        // adjust the version specific configs
+        // inherit the base config for cross versions
         module.copy(
-          crossConfigs =
-            module.crossConfigs.map: (k, v) =>
-              (k, ModuleConfig.inherited(v, module.configs))
-            .sortBy(_._1),
+          crossConfigs = module.crossConfigs.map: (k, v) =>
+            (k, ModuleConfig.inherited(v, module.configs))
+          .sortBy(_._1),
           testModule = module.testModule.map(module =>
             module.copy(
-              crossConfigs =
-                module.crossConfigs.map: (k, v) =>
-                  (k, ModuleConfig.inherited(v, module.configs))
-                .sortBy(_._1)
+              crossConfigs = module.crossConfigs.map: (k, v) =>
+                (k, ModuleConfig.inherited(v, module.configs))
+              .sortBy(_._1)
             )
           )
         )
@@ -98,15 +102,16 @@ object SbtBuildGenMain {
     val packages = sbtModules.groupMap(_._1)(_._2).iterator.map:
       case ((_, false), crossVersionModules) => Tree(toModule(crossVersionModules))
       case ((moduleDir, _), crossPlatformModules) => Tree(
-          root = ModuleRepr(moduleDir),
-          children = crossPlatformModules.groupBy(_.segments).iterator.map:
-            (_, crossVersionModules) =>
-              Tree(toModule(crossVersionModules))
+          ModuleRepr(moduleDir),
+          crossPlatformModules.groupBy(_.segments).iterator.map: (_, crossVersionModules) =>
+            Tree(toModule(crossVersionModules))
           .toSeq
         )
     .toSeq
 
-    val build = BuildRepr(packages).withDepsObject(DepsObject(depsObjectName))
+    var build = BuildRepr(packages).withDepsObject(DepsObject(depsObjectName))
+    if (!noBaseTraits.value) build = build.withBaseTraits
+    if (!noMerge.value) build = build.merged
     SbtBuildWriter.writeFiles(build)
 
     locally {
@@ -143,6 +148,7 @@ object SbtBuildGenMain {
           jvmArgs = jvmArgs.diff(os.read.lines(jvmOptsMill))
         }
         if (jvmArgs.nonEmpty) {
+          println(s"adding JVM args from ${sbtOpts.last} to ${jvmOptsMill.last}")
           os.write.append(jvmOptsMill, jvmArgs.mkString(System.lineSeparator()))
         }
       }

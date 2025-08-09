@@ -17,7 +17,7 @@ object MillInitLilaTests extends GitRepoIntegrationTestSuite {
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
 
-      """module dependency core.test does not exist
+      """non-standard SBT layout
         |requires sbt-play""".stripMargin
     }
   }

@@ -30,30 +30,28 @@ object SbtBuildWriter extends BuildWriter {
       ps.println(s"import $s")
   }
 
-  protected def writeCrossModuleConfigs(
+  override def writeModuleConfigs(
       ps: PrintStream,
       configs: Seq[ModuleConfig],
       crossConfigs: Seq[(String, Seq[ModuleConfig])]
   ): Unit = {
-    // cross config export is limited to JavaModuleConfig and ScalaModuleConfig
+    // cross version config support is limited by export
     configs.foreach:
       case config: CoursierModuleConfig => writeCoursierModuleConfig(ps, config)
       case config: JavaModuleConfig => writeCrossJavaModuleConfig(
           ps,
           config,
           crossConfigs.flatMap: (cross, configs) =>
-            configs.collectFirst {
+            configs.collectFirst:
               case config: JavaModuleConfig => (cross, config)
-            }
         )
       case config: PublishModuleConfig => writePublishModuleConfig(ps, config)
       case config: ScalaModuleConfig => writeCrossScalaModuleConfig(
           ps,
           config,
           crossConfigs.flatMap: (cross, configs) =>
-            configs.collectFirst {
+            configs.collectFirst:
               case config: ScalaModuleConfig => (cross, config)
-            }
         )
       case config: ScalaJSModuleConfig => writeScalaJSModuleConfig(ps, config)
       case config: ScalaNativeModuleConfig => writeScalaNativeModuleConfig(ps, config)
@@ -64,6 +62,10 @@ object SbtBuildWriter extends BuildWriter {
       config: JavaModuleConfig,
       crossConfigs: Seq[(String, JavaModuleConfig)]
   ): Unit = {
+    if (crossConfigs.isEmpty) {
+      writeJavaModuleConfig(ps, config)
+      return
+    }
     import config.*
     val crossMandatoryMvnDeps = crossConfigs.collect:
       case (cross, config) if config.mandatoryMvnDeps.nonEmpty => (cross, config.mandatoryMvnDeps)
@@ -164,6 +166,10 @@ object SbtBuildWriter extends BuildWriter {
       config: ScalaModuleConfig,
       crossConfigs: Seq[(String, ScalaModuleConfig)]
   ): Unit = {
+    if (crossConfigs.isEmpty) {
+      writeScalaModuleConfig(ps, config)
+      return
+    }
     import config.*
     val crossScalacOptions = crossConfigs.collect:
       case (cross, config) if config.scalacOptions.nonEmpty => (cross, config.scalacOptions)
@@ -181,17 +187,17 @@ object SbtBuildWriter extends BuildWriter {
         ps.print("})")
       ps.println()
     }
-    val crossScalaPluginMvnDeps = crossConfigs.collect:
+    val crossScalacPluginMvnDeps = crossConfigs.collect:
       case (cross, config) if config.scalacPluginMvnDeps.nonEmpty =>
         (cross, config.scalacPluginMvnDeps)
-    if (scalacPluginMvnDeps.nonEmpty || crossScalacOptions.nonEmpty) {
+    if (scalacPluginMvnDeps.nonEmpty || crossScalacPluginMvnDeps.nonEmpty) {
       ps.println()
       ps.print("def scalacPluginMvnDeps = super.scalacPluginMvnDeps()")
       if (scalacPluginMvnDeps.nonEmpty)
         ps.print(scalacPluginMvnDeps.mkString(" ++ Seq(", ", ", ")"))
-      if (crossScalaPluginMvnDeps.nonEmpty)
+      if (crossScalacPluginMvnDeps.nonEmpty)
         ps.println(" ++ (scalaVersion() match {")
-        crossScalaPluginMvnDeps.groupMap(_._2)(_._1).foreach: (deps, crosses) =>
+        crossScalacPluginMvnDeps.groupMap(_._2)(_._1).foreach: (deps, crosses) =>
           ps.println(deps
             .mkString(s"case ${crosses.map(literalize(_)).mkString(" | ")} => Seq(", ", ", ")"))
         ps.println("case _ => Seq()")
