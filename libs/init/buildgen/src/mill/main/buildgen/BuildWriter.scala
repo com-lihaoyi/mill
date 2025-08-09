@@ -13,7 +13,7 @@ trait BuildWriter {
     import build.*
     val root +: nested = packages.iterator.toSeq: @unchecked
     Using.resource(PrintStream(os.write.outputStream(os.pwd / rootBuildFileNames.get(0)))):
-      writeRootPackage(_, root, depsObject)
+      writeRootPackage(_, root, baseTraits, depsObject)
     nested.foreach: pkg =>
       Using.resource(
         PrintStream(os.write.outputStream(os.pwd / pkg.root.segments / nestedBuildFileNames.get(0)))
@@ -24,57 +24,60 @@ trait BuildWriter {
   protected def writeRootPackage(
       ps: PrintStream,
       pkg: Tree[ModuleRepr],
+      baseTraits: Seq[BaseTrait],
       depsObject: Option[DepsObject]
   ): Unit = {
     ps.println(s"package $rootModuleAlias")
     writeImports(ps, pkg)
-    writeModuleTree(
-      ps,
-      "package",
-      pkg,
-      () =>
-        depsObject.foreach(writeDepsObject(ps, _))
-    )
+    import pkg.*
+    writeModuleDeclaration(ps, "package", root)
+    ps.println(" {")
+    writeModuleConfigs(ps, root.configs, root.crossConfigs)
+    root.testModule.foreach(writeTestModule(ps, _))
+    children.foreach(writeModuleSubtree(ps, _))
+    baseTraits.foreach(writeBaseTrait(ps, _))
+    depsObject.foreach(writeDepsObject(ps, _))
+    ps.println('}')
   }
 
   protected def writeNestedPackage(ps: PrintStream, pkg: Tree[ModuleRepr]): Unit = {
     ps.println(pkg.root.segments.map(backtickWrap)
       .mkString(s"package $rootModuleAlias.", ".", ""))
     writeImports(ps, pkg)
-    writeModuleTree(ps, "package", pkg)
+    import pkg.*
+    writeModuleDeclaration(ps, "package", root)
+    ps.println(" {")
+    writeModuleConfigs(ps, root.configs, root.crossConfigs)
+    root.testModule.foreach(writeTestModule(ps, _))
+    children.foreach(writeModuleSubtree(ps, _))
+    ps.println('}')
   }
 
   protected def writeImports(ps: PrintStream, pkg: Tree[ModuleRepr]): Unit
 
-  protected def writeModuleTree(
-      ps: PrintStream,
-      rootModuleName: String,
-      modules: Tree[ModuleRepr],
-      embed: () => Unit = () => ()
-  ): Unit = {
+  protected def writeModuleSubtree(ps: PrintStream, modules: Tree[ModuleRepr]): Unit = {
     import modules.*
     ps.println()
-    writeModuleDeclaration(ps, rootModuleName, root)
+    writeModuleDeclaration(ps, root.segments.last, root)
     ps.println(" {")
     writeModuleConfigs(ps, root.configs, root.crossConfigs)
     root.testModule.foreach(writeTestModule(ps, _))
-    children.foreach(subtree => writeModuleTree(ps, subtree.root.segments.last, subtree))
-    embed()
+    children.foreach(writeModuleSubtree(ps, _))
     ps.println('}')
   }
 
   protected def writeModuleDeclaration(ps: PrintStream, name: String, module: ModuleRepr): Unit = {
+    ps.println()
     import module.*
     if (crossConfigs.nonEmpty) {
-      val crossTraitName =
-        segments.lastOption.getOrElse(os.pwd.last).split("\\W").map(_.capitalize)
-          .mkString("", "", "Module")
+      val crossTraitName = segments.lastOption.getOrElse(os.pwd.last).split("\\W").map(_.capitalize)
+        .mkString("", "", "Module")
       val crossTraitExtends = crossConfigs.map((v, _) => literalize(v))
         .mkString(s"extends Cross[$crossTraitName](", ", ", ")")
       ps.println(s"object ${backtickWrap(name)} $crossTraitExtends")
-      ps.print(s"trait $crossTraitName ${renderExtendsClause(supertypes)}")
+      ps.print(s"trait $crossTraitName ${renderExtendsClause(supertypes ++ mixins)}")
     } else {
-      ps.print(s"object ${backtickWrap(name)} ${renderExtendsClause(supertypes)}")
+      ps.print(s"object ${backtickWrap(name)} ${renderExtendsClause(supertypes ++ mixins)}")
     }
   }
 
@@ -85,7 +88,7 @@ trait BuildWriter {
   protected def writeTestModule(ps: PrintStream, module: TestModuleRepr): Unit = {
     import module.*
     ps.println()
-    ps.println(s"object $name ${renderExtendsClause(supertypes)} {")
+    ps.println(s"object $name ${renderExtendsClause(supertypes ++ mixins)} {")
     writeModuleConfigs(ps, configs, crossConfigs)
     ps.println('}')
   }
@@ -102,14 +105,7 @@ trait BuildWriter {
       case config: ScalaModuleConfig => writeScalaModuleConfig(ps, config)
       case config: ScalaJSModuleConfig => writeScalaJSModuleConfig(ps, config)
       case config: ScalaNativeModuleConfig => writeScalaNativeModuleConfig(ps, config)
-    else writeCrossModuleConfigs(ps, configs, crossConfigs)
   }
-
-  protected def writeCrossModuleConfigs(
-      ps: PrintStream,
-      configs: Seq[ModuleConfig],
-      crossConfigs: Seq[(String, Seq[ModuleConfig])]
-  ): Unit
 
   protected def writeCoursierModuleConfig(ps: PrintStream, config: CoursierModuleConfig): Unit = {
     import config.*
@@ -239,11 +235,14 @@ trait BuildWriter {
   protected def writeScalaModuleConfig(ps: PrintStream, config: ScalaModuleConfig): Unit = {
     import config.*
     if (scalaVersion != null)
+      ps.println()
       ps.println(s"def scalaVersion = ${literalize(scalaVersion)}")
     if (scalacOptions.nonEmpty)
+      ps.println()
       ps.println(scalacOptions.map(literalize(_))
         .mkString("def scalacOptions = super.scalacOptions() ++ Seq(", ", ", ")"))
     if (scalacPluginMvnDeps.nonEmpty)
+      ps.println()
       ps.println(scalacPluginMvnDeps
         .mkString("def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++ Seq(", ", ", ")"))
   }
@@ -251,6 +250,7 @@ trait BuildWriter {
   protected def writeScalaJSModuleConfig(ps: PrintStream, config: ScalaJSModuleConfig): Unit = {
     import config.*
     if (scalaJSVersion != null)
+      ps.println()
       ps.println(s"def scalaJSVersion = ${literalize(scalaJSVersion)}")
   }
 
@@ -260,15 +260,23 @@ trait BuildWriter {
   ): Unit = {
     import config.*
     if (scalaNativeVersion != null)
+      ps.println()
       ps.println(s"def scalaNativeVersion = ${literalize(scalaNativeVersion)}")
   }
 
-  protected def writeDepsObject(ps: PrintStream, deps: DepsObject): Unit = {
-    import deps.*
+  protected def writeBaseTrait(ps: PrintStream, baseTrait: BaseTrait): Unit = {
+    import baseTrait.*
     ps.println()
+    ps.println(s"trait $name ${renderExtendsClause(supertypes ++ mixins)} {")
+    writeModuleConfigs(ps, configs, crossConfigs)
+    ps.println('}')
+  }
+
+  protected def writeDepsObject(ps: PrintStream, depsObject: DepsObject): Unit = {
+    import depsObject.*
     ps.println(s"object $name {")
-    depNames.toSeq.sortBy(_._2).foreach: (dep, name) =>
-      ps.println(s"val $name = $dep")
+    refsByDep.toSeq.sortBy(_._2).foreach: (dep, ref) =>
+      ps.println(s"val ${backtickWrap(ref)} = $dep")
     ps.println('}')
   }
 }

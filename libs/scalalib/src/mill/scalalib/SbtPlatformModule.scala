@@ -6,7 +6,7 @@ import mill.api.PathRef
  * A cross-platform [[SbtModule]] that supports multiple source root folders each having a sbt
  * compatible directory layout.
  *
- * For `sbt-crossproject` plugin layout presets, use one of
+ * For `sbt-crossproject` plugin layout, use one of the following presets:
  *  - [[SbtPlatformModule.CrossTypeFull]]
  *  - [[SbtPlatformModule.CrossTypePure]]
  *  - [[SbtPlatformModule.CrossTypeDummy]]

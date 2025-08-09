@@ -1,25 +1,88 @@
 package mill.main.buildgen
 
 /**
- * A representation for a build defined as a tree of packages.
- * A package here is defined as a tree of modules.
+ * A representation for a build defined as a tree of packages and auxiliary type definitions.
+ * @note A package is defined as a tree of modules.
  */
 case class BuildRepr private (
     packages: Tree[Tree[ModuleRepr]],
+    baseTraits: Seq[BaseTrait] = Nil,
     depsObject: Option[DepsObject] = None
 ) {
 
-  def withDepsObject(deps: DepsObject) =
+  /**
+   * A build transformation that moves modules in nested packages into the root package.
+   * A consequence of this transformation is that nested build files are eliminated.
+   * @note Only nested packages with modules with no name collisions are merged.
+   */
+  def merged = {
+    def canMerge(pkg: Tree[Tree[ModuleRepr]], into: Seq[Tree[ModuleRepr]]): Boolean =
+      into.forall: modules =>
+        modules.root.segments.last != pkg.root.root.segments.last &&
+          !modules.root.testModule.exists(_.name == pkg.root.root.segments.last) &&
+          pkg.children.forall(canMerge(_, pkg.root.children))
+    val (merge, nested) = packages.children.partition(canMerge(_, packages.root.children))
+    if (merge.isEmpty) this
+    else copy(packages =
+      Tree(
+        packages.root.copy(children =
+          packages.root.children ++ merge.map: pkg =>
+            pkg.transform: (root, children) =>
+              root.copy(children = root.children ++ children)
+        ),
+        nested
+      )
+    )
+  }
+
+  /**
+   * A build transformation that generates base traits for sharing module settings.
+   * @note No base trait is generated for a build with a single root module.
+   */
+  def withBaseTraits =
+    if (baseTraits.nonEmpty) this
+    else if (packages.root.children.isEmpty && packages.children.isEmpty) this
+    else {
+      val baseTrait = BaseTrait.compute(
+        "BaseModule",
+        packages.iterator.flatMap(_.iterator).filter(_.configs.nonEmpty)
+      )
+      var packages0 = packages
+      baseTrait.foreach: base =>
+        packages0 = packages0.map: pkg =>
+          pkg.map: module =>
+            if (module.configs.isEmpty) module
+            else base.inherited(module)
+      // If the first base trait has no publish settings, we attempt to generate one that does.
+      val basePublishTrait =
+        if (baseTrait.exists(_.configs.exists(_.isInstanceOf[PublishModuleConfig]))) None
+        else BaseTrait.compute(
+          "PublishModule",
+          packages0.iterator.flatMap(_.iterator)
+            .filter(_.configs.exists(_.isInstanceOf[PublishModuleConfig]))
+        )
+      basePublishTrait.foreach: base =>
+        packages0 = packages0.map: pkg =>
+          pkg.map: module =>
+            if (module.configs.exists(_.isInstanceOf[PublishModuleConfig])) base.inherited(module)
+            else module
+      copy(packages = packages0, baseTraits = baseTrait.toSeq ++ basePublishTrait.toSeq)
+    }
+
+  /**
+   * A build transformation that assigns constant references to Maven dependencies.
+   */
+  def withDepsObject(deps: DepsObject) = {
     if (depsObject.isEmpty)
       def updated(configs: Seq[ModuleConfig]) = configs.map {
         case config: JavaModuleConfig => config.copy(
-            mandatoryMvnDeps = config.mandatoryMvnDeps.map(deps.renderName),
-            mvnDeps = config.mvnDeps.map(deps.renderName),
-            compileMvnDeps = config.compileMvnDeps.map(deps.renderName),
-            runMvnDeps = config.runMvnDeps.map(deps.renderName)
+            mandatoryMvnDeps = config.mandatoryMvnDeps.map(deps.renderRef),
+            mvnDeps = config.mvnDeps.map(deps.renderRef),
+            compileMvnDeps = config.compileMvnDeps.map(deps.renderRef),
+            runMvnDeps = config.runMvnDeps.map(deps.renderRef)
           )
         case config: ScalaModuleConfig => config.copy(
-            scalacPluginMvnDeps = config.scalacPluginMvnDeps.map(deps.renderName)
+            scalacPluginMvnDeps = config.scalacPluginMvnDeps.map(deps.renderRef)
           )
         case config => config
       }
@@ -40,11 +103,12 @@ case class BuildRepr private (
         depsObject = Some(deps)
       )
     else this
+  }
 }
 object BuildRepr {
 
   /**
-   * Generates a tree of packages from the given list filling in empty packages wherever required.
+   * Returns a build with empty packages added for intermediate segments not in the given list.
    */
   def apply(packages: Seq[Tree[ModuleRepr]]): BuildRepr = BuildRepr(
     Tree.from(Seq.empty[String]): segments =>

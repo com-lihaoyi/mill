@@ -26,18 +26,13 @@ object BuildGenTests extends TestSuite {
     }
 
     test("config") {
-      val commonArgs = Array(
-        "-t",
-        "tests",
-        "-D",
-        "Dependencies"
-      )
       test("sbt-multi-project-example") {
         val sourceRoot = os.sub / "sbt-multi-project-example"
         test("all") {
           val expectedRoot = os.sub / "expected/config/all/sbt-multi-project-example"
+          val args = Array("-d", "Dependencies", "-t", "tests", "-B", "-M")
           assert(
-            checker.check(SbtBuildGenMain.main(commonArgs), sourceRoot, expectedRoot)
+            checker.check(SbtBuildGenMain.main(args), sourceRoot, expectedRoot)
           )
         }
       }

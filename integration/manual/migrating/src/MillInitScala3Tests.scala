@@ -18,7 +18,7 @@ object MillInitScala3Tests extends GitRepoIntegrationTestSuite {
       eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("__.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
-      "project uses non-Maven layout (nothing is compiled)"
+      "no sources due to non-standard SBT layout"
     }
   }
 }

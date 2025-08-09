@@ -8,6 +8,7 @@ import upickle.default.{ReadWriter, macroRW}
 case class ModuleRepr(
     segments: Seq[String],
     supertypes: Seq[String] = Seq("Module"),
+    mixins: Seq[String] = Nil,
     configs: Seq[ModuleConfig] = Nil,
     crossConfigs: Seq[(String, Seq[ModuleConfig])] = Nil,
     testModule: Option[TestModuleRepr] = None

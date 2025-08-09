@@ -25,8 +25,7 @@ object MillInitCatsTests extends GitRepoIntegrationTestSuite {
         stderr = os.Inherit
       ).isSuccess ==> false
 
-      """missing generated sources
-        |docs project (in folder site) is not imported""".stripMargin
+      "missing generated sources"
     }
   }
 }

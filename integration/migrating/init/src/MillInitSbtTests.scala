@@ -61,7 +61,7 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
       "https://github.com/pbassiner/sbt-multi-project-example/archive/152b31df9837115b183576b0080628b43c505389.zip"
 
     test - integrationTest(url) { tester =>
-      import tester._
+      import tester.*
       bumpSbt(workspacePath)
       /*
       `multi1.compile` doesn't work well when Mill is run with JDK 17 and 21:
@@ -112,6 +112,7 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
 
     val submodules = SortedSet(
       "gatling-app",
+      "gatling-benchmarks",
       "gatling-charts",
       "gatling-commons",
       "gatling-core-java",
@@ -129,11 +130,14 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
       "gatling-recorder",
       "gatling-redis-java",
       "gatling-redis",
+      "gatling-samples",
       "gatling-test-framework"
     )
     val submodulesWithoutTests = SortedSet(
       "gatling-app",
+      "gatling-benchmarks",
       "gatling-quicklens",
+      "gatling-samples",
       "gatling-test-framework"
     )
     val submodulesWithTests = submodules diff submodulesWithoutTests
@@ -174,10 +178,12 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
             "gatling-charts.allSourceFiles" -> 58,
             "gatling-test-framework.allSourceFiles" -> 5,
             "gatling-recorder.test.allSourceFiles" -> 10,
+            "gatling-benchmarks.allSourceFiles" -> 3,
             "gatling-jms.test.allSourceFiles" -> 15,
             "gatling-core-java.test.allSourceFiles" -> 2,
             "gatling-jsonpath.test.allSourceFiles" -> 3,
             "gatling-jsonpath.allSourceFiles" -> 8,
+            "gatling-samples.allSourceFiles" -> 12,
             "gatling-core-java.allSourceFiles" -> 86,
             "gatling-http-java.test.allSourceFiles" -> 3
           ),
