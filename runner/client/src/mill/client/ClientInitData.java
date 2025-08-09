@@ -3,6 +3,7 @@ package mill.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -31,6 +32,18 @@ public class ClientInitData {
     this.userSpecifiedProperties = userSpecifiedProperties;
   }
 
+  @Override
+  public String toString() {
+    return "ClientInitData{" +
+      "interactive=" + interactive +
+      ", clientMillVersion='" + clientMillVersion + '\'' +
+      ", clientJavaVersion='" + clientJavaVersion + '\'' +
+      ", args=" + Arrays.toString(args) +
+      ", env=" + env +
+      ", userSpecifiedProperties=" + userSpecifiedProperties +
+      '}';
+  }
+
   public void write(OutputStream in) throws IOException {
     in.write(interactive ? 1 : 0);
     ClientUtil.writeString(in, clientMillVersion);
@@ -38,6 +51,7 @@ public class ClientInitData {
     ClientUtil.writeArgs(args, in);
     ClientUtil.writeMap(env, in);
     ClientUtil.writeMap(userSpecifiedProperties, in);
+    in.flush();
   }
 
   public static ClientInitData read(InputStream socketIn) throws IOException {

@@ -62,12 +62,15 @@ public abstract class ServerLauncher {
       Socket connection,
       Streams streams,
       boolean closeConnectionAfterClientLogic,
+      Consumer<OutputStream> sendInitData,
       RunClientLogic<A> runClientLogic)
       throws Exception {
     var socketInputStream = connection.getInputStream();
     var socketOutputStream = connection.getOutputStream();
+    sendInitData.accept(socketOutputStream);
+    socketOutputStream.flush();
     var pumperThread = startStreamPumpers(socketInputStream, socketOutputStream, streams);
-    var result = runClientLogic.run(socketOutputStream);
+    var result = runClientLogic.run();
     if (closeConnectionAfterClientLogic) socketInputStream.close();
     pumperThread.join();
     return new RunWithConnectionResult<>(result, pumperThread.exitCode());
@@ -285,20 +288,13 @@ public abstract class ServerLauncher {
   }
 
   public interface InitServer {
-    /**
-     * Initializes the server process, returning it or None if it failed to start.
-     */
+    /// Initializes the server process, returning it.
     LaunchedServer init() throws Exception;
   }
 
   public interface RunClientLogic<A> {
-    /**
-     * Runs the client logic.
-     *
-     * @param rawServerStdin raw access to the server's stdin, you should only use this if you know what you're doing,
-     *                       use {@link Streams} to communicate with the server instead.
-     */
-    A run(OutputStream rawServerStdin) throws Exception;
+    /// Runs the client logic.
+    A run() throws Exception;
   }
 
   public static class Result {

@@ -268,7 +268,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
           ServerLauncher.runWithConnection(
             socket,
             streams, /* closeConnectionAfterCommand */ true,
-            _ => {
+            /* sendInitData */ _ => {},
+            () => {
               val serverToClient = use(BufferedReader(InputStreamReader(PipedInputStream(stdout))))
               val clientToServer = use(PrintStream(PipedOutputStream(stdin)))
               val wireTransport = MillRpcWireTransport.ViaStreams(

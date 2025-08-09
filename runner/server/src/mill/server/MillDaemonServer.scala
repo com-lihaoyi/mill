@@ -53,10 +53,12 @@ abstract class MillDaemonServer[State](
       stopServer: Server.StopServer,
       initialSystemProperties: Map[String, String]
   ): ClientInitData = {
+    serverLog(s"preHandleConnection $socketInfo")
+    serverLog("reading client init data")
     val initData = ClientInitData.read(stdin)
+    serverLog(s"read client init data: $initData")
     import initData.*
 
-    serverLog(socketInfo.toString)
     serverLog("args " + upickle.default.write(args))
     serverLog("env " + upickle.default.write(env.asScala))
     serverLog("props " + upickle.default.write(userSpecifiedProperties.asScala))

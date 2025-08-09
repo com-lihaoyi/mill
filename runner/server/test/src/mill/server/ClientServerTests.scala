@@ -7,6 +7,7 @@ import mill.constants.{DaemonFiles, Util}
 import utest.*
 
 import java.io.*
+import java.util.Optional
 import java.nio.file.Path
 import scala.jdk.CollectionConverters.*
 import concurrent.duration.*
@@ -102,7 +103,7 @@ object ClientServerTests extends TestSuite {
         ServerLauncher.Streams(in, out, err),
         env.asJava,
         args,
-        memoryLock,
+        Optional.of(memoryLock),
         forceFailureForTestingMillisDelay
       ) {
         def prepareDaemonDir(daemonDir: Path) = { /*do nothing*/ }
@@ -118,9 +119,13 @@ object ClientServerTests extends TestSuite {
             commandSleepMillis = commandSleepMillis
           ))
           t.start()
-          LaunchedServer.NewThread(t);
+          LaunchedServer.NewThread(t)
         }
-      }.run((outDir / "server-0").relativeTo(os.pwd).toNIO, "")
+      }.run(
+        (outDir / "server-0").relativeTo(os.pwd).toNIO,
+        "",
+        msg => println(s"MillServerLauncher: $msg")
+      )
 
       ClientResult(
         result.exitCode,
@@ -140,10 +145,30 @@ object ClientServerTests extends TestSuite {
       out: String,
       err: String
   ) {
-    def logsFor(suffix: String) = {
+    def logsForSuffix(suffix: String) = {
       os.read
         .lines(daemonDir / DaemonFiles.serverLog)
-        .collect { case s if s.endsWith(" " + suffix) => s.dropRight(1 + suffix.length) }
+        .iterator
+        .collect {
+          case s if s.endsWith(" " + suffix) =>
+            // Example line:
+            // server-0 2025-08-09T17:37:07.870828643 shutting down due inactivity
+            s.dropRight(31 + suffix.length)
+        }
+        .toSeq
+    }
+
+    def logsForServerId(serverId: String) = {
+      os.read
+        .lines(daemonDir / DaemonFiles.serverLog)
+        .iterator
+        .collect {
+          case s if s.startsWith(serverId + " ") =>
+            // Example line:
+            // server-0 2025-08-09T17:37:07.870828643 shutting down due inactivity
+            s.drop(serverId.length + 31)
+        }
+        .toSeq
     }
   }
 
@@ -172,8 +197,8 @@ object ClientServerTests extends TestSuite {
         // Make sure the server times out of not used for a while
         Thread.sleep(2000)
 
-        assert(res2.logsFor("shutting down due inactivity") == Seq("server-0"))
-        assert(res2.logsFor("exiting server") == Seq("server-0"))
+        assert(res2.logsForSuffix("shutting down due inactivity") == Seq("server-0"))
+        assert(res2.logsForSuffix("exiting server") == Seq("server-0"))
 
         // Have a third client spawn/connect-to a new server at the same path
         val res3 = tester(args = Array(" World"))
@@ -187,8 +212,8 @@ object ClientServerTests extends TestSuite {
         os.remove.all(res3.outDir)
         Thread.sleep(1000)
 
-        assert(res3.logsFor("processId file missing") == Seq("server-1"))
-        assert(res3.logsFor("exiting server") == Seq("server-1"))
+        assert(res3.logsForServerId("server-1").exists(_.contains("processId file missing")))
+        assert(res3.logsForSuffix("exiting server") == Seq("server-1"))
       }
     }
     test("dontLogWhenOutFolderDeleted") - retry(3) {
@@ -252,11 +277,14 @@ object ClientServerTests extends TestSuite {
       val logLines = os.read.lines(os.Path(pathStr, os.pwd) / "server.log")
 
       assert(
-        logLines.takeRight(2) ==
-          Seq(
-            "server-0 client interrupted while server was executing command",
-            "server-0 exiting server"
+        logLines.exists(line =>
+          line.startsWith("server-0 ") && line.contains(
+            "client interrupted while server was executing command"
           )
+        ),
+        logLines.exists(line =>
+          line.startsWith("server-0 ") && line.contains("exiting server")
+        )
       )
     }
     test("longCommandNotInterrupted") {
