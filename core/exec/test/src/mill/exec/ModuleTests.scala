@@ -50,7 +50,6 @@ object ModuleTests extends TestSuite {
     }
     test("externalModuleTargetsAreNamespacedByModulePackagePath") {
       UnitTester(Build, null).scoped { check =>
-        os.remove.all(check.outPath)
         val zresult = check.apply(Build.z)
         assert(
           zresult == Right(Result(30, 1)),
