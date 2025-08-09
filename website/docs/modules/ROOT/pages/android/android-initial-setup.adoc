@@ -57,7 +57,7 @@ If you want to start with an example project, you can use the `init` command as 
 == 4. Use Android Studio
 You can use Android Studio to open and work with your Mill project.
 
-image::basic/AndroidStudio.png[AndroidStudio.png]
+image::android/AndroidStudio.png[AndroidStudio.png]
 
 == 5. Release the project
 By default, mill projects are considered in debug mode, so if your project is ready for release, you should add the following to your app object in the `build.mill` file:
