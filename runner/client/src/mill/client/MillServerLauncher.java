@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
-
 import mill.client.lock.Locks;
 import mill.constants.Util;
 
@@ -62,8 +61,7 @@ public abstract class MillServerLauncher extends ServerLauncher {
     Locks locks;
     if (memoryLock.isPresent()) {
       locks = memoryLock.get();
-    }
-    else {
+    } else {
       locks = Locks.files(daemonDir.toString());
     }
     log.accept("launchOrConnectToServer: " + locks);
@@ -82,8 +80,10 @@ public abstract class MillServerLauncher extends ServerLauncher {
         log)) {
       log.accept("runWithConnection: " + connection);
       var result = runWithConnection(
-        connection, streams, false,
-        rawServerStdin -> {
+          connection,
+          streams,
+          false,
+          rawServerStdin -> {
             log.accept("Sending init data: " + initData);
             try {
               initData.write(rawServerStdin);
@@ -91,13 +91,12 @@ public abstract class MillServerLauncher extends ServerLauncher {
             } catch (IOException e) {
               throw new RuntimeException(e);
             }
-        },
-        () -> {
-          log.accept("running client logic");
-          forceTestFailure(daemonDir, log);
-          return 0;
-        }
-      );
+          },
+          () -> {
+            log.accept("running client logic");
+            forceTestFailure(daemonDir, log);
+            return 0;
+          });
       log.accept("runWithConnection exit code: " + result.exitCode);
       return new Result(result.exitCode, daemonDir);
     }
@@ -105,11 +104,11 @@ public abstract class MillServerLauncher extends ServerLauncher {
 
   private void forceTestFailure(Path daemonDir, Consumer<String> log) throws Exception {
     if (forceFailureForTestingMillisDelay > 0) {
-      log.accept("Force failure for testing in " + forceFailureForTestingMillisDelay + "ms: " + daemonDir);
+      log.accept(
+          "Force failure for testing in " + forceFailureForTestingMillisDelay + "ms: " + daemonDir);
       Thread.sleep(forceFailureForTestingMillisDelay);
       throw new Exception("Force failure for testing: " + daemonDir);
-    }
-    else {
+    } else {
       log.accept("No force failure for testing: " + daemonDir);
     }
   }

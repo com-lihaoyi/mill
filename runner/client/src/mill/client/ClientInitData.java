@@ -34,14 +34,13 @@ public class ClientInitData {
 
   @Override
   public String toString() {
-    return "ClientInitData{" +
-      "interactive=" + interactive +
-      ", clientMillVersion='" + clientMillVersion + '\'' +
-      ", clientJavaVersion='" + clientJavaVersion + '\'' +
-      ", args=" + Arrays.toString(args) +
-      ", env=" + env +
-      ", userSpecifiedProperties=" + userSpecifiedProperties +
-      '}';
+    return "ClientInitData{" + "interactive="
+        + interactive + ", clientMillVersion='"
+        + clientMillVersion + '\'' + ", clientJavaVersion='"
+        + clientJavaVersion + '\'' + ", args="
+        + Arrays.toString(args) + ", env="
+        + env + ", userSpecifiedProperties="
+        + userSpecifiedProperties + '}';
   }
 
   public void write(OutputStream in) throws IOException {
