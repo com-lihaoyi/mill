@@ -1,6 +1,6 @@
 package mill.androidlib
 
-import mill.api.JsonFormatters.pathReadWrite
+import mill.api.PathRef
 
 /**
  * Build type settings for
@@ -9,6 +9,7 @@ import mill.api.JsonFormatters.pathReadWrite
  *
  * Useful for getting different packaging strategies for code shrinking and
  * supporting build variants
+ * Needs to be called from a `Task.Input` if local Proguard files are used.
  */
 case class AndroidBuildTypeSettings(
     isMinifyEnabled: Boolean = false,
@@ -17,7 +18,7 @@ case class AndroidBuildTypeSettings(
     proguardFiles: ProguardFiles = ProguardFiles()
 ) {
   def withProguardLocalFiles(localFiles: Seq[os.Path]): AndroidBuildTypeSettings =
-    copy(proguardFiles = proguardFiles.copy(localFiles = localFiles))
+    copy(proguardFiles = proguardFiles.copy(localFiles = localFiles.map(PathRef(_))))
 
   def withDefaultProguardFile(fileName: String): AndroidBuildTypeSettings =
     copy(proguardFiles = proguardFiles.copy(defaultProguardFile = Some(fileName)))
@@ -25,7 +26,7 @@ case class AndroidBuildTypeSettings(
 
 case class ProguardFiles(
     defaultProguardFile: Option[String] = None,
-    localFiles: Seq[os.Path] = List.empty
+    localFiles: Seq[PathRef] = List.empty
 )
 
 object AndroidBuildTypeSettings {

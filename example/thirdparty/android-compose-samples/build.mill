@@ -25,7 +25,7 @@ object JetLagged extends mill.api.Module {
     // without some reportedly missing classes.
     override def androidR8Args = Seq("--map-diagnostics", "error", "warning")
 
-    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task.Input {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false
@@ -150,7 +150,7 @@ object JetNews extends mill.api.Module {
     // without some reportedly missing classes.
     override def androidR8Args = Seq("--map-diagnostics", "error", "warning")
 
-    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task.Input {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false

@@ -800,6 +800,28 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   }
 
+  def knownProguardRules: T[String] = Task {
+    // TODO need also collect rules from other modules,
+    // but Android lib module doesn't yet exist
+    androidUnpackArchives()
+      .flatMap(_.proguardRules)
+      .map(p => os.read(p.path))
+      .appendedAll(mainDexPlatformRules)
+      .appended(os.read(androidLinkedResources().path / "proguard/main-dex-rules.pro"))
+      .mkString("\n")
+  }
+
+  override def androidProguard: T[PathRef] = Task {
+    val inheritedProguardFile = super.androidProguard()
+    val proguardFile = Task.dest / "proguard-rules.pro"
+
+    os.write(proguardFile, os.read(inheritedProguardFile.path))
+
+    os.write.append(proguardFile, knownProguardRules())
+
+    PathRef(proguardFile)
+  }
+
   // uses the d8 tool to generate the dex file, when minification is disabled
   private def androidD8Dex
       : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] = Task {
@@ -815,16 +837,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val libsJarFiles = libsJarPathRefs.map(_.path.toString())
 
-    val proguardFile = Task.dest / "proguard-rules.pro"
-    val knownProguardRules = androidUnpackArchives()
-      // TODO need also collect rules from other modules,
-      // but Android lib module doesn't yet exist
-      .flatMap(_.proguardRules)
-      .map(p => os.read(p.path))
-      .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidLinkedResources().path / "proguard/main-dex-rules.pro"))
-      .mkString("\n")
-    os.write(proguardFile, knownProguardRules)
+    val proguardFile = androidProguard().path
 
     val d8ArgsBuilder = Seq.newBuilder[String]
 
