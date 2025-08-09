@@ -47,7 +47,7 @@ object app extends AndroidAppKotlinModule {
     def junit4Version = "4.13.2"
   }
 
-  object it extends AndroidAppKotlinInstrumentedTests, AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppKotlinInstrumentedTests {
 
     // TODO currently instrumented tests debug mode
     // is coupled with the app debug mode. Fix so
