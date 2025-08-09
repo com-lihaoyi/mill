@@ -21,6 +21,7 @@ import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
 import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
 import mill.javalib.api.CompilationResult
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 import mill.javalib.bsp.{BspJavaModule, BspModule}
 import mill.javalib.internal.ModuleUtils
 import mill.javalib.publish.Artifact
@@ -849,18 +850,25 @@ trait JavaModule
       os.makeDir.all(compileGenSources)
     }
 
+    val jOpts = JavaCompilerOptions(Seq(
+      "-s",
+      compileGenSources.toString
+    ) ++ javacOptions() ++ mandatoryJavacOptions())
+
     jvmWorker()
-      .worker()
+      .internalWorker()
       .compileJava(
-        upstreamCompileOutput = upstreamCompileOutput(),
-        sources = allSourceFiles().map(_.path),
-        compileClasspath = compileClasspath().map(_.path),
+        ZincCompileJava(
+          upstreamCompileOutput = upstreamCompileOutput(),
+          sources = allSourceFiles().map(_.path),
+          compileClasspath = compileClasspath().map(_.path),
+          javacOptions = jOpts.compiler,
+          incrementalCompilation = zincIncrementalCompilation()
+        ),
         javaHome = javaHome().map(_.path),
-        javacOptions =
-          Seq("-s", compileGenSources.toString) ++ javacOptions() ++ mandatoryJavacOptions(),
+        javaRuntimeOptions = jOpts.runtime,
         reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = zincIncrementalCompilation()
+        reportCachedProblems = zincReportCachedProblems()
       )
   }
 
@@ -1120,6 +1128,8 @@ trait JavaModule
     val files = Lib.findSourceFiles(docSources(), Seq("java"))
 
     if (files.nonEmpty) {
+      val javaHome = this.javaHome().map(_.path)
+
       val classPath = compileClasspath().iterator.map(_.path).filter(_.ext != "pom").toSeq
       val cpOptions =
         if (classPath.isEmpty) Seq()
@@ -1153,10 +1163,12 @@ trait JavaModule
           options
         }
 
+      Task.log.info(s"java home: ${javaHome.fold("default")(_.toString)}")
       Task.log.info("options: " + cmdArgs)
 
+      val cmd = Seq(Jvm.jdkTool("javadoc", javaHome)) ++ cmdArgs
       os.call(
-        cmd = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
+        cmd = cmd,
         env = Map(),
         cwd = Task.dest,
         stdin = os.Inherit,

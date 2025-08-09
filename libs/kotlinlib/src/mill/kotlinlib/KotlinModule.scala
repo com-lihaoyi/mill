@@ -11,15 +11,18 @@ import coursier.params.ResolutionParams
 import mill.api.Result
 import mill.api.ModuleRef
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
-import mill.javalib.api.{CompilationResult, JvmWorkerApi}
+import mill.javalib.api.CompilationResult
+import mill.javalib.api.{JvmWorkerApi => PublicJvmWorkerApi}
+import mill.javalib.api.internal.JvmWorkerApi
 import mill.api.daemon.internal.{CompileProblemReporter, KotlinModuleApi, internal}
 import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
 import mill.*
-import java.io.File
 
+import java.io.File
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 
 /**
  * Core configuration required to compile a single Kotlin module
@@ -311,7 +314,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
         )
         // The compile step is lazy, but its dependencies are not!
         internalCompileJavaFiles(
-          worker = jvmWorkerRef().worker(),
+          worker = jvmWorkerRef().internalWorker(),
           upstreamCompileOutput = updateCompileOutput,
           javaSourceFiles = javaSourceFiles,
           compileCp = compileCp,
@@ -409,16 +412,20 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
       reportOldProblems: Boolean
-  )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
+  )(implicit ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
+    val jOpts = JavaCompilerOptions(javacOptions)
     worker.compileJava(
-      upstreamCompileOutput = upstreamCompileOutput,
-      sources = javaSourceFiles,
-      compileClasspath = compileCp,
+      ZincCompileJava(
+        upstreamCompileOutput = upstreamCompileOutput,
+        sources = javaSourceFiles,
+        compileClasspath = compileCp,
+        javacOptions = jOpts.compiler,
+        incrementalCompilation = true
+      ),
       javaHome = javaHome,
-      javacOptions = javacOptions,
+      javaRuntimeOptions = jOpts.runtime,
       reporter = compileProblemReporter,
-      reportCachedProblems = reportOldProblems,
-      incrementalCompilation = true
+      reportCachedProblems = reportOldProblems
     )
   }
 

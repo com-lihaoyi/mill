@@ -5,7 +5,9 @@ package mill.constants;
  * and documentation about what they do
  */
 public class DaemonFiles {
+  /** Daemon process id is stored in this file, if you delete it the daemon will die. */
   public static final String processId = "processId";
+
   public static final String sandbox = "sandbox";
 
   /**

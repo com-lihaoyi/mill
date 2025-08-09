@@ -1,4 +1,5 @@
 package build.runner.client
+
 import mill.*
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.*
@@ -18,7 +19,7 @@ object `package` extends MillPublishJavaModule with BuildInfo {
     BuildInfo.Value("defaultJvmId", os.read(build.millJvmVersion().path).trim())
   )
 
-  def moduleDeps = Seq(build.core.constants)
+  def moduleDeps = Seq(build.libs.daemon.client)
 
   object test extends JavaTests with TestModule.Junit4 {
     def mvnDeps = Seq(Deps.junitInterface, Deps.commonsIo)

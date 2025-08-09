@@ -235,7 +235,7 @@ trait MainModule extends RootModule0, MainModuleApi {
    */
   def shutdown(): Command[Unit] = Task.Command(exclusive = true) {
     Task.log.info("Shutting down Mill server...")
-    Task.ctx().systemExit(0)
+    Task.ctx().systemExitWithReason("`shutdown` command received", 0)
     ()
   }
 

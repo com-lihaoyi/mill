@@ -1,13 +1,13 @@
 package mill.javalib
 
 import mainargs.Flag
-import mill._
-import mill.api.Result
-import mill.api.{TaskCtx, PathRef}
-import mill.api.{Discover, ExternalModule, Task}
-import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
-import mill.javalib.api.{Versions, JvmWorkerApi, JvmWorkerUtil}
+import mill.*
+import mill.api.{PathRef, Task, *}
 import mill.javalib.CoursierModule.Resolver
+import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
+import mill.javalib.api.internal.JvmWorkerApi as InternalJvmWorkerApi
+import mill.javalib.api.{JvmWorkerApi, JvmWorkerUtil, Versions}
+import mill.javalib.internal.{JvmWorkerArgs, JvmWorkerFactoryApi, ZincCompilerBridgeProvider}
 
 /**
  * A default implementation of [[JvmWorkerModule]]
@@ -47,46 +47,47 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
 
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
-  def worker: Worker[JvmWorkerApi] = Task.Worker {
+  def worker: Worker[JvmWorkerApi] = internalWorker
+
+  private[mill] def internalWorker: Worker[InternalJvmWorkerApi] = Task.Worker {
     val jobs = Task.ctx().jobs
 
     val cl = mill.util.Jvm.createClassLoader(
-      classpath().map(_.path).toSeq,
+      classpath().map(_.path),
       getClass.getClassLoader
     )
 
-    val cls = cl.loadClass("mill.javalib.worker.JvmWorkerImpl")
-    val instance = cls.getConstructor(
-      classOf[
-        Either[
-          (JvmWorkerApi.Ctx, (String, String) => (Option[Seq[PathRef]], PathRef)),
-          String => PathRef
-        ]
-      ], // compilerBridge
-      classOf[Int], // jobs
-      classOf[Boolean], // compileToJar
-      classOf[Boolean], // zincLogDebug
-      classOf[() => Unit]
+    val factory =
+      cl.loadClass("mill.javalib.worker.JvmWorkerFactory").getConstructor().newInstance()
+        .asInstanceOf[JvmWorkerFactoryApi]
+
+    val ctx = Task.ctx()
+    val zincCompilerBridge = ZincCompilerBridgeProvider[Unit](
+      workspace = ctx.dest,
+      logInfo = ctx.log.info,
+      acquire = (scalaVersion, scalaOrganization, _) =>
+        scalaCompilerBridgeJarV2(
+          scalaVersion = scalaVersion,
+          scalaOrganization = scalaOrganization,
+          defaultResolver()
+        ).map(_.path)
     )
-      .newInstance(
-        Left((
-          Task.ctx(),
-          (x: String, y: String) =>
-            scalaCompilerBridgeJar(x, y, defaultResolver())
-        )),
-        jobs,
-        java.lang.Boolean.FALSE,
-        java.lang.Boolean.valueOf(zincLogDebug()),
-        () => cl.close()
-      )
-    instance.asInstanceOf[JvmWorkerApi]
+    val args = JvmWorkerArgs(
+      zincCompilerBridge,
+      classPath = classpath().map(_.path),
+      jobs = jobs,
+      compileToJar = false,
+      zincLogDebug = zincLogDebug(),
+      close0 = () => cl.close()
+    )
+    factory.make(args)
   }
 
-  def scalaCompilerBridgeJar(
+  private[mill] def scalaCompilerBridgeJarV2(
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: TaskCtx): (Option[Seq[PathRef]], PathRef) = {
+  )(implicit ctx: TaskCtx): ZincCompilerBridgeProvider.AcquireResult[PathRef] = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, JvmWorkerUtil.scalaBinaryVersion(scalaVersion))
     }
@@ -124,12 +125,28 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     )
 
     val bridgeJar = JvmWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
-    val classpathOpt = Option.when(useSources) {
-      compilerInterfaceClasspath(scalaVersion, scalaOrganization, resolver)
-    }
 
-    (classpathOpt, bridgeJar)
+    if (useSources) {
+      val classpath = compilerInterfaceClasspath(scalaVersion, scalaOrganization, resolver)
+      ZincCompilerBridgeProvider.AcquireResult.NotCompiled(classpath, bridgeJar)
+    } else ZincCompilerBridgeProvider.AcquireResult.Compiled(bridgeJar)
   }
+
+  @deprecated("This is an internal API that has been accidentally exposed.", "1.0.2")
+  def scalaCompilerBridgeJar(
+      scalaVersion: String,
+      scalaOrganization: String,
+      resolver: Resolver
+  )(implicit ctx: TaskCtx): (Option[Seq[PathRef]], PathRef) =
+    scalaCompilerBridgeJarV2(
+      scalaVersion = scalaVersion,
+      scalaOrganization = scalaOrganization,
+      resolver
+    ) match {
+      case ZincCompilerBridgeProvider.AcquireResult.Compiled(bridgeJar) => (None, bridgeJar)
+      case ZincCompilerBridgeProvider.AcquireResult.NotCompiled(classpath, bridgeSourcesJar) =>
+        (Some(classpath), bridgeSourcesJar)
+    }
 
   def compilerInterfaceClasspath(
       scalaVersion: String,
@@ -160,10 +177,11 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     ).distinct
   }
 
+  // noinspection ScalaUnusedSymbol - Task.Command
   def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] =
     Task.Command {
       classpath()
-      scalaCompilerBridgeJar(scalaVersion, scalaOrganization, defaultResolver())
+      scalaCompilerBridgeJarV2(scalaVersion, scalaOrganization, defaultResolver())
       ()
     }
 

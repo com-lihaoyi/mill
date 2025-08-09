@@ -3,7 +3,6 @@ package mill.util
 import mill.api.PathRef
 
 import java.net.URLClassLoader
-import scala.collection.mutable.LinkedHashMap
 
 /**
  * Caches classloaders that can be shared between different workers, keeping
@@ -14,50 +13,34 @@ class RefCountedClassLoaderCache(
     sharedLoader: ClassLoader = null,
     sharedPrefixes: Seq[String] = Nil,
     parent: ClassLoader = null
-) {
+) extends AutoCloseable {
 
-  private val cache = LinkedHashMap.empty[Long, (URLClassLoader, Int)]
+  private val cache = RefCountedCache[Seq[PathRef], Long, sourcecode.Enclosing, URLClassLoader](
+    convertKey = _.hashCode,
+    setup = (combinedCompilerJars, _, enclosing) => {
+      mill.util.Jvm.createClassLoader(
+        combinedCompilerJars.map(_.path),
+        parent = parent,
+        sharedLoader = sharedLoader,
+        sharedPrefixes = sharedPrefixes
+      )(using enclosing)
+    },
+    closeValue = cl => {
+      extraRelease(cl)
+      cl.close()
+    }
+  )
 
   def extraRelease(cl: ClassLoader): Unit = ()
 
-  def release(combinedCompilerJars: Seq[PathRef]) = synchronized {
-    val compilersSig = combinedCompilerJars.hashCode()
-    cache.updateWith(compilersSig) {
-      case Some((cl, 1)) =>
-        // We try to find the timer created by scala.tools.nsc.classpath.FileBasedCache
-        // and cancel it, so that it shuts down its thread.
-        extraRelease(cl)
-        cl.close()
-        None
-      case Some((cl, n)) if n > 1 => Some((cl, n - 1))
-      case v => sys.error("Unknown: " + v) // No other cases; n should never be zero or negative
+  def release(combinedCompilerJars: Seq[PathRef]): Option[(URLClassLoader, Int)] =
+    cache.release(combinedCompilerJars).map { case RefCountedCache.Entry(value, refCount) =>
+      (value, refCount)
     }
 
-  }
-  def get(
-      combinedCompilerJars: Seq[PathRef]
-  )(implicit e: sourcecode.Enclosing): URLClassLoader = synchronized {
-    val compilersSig = combinedCompilerJars.hashCode()
-    cache.get(compilersSig) match {
-      case Some((cl, i)) =>
-        cache(compilersSig) = (cl, i + 1)
-        cl
-      case _ =>
-        // the Scala compiler must load the `xsbti.*` classes from the same loader as `JvmWorkerImpl`
-        val cl = mill.util.Jvm.createClassLoader(
-          combinedCompilerJars.map(_.path),
-          parent = parent,
-          sharedLoader = sharedLoader,
-          sharedPrefixes = sharedPrefixes
-        )(using e)
-        cache.update(compilersSig, (cl, 1))
-        cl
-    }
-  }
+  def get(combinedCompilerJars: Seq[PathRef])(using e: sourcecode.Enclosing): URLClassLoader =
+    cache.get(combinedCompilerJars, e)
 
-  def close() = {
-    cache.values.map { case (cl, _) => cl.close() }
-    cache.clear()
-  }
-
+  override def close(): Unit =
+    cache.close()
 }
