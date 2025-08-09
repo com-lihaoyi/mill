@@ -35,6 +35,7 @@ object MillInitScala3ExampleProjectWithJvmOptsTests extends BuildGenTestSuite {
       os.write(it.workspacePath / ".jvmopts", "-Ddummy=prop -Ddummy2=prop2")
       testMillInit(
         it,
+        initCommand = Seq("init"),
         expectedAllSourceFileNums = Map("allSourceFiles" -> 13, "test.allSourceFiles" -> 1),
         expectedCompileTaskResults = Some(SplitTaskResults(
           successful = SortedSet("compile", "test.compile"),
@@ -78,8 +79,8 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
       val submodules = SortedSet("common", "multi1", "multi2")
       testMillInit(
         tester,
+        initCommand = Seq("init"),
         expectedAllSourceFileNums = Map(
-          "allSourceFiles" -> 0,
           "multi1.test.allSourceFiles" -> 1,
           "multi1.allSourceFiles" -> 1,
           "multi2.allSourceFiles" -> 1,
@@ -88,7 +89,7 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
           "common.allSourceFiles" -> 1
         ),
         expectedCompileTaskResults = Some(SplitTaskResults(
-          successful = SortedSet("compile") ++ submodules.flatMap(allCompileTasks),
+          successful = submodules.flatMap(allCompileTasks),
           failed = SortedSet.empty
         )),
         expectedTestTaskResults =
@@ -111,7 +112,6 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
 
     val submodules = SortedSet(
       "gatling-app",
-      "gatling-benchmarks",
       "gatling-charts",
       "gatling-commons",
       "gatling-core-java",
@@ -129,14 +129,11 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
       "gatling-recorder",
       "gatling-redis-java",
       "gatling-redis",
-      "gatling-samples",
       "gatling-test-framework"
     )
     val submodulesWithoutTests = SortedSet(
       "gatling-app",
-      "gatling-benchmarks",
       "gatling-quicklens",
-      "gatling-samples",
       "gatling-test-framework"
     )
     val submodulesWithTests = submodules diff submodulesWithoutTests
@@ -146,8 +143,8 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
       if (!mill.constants.Util.isWindows) {
         testMillInit(
           tester,
+          initCommand = Seq("init"),
           expectedAllSourceFileNums = Map(
-            "allSourceFiles" -> 0,
             "gatling-http.test.allSourceFiles" -> 32,
             "gatling-jms.allSourceFiles" -> 30,
             "gatling-jdbc.allSourceFiles" -> 2,
@@ -177,12 +174,10 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
             "gatling-charts.allSourceFiles" -> 58,
             "gatling-test-framework.allSourceFiles" -> 5,
             "gatling-recorder.test.allSourceFiles" -> 10,
-            "gatling-benchmarks.allSourceFiles" -> 3,
             "gatling-jms.test.allSourceFiles" -> 15,
             "gatling-core-java.test.allSourceFiles" -> 2,
             "gatling-jsonpath.test.allSourceFiles" -> 3,
             "gatling-jsonpath.allSourceFiles" -> 8,
-            "gatling-samples.allSourceFiles" -> 12,
             "gatling-core-java.allSourceFiles" -> 86,
             "gatling-http-java.test.allSourceFiles" -> 3
           ),
@@ -192,8 +187,7 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
             os.remove(tester.workspacePath / os.SubPath(skipped))
           },
           expectedCompileTaskResults = Some(SplitTaskResults(
-            successful = SortedSet("compile")
-              ++ submodulesWithTests.flatMap(allCompileTasks)
+            successful = submodulesWithTests.flatMap(allCompileTasks)
               ++ submodulesWithoutTests.map(compileTask),
             failed = SortedSet.empty
           )),

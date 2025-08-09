@@ -1,15 +1,10 @@
-//| mill-version: SNAPSHOT
 package build
 
-import mill._
 import mill.javalib._
 import mill.javalib.publish._
-import mill.scalalib.SbtModule
+import mill.scalalib._
 
-object `package` extends SbtModule with PublishModule {
-
-  def artifactName = "Scala Seed Project"
-
+object `package` extends PublishModule with SbtModule {
   def scalaVersion = "2.13.12"
 
   def pomSettings = PomSettings(
@@ -25,10 +20,10 @@ object `package` extends SbtModule with PublishModule {
 
   object test extends SbtTests with TestModule.Munit {
 
-    def mvnDeps = Seq(mvn"org.scalameta::munit:0.7.29")
+    def mandatoryMvnDeps = super.mandatoryMvnDeps() ++ Seq(Deps.munit)
+  }
 
-    def testSandboxWorkingDir = false
-    def testParallelism = false
-
+  object Deps {
+    val munit = mvn"org.scalameta::munit:0.7.29"
   }
 }
