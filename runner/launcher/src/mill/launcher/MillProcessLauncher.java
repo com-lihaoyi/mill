@@ -24,7 +24,8 @@ public class MillProcessLauncher {
 
   static int launchMillNoDaemon(String[] args, boolean bspMode) throws Exception {
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
-    final Path processDir = Paths.get(".").resolve(outFor(bspMode)).resolve(millNoDaemon).resolve(sig);
+    final Path processDir =
+        Paths.get(".").resolve(outFor(bspMode)).resolve(millNoDaemon).resolve(sig);
 
     final List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand(bspMode));
@@ -239,7 +240,10 @@ public class MillProcessLauncher {
     vmOptions.add("-cp");
     String[] runnerClasspath = cachedComputedValue0(
         bspMode,
-        "resolve-runner", BuildInfo.millVersion, () -> CoursierClient.resolveMillDaemon(), arr -> {
+        "resolve-runner",
+        BuildInfo.millVersion,
+        () -> CoursierClient.resolveMillDaemon(),
+        arr -> {
           for (String s : arr) {
             if (!Files.exists(Paths.get(s))) return false;
           }
@@ -250,12 +254,17 @@ public class MillProcessLauncher {
     return vmOptions;
   }
 
-  static String[] cachedComputedValue(boolean bspMode, String name, String key, Supplier<String[]> block) {
+  static String[] cachedComputedValue(
+      boolean bspMode, String name, String key, Supplier<String[]> block) {
     return cachedComputedValue0(bspMode, name, key, block, arr -> true);
   }
 
   static String[] cachedComputedValue0(
-      boolean bspMode, String name, String key, Supplier<String[]> block, Function<String[], Boolean> validate) {
+      boolean bspMode,
+      String name,
+      String key,
+      Supplier<String[]> block,
+      Function<String[], Boolean> validate) {
     try {
       Path cacheFile = Paths.get(".").resolve(outFor(bspMode)).resolve("mill-launcher/" + name);
       String[] value = null;
