@@ -153,8 +153,8 @@ object ClientServerTests extends TestSuite {
         .collect {
           case s if s.endsWith(" " + suffix) =>
             // Example line:
-            // server-0 2025-08-09T17:37:07.870828643 shutting down due inactivity
-            s.dropRight(31 + suffix.length)
+            // pid:-1 2025-08-09T17:37:07.870828643 shutting down due inactivity
+            s.split(' ').head
         }
         .toSeq
     }
@@ -166,8 +166,8 @@ object ClientServerTests extends TestSuite {
         .collect {
           case s if s.startsWith(serverId + " ") =>
             // Example line:
-            // server-0 2025-08-09T17:37:07.870828643 shutting down due inactivity
-            s.drop(serverId.length + 31)
+            // pid:-1 2025-08-09T17:37:07.870828643 shutting down due inactivity
+            s.split(" ", 3).last
         }
         .toSeq
     }
@@ -198,8 +198,8 @@ object ClientServerTests extends TestSuite {
         // Make sure the server times out of not used for a while
         Thread.sleep(2000)
 
-        assert(res2.logsForSuffix("shutting down due inactivity") == Seq("server-0"))
-        assert(res2.logsForSuffix("exiting server") == Seq("server-0"))
+        assert(res2.logsForSuffix("shutting down due inactivity") == Seq("pid:-1"))
+        assert(res2.logsForSuffix("exiting server") == Seq("pid:-1"))
 
         // Have a third client spawn/connect-to a new server at the same path
         val res3 = tester(args = Array(" World"))
@@ -213,8 +213,8 @@ object ClientServerTests extends TestSuite {
         os.remove.all(res3.outDir)
         Thread.sleep(1000)
 
-        assert(res3.logsForServerId("server-1").exists(_.contains("processId file missing")))
-        assert(res3.logsForSuffix("exiting server") == Seq("server-1"))
+        assert(res3.logsForServerId("pid:-2").exists(_.contains("processId file missing")))
+        assert(res3.logsForSuffix("exiting server") == Seq("pid:-2"))
       }
     }
     test("dontLogWhenOutFolderDeleted") - retry(3) {
