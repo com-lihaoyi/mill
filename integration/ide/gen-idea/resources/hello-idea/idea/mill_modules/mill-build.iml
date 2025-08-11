@@ -58,6 +58,8 @@
         <orderEntry type="library" scope="RUNTIME" name="mill-core-internal_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-resolve_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-androidlib_3.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-daemon-client.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-daemon-server_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-libs-init_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-javalib-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-javalib-testrunner-entrypoint.jar" level="project"/>
@@ -67,6 +69,7 @@
         <orderEntry type="library" name="mill-libs-kotlinlib-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-kotlinlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-pythonlib_3.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-rpc_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalajslib-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalajslib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalalib_3.jar" level="project"/>

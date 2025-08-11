@@ -61,8 +61,7 @@ public class MillProcessLauncher {
   }
 
   static Process launchMillDaemon(Path daemonDir, boolean bspMode) throws Exception {
-    List<String> l = new ArrayList<>();
-    l.addAll(millLaunchJvmCommand(bspMode));
+    List<String> l = new ArrayList<>(millLaunchJvmCommand(bspMode));
     l.add("mill.daemon.MillDaemonMain");
     l.add(daemonDir.toFile().getCanonicalPath());
     l.add(bspMode ? "bsp" : "non-bsp");

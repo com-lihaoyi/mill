@@ -10,7 +10,7 @@ import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.client.lock.Lock
 import mill.api.internal.WatchSig
 import mill.internal.PrefixLogger
-import mill.server.Server
+import mill.server.MillDaemonServer
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
 import java.util.concurrent.{CompletableFuture, ConcurrentHashMap, LinkedBlockingQueue, TimeUnit}
@@ -852,7 +852,7 @@ private class MillBuildServer(
               elemOpt = Option(queue.poll(1L, TimeUnit.SECONDS))
             for ((block, logger, name) <- elemOpt) {
               waitForEvaluators()
-              Server.withOutLock(
+              MillDaemonServer.withOutLock(
                 noBuildLock = false,
                 noWaitForBuildLock = false,
                 out = out,

@@ -76,13 +76,17 @@ trait AndroidR8AppModule extends AndroidAppModule {
   }
 
   /** Concatenates all rules into one file */
-  def androidProguard: T[PathRef] = Task {
+  override def androidProguard: T[PathRef] = Task {
+    val inheritedProguardFile = super.androidProguard()
+
     val globalProguard = Task.dest / "global-proguard.pro"
     val files = androidProguardConfigs()
-    os.write(globalProguard, "")
+    os.write(globalProguard, os.read(inheritedProguardFile.path))
+
     files.foreach(pg =>
       os.write.append(globalProguard, os.read(pg.path))
     )
+
     PathRef(globalProguard)
   }
 

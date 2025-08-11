@@ -60,6 +60,7 @@ object SystemStreamsUtils {
    * Manages the global override of `System.{in,out,err}`. Overrides of those streams are
    * global, so we cannot just override them per-use-site in a multithreaded environment
    * because different threads may interleave and stomp over each other's over-writes.
+   *
    * Instead, we over-write them globally with a set of streams that does nothing but
    * forward to the per-thread [[ThreadLocalStreams.current]] streams, allowing callers
    * to each reach their own thread-local streams without clashing across multiple threads
@@ -78,6 +79,7 @@ object SystemStreamsUtils {
       System.setIn(in)
     }
   }
+
   def setTopLevelSystemStreamProxy(): Unit = {
     val _ = mill.api.SystemStreams.current
     // Make sure to initialize `Console` to cache references to the original

@@ -74,4 +74,21 @@ trait AndroidHiltSupport extends KspModule with AndroidKotlinModule {
     )
   }
 
+  override def androidProguard: T[PathRef] = Task {
+    val inheritedProguardFile = super.androidProguard()
+
+    val hiltContent: String =
+      """
+        |# Keep any class annotated with @HiltAndroidApp, @AndroidEntryPoint, etc.
+        |-keep @dagger.hilt.android.HiltAndroidApp class * { *; }
+        |-keep @dagger.hilt.android.AndroidEntryPoint class * { *; }
+        |""".stripMargin
+
+    val globalProguard = Task.dest / "global-proguard.pro"
+    os.write(globalProguard, os.read(inheritedProguardFile.path))
+    os.write.append(globalProguard, hiltContent)
+    os.write.append(globalProguard, androidProviderProguardConfigRules().mkString("\n"))
+    PathRef(globalProguard)
+  }
+
 }

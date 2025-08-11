@@ -9,6 +9,7 @@ import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import mill.javalib.api.CompilationResult
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 import os.Path
 
 import scala.collection.immutable
@@ -140,6 +141,42 @@ trait AndroidModule extends JavaModule { outer =>
     } else {
       Seq("--auto-add-overlay")
     }
+  }
+
+  def androidProviderProguardConfigRules: T[Seq[String]] = Task {
+    val androidNs = "http://schemas.android.com/apk/res/android"
+    val manifest = androidMergedManifest().path
+    val manifestXML = scala.xml.XML.loadFile(manifest.toString)
+
+    val providerElements = (manifestXML \\ "application" \\ "provider")
+
+    // Collect provider class names
+    val providerClasses = providerElements.flatMap { provider =>
+      provider.attribute(androidNs, "name").map(_.text.trim)
+    }
+
+    // Collect meta-data android:name values under each provider
+    val metaDataClasses = providerElements.flatMap { provider =>
+      (provider \ "meta-data").flatMap { meta =>
+        meta.attribute(androidNs, "name").map(_.text.trim)
+      }
+    }
+
+    // Union of both sets, deduplicated
+    val allClasses = (providerClasses ++ metaDataClasses).distinct
+
+    // Generate ProGuard rules
+    val rules = allClasses.map { className =>
+      s"-keep class $className { <init>(); }"
+    }
+
+    rules
+  }
+
+  def androidProguard: T[PathRef] = Task {
+    val globalProguardFile = Task.dest / "global-proguard.pro"
+    os.write(globalProguardFile, "")
+    PathRef(globalProguardFile)
   }
 
   /**
@@ -438,17 +475,21 @@ trait AndroidModule extends JavaModule { outer =>
    * The Java compiled classes of [[androidResources]]
    */
   def androidCompiledRClasses: T[CompilationResult] = Task(persistent = true) {
+    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
     jvmWorker()
-      .worker()
+      .internalWorker()
       .compileJava(
-        upstreamCompileOutput = upstreamCompileOutput(),
-        sources = androidLibsRClasses().map(_.path),
-        compileClasspath = Seq.empty,
+        ZincCompileJava(
+          upstreamCompileOutput = upstreamCompileOutput(),
+          sources = androidLibsRClasses().map(_.path),
+          compileClasspath = Seq.empty,
+          javacOptions = jOpts.compiler,
+          incrementalCompilation = zincIncrementalCompilation()
+        ),
         javaHome = javaHome().map(_.path),
-        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
+        javaRuntimeOptions = jOpts.runtime,
         reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = zincIncrementalCompilation()
+        reportCachedProblems = zincReportCachedProblems()
       )
   }
 
@@ -599,17 +640,21 @@ trait AndroidModule extends JavaModule { outer =>
 
     val rJar = Task.dest / "R.jar"
 
+    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
     val classesDest = jvmWorker()
-      .worker()
+      .internalWorker()
       .compileJava(
-        upstreamCompileOutput = upstreamCompileOutput(),
-        sources = sources.map(_.path),
-        compileClasspath = androidTransitiveLibRClasspath().map(_.path),
+        ZincCompileJava(
+          upstreamCompileOutput = upstreamCompileOutput(),
+          sources = sources.map(_.path),
+          compileClasspath = androidTransitiveLibRClasspath().map(_.path),
+          javacOptions = jOpts.compiler,
+          incrementalCompilation = zincIncrementalCompilation()
+        ),
         javaHome = javaHome().map(_.path),
-        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
+        javaRuntimeOptions = jOpts.runtime,
         reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = zincIncrementalCompilation()
+        reportCachedProblems = zincReportCachedProblems()
       ).get.classes.path
 
     os.zip(rJar, Seq(classesDest))
