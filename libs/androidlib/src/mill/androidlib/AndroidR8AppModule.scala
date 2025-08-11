@@ -72,7 +72,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
   /** ProGuard/R8 rules configuration files for release target (user-provided and generated) */
   def androidProguardConfigs: T[Seq[PathRef]] = Task {
-    androidDefaultProguardFiles() ++ androidProjectProguardSources()
+    androidDefaultProguardFiles() ++ androidProjectProguardSources() ++ androidLibraryProguardConfigs()
   }
 
   /** Concatenates all rules into one file */
