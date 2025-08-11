@@ -1,9 +1,9 @@
 //// SNIPPET:BUILD
 package build
-import mill._, kotlinlib._
-import mill.define.ModuleRef
+import mill.*, kotlinlib.*
+import mill.api.ModuleRef
 
-object foo extends KotlinModule with NativeImageModule {
+object foo extends KotlinModule, NativeImageModule {
   def kotlinVersion = "1.9.24"
 
   def nativeImageOptions = Seq(
@@ -13,14 +13,10 @@ object foo extends KotlinModule with NativeImageModule {
   )
 
   def mvnDeps = Seq(
-    mvn"com.github.ajalt.clikt:clikt-jvm:4.4.0",
-    mvn"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
+    mvn"com.github.ajalt.clikt:clikt:4.4.0",
+    mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
   )
 
-  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
-}
-
-object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = "graalvm-community:23.0.2"
 }
 

@@ -1,7 +1,5 @@
 package mill.contrib.flyway
 
-import java.net.URLClassLoader
-
 import mill.contrib.flyway.ConsoleLog.Level
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.MigrationVersion
@@ -10,18 +8,17 @@ import org.flywaydb.core.internal.configuration.{ConfigUtils => flyway}
 import org.flywaydb.core.internal.info.MigrationInfoDumper
 import scala.jdk.CollectionConverters._
 
-import mill.{T, Task}
-import mill.define.PathRef
-import mill.define.Command
-import mill.scalalib.{Dep, JavaModule}
+import mill.*
+import mill.api.PathRef
+import mill.javalib.{Dep, JavaModule}
 import org.flywaydb.core.api.output.{BaselineResult, CleanResult, MigrateOutput, MigrateResult}
 
 trait FlywayModule extends JavaModule {
   import FlywayModule._
 
   def flywayUrl: T[String]
-  def flywayUser: T[String] = T("")
-  def flywayPassword: T[String] = T("")
+  def flywayUser: T[String] = Task { "" }
+  def flywayPassword: T[String] = Task { "" }
   def flywayFileLocations: T[Seq[PathRef]] = Task {
     resources().map(pr => PathRef(pr.path / "db/migration", pr.quick))
   }
@@ -37,8 +34,11 @@ trait FlywayModule extends JavaModule {
       .filter(_.nonEmpty)
       .map(key -> _)
 
+  def flywayClassloader = Task.Worker {
+    mill.util.Jvm.createClassLoader(jdbcClasspath().map(_.path))
+  }
   def flywayInstance = Task.Worker {
-    val jdbcClassloader = new URLClassLoader(jdbcClasspath().map(_.path.toIO.toURI.toURL).toArray)
+    val jdbcClassloader = flywayClassloader()
 
     val configProps = Map(flyway.URL -> flywayUrl()) ++
       strToOptPair(flyway.USER, flywayUser()) ++

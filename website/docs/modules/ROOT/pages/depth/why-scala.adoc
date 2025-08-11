@@ -218,7 +218,7 @@ not malicious. But build systems need to be pluggable, with the same build syste
 potentially being used to manage a wide variety of different tools and frameworks.
 
 It is in this context that the JVM's dynamic classloading shines, and Mill goes all in
-dynamic classloading. Features like xref:extending/import-mvn-plugins.adoc[import $ivy],
+dynamic classloading. Features like xref:extending/import-mvn-plugins.adoc[//| mvnDeps],
 xref:extending/running-jvm-code.adoc[Running Dynamic JVM Code], or the
 xref:extending/meta-build.adoc[Mill Meta-Build] would be difficult-to-impossible in
 less-dynamic platforms like Go, Swift, Rust, or C++. Mill simultaneously takes advantage of
@@ -247,12 +247,12 @@ or https://www.yourkit.com/[Yourkit] to see what is taking up space.
 
 Lastly there is the wealth of libraries: if something has a programming language integration,
 there probably is one for Java, and Mill can make use of any Java libraries seamlessly
-as part of the build using xref:extending/import-mvn-plugins.adoc[import $ivy] or
+as part of the build using xref:extending/import-mvn-plugins.adoc[//| mvnDeps] or
 xref:extending/running-jvm-code.adoc[dynamic classloading]. With Mill, the ability to
 directly import _any JVM artifact on the planet_ without needing a purpose-built plugin
 open ups an enormous about of possibilities: anything that can be done in the Java ecosystem
 can be done as part of your Mill build with a
-single xref:extending/import-mvn-plugins.adoc[import $ivy].
+single xref:extending/import-mvn-plugins.adoc[//| mvnDeps].
 
 === Built-in Publishing Infrastructure
 

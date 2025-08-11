@@ -5,12 +5,12 @@
 
 //// SNIPPET:BUILD1
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.8"
-  object test extends ScalaTests with TestModule.Utest {
-    def utestVersion = "0.8.5"
+  def scalaVersion = "3.7.1"
+  object test extends ScalaTests, TestModule.Utest {
+    def utestVersion = "0.8.9"
 
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
     def testParallelism = false
@@ -30,13 +30,11 @@ object foo extends ScalaModule {
 
 /** Usage
 
-> mill foo.test
+> ./mill foo.test
 
 > find out/foo/test/testForked.dest
 ...
-out/foo/test/testForked.dest/foo.HelloTests.log
 out/foo/test/testForked.dest/foo.HelloTests/sandbox
-out/foo/test/testForked.dest/foo.WorldTests.log
 out/foo/test/testForked.dest/foo.WorldTests/sandbox
 out/foo/test/testForked.dest/test-report.xml
 

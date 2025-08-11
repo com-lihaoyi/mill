@@ -1,5 +1,5 @@
 package build
-import mill._
+import mill.*
 
 trait MyModule extends Module {
   def crossValue: String
@@ -9,10 +9,10 @@ trait MyModule extends Module {
 
 object foo extends Cross[FooModule]("a", "b")
 trait FooModule extends Cross.Module[String] {
-  object bar extends MyModule with CrossValue {
+  object bar extends MyModule, CrossValue {
     def name = "Bar"
   }
-  object qux extends MyModule with CrossValue {
+  object qux extends MyModule, CrossValue {
     def name = "Qux"
   }
 }
@@ -61,13 +61,13 @@ def baz = Task { s"hello ${foo("a").bar.param()}" }
 
 /** Usage
 
-> mill show foo[a].bar.param
+> ./mill show foo[a].bar.param
 "Bar Param Value: a"
 
-> mill show foo[b].qux.param
+> ./mill show foo[b].qux.param
 "Qux Param Value: b"
 
-> mill show baz
+> ./mill show baz
 "hello Bar Param Value: a"
 
 */

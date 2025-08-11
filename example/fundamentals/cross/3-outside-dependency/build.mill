@@ -2,7 +2,7 @@
 // as given below:
 
 package build
-import mill._
+import mill.*
 
 object foo extends Cross[FooModule]("2.10", "2.11", "2.12")
 trait FooModule extends Cross.Module[String] {
@@ -47,13 +47,13 @@ def qux = Task { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" 
 
 /** Usage
 
-> mill show foo[2.10].suffix
+> ./mill show foo[2.10].suffix
 "_2.10"
 
-> mill show bar
+> ./mill show bar
 "hello _2.10"
 
-> mill show qux
+> ./mill show qux
 "hello _2.10 world _2.12"
 
 */

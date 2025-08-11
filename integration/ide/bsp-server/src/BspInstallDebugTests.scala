@@ -13,9 +13,9 @@ object BspInstallDebugTests extends UtestIntegrationTestSuite {
   override val debugLog: Boolean = true
 
   def tests: Tests = Tests {
-    test("BSP install forwards --debug option to server") - integrationTest { tester =>
+    def runTest(bspInstallOption: String) = integrationTest { tester =>
       import tester._
-      eval("mill.bsp/install").isSuccess ==> true
+      eval(bspInstallOption).isSuccess ==> true
       val jsonFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
       assert(os.exists(jsonFile))
       val contents = os.read(jsonFile)
@@ -23,6 +23,12 @@ object BspInstallDebugTests extends UtestIntegrationTestSuite {
         contents.contains("--debug"),
         contents.contains(s""""bspVersion":"${bsp4jVersion}"""")
       )
+    }
+    test("BSP install via external command forwards --debug option to server") {
+      runTest("mill.bsp.BSP/install")
+    }
+    test("BSP install forwards --debug option to server") {
+      runTest("--bsp-install")
     }
   }
 }

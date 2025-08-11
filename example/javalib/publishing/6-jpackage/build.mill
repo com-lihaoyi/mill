@@ -2,11 +2,11 @@
 // using the `jpackage` tool.
 
 package build
-import mill._, javalib._
-import mill.javalib.Assembly._
+import mill.*, javalib.*
+import mill.javalib.Assembly.*
 import mill.scalalib.JpackageModule
 
-object foo extends JavaModule with JpackageModule {
+object foo extends JavaModule, JpackageModule {
   def jpackageType = "app-image"
 
   def assemblyRules = Seq(
@@ -47,9 +47,9 @@ object foo extends JavaModule with JpackageModule {
 
 /** Usage
 
-> mill foo.jpackageAppImage
+> ./mill foo.jpackageAppImage
 
-> mill show foo.jpackageAppImage
+> ./mill show foo.jpackageAppImage
 ".../out/foo/jpackageAppImage.dest/image"
 */
 

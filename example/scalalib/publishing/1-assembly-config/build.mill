@@ -3,13 +3,13 @@
 
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._
-import mill.scalalib.Assembly._
+import mill.*, scalalib.*
+import mill.scalalib.Assembly.*
 
 object foo extends ScalaModule {
   def moduleDeps = Seq(bar)
-  def scalaVersion = "2.13.8"
-  def mvnDeps = Seq(mvn"com.lihaoyi::os-lib:0.10.7")
+  def scalaVersion = "3.7.1"
+  def mvnDeps = Seq(mvn"com.lihaoyi::os-lib:0.11.4")
   def assemblyRules = Seq(
     // all application.conf files will be concatenated into single file
     Rule.Append("application.conf"),
@@ -26,7 +26,7 @@ object foo extends ScalaModule {
 }
 
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "3.7.1"
 }
 //// SNIPPET:END
 

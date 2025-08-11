@@ -5,7 +5,7 @@
 // `trait TypeScriptModule extends Module` wrapper:
 
 package build
-import mill._
+import mill.*
 
 trait TypeScriptModule extends Module {
   def npmInstall = Task {
@@ -26,7 +26,7 @@ trait TypeScriptModule extends Module {
   }
 
   def mainFileName = Task { s"${moduleDir.last}.js" }
-  def run(args: mill.define.Args) = Task.Command {
+  def run(args: mill.api.Args) = Task.Command {
     val mainFile = compile().path / mainFileName()
     os.call(("node", mainFile, args.value), stdout = os.Inherit)
   }
@@ -47,13 +47,13 @@ object qux extends TypeScriptModule
 // And then invoke the `.run` method on each module from the command line:
 
 /** Usage
-> mill foo.run James
+> ./mill foo.run James
 Hello James Foo
 
-> mill foo.bar.run James
+> ./mill foo.bar.run James
 Hello James Bar
 
-> mill qux.run James
+> ./mill qux.run James
 Hello James Qux
 
 */

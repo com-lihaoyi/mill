@@ -50,17 +50,17 @@ public class OutFiles {
    * Subfolder of `out/` that contains the machinery necessary for a single Mill background
    * server: metadata files, pipes, logs, etc.
    */
-  public static final String millServer = "mill-server";
+  public static final String millDaemon = "mill-daemon";
 
   /**
    * Subfolder of `out/` used to contain the Mill subprocess when run in no-server mode
    */
-  public static final String millNoServer = "mill-no-server";
+  public static final String millNoDaemon = "mill-no-daemon";
 
   /**
    * Lock file used for exclusive access to the Mill output directory
    */
-  public static final String millLock = "mill-lock";
+  public static final String millOutLock = "mill-out-lock";
 
   /**
    * Any active Mill command that is currently run, for debugging purposes

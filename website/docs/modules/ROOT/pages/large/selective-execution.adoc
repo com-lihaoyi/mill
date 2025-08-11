@@ -48,7 +48,7 @@ def myProjectVersion: T[String] = Task.Input {
 == Debugging Selective Execution
 
 * Use `selective.resolve` before `selective.run`: this will print out what it was going to run,
-  and can give you a chance to eyeball if the list of targets to run makes sense or not
+  and can give you a chance to eyeball if the list of tasks to run makes sense or not
 
 * Look at xref:fundamentals/out-dir.adoc#_mill_invalidation_tree_json[out/mill-invalidation-tree.json],
   whether on disk locally or printing it out (e.g via `cat`) on your CI machines to diagnose issues

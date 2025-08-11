@@ -2,16 +2,21 @@ package mill
 package scalajslib
 
 import mainargs.{Flag, arg}
+import mill.api.daemon.internal.{ScalaJSModuleApi, ScalaPlatform, internal}
+import mill.api.daemon.internal.bsp.ScalaBuildTarget
 import mill.api.Result
-import mill.scalalib.api.JvmWorkerUtil
-import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
-import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
-import mill.define.{Command, PathRef, Target, Task}
+import mill.api.CrossVersion
+import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
-import mill.api.internal.{ScalaBuildTarget, ScalaJSModuleApi, ScalaPlatform, internal}
-import mill.T
+import mill.*
+import mill.javalib.testrunner.{TestResult, TestRunner, TestRunnerUtils}
+import upickle.implicits.namedTuples.default.given
 
+/**
+ * Core configuration required to compile a single Scala.js module
+ */
 trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =>
 
   def scalaJSVersion: T[String]
@@ -44,7 +49,9 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
   }
 
   def scalaJSWorkerClasspath = Task {
-    defaultResolver().classpath(Seq(
+    // Use the global jvmWorker's resolver rather than this module's resolver so
+    // we don't incorrectly override the worker classpath's scala-library version
+    jvmWorker().defaultResolver().classpath(Seq(
       Dep.millProjectModule(s"mill-libs-scalajslib-worker-${scalaJSWorkerVersion()}")
     ))
   }
@@ -87,14 +94,15 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
           mvn"org.scala-js:scalajs-linker_2.13:${scalaJSVersion()}"
         ) ++ scalaJSJsEnvMvnDeps()
     }
-    // we need to use the scala-library of the currently running mill
-    defaultResolver().classpath(
+    // Use the global jvmWorker's resolver rather than this module's resolver so
+    // we don't incorrectly override the worker classpath's scala-library version
+    jvmWorker().defaultResolver().classpath(
       (commonDeps.iterator ++ envDeps ++ scalajsImportMapDeps)
         .map(Lib.depToBoundDep(_, mill.util.BuildInfo.scalaVersion, ""))
     )
   }
 
-  def scalaJSToolsClasspath: Target[Seq[PathRef]] = Task {
+  def scalaJSToolsClasspath: T[Seq[PathRef]] = Task {
     scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath()
   }
 
@@ -176,7 +184,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       minify: Boolean,
       importMap: Seq[ESModuleImportMapping],
       experimentalUseWebAssembly: Boolean
-  )(implicit ctx: mill.define.TaskCtx): Result[Report] = {
+  )(implicit ctx: mill.api.TaskCtx): Result[Report] = {
     val outputPath = ctx.dest
 
     os.makeDir.all(ctx.dest)
@@ -332,7 +340,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JS,
-        jars = scalaCompilerClasspath().iterator.map(_.path.toNIO.toUri.toString).toSeq,
+        jars = scalaCompilerClasspath().iterator.map(_.path.toURI.toString).toSeq,
         jvmBuildTarget = None
       )
     ))
@@ -376,13 +384,13 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     )
   }
 
-  override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
+  override def testLocal(args: String*): Command[(msg: String, results: Seq[TestResult])] =
     Task.Command { testForked(args*)() }
 
   override protected def testTask(
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]
-  ): Task[(String, Seq[TestResult])] = Task.Anon {
+  ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
 
     val (close, framework) = ScalaJSWorkerExternalModule.scalaJSWorker().getFramework(
       scalaJSToolsClasspath(),

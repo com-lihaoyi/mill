@@ -1,5 +1,7 @@
 package build
-import mill._, scalalib._
+
+import mill.*, scalalib.*
+import mill.meta.MillBuildRootModule
 
 object `package` extends MillBuildRootModule {
   val scalatagsVersion = "0.13.1"

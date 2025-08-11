@@ -4,11 +4,11 @@
 // library, one of Mill's xref:fundamentals/bundled-libraries.adoc[Bundled Libraries].
 //
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
-object `package` extends RootModule with PythonModule {
+object `package` extends PythonModule {
   def unmanagedWheels = Task {
-    if (Task.offline) Task.fail("Cannot download classpath when in offline-mode") // <1>
+    if (Task.offline) Task.fail("Cannot download classpath when in offline-mode")
     else {
       val name = "jinja2-3.1.4-py3-none-any.whl"
       val url = s"https://github.com/pallets/jinja/releases/download/3.1.4/$name"
@@ -17,9 +17,6 @@ object `package` extends RootModule with PythonModule {
     }
   }
 }
-
-// <1> Since Mill can also be run with the `--offline` option, we should make sure,
-// that we don't download anything when in offline mode.
 
 /** Usage
 

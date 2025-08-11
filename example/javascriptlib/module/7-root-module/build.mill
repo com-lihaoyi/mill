@@ -1,17 +1,17 @@
-// You can use ``object `package` extends RootModule`` to use a `Module`
+// You can use ``object `package` extends mill.Module`` to use a `Module`
 // as the root module of the file:
 
 package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
-object `package` extends RootModule with TypeScriptModule {
+object `package` extends TypeScriptModule {
   def moduleName = "foo"
   def npmDeps = Seq("immutable@4.3.7")
-  object test extends TypeScriptTests with TestModule.Jest
+  object test extends TypeScriptTests, TestModule.Jest
 }
 
-// Since our ``object `package` extends RootModule``, its files live in a
+// Since our ``object `package` extends mill.Module``, its files live in a
 // top-level `src/` folder.
 
 // Mill will ordinarily use the name of the singleton object, as
@@ -33,17 +33,17 @@ object `package` extends RootModule with TypeScriptModule {
 // woudld be `foo.ts` located in top-level `src/`
 
 /** Usage
-> mill run James Bond prof
+> ./mill run James Bond prof
 Hello James Bond Professor
 
-> mill test
+> ./mill test
 PASS .../foo.test.ts
 ...
 Test Suites:...1 passed, 1 total...
 Tests:...3 passed, 3 total...
 ...
 
-> mill show bundle
+> ./mill show bundle
 Build succeeded!
 
 > node out/bundle.dest/bundle.js James Bond prof

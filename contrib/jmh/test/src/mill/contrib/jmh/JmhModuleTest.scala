@@ -1,17 +1,17 @@
 package mill
 package contrib.jmh
 
-import mill.define.Discover
-import mill.define.ExecutionPaths
+import mill.api.Discover
+import mill.api.ExecutionPaths
 import mill.scalalib.ScalaModule
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import os.Path
 import utest.*
 
 object JmhModuleTest extends TestSuite {
 
-  object jmh extends TestBaseModule with ScalaModule with JmhModule {
+  object jmh extends TestRootModule with ScalaModule with JmhModule {
 
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
     override def jmhCoreVersion = "1.35"
@@ -25,7 +25,7 @@ object JmhModuleTest extends TestSuite {
       test("listJmhBenchmarks") - UnitTester(jmh, testModuleSourcesPath).scoped { eval =>
         val paths = ExecutionPaths.resolve(eval.outPath, jmh.listJmhBenchmarks())
         val outFile = paths.dest / "benchmarks.out"
-        val Right(result) = eval(jmh.listJmhBenchmarks("-o", outFile.toString)): @unchecked
+        val Right(_) = eval(jmh.listJmhBenchmarks("-o", outFile.toString)): @unchecked
         val expected =
           """Benchmarks:
             |mill.contrib.jmh.Bench2.log

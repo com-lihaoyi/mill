@@ -1,8 +1,8 @@
 package build
 
-import mill._, scalalib._
+import mill.*, scalalib.*
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = millbuild.ScalaVersion.myScalaVersion
   // Add (or replace) source folders for the module to use
   def customSources = Task.Sources("mill-build/src")
@@ -21,7 +21,7 @@ object `package` extends RootModule with ScalaModule {
 
 /** Usage
 
-> mill run
+> ./mill run
 scalaVersion: 2.13.10
 
 */

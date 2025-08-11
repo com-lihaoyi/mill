@@ -3,7 +3,7 @@
 // `mill.javalib.palantirformat.PalantirFormatModule` below:
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule
 
@@ -14,7 +14,7 @@ def myAutoformat = mill.javalib.palantirformat.PalantirFormatModule
 > cat foo/src/foo/Foo.java # starts off unformatted
 package foo;public class Foo{ public static void main(String[] args) {System.out.println("Hello World!");}}
 
-> mill myAutoformat # easier to type than `./mill mill.javalib.palantirformat/`
+> ./mill myAutoformat # easier to type than `./mill mill.javalib.palantirformat/`
 
 > cat foo/src/foo/Foo.java # code is now formatted
 package foo;

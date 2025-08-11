@@ -1,7 +1,7 @@
 package foo
 
-import scala.scalanative.unsafe._
-import utest._
+import scala.scalanative.unsafe.*
+import utest.*
 
 object FooTests extends TestSuite {
   def tests = Tests {

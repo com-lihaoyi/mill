@@ -3,11 +3,11 @@
 //
 // You can use it by extending `CoverageTests` in your test module.
 
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
-object `package` extends RootModule with PythonModule {
+object `package` extends PythonModule {
 
-  object test extends PythonTests with TestModule.Pytest with CoverageTests
+  object test extends PythonTests, TestModule.Pytest, CoverageTests
 
 }
 
@@ -18,7 +18,7 @@ object `package` extends RootModule with PythonModule {
 // You can generate a coverage report with the `coverageReport` task.
 
 /** Usage
-> mill test.coverageReport
+> ./mill test.coverageReport
 Name ...                        Stmts   Miss  Cover
 ...------------------------------------------------
 .../src/main.py                 4      1    75%
@@ -31,7 +31,7 @@ TOTAL ...                       9      1    89%
 // For example, you can use it to fail if a coverage threshold is not met:
 
 /** Usage
-> mill test.coverageReport --fail-under 90
+> ./mill test.coverageReport --fail-under 90
 error: ...
 error: Coverage failure: total of 89 is less than fail-under=90
 */

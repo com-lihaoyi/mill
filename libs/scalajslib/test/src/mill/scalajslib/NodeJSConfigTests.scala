@@ -1,11 +1,11 @@
 package mill.scalajslib
 
 import mill._
-import mill.define.Discover
-import mill.define.ExecutionPaths
-import mill.scalalib.{DepSyntax, ScalaModule, TestModule}
+import mill.api.Discover
+import mill.api.ExecutionPaths
+import mill.scalalib.{ScalaModule, TestModule}
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest._
 import mill.scalajslib.api._
 
@@ -29,7 +29,7 @@ object NodeJSConfigTests extends TestSuite {
     override def mainClass = Some("Main")
   }
 
-  object HelloJSWorld extends TestBaseModule {
+  object HelloJSWorld extends TestRootModule {
     val matrix = for {
       scala <- Seq(scalaVersion)
       nodeArgs <- Seq(nodeArgsEmpty, nodeArgs2G)
@@ -43,7 +43,7 @@ object NodeJSConfigTests extends TestSuite {
       override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
 
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
-        override def sources = Task.Sources { this.moduleDir / "src/utest" }
+        override def sources = Task.Sources("src/utest")
         override def utestVersion = testUtestVersion
         override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
       }
@@ -57,19 +57,17 @@ object NodeJSConfigTests extends TestSuite {
 
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-js-world"
 
-  val helloWorldEvaluator = UnitTester(HelloJSWorld, millSourcePath)
-
-  val mainObject = helloWorldEvaluator.outPath / "src/Main.scala"
-
   def tests: Tests = Tests {
-    def checkLog(command: define.Command[?], nodeArgs: List[String], notNodeArgs: List[String]) = {
-      helloWorldEvaluator(command)
-      val paths = ExecutionPaths.resolve(helloWorldEvaluator.outPath, command)
-      val log = os.read(paths.log)
-      assert(
-        nodeArgs.forall(log.contains),
-        notNodeArgs.forall(!log.contains(_))
-      )
+    def checkLog(command: Command[?], nodeArgs: List[String], notNodeArgs: List[String]) = {
+      UnitTester(HelloJSWorld, millSourcePath).scoped { helloWorldEvaluator =>
+        helloWorldEvaluator(command)
+        val paths = ExecutionPaths.resolve(helloWorldEvaluator.outPath, command)
+        val log = os.read(paths.log)
+        assert(
+          nodeArgs.forall(log.contains),
+          notNodeArgs.forall(!log.contains(_))
+        )
+      }
     }
 
     test("test") - {

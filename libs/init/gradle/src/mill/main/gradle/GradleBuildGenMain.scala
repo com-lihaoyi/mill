@@ -1,7 +1,7 @@
 package mill.main.gradle
 
 import mainargs.{ParserForClass, arg, main}
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.gradle.JavaModel.{Dep, ExternalDep}
@@ -183,7 +183,9 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       // skipped, requires relatively new API (JavaPluginExtension.getSourceSets)
       resources = Nil,
       testResources = Nil,
-      publishProperties = getPublishProperties(project, cfg.shared)
+      publishProperties = getPublishProperties(project, cfg.shared),
+      jvmId = cfg.shared.basicConfig.jvmId,
+      testForkDir = None
     )
   }
 
@@ -199,11 +201,10 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       baseInfo: IrBaseInfo,
       build: Node[ProjectModel]
   ): Seq[String] =
-    Seq("RootModule") ++
-      Option.when(null != build.value.maven().pom() && {
-        val baseTrait = baseInfo.moduleTypedef
-        baseTrait == null || !baseTrait.moduleSupertypes.contains("PublishModule")
-      }) { "PublishModule" } ++
+    Option.when(null != build.value.maven().pom() && {
+      val baseTrait = baseInfo.moduleTypedef
+      baseTrait == null || !baseTrait.moduleSupertypes.contains("PublishModule")
+    }) { "PublishModule" }.toSeq ++
       Option.when(build.dirs.nonEmpty || os.exists(getMillSourcePath(build.value) / "src")) {
         getModuleSupertypes(cfg)
       }.toSeq.flatten
@@ -218,9 +219,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
   }
 
   def getRepositories(project: ProjectModel): Seq[String] =
-    project.maven().repositories().asScala.toSeq.sorted.map(uri =>
-      s"coursier.maven.MavenRepository(${escape(uri.toString)})"
-    )
+    project.maven().repositories().asScala.toSeq.sorted.map(uri => escape(uri.toString))
 
   def getPomPackaging(project: ProjectModel): String = {
     val pom = project.maven().pom()
@@ -319,14 +318,14 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
             appendMvnDepPackage(
               config.deps.asScala,
               onPackage = v => sd.copy(mainCompileModuleDeps = sd.mainCompileModuleDeps + v),
-              onMvn = (v, id) => sd.copy(mainCompileMvnDeps = sd.mainCompileMvnDeps + v)
+              onMvn = (v, /*id*/ _) => sd.copy(mainCompileMvnDeps = sd.mainCompileMvnDeps + v)
             )
 
           case RUNTIME_ONLY_CONFIGURATION_NAME =>
             appendMvnDepPackage(
               config.deps.asScala,
               onPackage = v => sd.copy(mainRunModuleDeps = sd.mainRunModuleDeps + v),
-              onMvn = (v, id) => sd.copy(mainRunMvnDeps = sd.mainRunMvnDeps + v)
+              onMvn = (v, /*id*/ _) => sd.copy(mainRunMvnDeps = sd.mainRunMvnDeps + v)
             )
 
           case TEST_IMPLEMENTATION_CONFIGURATION_NAME =>
@@ -347,7 +346,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
             appendMvnDepPackage(
               config.deps.asScala,
               onPackage = v => sd.copy(testCompileModuleDeps = sd.testCompileModuleDeps + v),
-              onMvn = (v, id) => sd.copy(testCompileMvnDeps = sd.testCompileMvnDeps + v)
+              onMvn = (v, /*id*/ _) => sd.copy(testCompileMvnDeps = sd.testCompileMvnDeps + v)
             )
 
           case name =>

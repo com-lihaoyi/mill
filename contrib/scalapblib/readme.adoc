@@ -10,8 +10,9 @@ This creates a Scala module which compiles `.proto` files in the `protobuf` fold
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION"]
 package build
-import $ivy.`com.lihaoyi::mill-contrib-scalapblib:`
+
 import contrib.scalapblib._
 
 object example extends ScalaPBModule {
@@ -35,6 +36,8 @@ example/
 
 * scalaPBVersion (mandatory) - The ScalaPB version `String` e.g. `"0.7.4"`
 
+* scalaPBSources - paths to search for `.proto` files and generate scala case classes for. Defaults to `moduleDir / "protobuf"`
+
 * scalaPBFlatPackage - A `Boolean` option which determines whether the `.proto` file name should be appended as the final segment of the package name in the generated sources.
 
 * scalaPBJavaConversions - A `Boolean` option which determines whether methods for converting between the generated Scala classes and the Protocol Buffers Java API classes should be generated.
@@ -56,8 +59,9 @@ If you'd like to configure the https://scalapb.github.io/docs/scalapbc#passing-g
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION"]
 package build
-import $ivy.`com.lihaoyi::mill-contrib-scalapblib:`
+
 import contrib.scalapblib._
 
 object example extends ScalaPBModule {
@@ -72,8 +76,9 @@ If you'd like to pass additional arguments to the ScalaPB compiler directly, you
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION"]
 package build
-import $ivy.`com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION`
+
 import contrib.scalapblib._
 
 object example extends ScalaPBModule {
@@ -81,5 +86,29 @@ object example extends ScalaPBModule {
   def scalaPBVersion = "0.7.4"
   override def scalaPBAdditionalArgs =
     Seq(s"--zio_out=${Task.dest.toIO.getCanonicalPath}")
+}
+----
+
+If you rely on any `.proto` files from your dependencies that requires case classes to be generated, override the `scalaPBSources` as follows:
+
+.`build.mill`
+[source,scala]
+----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION"]
+package build
+
+import contrib.scalapblib._
+
+object example extends ScalaPBModule {
+  def scalaVersion = "2.12.6"
+  def scalaPBVersion = "0.7.4"
+  override def scalaPBSources = {
+    defaultResolver().classpath(
+      Seq(ivy"..."),
+      sources = true
+    ).foreach(jar => os.unzip(jar.path, Task.dest))
+
+    super.scalaPBSources() ++ Seq(PathRef(Task.dest))
+  }
 }
 ----

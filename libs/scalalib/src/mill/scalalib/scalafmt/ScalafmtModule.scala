@@ -5,11 +5,12 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.*
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.api.Result
-import mill.define.{Discover, ExternalModule, TaskModule}
+import mill.api.{Discover, ExternalModule, DefaultTaskModule}
 import mill.scalalib.*
 import mainargs.arg
 import mill.util.Tasks
 import mill.util.Jvm
+import mill.api.BuildCtx
 
 trait ScalafmtModule extends JavaModule {
 
@@ -32,7 +33,7 @@ trait ScalafmtModule extends JavaModule {
   }
 
   def scalafmtConfig: T[Seq[PathRef]] = Task.Sources(
-    Task.workspace / ".scalafmt.conf",
+    BuildCtx.workspaceRoot / ".scalafmt.conf",
     os.pwd / ".scalafmt.conf"
   )
 
@@ -74,8 +75,8 @@ trait ScalafmtModule extends JavaModule {
 
 }
 
-object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule {
-  override def defaultCommandName(): String = "reformatAll"
+object ScalafmtModule extends ExternalModule with ScalafmtModule with DefaultTaskModule {
+  override def defaultTask(): String = "reformatAll"
 
   def reformatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
     Tasks.resolveMainDefault("__.sources")) =
@@ -108,7 +109,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
   def scalafmtClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       Seq(
-        mvn"org.scalameta:scalafmt-cli_2.13:${mill.scalalib.api.Versions.scalafmtVersion}"
+        mvn"org.scalameta:scalafmt-cli_2.13:${mill.javalib.api.Versions.scalafmtVersion}"
       )
     )
   }
@@ -130,7 +131,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
       scalafmtMainClass,
       args,
       classPath = scalafmtClasspath().map(_.path),
-      cwd = T.workspace,
+      cwd = BuildCtx.workspaceRoot,
       stdin = os.Inherit,
       stdout = os.Inherit
     )

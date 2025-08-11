@@ -1,13 +1,13 @@
 package mill.playlib
 
 import mill.Task
-import mill.testkit.{TestBaseModule, UnitTester}
-import utest.{TestSuite, Tests, assert, _}
-import mill.define.Discover
-import mill.util.TokenReaders._
+import mill.testkit.{TestRootModule, UnitTester}
+import utest.{TestSuite, Tests, assert, *}
+import mill.api.Discover
+import mill.util.TokenReaders.*
 object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
-  object playsingleapi extends TestBaseModule with PlayApiModule {
+  object playsingleapi extends TestRootModule with PlayApiModule {
     override val moduleDir = os.temp() // workaround problem in `SingleModule`
     override def playVersion = Task { testPlay28 }
     override def scalaVersion = Task { "2.13.12" }

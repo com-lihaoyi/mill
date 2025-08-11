@@ -1,21 +1,21 @@
 package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object foo extends TypeScriptModule {
-  object test extends TypeScriptTests with TestModule.Jest
+  object test extends TypeScriptTests, TestModule.Jest
 }
 
 object bar extends TypeScriptModule {
-  object test extends TypeScriptTests with TestModule.Mocha
+  object test extends TypeScriptTests, TestModule.Mocha
 }
 
 object baz extends TypeScriptModule {
-  object test extends TypeScriptTests with TestModule.Vitest
+  object test extends TypeScriptTests, TestModule.Vitest
 }
 
 object qux extends TypeScriptModule {
-  object test extends TypeScriptTests with TestModule.Jasmine
+  object test extends TypeScriptTests, TestModule.Jasmine
 }
 
 // Mill supports code coverage with `Jest`, `Mocha`, `Vitest` and `Jasmine` out of the box.
@@ -58,7 +58,7 @@ object qux extends TypeScriptModule {
 
 /** Usage
 
-> mill foo.test.coverage
+> ./mill foo.test.coverage
 ...Calculator
 ...
 ---------------|---------|----------|---------|---------|-------------------
@@ -72,7 +72,7 @@ Test Suites:...1 passed, 1 total...
 Tests:...4 passed, 4 total...
 ...
 
-> mill bar.test.coverage
+> ./mill bar.test.coverage
 ...
 ...2 passing...
 ...
@@ -83,7 +83,7 @@ File...| % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s...
 ...calculator.ts...|...66.66 |...0 |...66.66 |...62.5 | 7-10...
 ---------------|---------|----------|---------|---------|-------------------
 
-> mill baz.test.coverage
+> ./mill baz.test.coverage
 .../calculator.test.ts...
 ...Test Files  1 passed...
 ...Tests  4 passed...
@@ -96,7 +96,7 @@ File...| % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s...
 ...calculator.ts...|...100 |...100 |...100 |...100 |...
 ---------------|---------|----------|---------|---------|-------------------
 
-> mill qux.test.coverage
+> ./mill qux.test.coverage
 ...
 4 specs, 0 failures
 ...

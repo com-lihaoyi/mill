@@ -27,8 +27,8 @@ The following table contains the main ways you can test the code in
 |===
 | Config | Automated Testing | Manual Testing | Manual Testing CI
 | In-Process Tests | `main.__.test`, `scalalib.test`, `contrib.buildinfo.test`, etc. |  |
-| Sub-Process w/o packaging/publishing| `example.\\__.local.server`, `integration.__.local.server` | `dist.run` | `test-mill-dev.sh`
-| Sub-Process w/ packaging/publishing | `example.\\__.packaged.server`, `integration.__.packaged.server` | `dist.assembly` | `test-mill-release.sh`
+| Sub-Process w/o packaging/publishing| `example.\\__.local.daemon`, `integration.__.local.daemon` | `dist.run` | `test-mill-dev.sh`
+| Sub-Process w/ packaging/publishing | `example.\\__.packaged.daemon`, `integration.__.packaged.daemon` | `dist.assembly` | `test-mill-release.sh`
 | Bootstrapping: Building Mill with your current checkout of Mill |  | `dist.installLocal` | `test-mill-bootstrap.sh`
 |===
 
@@ -60,7 +60,7 @@ and do not exercise the Mill script-file bootstrapping, transformation, and comp
 
 === Sub-Process Tests *without* Packaging/Publishing
 
-`example.\\__.local.server` and `integration.__.local.server` tests run Mill end-to-end in a subprocess,
+`example.\\__.local.daemon` and `integration.__.local.daemon` tests run Mill end-to-end in a subprocess,
 but *without* the expensive/slow steps of packaging the core packages into an assembly jar
 and publishing the remaining packages to
 `~/.ivy2/local`.
@@ -95,7 +95,7 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 
 [source,console]
 ----
-> ./mill "example.javalib.basic[1-simple].local.server"
+> ./mill "example.javalib.basic[1-simple].local.daemon"
 ----
 
 **Manual Test**
@@ -114,8 +114,8 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 
 === Sub-Process Tests *with* Packaging/Publishing
 
-`example.\\__.server`, `integration.__.server`, `example.\\__.fork` and
-`integration.__.fork` cover the same test cases as the `.local.server` tests described above, but
+`example.\\__.daemon`, `integration.__.daemon`, `example.\\__.nodaemon` and
+`integration.__.nodaemon` cover the same test cases as the `.local.daemon` tests described above, but
 they perform packaging of the Mill core modules into an assembly jar, and publish the
 remaining modules to `~/.ivy2/local`.
 This results in a more realistic test environment, but at the cost of taking tens-of-seconds
@@ -125,13 +125,13 @@ You can reproduce these tests manually using `dist.installLocal`:
 
 [source,console]
 ----
-> ./mill dist.installLocal && (cd example/basic/1-simple && ../../../mill-assembly.jar run --text hello)
+> ./mill dist.installLocal && (cd example/javalib/basic/1-simple && ../../../../mill-assembly.jar run --text hello)
 ----
 
 You can also use `dist.native.installLocal` for a Graal Native Image executable,
 which is slower to create but faster to start than the default executable assembly.
 
-There are two six of these tests, `.{local,assembly,native}.{server,fork}`.
+There are two six of these tests, `.{local,assembly,native}.{daemon,fork}`.
 
 The first label specifies how the Mill code is packaged before testing
 
@@ -148,13 +148,13 @@ This is the slowest mode is only really necessary for debugging Mill's Graal nat
 The second label specifies how the Mill process is managed during the test:
 
 
-1. `.server` test run the test cases with the default configuration, so consecutive commands
-run in the same long-lived background server process
+1. `.daemon` test run the test cases with the default configuration, so consecutive commands
+run in the same long-lived background daemon process
 
-2. `.fork` test run the test cases with `--no-server`, meaning each command runs in a newly
+2. `.nodaemon` test run the test cases with `--no-daemon`, meaning each command runs in a newly
 spawned Mill process
 
-In general you should spend most of your time working with the `.local.server` version of the
+In general you should spend most of your time working with the `.local.daemon` version of the
 `example` and `integration` tests to save time, and only run the others if you have a specific
 thing you want to test that needs those code paths to run.
 
@@ -293,7 +293,7 @@ enforced with Mima, for the following packages:
 
 - `mill.api`
 - `mill.util`
-- `mill.define`
+- `mill.api`
 - `mill.eval`
 - `mill.resolve`
 - `mill.scalalib`

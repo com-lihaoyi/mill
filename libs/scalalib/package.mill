@@ -1,108 +1,35 @@
 package build.libs.scalalib
 import scala.util.Properties
 import scala.util.chaining._
+
 import coursier.maven.MavenRepository
 import mill._
-import mill.define.NamedTask
-import mill.main.Tasks
+import mill.util.Tasks
 import mill.scalalib._
-import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
-import mill.define.SelectMode
+import mill.api.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
-import mill.define.Cross
+import mill.api.Cross
+import millbuild.*
 
-object `package` extends RootModule with build.MillStableScalaModule {
-
-  def moduleDeps = Seq(build.core.util, build.libs.scalalib.api, build.libs.testrunner)
-  def mvnDeps = {
-    Agg(build.Deps.scalaXml) ++ {
+object `package` extends MillStableScalaModule {
+  def moduleDeps = Seq(build.libs.javalib)
+  def mvnDeps =
+    Seq(Deps.scalaXml) ++
       // despite compiling with Scala 3, we need to include scala-reflect
       // for the scala.reflect.internal.util.ScalaClassLoader
       // used in ScalaModule.scalacHelp,
       // (also transitively included by com.eed3si9n.jarjarabrams:jarjar-abrams-core)
       // perhaps the class can be copied here?
-      Agg(build.Deps.scalaReflect(scalaVersion()))
-    }
-  }
-  def testMvnDeps = super.testMvnDeps() ++ Agg(build.Deps.TestDeps.scalaCheck)
-  def testTransitiveDeps =
-    super.testTransitiveDeps() ++ Seq(worker.testDep(), `classgraph-worker`.testDep())
+      Seq(Deps.scalaReflect(scalaVersion()))
+
+  def compileMvnDeps = Seq(Deps.sonatypeCentralClient)
+  def runMvnDeps = Seq(Deps.sonatypeCentralClient)
+
   def testForkEnv = {
     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
     super.testForkEnv() ++ Map("LC_ALL" -> locale)
-  }
-
-  object backgroundwrapper extends build.MillPublishJavaModule with build.MillJavaModule {
-    def mvnDeps = Agg(build.Deps.sbtTestInterface)
-  }
-
-  object api extends build.MillStableScalaModule with BuildInfo {
-    def moduleDeps = Seq(build.core.define)
-    def buildInfoPackageName = "mill.scalalib.api"
-    def buildInfoObjectName = "Versions"
-
-    def buildInfoMembers = Seq(
-      BuildInfo.Value("ammonite", build.Deps.ammoniteVersion, "Version of Ammonite."),
-      BuildInfo.Value("zinc", build.Deps.zinc.version, "Version of Zinc"),
-      BuildInfo.Value(
-        "scalafmtVersion",
-        build.Deps.scalafmtDynamic.version,
-        "Version of Scalafmt"
-      ),
-      BuildInfo.Value(
-        "semanticDBVersion",
-        build.Deps.semanticDBscala.version,
-        "SemanticDB version."
-      ),
-      BuildInfo.Value(
-        "semanticDbJavaVersion",
-        build.Deps.semanticDbJava.version,
-        "Java SemanticDB plugin version."
-      ),
-      BuildInfo.Value(
-        "millModuledefsVersion",
-        build.Deps.millModuledefsVersion,
-        "Mill ModuleDefs plugins version."
-      ),
-      BuildInfo.Value("millCompilerBridgeScalaVersions", build.bridgeScalaVersions.mkString(",")),
-      BuildInfo.Value("millCompilerBridgeVersion", build.bridgeVersion),
-      BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
-      BuildInfo.Value(
-        "sbtTestInterface",
-        Dep.unparse(build.Deps.RuntimeDeps.sbtTestInterface).get,
-        "Dependency sbt-test-interface"
-      ),
-      BuildInfo.Value(
-        "jupiterInterface",
-        Dep.unparse(build.Deps.RuntimeDeps.jupiterInterface).get,
-        "Dependency to jupiter-interface"
-      ),
-      BuildInfo.Value("errorProneVersion", build.Deps.RuntimeDeps.errorProneCore.version),
-      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion),
-      BuildInfo.Value("palantirFormatVersion", build.Deps.RuntimeDeps.palantirFormat.version),
-      BuildInfo.Value(
-        "revApiVersion",
-        build.Deps.RuntimeDeps.revApi.version,
-        "Version of revApi"
-      )
-    )
-  }
-
-  object worker extends build.MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(api, build.core.util)
-    def mvnDeps = Agg(build.Deps.zinc, build.Deps.log4j2Core)
-    def buildInfoPackageName = "mill.scalalib.worker"
-    def buildInfoObjectName = "Versions"
-    def buildInfoMembers = Seq(
-      BuildInfo.Value("zinc", build.Deps.zinc.version, "Version of Zinc.")
-    )
-  }
-
-  object `classgraph-worker` extends build.MillPublishScalaModule {
-    def moduleDeps = Seq(api, build.core.util)
-    def mvnDeps = Agg(build.Deps.classgraph)
   }
 }

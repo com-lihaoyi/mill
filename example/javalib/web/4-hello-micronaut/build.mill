@@ -1,7 +1,7 @@
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
-object `package` extends RootModule with MicronautModule {
+object `package` extends MicronautModule {
   def micronautVersion = "4.5.3"
   def mvnDeps = Seq(
     mvn"io.micronaut:micronaut-http-server-netty:$micronautVersion",
@@ -9,7 +9,7 @@ object `package` extends RootModule with MicronautModule {
     mvn"ch.qos.logback:logback-classic:1.5.3"
   )
 
-  object test extends MavenTests with TestModule.Junit5 {
+  object test extends MavenTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"io.micronaut:micronaut-http-client:$micronautVersion",
       mvn"io.micronaut.test:micronaut-test-junit5:4.4.0",
@@ -67,14 +67,14 @@ trait MicronautModule extends MavenModule {
 
 /** Usage
 
-> mill test
+> ./mill test
 ...example.micronaut.HelloControllerTest#testHello()...
 
-> mill runBackground
+> ./mill runBackground
 
 > curl http://localhost:8088/hello
 ...Hello World...
 
-> mill clean runBackground
+> ./mill clean runBackground
 
 */

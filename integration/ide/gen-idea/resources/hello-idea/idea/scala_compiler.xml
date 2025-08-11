@@ -1,0 +1,43 @@
+<project version="4">
+    <component name="ScalaCompilerConfiguration">
+        <profile name="mill 1" modules="">
+            <parameters>
+                <parameter value="-Xplugin:.../com/lihaoyi/scalac-mill-moduledefs-plugin_3.7.1/0.11.10/scalac-mill-moduledefs-plugin_3.7.1-0.11.10.jar"/>
+                <parameter value="-deprecation"/>
+                <parameter value="-Wconf:msg=will be encoded on the classpath:silent"/>
+            </parameters>
+            <plugins>
+                <plugin path=".../com/lihaoyi/scalac-mill-moduledefs-plugin_3.7.1/0.11.10/scalac-mill-moduledefs-plugin_3.7.1-0.11.10.jar"/>
+                <plugin path=".../org/scala-lang/scala3-compiler_3/3.7.1/scala3-compiler_3-3.7.1.jar"/>
+                <plugin path=".../org/scala-lang/scala3-library_3/3.7.1/scala3-library_3-3.7.1.jar"/>
+                <plugin path=".../com/lihaoyi/mill-moduledefs_3/0.11.10/mill-moduledefs_3-0.11.10.jar"/>
+                <plugin path=".../org/scala-lang/scala3-interfaces/3.7.1/scala3-interfaces-3.7.1.jar"/>
+                <plugin path=".../org/scala-lang/tasty-core_3/3.7.1/tasty-core_3-3.7.1.jar"/>
+                <plugin path=".../org/scala-lang/modules/scala-asm/9.8.0-scala-1/scala-asm-9.8.0-scala-1.jar"/>
+                <plugin path=".../org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.jar"/>
+                <plugin path=".../org/jline/jline-reader/3.29.0/jline-reader-3.29.0.jar"/>
+                <plugin path=".../org/jline/jline-terminal/3.29.0/jline-terminal-3.29.0.jar"/>
+                <plugin path=".../org/jline/jline-terminal-jni/3.29.0/jline-terminal-jni-3.29.0.jar"/>
+                <plugin path=".../org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"/>
+                <plugin path=".../org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar"/>
+                <plugin path=".../org/jline/jline-native/3.29.0/jline-native-3.29.0.jar"/>
+            </plugins>
+        </profile>
+        <profile name="mill 2" modules="helloidea,helloidea.scala2_13,helloidea.scala2_13.test,helloidea.scala3,helloidea.scala3.test,helloidea.test,modulea,moduleb,modulec,moduled,modulee,modulef">
+            <parameters></parameters>
+            <plugins></plugins>
+        </profile>
+        <profile name="mill 3" modules="helloideajs,helloideajs.test">
+            <parameters>
+                <parameter value="-scalajs"/>
+            </parameters>
+            <plugins></plugins>
+        </profile>
+        <profile name="mill 4" modules="moduleg-2.12.5,moduleg-2.13.6">
+            <parameters>
+                <parameter value="-Xsource:3"/>
+            </parameters>
+            <plugins></plugins>
+        </profile>
+    </component>
+</project>

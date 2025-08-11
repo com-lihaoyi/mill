@@ -2,12 +2,13 @@ package mill.kotlinlib.ktlint
 
 import mainargs.arg
 import mill._
-import mill.define.{PathRef}
-import mill.define.{Discover, ExternalModule}
+import mill.api.{PathRef}
+import mill.api.{Discover, ExternalModule}
 import mill.javalib.JavaModule
-import mill.kotlinlib.DepSyntax
+import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.util.Tasks
 import mill.util.Jvm
+import mill.api.BuildCtx
 
 /**
  * Performs formatting checks on Kotlin source files using [[https://pinterest.github.io/ktlint/latest/install/integrations/ Ktlint]].
@@ -32,16 +33,17 @@ trait KtlintModule extends JavaModule {
    */
   def ktlintClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Seq(mvn"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
+      Seq(mvn"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}"),
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
     )
   }
+
+  def ktlintConfig0 = Task.Source(BuildCtx.workspaceRoot / ".editorconfig")
 
   /**
    * Ktlint configuration file.
    */
-  def ktlintConfig: T[Option[PathRef]] = Task {
-    Some(PathRef(Task.workspace / ".editorconfig"))
-  }
+  def ktlintConfig: T[Option[PathRef]] = Task { Some(ktlintConfig0()) }
 
   /**
    * Ktlint version.
@@ -58,8 +60,8 @@ trait KtlintModule extends JavaModule {
   }
 }
 
-object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
-  override def defaultCommandName(): String = "reformatAll"
+object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskModule {
+  override def defaultTask(): String = "reformatAll"
 
   lazy val millDiscover = Discover[this.type]
 
@@ -101,7 +103,7 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       config: Option[PathRef],
       options: Seq[String],
       classPath: Seq[PathRef]
-  )(implicit ctx: mill.define.TaskCtx): Unit = {
+  )(implicit ctx: mill.api.TaskCtx): Unit = {
     if (ktlintArgs.check) {
       ctx.log.info("checking format in kotlin sources ...")
     } else {
@@ -122,7 +124,7 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       .filter(f => os.exists(f) && (f.ext == "kt" || f.ext == "kts"))
       .map(_.toString())
 
-    val exitCode = os.checker.withValue(os.Checker.Nop) {
+    val exitCode = BuildCtx.withFilesystemCheckerDisabled {
       Jvm.callProcess(
         mainClass = "com.pinterest.ktlint.Main",
         classPath = classPath.map(_.path).toVector,

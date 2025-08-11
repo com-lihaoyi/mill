@@ -1,7 +1,7 @@
 // Mill comes with a number of useful commands out of the box. These are listed
 // in the API Docs:
 //
-// * {mill-doc-url}/api/latest/mill/main/MainModule.html[mill.main.MainModule]
+// * {mill-doc-url}/api/latest/mill/util/MainModule.html[mill.main.MainModule]
 //
 // Mill's built-in commands are typically not directly related to building your
 // application code, but instead are utilities that help you understand and work
@@ -10,10 +10,10 @@
 // The following examples will be assuming the `build.mill` file given below:
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 trait MyModule extends JavaModule {
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }
 
 object foo extends MyModule {
@@ -38,7 +38,7 @@ object bar extends MyModule {
 
 /** Usage
 
-> mill resolve _
+> ./mill resolve _
 foo
 bar
 clean
@@ -52,11 +52,11 @@ version
 visualize
 visualizePlan
 
-> mill resolve _.compile
+> ./mill resolve _.compile
 foo.compile
 bar.compile
 
-> mill resolve foo._
+> ./mill resolve foo._
 foo.allSourceFiles
 foo.allSources
 foo.artifactId
@@ -71,14 +71,14 @@ foo.artifactName
 
 /** Usage
 
-> mill resolve foo.{compile,run}
-> mill resolve "foo.{compile,run}"
-> mill resolve foo.compile foo.run
-> mill resolve _.compile  # list the compile tasks for every top-level module
-> mill resolve __.compile # list the compile tasks for every module
-> mill resolve _          # list every top level module and task
-> mill resolve foo._      # list every task directly within the foo module
-> mill resolve __         # list every module and task recursively
+> ./mill resolve foo.{compile,run}
+> ./mill resolve "foo.{compile,run}"
+> ./mill resolve foo.compile foo.run
+> ./mill resolve _.compile  # list the compile tasks for every top-level module
+> ./mill resolve __.compile # list the compile tasks for every module
+> ./mill resolve _          # list every top level module and task
+> ./mill resolve foo._      # list every task directly within the foo module
+> ./mill resolve __         # list every module and task recursively
 
 */
 
@@ -94,7 +94,7 @@ foo.artifactName
 
 /** Usage
 
-> mill inspect foo.run
+> ./mill inspect foo.run
 foo.run(RunModule...)
     Runs this module's code in a subprocess and waits for it to finish
     args <str>...
@@ -103,7 +103,7 @@ Inputs:
     foo.finalMainClassOpt
     foo.runClasspath
     foo.forkArgs
-    foo.forkEnv
+    foo.allForkEnv
     foo.forkWorkingDir
     foo.runUseArgsFile
 
@@ -125,12 +125,12 @@ Inputs:
 
 /** Usage
 
-> mill show foo.sources
+> ./mill show foo.sources
 [
   ".../foo/src"
 ]
 
-> mill show foo.allSourceFiles
+> ./mill show foo.allSourceFiles
 [
   ".../foo/src.../Foo..."
 ]
@@ -144,7 +144,7 @@ Inputs:
 
 /** Usage
 
-> mill show foo.compile
+> ./mill show foo.compile
 {
   "analysisFile": ".../out/foo/compile.dest/...",
   "classes": ".../out/foo/compile.dest/classes"
@@ -161,7 +161,7 @@ Inputs:
 
 /** Usage
 
-> mill show 'foo.{sources,compileClasspath}'
+> ./mill show 'foo.{sources,compileClasspath}'
 {
   "foo.sources": [
     ".../foo/src"
@@ -181,14 +181,14 @@ Inputs:
 
 /** Usage
 
-> mill showNamed 'foo.sources'
+> ./mill showNamed 'foo.sources'
 {
   "foo.sources": [
     ".../foo/src"
   ]
 }
 
-> mill showNamed 'foo.{sources,compileClasspath}'
+> ./mill showNamed 'foo.{sources,compileClasspath}'
 {
   "foo.sources": [
     ".../foo/src"
@@ -215,7 +215,7 @@ Inputs:
 
 /** Usage
 
-> mill path foo.assembly foo.sources
+> ./mill path foo.assembly foo.sources
 foo.sources
 foo.allSources
 foo.allSourceFiles
@@ -240,7 +240,7 @@ foo.assembly
 
 /** Usage
 
-> mill plan foo.compileClasspath
+> ./mill plan foo.compileClasspath
 foo.transitiveCompileClasspath
 foo.compileResources
 foo.unmanagedClasspath
@@ -263,7 +263,7 @@ foo.compileClasspath
 
 /** Usage
 
-> mill clean
+> ./mill clean
 
 */
 
@@ -272,21 +272,21 @@ foo.compileClasspath
 
 /** Usage
 
-> mill clean             # clean all outputs
-> mill clean foo         # clean all outputs for module 'foo' (including nested modules)
-> mill clean foo.compile # only clean outputs for task 'compile' in module 'foo'
-> mill clean foo.{compile,run}
-> mill clean "foo.{compile,run}"
-> mill clean foo.compile foo.run
-> mill clean _.compile
-> mill clean __.compile
+> ./mill clean             # clean all outputs
+> ./mill clean foo         # clean all outputs for module 'foo' (including nested modules)
+> ./mill clean foo.compile # only clean outputs for task 'compile' in module 'foo'
+> ./mill clean foo.{compile,run}
+> ./mill clean "foo.{compile,run}"
+> ./mill clean foo.compile foo.run
+> ./mill clean _.compile
+> ./mill clean __.compile
 
 */
 
 // == visualize
 //
 /** Usage
-> mill visualize foo._
+> ./mill visualize foo._
 [
   ".../out/visualize.dest/out.dot",
   ".../out/visualize.dest/out.json",
@@ -316,7 +316,7 @@ foo.compileClasspath
 // module, but you can also use `visualize` on a single task in multiple modules to see how they are related:
 //
 /** Usage
-> mill visualize __.compile
+> ./mill visualize __.compile
 
 > cat out/visualize.dest/out.dot
 digraph "example1" {
@@ -341,7 +341,7 @@ graph ["rankdir"="LR"]
 // == visualizePlan
 //
 /** Usage
-> mill visualizePlan foo.run
+> ./mill visualizePlan foo.run
 [
   ".../out/visualizePlan.dest/out.dot",
   ".../out/visualizePlan.dest/out.json",
@@ -364,7 +364,7 @@ graph ["rankdir"="LR"]
 // == init
 
 /** Usage
-> mill init
+> ./mill init
 Run `mill init <example-id>` with one of these examples as an argument to download and extract example.
 Run `mill init --show-all` to see full list of examples.
 Run `mill init <Giter8 template>` to generate project from Giter8 template.
@@ -409,8 +409,7 @@ kotlinlib/web/1-hello-ktor
 // `init` can also be used to initialize a Mill build configuration based on
 // an existing Maven or Gradle build. See the linked page for more details:
 //
-// * xref:migrating/maven.adoc[]
-// * xref:migrating/gradle.adoc[]
+// * xref:migrating/auto-migrating.adoc[]
 //
 // == selective.*
 //

@@ -1,11 +1,13 @@
 package mill.constants;
 
 import java.io.Console;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
@@ -76,14 +78,47 @@ public class Util {
     return hasConsole0;
   }
 
-  public static String readYamlHeader(java.nio.file.Path buildFile) throws java.io.IOException {
-    java.util.List<String> lines = java.nio.file.Files.readAllLines(buildFile);
-    String yamlString = lines.stream()
-        .filter(line -> line.startsWith("//|"))
-        .map(line -> line.substring(4)) // Remove the `//|` prefix
-        .collect(java.util.stream.Collectors.joining("\n"));
+  private static String throwBuildHeaderError(
+      String errorFileName, int lineNumber, String line, String msg) {
+    throw new RuntimeException("Invalid YAML header comment at " + errorFileName + ":" + lineNumber
+        + ": " + line + "\n" + msg);
+  }
 
-    return yamlString;
+  public static String readBuildHeader(java.nio.file.Path buildFile, String errorFileName) {
+    try {
+      java.util.List<String> lines = java.nio.file.Files.readAllLines(buildFile);
+      boolean readingBuildHeader = true;
+      java.util.List<String> output = new ArrayList<>();
+      for (int i = 0; i < lines.size(); i++) {
+        String line = lines.get(i);
+        if (!line.startsWith("//|")) readingBuildHeader = false;
+        else if (!buildFile.getFileName().toString().startsWith("build.")) {
+          throwBuildHeaderError(
+              errorFileName,
+              i,
+              line,
+              "YAML header can only be defined in the `build.mill` file, not `" + errorFileName
+                  + "`");
+        } else if (!readingBuildHeader) {
+          throwBuildHeaderError(
+              errorFileName,
+              i,
+              line,
+              "YAML header comments can only occur at the start of the file");
+        } else if (line.length() >= 4 && !line.startsWith("//| ")) {
+          throwBuildHeaderError(
+              errorFileName,
+              i,
+              line,
+              "YAML header comments must start with `//| ` with a newline separating the `|` and"
+                  + " the data on the right");
+        } else if (line.equals("//|")) output.add("");
+        else output.add(line.substring(4));
+      }
+      return String.join("\n", output);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private static String envInterpolatorPattern0 = "(\\$|[A-Z_][A-Z0-9_]*)";
@@ -119,7 +154,6 @@ public class Util {
         matcher.appendReplacement(result, "\\$");
       } else {
         String envVarValue;
-        mill.constants.DebugLog.println("MATCH " + match);
         envVarValue = env.containsKey(match) ? env.get(match) : onMissing.apply(match);
         matcher.appendReplacement(result, envVarValue);
       }

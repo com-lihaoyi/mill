@@ -1,8 +1,8 @@
 package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
-object foo extends TypeScriptModule with TsLintModule
+object foo extends TypeScriptModule, TsLintModule
 
 // Mill supports code linting via `eslint` https://eslint.org out of the box.
 // You can lint your projects code by providing a configuration for eslint and running `mill _.checkFormatAll`.
@@ -20,7 +20,7 @@ export class Foo{
   }
 }
 
-> mill foo.checkFormatAll # run eslint
+> ./mill foo.checkFormatAll # run eslint
 ...
 foo/src/foo.ts
   3:5  error  'args' is defined but never used  @typescript-eslint/no-unused-vars
@@ -38,6 +38,6 @@ export class Foo{
   }
 }
 
-> mill foo.checkFormatAll # run eslint
+> ./mill foo.checkFormatAll # run eslint
 All matched files use Eslint code style!
 */

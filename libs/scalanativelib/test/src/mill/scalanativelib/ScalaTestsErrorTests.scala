@@ -1,13 +1,13 @@
 package mill.scalanativelib
 
 import mill._
-import mill.define.Discover
+import mill.api.Discover
 import mill.scalalib.TestModule
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest._
 
 object ScalaTestsErrorTests extends TestSuite {
-  object ScalaTestsError extends TestBaseModule {
+  object ScalaTestsError extends TestRootModule {
     object scalaTestsError extends ScalaNativeModule {
       def scalaVersion = sys.props.getOrElse("TEST_SCALA_3_3_VERSION", ???)
       def scalaNativeVersion = sys.props.getOrElse("TEST_SCALANATIVE_0_4_VERSION", ???)
@@ -25,7 +25,7 @@ object ScalaTestsErrorTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("extends-ScalaTests") {
-      val error = intercept[ExceptionInInitializerError] {
+      val error = assertThrows[ExceptionInInitializerError] {
         ScalaTestsError.scalaTestsError.test
       }
       val message = error.getCause.getMessage

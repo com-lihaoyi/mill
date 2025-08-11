@@ -1,18 +1,18 @@
 package mill.contrib.versionfile
 
 import mill.Task
-import mill.testkit.{UnitTester, TestBaseModule}
+import mill.testkit.{UnitTester, TestRootModule}
 import utest.{TestSuite, Tests, assert, test}
 import mill.util.TokenReaders._
-import mill.define.Discover
+import mill.api.Discover
 object VersionFileModuleTests extends TestSuite {
 
-  object TestModule extends TestBaseModule {
+  object TestModule extends TestRootModule {
     case object versionFile extends VersionFileModule
     lazy val millDiscover = Discover[this.type]
   }
 
-  def evaluator[T, M <: mill.testkit.TestBaseModule](
+  def evaluator[T, M <: mill.testkit.TestRootModule](
       m: M,
       vf: M => VersionFileModule,
       versionText: String

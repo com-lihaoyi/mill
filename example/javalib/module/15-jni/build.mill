@@ -2,22 +2,24 @@
 // code using JNI.
 
 package build
-import mill._, javalib._, util.Jvm
+import mill.*, javalib.*, util.Jvm
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   // Additional source folder to put C sources
   def nativeSources = Task.Sources("native-src")
 
   // Auto-generate JNI `.h` files from Java classes using Javac
   def nativeHeaders = Task {
-    os.proc(
-      Jvm.jdkTool("javac"),
-      "-h",
-      Task.dest,
-      "-d",
-      Task.dest.toString,
-      allSourceFiles().map(_.path)
-    ).call()
+    os.call(
+      cmd = (
+        Jvm.jdkTool("javac"),
+        "-h",
+        Task.dest,
+        "-d",
+        Task.dest.toString,
+        allSourceFiles().map(_.path)
+      )
+    )
     PathRef(Task.dest)
   }
 
@@ -25,26 +27,28 @@ object `package` extends RootModule with JavaModule {
   def nativeCompiled = Task {
     val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
     val output = "libhelloworld.so"
-    os.proc(
-      "clang",
-      "-shared",
-      "-fPIC",
-      "-I" + nativeHeaders().path, //
-      "-I" + sys.props("java.home") + "/include/", // global JVM header files
-      "-I" + sys.props("java.home") + "/include/darwin",
-      "-I" + sys.props("java.home") + "/include/linux",
-      "-o",
-      Task.dest / output,
-      cSourceFiles
+    os.call(
+      cmd = (
+        "clang",
+        "-shared",
+        "-fPIC",
+        "-I" + nativeHeaders().path, //
+        "-I" + sys.props("java.home") + "/include/", // global JVM header files
+        "-I" + sys.props("java.home") + "/include/darwin",
+        "-I" + sys.props("java.home") + "/include/linux",
+        "-o",
+        Task.dest / output,
+        cSourceFiles
+      ),
+      stdout = os.Inherit
     )
-      .call(stdout = os.Inherit)
 
     PathRef(Task.dest / output)
   }
 
   def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
 
-  object test extends JavaTests with TestModule.Junit4 {
+  object test extends JavaTests, TestModule.Junit4 {
     def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
   }
 }

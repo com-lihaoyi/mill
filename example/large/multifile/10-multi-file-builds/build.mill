@@ -5,17 +5,46 @@
 // build logic since each `build.mill` or `package.mill` file can be compiled independently when
 // it is modified without re-compiling all the others.
 //
-// Usage of sub-folder `package.mill` files is enabled by the magic import `import $packages._`
-
+// This means that instead of one large `build.mill` file at the root of your repo:
+//
+// ----
+// build.mill
+// ----
+//
+// You have a smaller `build.mill` with the config for each sub-folder broken
+// out into that folder's respective `package.mill`
+//
+// ----
+// foo/
+//     src/...
+//     package.mill
+// bar/
+//     package.mill
+//     qux/
+//         mymodule/src/...
+//         package.mill
+// build.mill
+// ----
+//
+// This is useful in larger projects, as it co-locates the build definition
+// for each module in the same sub-folder as the relevant code. This can
+// make things easier to find compared to having every module's build configuration
+// in a single large `build.mill` that may grow to thousands of lines long.
+//
+// === Example Project
+//
+//
 package build
 
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 trait MyModule extends ScalaModule {
   def scalaVersion = "2.13.11"
 }
 
 /** See Also: foo/package.mill */
+
+/** See Also: bar/package.mill */
 
 /** See Also: bar/qux/package.mill */
 
@@ -47,12 +76,12 @@ Foo.value: hello
 BarQux.value: <p>world</p>
 */
 
-// Note that in this example, `foo/package.mill` defines `object module extends RootModule`,
-// and so the name `.module` does not need to be provided at the command line. In contrast,
-// `bar/qux/package.mill` defines `object mymodule` that does not extend `RootModule`, and so
+// Note that in this example, `foo/package.mill` defines `object package extends mill.Module`,
+// and so the name `.package` does not need to be provided at the command line. In contrast,
+// `bar/qux/package.mill` defines `object mymodule` which is not named `package`, and so
 // we need to explicitly reference it with a `.mymodule` suffix.
 //
 // `package.mill` files are only discovered in direct subfolders of the root `build.mill` or
 // subfolders of another folder containing a `package.mill`; Hence in this example, we need
 // an `bar/package.mill` to be present for `bar/qux/package.mill` to be discovered, even
-// though `bar/package.mill` is empty
+// though `bar/package.mill` is empty.

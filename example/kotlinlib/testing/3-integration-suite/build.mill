@@ -1,18 +1,18 @@
 //// SNIPPET:BUILD3
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 object qux extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  object test extends KotlinTests with TestModule.Junit5 {
+  object test extends KotlinTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
   }
-  object integration extends KotlinTests with TestModule.Junit5 {
+  object integration extends KotlinTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
   }
 }

@@ -32,6 +32,238 @@
     },
     {
       "id": {
+        "uri": "file:///workspace/app/test"
+      },
+      "displayName": "app.test",
+      "baseDirectory": "file:///workspace/app/test",
+      "tags": [
+        "test"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [
+        {
+          "uri": "file:///workspace/lib"
+        },
+        {
+          "uri": "file:///workspace/app"
+        }
+      ],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": true,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "java-home",
+        "javaVersion": "<java-version>"
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///workspace/delayed"
+      },
+      "displayName": "delayed",
+      "baseDirectory": "file:///workspace/delayed",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java",
+        "scala"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "scala",
+      "data": {
+        "scalaOrganization": "org.scala-lang",
+        "scalaVersion": "<scala-version>",
+        "scalaBinaryVersion": "2.13",
+        "platform": 1,
+        "jars": [
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/<scala-version>/scala-compiler-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<scala-version>/scala-reflect-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/<java-diff-utils-version>/java-diff-utils-<java-diff-utils-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline/<jline-version>/jline-<jline-version>-jdk8.jar"
+        ],
+        "jvmBuildTarget": {
+          "javaHome": "java-home",
+          "javaVersion": "<java-version>"
+        }
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///workspace/diag"
+      },
+      "displayName": "diag",
+      "baseDirectory": "file:///workspace/diag",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java",
+        "scala"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "scala",
+      "data": {
+        "scalaOrganization": "org.scala-lang",
+        "scalaVersion": "<scala-version>",
+        "scalaBinaryVersion": "2.13",
+        "platform": 1,
+        "jars": [
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/<scala-version>/scala-compiler-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<scala-version>/scala-reflect-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/<java-diff-utils-version>/java-diff-utils-<java-diff-utils-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline/<jline-version>/jline-<jline-version>-jdk8.jar"
+        ],
+        "jvmBuildTarget": {
+          "javaHome": "java-home",
+          "javaVersion": "<java-version>"
+        }
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///workspace/diag/many"
+      },
+      "displayName": "diag.many",
+      "baseDirectory": "file:///workspace/diag/many",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java",
+        "scala"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "scala",
+      "data": {
+        "scalaOrganization": "org.scala-lang",
+        "scalaVersion": "<scala-version>",
+        "scalaBinaryVersion": "2.13",
+        "platform": 1,
+        "jars": [
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/<scala-version>/scala-compiler-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<scala-version>/scala-reflect-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/<java-diff-utils-version>/java-diff-utils-<java-diff-utils-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline/<jline-version>/jline-<jline-version>-jdk8.jar"
+        ],
+        "jvmBuildTarget": {
+          "javaHome": "java-home",
+          "javaVersion": "<java-version>"
+        }
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///workspace/errored/compilation-error"
+      },
+      "displayName": "errored.compilation-error",
+      "baseDirectory": "file:///workspace/errored/compilation-error",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java",
+        "scala"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "scala",
+      "data": {
+        "scalaOrganization": "org.scala-lang",
+        "scalaVersion": "<scala-version>",
+        "scalaBinaryVersion": "2.13",
+        "platform": 1,
+        "jars": [
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/<scala-version>/scala-compiler-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<scala-version>/scala-reflect-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/<java-diff-utils-version>/java-diff-utils-<java-diff-utils-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline/<jline-version>/jline-<jline-version>-jdk8.jar"
+        ],
+        "jvmBuildTarget": {
+          "javaHome": "java-home",
+          "javaVersion": "<java-version>"
+        }
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///workspace/errored/exception"
+      },
+      "displayName": "errored.exception",
+      "baseDirectory": "file:///workspace/errored/exception",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java",
+        "scala"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "scala",
+      "data": {
+        "scalaOrganization": "org.scala-lang",
+        "scalaVersion": "<scala-version>",
+        "scalaBinaryVersion": "2.13",
+        "platform": 1,
+        "jars": [
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/<scala-version>/scala-compiler-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<scala-version>/scala-reflect-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/<java-diff-utils-version>/java-diff-utils-<java-diff-utils-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline/<jline-version>/jline-<jline-version>-jdk8.jar"
+        ],
+        "jvmBuildTarget": {
+          "javaHome": "java-home",
+          "javaVersion": "<java-version>"
+        }
+      }
+    },
+    {
+      "id": {
         "uri": "file:///workspace/hello-java"
       },
       "displayName": "hello-java",
@@ -47,6 +279,35 @@
       "capabilities": {
         "canCompile": true,
         "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "java-home",
+        "javaVersion": "<java-version>"
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///workspace/hello-java/test"
+      },
+      "displayName": "hello-java.test",
+      "baseDirectory": "file:///workspace/hello-java/test",
+      "tags": [
+        "test"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [
+        {
+          "uri": "file:///workspace/hello-java"
+        }
+      ],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": true,
         "canRun": true,
         "canDebug": false
       },
@@ -115,8 +376,50 @@
           "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<scala-version>/scala-reflect-<scala-version>.jar",
           "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
           "file:///coursier-cache/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/<java-diff-utils-version>/java-diff-utils-<java-diff-utils-version>.jar",
-          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline/<jline-version>/jline-<jline-version>.jar",
-          "file:///coursier-cache/https/repo1.maven.org/maven2/net/java/dev/jna/jna/<jna-version>/jna-<jna-version>.jar"
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline/<jline-version>/jline-<jline-version>-jdk8.jar"
+        ],
+        "jvmBuildTarget": {
+          "javaHome": "java-home",
+          "javaVersion": "<java-version>"
+        }
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///workspace/hello-scala/test"
+      },
+      "displayName": "hello-scala.test",
+      "baseDirectory": "file:///workspace/hello-scala/test",
+      "tags": [
+        "test"
+      ],
+      "languageIds": [
+        "java",
+        "scala"
+      ],
+      "dependencies": [
+        {
+          "uri": "file:///workspace/hello-scala"
+        }
+      ],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": true,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "scala",
+      "data": {
+        "scalaOrganization": "org.scala-lang",
+        "scalaVersion": "<scala-version>",
+        "scalaBinaryVersion": "2.13",
+        "platform": 1,
+        "jars": [
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/<scala-version>/scala-compiler-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<scala-version>/scala-reflect-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/<java-diff-utils-version>/java-diff-utils-<java-diff-utils-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline/<jline-version>/jline-<jline-version>-jdk8.jar"
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",

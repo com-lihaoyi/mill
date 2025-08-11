@@ -1,10 +1,10 @@
 package build
 
-import mill._, kotlinlib._, kotlinlib.js._
+import mill.*, kotlinlib.*, kotlinlib.js.*
 import mill.scalalib.CoursierModule
 import mill.api.Result
-import mill.testrunner.TestResult
-import mill.scalalib.api.CompilationResult
+import mill.javalib.testrunner.TestResult
+import mill.javalib.api.CompilationResult
 import mill.kotlinlib.kover.KoverModule
 
 object libraries {
@@ -31,29 +31,29 @@ object libraries {
 
   // libraries
   val coroutinesCoreJvm =
-    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:${versions.coroutines}"
+    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
   val coroutinesCoreJs =
-    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-core-js:${versions.coroutines}"
+    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
   val coroutinesTestJvm =
-    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test-jvm:${versions.coroutines}"
+    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:${versions.coroutines}"
   val coroutinesTestJs =
-    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test-js:${versions.coroutines}"
-  val kotestAssertionsCoreJvm = mvn"io.kotest:kotest-assertions-core-jvm:${versions.kotest}"
-  val kotestAssertionsCoreJs = mvn"io.kotest:kotest-assertions-core-js:${versions.kotest}"
-  val kotestPropertyJvm = mvn"io.kotest:kotest-property-jvm:${versions.kotest}"
-  val kotestPropertyJs = mvn"io.kotest:kotest-property-js:${versions.kotest}"
+    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:${versions.coroutines}"
+  val kotestAssertionsCoreJvm = mvn"io.kotest:kotest-assertions-core:${versions.kotest}"
+  val kotestAssertionsCoreJs = mvn"io.kotest:kotest-assertions-core:${versions.kotest}"
+  val kotestPropertyJvm = mvn"io.kotest:kotest-property:${versions.kotest}"
+  val kotestPropertyJs = mvn"io.kotest:kotest-property:${versions.kotest}"
   val kotlinReflect = mvn"org.jetbrains.kotlin:kotlin-reflect:${versions.kotlin}"
   val kotlinStdlib = mvn"org.jetbrains.kotlin:kotlin-stdlib:${versions.kotlin}"
   val kotlinTestJunit5 = mvn"org.jetbrains.kotlin:kotlin-test-junit5:${versions.kotlin}"
-  val kotlinTestJs = mvn"org.jetbrains.kotlin:kotlin-test-js:${versions.kotlin}"
+  val kotlinTestJs = mvn"org.jetbrains.kotlin:kotlin-test:${versions.kotlin}"
   val kotlinxSerializationCoreJvm =
-    mvn"org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:${versions.kotlinxSerialization}"
+    mvn"org.jetbrains.kotlinx:kotlinx-serialization-core:${versions.kotlinxSerialization}"
   val kotlinxSerializationCoreJs =
-    mvn"org.jetbrains.kotlinx:kotlinx-serialization-core-js:${versions.kotlinxSerialization}"
+    mvn"org.jetbrains.kotlinx:kotlinx-serialization-core:${versions.kotlinxSerialization}"
   val kotlinxSerializationJson =
     mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:${versions.kotlinxSerialization}"
   val kotlinxSerializationJsonJs =
-    mvn"org.jetbrains.kotlinx:kotlinx-serialization-json-js:${versions.kotlinxSerialization}"
+    mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:${versions.kotlinxSerialization}"
   val squareupOkhttpMockWebServer =
     mvn"com.squareup.okhttp3:mockwebserver:${versions.mockWebServer}"
   val squareupRetrofitLib = mvn"com.squareup.retrofit2:retrofit:${versions.retrofit}"
@@ -71,15 +71,15 @@ object libraries {
   val composeRuntime = mvn"androidx.compose.runtime:runtime:${versions.compose}"
   val kotlinCompileTesting = mvn"dev.zacsweers.kctfork:core:${versions.kotlinCompileTesting}"
   val kotlinCompileTestingKsp = mvn"dev.zacsweers.kctfork:ksp:${versions.kotlinCompileTesting}"
-  val cache4kJs = mvn"io.github.reactivecircus.cache4k:cache4k-js:${versions.cache4k}"
-  val cache4kJvm = mvn"io.github.reactivecircus.cache4k:cache4k-jvm:${versions.cache4k}"
+  val cache4kJs = mvn"io.github.reactivecircus.cache4k:cache4k:${versions.cache4k}"
+  val cache4kJvm = mvn"io.github.reactivecircus.cache4k:cache4k:${versions.cache4k}"
 
   // plugins
   val kotlinxSerializationPlugin =
     mvn"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${versions.kotlin}"
 }
 
-object `package` extends RootModule {
+object `package` extends Module {
 
   // comment to disable test for the module
   val modulesWithTestingEnabled = Set[CoursierModule](
@@ -126,7 +126,7 @@ object `package` extends RootModule {
       s"-Xcommon-sources=${files.mkString(",")}"
     }
 
-    trait ArrowPlatformModule extends KotlinMavenModule with PlatformKotlinModule { outer =>
+    trait ArrowPlatformModule extends KotlinMavenModule, PlatformKotlinModule { outer =>
       def kotlinVersion = libraries.versions.kotlin
       def kotlinLanguageVersion = majorVersion(kotlinVersion())
       def kotlinApiVersion = majorVersion(kotlinVersion())
@@ -143,7 +143,7 @@ object `package` extends RootModule {
             sources ++= Seq(nonJvmSourcesPath)
           }
         }
-        sources.map(mill.api.Result.Success(_))
+        sources
       }*)
 
       override def kotlincOptions =
@@ -156,41 +156,40 @@ object `package` extends RootModule {
           if (modulesWithTestingEnabled(multiplatformRoot)) super.compile
           else Task { CompilationResult(Task.dest, PathRef(Task.dest)) }
 
-        override def testForked(args: String*): Command[(String, Seq[TestResult])] =
+        override def testForked(args: String*): Command[(msg: String, results: Seq[TestResult])] =
           if (modulesWithTestingEnabled(multiplatformRoot)) super.testForked(args: _*)
           else Task.Command { ("", Seq.empty[TestResult]) }
 
         override def sources: T[Seq[PathRef]] = Task.Sources(
           Seq("common", outer.platformCrossSuffix)
             .map(platform => outer.moduleDir / "src" / s"${platform}Test" / "kotlin")
-            .filter(p => os.exists(p))
-            .map(mill.api.Result.Success(_))*
+            .filter(p => os.exists(p))*
         )
       }
     }
 
     def jvm: ArrowPlatformJvmModule
 
-    trait ArrowPlatformJvmModule extends ArrowPlatformModule with KoverModule {
+    trait ArrowPlatformJvmModule extends ArrowPlatformModule, KoverModule {
       def test: ArrowPlatformJvmTests
-      trait ArrowPlatformJvmTests extends KotlinMavenTests with KoverTests with TestModule.Junit5
-          with ArrowPlatformTests {}
+      trait ArrowPlatformJvmTests extends KotlinMavenTests, KoverTests, TestModule.Junit5,
+            ArrowPlatformTests {}
     }
 
     def js: ArrowPlatformJsModule
-    trait ArrowPlatformJsModule extends ArrowPlatformModule with KotlinJsModule {
+    trait ArrowPlatformJsModule extends ArrowPlatformModule, KotlinJsModule {
 
       def kotlinJsRunTarget = Some(RunTarget.Node)
 
       def test: ArrowPlatformJsTests
-      trait ArrowPlatformJsTests extends KotlinMavenTests with KotlinTestPackageTests
-          with ArrowPlatformTests {
+      trait ArrowPlatformJsTests extends KotlinMavenTests, KotlinTestPackageTests,
+            ArrowPlatformTests {
         def testTimeout = 30_000L
       }
     }
   }
 
-  trait ArrowJvmModule extends KotlinMavenModule with KoverModule { jvmRoot =>
+  trait ArrowJvmModule extends KotlinMavenModule, KoverModule { jvmRoot =>
 
     def kotlinVersion = libraries.versions.kotlin
     def kotlinExplicitApi = true
@@ -198,12 +197,12 @@ object `package` extends RootModule {
     def kotlinApiVersion = majorVersion(kotlinVersion())
 
     def test: ArrowJvmTests
-    trait ArrowJvmTests extends KotlinMavenTests with KoverTests with TestModule.Junit5 {
+    trait ArrowJvmTests extends KotlinMavenTests, KoverTests, TestModule.Junit5 {
       override def compile: T[CompilationResult] =
         if (modulesWithTestingEnabled(jvmRoot)) super.compile
         else Task { CompilationResult(Task.dest, PathRef(Task.dest)) }
 
-      override def testForked(args: String*): Command[(String, Seq[TestResult])] =
+      override def testForked(args: String*): Command[(msg: String, results: Seq[TestResult])] =
         if (modulesWithTestingEnabled(jvmRoot)) super.testForked(args: _*)
         else Task.Command { ("", Seq.empty[TestResult]) }
     }
@@ -638,9 +637,5 @@ Compiling 11 Kotlin sources to ...fx/arrow-fx-stm/js/compile.dest/classes ...
 Test arrow.resilience...
 Test arrow.collectors...
 Test arrow.core...
-
-> ./mill mill.kotlinlib.kover/htmlReportAll
-
-> ./mill __:^TestModule.docJar
 
 */

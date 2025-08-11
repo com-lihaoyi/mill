@@ -1,9 +1,9 @@
 //// SNIPPET:BUILD3
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 object qux extends JavaModule {
-  object test extends JavaTests with TestModule.Junit5
-  object integration extends JavaTests with TestModule.Junit5
+  object test extends JavaTests, TestModule.Junit5
+  object integration extends JavaTests, TestModule.Junit5
 }
 
 // The integration suite is just another regular test module within the parent JavaModule

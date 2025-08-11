@@ -14,7 +14,7 @@ case class LocalSummary(items: Map[JCls, ClassInfo]) {
 
   def mapValues[T](f: ClassInfo => T): Map[JCls, T] = items.map { case (k, v) => (k, f(v)) }
 
-  def mapValuesOnly[T](f: ClassInfo => T): Seq[T] = items.map { case (k, v) => f(v) }.toSeq
+  def mapValuesOnly[T](f: ClassInfo => T): Seq[T] = items.map { case (_, v) => f(v) }.toSeq
 
   def contains(cls: JCls): Boolean = items.contains(cls)
 }
@@ -41,7 +41,7 @@ object LocalSummary {
       isAbstract: Boolean
   )
   object MethodInfo {
-    implicit def rw(implicit st: SymbolTable): ReadWriter[MethodInfo] = macroRW
+    given rw: ReadWriter[MethodInfo] = macroRW
   }
 
   implicit def rw(implicit st: SymbolTable): ReadWriter[LocalSummary] = macroRW
@@ -334,7 +334,7 @@ object LocalSummary {
         )
 
         // HACK: we skip any constants that get passed to `sourcecode.Line()`,
-        // because we use that extensively in defining Mill targets, but it is
+        // because we use that extensively in defining Mill tasks, but it is
         // generally not something we want to affect the output of a build
         val sourcecodeLineCall = st.MethodCall(
           JCls.fromSlashed("sourcecode/Line"),

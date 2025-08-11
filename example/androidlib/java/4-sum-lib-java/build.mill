@@ -11,22 +11,24 @@
 //// SNIPPET:BUILD
 package build
 
-import mill._, androidlib._, scalalib._
+import mill.*, androidlib.*, scalalib.*
 
 import coursier.maven.MavenRepository
 
-import publish._
+import publish.*
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
 }
 
-object lib extends AndroidLibModule with PublishModule {
+object lib extends AndroidLibModule, PublishModule {
 
-  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
+
+  def androidLibPackage = "com.example"
 
   def publishVersion = "0.0.1"
   def pomSettings = PomSettings(
@@ -48,7 +50,7 @@ object lib extends AndroidLibModule with PublishModule {
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
-  object test extends AndroidLibTests with TestModule.Junit4 {
+  object test extends AndroidLibTests, TestModule.Junit4 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"junit:junit:4.13.2"
     )
@@ -58,7 +60,7 @@ object lib extends AndroidLibModule with PublishModule {
 
 object app extends AndroidAppModule {
 
-  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
 
@@ -75,7 +77,7 @@ object app extends AndroidAppModule {
     mvn"com.example.sumlib:lib:0.0.1"
   )
 
-  object test extends AndroidAppTests with TestModule.Junit4 {
+  object test extends AndroidAppTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
   }
 }
@@ -140,9 +142,9 @@ Publish ... to /home/.../.m2/repository/...
 
 > ./mill show app.test
 ...
-[
-  "",
-  [
+{
+  "msg": "",
+  "results": [
     {
       "fullyQualifiedName": "com.example.app.CalculatorUnitTest.textSize_isCorrect",
       "selector": "com.example.app.CalculatorUnitTest.textSize_isCorrect",
@@ -156,6 +158,6 @@ Publish ... to /home/.../.m2/repository/...
       "status": "Success"
     }
   ]
-]
+}
 ...
 */

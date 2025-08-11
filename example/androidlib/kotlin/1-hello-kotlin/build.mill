@@ -9,7 +9,7 @@
 //// SNIPPET:BUILD
 package build
 
-import mill._, androidlib._, kotlinlib._, scalalib._
+import mill.*, androidlib.*, kotlinlib.*, scalalib.*
 
 import coursier.maven.MavenRepository
 
@@ -22,7 +22,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 object app extends AndroidAppKotlinModule {
 
   def kotlinVersion = "2.0.20"
-  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
   def androidApplicationId = "com.helloworld.app"
@@ -34,35 +34,34 @@ object app extends AndroidAppKotlinModule {
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
+  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
   override def androidVirtualDeviceIdentifier: String = "kotlin-test"
   override def androidEmulatorPort: String = "5556"
 
-  object test extends AndroidAppKotlinTests with TestModule.Junit4 {
+  override def androidIsDebug: T[Boolean] = Task { false }
+
+  object test extends AndroidAppKotlinTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
   }
 
-  object it extends AndroidAppKotlinInstrumentedTests with AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppKotlinInstrumentedTests {
 
-    override def instrumentationPackage = "com.helloworld.app"
+    // TODO currently instrumented tests debug mode
+    // is coupled with the app debug mode. Fix so
+    // that instrumented tests can be built with debug
+    // configuration but the apk signature will match
+    // the app apk
+    override def androidIsDebug: T[Boolean] = Task {
+      false
+    }
 
-    /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
-     * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
-     * resolution resolves conflicts between androidJvm and jvm platform types
-     */
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"androidx.test.ext:junit:1.2.1".exclude((
-        "org.jetbrains.kotlinx",
-        "kotlinx-coroutines-core-jvm"
-      )),
+      mvn"androidx.test.ext:junit:1.2.1",
       mvn"androidx.test:runner:1.6.2",
-      mvn"androidx.test.espresso:espresso-core:3.5.1".exclude((
-        "org.jetbrains.kotlinx",
-        "kotlinx-coroutines-core-jvm"
-      )),
+      mvn"androidx.test.espresso:espresso-core:3.5.1",
       mvn"junit:junit:4.13.2"
     )
   }
@@ -74,18 +73,6 @@ object app extends AndroidAppKotlinModule {
 
 > ./mill show app.androidApk
 ".../out/app/androidApk.dest/app.apk"
-
-> ./mill show app.createAndroidVirtualDevice
-...Name: kotlin-test, DeviceId: medium_phone...
-
-> ./mill show app.startAndroidEmulator
-
-> ./mill show app.androidReleaseInstall
-...All files should be loaded. Notifying the device...
-
-> ./mill show app.stopAndroidEmulator
-
-> ./mill show app.deleteAndroidVirtualDevice
 
 */
 
@@ -143,9 +130,9 @@ object app extends AndroidAppKotlinModule {
 
 > ./mill show app.it
 ...
-[
-  "",
-  [
+{
+  "msg": "",
+  "results": [
     {
       "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
       "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
@@ -153,10 +140,10 @@ object app extends AndroidAppKotlinModule {
       "status": "Success"
     }
   ]
-]
+}
 ...
 
-> cat out/app/it/testTask.dest/test-report.xml
+> cat out/app/it/testForked.dest/test-report.xml
 ...
 <?xml version='1.0' encoding='UTF-8'?>
 <testsuites tests="1" failures="0" errors="0" skipped="0" time="...">

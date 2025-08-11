@@ -3,9 +3,9 @@
 // `pipInstallArgs` task.
 
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
-object `package` extends RootModule with PythonModule {
+object `package` extends PythonModule {
   def pythonDeps = Seq(
     "numpy==2.1.2",
     "pandas~=2.2.3",

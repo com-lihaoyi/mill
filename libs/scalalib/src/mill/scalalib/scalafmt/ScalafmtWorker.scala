@@ -1,7 +1,7 @@
 package mill.scalalib.scalafmt
 
 import mill.*
-import mill.define.{Discover, ExternalModule, PathRef, TaskCtx, Worker}
+import mill.api.{Discover, ExternalModule, PathRef, TaskCtx}
 import mill.scalalib._
 
 import scala.collection.mutable
@@ -14,7 +14,7 @@ object ScalafmtWorkerModule extends ExternalModule with JavaModule {
    */
   def scalafmtClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Seq(mvn"org.scalameta:scalafmt-dynamic_2.13:${mill.scalalib.api.Versions.scalafmtVersion}")
+      Seq(mvn"org.scalameta:scalafmt-dynamic_2.13:${mill.javalib.api.Versions.scalafmtVersion}")
     )
   }
 

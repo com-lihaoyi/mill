@@ -1,12 +1,12 @@
 //// SNIPPET:BUILD
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 
 object foo extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  object test extends KotlinTests with TestModule.Junit5 {
+  object test extends KotlinTests, TestModule.Junit5 {
     def otherFiles = Task.Source("other-files")
 
     def forkEnv = super.forkEnv() ++ Map(
@@ -14,7 +14,7 @@ object foo extends KotlinModule {
     )
 
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
   }
 }

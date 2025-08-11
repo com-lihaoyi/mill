@@ -4,9 +4,9 @@
 // include it in your project, `unmanagedWheels` is the way to do it.
 
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
-object `package` extends RootModule with PythonModule {
+object `package` extends PythonModule {
   def unmanagedWheels: T[Seq[PathRef]] = Task.Input {
     Seq.from(os.list(moduleDir / "lib").map(PathRef(_)))
   }

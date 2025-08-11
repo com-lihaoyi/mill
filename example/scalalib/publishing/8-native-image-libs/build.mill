@@ -1,22 +1,18 @@
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._
-import mill.define.ModuleRef
+import mill.*, scalalib.*
+import mill.api.ModuleRef
 
-object foo extends ScalaModule with NativeImageModule {
-  def scalaVersion = "2.13.11"
+object foo extends ScalaModule, NativeImageModule {
+  def scalaVersion = "3.7.1"
 
   def nativeImageOptions = Seq("--no-fallback", "-Os")
 
   def mvnDeps = Seq(
     mvn"com.lihaoyi::scalatags:0.13.1",
-    mvn"com.lihaoyi::mainargs:0.6.2"
+    mvn"com.lihaoyi::mainargs:0.7.6"
   )
 
-  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
-}
-
-object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = "graalvm-community:23.0.1"
 }
 

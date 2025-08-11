@@ -47,14 +47,14 @@ import utest.*
  */
 object ExampleTester {
   def run(
-      clientServerMode: Boolean,
+      daemonMode: Boolean,
       workspaceSourcePath: os.Path,
       millExecutable: os.Path,
       bashExecutable: String = defaultBashExecutable(),
       workspacePath: os.Path = os.pwd
   ): os.Path = {
     val tester = new ExampleTester(
-      clientServerMode,
+      daemonMode,
       workspaceSourcePath,
       millExecutable,
       bashExecutable,
@@ -71,7 +71,7 @@ object ExampleTester {
 }
 
 class ExampleTester(
-    val clientServerMode: Boolean,
+    val daemonMode: Boolean,
     val workspaceSourcePath: os.Path,
     millExecutable: os.Path,
     bashExecutable: String = ExampleTester.defaultBashExecutable(),
@@ -91,15 +91,15 @@ class ExampleTester(
     val incorrectPlatform =
       (comment.exists(_.startsWith("windows")) && !isWindows) ||
         (comment.exists(_.startsWith("mac/linux")) && isWindows) ||
-        (comment.exists(_.startsWith("--no-server")) && clientServerMode) ||
-        (comment.exists(_.startsWith("not --no-server")) && !clientServerMode)
+        (comment.exists(_.startsWith("--no-daemon")) && daemonMode) ||
+        (comment.exists(_.startsWith("not --no-daemon")) && !daemonMode)
 
     if (!incorrectPlatform) {
       processCommand(expectedSnippets, commandHead.trim)
     }
   }
   private val millExt = if (isWindows) ".bat" else ""
-  private val clientServerFlag = if (clientServerMode) "" else "--no-server"
+  private val daemonFlag = if (daemonMode) "" else "--no-daemon"
 
   def processCommand(
       expectedSnippets: Vector[String],
@@ -107,12 +107,15 @@ class ExampleTester(
       check: Boolean = true
   ): Unit = {
     val commandStr = commandStr0 match {
-      case s"mill $rest" => s"./mill$millExt $clientServerFlag --disable-ticker $rest"
-      case s"./mill $rest" => s"./mill$millExt $clientServerFlag --disable-ticker $rest"
+      case s"mill $rest" => s"./mill$millExt $daemonFlag --ticker false $rest"
+      case s"./mill $rest" => s"./mill$millExt $daemonFlag --ticker false $rest"
       case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
       case s => s
     }
-    Console.err.println(s"$workspacePath> $commandStr")
+
+    /** The command we're about to execute */
+    val debugCommandStr = s"$workspacePath> $commandStr"
+    Console.err.println(debugCommandStr)
     Console.err.println(
       s"""--- Expected output ----------
          |${expectedSnippets.mkString("\n")}
@@ -138,18 +141,20 @@ class ExampleTester(
     validateEval(
       expectedSnippets,
       IntegrationTester.EvalResult(
-        res.exitCode == 0,
+        res.exitCode,
         fansi.Str(res.out.text(), errorMode = fansi.ErrorMode.Strip).plainText,
         fansi.Str(res.err.text(), errorMode = fansi.ErrorMode.Strip).plainText
       ),
-      check
+      check,
+      debugCommandStr
     )
   }
 
   def validateEval(
       expectedSnippets: Vector[String],
       evalResult: IntegrationTester.EvalResult,
-      check: Boolean = true
+      check: Boolean = true,
+      command: String = ""
   ): Unit = {
     if (check) {
       if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
@@ -181,7 +186,11 @@ class ExampleTester(
     for (expectedLine <- unwrappedExpected.linesIterator) {
       Predef.assert(
         filteredOut.linesIterator.exists(globMatches(expectedLine, _)),
-        s"==== filteredOut:\n$filteredOut\n==== Missing expectedLine: \n$expectedLine"
+        (if (command == "") "" else s"==== command:\n$command\n") +
+          s"""==== filteredOut:
+             |$filteredOut
+             |==== Missing expectedLine:
+             |$expectedLine""".stripMargin
       )
     }
   }
@@ -216,7 +225,14 @@ class ExampleTester(
           ex.printStackTrace(System.err)
       }
     } finally {
-      if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
+      if (daemonMode) {
+        if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) {
+          processCommand(Vector(), "./mill shutdown", check = false)
+        } else {
+          processCommand(Vector(), "./mill clean", check = false)
+        }
+      }
+
       removeProcessIdFile()
     }
   }

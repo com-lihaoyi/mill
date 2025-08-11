@@ -1,0 +1,21 @@
+//// SNIPPET:BUILD1
+package build
+import mill.*, javalib.*
+
+object foo extends JavaModule {
+
+  def generatedSources = Task {
+    os.write(
+      Task.dest / "Foo.java",
+      """package foo;
+        |
+        |public class Foo {
+        |    public static void main(String[] args) {
+        |        System.out.println("Hello World");
+        |    }
+        |}
+      """.stripMargin
+    )
+    Seq(PathRef(Task.dest))
+  }
+}

@@ -1,9 +1,9 @@
 package build
 
-import mill._
-import mill.javascriptlib._
+import mill.*
+import mill.javascriptlib.*
 
-object `package` extends RootModule with TypeScriptModule {
+object `package` extends TypeScriptModule {
   def moduleName = "foo"
 
   def sources = Task {
@@ -28,7 +28,7 @@ object `package` extends RootModule with TypeScriptModule {
     super.compile()
   }
 
-  def run(args: mill.define.Args) = Task.Command {
+  def run(args: mill.api.Args) = Task.Command {
     println("Running... " + args.value.mkString(" "))
     super.run(args)()
   }
@@ -48,7 +48,7 @@ object `package` extends RootModule with TypeScriptModule {
 
 /** Usage
 
-> mill run "added tags"
+> ./mill run "added tags"
 Compiling...
 Hello World!
 Running... added tags

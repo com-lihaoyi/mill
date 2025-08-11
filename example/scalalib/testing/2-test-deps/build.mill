@@ -11,23 +11,23 @@
 
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object qux extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "3.7.1"
   def moduleDeps = Seq(baz)
 
-  object test extends ScalaTests with TestModule.Utest {
-    def utestVersion = "0.8.5"
+  object test extends ScalaTests, TestModule.Utest {
+    def utestVersion = "0.8.9"
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
   }
 }
 
 object baz extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "3.7.1"
 
-  object test extends ScalaTests with TestModule.Utest {
-    def utestVersion = "0.8.5"
+  object test extends ScalaTests, TestModule.Utest {
+    def utestVersion = "0.8.9"
   }
 }
 

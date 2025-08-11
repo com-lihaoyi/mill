@@ -3,12 +3,13 @@ package build.core.constants
 import mill._
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib._
+import millbuild.*
 
 /**
  * This module contains basic constants and helpers shared between the client,
  * server, and the rest of the Mill codebase.
  */
-object `package` extends RootModule with build.MillPublishJavaModule with BuildInfo {
+object `package` extends MillStableJavaModule with BuildInfo {
   def buildInfoPackageName = "mill.constants"
   def buildInfoMembers = Seq(
     BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
@@ -16,6 +17,6 @@ object `package` extends RootModule with build.MillPublishJavaModule with BuildI
   )
 
   object test extends JavaTests with TestModule.Junit4 {
-    def mvnDeps = Agg(build.Deps.junitInterface, build.Deps.commonsIo)
+    def mvnDeps = Seq(Deps.junitInterface, Deps.commonsIo)
   }
 }

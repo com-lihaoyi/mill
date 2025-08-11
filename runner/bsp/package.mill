@@ -1,20 +1,21 @@
 package build.runner.bsp
-// imports
+
 import mill._
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
+import millbuild.*
 
-object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
-  def compileModuleDeps = Seq(build.libs.scalalib)
+object `package` extends MillPublishScalaModule with BuildInfo {
+  def compileModuleDeps = Seq(build.libs.javalib)
   def testModuleDeps = super.testModuleDeps ++ compileModuleDeps
   def buildInfoPackageName = "mill.bsp"
 
   def buildInfoMembers = Task {
-    val workerDep = worker.publishSelfDependency()
+    val workerDep = worker.artifactMetadata()
     Seq(
       BuildInfo.Value(
         "bsp4jVersion",
-        build.Deps.bsp4j.version,
+        Deps.bsp4j.version,
         "BSP4j version (BSP Protocol version)."
       ),
       BuildInfo.Value("millVersion", build.millVersion(), "Mill version.")
@@ -29,20 +30,26 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
       super.forkEnv()
     }
 
-    def forkArgs = super.forkArgs() ++ Seq(s"-DBSP4J_VERSION=${build.Deps.bsp4j.version}")
+    def forkArgs = super.forkArgs() ++ Seq(s"-DBSP4J_VERSION=${Deps.bsp4j.version}")
   }
 
-  object worker extends build.MillPublishScalaModule {
+  object worker extends MillPublishScalaModule {
     def moduleDeps = Seq(build.runner.server)
     def compileModuleDeps = Seq(
       build.runner.bsp,
-      build.runner.server.client,
-      build.core.api
-    ) ++ build.libs.scalalib.compileModuleDeps
-    def mvnDeps = Agg(
-      build.Deps.bsp4j,
-      build.Deps.sbtTestInterface,
-      build.Deps.osLib
+      build.runner.client,
+      build.core.api.daemon,
+      build.core.internal,
+      build.libs.javalib
+    ) ++ build.libs.javalib.compileModuleDeps
+    def mvnDeps = Seq(
+      Deps.bsp4j,
+      // Pulled transitively by bsp4j, that only depends on an interval for it, [2.9.1,2.11)
+      // Adding it as a dependency here in order to depend on a constant version rather than an interval
+      // If needed, that version can be bumped in the future to accomodate any conflict that might arise
+      Deps.gson,
+      Deps.sbtTestInterface,
+      Deps.osLib
     )
   }
 }

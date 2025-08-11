@@ -2,34 +2,34 @@ package mill.scalalib
 
 import mill.*
 import mill.api.ExecResult
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import HelloWorldTests.*
-import mill.define.Discover
+import mill.api.Discover
 object ScalaScaladocTests extends TestSuite {
 
-  object HelloWorldWithDocVersion extends TestBaseModule {
+  object HelloWorldWithDocVersion extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+      override def scalacOptions = Task { Seq("-Ywarn-unused", "-Xfatal-warnings") }
       override def scalaDocOptions = super.scalaDocOptions() ++ Seq("-doc-version", "1.2.3")
     }
 
     lazy val millDiscover = Discover[this.type]
   }
 
-  object HelloWorldOnlyDocVersion extends TestBaseModule {
+  object HelloWorldOnlyDocVersion extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
-      override def scalaDocOptions = T(Seq("-doc-version", "1.2.3"))
+      override def scalacOptions = Task { Seq("-Ywarn-unused", "-Xfatal-warnings") }
+      override def scalaDocOptions = Task { Seq("-doc-version", "1.2.3") }
     }
 
     lazy val millDiscover = Discover[this.type]
 
   }
 
-  object HelloWorldDocTitle extends TestBaseModule {
+  object HelloWorldDocTitle extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalaDocOptions = T(Seq("-doc-title", "Hello World"))
+      override def scalaDocOptions = Task { Seq("-doc-title", "Hello World") }
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -67,7 +67,7 @@ object ScalaScaladocTests extends TestSuite {
         val Right(result) = eval.apply(HelloWorldDocTitle.core.docJar): @unchecked
         assert(
           result.evalCount > 0,
-          os.read(eval.outPath / "core/docJar.dest/javadoc/index.html").contains(
+          os.read(eval.outPath / "core/scalaDocGenerated.dest/javadoc/index.html").contains(
             "<span id=\"doc-title\">Hello World"
           )
         )

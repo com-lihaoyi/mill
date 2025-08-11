@@ -1,5 +1,5 @@
 package foo
-import scalatags.Text.all._
+import scalatags.Text.all.*
 import mainargs.{main, ParserForMethods}
 object Foo {
   @main

@@ -6,10 +6,11 @@
 // Maven or Gradle build:
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends MavenModule {
-  object test extends MavenTests with TestModule.Junit4
+  object test extends MavenTests, TestModule.Junit4
+  object integration extends MavenTests, TestModule.Junit4
 }
 
 // `MavenModule` is a variant of `JavaModule`
@@ -29,16 +30,21 @@ object foo extends MavenModule {
 
 /** Usage
 
-> mill foo.compile
+> ./mill foo.compile
 compiling 1 Java source...
 
-> mill foo.test.compile
+> ./mill foo.test.compile
 compiling 1 Java source...
 
-> mill foo.test.testForked
+> ./mill foo.test.testForked
 ...foo.FooTests.hello ...
 
-> mill foo.test
+> ./mill foo.test
 ...foo.FooTests.hello ...
+
+> ./mill foo.integration
+...foo.FooIntegrationTests.hello ...
 
 */
+
+// For more details on migrating from other build tools, see xref:migrating/migrating.adoc[]

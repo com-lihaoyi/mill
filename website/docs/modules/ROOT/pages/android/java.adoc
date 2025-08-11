@@ -13,7 +13,7 @@ These are the main Mill Modules that are relevant for building Android apps:
 
 * {mill-doc-url}/api/latest/mill/androidlib/AndroidSdkModule.html[`mill.androidlib.AndroidSdkModule`]: Handles Android SDK management and tools.
 * {mill-doc-url}/api/latest/mill/androidlib/AndroidAppModule.html[`mill.androidlib.AndroidAppModule`]: Provides a framework for building Android applications.
-* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[`mill.javalib.JavaModule`]: General Java build tasks like compiling Java code and creating JAR files.
+* {mill-doc-url}/api/latest/mill/javalib/JavaModule.html[`mill.javalib.JavaModule`]: General Java build tasks like compiling Java code and creating JAR files.
 
 == Simple Android Hello World Application
 
@@ -71,3 +71,7 @@ The `AndroidAppBundle` trait is used to create and manage Android App Bundles (A
 == Using the R8 optimization tool in Android modules
 
 include::partial$example/androidlib/java/5-R8.adoc[]
+
+== Using Third-Party Native Libraries
+
+include::partial$example/androidlib/java/6-native-libs.adoc[]

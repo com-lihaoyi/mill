@@ -2,15 +2,18 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildClient
 import mill.bsp.BuildInfo
-import mill.api.internal.{BspServerHandle, BspServerResult, EvaluatorApi}
+import mill.api.daemon.internal.EvaluatorApi
 import mill.bsp.Constants
-import mill.api.{Result, SystemStreams}
+import mill.api.{Logger, Result, SystemStreams}
+import mill.client.lock.Lock
+import mill.api.daemon.Watchable
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
-import java.io.{PrintStream, PrintWriter}
-import java.util.concurrent.Executors
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, CancellationException, ExecutionContext, Promise}
+import java.io.PrintWriter
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
+import scala.concurrent.{CancellationException, Future, Promise}
+import mill.api.daemon.internal.bsp.{BspServerHandle, BspServerResult}
 
 object BspWorkerImpl {
 
@@ -18,23 +21,29 @@ object BspWorkerImpl {
       topLevelBuildRoot: os.Path,
       streams: SystemStreams,
       logDir: os.Path,
-      canReload: Boolean
-  ): mill.api.Result[BspServerHandle] = {
+      canReload: Boolean,
+      outLock: Lock,
+      baseLogger: Logger,
+      out: os.Path
+  ): mill.api.Result[(BspServerHandle, BuildClient)] = {
 
     try {
-      val executor = Executors.newCachedThreadPool()
-      implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(executor)
-      lazy val millServer: MillBuildServer with MillJvmBuildServer with MillJavaBuildServer
-        with MillScalaBuildServer =
+      val executor = createJsonrpcExecutor()
+      lazy val millServer
+          : MillBuildServer & MillJvmBuildServer & MillJavaBuildServer & MillScalaBuildServer =
         new MillBuildServer(
           topLevelProjectRoot = topLevelBuildRoot,
           bspVersion = Constants.bspProtocolVersion,
           serverVersion = BuildInfo.millVersion,
           serverName = Constants.serverName,
-          logStream = streams.err,
           canReload = canReload,
-          debugMessages = Option(System.getenv("MILL_BSP_DEBUG")).contains("true"),
-          onShutdown = () => listening.cancel(true)
+          onShutdown = () => {
+            listening.cancel(true)
+            executor.shutdown()
+          },
+          outLock = outLock,
+          baseLogger = baseLogger,
+          out = out
         ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
 
       lazy val launcher = new Launcher.Builder[BuildClient]()
@@ -46,18 +55,25 @@ object BspWorkerImpl {
         .setExecutorService(executor)
         .create()
 
-      millServer.onConnectWithClient(launcher.getRemoteProxy)
       lazy val listening = launcher.startListening()
+      val client = launcher.getRemoteProxy
+      millServer.onConnectWithClient(client)
 
       val bspServerHandle = new BspServerHandle {
-        override def runSession(evaluators: Seq[EvaluatorApi]): BspServerResult = {
-          millServer.updateEvaluator(Option(evaluators))
-          millServer.sessionResult = None
-          while (millServer.sessionResult.isEmpty) Thread.sleep(1)
-          millServer.updateEvaluator(None)
-          val res = millServer.sessionResult.get
-          streams.err.println(s"Reload finished, result: $res")
-          res
+        override def startSession(
+            evaluators: Seq[EvaluatorApi],
+            errored: Boolean,
+            watched: Seq[Watchable]
+        ): Future[BspServerResult] = {
+          // FIXME We might be losing some shutdown requests here
+          val sessionResultPromise = Promise[BspServerResult]()
+          millServer.sessionResult = sessionResultPromise
+          millServer.updateEvaluator(evaluators, errored = errored, watched = watched)
+          sessionResultPromise.future
+        }
+
+        override def resetSession(): Unit = {
+          millServer.resetEvaluator()
         }
 
         override def close(): Unit = {
@@ -75,7 +91,7 @@ object BspWorkerImpl {
         executor.shutdown()
       }).start()
 
-      Result.Success(bspServerHandle)
+      Result.Success((bspServerHandle, client))
     } catch {
       case _: CancellationException =>
         Result.Failure("The mill server was shut down.")
@@ -89,4 +105,21 @@ object BspWorkerImpl {
         )
     }
   }
+
+  private val executorCounter = new AtomicInteger
+  private def createJsonrpcExecutor(): ExecutorService =
+    Executors.newCachedThreadPool(
+      new ThreadFactory {
+        val executorCount = executorCounter.incrementAndGet()
+        val counter = new AtomicInteger
+        def newThread(runnable: Runnable): Thread = {
+          val t = new Thread(
+            runnable,
+            s"mill-bsp-jsonrpc-$executorCount-thread-${counter.incrementAndGet()}"
+          )
+          t.setDaemon(true)
+          t
+        }
+      }
+    )
 }

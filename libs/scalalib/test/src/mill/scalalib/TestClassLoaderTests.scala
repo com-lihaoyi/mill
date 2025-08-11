@@ -1,14 +1,13 @@
 package mill.scalalib
 
-import mill.define.Discover
-import mill.Task
+import mill.api.Discover
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
-import mill.util.TokenReaders._
+import mill.testkit.TestRootModule
+import mill.util.TokenReaders.*
 import utest.*
 
 object TestClassLoaderTests extends TestSuite {
-  object testclassloader extends TestBaseModule with ScalaModule {
+  object testclassloader extends TestRootModule with ScalaModule {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object test extends ScalaTests with TestModule.Utest {

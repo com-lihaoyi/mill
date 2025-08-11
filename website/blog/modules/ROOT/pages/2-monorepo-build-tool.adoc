@@ -108,7 +108,7 @@ the custom build tasks you require.
 That is why monorepo build tools like Bazel and Mill make it easy to write custom tasks. In
 Bazel a custom task is just a https://bazel.build/reference/be/general#genrule[genrule()], in Mill
 just `def foo = Task { ... }` with a block of code doing what you need,
-and you can even xref:mill:ROOT:extending/import-mvn-plugins.adoc[use any third-party JVM library]
+and you can even use any third-party JVM library
 you are already familiar with as part of your custom task. This helps ensure your custom
 tasks are written in concise type-checked code with automatic caching and parallelism,
 which are all things that are lacking if you start implementing your logic outside of

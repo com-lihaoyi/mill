@@ -19,19 +19,20 @@ Here is a simple example:
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-proguard:$MILL_VERSION"]
 package build
-import $ivy.`com.lihaoyi::mill-contrib-proguard:`
+
 import contrib.proguard._
 
 object foo extends ScalaModule with Proguard {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
 
   override def shrink: T[Boolean] = Task { true }
   override def optimize: T[Boolean] = Task { false }
   override def obfuscate: T[Boolean] = Task { false }
 
   // https://github.com/Guardsquare/proguard/releases
-  override def proguardVersion = T("7.3.2")
+  override def proguardVersion = Task { "7.3.2" }
 
   // tell Proguard where to enter your app, so it can optimise outwards from there
   override def entryPoint = Task {

@@ -13,28 +13,28 @@ digraph G {
   node [shape=box width=0 height=0 style=filled fillcolor=white]
   bgcolor=transparent
 
-  "client-stdin" [penwidth=0]
-  "client-stdout" [penwidth=0]
-  "client-stderr" [penwidth=0]
-  "client-exit" [penwidth=0]
-  "client-args" [penwidth=0]
+  "launcher-stdin" [penwidth=0]
+  "launcher-stdout" [penwidth=0]
+  "launcher-stderr" [penwidth=0]
+  "launcher-exit" [penwidth=0]
+  "launcher-args" [penwidth=0]
   subgraph cluster_client {
-      label = "mill client";
+      label = "mill launcher";
       "Socket"
-      "MillClientMain"
+      "MillLauncherMain"
   }
-  "client-stdin" -> "Socket"
-  "client-stderr" -> "Socket" [dir=back]
-  "client-stdout" -> "Socket" [dir=back]
-  "client-args" -> "MillClientMain"
-  "client-exit" -> "MillClientMain" [dir=back]
-  "MillClientMain" -> "runArgs"
+  "launcher-stdin" -> "Socket"
+  "launcher-stderr" -> "Socket" [dir=back]
+  "launcher-stdout" -> "Socket" [dir=back]
+  "launcher-args" -> "MillLauncherMain"
+  "launcher-exit" -> "MillLauncherMain" [dir=back]
+  "MillLauncherMain" -> "runArgs"
   subgraph cluster_out {
     label = "out/";
 
 
     subgraph cluster_mill_server_folder {
-      label = "mill-server/";
+      label = "mill-daemon/";
       "socketPort" [penwidth=0]
       "exitCode" [penwidth=0]
       "runArgs" [penwidth=0]
@@ -51,14 +51,14 @@ digraph G {
 
 
   subgraph cluster_server {
-    label = "mill server";
+    label = "mill daemon";
     "PromptLogger"
-    "MillServerMain"
+    "MillDaemonMain"
     "Evaluator"
     "ServerSocket"
 
-    "server-stdout" [penwidth=0]
-    "server-stderr" [penwidth=0]
+    "daemon-stdout" [penwidth=0]
+    "daemon-stderr" [penwidth=0]
     subgraph cluster_classloder {
       label = "URLClassLoader";
       subgraph cluster_build {
@@ -78,16 +78,16 @@ digraph G {
   }
 
 
-  "runArgs" -> "MillServerMain"
-  "MillServerMain" -> "Evaluator" [dir=both]
+  "runArgs" -> "MillDaemonMain"
+  "MillDaemonMain" -> "Evaluator" [dir=both]
   "ServerSocket" -> "PromptLogger" [dir=back]
-  "exitCode" -> "MillServerMain" [dir=back]
-  "MillClientMain" -> "exitCode" [dir=back]
+  "exitCode" -> "MillDaemonMain" [dir=back]
+  "MillLauncherMain" -> "exitCode" [dir=back]
   "Socket" -> "socketPort"  [dir=both]
   "socketPort" -> "ServerSocket"  [dir=both]
 
-  "PromptLogger" -> "server-stderr" [dir=back]
-  "PromptLogger" -> "server-stdout" [dir=back]
+  "PromptLogger" -> "daemon-stderr" [dir=back]
+  "PromptLogger" -> "daemon-stdout" [dir=back]
   "compile.dest" -> "foo.compile"  [dir=both]
   "compile.json" -> "foo.compile"  [dir=both]
 
@@ -97,40 +97,43 @@ digraph G {
 ....
 
 
-== The Mill Client
+== The Mill Launcher
 
-The Mill client is a small Java application that is responsible for launching
-and delegating work to the Mill server, a long-lived process. Each `./mill`
-command spawns a new Mill client, but generally re-uses the same Mill server where
-possible in order to reduce startup overhead and to allow the Mill server
+The Mill launcher is a small Java application that is responsible for launching
+and delegating work to the Mill daemon, a long-lived process. Each `./mill`
+command spawns a new Mill launcher, but generally re-uses the same Mill daemon where
+possible in order to reduce startup overhead and to allow the Mill daemon
 process to warm up and provide good performance
 
-* The Mill client takes all the inputs of a typical command-line application -
+* The Mill launcher takes all the inputs of a typical command-line application -
 stdin and command-line arguments - and proxies them to the long-lived Mill
-server process.
+daemon process.
 
-* It then takes the outputs from the Mill server - stdout, stderr,
+* It then takes the outputs from the Mill daemon - stdout, stderr,
 and finally the exitcode - and proxies those back to the calling process or terminal.
 
-In this way, the Mill client acts and behaves for most all intents and purposes
+In this way, the Mill launcher acts and behaves for most all intents and purposes
 as a normal CLI application, except it is really a thin wrapper around logic that
-is actually running in the long-lived Mill server.
+is actually running in the long-lived Mill daemon.
 
-The Mill server sometimes is shut down and needs to be restarted, e.g. if Mill
+The Mill daemon sometimes is shut down and needs to be restarted, e.g. if Mill
 version changed, or the user used `Ctrl-C` to interrupt the ongoing computation.
-In such a scenario, the Mill client will automatically restart the server the next
+In such a scenario, the Mill launcher will automatically restart the daemon the next
 time it is run, so apart from a slight performance penalty from starting a "cold"
-Mill server such shutdowns and restarts should be mostly invisibl to the user.
+Mill daemon such shutdowns and restarts should be mostly invisible to the user.
 
-== The Mill Server
+== The Mill Daemon
 
-The Mill server is a long-lived process that the Mill client spawns.
-Only one Mill server should be running in a codebase at a time, and each server
-takes a filelock at startup time to enforce this mutual exclusion.
+The Mill daemon is a long-lived process that the Mill launcher spawns.
+Only one Mill daemon should be running in a codebase at a time, and each daemon
+takes a filelock at startup time to enforce this mutual exclusion. While multiple
+launchers can connect to a single daemon, a second lock is taken when the daemon
+is running a build for a particular launcher, to ensure that only one build is
+happening at a time.
 
-The Mill server compiles your `build.mill` and `package.mill`, spawns a
+The Mill daemon compiles your `build.mill` and `package.mill`, spawns a
 `URLClassLoader` containing the compiled classfiles, and uses that to instantiate
-the variousxref:fundamentals/modules.adoc[] and xref:fundamentals/tasks.adoc[]
+the various xref:fundamentals/modules.adoc[] and xref:fundamentals/tasks.adoc[]
 dynamically in-memory. These are then used by the `Evaluator`, which resolves,
 plans, and executes the tasks specified by the given `runArgs`
 
@@ -138,14 +141,14 @@ During execution, both standard output
 and standard error are captured during evaluation and forwarded to the `PromptLogger`.
 `PromptLogger` annotates the output stream with the line-prefixes, prompt, and ANSI
 terminal commands necessary to generate the dynamic prompt, and then forwards both
-streams multi-plexed over a single socket stream back to the Mill client. The client
+streams multi-plexed over a single socket stream back to the Mill launcher. The launcher
 then de-multiplexes the combined stream to split it back into output and error, which
-are then both forwarded to the process or terminal that invoked the Mill client.
+are then both forwarded to the process or terminal that invoked the Mill launcher.
 
-Lastly, when the Mill server completes its tasks, it writes the `exitCode` to a file
-that is then propagated back to the Mill client. The Mill client terminates with this
-exit code, but the Mill server remains alive and ready to serve to the next Mill
-client that connects to it
+Lastly, when the Mill daemon completes its tasks, it writes the `exitCode` back to
+the Mill launcher over the multiplexed stream. The Mill launcher terminates with this
+exit code, but the Mill daemon remains alive and ready to serve to the next Mill
+launcher that connects to it
 
 For a more detailed discussion of what exactly goes into "execution", see
 xref:depth/evaluation-model.adoc[].
@@ -155,8 +158,8 @@ xref:depth/evaluation-model.adoc[].
 
 The `out/` directory is where most of Mill's state lives on disk, both build-task state
 such as the `foo/compile.json` metadata cache for `foo.compile`, or the `foo/compile.dest`
-which stores any generated files or binaries. It also contains `mill-server/` folder which
-is used to pass data back and forth between the client and server: the `runArgs`, `exitCode`,
+which stores any generated files or binaries. It also contains `mill-daemon/` folder which
+is used to pass data back and forth between the launcher and daemon: the `runArgs`, `exitCode`,
 etc.
 
 Each task during evaluation reads and writes from its own designated paths in the `out/`

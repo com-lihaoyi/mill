@@ -1,5 +1,5 @@
 package build
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object foo extends TypeScriptModule {
   def npmDeps = Seq("lodash@4.17.21")
@@ -16,16 +16,16 @@ object foo extends TypeScriptModule {
 
 /** Usage
 
-> mill foo.run e b k a l m o p
+> ./mill foo.run e b k a l m o p
 Sorted with lodash: [a,b,e,k,l,m,o,p]
 ....
 {
   version: '4.17.21',
   resolved: 'https://registry.npmmirror.com/lodash/-/lodash-4.17.21.tgz',
-  integrity: ...,
+  integrity: ...
 ...
 }
 
 > cd out/foo/npmInstall.dest && npm config get registry
-https://registry.npmmirror.com
+https://registry.npmmirror.com...
 */

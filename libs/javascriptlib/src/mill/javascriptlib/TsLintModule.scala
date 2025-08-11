@@ -4,7 +4,7 @@ import mill.*
 import mill.api.Result
 import scala.util.{Try, Success, Failure}
 import os.*
-
+import mill.api.BuildCtx
 trait TsLintModule extends Module {
   sealed trait Lint
   private case object Eslint extends Lint
@@ -20,7 +20,7 @@ trait TsLintModule extends Module {
   }
 
   private def npmInstallLint: T[PathRef] = Task {
-    Try(os.copy.over(T.workspace / ".npmrc", Task.dest / ".npmrc")).getOrElse(())
+    Try(os.copy.over(BuildCtx.workspaceRoot / ".npmrc", Task.dest / ".npmrc")).getOrElse(())
     os.call((
       "npm",
       "install",
@@ -36,14 +36,14 @@ trait TsLintModule extends Module {
 
   // Handle config - prioritize eslint config
   private def fmtConfig: T[Seq[PathRef]] = Task.Sources(
-    T.workspace / "eslint.config.mjs",
-    T.workspace / "eslint.config.cjs",
-    T.workspace / "eslint.config.js",
-    T.workspace / ".eslintrc.js",
-    T.workspace / ".eslintrc.mjs",
-    T.workspace / ".eslintrc.cjs",
-    T.workspace / ".prettierrc",
-    T.workspace / ".prettierrc.json"
+    BuildCtx.workspaceRoot / "eslint.config.mjs",
+    BuildCtx.workspaceRoot / "eslint.config.cjs",
+    BuildCtx.workspaceRoot / "eslint.config.js",
+    BuildCtx.workspaceRoot / ".eslintrc.js",
+    BuildCtx.workspaceRoot / ".eslintrc.mjs",
+    BuildCtx.workspaceRoot / ".eslintrc.cjs",
+    BuildCtx.workspaceRoot / ".prettierrc",
+    BuildCtx.workspaceRoot / ".prettierrc.json"
   )
 
   private def resolvedFmtConfig: Task[Lint] = Task.Anon {
@@ -64,10 +64,12 @@ trait TsLintModule extends Module {
   }
 
   // eslint
-  def checkFormatEslint(args: mill.define.Args): Command[Unit] = Task.Command {
+  def checkFormatEslint(args: mill.api.Args): Command[Unit] = Task.Command {
+    val _ = args // silence unused parameter warning
+
     resolvedFmtConfig() match {
       case Eslint =>
-        val cwd = T.workspace
+        val cwd = BuildCtx.workspaceRoot
         os.symlink(cwd / "node_modules", npmInstallLint().path / "node_modules")
         val eslint = npmInstallLint().path / "node_modules/.bin/eslint"
         val logPath = npmInstallLint().path / "eslint.log"
@@ -108,10 +110,12 @@ trait TsLintModule extends Module {
     }
   }
 
-  def reformatEslint(args: mill.define.Args): Command[Unit] = Task.Command {
+  def reformatEslint(args: mill.api.Args): Command[Unit] = Task.Command {
+    val _ = args // silence unused parameter warning, part of API
+
     resolvedFmtConfig() match {
       case Eslint =>
-        val cwd = T.workspace
+        val cwd = BuildCtx.workspaceRoot
         os.symlink(cwd / "node_modules", npmInstallLint().path / "node_modules")
         val eslint = npmInstallLint().path / "node_modules/.bin/eslint"
         val logPath = npmInstallLint().path / "eslint.log"
@@ -140,10 +144,10 @@ trait TsLintModule extends Module {
   }
 
   // prettier
-  def checkFormatPrettier(args: mill.define.Args): Command[Unit] = Task.Command {
+  def checkFormatPrettier(args: mill.api.Args): Command[Unit] = Task.Command {
     resolvedFmtConfig() match {
       case Prettier =>
-        val cwd = T.workspace
+        val cwd = BuildCtx.workspaceRoot
         val prettier = npmInstallLint().path / "node_modules/.bin/prettier"
         val logPath = npmInstallLint().path / "prettier.log"
         val defaultArgs = if (args.value.isEmpty) Seq("*/**/*.ts") else args.value
@@ -182,10 +186,10 @@ trait TsLintModule extends Module {
 
   }
 
-  def reformatPrettier(args: mill.define.Args): Command[Unit] = Task.Command {
+  def reformatPrettier(args: mill.api.Args): Command[Unit] = Task.Command {
     resolvedFmtConfig() match {
       case Prettier =>
-        val cwd = T.workspace
+        val cwd = BuildCtx.workspaceRoot
         val prettier = npmInstallLint().path / "node_modules/.bin/prettier"
         val logPath = npmInstallLint().path / "prettier.log"
         val defaultArgs = if (args.value.isEmpty) Seq("*/**/*.ts") else args.value
@@ -215,7 +219,7 @@ trait TsLintModule extends Module {
   }
 
   private def prettierIgnore: T[PathRef] = Task {
-    val config = T.dest / ".prettierignore"
+    val config = Task.dest / ".prettierignore"
     val content =
       s"""|node_modules
           |.git
@@ -226,12 +230,12 @@ trait TsLintModule extends Module {
     PathRef(config)
   }
 
-  def checkFormatAll(args: mill.define.Args): Command[Unit] = Task.Command {
+  def checkFormatAll(args: mill.api.Args): Command[Unit] = Task.Command {
     checkFormatEslint(args)()
     checkFormatPrettier(args)()
   }
 
-  def reformatAll(args: mill.define.Args): Command[Unit] = Task.Command {
+  def reformatAll(args: mill.api.Args): Command[Unit] = Task.Command {
     reformatEslint(args)()
     reformatPrettier(args)()
   }

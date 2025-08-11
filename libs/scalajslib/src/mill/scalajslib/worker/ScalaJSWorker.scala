@@ -1,24 +1,26 @@
 package mill.scalajslib.worker
 
-import java.io.File
+import mill.*
 import mill.scalajslib.api
 import mill.scalajslib.worker.{api => workerApi}
-import mill.define.TaskCtx
+import mill.api.TaskCtx
 import mill.api.Result
-import mill.api.internal.internal
-import mill.define.{Discover, Worker}
+import mill.api.daemon.internal.internal
+import mill.api.Discover
 import mill.util.CachedFactory
-import mill.{PathRef, Task}
 
+import java.io.File
 import java.net.URLClassLoader
 
 @internal
 private[scalajslib] class ScalaJSWorker(jobs: Int)
     extends CachedFactory[Seq[mill.PathRef], (URLClassLoader, workerApi.ScalaJSWorkerApi)] {
+
   override def setup(key: Seq[PathRef]) = {
     val cl = mill.util.Jvm.createClassLoader(
       key.map(_.path).toVector,
-      getClass.getClassLoader
+      getClass.getClassLoader,
+      sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.internal.TestReporter")
     )
     val bridge = cl
       .loadClass("mill.scalajslib.worker.ScalaJSWorkerImpl")
@@ -64,8 +66,8 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
     moduleSplitStyle match {
       case api.ModuleSplitStyle.FewestModules => workerApi.ModuleSplitStyle.FewestModules
       case api.ModuleSplitStyle.SmallestModules => workerApi.ModuleSplitStyle.SmallestModules
-      case api.ModuleSplitStyle.SmallModulesFor(packages) =>
-        workerApi.ModuleSplitStyle.SmallModulesFor(packages)
+      case api.ModuleSplitStyle.SmallModulesFor(packages*) =>
+        workerApi.ModuleSplitStyle.SmallModulesFor(packages*)
     }
 
   private def toWorkerApi(jsEnvConfig: api.JsEnvConfig): workerApi.JsEnvConfig = {
@@ -103,7 +105,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
               workerApi.JsEnvConfig.Selenium.ChromeOptions(headless = options.headless)
             case options: api.JsEnvConfig.Selenium.FirefoxOptions =>
               workerApi.JsEnvConfig.Selenium.FirefoxOptions(headless = options.headless)
-            case options: api.JsEnvConfig.Selenium.SafariOptions =>
+            case _: api.JsEnvConfig.Selenium.SafariOptions =>
               workerApi.JsEnvConfig.Selenium.SafariOptions()
           }
         )
@@ -180,7 +182,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
       importMap: Seq[api.ESModuleImportMapping],
       experimentalUseWebAssembly: Boolean
   ): Result[api.Report] = {
-    withValue(toolsClasspath) { case (cl, bridge) =>
+    withValue(toolsClasspath) { case (_, bridge) =>
       bridge.link(
         runClasspath = runClasspath.iterator.map(_.path.toNIO).toSeq,
         dest = dest,
@@ -205,7 +207,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
   }
 
   def run(toolsClasspath: Seq[mill.PathRef], config: api.JsEnvConfig, report: api.Report): Unit = {
-    withValue(toolsClasspath) { case (cl, bridge) =>
+    withValue(toolsClasspath) { case (_, bridge) =>
       bridge.run(toWorkerApi(config), toWorkerApi(report))
     }
   }
@@ -216,7 +218,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
       frameworkName: String,
       report: api.Report
   ): (() => Unit, sbt.testing.Framework) = {
-    withValue(toolsClasspath) { case (cl, bridge) =>
+    withValue(toolsClasspath) { case (_, bridge) =>
       bridge.getFramework(
         toWorkerApi(config),
         frameworkName,
@@ -225,11 +227,10 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
     }
   }
 
-  override def close(): Unit = {}
 }
 
 @internal
-private[scalajslib] object ScalaJSWorkerExternalModule extends mill.define.ExternalModule {
+private[scalajslib] object ScalaJSWorkerExternalModule extends mill.api.ExternalModule {
 
   def scalaJSWorker: Worker[ScalaJSWorker] =
     Task.Worker { new ScalaJSWorker(Task.ctx().jobs) }

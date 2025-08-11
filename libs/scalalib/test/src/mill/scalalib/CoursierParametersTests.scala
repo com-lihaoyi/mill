@@ -1,8 +1,8 @@
 package mill.scalalib
 
-import mill.define.{Discover, Task}
+import mill.api.{Discover, Task}
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import mill.util.TokenReaders._
 import utest.*
 
@@ -10,7 +10,7 @@ object CoursierParametersTests extends TestSuite {
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "coursier"
 
-  object CoursierTest extends TestBaseModule {
+  object CoursierTest extends TestRootModule {
     object core extends ScalaModule {
       def scalaVersion = "2.13.12"
       def mvnDeps = Task {

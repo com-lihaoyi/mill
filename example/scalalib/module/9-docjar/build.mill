@@ -1,9 +1,9 @@
 // To generate API documentation you can use the `docJar` task on the module you'd
-// like to create the docs for, configured via `{language-small}DocOptions`:
+// like to create the docs for, configured via `{language-doc}Options`:
 
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object foo extends ScalaModule {
   def scalaVersion = "3.1.3"

@@ -1,7 +1,7 @@
 package mill
 package contrib.docker
 
-import mill.scalalib.JavaModule
+import mill.javalib.JavaModule
 import os.Shellable.IterableShellable
 
 import scala.collection.immutable._
@@ -14,10 +14,10 @@ trait DockerModule { outer: JavaModule =>
      * Tags that should be applied to the built image
      * In the standard registry/repository:tag format
      */
-    def tags: T[Seq[String]] = T(List(outer.artifactName()))
+    def tags: T[Seq[String]] = Task { List(outer.artifactName()) }
     def labels: T[Map[String, String]] = Map.empty[String, String]
     def baseImage: T[String] = "gcr.io/distroless/java:latest"
-    def pullBaseImage: T[Boolean] = T(baseImage().endsWith(":latest"))
+    def pullBaseImage: T[Boolean] = Task { baseImage().endsWith(":latest") }
 
     /**
      * JVM runtime options. Each item of the Seq should consist of an option and its desired value, like
@@ -27,7 +27,7 @@ trait DockerModule { outer: JavaModule =>
      * For a full list of options consult the official documentation at
      * [[https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html#overview-of-java-options]]
      */
-    def jvmOptions: T[Seq[String]] = Seq.empty[String]
+    def jvmOptions: T[Seq[String]] = Seq()
 
     /**
      * TCP Ports the container will listen to at runtime.
@@ -36,7 +36,7 @@ trait DockerModule { outer: JavaModule =>
      * [[https://docs.docker.com/engine/reference/builder/#expose ports]] for
      * more information.
      */
-    def exposedPorts: T[Seq[Int]] = Seq.empty[Int]
+    def exposedPorts: T[Seq[Int]] = Seq()
 
     /**
      * UDP Ports the container will listen to at runtime.
@@ -45,7 +45,7 @@ trait DockerModule { outer: JavaModule =>
      * [[https://docs.docker.com/engine/reference/builder/#expose ports]] for
      * more information.
      */
-    def exposedUdpPorts: T[Seq[Int]] = Seq.empty[Int]
+    def exposedUdpPorts: T[Seq[Int]] = Seq()
 
     /**
      * The names of mount points.
@@ -54,7 +54,7 @@ trait DockerModule { outer: JavaModule =>
      * [[https://docs.docker.com/engine/reference/builder/#volume volumes]]
      * for more information.
      */
-    def volumes: T[Seq[String]] = Seq.empty[String]
+    def volumes: T[Seq[String]] = Seq()
 
     /**
      * Environment variables to be set in the container.
@@ -82,7 +82,7 @@ trait DockerModule { outer: JavaModule =>
      * [[https://docs.docker.com/engine/reference/builder/#run RUN]]
      * for more information.
      */
-    def run: T[Seq[String]] = Seq.empty[String]
+    def run: T[Seq[String]] = Seq()
 
     /**
      * Any applicable string to the USER instruction.

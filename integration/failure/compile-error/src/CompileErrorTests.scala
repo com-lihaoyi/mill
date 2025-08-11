@@ -25,7 +25,7 @@ object CompileErrorTests extends UtestIntegrationTestSuite {
       }
 
       locally {
-        assert(res.err.contains("""build.mill:8:5"""))
+        assert(res.err.contains("""build.mill:11:5"""))
         assert(res.err.contains("""foo.noSuchMethod"""))
         assert(res.err.contains("""value noSuchMethod is not a member"""))
       }

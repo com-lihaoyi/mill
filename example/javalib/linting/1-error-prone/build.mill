@@ -1,12 +1,14 @@
 // https://errorprone.info/index[Error Prone] augments the Java compiler's type
-// checker and detect common mistakes at compile time. Mill supports ErrorProne via
-// `ErrorProneModule`: mix `ErrorProneModule` into your `JavaModule` and it will
+// checker and detect common mistakes at compile time.
+// Mill supports ErrorProne via the `ErrorProneModule`.
+// Mix the `ErrorProneModule` trait into your `JavaModule` and it will
 // automatically run with every compilation.
 
 package build
-import mill._, javalib._, errorprone._
 
-object `package` extends RootModule with JavaModule with ErrorProneModule {
+import mill.*, javalib.*, errorprone.*
+
+object `package` extends JavaModule, ErrorProneModule {
   def errorProneOptions = Seq("-XepAllErrorsAsWarnings")
 }
 
@@ -30,22 +32,6 @@ object `package` extends RootModule with JavaModule with ErrorProneModule {
 [warn]               ^
 */
 
-// :page-aliases: Plugin_ErrorProne.adoc
-//
-//
-// .`build.mill.scala`: Enable `ErrorProne` in a module
-// [source,scala]
-// ----
-// package build
-// import mill._, scalalib._
-//
-// import $ivy.`com.lihaoyi::mill-contrib-errorprone:`
-// import mill.contrib.errorprone.ErrorProneModule
-//
-// object foo extends JavaModule with ErrorProneModule {
-// }
-// ----
-//
 // === Configuration
 //
 // The following configuration options exist:

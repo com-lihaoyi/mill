@@ -1,6 +1,6 @@
 //// SNIPPET:BUILD
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
   def mvnDeps = Seq(
@@ -8,7 +8,7 @@ object foo extends JavaModule {
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
-  object test extends JavaTests with TestModule.Junit4 {
+  object test extends JavaTests, TestModule.Junit4 {
     def mvnDeps = Seq(
       mvn"com.google.guava:guava:33.3.0-jre"
     )
@@ -61,7 +61,8 @@ foo.assembly
 foo.compile
 ...
 foo.run
-
+*/
+/** Usage
 > ./mill inspect foo.compile # Show documentation and inputs of a task
 foo.compile(JavaModule...)
     Compiles the current module to generate compiled classfiles/bytecode.
@@ -70,24 +71,29 @@ Inputs:
     foo.allSourceFiles
     foo.compileClasspath
 ...
-
+*/
+/** Usage
 > ./mill foo.compile # compile sources into classfiles
 ...
 compiling 1 Java source to...
-
+*/
+/** Usage
 > ./mill foo.run # run the main method, if any
 error: argument -t/--text is required
 ...
-
+*/
+/** Usage
 > ./mill foo.run --text hello
 <h1>hello</h1>
-
+*/
+/** Usage
 > ./mill foo.test
 ...
 Test foo.FooTest.testEscaping finished, ...
 Test foo.FooTest.testSimple finished, ...
 Test run foo.FooTest finished: 0 failed, 0 ignored, 2 total, ...
-
+*/
+/** Usage
 > ./mill foo.assembly # bundle classfiles and libraries into a jar for deployment
 
 > ./mill show foo.assembly # show the output of the assembly task

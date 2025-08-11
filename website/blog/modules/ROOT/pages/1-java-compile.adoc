@@ -21,9 +21,9 @@ build tools add significant overhead over compiling Java directly:
 |===
 | *Mockito Core* | *Time* | *Compiler lines/s* | *Slowdown* | *Netty Common* | *Time* | *Compiler lines/s* | *Slowdown*
 | *Javac Hot* | 0.36s | 115,600 | 1.0x | *Javac Hot* | 0.29s | 102,500 | 1.0x
-| *Javac Cold* | 1.29s | 32,200 | 4.4x | *Javac Cold* | 1.62s | 18,300 | 5.6x
-| *Mill* | 1.20s | 34,700 | 4.1x | *Mill* | 1.11s | 26,800 | 3.8x
-| *Gradle* | 4.41s | 9,400 | 15.2x | *Maven* | 4.89s | 6,100 | 16.9x
+| *Javac Cold* | 1.29s | 32,200 | 3.6x | *Javac Cold* | 1.62s | 18,300 | 5.6x
+| *Mill* | 1.20s | 34,700 | 3.3x | *Mill* | 1.11s | 26,800 | 3.8x
+| *Gradle* | 4.41s | 9,400 | 12.3x | *Maven* | 4.89s | 6,100 | 16.9x
 |===
 
 Although Mill does the best in these benchmarks among the build tools (Maven, Gradle, and Mill),
@@ -304,11 +304,11 @@ using the dependencies we already have on disk.
 Tabulating this all together gives us the table we saw at the start of this page:
 
 |===
-| Mockito Core | Time | Compiler lines/s | Slowdown | Netty Common | Time | Compiler lines/s | Slowdown
-| Javac Hot | 0.36s | 115,600 | 1.0x | Javac Hot | 0.29s | 102,500 | 1.0x
-| Javac Cold | 1.29s | 32,200 | 4.4x | Javac Cold | 1.62s | 18,300 | 5.6x
-| Mill | 1.20s | 34,700 | 4.1x | Mill | 1.11s | 26,800 | 3.8x
-| Gradle | 4.41s | 9,400 | 15.2x | Maven | 4.89s | 6,100 | 16.9x
+| *Mockito Core* | *Time* | *Compiler lines/s* | *Slowdown* | *Netty Common* | *Time* | *Compiler lines/s* | *Slowdown*
+| *Javac Hot* | 0.36s | 115,600 | 1.0x | *Javac Hot* | 0.29s | 102,500 | 1.0x
+| *Javac Cold* | 1.29s | 32,200 | 3.6x | *Javac Cold* | 1.62s | 18,300 | 5.6x
+| *Mill* | 1.20s | 34,700 | 3.3x | *Mill* | 1.11s | 26,800 | 3.8x
+| *Gradle* | 4.41s | 9,400 | 12.3x | *Maven* | 4.89s | 6,100 | 16.9x
 |===
 
 We explore the comparison between xref:mill:ROOT:comparisons/gradle.adoc[Gradle vs Mill]

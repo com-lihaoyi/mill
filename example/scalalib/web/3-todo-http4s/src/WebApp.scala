@@ -1,18 +1,18 @@
 package webapp
 
 import scala.concurrent.duration.Duration
-import scalatags.Text.all._
+import scalatags.Text.all.*
 import scalatags.Text.tags2
-import cats.effect._
-import cats.syntax.all._
-import com.comcast.ip4s._
-import org.http4s._
-import org.http4s.dsl.io._
-import org.http4s.ember.server._
-import org.http4s.scalatags._
-import org.http4s.server.staticcontent._
-import io.circe._
-import io.circe.generic.semiauto._
+import cats.effect.*
+import cats.syntax.all.*
+import com.comcast.ip4s.*
+import org.http4s.*
+import org.http4s.dsl.io.*
+import org.http4s.ember.server.*
+import org.http4s.scalatags.*
+import org.http4s.server.staticcontent.*
+import io.circe.*
+import io.circe.generic.semiauto.*
 
 object WebApp extends IOApp.Simple {
   case class Todo(checked: Boolean, text: String)

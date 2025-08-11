@@ -10,7 +10,7 @@
 // library necessary for accessing Node.js APIs:
 
 package build
-import mill._
+import mill.*
 
 def npmInstall = Task {
   os.call(("npm", "install", "--save-dev", "typescript@5.6.3", "@types/node@22.7.8"))
@@ -84,12 +84,12 @@ def compile = Task {
 
 /** Usage
 
-> mill compile
+> ./mill compile
 error: .../src/hello.ts(...): error ... Property 'name' does not exist on type...
 
 > sed -i.bak 's/user.name/user.firstName/g' src/hello.ts
 
-> mill compile
+> ./mill compile
 
 > cat out/compile.dest/hello.js # Output is stripped of types and converted to javascript
 var user = {
@@ -109,7 +109,7 @@ console.log("Hello " + user.firstName + " " + user.lastName);
 // call `node` along with the main Javascript file:
 
 def mainFileName = Task { "hello.js" }
-def run(args: mill.define.Args) = Task.Command {
+def run(args: mill.api.Args) = Task.Command {
   os.call(
     ("node", compile().path / mainFileName(), args.value),
     stdout = os.Inherit
@@ -132,7 +132,7 @@ def run(args: mill.define.Args) = Task.Command {
 // ....
 
 /** Usage
-> mill run James Bond
+> ./mill run James Bond
 Hello James Bond
 
 */

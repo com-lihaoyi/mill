@@ -1,19 +1,25 @@
 package build.testkit
-// imports
+
 import mill._
+import millbuild.*
+import mill.api.BuildCtx
 
 /**
  * Mill unit/integration/example-testing helpers. Both used internally
  * and published for third-party plugins to use in their own tests.
  */
-object `package` extends RootModule with build.MillPublishScalaModule {
-  def moduleDeps = Seq(build.core.eval, build.core.util)
-  def mvnDeps = Agg(build.Deps.TestDeps.utest)
+object `package` extends MillPublishScalaModule {
+  def moduleDeps = Seq(build.core.eval, build.libs.util)
+  def mvnDeps = Seq(Deps.TestDeps.utest)
 
-  def sources =
-    super.sources() ++
-      Seq(PathRef(T.workspace / "mill-build/src-testkit"))
+  private def sources0 = Task.Sources(BuildCtx.workspaceRoot / "mill-build/src-testkit")
+  def sources = super.sources() ++ sources0()
+
+  def localTestExtraModules =
+    super.localTestExtraModules ++ build.dist.localTestExtraModules
 
   def forkEnv =
-    super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString())
+    super.forkEnv() ++
+      Map("MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString()) ++
+      build.dist.testForkEnv()
 }

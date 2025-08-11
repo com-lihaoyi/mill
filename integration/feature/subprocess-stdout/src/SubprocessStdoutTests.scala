@@ -61,7 +61,7 @@ object SubprocessStdoutTests extends UtestIntegrationTestSuite {
       // up in the console somewhere and not disappear
       //
       val res2 = eval("inheritRaw", mergeErrIntoOut = true).out
-      if (!tester.clientServerMode) {
+      if (!tester.daemonMode) {
         // For `fork` tests, which represent `-i`/`--interactive`/`--no-server`, the output should
         // be properly ordered since it all comes directly from the stdout/stderr of the same process
         assert(

@@ -1,14 +1,14 @@
 package mill.scalalib
 
 import mill._
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest._
-import mill.define.Discover
+import mill.api.Discover
 import mill.util.TokenReaders._
 import HelloWorldTests._
 object ScalaMultiModuleClasspathsTests extends TestSuite {
 
-  object MultiModuleClasspaths extends TestBaseModule {
+  object MultiModuleClasspaths extends TestRootModule {
     trait FooModule extends ScalaModule {
       def scalaVersion = "2.13.12"
 

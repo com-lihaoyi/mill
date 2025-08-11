@@ -1,5 +1,5 @@
 package build
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object foo extends TypeScriptModule {
   def npmDeps = Seq("lodash@4.17.21")
@@ -11,6 +11,6 @@ object foo extends TypeScriptModule {
 // via configured registry.
 
 /** Usage
-> mill foo.run e b k a l m o p
+> ./mill foo.run e b k a l m o p
 Sorted with lodash: [a,b,e,k,l,m,o,p]
 */

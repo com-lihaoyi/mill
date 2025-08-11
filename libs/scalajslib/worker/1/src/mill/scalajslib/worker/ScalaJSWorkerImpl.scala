@@ -27,8 +27,6 @@ import scala.ref.SoftReference
 import com.armanbilge.sjsimportmap.ImportMappedIRFile
 import mill.constants.InputPumper
 
-import scala.annotation.nowarn
-
 class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
       isFullLinkJS: Boolean,
@@ -116,8 +114,9 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
           input.moduleSplitStyle match {
             case ModuleSplitStyle.FewestModules => ScalaJSModuleSplitStyle.FewestModules()
             case ModuleSplitStyle.SmallestModules => ScalaJSModuleSplitStyle.SmallestModules()
-            case v @ ModuleSplitStyle.SmallModulesFor(packages) =>
-              if (minorIsGreaterThanOrEqual(10)) ScalaJSModuleSplitStyle.SmallModulesFor(packages)
+            case v @ ModuleSplitStyle.SmallModulesFor(packages*) =>
+              if (minorIsGreaterThanOrEqual(10))
+                ScalaJSModuleSplitStyle.SmallModulesFor(packages.toList)
               else throw new Exception(
                 s"ModuleSplitStyle $v is not supported with Scala.js < 1.10. Either update Scala.js or use one of ModuleSplitStyle.SmallestModules or ModuleSplitStyle.FewestModules"
               )
@@ -257,17 +256,16 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
               .withSourceMap(PathOutputFile(sourceMapFile))
               .withSourceMapURI(java.net.URI.create(sourceMapFile.getFileName.toString))
           }
-          linker.link(irFiles, moduleInitializers, linkerOutput, logger).map {
-            file =>
-              Report(
-                publicModules = Seq(Report.Module(
-                  moduleID = "main",
-                  jsFileName = jsFileName,
-                  sourceMapName = sourceMapNameOpt,
-                  moduleKind = moduleKind
-                )),
-                dest = dest
-              )
+          linker.link(irFiles, moduleInitializers, linkerOutput, logger).map { _ =>
+            Report(
+              publicModules = Seq(Report.Module(
+                moduleID = "main",
+                jsFileName = jsFileName,
+                sourceMapName = sourceMapNameOpt,
+                moduleKind = moduleKind
+              )),
+              dest = dest
+            )
           }
         } else {
           val linkerOutput = PathOutputDirectory(dest.toPath())
@@ -307,7 +305,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     val input = jsEnvInput(report)
     val runConfig0 = RunConfig().withLogger(logger)
     val runConfig =
-      if (mill.define.SystemStreams.isOriginal()) runConfig0
+      if (mill.api.SystemStreams.isOriginal()) runConfig0
       else runConfig0
         .withInheritErr(false)
         .withInheritOut(false)

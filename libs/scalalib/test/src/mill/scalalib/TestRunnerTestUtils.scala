@@ -1,17 +1,17 @@
 package mill.scalalib
 
 import mill.api.Result
-import mill.define.Discover
+import mill.api.Discover
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import mill.util.TokenReaders._
 import mill.Task
+import mill.T
 import os.Path
 import sbt.testing.Status
 import utest.*
 
 import scala.xml.{Elem, NodeSeq, XML}
-import mill.define.Target
 
 object TestRunnerTestUtils {
   object testrunner extends TestRunnerTestModule {
@@ -35,7 +35,7 @@ object TestRunnerTestUtils {
     lazy val millDiscover = Discover[this.type]
   }
 
-  trait TestRunnerTestModule extends TestBaseModule with ScalaModule {
+  trait TestRunnerTestModule extends TestRootModule with ScalaModule {
     def computeTestForkGrouping(x: Seq[String]): Seq[Seq[String]]
     def enableParallelism: Boolean
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
@@ -78,17 +78,23 @@ object TestRunnerTestUtils {
     object ziotest extends ScalaTests with TestModule.ZioTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
       override def testParallelism = enableParallelism
-      override def zioTestVersion: Target[String] = sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)
+      override def zioTestVersion: T[String] = sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)
     }
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "testrunner"
 
-  class TestOnlyTester(m: TestRunnerTestModule => TestModule) {
+  class TestOnlyTester(m: TestRunnerTestModule => TestModule) extends AutoCloseable {
+    val testers =
+      for (mod <- Seq(testrunner, testrunnerGrouping, testrunnerWorkStealing))
+        yield (UnitTester(mod, resourcePath), mod)
+
+    def close() = {
+      testers.foreach(_._1.closeWithoutCheckingLeaks())
+      testers.foreach(_._1.checkLeaks())
+    }
     def testOnly0(f: (UnitTester, TestRunnerTestModule) => Unit) = {
-      for (mod <- Seq(testrunner, testrunnerGrouping, testrunnerWorkStealing)) {
-        UnitTester(mod, resourcePath).scoped { eval => f(eval, mod) }
-      }
+      testers.foreach((eval, mod) => f(eval, mod))
     }
     def testOnly(
         args: Seq[String],
@@ -106,7 +112,7 @@ object TestRunnerTestUtils {
         }
         // Regardless of whether tests are grouped or not, the same
         // number of test results appear at the end
-        assert(testOnly._2.size == size)
+        assert(testOnly.results.size == size)
       }
     }
   }

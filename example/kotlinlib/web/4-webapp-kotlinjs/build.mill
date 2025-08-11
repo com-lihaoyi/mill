@@ -5,9 +5,9 @@
 
 package build
 
-import mill._, kotlinlib._, kotlinlib.js._
+import mill.*, kotlinlib.*, kotlinlib.js.*
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   override def kotlinVersion = "1.9.24"
   def ktorVersion = "2.3.12"
@@ -16,9 +16,9 @@ object `package` extends RootModule with KotlinModule {
   override def mainClass = Some("webapp.WebApp")
 
   override def mvnDeps = Seq(
-    mvn"io.ktor:ktor-server-core-jvm:$ktorVersion",
-    mvn"io.ktor:ktor-server-netty-jvm:$ktorVersion",
-    mvn"io.ktor:ktor-server-html-builder-jvm:$ktorVersion"
+    mvn"io.ktor:ktor-server-core:$ktorVersion",
+    mvn"io.ktor:ktor-server-netty:$ktorVersion",
+    mvn"io.ktor:ktor-server-html-builder:$ktorVersion"
   )
 
   override def resources = Task {
@@ -31,10 +31,10 @@ object `package` extends RootModule with KotlinModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends KotlinTests with TestModule.Junit5 {
+  object test extends KotlinTests, TestModule.Junit5 {
     override def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      mvn"io.ktor:ktor-server-test-host-jvm:$ktorVersion"
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
+      mvn"io.ktor:ktor-server-test-host:$ktorVersion"
     )
   }
 
@@ -44,7 +44,7 @@ object `package` extends RootModule with KotlinModule {
     override def kotlinJsSplitPerModule = false
 
     override def mvnDeps = Seq(
-      mvn"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion"
+      mvn"org.jetbrains.kotlinx:kotlinx-html:$kotlinHtmlVersion"
     )
   }
 }

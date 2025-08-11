@@ -1,6 +1,6 @@
 package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object foo extends RsWithServeModule {
   override def forkEnv = super.forkEnv() + ("PORT" -> "3000")
@@ -11,7 +11,7 @@ object foo extends RsWithServeModule {
 
 /** Usage
 
-> mill foo.test
+> ./mill foo.test
 PASS src/test/App.test.tsx
 ...renders learn react link...
 Test Suites:...1 passed, 1 total
@@ -20,6 +20,6 @@ Snapshots:...
 Time:...
 Ran all test suites...
 
-> mill show foo.bundle # build the react app with react-scripts # `foo.run` serves static html using serve
+> ./mill show foo.bundle # build the react app with react-scripts # `foo.run` serves static html using serve
 ...
 */

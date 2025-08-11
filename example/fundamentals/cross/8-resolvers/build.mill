@@ -1,8 +1,8 @@
 package build
-import mill._
+import mill.*
 
 trait MyModule extends Cross.Module[String] {
-  implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
+  implicit object resolver extends mill.api.Cross.Resolver[MyModule] {
     def resolve[V <: MyModule](c: Cross[V]): V = c.valuesToModules(List(crossValue))
   }
 }
@@ -17,7 +17,7 @@ trait BarModule extends MyModule {
   def bigSuffix = Task { "[[[" + foo().suffix() + "]]]" }
 }
 
-// You can define an implicit `mill.define.Cross.Resolver` within your
+// You can define an implicit `mill.api.Cross.Resolver` within your
 // cross-modules, which would let you use a shorthand `foo()` syntax when
 // referring to other cross-modules with an identical set of cross values.
 //
@@ -30,7 +30,7 @@ trait BarModule extends MyModule {
 
 /** Usage
 
-> mill show bar[2.10].bigSuffix
+> ./mill show bar[2.10].bigSuffix
 ...
 "[[[_2.10]]]"
 

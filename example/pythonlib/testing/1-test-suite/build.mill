@@ -1,10 +1,10 @@
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object foo extends PythonModule {
-  def mainScript = Task.Source { "src/foo.py" }
-  object test extends PythonTests with TestModule.Unittest {
-    def mainScript = Task.Source { "src/test_foo.py" }
+  def mainScript = Task.Source("src/foo.py")
+  object test extends PythonTests, TestModule.Unittest {
+    def mainScript = Task.Source("src/test_foo.py")
   }
 }
 
@@ -51,8 +51,8 @@ OK
 // details on how to use each one from the command line.
 
 object bar extends PythonModule {
-  def mainScript = Task.Source { "src/bar.py" }
-  object test extends PythonTests with TestModule.Pytest
+  def mainScript = Task.Source("src/bar.py")
+  object test extends PythonTests, TestModule.Pytest
 }
 
 /** Usage

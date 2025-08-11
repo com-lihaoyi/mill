@@ -1,7 +1,7 @@
 // You can have a cross-module with multiple inputs using the `Cross.Module2`
 // trait:
 package build
-import mill._
+import mill.*
 
 val crossMatrix = for {
   crossVersion <- Seq("2.10", "2.11", "2.12")
@@ -78,10 +78,10 @@ def bar = Task { s"hello ${foo("2.10", "jvm").suffix()}" }
 
 /** Usage
 
-> mill show foo[2.10,jvm].suffix
+> ./mill show foo[2.10,jvm].suffix
 "_2.10_jvm"
 
-> mill showNamed foo[__].suffix
+> ./mill showNamed foo[__].suffix
 {
   "foo[2.10,jvm].suffix": "_2.10_jvm",
   "foo[2.10,js].suffix": "_2.10_js",

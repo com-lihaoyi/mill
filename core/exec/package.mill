@@ -1,12 +1,13 @@
 package build.core.exec
 
 import mill._
+import millbuild.*
 
 /**
  * This module contains code related to planning and execution of the Mill
  * task graph after it has been resolved.
  */
-object `package` extends RootModule with build.MillStableScalaModule {
-  def moduleDeps = Seq(build.core.define, build.core.internal)
-  def mvnDeps = Seq(build.Deps.snakeyamlEngine)
+object `package` extends MillPublishScalaModule {
+  def moduleDeps = Seq(build.core.api, build.core.internal)
+  def mvnDeps = Seq(Deps.snakeyamlEngine)
 }

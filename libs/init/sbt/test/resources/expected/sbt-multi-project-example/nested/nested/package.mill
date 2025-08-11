@@ -5,11 +5,11 @@ import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib.SbtModule
 
-object `package` extends RootModule with SbtModule with PublishModule {
+object `package` extends SbtModule with PublishModule {
 
   def scalaVersion = "2.12.3"
 
-  def scalacOptions = super.scalacOptions() ++ Seq(
+  def scalacOptions = Seq(
     "-unchecked",
     "-feature",
     "-language:existentials",
@@ -21,18 +21,12 @@ object `package` extends RootModule with SbtModule with PublishModule {
     "utf8"
   )
 
-  def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ Seq(
-      coursier.maven.MavenRepository(
-        "https://oss.sonatype.org/service/local/repositories/releases/content/"
-      ),
-      coursier.maven.MavenRepository(
-        "https://oss.sonatype.org/content/repositories/snapshots"
-      )
-    )
-  }
+  def repositories = Seq(
+    "https://oss.sonatype.org/service/local/repositories/releases/content/",
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  )
 
-  def mvnDeps = super.mvnDeps() ++ Seq(
+  def mvnDeps = Seq(
     mvn"io.netty:netty-transport-native-epoll:4.1.118.Final;type=pom;classifier=linux-x86_64;exclude=io.netty:netty-transport-native-epoll"
   )
 

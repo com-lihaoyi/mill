@@ -1,13 +1,13 @@
 package mill.scalalib
 
 import mill.*
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import HelloWorldTests.*
-import mill.define.Discover
+import mill.api.Discover
 object ScalaMvnDepsTests extends TestSuite {
 
-  object HelloWorldMvnDeps extends TestBaseModule {
+  object HelloWorldMvnDeps extends TestRootModule {
     object moduleA extends HelloWorldTests.HelloWorldModule {
       override def mvnDeps = Seq(mvn"com.lihaoyi::sourcecode:0.1.3")
     }
@@ -19,7 +19,7 @@ object ScalaMvnDepsTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object TransitiveRunMvnDeps extends TestBaseModule {
+  object TransitiveRunMvnDeps extends TestRootModule {
     object upstream extends JavaModule {
       def mvnDeps = Seq(mvn"org.slf4j:slf4j-api:2.0.16")
       def runMvnDeps = Seq(mvn"ch.qos.logback:logback-classic:1.5.10")
@@ -33,7 +33,7 @@ object ScalaMvnDepsTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object TransitiveRunMvnDeps2 extends TestBaseModule {
+  object TransitiveRunMvnDeps2 extends TestRootModule {
     object upstream extends JavaModule {
       def mvnDeps = Seq(mvn"org.slf4j:slf4j-api:2.0.16")
       def runMvnDeps = Seq(mvn"ch.qos.logback:logback-classic:1.5.10")
@@ -47,7 +47,7 @@ object ScalaMvnDepsTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object MvnDepsRepositoriesTaskDep extends TestBaseModule {
+  object MvnDepsRepositoriesTaskDep extends TestRootModule {
     object module extends JavaModule {
       def repositoriesTask = Task.Anon {
         super.repositoriesTask() ++ Seq(
@@ -66,9 +66,9 @@ object ScalaMvnDepsTests extends TestSuite {
       // CoursierModule#{allRepositories,millResolver}.
       def mvnDeps = Task {
         if (repositoriesTask().contains(coursier.Repositories.google))
-          Agg(mvn"com.google.protobuf:protobuf-java:2.6.1")
+          Seq(mvn"com.google.protobuf:protobuf-java:2.6.1")
         else
-          Agg.empty
+          Seq.empty
       }
     }
 

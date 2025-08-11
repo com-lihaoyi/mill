@@ -1,15 +1,15 @@
 package mill.exec
 
 import mill.util.Jvm
-import mill.define.TaskCtx.Dest
+import mill.api.TaskCtx.Dest
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 
 import mill.util.JarManifest
 
 import utest.*
 import mill.*
-import mill.define.{Discover, Task}
+import mill.api.{Discover, Task}
 
 object JavaCompileJarTests extends TestSuite {
   def compileAll(sources: Seq[PathRef])(implicit ctx: Dest) = {
@@ -26,7 +26,7 @@ object JavaCompileJarTests extends TestSuite {
   val tests = Tests {
 
     test("javac") {
-      object Build extends TestBaseModule {
+      object Build extends TestRootModule {
         def sourceRootPath: os.SubPath = "src"
         def readmePath: os.SubPath = "readme.md"
         def resourceRootPath: os.SubPath = "resources"
@@ -37,9 +37,9 @@ object JavaCompileJarTests extends TestSuite {
         //           resourceRoot ---->  jar
         //                                ^
         //           readmePath---------- |
-        def readme = Task.Source { readmePath }
-        def sourceRoot = Task.Sources { sourceRootPath }
-        def resourceRoot = Task.Sources { resourceRootPath }
+        def readme = Task.Source(readmePath)
+        def sourceRoot = Task.Sources(sourceRootPath)
+        def resourceRoot = Task.Sources(resourceRootPath)
         def allSources =
           Task { sourceRoot().flatMap(p => os.walk(p.path)).map(PathRef(_)) }
         def classFiles = Task { compileAll(allSources()) }
@@ -56,7 +56,7 @@ object JavaCompileJarTests extends TestSuite {
             Task.dest / "out.jar",
             Seq(classFiles().path, readme().path) ++ resourceRoot().map(_.path),
             JarManifest.MillDefault,
-            (p: os.Path, r: os.RelPath) => noFoos(r.last)
+            (_: os.Path, r: os.RelPath) => noFoos(r.last)
           )
           PathRef(jar)
         }
@@ -76,62 +76,62 @@ object JavaCompileJarTests extends TestSuite {
         sourceRoot = javacSrcPath
       )
       def eval[T](t: Task[T]) = evaluator.apply(t)
-      def check(targets: Seq[Task[?]], expected: Seq[Task[?]]) = evaluator.check(targets, expected)
+      def check(tasks: Seq[Task[?]], expected: Seq[Task[?]]) = evaluator.check(tasks, expected)
 
       def append(path: os.SubPath, txt: String) = os.write.append(moduleDir / path, txt)
 
       check(
-        targets = Seq(jar),
+        tasks = Seq(jar),
         expected = Seq(allSources, classFiles, jar)
       )
 
       // Re-running with no changes results in nothing being evaluated
-      check(targets = Seq(jar), expected = Seq())
+      check(tasks = Seq(jar), expected = Seq())
       // Appending an empty string gets ignored due to file-content hashing
       append(sourceRootPath / "Foo.java", "")
-      check(targets = Seq(jar), expected = Seq())
+      check(tasks = Seq(jar), expected = Seq())
 
       // Appending whitespace forces a recompile, but the classfiles end up
       // exactly the same so no re-jarring.
       append(sourceRootPath / "Foo.java", " ")
       // Note that `sourceRoot` and `resourceRoot` never turn up in the `expected`
       // list, because they are `Source`s not `Target`s
-      check(targets = Seq(jar), expected = Seq( /*sourceRoot, */ allSources, classFiles))
+      check(tasks = Seq(jar), expected = Seq( /*sourceRoot, */ allSources, classFiles))
 
       // Appending a new class changes the classfiles, which forces us to
       // re-create the final jar
       append(sourceRootPath / "Foo.java", "\nclass FooTwo{}")
-      check(targets = Seq(jar), expected = Seq(allSources, classFiles, jar))
+      check(tasks = Seq(jar), expected = Seq(allSources, classFiles, jar))
 
       // Tweaking the resources forces rebuild of the final jar, without
       // recompiling classfiles
       append(resourceRootPath / "hello.txt", " ")
-      check(targets = Seq(jar), expected = Seq(jar))
+      check(tasks = Seq(jar), expected = Seq(jar))
 
       // Touching the readme.md, defined as `Task.Source`, forces a jar rebuild
       append(readmePath, " ")
-      check(targets = Seq(jar), expected = Seq(jar))
+      check(tasks = Seq(jar), expected = Seq(jar))
 
       // You can swap evaluators halfway without any ill effects
       evaluator = UnitTester(
         Build,
-        sourceRoot = javacSrcPath,
+        sourceRoot = null,
         resetSourcePath = false
       )
 
-      // Asking for an intermediate target forces things to be build up to that
-      // target only; these are re-used for any downstream targets requested
+      // Asking for an intermediate task forces things to be build up to that
+      // task only; these are re-used for any downstream tasks requested
       append(sourceRootPath / "Bar.java", "\nclass BarTwo{}")
       append(resourceRootPath / "hello.txt", " ")
-      check(targets = Seq(classFiles), expected = Seq(allSources, classFiles))
-      check(targets = Seq(jar), expected = Seq(jar))
-      check(targets = Seq(allSources), expected = Seq())
+      check(tasks = Seq(classFiles), expected = Seq(allSources, classFiles))
+      check(tasks = Seq(jar), expected = Seq(jar))
+      check(tasks = Seq(allSources), expected = Seq())
 
       append(sourceRootPath / "Bar.java", "\nclass BarThree{}")
       append(resourceRootPath / "hello.txt", " ")
-      check(targets = Seq(resourceRoot), expected = Seq())
-      check(targets = Seq(allSources), expected = Seq(allSources))
-      check(targets = Seq(jar), expected = Seq(classFiles, jar))
+      check(tasks = Seq(resourceRoot), expected = Seq())
+      check(tasks = Seq(allSources), expected = Seq(allSources))
+      check(tasks = Seq(jar), expected = Seq(classFiles, jar))
 
       val jarContents = os.proc("jar", "-tf", evaluator.outPath / "jar.dest/out.jar").call(
         evaluator.outPath
@@ -170,7 +170,7 @@ object JavaCompileJarTests extends TestSuite {
       ).call(evaluator.outPath).out.text()
       assert(executed == s"${31337 + 271828}${System.lineSeparator}")
 
-      for (i <- 0 until 3) {
+      for (_ <- 0 until 3) {
         // Build.run is not cached, so every time we eval it, it has to
         // re-evaluate
         val Right(result) = eval(Build.run("test.Foo")): @unchecked

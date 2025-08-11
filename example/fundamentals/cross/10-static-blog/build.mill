@@ -1,28 +1,31 @@
-// The following example demonstrates a use case: using cross modules to
-// turn files on disk into blog posts. To begin with, we xref:extending/import-mvn-plugins.adoc[import $ivy]
-// two third-party libraries - Commonmark and Scalatags - to deal with Markdown parsing and
-// HTML generation respectively:
-package build
 //| mvnDeps:
 //| - com.lihaoyi::scalatags:0.13.1
 //| - com.atlassian.commonmark:commonmark:0.13.1
-import scalatags.Text.all._
+
+// The following example demonstrates a use case: using cross modules to
+// turn files on disk into blog posts. To begin with, we xref:extending/import-mvn-plugins.adoc[//| mvnDeps]
+// two third-party libraries - Commonmark and Scalatags - to deal with Markdown parsing and
+// HTML generation respectively:
+package build
+
+import scalatags.Text.all.*
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
+import mill.api.BuildCtx
 
-// Next, we use `os.list` and `interp.watchValue` on the `post/` folder to
+// Next, we use `os.list` and `mill.api.BuildCtx.watchValue` on the `post/` folder to
 // build a `Cross[PostModule]` whose entries depend no the markdown files we
 // find in that folder. Each post has a `source` pointing at the markdown file,
 // and a `render` task that parses the file's markdown and generates a HTML
 // output file
 
-import mill._
+import mill.*
 
 def mdNameToHtml(s: String) = s.toLowerCase.replace(".md", ".html")
 def mdNameToTitle(s: String) =
   s.split('-').drop(1).mkString(" ").stripSuffix(".md")
 
-val posts = interp.watchValue {
+val posts = BuildCtx.watchValue {
   os.list(moduleDir / "post").map(_.last).sorted
 }
 
@@ -81,7 +84,7 @@ def dist = Task {
 
 /** Usage
 
-> mill dist
+> ./mill dist
 
 > cat out/dist.dest/index.html                    # root index page
 ...
@@ -109,7 +112,7 @@ def dist = Task {
 
 /** Usage
 
-> mill show "post[1-My-First-Post.md].render"
+> ./mill show "post[1-My-First-Post.md].render"
 ".../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html"
 
 > cat out/post/1-My-First-Post.md/render.dest/1-my-first-post.html

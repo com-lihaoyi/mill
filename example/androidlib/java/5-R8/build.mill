@@ -18,14 +18,14 @@
 // https://www.guardsquare.com/manual/configuration/usage
 package build
 
-import mill._, androidlib._, scalalib._
+import mill.*, androidlib.*, scalalib.*
 
 object androidSdkModule0 extends AndroidSdkModule { // <1>
   def buildToolsVersion = "35.0.0"
 }
 
-object app extends AndroidAppModule { // <2>
-  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+object app extends AndroidR8AppModule { // <2>
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
   def androidApplicationId = "com.helloworld.app"
@@ -37,37 +37,49 @@ object app extends AndroidAppModule { // <2>
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
+  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   override def androidVirtualDeviceIdentifier: String = "java-test"
+  override def androidIsDebug: T[Boolean] = Task { false }
+
+  override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
+    super.androidReleaseSettings().withProguardLocalFiles(
+      Seq(
+        moduleDir / "proguard-rules.pro"
+      )
+    )
+  }
 
   // Unit tests for the application
-  object test extends AndroidAppTests with TestModule.Junit4 {
+  object test extends AndroidAppTests, TestModule.Junit4 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"junit:junit:4.13.2"
     )
   }
 
   // Instrumented tests (runs on emulator)
-  object it extends AndroidAppInstrumentedTests with AndroidTestModule.AndroidJUnit {
-    def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
-    override def instrumentationPackage = "com.helloworld.app"
+  object it extends AndroidAppInstrumentedTests, AndroidR8AppModule {
+    def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
-    /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
-     * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
-     * resolution resolves conflicts between androidJvm and jvm platform types
-     */
+    override def androidIsDebug: T[Boolean] = Task {
+      false
+    }
+
+    override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
+      AndroidBuildTypeSettings(isMinifyEnabled = false).withProguardLocalFiles(
+        Seq(
+          moduleDir / "test-proguard-rules.pro"
+        )
+      )
+    }
+
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"androidx.test.ext:junit:1.2.1".exclude(
-        ("org.jetbrains.kotlinx", "kotlinx-coroutines-core-jvm")
-      ),
+      mvn"androidx.test.ext:junit:1.2.1",
       mvn"androidx.test:runner:1.6.2",
-      mvn"androidx.test.espresso:espresso-core:3.5.1".exclude(
-        ("org.jetbrains.kotlinx", "kotlinx-coroutines-core-jvm")
-      ),
+      mvn"androidx.test.espresso:espresso-core:3.5.1",
       mvn"junit:junit:4.13.2"
     )
   }
@@ -80,15 +92,29 @@ object app extends AndroidAppModule { // <2>
 /** Usage
 
 > ./mill show app.androidApk
-".../out/app/androidApk.dest/app.apk"
 
 > ./mill show app.createAndroidVirtualDevice
 ...Name: java-test, DeviceId: medium_phone...
 
 > ./mill show app.startAndroidEmulator
 
-> ./mill show app.androidReleaseInstall
+> ./mill show app.androidInstall
 ...All files should be loaded. Notifying the device...
+
+> ./mill show app.it
+...
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
 
 > ./mill show app.stopAndroidEmulator
 
@@ -96,9 +122,9 @@ object app extends AndroidAppModule { // <2>
 
 */
 
-// R8 will run automatically when you run the `androidReleaseInstall` task.
-// If you want to create the APK without R8, you can use the `androidApk` task to create the not-optimized APK. You can also
+// R8 will run automatically when you run the `androidInstall` task with androidIsDebug set to false.
+// If you want to create the APK without R8, you can set the androidReleaseSettings isMinifyEnabled to false. You can also
 // run the `andoidInstall` task that will automaticaly run the `androidApk` and also install it in the emulator.
-// The `androidReleaseInstall` task will install the optimized APK on the emulator.
+// The release settings used in `androidInstall` task will install the optimized APK on the emulator.
 // So first you need to create the emulator and start it.
 // After the emulator is started, you can run the `androidReleaseInstall` task and see the app in the emulator.

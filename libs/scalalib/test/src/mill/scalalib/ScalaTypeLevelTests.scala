@@ -1,13 +1,13 @@
 package mill.scalalib
 
 import mill.*
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import HelloWorldTests.*
-import mill.define.Discover
+import mill.api.Discover
 object ScalaTypeLevelTests extends TestSuite {
 
-  object HelloWorldTypeLevel extends TestBaseModule {
+  object HelloWorldTypeLevel extends TestRootModule {
     object foo extends ScalaModule {
       override def scalaVersion = "2.11.8"
       override def scalaOrganization = "org.typelevel"

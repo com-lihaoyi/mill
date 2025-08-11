@@ -4,7 +4,10 @@ This page lists the external talks and blog posts that discuss Mill.
 
 == Talks
 
-* https://www.youtube.com/watch?v=MEPtepNWHs8[Mill, a JVM Build Tool based on Pure Functional Programming], 24 Jan 2025
+* https://www.youtube.com/watch?v=3NllMpXMBT8[Better Java Builds with the Mill Build Tool], Geecon Krakow, 16 May 2025
+* https://www.youtube.com/watch?v=GBPRmMjpAEk[Mill, a JVM Build Tool based on Pure Functional Programming], LambdaConf, 12 May 2025
+* https://www.youtube.com/watch?v=A75K2zgkEj4[Better Scala Builds with the Mill Build Tool], Scalar Conference Warsaw, 28 March 2025
+* https://www.youtube.com/watch?v=MEPtepNWHs8[Mill, a JVM Build Tool based on Pure Functional Programming], Functional Conf Online, 24 Jan 2025
 * https://www.youtube.com/watch?v=igarEERjUuQ[Better Scala Builds with the Mill Build Tool], Functional Scala Online 5 Dec 2024
 * https://www.youtube.com/watch?v=xbGG7MDWR-M[Better Scala Builds with the Mill Build Tool], Scala.IO Paris 8 Nov 2024
 * https://www.youtube.com/watch?v=Dry6wMRN6MI&t=34s[Better Java Builds with the Mill Build Tool], Japan Java User Group Winter Conference Tokyo 27 Oct 2024

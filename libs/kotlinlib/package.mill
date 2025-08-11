@@ -4,44 +4,43 @@ package build.libs.kotlinlib
 import mill.*
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.*
+import millbuild.*
 
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version with kotlinlib is released,
 //  because currently there is no previous artifact version
-object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
+object `package` extends MillStableScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(build.libs.scalalib, build.libs.testrunner, worker)
-  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.impl.testDep())
+  def moduleDeps = Seq(build.libs.javalib, build.libs.javalib.testrunner, api)
+  def localTestExtraModules =
+    super.localTestExtraModules ++ Seq(worker)
 
   def buildInfoPackageName = "mill.kotlinlib"
   def buildInfoObjectName = "Versions"
   def buildInfoMembers = Seq(
-    BuildInfo.Value("kotlinVersion", build.Deps.kotlinVersion, "Version of Kotlin"),
-    BuildInfo.Value("kotlinVersion2", build.Deps.kotlinVersion, "Version of Kotlin"),
-    BuildInfo.Value("kotlinVersion3", build.Deps.kotlinVersion, "Version of Kotlin"),
-    BuildInfo.Value("kotlinVersion4", build.Deps.kotlinVersion, "Version of Kotlin"),
-    BuildInfo.Value("koverVersion", build.Deps.RuntimeDeps.koverVersion, "Version of Kover."),
-    BuildInfo.Value("ktfmtVersion", build.Deps.RuntimeDeps.ktfmt.version, "Version of Ktfmt."),
-    BuildInfo.Value("ktlintVersion", build.Deps.RuntimeDeps.ktlint.version, "Version of ktlint."),
+    BuildInfo.Value("kotlinVersion", Deps.kotlinVersion, "Version of Kotlin"),
+    BuildInfo.Value("koverVersion", Deps.RuntimeDeps.koverVersion, "Version of Kover."),
+    BuildInfo.Value("ktfmtVersion", Deps.RuntimeDeps.ktfmt.version, "Version of Ktfmt."),
+    BuildInfo.Value("ktlintVersion", Deps.RuntimeDeps.ktlint.version, "Version of ktlint."),
     BuildInfo.Value(
       "detektVersion",
-      build.Deps.RuntimeDeps.detektCli.version,
+      Deps.RuntimeDeps.detektCli.version,
       "Version of Detekt."
     ),
-    BuildInfo.Value("dokkaVersion", build.Deps.RuntimeDeps.dokkaVersion, "Version of Dokka."),
+    BuildInfo.Value("dokkaVersion", Deps.RuntimeDeps.dokkaVersion, "Version of Dokka."),
     BuildInfo.Value(
       "kotlinxHtmlJvmDep",
-      Dep.unparse(build.Deps.RuntimeDeps.kotlinxHtmlJvm).get,
+      Dep.unparse(Deps.RuntimeDeps.kotlinxHtmlJvm).get,
       "kotlinx-html-jvm dependency (used for Dokka)"
     ),
     BuildInfo.Value(
       "freemarkerDep",
-      Dep.unparse(build.Deps.RuntimeDeps.freemarker).get,
+      Dep.unparse(Deps.RuntimeDeps.freemarker).get,
       "freemarker dependency (used for Dokka)"
     )
   )
 
-  trait MillKotlinModule extends build.MillPublishScalaModule {
-    override def javacOptions = {
+  trait MillKotlinModule extends MillPublishScalaModule {
+    override def javacOptions = super.javacOptions() ++ {
       val release =
         if (scala.util.Properties.isJavaAtLeast(11)) Seq("-release", "8")
         else Seq("-source", "1.8", "-target", "1.8")
@@ -49,22 +48,24 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     }
   }
 
-  object worker extends MillKotlinModule {
-    def moduleDeps = Seq(build.libs.testrunner)
+  object api extends MillKotlinModule {
+    def moduleDeps = Seq(build.libs.javalib.testrunner)
 
-    override def compileMvnDeps: T[Agg[Dep]] = Agg(
-      build.Deps.osLib
+    override def compileMvnDeps: T[Seq[Dep]] = Seq(
+      Deps.osLib
     )
+  }
 
-    object impl extends MillKotlinModule {
-      override def compileModuleDeps = Seq(worker)
-      def mandatoryMvnDeps = Agg.empty[Dep]
-      override def compileMvnDeps: T[Agg[Dep]] =
-        super.mandatoryMvnDeps() ++ Agg(
-          build.Deps.osLib,
-          build.Deps.kotlinCompiler
-        )
-    }
+  object worker extends MillKotlinModule {
+    override def compileModuleDeps = Seq(api)
+
+    def mandatoryMvnDeps = Seq.empty[Dep]
+
+    override def compileMvnDeps: T[Seq[Dep]] =
+      super.mandatoryMvnDeps() ++ Seq(
+        Deps.osLib,
+        Deps.kotlinCompiler
+      )
   }
 
 }

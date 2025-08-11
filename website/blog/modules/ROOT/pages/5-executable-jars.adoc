@@ -69,7 +69,7 @@ Hello World
 Mill's ``JavaModule``s come with `.assembly` tasks built in by default, without needing
 to install plugins like is necessary in other build tools like
 https://maven.apache.org/plugins/maven-assembly-plugin/usage.html[Maven] or
-https://github.com/sbt/sbt-assembly[`sbt`].
+https://github.com/sbt/sbt-assembly[sbt].
 
 While the above example is a trivial single-module project, this also works for more complicated
 projects with multiple modules and third-party dependencies. The assembly jar will aggregate
@@ -225,9 +225,9 @@ digraph G {
 
 If you use `less out.jar` to look at what's inside the Jar file, it looks like this:
 
-[source,bash]
+[,console]
 ----
-exec java $JAVA_OPTS -cp "$0" 'foo.Foo' "$@"
+> exec java $JAVA_OPTS -cp "$0" 'foo.Foo' "$@"
 PK^C^D^T^@^H^H^H^@<B5>`"Z^@^@^@^@^@^@^@^@^@^@^@^@^T^@^Q^@META-INF/MANIFEST.MFUT^M^@^G<97>^Pvg<97>^Pvg<97>^Pvgeɱ
 <80> ^P^@<D0><FD><C0>^?<B8>^_81s<C9>1<A1><CD>-<DA>^OR^P<C4>^Cu<E9><EF>ESC^Z{<EB><8B><DC>JNcҕ<FA>(<D2><.<DA>=<F1>L7<ED><8F><C7>XjE<A3>^W<AB>^]ٕl<CE>n<B3>
 N<91><FA>%<FD>3ri^T*<8F><E1>1<8B><E8>CD<81><82>^WPK^G^HB?^Xo[^@^@^@n^@^@^@PK^C^D
@@ -257,9 +257,9 @@ To fix this, we can replace our shell script zip prefix with a "universal" scrip
 is both a valid `.sh` program as well as valid `.bat` program, the latter being the
 standard windows command line language. Thus, instead of:
 
-[source,bash]
+[,console]
 ----
-exec java  $JAVA_OPTS -cp "$0" 'foo.Foo' "$@"
+> exec java  $JAVA_OPTS -cp "$0" 'foo.Foo' "$@"
 ----
 
 We can instead use:

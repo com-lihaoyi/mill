@@ -18,10 +18,6 @@ object MillInitUtils {
       successful: SortedSet[String],
       failed: SortedSet[String]
   ) {
-    {
-      val successfulAndFailed = successful ++ failed
-      require(all == successfulAndFailed, s"$all != $successfulAndFailed")
-    }
 
     // Quotes added so the actual results can be easily copied into code.
     override def toString: String =
@@ -115,20 +111,21 @@ object MillInitUtils {
             if (combineSuccessful) {
               val tasks = expected.successful
               if (tasks.nonEmpty)
-                assertEvalSuccess(eval(
-                  if (expected.failed.isEmpty)
-                    wildcardAllTasks
-                  else {
-                    if (tasks.size == 1) tasks.head
-                    else tasks.mkString("{", ",", "}")
-                  }
-                ))
-            } else
+                assertEvalSuccess(eval(if (tasks.size == 1) tasks.head
+                else tasks.mkString("{", ",", "}")))
+            } else {
+              val missingSuccesses = expected.successful.filter(task => !eval(task).isSuccess)
+              Predef.assert(
+                missingSuccesses.isEmpty,
+                s"expected successes ${missingSuccesses} missing"
+              )
               for (task <- expected.successful)
                 assertEvalSuccess(eval(task), s"task $task failed")
+            }
 
-            for (task <- expected.failed)
-              Predef.assert(!eval(task).isSuccess, s"task $task succeeded")
+            val missingFailures = expected.failed.filter(task => eval(task).isSuccess)
+
+            Predef.assert(missingFailures.isEmpty, s"expected failures ${missingFailures} missing")
           })
         }
 
@@ -182,7 +179,7 @@ object MillInitUtils {
     commonAssertEvalSuccess(evalResult, Predef.assert(_, message))
 
   def assertEvalSuccess(evalResult: EvalResult) =
-    commonAssertEvalSuccess(evalResult, assert(_))
+    commonAssertEvalSuccess(evalResult, Predef.assert(_, evalResult.debugString))
 
   def outSeq(evalResult: EvalResult) =
     evalResult.out.linesIterator.toSeq.sorted

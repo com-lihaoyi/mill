@@ -6,10 +6,10 @@
 
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.11"
+  def scalaVersion = "3.7.1"
 
   /** Total number of lines in module source files */
   def lineCount = Task {
@@ -48,7 +48,7 @@ object foo extends ScalaModule {
 // from the https://github.com/com-lihaoyi/os-lib[OS-Lib] library, which is
 // one of Mill's xref:fundamentals/bundled-libraries.adoc[Bundled Libraries].
 // You can also import any JVM library you want from Maven Central using
-// xref:extending/import-mvn-plugins.adoc[import $ivy], so you are not limited
+// xref:extending/import-mvn-plugins.adoc[//| mvnDeps], so you are not limited
 // to what is bundled with Mill.
 //
 // * The `override` keyword is optional in Mill. It is shown above for clarity, but can
@@ -60,14 +60,14 @@ object foo extends ScalaModule {
 //
 /** Usage
 
-> mill foo.run
+> ./mill foo.run
 ...
 Line Count: 17
 
-> mill show foo.lineCount
+> ./mill show foo.lineCount
 17
 
-> mill inspect foo.lineCount
+> ./mill inspect foo.lineCount
 foo.lineCount(build.mill:...)
     Total number of lines in module source files
 Inputs:

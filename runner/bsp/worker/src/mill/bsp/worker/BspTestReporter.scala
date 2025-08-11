@@ -14,7 +14,7 @@ import ch.epfl.scala.bsp4j.{
   TestStart,
   TestStatus
 }
-import mill.api.internal.TestReporter
+import mill.api.daemon.internal.TestReporter
 import sbt.testing.{
   Event,
   NestedSuiteSelector,
@@ -78,7 +78,7 @@ private class BspTestReporter(
       event.status() match {
         case sbt.testing.Status.Canceled => StatusCode.CANCELLED
         case sbt.testing.Status.Error => StatusCode.ERROR
-        case default => StatusCode.OK
+        case _ => StatusCode.OK
       }
     )
     val status = event.status match {

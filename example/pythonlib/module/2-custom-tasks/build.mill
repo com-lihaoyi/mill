@@ -9,13 +9,13 @@
 //    env variable defined in `forkEnv` and print it when the program runs
 //
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 
   def pythonDeps = Seq("argparse==1.4.0", "jinja2==3.1.4")
 
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source("src/foo.py")
 
   def generatedSources: T[Seq[PathRef]] = Task {
     val destPath = Task.dest / "generatedSources"

@@ -1,15 +1,15 @@
 package mill
 package pythonlib
 
-import mill.define.Discover
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.api.Discover
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
 object HelloWorldTests extends TestSuite {
 
-  object HelloWorldPython extends TestBaseModule {
+  object HelloWorldPython extends TestRootModule {
     object foo extends PythonModule {
       override def moduleDeps: Seq[PythonModule] = Seq(bar)
       object bar extends PythonModule
@@ -28,18 +28,20 @@ object HelloWorldTests extends TestSuite {
   def tests: Tests = Tests {
     test("run") {
       val baos = new ByteArrayOutputStream()
-      val eval = UnitTester(HelloWorldPython, resourcePath, outStream = new PrintStream(baos))
+      UnitTester(HelloWorldPython, resourcePath, outStream = new PrintStream(baos)).scoped { eval =>
 
-      val Right(result) = eval.apply(HelloWorldPython.qux.run(Args())): @unchecked
+        val Right(_) = eval.apply(HelloWorldPython.qux.run(Args())): @unchecked
 
-      assert(baos.toString().contains("Hello,  Qux!\n"))
+        assert(baos.toString().contains("Hello,  Qux!\n"))
+      }
     }
 
     test("test") {
-      val eval = UnitTester(HelloWorldPython, resourcePath)
+      UnitTester(HelloWorldPython, resourcePath).scoped { eval =>
 
-      val result = eval.apply(HelloWorldPython.qux.test.testForked())
-      assert(result.isRight)
+        val result = eval.apply(HelloWorldPython.qux.test.testForked())
+        assert(result.isRight)
+      }
     }
   }
 }

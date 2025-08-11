@@ -3,7 +3,7 @@
 // find yourself repeating in ``Task``s and ``Command``s.
 
 package build
-import mill._, define.Task
+import mill.*
 
 def data = Task.Source("data")
 

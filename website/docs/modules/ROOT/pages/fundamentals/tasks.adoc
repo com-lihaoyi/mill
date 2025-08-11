@@ -6,9 +6,9 @@ orders and caches work it needs to do, and exists independently of any support
 for building Java, Kotlin, or Scala.
 
 Mill task graphs are primarily built using methods and macros defined on
-`mill.define.Task`, whose type is often aliased as `T[_]` for conciseness:
+`mill.api.Task`, whose type is often aliased as `T[_]` for conciseness:
 
-- {mill-doc-url}/api/latest/mill/define/Task$.html[mill.define.Task]
+- {mill-doc-url}/api/latest/mill/api/Task$.html[mill.api.Task]
 
 == Task Cheat Sheet
 
@@ -17,7 +17,7 @@ different Task types:
 
 [cols="<,<,<,<,<,<,<"]
 |===
-| |Target |Command |Source/Input |Persistent Task |Worker|Anonymous Task
+| | Simple Task |Command |Source/Input |Persistent Task |Worker|Anonymous Task
 
 |Cached to Disk |X | | |X | |
 |JSON Writable |X |X |X|X | |

@@ -1,12 +1,13 @@
 package build
-import mill._, scalalib._, publish._
+import mill.*, scalalib.*, publish.*
+import mill.api.BuildCtx
 
 // acyclic test suite assumes files are on disk at specific paths relative to `os.pwd`.
 // To avoid changing the test code, we instead copy the necessary files into the `os.pwd`
 // when preparing the resources for test suite execution
-os.checker.withValue(os.Checker.Nop) {
+BuildCtx.withFilesystemCheckerDisabled {
   os.copy.over(
-    interp.watch(mill.define.WorkspaceRoot.workspaceRoot / "acyclic"),
+    BuildCtx.watch(mill.api.BuildCtx.workspaceRoot / "acyclic"),
     os.pwd / "acyclic",
     createFolders = true
   )
@@ -24,7 +25,7 @@ val crosses =
     Range.inclusive(0, 10).map("2.13." + _)
 
 object acyclic extends Cross[AcyclicModule](crosses)
-trait AcyclicModule extends CrossScalaModule with PublishModule {
+trait AcyclicModule extends CrossScalaModule, PublishModule {
   def crossFullScalaVersion = true
   def artifactName = "acyclic"
   def publishVersion = "1.3.3.7"
@@ -40,7 +41,7 @@ trait AcyclicModule extends CrossScalaModule with PublishModule {
 
   def compileMvnDeps = Seq(Deps.scalaCompiler(crossScalaVersion))
 
-  object test extends ScalaTests with TestModule.Utest {
+  object test extends ScalaTests, TestModule.Utest {
     def sources = Task.Sources("src", "resources")
     def mvnDeps = Seq(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
   }

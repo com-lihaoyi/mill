@@ -1,5 +1,5 @@
 package build
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object client extends ReactScriptsModule
 
@@ -20,7 +20,7 @@ object server extends TypeScriptModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends TypeScriptTests with TestModule.Jest
+  object test extends TypeScriptTests, TestModule.Jest
 }
 
 // Documentation for mill.example.javascriptlib
@@ -32,21 +32,21 @@ object server extends TypeScriptModule {
 
 /** Usage
 
-> mill client.test
+> ./mill client.test
 PASS src/test/App.test.tsx
 ...
 
-> mill client.bundle   # bundle the react app;
+> ./mill client.bundle   # bundle the react app;
 ...
 
-> mill server.test
+> ./mill server.test
 PASS .../server.test.ts
 ...
 Test Suites:...1 passed, 1 total...
 Tests:...3 passed, 3 total...
 ...
 
-> mill show server.bundle # bundle the express server
+> ./mill show server.bundle # bundle the express server
 ...
 Build succeeded!
 */

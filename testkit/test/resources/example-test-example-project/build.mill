@@ -7,7 +7,7 @@ def testTask = Task { os.read(testSource().path).toUpperCase() }
 /** Usage
 
 > ./mill testTask
-...compiling 1 Scala source...
+...compiling 3 Scala sources...
 
 > cat out/testTask.json
 ..."HELLO WORLD SOURCE FILE"...
@@ -19,8 +19,8 @@ def testTask = Task { os.read(testSource().path).toUpperCase() }
 > cat out/testTask.json
 ..."HELLO WORLD SOURCE FILE!!!"...
 
-> ls out/mill-server # not --no-server, make sure `mill-server` is generated
+> ls out/mill-daemon # not --no-daemon, make sure `mill-daemon` is generated
 
-> ls out/mill-no-server # --no-server, make sure `mill-no-server` is generated
+> ls out/mill-no-daemon # --no-daemon, make sure `mill-no-daemon` is generated
 
 */

@@ -1,20 +1,21 @@
-package build
-import mill._, scalalib._
 //| mvnDeps:
 //| - com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION
+package build
 
-import mill.contrib.scoverage._
+import mill.*, scalalib.*
 
-object `package` extends RootModule with ScoverageModule {
+import mill.contrib.scoverage.*
+
+object `package` extends ScoverageModule {
   def scoverageVersion = "2.1.0"
-  def scalaVersion = "2.13.11"
+  def scalaVersion = "3.7.1"
   def mvnDeps = Seq(
     mvn"com.lihaoyi::scalatags:0.13.1",
-    mvn"com.lihaoyi::mainargs:0.6.2"
+    mvn"com.lihaoyi::mainargs:0.7.6"
   )
 
   object test extends ScoverageTests /*with TestModule.Utest */ {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -52,6 +53,6 @@ scoverage.xmlReport
 
 > ./mill scoverage.consoleReport
 ...
-Statement coverage.: 16.67%
+Statement coverage.: 10.53%
 Branch coverage....: 100.00%
 */

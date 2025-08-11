@@ -1,12 +1,12 @@
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
-object `package` extends RootModule with ScalaModule {
-  def scalaVersion = "2.13.8"
+object `package` extends ScalaModule {
+  def scalaVersion = "2.13.16"
 
-  def compileMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.6")
+  def compileMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.18")
   def scalacOptions = Seq("-P:acyclic:force")
-  def scalacPluginMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.6")
+  def scalacPluginMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.18")
 }
 
 //
@@ -15,7 +15,7 @@ object `package` extends RootModule with ScalaModule {
 // is needed on the compilation classpath (though not at runtime).
 //
 // NOTE: Remember that compiler plugins are published against the full Scala
-// version (eg. 2.13.8 instead of just 2.13), so when including them make sure to
+// version (eg. 2.13.16 instead of just 2.13), so when including them make sure to
 // use the  `:::` syntax shown above in the example.
 
 /** Usage

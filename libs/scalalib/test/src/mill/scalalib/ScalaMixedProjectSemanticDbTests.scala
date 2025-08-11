@@ -1,13 +1,13 @@
 package mill.scalalib
 
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
-import mill.define.Discover
+import mill.api.Discover
 import mill.util.TokenReaders._
 
 object ScalaMixedProjectSemanticDbTests extends TestSuite {
 
-  object SemanticWorld extends TestBaseModule {
+  object SemanticWorld extends TestRootModule {
     object core extends HelloWorldTests.SemanticModule
 
     lazy val millDiscover = Discover[this.type]
@@ -20,7 +20,10 @@ object ScalaMixedProjectSemanticDbTests extends TestSuite {
     test("semanticDbData") {
       def semanticDbFiles: Set[os.SubPath] = Set(
         os.sub / "META-INF/semanticdb/core/src/Foo.scala.semanticdb",
-        os.sub / "META-INF/semanticdb/core/src/JFoo.java.semanticdb"
+        os.sub / "META-INF/semanticdb/core/src/JFoo.java.semanticdb",
+        os.sub / "foo/JFoo.class",
+        os.sub / "foo/Foo.class",
+        os.sub / "foo/Foo$.class"
       )
 
       test("fromScratch") - UnitTester(SemanticWorld, sourceRoot = resourcePath).scoped { eval =>

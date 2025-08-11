@@ -1,10 +1,10 @@
 package mill.testkit
 
+import mill.api.{Cached, Segments, SelectMode}
 import mill.constants.OutFiles
-import mill.define.Segments
-import mill.define.Cached
-import mill.define.SelectMode
 import ujson.Value
+
+import scala.concurrent.duration.*
 
 /**
  * Helper meant for executing Mill integration tests, which runs Mill in a subprocess
@@ -13,7 +13,7 @@ import ujson.Value
  * [[modifyFile]] or any of the OS-Lib `os.*` APIs on the [[workspacePath]] to modify
  * project files in the course of the test.
  *
- * @param clientServerMode Whether to run Mill in client-server mode. If `false`, Mill
+ * @param daemonMode Whether to run Mill in client-server mode. If `false`, Mill
  *                         is run with `--no-server`
  * @param workspaceSourcePath The folder in which the `build.mill` and project files being
  *                            tested comes from. These are copied into a temporary folder
@@ -21,7 +21,7 @@ import ujson.Value
  * @param millExecutable What Mill executable to use.
  */
 class IntegrationTester(
-    val clientServerMode: Boolean,
+    val daemonMode: Boolean,
     val workspaceSourcePath: os.Path,
     val millExecutable: os.Path,
     override val debugLog: Boolean = false,
@@ -37,16 +37,116 @@ object IntegrationTester {
    * A very simplified version of `os.CommandResult` meant for easily
    * performing assertions against.
    */
-  case class EvalResult(isSuccess: Boolean, out: String, err: String)
+  case class EvalResult(exitCode: Int, out: String, err: String) {
+    def isSuccess: Boolean = exitCode == 0
+
+    def debugString: String = {
+      s"""Success: $isSuccess (exit code: $exitCode)
+         |
+         |stdout:
+         |$out
+         |
+         |stderr:
+         |$err
+         |""".stripMargin
+    }
+  }
+
+  /** An [[Impl.eval]] that is prepared for execution but haven't been executed yet. Run it with [[run]]. */
+  case class PreparedEval(
+      cmd: os.Shellable,
+      env: Map[String, String],
+      cwd: os.Path,
+      timeout: Duration,
+      check: Boolean,
+      propagateEnv: Boolean = true,
+      shutdownGracePeriod: Long = 100,
+      run: () => EvalResult
+  ) {
+
+    /** Clues to use for with [[withTestClues]]. */
+    def clues: Seq[utest.TestValue] = Seq(
+      // Copy-pastable shell command that you can run in bash/zsh/whatever
+      asTestValue("cmd", cmd.value.iterator.map(pprint.Util.literalize(_)).mkString(" ")),
+      asTestValue("cmd.shellable", cmd),
+      asTestValue(env),
+      asTestValue(cwd),
+      asTestValue(timeout),
+      asTestValue(check),
+      asTestValue(propagateEnv),
+      asTestValue(shutdownGracePeriod)
+    )
+  }
 
   trait Impl extends AutoCloseable with IntegrationTesterBase {
 
     def millExecutable: os.Path
     def workspaceSourcePath: os.Path
 
-    val clientServerMode: Boolean
+    val daemonMode: Boolean
 
     def debugLog = false
+
+    /**
+     * Prepares to evaluate a Mill command. Run it with [[IntegrationTester.PreparedEval.run]].
+     *
+     * Useful when you need the [[IntegrationTester.PreparedEval.clues]].
+     */
+    def prepEval(
+        cmd: os.Shellable,
+        env: Map[String, String] = Map.empty,
+        cwd: os.Path = workspacePath,
+        stdin: os.ProcessInput = os.Pipe,
+        stdout: os.ProcessOutput = os.Pipe,
+        stderr: os.ProcessOutput = os.Pipe,
+        mergeErrIntoOut: Boolean = false,
+        timeout: Long = -1,
+        check: Boolean = false,
+        propagateEnv: Boolean = true,
+        timeoutGracePeriod: Long = 100
+    ): IntegrationTester.PreparedEval = {
+      val serverArgs = Option.when(!daemonMode)("--no-daemon")
+
+      val debugArgs = Option.when(debugLog)("--debug")
+
+      val shellable: os.Shellable =
+        (millExecutable, serverArgs, "--ticker", "false", debugArgs, cmd)
+
+      val callEnv = millTestSuiteEnv ++ env
+
+      def run() = {
+        val res0 = os.call(
+          cmd = shellable,
+          env = callEnv,
+          cwd = cwd,
+          stdin = stdin,
+          stdout = stdout,
+          stderr = stderr,
+          mergeErrIntoOut = mergeErrIntoOut,
+          timeout = timeout,
+          check = check,
+          propagateEnv = propagateEnv,
+          shutdownGracePeriod = timeoutGracePeriod
+        )
+
+        IntegrationTester.EvalResult(
+          res0.exitCode,
+          fansi.Str(res0.out.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim,
+          fansi.Str(res0.err.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim
+        )
+      }
+
+      PreparedEval(
+        cmd = shellable,
+        env = callEnv,
+        cwd = cwd,
+        timeout = if (timeout == -1) Duration.Inf else timeout.millis,
+        check = check,
+        propagateEnv = propagateEnv,
+        shutdownGracePeriod = timeoutGracePeriod,
+        run = run
+      )
+    }
 
     /**
      * Evaluates a Mill command. Essentially the same as `os.call`, except it
@@ -67,15 +167,9 @@ object IntegrationTester {
         propagateEnv: Boolean = true,
         timeoutGracePeriod: Long = 100
     ): IntegrationTester.EvalResult = {
-      val serverArgs = Option.when(!clientServerMode)("--no-server")
-
-      val debugArgs = Option.when(debugLog)("--debug")
-
-      val shellable: os.Shellable = (millExecutable, serverArgs, "--disable-ticker", debugArgs, cmd)
-
-      val res0 = os.call(
-        cmd = shellable,
-        env = millTestSuiteEnv ++ env,
+      prepEval(
+        cmd = cmd,
+        env = env,
         cwd = cwd,
         stdin = stdin,
         stdout = stdout,
@@ -84,14 +178,8 @@ object IntegrationTester {
         timeout = timeout,
         check = check,
         propagateEnv = propagateEnv,
-        shutdownGracePeriod = timeoutGracePeriod
-      )
-
-      IntegrationTester.EvalResult(
-        res0.exitCode == 0,
-        fansi.Str(res0.out.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim,
-        fansi.Str(res0.err.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim
-      )
+        timeoutGracePeriod = timeoutGracePeriod
+      ).run()
     }
 
     /**

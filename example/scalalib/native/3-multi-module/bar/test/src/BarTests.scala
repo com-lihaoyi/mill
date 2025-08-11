@@ -1,7 +1,7 @@
 package bar
 
-import utest._
-import scala.scalanative.unsafe._
+import utest.*
+import scala.scalanative.unsafe.*
 
 object BarTests extends TestSuite {
   def tests = Tests {

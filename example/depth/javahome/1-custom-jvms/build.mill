@@ -1,15 +1,10 @@
 // :link-jvm-indices: https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json
-// To override the default Java home, you can create a custom
-// `JvmWorkerModule` and override the `jvmWorker` method in your
-// `JavaModule` or `ScalaModule` by pointing it to that custom object:
-
 // == Setting the JVM version of a JavaModule
 //
-// The `JvmWorkerModule.ForJvm` class takes a Jvm dependency string as its
-// contructor argument and configures the module to fetch and cache the Jvm
-// using coursier and use it for the compile, run, and test tasks.
+// Configuring custom JVMs is done by setting the `def jvmId`
+// of any `JavaModule`, `ScalaModule`, or `KotlinModule`
 //
-// The string has the form:
+// The `jvmId` string has the form:
 //
 // ----
 // "{name}:{version}"
@@ -17,40 +12,32 @@
 //
 // To see what Jvms are available for download look at the index for your os
 // and architecture {link-jvm-indices}[here].
-import mill._, javalib._
-import mill.define.ModuleRef
-
-object JvmWorkerJava extends JvmWorkerModule {
-  def jvmId = "temurin:18.0.2"
-}
+import mill.*, javalib.*
+import mill.api.ModuleRef
 
 object foo extends JavaModule {
-  def jvmWorker = ModuleRef(JvmWorkerJava)
+  def jvmId = "temurin:18.0.2"
 
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }
 
 /** Usage
 
-> mill foo.run
+> ./mill foo.run
 Foo running on Java 18.0.2
 
-> mill foo.test
+> ./mill foo.test
 Testing with JVM version: 18.0.2
 Test foo.FooTest.testSimple finished...
 
 */
 
-// Selecting a custom JVM via `JvmWorkerModule.ForJvm` means that JVM is used for
+// Selecting a custom JVM via `jvmId` means that JVM is used for
 // compiling, testing, and running that module via Mill. Note that `.assembly` is not
 // affected, as JVM assembly jars do not bundle a JVM and have to be run using a
-// JVM installed on the target host machine. Configuration is done via `JvmWorkerModule`
-// as the https://github.com/sbt/zinc[Zinc] incremental compiler is used for compiling
-// Java and Scala sources.
+// JVM installed on the target host machine.
 //
 // == Selecting JVM Index Versions
-//
-
 //
 // By default, Mill comes bundled with a version of the JVM index that was published when
 // each version of Mill is released. This ensures that the JVM versions you pick are stable,
@@ -58,25 +45,23 @@ Test foo.FooTest.testSimple finished...
 // index version explicitly via `def jvmIndexVersion` below, choosing a published
 // index version from the Maven Central:
 //
-// * https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/[JVM Indices on Maven Central])
+// * https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/[JVM Indices on Maven Central]
 //
+// Or alternatively pass in `"latest.release"` to pick the latest JVM index available,
+// although that might mean the JVM version is no longer stable and might change over
+// time as new releases are published:
 
-import scalalib._
+import scalalib.*
 
-object JvmWorkerJavaLatest extends JvmWorkerModule {
+object bar extends ScalaModule {
+  def scalaVersion = "2.13.12"
   def jvmId = "temurin:23.0.1"
   def jvmIndexVersion = "latest.release"
 }
 
-object bar extends ScalaModule {
-  def scalaVersion = "2.13.12"
-  def jvmWorker = ModuleRef(JvmWorkerJavaLatest)
-
-}
-
 /** Usage
 
-> mill bar.run
+> ./mill bar.run
 Bar running on Java 23.0.1
 
 */
@@ -89,9 +74,10 @@ Bar running on Java 23.0.1
 // Linux/X64, but you may have additional cases if you need to support Windows or other
 // OS/CPU combinations
 
-import kotlinlib._
+import kotlinlib.*
 
-object JvmWorkerJavaUrl extends JvmWorkerModule {
+object qux extends KotlinModule {
+  def kotlinVersion = "2.0.20"
   def jvmId =
     if (sys.props("os.name") == "Mac OS X") {
       "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz"
@@ -101,14 +87,9 @@ object JvmWorkerJavaUrl extends JvmWorkerModule {
 
 }
 
-object qux extends KotlinModule {
-  def kotlinVersion = "2.0.20"
-  def jvmWorker = ModuleRef(JvmWorkerJavaUrl)
-}
-
 /** Usage
 
-> mill qux.run
+> ./mill qux.run
 Qux running on Java 22.0.2
 
 */
@@ -117,11 +98,6 @@ Qux running on Java 22.0.2
 //
 // Lastly, you can point Mill at any JVM distribution installed locally on disk via:
 
-object JvmWorkerLocalJvm extends JvmWorkerModule {
-  def javaHome = Some(PathRef(os.Path("/my/java/home"), quick = true))
-}
-
 object baz extends JavaModule {
-  def jvmWorker = ModuleRef(JvmWorkerLocalJvm)
-
+  def javaHome = Some(PathRef(os.Path("/my/java/home"), quick = true))
 }

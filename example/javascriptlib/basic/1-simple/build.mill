@@ -1,26 +1,26 @@
 package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object foo extends TypeScriptModule {
   def npmDeps = Seq("immutable@4.3.7")
-  object test extends TypeScriptTests with TestModule.Jest
+  object test extends TypeScriptTests, TestModule.Jest
 }
 
 // Documentation for mill.example.javascriptlib
 
 /** Usage
-> mill foo.run James Bond prof
+> ./mill foo.run James Bond prof
 Hello James Bond Professor
 
-> mill foo.test
+> ./mill foo.test
 PASS .../foo.test.ts
 ...
 Test Suites:...1 passed, 1 total...
 Tests:...3 passed, 3 total...
 ...
 
-> mill show foo.bundle
+> ./mill show foo.bundle
 Build succeeded!
 
 > node out/foo/bundle.dest/bundle.js James Bond prof

@@ -1,15 +1,15 @@
 package mill.testng
 
 import mill.*
-import mill.define.{Discover, Target}
-import mill.scalalib.*
+import mill.api.Discover
+import mill.javalib.*
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 
 object TestNGTests extends TestSuite {
 
-  object demo extends TestBaseModule with JavaModule {
+  object demo extends TestRootModule with JavaModule {
 
     object test extends JavaTests {
       override def runMvnDeps = super.runMvnDeps() ++ Seq(
@@ -53,18 +53,18 @@ object TestNGTests extends TestSuite {
       eval =>
         val Right(result) = eval.apply(demo.test.testForked()): @unchecked
         val tres = result.value
-        assert(tres._2.size == 8)
+        assert(tres.results.size == 8)
     }
     test("noGrouping") - UnitTester(demo, resourcePath).scoped {
       eval =>
         val Right(result) = eval.apply(demo.testng.testForked()): @unchecked
-        val tres = result.value._2
+        val tres = result.value.results
         assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
     }
     test("testForkGrouping") - UnitTester(demo, resourcePath).scoped {
       eval =>
         val Right(result) = eval.apply(demo.testngGrouping.testForked()): @unchecked
-        val tres = result.value._2
+        val tres = result.value.results
         assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
     }
   }

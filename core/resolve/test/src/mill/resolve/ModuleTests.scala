@@ -1,24 +1,23 @@
 package mill.resolve
 
 import mill.api.Result
-import mill.define.{Discover, ModuleRef, NamedTask, TaskModule}
-import mill.testkit.TestBaseModule
-import mill.define.DynamicModule
-import mill.util.TestGraphs
-import mill.util.TestGraphs.*
-import mill.{Cross, Module, Task}
+import mill.api.{Discover, ModuleRef, Task, DefaultTaskModule}
+import mill.testkit.TestRootModule
+import mill.api.DynamicModule
+import mill.api.TestGraphs.*
+import mill.{Cross, Module}
 import utest.*
 
 object ModuleTests extends TestSuite {
 
-  object duplicates extends TestBaseModule {
+  object duplicates extends TestRootModule {
     object wrapper extends Module {
       object test1 extends Module {
         def test1 = Task {}
       }
 
-      object test2 extends TaskModule {
-        override def defaultCommandName() = "test2"
+      object test2 extends DefaultTaskModule {
+        override def defaultTask() = "test2"
 
         def test2() = Task.Command {}
       }
@@ -28,8 +27,8 @@ object ModuleTests extends TestSuite {
       def test3 = Task {}
     }
 
-    object test4 extends TaskModule {
-      override def defaultCommandName() = "test4"
+    object test4 extends DefaultTaskModule {
+      override def defaultTask() = "test4"
 
       def test4() = Task.Command {}
     }
@@ -37,7 +36,7 @@ object ModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object TypedModules extends TestBaseModule {
+  object TypedModules extends TestRootModule {
     trait TypeA extends Module {
       def foo = Task { "foo" }
     }
@@ -58,7 +57,7 @@ object ModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object TypedCrossModules extends TestBaseModule {
+  object TypedCrossModules extends TestRootModule {
     trait TypeA extends Cross.Module[String] {
       def foo = Task { crossValue }
     }
@@ -84,7 +83,7 @@ object ModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object TypedInnerModules extends TestBaseModule {
+  object TypedInnerModules extends TestRootModule {
     trait TypeA extends Module {
       def foo = Task { "foo" }
     }
@@ -101,7 +100,7 @@ object ModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object AbstractModule extends TestBaseModule {
+  object AbstractModule extends TestRootModule {
     trait Abstract extends Module {
       lazy val tests: Tests = new Tests {}
       trait Tests extends Module {}
@@ -121,35 +120,35 @@ object ModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object overrideModule extends TestBaseModule {
+  object overrideModule extends TestRootModule {
     trait Base extends Module {
       lazy val inner: BaseInnerModule = new BaseInnerModule {}
       lazy val ignored: ModuleRef[BaseInnerModule] = ModuleRef(new BaseInnerModule {})
-      trait BaseInnerModule extends mill.define.Module {
-        def baseTarget = Task { 1 }
+      trait BaseInnerModule extends mill.api.Module {
+        def baseTask = Task { 1 }
       }
     }
     object sub extends Base {
       override lazy val inner: SubInnerModule = new SubInnerModule {}
       override lazy val ignored: ModuleRef[SubInnerModule] = ModuleRef(new SubInnerModule {})
       trait SubInnerModule extends BaseInnerModule {
-        def subTarget = Task { 2 }
+        def subTask = Task { 2 }
       }
     }
 
     lazy val millDiscover = Discover[this.type]
   }
 
-  object dynamicModule extends TestBaseModule {
+  object dynamicModule extends TestRootModule {
     object normal extends DynamicModule {
       object inner extends Module {
-        def target = Task { 1 }
+        def task = Task { 1 }
       }
     }
     object niled extends DynamicModule {
       override def moduleDirectChildren: Seq[Module] = Nil
       object inner extends Module {
-        def target = Task { 1 }
+        def task = Task { 1 }
       }
     }
 
@@ -200,7 +199,7 @@ object ModuleTests extends TestSuite {
         test("neg4") - check(
           "cross[doesntExist].suffix",
           Result.Failure(
-            "Cannot resolve cross[doesntExist].suffix. Try `mill resolve cross._` or `mill resolve __.suffix` to see what's available."
+            "Cannot resolve cross[doesntExist].suffix. Try `mill resolve cross._`, `mill resolve __.suffix` to see what's available, or `mill __.suffix` to run all `suffix` tasks"
           )
         )
         test("wildcard") - check(
@@ -251,7 +250,7 @@ object ModuleTests extends TestSuite {
           test("labelNeg1") - check(
             "_.suffix",
             Result.Failure(
-              "Cannot resolve _.suffix. Try `mill resolve _._` or `mill resolve __.suffix` to see what's available."
+              "Cannot resolve _.suffix. Try `mill resolve _._`, `mill resolve __.suffix` to see what's available, or `mill __.suffix` to run all `suffix` tasks"
             )
           )
           test("labelNeg2") - check(
@@ -503,15 +502,15 @@ object ModuleTests extends TestSuite {
       val check = new Checker(duplicates)
 
       def segments(
-          found: Result[List[NamedTask[?]]],
-          expected: Result[List[NamedTask[?]]]
+          found: Result[List[Task.Named[?]]],
+          expected: Result[List[Task.Named[?]]]
       ) = {
         found.map(_.map(_.ctx.segments)) == expected.map(_.map(_.ctx.segments))
       }
 
       test("wildcard") {
         test("wrapped") {
-          test("targets") - check.checkSeq0(
+          test("tasks") - check.checkSeq0(
             Seq("__.test1"),
             _ == Result.Success(List(duplicates.wrapper.test1.test1)),
             _ == Result.Success(List("wrapper.test1", "wrapper.test1.test1"))
@@ -522,7 +521,7 @@ object ModuleTests extends TestSuite {
             _ == Result.Success(List("wrapper.test2", "wrapper.test2.test2"))
           )
         }
-        test("targets") - check.checkSeq0(
+        test("tasks") - check.checkSeq0(
           Seq("__.test3"),
           _ == Result.Success(List(duplicates.test3.test3)),
           _ == Result.Success(List("test3", "test3.test3"))
@@ -535,7 +534,7 @@ object ModuleTests extends TestSuite {
       }
 
       test("braces") {
-        test("targets") - check.checkSeq0(
+        test("tasks") - check.checkSeq0(
           Seq("{test3.test3,test3.test3}"),
           _ == Result.Success(List(duplicates.test3.test3)),
           _ == Result.Success(List("test3.test3"))
@@ -547,7 +546,7 @@ object ModuleTests extends TestSuite {
         )
       }
       test("plus") {
-        test("targets") - check.checkSeq0(
+        test("tasks") - check.checkSeq0(
           Seq("test3.test3", "+", "test3.test3"),
           _ == Result.Success(List(duplicates.test3.test3)),
           _ == Result.Success(List("test3.test3"))
@@ -563,53 +562,53 @@ object ModuleTests extends TestSuite {
     test("overriddenModule") {
       val check = new Checker(overrideModule)
       test - check(
-        "sub.inner.subTarget",
-        Result.Success(Set(_.sub.inner.subTarget)),
-        Set("sub.inner.subTarget")
+        "sub.inner.subTask",
+        Result.Success(Set(_.sub.inner.subTask)),
+        Set("sub.inner.subTask")
       )
       test - check(
-        "sub.inner.baseTarget",
-        Result.Success(Set(_.sub.inner.baseTarget)),
-        Set("sub.inner.baseTarget")
+        "sub.inner.baseTask",
+        Result.Success(Set(_.sub.inner.baseTask)),
+        Set("sub.inner.baseTask")
       )
     }
     test("dynamicModule") {
       val check = new Checker(dynamicModule)
       test - check(
-        "normal.inner.target",
-        Result.Success(Set(_.normal.inner.target)),
-        Set("normal.inner.target")
+        "normal.inner.task",
+        Result.Success(Set(_.normal.inner.task)),
+        Set("normal.inner.task")
       )
       test - check(
-        "normal._.target",
-        Result.Success(Set(_.normal.inner.target)),
-        Set("normal.inner.target")
+        "normal._.task",
+        Result.Success(Set(_.normal.inner.task)),
+        Set("normal.inner.task")
       )
       test - check(
-        "niled.inner.target",
+        "niled.inner.task",
         Result.Failure(
-          "Cannot resolve niled.inner.target. Try `mill resolve niled._` or `mill resolve __.target` to see what's available."
+          "Cannot resolve niled.inner.task. Try `mill resolve niled._`, `mill resolve __.task` to see what's available, or `mill __.task` to run all `task` tasks"
         ),
         Set()
       )
       test - check(
-        "niled._.target",
+        "niled._.task",
         Result.Failure(
-          "Cannot resolve niled._.target. Try `mill resolve niled._` or `mill resolve __.target` to see what's available."
+          "Cannot resolve niled._.task. Try `mill resolve niled._`, `mill resolve __.task` to see what's available, or `mill __.task` to run all `task` tasks"
         ),
         Set()
       )
       test - check(
-        "niled._.tttarget",
+        "niled._.tttask",
         Result.Failure(
-          "Cannot resolve niled._.tttarget. Try `mill resolve niled._` or `mill resolve __.target` to see what's available."
+          "Cannot resolve niled._.tttask. Try `mill resolve niled._`, `mill resolve __.task` to see what's available, or `mill __.task` to run all `task` tasks"
         ),
         Set()
       )
       test - check(
-        "__.target",
-        Result.Success(Set(_.normal.inner.target)),
-        Set("normal.inner.target")
+        "__.task",
+        Result.Success(Set(_.normal.inner.task)),
+        Set("normal.inner.task")
       )
     }
     test("abstractModule") {

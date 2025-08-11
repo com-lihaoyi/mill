@@ -1,17 +1,16 @@
 package mill.exec
 
 import utest.*
-import mill.Task
-import mill.define.{Discover, Module, Worker}
+import mill.{Task, Worker}
+import mill.api.{Discover, Module}
 import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.framework.TestPath
-import mill.exec.PlanTests.checkTopological
 import mill.api.ExecResult
 
 trait TaskTests extends TestSuite {
-  trait SuperBuild extends TestBaseModule {
+  trait SuperBuild extends TestRootModule {
 
     var superBuildInputCount = 0
 
@@ -25,7 +24,7 @@ trait TaskTests extends TestSuite {
       superBuildInputCount
     }
 
-    def superBuildTargetOverrideWithInput = Task {
+    def superBuildTaskOverrideWithInput = Task {
       1234
     }
   }
@@ -117,10 +116,10 @@ trait TaskTests extends TestSuite {
       123 + super.superBuildInputOverrideUsingSuper()
     }
 
-    var superBuildTargetOverrideWithInputCount = 0
-    override def superBuildTargetOverrideWithInput = Task.Input {
-      superBuildTargetOverrideWithInputCount += 1
-      superBuildTargetOverrideWithInputCount
+    var superBuildTaskOverrideWithInputCount = 0
+    override def superBuildTaskOverrideWithInput = Task.Input {
+      superBuildTaskOverrideWithInputCount += 1
+      superBuildTaskOverrideWithInputCount
     }
 
     // A task that can fail by using Result.Failure
@@ -154,15 +153,15 @@ trait TaskTests extends TestSuite {
   val tests = Tests {
 
     test("inputs") - withEnv { (build, check) =>
-      // Inputs always re-evaluate, including forcing downstream cached Targets
-      // to re-evaluate, but normal Tasks behind a Target run once then are cached
+      // Inputs always re-evaluate, including forcing downstream cached Tasks
+      // to re-evaluate, but normal Tasks behind a Task run once then are cached
       check(build.taskInput) ==> Right(Result(1, 1))
       check(build.taskInput) ==> Right(Result(2, 1))
       check(build.taskInput) ==> Right(Result(3, 1))
     }
     test("noInputs") - withEnv { (build, check) =>
-      // Inputs always re-evaluate, including forcing downstream cached Targets
-      // to re-evaluate, but normal Tasks behind a Target run once then are cached
+      // Inputs always re-evaluate, including forcing downstream cached Tasks
+      // to re-evaluate, but normal Tasks behind a Task run once then are cached
       check(build.taskNoInput) ==> Right(Result(1, 1))
       check(build.taskNoInput) ==> Right(Result(1, 0))
       check(build.taskNoInput) ==> Right(Result(1, 0))
@@ -252,7 +251,7 @@ trait TaskTests extends TestSuite {
     }
 
     test("overrideDifferentKind") {
-      test("inputWithTarget") {
+      test("inputWithTask") {
         test("notUsingSuper") - withEnv { (build, check) =>
           check(build.superBuildInputOverrideWithConstant) ==> Right(Result(123, 1))
           check(build.superBuildInputOverrideWithConstant) ==> Right(Result(123, 0))
@@ -264,10 +263,10 @@ trait TaskTests extends TestSuite {
           check(build.superBuildInputOverrideUsingSuper) ==> Right(Result(126, 1))
         }
       }
-      test("targetWithInput") - withEnv { (build, check) =>
-        check(build.superBuildTargetOverrideWithInput) ==> Right(Result(1, 0))
-        check(build.superBuildTargetOverrideWithInput) ==> Right(Result(2, 0))
-        check(build.superBuildTargetOverrideWithInput) ==> Right(Result(3, 0))
+      test("taskWithInput") - withEnv { (build, check) =>
+        check(build.superBuildTaskOverrideWithInput) ==> Right(Result(1, 0))
+        check(build.superBuildTaskOverrideWithInput) ==> Right(Result(2, 0))
+        check(build.superBuildTaskOverrideWithInput) ==> Right(Result(3, 0))
       }
     }
     test("duplicateTaskInResult-issue2958") - withEnv { (build, check) =>
@@ -299,8 +298,9 @@ object SeqTaskTests extends TaskTests {
     object build extends Build {
       lazy val millDiscover = Discover[this.type]
     }
-    val check = UnitTester(build, null, threads = Some(1))
-    f(build, check)
+    UnitTester(build, null, threads = Some(1)).scoped { check =>
+      f(build, check)
+    }
   }
 }
 object ParTaskTests extends TaskTests {
@@ -308,7 +308,8 @@ object ParTaskTests extends TaskTests {
     object build extends Build {
       lazy val millDiscover = Discover[this.type]
     }
-    val check = UnitTester(build, null, threads = Some(16))
-    f(build, check)
+    UnitTester(build, null, threads = Some(16)).scoped { check =>
+      f(build, check)
+    }
   }
 }

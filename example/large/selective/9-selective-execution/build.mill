@@ -10,11 +10,11 @@
 //
 // * `mill selective.run <selector>`: run on the codebase after the code change,
 // runs tasks in the given `<selector>` which are affected by the code changes
-// that have happen since `selective.prepare` was run
+// that have happened since `selective.prepare` was run
 //
 // * `mill selective.resolve <selector>`: a dry-run version of `selective.run`, prints
 // out the tasks in `<selector>` that are affected by the code changes and would have
-// run, without actually tunning them.
+// run, without actually running them.
 //
 // For example, if you want to run all tests related to the code changes in a pull
 // request branch, you can do that as follows:
@@ -34,10 +34,10 @@
 // where `bar` depends on `foo` but `qux` is standalone:
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 trait MyModule extends JavaModule {
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }
 
 object foo extends MyModule {
@@ -82,7 +82,7 @@ object qux extends MyModule
 
 /** Usage
 
-> mill __.test
+> ./mill __.test
 error: Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...
 Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 Test run qux.QuxTests finished: 1 failed, 0 ignored, 1 total, ...
@@ -105,15 +105,15 @@ Test run qux.QuxTests finished: 1 failed, 0 ignored, 1 total, ...
 
 /** Usage
 
-> mill selective.prepare __.test
+> ./mill selective.prepare __.test
 
 > echo '//' >> bar/src/bar/Bar.java # emulate the code change
 
-> mill selective.resolve __.test # dry-run selective execution to show what would get run
+> ./mill selective.resolve __.test # dry-run selective execution to show what would get run
 foo.test.testForked
 bar.test.testForked
 
-> mill selective.run __.test
+> ./mill selective.run __.test
 Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...
 Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 
@@ -148,10 +148,10 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 
 /** Usage
 
-> mill selective.resolveChanged __.test
+> ./mill selective.resolveChanged __.test
 bar.sources
 
-> mill selective.resolveTree __.test
+> ./mill selective.resolveTree __.test
 {
   "bar.sources": {
     "bar.allSources": {

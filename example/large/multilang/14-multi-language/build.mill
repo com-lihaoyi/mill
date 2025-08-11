@@ -1,14 +1,18 @@
+// This example demonstrates a simple multi-langauge project,
+// running a `spring boot webserver` serving a `react client` and interacting with a `python binary`
+// through the web-server api.
+
 package build
-import mill._, javascriptlib._, pythonlib._, javalib._
+import mill.*, javascriptlib.*, pythonlib.*, javalib.*
 
 object client extends ReactScriptsModule
 
 object `sentiment-analysis` extends PythonModule {
-  def mainScript = Task.Source { moduleDir / "src" / "foo.py" }
+  def mainScript = Task.Source("src/foo.py")
 
   def pythonDeps = Seq("textblob==0.19.0")
 
-  object test extends PythonTests with pythonlib.TestModule.Unittest
+  object test extends PythonTests, pythonlib.TestModule.Unittest
 }
 
 object server extends JavaModule {
@@ -25,20 +29,37 @@ object server extends JavaModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends JavaTests with javalib.TestModule.Junit5 {
+  object test extends JavaTests, javalib.TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }
 }
 
-// This example demonstrates a simple multi-langauge project,
-// running a `spring boot webserver` serving a `react client` and interacting with a `python binary`
-// through the web-server api.
+// Mill as a build tool is not inherently limited to working with JVM languages like
+// Java/Scala/Kotlin, and you can set up toolchains for other languages as well.
+// This example makes use of Mill's experimental xref:pythonlib/intro.adoc[Python Toolchain]
+// and xref:javascriptlib/intro.adoc[Typescript Toolchain] together with it's builtin
+// xref:javalib/intro.adoc[Java Toolchain] to build a multi-language project containing
+// all three languages. This provides several benefits over having separate build tools for
+// each language:
+//
+// - Mill can provide caching and automatic
+//   invalidation across languages, e.g. changing the Typescript `client` code automatically
+//   makes the Java `server` re-build
+//
+// - Mill can parallelize different language toolchains, e.g. building the Typescript `client`,
+//   Python `sentiment-analysis` module, and Java `server` code in parallel on multiple cores
+//
+// If you wish to learn how additional language toolchains can be added to Mill, you can see
+// the pages on xref:extending/example-python-support.adoc[] and
+// xref:extending/example-typescript-support.adoc[] for walk-throughs on how language traits such
+// as `PythonModule` can be defined by users.
+//
 
 /** Usage
 
-> mill client.test
+> ./mill client.test
 PASS src/test/App.test.tsx
 ...Text Analysis Tool
 ...renders the app with initial UI...
@@ -48,7 +69,7 @@ Test Suites:...1 passed, 1 total
 Tests:...2 passed, 2 total
 ...
 
-> mill sentiment-analysis.test
+> ./mill sentiment-analysis.test
 ...
 test_negative_sentiment... ok
 test_neutral_sentiment... ok
@@ -59,12 +80,12 @@ Ran 3 tests...
 OK
 ...
 
-> mill server.test
+> ./mill server.test
 ...com.example.ServerTest#shouldReturnStaticPage() finished...
 ...com.example.ServerTest#shouldReturnPositiveAnalysis() finished...
 ...com.example.ServerTest#shouldReturnNegativeAnalysis() finished...
 
-> mill server.runBackground
+> ./mill server.runBackground
 
 > curl http://localhost:8086
 ...<title>Sentiment Analysis Tool</title>...
@@ -72,5 +93,5 @@ OK
 > curl -X POST http://localhost:8086/api/analysis -H "Content-Type: text/plain" --data "This is awesome!" # Make request to the analysis api
 Positive sentiment (polarity: 1.0)
 
-> mill clean server.runBackground
+> ./mill clean server.runBackground
 */

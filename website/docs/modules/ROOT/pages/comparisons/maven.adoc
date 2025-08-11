@@ -1,6 +1,11 @@
 = Case Study: Mill vs Maven
 :page-aliases: Case_Study_Mill_vs_Maven.adoc
 
+This page goes into the weeds comparing the Mill and Maven build tools.
+For a higher-level comparison of Mill vs other tools, and why Mill is interesting,
+see the page xref:comparisons/why-mill.adoc[].
+
+
 Compared to Maven, Mill tries to improve in the following ways:
 
 * **Performance**: Mill compiles the same project 4-6x faster than Maven.
@@ -16,7 +21,7 @@ makes doing this yourself easy and safe, with type-checked code and
 xref:depth/sandboxing.adoc[sandboxed tasks].
 
 * **IDE Support**: Jump-to-definition, autocomplete, show-documentation, etc. are all much more
-useful in `build.mill` files than in `pom.xml`s. This makes it easier to navigate, understand,
+useful in `build.mill` files than in ``pom.xml``s. This makes it easier to navigate, understand,
 and maintain your build configuration without being limited by the quantity and quality of
 online documentation (or the lack thereof!)
 
@@ -393,9 +398,10 @@ In contrast, the Mill build configures the code generation as follows:
 
 [source,scala]
 ----
-import $ivy.`org.codehaus.groovy:groovy:3.0.9`
-import $ivy.`org.codehaus.groovy:groovy-ant:3.0.9`
-import $ivy.`ant:ant-optional:1.5.3-1`
+//| mvnDeps:
+//| - "org.codehaus.groovy:groovy:3.0.9"
+//| - "org.codehaus.groovy:groovy-ant:3.0.9"
+//| - "ant:ant-optional:1.5.3-1"
 
 object common extends NettyModule {
   ...
@@ -404,8 +410,8 @@ object common extends NettyModule {
     val shell = new groovy.lang.GroovyShell()
 
     val context = new java.util.HashMap[String, Object]
-    context.put("collection.template.dir", s"${Task.workspace}/common/src/main/templates")
-    context.put("collection.template.test.dir", s"${Task.workspace}/common/src/test/templates")
+    context.put("collection.template.dir", s"${mill.api.BuildCtx.workspaceRoot}/common/src/main/templates")
+    context.put("collection.template.test.dir", s"${mill.api.BuildCtx.workspaceRoot}/common/src/test/templates")
     context.put("collection.src.dir", (Task.dest / "src").toString)
     context.put("collection.testsrc.dir", (Task.dest / "testsrc").toString)
     shell.setProperty("properties", context)
@@ -432,7 +438,7 @@ Mill allows us to direct xref:extending/import-mvn-plugins.adoc[import $ivy] the
 JVM artifacts from Maven Central
 
 Mill gives you the full power of the JVM ecosystem to use in your build: any Java library
-on Maven central is just an `//| mvnDeps:` away, and can be used with the full IDE support
+on Maven central is just an `//| mvnDeps` away, and can be used with the full IDE support
 and tooling experience you are used to in the JVM ecosystem.
 
 == IDE Support

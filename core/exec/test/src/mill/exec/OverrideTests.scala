@@ -1,8 +1,8 @@
 package mill.exec
 
-import mill.define.{Discover, TargetImpl, Task}
+import mill.api.{Discover, Task}
 import mill.Module
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 
 import utest.*
 
@@ -12,13 +12,13 @@ object OverrideTests extends TestSuite {
     def cmd(i: Int) = Task.Command { Seq("base" + i) }
   }
 
-  object canOverrideSuper extends TestBaseModule with BaseModule {
+  object canOverrideSuper extends TestRootModule with BaseModule {
     override def foo = Task { super.foo() ++ Seq("object") }
     override def cmd(i: Int) = Task.Command { super.cmd(i)() ++ Seq("object" + i) }
     lazy val millDiscover = Discover[this.type]
   }
 
-  object StackableOverrides extends TestBaseModule {
+  object StackableOverrides extends TestRootModule {
     trait X extends Module {
       def f = Task { 1 }
     }
@@ -33,7 +33,7 @@ object OverrideTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object StackableOverrides2 extends TestBaseModule {
+  object StackableOverrides2 extends TestRootModule {
     object A extends Module {
       trait X extends Module {
         def f = Task { 1 }
@@ -51,7 +51,7 @@ object OverrideTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object StackableOverrides3 extends TestBaseModule {
+  object StackableOverrides3 extends TestRootModule {
     object A extends Module {
       trait X extends Module {
         def f = Task { 1 }
@@ -67,7 +67,7 @@ object OverrideTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object OptionalOverride extends TestBaseModule {
+  object OptionalOverride extends TestRootModule {
     trait X extends Module {
       def f = Task { 1 }
     }
@@ -78,7 +78,7 @@ object OverrideTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object PrivateTasksInMixedTraits extends TestBaseModule {
+  object PrivateTasksInMixedTraits extends TestRootModule {
     trait M1 extends Module {
       private def foo = Task { "foo-m1" }
       def bar = Task { foo() }
@@ -94,9 +94,9 @@ object OverrideTests extends TestSuite {
     import utest._
 
     test("overrideSuperTask") {
-      // Make sure you can override targets, call their supers, and have the
-      // overridden target be allocated a spot within the overridden/ folder of
-      // the main publicly-available target
+      // Make sure you can override tasks, call their supers, and have the
+      // overridden task be allocated a spot within the overridden/ folder of
+      // the main publicly-available task
       import canOverrideSuper._
 
       val checker = new Checker(canOverrideSuper)
@@ -230,7 +230,7 @@ object OverrideTests extends TestSuite {
       }
     }
     test("privateTasksInMixedTraits") {
-      // Make sure we can have private cached targets in different trait with the same name,
+      // Make sure we can have private cached tasks in different trait with the same name,
       // and caching still works when these traits are mixed together
       import PrivateTasksInMixedTraits._
       val checker = new Checker(PrivateTasksInMixedTraits)
@@ -241,7 +241,7 @@ object OverrideTests extends TestSuite {
         extraEvaled = -1
       )
       // If we evaluate to "foo-m1" instead of "foo-m2",
-      // we don't properly distinguish between the two private `foo` targets
+      // we don't properly distinguish between the two private `foo` tasks
       checker(
         mod.baz,
         "foo-m2",

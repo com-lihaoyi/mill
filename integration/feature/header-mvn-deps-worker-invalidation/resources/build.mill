@@ -1,14 +1,14 @@
+//| mvnDeps:
+//| - com.lihaoyi::mill-contrib-playlib:$MILL_VERSION
 package build
+
 // Test to make sure that the worker instances whose classes come from an
-// `//| mvnDeps:` dependency are properly invalidated when the `build.mill` is
+// `//| mvnDeps` dependency are properly invalidated when the `build.mill` is
 // modified and re-compiled, causing a new classloader to be created which
 // would have an incompatible worker class than before.
 //
 // In this test case, `mill.playlib.RouteCompilerWorker` is the relevant worker
 // class, instantiated in `RouterModule.routeCompilerWorker`
-
-//| mvnDeps:
-//| - com.lihaoyi::mill-contrib-playlib:$MILL_VERSION
 
 import mill._
 import mill.playlib._

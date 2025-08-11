@@ -25,7 +25,14 @@ object AndroidHiltTransformAsm {
 
     val destination = os.Path(args.last)
 
-    transformAsm(scanDirectory, os.walk(scanDirectory).filter(_.ext == "class"), destination)
+    val allCompiledFiles = os.walk(scanDirectory).filter(os.isFile)
+
+    transformAsm(scanDirectory, allCompiledFiles.filter(_.ext == "class"), destination)
+
+    allCompiledFiles.filterNot(_.ext == "class").foreach { file =>
+      val destinationFile = destination / file.relativeTo(scanDirectory)
+      os.copy(file, destinationFile, createFolders = true)
+    }
 
   }
 
@@ -41,7 +48,6 @@ object AndroidHiltTransformAsm {
         val destination = destinationDir / path.relativeTo(baseDir)
         transform(path, destination)
     }
-
   }
 
   private def transform(`class`: os.Path, destination: os.Path): os.Path = {

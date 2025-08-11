@@ -1,30 +1,82 @@
 package build.libs.androidlib
 
 import coursier.MavenRepository
-import mill._
+import mill.*
 import mill.contrib.buildinfo.BuildInfo
-import mill.scalalib._
+import mill.javalib.*
+import millbuild.*
 
 // TODO when android hardcoded versions are fixed, generate a build info
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version when androidlib is stable and released.
-object `package` extends RootModule with build.MillPublishScalaModule {
+object `package` extends MillPublishScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(build.libs.scalalib, build.libs.kotlinlib)
+  def moduleDeps = Seq(build.libs.javalib, build.libs.kotlinlib)
+  def localTestExtraModules = super.localTestExtraModules ++ Seq(build.libs.kotlinlib.worker)
 
-  def testTransitiveDeps =
-    super.testTransitiveDeps() ++ Seq(build.libs.kotlinlib.worker.impl.testDep())
+  def buildInfoPackageName = "mill.androidlib"
+  def buildInfoObjectName = "Versions"
+  def buildInfoMembers = Seq(
+    BuildInfo.Value(
+      "manifestMergerVersion",
+      Deps.AndroidDeps.manifestMerger.version,
+      "Version of ManifestMerger"
+    ),
+    BuildInfo.Value(
+      "bundleToolVersion",
+      Deps.AndroidDeps.bundleTool.version,
+      "Version of BundleTool"
+    ),
+    BuildInfo.Value(
+      "ndkVersion",
+      Deps.AndroidDeps.ndkVersion,
+      "Version of NDK (Native Development Kit)"
+    ),
+    BuildInfo.Value("cmakeVersion", Deps.AndroidDeps.cmakeVersion, "Version of cmake"),
+    BuildInfo.Value("layoutLibVersion", Deps.AndroidDeps.layoutLibVersion, "Version of LayoutLib"),
+    BuildInfo.Value(
+      "composePreviewRendererVersion",
+      Deps.AndroidDeps.composePreviewRenderer.version,
+      "Version of ComposePreviewRenderer"
+    ),
+    BuildInfo.Value("uiToolingVersion", Deps.AndroidDeps.uiTooling.version, "Version of uiTooling"),
+    BuildInfo.Value(
+      "screenshotValidationJunitEngineVersion",
+      Deps.AndroidDeps.screenshotValidationJunitEngine.version,
+      "Version of screenshotValidationJunitEngine"
+    ),
+    BuildInfo.Value(
+      "millCmdlineToolsVersion",
+      Deps.AndroidDeps.millCmdlineToolsVersion,
+      "Version of Internal CommandLineTools"
+    )
+  )
 
-  object hilt extends build.MillPublishScalaModule {
+  trait MillAndroidModule extends MillPublishScalaModule {
+    override def javacOptions = super.javacOptions() ++ {
+      val release = Seq("-source", "1.8", "-target", "1.8")
+      release ++ Seq("-encoding", "UTF-8", "-deprecation")
+    }
+
     override def repositoriesTask = Task.Anon {
       super.repositoriesTask() :+ MavenRepository("https://maven.google.com/")
     }
+  }
 
+  object hilt extends MillAndroidModule {
     override def moduleDeps = Seq(build.libs.androidlib)
 
-    override def mvnDeps = Agg(
-      build.Deps.hiltGradlePlugin,
-      build.Deps.androidTools
+    override def mvnDeps = Seq(
+      Deps.hiltGradlePlugin,
+      Deps.androidTools
     )
+  }
+
+  object keytool extends MillPublishScalaModule {
+    override def moduleDeps = Seq(build.libs.androidlib)
+
+    override def mvnDeps = Seq(
+      Deps.mainargs
+    ) ++ Deps.keytoolDeps
   }
 
 }

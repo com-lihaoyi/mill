@@ -1,8 +1,8 @@
 package build
 
 import mill._
-import mill.define.PathRef
-import mill.api.internal.ModuleApi
+import mill.api.PathRef
+import mill.api.daemon.internal.ModuleApi
 import mill.scalalib._
 
 trait HelloBspModule extends ScalaModule {
@@ -30,4 +30,8 @@ def validate() = Task.Command {
        |""".stripMargin
   os.write(file, content)
   PathRef(file)
+}
+
+def checkExecutable() = Task.Command {
+  println("checkExecutable succeeded")
 }

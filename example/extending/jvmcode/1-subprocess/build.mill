@@ -1,10 +1,10 @@
 // This example demonstrates how to resolve a third-party library from Maven Central,
-// but instead of using xref:extending/import-mvn-plugins.adoc[import $ivy] (which loads the
+// but instead of using xref:extending/import-mvn-plugins.adoc[//| mvnDeps] (which loads the
 // library as part of the main build) we use:
 //
 // * `defaultResolver().classpath` to resolve the dependencies from Maven Central,
 //   converting `org:name:version` coordinates (and their transitive dependencies) to
-//   `PathRef`s referring to files on disk
+//   ``PathRef``s referring to files on disk
 //
 // * `Jvm.runSubprocess`, which runs the given classpath files in a subprocess, starting
 //   from specified `mainClass`
@@ -14,7 +14,7 @@
 // idiosyncracies (e.g. classpaths) that Mill provides helper methods specifically for them.
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 import mill.util.Jvm
 
 object foo extends JavaModule {
@@ -32,8 +32,7 @@ object foo extends JavaModule {
         groovyScript().path.toString,
         "Groovy!",
         (Task.dest / "groovy-generated.html").toString
-      ),
-      cwd = Task.dest
+      )
     )
     PathRef(Task.dest)
   }
@@ -60,6 +59,6 @@ Contents of groovy-generated.html is <html><body><h1>Hello!</h1><p>Groovy!</p></
 */
 
 // As mentioned above, `defaultResolver().classpath` and `Jvm.runSubprocess` are an
-// alternative to `//| mvnDeps:`, providing you more flexibility to resolve dependencies
+// alternative to `//| mvnDeps`, providing you more flexibility to resolve dependencies
 // on-demand as part of your task graph only when necessary, and keeping it isolated from
 // the build in a subprocess preventing classpath collisions.

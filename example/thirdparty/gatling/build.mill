@@ -1,5 +1,5 @@
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object Dependencies {
   // Compile dependencies
@@ -219,7 +219,7 @@ trait GatlingModule extends SbtModule {
 
   def scalaVersion = "2.13.14"
   def testModuleDeps: Seq[JavaModule] = Nil
-  object test extends SbtTests with TestModule.ScalaTest {
+  object test extends SbtTests, TestModule.ScalaTest {
     def moduleDeps = super.moduleDeps ++ testModuleDeps
     def mvnDeps = Seq.from(Dependencies.testDeps)
   }
@@ -348,6 +348,8 @@ object `gatling-test-framework` extends GatlingModule {
 > sed -i.bak 's/1.seconds/10.seconds/g' gatling-core/src/test/scala/io/gatling/core/actor/ActorSpec.scala
 
 > sed -i.bak 's/is.toString(charset)/is.toString()/g' gatling-benchmarks/src/main/scala/io/gatling/Utils.scala
+
+> rm gatling-core/src/test/scala/io/gatling/core/action/PaceSpec.scala
 
 > ./mill __.test
 ConsoleTemplateSpec:

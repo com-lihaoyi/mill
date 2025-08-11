@@ -1,18 +1,18 @@
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 trait MyModule extends PythonModule {
   def resources = super.resources() ++ Seq(PathRef(moduleDir / "res"))
-  object test extends PythonTests with TestModule.Unittest
+  object test extends PythonTests, TestModule.Unittest
 }
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source("src/foo.py")
 }
 
 object bar extends MyModule {
-  def mainScript = Task.Source { "src/bar.py" }
+  def mainScript = Task.Source("src/bar.py")
   def pythonDeps = Seq("Jinja2==3.1.4")
 }
 
@@ -115,13 +115,13 @@ OK
 
 /** Usage
 
-> mill foo._.typeCheck # Runs `typeCheck` for all direct sub-modules of `foo`
+> ./mill foo._.typeCheck # Runs `typeCheck` for all direct sub-modules of `foo`
 
-> mill foo.__.test # Runs `test` for all transitive sub-modules of `foo`
+> ./mill foo.__.test # Runs `test` for all transitive sub-modules of `foo`
 
-> mill {foo,bar}.__.testCached # Runs `testCached` for all sub-modules of `foo` and `bar`
+> ./mill {foo,bar}.__.testCached # Runs `testCached` for all sub-modules of `foo` and `bar`
 
-> mill __.typeCheck + foo.__.test # Runs all `typeCheck` tasks and all tests under `foo`.
+> ./mill __.typeCheck + foo.__.test # Runs all `typeCheck` tasks and all tests under `foo`.
 
 */
 

@@ -1,7 +1,7 @@
 package mill.resolve
 
-import mill.define.{Discover, ModuleRef}
-import mill.testkit.TestBaseModule
+import mill.api.{Discover, ModuleRef}
+import mill.testkit.TestRootModule
 import mainargs.arg
 import mill.{Cross, Module, Task}
 import utest.*
@@ -10,25 +10,25 @@ import mill.api.Result
 object ErrorTests extends TestSuite {
   // Wrapper class so that module initialization errors are not fatal
   class ErrorGraphs {
-    object moduleInitError extends TestBaseModule {
-      def rootTarget = Task { println("Running rootTarget"); "rootTarget Result" }
+    object moduleInitError extends TestRootModule {
+      def rootTask = Task { println("Running rootTask"); "rootTask Result" }
       def rootCommand(@arg(positional = true) s: String) =
         Task.Command { println(s"Running rootCommand $s") }
 
       object foo extends Module {
-        def fooTarget = Task { println(s"Running fooTarget"); 123 }
+        def fooTask = Task { println(s"Running fooTask"); 123 }
         def fooCommand(@arg(positional = true) s: String) =
           Task.Command { println(s"Running fooCommand $s") }
         throw new Exception("Foo Boom")
       }
 
       object bar extends Module {
-        def barTarget = Task { println(s"Running barTarget"); "barTarget Result" }
+        def barTask = Task { println(s"Running barTask"); "barTask Result" }
         def barCommand(@arg(positional = true) s: String) =
           Task.Command { println(s"Running barCommand $s") }
 
         object qux extends Module {
-          def quxTarget = Task { println(s"Running quxTarget"); "quxTarget Result" }
+          def quxTask = Task { println(s"Running quxTask"); "quxTask Result" }
           def quxCommand(@arg(positional = true) s: String) =
             Task.Command { println(s"Running quxCommand $s") }
           throw new Exception("Qux Boom")
@@ -38,19 +38,19 @@ object ErrorTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    object moduleDependencyInitError extends TestBaseModule {
+    object moduleDependencyInitError extends TestRootModule {
 
       object foo extends Module {
-        def fooTarget = Task { println(s"Running fooTarget"); 123 }
+        def fooTask = Task { println(s"Running fooTask"); 123 }
         def fooCommand(@arg(positional = true) s: String) =
           Task.Command { println(s"Running fooCommand $s") }
         throw new Exception("Foo Boom")
       }
 
       object bar extends Module {
-        def barTarget = Task {
-          println(s"Running barTarget")
-          s"${foo.fooTarget()} barTarget Result"
+        def barTask = Task {
+          println(s"Running barTask")
+          s"${foo.fooTask()} barTask Result"
         }
         def barCommand(@arg(positional = true) s: String) = Task.Command {
           foo.fooCommand(s)()
@@ -61,7 +61,7 @@ object ErrorTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    object crossModuleSimpleInitError extends TestBaseModule {
+    object crossModuleSimpleInitError extends TestRootModule {
       object myCross extends Cross[MyCross](1, 2, 3, 4) {
         throw new Exception(s"MyCross Boom")
       }
@@ -71,7 +71,7 @@ object ErrorTests extends TestSuite {
 
       lazy val millDiscover = Discover[this.type]
     }
-    object crossModulePartialInitError extends TestBaseModule {
+    object crossModulePartialInitError extends TestRootModule {
       object myCross extends Cross[MyCross](1, 2, 3, 4)
       trait MyCross extends Cross.Module[Int] {
         if (crossValue > 2) throw new Exception(s"MyCross Boom $crossValue")
@@ -80,7 +80,7 @@ object ErrorTests extends TestSuite {
 
       lazy val millDiscover = Discover[this.type]
     }
-    object crossModuleSelfInitError extends TestBaseModule {
+    object crossModuleSelfInitError extends TestRootModule {
       object myCross extends Cross[MyCross](1, 2, 3, throw new Exception(s"MyCross Boom"))
       trait MyCross extends Cross.Module[Int] {
         def foo = Task { crossValue }
@@ -89,7 +89,7 @@ object ErrorTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    object crossModuleParentInitError extends TestBaseModule {
+    object crossModuleParentInitError extends TestRootModule {
       object parent extends Module {
         throw new Exception(s"Parent Boom")
         object myCross extends Cross[MyCross](1, 2, 3, 4)
@@ -102,7 +102,7 @@ object ErrorTests extends TestSuite {
     }
 
     // The module names repeat, but it's not actually cyclic and is meant to confuse the cycle detection.
-    object NonCyclicModules extends TestBaseModule {
+    object NonCyclicModules extends TestRootModule {
       def foo = Task { "foo" }
 
       object A extends Module {
@@ -126,13 +126,13 @@ object ErrorTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    object CyclicModuleRefInitError extends TestBaseModule {
+    object CyclicModuleRefInitError extends TestRootModule {
       def foo = Task { "foo" }
 
       // See issue: https://github.com/com-lihaoyi/mill/issues/3715
       trait CommonModule extends Module {
         def foo = Task { "foo" }
-        def moduleDeps: Seq[CommonModule] = Seq.empty
+        def moduleDeps: Seq[CommonModule] = Seq()
         def a = myA
         def b = myB
       }
@@ -146,13 +146,13 @@ object ErrorTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    object CyclicModuleRefInitError2 extends TestBaseModule {
+    object CyclicModuleRefInitError2 extends TestRootModule {
       // The cycle is in the child
       def A = CyclicModuleRefInitError
       lazy val millDiscover = Discover[this.type]
     }
 
-    object CyclicModuleRefInitError3 extends TestBaseModule {
+    object CyclicModuleRefInitError3 extends TestRootModule {
       // The cycle is in directly here
       object A extends Module {
         def b = B
@@ -163,7 +163,7 @@ object ErrorTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    object CrossedCyclicModuleRefInitError extends TestBaseModule {
+    object CrossedCyclicModuleRefInitError extends TestRootModule {
       object cross extends mill.Cross[Cross]("210", "211", "212")
       trait Cross extends Cross.Module[String] {
         def suffix = Task { crossValue }
@@ -180,7 +180,7 @@ object ErrorTests extends TestSuite {
     }
 
     // This edge case shouldn't be an error
-    object ModuleRefWithNonModuleRefChild extends TestBaseModule {
+    object ModuleRefWithNonModuleRefChild extends TestRootModule {
       def foo = Task { "foo" }
 
       def aRef = A
@@ -191,7 +191,7 @@ object ErrorTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    object ModuleRefCycle extends TestBaseModule {
+    object ModuleRefCycle extends TestRootModule {
       def foo = Task { "foo" }
 
       // The cycle is in directly here
@@ -221,13 +221,13 @@ object ErrorTests extends TestSuite {
         val check = new Checker(moduleInitError)
         // We can resolve the root module tasks even when the
         // sub-modules fail to initialize
-        test("rootTarget") - check.checkSeq(
-          Seq("rootTarget"),
-          Result.Success(Set(_.rootTarget)),
-          // Even though instantiating the target fails due to the module
+        test("rootTask") - check.checkSeq(
+          Seq("rootTask"),
+          Result.Success(Set(_.rootTask)),
+          // Even though instantiating the task fails due to the module
           // failing, we can still resolve the task name, since resolving tasks
           // does not require instantiating the module
-          Set("rootTarget")
+          Set("rootTask")
         )
         test("rootCommand") - check.checkSeq(
           Seq("rootCommand", "hello"),
@@ -237,10 +237,10 @@ object ErrorTests extends TestSuite {
 
         // Resolving tasks on a module that fails to initialize is properly
         // caught and reported in the Either result
-        test("fooTarget") - check.checkSeq0(
-          Seq("foo.fooTarget"),
+        test("fooTask") - check.checkSeq0(
+          Seq("foo.fooTask"),
           isShortError(_, "Foo Boom"),
-          _ == Result.Success(List("foo.fooTarget"))
+          _ == Result.Success(List("foo.fooTask"))
         )
         test("fooCommand") - check.checkSeq0(
           Seq("foo.fooCommand", "hello"),
@@ -250,10 +250,10 @@ object ErrorTests extends TestSuite {
 
         // Sub-modules that can initialize allow tasks to be resolved, even
         // if their siblings or children are broken
-        test("barTarget") - check.checkSeq(
-          Seq("bar.barTarget"),
-          Result.Success(Set(_.bar.barTarget)),
-          Set("bar.barTarget")
+        test("barTask") - check.checkSeq(
+          Seq("bar.barTask"),
+          Result.Success(Set(_.bar.barTask)),
+          Set("bar.barTask")
         )
         test("barCommand") - check.checkSeq(
           Seq("bar.barCommand", "hello"),
@@ -262,10 +262,10 @@ object ErrorTests extends TestSuite {
         )
 
         // Nested sub-modules that fail to initialize are properly handled
-        test("quxTarget") - check.checkSeq0(
-          Seq("bar.qux.quxTarget"),
+        test("quxTask") - check.checkSeq0(
+          Seq("bar.qux.quxTask"),
           isShortError(_, "Qux Boom"),
-          _ == Result.Success(List("bar.qux.quxTarget"))
+          _ == Result.Success(List("bar.qux.quxTask"))
         )
         test("quxCommand") - check.checkSeq0(
           Seq("bar.qux.quxCommand", "hello"),
@@ -277,24 +277,24 @@ object ErrorTests extends TestSuite {
       test("dependency") {
         val check = new Checker(moduleDependencyInitError)
 
-        test("fooTarget") - check.checkSeq0(
-          Seq("foo.fooTarget"),
+        test("fooTask") - check.checkSeq0(
+          Seq("foo.fooTask"),
           isShortError(_, "Foo Boom"),
-          _ == Result.Success(List("foo.fooTarget"))
+          _ == Result.Success(List("foo.fooTask"))
         )
         test("fooCommand") - check.checkSeq0(
           Seq("foo.fooCommand", "hello"),
           isShortError(_, "Foo Boom"),
           _ == Result.Success(List("foo.fooCommand"))
         )
-        // Even though the `bar` module doesn't throw, `barTarget` and
-        // `barCommand` depend on the `fooTarget` and `fooCommand` tasks on the
+        // Even though the `bar` module doesn't throw, `barTask` and
+        // `barCommand` depend on the `fooTask` and `fooCommand` tasks on the
         // `foo` module, and the `foo` module blows up. This should turn up as
         // a stack trace when we try to resolve bar
-        test("barTarget") - check.checkSeq0(
-          Seq("bar.barTarget"),
+        test("barTask") - check.checkSeq0(
+          Seq("bar.barTask"),
           isShortError(_, "Foo Boom"),
-          _ == Result.Success(List("bar.barTarget"))
+          _ == Result.Success(List("bar.barTask"))
         )
         test("barCommand") - check.checkSeq0(
           Seq("bar.barCommand", "hello"),
@@ -375,12 +375,12 @@ object ErrorTests extends TestSuite {
               "",
               "myCross",
               "myCross[1]",
-              "myCross[1].foo",
               "myCross[2]",
-              "myCross[2].foo",
               "myCross[3]",
-              "myCross[3].foo",
               "myCross[4]",
+              "myCross[1].foo",
+              "myCross[2].foo",
+              "myCross[3].foo",
               "myCross[4].foo"
             ))
           )

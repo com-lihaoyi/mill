@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--    Adopted from AGP screenshot test template, a sample can be found in-->
 <!--    https://github.com/vaslabs-ltd/android-screenshot-test-sample/blob/main/app/src/main/AndroidManifest.xml-->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.screenshottest">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
         android:allowBackup="true"

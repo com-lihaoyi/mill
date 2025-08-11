@@ -2,9 +2,9 @@
 // https://checkstyle.org[Checkstyle] and generates reports from these checks.
 
 package build
-import mill._, javalib._, checkstyle._
+import mill.*, javalib.*, checkstyle.*
 
-object `package` extends RootModule with CheckstyleModule {
+object `package` extends CheckstyleModule {
   def checkstyleVersion = "9.3"
 }
 
@@ -81,9 +81,9 @@ Audit done.
 // To share `checkstyle-config.xml` across modules, adapt the following example.
 // [source,scala]
 // ----
-// import mill._
+// import mill.*
 // import mill.contrib.checkstyle.CheckstyleModule
-// import mill.scalalib._
+// import mill.scalalib.*
 //
 // object foo extends Module {
 //
@@ -93,10 +93,10 @@ Audit done.
 //     object buzz extends MyModule
 //   }
 //
-//   trait MyModule extends JavaModule with CheckstyleModule {
+//   trait MyModule extends JavaModule, CheckstyleModule {
 //
 //     override def checkstyleConfig = Task {
-//       api.PathRef(Task.workspace / "checkstyle-config.xml")
+//       api.PathRef(mill.api.BuildCtx.workspaceRoot / "checkstyle-config.xml")
 //     }
 //   }
 // }
@@ -138,13 +138,13 @@ Audit done.
 // For a custom setup, adapt the following example.
 // [source,scala]
 // ----
-// import mill._
-// import mill.define.PathRef
+// import mill.*
+// import mill.api.PathRef
 // import mill.contrib.checkstyle.CheckstyleXsltModule
 // import mill.contrib.checkstyle.CheckstyleXsltReport
-// import mill.scalalib._
+// import mill.scalalib.*
 //
-// object foo extends JavaModule with CheckstyleXsltModule {
+// object foo extends JavaModule, CheckstyleXsltModule {
 //
 //     override def checkstyleXsltReports = Task {
 //       Set(

@@ -2,10 +2,9 @@ package mill.contrib.artifactory
 
 import mill._
 import mill.api.Result
-import scalalib._
+import javalib._
 import mill.contrib.artifactory.ArtifactoryPublishModule.checkArtifactoryCreds
-import mill.define.{ExternalModule, Task}
-import mill.define.Command
+import mill.api.{ExternalModule, Task}
 
 trait ArtifactoryPublishModule extends PublishModule {
   def artifactoryUri: String
@@ -28,8 +27,8 @@ trait ArtifactoryPublishModule extends PublishModule {
       artifactorySnapshotUri: String = artifactorySnapshotUri,
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): define.Command[Unit] = Task.Command {
-    val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
+  ): Command[Unit] = Task.Command {
+    val (artifacts, artifactInfo) = publishArtifacts().withConcretePath
     new ArtifactoryPublisher(
       artifactoryUri,
       artifactorySnapshotUri,
@@ -37,7 +36,7 @@ trait ArtifactoryPublishModule extends PublishModule {
       readTimeout,
       connectTimeout,
       Task.log
-    ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo)
+    ).publish(artifacts, artifactInfo)
   }
 }
 
@@ -94,5 +93,5 @@ object ArtifactoryPublishModule extends ExternalModule {
     }
   }
 
-  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.api.Discover = mill.api.Discover[this.type]
 }

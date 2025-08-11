@@ -2,11 +2,13 @@ package mill.pythonlib
 
 import mill._
 import mill.api.Result
-import mill.util.{Jvm}
-import mill.define.TaskCtx
-import mill.constants.ServerFiles
+import mill.constants.DaemonFiles
+import mill.util.Jvm
+import mill.api.TaskCtx
+import mill.javalib.JavaHomeModule
+import mill.api.BuildCtx
 
-trait PythonModule extends PipModule with TaskModule { outer =>
+trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule { outer =>
 
   /**
    *  The direct dependencies of this module.
@@ -53,7 +55,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    *
    * Python modules will be defined relative to these directories.
    */
-  def sources: T[Seq[PathRef]] = Task.Sources { "src" }
+  def sources: T[Seq[PathRef]] = Task.Sources("src")
 
   /**
    * The folders where the resource files for this module live.
@@ -63,7 +65,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   /**
    * The python script to run. This file may not exist if this module is only a library.
    */
-  def mainScript: T[PathRef] = Task.Source { "src/main.py" }
+  def mainScript: T[PathRef] = Task.Source("src/main.py")
 
   override def pythonToolDeps: T[Seq[String]] = Task {
     super.pythonToolDeps() ++ Seq(
@@ -80,8 +82,8 @@ trait PythonModule extends PipModule with TaskModule { outer =>
 
   /**
    * Folders containing source files that are generated rather than
-   * handwritten; these files can be generated in this target itself,
-   * or can refer to files generated from other targets
+   * handwritten; these files can be generated in this task itself,
+   * or can refer to files generated from other tasks
    */
   def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
@@ -118,7 +120,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   /**
    * Command-line options to pass as bundle configuration defined by the user.
    */
-  def bundleOptions: T[Seq[String]] = Task { Seq("--scie", "eager") }
+  def bundleOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
   // TODO: right now, any task that calls this helper will have its own python
   // cache. This is slow. Look into sharing the cache between tasks.
@@ -161,7 +163,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    *
    * @see [[mainScript]]
    */
-  def run(args: mill.define.Args) = Task.Command {
+  def run(args: mill.api.Args) = Task.Command {
     runner().run(
       args = (
         mainScript().path,
@@ -175,39 +177,35 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    *
    * @see [[mainScript]]
    */
-  def runBackground(args: mill.define.Args) = Task.Command {
-    val (procUuidPath, procLockfile, procUuid) = mill.scalalib.RunModule.backgroundSetup(Task.dest)
+  def runBackground(args: mill.api.Args) = Task.Command(persistent = true) {
+    val backgroundPaths = mill.javalib.RunModule.BackgroundPaths(Task.dest)
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
-    os.checker.withValue(os.Checker.Nop) {
+    BuildCtx.withFilesystemCheckerDisabled {
       Jvm.spawnProcess(
-        mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
-        classPath = mill.scalalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
+        mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
+        classPath = mill.javalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
         env = runnerEnvTask(),
-        mainArgs = Seq(
-          procUuidPath.toString,
-          procLockfile.toString,
-          procUuid,
-          "500",
+        mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
           pythonExe().path.toString,
           mainScript().path.toString
         ) ++ args.value,
-        cwd = Task.workspace,
+        cwd = BuildCtx.workspaceRoot,
         stdin = "",
         // Hack to forward the background subprocess output to the Mill server process
         // stdout/stderr files, so the output will get properly slurped up by the Mill server
         // and shown to any connected Mill client even if the current command has completed
-        stdout = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
-        stderr = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr),
-        javaHome = mill.scalalib.JvmWorkerModule.javaHome().map(_.path)
+        stdout = os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stdout),
+        stderr = os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stderr),
+        javaHome = javaHome().map(_.path)
       )
     }
     ()
   }
 
-  override def defaultCommandName(): String = "run"
+  override def defaultTask(): String = "run"
 
   /**
    * Opens up a Python console with your module and all dependencies present,

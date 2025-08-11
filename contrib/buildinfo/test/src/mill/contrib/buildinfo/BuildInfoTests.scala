@@ -6,8 +6,8 @@ import mill.kotlinlib.KotlinModule
 import mill.scalalib.ScalaModule
 import mill.scalajslib.ScalaJSModule
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
-import mill.define.Discover
+import mill.testkit.TestRootModule
+import mill.api.Discover
 import os.Path
 import utest.*
 
@@ -17,15 +17,15 @@ object BuildInfoTests extends TestSuite {
   val scalaJSVersionString = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
   val kotlinVersionString = sys.props.getOrElse("TEST_KOTLIN_VERSION", ???)
 
-  object EmptyBuildInfo extends TestBaseModule with BuildInfo with ScalaModule {
+  object EmptyBuildInfo extends TestRootModule with BuildInfo with ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
-    def buildInfoMembers = Seq.empty[BuildInfo.Value]
+    def buildInfoMembers = Seq()
 
     lazy val millDiscover = Discover[this.type]
   }
 
-  object BuildInfoPlain extends TestBaseModule with BuildInfo with ScalaModule {
+  object BuildInfoPlain extends TestRootModule with BuildInfo with ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq(
@@ -35,7 +35,7 @@ object BuildInfoTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object BuildInfoScalaJS extends TestBaseModule with BuildInfo with ScalaJSModule {
+  object BuildInfoScalaJS extends TestRootModule with BuildInfo with ScalaJSModule {
     def scalaVersion = scalaVersionString
     def scalaJSVersion = scalaJSVersionString
     def buildInfoPackageName = "foo"
@@ -46,7 +46,7 @@ object BuildInfoTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object BuildInfoComment extends TestBaseModule with BuildInfo with ScalaModule {
+  object BuildInfoComment extends TestRootModule with BuildInfo with ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq(
@@ -65,7 +65,7 @@ object BuildInfoTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object BuildInfoStatic extends TestBaseModule with BuildInfo with ScalaModule {
+  object BuildInfoStatic extends TestRootModule with BuildInfo with ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     override def buildInfoStaticCompiled = true
@@ -76,7 +76,7 @@ object BuildInfoTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object BuildInfoSettings extends TestBaseModule with BuildInfo with ScalaModule {
+  object BuildInfoSettings extends TestRootModule with BuildInfo with ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
     override def buildInfoObjectName = "bar"
@@ -87,7 +87,7 @@ object BuildInfoTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object BuildInfoJava extends TestBaseModule with BuildInfo {
+  object BuildInfoJava extends TestRootModule with BuildInfo {
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq(
       BuildInfo.Value("scalaVersion", "not-provided-for-java-modules")
@@ -96,7 +96,7 @@ object BuildInfoTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object BuildInfoJavaStatic extends TestBaseModule with BuildInfo {
+  object BuildInfoJavaStatic extends TestRootModule with BuildInfo {
     def buildInfoPackageName = "foo"
     override def buildInfoStaticCompiled = true
     def buildInfoMembers = Seq(
@@ -106,7 +106,7 @@ object BuildInfoTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object BuildInfoKotlin extends TestBaseModule with KotlinModule with BuildInfo {
+  object BuildInfoKotlin extends TestRootModule with KotlinModule with BuildInfo {
     def kotlinVersion = kotlinVersionString
     // FIXME: the mainClass should be found automatically
     def mainClass = Some("foo.Main")
@@ -118,7 +118,7 @@ object BuildInfoTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object BuildInfoKotlinStatic extends TestBaseModule with KotlinModule with BuildInfo {
+  object BuildInfoKotlinStatic extends TestRootModule with KotlinModule with BuildInfo {
     def kotlinVersion = kotlinVersionString
     // FIXME: the mainClass should be found automatically
     def mainClass = Some("foo.Main")
@@ -214,7 +214,10 @@ object BuildInfoTests extends TestSuite {
     test("scalajs") - UnitTester(BuildInfoScalaJS, testModuleSourcesPath / "scala-simple").scoped {
       eval =>
         eval.outPath / "hello-mill"
-        assert(eval.apply(BuildInfoScalaJS.fastLinkJS).isRight)
+        val res = eval.apply(BuildInfoScalaJS.fastLinkJS)
+        if (!res.isRight)
+          pprint.err.log(res)
+        assert(res.isRight)
     }
 
     test("static") - UnitTester(BuildInfoStatic, testModuleSourcesPath / "scala").scoped { eval =>

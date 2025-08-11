@@ -1,10 +1,14 @@
 package mill.scalalib
 
 import mill.{T, Task}
-import mill.define.Cross
-import mill.define.Cross.Resolver
-import mill.scalalib.api.JvmWorkerUtil
+import mill.api.Cross
+import mill.api.Cross.Resolver
+import mill.javalib.api.JvmWorkerUtil
 
+/**
+ * Shared logic between the different kinds of cross-scala-version modules:
+ * [[CrossSbtModule]], [[CrossScalaModule]]
+ */
 trait CrossModuleBase extends ScalaModule with Cross.Module[String] {
   def crossScalaVersion: String = crossValue
 

@@ -5,12 +5,10 @@
 This page documents a playbook for migrating existing projects
 from Maven, Gradle, or `sbt` to Mill.
 
-Some build tools also have additional semi-automated
-tooling.
+Mill also supports semi-automated tooling-assisted migrations from
+these tools, which is documented at:
 
-* xref:migrating/maven.adoc[]
-* xref:migrating/gradle.adoc[]
-* xref:migrating/sbt.adoc[]
+* xref:migrating/auto-migrating.adoc[]
 
 While automation helps with
 some of the scaffolding the general principles laid out on this page still apply.
@@ -76,10 +74,24 @@ Of the four steps above, most of the work goes into (2) setting up the parallel 
 build for your project. We will walk through each of the sub-bullets in that step
 below
 
+== Run the `./mill init` project importer
+
+* Run `./mill init` in your codebase to run the automated build importer, which will perform
+  xref:#_translating_subprojects_to_modules[] and xref:#_translating_third_party_dependencies[]
+  on your behalf
+
+* After that completes, you should not need to do those steps manually, though you should still
+  read through them to understand what the `./mill init` importer was doing
+
+* Next, you can start again with the manual steps in xref:#_translating_third_party_plugins[]
+  and xref:#_translating_custom_build_logic[]
+
+
 == Translating Subprojects to Modules
 
 * Download a `mill` bootstrap file as discussed in xref:cli/installation-ide.adoc[] and
   create a `build.mill` file as described in xref:javalib/intro.adoc[]
+
 
 * Define a Mill `Module` for each subproject in the existing build,
    and a `test` module for each.
@@ -277,7 +289,7 @@ new Mill build:
 * You may need to update code to use the `MILL_TEST_RESOURCE_DIR` environment variable
   rather than the `"resources/"` folder directly in code, since Mill runs tests in
   xref:depth/sandboxing.adoc[Sandboxes] that guard against unwanted filesystem access.
-* Similarly, you may need to use `Task.workspace` or `WorkspaceRoot.workspaceRoot`
+* Similarly, you may need to use `mill.api.BuildCtx.workspaceRoot` or `WorkspaceRoot.workspaceRoot`
   to access the project root folder in custom build tasks, since the Mill build process
   also runs in a sandbox by default
 * Some tests may require xref:fundamentals/configuring-jvm-versions.adoc[] to run

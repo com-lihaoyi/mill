@@ -1,6 +1,6 @@
 package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object client extends ReactScriptsModule
 
@@ -17,7 +17,7 @@ object server extends TypeScriptModule {
 
   def forkEnv = super.forkEnv() + ("PORT" -> "3000")
 
-  object test extends TypeScriptTests with TestModule.PlayWright {
+  object test extends TypeScriptTests, TestModule.PlayWright {
     def service = server
     def port = "6000"
   }
@@ -30,7 +30,7 @@ object server extends TypeScriptModule {
 
 /** Usage
 
-> mill server.test
+> ./mill server.test
 ...
 ...Server listening on port 6000
 ...

@@ -1,8 +1,8 @@
 //// SNIPPET:ALL
 package build
-import mill._, kotlinlib._, publish._
+import mill.*, kotlinlib.*, publish.*
 
-trait MyModule extends KotlinModule with PublishModule {
+trait MyModule extends KotlinModule, PublishModule {
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
@@ -16,11 +16,11 @@ trait MyModule extends KotlinModule with PublishModule {
 
   def kotlinVersion = "1.9.24"
 
-  def mvnDeps = Seq(mvn"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0")
+  def mvnDeps = Seq(mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0")
 
-  object test extends KotlinTests with TestModule.Junit5 {
+  object test extends KotlinTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
   }
 }
@@ -77,38 +77,38 @@ object qux extends MyModule {
 
 /** Usage
 
-> mill resolve __.run
+> ./mill resolve __.run
 bar.run
 bar.test.run
 foo.run
 foo.test.run
 qux.run
 
-> mill foo.run
+> ./mill foo.run
 foo version 0.0.1
 Foo.value: <h1>hello</h1>
 Bar.value: <p>world</p>
 Qux.value: 31337
 
-> mill bar.test
+> ./mill bar.test
 ...bar.BarTests world ...
 
-> mill qux.run
+> ./mill qux.run
 Qux.value: 31337
 
-> mill __.compile
+> ./mill __.compile
 
-> mill __.test
+> ./mill __.test
 ...bar.BarTests world ...
 ...foo.FooTests hello ...
 
-> mill __.publishLocal
+> ./mill __.publishLocal
 Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,bar,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
 ...
 
-> mill show foo.assembly # mac/linux
+> ./mill show foo.assembly # mac/linux
 ".../out/foo/assembly.dest/out.jar"
 
 > ./out/foo/assembly.dest/out.jar # mac/linux

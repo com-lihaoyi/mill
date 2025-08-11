@@ -1,19 +1,20 @@
 package build
 
 import mill._, scalalib._
+import mill.meta.MillBuildRootModule
 
 object `package` extends MillBuildRootModule {
-  def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:${constant.MetaConstant.scalatagsVersion}")
-
+  def scalatagsVersion = "0.13.1"
+  def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:${scalatagsVersion}")
   def generatedSources = Task {
     os.write(
-      Task.dest / "Constant.scala",
+      Task.dest / "MetaConstant.scala",
       s"""package constant
          |object Constant{
-         |  def scalatagsVersion = "${constant.MetaConstant.scalatagsVersion}"
+         |  def scalatagsVersion = "$scalatagsVersion"
          |}
          |""".stripMargin
     )
-    super.generatedSources() ++ Seq(PathRef(Task.dest / "Constant.scala"))
+    super.generatedSources() ++ Seq(PathRef(Task.dest / "MetaConstant.scala"))
   }
 }

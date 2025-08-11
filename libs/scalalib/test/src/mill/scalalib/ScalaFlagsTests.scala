@@ -1,14 +1,14 @@
 package mill.scalalib
 
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import HelloWorldTests.*
-import mill.define.Discover
+import mill.api.Discover
 import mill.util.TokenReaders._
 
 object ScalaFlagsTests extends TestSuite {
 
-  object HelloWorldFlags extends TestBaseModule {
+  object HelloWorldFlags extends TestRootModule {
     object core extends ScalaModule {
       def scalaVersion = scala212Version
 

@@ -2,6 +2,7 @@
 :page-aliases: Kotlin_Module_Config.adoc
 :language: Kotlin
 :language-small: kotlin
+:language-doc: dokka
 
 This page goes into more detail about the various configuration options
 for `KotlinModule`.
@@ -38,14 +39,13 @@ include::partial$example/kotlinlib/module/9-docjar.adoc[]
 include::partial$example/kotlinlib/module/11-main-class.adoc[]
 
 
+== Generated Sources
+
+include::partial$example/kotlinlib/module/3-generated-sources.adoc[]
 
 == Custom Tasks
 
 include::partial$example/kotlinlib/module/2-custom-tasks.adoc[]
-
-== Overriding Tasks
-
-include::partial$example/kotlinlib/module/3-override-tasks.adoc[]
 
 
 == Native C Code with JNI

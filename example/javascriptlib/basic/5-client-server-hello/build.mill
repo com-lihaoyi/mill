@@ -1,5 +1,5 @@
 package build
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object client extends ReactScriptsModule
 
@@ -13,7 +13,7 @@ object server extends TypeScriptModule {
 
   override def forkEnv = super.forkEnv() + ("PORT" -> "3000")
 
-  object test extends TypeScriptTests with TestModule.Jest
+  object test extends TypeScriptTests, TestModule.Jest
 }
 
 // Documentation for mill.example.javascriptlib
@@ -23,14 +23,14 @@ object server extends TypeScriptModule {
 
 /** Usage
 
-> mill client.test
+> ./mill client.test
 PASS .../App.test.tsx
 ...
 
-> mill client.bundle   # bundle the react app;
+> ./mill client.bundle   # bundle the react app;
 ...
 
-> mill show server.bundle # bundle the node server
+> ./mill show server.bundle # bundle the node server
 ...
 Build succeeded!
 */

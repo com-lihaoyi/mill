@@ -1,8 +1,8 @@
 //// SNIPPET:ALL
 package build
-import mill._, javalib._, publish._
+import mill.*, javalib.*, publish.*
 
-trait MyModule extends JavaModule with PublishModule {
+trait MyModule extends JavaModule, PublishModule {
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
@@ -16,7 +16,7 @@ trait MyModule extends JavaModule with PublishModule {
 
   def mvnDeps = Seq(mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE")
 
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }
 
 object foo extends MyModule {
@@ -69,38 +69,38 @@ object qux extends MyModule
 
 /** Usage
 
-> mill resolve __.run
+> ./mill resolve __.run
 bar.run
 bar.test.run
 foo.run
 foo.test.run
 qux.run
 
-> mill foo.run
+> ./mill foo.run
 foo version 0.0.1
 Foo.value: <h1>hello</h1>
 Bar.value: <p>world</p>
 Qux.value: 31337
 
-> mill bar.test
+> ./mill bar.test
 ...bar.BarTests.test ...
 
-> mill qux.run
+> ./mill qux.run
 Qux.value: 31337
 
-> mill __.compile
+> ./mill __.compile
 
-> mill __.test
+> ./mill __.test
 ...bar.BarTests.test ...
 ...foo.FooTests.test ...
 
-> mill __.publishLocal
+> ./mill __.publishLocal
 Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,bar,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
 ...
 
-> mill show foo.assembly # mac/linux
+> ./mill show foo.assembly # mac/linux
 ".../out/foo/assembly.dest/out.jar"
 
 > ./out/foo/assembly.dest/out.jar # mac/linux

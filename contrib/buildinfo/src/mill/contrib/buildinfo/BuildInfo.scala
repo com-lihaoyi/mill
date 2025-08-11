@@ -1,7 +1,7 @@
 package mill.contrib.buildinfo
 
 import mill.{T, Task}
-import mill.define.PathRef
+import mill.api.PathRef
 import mill.kotlinlib.KotlinModule
 import mill.scalalib.{JavaModule, ScalaModule}
 import mill.scalanativelib.ScalaNativeModule
@@ -44,7 +44,7 @@ trait BuildInfo extends JavaModule {
    * A mapping of key-value pairs to pass from the Build script to the
    * application code at runtime.
    */
-  def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq.empty[BuildInfo.Value]
+  def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq()
 
   def resources: T[Seq[PathRef]] =
     if (buildInfoStaticCompiled) Task { super.resources() }

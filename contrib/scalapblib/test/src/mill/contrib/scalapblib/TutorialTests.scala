@@ -1,17 +1,17 @@
 package mill.contrib.scalapblib
 
 import mill.*
-import mill.define.PathRef
+import mill.api.PathRef
 import mill.constants.Util
-import mill.define.Discover
+import mill.api.Discover
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assert, *}
 
 object TutorialTests extends TestSuite {
   val testScalaPbVersion = "0.11.7"
 
-  trait TutorialBase extends TestBaseModule
+  trait TutorialBase extends TestRootModule
 
   trait TutorialModule extends ScalaPBModule {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
@@ -51,13 +51,13 @@ object TutorialTests extends TestSuite {
 
   object TutorialWithSpecificSources extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBSources: T[Seq[PathRef]] = Task.Sources {
-        moduleDir / "protobuf/tutorial/Tutorial.proto"
-      }
+      override def scalaPBSources: T[Seq[PathRef]] = Task.Sources(
+        "protobuf/tutorial/Tutorial.proto"
+      )
 
       override def scalaPBSearchDeps = true
-      override def scalaPBIncludePath = Seq(
-        PathRef(moduleDir / "protobuf/tutorial")
+      override def scalaPBIncludePath = Task.Sources(
+        moduleDir / "protobuf/tutorial"
       )
     }
     lazy val millDiscover = Discover[this.type]

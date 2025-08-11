@@ -1,20 +1,38 @@
-= Mill: A Better JVM Build Tool
+= Mill: A Better Build Tool for Java, Scala, & Kotlin
 
-https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-libs-main/latest.svg[Mill]]
-https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable&versionPrefix=0.12.[Maven Central Version]]
+https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=stable-version&versionSuffix={mill-version}[d]]
+https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=unstable-dev-version[Maven Central Version]]
 
-Mill is a JVM build tool that supports Java, Scala, and Kotlin:
+Mill is a build tool that tries to improve upon the tools traditionally used
+in the JVM ecosystem:
 
-* Mill builds the same Java project xref:comparisons/maven.adoc[3-6x faster than Maven]
-xref:comparisons/gradle.adoc[or Gradle] due to aggressive caching & parallelism
+* Mill builds the same Java project xref:comparisons/why-mill.adoc#_performance[3-6x
+ faster than Maven or Gradle] due to aggressive caching & parallelism
 
-* Mill has better IDE support than other build tools, with
-superior autocomplete and navigation in IntelliJ
+* Mill's rich featureset means
+xref:comparisons/why-mill.adoc#_rich_builtins[less fiddling with plugins],
+since everything needed for development is built in
 
-* Mill builds require fewer plugins for common workflows,
-and are easier to extend with custom tasks
+* Mill builds are xref:comparisons/why-mill.adoc#_ide_support[easily explorable in your IDE],
+letting you work on them without constantly googling for help
 
-To get started using Mill for the first time, or migrating and existing JVM
+Although the Java compiler is very fast and the Java language is easy to learn,
+JVM build tools have a reputation for being sluggish and confusing. Mill tries to
+offer a better alternative, its xref:comparisons/why-mill.adoc#_object_oriented_builds[object-oriented builds]
+reducing the learning curve and letting your build system take
+full advantage of the Java platform's performance, usability, and IDE support.
+
+If you prefer a video introduction to Mill, see:
+
+* https://www.youtube.com/watch?v=3NllMpXMBT8[Video: Better Java Builds with the Mill Build Tool],
+GeeCon Krakow 16 May 2025
+* https://www.youtube.com/watch?v=fyf2AWUyq24[Video: Solving Scala's Build Problem with the Mill Build Tool], SF Scala Meetup 22 April 2025
+
+For more discussion on the motivation behind the project, see xref:comparisons/why-mill.adoc[Why Use Mill?]
+
+=== Getting Started
+
+To get started using Mill for the first time, or migrating an existing JVM
 codebase (built using Maven, Gradle, or SBT) to Mill, see:
 
 [cols="1a,1a"]
@@ -31,18 +49,13 @@ Or see the language-specific introductory documentation linked below:
 | xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,28] Kotlin with Mill]
 |===
 
-=== Why Mill?
-
-Although the Java compiler is very fast and the Java language is easy to learn,
-JVM build tools have a reputation for being sluggish and confusing. Mill tries to
-offer a better alternative, letting your build system take full advantage of the
-Java platform's performance and usability:
+=== Mill Features
 
 * *Performance*: Mill automatically xref:depth/execution-model.adoc#_caching_in_mill[caches]
 and xref:depth/parallelism.adoc[parallelizes build tasks] and https://mill-build.org/blog/11-jvm-test-parallelism.html[tests]
 to keep local development fast, https://mill-build.org/blog/9-mill-faster-assembly-jars.html[incrementally builds assembly jars]
 to speed up manual testing workflows, and shortens CI times with xref:large/selective-execution.adoc[selective test execution]
-to only runs the subset of tests necessary to validate a code change.
+to only run the subset of tests necessary to validate a code change.
 
 * *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also
 xref:fundamentals/configuring-jvm-versions.adoc[managing JVM versions], xref:javalib/linting.adoc[linting],
@@ -56,7 +69,7 @@ fiddling with tooling and plugins.
 * *Maintainability*: Mill's config and xref:javalib/intro.adoc#_custom_build_logic[custom logic]
 is written in xref:depth/why-scala.adoc[concise type-checked JVM code],
 with an immutable xref:depth/design-principles.adoc[module tree and task graph]. This
-catches config issues early, and helps both humans and IDEs
+catches configuration issues early, and helps both humans and IDEs
 (xref:cli/installation-ide.adoc#_intellij[IntelliJ] or
 xref:cli/installation-ide.adoc#_vscode[VSCode])
 understand your Mill build better than any other build system
@@ -75,32 +88,23 @@ xref:large/multi-language-builds.adoc[multiple languages].
 Even projects with hundreds or thousands of sub-modules can be handled performantly
 and with minimal overhead.
 
-For a quick introduction of why you may care about Mill, see:
+Mill is used to build many real-world projects, such as:
 
-* xref:comparisons/why-mill.adoc[]
-* xref:comparisons/unique.adoc[]
+* https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool]
+* https://github.com/coursier/coursier[Coursier dependency resolver]
+* https://github.com/com-lihaoyi/Ammonite[Ammonite REPL]
+* https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and https://github.com/chipsalliance/chisel[Chisel] chip design frameworks
 
-Or if you prefer a video introduction:
-
-* https://www.youtube.com/watch?v=Dry6wMRN6MI[Video: Better Java Builds with the Mill Build Tool],
-  Japan Java User Group Fall Conference Oct 2024
-* https://www.youtube.com/watch?v=igarEERjUuQ[Video: Better Scala Builds with the Mill Build Tool],
-  Functional Scala Conference Dec 2024
-
-Mill is used to build many real-world projects, such as the
-https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool],
-https://github.com/coursier/coursier[Coursier dependency resolver],
-https://github.com/com-lihaoyi/Ammonite[Ammonite REPL], and the
-https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and
-https://github.com/chipsalliance/chisel[Chisel] hardware design frameworks.
 Mill can be used for applications built on top of common JVM frameworks like
 Spring Boot (both xref:javalib/web-examples.adoc#_spring_boot_todomvc_app[in Java]
 and xref:kotlinlib/web-examples.adoc#_spring_boot_todomvc_app[in Kotlin]),
 xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut],
-or xref:kotlinlib/web-examples.adoc#_ktor_todomvc_app[Ktor].
+xref:kotlinlib/web-examples.adoc#_ktor_todomvc_app[Ktor], or
+xref:scalalib/web-examples.adoc#_todomvc_http4s_web_app[Http4S].
 
 Mill borrows ideas from other tools like https://maven.apache.org/[Maven],
-https://gradle.org/[Gradle], https://bazel.build/[Bazel], but tries to learn from the
+https://gradle.org/[Gradle], https://bazel.build/[Bazel], and
+https://www.scala-sbt.org/[sbt], but tries to learn from the
 strengths of each tool and improve on their weaknesses. For comparisons with existing
 build tools, check out these pages:
 
@@ -109,13 +113,27 @@ build tools, check out these pages:
 |===
 | xref:comparisons/maven.adoc[image:index/maven.png[maven,24] Mill vs Maven]
 | xref:comparisons/gradle.adoc[image:index/gradle.svg[gradle,32] Mill vs Gradle]
-| xref:comparisons/sbt.adoc[image:index/sbt.png[sbt,32] Mill vs `sbt`]
+| xref:comparisons/sbt.adoc[image:index/sbt.png[sbt,32] Mill vs sbt]
 |===
+
+=== Tool & Framework Support
+
+Mill supports most common JVM development workflows and tools built in, so you can
+get very far before you need to reach for third-party plugins or write custom code
+to extend your build pipelines. The table
+below links to the relevant part of the documentation and examples for each tool:
+
+include::partial$Feature_Support.adoc[]
+
+When the time comes that you do need something not in its builtin feature set, Mill
+also has a rich ecosystem of third party plugins for less common use cases:
+
+- xref::extending/thirdparty-plugins.adoc[]
 
 === Contributing and Community
 
-If you want to contribute to Mill, or are interested in the fundamental ideas behind 
-Mill rather than the user-facing benefits discussed above, check out the page on 
+If you want to contribute to Mill, or are interested in the fundamental ideas behind
+Mill rather than the user-facing features discussed above, check out the page on
 xref:depth/design-principles.adoc[Mill Design Principles]. In particular, this video
 is a must-watch to help you understand the fundamental concepts behind Mill and why
 they are interesting:

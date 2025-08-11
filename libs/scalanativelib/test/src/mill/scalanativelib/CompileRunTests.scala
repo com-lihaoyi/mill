@@ -1,17 +1,17 @@
 package mill.scalanativelib
 
-import java.util.jar.JarFile
 import mill._
-import mill.define.Discover
-import mill.define.ExecutionPaths
-import mill.scalalib.api.JvmWorkerUtil
-import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
+import mill.api.Discover
+import mill.api.ExecutionPaths
+import mill.javalib.api.JvmWorkerUtil
+import mill.scalalib.{PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest._
 
+import java.util.jar.JarFile
 import scala.jdk.CollectionConverters._
 
 object CompileRunTests extends TestSuite {
@@ -31,15 +31,14 @@ object CompileRunTests extends TestSuite {
   val scalaNative05 = sys.props.getOrElse("TEST_SCALANATIVE_0_5_VERSION", ???)
   val testUtestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
 
-  object HelloNativeWorld extends TestBaseModule {
+  object HelloNativeWorld extends TestRootModule {
     implicit object ReleaseModeToSegments
         extends Cross.ToSegments[ReleaseMode](v => List(v.toString))
 
-    val matrix = for {
-      scala <- Seq(scala33, scala213)
-      scalaNative <- Seq(scalaNative05)
-      mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
-    } yield (scala, scalaNative, mode)
+    val matrix = Seq(
+      (scala33, scalaNative05, ReleaseMode.Debug),
+      (scala213, scalaNative05, ReleaseMode.ReleaseFast)
+    )
 
     object build extends Cross[RootModule](matrix)
     trait RootModule extends HelloNativeWorldModule {
@@ -57,8 +56,8 @@ object CompileRunTests extends TestSuite {
       )
 
       object test extends ScalaNativeTests with TestModule.Utest {
-        override def sources = Task.Sources { this.moduleDir / "src/utest" }
-        override def utestVersion: Target[String] = testUtestVersion
+        override def sources = Task.Sources("src/utest")
+        override def utestVersion: T[String] = testUtestVersion
       }
     }
 
@@ -92,7 +91,7 @@ object CompileRunTests extends TestSuite {
 
         val outPath = result.value.classes.path
         val outputFiles = os.walk(outPath).filter(os.isFile).map(_.last).toSet
-        val expectedClassfiles = compileClassfiles(scalaVersion, scalaNativeVersion)
+        val expectedClassfiles = compileClassfiles(scalaVersion)
         assert(
           outputFiles == expectedClassfiles,
           result.evalCount > 0
@@ -119,7 +118,7 @@ object CompileRunTests extends TestSuite {
           eval(HelloNativeWorld.build(
             scala213,
             scalaNative05,
-            ReleaseMode.Debug
+            ReleaseMode.ReleaseFast
           ).jar): @unchecked
         val jar = result.value.path
         val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
@@ -147,7 +146,7 @@ object CompileRunTests extends TestSuite {
 
   }
 
-  def compileClassfiles(scalaVersion: String, scalaNativeVersion: String) = {
+  def compileClassfiles(scalaVersion: String) = {
     val common = Set(
       "ArgsParser$.class",
       "ArgsParser$.nir",

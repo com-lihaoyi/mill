@@ -1,7 +1,8 @@
 package mill.init
 
 import mainargs.{Flag, arg}
-import mill.define.{Discover, ExternalModule}
+import mill.api.{Discover, ExternalModule}
+import mill.api.BuildCtx
 import mill.{Command, Module, Task}
 
 import scala.util.{Failure, Success, Try, Using}
@@ -60,7 +61,7 @@ trait InitModule extends Module {
             val conflicting = for {
               p <- os.walk(extractedPath)
               rel = p.relativeTo(extractedPath)
-              if os.exists(Task.workspace / rel)
+              if os.exists(BuildCtx.workspaceRoot / rel)
             } yield rel
 
             if (conflicting.nonEmpty) {
@@ -75,15 +76,18 @@ trait InitModule extends Module {
             }
 
             // Remove any existing bootstrap script since the example will come with one
-            os.remove(Task.workspace / "mill")
-            os.copy.apply(extractedPath, Task.workspace, mergeFolders = true)
+            os.remove(BuildCtx.workspaceRoot / "mill")
+            os.copy.apply(extractedPath, BuildCtx.workspaceRoot, mergeFolders = true)
 
             // Make sure the `./mill` launcher is executable
-            os.perms.set(Task.workspace / "mill", "rwxrwxrwx")
+            // Skip on windows since windows doesn't support POSIX permissions
+            if (!scala.util.Properties.isWin) {
+              os.perms.set(BuildCtx.workspaceRoot / "mill", "rwxrwxrwx")
+            }
 
             (
               Seq(unpackPath.toString()),
-              s"Example download and unpacked to [${Task.workspace}]; " +
+              s"Example download and unpacked to [${BuildCtx.workspaceRoot}]; " +
                 "See `build.mill` for an explanation of this example and instructions on how to use it"
             )
         }

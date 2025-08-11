@@ -2,16 +2,16 @@ package mill.exec
 
 import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import mill.Task
-import mill.define.Discover
-import mill.define.ExternalModule
+import mill.api.Discover
+import mill.api.ExternalModule
 
 import utest._
 
 object `package` extends ExternalModule.Alias(TestExternalModule)
-object TestExternalModule extends mill.define.ExternalModule with mill.define.TaskModule {
-  def defaultCommandName() = "x"
+object TestExternalModule extends mill.api.ExternalModule with mill.api.DefaultTaskModule {
+  def defaultTask() = "x"
   def x = Task { 13 }
   trait Trait extends mill.Module {
     def overridden = Task { 19 }
@@ -25,52 +25,53 @@ object TestExternalModule extends mill.define.ExternalModule with mill.define.Ta
 }
 
 object ModuleTests extends TestSuite {
-  object Build extends TestBaseModule {
+  object Build extends TestRootModule {
     def z = Task { TestExternalModule.x() + TestExternalModule.inner.y() }
     lazy val millDiscover = Discover[this.type]
   }
   val tests = Tests {
     test("externalModuleCalls") {
-      val check = UnitTester(Build, null)
-      val result = check.apply("mill.exec.TestExternalModule/x")
-      assert(result == Right(Result(Vector(13), 0)))
+      UnitTester(Build, null).scoped { check =>
+        val result = check.apply("mill.exec.TestExternalModule/x")
+        assert(result == Right(Result(Vector(13), 0)))
 
-      val result1 = check.apply("mill.exec/x") // short alias
-      assert(result1 == Right(Result(Vector(13), 0)))
+        val result1 = check.apply("mill.exec/x") // short alias
+        assert(result1 == Right(Result(Vector(13), 0)))
 
-      val result2 = check.apply("mill.exec.TestExternalModule/")
-      assert(result2 == Right(Result(Vector(13), 0)))
+        val result2 = check.apply("mill.exec.TestExternalModule/")
+        assert(result2 == Right(Result(Vector(13), 0)))
 
-      val result3 = check.apply("mill.exec.TestExternalModule/myCommand", "-i", "10")
-      assert(result3 == Right(Result(Vector(11), 1)))
+        val result3 = check.apply("mill.exec.TestExternalModule/myCommand", "-i", "10")
+        assert(result3 == Right(Result(Vector(11), 1)))
 
-      val result4 = check.apply("mill.exec.TestExternalModule/inner.overridden")
-      assert(result4 == Right(Result(Vector(20), 0)))
+        val result4 = check.apply("mill.exec.TestExternalModule/inner.overridden")
+        assert(result4 == Right(Result(Vector(20), 0)))
+      }
     }
     test("externalModuleTargetsAreNamespacedByModulePackagePath") {
-      val check = UnitTester(Build, null)
-      os.remove.all(check.outPath)
-      val zresult = check.apply(Build.z)
-      assert(
-        zresult == Right(Result(30, 1)),
-        os.read(check.execution.outPath / "z.json").contains("30"),
-        os.read(
-          check.outPath / "mill/exec/TestExternalModule/x.json"
-        ).contains("13"),
-        os.read(
-          check.outPath / "mill/exec/TestExternalModule/inner/y.json"
-        ).contains("17")
-      )
+      UnitTester(Build, null).scoped { check =>
+        val zresult = check.apply(Build.z)
+        assert(
+          zresult == Right(Result(30, 1)),
+          os.read(check.execution.outPath / "z.json").contains("30"),
+          os.read(
+            check.outPath / "mill/exec/TestExternalModule/x.json"
+          ).contains("13"),
+          os.read(
+            check.outPath / "mill/exec/TestExternalModule/inner/y.json"
+          ).contains("17")
+        )
+      }
     }
     test("externalModuleMustBeGlobalStatic") {
 
-      object Build extends mill.define.ExternalModule {
+      object Build extends mill.api.ExternalModule {
 
         def z = Task { TestExternalModule.x() + TestExternalModule.inner.y() }
         lazy val millDiscover = Discover[this.type]
       }
 
-      intercept[java.lang.AssertionError] { Build }
+      assertThrows[java.lang.AssertionError] { Build }
     }
   }
 }

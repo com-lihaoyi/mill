@@ -1,6 +1,10 @@
 = Case Study: Mill vs `sbt`
 :page-aliases: Case_Study_Mill_vs_sbt.adoc, Case_Study_Mill_vs_SBT.adoc
 
+This page goes into the weeds comparing the Mill and SBT build tools.
+For a higher-level comparison of Mill vs other tools, and why Mill is interesting,
+see the page xref:comparisons/why-mill.adoc[].
+
 
 Compared to `sbt`,
 
@@ -13,31 +17,32 @@ with each other.
 * **Mill is much more performant**: `sbt` has enough overhead that even a dozen
 subprojects is enough to slow it down, while Mill can handle hundreds of modules without issue.
 Custom tasks in `sbt` re-execute every time, whereas in Mill they are cached automatically.
-Mill's watch-for-changes-and-re-run implementation has much lower latency than `sbt`'s. The
-list of ways Mill improves upon `sbt`'s performance is long, and at the command line you
+Mill's watch-for-changes-and-re-run implementation has much lower latency than ``sbt``'s.
+The list of ways Mill improves upon ``sbt``'s performance is long, and at the command line you
 can really feel it
 
 * **Mill builds are much easier to understand**: Your Mill build is made of bog-standard
-``object``s and ``def``s, rather than `sbt`'s
-https://eed3si9n.com/4th-dimension-with-sbt-013/[four-dimensional task matrix]. Your IDE's
-"*jump-to-definition*" in Mill actually brings you to the implementation of a task, rather
-than an `sbt` `taskKey` declaration. Customizing things is as simple as writing or overriding
-`def`s. The net effect is that despite both tools' build files being written in Scala,
+``object``s and ``def``s, rather than ``sbt``'s
+https://eed3si9n.com/4th-dimension-with-sbt-013/[four-dimensional task matrix].
+Your IDE's "*jump-to-definition*" in Mill actually brings you to the implementation of a task, rather
+than an `sbt` `taskKey` declaration.
+Customizing things is as simple as writing or overriding ``def``s.
+The net effect is that despite both tools' build files being written in Scala,
 Mill's build files are much easier to understand and maintain.
 
-This page compares using Mill to `sbt`, using the https://github.com/gatling/gatling[Gatling Load Testing Framework]
-codebase as the example. Gatling is a medium sized codebase, 40,000 lines of Scala split over 21
-subprojects. By porting it to Mill, this case study should give you an idea of how Mill compares
-to `sbt` in more realistic, real-world projects.
+This page compares using Mill to `sbt`, using the https://github.com/gatling/gatling[Gatling Load Testing Framework] codebase as the example.
+Gatling is a medium-sized codebase, 40,000 lines of Scala split over 21 subprojects.
+By porting it to Mill, this case study should give you an idea of how Mill compares to `sbt` in more realistic, real-world projects.
 
 In general, in the ideal case Mill and `sbt` have similar performance: caching, parallelism, incremental
-compilation, and so on. Mill's main advantage over `sbt` is its simplicity:
+compilation, and so on.
+Mill's main advantage over `sbt` is its simplicity:
 
 * You do not need to keep a live `sbt` session to maximize performance, exit `sbt` to run Bash commands,
   or juggle multiple terminal windows to run `sbt` in one and Bash in another. Instead, you can just
   run Mill like any command line tool, and Mill caches and parallelizes to maximize performance automatically
 
-* Mill's IDE support is better than `sbt`'s due to how Mill is designed: peek-at-documentation,
+* Mill's IDE support is better than ``sbt``'s due to how Mill is designed: peek-at-documentation,
   jump-to-definition, find-overrides, etc. is much more useful since your IDE understands Mill
   much better than it understands `sbt`.
 
@@ -54,9 +59,8 @@ change any other files in the repository:
 == Completeness
 
 The Mill build for Gatling is not 100% complete, but it covers most of the major parts of Gatling:
-compiling Scala, running tests. It does not currently cover linting via
-https://github.com/diffplug/spotless[Spotless], as that is not built-in to Mill, but it could be
-added as necessary.
+compiling Scala, running tests.
+It does not currently cover linting via https://github.com/diffplug/spotless[Spotless], as that is not built-in to Mill, but it could be added as necessary.
 
 The goal of this exercise is not to be 100% feature complete enough to replace the `sbt` build
 today. It is instead meant to provide a realistic comparison of how using Mill in a realistic,
@@ -80,7 +84,7 @@ both scenarios above, along with the time taken for Mill commands. Mill does not
 distinction, and can only be run directly from the command line. The Hot `sbt` mode only
 reports timings to the nearest second, so that is the number used in this comparison.
 
-The Mill build benchmarks for Gatling is generally much snappier than the Cold `sbt` benchmark,
+The Mill build benchmarks for Gatling is generally much snappier than the cold `sbt` benchmark,
 and comparable to that Hot `sbt` benchmark. Mill is marginally faster in the
 `Parallel Clean Compile All` benchmark (10s vs 14s), but more importantly does not have the same
 _Cold vs Hot_ distinction that `sbt` has: as Mill is always run "cold" from the command line and
@@ -205,10 +209,9 @@ in comparison substantial >4s overhead.
 
 == IDE Support
 
-One area that Mill does significantly better than `sbt` is in the IDE support. For example, although
-IDEs like IntelliJ are nominally able to parse and analyze your `sbt` files, the assistance they can
-provide is often not very useful. For example, consider the inspection and jump-to-definition experience
-of looking into an `sbt` Task:
+One area that Mill does significantly better than `sbt` is in the IDE support.
+For example, although IDEs like IntelliJ are nominally able to parse and analyze your `sbt` files, the assistance they can provide is often not very useful.
+For example, consider the inspection and jump-to-definition experience of looking into an `sbt` Task:
 
 image::comparisons/IntellijGatlingSbtTask1.png[]
 image::comparisons/IntellijGatlingSbtTask2.png[]
@@ -220,10 +223,8 @@ image::comparisons/IntellijGatlingSbtPlugin2.png[]
 
 In general, although your IDE can make sure the name of the task exists, and the type is correct, it
 is unable to pull up any further information about the task: its documentation, its implementation,
-usages, any upstream overridden implementations, etc.. Some of this is the limitations of the IDE,
-but some of it is fundamental: because `sbt` makes the developer define the `val myTask` separate
-from the assignment of `myTask := something`, jumping to the definition of `myTask` tells you nothing
-at all: what it does, where it is assigned, etc.
+usages, any upstream overridden implementations, etc..
+Some of this is the limitations of the IDE, but some of it is fundamental: because `sbt` makes the developer define the `val myTask` separate from the assignment of `myTask := something`, jumping to the definition of `myTask` tells you nothing at all: what it does, where it is assigned, etc.
 
 In comparison, for Mill, IDEs like Intellij are able to provide much more intelligence. e.g. when
 inspecting a task, it is able to pull up the documentation comment:
@@ -246,25 +247,27 @@ image::comparisons/IntellijGatlingMillPlugin1.png[]
 image::comparisons/IntellijGatlingMillPlugin2.png[]
 
 In general, navigating around your build in Mill is much more straightforward than
-navigating around your build in `sbt`. All your normal IDE functionality works perfectly:
-jump-to-definition, find-usages, peek-at-documentation, and so on. Although the Mill
-and `sbt` builds end up doing the same basic things - compiling Scala, running tests,
+navigating around your build in `sbt`.
+All your normal IDE functionality works perfectly:
+jump-to-definition, find-usages, peek-at-documentation, and so on.
+Although the Mill and `sbt` builds end up doing the same basic things - compiling Scala, running tests,
 zipping up jars - Mill helps de-mystify things considerably so you are never blocked
 wondering what your build tool is doing.
 
 == Debugging Tooling
 
 Another area that Mill does better than `sbt` is providing builtin tools for you to understand
-what your build is doing. For example, the Gatling project build discussed has 21 submodules
-and associated test suites, but how do these different modules depend on each other? With
-Mill, you can run `./mill visualize __.compile`, and it will show you how the
+what your build is doing.
+For example, the Gatling project build discussed has 21 submodules
+and associated test suites, but how do these different modules depend on each other?
+With Mill, you can run `./mill visualize __.compile`, and it will show you how the
 `compile` task of each module depends on the others:
 
 image::comparisons/GatlingCompileGraph.svg[]
 
 Apart from the static dependency graph, another thing of interest may be the performance
-profile and timeline: where the time is spent when you actually compile everything. With
-Mill, when you run a compilation using `./mill -j 10 __.compile`, you automatically get a
+profile and timeline: where the time is spent when you actually compile everything.
+With Mill, when you run a compilation using `./mill -j 10 __.compile`, you automatically get a
 `out/mill-chrome-profile.json` file that you can load into your `chrome://tracing` page and
 visualize where your build is spending time and where the performance bottlenecks are:
 
@@ -307,14 +310,14 @@ take ownership of the build tool.
 == Conclusion
 
 Both the Mill and `sbt` builds we discussed in this case study do the same thing: they
-compile Java and Scala code and run tests. If set up and used properly, `sbt` builds
-are performant and do what needs to be done.
+compile Java and Scala code and run tests.
+If set up and used properly, `sbt` builds are performant and do what needs to be done.
 
-Where Mill has an advantage over `sbt` is in its simplicity and understandability. You
-do not need to worry about using it "the wrong way" and ending up with workflows running
-slower than necessary. You can explore your build using your IDE like you would any other
+Where Mill has an advantage over `sbt` is in its simplicity and understandability.
+You do not need to worry about using it "the wrong way" and ending up with workflows running
+slower than necessary.
+You can explore your build using your IDE like you would any other
 project, tracing task dependencies using the same jump-to-definition you use to trace
-method calls in your application code. Mill provides builtin tools to help you navigate,
-visualize, and understand your build, turning a normally opaque "build config" into
-something that's transparent and easily understandable.
+method calls in your application code.
+Mill provides builtin tools to help you navigate, visualize, and understand your build, turning a normally opaque "build config" into something that's transparent and easily understandable.
 

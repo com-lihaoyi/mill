@@ -1,9 +1,9 @@
 package mill.main.buildgen
 
 import mill.constants.{CodeGenConstants, OutFiles}
-import mill.define.Discover
+import mill.api.Discover
 import mill.scalalib.scalafmt.ScalafmtModule
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.{PathRef, T}
 import utest.framework.TestPath
 import mill.util.TokenReaders._
@@ -28,49 +28,51 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
 
     // fmt
     val files = mill.init.Util.buildFiles(testRoot).map(PathRef(_)).toSeq
-    object module extends TestBaseModule with ScalafmtModule {
+    object module extends TestRootModule with ScalafmtModule {
       override def filesToFormat(sources: Seq[PathRef]): Seq[PathRef] = files
+
       override def scalafmtConfig: T[Seq[PathRef]] = Seq(PathRef(scalafmtConfigFile))
 
       lazy val millDiscover = Discover[this.type]
     }
-    val eval = UnitTester(module, testRoot)
-    eval(module.reformat())
+    UnitTester(module, testRoot).scoped { eval =>
+      eval(module.reformat())
 
-    // check
-    val expectedRoot = sourceRoot / expectedRel
-    // Non *.mill files, that are not in test data, that we don't want
-    // to see in the diff
-    val toCleanUp = os.walk(testRoot, skip = (testRoot / OutFiles.out).equals)
-      .filter(os.isFile)
-      .filterNot(file => CodeGenConstants.buildFileExtensions.contains(file.ext))
-    toCleanUp.foreach(os.remove)
+      // check
+      val expectedRoot = sourceRoot / expectedRel
+      // Non *.mill files, that are not in test data, that we don't want
+      // to see in the diff
+      val toCleanUp = os.walk(testRoot, skip = (testRoot / OutFiles.out).equals)
+        .filter(os.isFile)
+        .filterNot(file => CodeGenConstants.buildFileExtensions.contains(file.ext))
+      toCleanUp.foreach(os.remove)
 
-    // Try to normalize permissions while not touching those of committed test data
-    val supportsPerms = FileSystems.getDefault.supportedFileAttributeViews().contains("posix")
-    if (supportsPerms)
-      for {
-        testFile <- os.walk(expectedRoot)
-        if os.isFile(testFile)
-        targetFile = testRoot / testFile.relativeTo(expectedRoot).asSubPath
-        if os.isFile(targetFile)
+      // Try to normalize permissions while not touching those of committed test data
+      val supportsPerms = FileSystems.getDefault.supportedFileAttributeViews().contains("posix")
+      if (supportsPerms)
+        for {
+          testFile <- os.walk(expectedRoot)
+          if os.isFile(testFile)
+          targetFile = testRoot / testFile.relativeTo(expectedRoot).asSubPath
+          if os.isFile(targetFile)
+        }
+          os.perms.set(targetFile, os.perms(testFile))
+
+      val diffExitCode = os.proc("git", "diff", "--no-index", expectedRoot, testRoot)
+        .call(stdin = os.Inherit, stdout = os.Inherit, check = !updateSnapshots)
+        .exitCode
+
+      if (updateSnapshots && diffExitCode != 0) {
+        System.err.println(
+          s"Expected and actual files differ, update expected files in resources under $expectedRoot"
+        )
+
+        os.remove.all(expectedRoot)
+        os.copy(testRoot, expectedRoot)
       }
-        os.perms.set(targetFile, os.perms(testFile))
 
-    val diffExitCode = os.proc("git", "diff", "--no-index", expectedRoot, testRoot)
-      .call(stdin = os.Inherit, stdout = os.Inherit, check = !updateSnapshots)
-      .exitCode
-
-    if (updateSnapshots && diffExitCode != 0) {
-      System.err.println(
-        s"Expected and actual files differ, update expected files in resources under $expectedRoot"
-      )
-
-      os.remove.all(expectedRoot)
-      os.copy(testRoot, expectedRoot)
+      diffExitCode == 0 || updateSnapshots
     }
-
-    diffExitCode == 0 || updateSnapshots
   }
 }
 object BuildGenChecker {

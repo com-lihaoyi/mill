@@ -1,6 +1,6 @@
 package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object client extends ReactScriptsModule
 
@@ -17,7 +17,7 @@ object server extends TypeScriptModule {
 
   override def forkEnv = super.forkEnv() + ("PORT" -> "4000")
 
-  object test extends TypeScriptTests with TestModule.Cypress {
+  object test extends TypeScriptTests, TestModule.Cypress {
     def service = server
     def port = "4000"
   }
@@ -30,7 +30,7 @@ object server extends TypeScriptModule {
 
 /** Usage
 
-> mill server.test
+> ./mill server.test
 ...
 ...Server listening on port 4000
 ... app.cy.ts...

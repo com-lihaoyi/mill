@@ -1,5 +1,6 @@
 package build
 import mill._
+import mill.api.BuildCtx
 
 object foo extends Module {
   os.write(moduleDir / "file.txt", "hello", createFolders = true)
@@ -8,11 +9,16 @@ object foo extends Module {
 }
 
 def qux = Task {
-  os.write(Task.workspace / "file.txt", "hello")
+  os.write(BuildCtx.workspaceRoot / "file.txt", "hello")
 }
 
 def baz = Task { 1 }
 
 if (false) {
   os.write(moduleDir / "file.txt", "hello", createFolders = true)
+}
+
+object allowed extends Module {
+  os.write(moduleDir / "file.txt", "hello", createFolders = true)
+  def allowedTask = Task {}
 }

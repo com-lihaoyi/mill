@@ -1,0 +1,78 @@
+package build.libs.util
+
+// imports
+import mill._
+import mill.scalalib._
+import mill.contrib.buildinfo.BuildInfo
+import mill.T
+import mill.api.Cross
+import mill.javalib.api.JvmWorkerUtil
+import millbuild.*
+
+/**
+ * Utility code that is used in both `mill-runner` and `build.mill`, but cannot
+ * be part of the interface between the two classloader environments to ensure
+ * isolation between them
+ */
+object `package` extends MillStableScalaModule with BuildInfo {
+  def runModuleDeps = Seq(
+//    build.libs.init
+  )
+
+  def compileMvnDeps = Seq(
+    Deps.nativeTerminal,
+    Deps.jgraphtCore,
+    Deps.graphvizWithExcludes
+  )
+
+  def runMvnDeps = Seq(
+    Deps.logback,
+    Deps.nativeTerminal,
+    Deps.jgraphtCore,
+    Deps.graphvizWithExcludes,
+    Deps.coursierJvm
+  )
+
+  def moduleDeps = Seq(
+    build.core.api.daemon,
+    build.core.constants,
+    build.core.api
+  )
+
+  // Exclude most coursier transitive dependencies from the compile classpath so users
+  // can't compile against them, but include them at runtime as they are necessary.
+  // This keeps the compile classpath clean and anyone who wants to use those dependencies
+  // can include them explicitly in their YAML header or meta-build
+  def mvnDeps = Seq(
+    Deps.millModuledefs,
+    Deps.coursier.exclude("*" -> "*"),
+    Deps.coursierArchiveCache.exclude("*" -> "*"),
+    Deps.coursierCore.exclude("*" -> "*"),
+    Deps.coursierCache.exclude("*" -> "*"),
+    Deps.coursierPaths.exclude("*" -> "*"),
+    Deps.coursierUtil.exclude("*" -> "*"),
+    Deps.coursierVersions.exclude("*" -> "*"),
+    Deps.coursierJvm.exclude("*" -> "*"),
+    Deps.jline,
+    Deps.mainargs,
+    Deps.requests
+  )
+
+  def buildInfoPackageName = "mill.util"
+
+  def buildInfoMembers = Seq(
+    BuildInfo.Value(
+      "workerScalaVersion212",
+      Deps.workerScalaVersion212,
+      "Scala 2.12 version used by some workers."
+    ),
+    BuildInfo.Value(
+      "workerScalaVersion213",
+      Deps.scala2Version,
+      "Scala 2.13 version used by some workers."
+    ),
+    BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
+    BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+    BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version.")
+  )
+}

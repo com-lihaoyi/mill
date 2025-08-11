@@ -1,12 +1,12 @@
 package build
-import mill._, scalalib._, scalajslib._
+import mill.*, scalalib.*, scalajslib.*
 
 object foo extends ScalaJSModule {
-  def scalaVersion = "2.13.14"
-  def scalaJSVersion = "1.16.0"
+  def scalaVersion = "3.7.1"
+  def scalaJSVersion = "1.19.0"
   def mvnDeps = Seq(mvn"com.lihaoyi::scalatags::0.13.1")
-  object test extends ScalaJSTests with TestModule.Utest {
-    def utestVersion = "0.8.5"
+  object test extends ScalaJSTests, TestModule.Utest {
+    def utestVersion = "0.8.9"
   }
 }
 

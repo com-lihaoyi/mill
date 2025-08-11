@@ -1,13 +1,13 @@
 package mill.scalalib
 
 import mill.*
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import HelloWorldTests.*
-import mill.define.Discover
+import mill.api.Discover
 object ScalaScalacheckTests extends TestSuite {
 
-  object HelloScalacheck extends TestBaseModule {
+  object HelloScalacheck extends TestRootModule {
     object foo extends ScalaModule {
       def scalaVersion = scala212Version
       object test extends ScalaTests {
@@ -27,7 +27,7 @@ object ScalaScalacheckTests extends TestSuite {
       val Right(result) = eval.apply(HelloScalacheck.foo.test.testForked()): @unchecked
       assert(
         result.evalCount > 0,
-        result.value._2.map(_.selector) == Seq(
+        result.value.results.map(_.selector) == Seq(
           "String.startsWith",
           "String.endsWith",
           "String.substring",

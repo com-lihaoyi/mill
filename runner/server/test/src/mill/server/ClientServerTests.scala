@@ -3,7 +3,7 @@ package mill.server
 import mill.api.SystemStreams
 import mill.client.lock.Locks
 import mill.client.ServerLauncher
-import mill.constants.{ServerFiles, Util}
+import mill.constants.{DaemonFiles, Util}
 import utest.*
 
 import java.io.*
@@ -19,15 +19,17 @@ object ClientServerTests extends TestSuite {
   val ENDL = System.lineSeparator()
   class EchoServer(
       override val processId: String,
-      serverDir: os.Path,
+      daemonDir: os.Path,
       locks: Locks,
-      testLogEvenWhenServerIdWrong: Boolean
-  ) extends Server[Option[Int]](serverDir, 1000, locks, testLogEvenWhenServerIdWrong)
+      testLogEvenWhenServerIdWrong: Boolean,
+      commandSleepMillis: Int = 0
+  ) extends Server[Option[Int]](daemonDir, 1000, locks, testLogEvenWhenServerIdWrong)
       with Runnable {
-    override def exitServer() = {
-      serverLog("exiting server")
-      super.exitServer()
-    }
+
+    override def outLock = mill.client.lock.Lock.memory()
+
+    override def out = os.temp.dir()
+
     def stateCache0 = None
 
     override def serverLog0(s: String) = {
@@ -35,6 +37,11 @@ object ClientServerTests extends TestSuite {
       super.serverLog0(s)
     }
 
+    @volatile var runCompleted = false
+    override def run() = {
+      super.run()
+      runCompleted = true
+    }
     def main0(
         args: Array[String],
         stateCache: Option[Int],
@@ -46,29 +53,28 @@ object ClientServerTests extends TestSuite {
         initialSystemProperties: Map[String, String],
         systemExit: Int => Nothing
     ) = {
-
-      val reader = new BufferedReader(new InputStreamReader(streams.in))
-      val str = reader.readLine()
-      Thread.sleep(200)
-      if (args.nonEmpty) {
-        streams.out.println(str + args(0))
+      Thread.sleep(commandSleepMillis)
+      if (!runCompleted) {
+        val reader = new BufferedReader(new InputStreamReader(streams.in))
+        val str = reader.readLine()
+        Thread.sleep(200)
+        if (args.nonEmpty) {
+          streams.out.println(str + args(0))
+        }
+        env.toSeq.sortBy(_._1).foreach {
+          case (key, value) => streams.out.println(s"$key=$value")
+        }
+        if (args.nonEmpty) {
+          streams.err.println(str.toUpperCase + args(0))
+        }
+        streams.out.flush()
+        streams.err.flush()
       }
-      env.toSeq.sortBy(_._1).foreach {
-        case (key, value) => streams.out.println(s"$key=$value")
-      }
-      systemProperties.toSeq.sortBy(_._1).foreach {
-        case (key, value) => streams.out.println(s"$key=$value")
-      }
-      if (args.nonEmpty) {
-        streams.err.println(str.toUpperCase + args(0))
-      }
-      streams.out.flush()
-      streams.err.flush()
       (true, None)
     }
   }
 
-  class Tester(testLogEvenWhenServerIdWrong: Boolean) {
+  class Tester(testLogEvenWhenServerIdWrong: Boolean, commandSleepMillis: Int = 0) {
 
     var nextServerId: Int = 0
     val terminatedServers = collection.mutable.Set.empty[String]
@@ -76,7 +82,7 @@ object ClientServerTests extends TestSuite {
     os.makeDir.all(dest)
     val outDir = os.temp.dir(dest, deleteOnExit = false)
 
-    val memoryLocks = Array.fill(10)(Locks.memory());
+    val memoryLock = Locks.memory()
 
     def apply(
         env: Map[String, String] = Map(),
@@ -92,25 +98,27 @@ object ClientServerTests extends TestSuite {
         new PrintStream(err),
         env.asJava,
         args,
-        memoryLocks,
+        memoryLock,
         forceFailureForTestingMillisDelay
       ) {
-        def preRun(serverDir: Path) = { /*do nothing*/ }
-        def initServer(serverDir: Path, b: Boolean, locks: Locks) = {
+        def preparedaemonDir(daemonDir: Path) = { /*do nothing*/ }
+        def initServer(daemonDir: Path, locks: Locks) = {
           val processId = "server-" + nextServerId
           nextServerId += 1
           new Thread(new EchoServer(
             processId,
-            os.Path(serverDir, os.pwd),
+            os.Path(daemonDir, os.pwd),
             locks,
-            testLogEvenWhenServerIdWrong
+            testLogEvenWhenServerIdWrong,
+            commandSleepMillis = commandSleepMillis
           )).start()
+          null
         }
-      }.acquireLocksAndRun((outDir / "server-0").relativeTo(os.pwd).toNIO)
+      }.run((outDir / "server-0").relativeTo(os.pwd).toNIO, "")
 
       ClientResult(
         result.exitCode,
-        os.Path(result.serverDir, os.pwd),
+        os.Path(result.daemonDir, os.pwd),
         outDir,
         out.toString,
         err.toString
@@ -121,21 +129,21 @@ object ClientServerTests extends TestSuite {
 
   case class ClientResult(
       exitCode: Int,
-      serverDir: os.Path,
+      daemonDir: os.Path,
       outDir: os.Path,
       out: String,
       err: String
   ) {
     def logsFor(suffix: String) = {
       os.read
-        .lines(serverDir / ServerFiles.serverLog)
+        .lines(daemonDir / DaemonFiles.serverLog)
         .collect { case s if s.endsWith(" " + suffix) => s.dropRight(1 + suffix.length) }
     }
   }
 
   def tests = Tests {
 
-    test("hello") - retry(3) {
+    test("hello") - {
       // Continue logging when out folder is deleted so we can see the logs
       // and ensure the correct code path is taken as the server exits
       val tester = new Tester(testLogEvenWhenServerIdWrong = true)
@@ -158,7 +166,7 @@ object ClientServerTests extends TestSuite {
         // Make sure the server times out of not used for a while
         Thread.sleep(2000)
 
-        assert(res2.logsFor("Interrupting after 1000ms") == Seq("server-0"))
+        assert(res2.logsFor("shutting down due inactivity") == Seq("server-0"))
         assert(res2.logsFor("exiting server") == Seq("server-0"))
 
         // Have a third client spawn/connect-to a new server at the same path
@@ -174,7 +182,7 @@ object ClientServerTests extends TestSuite {
         Thread.sleep(1000)
 
         assert(res3.logsFor("processId file missing") == Seq("server-1"))
-        assert(res3.logsFor("exiting server") == Seq("server-1", "server-1"))
+        assert(res3.logsFor("exiting server") == Seq("server-1"))
       }
     }
     test("dontLogWhenOutFolderDeleted") - retry(3) {
@@ -213,9 +221,9 @@ object ClientServerTests extends TestSuite {
       // Mutiple server processes live in same out folder
       assert(resF1.outDir == resF2.outDir)
       assert(resF2.outDir == resF3.outDir)
-      // but the serverDir is placed in different subfolders
-      assert(resF1.serverDir != resF2.serverDir)
-      assert(resF2.serverDir != resF3.serverDir)
+      // but the daemonDir is placed in different subfolders
+      assert(resF1.daemonDir == resF2.daemonDir)
+      assert(resF2.daemonDir == resF3.daemonDir)
 
       assert(resF1.out == s"hello World$ENDL")
       assert(resF2.out == s"hello WORLD$ENDL")
@@ -229,7 +237,7 @@ object ClientServerTests extends TestSuite {
       // to interrupt such an execution. The two options are to leave the server running
       // for an unbounded duration, or kill the server process and take a performance hit
       // on the next cold startup. Mill chooses the second option.
-      val res1 = intercept[Exception] {
+      val res1 = assertThrows[Exception] {
         tester.apply(args = Array(" World"), forceFailureForTestingMillisDelay = 100)
       }
 
@@ -238,14 +246,22 @@ object ClientServerTests extends TestSuite {
       val logLines = os.read.lines(os.Path(pathStr, os.pwd) / "server.log")
 
       assert(
-        logLines.takeRight(5) ==
+        logLines.takeRight(2) ==
           Seq(
             "server-0 client interrupted while server was executing command",
-            "server-0 exiting server",
-            "server-0 server loop ended",
-            "server-0 finally exitServer",
             "server-0 exiting server"
           )
+      )
+    }
+    test("longCommandNotInterrupted") {
+      // Make sure that when the command at 3000ms takes longer than the server
+      // timeout at 1000ms, the command still finishes running and the server doesn't
+      // shut down half way through
+      val tester = new Tester(testLogEvenWhenServerIdWrong = true, commandSleepMillis = 3000)
+      val res1 = tester(args = Array("world"))
+      assert(
+        res1.out == s"helloworld$ENDL",
+        res1.err == s"HELLOworld$ENDL"
       )
     }
 

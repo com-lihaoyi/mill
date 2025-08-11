@@ -2,12 +2,10 @@
 // useful if you're migrating an existing project to mill.
 
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
-object `package` extends RootModule with PythonModule {
-  def pythonRequirementFiles = Task.Sources {
-    moduleDir / "requirements.txt"
-  }
+object `package` extends PythonModule {
+  def pythonRequirementFiles = Task.Sources("requirements.txt")
 }
 
 /** Usage

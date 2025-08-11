@@ -4,7 +4,8 @@ import coursier.core.Authentication
 import coursier.maven.MavenRepository
 import mill.api.Result
 import mill.api.Result.{Failure, Success}
-import mill.define.Task
+import mill.api.Task
+import mill.api.BuildCtx
 
 trait GitlabMavenRepository {
 
@@ -13,9 +14,10 @@ trait GitlabMavenRepository {
 
   def mavenRepository: Task[MavenRepository] = Task.Anon {
 
-    val gitlabAuth = tokenLookup.resolveGitlabToken(Task.env, sys.props.toMap, Task.workspace)
-      .map(auth => Authentication(auth.headers))
-      .map(auth => MavenRepository(gitlabRepository.url(), Some(auth)))
+    val gitlabAuth =
+      tokenLookup.resolveGitlabToken(Task.env, sys.props.toMap, BuildCtx.workspaceRoot)
+        .map(auth => Authentication(auth.headers))
+        .map(auth => MavenRepository(gitlabRepository.url(), Some(auth)))
 
     gitlabAuth match {
       case Result.Failure(msg) =>

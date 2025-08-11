@@ -1,11 +1,11 @@
 package mill
 package contrib.docker
 
-import mill.scalalib.JavaModule
+import mill.javalib.JavaModule
 import mill.api.ExecResult
-import mill.define.Discover
+import mill.api.Discover
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import os.Path
 import utest.*
 import utest.framework.TestPath
@@ -16,7 +16,7 @@ object DockerModuleTest extends TestSuite {
     if (isInstalled("podman")) "podman"
     else "docker"
 
-  object Docker extends TestBaseModule with JavaModule with DockerModule {
+  object Docker extends TestRootModule with JavaModule with DockerModule {
 
     override def artifactName = testArtifactName
 
@@ -62,11 +62,11 @@ object DockerModuleTest extends TestSuite {
     os.proc(getPathCmd, executable).call(check = false).exitCode == 0
   }
 
-  private def workspaceTest(m: mill.testkit.TestBaseModule)(t: UnitTester => Unit)(
+  private def workspaceTest(m: mill.testkit.TestRootModule)(t: UnitTester => Unit)(
       implicit tp: TestPath
   ): Unit = {
     if (isInstalled(testExecutable) && !scala.util.Properties.isWin)
-      t(UnitTester(m, testModuleSourcesPath))
+      UnitTester(m, testModuleSourcesPath).scoped(t)
     else {
       val identifier = tp.value.mkString("/")
       println(s"Skipping '$identifier' since no docker installation was found")
@@ -95,7 +95,7 @@ object DockerModuleTest extends TestSuite {
         assert(result.value == List(testArtifactName))
       }
 
-      "dockerEnv" - workspaceTest(Docker) { eval =>
+      test("dockerEnv") - workspaceTest(Docker) { eval =>
         // since stdout and stderr are inherited we can only test
         // that docker fails with wrong DOCKER_HOST
         val Left(ExecResult.Exception(error: os.SubprocessException, _)) =

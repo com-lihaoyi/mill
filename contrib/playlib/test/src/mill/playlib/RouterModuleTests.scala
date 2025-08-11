@@ -1,14 +1,14 @@
 package mill.playlib
 
 import mill.api.ExecResult
-import mill.define.{Cross, Discover}
+import mill.api.{Cross, Discover}
 import mill.scalalib.ScalaModule
-import mill.testkit.{TestBaseModule, UnitTester}
-import utest.{TestSuite, Tests, assert, _}
-import mill.util.TokenReaders._
+import mill.testkit.{TestRootModule, UnitTester}
+import utest.{TestSuite, Tests, assert, *}
+import mill.util.TokenReaders.*
 object RouterModuleTests extends TestSuite with PlayTestSuite {
 
-  trait HelloBase extends TestBaseModule
+  trait HelloBase extends TestRootModule
 
   trait HelloWorldModule extends mill.playlib.RouterModule with ScalaModule
 

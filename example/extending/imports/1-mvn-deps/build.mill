@@ -1,11 +1,11 @@
+//| mvnDeps: ["org.thymeleaf:thymeleaf:3.1.1.RELEASE"]
+
 // The following example shows how to import the library `org.thymeleaf:thymeleaf:3.1.1.RELEASE`
 // into your build, so you can use it at build-time to safely generate escaped HTML snippets
 // in your resource path for your application to use.
 
-//| mvnDeps: ["org.thymeleaf:thymeleaf:3.1.1.RELEASE"]
-
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 
@@ -36,17 +36,28 @@ object foo extends JavaModule {
 
 /** Usage
 
-> mill foo.compile
+> ./mill foo.compile
 compiling 1 Java source...
 ...
 
-> mill foo.run
+> ./mill foo.run
 generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>
 
-> mill show foo.assembly
+> ./mill show foo.assembly
 ".../out/foo/assembly.dest/out.jar"
 
 > ./out/foo/assembly.dest/out.jar # mac/linux
 generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>
 
 */
+
+// To customize the repositories used to resolve the `//| mvnDeps` dependencies used in your
+// `build.mill` file, you can add `//| repositories:` to your YAML header which takes a
+// list of strings of the same format. For example:
+//
+// ```
+// //| repositories:
+// //| - https://oss.sonatype.org/content/repositories/snapshots
+// //| mvnDeps:
+// //| - com.goyeau::mill-scalafix::0.5.1-14-4d3f5ea-SNAPSHOT
+// ```

@@ -5,17 +5,18 @@ import os.Path
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
-import java.util.concurrent.{PriorityBlockingQueue, ThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.{PriorityBlockingQueue, ThreadFactory, ThreadPoolExecutor, TimeUnit}
 import mill.api.Logger
 
-private object ExecutionContexts {
+object ExecutionContexts {
 
   /**
    * Execution context that runs code immediately when scheduled, without
    * spawning a separate thread or thread-pool. Used to turn parallel-async
    * Future code into nice single-threaded code without needing to rewrite it
    */
-  object RunNow extends mill.define.TaskCtx.Fork.Impl {
+  object RunNow extends mill.api.TaskCtx.Fork.Impl {
     def await[T](t: Future[T]): T = Await.result(t, Duration.Inf)
     def execute(runnable: Runnable): Unit = runnable.run()
     def reportFailure(cause: Throwable): Unit = {}
@@ -23,7 +24,7 @@ private object ExecutionContexts {
 
     def blocking[T](t: => T): T = t
     def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit
-        ctx: mill.define.TaskCtx
+        ctx: mill.api.TaskCtx
     ): Future[T] =
       Future.successful(t(ctx.log))
   }
@@ -32,19 +33,8 @@ private object ExecutionContexts {
    * A simple thread-pool-based ExecutionContext with configurable thread count
    * and AutoCloseable support
    */
-  class ThreadPool(threadCount0: Int) extends mill.define.TaskCtx.Fork.Impl {
+  class ThreadPool(executor: ThreadPoolExecutor) extends mill.api.TaskCtx.Fork.Impl {
     def await[T](t: Future[T]): T = blocking { Await.result(t, Duration.Inf) }
-    private val executor: ThreadPoolExecutor = new ThreadPoolExecutor(
-      threadCount0,
-      threadCount0,
-      0,
-      TimeUnit.SECONDS,
-      // Use a `Deque` rather than a normal `Queue`, with the various `poll`/`take`
-      // operations reversed, providing elements in a LIFO order. This ensures that
-      // child `fork.async` tasks always take priority over parent tasks, avoiding
-      // large numbers of blocked parent tasks from piling up
-      new PriorityBlockingQueue[Runnable]()
-    )
 
     def updateThreadCount(delta: Int): Unit = synchronized {
       if (delta > 0) {
@@ -71,7 +61,7 @@ private object ExecutionContexts {
         0,
         () =>
           os.dynamicPwdFunction.withValue(() => submitterPwd) {
-            mill.define.SystemStreams.withStreams(submitterStreams) {
+            mill.api.SystemStreamsUtils.withStreams(submitterStreams) {
               runnable.run()
             }
           }
@@ -113,7 +103,7 @@ private object ExecutionContexts {
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
     def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit
-        ctx: mill.define.TaskCtx
+        ctx: mill.api.TaskCtx
     ): Future[T] = {
       val logger = new MultiLogger(
         new PrefixLogger(ctx.log, Seq(key), ctx.log.keySuffix, message),
@@ -136,7 +126,7 @@ private object ExecutionContexts {
         run0 = () => {
           val result = scala.util.Try(logger.withPromptLine {
             os.dynamicPwdFunction.withValue(() => makeDest()) {
-              mill.define.SystemStreams.withStreams(logger.streams) {
+              mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                 t(logger)
               }
             }
@@ -148,5 +138,31 @@ private object ExecutionContexts {
       executor.execute(runnable)
       promise.future
     }
+  }
+
+  private val executorCounter = new AtomicInteger
+  def createExecutor(threadCount: Int): ThreadPoolExecutor = {
+    val executorIndex = executorCounter.incrementAndGet()
+    val threadCounter = new AtomicInteger
+    new ThreadPoolExecutor(
+      threadCount,
+      threadCount,
+      0,
+      TimeUnit.SECONDS,
+      // Use a `Deque` rather than a normal `Queue`, with the various `poll`/`take`
+      // operations reversed, providing elements in a LIFO order. This ensures that
+      // child `fork.async` tasks always take priority over parent tasks, avoiding
+      // large numbers of blocked parent tasks from piling up
+      new PriorityBlockingQueue[Runnable](),
+      runnable => {
+        val threadIndex = threadCounter.incrementAndGet()
+        val t = new Thread(
+          runnable,
+          s"execution-contexts-threadpool-$executorIndex-thread-$threadIndex"
+        )
+        t.setDaemon(true)
+        t
+      }
+    )
   }
 }

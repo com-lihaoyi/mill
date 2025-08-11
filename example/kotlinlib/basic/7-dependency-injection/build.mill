@@ -1,7 +1,7 @@
 //// SNIPPET:BUILD
 
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 import kotlinlib.ksp.KspModule
 
 object dagger extends KspModule {
@@ -16,24 +16,24 @@ object dagger extends KspModule {
 
   def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
-  def mvnDeps = Agg(
+  def mvnDeps = Seq(
     mvn"com.google.dagger:dagger-compiler:2.55"
   )
 
-  def kotlinSymbolProcessors = Agg(
+  def kotlinSymbolProcessors = Seq(
     mvn"com.google.dagger:dagger-compiler:2.55"
   )
 
-  object test extends KspTests with TestModule.Junit5 {
+  object test extends KspTests, TestModule.Junit5 {
 
     def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
-    def mvnDeps = super.mvnDeps() ++ Agg(
+    def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"com.google.dagger:dagger-compiler:2.55",
-      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
 
-    def kotlinSymbolProcessors = Agg(
+    def kotlinSymbolProcessors = Seq(
       mvn"com.google.dagger:dagger-compiler:2.55"
     )
 
@@ -58,9 +58,9 @@ Random number: ...
 
 > ./mill show dagger.test
 ...
-[
-  "",
-  [
+{
+  "msg": "",
+  "results": [
     {
       "fullyQualifiedName": "com.example.dagger.TestConstantNumberGeneratorInjection",
       "selector": "SuiteSelector",
@@ -74,7 +74,7 @@ Random number: ...
       "status": "Success"
     }
   ]
-]
+}
 ...
 
 > ls out/dagger/test/generatedSourcesWithKSP.dest/generated/ksp/main/java/com/example/dagger/

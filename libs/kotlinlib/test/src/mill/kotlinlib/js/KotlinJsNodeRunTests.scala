@@ -2,9 +2,9 @@ package mill
 package kotlinlib
 package js
 
-import mill.define.Discover
-import mill.define.ExecutionPaths
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.api.Discover
+import mill.api.ExecutionPaths
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, test}
 
 object KotlinJsNodeRunTests extends TestSuite {
@@ -13,7 +13,7 @@ object KotlinJsNodeRunTests extends TestSuite {
   private val kotlinVersion = "1.9.25"
   private val expectedSuccessOutput = "Hello, world"
 
-  object module extends TestBaseModule {
+  object module extends TestRootModule {
 
     private val matrix = for {
       splits <- Seq(true, false)
@@ -53,50 +53,54 @@ object KotlinJsNodeRunTests extends TestSuite {
     // region with split per module
 
     test("split - plain module") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      // plain modules cannot handle the dependencies, so if there are multiple js files, it will fail
-      val Left(_) = eval.apply(module.foo(true, "plain").run()): @unchecked
+        // plain modules cannot handle the dependencies, so if there are multiple js files, it will fail
+        val Left(_) = eval.apply(module.foo(true, "plain").run()): @unchecked
+      }
     }
 
     test("split - es module") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val command = module.foo(true, "es").run()
-      val Right(_) = eval.apply(command): @unchecked
+        val command = module.foo(true, "es").run()
+        val Right(_) = eval.apply(command): @unchecked
 
-      assertLogContains(eval, command, expectedSuccessOutput)
+        assertLogContains(eval, command, expectedSuccessOutput)
+      }
     }
 
     test("split - amd module") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      // amd modules have "define" method, it is not known by Node.js
-      val Left(_) = eval.apply(module.foo(true, "amd").run()): @unchecked
+        // amd modules have "define" method, it is not known by Node.js
+        val Left(_) = eval.apply(module.foo(true, "amd").run()): @unchecked
+      }
     }
 
     test("split - commonjs module") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val command = module.foo(true, "commonjs").run()
-      val Right(_) = eval.apply(command): @unchecked
+        val command = module.foo(true, "commonjs").run()
+        val Right(_) = eval.apply(command): @unchecked
 
-      assertLogContains(eval, command, expectedSuccessOutput)
+        assertLogContains(eval, command, expectedSuccessOutput)
+      }
     }
-
     test("split - umd module") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val command = module.foo(true, "umd").run()
-      val Right(_) = eval.apply(command): @unchecked
+        val command = module.foo(true, "umd").run()
+        val Right(_) = eval.apply(command): @unchecked
 
-      assertLogContains(eval, command, expectedSuccessOutput)
+        assertLogContains(eval, command, expectedSuccessOutput)
+      }
     }
-
     test("split - no module") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val Left(_) = eval.apply(module.foo(true, "no").run()): @unchecked
+        val Left(_) = eval.apply(module.foo(true, "no").run()): @unchecked
+      }
     }
 
     // endregion
@@ -104,55 +108,59 @@ object KotlinJsNodeRunTests extends TestSuite {
     // region without split per module
 
     test("no split - plain module") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val command = module.foo(false, "plain").run()
-      val Right(_) = eval.apply(command): @unchecked
+        val command = module.foo(false, "plain").run()
+        val Right(_) = eval.apply(command): @unchecked
 
-      assertLogContains(eval, command, expectedSuccessOutput)
+        assertLogContains(eval, command, expectedSuccessOutput)
+      }
     }
 
     test("no split - es module") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val command = module.foo(false, "es").run()
-      val Right(_) = eval.apply(command): @unchecked
+        val command = module.foo(false, "es").run()
+        val Right(_) = eval.apply(command): @unchecked
 
-      assertLogContains(eval, command, expectedSuccessOutput)
+        assertLogContains(eval, command, expectedSuccessOutput)
+      }
     }
 
     test("no split - amd module") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      // amd modules have "define" method, it is not known by Node.js
-      val Left(_) = eval.apply(module.foo(false, "amd").run()): @unchecked
+        // amd modules have "define" method, it is not known by Node.js
+        val Left(_) = eval.apply(module.foo(false, "amd").run()): @unchecked
+      }
     }
 
     test("no split - commonjs module") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val command = module.foo(false, "commonjs").run()
-      val Right(_) = eval.apply(command): @unchecked
+        val command = module.foo(false, "commonjs").run()
+        val Right(_) = eval.apply(command): @unchecked
 
-      assertLogContains(eval, command, expectedSuccessOutput)
+        assertLogContains(eval, command, expectedSuccessOutput)
+      }
     }
-
     test("no split - umd module") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val command = module.foo(false, "umd").run()
-      val Right(_) = eval.apply(command): @unchecked
+        val command = module.foo(false, "umd").run()
+        val Right(_) = eval.apply(command): @unchecked
 
-      assertLogContains(eval, command, expectedSuccessOutput)
+        assertLogContains(eval, command, expectedSuccessOutput)
+      }
     }
-
     test("no split - no module") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val command = module.foo(false, "no").run()
-      val Right(_) = eval.apply(command): @unchecked
+        val command = module.foo(false, "no").run()
+        val Right(_) = eval.apply(command): @unchecked
 
-      assertLogContains(eval, command, expectedSuccessOutput)
+        assertLogContains(eval, command, expectedSuccessOutput)
+      }
     }
 
     // endregion

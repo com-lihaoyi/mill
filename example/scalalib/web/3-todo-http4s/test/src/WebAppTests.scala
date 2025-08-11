@@ -1,9 +1,9 @@
 package webapp
 
-import utest._
-import cats.effect._
+import utest.*
+import cats.effect.*
 import cats.effect.testing.utest.EffectTestSuite
-import org.http4s.client._
+import org.http4s.client.*
 
 object WebAppTests extends EffectTestSuite[IO] {
 

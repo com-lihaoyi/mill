@@ -1,11 +1,11 @@
 package build
-import mill._, scalalib._, scalajslib._
-import mill.scalajslib.api._
+import mill.*, scalalib.*, scalajslib.*
+import mill.scalajslib.api.*
 
 object wasm extends ScalaJSModule {
-  override def scalaVersion = "2.13.14"
+  override def scalaVersion = "3.7.1"
 
-  override def scalaJSVersion = "1.17.0"
+  override def scalaJSVersion = "1.19.0"
 
   override def moduleKind = ModuleKind.ESModule
 

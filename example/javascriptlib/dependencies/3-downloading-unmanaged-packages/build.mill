@@ -4,7 +4,7 @@
 // library, one of Mill's xref:fundamentals/bundled-libraries.adoc[Bundled Libraries].
 //
 package build
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object foo extends TypeScriptModule {
   def unmanagedDeps = Task {
@@ -16,7 +16,7 @@ object foo extends TypeScriptModule {
 }
 
 /** Usage
-> mill foo.run e b k a l m o p
+> ./mill foo.run e b k a l m o p
 Sorted with lodash: [a,b,e,k,l,m,o,p]
 */
 

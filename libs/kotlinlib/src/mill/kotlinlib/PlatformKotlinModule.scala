@@ -1,6 +1,6 @@
 package mill.kotlinlib
 
-import mill.scalalib.PlatformModuleBase
+import mill.javalib.PlatformModuleBase
 
 /**
  * A [[KotlinModule]] intended for defining `.jvm`/`.js`/etc. submodules

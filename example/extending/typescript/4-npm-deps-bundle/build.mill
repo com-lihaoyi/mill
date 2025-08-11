@@ -15,12 +15,12 @@
 //    into a `def prepareRun` task.
 
 package build
-import mill._
+import mill.*
 
 trait TypeScriptModule extends Module {
   def moduleDeps: Seq[TypeScriptModule] = Nil
 
-  def npmDeps: T[Seq[String]] = Task { Seq.empty[String] }
+  def npmDeps: T[Seq[String]] = Task { Seq() }
 
   def transitiveNpmDeps: T[Seq[String]] = Task {
     Task.traverse(moduleDeps)(_.npmDeps)().flatten ++ npmDeps()
@@ -84,7 +84,7 @@ trait TypeScriptModule extends Module {
     (mainFile, env)
   }
 
-  def run(args: mill.define.Args) = Task.Command {
+  def run(args: mill.api.Args) = Task.Command {
     val (mainFile, env) = prepareRun()
     os.call(("node", mainFile, args.value), stdout = os.Inherit, env = env)
   }
@@ -113,10 +113,10 @@ object qux extends TypeScriptModule {
 
 /** Usage
 
-> mill qux.run James Bond prof
+> ./mill qux.run James Bond prof
 Hello James Bond Professor
 
-> mill show qux.bundle
+> ./mill show qux.bundle
 ".../out/qux/bundle.dest/bundle.js"
 
 > node out/qux/bundle.dest/bundle.js James Bond prof

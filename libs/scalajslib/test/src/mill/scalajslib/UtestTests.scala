@@ -2,13 +2,13 @@ package mill.scalajslib
 
 import mill._
 import mill.api.ExecResult
+import mill.javalib.testrunner.TestResult
 import mill.testkit.UnitTester
-import mill.testrunner.TestResult
 import utest._
 
 object UtestTests extends TestSuite {
   import CompileLinkTests._
-  def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
+  def runTests(testTask: api.Task.Named[(msg: String, results: Seq[TestResult])])
       : Unit =
     UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
       val Left(ExecResult.Failure(_)) = eval(testTask): @unchecked
@@ -68,18 +68,18 @@ object UtestTests extends TestSuite {
       testAllMatrix((scala, scalaJS) => checkUtest(scala, scalaJS, cached = true))
     }
 
-    def checkInheritedTargets[A](target: ScalaJSModule => T[A], expected: A) =
+    def checkInheritedTasks[A](task: ScalaJSModule => T[A], expected: A) =
       UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
-        val Right(mainResult) = eval(target(HelloJSWorld.inherited)): @unchecked
-        val Right(testResult) = eval(target(HelloJSWorld.inherited.test)): @unchecked
+        val Right(mainResult) = eval(task(HelloJSWorld.inherited)): @unchecked
+        val Right(testResult) = eval(task(HelloJSWorld.inherited.test)): @unchecked
         assert(mainResult.value == expected)
         assert(testResult.value == expected)
       }
     test("test-scalacOptions") {
-      checkInheritedTargets(_.scalacOptions, Seq("-deprecation"))
+      checkInheritedTasks(_.scalacOptions, Seq("-deprecation"))
     }
     test("test-scalaOrganization") {
-      checkInheritedTargets(_.scalaOrganization, "org.example")
+      checkInheritedTasks(_.scalaOrganization, "org.example")
     }
   }
 }

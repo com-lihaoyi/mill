@@ -1,15 +1,17 @@
 package build
 
-import mill._
+import mill.*
 import mill.util.Jvm
 
 import kotlinlib.KotlinModule
 import kotlinlib.ktlint.KtlintModule
+import mill.api.BuildCtx
 
-object `package` extends RootModule with KotlinModule with KtlintModule {
+object `package` extends KotlinModule, KtlintModule {
   def kotlinVersion = "1.9.24"
 
-  def ktlintConfig = Some(PathRef(Task.workspace / ".editorconfig"))
+  def ktlintConfig0 = Task.Source(BuildCtx.workspaceRoot / ".editorconfig")
+  def ktlintConfig = Some(ktlintConfig0())
 }
 
 // This example shows how to use the https://github.com/pinterest/ktlint[KtLint]

@@ -13,7 +13,10 @@ trait BuildGenBase[M, D, I] {
   type C
   def convertWriteOut(cfg: C, shared: BuildGenUtil.BasicConfig, input: I): Unit = {
     val output = convert(input, cfg, shared)
-    writeBuildObject(if (shared.merge.value) compactBuildTree(output) else output)
+    writeBuildObject(
+      if (shared.merge.value) compactBuildTree(output) else output,
+      shared.jvmId
+    )
   }
 
   def getModuleTree(input: I): Tree[Node[Option[M]]]
@@ -47,7 +50,7 @@ trait BuildGenBase[M, D, I] {
     moduleOptionTree.map(optionalBuild =>
       optionalBuild.copy(value =
         optionalBuild.value.fold(
-          BuildObject(SortedSet("mill._"), SortedMap.empty, Seq("RootModule", "Module"), "", "")
+          BuildObject(SortedSet("mill._"), SortedMap.empty, Seq("Module"), "", "")
         )(moduleModel => {
           val name = getArtifactId(moduleModel)
           println(s"converting module $name")
@@ -61,7 +64,6 @@ trait BuildGenBase[M, D, I] {
               BuildGenUtil.renderImports(
                 shared.baseModule,
                 isNested,
-                moduleNodes.size,
                 extraImports
               ),
             companions =
@@ -105,6 +107,6 @@ object BuildGenBase {
     override def getModuleTree(input: Tree[Node[M]]): Tree[Node[Option[M]]] =
       // TODO consider filtering out projects without the `java` plugin applied in Gradle too
       input.map(node => node.copy(value = Some(node.value)))
-    override def extraImports: Seq[String] = Seq.empty
+    override def extraImports: Seq[String] = Seq()
   }
 }

@@ -1,9 +1,9 @@
 // First, make your module extend `pythonlib.RuffModule`.
 
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
-object `package` extends RootModule with PythonModule with RuffModule
+object `package` extends PythonModule, RuffModule
 
 // You can reformat your project's code by running the `ruffFormat` task.
 
@@ -19,7 +19,7 @@ class IntWrapper:
 print(IntWrapper(2).plus(IntWrapper(3)).x)
 ...
 
-> mill ruffFormat --diff # you can also pass in extra arguments understood by `ruff format`
+> ./mill ruffFormat --diff # you can also pass in extra arguments understood by `ruff format`
 error: ...
 error: @@ -1,7 +1,12 @@
 error:  from typing import Self
@@ -41,7 +41,7 @@ error:  print(IntWrapper(2).plus(IntWrapper(3)).x)
 error: ...
 error: 1 file would be reformatted
 
-> mill ruffFormat
+> ./mill ruffFormat
 ...1 file reformatted
 
 > cat src/main.py # the file is now correctly formatted
@@ -64,7 +64,7 @@ print(IntWrapper(2).plus(IntWrapper(3)).x)
 
 > echo indent-width=2 > ruff.toml
 
-> mill ruffFormat
+> ./mill ruffFormat
 ...1 file reformatted
 
 > cat src/main.py # the file is now correctly formatted with 2 spaces indentation
@@ -95,5 +95,5 @@ print(IntWrapper(2).plus(IntWrapper(3)).x)
 // shorter name that's easier to type.
 
 /** Usage
-> mill mill.pythonlib.RuffModule/formatAll
+> ./mill mill.pythonlib.RuffModule/formatAll
 */

@@ -13,7 +13,7 @@ object foo extends Module {
   }
 }
 
-object bar extends mill.define.TaskModule {
+object bar extends mill.api.DefaultTaskModule {
   // make sure it works with private tasks as well
   private def barTask = Task.Source("bar.txt")
 
@@ -26,5 +26,5 @@ object bar extends mill.define.TaskModule {
     barHelper(barTask().path)
   }
 
-  def defaultCommandName(): String = "barCommand"
+  def defaultTask(): String = "barCommand"
 }

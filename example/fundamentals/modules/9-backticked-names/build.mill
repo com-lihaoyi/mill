@@ -1,6 +1,6 @@
 package build
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 
 object `hyphenated-module` extends Module {
   def `hyphenated-task` = Task {

@@ -10,23 +10,22 @@ For details about including plugins in your `build.mill` read xref:extending/imp
 [CAUTION]
 --
 When using one of these contribution modules, it is important that the versions you load match your mill version.
-To facilitate this, Mill will automatically replace the `$MILL_VERSION` literal in your ivy imports with the correct value.
-You can also leave the version completely empty to default to the mill version (but don't forget to keep the trailing colon).
+To facilitate this, Mill will automatically replace the `$MILL_VERSION` literal in your mvnDeps with the correct value.
+// You can also leave the version completely empty to default to the mill version (but don't forget to keep the trailing colon).
 
 For instance:
 
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
+//| mvnDeps: ["com.lihaoyi::mill-contrib-bloop:$MILL_VERSION"]
 ----
 
-or
+// or
 
-[source,scala]
-----
-import $ivy.`com.lihaoyi::mill-contrib-bloop:`
-----
-
+// [source,scala]
+// ----
+// //| mvnDeps: ["com.lihaoyi::mill-contrib-bloop:]"
+// ----
 --
 
 == Importing Contrib Modules
@@ -38,7 +37,6 @@ include::partial$example/extending/imports/3-contrib-dep.adoc[]
 
 // See also the list in nav.adoc
 * xref:contrib/artifactory.adoc[]
-* xref:contrib/bintray.adoc[]
 * xref:contrib/buildinfo.adoc[]
 * xref:contrib/codeartifact.adoc[]
 * xref:contrib/docker.adoc[]
@@ -49,7 +47,6 @@ include::partial$example/extending/imports/3-contrib-dep.adoc[]
 * xref:contrib/proguard.adoc[]
 * xref:contrib/scalapblib.adoc[]
 * xref:contrib/scoverage.adoc[]
-* xref:contrib/sonatypecentral.adoc[]
 * xref:contrib/testng.adoc[]
 * xref:contrib/twirllib.adoc[]
 * xref:contrib/versionfile.adoc[]

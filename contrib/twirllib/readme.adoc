@@ -10,10 +10,11 @@ Also note that twirl templates get compiled into scala code, so you also need to
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-twirl:$MILL_VERSION"]
 package build
-import mill.scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
+import mill.scalalib._
+import mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
 // ...
@@ -48,10 +49,11 @@ directory. This directory must be added to the generated sources of the module t
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-twirl:$MILL_VERSION"]
 package build
-import mill.scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
+import mill.scalalib._
+import mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.5.1"
@@ -90,14 +92,15 @@ To add additional imports to all of the twirl templates, override `twirlImports`
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION"]
 package build
-import mill.scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
+import mill.scalalib._
+import mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.5.1"
-  def twirlScalaVersion = "2.13.8"
+  def twirlScalaVersion = "2.13.16"
   override def twirlImports = super.twirlImports() ++ Seq("my.additional.stuff._", "my.other.stuff._")
   def generatedSources = Task { Seq(compileTwirl().classes) }
 }
@@ -135,10 +138,11 @@ To add additional formats, override `twirlFormats` in your build:
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION"]
 package build
-import mill.scalalib._
 
-import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
+import mill.scalalib._
+import mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.5.1"

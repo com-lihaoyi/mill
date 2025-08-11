@@ -1,11 +1,11 @@
 package mill.exec
 
-import mill.define.Task
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.api.Task
+import mill.testkit.{TestRootModule, UnitTester}
 
 import utest.*
 
-class Checker[T <: mill.testkit.TestBaseModule](
+class Checker[T <: mill.testkit.TestRootModule](
     module: T,
     threadCount: Option[Int] = Some(1),
     sourceRoot: os.Path = null
@@ -15,7 +15,7 @@ class Checker[T <: mill.testkit.TestBaseModule](
   val execution = UnitTester(module, sourceRoot, threads = threadCount).execution
 
   def apply(
-      target: Task[?],
+      task: Task[?],
       expValue: Any,
       expEvaled: Seq[Task[?]],
       // How many "other" tasks were evaluated other than those listed above.
@@ -27,7 +27,7 @@ class Checker[T <: mill.testkit.TestBaseModule](
       secondRunNoOp: Boolean = true
   ) = {
 
-    val evaled = execution.executeTasks(Seq(target))
+    val evaled = execution.executeTasks(Seq(task))
 
     val (matchingReturnedEvaled, extra) =
       evaled.uncached.partition(expEvaled.contains)
@@ -41,7 +41,7 @@ class Checker[T <: mill.testkit.TestBaseModule](
 
     // Second time the value is already cached, so no evaluation needed
     if (secondRunNoOp) {
-      val evaled2 = execution.executeTasks(Seq(target))
+      val evaled2 = execution.executeTasks(Seq(task))
       val expectedSecondRunEvaluated = Seq()
       assert(
         evaled2.values.map(_.value) == evaled.values.map(_.value),

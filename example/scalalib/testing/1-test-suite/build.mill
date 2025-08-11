@@ -1,11 +1,11 @@
 //// SNIPPET:BUILD1
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.15"
+  def scalaVersion = "3.7.1"
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -24,23 +24,23 @@ object foo extends ScalaModule {
 
 /** Usage
 
-> mill foo.compile
+> ./mill foo.compile
 compiling 1 ... source...
 
-> mill foo.test.compile
+> ./mill foo.test.compile
 compiling 2 ... source...
 
-> mill foo.test.testForked
+> ./mill foo.test.testForked
 ...foo.FooTests...hello ...
 ...foo.FooTests...world ...
 ...foo.FooMoreTests...hello ...
 ...foo.FooMoreTests...world ...
 
-> mill foo.test # same as above, `.test` is the default task for the `test` module
+> ./mill foo.test # same as above, `.test` is the default task for the `test` module
 ...foo.FooTests...hello ...
 ...foo.FooTests...world ...
 
-> mill foo.test.testOnly foo.FooTests # explicitly select the test class you wish to run
+> ./mill foo.test.testOnly foo.FooTests # explicitly select the test class you wish to run
 ...foo.FooTests...hello ...
 ...foo.FooTests...world ...
 
@@ -64,17 +64,17 @@ compiling 2 ... source...
 //
 //// SNIPPET:BUILD2
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.15"
+  def scalaVersion = "3.7.1"
 
-  object test extends ScalaTests with TestModule.Utest {
-    def utestVersion = "0.8.5"
+  object test extends ScalaTests, TestModule.Utest {
+    def utestVersion = "0.8.9"
   }
 }
 
 //// SNIPPET:END
 /** Usage
 
-> mill bar.test
+> ./mill bar.test
 ...bar.BarTests...hello ...
 ...bar.BarTests...world ...
 
@@ -85,7 +85,7 @@ object bar extends ScalaModule {
 
 /** Usage
 
-> mill __.test
+> ./mill __.test
 ...bar.BarTests...hello ...
 ...bar.BarTests...world ...
 ...foo.FooTests...hello ...
@@ -96,13 +96,13 @@ object bar extends ScalaModule {
 
 // Mill provides three ways of running tests
 /** Usage
-> mill foo.test
+> ./mill foo.test
 */
 // `foo.test`: runs tests in a subprocess in an empty `sandbox/` folder. This is short
 // for `foo.test.testForked`, as `testForked` is the default task for ``TestModule``s.
 
 /** Usage
-> mill foo.test.testCached
+> ./mill foo.test.testCached
 */
 // `foo.test.testCached`: runs the tests in an empty `sandbox/` folder and caches the results
 // if successful. This can be handy if you are you working on some upstream modules and only
@@ -112,7 +112,7 @@ object bar extends ScalaModule {
 //
 
 /** Usage
-> mill foo.test.testLocal
+> ./mill foo.test.testLocal
 
 */
 // `foo.test.testLocal`: runs tests in an isolated classloader as part of the main Mill process.
@@ -137,7 +137,7 @@ object bar extends ScalaModule {
 //// SNIPPET:RUNSINGLE
 /** Usage
 
-> mill foo.test foo.FooMoreTests
+> ./mill foo.test foo.FooMoreTests
 ...foo.FooMoreTests...hello ...
 
 */
@@ -146,7 +146,7 @@ object bar extends ScalaModule {
 
 /** Usage
 
-> mill bar.test bar.BarTests.hello
+> ./mill bar.test bar.BarTests.hello
 ...bar.BarTests...hello ...
 
 */

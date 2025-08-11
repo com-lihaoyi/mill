@@ -2,19 +2,19 @@ package mill.contrib.gitlab
 
 import mill.T
 import mill.api.ExecResult.Failure
-import mill.define.Discover
-import mill.scalalib.publish.PomSettings
+import mill.api.Discover
+import mill.javalib.publish.PomSettings
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assertMatch, test}
 import mill.util.TokenReaders._
 object GitlabModuleTests extends TestSuite {
 
   val emptyLookup = new GitlabTokenLookup {
-    override def tokenSearchOrder = Seq.empty
+    override def tokenSearchOrder = Seq()
   }
 
-  object GitlabModule extends TestBaseModule with GitlabPublishModule {
+  object GitlabModule extends TestRootModule with GitlabPublishModule {
     override def publishRepository: ProjectRepository =
       ProjectRepository("http://gitlab.local", 0)
 
@@ -30,7 +30,7 @@ object GitlabModuleTests extends TestSuite {
 
   // GitlabMavenRepository does not need to be a module, but it needs to be invoked from one.
   // So for test purposes we make a module with it to get a Ctx for evaluation
-  object GLMvnRepo extends TestBaseModule with GitlabMavenRepository {
+  object GLMvnRepo extends TestRootModule with GitlabMavenRepository {
     override def gitlabRepository: GitlabPackageRepository =
       InstanceRepository("https://gl.local")
 

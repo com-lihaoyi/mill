@@ -1,21 +1,22 @@
 package build.runner.server
 
 import mill._
+import millbuild.*
 
 /**
- * This module contains the core logic around the Mill background server,
+ * This module contains the core logic around the Mill background daemon,
  * and tests that exercise is together with [[build.core.constants]], without
  * any Mill-related business logic
  */
-object `package` extends RootModule with build.MillPublishScalaModule {
-  def moduleDeps = Seq(build.runner.client, build.core.api)
+object `package` extends MillPublishScalaModule {
+  def moduleDeps = Seq(build.runner.launcher, build.core.api.daemon)
 
   def mvnDeps = Seq(
-    build.Deps.sourcecode,
-    build.Deps.osLib,
-    build.Deps.mainargs,
-    build.Deps.upickle,
-    build.Deps.pprint,
-    build.Deps.fansi
+    Deps.sourcecode,
+    Deps.osLib,
+    Deps.mainargs,
+    Deps.upickle,
+    Deps.pprint,
+    Deps.fansi
   )
 }

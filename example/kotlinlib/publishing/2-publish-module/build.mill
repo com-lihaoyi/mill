@@ -1,8 +1,8 @@
 //// SNIPPET:BUILD
 package build
-import mill._, kotlinlib._, publish._
+import mill.*, kotlinlib.*, publish.*
 
-object foo extends KotlinModule with PublishModule {
+object foo extends KotlinModule, PublishModule {
 
   def kotlinVersion = "1.9.24"
 
@@ -26,16 +26,7 @@ object foo extends KotlinModule with PublishModule {
 
 /** Usage
 
-> mill foo.publishLocal
+> ./mill foo.publishLocal
 Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...
 
 */
-
-// `publishLocal` accepts options like `--doc=false` and `--sources=false`,
-// to disable publishing javadoc JARs and source JARs, which are generated and
-// published by default. This can be helpful if you're not interested in javadoc JARs,
-// and javadoc generation fails, and you would rather address those errors later for example.
-
-// `publishLocal` also accepts `--transitive=true`, to also publish locally the
-// transitive dependencies of the module being published. This ensures the module
-// can be resolved from the local repository, with no missing dependencies.

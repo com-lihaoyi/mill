@@ -1,39 +1,62 @@
 package build.core.api
 
+import com.github.lolgab.mill.mima.{DirectMissingMethodProblem, ProblemFilter}
 import mill.contrib.buildinfo.BuildInfo
-import mill._
+import mill.*
+import mill.scalalib.*
+import millbuild.*
 
 /**
- * This module contains the core data types that are shared between Mill's
- * internal code and user-land code. Should have zero or minimal dependencies
- * to ensure the two codebases are not bound to the same versions of shared libraries
+ * This module contains the data types necessary for defining a Mill build:
+ * defining Tasks, Modules, helper code, and other related data structures.
  */
-object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
-  def moduleDeps = Seq(build.core.constants)
+object `package` extends MillStableScalaModule with BuildInfo {
+  def moduleDeps = Seq(build.core.api.daemon)
+
+  def compileMvnDeps = Task {
+    if (scalaVersion().startsWith("3.")) Seq(Deps.scalaCompiler(scalaVersion()))
+    else Seq(Deps.scalaReflect(scalaVersion()))
+  }
+
+  def mvnDeps = Seq(
+    Deps.millModuledefs,
+    // TODO: somewhere sourcecode is included transitively,
+    // but we need the latest version to bring the macro improvements.
+    Deps.sourcecode,
+    Deps.osLib,
+    Deps.mainargs,
+    Deps.upickle,
+    Deps.upickleNamedTuples,
+    Deps.pprint,
+    Deps.fansi,
+    Deps.mainargs,
+    Deps.fastparse
+  )
+
+  def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
+  def testMvnDeps = Seq(Deps.coursierInterface)
 
   def buildInfoPackageName = "mill.api"
+
   def buildInfoMembers = Seq(
     BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
-    BuildInfo.Value("millDocUrl", build.Settings.docUrl, "Mill documentation url."),
+    BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url."),
     BuildInfo.Value(
       "millReportNewIssueUrl",
-      build.Settings.newIssueUrl,
+      Settings.newIssueUrl,
       "URL to create a new issue in Mills issue tracker."
     ),
-    BuildInfo.Value(
-      "semanticDBVersion",
-      build.Deps.semanticDBscala.version,
-      "SemanticDB version."
-    ),
-    BuildInfo.Value(
-      "semanticDbJavaVersion",
-      build.Deps.semanticDbJava.version,
-      "Java SemanticDB plugin version."
-    ),
-    BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion)
+    BuildInfo.Value("coursierJvmIndexVersion", Deps.coursierJvmIndexVersion)
   )
 
-  def mvnDeps = Agg(
-    build.Deps.sbtTestInterface
-  )
+  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] =
+    super.mimaBinaryIssueFilters() ++ Seq(
+      // internal APIs
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.api.internal.Util.renderSecondsSuffix"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.api.internal.Util.renderSecondsSuffix$default$2"
+      )
+    )
 }

@@ -2,22 +2,26 @@ package mill
 package scalanativelib
 
 import mainargs.Flag
+import mill.{api => _, *}
+
 import mill.api.Result
-import mill.define.{Command, PathRef, Target, Task}
-import mill.scalalib.api.JvmWorkerUtil
-import mill.api.internal.{ScalaBuildTarget, ScalaNativeModuleApi, ScalaPlatform, internal}
-import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
-import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
+import mill.api.CrossVersion
+import mill.api.daemon.internal.bsp.ScalaBuildTarget
+import mill.javalib.api.JvmWorkerUtil
+import mill.api.daemon.internal.{ScalaNativeModuleApi, ScalaPlatform, internal}
+import mill.javalib.testrunner.{TestResult, TestRunner, TestRunnerUtils}
+import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.scalanativelib.api.*
 import mill.scalanativelib.worker.{
   ScalaNativeWorker,
   ScalaNativeWorkerExternalModule,
   api as workerApi
 }
-import mill.T
-import mill.constants.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 
+/**
+ * Core configuration required to compile a single Scala-Native module
+ */
 trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
@@ -35,7 +39,9 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     Task { JvmWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(Seq(
+    // Use the global jvmWorker's resolver rather than this module's resolver so
+    // we don't incorrectly override the worker classpath's scala-library version
+    jvmWorker().defaultResolver().classpath(Seq(
       Dep.millProjectModule(s"mill-libs-scalanativelib-worker-${scalaNativeWorkerVersion()}")
     ))
   }
@@ -137,7 +143,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   ) {
     def apply[T](block: ScalaNativeWorkerApi => T): T = {
       scalaNativeWorkerValue.withValue(bridgeFullClassPathValue) {
-        case (cl, bridge) => block(bridge)
+        bridge => block(bridge)
       }
     }
   }
@@ -285,7 +291,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   override def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
     os.call(
       cmd = nativeLink().path.toString +: args().value,
-      env = forkEnv(),
+      env = allForkEnv(),
       cwd = forkWorkingDir(),
       stdin = os.Inherit,
       stdout = os.Inherit,
@@ -302,7 +308,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         ScalaPlatform.Native,
-        jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
+        jars = scalaCompilerClasspath().map(_.path.toURI.toString).iterator.toSeq,
         jvmBuildTarget = None
       )
     ))
@@ -370,20 +376,16 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
 
 trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   override def resources: T[Seq[PathRef]] = super[ScalaNativeModule].resources
-  override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
+  override def testLocal(args: String*): Command[(msg: String, results: Seq[TestResult])] =
     Task.Command { testForked(args*)() }
   override protected def testTask(
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]
-  ): Task[(String, Seq[TestResult])] = Task.Anon {
+  ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
 
     val (close, framework) = withScalaNativeBridge.apply().apply(_.getFramework(
       nativeLink().path.toIO,
-      forkEnv() ++
-        Map(
-          EnvVars.MILL_TEST_RESOURCE_DIR -> resources().map(_.path).mkString(";"),
-          EnvVars.MILL_WORKSPACE_ROOT -> Task.workspace.toString
-        ),
+      allForkEnv(),
       toWorkerApi(logLevel()),
       testFramework()
     ))

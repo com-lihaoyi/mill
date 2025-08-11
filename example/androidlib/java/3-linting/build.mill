@@ -10,7 +10,7 @@
 //// SNIPPET:BUILD
 package build
 
-import mill._, androidlib._
+import mill.*, androidlib.*
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
@@ -19,17 +19,19 @@ object androidSdkModule0 extends AndroidSdkModule {
 
 // Actual android application with linting config
 object app extends AndroidAppModule {
-  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidCompileSdk = 35
 
   def androidApplicationId = "com.helloworld.app"
   def androidApplicationNamespace = "com.helloworld.app"
 
   // Set path to the custom `lint.xml` config file. It is usually at the root of the project
-  def androidLintConfigPath = Task { Some(PathRef(moduleDir / "lint.xml")) }
+  def androidLintConfigPath0 = Task.Sources("lint.xml")
+  def androidLintConfigPath = Task { androidLintConfigPath0().headOption }
 
   // Set path to the custom `baseline.xml` file. It is usually at the root of the project
-  def androidLintBaselinePath = Task { Some(PathRef(moduleDir / "lint-baseline.xml")) }
+  def androidLintBaselinePath0 = Task.Sources("lint-baseline.xml")
+  def androidLintBaselinePath = Task { androidLintBaselinePath0().headOption }
 
   // Set the linting report to be generated as both text and html files
   def androidLintReportFormat =
@@ -67,7 +69,7 @@ lint.xml
 src
 
 > cat out/app/androidLintRun.dest/report.txt # Display content of the linting report
-AndroidManifest.xml:3: ...Error: Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one [HardcodedDebugMode]
+AndroidManifest.xml:2: ...Error: Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one [HardcodedDebugMode]
 
 > sed -i.bak 's/ android:debuggable="true"//g' app/src/main/AndroidManifest.xml # Fix the HardcodedDebugMode warning issue from `AndroidManifest.xml`
 
@@ -91,7 +93,7 @@ AndroidManifest.xml:3: ...Error: Avoid hardcoding the debug mode; leaving it out
 > ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Output the changes in the report
-AndroidManifest.xml:3: ...Warning: Should explicitly set android:icon, there is no default [MissingApplicationIcon]
+AndroidManifest.xml:2: ...Warning: Should explicitly set android:icon, there is no default [MissingApplicationIcon]
 
 > sed -i.bak 's/severity="warning"/severity="ignore"/g' app/lint.xml # Revert the severity level of `MissingApplicationIcon`
 

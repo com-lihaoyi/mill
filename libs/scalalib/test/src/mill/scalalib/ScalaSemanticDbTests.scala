@@ -1,14 +1,14 @@
 package mill.scalalib
 
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import HelloWorldTests.*
-import mill.define.Discover
+import mill.api.Discover
 import mill.util.TokenReaders._
 
 object ScalaSemanticDbTests extends TestSuite {
 
-  object SemanticWorld extends TestBaseModule {
+  object SemanticWorld extends TestRootModule {
     object core extends SemanticModule
 
     lazy val millDiscover = Discover[this.type]
@@ -19,7 +19,14 @@ object ScalaSemanticDbTests extends TestSuite {
     test("semanticDbData") {
       def semanticDbFiles: Set[os.SubPath] = Set(
         os.sub / "META-INF/semanticdb/core/src/Main.scala.semanticdb",
-        os.sub / "META-INF/semanticdb/core/src/Result.scala.semanticdb"
+        os.sub / "META-INF/semanticdb/core/src/Result.scala.semanticdb",
+        os.sub / "Main0.class",
+        os.sub / "Main0$.class",
+        os.sub / "Main.class",
+        os.sub / "Main$.class",
+        os.sub / "Person$.class",
+        os.sub / "Person.class",
+        os.sub / "Main$delayedInit$body.class"
       )
 
       test("fromScratch") - UnitTester(SemanticWorld, sourceRoot = resourcePath).scoped { eval =>
@@ -76,10 +83,11 @@ object ScalaSemanticDbTests extends TestSuite {
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
-          val expectedSemFiles = semanticDbFiles ++ extraFiles.map(_._2)
+          val expectedSemFiles = semanticDbFiles.filter(_.ext != "class") ++ extraFiles.map(_._2)
+          val filteredOutputFiles = outputFiles.toSet.filter(_.ext != "class")
           assert(
             result.value.path == dataPath,
-            outputFiles.toSet == expectedSemFiles,
+            filteredOutputFiles == expectedSemFiles,
             result.evalCount > 0
           )
         }
@@ -98,9 +106,9 @@ object ScalaSemanticDbTests extends TestSuite {
           val Right(result) = eval.apply(SemanticWorld.core.semanticDbData): @unchecked
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
-          val expectedFiles = semanticDbFiles ++ extraFiles.map(_._2)
+          val expectedFiles = semanticDbFiles.filter(_.ext != "class") ++ extraFiles.map(_._2)
           assert(
-            outputFiles.toSet == expectedFiles,
+            outputFiles.toSet.filter(_.ext != "class") == expectedFiles,
             result.evalCount > 0
           )
         }
@@ -112,9 +120,10 @@ object ScalaSemanticDbTests extends TestSuite {
           val Right(result) = eval.apply(SemanticWorld.core.semanticDbData): @unchecked
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
-          val expectedFiles = semanticDbFiles ++ extraFiles.map(_._2).drop(1)
+          val expectedFiles =
+            semanticDbFiles.filter(_.ext != "class") ++ extraFiles.map(_._2).drop(1)
           assert(
-            outputFiles.toSet == expectedFiles,
+            outputFiles.toSet.filter(_.ext != "class") == expectedFiles,
             result.evalCount > 0
           )
         }

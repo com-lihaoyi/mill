@@ -2,8 +2,8 @@ package mill.contrib.gitlab
 
 import mill.api.Result
 import mill.contrib.gitlab.GitlabTokenLookup.*
-import mill.internal.DummyLogger
-import mill.scalalib.publish.*
+import mill.api.Logger.DummyLogger
+import mill.javalib.publish.*
 import utest.{TestSuite, Tests, assert, assertMatch, test}
 
 import scala.collection.mutable.ListBuffer
@@ -141,7 +141,10 @@ object GitlabTokenTests extends TestSuite {
 
       val artifact = Artifact("test.group", "id", "0.0.0")
 
-      publisher.publish(Seq(fakeFile -> "data.file"), artifact)
+      publisher.publish(
+        Map(os.SubPath("data.file") -> fakeFile),
+        artifact
+      )
 
       os.remove(fakeFile)
 

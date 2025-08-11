@@ -2,9 +2,9 @@ package mill
 package kotlinlib
 package js
 
-import mill.define.Discover
-import mill.testkit.{TestBaseModule, UnitTester}
-import utest.{TestSuite, Tests, assert, test}
+import mill.api.Discover
+import mill.testkit.{TestRootModule, UnitTester}
+import utest.{TestSuite, Tests, test, assert}
 
 object KotlinJsCompileTests extends TestSuite {
 
@@ -12,7 +12,7 @@ object KotlinJsCompileTests extends TestSuite {
 
   private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
 
-  object module extends TestBaseModule {
+  object module extends TestRootModule {
 
     object bar extends KotlinJsModule {
       def kotlinVersion = KotlinJsCompileTests.kotlinVersion
@@ -30,33 +30,35 @@ object KotlinJsCompileTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("compile") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val Right(result) = eval.apply(module.foo.compile): @unchecked
+        val Right(result) = eval.apply(module.foo.compile): @unchecked
 
-      val irDir = result.value.classes.path
-      assert(
-        os.isDir(irDir),
-        os.exists(irDir / "default/manifest"),
-        os.exists(irDir / "default/linkdata/package_foo"),
-        !os.walk(irDir).exists(_.ext == "klib")
-      )
+        val irDir = result.value.classes.path
+        assert(
+          os.isDir(irDir),
+          os.exists(irDir / "default/manifest"),
+          os.exists(irDir / "default/linkdata/package_foo"),
+          !os.walk(irDir).exists(_.ext == "klib")
+        )
+      }
     }
 
     test("failures") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val compilationUnit = module.foo.moduleDir / "src/foo/Hello.kt"
+        val compilationUnit = module.foo.moduleDir / "src/foo/Hello.kt"
 
-      val Right(_) = eval.apply(module.foo.compile): @unchecked
+        val Right(_) = eval.apply(module.foo.compile): @unchecked
 
-      os.write.over(compilationUnit, os.read(compilationUnit) + "}")
+        os.write.over(compilationUnit, os.read(compilationUnit) + "}")
 
-      val Left(_) = eval.apply(module.foo.compile): @unchecked
+        val Left(_) = eval.apply(module.foo.compile): @unchecked
 
-      os.write.over(compilationUnit, os.read(compilationUnit).dropRight(1))
+        os.write.over(compilationUnit, os.read(compilationUnit).dropRight(1))
 
-      val Right(_) = eval.apply(module.foo.compile): @unchecked
+        val Right(_) = eval.apply(module.foo.compile): @unchecked
+      }
     }
   }
 

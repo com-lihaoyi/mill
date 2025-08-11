@@ -1,10 +1,10 @@
 package mill.scalalib
 
 import mill.{T, Task}
-import mill.define.{PathRef}
+import mill.api.{PathRef}
 import mill.api.ExecResult
-import mill.define.{Discover, Evaluator}
-import mill.scalalib.publish.{
+import mill.api.{Discover, Evaluator}
+import mill.javalib.publish.{
   Developer,
   License,
   PackagingType,
@@ -13,12 +13,12 @@ import mill.scalalib.publish.{
   VersionScheme
 }
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 import mill.util.TokenReaders._
-import java.io.PrintStream
 import scala.jdk.CollectionConverters.*
 import scala.xml.NodeSeq
+import mill.javalib.internal
 
 object PublishModuleTests extends TestSuite {
 
@@ -32,7 +32,7 @@ object PublishModuleTests extends TestSuite {
     }
   }
 
-  object HelloWorldWithPublish extends TestBaseModule {
+  object HelloWorldWithPublish extends TestRootModule {
     object core extends HelloScalaModule with PublishModule {
       override def artifactName = "hello-world"
       override def publishVersion = "0.0.1"
@@ -48,14 +48,14 @@ object PublishModuleTests extends TestSuite {
       override def versionScheme = Some(VersionScheme.EarlySemVer)
 
       def checkSonatypeCreds(sonatypeCreds: String) = Task.Command {
-        PublishModule.checkSonatypeCreds(sonatypeCreds)()
+        internal.PublishModule.checkSonatypeCreds(sonatypeCreds)()
       }
     }
 
     lazy val millDiscover = Discover[this.type]
   }
 
-  object PomOnly extends TestBaseModule {
+  object PomOnly extends TestRootModule {
     object core extends JavaModule with PublishModule {
       override def pomPackagingType: String = PackagingType.Pom
       override def artifactName = "pom-only"
@@ -73,7 +73,7 @@ object PublishModuleTests extends TestSuite {
       override def mvnDeps = Seq(
         mvn"org.slf4j:slf4j-api:2.0.7"
       )
-      // ensure, these target won't be called
+      // ensure, these tasks won't be called
       override def jar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
       override def docJar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
       override def sourceJar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
@@ -82,7 +82,7 @@ object PublishModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object compileAndRuntimeStuff extends TestBaseModule {
+  object compileAndRuntimeStuff extends TestRootModule {
     def organization = "com.lihaoyi.pubmodtests"
     def version = "0.1.0-SNAPSHOT"
     trait TestPublishModule extends PublishModule {
@@ -233,19 +233,19 @@ object PublishModuleTests extends TestSuite {
     test("pom-packaging-type") - {
       test("pom") - UnitTester(PomOnly, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(PomOnly.core.pom): @unchecked
-//
-//        assert(
-//          os.exists(result.path),
-//          evalCount > 0
-//        )
-//
-//        val pomXml = scala.xml.XML.loadFile(result.path.toString)
-//        val scalaLibrary = pomXml \ "dependencies" \ "dependency"
-//        assert(
-//          (pomXml \ "packaging").text == PackagingType.Pom,
-//          (scalaLibrary \ "artifactId").text == "slf4j-api",
-//          (scalaLibrary \ "groupId").text == "org.slf4j"
-//        )
+
+        assert(
+          os.exists(result.value.path),
+          result.evalCount > 0
+        )
+
+        val pomXml = scala.xml.XML.loadFile(result.value.path.toString)
+        val scalaLibrary = pomXml \ "dependencies" \ "dependency"
+        assert(
+          (pomXml \ "packaging").text == PackagingType.Pom,
+          (scalaLibrary \ "artifactId").text == "slf4j-api",
+          (scalaLibrary \ "groupId").text == "org.slf4j"
+        )
       }
     }
 
@@ -302,13 +302,13 @@ object PublishModuleTests extends TestSuite {
       }
       def ivy2Cp(moduleName: String, config: String) =
         localRepoCp(
-          coursierapi.IvyRepository.of(ivy2Repo.toNIO.toUri.toASCIIString + "[defaultPattern]"),
+          coursierapi.IvyRepository.of(ivy2Repo.toURI.toASCIIString + "[defaultPattern]"),
           moduleName,
           config
         )
       def m2Cp(moduleName: String, config: String) =
         localRepoCp(
-          coursierapi.MavenRepository.of(m2Repo.toNIO.toUri.toASCIIString),
+          coursierapi.MavenRepository.of(m2Repo.toURI.toASCIIString),
           moduleName,
           config
         )
@@ -362,7 +362,7 @@ object PublishModuleTests extends TestSuite {
       def clearRepo(): Unit =
         os.remove.all(ivy2Repo)
 
-      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString)).get
       assert(repoHasIvyXml())
       assert(repoHasJar())
       assert(repoHasSourcesJar())
@@ -370,7 +370,7 @@ object PublishModuleTests extends TestSuite {
 
       clearRepo()
 
-      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString, doc = false)).right.get
+      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString, doc = false)).get
       assert(repoHasIvyXml())
       assert(repoHasJar())
       assert(repoHasSourcesJar())
@@ -407,7 +407,7 @@ object PublishModuleTests extends TestSuite {
       def clearRepo(): Unit =
         os.remove.all(ivy2Repo)
 
-      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString)).get
       assert(!repoHasIvyXml(mainModuleName))
       assert(!repoHasJar(mainModuleName))
       assert(!repoHasSourcesJar(mainModuleName))
@@ -422,7 +422,7 @@ object PublishModuleTests extends TestSuite {
       eval(compileAndRuntimeStuff.transitive.publishLocal(
         ivy2Repo.toString,
         transitive = true
-      )).right.get
+      )).get
       assert(repoHasIvyXml(mainModuleName))
       assert(repoHasJar(mainModuleName))
       assert(repoHasSourcesJar(mainModuleName))
@@ -434,7 +434,7 @@ object PublishModuleTests extends TestSuite {
 
       clearRepo()
 
-      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString, doc = false)).right.get
+      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString, doc = false)).get
       assert(!repoHasIvyXml(mainModuleName))
       assert(!repoHasJar(mainModuleName))
       assert(!repoHasSourcesJar(mainModuleName))
@@ -462,7 +462,7 @@ object PublishModuleTests extends TestSuite {
 
       clearRepo()
 
-      eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(ivy2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(ivy2Repo.toString)).get
       assert(!repoHasIvyXml(mainModuleName))
       assert(!repoHasJar(mainModuleName))
       assert(!repoHasSourcesJar(mainModuleName))
@@ -477,7 +477,7 @@ object PublishModuleTests extends TestSuite {
       eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(
         ivy2Repo.toString,
         transitive = true
-      )).right.get
+      )).get
       assert(repoHasIvyXml(mainModuleName))
       assert(repoHasJar(mainModuleName))
       assert(repoHasSourcesJar(mainModuleName))

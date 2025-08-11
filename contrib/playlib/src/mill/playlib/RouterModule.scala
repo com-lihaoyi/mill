@@ -1,14 +1,14 @@
 package mill.playlib
 
-import mill.define.PathRef
+import mill.api.PathRef
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib._
-import mill.scalalib.api._
+import mill.javalib.api._
 import mill.{T, Task}
 
 trait RouterModule extends ScalaModule with Version {
 
-  def routes: T[Seq[PathRef]] = Task.Sources { "routes" }
+  def routes: T[Seq[PathRef]] = Task.Sources("routes")
 
   def routeFiles = Task {
     val paths = routes().flatMap(file => os.walk(file.path))
@@ -47,13 +47,18 @@ trait RouterModule extends ScalaModule with Version {
   def routerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       playMinorVersion() match {
-        case "2.6" | "2.7" | "2.8" =>
-          Seq(mvn"com.typesafe.play::routes-compiler:${playVersion()}")
+        case "2.6" =>
+          Seq(mvn"com.typesafe.play:routes-compiler_2.12:${playVersion()}")
+        case "2.7" | "2.8" =>
+          Seq(mvn"com.typesafe.play:routes-compiler_2.13:${playVersion()}")
         case "2.9" =>
-          Seq(mvn"com.typesafe.play::play-routes-compiler:${playVersion()}")
+          Seq(mvn"com.typesafe.play:play-routes-compiler_3:${playVersion()}")
         case _ =>
-          Seq(mvn"org.playframework::play-routes-compiler:${playVersion()}")
-      }
+          Seq(mvn"org.playframework:play-routes-compiler_3:${playVersion()}")
+      },
+      // required for now, so that the default mapDependencies doesn't override the
+      // Scala version
+      mapDependencies = None
     )
   }
 
@@ -62,7 +67,7 @@ trait RouterModule extends ScalaModule with Version {
   def compileRouter: T[CompilationResult] = Task(persistent = true) {
     Task.log.debug(s"compiling play routes with ${playVersion()} worker")
     routeCompilerWorker.routeCompilerWorker().compile(
-      routerClasspath = playRouterToolsClasspath(),
+      toolsClasspath = playRouterToolsClasspath(),
       files = routeFiles().map(_.path),
       additionalImports = routesAdditionalImport,
       forwardsRouter = generateForwardsRouter,
@@ -83,7 +88,12 @@ trait RouterModule extends ScalaModule with Version {
         case _ => "_3"
       }
     )
-    defaultResolver().classpath(Seq(dep))
+    defaultResolver().classpath(
+      Seq(dep),
+      // required for now, so that the default mapDependencies doesn't override the
+      // Scala version
+      mapDependencies = None
+    )
   }
 
   def playRouterToolsClasspath = Task {

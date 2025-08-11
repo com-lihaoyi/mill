@@ -1,7 +1,7 @@
 // You can also take an existing cross module and extend it with additional cross
 // axes as shown:
 package build
-import mill._
+import mill.*
 
 object foo extends Cross[FooModule]("a", "b")
 trait FooModule extends Cross.Module[String] {
@@ -30,26 +30,26 @@ trait FooModule3 extends FooModule2 with Cross.Module3[String, Int, Boolean] {
 
 /** Usage
 
-> mill show foo[a].param1
+> ./mill show foo[a].param1
 "Param Value: a"
 
-> mill show foo[b].param1
+> ./mill show foo[b].param1
 "Param Value: b"
 
-> mill show foo2[a,1].param1
+> ./mill show foo2[a,1].param1
 "Param Value: a"
 
-> mill show foo2[b,2].param2
+> ./mill show foo2[b,2].param2
 "Param Value: 2"
 
-> mill show foo3[b,2,false].param3
+> ./mill show foo3[b,2,false].param3
 "Param Value: false"
 
 > sed -i.bak 's/, true//g' build.mill
 
 > sed -i.bak 's/, false//g' build.mill
 
-> mill show foo3[b,2,false].param3
+> ./mill show foo3[b,2,false].param3
 error: ...object foo3 extends Cross[FooModule3](("a", 1), ("b", 2))
 error: ...                                      ^^^^^^^^
 error: ...expected at least 3 elements, got 2...

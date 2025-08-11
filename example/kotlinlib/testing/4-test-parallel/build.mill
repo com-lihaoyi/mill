@@ -1,6 +1,6 @@
 //// SNIPPET:BUILD1
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 
 object foo extends KotlinModule {
 
@@ -10,7 +10,7 @@ object foo extends KotlinModule {
     def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     def mvnDeps = Seq(
       mvn"com.github.sbt.junit:jupiter-interface:0.11.4",
-      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
       mvn"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 

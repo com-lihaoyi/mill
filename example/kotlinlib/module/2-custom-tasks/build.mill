@@ -1,12 +1,12 @@
 //// SNIPPET:BUILD
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  def mvnDeps = Seq(mvn"com.github.ajalt.clikt:clikt-jvm:4.4.0")
+  def mvnDeps = Seq(mvn"com.github.ajalt.clikt:clikt:4.4.0")
 
   def generatedSources: T[Seq[PathRef]] = Task {
     val prettyMvnDeps = for (ivyDep <- mvnDeps()) yield {
@@ -47,14 +47,14 @@ object `package` extends RootModule with KotlinModule {
 
 /** Usage
 
-> mill run --text hello
+> ./mill run --text hello
 text: hello
-MyDeps.value: com.github.ajalt.clikt:clikt-jvm:4.4.0
+MyDeps.value: com.github.ajalt.clikt:clikt:4.4.0
 my.line.count: 17
 
-> mill show lineCount
+> ./mill show lineCount
 17
 
-> mill printLineCount
+> ./mill printLineCount
 17
 */

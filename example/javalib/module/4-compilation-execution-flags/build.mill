@@ -1,8 +1,8 @@
 //// SNIPPET:BUILD
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def forkArgs = Seq("-Xmx4g", "-Dmy.jvm.property=hello")
   def forkEnv = Map("MY_ENV_VAR" -> "WORLD")
   def javacOptions = Seq("-deprecation")

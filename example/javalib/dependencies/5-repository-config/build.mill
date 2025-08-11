@@ -1,12 +1,7 @@
 //// SNIPPET:BUILD1
 package build
-import mill._, javalib._
-import mill.define.ModuleRef
-import coursier.maven.MavenRepository
-
-val sonatypeReleases = Seq(
-  MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-)
+import mill.*, javalib.*
+import mill.api.ModuleRef
 
 object foo extends JavaModule {
 
@@ -15,18 +10,18 @@ object foo extends JavaModule {
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 
 //// SNIPPET:BUILD2
 
-object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+object CustomJvmWorkerModule extends JvmWorkerModule, CoursierModule {
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 
 object bar extends JavaModule {
   def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }

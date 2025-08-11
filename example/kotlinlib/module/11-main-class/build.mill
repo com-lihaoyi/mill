@@ -1,8 +1,8 @@
 //// SNIPPET:BUILD
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 

@@ -1,20 +1,22 @@
 package mill.scalalib
 
-import mill._
+import mill.*
 import mill.testkit.UnitTester
-import utest._
-
+import utest.*
 import java.util.jar.JarFile
+
 import scala.util.Using
-import HelloWorldTests._
+
+import HelloWorldTests.*
+import mill.api.Task
 object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
   def tests: Tests = Tests {
-    def checkExclude[M <: mill.testkit.TestBaseModule](
+    def checkExclude[M <: mill.testkit.TestRootModule](
         module: M,
-        target: Target[PathRef],
+        task: Task.Simple[PathRef],
         resourcePath: os.Path = resourcePath
     ) = UnitTester(module, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(target): @unchecked
+      val Right(result) = eval.apply(task): @unchecked
 
       Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
         assert(!jarEntries(jarFile).contains("reference.conf"))
@@ -40,12 +42,12 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
       resourcePath = helloWorldMultiResourcePath
     )
 
-    def checkRelocate[M <: mill.testkit.TestBaseModule](
+    def checkRelocate[M <: mill.testkit.TestRootModule](
         module: M,
-        target: Target[PathRef],
+        task: Task.Simple[PathRef],
         resourcePath: os.Path = resourcePath
     ) = UnitTester(module, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(target): @unchecked
+      val Right(result) = eval.apply(task): @unchecked
       Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
         assert(!jarEntries(jarFile).contains("akka/http/scaladsl/model/HttpEntity.class"))
         assert(

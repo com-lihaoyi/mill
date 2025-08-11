@@ -6,16 +6,17 @@
 // Maven or Gradle build:
 
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 
-object foo extends KotlinModule with KotlinMavenModule {
+object foo extends KotlinModule, KotlinMavenModule {
 
   def kotlinVersion = "1.9.24"
 
-  object test extends KotlinMavenTests with TestModule.Junit5 {
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
-    )
+  object test extends KotlinMavenTests, TestModule.Junit5 {
+    def mvnDeps = Seq(mvn"io.kotest:kotest-runner-junit5:5.9.1")
+  }
+  object integration extends KotlinMavenTests, TestModule.Junit5 {
+    def mvnDeps = Seq(mvn"io.kotest:kotest-runner-junit5:5.9.1")
   }
 }
 
@@ -26,6 +27,8 @@ object foo extends KotlinModule with KotlinMavenModule {
 // - `foo/src/main/kotlin`
 // - `foo/src/test/java`
 // - `foo/src/test/kotlin`
+// - `foo/src/integration/java`
+// - `foo/src/integration/kotlin`
 //
 // Rather than Mill's
 //
@@ -38,16 +41,21 @@ object foo extends KotlinModule with KotlinMavenModule {
 
 /** Usage
 
-> mill foo.compile
+> ./mill foo.compile
 Compiling 1 Kotlin source...
 
-> mill foo.test.compile
+> ./mill foo.test.compile
 Compiling 1 Kotlin source...
 
-> mill foo.test.testForked
+> ./mill foo.test.testForked
 ...foo.FooTests hello ...
 
-> mill foo.test
+> ./mill foo.test
 ...foo.FooTests hello ...
+
+> ./mill foo.integration
+...foo.FooIntegrationTests hello ...
 
 */
+
+// For more details on migrating from other build tools, see xref:migrating/migrating.adoc[]

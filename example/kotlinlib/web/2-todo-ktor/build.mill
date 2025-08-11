@@ -2,9 +2,9 @@
 // https://todomvc.com/[TodoMVC] example app using Kotlin and Ktor.
 
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
@@ -14,24 +14,24 @@ object `package` extends RootModule with KotlinModule {
   val exposedVersion = "0.53.0"
 
   def mvnDeps = Seq(
-    mvn"io.ktor:ktor-server-core-jvm:$ktorVersion",
-    mvn"io.ktor:ktor-server-netty-jvm:$ktorVersion",
+    mvn"io.ktor:ktor-server-core:$ktorVersion",
+    mvn"io.ktor:ktor-server-netty:$ktorVersion",
     mvn"org.jetbrains.exposed:exposed-core:$exposedVersion",
     mvn"org.jetbrains.exposed:exposed-jdbc:$exposedVersion",
     mvn"com.h2database:h2:2.2.224",
-    mvn"io.ktor:ktor-server-webjars-jvm:$ktorVersion",
+    mvn"io.ktor:ktor-server-webjars:$ktorVersion",
     mvn"org.webjars:jquery:3.2.1",
-    mvn"io.ktor:ktor-server-thymeleaf-jvm:$ktorVersion",
+    mvn"io.ktor:ktor-server-thymeleaf:$ktorVersion",
     mvn"org.webjars:webjars-locator:0.41",
     mvn"org.webjars.npm:todomvc-common:1.0.5",
     mvn"org.webjars.npm:todomvc-app-css:2.4.1",
     mvn"ch.qos.logback:logback-classic:1.4.14"
   )
 
-  object test extends KotlinTests with TestModule.Junit5 {
+  object test extends KotlinTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      mvn"io.ktor:ktor-server-test-host-jvm:2.3.12"
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
+      mvn"io.ktor:ktor-server-test-host:2.3.12"
     )
   }
 }
@@ -45,13 +45,13 @@ object `package` extends RootModule with KotlinModule {
 
 /** Usage
 
-> mill test
+> ./mill test
 
-> mill runBackground
+> ./mill runBackground
 
 > curl http://localhost:8091
 ...<h1>todos</h1>...
 
-> mill clean runBackground
+> ./mill clean runBackground
 
 */

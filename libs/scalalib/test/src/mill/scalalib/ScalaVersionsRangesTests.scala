@@ -1,13 +1,13 @@
 package mill.scalalib
 
 import mill.*
-import mill.define.Discover
+import mill.api.Discover
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 
 object ScalaVersionsRangesTests extends TestSuite {
-  object ScalaVersionsRanges extends TestBaseModule {
+  object ScalaVersionsRanges extends TestRootModule {
     object core extends Cross[CoreCrossModule]("2.12.13", "2.13.5", "3.3.3")
     trait CoreCrossModule extends CrossScalaModule
         with CrossScalaVersionRanges {

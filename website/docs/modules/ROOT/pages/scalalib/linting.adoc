@@ -26,6 +26,14 @@ include::partial$example/scalalib/linting/3-acyclic.adoc[]
 
 include::partial$example/scalalib/linting/1-scalafmt.adoc[]
 
+== Auto-formatting with Spotless
+
+include::partial$example/scalalib/linting/4-spotless.adoc[]
+
+=== Ratchet
+
+include::partial$example/javalib/linting/5-spotless-ratchet.adoc[]
+
 == Code Coverage with Scoverage
 
 include::partial$example/scalalib/linting/2-contrib-scoverage.adoc[]

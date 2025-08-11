@@ -4,30 +4,35 @@
 
 //// SNIPPET:BUILD3
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object qux extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "3.7.1"
 
-  object test extends ScalaTests with TestModule.Utest {
-    def utestVersion = "0.8.5"
+  object test extends ScalaTests, TestModule.Utest {
+    def utestVersion = "0.8.9"
   }
-  object integration extends ScalaTests with TestModule.Utest {
-    def utestVersion = "0.8.5"
+  object integration extends ScalaTests, TestModule.Utest {
+    def utestVersion = "0.8.9"
   }
 }
 //// SNIPPET:END
 
 // These two test modules will expect their sources to be in their respective `qux/test` and
-// `qux/integration` folder respectively
+// `qux/integration` folder respectively. You can use Mill's task query syntax to select
+// the test modules which you want to run
 
 /** Usage
 
-> mill 'qux.{test,integration}' # run both test suites
+> ./mill 'qux.{test,integration}' # run both test suites
 ...qux.QuxTests...hello...
 ...qux.QuxTests...world...
 ...qux.QuxIntegrationTests...helloworld...
 
-> mill __.integration.testCached # run all integration test suites
+> ./mill __.integration # run all integration test suites
+
+> ./mill __.test # run all normal test suites
+
+> ./mill __.testForked # run all test suites of any kind
 
 */

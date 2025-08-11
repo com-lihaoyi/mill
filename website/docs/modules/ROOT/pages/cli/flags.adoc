@@ -10,12 +10,13 @@ flags or options:
    These are configured using xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation and Execution Flags]
 
 3. The Mill build tool process, e.g. `./mill --jobs 10`. These can be passed directly after the
-   `./mill` executable name, or set in a `.mill-opts` file as shown below in
-   xref:#_repo_level_mill_options[Repo-Level Mill Options]
+   `./mill` executable name, or set in your xref:cli/build-header.adoc[] or `.mill-opts` file as shown below in
+   xref:cli/build-header.adoc#_repo_level_mill_options[Repo-Level Mill Options]
 
 4. The JVM running the Mill build tool process, which may take flags. e.g.
-   `java -Xss10m -Xmx10G`. These are passed via `JAVA_OPTs` or via a `.mill-jvm-opts` flag
-   as shown below in xref:#_running_mill_with_custom_jvm_options[Mill with custom JVM options]
+   `java -Xss10m -Xmx10G`. These are passed via `JAVA_OPTs`, your  xref:cli/build-header.adoc[]
+   or via a `.mill-jvm-opts` file
+   as shown below in xref:cli/build-header.adoc#_running_mill_with_custom_jvm_options[Mill with custom JVM options]
 
 This can get confusing, so when you want to pass some flags to a Mill task, to Mill, or to
 the JVM (which one?) be clear who you want to pass the flags to so you can ensure they go
@@ -76,7 +77,7 @@ options:
   -k --keep-going      Continue build, even after build failures.
   --meta-level <int>   Select a meta-level to run the given tasks. Level 0 is the main project in
                        `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc.
-  --no-server          Run without a background server. Must be the first argument.
+  --no-server          Run without a background daemon. Must be the first argument.
   --offline            Try to work offline. This tells modules that support it to work offline and
                        avoid any access to the internet. This is on a best effort basis. There are
                        currently no guarantees that modules don't attempt to fetch remote sources.
@@ -99,7 +100,7 @@ This section covers some of the flags that are worth discussing in more detail
 This flag is necessary to run any interactive terminal programs using Mill: things like
 `ScalaModule#console`, `ScalaModule#repl`, and so on.
 
-By default, Mill runs tasks in a long-lived background server. While this is good for
+By default, Mill runs tasks in a long-lived background daemon. While this is good for
 performance (as it avoids paying the server startup time each command), it is incompatible
 with tasks like `.repl` which require a direct `stdin`/`stdout` forwarding connection to
 the user's terminal. `--interactive`/`-i` instead runs tasks in a short-lived background
@@ -134,6 +135,13 @@ forcefully terminating the previous process even though it may be still alive:
 > mill -w foo.runBackground
 ----
 
+Note that even if you interrupt mill watch via CTRL+C, the server spawned by runBackground still runs in the background.
+To actually stop the background server use:
+
+[source,console]
+----
+> mill clean foo.runBackground
+----
 
 === `--jobs`/`-j`
 
@@ -149,75 +157,6 @@ Example: Use up to 4 parallel threads to compile all modules:
 
 You can also set Mill's parallelism to some multiple of the number of cores, e.g.
 `-j0.5C` to use half as many threads as cores, or `-j2C` to use twice as many threads as cores.
-These can be useful as xref:_repo_level_mill_options[] to configure an appropriate level
+These can be useful as xref:cli/build-header.adoc#_repo_level_mill_options[] to configure an appropriate level
 of parallelism that scales based on the number of cores available (which might differ
 between e.g. developer laptops and CI machines)
-
-[#_repo_level_mill_options]
-== Repo-Level Mill Options
-
-Mill supports the `.mill-opts` file for passing a default set of command line
-options to Mill itself.For example, if your project's tasks are CPU heavy, you
-may want everyone using your project to run only 0.5 concurrent tasks per CPU.This
-can be done by setting `.mill-opts` to:
-
-_.mill-opts_
-
-[source]
-----
---jobs=0.5C
-----
-
-The file name `.mill-opts` can be overridden via the `MILL_OPTS_PATH` environment variable.
-You can also pass in flags like `--jobs=10` explicitly to override the value passed in
-`.mill-opts`.
-
-NOTE: `.mill-jvm-opts` is for passing JVM options to the JVM running Mill,
-and `.mill-opts` is for passing options to Mill itself.If you want to pass JVM options
-to the project that Mill is building and running, see the section on
-xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation and Execution Flags].
-
-[#_running_mill_with_custom_jvm_options]
-== Running Mill with custom JVM options
-
-It's possible to pass JVM options to the Mill launcher.To do this you can either set
-the `JAVA_OPTS` environment variable, or create a `.mill-jvm-opts` file in your project's
-root that contains JVM options one per line.
-
-For example, if your build requires a lot of memory and bigger stack size, you could run
-
-[source,console]
-----
-> JAVA_OPTS='-Xss10m -Xmx10G' ./mill __.compile
-----
-
-Or you could create a `.mill-jvm-opts`:
-
-_.mill-jvm-opts_
-
-[source]
-----
--Xss10m
--Xmx10G
-----
-
-Note that `.mill-jvm-opts` requires each CLI token to be on a separate line, so
-`-Xss10m -Xmx10G` on a single line is not allowed (as it would pass `"-Xss10m -Xmx10G"`
-as a single token and fail argument parsing)
-
-`.mill-jvm-opts` also supports environment variable interpolation, e.g.
-
-_.mill-jvm-opts_
-
-[source,sh]
-----
-# PWD on mac/linux
--Dmy.jvm.property=${PWD}
-----
-
-Missing environment variables are
-converted to the empty string.
-
-The file name `.mill-jvm-opts` can be overridden via the `MILL_JVM_OPTS_PATH` environment
-variable.
-

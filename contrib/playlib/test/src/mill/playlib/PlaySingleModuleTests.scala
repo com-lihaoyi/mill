@@ -1,13 +1,13 @@
 package mill.playlib
 
-import mill.define.Discover
+import mill.api.Discover
 import mill.Task
-import mill.testkit.{TestBaseModule, UnitTester}
-import utest.{TestSuite, Tests, assert, _}
-import mill.util.TokenReaders._
+import mill.testkit.{TestRootModule, UnitTester}
+import utest.{TestSuite, Tests, *}
+import mill.util.TokenReaders.*
 object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
 
-  object playsingle extends TestBaseModule with PlayModule {
+  object playsingle extends TestRootModule with PlayModule {
     override val moduleDir = os.temp() // workaround problem in `SingleModule`
     override def playVersion = Task { testPlay28 }
     override def scalaVersion = Task { sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???) }
@@ -75,7 +75,7 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
       )
 
       // don't recompile if nothing changed
-      val Right(result2) = eval.apply(playsingle.compile): @unchecked
+      val Right(_) = eval.apply(playsingle.compile): @unchecked
       // assert(unchangedEvalCount == 0)
     }
   }

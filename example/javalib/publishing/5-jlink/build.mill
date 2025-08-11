@@ -2,11 +2,11 @@
 // Starting with JDK 9, `jlink` bundles Java app code with a stripped-down version of the JVM.
 
 package build
-import mill._, javalib._
-import mill.javalib.Assembly._
+import mill.*, javalib.*
+import mill.javalib.Assembly.*
 import mill.scalalib.JlinkModule
 
-object foo extends JavaModule with JlinkModule {
+object foo extends JavaModule, JlinkModule {
   def jlinkModuleName: T[String] = Task { "foo" }
   def jlinkModuleVersion: T[Option[String]] = Task { Option("1.0") }
   def jlinkCompressLevel: T[String] = Task { "2" }
@@ -45,9 +45,9 @@ object foo extends JavaModule with JlinkModule {
 /** Usage
 
 
-> mill foo.jlinkAppImage
+> ./mill foo.jlinkAppImage
 
-> mill show foo.jlinkAppImage
+> ./mill show foo.jlinkAppImage
 ".../out/foo/jlinkAppImage.dest/jlink-runtime"
 
 > ./out/foo/jlinkAppImage.dest/jlink-runtime/bin/jlink

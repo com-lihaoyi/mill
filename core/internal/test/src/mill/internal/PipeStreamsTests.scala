@@ -47,7 +47,7 @@ object PipeStreamsTests extends TestSuite {
       Thread.sleep(100) // Give it time for pipe to fill up
 
       val reader = Future {
-        for (i <- Range(0, chunkCount)) yield {
+        for (_ <- Range(0, chunkCount)) yield {
           pipe.input.readNBytes(chunkSize).toSeq
         }
       }
@@ -65,7 +65,7 @@ object PipeStreamsTests extends TestSuite {
       val writeFutures =
         for (i <- Range(0, chunkCount)) yield Future {
           pipe.output.write(Array.fill(chunkSize)(i.toByte))
-        }(writerPool)
+        }(using writerPool)
 
       Await.ready(Future.sequence(writeFutures), Inf)
 
@@ -89,7 +89,7 @@ object PipeStreamsTests extends TestSuite {
       val writerPool = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(40))
       for (i <- Range(0, chunkCount)) yield Future {
         pipe.output.write(Array.fill(chunkSize)(i.toByte))
-      }(writerPool)
+      }(using writerPool)
 
       val out = pipe.input.readNBytes(chunkSize * chunkCount)
 

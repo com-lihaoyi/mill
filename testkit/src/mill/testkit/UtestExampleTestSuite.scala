@@ -9,7 +9,7 @@ import scala.concurrent.duration.DurationInt
 
 object UtestExampleTestSuite extends TestSuite {
   val workspaceSourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
-  val clientServerMode: Boolean = sys.env("MILL_INTEGRATION_SERVER_MODE").toBoolean
+  val daemonMode: Boolean = sys.env("MILL_INTEGRATION_DAEMON_MODE").toBoolean
 
   val millExecutable: os.Path = os.Path(System.getenv("MILL_INTEGRATION_LAUNCHER"), os.pwd)
   val tests: Tests = Tests {
@@ -17,12 +17,12 @@ object UtestExampleTestSuite extends TestSuite {
     test("exampleTest") {
       def run() =
         Retry(
-          Retry.printStreamLogger(System.err),
+          logger = Retry.printStreamLogger(System.err),
           count = if (sys.env.contains("CI")) 1 else 0,
           timeoutMillis = 15.minutes.toMillis
         ) {
           ExampleTester.run(
-            clientServerMode,
+            daemonMode,
             workspaceSourcePath,
             millExecutable
           )

@@ -1,10 +1,3 @@
-// In order to help manage your build, Mill performs some rudimentary filesystem
-// sandboxing to keep different tasks and modules from interfering with each other.
-// This tries to ensure your tasks only read and write from their designated `.dest/`
-// folders, which are unique to each task and thus guaranteed not to collide with
-// the filesystem operations of other tasks that may be occurring in parallel.
-//
-//
 // === `Task.dest`
 // The standard way of working with a task's `.dest/` folder is through the `Task.dest`
 // property. This is available within any task, and gives you access to the
@@ -12,7 +5,8 @@
 // each task is lazily initialized when `Task.dest` is referenced and used:
 
 package build
-import mill._
+import mill.*
+import mill.api.BuildCtx
 
 object foo extends Module {
   def tDestTask = Task { println(Task.dest.toString) }
@@ -22,6 +16,76 @@ object foo extends Module {
 > ./mill foo.tDestTask
 .../out/foo/tDestTask.dest
 */
+
+// If you really need to reference paths outside of the `Task.dest`, you can do
+// so via `BuildCtx.workspaceRoot`.
+
+// === Filesystem Read/Write Checks
+//
+// Mill enforces limits on what you can read and write while a task is executing.
+// In general, a task may only write to its own `Task.dest` folder, and may only
+// read from the ``PathRef``s provided to it from upstream tasks
+
+def bannedWriteTask = Task {
+  os.write(BuildCtx.workspaceRoot / "banned-path", "hello")
+}
+
+/** Usage
+> ./mill bannedWriteTask
+error: ...Writing to banned-path not allowed during execution of `bannedWriteTask`.
+*/
+
+def bannedReadTask = Task {
+  os.read(BuildCtx.workspaceRoot / "build.mill")
+}
+
+/** Usage
+> ./mill bannedReadTask
+error: ...Reading from build.mill not allowed during execution of `bannedReadTask`.
+*/
+
+def bannedReadTask2 = Task {
+  os.read(BuildCtx.workspaceRoot / "out/foo/tDestTask.json")
+}
+
+/** Usage
+> ./mill bannedReadTask2
+error: ...Reading from out/foo/tDestTask.json not allowed during execution of `bannedReadTask2`.
+*/
+
+// Furthermore, code _outside_ of a task that runs during module initialization can only
+// read from disk if wrapped in a `BuildCtx.watchValue` block. This ensures that such
+// reads are tracked by Mill's `--watch` and cache-invalidation logic.
+
+val listed = BuildCtx.watchValue(os.list(BuildCtx.workspaceRoot).map(_.last))
+
+// === Bypassing Task Sandboxing
+//
+// You can bypass Mill's filesystem read/write limitations via
+// `BuildCtx.withFilesystemCheckerDisabled`. Note that this bypasses the
+// best-practices that Mill tries to enforce on your tasks and may result in strange
+// bugs around caching, parallelism, and invalidation, so you shouldn't do this unless
+// you really know what you are doing:
+
+def bannedWriteTaskOverridden = Task {
+  BuildCtx.withFilesystemCheckerDisabled {
+    os.write(BuildCtx.workspaceRoot / "banned-path", "hello")
+    println(os.read(BuildCtx.workspaceRoot / "banned-path"))
+  }
+}
+
+/** Usage
+> ./mill bannedWriteTaskOverridden
+hello
+*/
+
+// You can also disable it globally by passing in `--no-filesystem-checker` to Mill:
+
+/** Usage
+> ./mill --no-filesystem-checker bannedReadTask
+*/
+
+//== `os.pwd` redirection
 
 // === Task `os.pwd` redirection
 // Mill also redirects the `os.pwd` property from https://github.com/com-lihaoyi/os-lib[OS-Lib],
@@ -39,7 +103,7 @@ def osPwdTask = Task { println(os.pwd.toString) }
 // its `os.getcwd()`, which is our `osProcTask.dest/` sandbox folder:
 
 def osProcTask = Task {
-  println(os.call(("python3", "-c", "import os; print(os.getcwd())"), cwd = Task.dest).out.trim())
+  println(os.call(("python3", "-c", "import os; print(os.getcwd())")).out.trim())
 }
 
 /** Usage
@@ -51,23 +115,12 @@ def osProcTask = Task {
 //
 // Lastly, there is the possibily of calling `os.pwd` outside of a task. When outside of
 // a task there is no `.dest/` folder associated, so instead Mill will redirect `os.pwd`
-// towards an empty `sandbox/` folder in `out/mill-server/...`:
+// towards an empty `sandbox/` folder in `out/mill-daemon/...`:
 
 val externalPwd = os.pwd
 def externalPwdTask = Task { println(externalPwd.toString) }
 
 /** Usage
 > ./mill externalPwdTask
-.../out/mill-server/.../sandbox
+.../out/mill-daemon/sandbox
 */
-
-// === Limitations of Mill's Sandboxing
-//
-// Mill's approach to filesystem sandboxing is designed to avoid accidental interference
-// between different Mill tasks. It is not designed to block intentional misbehavior, and
-// tasks are always able to traverse the filesystem and do whatever they want. Furthermore,
-// Mill's redirection of `os.pwd` does not apply to `java.io` or `java.nio` APIs, which are
-// outside of Mill's control.
-//
-// However, by setting `os.pwd` to safe sandbox folders, we hope to minimize the cases where
-// someone accidentally causes issues with their build by doing the wrong thing.

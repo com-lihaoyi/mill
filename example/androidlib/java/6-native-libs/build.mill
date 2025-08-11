@@ -1,0 +1,98 @@
+// Native libraries are libraries written in C/C++  that are compiled to android code
+// and are used in the app. They are usually used for performance reasons or to use
+// libraries that are not available in Java/Kotlin.
+// This example shows how to use native libraries in the app.
+// The native library is a simple C++ library that returns a string "Hello from C++"
+// and is used in the app to show a toast with the string. In my example i used also
+// one of the core C/C++  libraires that can be used in the android and are already given ( <android/log.h> ).
+// There is a list of the core C/C++ libraries that can be used in the android here:
+// https://developer.android.com/ndk/reference
+
+package build
+
+import mill.*, androidlib.*, scalalib.*
+import mill.api.BuildCtx
+
+object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = "35.0.0"
+}
+
+object app extends AndroidNativeAppModule { // <1>
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+  def androidMinSdk = 19
+  def androidCompileSdk = 35
+  def androidApplicationId = "com.helloworld.app"
+  def androidApplicationNamespace = "com.helloworld.app"
+
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+
+  override def androidVirtualDeviceIdentifier: String = "java-test"
+
+  def androidExternalNativeLibs = Task { // <2>
+    Seq(
+      PathRef(BuildCtx.workspaceRoot / "app/src/main/cpp/native-lib.cpp")
+    )
+  }
+
+  // Instrumented tests (runs on emulator)
+  object it extends AndroidAppInstrumentedTests {
+    def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+
+    /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
+     * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
+     * resolution resolves conflicts between androidJvm and jvm platform types
+     */
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"androidx.test.ext:junit:1.2.1",
+      mvn"androidx.test:runner:1.6.2",
+      mvn"androidx.test.espresso:espresso-core:3.5.1",
+      mvn"junit:junit:4.13.2"
+    )
+  }
+
+}
+
+// <1> You need to extend AndroidNativeLibs trait to use native libraries in the app.
+// <2> This is the path to the native library that will be used in the app.
+
+/** Usage
+
+> ./mill show app.androidApk
+".../out/app/androidApk.dest/app.apk"
+
+> ./mill show app.createAndroidVirtualDevice
+...Name: java-test, DeviceId: medium_phone...
+
+> ./mill show app.startAndroidEmulator
+
+> ./mill show app.androidInstall
+...All files should be loaded. Notifying the device...
+
+> ./mill show app.it
+...
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+...
+
+> ./mill show app.stopAndroidEmulator
+
+> ./mill show app.deleteAndroidVirtualDevice
+
+*/

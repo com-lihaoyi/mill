@@ -1,8 +1,8 @@
 package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
-object foo extends TypeScriptModule with TsLintModule
+object foo extends TypeScriptModule, TsLintModule
 
 // Mill supports code auto formatting via `eslint` https://eslint.org and `prettier` https://prettier.io/docs/en.
 // You can reformat your projects code by providing a configuration for your preferred formtter then running
@@ -30,7 +30,7 @@ args: string[
 }
 }
 
-> mill foo.checkFormatAll # run linter - since both eslint and prettier configurations are present, mill will opt to use eslint.
+> ./mill foo.checkFormatAll # run linter - since both eslint and prettier configurations are present, mill will opt to use eslint.
 ...
 foo/src/foo.ts
   2:1   error  Expected indentation of 2 spaces but found 0                                   indent
@@ -47,7 +47,7 @@ foo/src/foo.ts
 ...10 problems (10 errors, 0 warnings)
 ...10 errors and 0 warnings potentially fixable with running foo.reformatAll.
 
-> mill foo.reformatAll
+> ./mill foo.reformatAll
 ...
 All matched files have been reformatted!
 
@@ -62,12 +62,12 @@ export class Foo{
 
 > rm -rf eslint.config.mjs # since there is no eslint config file `eslint.config.(js|mjs|cjs)`, mill will use the prettier configuration available.
 
-> mill foo.checkFormatAll # run lint with prettier configuration.
+> ./mill foo.checkFormatAll # run lint with prettier configuration.
 Checking formatting...
 [warn] foo/src/foo.ts
 [warn] Code style issues found. Run foo.reformatAll to fix.
 
-> mill foo.reformatAll
+> ./mill foo.reformatAll
 ...
 All matched files have been reformatted!
 

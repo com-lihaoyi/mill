@@ -10,11 +10,11 @@
 
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
-object `package` extends RootModule with ScalaModule {
-  def scalaVersion = "2.13.8"
-  def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.4.0")
+object `package` extends ScalaModule {
+  def scalaVersion = "3.7.1"
+  def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.7.6")
 
   def generatedSources: T[Seq[PathRef]] = Task {
     val prettyMvnDeps = for (ivyDep <- mvnDeps()) yield {
@@ -95,15 +95,15 @@ object `package` extends RootModule with ScalaModule {
 
 /** Usage
 
-> mill run --text hello
+> ./mill run --text hello
 text: hello
-MyDeps.value: List((com.lihaoyi,mainargs,0.4.0))
+MyDeps.value: List((com.lihaoyi,mainargs,0.7.6))
 my.line.count: 14
 
-> mill show lineCount
+> ./mill show lineCount
 14
 
-> mill printLineCount
+> ./mill printLineCount
 14
 */
 
@@ -115,7 +115,7 @@ my.line.count: 14
 // create some custom jar/zip assembly with the files you want , all of these
 // can simply be custom tasks with your code running in the `Task {...}` block.
 // You can also import arbitrary Java or Scala libraries from Maven Central via
-// xref:extending/import-mvn-plugins.adoc[import $ivy] to use in your build.
+// xref:extending/import-mvn-plugins.adoc[//| mvnDeps] to use in your build.
 //
 // You can create arbitrarily long chains of dependent tasks, and Mill will
 // handle the re-evaluation and caching of the tasks' output for you.

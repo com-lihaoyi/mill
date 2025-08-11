@@ -1,22 +1,22 @@
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 trait MyModule extends ScalaModule {
-  def scalaVersion = "2.13.11"
+  def scalaVersion = "3.7.1"
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
     def testFramework = "utest.runner.Framework"
   }
 }
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.4.0")
+  def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.7.6")
 }
 
 object bar extends MyModule {
-  def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.8.2")
+  def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.13.1")
 }
 //// SNIPPET:END
 
@@ -29,9 +29,9 @@ object bar extends MyModule {
 //
 // Note that we split out the `test` submodule configuration common to both
 // modules into a separate `trait MyModule`. This xref:fundamentals/modules.adoc[Trait Module]
-// lets us avoid the need to copy-paste common settings, while still letting
-// us define any per-module configuration such as `mvnDeps` specific to a
-// particular module. This is a common pattern within Mill builds.
+// works like a `class` in Java, and lets us avoid the need to copy-paste common
+// settings, while still letting us define any per-module configuration such as
+// `mvnDeps` specific to a particular module. This is a common pattern within Mill builds.
 //
 // The above builds expect the following project layout:
 //
@@ -72,18 +72,18 @@ object bar extends MyModule {
 
 /** Usage
 
-> mill resolve __.run
+> ./mill resolve __.run
 foo.run
 bar.run
 
-> mill foo.run --foo-text hello --bar-text world
+> ./mill foo.run --foo-text hello --bar-text world
 Foo.value: hello
 Bar.value: <h1>world</h1>
 
-> mill bar.run world
+> ./mill bar.run world
 Bar.value: <h1>world</h1>
 
-> mill bar.test
+> ./mill bar.test
 ...
 ...bar.BarTests...simple...
 ...bar.BarTests...escaping...
@@ -95,6 +95,12 @@ Bar.value: <h1>world</h1>
 // The unique path on disk that Mill automatically assigns each task also ensures
 // you do not need to worry about choosing a path on disk to cache outputs, or
 // filesystem collisions if multiple tasks write to the same path.
+//
+// You can also put the configuration for each submodule in it's respective
+// folder's `package.mill` file, as described in xref:large/multi-file-builds.adoc[].
+// This can be helpful in larger projects to avoid having your `build.mill` grow
+// large, and aid in discoverability by keeping the build configuration for each
+// module close to the code it is configuring
 //
 // You can use wildcards and brace-expansion to select
 // multiple tasks at once or to shorten the path to deeply nested tasks. If
@@ -117,13 +123,13 @@ Bar.value: <h1>world</h1>
 //
 
 /** Usage
-> mill foo._.compile # Runs `compile` for all direct sub-modules of `foo`
+> ./mill foo._.compile # Runs `compile` for all direct sub-modules of `foo`
 
-> mill foo.__.test # Runs `test` for all transitive sub-modules of `foo`
+> ./mill foo.__.test # Runs `test` for all transitive sub-modules of `foo`
 
-> mill {foo,bar}.__.testCached # Runs `testCached` for all sub-modules of `foo` and `bar`
+> ./mill {foo,bar}.__.testCached # Runs `testCached` for all sub-modules of `foo` and `bar`
 
-> mill __.compile + foo.__.test # Runs all `compile` tasks and all tests under `foo`.
+> ./mill __.compile + foo.__.test # Runs all `compile` tasks and all tests under `foo`.
 */
 
 // For more details on the query syntax, check out the

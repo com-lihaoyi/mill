@@ -3,10 +3,10 @@ package mill.contrib.scoverage
 import mill.*
 import mill.api.ExecResult
 import mill.contrib.buildinfo.BuildInfo
-import mill.define.Discover
+import mill.api.Discover
 import mill.scalalib.{DepSyntax, SbtModule, ScalaModule, TestModule}
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 
 trait HelloWorldTests extends utest.TestSuite {
@@ -25,7 +25,7 @@ trait HelloWorldTests extends utest.TestSuite {
   val sbtResourcePath = resourcePath / os.up / "hello-world-sbt"
   val unmanagedFile = resourcePath / "unmanaged.xml"
 
-  object HelloWorld extends TestBaseModule {
+  object HelloWorld extends TestRootModule {
     object other extends ScalaModule {
       def scalaVersion = testScalaVersion
     }
@@ -52,7 +52,7 @@ trait HelloWorldTests extends utest.TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object HelloWorldSbt extends TestBaseModule {
+  object HelloWorldSbt extends TestRootModule {
     object core extends SbtModule with ScoverageModule {
       def scalaVersion = testScalaVersion
       def scoverageVersion = testScoverageVersion

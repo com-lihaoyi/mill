@@ -1,13 +1,13 @@
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def mvnDeps = Seq(
     mvn"org.eclipse.jetty:jetty-server:9.4.43.v20210629",
     mvn"javax.servlet:javax.servlet-api:4.0.1"
   )
 
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }
 
 // This example demonstrates how to set up a simple Jetty webserver,
@@ -15,14 +15,14 @@ object `package` extends RootModule with JavaModule {
 
 /** Usage
 
-> mill test
+> ./mill test
 ...HelloJettyTest.testHelloJetty finished...
 
-> mill runBackground
+> ./mill runBackground
 
 > curl http://localhost:8085
 ...<h1>Hello, World!</h1>...
 
-> mill clean runBackground
+> ./mill clean runBackground
 
 */

@@ -1,15 +1,15 @@
 package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object bar extends TypeScriptModule {
   def npmDeps = Seq("immutable@4.3.7")
-  object test extends TypeScriptTests with TestModule.Jest
+  object test extends TypeScriptTests, TestModule.Jest
 }
 
 object foo extends TypeScriptModule {
   def moduleDeps = Seq(bar)
-  object test extends TypeScriptTests with TestModule.Jest
+  object test extends TypeScriptTests, TestModule.Jest
 }
 
 // Documentation for mill.example.javascriptlib
@@ -21,14 +21,14 @@ object foo extends TypeScriptModule {
 // test helper throughout multiple modules' test suites.
 
 /** Usage
-> mill foo.test
+> ./mill foo.test
 PASS .../foo.test.ts
 ...
 Test Suites:...1 passed, 1 total...
 Tests:...3 passed, 3 total...
 ...
 
-> mill bar.test
+> ./mill bar.test
 PASS .../bar.test.ts
 ...
 Test Suites:...1 passed, 1 total...

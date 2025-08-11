@@ -1,0 +1,65 @@
+package build
+
+import mill._
+
+// testing a simple Java module
+object `hello-java` extends scalalib.JavaModule
+
+// testing a simple Scala module
+object `hello-scala` extends scalalib.ScalaModule {
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+}
+
+// testing a simple Kotlin module
+object `hello-kotlin` extends kotlinlib.KotlinModule {
+  def kotlinVersion = Option(System.getenv("TEST_KOTLIN_VERSION")).getOrElse(???)
+}
+
+// testing a two-module setup, with one module depending on the other,
+// involving mvnDeps, but also compile-time only and runtime only dependencies
+object lib extends scalalib.JavaModule {
+  import scalalib._
+  def compileMvnDeps = Seq(
+    mvn"junit:junit:4.13.2"
+  )
+  def mvnDeps = Seq(
+    mvn"org.slf4j:slf4j-api:2.0.16"
+  )
+}
+
+object app extends scalalib.JavaModule {
+  import scalalib._
+  def moduleDeps = Seq(lib)
+  def mvnDeps = Seq(
+    mvn"ch.qos.logback:logback-core:1.5.15"
+  )
+  def runMvnDeps = Seq(
+    mvn"com.mysql:mysql-connector-j:9.1.0"
+  )
+}
+
+def countClassLoaders() = Task.Command {
+  mill.api.MillURLClassLoader.countOpenClassloaders
+}
+
+def countThreads() = Task.Command {
+  import collection.JavaConverters._
+  Thread
+    .getAllStackTraces
+    .keySet
+    .asScala
+    .toSeq
+    .collect {
+      case t if t.getThreadGroup.getName == "main" =>
+        // Mark the current thread with a '!' prefix
+        val prefix = if (t == Thread.currentThread()) "!" else ""
+        prefix + t.getName
+    }
+    .sorted
+}
+
+def leakThreadClassloader() = Task.Command {
+  new Thread(() => Thread.sleep(9999999), "leaked thread").start()
+  mill.util.Jvm.createClassLoader(Nil, label = "leaked classloader")
+  ()
+}

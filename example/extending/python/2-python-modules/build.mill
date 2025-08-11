@@ -4,7 +4,7 @@
 // that can be re-used.
 
 package build
-import mill._
+import mill.*
 
 trait PythonModule extends Module {
 
@@ -28,7 +28,7 @@ trait PythonModule extends Module {
 
   }
 
-  def run(args: mill.define.Args) = Task.Command {
+  def run(args: mill.api.Args) = Task.Command {
     os.call(
       (pythonExe().path, sources().path / mainFileName(), args.value),
       stdout = os.Inherit

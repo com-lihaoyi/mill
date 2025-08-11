@@ -1,30 +1,25 @@
 //// SNIPPET:BUILD1
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 import mill.javalib.{JvmWorkerModule, CoursierModule}
-import mill.define.ModuleRef
-import coursier.maven.MavenRepository
-
-val sonatypeReleases = Seq(
-  MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-)
+import mill.api.ModuleRef
 
 object foo extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
   def mvnDeps = Seq(
-    mvn"com.github.ajalt.clikt:clikt-jvm:4.4.0",
-    mvn"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
+    mvn"com.github.ajalt.clikt:clikt:4.4.0",
+    mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
   )
 
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 
 //// SNIPPET:BUILD2
 
-object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+object CustomJvmWorkerModule extends JvmWorkerModule, CoursierModule {
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 
 object bar extends KotlinModule {
@@ -34,5 +29,5 @@ object bar extends KotlinModule {
   def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }

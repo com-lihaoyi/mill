@@ -4,18 +4,18 @@ import mill._
 import mill.javalib._
 import mill.javalib.publish._
 
-object `package` extends RootModule with MavenModule {
+object `package` extends MavenModule {
 
-  def mvnDeps = super.mvnDeps() ++ Seq(mvn"org.apache.commons:commons-text")
+  def mvnDeps = Seq(mvn"org.apache.commons:commons-text")
 
   def moduleDeps = super.moduleDeps ++ Seq(build.utilities)
 
   object test extends MavenTests with TestModule.Junit5 {
 
-    def mvnDeps = super.mvnDeps() ++
-      Seq(mvn"org.junit.jupiter:junit-jupiter:5.10.3")
+    def mvnDeps = Seq(mvn"org.junit.jupiter:junit-jupiter:5.10.3")
 
     def testSandboxWorkingDir = false
     def testParallelism = false
+
   }
 }

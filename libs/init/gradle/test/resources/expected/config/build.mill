@@ -1,3 +1,5 @@
+//| mill-version: SNAPSHOT
+//| mill-jvm-version: 11
 package build
 
 import _root_.build_.BaseModule
@@ -13,23 +15,23 @@ object Deps {
     mvn"org.junit.jupiter:junit-jupiter:5.10.3"
 }
 
-object `package` extends RootModule {
+object `package` extends mill.Module {
 
   def artifactName = "application-library"
 
   object app extends BaseModule {
 
-    def mvnDeps = super.mvnDeps() ++ Seq(Deps.`org.apache.commons:commons-text`)
+    def mvnDeps = Seq(Deps.`org.apache.commons:commons-text`)
 
     def moduleDeps = super.moduleDeps ++ Seq(build.utilities)
 
     object tests extends MavenTests with TestModule.Junit5 {
 
-      def mvnDeps = super.mvnDeps() ++
-        Seq(Deps.`org.junit.jupiter:junit-jupiter`)
+      def mvnDeps = Seq(Deps.`org.junit.jupiter:junit-jupiter`)
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+
     }
   }
 
@@ -37,11 +39,11 @@ object `package` extends RootModule {
 
     object tests extends MavenTests with TestModule.Junit5 {
 
-      def mvnDeps = super.mvnDeps() ++
-        Seq(Deps.`org.junit.jupiter:junit-jupiter`)
+      def mvnDeps = Seq(Deps.`org.junit.jupiter:junit-jupiter`)
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+
     }
   }
 
@@ -52,11 +54,4 @@ object `package` extends RootModule {
   }
 }
 
-trait BaseModule extends MavenModule {
-
-  def jvmWorker = mill.define.ModuleRef(BaseModuleJvmWorker)
-
-  object BaseModuleJvmWorker extends JvmWorkerModule {
-    def jvmId = "11"
-  }
-}
+trait BaseModule extends MavenModule {}

@@ -15,7 +15,7 @@ as the basis for discussion:
 ----
 // build.mill
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {}
 
@@ -115,8 +115,8 @@ a concrete Mill `RootModule` object, which is then used in the subsequent tasks 
 
 === Resolution
 
-Resolution converts the Mill xref:cli/query-syntax.adoc[task selector] ``_.assembly`` the list of
-xref:fundamentals/tasks.adoc[] given from the command line. This explores the `build` and `package`
+Resolution converts the Mill xref:cli/query-syntax.adoc[task selector] ``_.assembly`` given from the command line
+into a list ofxref:fundamentals/tasks.adoc[Task] objects. This explores the `build` and `package`
 files generated in the <<Compilation>> step above, instantiates the xref:fundamentals/modules.adoc[Modules]
 and xref:fundamentals/tasks.adoc[Tasks] as necessary, and returns a list of the final tasks that
 were selected by selector:
@@ -132,7 +132,7 @@ digraph G {
 }
 ....
 
-Mill starts from the `RootModule` instantiated after <<Compilation>>, and uses
+Mill starts from the root module `build` instantiated after <<Compilation>>, and uses
 Java reflection to walk the tree of modules and tasks to find the tasks that match
 your given selector.
 
@@ -186,8 +186,8 @@ and `bar.assembly`, their upstream task graph requires tasks such as `foo.compil
 
 
 You can use xref:cli/builtin-commands.adoc#_plan[./mill plan] to see what tasks would be
-planned out for a given selector, or look at
-xref:fundamentals/out-dir.adoc#_mill_dependency_tree_json[mill-dependency-tree.json] after
+planned out for a given selector, or run xref:cli/builtin-commands.adoc#_visualizeplan[./mill visualizePlan]
+or look at xref:fundamentals/out-dir.adoc#_mill_dependency_tree_json[mill-dependency-tree.json] after
 evaluation to see how how these upstream tasks are depended upon by the tasks you selected.
 
 === Execution
@@ -282,7 +282,7 @@ digraph G {
 In the example changing `bar/src/*.java`, Mill may also take the opportunity to parallelize
 things:
 
-- `bar.compile` and `bar.classPath` can on a separate thread from `bar.lineCount` and `bar.resources`
+- `bar.compile` and `bar.classPath` can run on a separate thread from `bar.lineCount` and `bar.resources`
 
 - `bar.assembly` must wait for both `bar.classPath` and `bar.resources` to complete before proceeding.
 
@@ -298,8 +298,8 @@ Some other things to note:
   in xref:fundamentals/out-dir.adoc#_task_dest[<task>.dest/] folders. These file paths are all
   automatically assigned by Mill.
 
-- Mill treats builtin tasks (e.g. `compile`) and user-defined (e.g. `lineCount`) exactly the same.
-  Both get automatically cached or skipped when not needed, and parallelized where possible.
+- Mill treats builtin tasks (e.g. `compile`) and user-defined (e.g. `lineCount`) exactly the same:
+  both get automatically cached and parallelized where possible.
   This happens without the task author needing to do anything to enable caching or parallelization
 
 - Mill evaluation does not care about the _module_ structure of `foo` and `bar`. Mill modules are
@@ -313,17 +313,21 @@ One part of the Mill evaluation model that is skimmed over above is what happens
 and `package.mill` files? This is called bootstrapping, and proceeds roughly in the following phases:
 
 1. Mill's xref:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script] first checks
-   if the right version of Mill is already present, and if not it downloads the assembly jar
-   to `~/.mill/download`
+   if the right version of Mill is already present, and if not it downloads the launcher executable
+   (either xref:cli/installation-ide.adoc#_mill_native_and_jvm_executables[a JVM assembly jar or
+   Graal native image]) to `~/.cache/mill/download`
 
-2. Mill instantiates an in-memory `MillBuildRootModule.BootstrapModule`,
+2. The Mill launcher resolves and downloads dependencies for the Mill daemon using Coursier, and
+   spawns the daemon sub-process if necessary.
+
+3. The Mill daemon instantiates an in-memory `MillBuildRootModule.BootstrapModule`,
    which is a hard-coded `build.mill` used for bootstrapping Mill
 
-3. If there is a xref:extending/meta-build.adoc[meta-build] present `mill-build/build.mill`, Mill processes that
+4. If there is a xref:extending/meta-build.adoc[meta-build] present `mill-build/build.mill`, Mill processes that
    first and uses the `MillBuildRootModule` returned for the next steps.
    Otherwise it uses the `MillBuildRootModule.BootstrapModule` directly
 
-4. Mill evaluates the `MillBuildRootModule` to parse the `build.mill`, generate
+5. Mill evaluates the `MillBuildRootModule` to parse the `build.mill`, generate
    a list of `mvnDeps` as well as appropriately wrapped Scala code that we can
    compile, and compiles it to classfiles (<<Compilation>> above)
 

@@ -1,6 +1,6 @@
 package mill.contrib.jmh
 
-import mill._, scalalib._
+import mill._, javalib._
 import mill.util.Jvm
 
 /**
@@ -8,13 +8,14 @@ import mill.util.Jvm
  *
  * Example configuration:
  * {{{
+ * //| mvnDeps: ["com.lihaoyi::mill-contrib-jmh:$MILL_VERSION"]
+ *
  * import mill._, scalalib._
  *
- * import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
  * import contrib.jmh.JmhModule
  *
  * object foo extends ScalaModule with JmhModule {
- *   def scalaVersion = "2.13.8"
+ *   def scalaVersion = "2.13.16"
  *   def jmhCoreVersion = "1.35"
  * }
  * }}}
@@ -41,10 +42,10 @@ trait JmhModule extends JavaModule {
       Jvm.callProcess(
         mainClass = "org.openjdk.jmh.Main",
         classPath = (runClasspath() ++ generatorDeps()).map(_.path) ++
-          Seq(compileGeneratedSources().path, resources),
+          Seq(jmhGeneratedSources().path, resources.path),
         mainArgs = args,
         cwd = Task.ctx().dest,
-        javaHome = jvmWorker().javaHome().map(_.path),
+        javaHome = javaHome().map(_.path),
         stdin = os.Inherit,
         stdout = os.Inherit
       )
@@ -53,11 +54,11 @@ trait JmhModule extends JavaModule {
 
   def listJmhBenchmarks(args: String*) = runJmh(("-l" +: args)*)
 
-  def compileGeneratedSources =
+  def jmhGeneratedSources =
     Task {
       val dest = Task.ctx().dest
       val (sourcesDir, _) = generateBenchmarkSources()
-      val sources = os.walk(sourcesDir).filter(os.isFile)
+      val sources = os.walk(sourcesDir.path).filter(os.isFile)
 
       os.proc(
         Jvm.jdkTool("javac"),
@@ -94,13 +95,13 @@ trait JmhModule extends JavaModule {
           resourcesDir.toString,
           "default"
         ),
-        javaHome = jvmWorker().javaHome().map(_.path),
+        javaHome = javaHome().map(_.path),
         jvmArgs = forkedArgs,
         stdin = os.Inherit,
         stdout = os.Inherit
       )
 
-      (sourcesDir, resourcesDir)
+      (PathRef(sourcesDir), PathRef(resourcesDir))
     }
 
   def generatorDeps = Task {

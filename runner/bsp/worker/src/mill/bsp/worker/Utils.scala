@@ -11,19 +11,13 @@ import ch.epfl.scala.bsp4j.{
   TaskId
 }
 import mill.api.ExecResult.{Skipped, Success}
-import mill.api.internal.{
-  TaskApi,
-  JavaModuleApi,
-  BspBuildTarget,
-  BspModuleApi,
-  ExecutionResultsApi,
-  CompileProblemReporter
-}
+import mill.api.daemon.internal.{ExecutionResultsApi, TaskApi}
 
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
+import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 
-private object Utils {
+private[mill] object Utils {
 
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
@@ -36,9 +30,9 @@ private object Utils {
       originId: String,
       bspIdsByModule: Map[BspModuleApi, BuildTargetIdentifier],
       client: BuildClient
-  ): Int => Option[CompileProblemReporter] = { (moduleHashCode: Int) =>
+  ): Int => Option[BspCompileProblemReporter] = { (moduleHashCode: Int) =>
     bspIdsByModule.find(_._1.hashCode == moduleHashCode).map {
-      case (module: JavaModuleApi, targetId) =>
+      case (module, targetId) =>
         val buildTarget = module.bspBuildTarget
         val taskId = new TaskId(module.hashCode.toString)
         new BspCompileProblemReporter(
@@ -105,7 +99,12 @@ private object Utils {
         outputPathItem(topLevelProjectRoot / ".idea"),
         outputPathItem(topLevelProjectRoot / "out"),
         outputPathItem(topLevelProjectRoot / ".bsp"),
-        outputPathItem(topLevelProjectRoot / ".bloop")
+        outputPathItem(topLevelProjectRoot / ".bloop"),
+
+        // All Eclipse JDT related project files (likely generated)
+        outputPathItem(topLevelProjectRoot / ".project"),
+        outputPathItem(topLevelProjectRoot / ".classpath"),
+        outputPathItem(topLevelProjectRoot / ".settings")
       )
     else Nil
   }

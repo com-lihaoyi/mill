@@ -1,8 +1,9 @@
 package mill.javascriptlib
 
 import mill.*
+import mill.api.BuildCtx
 
-trait TestModule extends TaskModule {
+trait TestModule extends DefaultTaskModule {
   import TestModule.TestResult
 
   def testForked(args: String*): Command[TestResult] =
@@ -18,7 +19,7 @@ trait TestModule extends TaskModule {
 
   protected def testTask(args: Task[Seq[String]]): Task[TestResult]
 
-  override def defaultCommandName() = "testForked"
+  override def defaultTask() = "testForked"
 }
 
 object TestModule {
@@ -31,7 +32,10 @@ object TestModule {
 
     private[TestModule] def runCoverage: T[TestResult]
 
-    protected def coverageTask(args: Task[Seq[String]]): Task[TestResult] = Task { runCoverage() }
+    protected def coverageTask(args: Task[Seq[String]]): Task[TestResult] = Task {
+      val _ = args // silence unused parameter warning
+      runCoverage()
+    }
 
     def coverage(args: String*): Command[TestResult] =
       Task.Command {
@@ -40,8 +44,8 @@ object TestModule {
 
     def istanbulNycrcConfigBuilder: Task[PathRef] = Task.Anon {
       val fileName = ".nycrc"
-      val config = T.dest / fileName
-      val customConfig = Task.workspace / fileName
+      val config = Task.dest / fileName
+      val customConfig = BuildCtx.workspaceRoot / fileName
 
       val content =
         s"""|{
@@ -132,8 +136,8 @@ object TestModule {
 
     def conf: Task[PathRef] = Task.Anon {
       val fileName = "jest.config.ts"
-      val config = T.dest / fileName
-      val customConfig = Task.workspace / fileName
+      val config = Task.dest / fileName
+      val customConfig = BuildCtx.workspaceRoot / fileName
 
       val content =
         s"""|import {pathsToModuleNameMapper} from 'ts-jest';
@@ -173,9 +177,9 @@ object TestModule {
       conf()
       coverageConf()
       createNodeModulesSymlink()
-      os.copy(super.compile().path, T.dest, mergeFolders = true, replaceExisting = true)
+      os.copy(super.compile().path, Task.dest, mergeFolders = true, replaceExisting = true)
 
-      PathRef(T.dest)
+      PathRef(Task.dest)
     }
 
     private def runTest: T[TestResult] = Task {
@@ -201,8 +205,8 @@ object TestModule {
     // with coverage
     def coverageConf: Task[PathRef] = Task.Anon {
       val fileName = "jest.config.coverage.ts"
-      val config = T.dest / fileName
-      val customConfig = Task.workspace / fileName
+      val config = Task.dest / fileName
+      val customConfig = BuildCtx.workspaceRoot / fileName
 
       val content =
         s"""|import {pathsToModuleNameMapper} from 'ts-jest';
@@ -284,14 +288,14 @@ object TestModule {
       conf()
       istanbulNycrcConfigBuilder()
       createNodeModulesSymlink()
-      os.copy(super.compile().path, T.dest, mergeFolders = true, replaceExisting = true)
+      os.copy(super.compile().path, Task.dest, mergeFolders = true, replaceExisting = true)
 
-      PathRef(T.dest)
+      PathRef(Task.dest)
     }
 
     // test-runner.js: run tests on ts files
     def conf: Task[PathRef] = Task.Anon {
-      val runner = T.dest / "test-runner.js"
+      val runner = Task.dest / "test-runner.js"
 
       val content =
         """|require('ts-node/register');
@@ -368,8 +372,8 @@ object TestModule {
 
     def conf: Task[PathRef] = Task.Anon {
       val fileName = "vitest.config.ts"
-      val config = T.dest / fileName
-      val customConfig = Task.workspace / fileName
+      val config = Task.dest / fileName
+      val customConfig = BuildCtx.workspaceRoot / fileName
 
       val content =
         s"""|import { defineConfig } from 'vite';
@@ -395,9 +399,9 @@ object TestModule {
       conf()
       coverageConf()
       createNodeModulesSymlink()
-      os.copy(super.compile().path, T.dest, mergeFolders = true, replaceExisting = true)
+      os.copy(super.compile().path, Task.dest, mergeFolders = true, replaceExisting = true)
 
-      PathRef(T.dest)
+      PathRef(Task.dest)
     }
 
     private def runTest: T[TestResult] = Task {
@@ -425,8 +429,8 @@ object TestModule {
     // coverage
     def coverageConf: Task[PathRef] = Task.Anon {
       val fileName = "vitest.config.coverage.ts"
-      val config = T.dest / fileName
-      val customConfig = Task.workspace / fileName
+      val config = Task.dest / fileName
+      val customConfig = BuildCtx.workspaceRoot / fileName
       val content =
         s"""|import { defineConfig } from 'vite';
             |import tsconfigPaths from 'vite-tsconfig-paths';
@@ -500,7 +504,7 @@ object TestModule {
       }
 
     def conf: Task[PathRef] = Task.Anon {
-      val path = T.dest / "jasmine.json"
+      val path = Task.dest / "jasmine.json"
       os.write.over(
         path,
         ujson.write(
@@ -520,9 +524,9 @@ object TestModule {
       conf()
       istanbulNycrcConfigBuilder()
       createNodeModulesSymlink()
-      os.copy(super.compile().path, T.dest, mergeFolders = true, replaceExisting = true)
+      os.copy(super.compile().path, Task.dest, mergeFolders = true, replaceExisting = true)
 
-      PathRef(T.dest)
+      PathRef(Task.dest)
     }
 
     private def runTest: T[Unit] = Task {
@@ -579,7 +583,7 @@ object TestModule {
     }
 
     def configSource: T[PathRef] =
-      Task.Source(Task.workspace / "cypress.config.ts")
+      Task.Source(BuildCtx.workspaceRoot / "cypress.config.ts")
 
     override def compilerOptions: T[Map[String, ujson.Value]] =
       Task {
@@ -662,21 +666,21 @@ object TestModule {
     }
 
     def configSource: T[PathRef] =
-      Task.Source(Task.workspace / "playwright.config.ts")
+      Task.Source(BuildCtx.workspaceRoot / "playwright.config.ts")
 
     def conf: Task[TestResult] = Task.Anon {
       os.copy.over(
         configSource().path,
-        T.dest / configSource().path.last
+        Task.dest / configSource().path.last
       )
     }
 
     override def compile: T[PathRef] = Task {
       conf()
       createNodeModulesSymlink()
-      os.copy(super.compile().path, T.dest, mergeFolders = true, replaceExisting = true)
+      os.copy(super.compile().path, Task.dest, mergeFolders = true, replaceExisting = true)
 
-      PathRef(T.dest)
+      PathRef(Task.dest)
     }
 
     private def runTest: T[TestResult] = Task {

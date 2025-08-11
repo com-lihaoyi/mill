@@ -7,15 +7,15 @@
 
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
-object `package` extends RootModule with ScalaModule {
-  def scalaVersion = "2.13.8"
+object `package` extends ScalaModule {
+  def scalaVersion = "2.13.16"
 
   // You can have arbitrary numbers of third-party dependencies
   def mvnDeps = Seq(
-    mvn"com.lihaoyi::scalatags:0.8.2",
-    mvn"com.lihaoyi::os-lib:0.10.7"
+    mvn"com.lihaoyi::scalatags:0.13.1",
+    mvn"com.lihaoyi::os-lib:0.11.4"
   )
 
   // Choose a main class to use for `.run` if there are multiple present
@@ -58,7 +58,7 @@ object `package` extends RootModule with ScalaModule {
 // If you want to better understand how the various upstream tasks feed into
 // a task of interest, such as `run`, you can visualize their relationships via
 /** Usage
-> mill visualizePlan run
+> ./mill visualizePlan run
 */
 //
 // image::basic/VisualizePlanScala.svg[VisualizePlanScala.svg]
@@ -66,6 +66,11 @@ object `package` extends RootModule with ScalaModule {
 // (right-click open in new tab to see full sized)
 //
 //// SNIPPET:END
+//
+// You can also use your IDE's autocompletion to explore what tasks are available
+// to override and what each one does:
+//
+// image::basic/autocomplete-override.png[autocomplete-override.png]
 //
 //
 // Note the use of `moduleDir`, `Task.dest`, and `PathRef` when preforming
@@ -88,7 +93,7 @@ object `package` extends RootModule with ScalaModule {
 
 /** Usage
 
-> mill run
+> ./mill run
 Foo2.value: <h1>hello2</h1>
 Foo.value: <h1>hello</h1>
 FooA.value: hello A
@@ -99,7 +104,7 @@ MyOtherResource: My Other Resource Contents
 my.custom.property: my-prop-value
 MY_CUSTOM_ENV: my-env-value
 
-> mill show assembly
+> ./mill show assembly
 ".../out/assembly.dest/out.jar"
 
 > ./out/assembly.dest/out.jar # mac/linux
@@ -120,7 +125,7 @@ my.custom.property: my-prop-value
 
 > sed -i.bak 's/Foo2 {/Foo2 { println(this + "hello")/g' custom-src/Foo2.scala
 
-> mill compile # demonstrate -deprecation/-Xfatal-warnings flags
+> ./mill compile # demonstrate -deprecation/-Xfatal-warnings flags
 error: object Foo2 { println(this + "hello")
 error:                       ^
 error: ...Implicit injection of + is deprecated. Convert to String to call +...

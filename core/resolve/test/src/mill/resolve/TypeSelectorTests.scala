@@ -1,14 +1,14 @@
 package mill.resolve
 
-import mill.define.Discover
+import mill.api.Discover
 import mill.api.Result
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import mill.{Cross, Module, Task}
 import utest.*
 
 object TypeSelectorTests extends TestSuite {
 
-  object TypedModules extends TestBaseModule {
+  object TypedModules extends TestRootModule {
     trait TypeA extends Module {
       def foo = Task { "foo" }
     }
@@ -29,7 +29,7 @@ object TypeSelectorTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object TypedCrossModules extends TestBaseModule {
+  object TypedCrossModules extends TestRootModule {
     trait TypeA extends Cross.Module[String] {
       def foo = Task { crossValue }
     }
@@ -55,7 +55,7 @@ object TypeSelectorTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object TypedInnerModules extends TestBaseModule {
+  object TypedInnerModules extends TestRootModule {
     trait TypeA extends Module {
       def foo = Task { "foo" }
     }
@@ -126,13 +126,13 @@ object TypeSelectorTests extends TestSuite {
         Result.Success(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
       )
       test - check(
-        "(_:_root_.mill.define.Module)._",
+        "(_:_root_.mill.api.Module)._",
         Result.Success(Set(_.typeA.foo, _.typeB.bar, _.typeAB.foo, _.typeAB.bar, _.typeC.baz))
       )
       test - check(
-        "(_:^_root_.mill.define.Module)._",
+        "(_:^_root_.mill.api.Module)._",
         Result.Failure(
-          "Cannot resolve _:^_root_.mill.define.Module._. Try `mill resolve _` to see what's available."
+          "Cannot resolve _:^_root_.mill.api.Module._. Try `mill resolve _` to see what's available."
         )
       )
       test - check(

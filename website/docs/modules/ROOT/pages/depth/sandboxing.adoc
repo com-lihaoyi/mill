@@ -1,7 +1,16 @@
 = Mill Sandboxing
 :page-aliases: Mill_Sandboxing.adoc
 
+In order to help manage your build, Mill performs some rudimentary filesystem
+sandboxing to keep different tasks and modules from interfering with each other.
+This tries to ensure your tasks only read and write from their designated `.dest/`
+folders, which are unique to each task and thus guaranteed not to collide with
+the filesystem operations of other tasks that may be occurring in parallel.
 
+Mill sandboxing is not meant to be fully hermetic, and is instead just a set of
+guardrails meant to nudge Mill users towards Mill's best practices and coding conventions.
+Every Mill sandboxing guardrail has an escape-hatch to bypass it (at your own risk!) if
+really necessary.
 
 == Task Sandboxing
 
@@ -11,17 +20,18 @@ include::partial$example/depth/sandbox/1-task.adoc[]
 
 include::partial$example/depth/sandbox/2-test.adoc[]
 
-== Breaking Out Of Sandbox Folders
-
-include::partial$example/depth/sandbox/3-breaking.adoc[]
-
 == Limitations
 
 Mill's approach to filesystem sandboxing is designed to avoid accidental interference
-between different Mill tasks. It is not designed to block intentional misbehavior, and
-tasks are always able to traverse the filesystem and do whatever they want. Furthermore,
+between different Mill tasks and tests. It is not designed to block intentional misbehavior,
+and tasks are always able to traverse the filesystem and do whatever they want. Furthermore,
 Mill's redirection of `os.pwd` does not apply to `java.io` or `java.nio` APIs, which are
 outside of Mill's control.
 
-However, by setting `os.pwd` to safe sandbox folders, we hope to minimize the cases where
-someone accidentally causes issues with their build by doing the wrong thing.
+However, by setting `os.pwd` to safe sandbox folders, and performing some basic checks
+on `os.*` read/write operations, we hope to minimize the cases where someone accidentally
+causes issues with their build by doing the wrong thing. The escape hatches of `BuildCtx.workspaceRoot`,
+`MILL_WORKSPACE_ROOT`, or `BuildCtx.withFilesystemCheckerDisabled` are provided to be used
+in cases you do need to do something unusual, but usage of them should be minimized if possible
+as they may result in `--watch` or `selective.test` not missing some implicit dependencies
+between your tasks and source files on disk.

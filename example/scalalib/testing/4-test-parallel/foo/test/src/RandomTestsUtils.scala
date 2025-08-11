@@ -1,5 +1,5 @@
 package foo
-import utest._
+import utest.*
 
 abstract class RandomTestsUtils extends TestSuite {
 

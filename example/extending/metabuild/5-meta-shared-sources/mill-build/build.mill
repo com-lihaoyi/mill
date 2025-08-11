@@ -1,4 +1,6 @@
 package build
-import mill._
+
+import mill.*
+import mill.meta.MillBuildRootModule
 
 object `package` extends MillBuildRootModule

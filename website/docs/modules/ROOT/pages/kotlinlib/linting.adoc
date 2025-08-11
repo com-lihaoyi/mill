@@ -19,6 +19,14 @@ include::partial$example/kotlinlib/linting/2-ktlint.adoc[]
 
 include::partial$example/kotlinlib/linting/3-ktfmt.adoc[]
 
+== Auto-formatting with Spotless
+
+include::partial$example/kotlinlib/linting/5-spotless.adoc[]
+
+=== Ratchet
+
+include::partial$example/javalib/linting/5-spotless-ratchet.adoc[]
+
 == Code Coverage with Kover
 
 include::partial$example/kotlinlib/linting/4-kover.adoc[]

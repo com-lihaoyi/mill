@@ -1,0 +1,81 @@
+// This is how endless-tunnel from android ndk-sample can be built with mill.
+// The original code is in https://github.com/android/ndk-samples/tree/main/endless-tunnel
+
+package build
+
+import mill.*, androidlib.*, scalalib.*
+
+object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = "35.0.0"
+}
+
+object `endless-tunnel` extends mill.api.Module {
+  object app extends AndroidNativeAppModule {
+
+    def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+
+    def androidMinSdk = 19
+
+    def androidCompileSdk = 35
+
+    def androidApplicationId = "com.google.sample.tunnel"
+
+    def androidApplicationNamespace = "com.google.sample.tunnel"
+
+    override def androidNativeLibName: T[String] = "libgame"
+
+    /**
+     * Configuration for ReleaseKey
+     * WARNING: Replace these default values with secure and private credentials before using in production.
+     * Never use these defaults in a production environment as they are not secure.
+     * This is just for testing purposes.
+     */
+    def androidReleaseKeyAlias: T[Option[String]] = Task {
+      Some("releaseKey")
+    }
+
+    def androidReleaseKeyPass: T[Option[String]] = Task {
+      Some("MillBuildTool")
+    }
+
+    def androidReleaseKeyStorePass: T[Option[String]] = Task {
+      Some("MillBuildTool")
+    }
+
+    override def androidVirtualDeviceIdentifier: String = "cpp-test"
+
+    override def androidCMakeExtraArgs: T[Seq[String]] =
+      super.androidCMakeExtraArgs() ++ Seq("-DANDROID_STL=c++_static")
+
+  }
+}
+
+/** Usage
+
+> ./mill show endless-tunnel.app.androidApk
+".../out/endless-tunnel/app/androidApk.dest/app.apk"
+
+> ./mill show endless-tunnel.app.createAndroidVirtualDevice
+...Name: cpp-test, DeviceId: medium_phone...
+
+> ./mill show endless-tunnel.app.startAndroidEmulator
+
+> ./mill show endless-tunnel.app.androidInstall
+...All files should be loaded. Notifying the device...
+
+> ./mill show endless-tunnel.app.androidRun --activity android.app.NativeActivity
+[
+  "Starting: Intent { cmp=com.google.sample.tunnel/android.app.NativeActivity }",
+  "Status: ok",
+  "LaunchState: COLD",
+  "Activity: com.google.sample.tunnel/android.app.NativeActivity",
+  "TotalTime: ...",
+  "WaitTime: ...",
+  "Complete"
+]
+
+> ./mill show endless-tunnel.app.stopAndroidEmulator
+
+> ./mill show endless-tunnel.app.deleteAndroidVirtualDevice
+
+*/

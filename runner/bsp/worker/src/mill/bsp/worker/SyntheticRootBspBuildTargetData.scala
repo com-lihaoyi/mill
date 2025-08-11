@@ -2,12 +2,11 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, SourceItem, SourceItemKind, SourcesItem}
 import mill.bsp.worker.Utils.{makeBuildTarget, sanitizeUri}
-import mill.api.internal.BspBuildTarget
-import mill.api.internal.BspModuleApi
-import mill.api.internal.BspModuleApi.Tag
+import mill.api.daemon.internal.bsp.BspModuleApi.Tag
 
 import scala.jdk.CollectionConverters._
 import ch.epfl.scala.bsp4j.BuildTarget
+import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 
 /**
  * Synthesised [[BspBuildTarget]] to handle exclusions.

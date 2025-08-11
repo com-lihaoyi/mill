@@ -6,14 +6,15 @@
 //   making deployment easier.
 
 package build
-import mill._
+import mill.*
+import mill.api.BuildCtx
 
 trait PythonModule extends Module {
   def moduleDeps: Seq[PythonModule] = Nil
   def mainFileName: T[String] = Task { "main.py" }
   def sources: T[PathRef] = Task.Source("src")
 
-  def pythonDeps: T[Seq[String]] = Task { Seq.empty[String] }
+  def pythonDeps: T[Seq[String]] = Task { Seq() }
 
   def transitivePythonDeps: T[Seq[String]] = Task {
     val upstreamDependencies = Task.traverse(moduleDeps)(_.transitivePythonDeps)().flatten
@@ -34,18 +35,20 @@ trait PythonModule extends Module {
     os.call(
       (pythonExe().path, "-m", "mypy", "--strict", sources().path),
       stdout = os.Inherit,
-      cwd = Task.workspace
+      cwd = BuildCtx.workspaceRoot
     )
   }
 
   def gatherScripts(upstream: Seq[(PathRef, PythonModule)]) = {
     for ((sourcesFolder, mod) <- upstream) {
       val destinationPath = os.pwd / mod.moduleDir.subRelativeTo(build.moduleDir)
-      os.copy.over(sourcesFolder.path / os.up, destinationPath)
+      BuildCtx.withFilesystemCheckerDisabled {
+        os.copy.over(sourcesFolder.path / os.up, destinationPath)
+      }
     }
   }
 
-  def run(args: mill.define.Args) = Task.Command {
+  def run(args: mill.api.Args) = Task.Command {
     gatherScripts(Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps))
 
     os.call(
@@ -71,9 +74,7 @@ trait PythonModule extends Module {
         "-c",
         sources().path / mainFileName(),
         "-o",
-        pexFile,
-        "--scie",
-        "eager"
+        pexFile
       ),
       env = Map("PYTHONPATH" -> Task.dest.toString),
       stdout = os.Inherit

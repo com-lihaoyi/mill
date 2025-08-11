@@ -1,6 +1,6 @@
 package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object foo extends TypeScriptModule {
 
@@ -19,7 +19,7 @@ object foo extends TypeScriptModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends TypeScriptTests with TestModule.Jest
+  object test extends TypeScriptTests, TestModule.Jest
 
 }
 
@@ -27,10 +27,10 @@ object foo extends TypeScriptModule {
 
 /** Usage
 
-> mill foo.run
+> ./mill foo.run
 Line Count: 21
 
-> mill show foo.bundle
+> ./mill show foo.bundle
 Build succeeded!
 
 > node out/foo/bundle.dest/bundle.js

@@ -1,3 +1,5 @@
+//| mill-version: SNAPSHOT
+//| mill-jvm-version: 11
 package build
 
 import _root_.build_.MyModule
@@ -15,7 +17,7 @@ object Deps {
   val `org.mockito:mockito-core` = mvn"org.mockito:mockito-core:1.8.5"
 }
 
-object `package` extends RootModule with MyModule {
+object `package` extends MyModule {
 
   def artifactName = "parent"
 
@@ -25,8 +27,7 @@ object `package` extends RootModule with MyModule {
 
     def artifactName = "multi-module-parent"
 
-    def javacOptions = super.javacOptions() ++
-      Seq("-source", "1.6", "-target", "1.6")
+    def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
     def pomSettings = PomSettings(
       "Sample multi module Maven project with a working, deployable site.",
@@ -51,8 +52,7 @@ object `package` extends RootModule with MyModule {
 
     object server extends MyModule {
 
-      def javacOptions = super.javacOptions() ++
-        Seq("-source", "1.6", "-target", "1.6")
+      def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
       def pomSettings = PomSettings(
         "Logic.",
@@ -81,7 +81,7 @@ object `package` extends RootModule with MyModule {
 
       object tests extends MavenTests with TestModule.Junit4 {
 
-        def mvnDeps = super.mvnDeps() ++ Seq(
+        def mvnDeps = Seq(
           Deps.`junit:junit-dep`,
           Deps.`org.hamcrest:hamcrest-core`,
           Deps.`org.hamcrest:hamcrest-library`,
@@ -90,17 +90,18 @@ object `package` extends RootModule with MyModule {
 
         def testSandboxWorkingDir = false
         def testParallelism = false
+        def forkWorkingDir = moduleDir
+
       }
     }
 
     object webapp extends MyModule {
 
-      def javacOptions = super.javacOptions() ++
-        Seq("-source", "1.6", "-target", "1.6")
+      def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
       def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
 
-      def compileMvnDeps = super.compileMvnDeps() ++
+      def compileMvnDeps =
         Seq(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
 
       def pomSettings = PomSettings(
@@ -137,10 +138,9 @@ object `package` extends RootModule with MyModule {
 
     def artifactName = "single-module-project"
 
-    def javacOptions = super.javacOptions() ++
-      Seq("-source", "1.6", "-target", "1.6")
+    def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
-    def mvnDeps = super.mvnDeps() ++
+    def mvnDeps =
       Seq(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
 
     def pomSettings = PomSettings(
@@ -164,7 +164,7 @@ object `package` extends RootModule with MyModule {
 
     object tests extends MavenTests with TestModule.Junit4 {
 
-      def mvnDeps = super.mvnDeps() ++ Seq(
+      def mvnDeps = Seq(
         Deps.`junit:junit-dep`,
         Deps.`org.hamcrest:hamcrest-core`,
         Deps.`org.hamcrest:hamcrest-library`,
@@ -173,6 +173,8 @@ object `package` extends RootModule with MyModule {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+      def forkWorkingDir = moduleDir
+
     }
   }
 }
@@ -190,9 +192,4 @@ trait MyModule extends PublishModule with MavenModule {
 
   def publishVersion = "1.0-SNAPSHOT"
 
-  def jvmWorker = mill.define.ModuleRef(MyModuleJvmWorker)
-
-  object MyModuleJvmWorker extends JvmWorkerModule {
-    def jvmId = "11"
-  }
 }

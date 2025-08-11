@@ -1,7 +1,7 @@
 package mill.main.sbt
 
 import mainargs.{ParserForClass, arg, main}
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import mill.constants.Util
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
@@ -157,6 +157,32 @@ object SbtBuildGenMain
     convertWriteOut(cfg, cfg.shared, (buildExport.defaultBuildInfo, projectNodeTree))
 
     println("converted sbt build to Mill")
+
+    {
+      val jvmOptsSbt = workspace / ".jvmopts"
+      val jvmOptsMill = workspace / ".mill-jvm-opts"
+
+      if (os.exists(jvmOptsSbt)) {
+        println(s"copying ${jvmOptsSbt.last} to ${jvmOptsMill.last}")
+        if (os.exists(jvmOptsMill)) {
+          val backup = jvmOptsMill / os.up / s"${jvmOptsMill.last}.bak"
+          println(s"creating backup ${backup.last}")
+          os.move.over(jvmOptsMill, backup)
+        }
+        var reportOnce = true
+        // Since .jvmopts may contain multiple args per line, we warn the user
+        // as Mill wants each arg on a separate line
+        os.read.lines(jvmOptsSbt).collectFirst {
+          // Warn the user once when we find spaces, but ignore comments
+          case x if reportOnce && !x.trim().startsWith("#") && x.trim().contains(" ") =>
+            reportOnce = false
+            println(
+              s"${jvmOptsMill.last}: Please check that each arguments is on a separate line!"
+            )
+        }
+        os.copy(jvmOptsSbt, jvmOptsMill)
+      }
+    }
   }
 
   /**
@@ -272,7 +298,9 @@ object SbtBuildGenMain
       pomParentArtifact = null, // not available
       resources = Nil,
       testResources = Nil,
-      publishProperties = Nil // not available in `sbt` as it seems
+      publishProperties = Nil, // not available in `sbt` as it seems
+      jvmId = cfg.shared.jvmId,
+      testForkDir = None
     )
   }
 
@@ -286,14 +314,14 @@ object SbtBuildGenMain
   def getMillSourcePath(project: Project): Path = os.Path(project.projectDirectory)
 
   override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Project]): Seq[String] =
-    Seq("RootModule") ++ getModuleSupertypes(cfg)
+    getModuleSupertypes(cfg)
 
   def getJavacOptions(buildInfo: BuildInfo): Seq[String] =
     buildInfo.javacOptions.getOrElse(Seq.empty)
 
   def getRepositories(buildInfo: BuildInfo): Seq[String] =
     buildInfo.resolvers.getOrElse(Seq.empty).map(resolver =>
-      s"coursier.maven.MavenRepository(${escape(resolver.root)})"
+      escape(resolver.root)
     )
 
   def getPublishVersion(buildInfo: BuildInfo): String | Null =
@@ -308,9 +336,9 @@ object SbtBuildGenMain
       crossVersion match {
         case CrossVersion.Disabled => None
         // The formatter doesn't work well for the import `import mill.scalalib.CrossVersion as MillCrossVersion` in IntelliJ IDEA, so FQNs are used here.
-        case CrossVersion.Binary => Some(mill.define.CrossVersion.Binary(false))
-        case CrossVersion.Full => Some(mill.define.CrossVersion.Full(false))
-        case CrossVersion.Constant(value) => Some(mill.define.CrossVersion.Constant(value, false))
+        case CrossVersion.Binary => Some(mill.api.CrossVersion.Binary(false))
+        case CrossVersion.Full => Some(mill.api.CrossVersion.Full(false))
+        case CrossVersion.Constant(value) => Some(mill.api.CrossVersion.Constant(value, false))
       },
       version = revision,
       tpe = tpe.orNull,

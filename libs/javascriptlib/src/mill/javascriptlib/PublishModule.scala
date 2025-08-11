@@ -53,9 +53,9 @@ trait PublishModule extends TypeScriptModule {
         )
         .cleanJson
 
-    os.write.over(T.dest / "package.json", updatedJson.render(2))
+    os.write.over(Task.dest / "package.json", updatedJson.render(2))
 
-    PathRef(T.dest)
+    PathRef(Task.dest)
   }
 
   // Compilation Options
@@ -103,9 +103,9 @@ trait PublishModule extends TypeScriptModule {
     mkTsconfig()
 
     // build declaration and out dir
-    os.call("node_modules/typescript/bin/tsc", cwd = T.dest)
+    os.call("node_modules/typescript/bin/tsc", cwd = Task.dest)
 
-    PathRef(T.dest)
+    PathRef(Task.dest)
   }
   // Compilation Options
 
@@ -174,13 +174,13 @@ trait PublishModule extends TypeScriptModule {
     val bundled = bundle().path / os.up
 
     os.walk(bundled)
-      .foreach(p => os.copy.over(p, T.dest / p.relativeTo(bundled), createFolders = true))
+      .foreach(p => os.copy.over(p, Task.dest / p.relativeTo(bundled), createFolders = true))
 
     // build package.json
-    os.copy.over(pubPackageJson().path / "package.json", T.dest / "package.json")
+    os.copy.over(pubPackageJson().path / "package.json", Task.dest / "package.json")
 
     // run npm publish
-    os.call(("npm", "publish"), stdout = os.Inherit, cwd = T.dest)
+    os.call(("npm", "publish"), stdout = os.Inherit, cwd = Task.dest)
     ()
   }
 

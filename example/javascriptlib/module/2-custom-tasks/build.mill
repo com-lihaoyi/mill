@@ -1,6 +1,6 @@
 package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object foo extends TypeScriptModule {
 
@@ -68,7 +68,7 @@ object foo extends TypeScriptModule {
 
 /** Usage
 
-> mill foo.run "Hello World!"
+> ./mill foo.run "Hello World!"
 Bar.value: 123
 text: Hello World!
 Line count: 9

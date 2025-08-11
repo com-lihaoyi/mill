@@ -5,17 +5,18 @@
 package mill.kotlinlib.kover
 
 import mill.*
-import mill.define.{PathRef}
+import mill.api.{PathRef}
 import mill.api.{Result}
-import mill.define.{Discover, Evaluator, ExternalModule}
+import mill.api.{Discover, Evaluator, ExternalModule}
 import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
-import mill.define.SelectMode
-import mill.scalalib.api.CompilationResult
+import mill.api.SelectMode
+import mill.javalib.api.CompilationResult
 import mill.util.Jvm
 import os.Path
 
 import java.util.Locale
+import mill.api.BuildCtx
 
 /**
  * Adds targets to a [[mill.kotlinlib.KotlinModule]] to create test coverage reports.
@@ -103,7 +104,7 @@ trait KoverModule extends KotlinModule { outer =>
     override def forkArgs: T[Seq[String]] = Task {
       val argsFile = koverDataDir().path / "kover-agent.args"
       val content = s"report.file=${koverBinaryReport().path}"
-      os.checker.withValue(os.Checker.Nop) {
+      BuildCtx.withFilesystemCheckerDisabled {
         os.write.over(argsFile, content)
       }
       super.forkArgs() ++
@@ -201,7 +202,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
       reportType: ReportType,
       classpath: Seq[Path],
       workingDir: os.Path
-  )(implicit ctx: mill.define.TaskCtx): PathRef = {
+  )(implicit ctx: mill.api.TaskCtx): PathRef = {
     val args = Seq.newBuilder[String]
     args += "report"
     args ++= binaryReportsPaths.map(_.toString())

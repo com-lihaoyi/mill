@@ -1,7 +1,7 @@
 package build
 
-import mill._
-import mill.javascriptlib._
+import mill.*
+import mill.javascriptlib.*
 
 object foo extends TypeScriptModule {
 
@@ -9,7 +9,9 @@ object foo extends TypeScriptModule {
 
   def sources = Task { super.sources() ++ customSource() }
 
-  def resources = super.resources() ++ Seq(PathRef(moduleDir / "custom-resources"))
+  def customResources = Task.Sources("custom-resources")
+
+  def resources = super.resources() ++ customResources()
 
   def generatedSources = Task {
     for (name <- Seq("A", "B", "C")) os.write(
@@ -49,7 +51,7 @@ object foo extends TypeScriptModule {
 
 /** Usage
 
-> mill foo.run
+> ./mill foo.run
 hello2
 Hello A
 Hello B
@@ -57,7 +59,7 @@ Hello C
 my-env-value
 MyResource: My Resource Contents
 
-> mill foo.bundle
+> ./mill foo.bundle
 Build succeeded!
 
 > MY_CUSTOM_ENV=my-env-value node out/foo/bundle.dest/bundle.js

@@ -2,13 +2,12 @@
 :page-aliases: Import_File_And_Import_Ivy.adoc, Using_Plugins.adoc
 
 
-
-This page illustrates usage of the `//| mvnDeps:` syntax.
-`//| mvnDeps:` lets you import JVM dependencies into your `build.mill`, so
+This page illustrates usage of the `//| mvnDeps` syntax.
+`//| mvnDeps` lets you import JVM dependencies into your `build.mill`, so
 you can use arbitrary third-party libraries at build-time. This makes
 lets you perform computations at build-time rather than run-time,
 speeding up your application start up. Unlike most other build tools that
-require purpose-built plugins to extend them, Mill's `//| mvnDeps:` can be used to pull
+require purpose-built plugins to extend them, Mill's `//| mvnDeps` can be used to pull
 in any JVM library on Maven Central to use in your custom tasks, with
 xref:extending/thirdparty-plugins.adoc[Third-Party Plugins] only necessary for
 more sophisticated integrations.
@@ -28,7 +27,7 @@ include::partial$example/extending/imports/2-mvn-deps-scala.adoc[]
 == Importing Plugins
 
 Mill plugins are ordinary JVM libraries jars and are loaded as any other external dependency with
-the `//| mvnDeps:` mechanism.
+the `//| mvnDeps` mechanism.
 
 There exist a large number of Mill plugins, Many of them are available on GitHub and via
 Maven Central.We also have a list of plugins, which is most likely not complete, but it
@@ -45,26 +44,26 @@ following techniques:
 
 [source,scala]
 ----
-// for classic Scala dependencies
-import $ivy.`<group>::<plugin>::<version>` // <1>
-// for dependencies specific to the exact Scala version
-import $ivy.`<group>:::<plugin>::<version>` // <2>
+//| # for classic Scala dependencies
+//| mvnDeps: ["<group>::<plugin>::<version>"]  // <1>
+//| # for dependencies specific to the exact Scala version
+//| mvnDeps: ["<group>:::<plugin>::<version>"] // <2>
 ----
 <1> This is equivalent to
 +
 [source,scala]
 ----
-import $ivy.`<group>::<plugin>_mill$MILL_BIN_PLATFORM:<version>`
+//| mvnDeps: ["<group>::<plugin>_mill$MILL_BIN_PLATFORM:<version>"]  // <1>
 ----
 <2> This is equivalent to
 +
 [source,scala]
 ----
-import $ivy.`<group>:::<plugin>_mill$MILL_BIN_PLATFORM:<version>`
+//| mvnDeps: ["<group>:::<plugin>_mill$MILL_BIN_PLATFORM:<version>"]  // <1>
 ----
 
 
-=== Use special placeholders in your `//| mvnDeps:`
+=== Use special placeholders in your `//| mvnDeps`
 
 `$MILL_VERSION` ::
 +
@@ -73,18 +72,20 @@ to substitute the currently used Mill version.
 This is typical required for Mill contrib modules, which are developed in the Mill repository and highly bound to the current Mill version.
 
 .Example: Use `mill-contrib-bloop` plugin matching the current Mill version
+[source,scala]
 ----
-import $ivy.`com.lihaoyi:mill-contrib-bloop:$MILL_VERSION`
+//| mvnDeps: ["com.lihaoyi::mill-contrib-bloop:$MILL_VERSION"]
 ----
 
-There is the even more convenient option to leave the version completely empty.
-Mill will substitute it with its current version.
-But don't forget to provide the trailing colon!
+// There is the even more convenient option to leave the version completely empty.
+// Mill will substitute it with its current version.
+// But don't forget to provide the trailing colon!
 
-.Example: Use `mill-contrib-bloop` plugin matching the current Mill version
-----
-import $ivy.`com.lihaoyi:mill-contrib-bloop:`
-----
+// .Example: Use `mill-contrib-bloop` plugin matching the current Mill version
+// [source,scala]
+// ----
+// //| mvnDeps: ["com.lihaoyi::mill-contrib-bloop:$MILL_VERSION"]
+// ----
 --
 
 `$MILL_BIN_PLATFORM` ::
@@ -93,10 +94,14 @@ import $ivy.`com.lihaoyi:mill-contrib-bloop:`
 to substitute the currently used Mill binary platform.
 
 .Example: Using `mill-vcs-version` plugin matching the current Mill Binary Platform
+[source,scala]
 ----
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill$MILL_BIN_PLATFORM:0.1.2`
+//| mvnDeps: ["de.tototec::de.tobiasroeser.mill.vcs.version_mill$MILL_BIN_PLATFORM:0.1.2"]
 ----
 --
 
-TIP: If you want to publish re-usable libraries that _other_ people can use in their builds, simply publish your code as a library to maven central.
+TIP: If you want to publish re-usable libraries that _other_ people can use in their
+builds, simply publish your code as a library to maven central.
 
+The `//| mvnDeps` and `//| repositories` build headers are a shorthand for overriding
+configuring on xref:extending/meta-build.adoc[].

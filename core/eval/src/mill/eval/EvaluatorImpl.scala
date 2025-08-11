@@ -1,14 +1,13 @@
 package mill.eval
 
-import mill.api.*
-import mill.api.internal.{ExecutionResultsApi, TestReporter, CompileProblemReporter}
-import mill.define.PathRef
+import mill.api.daemon.internal.{CompileProblemReporter, ExecutionResultsApi, TestReporter}
 import mill.constants.OutFiles
-import mill.define.*
+import mill.constants.OutFiles.*
+import mill.api.{PathRef, *}
+import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
+import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
-import mill.define.internal.{ResolveChecker, Watchable}
-import OutFiles.*
-import mill.define.internal.TopoSorted
+import mill.internal.PrefixLogger
 import mill.resolve.Resolve
 
 /**
@@ -32,7 +31,7 @@ final class EvaluatorImpl private[mill] (
   private[mill] def baseLogger = execution.baseLogger
   private[mill] def outPath = execution.outPath
   private[mill] def codeSignatures = execution.codeSignatures
-  private[mill] def rootModule = execution.rootModule.asInstanceOf[BaseModule]
+  private[mill] def rootModule = execution.rootModule.asInstanceOf[RootModule0]
   private[mill] def workerCache = execution.workerCache
   private[mill] def env = execution.env
   private[mill] def effectiveThreadCount = execution.effectiveThreadCount
@@ -54,8 +53,24 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Segments]] = {
-    os.checker.withValue(ResolveChecker) {
+    os.checker.withValue(ResolveChecker(workspace)) {
       Resolve.Segments.resolve(
+        rootModule,
+        scriptArgs,
+        selectMode,
+        allowPositionalCommandArgs,
+        resolveToModuleTasks
+      )
+    }
+  }
+  override def resolveRaw(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean = false,
+      resolveToModuleTasks: Boolean = false
+  ): mill.api.Result[List[Resolved]] = {
+    os.checker.withValue(ResolveChecker(workspace)) {
+      Resolve.Raw.resolve(
         rootModule,
         scriptArgs,
         selectMode,
@@ -66,7 +81,7 @@ final class EvaluatorImpl private[mill] (
   }
 
   /**
-   * Takes query selector tokens and resolves them to a list of [[NamedTask]]s
+   * Takes query selector tokens and resolves them to a list of [[Task.Named]]s
    * representing concrete tasks or modules that match that selector
    */
   def resolveTasks(
@@ -74,9 +89,9 @@ final class EvaluatorImpl private[mill] (
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): mill.api.Result[List[NamedTask[?]]] = {
-    os.checker.withValue(ResolveChecker) {
-      Evaluator.currentEvaluator0.withValue(this) {
+  ): mill.api.Result[List[Task.Named[?]]] = {
+    os.checker.withValue(ResolveChecker(workspace)) {
+      Evaluator.withCurrentEvaluator(this) {
         Resolve.Tasks.resolve(
           rootModule,
           scriptArgs,
@@ -92,9 +107,9 @@ final class EvaluatorImpl private[mill] (
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): mill.api.Result[List[Either[Module, NamedTask[?]]]] = {
-    os.checker.withValue(ResolveChecker) {
-      Evaluator.currentEvaluator0.withValue(this) {
+  ): mill.api.Result[List[Either[Module, Task.Named[?]]]] = {
+    os.checker.withValue(ResolveChecker(workspace)) {
+      Evaluator.withCurrentEvaluator(this) {
         Resolve.Inspect.resolve(
           rootModule,
           scriptArgs,
@@ -112,28 +127,23 @@ final class EvaluatorImpl private[mill] (
    */
   def plan(tasks: Seq[Task[?]]): Plan = PlanImpl.plan(tasks)
 
-  def transitiveTargets(tasks: Seq[Task[?]]) = {
-    PlanImpl.transitiveTargets(tasks)
+  def transitiveTasks(sourceTasks: Seq[Task[?]]) = {
+    PlanImpl.transitiveTasks(sourceTasks)
   }
 
-  def topoSorted(transitive: IndexedSeq[Task[?]]) = {
-    PlanImpl.topoSorted(transitive)
+  def topoSorted(transitiveTasks: IndexedSeq[Task[?]]) = {
+    PlanImpl.topoSorted(transitiveTasks)
   }
 
-  def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)(important: PartialFunction[
+  def groupAroundImportantTasks[T](topoSortedTasks: TopoSorted)(important: PartialFunction[
     Task[?],
     T
   ]) = {
-    PlanImpl.groupAroundImportantTargets(topoSortedTargets)(important)
+    PlanImpl.groupAroundImportantTasks(topoSortedTasks)(important)
   }
 
-  /**
-   * @param targets
-   * @param selectiveExecution
-   * @return
-   */
   def execute[T](
-      targets: Seq[Task[T]],
+      tasks: Seq[Task[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = baseLogger,
@@ -141,24 +151,40 @@ final class EvaluatorImpl private[mill] (
       selectiveExecution: Boolean = false
   ): Evaluator.Result[T] = {
 
-    val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
+    val selectiveExecutionEnabled = selectiveExecution && !tasks.exists(_.isExclusiveCommand)
 
     val selectedTasksOrErr =
-      if (selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)) {
+      if (!selectiveExecutionEnabled) (tasks, Map.empty, None)
+      else {
         val (named, unnamed) =
-          targets.partitionMap { case n: NamedTask[?] => Left(n); case t => Right(t) }
-        val changedTasks = this.selective.computeChangedTasks0(named)
+          tasks.partitionMap { case n: Task.Named[?] => Left(n); case t => Right(t) }
+        val newComputedMetadata = SelectiveExecutionImpl.Metadata.compute(this, named)
 
-        val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
+        val selectiveExecutionStoredData = for {
+          _ <- Option.when(os.exists(outPath / OutFiles.millSelectiveExecution))(())
+          changedTasks <- this.selective.computeChangedTasks0(named, newComputedMetadata)
+        } yield changedTasks
 
-        (
-          unnamed ++ named.filter(t => t.isExclusiveCommand || selectedSet(t.ctx.segments.render)),
-          changedTasks.results
-        )
-      } else (targets, Map.empty)
+        selectiveExecutionStoredData match {
+          case None =>
+            // Ran when previous selective execution metadata is not available, which happens the first time you run
+            // selective execution.
+            (tasks, Map.empty, Some(newComputedMetadata.metadata))
+          case Some(changedTasks) =>
+            val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
+
+            (
+              unnamed ++ named.filter(t =>
+                t.isExclusiveCommand || selectedSet(t.ctx.segments.render)
+              ),
+              newComputedMetadata.results,
+              Some(newComputedMetadata.metadata)
+            )
+        }
+      }
 
     selectedTasksOrErr match {
-      case (selectedTasks, selectiveResults) =>
+      case (selectedTasks, selectiveResults, maybeNewMetadata) =>
         val evaluated: ExecutionResults =
           execution.executeTasks(
             selectedTasks,
@@ -170,13 +196,13 @@ final class EvaluatorImpl private[mill] (
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.transitiveResults.iterator ++ selectiveResults)
           .collect {
-            case (t: SourcesImpl, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
+            case (_: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
               ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
-            case (t: SourceImpl, ExecResult.Success(Val(p: PathRef))) =>
+            case (_: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
               Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
-            case (t: InputImpl[_], result) =>
+            case (t: Task.Input[_], result) =>
 
-              val ctx = new mill.define.TaskCtx.Impl(
+              val ctx = new mill.api.TaskCtx.Impl(
                 args = Vector(),
                 dest0 = () => null,
                 log = logger,
@@ -199,15 +225,8 @@ final class EvaluatorImpl private[mill] (
           .flatten
           .toSeq
 
-        val allInputHashes = evaluated.transitiveResults
-          .iterator
-          .collect {
-            case (t: InputImpl[_], ExecResult.Success(Val(value))) =>
-              (t.ctx.segments.render, value.##)
-          }
-          .toMap
-
-        if (selectiveExecutionEnabled) {
+        maybeNewMetadata.foreach { newMetadata =>
+          val allInputHashes = newMetadata.inputHashes
           this.selective.saveMetadata(
             SelectiveExecution.Metadata(allInputHashes, codeSignatures)
           )
@@ -240,21 +259,29 @@ final class EvaluatorImpl private[mill] (
   def evaluate(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
+      reporter: Int => Option[CompileProblemReporter] = _ => None,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    val resolved = os.checker.withValue(ResolveChecker) {
-      Evaluator.currentEvaluator0.withValue(this) {
-        Resolve.Tasks.resolve(
-          rootModule,
-          scriptArgs,
-          selectMode,
-          allowPositionalCommandArgs
-        )
+    val promptLineLogger = new PrefixLogger(
+      logger0 = baseLogger,
+      key0 = Seq("resolve"),
+      message = "resolve " + scriptArgs.mkString(" ")
+    )
+
+    val resolved = promptLineLogger.withPromptLine {
+      os.checker.withValue(ResolveChecker(workspace)) {
+        Evaluator.withCurrentEvaluator(this) {
+          Resolve.Tasks.resolve(
+            rootModule,
+            scriptArgs,
+            selectMode,
+            allowPositionalCommandArgs
+          )
+        }
       }
     }
-
-    for (targets <- resolved)
-      yield execute(Seq.from(targets), selectiveExecution = selectiveExecution)
+    for (tasks <- resolved)
+      yield execute(Seq.from(tasks), reporter = reporter, selectiveExecution = selectiveExecution)
   }
 
   def close(): Unit = execution.close()

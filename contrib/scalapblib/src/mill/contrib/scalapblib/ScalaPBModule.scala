@@ -2,7 +2,7 @@ package mill
 package contrib.scalapblib
 
 import coursier.core.Version
-import mill.define.{PathRef}
+import mill.api.{PathRef}
 import mill.scalalib._
 
 import java.util.zip.ZipInputStream
@@ -52,9 +52,7 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBProtocPath: T[Option[String]] = Task { None }
 
-  def scalaPBSources: T[Seq[PathRef]] = Task.Sources {
-    moduleDir / "protobuf"
-  }
+  def scalaPBSources: T[Seq[PathRef]] = Task.Sources("protobuf")
 
   def scalaPBOptions: T[String] = Task {
     (
@@ -90,7 +88,7 @@ trait ScalaPBModule extends ScalaModule {
     case false => Task.Anon { Seq.empty[PathRef] }
   }
 
-  def scalaPBProtoClasspath: T[Agg[PathRef]] = Task {
+  def scalaPBProtoClasspath: T[Seq[PathRef]] = Task {
     millResolver().classpath(
       Seq(
         coursierDependency.withConfiguration(coursier.core.Configuration.provided),

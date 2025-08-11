@@ -2,13 +2,13 @@
 //
 // The `out/` folder contains all the generated files & metadata for your build.
 // It holds some files needed to manage Mill's longer running server instances
-// (`out/mill-server/*`) as well as a directory and file structure resembling the
+// (`out/mill-daemon/*`) as well as a directory and file structure resembling the
 // project's module structure.
 //
 // For the purposes of this page, we will be using the following minimal Mill build
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {}
 
@@ -29,10 +29,10 @@ out/mill-build/...
 out/mill-profile.json
 out/mill-runner-state.json
 out/mill-dependency-tree.json
-out/mill-lock
+out/mill-out-lock
 out/mill-invalidation-tree.json
 out/mill-chrome-profile.json
-out/mill-server/...
+out/mill-daemon/...
 
 */
 
@@ -107,7 +107,7 @@ out/mill-dependency-tree.json
 out/mill-invalidation-tree.json
 out/mill-profile.json
 out/mill-build
-out/mill-server
+out/mill-daemon
 
 */
 
@@ -125,7 +125,7 @@ out/mill-server
 > cat out/mill-profile.json
 [
   {
-    "label": "mill.scalalib.JvmWorkerModule.worker",
+    "label": "mill.javalib.JvmWorkerModule.worker",
     "millis": 0,
     "cached": true,
     "valueHashChanged": false,
@@ -278,7 +278,7 @@ out/mill-server
 // of thd same task-related and Mill-related files as the top-level `out/` folder, but
 // related for compiling your `build.mill` rather than compiling your project's source files.
 //
-// === `mill-server/`, `mill-no-server/`
+// === `mill-daemon/`, `mill-no-daemon/`
 //
 // Each Mill process needs to keep some temporary files in one of these directories.
 // Deleting it will also terminate the associated server instance, if it is still running.

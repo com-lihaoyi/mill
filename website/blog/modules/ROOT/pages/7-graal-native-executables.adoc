@@ -81,7 +81,7 @@ To build `Foo.java` using Mill, we can use the following build configuration:
 ----
 package build
 import mill._, javalib._
-import mill.define.ModuleRef
+import mill.api.ModuleRef
 
 object foo extends JavaModule {
   def mvnDeps = Seq(
@@ -125,7 +125,7 @@ above:
 ----
 package build
 import mill._, javalib._
-import mill.define.ModuleRef
+import mill.api.ModuleRef
 
 object foo extends JavaModule with NativeImageModule {
   def mvnDeps = Seq(
@@ -409,7 +409,7 @@ _Executable Assembly_
 ----
 $ jps
 58547 MillMain
-86276 MillServerMain
+86276 MillDaemonMain
 24895 Jps
 9263 Foo
 1071 Main
@@ -424,7 +424,7 @@ _Native Image_
 ----
 $ ps aux | grep native-executable
 lihaoyi          43880  46.1  0.1 408681792  30176 s000  S+    3:40PM   0:05.84 ./out/foo/nativeImage.dest/native-executable --text hello-world
-lihaoyi          86276   0.0  2.1 420349904 720416 s000  S     3:14PM   1:00.88 /Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk/Contents/Home/bin/java -cp /Users/lihaoyi/.cache/mill/download/0.12.5-68-e4bf78 mill.runner.MillServerMain /Users/lihaoyi/Github/mill/blog/modules/ROOT/attachments/7-graal-native-executables/out/mill-server/aa508f0984fd2811f6c6d8fae1362f1774e4f5f7-1
+lihaoyi          86276   0.0  2.1 420349904 720416 s000  S     3:14PM   1:00.88 /Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk/Contents/Home/bin/java -cp /Users/lihaoyi/.cache/mill/download/0.12.5-68-e4bf78 mill.runner.MillDaemonMain /Users/lihaoyi/Github/mill/blog/modules/ROOT/attachments/7-graal-native-executables/out/mill-daemon/aa508f0984fd2811f6c6d8fae1362f1774e4f5f7-1
 lihaoyi          48496   0.0  0.0 408626896   1376 s002  S+    3:40PM   0:00.00 grep native-executable
 
 $ top | grep 43880

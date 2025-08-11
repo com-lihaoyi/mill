@@ -1,5 +1,8 @@
 package mill.integration
 
+import coursier.Resolve
+import coursier.cache.FileCache
+import coursier.jvm.{JvmCache, JvmChannel, JvmIndex}
 import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
@@ -8,6 +11,31 @@ object NoJavaBootstrapTests extends UtestIntegrationTestSuite {
   // Don't propagate `JAVA_HOME` to this test suite, because we want to exercise
   // the code path where `JAVA_HOME` is not present during bootstrapping
   override def propagateJavaHome = false
+
+  // Compute the expected JVM version from the coursier index
+  // In PRs bumping the index version, the JVM version might differ from the
+  // one of the Mill process running the tests
+  private lazy val expectedJavaVersion = {
+    val cache = FileCache()
+    val index = JvmIndex.load(
+      cache = cache,
+      repositories = Resolve().repositories,
+      indexChannel = JvmChannel.module(
+        JvmChannel.centralModule(),
+        version = mill.api.BuildInfo.coursierJvmIndexVersion
+      )
+    )
+    val jvmCache = JvmCache().withIndex(index)
+
+    val entry = cache.logger.use(jvmCache.entries(mill.client.BuildInfo.defaultJvmId))
+      .unsafeRun()(using cache.ec)
+      .left.map(err => sys.error(err))
+      .merge
+      .last
+
+    entry.version
+  }
+
   val tests: Tests = Tests {
     test - integrationTest { tester =>
       import tester._
@@ -23,7 +51,7 @@ object NoJavaBootstrapTests extends UtestIntegrationTestSuite {
         stderr = os.Inherit
       )
 
-      assert(res1.out == System.getProperty("java.version"))
+      assert(res1.out == expectedJavaVersion)
 
       // Any `JavaModule`s run from the Mill server should also inherit
       // the default Mill Java version from it
@@ -33,7 +61,7 @@ object NoJavaBootstrapTests extends UtestIntegrationTestSuite {
         stderr = os.Inherit
       )
 
-      assert(res2.out == s"Hello World! ${System.getProperty("java.version")}")
+      assert(res2.out == s"Hello World! $expectedJavaVersion")
     }
   }
 }

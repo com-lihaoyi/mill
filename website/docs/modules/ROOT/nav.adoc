@@ -31,6 +31,14 @@
 ** xref:kotlinlib/web-examples.adoc[]
 []
 * Experimental Platform Support
+** Building Android Apps
+*** xref:android/android-initial-setup.adoc[]
+*** xref:android/ide.adoc[]
+*** xref:android/java.adoc[]
+*** xref:android/kotlin.adoc[]
+*** xref:android/android-linting.adoc[]
+*** xref:android/compose-samples.adoc[]
+*** xref:android/hilt-sample.adoc[]
 ** xref:pythonlib/intro.adoc[]
 *** xref:pythonlib/module-config.adoc[]
 *** xref:pythonlib/dependencies.adoc[]
@@ -45,24 +53,18 @@
 *** xref:javascriptlib/linting.adoc[]
 *** xref:javascriptlib/publishing.adoc[]
 *** xref:javascriptlib/build-examples.adoc[]
-** Building Android Apps
-*** xref:android/java.adoc[]
-*** xref:android/kotlin.adoc[]
-*** xref:android/android-linting.adoc[]
 * xref:comparisons/why-mill.adoc[]
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]
 ** xref:comparisons/sbt.adoc[]
-** xref:comparisons/unique.adoc[]
 * The Mill CLI
 ** xref:cli/installation-ide.adoc[]
 ** xref:cli/flags.adoc[]
 ** xref:cli/builtin-commands.adoc[]
 ** xref:cli/query-syntax.adoc[]
+** xref:cli/build-header.adoc[]
 * xref:migrating/migrating.adoc[]
-** xref:migrating/maven.adoc[]
-** xref:migrating/gradle.adoc[]
-** xref:migrating/sbt.adoc[]
+** xref:migrating/auto-migrating.adoc[]
 // This section gives a tour of the various user-facing features of Mill:
 // library deps, out folder, queries, tasks, etc.. These are things that
 // every Mill user will likely encounter, and are touched upon in the various
@@ -84,7 +86,6 @@
 ** xref:extending/contrib-plugins.adoc[]
 // See also the list in Contrib_Plugins.adoc
 *** xref:contrib/artifactory.adoc[]
-*** xref:contrib/bintray.adoc[]
 *** xref:contrib/buildinfo.adoc[]
 *** xref:contrib/codeartifact.adoc[]
 *** xref:contrib/docker.adoc[]
@@ -125,6 +126,6 @@
 // but may need to look up once in a while, and thus should be written down
 // *somewhere*.
 * Reference
-** {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
+** {mill-doc-url}/api/latest/mill.html[Mill API Reference]
 ** {mill-github-url}/blob/main/changelog.adoc[Changelog]
 ** xref:reference/talks-blog-posts.adoc[]]

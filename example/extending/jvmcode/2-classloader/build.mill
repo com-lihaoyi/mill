@@ -1,12 +1,12 @@
 // This example is similar to the earlier example running the Groovy interpreter in
 // a subprocess, but:
 //
-// * We use `Jvm.inprocess` to
+// * We use `Jvm.withClassLoader` to
 //   load the Groovy interpreter classpath files into an in-memory in-process classloader,
 // * `loadClass`/`getMethod`/`invoke` to call methods on those classes using Java reflection
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 import mill.util.Jvm
 
 object foo extends JavaModule {
@@ -37,7 +37,7 @@ object foo extends JavaModule {
   def resources = super.resources() ++ Seq(groovyGeneratedResources())
 }
 
-// Note that unlike `Jvm.runSubprocess`, `Jvm.runClassloader` does not take a `workingDir`
+// Note that unlike `Jvm.runSubprocess`, `Jvm.withClassLoader` does not take a `workingDir`
 // on `mainArgs`: it instead provides you an in-memory `classLoader` that contains the
 // classpath you gave it. From there, you can use `.loadClass` and `.getMethod` to fish out
 // the classes and methods you want, and `.invoke` to call them.
@@ -48,7 +48,7 @@ object foo extends JavaModule {
 Contents of groovy-generated.html is <html><body><h1>Hello!</h1><p>Groovy!</p></body></html>
 */
 
-// `Jvm.runClassloader` has significantly less overhead than `Jvm.runSubprocess`: both in terms
+// `Jvm.withClassLoader` has significantly less overhead than `Jvm.runSubprocess`: both in terms
 // of wall-clock time and in terms of memory footprint. However, it does have somewhat less
 // isolation, as the code is running inside your JVM and cannot be configured to have a separate
 // working directory, environment variables, and other process-global configs. Which one is

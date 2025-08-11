@@ -1,8 +1,8 @@
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
-object `package` extends RootModule with ScalaModule {
-  def scalaVersion = "2.13.8"
+object `package` extends ScalaModule {
+  def scalaVersion = "3.7.1"
   def mvnDeps = Seq(
     mvn"org.http4s::http4s-ember-server::0.23.30",
     mvn"org.http4s::http4s-dsl::0.23.30",
@@ -10,9 +10,9 @@ object `package` extends RootModule with ScalaModule {
     mvn"io.circe::circe-generic::0.14.10"
   )
 
-  object test extends ScalaTests with TestModule.Utest {
+  object test extends ScalaTests, TestModule.Utest {
     def mvnDeps = Seq(
-      mvn"com.lihaoyi::utest::0.8.5",
+      mvn"com.lihaoyi::utest::0.8.9",
       mvn"org.typelevel::cats-effect-testing-utest::1.6.0",
       mvn"org.http4s::http4s-client::0.23.30"
     )

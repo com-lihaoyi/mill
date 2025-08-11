@@ -1,8 +1,8 @@
 package mill.androidlib
 
 import mill.*
-import mill.define.PathRef
-import mill.scalalib.*
+import mill.api.{PathRef, Task}
+import mill.javalib.*
 import os.zip.ZipSource
 
 /**
@@ -28,7 +28,7 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
    */
   def androidBundleZip: T[PathRef] = Task {
     val dexFile = androidDex().path
-    val resFile = androidResources()._1.path / "res.apk"
+    val resFile = androidLinkedResources().path / "apk/res.apk"
     val baseDir = Task.dest / "base"
     val appDir = Task.dest / "app"
 

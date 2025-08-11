@@ -9,11 +9,12 @@
 //// SNIPPET:BUILD
 package build
 
-import mill._, androidlib._, kotlinlib._
+import mill.*, androidlib.*, kotlinlib.*
 
 import coursier.core.{MinimizedExclusions, ModuleName, Organization}
 import coursier.params.ResolutionParams
-
+import coursier.core.VariantSelector.VariantMatcher
+import coursier.params.ResolutionParams
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
@@ -23,7 +24,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 object app extends AndroidAppKotlinModule {
 
   def kotlinVersion = "2.0.21"
-  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidApplicationId = "com.example.screenshottest"
   def androidApplicationNamespace = "com.example.screenshottest"
   def androidCompileSdk = 35
@@ -32,28 +33,12 @@ object app extends AndroidAppKotlinModule {
   def androidIsDebug = true
 
   def mvnDeps: T[Seq[Dep]] = Seq(
+    mvn"androidx.appcompat:appcompat:1.7.0",
     mvn"androidx.core:core-ktx:1.15.0",
     mvn"androidx.activity:activity-compose:1.9.3",
     mvn"androidx.compose.ui:ui:1.7.5",
     mvn"androidx.compose.material3:material3:1.3.1"
   )
-
-  // This is a temporary fix
-  def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
-    super.mapDependencies().andThen { (d: coursier.Dependency) =>
-      // otherwise there are some resolution problems (version conflicts), because Coursier is using pom files only,
-      // but Gradle is working with .module files if available
-      if (d.module.organization.value == "androidx.collection") {
-        d.withVersion("1.4.4")
-      } else if (d.module.organization.value == "androidx.lifecycle") {
-        d.withVersion("2.8.3")
-      } else if (d.module.organization.value == "androidx.compose.runtime") {
-        d.withVersion("1.7.5")
-      } else {
-        d
-      }
-    }
-  }
 
   object screenshotTest extends AndroidAppKotlinScreenshotTests {
 
@@ -85,9 +70,9 @@ object app extends AndroidAppKotlinModule {
 
 > ./mill show app.screenshotTest.testForked
 ...
-[
-  "",
-  [
+{
+  "msg": "",
+  "results": [
     {
       "fullyQualifiedName": "com.example.screenshottest.ExampleMessageCardScreenshots",
       "selector": "oMessageCardScreenshot()",
@@ -95,7 +80,7 @@ object app extends AndroidAppKotlinModule {
       "status": "Success"
     }
   ]
-]
+}
 ...
 
 > cat out/app/screenshotTest/testForked.dest/test-report.xml

@@ -183,7 +183,7 @@ that would make a build tool hard to understand.
 
 Before you continue, take a moment to think: how would you answer to each of
 those questions using an existing build tool you are familiar with? Different
-tools like http://www.scala-sbt.org/[`sbt`],
+tools like http://www.scala-sbt.org/[sbt],
 https://fake.build[Fake], https://gradle.org/[Gradle] or
 https://gruntjs.com/[Grunt] have very different answers.
 
@@ -346,17 +346,17 @@ a build:
 * Scala "project"s with multiple related ``Task``s within them, are just a
  `Trait` you instantiate
 
-* Replacing the default ``Target``s within a project, making them do new
- things or depend on new ``Target``s, is simply `override`-ing them during
+* Replacing the default ``Task``s within a project, making them do new
+ things or depend on new ``Task``s, is simply `override`-ing them during
  inheritance
 
-* Modifying the default ``Target``s within a project, making use of the old value
- to compute the new value, is simply `override`ing them and using `super.foo()`
+* Modifying the default ``Task``s within a project, making use of the old value
+ to compute the new value, is simply ``override``ing them and using `super.foo()`
 
 * Required configuration parameters within a `project` are `abstract` members
 
 * Cross-builds are modelled as instantiating a (possibly anonymous) class
- multiple times, each instance with its own distinct set of ``Target``s
+ multiple times, each instance with its own distinct set of ``Task``s
 
 In normal Scala, you bundle up common fields & functionality into a `class` you
 can instantiate over and over, and you can override the things you want to
@@ -377,7 +377,7 @@ graph with an Applicative "idiom bracket" macro) where it makes sense.
 === Bazel
 
 Mill is largely inspired by https://bazel.build/[Bazel]. In particular, the
-single-build-hierarchy, where every Target has an on-disk-cache/output-folder
+single-build-hierarchy, where every Task has an on-disk-cache/output-folder
 according to their position in the hierarchy, comes from Bazel.
 
 Bazel is a bit odd in its own right. The underlying data model is good

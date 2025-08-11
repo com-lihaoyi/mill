@@ -1,7 +1,7 @@
 package build
 
-import mill._
-import mill.javascriptlib._
+import mill.*
+import mill.javascriptlib.*
 
 object foo extends TypeScriptModule {
   def bundleFlags =
@@ -21,7 +21,7 @@ object foo extends TypeScriptModule {
 
 /** Usage
 
-> mill foo.bundle
+> ./mill foo.bundle
 Build succeeded!
 
 > node out/foo/bundle.dest/bundle.js

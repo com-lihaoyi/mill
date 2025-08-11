@@ -1,5 +1,5 @@
 package build.bar.qux
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object mymodule extends build.MyModule {
   def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.8.2")

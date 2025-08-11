@@ -3,9 +3,9 @@
 // as your `build.mill` or a `package.mill`.
 
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
-object `package` extends RootModule with MyModule {
+object `package` extends MyModule {
   def forkEnv = Map(
     "MY_SCALA_VERSION" -> build.scalaVersion(),
     "MY_PROJECT_VERSION" -> foo.myProjectVersion
@@ -21,10 +21,12 @@ object `package` extends RootModule with MyModule {
 // each other using the `build` object, which marks the root object of your build.
 // In this example:
 //
-// * `build.mill` can be referred to as simple `build`
-// * `util.mill` can be referred to as simple `$file.util`
-// * `foo/package` can be referred to as simple `build.foo`
-// * `foo/versions.mill` can be referred to as simple `$file.foo.versions`
+// * `build.mill`, `util.mill` and other adjacent files  can be referred to as simple `build`
+// * `foo/package`, `foo/versions.mill`, and other adjacent files can be referred to as simple `build.foo`
+
+// Helper files are very handy for you to put custom logic which you use in
+// your `build.mill` or `package.mill` module definitions. This can help keep
+// your `build.mill` or `package.mill` files concise and understandable.
 
 /** Usage
 

@@ -1,5 +1,5 @@
 package shared
-import scalatags.Text.all._
+import scalatags.Text.all.*
 import scalatags.Text.tags2
 
 case class Todo(checked: Boolean, text: String)

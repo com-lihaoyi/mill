@@ -1,12 +1,15 @@
 package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildTargetIdentifier
-import mill.api.internal.{BaseModuleApi, BspModuleApi, EvaluatorApi, ModuleApi}
+import mill.api.daemon.internal.bsp.BspModuleApi
+import mill.api.daemon.internal.{BaseModuleApi, EvaluatorApi, ModuleApi}
+import mill.api.daemon.Watchable
 
-private class BspEvaluators(
+private[mill] class BspEvaluators(
     workspaceDir: os.Path,
-    evaluators: Seq[EvaluatorApi],
-    debug: (() => String) => Unit
+    val evaluators: Seq[EvaluatorApi],
+    debug: (() => String) => Unit,
+    val watched: Seq[Watchable]
 ) {
 
   /**

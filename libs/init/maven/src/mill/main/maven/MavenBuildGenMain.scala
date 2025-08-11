@@ -1,7 +1,7 @@
 package mill.main.maven
 
 import mainargs.{Flag, ParserForClass, arg, main}
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
 import org.apache.maven.model.{Dependency, Model, Parent}
@@ -78,7 +78,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
     val typedef = IrTrait(
       cfg.shared.basicConfig.jvmId,
       baseModule,
-      getModuleSupertypes(cfg),
+      getModuleSupertypes,
       javacOptions,
       scalaVersion,
       scalacOptions,
@@ -126,11 +126,15 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
       testResources =
         processResources(model.getBuild.getTestResources, getMillSourcePath(model))
           .filterNot(_ == mavenTestResourceDir),
-      publishProperties = getPublishProperties(model, cfg.shared)
+      publishProperties = getPublishProperties(model, cfg.shared),
+      jvmId = cfg.shared.basicConfig.jvmId,
+      // Maven subproject tests run in the subproject folder, unlike Gradle
+      // and SBT whose subproject tests run in the root project folder
+      testForkDir = Some("moduleDir")
     )
   }
 
-  def getModuleSupertypes(cfg: Config): Seq[String] = Seq("PublishModule", "MavenModule")
+  def getModuleSupertypes: Seq[String] = Seq("PublishModule", "MavenModule")
 
   def getProjectGav(model: Model): (String, String, String) =
     (model.getGroupId, model.getArtifactId, model.getVersion)
@@ -140,8 +144,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
   def getMillSourcePath(model: Model): Path = os.Path(model.getProjectDirectory)
 
   override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] =
-    Seq("RootModule") ++
-      cfg.shared.basicConfig.baseModule.fold(getModuleSupertypes(cfg))(Seq(_))
+    cfg.shared.basicConfig.baseModule.fold(getModuleSupertypes)(Seq(_))
 
   def processResources(
       input: java.util.List[org.apache.maven.model.Resource],
@@ -157,7 +160,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
   def getRepositories(model: Model): Seq[String] =
     model.getRepositories.iterator().asScala
       .filterNot(_.getId == "central")
-      .map(repo => s"coursier.maven.MavenRepository(${escape(repo.getUrl)})")
+      .map(repo => escape(repo.getUrl))
       .toSeq
       .sorted
 
@@ -239,11 +242,19 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
             sd = sd.copy(mainMvnDeps = sd.mainMvnDeps + mvn)
           }
         case "provided" =>
+          // Provided dependencies are available at compile time in both
+          // `src/main/java` and `src/test/java`
           if (packages.isDefinedAt(id))
-            sd = sd.copy(mainCompileModuleDeps = sd.mainCompileModuleDeps + packages(id))
+            sd = sd.copy(
+              mainCompileModuleDeps = sd.mainCompileModuleDeps + packages(id),
+              testCompileModuleDeps = sd.testCompileModuleDeps + packages(id)
+            )
           else {
             val mvn = mvnDep(dep)
-            sd = sd.copy(mainCompileMvnDeps = sd.mainCompileMvnDeps + mvn)
+            sd = sd.copy(
+              mainCompileMvnDeps = sd.mainCompileMvnDeps + mvn,
+              testCompileMvnDeps = sd.testCompileMvnDeps + mvn
+            )
           }
         case "runtime" =>
           if (packages.isDefinedAt(id))

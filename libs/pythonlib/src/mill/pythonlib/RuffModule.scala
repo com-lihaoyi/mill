@@ -1,7 +1,7 @@
 package mill.pythonlib
 
 import mill._
-import mill.define.{Args, ExternalModule, Discover}
+import mill.api.{Args, ExternalModule, Discover}
 import mill.util.Tasks
 
 /**
@@ -66,7 +66,7 @@ trait RuffModule extends PythonModule {
       (
         "-m", "ruff",
         "check",
-        "--cache-dir", T.dest / "cache",
+        "--cache-dir", Task.dest / "cache",
         configArgs(),
         ruffOptions(),
         args,
@@ -79,9 +79,9 @@ trait RuffModule extends PythonModule {
 
 }
 
-object RuffModule extends ExternalModule with RuffModule with TaskModule {
+object RuffModule extends ExternalModule with RuffModule with DefaultTaskModule {
 
-  override def defaultCommandName(): String = "formatAll"
+  override def defaultTask(): String = "formatAll"
 
   def formatAll(
       sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources"),
@@ -95,7 +95,7 @@ object RuffModule extends ExternalModule with RuffModule with TaskModule {
         configArgs(),
         ruffOptions(),
         ruffArgs.value,
-        T.sequence(sources.value)().flatten.map(_.path)
+        Task.sequence(sources.value)().flatten.map(_.path)
       ),
       // format: on
       workingDir = Task.dest
@@ -111,11 +111,11 @@ object RuffModule extends ExternalModule with RuffModule with TaskModule {
       (
         "-m", "ruff",
         "check",
-        "--cache-dir", T.dest / "cache",
+        "--cache-dir", Task.dest / "cache",
         configArgs(),
         ruffOptions(),
         ruffArgs.value,
-        T.sequence(sources.value)().flatten.map(_.path)
+        Task.sequence(sources.value)().flatten.map(_.path)
       ),
       // format: on
       workingDir = Task.dest

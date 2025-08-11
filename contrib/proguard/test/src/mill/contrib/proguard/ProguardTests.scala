@@ -1,16 +1,16 @@
 package mill.contrib.proguard
 
 import mill.*
-import mill.define.{Discover, Target}
+import mill.api.Discover
 import mill.scalalib.ScalaModule
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.Jvm
 import os.Path
 import utest.*
 
 object ProguardTests extends TestSuite {
 
-  object proguard extends TestBaseModule with ScalaModule with Proguard {
+  object proguard extends TestRootModule with ScalaModule with Proguard {
     // TODO: This test works for a Scala 2.13 App, but not for a Scala 3 App, probably due to tasty files
     override def scalaVersion: T[String] = Task.Input {
       sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)

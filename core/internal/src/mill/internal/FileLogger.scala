@@ -1,7 +1,7 @@
 package mill.internal
 
 import mill.api.{Logger, SystemStreams}
-
+import mill.api.BuildCtx
 import java.io.{OutputStream, PrintStream}
 import java.nio.file.{Files, StandardOpenOption}
 
@@ -24,7 +24,7 @@ private[mill] class FileLogger(
     var folderCreated = false
     // Lazily create the folder and file that we're logging to, so as to avoid spamming the out/
     // folder with empty folders/files for the vast majority of tasks that do not have any logs
-    lazy val inner = os.checker.withValue(os.Checker.Nop) {
+    lazy val inner = BuildCtx.withFilesystemCheckerDisabled {
       if (!os.exists(file / os.up)) os.makeDir.all(file / os.up)
       folderCreated = true
       Files.newOutputStream(file.toNIO, options*)

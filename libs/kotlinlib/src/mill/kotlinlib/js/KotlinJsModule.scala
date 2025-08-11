@@ -1,20 +1,24 @@
 package mill.kotlinlib.js
 
+import coursier.core.VariantSelector.VariantMatcher
+import coursier.params.ResolutionParams
 import mainargs.arg
-import mill.define.{PathRef}
-import mill.api.{Result}
-import mill.define.{Command, Task}
+import mill.api.PathRef
+import mill.api.Result
+import mill.api.Task.Command
+import mill.api.Task
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
-import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
-import mill.scalalib.Lib
-import mill.scalalib.api.CompilationResult
-import mill.testrunner.TestResult
+import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
+import mill.javalib.Lib
+import mill.javalib.api.CompilationResult
 import mill.util.Jvm
 import mill.{Args, T}
 import sbt.testing.Status
+import mill.api.JsonFormatters.given
+import mill.javalib.testrunner.TestResult
+
 import java.io.{File, FileNotFoundException}
 import java.util.zip.ZipFile
-
 import scala.xml.XML
 
 /**
@@ -63,15 +67,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Lib.findSourceFiles(allSources(), Seq("kt")).map(PathRef(_))
   }
 
-  override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
-    super.mandatoryMvnDeps()
-      // TODO: find source or docs, why this is the correct behavior
-      // Filter out the non-js kotlin-stdlib
-      .filterNot(d => d.organization == "org.jetbrains.kotlin" && d.name == "kotlin-stdlib") ++
-      Seq(
-        mvn"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}"
-      )
-  }
+  override def mandatoryMvnDeps: T[Seq[Dep]] =
+    Seq(mvn"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}")
 
   override def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps) {
@@ -86,29 +83,40 @@ trait KotlinJsModule extends KotlinModule { outer =>
     }().flatten
   }
 
+  override def resolutionParams: Task[ResolutionParams] = Task.Anon {
+    super.resolutionParams().addVariantAttributes(
+      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("js"),
+      "org.gradle.jvm.environment" -> VariantMatcher.Equals("non-jvm"),
+      "org.jetbrains.kotlin.js.compiler" -> VariantMatcher.Equals("ir")
+    )
+  }
+
   /**
    * Compiles all the sources to the IR representation.
    */
   override def compile: T[CompilationResult] = Task {
-    kotlinJsCompile(
-      outputMode = OutputMode.KlibDir,
-      irClasspath = None,
-      allKotlinSourceFiles = allKotlinSourceFiles(),
-      librariesClasspath = compileClasspath(),
-      callMain = kotlinJsCallMain(),
-      moduleKind = kotlinJsModuleKind(),
-      produceSourceMaps = kotlinJsSourceMap(),
-      sourceMapEmbedSourcesKind = kotlinJsSourceMapEmbedSources(),
-      sourceMapNamesPolicy = kotlinJsSourceMapNamesPolicy(),
-      splitPerModule = kotlinJsSplitPerModule(),
-      esTarget = kotlinJsESTarget(),
-      kotlinVersion = kotlinVersion(),
-      destinationRoot = Task.dest,
-      artifactId = artifactId(),
-      explicitApi = kotlinExplicitApi(),
-      extraKotlinArgs = allKotlincOptions(),
-      worker = kotlinWorkerTask()
-    )
+    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
+      kotlinWorker =>
+        kotlinJsCompile(
+          outputMode = OutputMode.KlibDir,
+          irClasspath = None,
+          allKotlinSourceFiles = allKotlinSourceFiles(),
+          librariesClasspath = compileClasspath(),
+          callMain = kotlinJsCallMain(),
+          moduleKind = kotlinJsModuleKind(),
+          produceSourceMaps = kotlinJsSourceMap(),
+          sourceMapEmbedSourcesKind = kotlinJsSourceMapEmbedSources(),
+          sourceMapNamesPolicy = kotlinJsSourceMapNamesPolicy(),
+          splitPerModule = kotlinJsSplitPerModule(),
+          esTarget = kotlinJsESTarget(),
+          kotlinVersion = kotlinVersion(),
+          destinationRoot = Task.dest,
+          artifactId = artifactId(),
+          explicitApi = kotlinExplicitApi(),
+          extraKotlinArgs = allKotlincOptions(),
+          worker = kotlinWorker
+        )
+    }
   }
 
   override def runLocal(args: Task[Args] = Task.Anon(Args())): Command[Unit] =
@@ -150,7 +158,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       artifactId: String,
       envArgs: Map[String, String] = Map.empty[String, String],
       workingDir: os.Path
-  )(implicit ctx: mill.define.TaskCtx): Result[Int] = {
+  )(implicit ctx: mill.api.TaskCtx): Result[Int] = {
     if (binaryKind.isEmpty || binaryKind.get != BinaryKind.Executable) {
       return Result.Failure("Run action is only allowed for the executable binary")
     }
@@ -190,52 +198,58 @@ trait KotlinJsModule extends KotlinModule { outer =>
   protected override def kotlinCompileTask(
       extraKotlinArgs: Seq[String] = Seq.empty[String]
   ): Task[CompilationResult] = Task.Anon {
-    kotlinJsCompile(
-      outputMode = OutputMode.KlibDir,
-      allKotlinSourceFiles = allKotlinSourceFiles(),
-      irClasspath = None,
-      librariesClasspath = compileClasspath(),
-      callMain = kotlinJsCallMain(),
-      moduleKind = kotlinJsModuleKind(),
-      produceSourceMaps = kotlinJsSourceMap(),
-      sourceMapEmbedSourcesKind = kotlinJsSourceMapEmbedSources(),
-      sourceMapNamesPolicy = kotlinJsSourceMapNamesPolicy(),
-      splitPerModule = kotlinJsSplitPerModule(),
-      esTarget = kotlinJsESTarget(),
-      kotlinVersion = kotlinVersion(),
-      destinationRoot = Task.dest,
-      artifactId = artifactId(),
-      explicitApi = kotlinExplicitApi(),
-      extraKotlinArgs = allKotlincOptions() ++ extraKotlinArgs,
-      worker = kotlinWorkerTask()
-    )
+    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
+      kotlinWorker =>
+        kotlinJsCompile(
+          outputMode = OutputMode.KlibDir,
+          allKotlinSourceFiles = allKotlinSourceFiles(),
+          irClasspath = None,
+          librariesClasspath = compileClasspath(),
+          callMain = kotlinJsCallMain(),
+          moduleKind = kotlinJsModuleKind(),
+          produceSourceMaps = kotlinJsSourceMap(),
+          sourceMapEmbedSourcesKind = kotlinJsSourceMapEmbedSources(),
+          sourceMapNamesPolicy = kotlinJsSourceMapNamesPolicy(),
+          splitPerModule = kotlinJsSplitPerModule(),
+          esTarget = kotlinJsESTarget(),
+          kotlinVersion = kotlinVersion(),
+          destinationRoot = Task.dest,
+          artifactId = artifactId(),
+          explicitApi = kotlinExplicitApi(),
+          extraKotlinArgs = allKotlincOptions() ++ extraKotlinArgs,
+          worker = kotlinWorker
+        )
+    }
   }
 
   /**
    * Creates final executable.
    */
   def linkBinary: T[CompilationResult] = Task {
-    kotlinJsCompile(
-      outputMode = binaryKindToOutputMode(kotlinJsBinaryKind()),
-      // classpath with classes of this module's code
-      irClasspath = Some(compile().classes),
-      allKotlinSourceFiles = Seq.empty,
-      // classpath of libraries to be used to run this module's code
-      librariesClasspath = upstreamAssemblyClasspath(),
-      callMain = kotlinJsCallMain(),
-      moduleKind = kotlinJsModuleKind(),
-      produceSourceMaps = kotlinJsSourceMap(),
-      sourceMapEmbedSourcesKind = kotlinJsSourceMapEmbedSources(),
-      sourceMapNamesPolicy = kotlinJsSourceMapNamesPolicy(),
-      splitPerModule = kotlinJsSplitPerModule(),
-      esTarget = kotlinJsESTarget(),
-      kotlinVersion = kotlinVersion(),
-      destinationRoot = Task.dest,
-      artifactId = artifactId(),
-      explicitApi = kotlinExplicitApi(),
-      extraKotlinArgs = allKotlincOptions(),
-      worker = kotlinWorkerTask()
-    )
+    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
+      kotlinWorker =>
+        kotlinJsCompile(
+          outputMode = binaryKindToOutputMode(kotlinJsBinaryKind()),
+          // classpath with classes of this module's code
+          irClasspath = Some(compile().classes),
+          allKotlinSourceFiles = Seq.empty,
+          // classpath of libraries to be used to run this module's code
+          librariesClasspath = upstreamAssemblyClasspath(),
+          callMain = kotlinJsCallMain(),
+          moduleKind = kotlinJsModuleKind(),
+          produceSourceMaps = kotlinJsSourceMap(),
+          sourceMapEmbedSourcesKind = kotlinJsSourceMapEmbedSources(),
+          sourceMapNamesPolicy = kotlinJsSourceMapNamesPolicy(),
+          splitPerModule = kotlinJsSplitPerModule(),
+          esTarget = kotlinJsESTarget(),
+          kotlinVersion = kotlinVersion(),
+          destinationRoot = Task.dest,
+          artifactId = artifactId(),
+          explicitApi = kotlinExplicitApi(),
+          extraKotlinArgs = allKotlincOptions(),
+          worker = kotlinWorker
+        )
+    }
   }
 
   /**
@@ -278,7 +292,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       explicitApi: Boolean,
       extraKotlinArgs: Seq[String],
       worker: KotlinWorker
-  )(implicit ctx: mill.define.TaskCtx): Result[CompilationResult] = {
+  )(implicit ctx: mill.api.TaskCtx): Result[CompilationResult] = {
     val versionAllowed = kotlinVersion.split("\\.").map(_.toInt) match {
       case Array(1, 8, z) => z >= 20
       case Array(1, y, _) => y >= 9
@@ -425,7 +439,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     }
 
   // **NOTE**: This logic may (and probably is) be incomplete
-  private def isKotlinJsLibrary(path: os.Path)(implicit ctx: mill.define.TaskCtx): Boolean = {
+  private def isKotlinJsLibrary(path: os.Path)(implicit ctx: mill.api.TaskCtx): Boolean = {
     if (os.isDir(path)) {
       true
     } else if (path.ext == "klib") {
@@ -520,7 +534,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     override def kotlinJsSplitPerModule = false
 
-    override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
+    override def testLocal(args: String*): Command[(msg: String, results: Seq[TestResult])] =
       Task.Command {
         this.testForked(args*)()
       }
@@ -530,7 +544,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     override protected def testTask(
         args: Task[Seq[String]],
         globSelectors: Task[Seq[String]]
-    ): Task[(String, Seq[TestResult])] = Task.Anon {
+    ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
       val runTarget = kotlinJsRunTarget()
       if (runTarget.isEmpty) {
         throw new IllegalStateException(
@@ -597,7 +611,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
              |""".stripMargin
         Task.fail(failureMessage)
       } else {
-        (doneMessage, testResults)
+        (msg = doneMessage, results = testResults)
       }
     }
 
@@ -677,7 +691,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
    */
   trait KotlinTestPackageTests extends KotlinJsTests {
     override def mandatoryMvnDeps: T[Seq[Dep]] = super.mandatoryMvnDeps() ++ Seq(
-      mvn"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
+      mvn"org.jetbrains.kotlin:kotlin-test:${kotlinVersion()}"
     )
   }
 
@@ -697,8 +711,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
     )
 
     override def mandatoryMvnDeps: T[Seq[Dep]] = super.mandatoryMvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-framework-engine-js:${kotestVersion()}",
-      mvn"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
+      mvn"io.kotest:kotest-framework-engine:${kotestVersion()}"
+        // buggy JVM dependency of a kotlin-js dependency?
+        // seems that exclusion can be dropped for kotest-framework-engine-js >= 6.0.0.M2
+        .exclude(("org.jetbrains.kotlinx", "kotlinx-coroutines-debug")),
+      mvn"io.kotest:kotest-assertions-core:${kotestVersion()}"
     )
   }
 

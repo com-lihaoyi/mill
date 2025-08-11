@@ -1,7 +1,7 @@
 package build.foo
-import mill._, scalalib._
+import mill.*, scalalib.*
 
-object `package` extends RootModule with build.MyModule {
+object `package` extends build.MyModule {
   def moduleDeps = Seq(build.bar.qux.mymodule)
   def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.4.0")
 }

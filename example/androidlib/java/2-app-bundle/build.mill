@@ -7,14 +7,14 @@
 //// SNIPPET:BUILD
 package build
 
-import mill._, androidlib._
+import mill.*, androidlib.*
 
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
 }
 
 object bundle extends AndroidAppBundle {
-  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidCompileSdk = 35
 
   /**
@@ -26,7 +26,7 @@ object bundle extends AndroidAppBundle {
   def androidApplicationId = "com.helloworld.app"
   def androidApplicationNamespace = "com.helloworld.app"
 
-  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
+  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }

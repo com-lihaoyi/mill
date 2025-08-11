@@ -1,12 +1,12 @@
 package mill.scalajslib
 
-import mill.define.Discover
+import mill.api.Discover
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest._
 
 object SourceMapTests extends TestSuite {
-  object SourceMapModule extends TestBaseModule {
+  object SourceMapModule extends TestRootModule {
 
     object build extends ScalaJSModule {
       override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
@@ -23,18 +23,18 @@ object SourceMapTests extends TestSuite {
 
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-js-world"
 
-  val evaluator = UnitTester(SourceMapModule, millSourcePath)
-
   val tests: Tests = Tests {
     test("should disable source maps") {
-      val Right(result) =
-        evaluator(SourceMapModule.build.fastLinkJS): @unchecked
-      val publicModules = result.value.publicModules.toSeq
-      assert(publicModules.length == 1)
-      val main = publicModules.head
-      assert(main.jsFileName == "main.js")
-      assert(os.exists(result.value.dest.path / "main.js"))
-      assert(!os.exists(result.value.dest.path / "main.js.map"))
+      UnitTester(SourceMapModule, millSourcePath).scoped { evaluator =>
+        val Right(result) =
+          evaluator(SourceMapModule.build.fastLinkJS): @unchecked
+        val publicModules = result.value.publicModules.toSeq
+        assert(publicModules.length == 1)
+        val main = publicModules.head
+        assert(main.jsFileName == "main.js")
+        assert(os.exists(result.value.dest.path / "main.js"))
+        assert(!os.exists(result.value.dest.path / "main.js.map"))
+      }
     }
   }
 }

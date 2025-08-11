@@ -1,13 +1,13 @@
 //// SNIPPET:BUILD
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 
 trait MyModule extends KotlinModule {
   def kotlinVersion = "1.9.24"
 
-  object test extends KotlinTests with TestModule.Junit5 {
+  object test extends KotlinTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
   }
 }
@@ -15,14 +15,14 @@ trait MyModule extends KotlinModule {
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
   def mvnDeps = Seq(
-    mvn"com.github.ajalt.clikt:clikt-jvm:4.4.0"
+    mvn"com.github.ajalt.clikt:clikt:4.4.0"
   )
 }
 
 object bar extends MyModule {
   def mainClass = Some("bar.BarKt")
   def mvnDeps = Seq(
-    mvn"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
+    mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
   )
 }
 

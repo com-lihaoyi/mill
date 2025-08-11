@@ -2,11 +2,11 @@
 // It features dynamic `HTML` rendering with `Django's` template engine, `CRUD` operations with
 // Django `ORM`, and efficient form handling for managing tasks.
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object todo extends PythonModule {
 
-  def mainScript = Task.Source { "src/manage.py" }
+  def mainScript = Task.Source("src/manage.py")
 
   def pythonDeps = Seq("django==5.1.4")
 

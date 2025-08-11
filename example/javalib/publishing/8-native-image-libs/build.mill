@@ -1,25 +1,21 @@
 //// SNIPPET:BUILD
 package build
-import mill._, javalib._
-import mill.define.ModuleRef
+import mill.*, javalib.*
+import mill.api.ModuleRef
 
-object foo extends JavaModule with NativeImageModule {
+object foo extends JavaModule, NativeImageModule {
   def mvnDeps = Seq(
     mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
     mvn"org.slf4j:slf4j-nop:2.0.7"
   )
 
-  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
-
   def nativeImageOptions = Seq(
     "--no-fallback",
     "-H:IncludeResourceBundles=net.sourceforge.argparse4j.internal.ArgumentParserImpl",
     "-Os"
   )
-}
 
-object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = "graalvm-community:23.0.1"
 }
 

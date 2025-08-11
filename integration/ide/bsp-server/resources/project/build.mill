@@ -3,11 +3,27 @@ package build
 import mill._
 
 // testing a simple Java module
-object `hello-java` extends scalalib.JavaModule
+object `hello-java` extends scalalib.JavaModule {
+  object test extends JavaTests {
+    import scalalib._
+    def testFramework = "com.novocode.junit.JUnitFramework"
+    def mvnDeps = Seq(
+      mvn"com.github.sbt:junit-interface:0.13.2",
+      mvn"junit:junit:4.13.2"
+    )
+  }
+}
 
 // testing a simple Scala module
 object `hello-scala` extends scalalib.ScalaModule {
   def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+  object test extends ScalaTests {
+    import scalalib._
+    def testFramework = "utest.runner.Framework"
+    def mvnDeps = Seq(
+      mvn"com.lihaoyi::utest:0.8.5"
+    )
+  }
 }
 
 // testing a simple Kotlin module
@@ -19,9 +35,11 @@ object `hello-kotlin` extends kotlinlib.KotlinModule {
 // involving mvnDeps, but also compile-time only and runtime only dependencies
 object lib extends scalalib.JavaModule {
   import scalalib._
+
   def compileMvnDeps = Seq(
     mvn"junit:junit:4.13.2"
   )
+
   def mvnDeps = Seq(
     mvn"org.slf4j:slf4j-api:2.0.16"
   )
@@ -29,11 +47,62 @@ object lib extends scalalib.JavaModule {
 
 object app extends scalalib.JavaModule {
   import scalalib._
+
   def moduleDeps = Seq(lib)
+
   def mvnDeps = Seq(
     mvn"ch.qos.logback:logback-core:1.5.15"
   )
+
   def runMvnDeps = Seq(
     mvn"com.mysql:mysql-connector-j:9.1.0"
   )
+
+  def forkEnv = Map("MY_ENV_VAR" -> "my-value")
+
+  object test extends JavaTests {
+    def testFramework = "com.novocode.junit.JUnitFramework"
+  }
+}
+
+object errored extends Module {
+
+  object exception extends scalalib.ScalaModule {
+    def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+
+    def compile = Task {
+      val res = super.compile()
+      sys.error("nope")
+      res
+    }
+  }
+
+  object `compilation-error` extends scalalib.ScalaModule {
+    def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+  }
+}
+
+object delayed extends scalalib.ScalaModule {
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+
+  def compile = Task {
+    val res = super.compile()
+    Thread.sleep(5000L)
+    res
+  }
+}
+
+object diag extends scalalib.ScalaModule {
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+  def scalacOptions = Seq("-deprecation")
+
+  @deprecated("deprecated", "0.0.1")
+  def thing = 2
+
+  def theThing = thing
+
+  object many extends scalalib.ScalaModule {
+    def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+    def scalacOptions = Seq("-deprecation")
+  }
 }

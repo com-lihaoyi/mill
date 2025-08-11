@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.scalalib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 
 /**
  * Adds version range specific sources when mixed-in to a cross module like

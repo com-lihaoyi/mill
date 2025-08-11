@@ -1,0 +1,23 @@
+//| mvnDeps:
+//| - com.lihaoyi::myplugin::0.0.1
+package build
+
+import mill.*, myplugin.*
+
+object `package` extends LineCountJavaModule {
+  def lineCountResourceFileName = "line-count.txt"
+}
+
+/** Usage
+
+> ./mill run
+Line Count: 18
+...
+
+> printf "\n" >> src/foo/Foo.java
+
+> ./mill run
+Line Count: 19
+...
+
+*/

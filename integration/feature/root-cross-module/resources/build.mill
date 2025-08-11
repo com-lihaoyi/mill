@@ -2,7 +2,7 @@ package build
 
 import mill._, scalalib._
 
-object `package` extends RootModule with Cross[FooModule]("3.6.2", "2.13.16") {
+object `package` extends Cross[FooModule]("3.6.2", "2.13.16") {
   object baz extends Cross[FooModule]("3.6.2", "2.13.16") {}
 }
 

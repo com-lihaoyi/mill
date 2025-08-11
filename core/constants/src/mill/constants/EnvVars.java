@@ -17,7 +17,7 @@ public class EnvVars {
   public static final String MILL_TEST_RESOURCE_DIR = "MILL_TEST_RESOURCE_DIR";
 
   /**
-   * How long the Mill background server should run before timing out from inactivity
+   * How long the Mill background daemon should run before timing out from inactivity
    */
   public static final String MILL_SERVER_TIMEOUT_MILLIS = "MILL_SERVER_TIMEOUT_MILLIS";
 
@@ -42,4 +42,9 @@ public class EnvVars {
    * e.g. to turn on additional testing/debug/log-related code
    */
   public static final String MILL_TEST_SUITE = "MILL_TEST_SUITE";
+
+  /**
+   * The path to the currently executing Mill launcher executable
+   */
+  public static final String MILL_EXECUTABLE_PATH = "MILL_EXECUTABLE_PATH";
 }

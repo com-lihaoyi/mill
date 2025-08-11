@@ -1,10 +1,10 @@
 package build
 
-import mill._, javascriptlib._
-import ujson._
+import mill.*, javascriptlib.*
+import ujson.*
 
 object foo extends TypeScriptModule {
-  object test extends TypeScriptTests with TestModule.Jest {
+  object test extends TypeScriptTests, TestModule.Jest {
     def otherFiles = Task.Source("other-files")
 
     def forkEnv = super.forkEnv() + ("OTHER_FILES_DIR" -> otherFiles().path.toString)
@@ -12,17 +12,17 @@ object foo extends TypeScriptModule {
 }
 
 /** Usage
-> mill foo.run
+> ./mill foo.run
 Hello World Resource File
 
-> mill foo.test
+> ./mill foo.test
 PASS .../foo.test.ts
 ...
 Test Suites:...1 passed, 1 total...
 Tests:...3 passed, 3 total...
 ...
 
-> mill foo.bundle
+> ./mill foo.bundle
 Build succeeded!
 
 > mv out/foo/bundle.dest ./bundle.dest && rm -rf out/

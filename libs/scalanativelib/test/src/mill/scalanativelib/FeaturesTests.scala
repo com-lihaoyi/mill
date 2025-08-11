@@ -1,13 +1,13 @@
 package mill.scalanativelib
 
 import mill.given
-import mill.define.Discover
+import mill.api.Discover
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest._
 
 object FeaturesTests extends TestSuite {
-  object Features extends TestBaseModule with ScalaNativeModule {
+  object Features extends TestRootModule with ScalaNativeModule {
     def scalaNativeVersion = "0.5.0"
     def scalaVersion = "2.13.10"
     def nativeIncrementalCompilation = true

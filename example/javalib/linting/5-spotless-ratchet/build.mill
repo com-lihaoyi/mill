@@ -1,0 +1,76 @@
+// Similar to the Spotless Gradle and Maven plugins, Mill provides the ability to
+// enforce formatting gradually aka https://github.com/diffplug/spotless/tree/main/plugin-gradle#ratchet[ratchet].
+
+// We define a module with an incorrectly formatted file.
+package build
+
+import mill.javalib.JavaModule
+import mill.javalib.spotless.SpotlessModule
+
+object `package` extends JavaModule with SpotlessModule
+
+/** See Also: src/A.java */
+
+// A Git repository is initialized and a base commit is created with the incorrectly formatted file.
+
+// NOTE: Since no `.spotless-formats.json` file is present, a default list of format specifications is used.
+// The default is meant for use cases where some basic formatting is sufficient.
+
+/** Usage
+> git init . -b main
+> git add .gitignore build.mill src/A.java
+> git commit -a -m "1"
+*/
+
+// Next, we create a new file with format errors.
+
+/** Usage
+> echo " module hello {}" > src/module-info.java  # content has leading space at start
+
+> ./mill spotless --check
+format errors in build.mill
+format errors in src/A.java
+format errors in src/module-info.java
+error: ...format check failed for 3 files
+*/
+
+// The `spotless` command finds format errors in all files.
+// But we do not want to fix the formatting in files that were committed previously.
+
+// Instead, we use the `ratchet` command to identify and format files that differ between Git trees.
+
+/** Usage
+> ./mill ratchet --check      # format changes in working tree since HEAD commit
+ratchet found changes in 1 files
+format errors in src/module-info.java
+error: ...format check failed for 1 files
+
+> ./mill ratchet              # auto-fix formatting in changeset
+ratchet found changes in 1 files
+formatting src/module-info.java
+formatted 1 files
+*/
+
+// This demonstrates how to introduce formatting incrementally into your project.
+
+// You can also set up actions on CI systems that compare and check/fix formatting between 2
+// https://javadoc.io/doc/org.eclipse.jgit/org.eclipse.jgit/latest/org.eclipse.jgit/org/eclipse/jgit/lib/Repository.html#resolve(java.lang.String)[revisions].
+
+/** Usage
+> git add src/module-info.java        # stage and
+> git commit -a -m "2"                # commit changes
+
+> ./mill ratchet --check HEAD^ HEAD   # format changes between last 2 commits
+ratchet found changes in 1 files
+1 java files are already formatted
+*/
+
+// CAUTION: CI actions may require additional
+// https://github.com/diffplug/spotless/tree/main/plugin-gradle#using-ratchetfrom-on-ci-systems[setup].
+
+// The `ratchet` command is also available globally.
+
+/** Usage
+> ./mill mill.javalib.spotless.SpotlessModule/ratchet --check HEAD^ HEAD
+ratchet found changes in 1 files
+*/

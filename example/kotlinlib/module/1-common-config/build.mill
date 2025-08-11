@@ -1,11 +1,11 @@
 //// SNIPPET:BUILD
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
   // You can have arbitrary numbers of third-party dependencies
   def mvnDeps = Seq(
-    mvn"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
+    mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
   )
 
   def kotlinVersion = "1.9.24"
@@ -48,7 +48,7 @@ object `package` extends RootModule with KotlinModule {
 // If you want to better understand how the various upstream tasks feed into
 // a task of interest, such as `run`, you can visualize their relationships via
 /** Usage
-> mill visualizePlan run
+> ./mill visualizePlan run
 */
 //
 // image::basic/VisualizePlanJava.svg[VisualizePlanJava.svg]

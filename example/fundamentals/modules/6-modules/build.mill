@@ -4,7 +4,7 @@
 // path you would use to run tasks within that module from the command line. e.g.
 // for the following `build.mill`:
 package build
-import mill._
+import mill.*
 
 object foo extends Module {
   def bar = Task { "hello" }
@@ -229,7 +229,7 @@ object outer2 extends MyModule {
 // paths defined are relative to the module's root folder, so the module logic can continue
 // to work even if moved into a different subfolder. In the rare case where you need the
 // Mill project root path, and you truly know what you are doing, you can call
-// g`WorkspaceRoot.workspaceRoot`.
+// `WorkspaceRoot.workspaceRoot`.
 
 // == Module Overrides
 

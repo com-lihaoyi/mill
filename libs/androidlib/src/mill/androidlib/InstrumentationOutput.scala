@@ -1,7 +1,7 @@
 package mill.androidlib
 
 import mill.api.Logger
-import mill.testrunner.TestResult
+import mill.javalib.testrunner.TestResult
 
 import java.io.BufferedReader
 import java.util.concurrent.TimeUnit
@@ -89,7 +89,7 @@ private[androidlib] object InstrumentationOutput {
             TimeResultState(state.started, testResultStarted, state.testResults :+ testResult)
           case InstrumentationOutput.Ignored(line) =>
             // todo handle stream and stack
-            logger.debug(s"Message ${line}, ignored")
+            logger.debug(s"Message ${line}")
             state
         }
     }

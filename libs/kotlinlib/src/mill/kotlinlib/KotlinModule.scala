@@ -6,19 +6,25 @@
 package mill
 package kotlinlib
 
+import coursier.core.VariantSelector.VariantMatcher
+import coursier.params.ResolutionParams
 import mill.api.Result
-import mill.define.{Command, ModuleRef, PathRef, Task}
-import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
-import mill.scalalib.api.{CompilationResult, JvmWorkerApi}
-import mill.api.internal.{BspBuildTarget, BspModuleApi, CompileProblemReporter, internal}
-import mill.scalalib.{JavaModule, JvmWorkerModule, Lib}
+import mill.api.ModuleRef
+import mill.kotlinlib.worker.api.KotlinWorkerTarget
+import mill.javalib.api.{CompilationResult, JvmWorkerApi}
+import mill.api.daemon.internal.{CompileProblemReporter, KotlinModuleApi, internal}
+import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
-import mill.T
+import mill.*
 import java.io.File
 
 import mainargs.Flag
+import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 
-trait KotlinModule extends JavaModule { outer =>
+/**
+ * Core configuration required to compile a single Kotlin module
+ */
+trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
   /**
    * The Kotlin version to be used (for API and Language level settings).
@@ -76,7 +82,12 @@ trait KotlinModule extends JavaModule { outer =>
 
   protected def jvmWorkerRef: ModuleRef[JvmWorkerModule] = jvmWorker
 
-  protected def kotlinWorkerRef: ModuleRef[KotlinWorkerModule] = ModuleRef(KotlinWorkerModule)
+  override def checkGradleModules: T[Boolean] = true
+  override def resolutionParams: Task[ResolutionParams] = Task.Anon {
+    super.resolutionParams().addVariantAttributes(
+      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm")
+    )
+  }
 
   /**
    * The Java classpath resembling the Kotlin compiler.
@@ -84,9 +95,12 @@ trait KotlinModule extends JavaModule { outer =>
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
     val deps = kotlinCompilerMvnDeps() ++ Seq(
-      Dep.millProjectModule("mill-libs-kotlinlib-worker-impl")
+      Dep.millProjectModule("mill-libs-kotlinlib-worker")
     )
-    defaultResolver().classpath(deps)
+    defaultResolver().classpath(
+      deps,
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
+    )
   }
 
   /**
@@ -144,13 +158,10 @@ trait KotlinModule extends JavaModule { outer =>
     val jars = defaultResolver().classpath(
       kotlincPluginMvnDeps()
         // Don't resolve transitive jars
-        .map(d => d.exclude("*" -> "*"))
+        .map(d => d.exclude("*" -> "*")),
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
     )
     jars.toSeq
-  }
-
-  def kotlinWorkerTask: Task[KotlinWorker] = Task.Anon {
-    kotlinWorkerRef().kotlinWorkerManager().get(kotlinCompilerClasspath())
   }
 
   /**
@@ -170,14 +181,12 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   /**
-   * The documentation jar, containing all the Dokka HTML files, for
+   * The generated documentation, containing all the Dokka HTML files, for
    * publishing to Maven Central. You can control Dokka version by using [[dokkaVersion]]
    * and option by using [[dokkaOptions]].
    */
-  override def docJar: T[PathRef] = T[PathRef] {
-    val outDir = Task.dest
-
-    val dokkaDir = outDir / "dokka"
+  def dokkaGenerated: T[PathRef] = Task[PathRef] {
+    val dokkaDir = Task.dest / "dokka"
     os.makeDir.all(dokkaDir)
 
     val files = Lib.findSourceFiles(docSources(), Seq("java", "kt"))
@@ -211,7 +220,7 @@ trait KotlinModule extends JavaModule { outer =>
 
       os.call(
         cmd = (
-          Jvm.javaExe(jvmWorker().javaHome().map(_.path)),
+          Jvm.javaExe(javaHome().map(_.path)),
           "-jar",
           dokkaCliClasspath().head.path.toString(),
           options
@@ -221,7 +230,16 @@ trait KotlinModule extends JavaModule { outer =>
       )
     }
 
-    PathRef(Jvm.createJar(outDir / "out.jar", Seq(dokkaDir)))
+    PathRef(dokkaDir)
+  }
+
+  /**
+   * The documentation jar, containing all the Dokka HTML files, for
+   * publishing to Maven Central. You can control Dokka version by using [[dokkaVersion]]
+   * and option by using [[dokkaOptions]].
+   */
+  override def docJar: T[PathRef] = Task[PathRef] {
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(dokkaGenerated().path)))
   }
 
   /**
@@ -245,7 +263,8 @@ trait KotlinModule extends JavaModule { outer =>
     defaultResolver().classpath(
       Seq(
         mvn"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
-      )
+      ),
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
     )
   }
 
@@ -256,7 +275,8 @@ trait KotlinModule extends JavaModule { outer =>
         mvn"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
         Dep.parse(Versions.kotlinxHtmlJvmDep),
         Dep.parse(Versions.freemarkerDep)
-      )
+      ),
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
     )
   }
 
@@ -295,6 +315,7 @@ trait KotlinModule extends JavaModule { outer =>
           upstreamCompileOutput = updateCompileOutput,
           javaSourceFiles = javaSourceFiles,
           compileCp = compileCp,
+          javaHome = javaHome().map(_.path),
           javacOptions = javacOptions(),
           compileProblemReporter = ctx.reporter(hashCode),
           reportOldProblems = internalReportOldProblems()
@@ -325,7 +346,10 @@ trait KotlinModule extends JavaModule { outer =>
           (kotlinSourceFiles ++ javaSourceFiles).map(_.toString())
         ).flatten
 
-        val workerResult = kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
+        val workerResult =
+          KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
+            _.compile(KotlinWorkerTarget.Jvm, compilerArgs)
+          }
 
         val analysisFile = dest / "kotlin.analysis.dummy"
         os.write(target = analysisFile, data = "", createFolders = true)
@@ -381,6 +405,7 @@ trait KotlinModule extends JavaModule { outer =>
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
       compileCp: Seq[os.Path],
+      javaHome: Option[os.Path],
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
       reportOldProblems: Boolean
@@ -389,6 +414,7 @@ trait KotlinModule extends JavaModule { outer =>
       upstreamCompileOutput = upstreamCompileOutput,
       sources = javaSourceFiles,
       compileClasspath = compileCp,
+      javaHome = javaHome,
       javacOptions = javacOptions,
       reporter = compileProblemReporter,
       reportCachedProblems = reportOldProblems,
@@ -436,6 +462,17 @@ trait KotlinModule extends JavaModule { outer =>
     }
     override def kotlinUseEmbeddableCompiler: Task[Boolean] =
       Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+  }
+
+}
+
+object KotlinModule {
+
+  private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
+    params.addVariantAttributes(
+      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
+      "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
+    )
   }
 
 }

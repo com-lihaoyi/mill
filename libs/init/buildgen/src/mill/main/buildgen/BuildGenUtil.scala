@@ -2,17 +2,11 @@ package mill.main.buildgen
 
 import geny.Generator
 import mainargs.{Flag, arg}
-import mill.api.internal.internal
-import mill.constants.CodeGenConstants.{
-  buildFileExtensions,
-  nestedBuildFileNames,
-  rootBuildFileNames,
-  rootModuleAlias
-}
-import mill.constants.OutFiles
+import mill.api.daemon.internal.internal
+import mill.constants.CodeGenConstants.{nestedBuildFileNames, rootBuildFileNames, rootModuleAlias}
 import mill.main.buildgen.BuildObject.Companions
 import mill.internal.Util.backtickWrap
-import mill.define.CrossVersion
+import mill.api.CrossVersion
 
 import scala.collection.immutable.SortedSet
 import scala.util.boundary
@@ -22,15 +16,6 @@ object BuildGenUtil {
 
   def renderIrTrait(value: IrTrait): String = {
     import value.*
-    val jvmWorker = jvmId.fold("") { jvmId =>
-      val name = s"${baseModule}JvmWorker"
-      val setting = renderJvmWorker(name)
-      val typedef = renderJvmWorker(name, jvmId)
-
-      s"""$setting
-         |
-         |$typedef""".stripMargin
-    }
 
     s"""trait $baseModule ${renderExtends(moduleSupertypes)} {
        |
@@ -47,8 +32,6 @@ object BuildGenUtil {
        |${renderPublishProperties(publishProperties)}
        |
        |${renderRepositories(repositories)}
-       |
-       |$jvmWorker
        |}""".stripMargin
 
   }
@@ -92,6 +75,8 @@ object BuildGenUtil {
            |
            |def testSandboxWorkingDir = false
            |def testParallelism = false
+           |${build.testForkDir.fold("")(v => s"def forkWorkingDir = $v")}
+           |
            |}""".stripMargin
       }
 
@@ -163,7 +148,6 @@ object BuildGenUtil {
   def renderImports(
       baseModule: Option[String],
       isNested: Boolean,
-      packagesSize: Int,
       extraImports: Seq[String]
   ): SortedSet[String] = {
     scala.collection.immutable.SortedSet(
@@ -185,7 +169,7 @@ object BuildGenUtil {
       .toSeq
       .toMap
 
-  def renderBuildSource(node: Node[BuildObject]): os.Source = {
+  def renderBuildSource(node: Node[BuildObject], jvmId: Option[String]): os.Source = {
     val pkg = buildModuleFqn(node.dirs)
     val BuildObject(imports, companions, supertypes, inner, outer) = node.value
     val importStatements = imports.iterator.map("import " + _).mkString(linebreak)
@@ -201,7 +185,18 @@ object BuildGenUtil {
            |}""".stripMargin
     }.mkString(linebreak2)
 
-    s"""package $pkg
+    val millVersionPrefix =
+      if (node.dirs.nonEmpty) ""
+      else s"//| mill-version: ${mill.util.BuildInfo.millVersion}\n"
+
+    val jvmIdPrefix =
+      if (node.dirs.nonEmpty) ""
+      else jvmId match {
+        case None => ""
+        case Some(j) => s"//| mill-jvm-version: ${j}\n"
+      }
+
+    s"""${millVersionPrefix}${jvmIdPrefix}package $pkg
        |
        |$importStatements
        |
@@ -247,7 +242,7 @@ object BuildGenUtil {
             val mergedImports = module.imports ++ nested.imports
             val mergedInner = {
               val name = backtickWrap(dir)
-              val supertypes = nested.supertypes.filterNot(_ == "RootModule")
+              val supertypes = nested.supertypes
 
               s"""${module.inner}
                  |
@@ -349,9 +344,8 @@ object BuildGenUtil {
   }
 
   def renderExtends(supertypes: Seq[String]): String = supertypes match {
-    case Seq() => ""
-    case Seq(head) => s"extends $head"
-    case head +: tail => tail.mkString(s"extends $head with ", " with ", "")
+    case Seq() => "extends mill.Module"
+    case items => s"extends ${items.mkString(" with ")}"
   }
 
   def renderLicense(
@@ -361,11 +355,6 @@ object BuildGenUtil {
 
   def renderVersionControl(vc: IrVersionControl): String =
     s"VersionControl(${escapeOption(vc.url)}, ${escapeOption(vc.connection)}, ${escapeOption(vc.devConnection)}, ${escapeOption(vc.tag)})"
-
-  def renderJvmWorker(moduleName: String, jvmId: String): String =
-    s"""object $moduleName extends JvmWorkerModule {
-       |  def jvmId = "$jvmId"
-       |}""".stripMargin
 
   // TODO consider renaming to `renderOptionalDef` or `renderIfArgsNonEmpty`?
   def optional(construct: String, args: IterableOnce[String]): String =
@@ -391,22 +380,17 @@ object BuildGenUtil {
         // Note that the super def is called even when it's empty.
         // Some super functions can be called without parentheses, but we just add them here for simplicity.
         Some(args.iterator.drop(superLength).map(transform)
-          .mkString(s"super.$defName() ++ Seq(", ",", ")"))
+          .mkString(
+            (if (superArgs.nonEmpty) s"super.$defName() ++ " else "") + "Seq(",
+            ",",
+            ")"
+          ))
     } else
       Some(
         if (args.isEmpty)
           s"Seq.empty[$elementType]" // The inferred type is `Seq[Nothing]` otherwise.
         else args.iterator.map(transform).mkString("Seq(", ",", ")")
       )
-
-  def renderSeqTargetDefWithSuper(
-      defName: String,
-      args: Seq[String],
-      superArgs: Seq[String] = Seq.empty,
-      elementType: String,
-      transform: String => String
-  ) =
-    renderSeqWithSuper(defName, args, superArgs, elementType, transform).map(s"def $defName = " + _)
 
   def renderSeqTaskDefWithSuper(
       defName: String,
@@ -415,9 +399,7 @@ object BuildGenUtil {
       elementType: String,
       transform: String => String
   ) =
-    renderSeqWithSuper(defName, args, superArgs, elementType, transform).map(s =>
-      s"def $defName = Task.Anon { $s }"
-    )
+    renderSeqWithSuper(defName, args, superArgs, elementType, transform).map(s"def $defName = " + _)
 
   def renderArtifactName(name: String, dirs: Seq[String]): String =
     if (dirs.nonEmpty && dirs.last == name) "" // skip default
@@ -427,25 +409,25 @@ object BuildGenUtil {
     optional("def bomMvnDeps = super.bomMvnDeps() ++ Seq", args)
 
   def renderMvnDeps(args: IterableOnce[String]): String =
-    optional("def mvnDeps = super.mvnDeps() ++ Seq", args)
+    optional("def mvnDeps = Seq", args)
 
   def renderModuleDeps(args: IterableOnce[String]): String =
     optional("def moduleDeps = super.moduleDeps ++ Seq", args)
 
   def renderCompileMvnDeps(args: IterableOnce[String]): String =
-    optional("def compileMvnDeps = super.compileMvnDeps() ++ Seq", args)
+    optional("def compileMvnDeps = Seq", args)
 
   def renderCompileModuleDeps(args: IterableOnce[String]): String =
     optional("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
 
   def renderRunMvnDeps(args: IterableOnce[String]): String =
-    optional("def runMvnDeps = super.runMvnDeps() ++ Seq", args)
+    optional("def runMvnDeps = Seq", args)
 
   def renderRunModuleDeps(args: IterableOnce[String]): String =
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)
 
   def renderJavacOptions(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
-    renderSeqTargetDefWithSuper("javacOptions", args, superArgs, "String", escape).getOrElse("")
+    renderSeqTaskDefWithSuper("javacOptions", args, superArgs, "String", escape).getOrElse("")
 
   def renderScalaVersion(arg: Option[String], superArg: Option[String] = None): String =
     if (arg != superArg) arg.fold("")(scalaVersion => s"def scalaVersion = ${escape(scalaVersion)}")
@@ -455,7 +437,7 @@ object BuildGenUtil {
       args: Option[Seq[String]],
       superArgs: Option[Seq[String]] = None
   ): String =
-    renderSeqTargetDefWithSuper(
+    renderSeqTaskDefWithSuper(
       "scalacOptions",
       args.getOrElse(Seq.empty),
       superArgs.getOrElse(Seq.empty),
@@ -465,19 +447,20 @@ object BuildGenUtil {
 
   def renderRepositories(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
     renderSeqTaskDefWithSuper(
-      "repositoriesTask",
+      "repositories",
       args,
       superArgs,
-      "coursier.Repository",
+      "String",
       identity
     ).getOrElse("")
 
   def renderResources(args: IterableOnce[os.SubPath]): String =
     optional(
-      "def resources = Task.Sources { super.resources() ++ Seq(",
-      args.iterator.map(sub => s"PathRef(moduleDir / ${escape(sub.toString())})"),
+      """def resources = Task { super.resources() ++ customResources() }
+        |def customResources = Task.Sources(""".stripMargin,
+      args.iterator.map(sub => escape(sub.toString())),
       ", ",
-      ") }"
+      ")"
     )
 
   def renderPomPackaging(packaging: String): String =
@@ -491,9 +474,12 @@ object BuildGenUtil {
     if (isNullOrEmpty(artifact)) ""
     else s"def pomParentProject = Some($artifact)"
 
-  def renderPomSettings(arg: String | Null, superArg: String | Null = null): String =
-    if (isNullOrEmpty(arg)) ""
-    else s"def pomSettings = $arg"
+  def renderPomSettings(arg: String | Null, superArg: String | Null = null): String = {
+    if (arg != superArg)
+      if (isNullOrEmpty(arg)) ""
+      else s"def pomSettings = $arg"
+    else ""
+  }
 
   def renderPublishVersion(arg: String | Null, superArg: String | Null = null): String =
     if (arg != superArg)
@@ -502,15 +488,14 @@ object BuildGenUtil {
     else ""
 
   def renderPublishProperties(
-      args: Seq[(String, String)],
-      superArgs: Seq[(String, String)] = Seq.empty
+      args: Seq[(String, String)]
   ): String = {
     val tuples = args.iterator.map { case (k, v) => s"(${escape(k)}, ${escape(v)})" }
     optional("def publishProperties = super.publishProperties() ++ Map", tuples)
   }
 
   def renderJvmWorker(moduleName: String): String =
-    s"def jvmWorker = mill.define.ModuleRef($moduleName)"
+    s"def jvmWorker = mill.api.ModuleRef($moduleName)"
 
   val testModulesByGroup: Map[String, String] = Map(
     "junit" -> "TestModule.Junit4",
@@ -525,7 +510,7 @@ object BuildGenUtil {
     "org.scalacheck" -> "TestModule.ScalaCheck"
   )
 
-  def writeBuildObject(tree: Tree[Node[BuildObject]]): Unit = {
+  def writeBuildObject(tree: Tree[Node[BuildObject]], jvmId: Option[String]): Unit = {
     val nodes = tree.nodes().toSeq
     println(s"generated ${nodes.length} Mill build file(s)")
 
@@ -535,7 +520,7 @@ object BuildGenUtil {
 
     nodes.foreach { node =>
       val file = buildFile(node.dirs)
-      val source = renderBuildSource(node)
+      val source = renderBuildSource(node, jvmId)
       println(s"writing Mill build file to $file")
       os.write(workspace / file, source)
     }

@@ -11,7 +11,7 @@
 //    which perform their own in-memory caching
 //
 // 2. Classloaders containing plugin code, to avoid classpath conflicts while
-//    also avoiding classloading cost every time the code is executed
+//    avoiding the cost of launching subprocesses
 //
 // This example uses a Worker to provide simple two-level cache: in-memory caching
 // for compressed files, in addition to caching them on disk. This means that if the
@@ -20,7 +20,7 @@
 // without having to recompute them:
 
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 import java.util.Arrays
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
@@ -85,13 +85,13 @@ def compressBytes(input: Array[Byte]) = {
 //
 // Workers live as long as the Mill process. By default, consecutive `mill`
 // commands in the same folder will re-use the same Mill process and workers,
-// unless `--no-server` is passed which will terminate the Mill process and
+// unless `--no-daemon` is passed which will terminate the Mill process and
 // workers after every command. Commands run repeatedly using `--watch` will
 // also preserve the workers between them.
 //
 // Workers can also make use of their `Task.dest` folder as a cache that persist
 // when the worker shuts down, as a second layer of caching. The example usage
-// below demonstrates how using the `--no-server` flag will make the worker
+// below demonstrates how using the `--no-daemon` flag will make the worker
 // read from its disk cache, where it would have normally read from its
 // in-memory cache
 
@@ -110,19 +110,18 @@ Compressing: world.txt
 
 > sed -i.bak 's/Hello/HELLO/g' data/hello.txt
 
-> ./mill compressedData # not --no-server, we read the data from memory
+> ./mill compressedData # not --no-daemon, we read the data from memory
 Compressing: hello.txt
 Cached from memory: world.txt
 
-> ./mill compressedData # --no-server, we read the data from disk
+> ./mill compressedData # --no-daemon, we read the data from disk
 Compressing: hello.txt
 Cached from disk: world.txt
 
 */
 
-// Mill uses workers to manage long-lived instances of the
-// https://github.com/sbt/zinc[Zinc Incremental Scala Compiler] and the
-// https://github.com/scala-js/scala-js[Scala.js Optimizer].
+// Mill uses workers to manage long-lived instances of heavyweight objects like the
+// https://github.com/sbt/zinc[Zinc Incremental Compiler].
 // This lets us keep them in-memory with warm caches and fast incremental execution.
 //
 // Like any other task, you can use `./mill clean` to wipe out any cached in-memory or
@@ -140,7 +139,7 @@ Cached from disk: world.txt
 // To implement resource cleanup, your worker can implement `java.lang.AutoCloseable`.
 // Once the worker is no longer needed, Mill will call the `close()` method on it before any newer version of this worker is created.
 
-import mill._
+import mill.*
 import java.lang.AutoCloseable
 
 class MyWorker() extends AutoCloseable {
@@ -171,7 +170,7 @@ def myWorker = Task.Worker { new MyWorker() }
 // version of `CompressWorker` we saw earlier, but using `CacheFactory` to cache, reset, and
 // re-use the `ByteArrayOutputStream` between calls to `cachedCompressWorker().compress`:
 //
-import mill._
+import mill.*
 import java.lang.AutoCloseable
 import mill.util.CachedFactory
 import java.io.ByteArrayOutputStream

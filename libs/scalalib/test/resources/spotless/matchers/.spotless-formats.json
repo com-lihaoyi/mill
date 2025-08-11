@@ -1,0 +1,15 @@
+[
+  {
+    "includes": [
+      "glob:src/**"
+    ],
+    "excludes": [
+      "glob:**/legacy/**"
+    ],
+    "steps": [
+      {
+        "$type": "EndWithNewline"
+      }
+    ]
+  }
+]

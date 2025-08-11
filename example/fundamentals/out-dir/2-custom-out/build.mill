@@ -5,7 +5,7 @@
 
 package build
 
-import mill._
+import mill.*
 
 object foo extends Module {
   def printDest = Task {

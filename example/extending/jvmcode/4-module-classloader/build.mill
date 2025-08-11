@@ -1,0 +1,40 @@
+// This example demonstrates how to run your own Java code within a classloader
+// as part of your build. We run the `bar` module code built as part of the project
+// within an in-memory classloader via `Jvm.withClassloader`, which in this example
+// serves as a code-generated to generated the `sources` of the `foo` module:
+
+package build
+import mill.*, scalalib.*
+import mill.util.Jvm
+
+object foo extends JavaModule {
+  def moduleDeps = Seq(bar)
+
+  def sources = Task {
+    Jvm.withClassLoader(classPath = bar.runClasspath().map(_.path)) { classLoader =>
+      classLoader
+        .loadClass("bar.Bar")
+        .getMethod("main", classOf[Array[String]])
+        .invoke(null, Array(Task.dest.toString) ++ super.sources().map(_.path.toString))
+    }
+    Seq(PathRef(Task.dest))
+  }
+}
+
+object bar extends JavaModule
+
+// As mentioned in the section on
+// xref:extending/running-jvm-code.adoc#_in_process_isolated_classloaders[In-process Isolated Classloaders],
+// this provides less overhead over running ``bar``'s classpath in a subprocess, at
+// the expense of the classloader providing weaker isolation than a subprocess.
+// Thus we cannot rely on the working directory inside the `bar.Bar` code to be in the
+// right place, and instead we need to pass in the `Task.dest` path explicitly as a
+// `main` method parameter to the `bar.Bar` main class.
+
+/** Usage
+
+> ./mill foo.run
+...
+Foo.value: HELLO
+
+*/

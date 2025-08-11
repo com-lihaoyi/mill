@@ -1,9 +1,9 @@
 package build
 
-import mill._, scalalib._
-import scalatags.Text.all._
+import mill.*, scalalib.*
+import scalatags.Text.all.*
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = "2.13.4"
   def mvnDeps = Seq(
     mvn"com.lihaoyi::scalatags:${millbuild.DepVersions.scalatagsVersion}",
@@ -18,17 +18,17 @@ object `package` extends RootModule with ScalaModule {
 }
 
 // This example illustrates usage of the `mill-build/` folder. Mill's `build.mill`
-// file and it's `import $file` and `$ivy` are a shorthand syntax for defining
+// file and it's `//| mvnDeps` syntax are a shorthand syntax for defining
 // a Mill `ScalaModule`, with sources and `mvnDeps` and so on, which is
 // compiled and executed to perform your build. This "meta-build" module lives in
-// `mill-build/`, and can be enabled via the `import $meta._` statement above.
+// `mill-build/build.mill`:
 
 /** See Also: mill-build/build.mill */
 /** See Also: src/Foo.scala */
 
 // Typically, if you wanted to use a library such as Scalatags in both your `build.mill`
 // as well as your application code, you would need to duplicate the version of Scalatags
-// used in both your `//| mvnDeps:` statement as well as your `def mvnDeps` statement.
+// used in both your `//| mvnDeps` statement as well as your `def mvnDeps` statement.
 // The meta-build lets us avoid this duplication: we use `generatedSources` in
 // `mill-build/build.mill` to create a `DepVersions` object that the `build.mill` can use to pass the
 // `scalatagsVersion` to the application without having to copy-paste the
@@ -40,14 +40,14 @@ object `package` extends RootModule with ScalaModule {
 
 /** Usage
 
-> mill compile
+> ./mill compile
 ...
 
-> mill run
+> ./mill run
 Build-time HTML snippet: <h1>hello</h1>
 Run-time HTML snippet: <p>world</p>
 
-> mill show assembly
+> ./mill show assembly
 ".../out/assembly.dest/out.jar"
 
 > ./out/assembly.dest/out.jar # mac/linux
@@ -58,11 +58,11 @@ Run-time HTML snippet: <p>world</p>
 
 // This example is trivial, but in larger builds there may be much more scenarios
 // where you may want to keep the libraries used in your `build.mill` and the libraries
-// used in your application code consistent. With the `mill-build/build.mill` configuration
-// enabled by `import $meta._`, this becomes possible.
+// used in your application code consistent. With the `mill-build/build.mill` configuration,
+// this becomes possible.
 //
 // You can customize the `mill-build/` module with more flexibility than is
-// provided by `//| mvnDeps:` or `import $file`, overriding any tasks that are
+// provided by `//| mvnDeps`, overriding any tasks that are
 // present on a typical `ScalaModule`: `scalacOptions`, `generatedSources`, etc.
 // This is useful for large projects where the build itself is a non-trivial
 // module which requires its own non-trivial customization.
@@ -72,13 +72,13 @@ Run-time HTML snippet: <p>world</p>
 
 /** Usage
 
-> mill --meta-level 1 show sources
+> ./mill --meta-level 1 show sources
 [
 .../build.mill",
 .../mill-build/src"
 ]
 
-> mill --meta-level 2 show sources
+> ./mill --meta-level 2 show sources
 [
 .../mill-build/build.mill",
 .../mill-build/mill-build/src"

@@ -2,7 +2,7 @@
 // so far into a worked example: implementing our own minimal version of
 // `mill.scalalib.JavaModule` from first principles.
 package build
-import mill._
+import mill.*
 
 trait DiyJavaModule extends Module {
   def moduleDeps: Seq[DiyJavaModule] = Nil
@@ -14,7 +14,9 @@ trait DiyJavaModule extends Module {
   def compile = Task {
     val allSources = os.walk(sources().path)
     val cpFlag = Seq("-cp", upstream().map(_.path).mkString(":"))
-    os.proc("javac", cpFlag, allSources, "-d", Task.dest).call()
+    os.call(
+      cmd = ("javac", cpFlag, allSources, "-d", Task.dest)
+    )
     PathRef(Task.dest)
   }
 
@@ -24,8 +26,7 @@ trait DiyJavaModule extends Module {
     for (cp <- classPath()) os.copy(cp.path, Task.dest, mergeFolders = true)
 
     val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
-    os.proc("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", ".")
-      .call(cwd = Task.dest)
+    os.call(cmd = ("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", "."))
 
     PathRef(Task.dest / "assembly.jar")
   }
@@ -63,7 +64,7 @@ trait DiyJavaModule extends Module {
 //   necessary to convert the `Seq[T[V]]` into a `T[Seq[V]]` that we can work
 //   with inside our tasks
 //
-// * We use the `moduleDir` together with `Task.workspace` to infer a default
+// * We use the `moduleDir` together with `mill.api.BuildCtx.workspaceRoot` to infer a default
 //   name for the jar of each module. Users can override it if they want, but
 //   having a default is very convenient
 //
@@ -98,30 +99,42 @@ object qux extends DiyJavaModule {
 //     style=dashed
 //     node [shape=box width=0 height=0 style=filled fillcolor=white]
 //     label = "foo.bar";
-//
-//     "foo.bar.sources" -> "foo.bar.compile" -> "foo.bar.classPath" -> "foo.bar.assembly"
-//     "foo.bar.mainClass" -> "foo.bar.assembly"
+//     "foo.bar.sources"
+//     "foo.bar.compile"
+//     "foo.bar.mainClass"
+//     "foo.bar.assembly"
+//     "foo.bar.classPath"
 //   }
 //   subgraph cluster_1 {
 //     style=dashed
 //     node [shape=box width=0 height=0 style=filled fillcolor=white]
 //     label = "foo";
-//
-//     "foo.bar.classPath" -> "foo.compile"   [constraint=false];
-//     "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
-//     "foo.mainClass" -> "foo.assembly"
+//     "foo.sources"
+//     "foo.compile"
+//     "foo.mainClass"
+//     "foo.assembly"
+//     "foo.classPath"
 //   }
 //   subgraph cluster_2 {
 //     style=dashed
 //     node [shape=box width=0 height=0 style=filled fillcolor=white]
 //     label = "qux";
-//
-//     "qux.mainClass" -> "qux.assembly"
-//     "foo.bar.classPath" -> "foo.classPath"
-//     "foo.classPath" -> "qux.compile" [constraint=false];
-//     "foo.classPath" -> "qux.classPath"
-//     "qux.sources" -> "qux.compile" -> "qux.classPath" -> "qux.assembly"
+//     "qux.sources"
+//     "qux.compile"
+//     "qux.mainClass"
+//     "qux.assembly"
+//     "qux.classPath"
 //   }
+//   "foo.bar.sources" -> "foo.bar.compile" -> "foo.bar.classPath" -> "foo.bar.assembly"
+//   "foo.bar.mainClass" -> "foo.bar.assembly"
+//   "foo.bar.classPath" -> "foo.compile"   [constraint=false];
+//   "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
+//   "foo.mainClass" -> "foo.assembly"
+//   "qux.mainClass" -> "qux.assembly"
+//   "foo.bar.classPath" -> "foo.classPath"
+//   "foo.classPath" -> "qux.compile" [constraint=false];
+//   "foo.classPath" -> "qux.classPath"
+//   "qux.sources" -> "qux.compile" -> "qux.classPath" -> "qux.assembly"
 // }
 // ....
 //

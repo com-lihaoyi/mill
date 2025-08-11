@@ -23,8 +23,9 @@ Project home: https://github.com/carlosedp/mill-aliases
 
 [source,scala]
 ----
-import mill._, scalalib._
-import $ivy.`com.carlosedp::mill-aliases::0.2.1`
+//| mvnDeps: ["com.carlosedp::mill-aliases::0.2.1"]
+
+import mill.*, scalalib.*
 import com.carlosedp.aliases._
 
 object foo extends ScalaModule {
@@ -40,15 +41,17 @@ object MyAliases extends Aliases {
 
 To show all the defined aliases:
 
-```sh
-./mill Alias/list
-```
+[,console]
+----
+> ./mill Alias/list
+----
 
 Run an alias:
 
-```sh
-./mill Alias/run testall
-```
+[,console]
+----
+> ./mill Alias/run testall
+----
 
 When run, each aliased task is checked if valid.
 
@@ -61,13 +64,12 @@ Project home: https://github.com/ml86/mill-antlr
 
 [source,scala]
 ----
-import $ivy.`net.mlbox::mill-antlr:0.1.0`
+//| mvnDeps: ["net.mlbox::mill-antlr:0.1.0"]
+
 import net.mlbox.millantlr.AntlrModule
 
-object foo extends ScalaModule with AntlrModule {
-  override def antlrGrammarSources = Task.Sources {
-    Seq(os.pwd/"someGrammar.g4").map(PathRef(_))
-  }
+object foo extends ScalaModule, AntlrModule {
+  override def antlrGrammarSources = Task.Sources("someGrammar.g4")
 }
 ----
 
@@ -80,12 +82,12 @@ Project home: https://github.com/lefou/mill-aspectj
 
 [source,scala]
 ----
-import mill._
-import mill.scalalib._
-import mill.define._
+//| mvnDeps: ["de.tototec::de.tobiasroeser.mill.aspectj_mill0.9:0.3.1-12-89db01"]
 
-// Load the plugin from Maven Central via ivy/coursier
-import $ivy.`de.tototec::de.tobiasroeser.mill.aspectj_mill0.9:0.3.1-12-89db01
+import mill.*
+import mill.scalalib._
+import mill.api._
+
 import de.tobiasroeser.mill.aspectj._
 
 object main extends AspectjModule {
@@ -150,6 +152,7 @@ https://github.com/lefou/mill-vcs-version[`mill-vcs-version`] and if your
 version ends in `-SNAPSHOT` you're project will be published to Sonatype
 Snapshots or to the normal releases if it's a new tag.
 
+
 == Daemon
 
 Use mill as a launcher for self-building systemd daemons,
@@ -162,10 +165,11 @@ Place the millw script from https://github.com/lefou/millw in your project direc
 
 ./opt/coolproj/build.mill
 ----
-import $ivy.`com.mchange::mill-daemon:0.0.1`
+//| mvnDeps: ["com.mchange::mill-daemon:0.0.1"]
+
 import com.mchange.milldaemon.DaemonModule
 
-object coolproj extends RootModule with DaemonModule {
+object coolproj extends RootModule, DaemonModule {
   override def runDaemonPidFile = Some( os.pwd / "coolproj.pid" )
 }
 ----
@@ -207,15 +211,16 @@ Project home: https://github.com/ajrnz/mill-dgraph
 
 [source,scala]
 ----
-import $ivy.`com.github.ajrnz::mill-dgraph:0.2.0`
+//| mvnDeps: ["com.github.ajrnz::mill-dgraph:0.2.0"]
 ----
 
-[source,sh]
+[source,console]
 ----
-sh> mill plugin.dgraph.browseDeps(proj)()
+> mill plugin.dgraph.browseDeps proj
 ----
 
 == Docker Jib Packager
+
 A wrapper around the  https://github.com/GoogleContainerTools/jib[Google Jib Library].
 Allows to build Docker images without a running Docker daemon.
 Also enables to layer an image more efficiently.
@@ -236,16 +241,17 @@ parameters for your application using the `DockerNativeConfig` trait in the
 
 [source,scala]
 ----
-import mill._, mill.scalalib._, mill.scalalib.scalafmt._
-import $ivy.`com.carlosedp::mill-docker-nativeimage::0.6.0`
+//| mvnDeps: ["com.carlosedp::mill-docker-nativeimage::0.6.0"]
+
+import mill.*, mill.scalalib._, mill.scalalib.scalafmt._
 import com.carlosedp.milldockernative.DockerNative
 
-object hello extends ScalaModule with DockerNative {
+object hello extends ScalaModule, DockerNative {
   def scalaVersion = "3.3.0"
   object dockerNative extends DockerNativeConfig {
     // Native Image parameters
     def nativeImageName         = "hello"
-    def nativeImageGraalVmJvmId = T("graalvm-java17:22.3.2")
+    def nativeImageGraalVmJvmId = Task {"graalvm-java17:22.3.2"}
     def nativeImageClassPath    = runClasspath()
     def nativeImageMainClass    = "com.domain.Hello.Hello"
     // GraalVM parameters depending on your application needs
@@ -263,14 +269,14 @@ object hello extends ScalaModule with DockerNative {
 }
 ----
 
-[source,sh]
+[source,console]
 ----
-./mill hello.dockerNative.build()
-# Test run
-docker run -it --rm docker.io/myuser/helloapp
+> ./mill hello.dockerNative.build()
+> # Test run
+> docker run -it --rm docker.io/myuser/helloapp
 
-# Push to a registry
-./mill hello.dockerNative.push
+> # Push to a registry
+> ./mill hello.dockerNative.push
 ----
 
 For more details and configuration options, please refer to the project readme
@@ -294,32 +300,27 @@ Project home: https://github.com/davoclavo/mill-ensime
 
 [source,scala]
 ----
-import mill._
-interp.repositories() =
-  interp.repositories() ++ Seq(coursier.MavenRepository("https://jitpack.io"))
-
-@
-
-import $ivy.`com.github.yyadavalli::mill-ensime:0.0.2`
+//| mvnDeps: ["com.github.yyadavalli::mill-ensime:0.0.2"]
+//| repositories: ["https://jitpack.io"]
 ----
 
-You can then run the following to generate the .ensime file
+You can then run the following to generate the `.ensime` file
 
-[source,sh]
+[source,console]
 ----
-mill fun.valycorp.mill.GenEnsime/ensimeConfig
+> mill fun.valycorp.mill.GenEnsime/ensimeConfig
 ----
 
 Optionally, you can specify the ensime server version using the –server flag like
 
-[source,sh]
+[source,console]
 ----
-mill fun.valycorp.mill.GenEnsime/ensimeConfig --server "3.0.0-SNAPSHOT"
+> mill fun.valycorp.mill.GenEnsime/ensimeConfig --server "3.0.0-SNAPSHOT"
 ----
 
 == Explicit Deps
 
-A plugin that checks that `mvnDeps` and `ivyCompileDeps` accurately reflect the direct dependencies of your source code.
+A plugin that checks that `mvnDeps` and `mvnCompileDeps` accurately reflect the direct dependencies of your source code.
 
 Project home: https://github.com/kierendavies/mill-explicit-deps
 
@@ -327,10 +328,11 @@ Project home: https://github.com/kierendavies/mill-explicit-deps
 .`build.mill`
 [source,scala]
 ----
-import $ivy.`io.github.kierendavies::mill-explicit-deps::0.1.0`
+//| mvnDeps: ["io.github.kierendavies::mill-explicit-deps::0.1.0"]
+
 import io.github.kierendavies.mill.explicitdeps.ExplicitDepsModule
 
-object foo extends ScalaModule with ExplicitDepsModule {
+object foo extends ScalaModule, ExplicitDepsModule {
     // ...
 }
 ----
@@ -367,7 +369,7 @@ Project home: https://github.com/ckipp01/mill-giter8
 .`build.mill`
 [source,scala]
 ----
-import $ivy.`io.chris-kipp::mill-giter8::0.2.0`
+//| mvnDeps: ["io.chris-kipp::mill-giter8::0.2.0"]
 
 import io.kipp.mill.giter8.G8Module
 
@@ -385,16 +387,16 @@ A git version plugin for mill.
 
 Project home: https://github.com/joan38/mill-git
 
-_build.mill_:
-
+._build.mill_:
 [source,scala]
 ----
-import $ivy.`com.goyeau::mill-git:<latest version>`
+//| mvnDeps: ["com.goyeau::mill-git:<latest version>"]
+
 import com.goyeau.mill.git.GitVersionedPublishModule
 import mill.scalalib.JavaModule
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 
-object `jvm-project` extends JavaModule with GitVersionedPublishModule {
+object `jvm-project` extends JavaModule, GitVersionedPublishModule {
   override def pomSettings = PomSettings(
     description = "JVM Project",
     organization = "com.goyeau",
@@ -462,41 +464,41 @@ Project home: https://github.com/lewisjkl/header
 
 == Hepek
 
-`mill-hepek` is a plugin for writing Scala `object`s to files.  
+`mill-hepek` is a plugin for writing Scala ``object``s to files.
 
 It is used as a core for Hepek static site generator: https://sake92.github.io/hepek/hepek/index.html .
 
 Project home: https://github.com/sake92/mill-hepek
 
 
-
 == Integration Testing Mill Plugins
 
-Integration testing for mill plugins.
+Integration testing for mill plugins against older Mill versions (0.6.x - 0.11.x).
 
 Project home: https://github.com/lefou/mill-integrationtest
 
-
 We assume, you have a mill plugin named `mill-demo`
 
+.`build.mill`
 [source,scala]
 ----
-// build.mill
-import mill._, mill.scalalib._
-object demo extends ScalaModule with PublishModule {
+import mill.*, mill.scalalib._
+
+object demo extends ScalaModule, PublishModule {
   // ...
 }
 ----
 
 Add a new test sub-project, e.g. `itest`.
 
+.`build.mill`
 [source,scala]
 ----
-// build.mill
-import $ivy.`de.tototec::de.tobiasroeser.mill.integrationtest_mill0.9:0.4.0`
+//| mvnDeps: ["de.tototec::de.tobiasroeser.mill.integrationtest_mill0.9:0.4.0"]
+
 import de.tobiasroeser.mill.integrationtest._
 
-object demo extends ScalaModule with PublishModule {
+object demo extends ScalaModule, PublishModule {
   // ...
 }
 
@@ -531,14 +533,8 @@ As the buildfiles `build.mill` in your test cases typically want to access the l
 the plugins publishes all plugins referenced under `pluginsUnderTest` to a temporary ivy repository, just before the test is executed.
 The mill version used in the integration test then used that temporary ivy repository.
 
-Instead of referring to your plugin with `import $ivy.&#39;your::plugin:version&#39;`,
+Instead of referring to your plugin with `//| mvnDeps.&#39;your::plugin:version&#39;`,
 you can use the following line instead, which ensures you will use the correct locally build plugins.
-
-[source,scala]
-----
-// build.mill
-import $exec.plugins
-----
 
 Effectively, at execution time, this line gets replaced by the content of `plugins.sc`, a file which was generated just before the test started to execute.
 
@@ -561,33 +557,33 @@ Plugin home: https://github.com/lefou/mill-jbake
 JBake home: https://jbake.org
 
 
+.`build.mill`
 [source,scala]
 ----
-// build.mill
-import mill._
-import $ivy.`de.tototec::de.tobiasroeser.mill.jbake:0.1.0`
+//| mvnDeps: ["de.tototec::de.tobiasroeser.mill.jbake:0.1.0"]
+
+import mill.*
 import de.tobiasroeser.mill.jbake._
 
 object site extends JBakeModule {
-
   def jbakeVersion = "2.6.4"
-
 }
 ----
 
 Generate the site:
 
-[source,sh]
+[source,console]
 ----
-bash> mill site.jbake
+> mill site.jbake
 ----
 
 Start a local Web-Server on Port 8820 with the generated site:
 
-[source,sh]
+[source,console]
 ----
-bash> mill site.jbakeServe
+> mill site.jbakeServe
 ----
+
 
 == JBuildInfo
 
@@ -602,10 +598,11 @@ To declare a module that uses this plugin, extend the
 `com.github.carueda.mill.JBuildInfo` trait and provide
 the desired information via the `buildInfoMembers` method:
 
+.`build.mill`
 [source,scala]
 ----
-// build.mill
-import $ivy.`com.github.carueda::jbuildinfo:0.1.2`
+//| mvnDeps: ["com.github.carueda::jbuildinfo:0.1.2"]
+
 import com.github.carueda.mill.JBuildInfo
 import mill.T
 
@@ -621,9 +618,9 @@ object project extends JBuildInfo {
 
 This will generate:
 
+.`BuildInfo.java`
 [source,java]
 ----
-// BuildInfo.java
 public class BuildInfo {
   public static final String getName() { return "some name"; }
   public static final String getVersion() { return "x.y.z"; }
@@ -651,32 +648,8 @@ https://kotlinlang.org/[Kotlin] compiler support for mill.
 
 Project home: https://github.com/lefou/mill-kotlin
 
-[source,scala]
-----
-// Load the plugin from Maven Central via ivy/coursier
-import $ivy.`de.tototec::de.tobiasroeser.mill.kotlin_mill0.9:0.2.0`
+This project has been moved into the Mill repository since Mill 0.12.
 
-import mill._
-import mill.scalalib._
-import mill.define._
-
-import de.tobiasroeser.mill.kotlin._
-
-object main extends KotlinModule {
-
-  // Select the Kotlin version
-  def kotlinVersion = "1.4.21"
-
-  // Set additional Kotlin compiler options, e.g. the language level and annotation processor
-  // Run `mill main.kotlincHelp` to get a list of supported options
-  def kotlincOptions = super.kotlincOptions() ++ Seq("-verbose")
-
-}
-----
-
-For documentation please visit the https://github.com/lefou/mill-kotlin[mill-kotlin project page].
-
-You will find there also a version compatibility matrix.
 
 == MDoc
 
@@ -687,15 +660,15 @@ Scala MDoc simply compiles properly marked Scala snippets in plain md files and 
 
 Project home: https://github.com/atooni/mill-mdoc
 
+
 == `millw` / `millw.bat` - Mill Wrapper Scripts
 
 Small script to automatically fetch and execute mill build tool.
 
 Project home: https://github.com/lefou/millw
 
-`millw` is a small wrapper script around mill and works almost identical to
-mill, but with additional features and compatibility with Windows. It
-automatically downloads a mill release into `$HOME/.mill/download`.
+This project has been moved into the Mill repository with Mill 0.13 / 1.0
+
 
 == MiMa
 
@@ -709,12 +682,12 @@ And set the previous artifacts you want to check binary compatibility.
 
 [source,scala]
 ----
-import mill._, scalalib._
+//| mvnDeps: ["com.github.lolgab::mill-mima_mill0.9:0.0.2"]
 
-import $ivy.`com.github.lolgab::mill-mima_mill0.9:0.0.2`
+import mill.*, scalalib.*
 import com.github.lolgab.mill.mima._
 
-object main extends ScalaModule with Mima {
+object main extends ScalaModule, Mima {
 
   def mimaPreviousArtifacts = Seq(
     mvn"my_group_id::main:my_previous_version"
@@ -733,6 +706,7 @@ You can then check the binary compatibility of the module with:
 Binary compatibility check passed.
 ----
 
+
 == Missinglink
 
 https://github.com/spotify/missinglink[missinglink] check for Mill, ported from https://github.com/scalacenter/sbt-missinglink[sbt-missinglink].
@@ -742,7 +716,8 @@ Project home: https://github.com/hoangmaihuy/mill-missinglink
 _build.mill_:
 [source,scala]
 ----
-import $ivy.`io.github.hoangmaihuy::mill-missinglink::<latest-version>`
+//| mvnDeps: ["io.github.hoangmaihuy::mill-missinglink::<latest-version>"]
+
 import io.github.hoangmaihuy.missinglink._
 
 object example extends MissinglinkCheckModule
@@ -755,6 +730,7 @@ Runtime missinglink check command
 > mill example.missinglinkCheck
 ----
 
+
 == Native-Image
 
 Build GraalVM Native-Image binaries with mill.
@@ -766,10 +742,11 @@ configuration options:
 
 [source,scala]
 ----
-import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.25`
+//| mvnDeps: ["io.github.alexarchambault.mill::mill-native-image::0.1.25"]
+
 import io.github.alexarchambault.millnativeimage.NativeImage
 
-object hello extends ScalaModule with NativeImage {
+object hello extends ScalaModule, NativeImage {
   def scalaVersion = "3.3.0"
   def mvnDeps = ... // Your deps here
 
@@ -805,6 +782,75 @@ Finished generating 'hello' in 2m 0s.
 For more configuration options, building binaries inside Docker, a sample project
 and more, check the project readme.
 
+== OpenApi
+
+Mill plugin for generating source files from an OpenApi spec.
+
+Project home: https://github.com/mikybars/openapi-generator-mill-plugin
+
+.`build.mill`
+[,scala]
+----
+//| mvnDeps: ["io.github.mikybars::openapi-generator-mill-plugin::0.1.0"]
+package build
+
+import mill._, scalalib._
+import mill.api.BuildCtx
+
+import io.github.mikybars.mill.openapi.OpenApiModule
+
+object foo extends JavaModule, OpenApiModule {
+
+  object openapi extends OpenApiConfig {
+     def inputSpec = Task.Source(BuildCtx.workspaceRoot / "api/rest/v1/openapi.yml")
+    def apiPackage: T[String] = "com.example.foo.rest.api"
+    def modelPackage: T[String] = "com.example.foo.rest.model"
+    def generatorName: T[String] = "spring"
+    def modelNameSuffix: T[String] = "Dto"
+    def additionalProperties: T[Map[String, String]] = Map(
+      // ...
+      "useSpringBoot3" -> "true",
+      // ...
+    )
+  }
+
+}
+----
+
+.Generate source files
+[,console]
+----
+$ ./mill foo.openapi.generate
+----
+
+
+== OpenApi4s
+
+Mill plugin for OpenApi4s generators.
+
+Project home: https://github.com/sake92/mill-openapi4s
+
+[source,scala]
+----
+//| mvnDeps: ["ba.sake::mill-openapi4s::0.7.0"]
+
+import mill.*
+import mill.scalalib._
+import ba.sake.mill.openapi4s.OpenApiGeneratorModule
+
+object app extends ScalaModule, OpenApiGeneratorModule {
+  def openApi4sPackage = "com.example.api"
+  def openApi4sVersion = "0.6.1"
+  // def openApi4sGenerator = "sharaf" // or "http4s"
+----
+
+.Generate source files
+[source,console]
+----
+$ ./mill app.openApi4sGenerate
+----
+
+
 == OSGi
 
 Produce OSGi Bundles with mill.
@@ -814,11 +860,12 @@ Project home: https://github.com/lefou/mill-osgi
 
 [source,scala]
 ----
-import mill._, mill.scalalib._
-import $ivy.`de.tototec::de.tobiasroeser.mill.osgi:0.0.5`
+//| mvnDeps: ["de.tototec::de.tobiasroeser.mill.osgi:0.0.5"]
+
+import mill.*, mill.scalalib._
 import de.tobiasroeser.mill.osgi._
 
-object project extends ScalaModule with OsgiBundleModule {
+object project extends ScalaModule, OsgiBundleModule {
 
   def bundleSymbolicName = "com.example.project"
 
@@ -848,41 +895,6 @@ Mill plugin to publish artifacts into a local Maven repository.
 Project home: https://github.com/lefou/mill-publishM2
 
 
-Just mix-in the `PublishM2Module` into your project.
-`PublishM2Module` already extends mill's built-in `PublishModule`.
-
-File: `build.mill`
-
-[source,scala]
-----
-import mill._, scalalib._, publish._
-
-import $ivy.`de.tototec::de.tobiasroeser.mill.publishM2:0.0.1`
-import de.tobiasroeser.mill.publishM2._
-
-object project extends PublishModule with PublishM2Module {
-  // ...
-}
-----
-
-Publishing to default local Maven repository
-
-[source,console]
-----
-> mill project.publishM2Local
-[40/40] project.publishM2Local
-Publishing to /home/user/.m2/repository
-----
-
-Publishing to custom local Maven repository
-
-[source,console]
-----
-> mill project.publishM2Local /tmp/m2repo
-[40/40] project.publishM2Local
-Publishing to /tmp/m2repo
-----
-
 == Rust JNI
 
 A plugin for build Rust JNI code! 
@@ -891,31 +903,30 @@ Project home: https://github.com/otavia-projects/mill-rust-jni
 
 For documentation please visit the https://github.com/otavia-projects/mill-rust-jni[mill-rust-jni project page].
 
+
 == ScalablyTyped
 
 https://scalablytyped.org/[Scalablytyped] support for mill.
 
 Project home: https://github.com/lolgab/mill-scalablytyped
 
-
 Mix-in the `ScalablyTyped` trait into your `ScalaJSModule` and
 set-up a `package.json` file with your TypeScript dependencies.
 
 [source,scala]
 ----
-import mill._, scalalib._
+//| mvnDeps: ["com.github.lolgab::mill-scalablytyped::0.0.2"]
 
-import $ivy.`com.github.lolgab::mill-scalablytyped::0.0.2`
+import mill.*, scalalib.*
 import com.github.lolgab.mill.scalablytyped._
 
-object main extends ScalaJSModule with ScalablyTyped {
-
+object main extends ScalaJSModule, ScalablyTyped {
   // other settings ...
-
 }
 ----
 
 It will run ScalablyTyped and add the converted dependencies to the module's `mvnDeps`.
+
 
 == Scala TSI
 
@@ -927,11 +938,11 @@ _build.mill_:
 
 [source,scala]
 ----
-import $ivy.`io.github.hoangmaihuy::mill-scala-tsi::<latest-version>`
+//| mvnDeps: ["io.github.hoangmaihuy::mill-scala-tsi::<latest-version>"]
 
 import io.github.hoangmaihuy.scalatsi._
 
-object example extends ScalaModule with ScalaTsiModule {
+object example extends ScalaModule, ScalaTsiModule {
 // The classes that you want to generate typescript interfaces for
 override def typescriptExports = Seq("MyClass")
 // The output file which will contain the typescript interfaces
@@ -964,6 +975,7 @@ export interface IMyClass {
 }
 ----
 
+
 == Scalafix
 
 https://scalacenter.github.io/scalafix/[Scalafix] support for mill.
@@ -974,11 +986,11 @@ _build.mill_:
 
 [source,scala]
 ----
-import $ivy.`com.goyeau::mill-scalafix:<latest version>`
+//| mvnDeps: ["com.goyeau::mill-scalafix:<latest version>"]
 import com.goyeau.mill.scalafix.ScalafixModule
 import mill.scalalib._
 
-object project extends ScalaModule with ScalafixModule {
+object project extends ScalaModule, ScalafixModule {
   def scalaVersion = "2.12.11"
 }
 ----
@@ -994,6 +1006,7 @@ object project extends ScalaModule with ScalafixModule {
 project.fix A Scalafix linter error was reported
 ----
 
+
 == SCIP (SCIP Code Intelligence Protocol)
 
 Support for generating https://about.sourcegraph.com/blog/announcing-scip[SCIP]
@@ -1002,22 +1015,21 @@ code navigation on https://sourcegraph.com/[Sourcegraph].
 
 Project home: https://github.com/ckipp01/mill-scip
 
-
 The recommended way to use `mill-scip` is via the
 https://sourcegraph.github.io/scip-java/[`scip-java`] cli tool that can be
 installed via https://get-coursier.io/[Coursier].
 
-[source, shell script]
+[source,console]
 ----
-cs install scip-java
+> cs install scip-java
 ----
 
 Once you have `scip-java` installed the following command and the root of your
 Mill build will generate an index and place it at the root of your project.
 
-[source, shell script]
+[source,console]
 ----
-scip-java index
+> scip-java index
 ----
 
 You can also manually trigger this with Mill by doing the following:
@@ -1025,11 +1037,12 @@ You can also manually trigger this with Mill by doing the following:
 [source, shell script, subs="attributes,verbatim"]
 ----
 
-mill --import ivy:io.chris-kipp::mill-scip::{mill-scip-version} io.kipp.mill.scip.Scip/generate
+mill --import mvn:io.chris-kipp::mill-scip::{mill-scip-version} io.kipp.mill.scip.Scip/generate
 ----
 
 This will then generate your `index.scip` inside of
 `out/io/kipp/mill/scip/Scip/generate.dest/`.
+
 
 == Shell Completions
 
@@ -1048,11 +1061,11 @@ Project home: https://github.com/lefou/mill-spring-boot
 
 [source,scala,subs="attributes,verbatim"]
 ----
-import mill._
+import mill.*
 import mill.scalalib._
 import de.tobiasroeser.mill.spring.boot.SpringBootModule
 
-object app extends MavenModule with SpringBootModule {
+object app extends MavenModule, SpringBootModule {
   override def springBootToolsVersion = "2.7.13"
 }
 ----
@@ -1068,31 +1081,27 @@ $ mill app.springBootAssembly
 
 Source code generator for https://github.com/sake92/squery/[Squery] SQL library boilerplate.
 
-Project home: https://github.com/sake92/squery
+Project home: https://github.com/sake92/mill-squery
 
 [source,scala,subs="attributes,verbatim"]
 ----
-import $ivy.`ba.sake::mill-squery-generator_mill0.11:0.6.2`
-import mill._
+//| mvnDeps: ["ba.sake::mill-squery-generator::0.10.0"]
+
+import mill.*
 import mill.scalalib._
-import ba.sake.squery.generator._
-import ba.sake.squery.generator.mill.SqueryGeneratorModule
+import ba.sake.mill.squery.generator.SqueryGeneratorModule
 
-object app extends ScalaModule with SqueryGeneratorModule {
+object app extends ScalaModule, SqueryGeneratorModule {
   // use Task.Input(Task.ctx.env("MY_ENV_VAR")) to set sensitive variables like password etc
-  def squeryJdbcUrl = "jdbc:..."
-  def squeryUsername = ".."
-  def squeryPassword = ".."
-  def squerySchemas = Seq("myschema" -> "com.mypackage.myschema")
-
-  // override to tweak codegen settings
-  def squeryGeneratorConfig: T[SqueryGeneratorConfig] = ...
+  def squeryJdbcUrl = jdbcUrl()
+  def squerySchemaMappings = Seq("PUBLIC" -> "com.mypackage.myschema")
+  def squeryJdbcDeps = Seq(mvn"com.h2database:h2:..")
 ----
 
 .Generate source files
 [source,console]
 ----
-$ ./mill root.squeryGenerate
+$ ./mill app.squeryGenerate
 ----
 
 
@@ -1102,10 +1111,10 @@ Support universal archive packaging for Java application with Mill, ported from 
 
 Project home: https://github.com/hoangmaihuy/mill-universal-packager
 
+.`build.mill`
 [source,scala,subs="attributes,verbatim"]
 ----
-// build.mill
-import $ivy.`io.github.hoangmaihuy::mill-universal-packager::<latest-version>`
+//| mvnDeps: ["io.github.hoangmaihuy::mill-universal-packager::<latest-version>"]
 
 import io.github.hoangmaihuy.mill.packager.archetypes.JavaAppPackagingModule
 
@@ -1117,8 +1126,9 @@ object example extends JavaAppPackagingModule {
 .Package as zip archive with Bash start script
 [source,console]
 ----
-$ mill example.universalPackage
+> mill example.universalPackage
 ----
+
 
 == VCS Version
 
@@ -1129,20 +1139,19 @@ Project home: https://github.com/lefou/mill-vcs-version
 Lots of formatting options are provided.
 When used with its defaults, the outcome is identical to the version scheme that Mill itself uses.
 
-
 [source,scala]
 ----
-import mill._
-import mill.scalalib._
+//| mvnDeps: ["de.tototec::de.tobiasroeser.mill.vcs.version::0.1.2"]
 
-// Load the plugin from Maven Central via ivy/coursier
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.2`
+import mill.*
+import mill.scalalib._
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 
-object main extends JavaModule with PublishModule {
+object main extends JavaModule, PublishModule {
   override def publishVersion: T[String] = VcsVersion.vcsState().format()
 }
 ----
+
 
 == Zsh Completion
 

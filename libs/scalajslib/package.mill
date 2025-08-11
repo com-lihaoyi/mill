@@ -5,11 +5,13 @@ import mill._
 import mill.scalalib._
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
-import mill.define.Cross
+import mill.api.Cross
+import millbuild.*
 
-object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
-  def moduleDeps = Seq(build.libs.scalalib, `worker-api`)
-  def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker("1").testDep())
+object `package` extends MillStableScalaModule with BuildInfo {
+  def moduleDeps = Seq(build.libs.scalalib, api)
+  def localTestExtraModules =
+    super.localTestExtraModules ++ Seq(worker("1"))
   def buildInfoPackageName = "mill.scalajslib"
   def buildInfoObjectName = "ScalaJSBuildInfo"
 
@@ -22,43 +24,43 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     }
 
     Seq(
-      BuildInfo.Value("scalajsEnvNodejs", formatDep(build.Deps.Scalajs_1.scalajsEnvNodejs)),
+      BuildInfo.Value("scalajsEnvNodejs", formatDep(Deps.Scalajs_1.scalajsEnvNodejs)),
       BuildInfo.Value(
         "scalajsEnvJsdomNodejs",
-        formatDep(build.Deps.Scalajs_1.scalajsEnvJsdomNodejs)
+        formatDep(Deps.Scalajs_1.scalajsEnvJsdomNodejs)
       ),
       BuildInfo.Value(
         "scalajsEnvExoegoJsdomNodejs",
-        formatDep(build.Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs)
+        formatDep(Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs)
       ),
-      BuildInfo.Value("scalajsEnvPhantomJs", formatDep(build.Deps.Scalajs_1.scalajsEnvPhantomjs)),
-      BuildInfo.Value("scalajsEnvSelenium", formatDep(build.Deps.Scalajs_1.scalajsEnvSelenium)),
-      BuildInfo.Value("scalajsImportMap", formatDep(build.Deps.Scalajs_1.scalajsImportMap))
+      BuildInfo.Value("scalajsEnvPhantomJs", formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)),
+      BuildInfo.Value("scalajsEnvSelenium", formatDep(Deps.Scalajs_1.scalajsEnvSelenium)),
+      BuildInfo.Value("scalajsImportMap", formatDep(Deps.Scalajs_1.scalajsImportMap))
     )
   }
 
-  object `worker-api` extends build.MillPublishScalaModule {
-    def mvnDeps = Agg(build.Deps.sbtTestInterface)
+  object api extends MillStableScalaModule {
+    def mvnDeps = Seq(Deps.sbtTestInterface)
   }
 
   object worker extends Cross[WorkerModule]("1")
-  trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
-    def moduleDeps = Seq(build.core.define)
+  trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
+    def moduleDeps = Seq(build.core.api)
     def scalajsWorkerVersion = crossValue
     def moduleDir: os.Path = super.moduleDir / scalajsWorkerVersion
     def compileModuleDeps =
-      Seq(build.libs.scalajslib.`worker-api`, build.core.constants, build.core.api)
-    def mandatoryMvnDeps = Agg.empty[Dep]
-    def mvnDeps = Agg(build.Deps.scalafmtDynamic)
-    def compileMvnDeps = super.mandatoryMvnDeps() ++ Agg(
-      build.Deps.Scalajs_1.scalajsLinker,
-      build.Deps.Scalajs_1.scalajsSbtTestAdapter,
-      build.Deps.Scalajs_1.scalajsEnvNodejs,
-      build.Deps.Scalajs_1.scalajsEnvJsdomNodejs,
-      build.Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs,
-      build.Deps.Scalajs_1.scalajsEnvPhantomjs,
-      build.Deps.Scalajs_1.scalajsEnvSelenium,
-      build.Deps.Scalajs_1.scalajsImportMap
+      Seq(build.libs.scalajslib.api, build.core.constants, build.core.api.daemon)
+    def mandatoryMvnDeps = Seq.empty[Dep]
+    def mvnDeps = Seq(Deps.scalafmtDynamic)
+    def compileMvnDeps = super.mandatoryMvnDeps() ++ Seq(
+      Deps.Scalajs_1.scalajsLinker,
+      Deps.Scalajs_1.scalajsSbtTestAdapter,
+      Deps.Scalajs_1.scalajsEnvNodejs,
+      Deps.Scalajs_1.scalajsEnvJsdomNodejs,
+      Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs,
+      Deps.Scalajs_1.scalajsEnvPhantomjs,
+      Deps.Scalajs_1.scalajsEnvSelenium,
+      Deps.Scalajs_1.scalajsImportMap
     )
   }
 }

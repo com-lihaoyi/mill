@@ -1,19 +1,19 @@
 package mill.eval
 
+import mill.api.daemon.internal.TestReporter
 import mill.api.{ExecResult, Result, Val}
-import mill.api.internal.TestReporter
 import mill.constants.OutFiles
-import mill.define.{Evaluator, InputImpl, NamedTask, SelectMode, Task, SelectiveExecution}
-import mill.define.SelectiveExecution.ChangedTasks
+import mill.api.SelectiveExecution.ChangedTasks
+import mill.api.*
 import mill.exec.{CodeSigUtils, Execution, PlanImpl}
 import mill.internal.SpanningForest
 import mill.internal.SpanningForest.breadthFirst
 
 private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
-    extends mill.define.SelectiveExecution {
+    extends mill.api.SelectiveExecution {
 
   def computeHashCodeSignatures(
-      transitiveNamed: Seq[NamedTask[?]],
+      transitiveNamed: Seq[Task.Named[?]],
       codeSignatures: Map[String, Int]
   ): Map[String, Int] = {
 
@@ -39,7 +39,7 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
   }
 
   def computeDownstream(
-      transitiveNamed: Seq[NamedTask[?]],
+      transitiveNamed: Seq[Task.Named[?]],
       oldHashes: SelectiveExecution.Metadata,
       newHashes: SelectiveExecution.Metadata
   ): (Set[Task[?]], Seq[Task[Any]]) = {
@@ -87,26 +87,42 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
       tasks,
       SelectMode.Separated,
       evaluator.allowPositionalCommandArgs
-    ).map(computeChangedTasks0(_))
+    ).map { tasks =>
+      computeChangedTasks0(tasks, SelectiveExecutionImpl.Metadata.compute(evaluator, tasks))
+        // If we did not have the metadata, presume everything was changed.
+        .getOrElse(ChangedTasks.all(tasks))
+    }
   }
 
-  def computeChangedTasks0(tasks: Seq[NamedTask[?]]): ChangedTasks = {
+  /**
+   * @return [[None]] when the metadata file is empty.
+   * @note throws if the metadata file does not exist.
+   */
+  def computeChangedTasks0(
+      tasks: Seq[Task.Named[?]],
+      computedMetadata: SelectiveExecution.Metadata.Computed
+  ): Option[ChangedTasks] = {
     val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
 
-    if (oldMetadataTxt == "") ChangedTasks(tasks, tasks.toSet, tasks, Map.empty)
-    else {
+    // We allow to clear the selective execution metadata to rerun all tasks.
+    //
+    // You would think that removing the file achieves the same result, however, blanking the file indicates that
+    // this was intentional and you did not simply forgot to run `selective.prepare` beforehand.
+    if (oldMetadataTxt == "") None
+    else Some {
       val transitiveNamed = PlanImpl.transitiveNamed(tasks)
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
-      val (newMetadata, results) =
-        SelectiveExecutionImpl.Metadata.compute0(evaluator, transitiveNamed)
       val (changedRootTasks, downstreamTasks) =
-        evaluator.selective.computeDownstream(transitiveNamed, oldMetadata, newMetadata)
+        evaluator.selective.computeDownstream(
+          transitiveNamed,
+          oldMetadata,
+          computedMetadata.metadata
+        )
 
       ChangedTasks(
         tasks,
-        changedRootTasks.collect { case n: NamedTask[_] => n },
-        downstreamTasks.collect { case n: NamedTask[_] => n },
-        results
+        changedRootTasks.collect { case n: Task.Named[_] => n },
+        downstreamTasks.collect { case n: Task.Named[_] => n }
       )
     }
   }
@@ -144,7 +160,7 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
         interGroupDeps.toSeq.sortBy(_._1.toString) // sort to ensure determinism
       )
 
-      val (vertexToIndex, edgeIndices) =
+      val ( /*vertexToIndex*/ _, edgeIndices) =
         SpanningForest.graphMapToIndices(indexToTerminal, reverseInterGroupDeps)
 
       val json = SpanningForest.writeJson(
@@ -173,26 +189,26 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
   }
 
   def computeMetadata(
-      tasks: Seq[NamedTask[?]]
-  ): (SelectiveExecution.Metadata, Map[Task[?], ExecResult[Val]]) =
+      tasks: Seq[Task.Named[?]]
+  ): SelectiveExecution.Metadata.Computed =
     SelectiveExecutionImpl.Metadata.compute(evaluator, tasks)
 }
 object SelectiveExecutionImpl {
   object Metadata {
     def compute(
         evaluator: Evaluator,
-        tasks: Seq[NamedTask[?]]
-    ): (SelectiveExecution.Metadata, Map[Task[?], ExecResult[Val]]) = {
+        tasks: Seq[Task.Named[?]]
+    ): SelectiveExecution.Metadata.Computed = {
       compute0(evaluator, PlanImpl.transitiveNamed(tasks))
     }
 
     def compute0(
         evaluator: Evaluator,
-        transitiveNamed: Seq[NamedTask[?]]
-    ): (SelectiveExecution.Metadata, Map[Task[?], ExecResult[Val]]) = {
-      val results: Map[NamedTask[?], mill.api.Result[Val]] = transitiveNamed
-        .collect { case task: InputImpl[_] =>
-          val ctx = new mill.define.TaskCtx.Impl(
+        transitiveNamed: Seq[Task.Named[?]]
+    ): SelectiveExecution.Metadata.Computed = {
+      val results: Map[Task.Named[?], mill.api.Result[Val]] = transitiveNamed
+        .collect { case task: Task.Input[_] =>
+          val ctx = new mill.api.TaskCtx.Impl(
             args = Vector(),
             dest0 = () => null,
             log = evaluator.baseLogger,
@@ -200,7 +216,7 @@ object SelectiveExecutionImpl {
             reporter = _ => None,
             testReporter = TestReporter.DummyTestReporter,
             workspace = evaluator.workspace,
-            systemExit = n => ???,
+            systemExit = _ => ???,
             fork = null,
             jobs = evaluator.effectiveThreadCount,
             offline = evaluator.offline
@@ -212,10 +228,13 @@ object SelectiveExecutionImpl {
       val inputHashes = results.map {
         case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.hashCode)
       }
-      new SelectiveExecution.Metadata(
-        inputHashes,
-        evaluator.codeSignatures
-      ) -> results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
+      SelectiveExecution.Metadata.Computed(
+        new SelectiveExecution.Metadata(
+          inputHashes,
+          evaluator.codeSignatures
+        ),
+        results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
+      )
     }
   }
 

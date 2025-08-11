@@ -1,28 +1,26 @@
 package mill.scalalib.scalafmt
 
 import mill.*
-import mill.define.Discover
+import mill.api.Discover
 import mill.util.Tasks
 import mill.scalalib.ScalaModule
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 
 object ScalafmtTests extends TestSuite {
 
-  val scalafmtTestVersion = mill.scalalib.api.Versions.scalafmtVersion
+  val scalafmtTestVersion = mill.javalib.api.Versions.scalafmtVersion
 
   trait BuildSrcModule {
     def buildSources: T[Seq[PathRef]]
   }
 
-  object ScalafmtTestModule extends TestBaseModule {
+  object ScalafmtTestModule extends TestRootModule {
     object core extends ScalaModule with ScalafmtModule with BuildSrcModule {
       def scalaVersion: T[String] = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
 
-      def buildSources: T[Seq[PathRef]] = Task.Sources {
-        moduleDir / "util.sc"
-      }
+      def buildSources: T[Seq[PathRef]] = Task.Sources("util.sc")
 
     }
 
@@ -33,7 +31,7 @@ object ScalafmtTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("scalafmt") {
-      def checkReformat(reformatCommand: mill.define.Command[Unit], buildSrcIncluded: Boolean) =
+      def checkReformat(reformatCommand: Command[Unit], buildSrcIncluded: Boolean) =
         UnitTester(ScalafmtTestModule, resourcePath).scoped { eval =>
           os.write(
             ScalafmtTestModule.moduleDir / ".scalafmt.conf",

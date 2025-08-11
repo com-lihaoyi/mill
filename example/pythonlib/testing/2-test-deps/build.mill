@@ -2,17 +2,17 @@
 // and test modules can use their `moduleDeps` to also depend on each other
 
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source("src/foo.py")
 
   def moduleDeps = Seq(bar)
 
   def pythonDeps = Seq("jinja2==3.1.4")
 
-  object test extends PythonTests with TestModule.Unittest {
+  object test extends PythonTests, TestModule.Unittest {
     def moduleDeps = super.moduleDeps ++ Seq(bar.test)
 
     def pythonDeps = Seq("MarkupSafe==3.0.2")
@@ -23,9 +23,9 @@ object foo extends PythonModule {
 
 object bar extends PythonModule {
 
-  def mainScript = Task.Source { "src/bar.py" }
+  def mainScript = Task.Source("src/bar.py")
 
-  object test extends PythonTests with TestModule.Unittest
+  object test extends PythonTests, TestModule.Unittest
 
 }
 

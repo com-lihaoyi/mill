@@ -2,7 +2,7 @@ package build.nested
 
 import mill.*
 
-object `package` extends RootModule with ModuleB {
+object `package` extends ModuleB {
   object local extends build.ModuleB
   object local2 extends build.ModuleC
   def qux = Task { build.foo() }

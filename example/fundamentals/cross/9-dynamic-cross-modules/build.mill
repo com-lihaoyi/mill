@@ -1,12 +1,13 @@
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
+import mill.api.BuildCtx
 
-val moduleNames = interp.watchValue(os.list(moduleDir / "modules").map(_.last))
+val moduleNames = BuildCtx.watchValue(os.list(moduleDir / "modules").map(_.last))
 
 object modules extends Cross[FolderModule](moduleNames)
-trait FolderModule extends ScalaModule with Cross.Module[String] {
+trait FolderModule extends ScalaModule, Cross.Module[String] {
   def moduleDir = super.moduleDir / crossValue
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
 }
 
 // It is sometimes necessary for the instances of a cross-module to vary based
@@ -15,34 +16,34 @@ trait FolderModule extends ScalaModule with Cross.Module[String] {
 // filesystem.
 //
 // In those cases, you can write arbitrary code to populate the cross-module
-// cases, as long as you wrap the value in a `interp.watchValue`. This ensures
+// cases, as long as you wrap the value in a `mill.api.BuildCtx.watchValue`. This ensures
 // that Mill is aware that the module structure depends on that value, and will
 // re-compute the value and re-create the module structure if the value changes.
 
 /** Usage
 
-> mill resolve modules[_]
+> ./mill resolve modules[_]
 modules[bar]
 modules[foo]
 modules[qux]
 
-> mill modules[bar].run
+> ./mill modules[bar].run
 Hello World Bar
 
-> mill modules[new].run
+> ./mill modules[new].run
 error: Cannot resolve modules[new]...
 
 > cp -r modules/bar modules/new
 
 > sed -i.bak 's/Bar/New/g' modules/new/src/Example.scala
 
-> mill resolve modules[_]
+> ./mill resolve modules[_]
 modules[bar]
 modules[foo]
 modules[qux]
 modules[new]
 
-> mill modules[new].run
+> ./mill modules[new].run
 Hello World New
 
 */

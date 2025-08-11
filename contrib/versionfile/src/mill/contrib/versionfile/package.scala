@@ -1,5 +1,5 @@
 package mill.contrib.versionfile
 
-import mill.define
+import mill.api
 
-object `package` extends define.ExternalModule.Alias(VersionFileModule)
+object `package` extends api.ExternalModule.Alias(VersionFileModule)

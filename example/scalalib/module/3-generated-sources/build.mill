@@ -1,0 +1,36 @@
+//// SNIPPET:BUILD1
+package build
+import mill.*, scalalib.*
+
+object foo extends ScalaModule {
+  def scalaVersion = "3.7.1"
+
+  def generatedSources = Task {
+    os.write(
+      Task.dest / "Foo.scala",
+      """package foo
+        |object Foo {
+        |  def main(args: Array[String]): Unit = {
+        |    println("Hello World")
+        |  }
+        |}
+      """.stripMargin
+    )
+    Seq(PathRef(Task.dest))
+  }
+}
+
+//// SNIPPET:END
+
+// In Mill, you can override the `def generatedSources` task to write files to disk that
+// will be added to the module's source folders during compilation. The example above
+// generates a simple `main` method during build time that can be compiled and then
+// used at runtime, but you can write arbitrarily code inside `generatedSources` to
+// generated the sources you need.
+
+/** Usage
+
+> ./mill foo.run
+Hello World
+
+*/

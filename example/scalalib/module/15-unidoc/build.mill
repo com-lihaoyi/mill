@@ -1,19 +1,20 @@
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
-object foo extends ScalaModule with UnidocModule {
-  def scalaVersion = "2.13.8"
+object foo extends ScalaModule, UnidocModule {
+  def scalaVersion = "3.7.1"
   def moduleDeps = Seq(bar, qux)
 
   object bar extends ScalaModule {
-    def scalaVersion = "2.13.8"
+    def scalaVersion = "3.7.1"
   }
 
   object qux extends ScalaModule {
-    def scalaVersion = "2.13.8"
+    def scalaVersion = "3.7.1"
     def moduleDeps = Seq(bar)
   }
 
+  def unidocDocumentTitle = Task { "foo docs" }
   def unidocVersion = Some("0.1.0")
   def unidocSourceUrl = Some("https://github.com/lihaoyi/test/blob/master")
 }

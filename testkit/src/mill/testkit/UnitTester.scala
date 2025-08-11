@@ -1,19 +1,29 @@
 package mill.testkit
 
-import mill.{Target, Task}
+import mill.Task
+import mill.api.DummyInputStream
+import mill.api.ExecResult
 import mill.api.ExecResult.OuterStack
-import mill.api.{DummyInputStream, ExecResult, Result, SystemStreams, Val}
-import mill.define.{Evaluator, InputImpl, SelectMode, TargetImpl}
+import mill.api.Result
+import mill.api.SystemStreams
+import mill.api.Val
+import mill.constants.OutFiles.millChromeProfile
+import mill.constants.OutFiles.millProfile
+import mill.api.Evaluator
+import mill.api.SelectMode
+import mill.internal.JsonArrayLogger
 import mill.resolve.Resolve
-import mill.exec.JsonArrayLogger
-import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
-import java.io.{InputStream, PrintStream}
+import java.io.InputStream
+import java.io.PrintStream
+import java.util.concurrent.ThreadPoolExecutor
+import scala.annotation.targetName
 
 object UnitTester {
   case class Result[T](value: T, evalCount: Int)
+
   def apply(
-      module: mill.testkit.TestBaseModule,
+      module: mill.testkit.TestRootModule,
       sourceRoot: os.Path,
       failFast: Boolean = false,
       threads: Option[Int] = Some(1),
@@ -26,7 +36,7 @@ object UnitTester {
       offline: Boolean = false
   ) = new UnitTester(
     module = module,
-    sourceRoot = sourceRoot,
+    sourceRoot = Option(sourceRoot),
     failFast = failFast,
     threads = threads,
     outStream = outStream,
@@ -45,8 +55,9 @@ object UnitTester {
  * @param threads explicitly used nr. of parallel threads
  */
 class UnitTester(
-    module: mill.testkit.TestBaseModule,
-    sourceRoot: os.Path,
+    module: mill.testkit.TestRootModule,
+    sourceRoot: Option[os.Path],
+    resetSourcePath: Boolean,
     failFast: Boolean,
     threads: Option[Int],
     outStream: PrintStream,
@@ -54,17 +65,28 @@ class UnitTester(
     inStream: InputStream,
     debugEnabled: Boolean,
     env: Map[String, String],
-    resetSourcePath: Boolean,
     offline: Boolean
 )(implicit fullName: sourcecode.FullName) extends AutoCloseable {
+  assert(
+    mill.api.MillURLClassLoader.openClassloaders.isEmpty,
+    s"Unit tester detected leaked classloaders on initialization: \n${mill.api.MillURLClassLoader.openClassloaders.mkString("\n")}"
+  )
   val outPath: os.Path = module.moduleDir / "out"
 
   if (resetSourcePath) {
     os.remove.all(module.moduleDir)
     os.makeDir.all(module.moduleDir)
 
-    for (sourceFileRoot <- Option(sourceRoot)) {
+    for (sourceFileRoot <- sourceRoot) {
       os.copy.over(sourceFileRoot, module.moduleDir, createFolders = true)
+    }
+  } else {
+    sourceRoot match {
+      case Some(sourceRoot) =>
+        throw new IllegalArgumentException(
+          s"Cannot provide sourceRoot=$sourceRoot when resetSourcePath=false"
+        )
+      case None => // ok
     }
   }
 
@@ -78,7 +100,8 @@ class UnitTester(
         debugEnabled = debugEnabled,
         titleText = "",
         terminfoPath = os.temp(),
-        currentTimeMillis = () => System.currentTimeMillis()
+        currentTimeMillis = () => System.currentTimeMillis(),
+        chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile)
       ) {
     val prefix: String = {
       val idx = fullName.value.lastIndexOf(".")
@@ -92,10 +115,15 @@ class UnitTester(
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
   }
 
+  val effectiveThreadCount: Int =
+    threads.getOrElse(Runtime.getRuntime().availableProcessors())
+  val ec: Option[ThreadPoolExecutor] =
+    if (effectiveThreadCount == 1) None
+    else Some(mill.exec.ExecutionContexts.createExecutor(effectiveThreadCount))
+
   val execution = new mill.exec.Execution(
     baseLogger = logger,
-    chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
-    profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
+    profileLogger = new mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
     workspace = module.moduleDir,
     outPath = outPath,
     externalOutPath = outPath,
@@ -105,7 +133,7 @@ class UnitTester(
     workerCache = collection.mutable.Map.empty,
     env = env,
     failFast = failFast,
-    threadCount = threads,
+    ec = ec,
     codeSignatures = Map(),
     systemExit = _ => ???,
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
@@ -121,7 +149,7 @@ class UnitTester(
   )
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
-    Evaluator.currentEvaluator0.withValue(evaluator) {
+    Evaluator.withCurrentEvaluator(evaluator) {
       Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated)
     } match {
       case Result.Failure(err) => Left(ExecResult.Failure(err))
@@ -138,34 +166,38 @@ class UnitTester(
     }
   }
 
+  @targetName("applyTasks")
   def apply(
-      tasks: Seq[Task[?]],
-      dummy: DummyImplicit = null
+      tasks: Seq[Task[?]]
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
+
     val evaluated = evaluator.execute(tasks).executionResults
 
-    if (evaluated.transitiveFailing.isEmpty) {
-      Right(
-        UnitTester.Result(
-          evaluated.results.map(_.asInstanceOf[ExecResult.Success[Val]].value.value),
-          evaluated.uncached.collect {
-            case t: TargetImpl[_]
-                if module.moduleInternal.targets.contains(t)
-                  && !t.ctx.external => t
-            case t: mill.define.Command[_] => t
-          }.size
-        )
-      )
-    } else Left(evaluated.transitiveFailing.values.head)
+    if (evaluated.transitiveFailing.nonEmpty) Left(evaluated.transitiveFailing.values.head)
+    else {
+      val values = evaluated.results.map(_.asInstanceOf[ExecResult.Success[Val]].value.value)
+      val evalCount = evaluated
+        .uncached
+        .collect {
+          case t: Task.Computed[_]
+              if module.moduleInternal.simpleTasks.contains(t)
+                && !t.ctx.external => t
+          case t: Task.Command[_] => t
+        }
+        .size
+
+      Right(UnitTester.Result(values, evalCount))
+    }
+
   }
 
   def fail(
-      target: Target[?],
+      task: Task.Simple[?],
       expectedFailCount: Int,
       expectedRawValues: Seq[ExecResult[?]]
   ): Unit = {
 
-    val res = evaluator.execute(Seq(target)).executionResults
+    val res = evaluator.execute(Seq(task)).executionResults
 
     val cleaned = res.results.map {
       case ExecResult.Exception(ex, _) => ExecResult.Exception(ex, new OuterStack(Nil))
@@ -177,13 +209,13 @@ class UnitTester(
 
   }
 
-  def check(targets: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
+  def check(tasks: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
 
-    val evaluated = evaluator.execute(targets).executionResults
+    val evaluated = evaluator.execute(tasks).executionResults
       .uncached
-      .flatMap(_.asTarget)
-      .filter(module.moduleInternal.targets.contains)
-      .filter(!_.isInstanceOf[InputImpl[?]])
+      .flatMap(_.asSimple)
+      .filter(module.moduleInternal.simpleTasks.contains)
+      .filter(!_.isInstanceOf[Task.Input[?]])
     assert(
       evaluated.toSet == expected.toSet,
       s"evaluated is not equal expected. evaluated=${evaluated}, expected=${expected}"
@@ -191,14 +223,28 @@ class UnitTester(
   }
 
   def scoped[T](tester: UnitTester => T): T = {
-    try tester(this)
-    finally close()
+    try {
+      mill.api.BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
+        tester(this)
+      }
+    } finally close()
   }
 
-  def close(): Unit = {
+  def closeWithoutCheckingLeaks(): Unit = {
     for (case (_, Val(obsolete: AutoCloseable)) <- evaluator.workerCache.values) {
       obsolete.close()
     }
     evaluator.close()
+  }
+
+  def close(): Unit = {
+    closeWithoutCheckingLeaks()
+    checkLeaks()
+  }
+  def checkLeaks() = {
+    assert(
+      mill.api.MillURLClassLoader.openClassloaders.isEmpty,
+      s"Unit tester detected leaked classloaders on close: \n${mill.api.MillURLClassLoader.openClassloaders.mkString("\n")}"
+    )
   }
 }

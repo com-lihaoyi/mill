@@ -22,9 +22,9 @@
 
 package build
 
-import mill._, javascriptlib._
-import os._
-import ujson._
+import mill.*, javascriptlib.*
+import os.*
+import ujson.*
 
 trait OllamaModule extends TypeScriptModule {
   def moduleName = "ollama"
@@ -93,16 +93,16 @@ trait OllamaModule extends TypeScriptModule {
         p.last == "node_modules" ||
           p.last == "package-lock.json"
     )
-      .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
+      .foreach(p => os.copy.over(p, Task.dest / p.relativeTo(out), createFolders = true))
 
-    os.call("node_modules/.bin/unbuild", cwd = T.dest)
+    os.call("node_modules/.bin/unbuild")
 
     // prepare bundled ouptut to be used as `unmanagedDeps` in examples section.
-    os.makeDir.all(T.dest / "ollama")
-    os.copy(T.dest / "package.json", T.dest / "ollama" / "package.json")
-    os.copy(T.dest / "dist", T.dest / "ollama" / "dist")
+    os.makeDir.all(Task.dest / "ollama")
+    os.copy(Task.dest / "package.json", Task.dest / "ollama" / "package.json")
+    os.copy(Task.dest / "dist", Task.dest / "ollama" / "dist")
 
-    PathRef(T.dest / "ollama")
+    PathRef(Task.dest / "ollama")
   }
 }
 
@@ -131,7 +131,7 @@ trait Examples extends TypeScriptModule {
   }
 }
 
-object `package` extends RootModule with OllamaModule with TsLintModule {
+object `package` extends OllamaModule, TsLintModule {
   def npmLintDeps = Seq(
     "prettier@3.2.4",
     "eslint@8.29.0",
@@ -139,7 +139,7 @@ object `package` extends RootModule with OllamaModule with TsLintModule {
     "@typescript-eslint/parser@5.42.1"
   )
 
-  object test extends TypeScriptTests with TestModule.Vitest
+  object test extends TypeScriptTests, TestModule.Vitest
 
   object examples extends Examples {
     def unmanagedDeps = Seq(unbuild())

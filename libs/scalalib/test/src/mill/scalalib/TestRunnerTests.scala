@@ -26,6 +26,7 @@ object TestRunnerTests extends TestSuite {
           junitReportIn(eval.outPath, "doneMessageFailure").shouldHave(1 -> Status.Failure)
         }
       }
+
       test("success") {
         val outStream = new ByteArrayOutputStream()
         UnitTester(

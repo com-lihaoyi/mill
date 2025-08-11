@@ -2,7 +2,7 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j._
 import ch.epfl.scala.{bsp4j => bsp}
-import mill.api.internal.{CompileProblemReporter, Problem}
+import mill.api.daemon.internal.{CompileProblemReporter, Problem}
 
 import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
@@ -32,13 +32,41 @@ private class BspCompileProblemReporter(
   private var errors = 0
   private var warnings = 0
 
-  object diagnostics {
-    private val map = mutable.Map.empty[TextDocumentIdentifier, java.util.List[Diagnostic]]
-    def add(textDocument: TextDocumentIdentifier, diagnostic: Diagnostic): Unit =
-      map.getOrElseUpdate(textDocument, new java.util.ArrayList).add(diagnostic)
+  // no need of a limit here, there's no console not to flood in BSP mode
+  override def maxErrors: Int = Int.MaxValue
 
-    def getAll(textDocument: TextDocumentIdentifier): java.util.List[Diagnostic] =
-      map.getOrElse(textDocument, new java.util.ArrayList)
+  def hasErrors: Boolean = errors > 0
+
+  object diagnostics {
+    private class Details(
+        val list: java.util.List[Diagnostic],
+        val set: mutable.HashSet[Diagnostic],
+        var hasNewDiagnostics: Boolean
+    ) {
+      def add(diagnostic: Diagnostic): Boolean =
+        set.add(diagnostic) && {
+          list.add(diagnostic)
+          hasNewDiagnostics = true
+          true
+        }
+    }
+    private val map = mutable.Map.empty[TextDocumentIdentifier, Details]
+    private def details(textDocument: TextDocumentIdentifier): Details =
+      // setting hasNewDiagnostics to true when starting, so that diagnostics
+      // are sent at least once, even when there are none
+      map.getOrElseUpdate(
+        textDocument,
+        new Details(new java.util.ArrayList, new mutable.HashSet, true)
+      )
+    def add(textDocument: TextDocumentIdentifier, diagnostic: Diagnostic): Boolean =
+      details(textDocument).add(diagnostic)
+
+    def getAll(textDocument: TextDocumentIdentifier): (java.util.List[Diagnostic], Boolean) = {
+      val details0 = details(textDocument)
+      val hasNewDiagnostics = details0.hasNewDiagnostics
+      details0.hasNewDiagnostics = false
+      (details0.list, hasNewDiagnostics)
+    }
   }
 
   override def logError(problem: Problem): Unit = {
@@ -60,9 +88,9 @@ private class BspCompileProblemReporter(
         // instead of sending a `build/publishDiagnostics` we send a `build/logMessage`.
         // see https://github.com/com-lihaoyi/mill/issues/2926
         val messagesType = problem.severity match {
-          case mill.api.internal.Error => MessageType.ERROR
-          case mill.api.internal.Warn => MessageType.WARNING
-          case mill.api.internal.Info => MessageType.INFO
+          case mill.api.daemon.internal.Error => MessageType.ERROR
+          case mill.api.daemon.internal.Warn => MessageType.WARNING
+          case mill.api.daemon.internal.Info => MessageType.INFO
         }
         val msgParam = new LogMessageParams(messagesType, problem.message).tap { it =>
           it.setTask(taskId)
@@ -75,10 +103,11 @@ private class BspCompileProblemReporter(
           // The extra step invoking `toPath` results in a nicer URI starting with `file:///`
           f.toPath.toUri.toString
         )
-        diagnostics.add(textDocument, diagnostic)
-        val diagnosticList = new java.util.LinkedList[Diagnostic]()
-        diagnosticList.add(diagnostic)
-        sendBuildPublishDiagnostics(textDocument, diagnosticList, reset = false)
+        if (diagnostics.add(textDocument, diagnostic)) {
+          val diagnosticList = new java.util.LinkedList[Diagnostic]()
+          diagnosticList.add(diagnostic)
+          sendBuildPublishDiagnostics(textDocument, diagnosticList, reset = false)
+        }
     }
   }
 
@@ -103,9 +132,9 @@ private class BspCompileProblemReporter(
       d.setSource("mill")
       d.setSeverity(
         problem.severity match {
-          case mill.api.internal.Info => bsp.DiagnosticSeverity.INFORMATION
-          case mill.api.internal.Error => bsp.DiagnosticSeverity.ERROR
-          case mill.api.internal.Warn => bsp.DiagnosticSeverity.WARNING
+          case mill.api.daemon.internal.Info => bsp.DiagnosticSeverity.INFORMATION
+          case mill.api.daemon.internal.Error => bsp.DiagnosticSeverity.ERROR
+          case mill.api.daemon.internal.Warn => bsp.DiagnosticSeverity.WARNING
         }
       )
       problem.diagnosticCode.foreach { existingCode =>
@@ -137,7 +166,9 @@ private class BspCompileProblemReporter(
   override def fileVisited(file: java.nio.file.Path): Unit = {
     val uri = file.toUri.toString
     val textDocument = new TextDocumentIdentifier(uri)
-    sendBuildPublishDiagnostics(textDocument, diagnostics.getAll(textDocument), reset = true)
+    val (diagnostics0, hasNewDiagnostics) = diagnostics.getAll(textDocument)
+    if (hasNewDiagnostics)
+      sendBuildPublishDiagnostics(textDocument, diagnostics0, reset = true)
   }
 
   override def printSummary(): Unit = {

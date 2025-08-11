@@ -1,11 +1,16 @@
 This page contains a quick introduction to getting start with using Mill to build
 a simple {language} program. It walks through a series of Mill builds of increasing
 complexity to show you the key features and usage of the Mill build tool.
-
-The other pages of this section of the documentation go into more depth into individual features,
-with more examples of how to use Mill for {language} and more details of how the Mill
-build tool works. They aren't intended to be read comprehensively top-to-bottom, but
+The other pages of this section of the docs go into more depth into individual Mill features.
+These aren't intended to be read comprehensively top-to-bottom, but
 rather looked up when you have a particular interest e.g. in
 xref:{language-small}lib/testing.adoc[testing],
-xref:{language-small}lib/publishing.adoc[publishing],
-xref:{language-small}lib/web-examples.adoc[web dev], and so on.
+xref:{language-small}lib/publishing.adoc[publishing], and so on.
+
+The API reference for Mill's {language} toolchain can be found at:
+
+* {mill-doc-url}/api/latest/mill/{language-small}lib.html[mill.{language-small}lib]
+
+If you aren't sure why you would use Mill, see xref:comparisons/why-mill.adoc[] for
+a discussion on the motivations of the project. If you are migrating an existing project,
+see xref:migrating/migrating.adoc[Migrating to Mill].

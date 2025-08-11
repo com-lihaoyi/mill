@@ -1,14 +1,15 @@
-// `//| mvnDeps:` can also be used with Scala libraries. The following example
+//| mvnDeps: ["com.lihaoyi::scalatags:0.13.1"]
+
+// `//| mvnDeps` can also be used with Scala libraries. The following example
 // replaces `org.thymeleaf:thymeleaf:3.1.1.RELEASE` above with `com.lihaoyi::scalatags:0.12.0`,
 // a HTML generation library that does the string concatenation/construction internally
 // and also escapes the input strings on your behalf:
 
-//| mvnDeps: ["com.lihaoyi::scalatags:0.13.1"]
-import mill._, scalalib._
-import scalatags.Text.all._
+import mill.*, scalalib.*
+import scalatags.Text.all.*
 
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
 
   def mvnDeps = Seq(mvn"com.lihaoyi::os-lib:0.10.7")
   def htmlSnippet = Task { div(h1("hello"), p("world")).toString }
@@ -20,19 +21,19 @@ object bar extends ScalaModule {
 
 // In this case, we move the Scalatags rendering logic to build time, so the application
 // code gets a pre-rendered string it can directly print without further work.
-// Note that using `//| mvnDeps:` on Scala libraries requires a double colon `::` between
+// Note that using `//| mvnDeps` on Scala libraries requires a double colon `::` between
 // the organization name and artifact name.
 
 /** Usage
 
-> mill bar.compile
+> ./mill bar.compile
 compiling 1 Scala source...
 ...
 
-> mill bar.run
+> ./mill bar.run
 generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>
 
-> mill show bar.assembly
+> ./mill show bar.assembly
 ".../out/bar/assembly.dest/out.jar"
 
 > ./out/bar/assembly.dest/out.jar # mac/linux

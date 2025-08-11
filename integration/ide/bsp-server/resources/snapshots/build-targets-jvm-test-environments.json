@@ -2,7 +2,7 @@
   "items": [
     {
       "target": {
-        "uri": "file:///workspace/app"
+        "uri": "file:///workspace/app/test"
       },
       "classpath": [
         "file:///coursier-cache/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.15/logback-core-1.5.15.jar",
@@ -14,72 +14,97 @@
         "file:///workspace/out/lib/compile.dest/classes",
         "file:///workspace/app/compile-resources",
         "file:///workspace/app/resources",
-        "file:///workspace/out/app/compile.dest/classes"
+        "file:///workspace/out/app/compile.dest/classes",
+        "file:///workspace/app/test/compile-resources",
+        "file:///workspace/app/test/resources",
+        "file:///workspace/out/app/test/compile.dest/classes",
+        "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-javalib-testrunner-entrypoint.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
-      "environmentVariables": {},
-      "mainClasses": []
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace",
+        "MILL_TEST_RESOURCE_DIR": "/workspace/app/test/resources"
+      },
+      "mainClasses": [
+        {
+          "className": "mill.javalib.testrunner.entrypoint.TestRunnerMain",
+          "arguments": [
+            "",
+            "/workspace/out/app/test/getTestEnvironmentVars.dest/testargs"
+          ]
+        }
+      ]
     },
     {
       "target": {
-        "uri": "file:///workspace/hello-java"
+        "uri": "file:///workspace/hello-java/test"
       },
       "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/github/sbt/junit-interface/0.13.2/junit-interface-0.13.2.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
         "file:///workspace/hello-java/compile-resources",
         "file:///workspace/hello-java/resources",
-        "file:///workspace/out/hello-java/compile.dest/classes"
+        "file:///workspace/out/hello-java/compile.dest/classes",
+        "file:///workspace/hello-java/test/compile-resources",
+        "file:///workspace/hello-java/test/resources",
+        "file:///workspace/out/hello-java/test/compile.dest/classes",
+        "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-javalib-testrunner-entrypoint.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
-      "environmentVariables": {},
-      "mainClasses": []
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/hello-kotlin"
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace",
+        "MILL_TEST_RESOURCE_DIR": "/workspace/hello-java/test/resources"
       },
-      "classpath": [
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/<kotlin-version>/kotlin-stdlib-<kotlin-version>.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/annotations/<annotations-version>/annotations-<annotations-version>.jar",
-        "file:///workspace/hello-kotlin/compile-resources",
-        "file:///workspace/hello-kotlin/resources",
-        "file:///workspace/out/hello-kotlin/compile.dest/classes"
-      ],
-      "jvmOptions": [],
-      "workingDirectory": "/workspace",
-      "environmentVariables": {},
-      "mainClasses": []
+      "mainClasses": [
+        {
+          "className": "mill.javalib.testrunner.entrypoint.TestRunnerMain",
+          "arguments": [
+            "",
+            "/workspace/out/hello-java/test/getTestEnvironmentVars.dest/testargs"
+          ]
+        }
+      ]
     },
     {
       "target": {
-        "uri": "file:///workspace/hello-scala"
+        "uri": "file:///workspace/hello-scala/test"
       },
       "classpath": [
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/utest_2.13/0.8.5/utest_2.13-0.8.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<scala-version>/scala-reflect-<scala-version>.jar",
         "file:///workspace/hello-scala/compile-resources",
         "file:///workspace/hello-scala/resources",
-        "file:///workspace/out/hello-scala/compile.dest/classes"
+        "file:///workspace/out/hello-scala/compile.dest/classes",
+        "file:///workspace/hello-scala/test/compile-resources",
+        "file:///workspace/hello-scala/test/resources",
+        "file:///workspace/out/hello-scala/test/compile.dest/classes",
+        "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-javalib-testrunner-entrypoint.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
-      "environmentVariables": {},
-      "mainClasses": []
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/lib"
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace",
+        "MILL_TEST_RESOURCE_DIR": "/workspace/hello-scala/test/resources"
       },
-      "classpath": [
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar",
-        "file:///workspace/lib/compile-resources",
-        "file:///workspace/lib/resources",
-        "file:///workspace/out/lib/compile.dest/classes"
-      ],
-      "jvmOptions": [],
-      "workingDirectory": "/workspace",
-      "environmentVariables": {},
-      "mainClasses": []
+      "mainClasses": [
+        {
+          "className": "mill.javalib.testrunner.entrypoint.TestRunnerMain",
+          "arguments": [
+            "",
+            "/workspace/out/hello-scala/test/getTestEnvironmentVars.dest/testargs"
+          ]
+        }
+      ]
     }
   ]
 }

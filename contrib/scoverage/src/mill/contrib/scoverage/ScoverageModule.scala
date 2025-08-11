@@ -2,15 +2,16 @@ package mill.contrib.scoverage
 
 import coursier.Repository
 import mill._
-import mill.define.{PathRef}
+import mill.api.{PathRef}
+import mill.api.BuildCtx
 import mill.api.{Result}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
 import mill.util.BuildInfo
-import mill.scalalib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 
 /**
- * Adds targets to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
+ * Adds tasks to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
  *
  * This module allows you to generate code coverage reports for Scala projects with
  * [[https://github.com/scoverage Scoverage]] via the
@@ -22,17 +23,16 @@ import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
  * `ScoverageTests` trait that belongs to your instance of `ScoverageModule`.
  *
  * {{{
- * // You have to replace VERSION
- * import $ivy.`com.lihaoyi::mill-contrib-buildinfo:VERSION`
+ * //| mvnDeps: ["com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION"]
+ *
  * import mill.contrib.scoverage.ScoverageModule
  *
  * Object foo extends ScoverageModule  {
  *   def scalaVersion = "2.13.15"
  *   def scoverageVersion = "2.1.1"
  *
- *   object test extends ScoverageTests {
- *     def mvnDeps = Seq(mvn"org.scalatest::scalatest:3.2.19")
- *     def testFrameworks = Seq("org.scalatest.tools.Framework")
+ *   object test extends ScoverageTests with TestModule.ScalaTest {
+ *     def scalaTestVersion = "3.2.19"
  *   }
  * }
  * }}}
@@ -135,15 +135,15 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(scoverageToolsClasspath())
-        .report(reportType, allSources().map(_.path), Seq(data().path), Task.workspace)
+        .report(reportType, allSources().map(_.path), Seq(data().path), BuildCtx.workspaceRoot)
     }
 
     /**
      * The persistent data dir used to store scoverage coverage data.
-     * Use to store coverage data at compile-time and by the various report targets.
+     * Use to store coverage data at compile-time and by the various report tasks.
      */
     def data: T[PathRef] = Task(persistent = true) {
-      // via the persistent target, we ensure, the dest dir doesn't get cleared
+      // via the persistent task, we ensure, the dest dir doesn't get cleared
       PathRef(Task.dest)
     }
 
@@ -174,12 +174,12 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
           if (isScala3()) {
             Seq(
               s"-coverage-out:${data().path.toIO.getPath()}",
-              s"-sourceroot:${Task.workspace}"
+              s"-sourceroot:${BuildCtx.workspaceRoot}"
             )
           } else {
             Seq(
               s"-P:scoverage:dataDir:${data().path.toIO.getPath()}",
-              s"-P:scoverage:sourceRoot:${Task.workspace}"
+              s"-P:scoverage:sourceRoot:${BuildCtx.workspaceRoot}"
             )
           }
 

@@ -1,23 +1,20 @@
 package mill.androidlib
 
 import coursier.Repository
+import coursier.core.VariantSelector.VariantMatcher
+import coursier.params.ResolutionParams
 import mill.T
-import mill.androidlib.AndroidModule.AndroidModuleGeneratedSources
-import mill.define.{ModuleRef, PathRef, Target, Task}
-import mill.scalalib.*
-import mill.util.Jvm
-import os.RelPath
+import mill.androidlib.manifestmerger.AndroidManifestMerger
+import mill.api.daemon.internal.bsp.BspBuildTarget
+import mill.api.{ModuleRef, PathRef, Task}
+import mill.javalib.*
+import mill.javalib.api.CompilationResult
+import os.Path
 
-import scala.xml.XML
+import scala.collection.immutable
+import scala.xml.*
 
-trait AndroidModule extends JavaModule {
-
-  private val rClassDirName = "RClass"
-  private val compiledResourcesDirName = "compiled-resources"
-
-  protected val debugKeyStorePass = "mill-android"
-  protected val debugKeyAlias = "mill-android"
-  protected val debugKeyPass = "mill-android"
+trait AndroidModule extends JavaModule { outer =>
 
   // https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/D8BundleMainDexListTask.kt;l=210-223;drc=66ab6bccb85ce3ed7b371535929a69f494d807f0
   val mainDexPlatformRules = Seq(
@@ -50,17 +47,46 @@ trait AndroidModule extends JavaModule {
    */
   def androidSdkModule: ModuleRef[AndroidSdkModule]
 
+  def androidManifestLocation: T[PathRef] = Task.Source("src/main/AndroidManifest.xml")
+
   /**
    * Provides os.Path to an XML file containing configuration and metadata about your android application.
+   * TODO dynamically add android:debuggable
    */
-  def androidManifest: Task[PathRef] = Task.Source("src/main/AndroidManifest.xml")
+  def androidManifest: T[PathRef] = Task {
+    val manifestFromSourcePath = androidManifestLocation().path
+
+    val original = XML.loadFile(manifestFromSourcePath.toString())
+
+    val manifestElem = Option(original.scope.getURI("android")) match {
+      case Some(_) =>
+        original
+      case None =>
+        original % Attribute(
+          None,
+          "xmlns:android",
+          Text("http://schemas.android.com/apk/res/android"),
+          Null
+        )
+    }
+    // add the application package
+    val manifestWithPackage =
+      manifestElem % Attribute(None, "package", Text(androidNamespace), Null)
+
+    val generatedManifestPath = Task.dest / "AndroidManifest.xml"
+    os.write(generatedManifestPath, manifestWithPackage.mkString)
+
+    PathRef(generatedManifestPath)
+  }
 
   /**
    * Controls debug vs release build type. Default is `true`, meaning debug build will be generated.
    *
    * This option will probably go away in the future once build variants are supported.
    */
-  def androidIsDebug: T[Boolean] = true
+  def androidIsDebug: T[Boolean] = {
+    true
+  }
 
   /**
    * The minimum SDK version to use. Default is 1.
@@ -105,78 +131,159 @@ trait AndroidModule extends JavaModule {
    * Specifies AAPT options for Android resource compilation.
    */
   def androidAaptOptions: T[Seq[String]] = Task {
-    Seq("--auto-add-overlay")
+    if (androidIsDebug()) {
+      Seq(
+        "--proguard-minimal-keep-rules",
+        "--debug-mode",
+        "--auto-add-overlay"
+      )
+    } else {
+      Seq("--auto-add-overlay")
+    }
   }
 
-  def androidTransitiveResources: Target[Seq[PathRef]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps) { m =>
-      Task.Anon(m.resources())
-    }().flatten
+  /**
+   * Gets all the compiled Android resources (typically in res/ directory)
+   * from the [[transitiveModuleCompileModuleDeps]]
+   * @return a sequence of PathRef to the compiled resources
+   */
+  def androidTransitiveCompiledResources: T[Seq[PathRef]] = Task {
+    Task.traverse(transitiveModuleCompileModuleDeps) {
+      case m: AndroidModule =>
+        Task.Anon(m.androidCompiledModuleResources())
+      case _ =>
+        Task.Anon(Seq.empty)
+    }().flatten.distinct
+  }
+
+  /**
+   * Gets all the android resources (typically in res/ directory)
+   * from the library dependencies using [[androidUnpackArchives]]
+   * @return
+   */
+  def androidLibraryResources: T[Seq[PathRef]] = Task {
+    androidUnpackRunArchives().flatMap(_.androidResources.toSeq)
   }
 
   override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
     super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
   }
 
-  private def androidDebugKeystore: Task[PathRef] = Task(persistent = true) {
-    val debugFileName = "mill-debug.jks"
-    val globalDebugFileLocation = os.home / ".mill-android"
-
-    if (!os.exists(globalDebugFileLocation)) {
-      os.makeDir(globalDebugFileLocation)
-    }
-
-    val debugKeystoreFile = globalDebugFileLocation / debugFileName
-
-    if (!os.exists(debugKeystoreFile)) {
-      // TODO test on windows and mac and/or change implementation with java APIs
-      os.call((
-        "keytool",
-        "-genkeypair",
-        "-keystore",
-        debugKeystoreFile,
-        "-alias",
-        debugKeyAlias,
-        "-dname",
-        "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=MILL",
-        "-validity",
-        "10000",
-        "-keyalg",
-        "RSA",
-        "-keysize",
-        "2048",
-        "-storepass",
-        debugKeyStorePass,
-        "-keypass",
-        debugKeyPass
-      ))
-    }
-
-    val debugKeystoreTaskFile = T.dest / debugFileName
-
-    os.copy(debugKeystoreFile, debugKeystoreTaskFile)
-
-    PathRef(debugKeystoreTaskFile)
-  }
-
-  protected def androidKeystore: T[PathRef] = Task {
-    val pathRef = if (androidIsDebug()) {
-      androidDebugKeystore()
-    } else {
-      androidReleaseKeyPath().get
-    }
-    pathRef
+  override def checkGradleModules: T[Boolean] = true
+  override def resolutionParams: Task[ResolutionParams] = Task.Anon {
+    super.resolutionParams().addVariantAttributes(
+      "org.jetbrains.kotlin.platform.type" ->
+        VariantMatcher.AnyOf(Seq(
+          VariantMatcher.Equals("androidJvm"),
+          VariantMatcher.Equals("common"),
+          VariantMatcher.Equals("jvm")
+        )),
+      "org.gradle.category" -> VariantMatcher.Library,
+      "org.gradle.jvm.environment" ->
+        VariantMatcher.AnyOf(Seq(
+          VariantMatcher.Equals("android"),
+          VariantMatcher.Equals("common"),
+          VariantMatcher.Equals("standard-jvm")
+        ))
+    )
   }
 
   /**
-   * Classpath for the manifest merger run.
+   * Adds the Android SDK JAR file to the classpath during the compilation process.
    */
-  def manifestMergerClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
-      Seq(
-        mvn"com.android.tools.build:manifest-merger:${androidSdkModule().manifestMergerVersion()}"
-      )
-    )
+  override def unmanagedClasspath: T[Seq[PathRef]] = Task {
+    Seq(androidSdkModule().androidJarPath())
+  }
+
+  /**
+   * The original compiled classpath (containing a mix of jars and aars).
+   * @return
+   */
+  def androidOriginalCompileClasspath: T[Seq[PathRef]] = Task {
+    super.compileClasspath()
+  }
+
+  private def androidDepsClasspath: T[Seq[PathRef]] = Task {
+    (androidOriginalCompileClasspath().filter(_.path.ext != "aar") ++ androidResolvedMvnDeps()).map(
+      _.path
+    ).distinct.map(PathRef(_))
+  }
+
+  /**
+   * Replaces AAR files in [[androidOriginalCompileClasspath]] with their extracted JARs.
+   */
+  override def compileClasspath: T[Seq[PathRef]] = Task {
+    // TODO process metadata shipped with Android libs. It can have some rules with Target SDK, for example.
+    // TODO support baseline profiles shipped with Android libs.
+    androidDepsClasspath() ++ androidTransitiveLibRClasspath()
+  }
+
+  /**
+   * Android res folder
+   */
+  def androidResources: T[Seq[PathRef]] = Task.Sources("src/main/res")
+
+  /**
+   * Constructs the run classpath by extracting JARs from AAR files where
+   * applicable using [[androidResolvedRunMvnDeps]]
+   * @return
+   */
+  override def runClasspath: T[Seq[PathRef]] = Task {
+    (super.runClasspath().filter(_.path.ext != "aar") ++ androidResolvedRunMvnDeps()).map(
+      _.path
+    ).distinct.map(PathRef(_))
+  }
+
+  /**
+   * Resolves run mvn deps using [[resolvedRunMvnDeps]] and transforms
+   * any aar files to jars
+   * @return
+   */
+  def androidResolvedRunMvnDeps: T[Seq[PathRef]] = Task {
+    transformedAndroidDeps(Task.Anon(resolvedRunMvnDeps()))()
+  }
+
+  /**
+   * Resolves mvn deps using [[resolvedMvnDeps]] and transforms
+   * any aar files to jars
+   *
+   * @return
+   */
+  def androidResolvedMvnDeps: T[Seq[PathRef]] = Task {
+    transformedAndroidDeps(Task.Anon(resolvedMvnDeps()))()
+  }
+
+  protected def transformedAndroidDeps(resolvedDeps: Task[Seq[PathRef]]): Task[Seq[PathRef]] =
+    Task.Anon {
+      val transformedAarFilesToJar: Seq[PathRef] =
+        androidTransformAarFiles(Task.Anon(resolvedDeps()))()
+          .flatMap(_.classesJar)
+      val jarFiles = resolvedDeps()
+        .filter(_.path.ext == "jar")
+        .distinct
+      transformedAarFilesToJar ++ jarFiles
+    }
+
+  def androidTransformAarFiles(resolvedDeps: Task[Seq[PathRef]]): Task[Seq[UnpackedDep]] =
+    Task.Anon {
+      val transformDest = Task.dest / "transform"
+      val aarFiles = resolvedDeps()
+        .map(_.path)
+        .filter(_.ext == "aar")
+        .distinct
+
+      extractAarFiles(aarFiles, transformDest)
+    }
+
+  /**
+   * Runtime deps collected from repackaged content
+   * from (usually) AAR files. Can usually be found in
+   * libs/repackaged.jar.
+   * @return
+   */
+  def androidRepackagedDeps: T[Seq[PathRef]] = Task {
+    androidTransformAarFiles(Task.Anon(resolvedRunMvnDeps()))()
+      .flatMap(_.repackagedJars)
   }
 
   /**
@@ -191,7 +298,17 @@ trait AndroidModule extends JavaModule {
     //
     // In Gradle terms using only `resolvedRunMvnDeps` won't be complete, because source modules can be also
     // api/implementation, but Mill has no such configurations.
-    val aarFiles = (super.compileClasspath() ++ super.resolvedRunMvnDeps())
+    val aarFiles = androidOriginalCompileClasspath()
+      .map(_.path)
+      .filter(_.ext == "aar")
+      .distinct
+
+    // TODO do it in some shared location, otherwise each module is doing the same, having its own copy for nothing
+    extractAarFiles(aarFiles, Task.dest)
+  }
+
+  def androidUnpackRunArchives: T[Seq[UnpackedDep]] = Task {
+    val aarFiles = resolvedRunMvnDeps()
       .map(_.path)
       .filter(_.ext == "aar")
       .distinct
@@ -210,9 +327,13 @@ trait AndroidModule extends JavaModule {
         Some(PathRef(p))
       } else None
 
+      def listFiles(p: os.Path, ext: String): Seq[PathRef] = if (os.exists(p)) {
+        os.walk(p).filter(_.ext == ext).map(PathRef(_))
+      } else Seq.empty[PathRef]
+
       val classesJar = pathOption(extractDir / "classes.jar")
       val proguardRules = pathOption(extractDir / "proguard.txt")
-      val resources = pathOption(extractDir / "res")
+      val androidResources = pathOption(extractDir / "res")
       val manifest = pathOption(extractDir / "AndroidManifest.xml")
       val lintJar = pathOption(extractDir / "lint.jar")
       val metaInf = pathOption(extractDir / "META-INF")
@@ -220,11 +341,14 @@ trait AndroidModule extends JavaModule {
       val baselineProfile = pathOption(extractDir / "baseline-prof.txt")
       val stableIdsRFile = pathOption(extractDir / "R.txt")
       val publicResFile = pathOption(extractDir / "public.txt")
+      val repackaged = listFiles(extractDir / "libs", "jar")
+
       UnpackedDep(
         name,
         classesJar,
+        repackaged,
         proguardRules,
-        resources,
+        androidResources,
         manifest,
         lintJar,
         metaInf,
@@ -236,35 +360,47 @@ trait AndroidModule extends JavaModule {
     })
   }
 
+  def androidManifestMergerModuleRef: ModuleRef[AndroidManifestMerger] =
+    ModuleRef(AndroidManifestMerger)
+
+  def androidMergeableManifests: Task[Seq[PathRef]] = Task {
+    androidUnpackArchives().flatMap(_.manifest)
+  }
+
+  def androidMergedManifestArgs: Task[Seq[String]] = Task.Anon {
+    Seq(
+      "--main",
+      androidManifest().path.toString(),
+      "--remove-tools-declarations",
+      "--property",
+      s"min_sdk_version=${androidMinSdk()}",
+      "--property",
+      s"target_sdk_version=${androidTargetSdk()}",
+      "--property",
+      s"version_code=${androidVersionCode()}",
+      "--property",
+      s"version_name=${androidVersionName()}"
+    ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", m.path.toString()))
+  }
+
   /**
-   * Creates a merged manifest from application and dependencies manifests.
+   * Creates a merged manifest from application and dependencies manifests using.
+   * Merged manifests are given via [[androidMergeableManifests]] and merger args via
+   * [[androidMergedManifestArgs]]
    *
    * See [[https://developer.android.com/build/manage-manifests]] for more details.
    */
   def androidMergedManifest: T[PathRef] = Task {
-    val libManifests = androidUnpackArchives().map(_.manifest.get)
-    val mergedManifestPath = T.dest / "AndroidManifest.xml"
-    // TODO put it to the dedicated worker if cost of classloading is too high
-    Jvm.callProcess(
-      mainClass = "com.android.manifmerger.Merger",
-      mainArgs = Seq(
-        "--main",
-        androidManifest().path.toString(),
-        "--remove-tools-declarations",
-        "--property",
-        s"min_sdk_version=${androidMinSdk()}",
-        "--property",
-        s"target_sdk_version=${androidTargetSdk()}",
-        "--property",
-        s"version_code=${androidVersionCode()}",
-        "--property",
-        s"version_name=${androidVersionName()}",
-        "--out",
-        mergedManifestPath.toString()
-      ) ++ libManifests.flatMap(m => Seq("--libs", m.path.toString())),
-      classPath = manifestMergerClasspath().map(_.path)
-    )
-    PathRef(mergedManifestPath)
+
+    val mergedAndroidManifestLocation = androidManifestMergerModuleRef().androidMergedManifest(
+      args = Task.Anon(androidMergedManifestArgs())
+    )()
+
+    val mergedAndroidManifestDest = Task.dest / "AndroidManifest.xml"
+
+    os.move(mergedAndroidManifestLocation, mergedAndroidManifestDest)
+
+    PathRef(mergedAndroidManifestDest)
   }
 
   def androidLibsRClasses: T[Seq[PathRef]] = Task {
@@ -273,13 +409,13 @@ trait AndroidModule extends JavaModule {
     // But we also need to have R.java classes for libraries. The process below is quite hacky and inefficient, because:
     // * it will generate R.java for the library even library has no resources declared
     // * R.java will have not only resource ID from this library, but from other libraries as well. They should be stripped.
-    val rClassDir = androidResources()._1.path / rClassDirName
+    val rClassDir = androidLinkedResources().path / "generatedSources/java"
     val mainRClassPath = os.walk(rClassDir)
       .find(_.last == "R.java")
       .get
 
     val mainRClass = os.read(mainRClassPath)
-    val libsPackages = androidUnpackArchives()
+    val libsPackages = androidUnpackRunArchives()
       .flatMap(_.manifest)
       .map(_.path)
       .map(path => ((XML.loadFile(path.toIO) \\ "manifest").head \ "@package").head.toString())
@@ -299,76 +435,138 @@ trait AndroidModule extends JavaModule {
   }
 
   /**
-   * Compiles Android resources and generates `R.java` and `res.apk`.
-   *
-   * @return [[(PathRef, Seq[PathRef]]] to the directory with application's `R.java` and `res.apk` and a list
-   *         of the zip files containing the resource compiled files
-   *
-   *         For more details on the aapt2 tool, refer to:
-   *         [[https://developer.android.com/tools/aapt2 aapt Documentation]]
+   * The Java compiled classes of [[androidResources]]
    */
-  def androidResources: T[(PathRef, Seq[PathRef])] = Task {
-    val rClassDir = T.dest / rClassDirName
-    val compiledResDir = T.dest / compiledResourcesDirName
-    os.makeDir(compiledResDir)
-    val compiledResources = collection.mutable.Buffer[os.Path]()
+  def androidCompiledRClasses: T[CompilationResult] = Task(persistent = true) {
+    jvmWorker()
+      .worker()
+      .compileJava(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = androidLibsRClasses().map(_.path),
+        compileClasspath = Seq.empty,
+        javaHome = javaHome().map(_.path),
+        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
+        reporter = Task.reporter.apply(hashCode),
+        reportCachedProblems = zincReportCachedProblems(),
+        incrementalCompilation = zincIncrementalCompilation()
+      )
+  }
 
-    val transitiveResources = androidTransitiveResources().map(_.path).filter(os.exists)
+  def androidLibRClasspath: T[Seq[PathRef]] = Task {
+    Seq(androidCompiledRClasses().classes)
+  }
 
-    val localResources = resources().map(_.path).filter(os.exists)
+  def androidTransitiveLibRClasspath: T[Seq[PathRef]] = Task {
+    Task.traverse(transitiveModuleDeps) {
+      case m: AndroidModule =>
+        Task.Anon(m.androidLibRClasspath())
+      case _ =>
+        Task.Anon(Seq.empty[PathRef])
+    }().flatten
+  }
 
-    val allResources = localResources ++ transitiveResources
+  /**
+   * Namespace of the Android module.
+   * Used in manifest package and also used as the package to place the generated R sources
+   */
+  def androidNamespace: String
 
-    for (resDir <- allResources) {
-      val segmentsSeq = resDir.segments.toSeq
+  /**
+   * Gets the extracted android resources from the dependencies using [[androidLibraryResources]]
+   * and compiles them into flata files using aapt2. This allows for the resources to be linked
+   * using overlay.
+   * @return
+   */
+  def androidCompiledLibResources: T[PathRef] = Task {
+    val libAndroidResources: Seq[Path] = androidLibraryResources().map(_.path)
+
+    val aapt2Compile = Seq(androidSdkModule().aapt2Path().path.toString(), "compile")
+
+    for (libResDir <- libAndroidResources) {
+      val segmentsSeq = libResDir.segments.toSeq
       val libraryName = segmentsSeq.dropRight(1).last
-      // if not directory, but file, it should have one of the possible extensions: .flata, .zip, .jar, .jack,
-      // because aapt2 link command relies on the extension to check if compile output is archive
-      // see https://cs.android.com/android/platform/superproject/main/+/main:frameworks/base/tools/aapt2/cmd/Link.cpp;l=1565-1567;drc=7b647e4ea0e92f33c19b315eaed364ee067ba0aa
-      val compiledLibResPath = compiledResDir / s"$libraryName.zip"
-      compiledResources += compiledLibResPath
-
-      val libCompileArgsBuilder = Seq.newBuilder[String]
-      libCompileArgsBuilder ++= Seq(androidSdkModule().aapt2Path().path.toString(), "compile")
-      if (T.log.debugEnabled) {
-        libCompileArgsBuilder += "-v"
-      }
-      libCompileArgsBuilder ++= Seq(
-        // TODO: move away from --dir usage, because it will compile once again all resources, even the ones
-        //  which didn't change. See comment here https://developer.android.com/tools/aapt2#compile_options
+      val dirDest = Task.dest / libraryName
+      os.makeDir(dirDest)
+      val aapt2Args = Seq(
         "--dir",
-        resDir.toString(),
+        libResDir.toString,
         "-o",
-        // if path is not a directory, then it will be treated as ZIP archive where all the
-        // compiled resources will be packed
-        // pros of zip vs directory: [potentially] less I/O syscalls to write output, cons: CPU usage, time to decode
-        compiledLibResPath.toString()
+        dirDest.toString
       )
-      if (androidIsDebug()) {
-        libCompileArgsBuilder += "--no-crunch"
-      }
 
-      val libCompileArgs = libCompileArgsBuilder.result()
-      T.log.info(
-        s"Compiling resources of $libraryName with the following command: ${libCompileArgs.mkString(" ")}"
-      )
-      os.call(libCompileArgs)
+      os.call(aapt2Compile ++ aapt2Args)
     }
 
-    // TODO support asserts folder and other secondary options
-    // TODO support stable IDs
-    val appLinkArgsBuilder = Seq.newBuilder[String]
-    appLinkArgsBuilder ++= Seq(androidSdkModule().aapt2Path().path.toString, "link")
-    if (T.log.debugEnabled) {
-      appLinkArgsBuilder += "-v"
+    PathRef(Task.dest)
+  }
+
+  /**
+   * Gets all the android resources from this module,
+   * compiles them into flata files and collects
+   * transitive compiled resources from dependencies.
+   * @return a sequence of PathRef to the compiled resources
+   */
+  def androidCompiledModuleResources: T[Seq[PathRef]] = Task {
+
+    val moduleResources: Seq[os.Path] =
+      androidResources().map(_.path).filter(os.exists)
+
+    val aapt2Compile = Seq(androidSdkModule().aapt2Path().path.toString(), "compile")
+
+    for (libResDir <- moduleResources) {
+      val segmentsSeq = libResDir.segments.toSeq
+      val libraryName = segmentsSeq.dropRight(1).last
+      val dirDest = Task.dest / libraryName
+      os.makeDir(dirDest)
+      val aapt2Args = Seq(
+        "--dir",
+        libResDir.toString,
+        "-o",
+        dirDest.toString
+      )
+
+      os.call(aapt2Compile ++ aapt2Args)
     }
-    appLinkArgsBuilder ++= Seq(
+    androidTransitiveCompiledResources() ++ Seq(PathRef(Task.dest))
+  }
+
+  /**
+   * Links all the resources coming from [[androidCompiledLibResources]] and
+   * [[androidCompiledModuleResources]] using auto overlay to resolve conflicts.
+   * For more information see [[https://developer.android.com/tools/aapt2#link]]
+   * @return a directory which contains the apk, proguard and generated R sources.
+   */
+  def androidLinkedResources: T[PathRef] = Task {
+    val compiledLibResDir = androidCompiledLibResources().path
+    val moduleResDirs = androidCompiledModuleResources()
+      .map(_.path)
+
+    val filesToLink = os.walk(compiledLibResDir).filter(os.isFile(_)) ++
+      moduleResDirs.flatMap(os.walk(_).filter(os.isFile(_)))
+
+    val javaRClassDir = Task.dest / "generatedSources/java"
+    val apkDir = Task.dest / "apk"
+    val proguard = Task.dest / "proguard"
+
+    os.makeDir.all(javaRClassDir)
+    os.makeDir.all(proguard)
+    os.makeDir(apkDir)
+
+    val resApkFile = apkDir / "res.apk"
+
+    val mainDexRulesProFile = proguard / "main-dex-rules.pro"
+
+    val aapt2Link = Seq(androidSdkModule().aapt2Path().path.toString(), "link")
+
+    val linkArgs = Seq(
       "-I",
       androidSdkModule().androidJarPath().path.toString,
       "--manifest",
       androidMergedManifest().path.toString,
+      "--custom-package",
+      androidNamespace,
       "--java",
-      rClassDir.toString,
+      javaRClassDir.toString,
       "--min-sdk-version",
       androidMinSdk().toString,
       "--target-sdk-version",
@@ -378,36 +576,24 @@ trait AndroidModule extends JavaModule {
       "--version-name",
       androidVersionName(),
       "--proguard-main-dex",
-      (T.dest / "main-dex-rules.pro").toString,
-      "--proguard-conditional-keep-rules",
+      mainDexRulesProFile.toString,
+      "--proguard-conditional-keep-rules"
+    ) ++ androidAaptOptions() ++ Seq(
       "-o",
-      (T.dest / "res.apk").toString
-    )
+      resApkFile.toString
+    ) ++ filesToLink.flatMap(flat => Seq("-R", flat.toString()))
 
-    if (!androidIsDebug()) {
-      appLinkArgsBuilder += "--proguard-minimal-keep-rules"
-    }
-    if (androidIsDebug()) {
-      appLinkArgsBuilder += "--debug-mode"
-    }
-    appLinkArgsBuilder ++= androidAaptOptions()
-    appLinkArgsBuilder ++= compiledResources.map(_.toString())
+    Task.log.info((aapt2Link ++ linkArgs).mkString(" "))
 
-    val appLinkArgs = appLinkArgsBuilder.result()
+    os.call(aapt2Link ++ linkArgs)
 
-    T.log.info(
-      s"Linking application resources with the command: ${appLinkArgs.mkString(" ")}"
-    )
-
-    os.call(appLinkArgs)
-
-    (PathRef(T.dest), compiledResources.toSeq.map(PathRef(_)))
+    PathRef(Task.dest)
   }
 
   /**
    * Creates an intermediate R.jar that includes all the resources from the application and its dependencies.
    */
-  def androidProcessResources: Target[PathRef] = Task {
+  def androidProcessedResources: T[PathRef] = Task {
 
     val sources = androidLibsRClasses()
 
@@ -418,7 +604,8 @@ trait AndroidModule extends JavaModule {
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = sources.map(_.path),
-        compileClasspath = Seq.empty,
+        compileClasspath = androidTransitiveLibRClasspath().map(_.path),
+        javaHome = javaHome().map(_.path),
         javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         reporter = Task.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
@@ -430,70 +617,9 @@ trait AndroidModule extends JavaModule {
     PathRef(rJar)
   }
 
-  // TODO alias, keystore pass and pass below are sensitive credentials and shouldn't be leaked to disk/console.
-  // In the current state they are leaked, because Task dumps output to the json.
-  // Should be fixed ASAP.
-
-  /**
-   * Name of the key alias in the release keystore. Default is not set.
-   */
-  def androidReleaseKeyAlias: T[Option[String]] = Task {
-    None
-  }
-
-  /**
-   * Name of the release keystore file. Default is not set.
-   */
-  def androidReleaseKeyName: T[Option[String]] = Task {
-    None
-  }
-
-  /**
-   * Password for the release key. Default is not set.
-   */
-  def androidReleaseKeyPass: T[Option[String]] = Task {
-    None
-  }
-
-  /**
-   * Password for the release keystore. Default is not set.
-   */
-  def androidReleaseKeyStorePass: T[Option[String]] = Task {
-    None
-  }
-
-  /** The emulator port where adb connects to. Defaults to 5554 */
-  def androidEmulatorPort: String = "5554"
-
-  /**
-   * Returns the emulator identifier for created from startAndroidEmulator
-   * by iterating the adb device list
-   */
-  def runningEmulator: T[String] = Task {
-    s"emulator-$androidEmulatorPort"
-  }
-
-  /**
-   * Default os.Path to the keystore file, derived from `androidReleaseKeyName()`.
-   * Users can customize the keystore file name to change this path.
-   */
-  def androidReleaseKeyPath: T[Option[PathRef]] = Task {
-    androidReleaseKeyName().map(name => PathRef(moduleDir / name))
-  }
-
-  /** The name of the virtual device to be created by  [[createAndroidVirtualDevice]] */
-  def androidVirtualDeviceIdentifier: String = "test"
-
-  /**
-   * The target architecture of the virtual device to be created by  [[createAndroidVirtualDevice]]
-   * For example, "x86_64" (default). For a list of system images and their architectures,
-   * see the Android SDK Manager `sdkmanager --list`.
-   */
-  def androidEmulatorArchitecture: String = "x86_64"
-
   /** All individual classfiles inherited from the classpath that will be included into the dex */
-  def inheritedClassFiles: T[Seq[PathRef]] = Task {
-    compileClasspath()
+  def androidPackagedClassfiles: T[Seq[PathRef]] = Task {
+    androidDepsClasspath()
       .map(_.path).filter(os.isDir)
       .flatMap(os.walk(_))
       .filter(os.isFile)
@@ -501,248 +627,18 @@ trait AndroidModule extends JavaModule {
       .map(PathRef(_))
   }
 
-  /**
-   * Converts the generated JAR file into a DEX file using the `d8` tool.
-   *
-   * @return os.Path to the Generated DEX File Directory
-   */
-  def androidDex: T[PathRef] = Task {
-
-    val appCompiledFiles = os.walk(compile().classes.path)
+  def androidPackagedCompiledClasses: T[Seq[PathRef]] = Task {
+    Seq(compile().classes.path)
+      .filter(os.exists)
+      .flatMap(os.walk(_))
       .filter(_.ext == "class")
-      .map(_.toString) ++ inheritedClassFiles().map(_.path.toString)
+      .map(PathRef(_))
+  }
 
-    val libsJarFiles = compileClasspath()
+  def androidPackagedDeps: T[Seq[PathRef]] = Task {
+    (androidResolvedRunMvnDeps() ++ androidRepackagedDeps())
       .filter(_ != androidSdkModule().androidJarPath())
       .filter(_.path.ext == "jar")
-      .map(_.path.toString())
-
-    val proguardFile = T.dest / "proguard-rules.pro"
-    val knownProguardRules = androidUnpackArchives()
-      // TODO need also collect rules from other modules,
-      // but Android lib module doesn't yet exist
-      .flatMap(_.proguardRules)
-      .map(p => os.read(p.path))
-      .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
-      .mkString("\n")
-    os.write(proguardFile, knownProguardRules)
-
-    val d8ArgsBuilder = Seq.newBuilder[String]
-
-    d8ArgsBuilder += androidSdkModule().d8Path().path.toString
-
-    if (androidIsDebug()) {
-      d8ArgsBuilder += "--debug"
-    } else {
-      d8ArgsBuilder += "--release"
-    }
-    // TODO explore --incremental flag for incremental builds
-    d8ArgsBuilder ++= Seq(
-      "--output",
-      Task.dest.toString(),
-      "--lib",
-      androidSdkModule().androidJarPath().path.toString(),
-      "--min-api",
-      androidMinSdk().toString,
-      "--main-dex-rules",
-      proguardFile.toString()
-    ) ++ appCompiledFiles ++ libsJarFiles
-
-    val d8Args = d8ArgsBuilder.result()
-
-    T.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
-
-    os.call(d8Args)
-
-    PathRef(Task.dest)
-  }
-
-  private def isExcludedFromPackaging(relPath: RelPath): Boolean = {
-    val topPath = relPath.segments.head
-    // TODO do this better
-    // full list is here https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/packaging/PackagingOptionsUtils.kt;drc=85330e2f750acc1e1510623222d80e4b1ad5c8a2
-    // but anyway it should be a packaging option DSL to configure additional excludes from the user side
-    relPath.ext == "kotlin_module" ||
-    relPath.ext == "kotlin_metadata" ||
-    relPath.ext == "DSA" ||
-    relPath.ext == "EC" ||
-    relPath.ext == "SF" ||
-    relPath.ext == "RSA" ||
-    topPath == "maven" ||
-    topPath == "proguard" ||
-    topPath == "com.android.tools" ||
-    relPath.last == "MANIFEST.MF" ||
-    relPath.last == "LICENSE" ||
-    relPath.last == "LICENSE.TXT" ||
-    relPath.last == "NOTICE" ||
-    relPath.last == "NOTICE.TXT" ||
-    relPath.last == "kotlin-project-structure-metadata.json" ||
-    relPath.last == "module-info.class"
-  }
-
-  /**
-   * Collect files from META-INF folder of classes.jar (not META-INF of aar in case of Android library).
-   */
-  def androidLibsClassesJarMetaInf: T[Seq[PathRef]] = Task {
-    // ^ not the best name for the method, but this is to distinguish between META-INF of aar and META-INF
-    // of classes.jar included in aar
-    compileClasspath()
-      .filter(ref =>
-        ref.path.ext == "jar" &&
-          ref != androidSdkModule().androidJarPath()
-      )
-      .flatMap(ref => {
-        val dest = T.dest / ref.path.baseName
-        os.unzip(ref.path, dest)
-        val lookupPath = dest / "META-INF"
-        if (os.exists(lookupPath)) {
-          os.walk(lookupPath)
-            .filter(os.isFile)
-            .filterNot(f => isExcludedFromPackaging(f.relativeTo(lookupPath)))
-        } else {
-          Seq.empty[os.Path]
-        }
-      })
-      .map(PathRef(_))
-      .toSeq
-  }
-
-  /**
-   * Packages DEX files and Android resources into an unsigned APK.
-   *
-   * @return A `PathRef` to the generated unsigned APK file (`app.unsigned.apk`).
-   */
-  def androidUnsignedApk: T[PathRef] = Task {
-    val unsignedApk = Task.dest / "app.unsigned.apk"
-
-    os.copy(androidResources()._1.path / "res.apk", unsignedApk)
-    val dexFiles = os.walk(androidDex().path)
-      .filter(_.ext == "dex")
-      .map(os.zip.ZipSource.fromPath)
-    // TODO probably need to merge all content, not only in META-INF of classes.jar, but also outside it
-    val metaInf = androidLibsClassesJarMetaInf()
-      .map(ref => {
-        def metaInfRoot(p: os.Path): os.Path = {
-          var current = p
-          while (!current.endsWith(os.rel / "META-INF")) {
-            current = current / os.up
-          }
-          current / os.up
-        }
-
-        val path = ref.path
-        os.zip.ZipSource.fromPathTuple((path, path.subRelativeTo(metaInfRoot(path))))
-      })
-      .distinctBy(_.dest.get)
-
-    // TODO generate aar-metadata.properties (for lib distribution, not in this module) or
-    //  app-metadata.properties (for app distribution).
-    // Example of aar-metadata.properties:
-    // aarFormatVersion=1.0
-    // aarMetadataVersion=1.0
-    // minCompileSdk=33
-    // minCompileSdkExtension=0
-    // minAndroidGradlePluginVersion=1.0.0
-    //
-    // Example of app-metadata.properties:
-    // appMetadataVersion=1.1
-    // androidGradlePluginVersion=8.7.2
-    os.zip(unsignedApk, dexFiles)
-    os.zip(unsignedApk, metaInf)
-    // TODO pack also native (.so) libraries
-
-    PathRef(unsignedApk)
-  }
-
-  /**
-   * Generates the command-line arguments required for Android app signing.
-   *
-   * Uses the release keystore if release build type is set; otherwise, defaults to a generated debug keystore.
-   */
-  def androidSignKeyDetails: T[Seq[String]] = Task {
-
-    val keystorePass = {
-      if (androidIsDebug()) debugKeyStorePass else androidReleaseKeyStorePass().get
-    }
-    val keyAlias = {
-      if (androidIsDebug()) debugKeyAlias else androidReleaseKeyAlias().get
-    }
-    val keyPass = {
-      if (androidIsDebug()) debugKeyPass else androidReleaseKeyPass().get
-    }
-
-    Seq(
-      "--ks",
-      androidKeystore().path.toString,
-      "--ks-key-alias",
-      keyAlias,
-      "--ks-pass",
-      s"pass:$keystorePass",
-      "--key-pass",
-      s"pass:$keyPass"
-    )
-  }
-
-  /**
-   * Optimizes the APK using the `zipalign` tool for better performance.
-   *
-   * For more details on the zipalign tool, refer to:
-   * [[https://developer.android.com/tools/zipalign zipalign Documentation]]
-   */
-  def androidAlignedUnsignedApk: T[PathRef] = Task {
-    val alignedApk: os.Path = Task.dest / "app.aligned.apk"
-
-    os.call((
-      androidSdkModule().zipalignPath().path,
-      "-f",
-      "-p",
-      "4",
-      androidUnsignedApk().path,
-      alignedApk
-    ))
-
-    PathRef(alignedApk)
-  }
-
-  /**
-   * Signs the APK using a keystore to generate a final, distributable APK.
-   *
-   * The signing step is mandatory to distribute Android applications. It adds a cryptographic
-   * signature to the APK, verifying its authenticity. This method uses the `apksigner` tool
-   * along with a keystore file to sign the APK.
-   *
-   * If no keystore is available, a new one is generated using the `keytool` utility.
-   *
-   * For more details on the apksigner tool, refer to:
-   * [[https://developer.android.com/tools/apksigner apksigner Documentation]]
-   */
-  def androidApk: T[PathRef] = Task {
-    val signedApk = Task.dest / "app.apk"
-
-    val signArgs = Seq(
-      androidSdkModule().apksignerPath().path.toString,
-      "sign",
-      "--in",
-      androidAlignedUnsignedApk().path.toString,
-      "--out",
-      signedApk.toString
-    ) ++ androidSignKeyDetails()
-
-    T.log.info(s"Calling apksigner with arguments: ${signArgs.mkString(" ")}")
-
-    os.call(signArgs)
-
-    PathRef(signedApk)
-  }
-
-  /** ProGuard/R8 rules configuration files (user-provided and generated) */
-  def proguardConfigs: T[Seq[PathRef]] = {
-    Seq(
-      PathRef(moduleDir / "proguard-rules.pro"),
-      PathRef(androidModuleGeneratedSourcesFunc().androidReleaseDex.path / "proguard-rules.pro"),
-      PathRef(moduleDir / "test-proguard-rules.pro")
-    )
   }
 
   /** Additional library classes provided */
@@ -750,88 +646,36 @@ trait AndroidModule extends JavaModule {
     androidSdkModule().androidLibsClasspaths()
   }
 
-  def enableDesugaring: T[Boolean] = Task {
-    true
-  }
-
-  /**
-   * Specifies the path to the main-dex rules file, which contains ProGuard rules
-   * for determining which classes should be included in the primary DEX file.
-   */
-  def mainDexRules: T[Option[PathRef]] = Task {
-    Some(PathRef(androidResources()._1.path / "main-dex-rules.pro"))
-  }
-
-  /**
-   * Returns the path to the main-dex list file, which explicitly lists the classes
-   * to be included in the primary DEX file. Currently, this is not defined.
-   */
-  def mainDexList: T[Option[PathRef]] = Task {
-    None
-  }
-
-  /**
-   *  Provides the output path for the generated main-dex list file, which is used
-   *  during the DEX generation process.
-   */
-  def mainDexListOutput: T[Option[PathRef]] = Task {
-    Some(androidModuleGeneratedSourcesFunc().mainDexListOutput)
-  }
-
   /** Optional baseline profile for ART rewriting */
   def baselineProfile: T[Option[PathRef]] = Task {
     None
   }
 
-  def androidModuleGeneratedSourcesFunc: T[AndroidModuleGeneratedSources] = Task {
-    val androidDebugDex = T.dest / "androidDebugDex.dest"
-    os.makeDir(androidDebugDex)
-    val androidReleaseDex = T.dest / "androidReleaseDex.dest"
-    os.makeDir(androidReleaseDex)
-    val mainDexListOutput = T.dest / "main-dex-list-output.txt"
+  trait AndroidTestModule extends JavaTests, AndroidModule {
 
-    val proguardFileDebug = androidDebugDex / "proguard-rules.pro"
+    override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
 
-    val knownProguardRulesDebug = androidUnpackArchives()
-      // TODO need also collect rules from other modules,
-      // but Android lib module doesn't yet exist
-      .flatMap(_.proguardRules)
-      .map(p => os.read(p.path))
-      .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
-      .mkString("\n")
-    os.write(proguardFileDebug, knownProguardRulesDebug)
+    override def androidMinSdk: T[Int] = outer.androidMinSdk()
 
-    val proguardFileRelease = androidReleaseDex / "proguard-rules.pro"
+    override def androidTargetSdk: T[Int] = outer.androidTargetSdk()
 
-    val knownProguardRulesRelease = androidUnpackArchives()
-      // TODO need also collect rules from other modules,
-      // but Android lib module doesn't yet exist
-      .flatMap(_.proguardRules)
-      .map(p => os.read(p.path))
-      .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
-      .mkString("\n")
-    os.write(proguardFileRelease, knownProguardRulesRelease)
+    override def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
 
-    AndroidModuleGeneratedSources(
-      androidDebugDex = PathRef(androidDebugDex),
-      androidReleaseDex = PathRef(androidReleaseDex),
-      mainDexListOutput = PathRef(mainDexListOutput)
+    override def androidManifest: T[PathRef] = outer.androidManifest()
+
+    override def androidNamespace: String = s"${outer.androidNamespace}.test"
+
+    override def moduleDir: Path = outer.moduleDir
+
+    override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
+
+    def androidResources: T[Seq[PathRef]] = Task.Sources()
+
+    override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
+      baseDirectory = Some((moduleDir / "src/test").toNIO),
+      canTest = true
     )
+
   }
 
-}
-
-object AndroidModule {
-  case class AndroidModuleGeneratedSources(
-      androidDebugDex: PathRef,
-      androidReleaseDex: PathRef,
-      mainDexListOutput: PathRef
-  )
-
-  object AndroidModuleGeneratedSources {
-    implicit def resultRW: upickle.default.ReadWriter[AndroidModuleGeneratedSources] =
-      upickle.default.macroRW
-  }
 }

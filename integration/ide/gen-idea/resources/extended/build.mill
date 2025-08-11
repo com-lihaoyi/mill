@@ -1,6 +1,6 @@
 import mill._
-import mill.define.PathRef
-import mill.api.internal.{JavaFacet, IdeaConfigFile, Element}
+import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet}
+import mill.api.PathRef
 import mill.scalalib.TestModule
 
 trait HelloWorldModule extends scalalib.ScalaModule {

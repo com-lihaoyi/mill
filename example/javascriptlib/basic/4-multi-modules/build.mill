@@ -1,6 +1,6 @@
 package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object foo extends TypeScriptModule {
   object bar extends TypeScriptModule {
@@ -11,7 +11,7 @@ object foo extends TypeScriptModule {
 
 object qux extends TypeScriptModule {
   def moduleDeps = Seq(foo, foo.bar)
-  object test extends TypeScriptTests with TestModule.Jest
+  object test extends TypeScriptTests, TestModule.Jest
 }
 
 // Documentation for mill.example.javascriptlib
@@ -19,16 +19,16 @@ object qux extends TypeScriptModule {
 
 /** Usage
 
-> mill qux.run James Bond prof
+> ./mill qux.run James Bond prof
 Hello James Bond Professor
 
-> mill show qux.bundle
+> ./mill show qux.bundle
 Build succeeded!
 
 > node out/qux/bundle.dest/bundle.js James Bond prof
 Hello James Bond Professor
 
-> mill qux.test
+> ./mill qux.test
 PASS .../qux.test.ts
 ...
 */

@@ -8,28 +8,28 @@
 // * https://github.com/com-lihaoyi/mill/issues/3611
 
 package build
-import mill._, kotlinlib._, kotlinlib.js._
+import mill.*, kotlinlib.*, kotlinlib.js.*
 
-object `package` extends RootModule with KotlinJsModule {
+object `package` extends KotlinJsModule {
   override def kotlinJsModuleKind = ModuleKind.ESModule
   override def kotlinVersion = "1.9.25"
   override def kotlinJsRunTarget = Some(RunTarget.Node)
   override def mvnDeps = Seq(
-    mvn"org.jetbrains.kotlinx:kotlinx-html-js:0.11.0"
+    mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
   )
-  object test extends KotlinJsModule with KotestTests {
+  object test extends KotlinJsModule, KotestTests {
     override def kotestVersion = "5.9.1"
   }
 }
 
 /** Usage
 
-> mill run
+> ./mill run
 Compiling 1 Kotlin sources to .../out/compile.dest/classes...
 <h1>Hello World</h1>
 stringifiedJsObject: ["hello","world","!"]
 
-> mill test # Test is incorrect, `test` fails
+> ./mill test # Test is incorrect, `test` fails
 Compiling 1 Kotlin sources to .../out/test/compile.dest/classes...
 Linking IR to .../out/test/linkBinary.dest/binaries
 produce executable: .../out/test/linkBinary.dest/binaries
@@ -43,6 +43,6 @@ error: ... expected:<"<h1>Hello World Wrong</h1>"> but was:<"<h1>Hello World</h1
 
 > sed -i.bak 's/Hello World Wrong/Hello World/g' test/src/foo/HelloTests.kt
 
-> mill test # passes after fixing test
+> ./mill test # passes after fixing test
 
 */

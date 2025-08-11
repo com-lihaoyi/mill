@@ -1,15 +1,16 @@
 package mill.exec
 
-import mill.define.{NamedTask, Target, TargetImpl, Task}
-import mill.util.TestGraphs
+import mill.api.Task
+import mill.api.Task.Simple
+import mill.api.TestGraphs
 import utest.*
 
 import scala.collection.mutable
 
 object PlanTests extends TestSuite {
-  def checkTopological(targets: Seq[Task[?]]) = {
+  def checkTopological(tasks: Seq[Task[?]]) = {
     val seen = mutable.Set.empty[Task[?]]
-    for (t <- targets.reverseIterator) {
+    for (t <- tasks.reverseIterator) {
       seen.add(t)
       for (upstream <- t.inputs) {
         assert(!seen(upstream))
@@ -21,35 +22,35 @@ object PlanTests extends TestSuite {
 
     import TestGraphs._
 
-    test("topoSortedTransitiveTargets") {
-      def check(targets: Seq[Task[?]], expected: Seq[Task[?]]) = {
-        val result = PlanImpl.topoSorted(PlanImpl.transitiveTargets(targets)).values
+    test("topoSortedTransitiveTasks") {
+      def check(tasks: Seq[Task[?]], expected: Seq[Task[?]]) = {
+        val result = PlanImpl.topoSorted(PlanImpl.transitiveTasks(tasks)).values
         checkTopological(result)
         assert(result == expected)
       }
 
       test("singleton") - check(
-        targets = Seq(singleton.single),
+        tasks = Seq(singleton.single),
         expected = Seq(singleton.single)
       )
       test("backtickIdentifiers") - check(
-        targets = Seq(bactickIdentifiers.`a-down-target`),
-        expected = Seq(bactickIdentifiers.`up-target`, bactickIdentifiers.`a-down-target`)
+        tasks = Seq(bactickIdentifiers.`a-down-task`),
+        expected = Seq(bactickIdentifiers.`up-task`, bactickIdentifiers.`a-down-task`)
       )
       test("pair") - check(
-        targets = Seq(pair.down),
+        tasks = Seq(pair.down),
         expected = Seq(pair.up, pair.down)
       )
       test("anonTriple") - check(
-        targets = Seq(anonTriple.down),
+        tasks = Seq(anonTriple.down),
         expected = Seq(anonTriple.up, anonTriple.down.inputs(0), anonTriple.down)
       )
       test("diamond") - check(
-        targets = Seq(diamond.down),
+        tasks = Seq(diamond.down),
         expected = Seq(diamond.up, diamond.left, diamond.right, diamond.down)
       )
       test("anonDiamond") - check(
-        targets = Seq(diamond.down),
+        tasks = Seq(diamond.down),
         expected = Seq(
           diamond.up,
           diamond.down.inputs(0),
@@ -58,18 +59,18 @@ object PlanTests extends TestSuite {
         )
       )
     }
-    test("groupAroundNamedTargets") {
-      def check[T, R <: Target[Int]](base: T)(
-          target: T => R,
-          important0: Seq[T => Target[?]],
+    test("groupAroundNamedTasks") {
+      def check[T, R <: Simple[Int]](base: T)(
+          task: T => R,
+          important0: Seq[T => Simple[?]],
           expected: Seq[(R, Int)]
       ) = {
 
-        val topoSorted = PlanImpl.topoSorted(PlanImpl.transitiveTargets(Seq(target(base))))
+        val topoSorted = PlanImpl.topoSorted(PlanImpl.transitiveTasks(Seq(task(base))))
 
         val important = important0.map(_(base))
-        val grouped = PlanImpl.groupAroundImportantTargets(topoSorted) {
-          case t: TargetImpl[_] if important.contains(t) => t: Target[?]
+        val grouped = PlanImpl.groupAroundImportantTasks(topoSorted) {
+          case t: Task.Computed[_] if important.contains(t) => t: Simple[?]
         }
         val flattened = Seq.from(grouped.values().flatten)
 
@@ -78,7 +79,7 @@ object PlanTests extends TestSuite {
           val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
-            grouping.flatMap(_.asTarget: Option[Target[?]]).filter(important.contains) == Seq(
+            grouping.flatMap(_.asSimple: Option[Simple[?]]).filter(important.contains) == Seq(
               terminal
             )
           )
@@ -91,11 +92,11 @@ object PlanTests extends TestSuite {
         Seq(singleton.single -> 1)
       )
       test("backtickIdentifiers") - check(bactickIdentifiers)(
-        _.`a-down-target`,
-        Seq(_.`up-target`, _.`a-down-target`),
+        _.`a-down-task`,
+        Seq(_.`up-task`, _.`a-down-task`),
         Seq(
-          bactickIdentifiers.`up-target` -> 1,
-          bactickIdentifiers.`a-down-target` -> 1
+          bactickIdentifiers.`up-task` -> 1,
+          bactickIdentifiers.`a-down-task` -> 1
         )
       )
       test("pair") - check(pair)(
@@ -132,10 +133,10 @@ object PlanTests extends TestSuite {
       def countGroups(goals: Task[?]*) = {
 
         val topoSorted = PlanImpl.topoSorted(
-          PlanImpl.transitiveTargets(Seq.from(goals))
+          PlanImpl.transitiveTasks(Seq.from(goals))
         )
-        val grouped = PlanImpl.groupAroundImportantTargets(topoSorted) {
-          case t: NamedTask[Any] => t
+        val grouped = PlanImpl.groupAroundImportantTasks(topoSorted) {
+          case t: Task.Named[Any] => t
           case t if goals.contains(t) => t
         }
         grouped.keyCount
@@ -165,7 +166,7 @@ object PlanTests extends TestSuite {
 
       test("multiTerminalBoundary") {
         // Make sure the following graph ends up as three groups: one for
-        // each cached target, and one for the downstream task we are running
+        // each cached task, and one for the downstream task we are running
         import multiTerminalBoundary._
         val groupCount = countGroups(task2)
         assert(groupCount == 3)

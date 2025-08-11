@@ -1,58 +1,59 @@
 package build.contrib
-// imports
+
 import scala.util.chaining._
 import coursier.maven.MavenRepository
 import mill._
-import mill.main.Tasks
+import mill.util.Tasks
 import mill.scalalib._
-import mill.scalalib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
-import mill.define.SelectMode
+import mill.api.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
-import mill.define.Cross
-import build.Deps
+import mill.api.Cross
+import millbuild.*
 
 /**
  * [[build.contrib]] contains user-contributed Mill plugins that satisfy
  * a range of use cases not covered by the core Mill builtins. `contrib`
  * modules are typically less polished than builtins in [[build.libs.javalib]]
- * or [[build.libs.scalalib]], and do not offer binary or source compatibility
+ * or [[build.libs.javalib]], and do not offer binary or source compatibility
  * guarantees between Mill versions, but provide a place for the community
  * to collaborate on Mill plugins that is more discoverable than individuals
  * hosting their own Github repositories
  */
-object `package` extends RootModule {
+object `package` extends mill.Module {
   def contribModules: Seq[ContribModule] =
     moduleInternal.modules.collect { case m: ContribModule => m }
 
-  trait ContribModule extends build.MillPublishScalaModule {
+  trait ContribModule extends MillPublishScalaModule {
     def readme = Task.Source("readme.adoc")
+
+    def localTestExtraModules =
+      super.localTestExtraModules ++
+        Seq(
+          build.libs.javalib,
+          build.libs.javalib.worker,
+          build.libs.javalib.testrunner.entrypoint
+        )
   }
 
   object testng extends JavaModule with ContribModule {
 
-    def testTransitiveDeps =
-      super.testTransitiveDeps() ++
-        Seq(
-          build.libs.scalalib.testDep(),
-          build.libs.scalalib.worker.testDep(),
-          build.libs.testrunner.entrypoint.testDep()
-        )
-
     // pure Java implementation
     def artifactSuffix: T[String] = ""
-    def scalaLibraryMvnDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
-    def mvnDeps = Agg(build.Deps.sbtTestInterface)
-    def compileMvnDeps = Agg(build.Deps.testng)
-    def runMvnDeps = Agg(build.Deps.testng)
-    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.scalalib)
+    def scalaLibraryMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+    def mvnDeps = Seq(Deps.sbtTestInterface)
+    def compileMvnDeps = Seq(Deps.testng)
+    def runMvnDeps = Seq(Deps.testng)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.javalib)
     def docJar: T[PathRef] = super[JavaModule].docJar
+    def compileModuleDeps = super.moduleDeps ++ Seq(build.libs.javalib)
   }
 
   object twirllib extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.scalalib)
+    def compileModuleDeps = Seq(build.libs.javalib)
     def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.scalalib)
   }
 
@@ -60,26 +61,26 @@ object `package` extends RootModule {
     def moduleDeps = Seq(twirllib, playlib.api)
     def compileModuleDeps = Seq(build.libs.scalalib)
 
-    def testTransitiveDeps =
-      super.testTransitiveDeps() ++ Task.traverse(build.Deps.play.keys.toSeq)(worker(_).testDep)()
+    def localTestExtraModules =
+      super.localTestExtraModules ++ Deps.play.keys.toSeq.map(worker(_))
 
     def testArgs = Task {
       super.testArgs() ++
         Seq(
-          s"-DTEST_PLAY_VERSION_2_6=${build.Deps.Play_2_6.playVersion}",
-          s"-DTEST_PLAY_VERSION_2_7=${build.Deps.Play_2_7.playVersion}",
-          s"-DTEST_PLAY_VERSION_2_8=${build.Deps.Play_2_8.playVersion}",
-          s"-DTEST_PLAY_VERSION_2_9=${build.Deps.Play_2_9.playVersion}",
-          s"-DTEST_PLAY_VERSION_3_0=${build.Deps.Play_3_0.playVersion}"
+          s"-DTEST_PLAY_VERSION_2_6=${Deps.Play_2_6.playVersion}",
+          s"-DTEST_PLAY_VERSION_2_7=${Deps.Play_2_7.playVersion}",
+          s"-DTEST_PLAY_VERSION_2_8=${Deps.Play_2_8.playVersion}",
+          s"-DTEST_PLAY_VERSION_2_9=${Deps.Play_2_9.playVersion}",
+          s"-DTEST_PLAY_VERSION_3_0=${Deps.Play_3_0.playVersion}"
         )
     }
 
     def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.scalalib)
 
-    object api extends build.MillPublishJavaModule
+    object api extends MillPublishJavaModule
 
-    object worker extends Cross[WorkerModule](build.Deps.play.keys.toSeq)
-    trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
+    object worker extends Cross[WorkerModule](Deps.play.keys.toSeq)
+    trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
       def playBinary = crossValue
       def moduleDir: os.Path = super.moduleDir / playBinary
 
@@ -91,9 +92,9 @@ object `package` extends RootModule {
         sharedSources() ++ super.sources()
       }
 
-      def scalaVersion = build.Deps.play(playBinary).scalaVersion
+      def scalaVersion = Deps.play(playBinary).scalaVersion
       def moduleDeps = Seq(playlib.api)
-      def mvnDeps = Agg(build.Deps.osLib, build.Deps.play(playBinary).routesCompiler)
+      def mvnDeps = Seq(Deps.osLib, Deps.play(playBinary).routesCompiler)
     }
   }
 
@@ -103,18 +104,18 @@ object `package` extends RootModule {
   }
 
   object scoverage extends ContribModule {
-    object api extends build.MillPublishJavaModule
+    object api extends MillPublishJavaModule
 
     def moduleDeps = Seq(scoverage.api)
     def compileModuleDeps = Seq(build.libs.scalalib)
 
-    def testTransitiveDeps =
-      super.testTransitiveDeps() ++ Seq(worker2.testDep())
+    def localTestExtraModules =
+      super.localTestExtraModules ++ Seq(worker2)
 
     def testArgs = Task {
       super.testArgs() ++
         Seq(
-          s"-DMILL_SCOVERAGE2_VERSION=${build.Deps.scalacScoverage2Plugin.version}"
+          s"-DMILL_SCOVERAGE2_VERSION=${Deps.scalacScoverage2Plugin.version}"
         )
     }
 
@@ -122,42 +123,50 @@ object `package` extends RootModule {
     def testModuleDeps =
       super.testModuleDeps ++
         Seq(
-          build.libs.scalalib,
+          build.libs.javalib,
           build.libs.scalajslib,
           build.libs.scalanativelib,
           build.contrib.buildinfo
         )
 
     // Worker for Scoverage 2.0
-    object worker2 extends build.MillPublishScalaModule {
-      def testDepPaths = Task { Seq(compile().classes) }
+    object worker2 extends MillPublishScalaModule {
       def compileModuleDeps = Seq(
-        build.core.api,
+        build.core.api.daemon,
         scoverage.api
       )
       def compileMvnDeps = Task {
-        super.mandatoryMvnDeps() ++ Agg(
+        super.mandatoryMvnDeps() ++ Seq(
           // compile-time only, need to provide the correct scoverage version at runtime
-          build.Deps.scalacScoverage2Reporter,
-          build.Deps.scalacScoverage2Domain,
-          build.Deps.scalacScoverage2Serializer
-        ) ++ Option.when(!JvmWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
+          Deps.scalacScoverage2Reporter,
+          Deps.scalacScoverage2Domain,
+          Deps.scalacScoverage2Serializer
+        ) ++ Option.when(!JvmWorkerUtil.isScala3(scalaVersion()))(Deps.scalacScoverage2Plugin)
       }
-      def mandatoryMvnDeps = Agg.empty[Dep]
+      def mandatoryMvnDeps = Seq.empty[Dep]
     }
   }
 
   object buildinfo extends ContribModule {
+
+    def localTestExtraModules =
+      super.localTestExtraModules ++
+        Seq(
+          build.libs.javalib,
+          build.libs.scalajslib.worker("1"),
+          build.libs.kotlinlib.worker
+        )
+
     def compileModuleDeps =
       Seq(
-        build.libs.scalalib,
+        build.libs.javalib,
         build.libs.scalajslib,
         build.libs.scalanativelib,
         build.libs.kotlinlib
       )
     def testModuleDeps =
       super.testModuleDeps ++ Seq(
-        build.libs.scalalib,
+        build.libs.javalib,
         build.libs.scalajslib,
         build.libs.scalanativelib,
         build.libs.kotlinlib
@@ -165,67 +174,62 @@ object `package` extends RootModule {
   }
 
   object proguard extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.scalalib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
+    def compileModuleDeps = Seq(build.libs.javalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
+    def moduleDeps = super.moduleDeps ++ Seq(build.libs.scalalib)
   }
 
   object flyway extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.scalalib)
-    def mvnDeps = Agg(build.Deps.flywayCore)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
+    def compileModuleDeps = Seq(build.libs.javalib)
+    def mvnDeps = Seq(Deps.flywayCore)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
   }
 
   object docker extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.scalalib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
+    def compileModuleDeps = Seq(build.libs.javalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
   }
 
   // object bloop extends ContribModule with BuildInfo {
-  //   def compileModuleDeps = Seq(build.libs.scalalib, build.libs.scalajslib, build.libs.scalanativelib)
-  //   def mvnDeps = Agg(build.Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13"))
+  //   def compileModuleDeps = Seq(build.libs.javalib, build.libs.scalajslib, build.libs.scalanativelib)
+  //   def mvnDeps = Seq(Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13"))
   //   def testModuleDeps = super.testModuleDeps ++ Seq(
-  //     build.libs.scalalib,
+  //     build.libs.javalib,
   //     build.libs.scalajslib,
   //     build.libs.scalanativelib
   //   )
   //
   //   def buildInfoPackageName = "mill.contrib.bloop"
   //   def buildInfoObjectName = "Versions"
-  //   def buildInfoMembers = Seq(BuildInfo.Value("bloop", build.Deps.bloopConfig.version))
+  //   def buildInfoMembers = Seq(BuildInfo.Value("bloop", Deps.bloopConfig.version))
   // }
 
   object artifactory extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.scalalib)
-    def mvnDeps = Agg(build.Deps.requests)
+    def compileModuleDeps = Seq(build.libs.javalib)
+    def mvnDeps = Seq(Deps.requests)
   }
 
   object codeartifact extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.scalalib)
-    def mvnDeps = Agg(build.Deps.requests)
-  }
-
-  object sonatypecentral extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.scalalib)
-    def mvnDeps = Agg(build.Deps.sonatypeCentralClient)
+    def compileModuleDeps = Seq(build.libs.javalib)
+    def mvnDeps = Seq(Deps.requests)
   }
 
   object versionfile extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.scalalib)
+    def compileModuleDeps = Seq(build.libs.javalib)
   }
 
-  object bintray extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.scalalib)
-    def mvnDeps = Agg(build.Deps.requests)
+  object sonatypecentral extends ContribModule {
+    def compileModuleDeps = Seq(build.libs.javalib)
   }
 
   object gitlab extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.scalalib)
-    def mvnDeps = Agg(build.Deps.requests, build.Deps.osLib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
+    def compileModuleDeps = Seq(build.libs.javalib)
+    def mvnDeps = Seq(Deps.requests, Deps.osLib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
   }
 
   object jmh extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.scalalib)
+    def compileModuleDeps = Seq(build.libs.javalib)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
   }
 }

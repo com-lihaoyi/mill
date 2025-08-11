@@ -1,6 +1,6 @@
 package build
-import mill._, javalib._
-import mill.define.ModuleRef
+import mill.*, javalib.*
+import mill.api.ModuleRef
 
 object libraries {
 
@@ -38,15 +38,15 @@ object libraries {
 }
 
 trait MockitoModule extends MavenModule {
-  override def jvmWorker = ModuleRef(build.JvmWorkerJava11)
+  def jvmId = "temurin:11.0.24"
   def javacOptions = Seq("-encoding", "UTF-8")
   def testModuleDeps: Seq[JavaModule] = Nil
-  def testMvnDeps: T[Seq[Dep]] = Seq.empty[Dep]
-  def testRuntimeMvnDeps: T[Seq[Dep]] = Seq.empty[Dep]
+  def testMvnDeps: T[Seq[Dep]] = Seq()
+  def testRuntimeMvnDeps: T[Seq[Dep]] = Seq()
   def testFramework = "com.novocode.junit.JUnitFramework"
-  def testForkArgs: T[Seq[String]] = Seq.empty[String]
+  def testForkArgs: T[Seq[String]] = Seq()
 
-  def testFilteredSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+  def testFilteredSources: T[Seq[os.Path]] = Task { Seq() }
 
   object test extends MavenTests {
     def moduleDeps = super.moduleDeps ++ MockitoModule.this.testModuleDeps
@@ -57,7 +57,7 @@ trait MockitoModule extends MavenModule {
       val base = super.allSourceFiles()
       val filtered = testFilteredSources().toSet
       if (filtered.isEmpty) base
-      else base.filterNot(filtered.contains)
+      else base.filterNot(pr => filtered.contains(pr.path))
     }
     def mvnDeps =
       testMvnDeps() ++
@@ -70,11 +70,7 @@ trait MockitoModule extends MavenModule {
   }
 }
 
-object `package` extends RootModule with MockitoModule {
-
-  object JvmWorkerJava11 extends JvmWorkerModule {
-    def jvmId = "temurin:11.0.24"
-  }
+object `package` extends MockitoModule {
 
   def compileMvnDeps = Seq(
     libraries.hamcrest,
@@ -104,11 +100,11 @@ object `package` extends RootModule with MockitoModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  def testFilteredSources: T[Seq[PathRef]] = Task {
+  def testFilteredSources = Task {
     // test `add_listeners_concurrently_sanity_check` is flaky
-    Seq(PathRef(
+    Seq(
       moduleDir / "src/test/java/org/mockitousage/debugging/StubbingLookupListenerCallbackTest.java"
-    ))
+    )
   }
 
   object subprojects extends Module {

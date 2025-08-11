@@ -1,0 +1,134 @@
+= Build Header Config
+
+Mill supports a YAML comment block at the top of the `build.mill` file to configure
+your project. This must be at the very top of the `build.mill` file in YAML 1.2
+syntax, with every line prepended with ``//| ``, with YAML comments and newlines
+allowed. This contains Mill configuration that needs to take effect before the
+body of the `build.mill` file has been compiled and loaded.
+
+For example, a build header may look something like:
+
+[source,scala]
+----
+//| mill-version: {mill-version}
+//| # yaml comments are allowed in the build header
+//| mill-opts: ["--jobs=0.5C"]
+//| mill-jvm-version: temurin:11
+//| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
+//| # newlines are allowed too
+//|
+//| repositories:
+//| - https://oss.sonatype.org/content/repositories/snapshots
+//| mvnDeps:
+//| - com.goyeau::mill-scalafix::0.5.1-14-4d3f5ea-SNAPSHOT
+
+package build
+...
+----
+
+Mill's build headers can contain the following keys:
+
+1. xref:cli/installation-ide.adoc[mill-version]: this must be unquoted in the first line
+   of the build header, and specifies the version of Mill used in this project.
+
+2. xref:#_mill_opts[]: flags to pass to Mill by default, useful for flags that you want
+   everyone to use so they don't need to always remember to type them at the command line
+
+3. xref:_mill_jvm_version[]: specifies an explicit JVM version to use, useful to help
+   keep the build reproducible even when run on different machines.
+
+4. xref:_mill_jvm_opts[]: flags to pass to Mill's background daemon JVM process,
+   e.g. to configure how much memory to give it
+
+4. `mvnDeps` and `repositories`: these allow you to define dependencies for usage
+   in your `build.mill`, and are described in more detail in the
+   xref:extending/import-mvn-plugins.adoc[Import Libraries and Plugins] page.
+   Other keys are allowed as well, and these are uniformly treated as overrides for
+   tasks on xref:extending/meta-build.adoc[]
+
+`mill-version`, `mill-opts`, `mill-jvm-version`, and `mill-jvm-opts` can also be
+provided as standalone files on disk (e.g. `.mill-version`) for compatibility with
+older versions of Mill, or the `.config` folder (e.g. `.config/mill-version`)
+following the https://dot-config.github.io/[`.config` XDG Base Directory Standard]
+
+== mill-opts
+
+Mill supports `mill-opts` for passing a default set of command line
+options to Mill itself. For example, if your project's tasks are CPU heavy, you
+may want everyone using your project to run only 0.5 concurrent tasks per CPU. This
+can be done by adding your build header:
+
+_build.mill_
+
+[source]
+----
+//| mill-opts: ["--jobs=0.5C"]
+----
+
+The file name `.mill-opts` can be overridden via the `MILL_OPTS_PATH` environment variable.
+You can also pass in flags like `--jobs=10` explicitly to override the value passed in
+`.mill-opts`. See xref:cli/flags.adoc[Mill Command-Line Flags] for documentation on what
+flags the Mill executable can take.
+
+NOTE: `.mill-opts` is for passing options to Mill itself, and `.mill-jvm-opts` is for passing
+JVM options to the JVM running Mill. If you want to pass JVM options to the project that Mill
+is building and running, see the section on
+xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation and Execution Flags].
+
+
+== mill-jvm-version
+
+Mill allows you to specify the exact JVM version you want to use to run the build tool
+via a `mill-jvm-version` key in the build header, which also becomes the default
+version used for any JVMs spawned by Mill to `run` or `test` your project:
+
+_build.mill_
+
+[source]
+----
+//| mill-jvm-version: temurin:17.0.6
+----
+
+An explicit `mill-jvm-version` can help ensure your project uses a consistent JVM version and
+behaves identically regardless of what the developer may have installed on their laptop
+or dev environment. If `mill-jvm-version` is not provided, Mill uses the globally-installed
+`java` installation if there is one present on your `PATH`, and otherwise will download and
+cache a default version of Java for usage.
+
+For configuring different JVM versions for individual modules within your build, see
+xref:fundamentals/configuring-jvm-versions.adoc[Configuring JVM Versions].
+
+== mill-jvm-opts
+
+Mill supports `mill-jvm-opts` to set JVM-level flags
+It's possible to pass JVM options to the Mill launcher.To do this you can either set
+the `JAVA_OPTS` environment variable, xref:cli/build-header.adoc[], or create a `.mill-jvm-opts` file in your project's
+root that contains JVM options one per line.
+
+For example, if your build requires a lot of memory and bigger stack size, you could run
+
+[source,console]
+----
+> JAVA_OPTS='-Xss10m -Xmx10G' ./mill __.compile
+----
+
+Build header metadata:
+
+_build.mill_
+[source]
+----
+//| mill-jvm-opts: ["-Xss10m", "-Xmx10G"]
+----
+
+`mill-jvm-opts` also supports environment variable interpolation, e.g.
+
+[source]
+----
+-Dmy.jvm.property=${PWD}
+----
+
+Missing environment variables are converted to the empty string.
+
+== Meta-build Task Overrides
+
+include::partial$example/cli/header/1-tasks.adoc[]

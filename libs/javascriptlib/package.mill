@@ -1,10 +1,10 @@
 package build.libs.javascriptlib
 
-// imports
-import mill._
+import mill.*
+import millbuild.*
 
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version with pythonlib is released,
 //  because currently there is no previous artifact version
-object `package` extends RootModule with build.MillPublishScalaModule {
-  def moduleDeps = Seq(build.libs.scalalib)
+object `package` extends MillPublishScalaModule {
+  def moduleDeps = Seq(build.libs.javalib)
 }

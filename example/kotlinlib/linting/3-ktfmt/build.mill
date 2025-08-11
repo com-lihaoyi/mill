@@ -1,12 +1,12 @@
 package build
 
-import mill._
+import mill.*
 import mill.util.Jvm
 
 import kotlinlib.KotlinModule
 import kotlinlib.ktfmt.KtfmtModule
 
-object `package` extends RootModule with KotlinModule with KtfmtModule {
+object `package` extends KotlinModule, KtfmtModule {
   def kotlinVersion = "1.9.24"
 }
 

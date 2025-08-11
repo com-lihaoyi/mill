@@ -8,7 +8,49 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/app/test"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/delayed"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/diag"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/diag/many"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/compilation-error"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/exception"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/hello-java"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java/test"
       },
       "outputPaths": []
     },
@@ -21,6 +63,12 @@
     {
       "target": {
         "uri": "file:///workspace/hello-scala"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala/test"
       },
       "outputPaths": []
     },
@@ -55,6 +103,18 @@
         },
         {
           "uri": "file:///workspace/.bloop/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///workspace/.project/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///workspace/.classpath/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///workspace/.settings/",
           "kind": 2
         }
       ]

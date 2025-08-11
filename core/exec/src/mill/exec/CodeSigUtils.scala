@@ -1,23 +1,34 @@
 package mill.exec
 
 import mill.api.{BuildInfo, MillException}
-import mill.define.{NamedTask, Segment}
+import mill.api.{Task, Segment}
 
 import scala.reflect.NameTransformer.encode
 import java.lang.reflect.Method
 
 private[mill] object CodeSigUtils {
-  def precomputeMethodNamesPerClass(transitiveNamed: Seq[NamedTask[?]])
+  def precomputeMethodNamesPerClass(transitiveNamed: Seq[Task.Named[?]])
       : (Map[Class[?], IndexedSeq[Class[?]]], Map[Class[?], Map[String, Method]]) = {
-    def resolveTransitiveParents(c: Class[?]): Iterator[Class[?]] = {
-      Iterator(c) ++
-        Option(c.getSuperclass).iterator.flatMap(resolveTransitiveParents) ++
-        c.getInterfaces.iterator.flatMap(resolveTransitiveParents)
+
+    def resolveTransitiveParents(c: Class[?]): Iterable[Class[?]] = {
+      val seen = collection.mutable.LinkedHashSet(c) // Maintain first-seen ordering
+      val queue = collection.mutable.Queue(c)
+      while (queue.nonEmpty) {
+        val current = queue.dequeue()
+        for (
+          next <- Option(current.getSuperclass) ++ current.getInterfaces if !seen.contains(next)
+        ) {
+          seen.add(next)
+          queue.enqueue(next)
+        }
+      }
+
+      seen
     }
 
     val classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]] = transitiveNamed
-      .iterator
-      .map { case namedTask: NamedTask[?] => namedTask.ctx.enclosingCls }
+      .map { case namedTask: Task.Named[?] => namedTask.ctx.enclosingCls }
+      .distinct
       .map(cls => cls -> resolveTransitiveParents(cls).toVector)
       .toMap
 
@@ -51,11 +62,11 @@ private[mill] object CodeSigUtils {
       : Map[String, Seq[(String, Int)]] =
     codeSignatures
       .toSeq
-      .collect { case (method @ s"$prefix#<init>($args)void", hash) => (prefix, method, hash) }
+      .collect { case (method @ s"$prefix#<init>($_)void", hash) => (prefix, method, hash) }
       .groupMap(_._1)(t => (t._2, t._3))
 
   def codeSigForTask(
-      namedTask: => NamedTask[?],
+      namedTask: => Task.Named[?],
       classToTransitiveClasses: => Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: => Map[Class[?], Map[String, java.lang.reflect.Method]],
       codeSignatures: => Map[String, Int],
@@ -79,17 +90,17 @@ private[mill] object CodeSigUtils {
     val methodClass = methodOpt
       .nextOption()
       .getOrElse(throw new MillException(
-        s"Could not detect the parent class of target ${namedTask}. " +
+        s"Could not detect the parent class of task ${namedTask}. " +
           s"Please report this at ${BuildInfo.millReportNewIssueUrl} . "
       ))
       .getDeclaringClass.getName
 
-    val expectedName = methodClass + "#" + encodedTaskName + "()mill.define.Target"
-    val expectedName2 = methodClass + "#" + encodedTaskName + "()mill.define.Command"
+    val expectedName = methodClass + "#" + encodedTaskName + "()mill.api.Task$Simple"
+    val expectedName2 = methodClass + "#" + encodedTaskName + "()mill.api.Task$Command"
 
-    // We not only need to look up the code hash of the Target method being called,
+    // We not only need to look up the code hash of the task method being called,
     // but also the code hash of the constructors required to instantiate the Module
-    // that the Target is being called on. This can be done by walking up the nested
+    // that the task is being called on. This can be done by walking up the nested
     // modules and looking at their constructors (they're `object`s and should each
     // have only one)
     val allEnclosingModules = Vector.unfold(namedTask.ctx) {
@@ -97,16 +108,16 @@ private[mill] object CodeSigUtils {
       case ctx =>
         ctx.enclosingModule match {
           case null => None
-          case m: mill.define.Module => Some((m, m.moduleCtx))
+          case m: mill.api.Module => Some((m, m.moduleCtx))
           case unknown =>
-            throw new MillException(s"Unknown ctx of target ${namedTask}: $unknown")
+            throw new MillException(s"Unknown ctx of task ${namedTask}: $unknown")
         }
     }
 
     val constructorHashes = allEnclosingModules
       .map(m =>
         constructorHashSignatures.get(m.getClass.getName) match {
-          case Some(Seq((singleMethod, hash))) => hash
+          case Some(Seq((_, hash))) => hash
           case Some(multiple) => throw new MillException(
               s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
             )

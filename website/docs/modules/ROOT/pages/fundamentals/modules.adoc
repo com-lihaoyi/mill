@@ -15,7 +15,7 @@ things that are not built-in to Mill.
 
 include::partial$example/fundamentals/modules/6-modules.adoc[]
 
-== RootModule
+== Root Modules
 
 include::partial$example/fundamentals/modules/7-root-module.adoc[]
 
@@ -40,9 +40,9 @@ shared between all builds which use that library:
 [source,scala]
 ----
 package foo
-import mill._
+import mill.*
 
-object Bar extends mill.define.ExternalModule {
+object Bar extends mill.api.ExternalModule {
   def baz = Task { 1 }
   def qux() = Task.Command { println(baz() + 1) }
 

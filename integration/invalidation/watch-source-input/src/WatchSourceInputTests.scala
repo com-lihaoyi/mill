@@ -16,14 +16,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * 1. `Task.Source`
  * 2. `Task.Sources`
  * 3. `Task.Input`
- * 4. `interp.watchValue`
+ * 4. `mill.api.BuildCtx.watchValue`
  * 5. Implicitly watched files, like `build.mill`
  */
 trait WatchTests extends UtestIntegrationTestSuite {
 
-  val maxDuration = 120000
+  val maxDurationMillis: Int = if (sys.env.contains("CI")) 120000 else 15000
+
   def awaitCompletionMarker(tester: IntegrationTester, name: String): Unit = {
-    val maxTime = System.currentTimeMillis() + maxDuration
+    val maxTime = System.currentTimeMillis() + maxDurationMillis
     while (!os.exists(tester.workspacePath / "out" / name)) {
       if (System.currentTimeMillis() > maxTime) {
         sys.error(s"awaitCompletionMarker($name) timed out")
@@ -32,11 +33,11 @@ trait WatchTests extends UtestIntegrationTestSuite {
     }
   }
 
-  def testBase(show: Boolean)(f: (
-      mutable.Buffer[String],
-      mutable.Buffer[String],
-      mutable.Buffer[String]
-  ) => IntegrationTester.EvalResult): Unit = {
+  def testBase(preppedEval: IntegrationTester.PreparedEval, show: Boolean)(f: (
+      expectedOut: mutable.Buffer[String],
+      expectedErr: mutable.Buffer[String],
+      expectedShows: mutable.Buffer[String]
+  ) => IntegrationTester.EvalResult): Unit = withTestClues(preppedEval.clues*) {
     val expectedOut = mutable.Buffer.empty[String]
     // Most of these are normal `println`s, so they go to `stdout` by
     // default unless you use `show` in which case they go to `stderr`.
@@ -44,12 +45,9 @@ trait WatchTests extends UtestIntegrationTestSuite {
     val expectedShows0 = mutable.Buffer.empty[String]
     val res = f(expectedOut, expectedErr, expectedShows0)
     val (shows, out) = res.out.linesIterator.toVector.partition(_.startsWith("\""))
-    val err = res.err.linesIterator.toVector
-      .filter(!_.contains("Compiling compiler interface..."))
-      .filter(!_.contains("Watching for changes"))
-      .filter(!_.contains("[info] compiling"))
-      .filter(!_.contains("[info] done compiling"))
-      .filter(!_.contains("mill-server/ exitCode file not found"))
+    val err = res.err.linesIterator.toVector.filter(s =>
+      s.startsWith("Setting up ") || s.startsWith("Running ")
+    )
 
     assert(out == expectedOut)
 
@@ -64,11 +62,13 @@ trait WatchTests extends UtestIntegrationTestSuite {
 
 object WatchSourceTests extends WatchTests {
   val tests: Tests = Tests {
-    def testWatchSource(tester: IntegrationTester, show: Boolean) =
-      testBase(show) { (expectedOut, expectedErr, expectedShows) =>
-        val showArgs = if (show) Seq("show") else Nil
-        import tester._
-        val evalResult = Future { eval(("--watch", showArgs, "qux"), timeout = maxDuration) }
+    def testWatchSource(tester: IntegrationTester, show: Boolean): Unit = {
+      import tester.*
+      val showArgs = if (show) Seq("show") else Nil
+      val preppedEval = prepEval(("--watch", showArgs, "qux"), timeout = maxDurationMillis)
+
+      testBase(preppedEval, show) { (expectedOut, expectedErr, expectedShows) =>
+        val evalResult = Future { preppedEval.run() }
 
         awaitCompletionMarker(tester, "initialized0")
         awaitCompletionMarker(tester, "quxRan0")
@@ -128,8 +128,10 @@ object WatchSourceTests extends WatchTests {
         awaitCompletionMarker(tester, "initialized2")
         expectedOut.append("Setting up build.mill")
 
-        Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
+        Await.result(evalResult, Duration.apply(maxDurationMillis, SECONDS))
       }
+    }
+
     test("sources") {
 
       // Make sure we clean up the workspace between retries
@@ -154,11 +156,13 @@ object WatchSourceTests extends WatchTests {
 object WatchInputTests extends WatchTests {
   val tests: Tests = Tests {
 
-    def testWatchInput(tester: IntegrationTester, show: Boolean) =
-      testBase(show) { (expectedOut, expectedErr, expectedShows) =>
-        val showArgs = if (show) Seq("show") else Nil
-        import tester._
-        val evalResult = Future { eval(("--watch", showArgs, "lol"), timeout = maxDuration) }
+    def testWatchInput(tester: IntegrationTester, show: Boolean) = {
+      val showArgs = if (show) Seq("show") else Nil
+      import tester.*
+      val preppedEval = prepEval(("--watch", showArgs, "lol"), timeout = maxDurationMillis)
+
+      testBase(preppedEval, show) { (expectedOut, expectedErr, expectedShows) =>
+        val evalResult = Future { preppedEval.run() }
 
         awaitCompletionMarker(tester, "initialized0")
         awaitCompletionMarker(tester, "lolRan0")
@@ -184,8 +188,9 @@ object WatchInputTests extends WatchTests {
         if (show) expectedOut.append("{}")
         expectedOut.append("Setting up build.mill")
 
-        Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
+        Await.result(evalResult, Duration.apply(maxDurationMillis, SECONDS))
       }
+    }
 
     test("input") {
 

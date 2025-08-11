@@ -2,6 +2,7 @@
 :page-aliases: Configuring_Mill.adoc, Scala_Module_Config.adoc
 :language: Scala
 :language-small: scala
+:language-doc: scaladoc
 
 This page goes into more detail about the various configuration options
 for `ScalaModule`.
@@ -44,15 +45,13 @@ include::partial$example/scalalib/module/14-cross-scala-version.adoc[]
 
 include::partial$example/scalalib/module/15-unidoc.adoc[]
 
+== Generated Sources
+
+include::partial$example/scalalib/module/3-generated-sources.adoc[]
+
 == Custom Tasks
 
 include::partial$example/scalalib/module/2-custom-tasks.adoc[]
-
-== Overriding Tasks
-
-include::partial$example/scalalib/module/3-override-tasks.adoc[]
-
-
 
 
 
@@ -67,7 +66,7 @@ For example, you may want to inherit all of your regular `scalacOptions` but dis
 .Example: Using `consoleScalacOptions` to disable fatal warnings
 [source,scala,subs="attributes,verbatim"]
 ----
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object foo extends ScalaModule {
   def consoleScalacOptions = scalacOptions().filterNot(o => o == "-Xfatal-warnings")
@@ -82,7 +81,7 @@ In order to start the repl, you may have to specify a different available Ammoni
 .Example: Overriding `ammoniteVersion` to select a release compatible to the `scalaVersion`
 [source,scala,subs="attributes,verbatim"]
 ----
-import mill._. scalalib._
+import mill.*. scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.12.6"
@@ -113,7 +112,7 @@ If for any reason you want to disable incremental compilation for a module, you 
 .`build.mill`
 [source,scala,subs="attributes,verbatim"]
 ----
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object foo extends ScalaModule {
   def zincIncrementalCompilation = false

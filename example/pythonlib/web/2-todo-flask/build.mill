@@ -3,16 +3,16 @@
 // Tasks can be filtered as `all`, `active`, or `completed` based on their state.
 // The application demonstrates dynamic rendering using Flask's routing and templating features.
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object todo extends PythonModule {
 
-  def mainScript = Task.Source { "src/app.py" }
+  def mainScript = Task.Source("src/app.py")
 
   def pythonDeps = Seq("flask==3.1.0", "Flask-SQLAlchemy==3.1.1", "Flask-WTF==1.2.2")
 
-  object test extends PythonTests with TestModule.Unittest
-  object itest extends PythonTests with TestModule.Unittest
+  object test extends PythonTests, TestModule.Unittest
+  object itest extends PythonTests, TestModule.Unittest
 
 }
 

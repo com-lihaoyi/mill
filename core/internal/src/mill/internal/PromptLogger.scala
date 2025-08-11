@@ -27,8 +27,10 @@ private[mill] class PromptLogger(
     titleText: String,
     terminfoPath: os.Path,
     currentTimeMillis: () => Long,
-    autoUpdate: Boolean = true
+    autoUpdate: Boolean = true,
+    val chromeProfileLogger: JsonArrayLogger.ChromeProfile
 ) extends Logger with AutoCloseable {
+  prompt.beginChromeProfileEntry("mill " + titleText)
   override def toString: String = s"PromptLogger(${literalize(titleText)})"
   import PromptLogger.*
 
@@ -58,7 +60,7 @@ private[mill] class PromptLogger(
   private object runningState extends RunningState(
         enableTicker,
         () => promptUpdaterThread.interrupt(),
-        clearOnPause = () => streamManager.clearOnPause(),
+        clearOnPause = () => streamManager.refreshPrompt(),
         synchronizer = this
       )
 
@@ -70,7 +72,7 @@ private[mill] class PromptLogger(
       while (!runningState.stopped) {
         try Thread.sleep(promptUpdateIntervalMillis)
         catch {
-          case e: InterruptedException => /*do nothing*/
+          case _: InterruptedException => /*do nothing*/
         }
 
         readTerminalDims(terminfoPath).foreach(termDimensions = _)
@@ -92,7 +94,7 @@ private[mill] class PromptLogger(
 
   def refreshPrompt(ending: Boolean = false): Unit = synchronized {
     val updated = promptLineState.updatePrompt(ending)
-    if (updated) streamManager.refreshPrompt()
+    if (updated || ending) streamManager.refreshPrompt()
   }
 
   if (enableTicker && autoUpdate) promptUpdaterThread.start()
@@ -104,6 +106,32 @@ private[mill] class PromptLogger(
   def error(s: String): Unit = streams.err.println(s)
 
   object prompt extends Logger.Prompt {
+
+    private[mill] def beginChromeProfileEntry(text: String): Unit = {
+      logBeginChromeProfileEntry(text, System.nanoTime())
+    }
+
+    private[mill] def endChromeProfileEntry(): Unit = {
+      logEndChromeProfileEntry(System.nanoTime())
+    }
+
+    override private[mill] def logBeginChromeProfileEntry(message: String, nanoTime: Long) = {
+      chromeProfileLogger.logBegin(
+        message,
+        "job",
+        nanoTime / 1000,
+        threadNumberer.getThreadId(Thread.currentThread())
+      )
+    }
+
+    override private[mill] def logEndChromeProfileEntry(nanoTime: Long) = {
+      chromeProfileLogger.logEnd(
+        nanoTime / 1000,
+        threadNumberer.getThreadId(Thread.currentThread())
+      )
+    }
+
+    val threadNumberer = new ThreadNumberer()
     override def setPromptHeaderPrefix(s: String): Unit = PromptLogger.this.synchronized {
       promptLineState.setHeaderPrefix(s)
     }
@@ -112,9 +140,11 @@ private[mill] class PromptLogger(
       promptLineState.clearStatuses()
     }
 
-    override def removePromptLine(key: Seq[String]): Unit = PromptLogger.this.synchronized {
-      promptLineState.setCurrent(key, None)
-    }
+    override def removePromptLine(key: Seq[String], message: String): Unit =
+      PromptLogger.this.synchronized {
+        promptLineState.setCurrent(key, None)
+        if (message != "") endChromeProfileEntry()
+      }
 
     override def setPromptDetail(key: Seq[String], s: String): Unit =
       PromptLogger.this.synchronized {
@@ -141,6 +171,7 @@ private[mill] class PromptLogger(
 
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
       PromptLogger.this.synchronized {
+        if (message != "") beginChromeProfileEntry(message)
         promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}]${spaceNonEmpty(message)}"))
         seenIdentifiers(key) = (keySuffix, message)
       }
@@ -183,6 +214,8 @@ private[mill] class PromptLogger(
     // Needs to be outside the lock so we don't deadlock with `promptUpdaterThread`
     // trying to take the lock one last time to check running/paused status before exiting
     promptUpdaterThread.join()
+    prompt.endChromeProfileEntry()
+    chromeProfileLogger.close()
   }
 
   def streams = streamManager.proxySystemStreams
@@ -264,18 +297,28 @@ private[mill] object PromptLogger {
 
     def awaitPumperEmpty(): Unit = { while (pipe.input.available() != 0) Thread.sleep(2) }
 
-    private var promptShown = true
+    @volatile var lastPromptHeight = 0
 
     def writeCurrentPrompt(): Unit = {
-      systemStreams0.err.write(getCurrentPrompt())
+      if (!paused()) {
+        val currentPrompt = getCurrentPrompt()
+        systemStreams0.err.write(currentPrompt)
+        if (interactive()) lastPromptHeight = new String(currentPrompt).linesIterator.size
+        else lastPromptHeight = 0
+      } else lastPromptHeight = 0
+
+      if (interactive()) systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
     }
 
-    def refreshPrompt(): Unit = if (promptShown) writeCurrentPrompt()
+    def moveUp() = {
+      if (lastPromptHeight != 0) {
+        systemStreams0.err.write((AnsiNav.left(9999) + AnsiNav.up(lastPromptHeight)).getBytes)
+      }
+    }
 
-    def clearOnPause(): Unit = {
-      // Clear the prompt so the code in `t` has a blank terminal to work with
-      systemStreams0.err.write(PromptLoggerUtil.clearScreenToEndBytes)
-      systemStreams0.err.flush()
+    def refreshPrompt(): Unit = synchronizer.synchronized {
+      moveUp()
+      writeCurrentPrompt()
     }
 
     object pumper extends ProxyStream.Pumper(
@@ -290,42 +333,46 @@ private[mill] object PromptLogger {
       override def preRead(src: InputStream): Unit = synchronizer.synchronized {
 
         if (
+          enableTicker &&
           // Only bother printing the prompt after the streams have become quiescent
-          // and there is no more stuff to print. This helps us to print the prompt on
+          // and there is no more stuff to print. This helps us avoid printing the prompt on
           // every small write when most such prompts will get immediately over-written
           // by subsequent writes
-          enableTicker && src.available() == 0 &&
+          src.available() == 0 &&
+          // For non-interactive mode, the prompt is printed at regular intervals in
+          // `promptUpdaterThread`, and isn't printed as part of normal writes
+          interactive() &&
           // Do not print the prompt when it is paused. Ideally stream redirecting would
           // prevent any writes from coming to this stream when paused, somehow writes
           // sometimes continue to come in, so just handle them gracefully.
-          interactive() && !paused() &&
+          !paused() &&
           // Only print the prompt when the last character that was written is a newline,
           // to ensure we don't cut off lines halfway
           lastCharWritten == '\n'
         ) {
-          promptShown = true
-          writeCurrentPrompt()
+          synchronizer.synchronized {
+            // `preRead` may be run more than once per `write` call, and so we
+            // only write out the current prompt if it has not already been written
+            if (lastPromptHeight == 0) writeCurrentPrompt()
+            systemStreams0.err.flush()
+          }
         }
       }
 
       override def write(dest: OutputStream, buf: Array[Byte], end: Int): Unit = {
-        lastCharWritten = buf(end - 1).toChar
-        if (interactive() && !paused() && promptShown) {
-          promptShown = false
-        }
-
         if (enableTicker && interactive()) {
+          lastCharWritten = buf(end - 1).toChar
+          synchronizer.synchronized {
+            moveUp()
+            lastPromptHeight = 0
+          }
           // Clear each line as they are drawn, rather than relying on clearing
           // the entire screen before each batch of writes, to try and reduce the
           // amount of terminal flickering in slow terminals (e.g. windows)
           // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
-          dest.write(
-            new String(buf, 0, end)
-              .replaceAll("(\r\n|\n|\t)", AnsiNav.clearLine(0) + "$1")
-              .getBytes
-          )
+          PromptLoggerUtil.streamToPrependNewlines(dest, buf, end, AnsiNav.clearLine(0).getBytes)
         } else {
-          dest.write(new String(buf, 0, end).getBytes)
+          dest.write(buf, 0, end)
         }
       }
     }
@@ -337,7 +384,10 @@ private[mill] object PromptLogger {
       // Close the write side of the pipe first but do not close the read side, so
       // the `pumperThread` can continue reading remaining text in the pipe buffer
       // before terminating on its own
-      ProxyStream.sendEnd(pipe.output)
+      ProxyStream.sendEnd(
+        pipe.output,
+        0 // exit code value is not used since this ProxyStream doesn't wrap a subprocess
+      )
       pipe.output.close()
       pumperThread.join()
     }
@@ -356,7 +406,7 @@ private[mill] object PromptLogger {
       infoColor: fansi.Attrs
   ) {
     private val statuses = collection.mutable.SortedMap
-      .empty[Seq[String], Status](PromptLoggerUtil.seqStringOrdering)
+      .empty[Seq[String], Status](using PromptLoggerUtil.seqStringOrdering)
 
     private var headerPrefix = ""
     // Pre-compute the prelude and current prompt as byte arrays so that
@@ -395,7 +445,7 @@ private[mill] object PromptLogger {
       )
 
       val oldPromptBytes = currentPromptBytes
-      currentPromptBytes = renderPromptWrapped(currentPromptLines, interactive, ending).getBytes
+      currentPromptBytes = renderPromptWrapped(currentPromptLines, interactive).getBytes
       !java.util.Arrays.equals(oldPromptBytes, currentPromptBytes)
     }
 
@@ -406,7 +456,7 @@ private[mill] object PromptLogger {
       statuses.updateWith(key)(_.map(se => se.copy(next = se.next.map(_.copy(detail = detail)))))
     }
 
-    def setCurrent(key: Seq[String], sOpt: Option[String]): Unit = {
+    def setCurrent(key: Seq[String], sOpt: Option[String]): Option[Status] = {
 
       val now = currentTimeMillis()
       def stillTransitioning(status: Status) = {
@@ -415,7 +465,7 @@ private[mill] object PromptLogger {
       val sOptEntry = sOpt.map(StatusEntry(_, now, ""))
       statuses.updateWith(key) {
         case None =>
-          statuses.find { case (k, v) => v.next.isEmpty } match {
+          statuses.find { case (_, v) => v.next.isEmpty } match {
             case Some((reusableKey, reusableValue)) =>
               statuses.remove(reusableKey)
               Some(reusableValue.copy(next = sOptEntry))

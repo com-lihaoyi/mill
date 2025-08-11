@@ -5,7 +5,7 @@
 // build:
 
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 trait MyModule extends ScalaModule {
   def scalaVersion = "2.13.11"
@@ -17,23 +17,42 @@ object foo extends MyModule {
 }
 
 object bar extends MyModule {
-  def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.8.2")
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::mainargs:0.4.0",
+    mvn"com.lihaoyi::scalatags:0.8.2"
+  )
 }
 
 // You can run
 
 /** Usage
 
-> mill mill.scalalib.Dependency/showUpdates
+> ./mill mill.javalib.Dependency/showUpdates
+Found 2 dependency update for bar
+  com.lihaoyi:mainargs_2.13 : 0.4.0 -> 0.5.0 -> 0.5.1 -> 0.5.2 -> 0.5.3 -> ...
+  com.lihaoyi:scalatags_2.13 : 0.8.2 -> 0.8.3 -> 0.8.4 -> 0.8.5 -> 0.8.6 -> ...
+Found 1 dependency update for foo
+  com.lihaoyi:mainargs_2.13 : 0.4.0 -> 0.5.0 -> 0.5.1 -> 0.5.2 -> 0.5.3 -> ...
 
-> mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions
+> ./mill mill.scalalib.Dependency/showUpdates --format PerDependency
+com.lihaoyi:mainargs_2.13 : 0.4.0 -> 0.5.0 -> 0.5.1 -> 0.5.2 -> 0.5.3 -> ... in
+  bar
+  foo
+com.lihaoyi:scalatags_2.13 : 0.8.2 -> 0.8.3 -> 0.8.4 -> 0.8.5 -> 0.8.6 -> ... in
+  bar
 
+> ./mill mill.javalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions
+
+*/
+
+// If you have a meta-build, you can also search for updates there
+
+/** Usage
+> ./mill --meta-level 1 mill.javalib.Dependency/showUpdates
 */
 
 // Current limitations:
 //
 // * Only works for `JavaModule` modules (including ``ScalaModule``s,
-// ``CrossScalaModule``s, etc.) and Maven repositories.
+// ``CrossScalaModule``s, ``KotlinModule``s, etc.) and Maven repositories.
 // * Always applies to all modules in the build.
-// * Doesn't apply to `$ivy` dependencies used in the build definition itself.
-//

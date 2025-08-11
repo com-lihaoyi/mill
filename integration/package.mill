@@ -3,53 +3,97 @@ package build.integration
 import scala.util.chaining._
 import coursier.maven.MavenRepository
 import mill._
-import mill.main.Tasks
+import mill.util.Tasks
 import mill.scalalib._
-import mill.scalalib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
-import mill.define.SelectMode
+import mill.api.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
-import mill.define.Cross
-import mill.testrunner.TestResult
+import mill.api.Cross
+import mill.javalib.testrunner.TestResult
+import millbuild.*
+import upickle.implicits.namedTuples.default.given
+import mill.api.BuildCtx
 
-object `package` extends RootModule {
+object `package` extends mill.Module {
   // We compile the test code once and then offer multiple modes to
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
   // and pass `lib`'s compile output back to `test`.
 
+  def localOutFolder = Task.Worker {
+    val counter = new java.util.concurrent.atomic.AtomicInteger(0)
+    new mill.util.CachedFactory[Unit, os.Path] {
+      def setup(key: Unit): os.Path = {
+        val res = Task.dest / s"local-${counter.getAndIncrement()}" / "out"
+        os.remove.all(res)
+        os.makeDir.all(res)
+        res
+      }
+
+      def teardown(key: Unit, value: os.Path): Unit = {
+        os.remove.all(value)
+      }
+
+      def maxCacheSize: Int = Task.ctx().jobs
+    }
+  }
+
   trait IntegrationTestModule extends Cross.Module[String] {
     def moduleDir = super.moduleDir / crossValue
 
-    def moduleDeps = Seq(build.libs.main.test, build.testkit, build.runner)
+    def moduleDeps = Seq(build.libs.util.test, build.testkit, build.runner.daemon)
 
     def resources: T[Seq[PathRef]]
     def runClasspath: T[Seq[PathRef]]
     def localRunClasspath: T[Seq[PathRef]]
     def forkEnv: T[Map[String, String]]
     def testExclusive = false
-    trait ModeModule extends build.MillBaseTestsModule {
+
+    trait ModeModule extends MillBaseTestsModule {
       override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
-        testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
+        val useSharedOut = moduleSegments.parts.contains("local")
+        localOutFolder().withValue(()) { sharedOutFolder =>
+          val testModuleUtil = new mill.javalib.TestModuleUtil(
+            testUseArgsFile(),
+            forkArgs(),
+            Seq.empty[String],
+            jvmWorker().scalalibClasspath(),
+            resources(),
+            testFramework(),
+            runClasspath(),
+            testClasspath(),
+            args,
+            testForkGrouping(),
+            jvmWorker().testrunnerEntrypointClasspath(),
+            allForkEnv() ++ Option.when(useSharedOut) { "MILL_TEST_SHARED_OUTPUT_DIR" -> "1" },
+            testSandboxWorkingDir = !useSharedOut,
+            if (useSharedOut) sharedOutFolder else forkWorkingDir(),
+            testReportXml(),
+            javaHome().map(_.path),
+            testParallelism(),
+            testLogLevel()
+          )
+          testModuleUtil.runTests()
+        }
       }
 
       def mode: String = moduleSegments.parts.last
-      def scalaVersion = build.Deps.scalaVersion
+      def scalaVersion = Deps.scalaVersion
 
-      def forkEnv =
+      def forkEnv = Task {
         super.forkEnv() ++
           IntegrationTestModule.this.forkEnv() ++
           Map(
-            "MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString,
+            "MILL_INTEGRATION_DAEMON_MODE" -> (mode == "daemon").toString,
             "MILL_INTEGRATION_IS_PACKAGED_LAUNCHER" -> millIntegrationIsPackagedLauncher().toString,
             "MILL_LAUNCHER" -> build.dist.bootstrapLauncher().path.toString,
             "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
           ) ++
-          Option.when(!millIntegrationIsPackagedLauncher())(
-            "MILL_LOCAL_TEST_OVERRIDE_CLASSPATH" -> build.dist.localTestOverridesClasspath().path.toString
-          )
+          (if (millIntegrationIsPackagedLauncher()) Map() else build.dist.localTestOverridesEnv())
+      }
 
       def millIntegrationLauncher: T[PathRef]
 
@@ -79,12 +123,12 @@ object `package` extends RootModule {
     trait IntegrationLauncherModule extends Module {
       def millIntegrationLauncher: T[PathRef]
       def millIntegrationIsPackagedLauncher: Task[Boolean]
-      object fork extends ModeModule {
+      object nodaemon extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
         def millIntegrationIsPackagedLauncher =
           IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
       }
-      object server extends ModeModule {
+      object daemon extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
         def millIntegrationIsPackagedLauncher =
           IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
@@ -92,26 +136,24 @@ object `package` extends RootModule {
     }
   }
 
-  object failure extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "failure"))
-  object feature extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "feature"))
-  object invalidation
-      extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "invalidation"))
-  object ide extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "ide"))
-  object bootstrap
-      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "bootstrap"))
-  object migrating
-      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "migrating"))
-  trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
+  object failure extends Cross[IntegrationCrossModule](build.listCross)
+  object feature extends Cross[IntegrationCrossModule](build.listCross)
+  object invalidation extends Cross[IntegrationCrossModule](build.listCross)
+  object ide extends Cross[IdeIntegrationCrossModule](build.listCross)
+  object bootstrap extends Cross[IdeIntegrationCrossModule](build.listCross)
+  object migrating extends Cross[IdeIntegrationCrossModule](build.listCross)
+  trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkEnv = super.forkEnv() ++ Seq(
-      "MILL_PROJECT_ROOT" -> Task.workspace.toString,
-      "TEST_SCALA_2_13_VERSION" -> build.Deps.testScala213Version,
-      "TEST_KOTLIN_VERSION" -> build.Deps.kotlinCompiler.version
+      "MILL_PROJECT_ROOT" -> BuildCtx.workspaceRoot.toString,
+      "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
+      "TEST_KOTLIN_VERSION" -> Deps.kotlinCompiler.version
     )
   }
   trait IdeIntegrationCrossModule extends IntegrationCrossModule {
-    def mvnDeps = super.mvnDeps() ++ Agg(
-      build.Deps.bsp4j
+    def moduleDeps = super.moduleDeps ++ Seq(`bsp-util`)
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      Deps.bsp4j
     )
   }
 
@@ -121,5 +163,12 @@ object `package` extends RootModule {
     Task {
       PathRef(build.dist.installLocalTask(binFile = Task.Anon((Task.dest / name).toString()))())
     }
+  }
+
+  object `bsp-util` extends MillScalaModule {
+    def moduleDeps = Seq(build.libs.util.test, build.runner.bsp, build.libs.javalib.testrunner)
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      Deps.bsp4j
+    )
   }
 }

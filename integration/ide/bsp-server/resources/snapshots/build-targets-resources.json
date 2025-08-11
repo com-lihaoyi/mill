@@ -8,7 +8,49 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/app/test"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/delayed"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/diag"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/diag/many"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/compilation-error"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/exception"
+      },
+      "resources": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/hello-java"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java/test"
       },
       "resources": []
     },
@@ -21,6 +63,12 @@
     {
       "target": {
         "uri": "file:///workspace/hello-scala"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala/test"
       },
       "resources": []
     },

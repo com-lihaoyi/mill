@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 import utest.asserts.{RetryMax, RetryInterval}
 
 /**
- * Make sure removing the `mill-server` or `mill-no-server` directory
+ * Make sure removing the `mill-daemon` or `mill-no-daemon` directory
  * kills any running process
  */
 object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
@@ -19,8 +19,8 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
     integrationTest { tester =>
       import tester._
 
-      assert(!os.exists(workspacePath / "out/mill-server"))
-      assert(!os.exists(workspacePath / "out/mill-no-server"))
+      assert(!os.exists(workspacePath / "out/mill-daemon"))
+      assert(!os.exists(workspacePath / "out/mill-no-daemon"))
 
       @volatile var watchTerminated = false
       Future {
@@ -32,19 +32,30 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
         watchTerminated = true
       }
 
-      if (tester.clientServerMode) eventually { os.exists(workspacePath / "out/mill-server") }
-      else eventually { os.exists(workspacePath / "out/mill-no-server") }
+      if (tester.daemonMode) assertEventually { os.exists(workspacePath / "out/mill-daemon") }
+      else assertEventually { os.exists(workspacePath / "out/mill-no-daemon") }
 
       assert(watchTerminated == false)
 
       val processRoot =
-        if (tester.clientServerMode) workspacePath / "out/mill-server"
-        else workspacePath / "out/mill-no-server"
+        if (tester.daemonMode) workspacePath / "out/mill-daemon"
+        else workspacePath / "out/mill-no-daemon"
 
-      os.list(processRoot).map(p => os.remove(p / "processId"))
+      assertEventually {
+        os.walk(processRoot).exists(_.last == "processId")
+      }
 
-      // Not sure why this is flaky on windows but disable it
-      if (!mill.constants.Util.isWindows) eventually { watchTerminated == true }
+      if (tester.daemonMode) {
+        os.remove(processRoot / "processId")
+      } else {
+        os.list(processRoot).map { p =>
+          os.remove(p / "processId")
+        }
+      }
+
+      assertEventually {
+        watchTerminated == true
+      }
     }
   }
 }

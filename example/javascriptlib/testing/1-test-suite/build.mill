@@ -1,21 +1,21 @@
 package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object bar extends TypeScriptModule {
-  object test extends TypeScriptTests with TestModule.Jest
+  object test extends TypeScriptTests, TestModule.Jest
 }
 
 object baz extends TypeScriptModule {
-  object test extends TypeScriptTests with TestModule.Vitest
+  object test extends TypeScriptTests, TestModule.Vitest
 }
 
 object foo extends TypeScriptModule {
-  object test extends TypeScriptTests with TestModule.Mocha
+  object test extends TypeScriptTests, TestModule.Mocha
 }
 
 object qux extends TypeScriptModule {
-  object test extends TypeScriptTests with TestModule.Jasmine
+  object test extends TypeScriptTests, TestModule.Jasmine
 }
 
 // This build defines 4 modules bar, baz, foo & qux with test suites configured to use
@@ -43,25 +43,25 @@ object qux extends TypeScriptModule {
 
 /** Usage
 
-> mill foo.test
+> ./mill foo.test
 ...
 ...4 passing...
 ...
 
-> mill bar.test
+> ./mill bar.test
 ...Calculator
 ...
 Test Suites:...1 passed, 1 total...
 Tests:...4 passed, 4 total...
 ...
 
-> mill baz.test
+> ./mill baz.test
 .../calculator.test.ts...
 ...Test Files  1 passed...
 ...Tests  4 passed...
 ...
 
-> mill qux.test
+> ./mill qux.test
 ...
 4 specs, 0 failures
 */

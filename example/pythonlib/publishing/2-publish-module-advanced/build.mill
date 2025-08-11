@@ -24,9 +24,9 @@
 // The following example shows how to override the packaging process by providing a
 // custom `setup.py` file.
 
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
-object `package` extends RootModule with PythonModule with PublishModule {
+object `package` extends PythonModule, PublishModule {
 
   def publishMeta = PublishMeta(
     name = "testpackage",
@@ -60,7 +60,7 @@ object `package` extends RootModule with PythonModule with PublishModule {
 }
 
 /** Usage
-> mill sdist
+> ./mill sdist
 ...
 hello from custom setup.py!
 ...

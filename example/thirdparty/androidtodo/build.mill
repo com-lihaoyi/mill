@@ -1,7 +1,16 @@
 package build
 
-import mill._, androidlib._, kotlinlib._
+import mill.*, androidlib.*, kotlinlib.*
 import hilt.AndroidHiltSupport
+
+object Versions {
+  val kotlinVersion = "2.0.21"
+  val kotlinLanguageVersion = "1.9"
+
+  val kspVersion = "1.0.28"
+  val androidCompileSdk = 35
+  val androidMinSdk = 26
+}
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
@@ -9,27 +18,49 @@ object androidSdkModule0 extends AndroidSdkModule {
 }
 
 // Mill configuration for the Android Todo App project.
-object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHiltSupport {
+object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfig,
+      AndroidHiltSupport {
 
-  def kotlinVersion = "2.0.21"
-  def kotlinLanguageVersion = "1.9"
+  def kotlinVersion = Versions.kotlinVersion
+  def kotlinLanguageVersion = Versions.kotlinLanguageVersion
+  def kspVersion = Versions.kspVersion
 
-  def kspVersion = "1.0.28"
+  override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+    AndroidBuildTypeSettings(
+      isMinifyEnabled = false,
+      isShrinkEnabled = false
+    ).withDefaultProguardFile("proguard-android.txt")
+      .withProguardLocalFiles(
+        Seq(
+          moduleDir / "proguard-rules.pro"
+        )
+      )
+  }
+
+  // TODO consider using a debug module
+  def debugSources = Task.Sources("src/debug/java")
+
+  override def sources = super.sources() ++ debugSources()
 
   def androidApplicationNamespace = "com.example.android.architecture.blueprints.todoapp"
+  // TODO change this to com.example.android.architecture.blueprints.main when mill supports build variants
   def androidApplicationId = "com.example.android.architecture.blueprints.main"
 
-  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
-  def androidCompileSdk = 35
+  def androidCompileSdk = Versions.androidCompileSdk
 
-  def androidMinSdk = 26
+  def androidMinSdk = Versions.androidMinSdk
 
   def androidEnableCompose = true
 
   def androidIsDebug = true
 
-  def mvnDeps: T[Agg[Dep]] = Agg(
+  def bomMvnDeps = Seq(
+    mvn"androidx.compose:compose-bom:2024.12.01"
+  )
+
+  def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
     mvn"androidx.core:core-ktx:1.15.0",
     mvn"androidx.appcompat:appcompat:1.7.0",
     mvn"androidx.annotation:annotation:1.9.1",
@@ -38,88 +69,220 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
     mvn"androidx.test.espresso:espresso-idling-resource:3.6.1",
     mvn"androidx.room:room-runtime:2.6.1",
     mvn"androidx.room:room-ktx:2.6.1",
-    mvn"androidx.compose:compose-bom:2024.12.01",
     mvn"androidx.activity:activity-compose:1.10.0",
-    mvn"androidx.compose.foundation:foundation:1.7.6",
-    mvn"androidx.compose.animation:animation-core:1.7.6",
-    mvn"androidx.compose.foundation:foundation-android:1.7.6",
-    mvn"androidx.compose.foundation:foundation-layout:1.7.6",
-    mvn"androidx.compose.animation:animation:1.7.6",
-    mvn"androidx.compose.material3:material3:1.3.1",
-    mvn"androidx.compose.material:material:1.7.6",
-    mvn"androidx.compose.material:material-android:1.7.6",
-    mvn"androidx.compose.material:material-icons-core:1.7.6",
-    mvn"androidx.compose.material:material-ripple-android:1.7.6",
-    mvn"androidx.compose.material:material-icons-extended:1.7.6",
-    mvn"androidx.compose.ui:ui-tooling-preview:1.7.6",
     mvn"androidx.navigation:navigation-compose:2.8.5",
-    mvn"androidx.compose.ui:ui:1.7.6",
-    mvn"androidx.compose.ui:ui-android:1.7.6",
-    mvn"androidx.compose.ui:ui-unit:1.7.6",
-    mvn"androidx.compose.ui:ui-text:1.7.6",
-    mvn"androidx.compose.ui:ui-graphics:1.7.6",
-    mvn"androidx.compose.ui:ui:1.7.6",
+    mvn"androidx.emoji2:emoji2:1.3.0",
+    mvn"androidx.lifecycle:lifecycle-common:2.8.7",
+    mvn"androidx.lifecycle:lifecycle-process:2.8.7",
     mvn"androidx.lifecycle:lifecycle-runtime-compose:2.8.7",
     mvn"androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7",
-    mvn"androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.7",
-    mvn"com.google.accompanist:accompanist-appcompat-theme:0.36.0"
-      .exclude("androix.appcompat" -> "appcompat"),
-    mvn"androidx.compose.material:material-icons-core-android:1.7.6",
+    mvn"androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7",
+    mvn"com.google.accompanist:accompanist-appcompat-theme:0.36.0",
     mvn"com.google.dagger:hilt-android:2.56",
     mvn"androidx.hilt:hilt-navigation-compose:1.2.0",
     mvn"com.google.accompanist:accompanist-swiperefresh:0.36.0",
-    mvn"androidx.compose:compose-bom:2024.12.01",
-    mvn"androidx.customview:customview-poolingcontainer:1.0.0"
+    mvn"androidx.customview:customview-poolingcontainer:1.0.0",
+    mvn"androidx.tracing:tracing:1.2.0",
+
+    // versions are resolved with compose-bom
+    mvn"androidx.compose.foundation:foundation",
+    mvn"androidx.compose.foundation:foundation-layout",
+    mvn"androidx.compose.animation:animation",
+    mvn"androidx.compose.material3:material3",
+    mvn"androidx.compose.material:material",
+    mvn"androidx.compose.material:material-icons-extended",
+    mvn"androidx.compose.ui:ui-tooling-preview",
+    mvn"androidx.compose.ui:ui",
+    mvn"androidx.compose.ui:ui-unit",
+    mvn"androidx.compose.ui:ui-text",
+    mvn"androidx.compose.ui:ui-graphics",
+    // debug
+    mvn"androidx.compose.ui:ui-tooling",
+    mvn"androidx.compose.ui:ui-test-manifest"
   )
 
-  def kotlinSymbolProcessors: T[Agg[Dep]] = Agg(
+  def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
     mvn"androidx.room:room-compiler:2.6.1",
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  def kotlincPluginMvnDeps: T[Seq[Dep]] = Task {
-    Seq(
-      mvn"org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:${kotlinVersion()}"
+  object test extends AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4 {
+
+    def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
+
+    def androidEnableCompose = true
+
+    override def kspVersion = Versions.kspVersion
+
+    def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
+      mvn"androidx.room:room-compiler:2.6.1",
+      mvn"com.google.dagger:hilt-android-compiler:2.56"
+    )
+
+    def bomMvnDeps = Seq(
+      mvn"androidx.compose:compose-bom:2024.12.01"
+    )
+
+    // versions resolved from compose-bom
+    def composeDeps = Seq(
+      mvn"androidx.compose.ui:ui-test-junit4"
+    )
+
+    def mvnDeps = super.mvnDeps() ++ composeDeps ++ Seq(
+      mvn"junit:junit:4.13.2",
+      mvn"androidx.arch.core:core-testing:2.2.0",
+      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0",
+      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0",
+      mvn"androidx.navigation:navigation-testing:2.8.5",
+      mvn"androidx.test.espresso:espresso-core:3.6.1",
+      mvn"androidx.test.espresso:espresso-contrib:3.6.1",
+      mvn"androidx.test.espresso:espresso-intents:3.6.1",
+      mvn"com.google.truth:truth:1.4.4",
+      mvn"com.google.dagger:hilt-android-testing:2.56"
     )
   }
 
-  private val dependencyPinning = Map(
-    "android.collection" -> "1.4.4",
-    "androidx.lifecycle" -> "2.8.7",
-    "androidx.compose.runtime" -> "1.7.6",
-    "androidx.compose.material" -> "1.7.6",
-    "androidx.compose.ui" -> "1.7.6",
-    "androidx.appcompat" -> "1.7.0",
-    "androidx.emoji2" -> "1.3.0",
-    "androidx.activity" -> "1.10.0",
-    "androidx.compose.foundation" -> "1.7.6",
-    "androidx.compose.animation" -> "1.7.6",
-    "androidx.collection" -> "1.4.2"
-  )
-  // This is a temporary fix
-  def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
-    super.mapDependencies().andThen { (d: coursier.Dependency) =>
-      // otherwise there are some resolution problems (version conflicts), because Coursier is using pom files only,
-      // but Gradle is working with .module files if available
-      dependencyPinning.get(d.module.organization.value).map(d.withVersion).getOrElse(d)
+  object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule,
+        AndroidHiltSupport {
+
+    override def kotlinLanguageVersion = Versions.kotlinLanguageVersion
+
+    def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
+
+    def testFramework = "com.example.android.architecture.blueprints.todoapp.CustomTestRunner"
+
+    def androidEnableCompose = true
+
+    override def kspVersion = Versions.kspVersion
+
+    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+      AndroidBuildTypeSettings(
+        isMinifyEnabled = false,
+        isShrinkEnabled = false
+      ).withDefaultProguardFile("proguard-android.txt")
+        .withProguardLocalFiles(
+          Seq(
+            moduleDir / "proguardTest-rules.pro",
+            moduleDir / "proguard-rules.pro"
+          )
+        )
     }
-  }
 
-  object test extends AndroidAppKotlinTests with TestModule.Junit4 {
-    def mvnDeps = super.mvnDeps() ++ Agg(
-      mvn"junit:junit:4.13.2"
+    def bomMvnDeps = Seq(
+      mvn"androidx.compose:compose-bom:2024.12.01"
     )
-  }
 
-  object androidTest extends AndroidAppKotlinInstrumentedTests with AndroidTestModule.AndroidJUnit {
-    override def instrumentationPackage = "com.example.android"
+    // versions resolved from compose-bom
+    def composeDeps = Seq(
+      mvn"androidx.compose.ui:ui-test-junit4"
+    )
+
+    def mvnDeps = super.mvnDeps() ++ composeDeps ++ Seq(
+      // Dependencies for Android unit tests
+      mvn"junit:junit:4.13.2",
+      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0",
+      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0",
+      // AndroidX Test - Instrumented testing
+      mvn"androidx.test:core-ktx:1.6.1",
+      mvn"androidx.test.ext:junit-ktx:1.2.1",
+      mvn"androidx.test:rules:1.6.1",
+      mvn"androidx.room:room-testing:2.6.1",
+      mvn"androidx.arch.core:core-testing:2.2.0",
+      mvn"androidx.navigation:navigation-testing:2.8.5",
+      mvn"androidx.test.espresso:espresso-core:3.6.1",
+      mvn"androidx.test.espresso:espresso-contrib:3.6.1",
+      mvn"androidx.test.espresso:espresso-intents:3.6.1",
+      mvn"androidx.test.espresso:espresso-idling-resource:3.6.1",
+      mvn"androidx.test.espresso.idling:idling-concurrent:3.6.1",
+      // AndroidX Test - Hilt testing
+      mvn"com.google.dagger:hilt-android-testing:2.56"
+    )
+
+    def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
+      mvn"androidx.room:room-compiler:2.6.1",
+      mvn"com.google.dagger:hilt-android-compiler:2.56"
+    )
 
   }
 
 }
 
+object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
+
+  def moduleDeps = Seq(app)
+
+  def kotlinVersion = Versions.kotlinVersion
+  def kotlinLanguageVersion = Versions.kotlinLanguageVersion
+  def kspVersion = Versions.kspVersion
+  def androidIsDebug = true
+
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+  def androidCompileSdk = Versions.androidCompileSdk
+  def androidMinSdk = Versions.androidMinSdk
+
+  def androidEnableCompose = true
+
+  def androidNamespace = "com.example.android.architecture.blueprints.todoapp.daemon.test"
+
+  def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
+    mvn"androidx.room:room-compiler:2.6.1",
+    mvn"com.google.dagger:hilt-android-compiler:2.56"
+  )
+
+  def mvnDeps = super.mvnDeps() ++ Seq(
+    mvn"junit:junit:4.13.2",
+    mvn"androidx.arch.core:core-testing:2.2.0",
+    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0",
+    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0",
+    mvn"androidx.test:core-ktx:1.6.1",
+    mvn"androidx.test.ext:junit-ktx:1.2.1",
+    mvn"androidx.test:rules:1.6.1",
+    mvn"com.google.dagger:hilt-android:2.56",
+    mvn"com.google.dagger:hilt-android-testing:2.56",
+    mvn"androidx.room:room-runtime:2.6.1",
+    mvn"androidx.room:room-ktx:2.6.1"
+  )
+}
+
 /** Usage
 
-> ./mill app.androidDex
+> ./mill app.androidApk
+
+> ./mill app.test
+
+> cat out/app/test/testForked.dest/test-report.xml
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites tests="46" failures="0" errors="0" skipped="0" time="...">
+...
+
+> ./mill show app.createAndroidVirtualDevice
+...Name: test, DeviceId: medium_phone...
+
+> ./mill show app.startAndroidEmulator
+
+> ./mill show app.androidInstall
+...All files should be loaded. Notifying the device...
+
+> ./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
+[
+  "Starting: Intent { cmp=com.example.android.architecture.blueprints.main/com.example.android.architecture.blueprints.todoapp.TodoActivity }",
+  "Status: ok",
+  "LaunchState: COLD",
+  "Activity: com.example.android.architecture.blueprints.main/com.example.android.architecture.blueprints.todoapp.TodoActivity",
+  "TotalTime: ...",
+  "WaitTime: ...",
+  "Complete"
+]
+
+> ./mill app.androidTest
+
+> cat out/app/androidTest/testForked.dest/test-report.xml
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites tests="38" failures="0" errors="0" skipped="0" time="...">
+...
+
+> ./mill show app.stopAndroidEmulator
+
+> ./mill show app.deleteAndroidVirtualDevice
 
 */

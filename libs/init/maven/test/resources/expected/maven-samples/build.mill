@@ -1,10 +1,11 @@
+//| mill-version: SNAPSHOT
 package build
 
 import mill._
 import mill.javalib._
 import mill.javalib.publish._
 
-object `package` extends RootModule with PublishModule with MavenModule {
+object `package` extends PublishModule with MavenModule {
 
   def artifactName = "parent"
 

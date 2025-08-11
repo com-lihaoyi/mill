@@ -1,16 +1,14 @@
 package mill.scalalib
 
-import mill.define.Discover
-import mill.define.ExecutionPaths
+import mill.api.Discover
 import mill.util.TokenReaders.*
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
-import utest.framework.TestPath
 
 object CrossVersionTests extends TestSuite {
 
-  object TestCases extends TestBaseModule {
+  object TestCases extends TestRootModule {
 
     object StandaloneScala213 extends ScalaModule {
       val tree =
@@ -133,32 +131,34 @@ object CrossVersionTests extends TestSuite {
 
   def check(
       mod: JavaModule,
-      expectedDeps: Seq[String],
       expectedLibs: Seq[String],
       expectedMvnDepsTree: Option[String] = None
-  )(implicit
-      testPath: TestPath
   ) = {
-    val eval = init()
-    eval.apply(mod.mvnDepsTree(MvnDepsTreeArgs()))
+    init().scoped { eval =>
+      val Right(result) = eval.apply(mod.showMvnDepsTree(MvnDepsTreeArgs())): @unchecked
 
-    expectedMvnDepsTree.foreach { tree =>
-      if (!scala.util.Properties.isWin) {
-        // Escape-sequence formatting isn't working under bare Windows
-        val expectedDepsTree = tree
-        val depsTree =
-          os.read(ExecutionPaths.resolve(
-            eval.outPath,
-            mod.mvnDepsTree(MvnDepsTreeArgs())
-          ).log)
-        assert(depsTree == expectedDepsTree)
+      expectedMvnDepsTree.foreach { tree =>
+        if (scala.util.Properties.isWin) {
+          println("Skipping check under Windows")
+        } else {
+          val diffed = diff(result.value.trim, tree.trim)
+          assert(diffed == Nil)
+        }
       }
+
+      val Right(libs) = eval.apply(mod.compileClasspath): @unchecked
+
+      val libNames = libs.value.map(l => l.path.last).filter(_.endsWith(".jar")).toSeq.sorted
+      assert(libNames == expectedLibs.sorted)
     }
+  }
 
-    val Right(libs) = eval.apply(mod.compileClasspath): @unchecked
-
-    val libNames = libs.value.map(l => l.path.last).filter(_.endsWith(".jar")).toSeq.sorted
-    assert(libNames == expectedLibs.sorted)
+  def diff(actual: String, expected: String): List[String] = {
+    actual.lazyZip(expected).collect {
+      case (x, y) if x != y => s"'$x' != '$y'"
+    }.toList ++
+      actual.drop(expected.length).map(x => s"'$x' is unexpected") ++
+      expected.drop(actual.length).map(y => s"'$y' is expected but missing")
   }
 
   def tests: Tests = Tests {
@@ -166,10 +166,6 @@ object CrossVersionTests extends TestSuite {
     test("StandaloneScala213") {
       check(
         mod = StandaloneScala213,
-        expectedDeps = Seq(
-          "scala-library",
-          "upickle_2.13"
-        ),
         expectedLibs = Seq(
           "geny_2.13-0.6.10.jar",
           "scala-library-2.13.10.jar",
@@ -186,11 +182,6 @@ object CrossVersionTests extends TestSuite {
     test("JavaDependsOnScala213") {
       check(
         mod = JavaDependsOnScala213,
-        expectedDeps = Seq(
-          "scala-library",
-          "upickle_2.13",
-          "slf4j-api"
-        ),
         expectedLibs = Seq(
           "slf4j-api-1.7.35.jar",
           "geny_2.13-0.6.10.jar",
@@ -208,12 +199,6 @@ object CrossVersionTests extends TestSuite {
     test("Scala3DependsOnScala213") {
       check(
         mod = Scala3DependsOnScala213,
-        expectedDeps = Seq(
-          "scala-library",
-          "scala3-library_3",
-          "upickle_2.13",
-          "sourcecode_3"
-        ),
         expectedLibs = Seq(
           "sourcecode_3-0.2.7.jar",
           "geny_2.13-0.6.10.jar",
@@ -232,13 +217,6 @@ object CrossVersionTests extends TestSuite {
     test("JavaDependsOnScala3") {
       check(
         mod = JavaDependsOnScala3,
-        expectedDeps = Seq(
-          "scala-library",
-          "scala3-library_3",
-          "upickle_2.13",
-          "sourcecode_3",
-          "slf4j-api"
-        ),
         expectedLibs = Seq(
           "slf4j-api-1.7.35.jar",
           "sourcecode_3-0.2.7.jar",
@@ -258,11 +236,6 @@ object CrossVersionTests extends TestSuite {
     test("sndwitch3") {
       check(
         mod = sandwitch213,
-        expectedDeps = Seq(
-          "scala-library",
-          "scala3-library_3",
-          "upickle_3"
-        ),
         expectedLibs = Seq(
           "scala-library-2.13.6.jar",
           "scala3-library_3-3.0.2.jar",

@@ -1,5 +1,5 @@
 package foo
-import utest._
+import utest.*
 object FooTests extends TestSuite {
   def tests = Tests {
     test("simple") {

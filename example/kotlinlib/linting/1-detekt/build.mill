@@ -1,10 +1,10 @@
 package build
 
-import mill._
+import mill.*
 import kotlinlib.KotlinModule
 import kotlinlib.detekt.DetektModule
 
-object `package` extends RootModule with KotlinModule with DetektModule {
+object `package` extends KotlinModule, DetektModule {
   def kotlinVersion = "1.9.24"
 }
 

@@ -1,9 +1,0 @@
-package build
-
-import mill.*
-import mill.scalalib.*
-
-object `package` extends MillBuildRootModule:
-  def mvnDeps = Seq(
-    mvn"org.scala-lang::toolkit:0.5.0"
-  )

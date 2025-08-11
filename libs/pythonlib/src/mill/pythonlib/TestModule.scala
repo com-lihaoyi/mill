@@ -2,10 +2,11 @@ package mill.pythonlib
 
 import mill.Task
 import mill.Command
-import mill.TaskModule
+import mill.DefaultTaskModule
 import mill.T
+import mill.api.BuildCtx
 
-trait TestModule extends TaskModule {
+trait TestModule extends DefaultTaskModule {
   import TestModule.TestResult
 
   /**
@@ -39,13 +40,13 @@ trait TestModule extends TaskModule {
    */
   protected def testTask(args: Task[Seq[String]]): Task[Seq[TestResult]]
 
-  override def defaultCommandName() = "testForked"
+  override def defaultTask() = "testForked"
 }
 
 object TestModule {
 
   // TODO: this is a dummy for now, however we should look into re-using
-  // mill.testrunner.TestResults
+  // mill.javalib.testrunner.TestResults
   type TestResult = Unit
 
   /** TestModule that uses Python's standard unittest module to run tests. */
@@ -58,7 +59,7 @@ object TestModule {
       }
       runner().run(
         ("-m", "unittest", testArgs, "-v"),
-        workingDir = Task.workspace
+        workingDir = BuildCtx.workspaceRoot
       )
       Seq()
     }
@@ -81,7 +82,7 @@ object TestModule {
           args()
           // format: in
         ),
-        workingDir = Task.workspace
+        workingDir = BuildCtx.workspaceRoot
       )
       Seq()
     }

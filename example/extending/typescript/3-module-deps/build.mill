@@ -12,7 +12,7 @@
 //    use in `compile`, and `compiledJavascript` for use in `run`
 
 package build
-import mill._
+import mill.*
 
 trait TypeScriptModule extends Module {
   def moduleDeps: Seq[TypeScriptModule] = Nil
@@ -56,7 +56,7 @@ trait TypeScriptModule extends Module {
   }
 
   def mainFileName = Task { s"${moduleDir.last}.js" }
-  def run(args: mill.define.Args) = Task.Command {
+  def run(args: mill.api.Args) = Task.Command {
 
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
     for (((jsDir, tTsDir), mod) <- upstream) {
@@ -94,7 +94,7 @@ object qux extends TypeScriptModule {
 
 /** Usage
 
-> mill qux.run James Bond
+> ./mill qux.run James Bond
 Hello James Bond Professor
 
 */

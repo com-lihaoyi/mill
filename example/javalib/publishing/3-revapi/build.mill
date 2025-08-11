@@ -1,8 +1,8 @@
 //// SNIPPET:BUILD
 package build
-import mill._, javalib._, publish._, revapi._
+import mill.*, javalib.*, publish.*, revapi.*
 
-object bar extends JavaModule with RevapiModule {
+object bar extends JavaModule, RevapiModule {
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
@@ -14,14 +14,12 @@ object bar extends JavaModule with RevapiModule {
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
-  override def revapiConfigFiles: T[Seq[PathRef]] =
-    // add Revapi config JSON file(s)
-    Task.Sources("conf/revapi.json")
+  // add Revapi config JSON file(s)
+  override def revapiConfigFiles: T[Seq[PathRef]] = Task.Sources("conf/revapi.json")
 
-  override def revapiClasspath: T[Seq[PathRef]] = Task {
-    // add folder containing logback.xml
-    super.revapiClasspath() ++ Seq(PathRef(moduleDir / "conf"))
-  }
+  // add folder containing logback.xml
+  override def revapiClasspath = Task { super.revapiClasspath() ++ confClasspath() }
+  def confClasspath = Task.Sources("conf")
 }
 
 // This example uses the `revapi` task, provided by the `RevapiModule`, to run an
@@ -32,12 +30,12 @@ object bar extends JavaModule with RevapiModule {
 
 /** Usage
 
-> mill bar.publishLocal
+> ./mill bar.publishLocal
 Publishing Artifact(com.lihaoyi,bar,0.0.1) to ivy repo...
 
 > cp dev/src/Visibility.java bar/src/Visibility.java
 
-> mill bar.revapi
+> ./mill bar.revapi
 Starting analysis
 Analysis results
 ----------------

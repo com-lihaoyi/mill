@@ -1,8 +1,8 @@
 package mill.twirllib
 
-import mill.define.Discover
+import mill.api.Discover
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assert, *}
 
 trait HelloWorldTests extends TestSuite {
@@ -13,7 +13,7 @@ trait HelloWorldTests extends TestSuite {
     def twirlVersion = testTwirlVersion
   }
 
-  object HelloWorld extends TestBaseModule {
+  object HelloWorld extends TestRootModule {
 
     object core extends HelloWorldModule {
       override def twirlImports = super.twirlImports() ++ testAdditionalImports
@@ -24,7 +24,7 @@ trait HelloWorldTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object HelloWorldWithInclusiveDot extends TestBaseModule {
+  object HelloWorldWithInclusiveDot extends TestRootModule {
 
     object core extends HelloWorldModule {
       override def twirlInclusiveDot: Boolean = true

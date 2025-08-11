@@ -56,25 +56,30 @@ private[mill] class PrefixLogger(
     logger0.unprefixedStreams.in
   )
 
+  private def addPrefix(prefix: String, s: String): String =
+    s.linesWithSeparators.map(prefix + _).mkString
+
   override def info(s: String): Unit = {
     prompt.reportKey(logKey)
-    logger0.info("" + prompt.infoColor(linePrefix) + s)
+    unprefixedStreams.err.println(addPrefix(prompt.infoColor(linePrefix), s))
   }
   override def warn(s: String): Unit = {
     prompt.reportKey(logKey)
-    logger0.warn("" + prompt.warnColor(linePrefix) + s)
+    unprefixedStreams.err.println(addPrefix(prompt.warnColor(linePrefix), s))
   }
   override def error(s: String): Unit = {
     prompt.reportKey(logKey)
-    logger0.error("" + prompt.infoColor(linePrefix) + s)
+    unprefixedStreams.err.println(addPrefix(prompt.errorColor(linePrefix), s))
   }
   override def ticker(s: String): Unit = prompt.setPromptDetail(logKey, s)
 
   def prompt = logger0.prompt
 
   override def debug(s: String): Unit = {
-    if (prompt.debugEnabled) prompt.reportKey(logKey)
-    logger0.debug("" + prompt.infoColor(linePrefix) + s)
+    if (debugEnabled) {
+      if (prompt.debugEnabled) prompt.reportKey(logKey)
+      unprefixedStreams.err.println(addPrefix(prompt.infoColor(linePrefix), s))
+    }
   }
   override def withOutStream(outStream: PrintStream): Logger = new ProxyLogger(this) with Logger {
     override lazy val unprefixedStreams = new SystemStreams(

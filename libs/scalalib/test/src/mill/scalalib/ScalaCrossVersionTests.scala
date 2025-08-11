@@ -1,14 +1,14 @@
 package mill.scalalib
 
 import mill.*
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 import HelloWorldTests.*
-import mill.define.Discover
+import mill.api.Discover
 
 object ScalaCrossVersionTests extends TestSuite {
 
-  object CrossModuleDeps extends TestBaseModule {
+  object CrossModuleDeps extends TestRootModule {
     object stable extends Cross[Stable](scala212Version, scala32Version)
     trait Stable extends CrossScalaModule
 
@@ -26,7 +26,7 @@ object ScalaCrossVersionTests extends TestSuite {
       CrossModuleDeps.cuttingEdge(scala33Version).moduleDeps
     }
     test("scala-213-depend-on-scala-212-fails") {
-      val message = intercept[Exception](
+      val message = assertThrows[Exception](
         CrossModuleDeps.cuttingEdge(scala213Version).moduleDeps
       ).getMessage
       assert(

@@ -1,5 +1,5 @@
 package build
-import mill._, javalib._, publish._
+import mill.*, javalib.*, publish.*
 
 def sharedCompileMvnDeps = Task {
   Seq(
@@ -10,7 +10,7 @@ def sharedCompileMvnDeps = Task {
   )
 }
 
-object jimfs extends PublishModule with MavenModule {
+object jimfs extends PublishModule, MavenModule {
   def publishVersion = "1.3.3.7"
 
   def pomSettings = PomSettings(
@@ -28,7 +28,7 @@ object jimfs extends PublishModule with MavenModule {
 
   def javacOptions = Seq("-processor", "com.google.auto.service.processor.AutoServiceProcessor")
 
-  object test extends MavenTests with TestModule.Junit4 {
+  object test extends MavenTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
     def mvnDeps = sharedCompileMvnDeps() ++ Seq(
       mvn"com.google.guava:guava-testlib:31.1-android",
@@ -51,6 +51,8 @@ object jimfs extends PublishModule with MavenModule {
 // Project home: https://github.com/google/jimfs
 
 /** Usage
+
+> rm jimfs/src/test/java/com/google/common/jimfs/JimfsFileChannelTest.java # disable flaky tests
 
 > ./mill jimfs.test
 Test run com.google.common.jimfs.FileTest started

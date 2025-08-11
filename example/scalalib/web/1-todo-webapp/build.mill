@@ -1,16 +1,16 @@
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
-object `package` extends RootModule with ScalaModule {
-  def scalaVersion = "2.13.8"
+object `package` extends ScalaModule {
+  def scalaVersion = "3.7.1"
   def mvnDeps = Seq(
     mvn"com.lihaoyi::cask:0.9.1",
     mvn"com.lihaoyi::scalatags:0.13.1"
   )
 
-  object test extends ScalaTests with TestModule.Utest {
+  object test extends ScalaTests, TestModule.Utest {
     def mvnDeps = Seq(
-      mvn"com.lihaoyi::utest::0.8.5",
+      mvn"com.lihaoyi::utest::0.8.9",
       mvn"com.lihaoyi::requests::0.6.9"
     )
   }

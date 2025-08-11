@@ -2,4 +2,4 @@ package build.nested
 
 import mill._
 
-object `package` extends RootModule with Module {}
+object `package` extends Module {}

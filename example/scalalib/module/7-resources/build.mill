@@ -1,15 +1,15 @@
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "3.7.1"
   def mvnDeps = Seq(
-    mvn"com.lihaoyi::os-lib:0.10.7"
+    mvn"com.lihaoyi::os-lib:0.11.4"
   )
 
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
     def testFramework = "utest.runner.Framework"
 
     def otherFiles = Task.Source("other-files")

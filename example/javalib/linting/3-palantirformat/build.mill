@@ -2,10 +2,10 @@
 // https://github.com/palantir/palantir-java-format[Palantir Java Format] project.
 package build
 
-import mill._
-import mill.javalib.palantirformat._
+import mill.*
+import mill.javalib.palantirformat.*
 
-object `package` extends RootModule with PalantirFormatModule
+object `package` extends PalantirFormatModule
 
 /** See Also: src/A.java */
 

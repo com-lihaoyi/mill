@@ -2,7 +2,7 @@
 // making use of the most common `Task.Source`, `Task`, and `Task.Command` types
 // to define a simple build graph with some input source files and intermediate build steps:
 package build
-import mill._
+import mill.*
 
 def mainClass: T[Option[String]] = Some("foo.Foo")
 
@@ -19,10 +19,7 @@ def assembly = Task {
   for (p <- Seq(compile(), resources())) os.copy(p.path, Task.dest, mergeFolders = true)
 
   val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
-  os.call(
-    ("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", "."),
-    cwd = Task.dest
-  )
+  os.call(("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", "."))
 
   PathRef(Task.dest / "assembly.jar")
 }

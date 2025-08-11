@@ -1,15 +1,15 @@
 package build
-import mill._, scalalib._, scalajslib._
+import mill.*, scalalib.*, scalajslib.*
 
 trait AppScalaModule extends ScalaModule {
   def scalaVersion = "3.3.3"
 }
 
-trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
-  def scalaJSVersion = "1.16.0"
+trait AppScalaJSModule extends AppScalaModule, ScalaJSModule {
+  def scalaJSVersion = "1.19.0"
 }
 
-object `package` extends RootModule with AppScalaModule {
+object `package` extends AppScalaModule {
   def moduleDeps = Seq(shared.jvm)
   def mvnDeps = Seq(mvn"com.lihaoyi::cask:0.9.1")
 
@@ -21,23 +21,23 @@ object `package` extends RootModule with AppScalaModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends ScalaTests with TestModule.Utest {
-    def utestVersion = "0.8.5"
+  object test extends ScalaTests, TestModule.Utest {
+    def utestVersion = "0.8.9"
     def mvnDeps = Seq(
       mvn"com.lihaoyi::requests::0.6.9"
     )
   }
 
   object shared extends Module {
-    trait SharedModule extends AppScalaModule with PlatformScalaModule {
+    trait SharedModule extends AppScalaModule, PlatformScalaModule {
       def mvnDeps = Seq(
         mvn"com.lihaoyi::scalatags::0.13.1",
-        mvn"com.lihaoyi::upickle::3.0.0"
+        mvn"com.lihaoyi::upickle::4.1.0"
       )
     }
 
     object jvm extends SharedModule
-    object js extends SharedModule with AppScalaJSModule
+    object js extends SharedModule, AppScalaJSModule
   }
 
   object client extends AppScalaJSModule {

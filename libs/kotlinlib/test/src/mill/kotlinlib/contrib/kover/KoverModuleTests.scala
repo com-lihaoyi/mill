@@ -1,10 +1,10 @@
 package mill.kotlinlib.kover
 
-import mill.define.Discover
+import mill.api.Discover
 import mill.util.TokenReaders._
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.kotlinlib.TestModule
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.{T, Task, api}
 import utest.{TestSuite, Tests, assert, test}
 
@@ -16,7 +16,7 @@ object KoverModuleTests extends TestSuite {
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "contrib/kover"
 
-  object module extends TestBaseModule {
+  object module extends TestRootModule {
 
     trait KotestTestModule extends TestModule.Junit5 {
       override def forkArgs: T[Seq[String]] = Task {
@@ -24,7 +24,7 @@ object KoverModuleTests extends TestSuite {
 
       }
       override def mvnDeps = super.mvnDeps() ++ Seq(
-        mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+        mvn"io.kotest:kotest-runner-junit5:5.9.1"
       )
     }
 
@@ -51,80 +51,87 @@ object KoverModuleTests extends TestSuite {
 
     test("reportAll") {
 
-      val eval = UnitTester(module, resourcePath)
+      UnitTester(module, resourcePath).scoped { eval =>
 
-      Seq(module.foo.test.testForked(), module.bar.test.testForked(), module.qux.test.testForked())
-        .foreach(eval(_).get)
+        Seq(
+          module.foo.test.testForked(),
+          module.bar.test.testForked(),
+          module.qux.test.testForked()
+        )
+          .foreach(eval(_).get)
 
-      val Right(result) = eval(Kover.xmlReportAll(eval.evaluator)): @unchecked
+        val Right(result) = eval(Kover.xmlReportAll(eval.evaluator)): @unchecked
 
-      val xmlReportPath = result.value.path
-      assert(os.exists(xmlReportPath))
-      val relPath = xmlReportPath.segments.toVector.takeRight(2)
-      assert(relPath.head == "xmlReportAll.dest")
-      assert(relPath.last == "kover-report.xml")
+        val xmlReportPath = result.value.path
+        assert(os.exists(xmlReportPath))
+        val relPath = xmlReportPath.segments.toVector.takeRight(2)
+        assert(relPath.head == "xmlReportAll.dest")
+        assert(relPath.last == "kover-report.xml")
 
-      val xmlReport = XML.loadFile(xmlReportPath.toString)
+        val xmlReport = XML.loadFile(xmlReportPath.toString)
 
-      // total
-      assert(instructionsCovered(xmlReport) != 0)
-      // per package
-      assert(instructionsCovered(packageNameChildNode(xmlReport, "foo").get) != 0)
-      assert(instructionsCovered(packageNameChildNode(xmlReport, "bar").get) != 0)
-      assert(instructionsCovered(packageNameChildNode(xmlReport, "qux").get) == 0)
+        // total
+        assert(instructionsCovered(xmlReport) != 0)
+        // per package
+        assert(instructionsCovered(packageNameChildNode(xmlReport, "foo").get) != 0)
+        assert(instructionsCovered(packageNameChildNode(xmlReport, "bar").get) != 0)
+        assert(instructionsCovered(packageNameChildNode(xmlReport, "qux").get) == 0)
 
+      }
     }
 
     test("report-xml") {
 
-      val eval = UnitTester(module, resourcePath)
+      UnitTester(module, resourcePath).scoped { eval =>
 
-      val Right(_) = eval(module.foo.test.testForked()): @unchecked
+        val Right(_) = eval(module.foo.test.testForked()): @unchecked
 
-      val Right(result) = eval(module.foo.kover.xmlReport()): @unchecked
+        val Right(result) = eval(module.foo.kover.xmlReport()): @unchecked
 
-      val xmlReportPath = result.value.path
-      assert(os.exists(xmlReportPath))
-      assert(os.isFile(xmlReportPath))
+        val xmlReportPath = result.value.path
+        assert(os.exists(xmlReportPath))
+        assert(os.isFile(xmlReportPath))
 
-      // drop report name
-      val relPath = xmlReportPath.segments.toVector.takeRight(4)
-      assert(relPath.head == "foo")
-      assert(relPath(1) == "kover")
-      assert(relPath(2) == "xmlReport.dest")
-      assert(relPath(3) == "kover-report.xml")
+        // drop report name
+        val relPath = xmlReportPath.segments.toVector.takeRight(4)
+        assert(relPath.head == "foo")
+        assert(relPath(1) == "kover")
+        assert(relPath(2) == "xmlReport.dest")
+        assert(relPath(3) == "kover-report.xml")
 
-      val xmlReport = XML.loadFile(xmlReportPath.toString)
+        val xmlReport = XML.loadFile(xmlReportPath.toString)
 
-      // total
-      assert(instructionsCovered(xmlReport) != 0)
-      // per package
-      assert(instructionsCovered(packageNameChildNode(xmlReport, "foo").get) != 0)
-      assert(packageNameChildNode(xmlReport, "bar").isEmpty)
-      assert(packageNameChildNode(xmlReport, "qux").isEmpty)
+        // total
+        assert(instructionsCovered(xmlReport) != 0)
+        // per package
+        assert(instructionsCovered(packageNameChildNode(xmlReport, "foo").get) != 0)
+        assert(packageNameChildNode(xmlReport, "bar").isEmpty)
+        assert(packageNameChildNode(xmlReport, "qux").isEmpty)
 
+      }
     }
 
     test("report-html") {
 
-      val eval = UnitTester(module, resourcePath)
+      UnitTester(module, resourcePath).scoped { eval =>
 
-      val Right(_) = eval(module.foo.test.testForked()): @unchecked
+        val Right(_) = eval(module.foo.test.testForked()): @unchecked
 
-      val Right(result) = eval(module.foo.kover.htmlReport()): @unchecked
+        val Right(result) = eval(module.foo.kover.htmlReport()): @unchecked
 
-      val htmlReportPath = result.value.path
-      assert(os.exists(htmlReportPath))
-      assert(os.isDir(htmlReportPath))
-      assert(os.walk(htmlReportPath)
-        .exists(p => p.ext == "html"))
+        val htmlReportPath = result.value.path
+        assert(os.exists(htmlReportPath))
+        assert(os.isDir(htmlReportPath))
+        assert(os.walk(htmlReportPath)
+          .exists(p => p.ext == "html"))
 
-      // drop report name
-      val relPath = htmlReportPath.segments.toVector.takeRight(4)
-      assert(relPath.head == "foo")
-      assert(relPath(1) == "kover")
-      assert(relPath(2) == "htmlReport.dest")
-      assert(relPath(3) == "kover-report")
+        // drop report name
+        val relPath = htmlReportPath.segments.toVector.takeRight(4)
+        assert(relPath.head == "foo")
+        assert(relPath(1) == "kover")
+        assert(relPath(2) == "htmlReport.dest")
+        assert(relPath(3) == "kover-report")
+      }
     }
   }
 

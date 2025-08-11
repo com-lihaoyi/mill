@@ -1,9 +1,9 @@
 // All packaging and publishing functionality is defined in `PublishModule`.
 // Start by extending it.
 
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
-object `package` extends RootModule with PythonModule with PublishModule {
+object `package` extends PythonModule, PublishModule {
 
   // information about dependencies will be included in the published package
   def pythonDeps = Seq("jinja2==3.1.4")
@@ -43,10 +43,10 @@ object `package` extends RootModule with PythonModule with PublishModule {
 // You can build a source distribution or wheel by running the following tasks:
 
 /** Usage
-> mill show sdist
+> ./mill show sdist
 ".../out/sdist.dest/dist/testpkg_mill-0.0.2.tar.gz"
 
-> mill show wheel
+> ./mill show wheel
 ".../out/wheel.dest/dist/testpkg_mill-0.0.2-py3-none-any.whl"
 */
 
@@ -85,6 +85,6 @@ object `package` extends RootModule with PythonModule with PublishModule {
 // can also do this with Mill, by running:
 
 /** Usage
-> mill __.checkPublish
+> ./mill __.checkPublish
 ... PASSED
 */

@@ -1,13 +1,13 @@
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def mvnDeps = Seq(
     mvn"org.springframework.boot:spring-boot-starter-web:2.5.6",
     mvn"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
   )
 
-  object test extends JavaTests with TestModule.Junit5 {
+  object test extends JavaTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
@@ -19,14 +19,14 @@ object `package` extends RootModule with JavaModule {
 
 /** Usage
 
-> mill test
+> ./mill test
 ...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
 
-> mill runBackground
+> ./mill runBackground
 
 > curl http://localhost:8086
 ...<h1>Hello, World!</h1>...
 
-> mill clean runBackground
+> ./mill clean runBackground
 
 */

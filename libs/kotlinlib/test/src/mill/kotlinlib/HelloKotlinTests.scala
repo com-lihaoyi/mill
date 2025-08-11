@@ -1,10 +1,10 @@
 package mill
 package kotlinlib
 
-import mill.scalalib.TestModule
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.javalib.TestModule
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.api.ExecResult
-import mill.define.Discover
+import mill.api.Discover
 import utest.*
 
 object HelloKotlinTests extends TestSuite {
@@ -16,7 +16,7 @@ object HelloKotlinTests extends TestSuite {
 
   val junit5Version = sys.props.getOrElse("TEST_JUNIT5_VERSION", "5.9.1")
 
-  object HelloKotlin extends TestBaseModule {
+  object HelloKotlin extends TestRootModule {
     // crossValue - test different Kotlin versions
     // crossValue2 - test with/without the kotlin embeddable compiler
     trait KotlinVersionCross extends KotlinModule with Cross.Module2[String, Boolean] {
@@ -33,7 +33,7 @@ object HelloKotlinTests extends TestSuite {
       }
       object kotest extends KotlinTests with TestModule.Junit5 {
         override def mvnDeps = super.mvnDeps() ++ Seq(
-          mvn"io.kotest:kotest-runner-junit5-jvm:${junit5Version}"
+          mvn"io.kotest:kotest-runner-junit5:${junit5Version}"
         )
       }
     }
@@ -53,80 +53,81 @@ object HelloKotlinTests extends TestSuite {
       else "org.jetbrains.kotlin" -> "kotlin-compiler"
 
     test("compile") {
-      val eval = testEval()
+      testEval().scoped { eval =>
+        HelloKotlin.main.crossModules.foreach(m => {
+          val Right(compiler) = eval.apply(m.kotlinCompilerMvnDeps): @unchecked
 
-      HelloKotlin.main.crossModules.foreach(m => {
-        val Right(compiler) = eval.apply(m.kotlinCompilerMvnDeps): @unchecked
+          assert(
+            compiler.value.map(_.dep.module)
+              .map(m => m.organization.value -> m.name.value)
+              .contains(compilerDep(m.crossValue2))
+          )
 
-        assert(
-          compiler.value.map(_.dep.module)
-            .map(m => m.organization.value -> m.name.value)
-            .contains(compilerDep(m.crossValue2))
-        )
+          val Right(result) = eval.apply(m.compile): @unchecked
 
-        val Right(result) = eval.apply(m.compile): @unchecked
-
-        assert(
-          os.walk(result.value.classes.path).exists(_.last == "HelloKt.class")
-        )
-      })
+          assert(
+            os.walk(result.value.classes.path).exists(_.last == "HelloKt.class")
+          )
+        })
+      }
     }
 
     test("testCompile") {
-      val eval = testEval()
+      testEval().scoped { eval =>
+        HelloKotlin.main.crossModules.foreach(m => {
+          val Right(compiler) = eval.apply(m.test.kotlinCompilerMvnDeps): @unchecked
 
-      HelloKotlin.main.crossModules.foreach(m => {
-        val Right(compiler) = eval.apply(m.test.kotlinCompilerMvnDeps): @unchecked
+          assert(
+            compiler.value.map(_.dep.module)
+              .map(m => m.organization.value -> m.name.value)
+              .contains(compilerDep(m.crossValue2))
+          )
 
-        assert(
-          compiler.value.map(_.dep.module)
-            .map(m => m.organization.value -> m.name.value)
-            .contains(compilerDep(m.crossValue2))
-        )
+          val Right(result1) = eval.apply(m.test.compile): @unchecked
 
-        val Right(result1) = eval.apply(m.test.compile): @unchecked
-
-        assert(
-          os.walk(result1.value.classes.path).exists(_.last == "HelloTest.class")
-        )
-      })
+          assert(
+            os.walk(result1.value.classes.path).exists(_.last == "HelloTest.class")
+          )
+        })
+      }
     }
 
     test("test") {
-      val eval = testEval()
-
-      HelloKotlin.main.crossModules.foreach(m => {
-        val Left(ExecResult.Failure(_)) = eval.apply(m.test.testForked()): @unchecked
-      })
+      testEval().scoped { eval =>
+        HelloKotlin.main.crossModules.foreach(m => {
+          val Left(ExecResult.Failure(_)) = eval.apply(m.test.testForked()): @unchecked
+        })
+      }
     }
     test("kotest") {
-      val eval = testEval()
+      testEval().scoped { eval =>
+        HelloKotlin.main.crossModules.foreach(m => {
+          val Right(discovered) = eval.apply(m.kotest.discoveredTestClasses): @unchecked
+          assert(discovered.value == Seq("hello.tests.FooTest"))
 
-      HelloKotlin.main.crossModules.foreach(m => {
-        val Right(discovered) = eval.apply(m.kotest.discoveredTestClasses): @unchecked
-        assert(discovered.value == Seq("hello.tests.FooTest"))
-
-        val Left(ExecResult.Failure(_)) = eval.apply(m.kotest.testForked()): @unchecked
-      })
+          val Left(ExecResult.Failure(_)) = eval.apply(m.kotest.testForked()): @unchecked
+        })
+      }
     }
 
     test("failures") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val mainJava = HelloKotlin.moduleDir / "main/src/Hello.kt"
+        val mainJava = HelloKotlin.moduleDir / "main/src/Hello.kt"
 
-      HelloKotlin.main.crossModules.foreach(m => {
+        HelloKotlin.main.crossModules.foreach(m => {
 
-        val Right(_) = eval.apply(m.compile): @unchecked
+          val Right(_) = eval.apply(m.compile): @unchecked
 
-        os.write.over(mainJava, os.read(mainJava) + "}")
+          os.write.over(mainJava, os.read(mainJava) + "}")
 
-        val Left(_) = eval.apply(m.compile): @unchecked
+          val Left(_) = eval.apply(m.compile): @unchecked
 
-        os.write.over(mainJava, os.read(mainJava).dropRight(1))
+          os.write.over(mainJava, os.read(mainJava).dropRight(1))
 
-        val Right(_) = eval.apply(m.compile): @unchecked
-      })
+          val Right(_) = eval.apply(m.compile): @unchecked
+        })
+      }
     }
   }
 }

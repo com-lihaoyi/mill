@@ -1,13 +1,14 @@
-// Mill makes it very easy to customize your build graph, overriding portions of it with custom logic.
-// In this example, we override the `resources` of our `PythonModule` - normally the `resources/` folder
-// - to instead contain a single generated text file containing the line count of all the source files in that module
+// Mill makes it very easy to customize your build graph, overriding portions of it with custom
+// logic. In this example, we override the `resources` of our `PythonModule` - normally the
+// `resources/` folder - to additionally contain a single generated text file containing the
+// line count of all the source files in that module
 
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source("src/foo.py")
 
   /** All Python source files in this module, recursively from the source directories.*/
   def allSourceFiles: T[Seq[PathRef]] = Task {
@@ -27,7 +28,7 @@ object foo extends PythonModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends PythonTests with TestModule.Unittest
+  object test extends PythonTests, TestModule.Unittest
 }
 
 // The addition of `lineCount` and `resources` overrides the previous `resource` folder
@@ -85,7 +86,7 @@ OK
 // `os.read.lines` and `os.write` come from the https://github.com/com-lihaoyi/os-lib[OS-Lib] library,
 // which is one of Mill’s https://mill-build.org/mill/main-branch/fundamentals/bundled-libraries.html[Bundled Libraries].
 // You can also import any other library you want from Maven Central using
-// https://mill-build.org/mill/main-branch/extending/import-mvn-plugins.html[import $ivy],
+// https://mill-build.org/mill/main-branch/extending/import-mvn-plugins.html[//| mvnDeps],
 // so you are not limited to what is bundled with Mill.
 //
 // Custom user-defined tasks in Mill benefit from all the same things that built-in tasks do: automatic caching

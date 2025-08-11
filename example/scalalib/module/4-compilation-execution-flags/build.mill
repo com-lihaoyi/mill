@@ -1,9 +1,9 @@
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
-object `package` extends RootModule with ScalaModule {
-  def scalaVersion = "2.13.8"
+object `package` extends ScalaModule {
+  def scalaVersion = "3.7.1"
   def scalacOptions = Seq("-Ydelambdafy:inline")
   def forkArgs = Seq("-Xmx4g", "-Dmy.jvm.property=hello")
   def forkEnv = Map("MY_ENV_VAR" -> "WORLD")

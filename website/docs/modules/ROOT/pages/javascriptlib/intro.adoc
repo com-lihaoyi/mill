@@ -1,6 +1,9 @@
 = Building Javascript with Mill
 :language: Typescript
-:language-small: typescript
+:language-small: javascript
+
+include::partial$Intro_Header.adoc[]
+
 
 == Simple Typescript Module
 

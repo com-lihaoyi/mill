@@ -77,7 +77,7 @@ public class ProxyStreamTests {
               srcErr.write(errData);
             }
 
-            if (gracefulEnd) ProxyStream.sendEnd(pipedOutputStream);
+            if (gracefulEnd) ProxyStream.sendEnd(pipedOutputStream, 0);
             else {
               pipedOutputStream.close();
             }

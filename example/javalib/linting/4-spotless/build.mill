@@ -1,0 +1,78 @@
+// :api-spotless: {site-url}/api/latest/mill/scalalib/spotless
+
+// If your project has file groups each requiring different formatting,
+// you may want to give Mill's https://github.com/diffplug/spotless[Spotless] plugin a try.
+// It supports formatting all files with a single command
+// as opposed to using a different plugin/command for each group.
+
+// We define a module that extends link:{api-spotless}/SpotlessModule.html[SpotlessModule] and
+// provide a JSON configuration file with the format specifications.
+package build
+
+import mill.javalib.JavaModule
+import mill.javalib.spotless.*
+
+object `package` extends JavaModule, SpotlessModule
+
+/** See Also: src/A.java */
+/** See Also: resources/app.properties */
+/** See Also: LICENSE */
+/** See Also: .spotless-formats.json */
+/** See Also: .scalafmt.conf */
+
+// As per the specifications:
+
+// * The `build.mill` is to be formatted using `ScalaFmt` step.
+// * The `resources/app.properties` file is to be formatted using `TrimTrailingWhitespace` step.
+// * All Java files are to be formatted using `PalantirFormatJava` and `LicenseHeader` steps.
+
+// NOTE: Most fields have default values and can be omitted in the JSON file.
+// An example is the `LicenseHeader.header` field that references the `LICENSE` file.
+//
+// NOTE: as `.mill` files use Scala 3 syntax, we need the `.scalafmt.conf` above to
+// configure ScalaFmt to use Scala 3 compatible formatting
+
+// Next, we run the inherited `spotless` command to check/apply the format specifications.
+
+/** Usage
+> ./mill spotless --check   # check fails initially
+checking format in 1 mill files
+format errors in build.mill
+checking format in 1 properties files
+format errors in resources/app.properties
+checking format in 1 java files
+format errors in src/A.java
+format errors in 3 files
+error: ...format check failed for 3 files
+
+> ./mill spotless           # auto-fix format
+formatting build.mill
+formatting resources/app.properties
+formatting src/A.java
+formatted 3 files
+format completed
+
+> ./mill spotless           # fast incremental format
+1 mill files are already formatted
+1 properties files are already formatted
+1 java files are already formatted
+*/
+
+// This demonstrates how different file groups can be formatted with a single command.
+
+// For the full list of format steps and configuration options, please refer to the
+// link:{api-spotless}/Format.html[API documentation].
+
+// TIP: For a multi-module project, it is sufficient to extend `SpotlessModule` in your
+// build root module and define a format specification for each use-case.
+
+// You can also run `spotless` xref:fundamentals/modules.adoc#_external_modules[globally]
+// if you prefer not to have to extend `SpotlessModule`.
+
+/** Usage
+> ./mill mill.javalib.spotless.SpotlessModule/ --check
+checking format in 1 mill files
+checking format in 1 properties files
+checking format in 1 java files
+format check completed
+*/

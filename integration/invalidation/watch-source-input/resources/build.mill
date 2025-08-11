@@ -1,6 +1,6 @@
 package build
 import mill.*
-import mill.define.WorkspaceRoot
+import mill.api.BuildCtx
 
 println("Setting up build.mill")
 
@@ -19,7 +19,7 @@ def qux = Task {
   fooMsg + " " + barMsg
 }
 
-interp.watchValue(PathRef(moduleDir / "watchValue.txt"))
+BuildCtx.watchValue(PathRef(moduleDir / "watchValue.txt"))
 
 def baz = Task.Input(PathRef(moduleDir / "baz.txt"))
 
@@ -34,17 +34,18 @@ def lol = Task {
 
 def writeCompletionMarker(name: String) = {
 
-  os.checker.withValue(os.Checker.Nop) {
+  BuildCtx.withFilesystemCheckerDisabled {
     Range(0, 10)
-      .map(i => WorkspaceRoot.workspaceRoot / "out" / s"$name$i")
+      .map(i => BuildCtx.workspaceRoot / "out" / s"$name$i")
       .find(!os.exists(_))
       .foreach(os.write(_, ""))
   }
 }
 
 writeCompletionMarker("initialized")
-
-if (os.read(moduleDir / "watchValue.txt").contains("exit")) {
-  Thread.sleep(1000)
-  System.exit(0)
+BuildCtx.withFilesystemCheckerDisabled {
+  if (os.read(moduleDir / "watchValue.txt").contains("exit")) {
+    Thread.sleep(1000)
+    System.exit(0)
+  }
 }

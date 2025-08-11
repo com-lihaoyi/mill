@@ -1,0 +1,23 @@
+package build.runner.meta
+
+import mill.*
+import mill.contrib.buildinfo.BuildInfo
+import millbuild.*
+
+object `package` extends MillPublishScalaModule with BuildInfo {
+  def moduleDeps = Seq(
+    build.runner.codesig,
+    build.libs.util,
+    build.libs.scalalib
+  )
+
+  def buildInfoPackageName = "mill.meta"
+
+  def buildInfoMembers = Seq(
+    BuildInfo.Value(
+      "millRunnerMetaVersion",
+      this.publishVersion(),
+      s"Version of artifact ${artifactId()}"
+    )
+  )
+}

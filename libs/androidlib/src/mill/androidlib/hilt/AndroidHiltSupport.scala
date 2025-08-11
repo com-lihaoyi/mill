@@ -1,11 +1,11 @@
 package mill.androidlib.hilt
 
-import mill.androidlib.AndroidAppKotlinModule
-import mill.define.{ModuleRef, PathRef}
+import mill.androidlib.AndroidKotlinModule
+import mill.api.{ModuleRef, PathRef}
 import mill.kotlinlib.DepSyntax
 import mill.kotlinlib.ksp.KspModule
-import mill.scalalib.Dep
-import mill.scalalib.api.CompilationResult
+import mill.javalib.Dep
+import mill.javalib.api.CompilationResult
 import mill.{T, Task}
 
 /**
@@ -18,13 +18,13 @@ import mill.{T, Task}
  * to achieve the compile time dependency injection!
  */
 @mill.api.experimental
-trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
+trait AndroidHiltSupport extends KspModule with AndroidKotlinModule {
 
   override def kspClasspath: T[Seq[PathRef]] =
-    Seq(androidProcessResources()) ++ super.kspClasspath()
+    super.kspClasspath()
 
   def androidHiltProcessorPath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
+    kspDependencyResolver().classpath(
       kotlinSymbolProcessors().flatMap {
         dep =>
           if (dep.dep.module.name.value == "hilt-android-compiler")
@@ -66,6 +66,12 @@ trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
 
   def hiltProcessorClasspath: T[Seq[PathRef]] = Task {
     kspApClasspath() ++ kspClasspath()
+  }
+
+  override def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
+    kspDependencyResolver().classpath(
+      kotlinSymbolProcessors()
+    )
   }
 
 }

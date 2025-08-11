@@ -1,4 +1,4 @@
 package build.sub
 
 import mill._
-object `package` extends RootModule
+object `package` extends mill.Module

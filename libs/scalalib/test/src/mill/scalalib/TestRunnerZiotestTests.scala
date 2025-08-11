@@ -9,7 +9,7 @@ object TestRunnerZiotestTests extends TestSuite {
   override def tests: Tests = Tests {
     test("test") - UnitTester(testrunner, resourcePath).scoped { eval =>
       val Right(result) = eval(testrunner.ziotest.testForked()): @unchecked
-      assert(result.value._2.size == 1)
+      assert(result.value.results.size == 1)
       junitReportIn(eval.outPath, "ziotest").shouldHave(1 -> Status.Success)
     }
     test("discoveredTestClasses") - UnitTester(testrunner, resourcePath).scoped { eval =>

@@ -100,7 +100,7 @@ However, for code written in a typical Scala style (which tends to avoid side ef
 and limits filesystem operations to the `Task.dest` folder, this is not a problem at all.
 
 One thing to note is for code that runs during *Resolution*: any reading of
-external mutable state needs to be wrapped in an `interp.watchValue{...}`
+external mutable state needs to be wrapped in an `mill.api.BuildCtx.watchValue{...}`
 wrapper. This ensures that Mill knows where these external reads are, so that
 it can check if their value changed and if so re-instantiate `RootModule` with
 the new value.

@@ -6,10 +6,10 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Using
 import mill.*
 import mill.api.ExecResult
-import mill.define.Discover
-import mill.define.ExecutionPaths
+import mill.api.Discover
+import mill.api.ExecutionPaths
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 
 object HelloWorldTests extends TestSuite {
@@ -35,18 +35,18 @@ object HelloWorldTests extends TestSuite {
     override def mainClass: T[Option[String]] = Some("Main")
   }
 
-  object HelloWorld extends TestBaseModule {
+  object HelloWorld extends TestRootModule {
     object core extends HelloWorldModule
     lazy val millDiscover = Discover[this.type]
   }
-  object HelloWorldNonPrecompiledBridge extends TestBaseModule {
+  object HelloWorldNonPrecompiledBridge extends TestRootModule {
     object core extends HelloWorldModule {
       override def scalaVersion = "2.12.1"
     }
     lazy val millDiscover = Discover[this.type]
 
   }
-  object CrossHelloWorld extends TestBaseModule {
+  object CrossHelloWorld extends TestRootModule {
     object core extends Cross[HelloWorldCross](
           scala2123Version,
           scala212Version,
@@ -56,31 +56,31 @@ object HelloWorldTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object HelloWorldDefaultMain extends TestBaseModule {
+  object HelloWorldDefaultMain extends TestRootModule {
     object core extends HelloWorldModule
     lazy val millDiscover = Discover[this.type]
   }
 
-  object HelloWorldWithoutMain extends TestBaseModule {
+  object HelloWorldWithoutMain extends TestRootModule {
     object core extends HelloWorldModule {
       override def mainClass = None
     }
     lazy val millDiscover = Discover[this.type]
   }
 
-  object HelloWorldWithMain extends TestBaseModule {
+  object HelloWorldWithMain extends TestRootModule {
     object core extends HelloWorldModuleWithMain
     lazy val millDiscover = Discover[this.type]
   }
 
-  object HelloWorldFatalWarnings extends TestBaseModule {
+  object HelloWorldFatalWarnings extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+      override def scalacOptions = Task { Seq("-Ywarn-unused", "-Xfatal-warnings") }
     }
     lazy val millDiscover = Discover[this.type]
   }
 
-  object HelloWorldScalaOverride extends TestBaseModule {
+  object HelloWorldScalaOverride extends TestRootModule {
     object core extends HelloWorldModule {
       override def scalaVersion: T[String] = scala213Version
     }
@@ -212,7 +212,7 @@ object HelloWorldTests extends TestSuite {
         // Make sure we *do* end up compiling the compiler bridge, since it's
         // *not* using a pre-compiled bridge value
         assert(os.exists(
-          eval.outPath / "mill/scalalib/JvmWorkerModule/worker.dest" / s"zinc-${zincVersion}"
+          eval.outPath / "mill/javalib/JvmWorkerModule/worker.dest" / s"zinc-${zincVersion}"
         ))
       }
 

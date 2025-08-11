@@ -1,11 +1,11 @@
 package mill.kotlinlib.ktfmt
 
 import mill._
-import mill.define.{PathRef}
-import mill.define.{Discover, ExternalModule}
-import mill.kotlinlib.{DepSyntax, Versions}
+import mill.api.{PathRef}
+import mill.api.{Discover, ExternalModule}
+import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
 import mill.util.Tasks
-import mill.scalalib.JavaModule
+import mill.javalib.JavaModule
 import mill.util.Jvm
 
 trait KtfmtBaseModule extends JavaModule {
@@ -15,7 +15,8 @@ trait KtfmtBaseModule extends JavaModule {
    */
   def ktfmtClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Seq(mvn"com.facebook:ktfmt:${ktfmtVersion()}")
+      Seq(mvn"com.facebook:ktfmt:${ktfmtVersion()}"),
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
     )
   }
 
@@ -65,11 +66,11 @@ trait KtfmtModule extends KtfmtBaseModule {
   }
 }
 
-object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
+object KtfmtModule extends ExternalModule with KtfmtBaseModule with DefaultTaskModule {
 
   lazy val millDiscover = Discover[this.type]
 
-  override def defaultCommandName(): String = "formatAll"
+  override def defaultTask(): String = "formatAll"
 
   /**
    * Runs [[https://github.com/facebook/ktfmt Ktfmt]].
@@ -99,7 +100,7 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
       sources: IterableOnce[PathRef],
       classPath: Seq[PathRef],
       options: Seq[String]
-  )(implicit ctx: mill.define.TaskCtx): Unit = {
+  )(implicit ctx: mill.api.TaskCtx): Unit = {
 
     ctx.log.info("running ktfmt ...")
 

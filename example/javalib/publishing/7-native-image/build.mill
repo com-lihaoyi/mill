@@ -1,15 +1,12 @@
 //// SNIPPET:BUILD
 package build
-import mill._, javalib._
-import mill.define.ModuleRef
+import mill.*, javalib.*
+import mill.api.ModuleRef
 
-object foo extends JavaModule with NativeImageModule {
-  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
+object foo extends JavaModule, NativeImageModule {
+  def jvmId = "graalvm-community:17.0.7"
 
   def nativeImageOptions = Seq("--no-fallback")
 }
 
-object JvmWorkerGraalvm extends JvmWorkerModule {
-  def jvmId = "graalvm-community:17.0.7"
-}
 //// SNIPPET:END

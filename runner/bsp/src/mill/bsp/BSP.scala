@@ -1,19 +1,11 @@
 package mill.bsp
 
-import mill.define.{ModuleCtx, PathRef}
-import mill.{T, Task, given}
-import mill.define.{Command, Discover, Evaluator, ExternalModule, Mirrors}
 import mill.util.BuildInfo
-import mill.scalalib.{CoursierModule, Dep}
-import Mirrors.autoMirror
-import mill.api.internal.{BspServerResult, internal}
+import mill.api.BuildCtx
 
-object BSP extends ExternalModule with CoursierModule {
-  lazy val millDiscover = Discover[this.type]
+import java.io.PrintStream
 
-  private def bspWorkerLibs: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(Seq(Dep.millProjectModule("mill-runner-bsp-worker")))
-  }
+private[mill] object BSP {
 
   /**
    * Installs the mill-bsp server. It creates a json file
@@ -29,42 +21,21 @@ object BSP extends ExternalModule with CoursierModule {
    * reason, the message and stacktrace of the exception will be
    * printed to stdout.
    */
-  def install(jobs: Int = 1): Command[(PathRef, ujson.Value)] = Task.Command {
-    // we create a file containing the additional jars to load
-    val libUrls = bspWorkerLibs().map(_.path.toNIO.toUri.toURL).iterator.toSeq
-    val cpFile =
-      Task.workspace / Constants.bspDir / s"${Constants.serverName}-${BuildInfo.millVersion}.resources"
-    os.write.over(
-      cpFile,
-      libUrls.mkString("\n"),
-      createFolders = true
-    )
-    createBspConnection(jobs, Constants.serverName)
-  }
-
-  private def createBspConnection(
-      jobs: Int,
-      serverName: String
-  )(implicit ctx: mill.define.TaskCtx): (PathRef, ujson.Value) = {
+  def install(jobs: Int, withDebug: Boolean, errStream: PrintStream): Unit = {
     // we create a json connection file
-    val bspFile = ctx.workspace / Constants.bspDir / s"${serverName}.json"
-    if (os.exists(bspFile)) ctx.log.warn(s"Overwriting BSP connection file: ${bspFile}")
-    else ctx.log.info(s"Creating BSP connection file: ${bspFile}")
-    val withDebug = ctx.log.debugEnabled
-    if (withDebug) ctx.log.debug(
+    val bspFile = BuildCtx.workspaceRoot / Constants.bspDir / s"${Constants.serverName}.json"
+    if (os.exists(bspFile)) errStream.println(s"Overwriting BSP connection file: ${bspFile}")
+    else errStream.println(s"Creating BSP connection file: ${bspFile}")
+    if (withDebug) errStream.println(
       "Enabled debug logging for the BSP server. If you want to disable it, you need to re-run this install command without the --debug option."
     )
     val connectionContent = bspConnectionJson(jobs, withDebug)
     os.write.over(bspFile, connectionContent, createFolders = true)
-    (PathRef(bspFile), upickle.default.read[ujson.Value](connectionContent))
   }
 
   private def bspConnectionJson(jobs: Int, debug: Boolean): String = {
-    val millPath = sys.env.get("MILL_MAIN_CLI")
-      .orElse(sys.props.get("mill.main.cli"))
-      // we assume, the classpath is an executable jar here
-      .orElse(sys.props.get("java.class.path"))
-      .getOrElse(throw new IllegalStateException("System property 'java.class.path' not set"))
+    val millPath = sys.env.get("MILL_EXECUTABLE_PATH")
+      .getOrElse(throw new IllegalStateException("Env 'MILL_EXECUTABLE_PATH' not set"))
 
     upickle.default.write(
       BspConfigJson(
@@ -72,7 +43,8 @@ object BSP extends ExternalModule with CoursierModule {
         argv = Seq(
           millPath,
           "--bsp",
-          "--disable-ticker",
+          "--ticker",
+          "false",
           "--color",
           "false",
           "--jobs",
@@ -85,4 +57,5 @@ object BSP extends ExternalModule with CoursierModule {
     )
   }
 
+  def defaultJobCount: Int = 1
 }

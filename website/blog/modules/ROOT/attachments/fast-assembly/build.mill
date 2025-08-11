@@ -1,9 +1,9 @@
 package build
 import mill._, scalalib._
 
-object `package` extends RootModule with SbtModule {
+object `package` extends SbtModule {
   def scalaVersion = "2.12.19"
-  def mvnDeps = Agg(
+  def mvnDeps = Seq(
     mvn"org.apache.spark::spark-core:3.5.4",
     mvn"org.apache.spark::spark-sql:3.5.4"
   )

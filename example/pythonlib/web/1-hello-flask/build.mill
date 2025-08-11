@@ -2,15 +2,15 @@
 // at the root URL (`/`), with Flask installed as a dependency
 // and tests enabled using `unittest`.
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source("src/foo.py")
 
   def pythonDeps = Seq("flask==3.1.0")
 
-  object test extends PythonTests with TestModule.Unittest
+  object test extends PythonTests, TestModule.Unittest
 
 }
 

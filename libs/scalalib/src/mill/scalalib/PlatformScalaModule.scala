@@ -11,4 +11,4 @@ package mill.scalalib
  * built against and not something that should affect the filesystem path or
  * artifact name
  */
-trait PlatformScalaModule extends PlatformModuleBase with ScalaModule
+trait PlatformScalaModule extends mill.javalib.PlatformModuleBase with ScalaModule

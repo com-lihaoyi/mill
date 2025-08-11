@@ -1,15 +1,15 @@
 package mill.javascriptlib
 
 import mill.*
-import mill.define.Discover
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.api.Discover
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
 object HelloWorldTests extends TestSuite {
 
-  object HelloWorldJavascript extends TestBaseModule {
+  object HelloWorldJavascript extends TestRootModule {
     object foo extends TypeScriptModule {
       object bar extends TypeScriptModule {}
 
@@ -29,11 +29,13 @@ object HelloWorldTests extends TestSuite {
   def tests: Tests = Tests {
     test("run") {
       val baos = new ByteArrayOutputStream()
-      val eval = UnitTester(HelloWorldJavascript, resourcePath, outStream = new PrintStream(baos))
+      UnitTester(HelloWorldJavascript, resourcePath, outStream = new PrintStream(baos)).scoped {
+        eval =>
 
-      val Right(result) = eval.apply(HelloWorldJavascript.qux.run(Args("James"))): @unchecked
+          val Right(_) = eval.apply(HelloWorldJavascript.qux.run(Args("James"))): @unchecked
 
-      assert(baos.toString() == "Hello James Qux\n")
+          assert(baos.toString() == "Hello James Qux\n")
+      }
     }
   }
 }

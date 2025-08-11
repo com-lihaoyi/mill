@@ -1,23 +1,19 @@
 package build.website
+
 import org.jsoup._
 import mill.util.{Jvm, Version}
 import mill._
 import scalalib._
 //import de.tobiasroeser.mill.vcs.version.VcsVersion
 import scala.jdk.CollectionConverters._
+import millbuild.*
+import mill.api.BuildCtx
 
 /** Generates the mill documentation with Antora. */
-object `package` extends RootModule {
-  // This module isn't really a ScalaModule, but we use it to generate
-  // consolidated documentation using the Scaladoc tool.
-  object site extends UnidocModule {
-    def unidocSourceFiles = Task {
-      (Seq(compile().classes) ++ T.traverse(moduleDeps)(_.compile)().map(_.classes))
-        .filter(pr => os.exists(pr.path))
-        .flatMap(pr => os.walk(pr.path))
-        .filter(_.ext == "tasty")
-        .map(PathRef(_))
-    }
+object `package` extends mill.Module {
+  object apidocs extends UnidocModule {
+    def unidocDocumentTitle = Task { "Mill" }
+
     def unidocCompileClasspath =
       super.unidocCompileClasspath().filter { ref =>
         // Workaround for https://github.com/scala/bug/issues/10028
@@ -26,14 +22,14 @@ object `package` extends RootModule {
         // package object in the Mill scaladoc.
         !ref.path.lastOpt.exists(_.startsWith("dependency_2.13-"))
       }
-    def scalaVersion = build.Deps.scalaVersion
+    def scalaVersion = Deps.scalaVersion
     def moduleDeps = build.moduleInternal.modules.collect {
-      case m: build.MillStableScalaModule => m
+      case m: MillStableScalaModule => m
       case m: JavaModule if m eq build.libs.kotlinlib => m
     }
     def unidocSourceUrl = Task {
       val sha = "main" // VcsVersion.vcsState().currentRevision
-      Some(s"${build.Settings.projectUrl}/blob/$sha")
+      Some(s"${Settings.projectUrl}/blob/$sha")
     }
   }
 
@@ -46,9 +42,9 @@ object `package` extends RootModule {
         npmExe,
         "--no-audit",
         "install",
-        "@antora/cli@3.1.9",
-        "@antora/site-generator-default@3.1.9",
-        "gitlab:antora/xref-validator",
+        "@antora/cli@3.1.12",
+        "@antora/site-generator-default@3.1.12",
+//        "gitlab:antora/xref-validator",
         "@antora/lunr-extension@v1.0.0-alpha.6"
       ),
       env = Map(),
@@ -57,7 +53,7 @@ object `package` extends RootModule {
   }
 
   def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
-      ctx: mill.define.TaskCtx.Log
+      ctx: mill.api.TaskCtx.Log
   ) = {
 
     prepareAntora(npmDir)
@@ -73,7 +69,7 @@ object `package` extends RootModule {
   }
 
   def source0 = Task.Source("docs")
-  def projectChangelog = Task.Source(Task.workspace / "changelog.adoc")
+  def projectChangelog = Task.Source(BuildCtx.workspaceRoot / "changelog.adoc")
   def source = Task {
     os.copy(source0().path, Task.dest, mergeFolders = true)
 
@@ -109,14 +105,14 @@ object `package` extends RootModule {
 
     expandDiagramsInDirectoryAdocFile(
       Task.dest,
-      mill.main.VisualizeModule.toolsClasspath().map(_.path)
+      mill.util.VisualizeModule.toolsClasspath().map(_.path)
     )
 
     PathRef(Task.dest)
   }
 
-  def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Agg[os.Path])(implicit
-      ctx: mill.define.TaskCtx
+  def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Seq[os.Path])(implicit
+      ctx: mill.api.TaskCtx
   ) = {
 
     // Walk all files to render graphviz templates ourselves because the only Antora graphviz
@@ -175,10 +171,10 @@ object `package` extends RootModule {
     }
 
     mill.util.Jvm.callProcess(
-      mainClass = "mill.main.graphviz.GraphvizTools",
+      mainClass = "mill.graphviz.GraphvizTools",
       classPath = visualizeClassPath.toSeq,
       mainArgs = orderedDiagrams.map { case (p, i, src, dest) =>
-        T.log.debug(s"Rendering graphviz: ${p} (${i}) to ${dest}")
+        Task.log.debug(s"Rendering graphviz: ${p} (${i}) to ${dest}")
         s"$src;$dest;svg"
       }
     )
@@ -202,7 +198,7 @@ object `package` extends RootModule {
       "main-branch",
       "main-branch",
       build.millLastTag(),
-      build.millDownloadUrl()
+      build.millDownloadUrlCurrent()
     )
     PathRef(dest)
   }
@@ -226,7 +222,7 @@ object `package` extends RootModule {
 
     val newLines = Seq(
       s"    mill-download-url: $millDownloadUrl",
-      s"    mill-example-url: ${build.Settings.projectUrl}/blob/$millVersion"
+      s"    mill-example-url: ${Settings.projectUrl}/blob/$millVersion"
     )
 
     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
@@ -237,29 +233,29 @@ object `package` extends RootModule {
     os.copy(blogFolder0().path, Task.dest, mergeFolders = true)
     expandDiagramsInDirectoryAdocFile(
       Task.dest,
-      mill.main.VisualizeModule.toolsClasspath().map(_.path)
+      mill.util.VisualizeModule.toolsClasspath().map(_.path)
     )
     PathRef(Task.dest)
   }
   def githubPagesPlaybookText(authorMode: Boolean) = Task.Anon { (extraSources: Seq[os.Path]) =>
     val taggedSources = for (path <- extraSources) yield {
-      s"""    - url: ${Task.workspace}
-         |      start_path: ${path.relativeTo(Task.workspace)}
+      s"""    - url: ${BuildCtx.workspaceRoot}
+         |      start_path: ${path.relativeTo(BuildCtx.workspaceRoot)}
          |      edit_url: false
          |""".stripMargin
     }
     s"""site:
        |  title: The Mill Build Tool
-       |  url: ${if (authorMode) s"${Task.dest}/site" else build.Settings.docUrl}
+       |  url: ${if (authorMode) s"${Task.dest}/site" else Settings.docUrl}
        |  start_page: mill::index.adoc
        |  keys:
        |    google_analytics: 'G-1C582ZJR85'
        |
        |content:
        |  sources:
-       |    - url: ${if (authorMode) Task.workspace else build.Settings.projectUrl}
+       |    - url: ${if (authorMode) BuildCtx.workspaceRoot else Settings.projectUrl}
        |      branches: []
-       |      tags: ${build.Settings.legacyDocTags.filter(_ => !authorMode).map(
+       |      tags: ${Settings.legacyDocTags.filter(_ => !authorMode).map(
         "'" + _ + "'"
       ).mkString("[", ",", "]")}
        |      edit_url: false
@@ -267,11 +263,11 @@ object `package` extends RootModule {
        |
        |${taggedSources.mkString("\n\n")}
        |
-       |    - url: ${Task.workspace}
-       |      start_path: ${devAntoraSources().path.relativeTo(Task.workspace)}
+       |    - url: ${BuildCtx.workspaceRoot}
+       |      start_path: ${devAntoraSources().path.relativeTo(BuildCtx.workspaceRoot)}
        |
-       |    - url: ${Task.workspace}
-       |      start_path: ${blogFolder().path.relativeTo(Task.workspace)}
+       |    - url: ${BuildCtx.workspaceRoot}
+       |      start_path: ${blogFolder().path.relativeTo(BuildCtx.workspaceRoot)}
        |ui:
        |  bundle:
        |    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
@@ -280,11 +276,11 @@ object `package` extends RootModule {
        |
        |asciidoc:
        |  attributes:
-       |    mill-github-url: ${build.Settings.projectUrl}
-       |    mill-doc-url: ${if (authorMode) s"file://${Task.dest}/site" else build.Settings.docUrl}
+       |    mill-github-url: ${Settings.projectUrl}
+       |    mill-doc-url: ${if (authorMode) s"file://${Task.dest}/site" else Settings.docUrl}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
-       |    mill-scip-version: ${build.Deps.DocDeps.millScip.version}
+       |    mill-scip-version: ${Deps.DocDeps.millScip.version}
        |antora:
        |  extensions:
        |  - require: '@antora/lunr-extension'
@@ -297,39 +293,83 @@ object `package` extends RootModule {
        |""".stripMargin
   }
 
-  def oldDocSources: T[Seq[PathRef]] = Task {
-    val versionLabels =
-      build.Settings.docTags.map { v =>
-        (v, v.split('.').dropRight(1).mkString(".") + ".x")
-      }.dropRight(1) ++
-        // Set the latest stable branch as the "master" docs that people default to
-        Seq((build.Settings.docTags.last, "master"))
-
-    for ((millVersion, antoraVersion) <- versionLabels) yield {
-      val checkout = Task.dest / millVersion
-      os.proc("git", "clone", Task.workspace / ".git", checkout).call(stdout = os.Inherit)
-      os.proc("git", "checkout", millVersion).call(cwd = checkout, stdout = os.Inherit)
-      val outputFolder = checkout / "out/docs/source.dest"
-      os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
-      expandDiagramsInDirectoryAdocFile(
-        outputFolder,
-        mill.main.VisualizeModule.toolsClasspath().map(_.path)
+  val versionLabels =
+    Settings.docTags.map { v =>
+      (v, v, v, v.split('.').dropRight(1).mkString(".") + ".x", false)
+    }.dropRight(1) ++
+      // Set the latest stable branch as the "master" docs that people default to
+      Seq(
+        (Settings.docTags.last, Settings.docTags.last, Settings.docTags.last, "master", true),
+        ("dev", "dev", "dev", "dev", true)
       )
 
-      val useOldDownloadUrl = Version.OsgiOrdering.lt(
-        Version.parse(millVersion),
-        Version.parse("0.12.6")
-      )
-
-      val millDownloadUrl =
-        if (useOldDownloadUrl) s"${build.Settings.projectUrl}/releases/download/$millVersion"
-        else s"${build.millDownloadPrefix()}/$millVersion"
-
-      sanitizeAntoraYml(outputFolder, antoraVersion, millVersion, millVersion, millDownloadUrl)
-      PathRef(outputFolder)
-    }
+  def oldDocSources = Task {
+    Task.traverse(oldDocs.items.map(_.module))(_().oldDocSource)().flatten
   }
 
+  object oldDocs extends Cross[OldDocModule](versionLabels)
+  trait OldDocModule extends Cross.Module5[String, String, String, String, Boolean] {
+
+    def oldDocSource: T[Option[PathRef]] = Task {
+      val millVersion =
+        if (crossValue == "dev") build.latestUnstableVersion()
+        else crossValue
+
+      val gitVersionOpt =
+        if (crossValue2 == "dev") {
+          val prefix = build.latestUnstableVersion().split('-').last
+          // In case of conflict, pick the latest commit matching the prefix,
+          // which is probably the correct one
+          val logged = os.call(("git", "log", "--pretty=format:%H")).out.lines()
+          // If no newer unstable version exists, skip this entirely
+          logged.find(_.startsWith(prefix))
+        } else Some(crossValue2)
+
+      for (gitVersion <- gitVersionOpt) yield {
+        val displayVersion =
+          if (crossValue3 == "dev") "dev-" + build.latestUnstableVersion()
+          else crossValue3
+
+        val antoraVersion = if (crossValue4 == "dev") displayVersion else crossValue4
+
+        val newWebsiteTask: Boolean = crossValue5
+
+        val checkout = Task.dest / millVersion
+        os.proc("git", "clone", BuildCtx.workspaceRoot / ".git", checkout).call(stdout = os.Inherit)
+
+        try os.proc("git", "checkout", gitVersion).call(cwd = checkout, stdout = os.Inherit)
+        catch {
+          case e: os.SubprocessException =>
+            // When there are no unstable releases, the latest unstable version is the millVersion
+            os.proc("git", "checkout", millVersion).call(cwd = checkout, stdout = os.Inherit)
+        }
+
+        val outputFolder = if (newWebsiteTask) {
+          os.proc("./mill", "-i", "website.source").call(cwd = checkout, stdout = os.Inherit)
+          checkout / "out/website/source.dest"
+        } else {
+          os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
+          checkout / "out/docs/source.dest"
+        }
+
+        expandDiagramsInDirectoryAdocFile(
+          outputFolder,
+          mill.util.VisualizeModule.toolsClasspath().map(_.path)
+        )
+
+        val useOldDownloadUrl =
+          if (antoraVersion.startsWith("dev-")) false
+          else Version.OsgiOrdering.lt(Version.parse(millVersion), Version.parse("0.12.6"))
+
+        val millDownloadUrl =
+          if (useOldDownloadUrl) s"${Settings.projectUrl}/releases/download/$millVersion"
+          else s"${build.millDownloadPrefix()}/$millVersion"
+
+        sanitizeAntoraYml(outputFolder, antoraVersion, displayVersion, millVersion, millDownloadUrl)
+        PathRef(outputFolder)
+      }
+    }
+  }
   def githubPages: T[PathRef] = Task {
     generatePages(authorMode = false).apply().apply(oldDocSources().map(_.path))
   }
@@ -378,10 +418,21 @@ object `package` extends RootModule {
 
     // sanitize devAntora source URLs
     Task.log.streams.err.println("Sanitizing links ...")
-    sanitizeDevUrls(siteDir, devAntoraSources().path, Task.workspace / "docs", Task.workspace)
+    sanitizeDevUrls(
+      siteDir,
+      devAntoraSources().path,
+      BuildCtx.workspaceRoot / "docs",
+      mill.api.BuildCtx.workspaceRoot
+    )
+
+    for (p <- os.walk(siteDir) if p.ext == "html") {
+      // Manually un-substitute ellipses in normal text to reverse the antora unicode
+      // substitution, because the font for the unicode ellipses looks very bad
+      os.write.over(p, os.read(p).replace("…", "..."))
+    }
 
     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
-    val unidocSrc = if (authorMode) site.unidocLocal().path else site.unidocSite().path
+    val unidocSrc = if (authorMode) apidocs.unidocLocal().path else apidocs.unidocSite().path
     Task.log.streams.err.println(s"Copying API docs from ${unidocSrc} ...")
     os.copy(unidocSrc, siteDir / "api/latest", createFolders = true)
 
@@ -535,9 +586,6 @@ object `package` extends RootModule {
           path,
           localLinks
             .filter(_._2 != "#")
-            .filter(_._2.contains(
-              "AggWrapper$"
-            )) // Not sure why these pages are not getting generated
             .filter(_._2.startsWith("///"))
             .flatMap { case (elementString, url) =>
               val (baseUrl, anchorOpt) = url match {

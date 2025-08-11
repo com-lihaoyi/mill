@@ -1,12 +1,12 @@
 package mill.scalalib
 
 import mill.*
-import mill.define.Discover
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.api.Discover
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
 object ScalaDotty213Tests extends TestSuite {
-  object Dotty213 extends TestBaseModule {
+  object Dotty213 extends TestRootModule {
     object foo extends ScalaModule {
       def scalaVersion = "0.18.1-RC1"
       override def mvnDeps =

@@ -1,7 +1,7 @@
 // If you want to have dedicated ``moduleDir``s, you can add the cross
 // parameters to it as follows:
 package build
-import mill._
+import mill.*
 
 object foo extends Cross[FooModule]("2.10", "2.11", "2.12")
 trait FooModule extends Cross.Module[String] {
@@ -17,17 +17,17 @@ trait FooModule extends Cross.Module[String] {
 
 /** Usage
 
-> mill show foo[2.10].sources
+> ./mill show foo[2.10].sources
 [
   ".../foo/2.10"
 ]
 
-> mill show foo[2.11].sources
+> ./mill show foo[2.11].sources
 [
   ".../foo/2.11"
 ]
 
-> mill show foo[2.12].sources
+> ./mill show foo[2.12].sources
 [
   ".../foo/2.12"
 ]

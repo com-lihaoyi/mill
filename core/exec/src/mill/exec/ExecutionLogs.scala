@@ -1,7 +1,7 @@
 package mill.exec
 
 import mill.constants.OutFiles
-import mill.define.{InputImpl, Task}
+import mill.api.Task
 import mill.internal.SpanningForest
 
 import java.util.concurrent.ConcurrentHashMap
@@ -13,7 +13,7 @@ private object ExecutionLogs {
       indexToTerminal: Array[Task[?]],
       outPath: os.Path
   ): Unit = {
-    val (vertexToIndex, edgeIndices) =
+    val ( /*vertexToIndex*/ _, edgeIndices) =
       SpanningForest.graphMapToIndices(indexToTerminal, interGroupDeps)
 
     SpanningForest.writeJsonFile(
@@ -55,7 +55,7 @@ private object ExecutionLogs {
             // from the invalidation tree, because most of them are un-interesting and the
             // user really only cares about (a) inputs that cause downstream tasks to invalidate
             // or (b) non-input tasks that were invalidated alone (e.g. due to a codesig change)
-            !uncachedTask.isInstanceOf[InputImpl[?]] || edgeSourceIndices(uncachedIndex)
+            !uncachedTask.isInstanceOf[Task.Input[?]] || edgeSourceIndices(uncachedIndex)
           ) {
             uncachedIndex
           }

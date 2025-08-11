@@ -3,8 +3,8 @@
 
 This plugin provides publishing and dependencies to Gitlab package registries.
 
-Gitlab does not support http basic auth so using PublishModule, artifactory-
-or bintray-plugin does not work. This plugin tries to provide as automatic
+Gitlab does not support http basic auth so using PublishModule or artifactory-plugin
+does not work. This plugin tries to provide as automatic
 as possible support for gitlab package registries and automatic detection of
 gitlab CI/CD pipeline.
 
@@ -15,9 +15,10 @@ Most trivial publish config is:
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION"]
 package build
+
 import mill._, scalalib._, mill.scalalib.publish._
-import $ivy.`com.lihaoyi::mill-contrib-gitlab:`
 import mill.contrib.gitlab._
 
 object lib extends ScalaModule with GitlabPublishModule {
@@ -55,7 +56,7 @@ personal access token, then deploy token and lastly ci job token. Default search
 . Workspace file `.gitlab/deploy-token`
 . Environment variable `CI_JOB_TOKEN`
 
-Items 1-4 are *personal access tokens*, 5-8 *deploy tokens* and 9 is *job token*. Workspace in items 4 and 8 refers to directory where `build.mill` is (`Task.workspace` in mill terms).
+Items 1-4 are *personal access tokens*, 5-8 *deploy tokens* and 9 is *job token*. Workspace in items 4 and 8 refers to directory where `build.mill` is (`mill.api.BuildCtx.workspaceRoot` in mill terms).
 
 Because contents of `$CI_JOB_TOKEN` is checked publishing should just work when run in Gitlab CI/CD pipeline. If you want something else than default lookup configuration can be overridden. There are different ways of configuring token resolving.
 
@@ -85,6 +86,8 @@ If the original search order is too wide, or you would like to add places to loo
 .`build.mill`
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION"]
+
 package build
 // Personal, Env, Deploy etc types
 import mill.contrib.gitlab.GitlabTokenLookup._
@@ -122,7 +125,7 @@ Modifying the lookup order with `Custom` should be powerful enough but if really
 
 [source,scala]
 ----
-import mill.define.Task
+import mill.api.Task
 import mill.api.Result.Success
 
 // object foo ... with GitlabPublishModule {
@@ -131,7 +134,7 @@ override def gitlabHeaders(
     props: Map[String, String] // System properties
   ): Task[GitlabAuthHeaders] = Task.Anon {
   // This uses default lookup and ads custom headers
-  val access = tokenLookup.resolveGitlabToken(Task.env, props, Task.workspace)
+  val access = tokenLookup.resolveGitlabToken(Task.env, props, mill.api.BuildCtx.workspaceRoot)
   val accessHeader = access.fold(_ => Seq.empty[(String, String)], _.headers)
   Success(
     GitlabAuthHeaders(
@@ -157,10 +160,11 @@ Making mill to fetch package from gitlab package repository is simple:
 
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION"]
+
 import mill._, scalalib._, mill.scalalib.publish._
 import coursier.MavenRepository
 import coursier.core.Authentication
-import $ivy.`com.lihaoyi::mill-contrib-gitlab:`
 import mill.contrib.gitlab._
 
 // DON'T DO THIS
@@ -177,6 +181,8 @@ provides trait `GitlabMavenRepository` to ease that.
 
 [source,scala]
 ----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION"]
+
 object myPackageRepository extends GitlabMavenRepository {
   // Customize if needed, omit if unnecessary
   // override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {}
@@ -219,7 +225,6 @@ Gitlab supports instance, group and project registries (https://docs.gitlab.com/
 == References
 
 * Mill contrib https://github.com/com-lihaoyi/mill/tree/main/contrib/artifactory/src/mill/contrib/artifactory[artifactory]
-and https://github.com/com-lihaoyi/mill/tree/main/contrib/bintray/src/mill/contrib/bintray[bintray]
 modules source code
 * https://github.com/azolotko/sbt-gitlab[sbt-gitlab]
 * Gitlab documentation
