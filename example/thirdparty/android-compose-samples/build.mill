@@ -29,12 +29,14 @@ object JetLagged extends mill.api.Module {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false
-      ).withDefaultProguardFile("proguard-android-optimize.txt")
-        .withProguardLocalFiles(
-          Seq(
-            moduleDir / "proguard-rules.pro"
-          )
-        )
+      )
+    }
+
+    def androidProjectProguardFiles: Seq[os.Path] = Seq(
+      moduleDir / "proguard-rules.pro"
+    )
+    def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      Seq("proguard-android-optimize.txt")
     }
 
     override def androidApplicationNamespace = "com.example.jetlagged"
@@ -154,12 +156,13 @@ object JetNews extends mill.api.Module {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false
-      ).withDefaultProguardFile("proguard-android-optimize.txt")
-        .withProguardLocalFiles(
-          Seq(
-            moduleDir / "proguard-rules.pro"
-          )
-        )
+      )
+    }
+    def androidProjectProguardFiles: Seq[os.Path] = Seq(
+      moduleDir / "proguard-rules.pro"
+    )
+    def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      Seq("proguard-android-optimize.txt")
     }
 
     override def androidApplicationNamespace = "com.example.jetnews"

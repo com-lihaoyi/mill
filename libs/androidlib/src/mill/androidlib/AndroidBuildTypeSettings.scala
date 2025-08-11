@@ -1,7 +1,5 @@
 package mill.androidlib
 
-import mill.api.JsonFormatters.pathReadWrite
-
 /**
  * Build type settings for
  * various packaging configurations.
@@ -13,7 +11,7 @@ import mill.api.JsonFormatters.pathReadWrite
 case class AndroidBuildTypeSettings(
     isMinifyEnabled: Boolean = false,
     isShrinkEnabled: Boolean = false,
-    enableDesugaring: Boolean = true,
+    enableDesugaring: Boolean = true
 )
 
 object AndroidBuildTypeSettings {

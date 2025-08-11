@@ -29,12 +29,14 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
     AndroidBuildTypeSettings(
       isMinifyEnabled = false,
       isShrinkEnabled = false
-    ).withDefaultProguardFile("proguard-android.txt")
-      .withProguardLocalFiles(
-        Seq(
-          moduleDir / "proguard-rules.pro"
-        )
-      )
+    )
+  }
+
+  def androidProjectProguardFiles: Seq[os.Path] = Seq(
+    moduleDir / "proguard-rules.pro"
+  )
+  def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+    Seq("proguard-android.txt")
   }
 
   // TODO consider using a debug module
@@ -159,13 +161,15 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false
-      ).withDefaultProguardFile("proguard-android.txt")
-        .withProguardLocalFiles(
-          Seq(
-            moduleDir / "proguardTest-rules.pro",
-            moduleDir / "proguard-rules.pro"
-          )
-        )
+      )
+    }
+
+    override def androidProjectProguardFiles: Seq[os.Path] = Seq(
+      moduleDir / "proguardTest-rules.pro",
+      moduleDir / "proguard-rules.pro"
+    )
+    override def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      Seq("proguard-android.txt")
     }
 
     def bomMvnDeps = Seq(

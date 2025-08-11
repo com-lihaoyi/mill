@@ -2,7 +2,6 @@ package mill.androidlib
 
 import mill.*
 import mill.api.{PathRef, Task}
-import mill.api.BuildCtx
 
 @mill.api.experimental
 trait AndroidR8AppModule extends AndroidAppModule {
@@ -66,9 +65,9 @@ trait AndroidR8AppModule extends AndroidAppModule {
    * @return
    */
   def androidProjectProguardFiles: Seq[os.Path] = Seq.empty[os.Path]
-  
+
   private def androidProjectProguardSources: Task[Seq[PathRef]] = Task.Sources(
-    androidProjectProguardFiles*
+    androidProjectProguardFiles.filter(os.exists(_))*
   )
 
   /** ProGuard/R8 rules configuration files for release target (user-provided and generated) */
