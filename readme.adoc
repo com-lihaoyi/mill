@@ -84,7 +84,7 @@ Test run foo.FooTest finished: 0 failed, 0 ignored, 2 total, ...
 
 ----
 
-* https://github.com/com-lihaoyi/mill/blob/main/developer.adoc[Developer Documentation]
-* https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[Changelog]
+* link:developer.adoc[Developer Documentation]
+* link:changelog.adoc[Changelog]
 
 
