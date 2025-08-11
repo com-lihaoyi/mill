@@ -1,16 +1,16 @@
 // `ollam-js` library provides the easiest way to integrate
 // your JavaScript project with Ollama.
-
-// In this example we show how to integrate `ollama-js` with mill,
-// showing off mill's scalability with custom tasks and traits.
-
+//
+// In this example we show how to integrate `ollama-js` with Mill,
+// showing off Mill's scalability with custom tasks and traits.
+//
 // Using custom tasks we build our library and then prepare the bundled code to be used
 // as an unmanaged dependcy (file-based package installation) for the mini example projects.
-
+//
 // Project home: https://github.com/ollama/ollama-js
-
+//
 // Project Layout:
-
+//
 // [source,text]
 // ----
 // <project-root>
@@ -19,6 +19,8 @@
 // test/
 // package.json
 // tsconfig.json
+// ----
+//
 
 package build
 
@@ -106,8 +108,15 @@ trait OllamaModule extends TypeScriptModule {
   }
 }
 
-// Here we take advantage of mill to reduce boiler plate code, providing clean,
+// We take advantage of Mill to reduce boiler plate code, providing clean,
 // reusable traits specific to our many mini example usage projects found in `ollama-js` source.
+//
+// **`unbuild`:**
+//
+// The `unbuild` task defined in `OllamaModule` uses the `unbuild` npm package to bundle the ollama-js project.
+// It then prepares the output to be used as an unmanaged dependency `unmanagedDeps` for our example projects.
+// See: https://github.com/unjs/unbuild
+//
 
 trait Examples extends TypeScriptModule {
   trait ExampleModule extends TypeScriptModule {
@@ -171,29 +180,25 @@ object `package` extends OllamaModule, TsLintModule {
   }
 }
 
-//// `unbuild`:
-// The `unbuild` task defined in `OllamaModule`, uses the `unbuild` npm package to bundle the ollama-js project,
-// it then prepares the output to be used as an unmanaged dependency `unmanagedDeps` for our example projects.
-// See: https://github.com/unjs/unbuild
-
-//// Example projects:
+// **Example projects:**
+//
 // All example projects featured in `examples/` do not have a `src` directory,
 // they contain stand alone file(s) intended to be run independently with a command like
 // `npx tsx <folder-name>/<file-name>.ts`.
-
+//
 // The `ExampleModule` trait configures the `sources` and `mainFilePath` task,
 // accounting for the absence of `src` directory in the example projects.
-
+//
 // `EsmModule` enables esm, defining `compilerOptions` for select project with esm features,
 // while the `Es6Module` defines compilerOptions for projects with `es6` features.
-
+//
 // Ordinarily the compile stages `mill compile` would build our `declarations` and or `dist` files (depending on configurations),
 // but since we intend to use `unbuild` task to handle bundling we don't need this output
 // from running the `tsc` command. We can turn of its generation by settig the task `runTypeCheck` to false.
-
-//// User Defined JSON:
-
-//// package.json
+//
+// **User Defined JSON:**
+//
+// .`package.json`
 // [source,json]
 // ----
 // {
@@ -237,8 +242,8 @@ object `package` extends OllamaModule, TsLintModule {
 //  }
 //}
 // ----
-
-//// tsconfig.json
+//
+// .`tsconfig.json`
 // [source,json]
 // ----
 // {
