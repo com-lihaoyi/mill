@@ -5,6 +5,7 @@ import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.T
 import mill.androidlib.manifestmerger.AndroidManifestMerger
+import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import mill.javalib.api.CompilationResult
@@ -13,7 +14,7 @@ import os.Path
 import scala.collection.immutable
 import scala.xml.*
 
-trait AndroidModule extends JavaModule {
+trait AndroidModule extends JavaModule { outer =>
 
   // https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/D8BundleMainDexListTask.kt;l=210-223;drc=66ab6bccb85ce3ed7b371535929a69f494d807f0
   val mainDexPlatformRules = Seq(
@@ -684,6 +685,33 @@ trait AndroidModule extends JavaModule {
   /** Optional baseline profile for ART rewriting */
   def baselineProfile: T[Option[PathRef]] = Task {
     None
+  }
+
+  trait AndroidTestModule extends JavaTests, AndroidModule {
+
+    override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
+
+    override def androidMinSdk: T[Int] = outer.androidMinSdk()
+
+    override def androidTargetSdk: T[Int] = outer.androidTargetSdk()
+
+    override def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
+
+    override def androidManifest: T[PathRef] = outer.androidManifest()
+
+    override def androidNamespace: String = s"${outer.androidNamespace}.test"
+
+    override def moduleDir: Path = outer.moduleDir
+
+    override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
+
+    def androidResources: T[Seq[PathRef]] = Task.Sources()
+
+    override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
+      baseDirectory = Some((moduleDir / "src/test").toNIO),
+      canTest = true
+    )
+
   }
 
 }

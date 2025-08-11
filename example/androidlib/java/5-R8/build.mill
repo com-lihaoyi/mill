@@ -61,8 +61,7 @@ object app extends AndroidR8AppModule { // <2>
   }
 
   // Instrumented tests (runs on emulator)
-  object it extends AndroidAppInstrumentedTests, AndroidR8AppModule,
-        AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppInstrumentedTests, AndroidR8AppModule {
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
     override def androidIsDebug: T[Boolean] = Task {

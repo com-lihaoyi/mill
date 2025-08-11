@@ -42,8 +42,8 @@ object `package` extends mill.Module {
         npmExe,
         "--no-audit",
         "install",
-        "@antora/cli@3.1.9",
-        "@antora/site-generator-default@3.1.9",
+        "@antora/cli@3.1.12",
+        "@antora/site-generator-default@3.1.12",
 //        "gitlab:antora/xref-validator",
         "@antora/lunr-extension@v1.0.0-alpha.6"
       ),
