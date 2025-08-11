@@ -7,7 +7,7 @@ import mill.scalalib._
 
 object `package` extends Module {
 
-  object common extends SbtMultiProjectExampleModule {
+  object common extends SbtMultiProjectExampleBaseModule {
 
     def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
 
@@ -49,7 +49,7 @@ object `package` extends Module {
         Seq(Deps.scalatest, Deps.scalacheck)
     }
 
-    object nested extends SbtMultiProjectExampleModule {
+    object nested extends SbtMultiProjectExampleBaseModule {
 
       def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
 
@@ -84,7 +84,7 @@ object `package` extends Module {
     }
   }
 
-  object multi1 extends SbtMultiProjectExampleModule {
+  object multi1 extends SbtMultiProjectExampleBaseModule {
 
     def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8", "-V")
 
@@ -130,7 +130,7 @@ object `package` extends Module {
         Seq(Deps.scalatest, Deps.scalacheck)
     }
 
-    object nested extends SbtMultiProjectExampleModule {
+    object nested extends SbtMultiProjectExampleBaseModule {
 
       def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
 
@@ -165,7 +165,7 @@ object `package` extends Module {
     }
   }
 
-  object multi2 extends SbtMultiProjectExampleModule {
+  object multi2 extends SbtMultiProjectExampleBaseModule {
 
     def mvnDeps = super.mvnDeps() ++ Seq(
       Deps.logbackClassic,
@@ -208,7 +208,7 @@ object `package` extends Module {
         Seq(Deps.scalatest, Deps.scalacheck)
     }
 
-    object nested extends SbtMultiProjectExampleModule {
+    object nested extends SbtMultiProjectExampleBaseModule {
 
       def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
 
@@ -243,7 +243,7 @@ object `package` extends Module {
     }
   }
 
-  trait SbtMultiProjectExampleModule extends PublishModule with SbtModule {
+  trait SbtMultiProjectExampleBaseModule extends PublishModule with SbtModule {
 
     def scalaVersion = "2.12.3"
 
