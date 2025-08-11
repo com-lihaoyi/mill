@@ -117,6 +117,9 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     def killProcess(): Unit = {
       os.remove(daemonDir / DaemonFiles.processId)
       while (isRunning()) Thread.sleep(1)
+      // On Windows it takes some time until the file handles are released, so we just have to
+      // wait and hope.
+      if (scala.util.Properties.isWin) Thread.sleep(500)
     }
   }
   private val subprocessCache = new CachedFactoryWithInitData[
