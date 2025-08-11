@@ -1043,7 +1043,7 @@ see the sections below on:
 continue to be used without updating them. Although binary compatible, Mill 0.12.x does
 have breaking changes listed below with instructions provided on how to either disable the
 breaking change with a flag or adjust your code to accommodate it. You should download the
-latest version of the https://github.com/com-lihaoyi/mill/blob/main/mill[Mill Bootstrap Script]
+latest version of the link:mill[Mill Bootstrap Script]
 if you are upgrading from a prior version.
 
 If you need help upgrading from 0.11.x or hit any issues, please visit the
