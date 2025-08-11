@@ -6,7 +6,8 @@ package mill.constants;
  */
 public class OutFiles {
 
-  /// Allows us to override the `out/` folder from the environment via the [EnvVars#MILL_OUTPUT_DIR] variable.
+  /// Allows us to override the `out/` folder from the environment via the [EnvVars#MILL_OUTPUT_DIR]
+  // variable.
   private static final String envOutOrNull = System.getenv(EnvVars.MILL_OUTPUT_DIR);
 
   /// Default hard-coded value for the Mill `out/` folder path. Unless you know
