@@ -26,7 +26,7 @@ abstract class Server(
     locks: Locks,
     testLogEvenWhenServerIdWrong: Boolean = false
 ) {
-  val processId: String = Server.computeProcessId()
+  val processId: Long = Server.computeProcessId()
   private val acceptTimeoutMillis = acceptTimeout.map(_.toMillis)
   private val handlerName = getClass.getName
 
@@ -39,7 +39,7 @@ abstract class Server(
     }
   }
 
-  def serverLog(s: String): Unit = serverLog0(s"$processId ${timestampStr()} $s")
+  def serverLog(s: String): Unit = serverLog0(s"pid:$processId ${timestampStr()} $s")
 
   protected type PreHandleConnectionData
 
@@ -415,7 +415,7 @@ object Server {
     Signal.handle(new Signal("INT"), handler)
   }
 
-  def computeProcessId(): String = "pid" + ProcessHandle.current().pid()
+  def computeProcessId(): Long = ProcessHandle.current().pid()
 
   def checkProcessIdFile(processIdFile: os.Path, processId: String): Option[String] = {
     Try(os.read(processIdFile)) match {
@@ -432,18 +432,20 @@ object Server {
   /** Runs a thread that invokes `exit` if the contents of `processIdFile` do not match `processId`. */
   def watchProcessIdFile(
       processIdFile: os.Path,
-      processId: String,
+      processId: Long,
       running: () => Boolean,
       exit: String => Unit,
       log: String => Unit
   ): Unit = {
-    log(s"watching processId file (expected content = $processId): $processIdFile")
-    os.write.over(processIdFile, processId, createFolders = true)
+    val processIdStr = processId.toString
+
+    log(s"watching processId file (expected content = $processIdStr): $processIdFile")
+    os.write.over(processIdFile, processIdStr, createFolders = true)
 
     val processIdThread = new Thread(
       () =>
         while (running()) {
-          checkProcessIdFile(processIdFile, processId) match {
+          checkProcessIdFile(processIdFile, processIdStr) match {
             case None => Thread.sleep(100)
             case Some(msg) => exit(msg)
           }

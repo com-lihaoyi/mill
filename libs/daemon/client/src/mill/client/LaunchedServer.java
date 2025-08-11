@@ -5,9 +5,9 @@ public abstract class LaunchedServer {
 
   /// An operating system process was launched.
   public static class OsProcess extends LaunchedServer {
-    public final Process process;
+    public final ProcessHandle process;
 
-    public OsProcess(Process process) {
+    public OsProcess(ProcessHandle process) {
       this.process = process;
     }
 

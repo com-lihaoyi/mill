@@ -106,12 +106,14 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       taskDest: os.Path,
       log: Logger
   )
-  private case class SubprocessCacheValue(port: Int, daemonDir: os.Path) {
+  private case class SubprocessCacheValue(port: Int, daemonDir: os.Path, launchedServer: LaunchedServer) {
     def isRunning(): Boolean =
-      !Locks.files(daemonDir.toString).daemonLock.probe()
+      launchedServer.isAlive
 
-    def killProcess(): Unit =
+    def killProcess(): Unit = {
       os.remove(daemonDir / DaemonFiles.processId)
+      while (isRunning()) Thread.sleep(1)
+    }
   }
   private val subprocessCache = new CachedFactoryWithInitData[
     SubprocessCacheKey,
@@ -179,23 +181,23 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
             jvmArgs = key.runtimeOptions.options,
             classPath = classPath
           )
-          LaunchedServer.OsProcess(process.wrapped)
+          LaunchedServer.OsProcess(process.wrapped.toHandle)
         },
         log.debug
       )
 
-      def onSuccess() = {
+      def onSuccess(launched: LaunchedServer) = {
         val serverInitWaitMillis = 5.seconds.toMillis
-        val startTime = System.currentTimeMillis
+        val startTime = System.nanoTime()
         log.debug(s"Reading server port: $daemonDir")
         val port = ServerLauncher.readServerPort(daemonDir.toNIO, startTime, serverInitWaitMillis)
         log.debug(s"Started $mainClass for $key on port $port")
-        SubprocessCacheValue(port, daemonDir)
+        SubprocessCacheValue(port, daemonDir, launched)
       }
 
       result.fold(
-        /*success*/ _ => onSuccess(),
-        /*alreadyRunning*/ _ => onSuccess(),
+        success => onSuccess(success.server),
+        alreadyRunning => onSuccess(alreadyRunning.server),
         processDied =>
           throw IllegalStateException(
             s"""Failed to launch '$mainClass' for:
@@ -247,12 +249,12 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       subprocessCache.withValue(
         cacheKey,
         SubprocessCacheInitialize(compilerBridge.workspace, log)
-      ) { case SubprocessCacheValue(port, daemonDir) =>
+      ) { case SubprocessCacheValue(port, daemonDir, _) =>
         Using.Manager { use =>
-          val startTimeMillis = System.currentTimeMillis()
+          val startTimeNanos = System.nanoTime()
           log.debug(s"Connecting to $daemonDir on port $port")
           val socket = use(ServerLauncher.connectToServer(
-            startTimeMillis,
+            startTimeNanos,
             5.seconds.toMillis,
             port,
             s"From '${getClass.getName}'. Daemon directory: $daemonDir"

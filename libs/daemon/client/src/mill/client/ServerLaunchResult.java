@@ -28,6 +28,13 @@ public abstract class ServerLaunchResult {
 
   /// The server process was already running.
   public static class AlreadyRunning extends ServerLaunchResult {
+    /// The server process.
+    public final LaunchedServer server;
+
+    public AlreadyRunning(LaunchedServer server) {
+      this.server = server;
+    }
+
     @Override
     public <R> R fold(
         Function<Success, R> onSuccess,

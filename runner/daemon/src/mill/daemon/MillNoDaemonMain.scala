@@ -24,7 +24,7 @@ object MillNoDaemonMain {
     val processId = Server.computeProcessId()
     val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
     Server.watchProcessIdFile(
-      out / OutFiles.millNoDaemon / processId / DaemonFiles.processId,
+      out / OutFiles.millNoDaemon / s"pid-$processId" / DaemonFiles.processId,
       processId,
       running = () => true,
       exit = msg => {

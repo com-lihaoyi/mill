@@ -1,5 +1,6 @@
 package mill.client;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -120,7 +121,7 @@ public abstract class ServerLauncher {
   public static Socket onServerRunning(
       Path daemonDir, String debugName, int serverInitWaitMillis, Consumer<String> log)
       throws Exception {
-    var startTime = System.currentTimeMillis();
+    var startTime = System.nanoTime();
     log.accept("Reading server port: " + daemonDir.toAbsolutePath());
     var port = readServerPort(daemonDir, startTime, serverInitWaitMillis);
     log.accept("Read server port, connecting: " + port);
@@ -132,25 +133,29 @@ public abstract class ServerLauncher {
   }
 
   public static Integer readServerPort(
-      Path daemonDir, long startTimeMillis, long serverInitWaitMillis) throws Exception {
-    return withTimeout(startTimeMillis, serverInitWaitMillis, "Failed to read server port", () -> {
-      try {
-        return Optional.of(
-            Integer.parseInt(Files.readString(daemonDir.resolve(DaemonFiles.socketPort))));
-      } catch (IOException e) {
-        throw new RuntimeException(e);
+      Path daemonDir, long startTimeMonotonicNanos, long serverInitWaitMillis) throws Exception {
+    var portFile = daemonDir.resolve(DaemonFiles.socketPort);
+    return withTimeout(
+      startTimeMonotonicNanos, serverInitWaitMillis,
+      "Failed to read server port from " + portFile.toAbsolutePath(),
+      () -> {
+        try {
+          return Optional.of(Integer.parseInt(Files.readString(portFile)));
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
       }
-    });
+    );
   }
 
   /// Connects to the Mill server at the given port.
   ///
   /// @return a socket that should then be used with [#runWithConnection]
   public static Socket connectToServer(
-      long startTimeMillis, long serverInitWaitMillis, int port, String errorMessage)
+      long startTimeMonotonicNanos, long serverInitWaitMillis, int port, String errorMessage)
       throws Exception {
     return withTimeout(
-        startTimeMillis,
+        startTimeMonotonicNanos,
         serverInitWaitMillis,
         "Failed to connect to server within " + serverInitWaitMillis + "ms on port " + port + ". "
             + errorMessage,
@@ -164,11 +169,12 @@ public abstract class ServerLauncher {
   }
 
   public static <A> A withTimeout(
-      long startTimeMillis, long timeoutMillis, String errorMessage, Supplier<Optional<A>> supplier)
+      long startTimeMonotonicNanos, long timeoutMillis, String errorMessage, Supplier<Optional<A>> supplier)
       throws Exception {
     var current = Optional.<A>empty();
     Throwable throwable = null;
-    while (current.isEmpty() && System.currentTimeMillis() - startTimeMillis < timeoutMillis) {
+    var timeoutNanos = timeoutMillis * 1000 * 1000;
+    while (current.isEmpty() && System.nanoTime() - startTimeMonotonicNanos < timeoutNanos) {
       try {
         current = supplier.get();
       } catch (Throwable e) {
@@ -180,7 +186,7 @@ public abstract class ServerLauncher {
     }
 
     if (current.isEmpty()) {
-      throw new Exception(errorMessage, throwable);
+      throw new Exception(errorMessage + " (timeout was " + timeoutMillis + "ms)", throwable);
     }
     return current.get();
   }
@@ -221,7 +227,40 @@ public abstract class ServerLauncher {
         }
       } else {
         log.accept("The daemon lock is not available, there is already a server running.");
-        return new ServerLaunchResult.AlreadyRunning();
+        var startTime = System.nanoTime();
+        var pidFile = daemonDir.resolve(DaemonFiles.processId);
+        log.accept("Trying to read the process ID of a running daemon from " + pidFile.toAbsolutePath());
+        var pid = withTimeout(
+          startTime, 10 * 1000,
+          "Could not read the process ID from " + pidFile.toAbsolutePath(),
+          () -> {
+            try {
+              // We need to read the contents of the file and then parse them in a loop because of a race
+              // condition where an empty file is created first and only then the process ID is written to it,
+              // and thus we can read an empty string from the file otherwise.
+              var contents = Files.readString(pidFile);
+              return Optional.of(Long.parseLong(contents));
+            }
+            catch (IOException | NumberFormatException e) {
+              return Optional.empty();
+            }
+          }
+        );
+        log.accept("Read PID: " + pid);
+
+        var launchedServer =
+          // PID < 0 is only used in tests.
+          pid >= 0
+            ? new LaunchedServer.OsProcess(ProcessHandle.of(pid).orElseThrow(() ->
+              new IllegalStateException("No process found for PID " + pid)
+            ))
+            : new LaunchedServer() {
+              @Override
+              public boolean isAlive() {
+                throw new RuntimeException("not implemented, this should never happen");
+              }
+            };
+        return new ServerLaunchResult.AlreadyRunning(launchedServer);
       }
     }
   }

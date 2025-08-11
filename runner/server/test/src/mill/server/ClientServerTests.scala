@@ -20,7 +20,7 @@ object ClientServerTests extends TestSuite {
 
   val ENDL = System.lineSeparator()
   class EchoServer(
-      override val processId: String,
+      override val processId: Long,
       daemonDir: os.Path,
       locks: Locks,
       testLogEvenWhenServerIdWrong: Boolean,
@@ -109,8 +109,9 @@ object ClientServerTests extends TestSuite {
         def prepareDaemonDir(daemonDir: Path) = { /*do nothing*/ }
 
         def initServer(daemonDir: Path, locks: Locks) = {
-          val processId = "server-" + nextServerId
           nextServerId += 1
+          // Use a negative process ID to indicate we're not a real process.
+          val processId = -nextServerId
           val t = Thread(EchoServer(
             processId,
             os.Path(daemonDir, os.pwd),
@@ -278,12 +279,12 @@ object ClientServerTests extends TestSuite {
 
       assert(
         logLines.exists(line =>
-          line.startsWith("server-0 ") && line.contains(
+          line.startsWith("pid:-1 ") && line.contains(
             "client interrupted while server was executing command"
           )
         ),
         logLines.exists(line =>
-          line.startsWith("server-0 ") && line.contains("exiting server")
+          line.startsWith("pid:-1 ") && line.contains("exiting server")
         )
       )
     }

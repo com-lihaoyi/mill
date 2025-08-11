@@ -52,7 +52,7 @@ public class MillLauncherMain {
                 -1) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
                 return new LaunchedServer.OsProcess(
-                    MillProcessLauncher.launchMillDaemon(daemonDir));
+                    MillProcessLauncher.launchMillDaemon(daemonDir).toHandle());
               }
 
               public void prepareDaemonDir(Path daemonDir) throws Exception {
