@@ -141,7 +141,7 @@ trait AndroidModule extends JavaModule {
     }
   }
 
-  def providerProguardConfigRules: T[Seq[String]] = Task {
+  def androidProviderProguardConfigRules: T[Seq[String]] = Task {
     val androidNs = "http://schemas.android.com/apk/res/android"
     val manifest = androidMergedManifest().path
     val manifestXML = scala.xml.XML.loadFile(manifest.toString)
