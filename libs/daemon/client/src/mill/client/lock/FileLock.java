@@ -4,7 +4,7 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.OverlappingFileLockException;
 
-class FileLock extends Lock {
+public class FileLock extends Lock {
 
   private final RandomAccessFile raf;
   private final FileChannel chan;

@@ -120,7 +120,7 @@ object ClientServerTests extends TestSuite {
             commandSleepMillis = commandSleepMillis
           ))
           t.start()
-          LaunchedServer.NewThread(t)
+          LaunchedServer.NewThread(t, () => { /* do nothing */ })
         }
       }.run(
         (outDir / "server-0").relativeTo(os.pwd).toNIO,

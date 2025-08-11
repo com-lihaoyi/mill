@@ -263,6 +263,11 @@ public abstract class ServerLauncher {
                   public boolean isAlive() {
                     throw new RuntimeException("not implemented, this should never happen");
                   }
+
+                  @Override
+                  public void kill() {
+                    throw new RuntimeException("not implemented, this should never happen");
+                  }
                 };
         return new ServerLaunchResult.AlreadyRunning(launchedServer);
       }

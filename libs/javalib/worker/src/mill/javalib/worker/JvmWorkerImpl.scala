@@ -16,6 +16,7 @@ import org.apache.logging.log4j.core.util.NullOutputStream
 import sbt.internal.util.ConsoleOut
 
 import java.io.*
+import java.nio.file.FileSystemException
 import java.security.MessageDigest
 import scala.concurrent.duration.*
 import scala.util.Using
@@ -117,9 +118,19 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     def killProcess(): Unit = {
       os.remove(daemonDir / DaemonFiles.processId)
       while (isRunning()) Thread.sleep(1)
-      // On Windows it takes some time until the file handles are released, so we just have to
-      // wait and hope.
-      if (scala.util.Properties.isWin) Thread.sleep(500)
+
+      // On Windows it takes some time until the file handles are released, so we have to wait for that as
+      // well.
+      if (scala.util.Properties.isWin) {
+        val daemonLock = daemonDir / DaemonFiles.daemonLock
+
+        def tryRemoving(): Boolean = {
+          try { os.remove(daemonLock); true }
+          catch { case _: FileSystemException => false }
+        }
+
+        while (!tryRemoving()) Thread.sleep(10)
+      }
     }
   }
   private val subprocessCache = new CachedFactoryWithInitData[
