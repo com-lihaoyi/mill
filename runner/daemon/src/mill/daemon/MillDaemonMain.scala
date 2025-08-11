@@ -9,11 +9,25 @@ import mill.api.BuildCtx
 import scala.util.{Properties, Try}
 
 object MillDaemonMain {
+  case class Args(daemonDir: os.Path, bspMode: Boolean, rest: Seq[String])
+  object Args {
+    def apply(appName: String, args: Array[String]): Either[String, Args] = {
+      args match {
+        case Array(daemonDir, bspMode, rest*) =>
+          Right(apply(os.Path(daemonDir), bspMode == "bsp", rest))
+        case _ => Left(s"usage: $appName <daemon-dir> <bsp-mode> <mill-args>")
+      }
+    }
+  }
+
   def main(args0: Array[String]): Unit = {
 
     // Set by an integration test
     if (System.getenv("MILL_DAEMON_CRASH") == "true")
       sys.error("Mill daemon early crash requested")
+
+    val args =
+      Args(getClass.getName, args0).fold(err => throw IllegalArgumentException(err), identity)
 
     if (Properties.isWin)
       // temporarily disabling FFM use by coursier, which has issues with the way
@@ -40,10 +54,10 @@ object MillDaemonMain {
         Try(System.getProperty("mill.server_timeout").toInt).getOrElse(30 * 60 * 1000) // 30 minutes
 
       new MillDaemonMain(
-        daemonDir = os.Path(args0(0)),
+        daemonDir = args.daemonDir,
         acceptTimeoutMillis = acceptTimeoutMillis,
-        Locks.files(args0(0)),
-        bspMode = args0.lift(1).contains("bsp")
+        Locks.files(args.daemonDir.toString),
+        bspMode = args.bspMode
       ).run()
 
       System.exit(ClientUtil.ExitServerCodeWhenIdle())
