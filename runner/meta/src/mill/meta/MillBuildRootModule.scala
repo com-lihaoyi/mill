@@ -14,6 +14,7 @@ import mill.javalib.api.{CompilationResult, Versions}
 import mill.util.{BuildInfo, MainRootModule}
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.JsonFormatters.given
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileMixed}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 
@@ -282,23 +283,27 @@ trait MillBuildRootModule()(implicit
     }
 
     // copied from `ScalaModule`
+    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
     jvmWorker()
-      .worker()
+      .internalWorker()
       .compileMixed(
-        upstreamCompileOutput = upstreamCompileOutput(),
-        sources = Seq.from(allSourceFiles().map(_.path)),
-        compileClasspath = compileClasspath().map(_.path),
+        ZincCompileMixed(
+          upstreamCompileOutput = upstreamCompileOutput(),
+          sources = Seq.from(allSourceFiles().map(_.path)),
+          compileClasspath = compileClasspath().map(_.path),
+          javacOptions = jOpts.compiler,
+          scalaVersion = scalaVersion(),
+          scalaOrganization = scalaOrganization(),
+          scalacOptions = allScalacOptions(),
+          compilerClasspath = scalaCompilerClasspath(),
+          scalacPluginClasspath = scalacPluginClasspath(),
+          incrementalCompilation = zincIncrementalCompilation(),
+          auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+        ),
         javaHome = javaHome().map(_.path),
-        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
-        scalaVersion = scalaVersion(),
-        scalaOrganization = scalaOrganization(),
-        scalacOptions = allScalacOptions(),
-        compilerClasspath = scalaCompilerClasspath(),
-        scalacPluginClasspath = scalacPluginClasspath(),
+        javaRuntimeOptions = jOpts.runtime,
         reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = zincIncrementalCompilation(),
-        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+        reportCachedProblems = zincReportCachedProblems()
       ).map {
         res =>
           // Perform the line-number updating in a copy of the classfiles, because

@@ -18,7 +18,8 @@ import millbuild.*
 
 object `package` extends MillStableScalaModule {
 
-  def moduleDeps = Seq(build.libs.util, build.libs.javalib.api, build.libs.javalib.testrunner)
+  def moduleDeps =
+    Seq(build.libs.util, build.libs.rpc, build.libs.javalib.api, build.libs.javalib.testrunner)
   def mvnDeps =
     Seq(Deps.scalaXml) ++
       // despite compiling with Scala 3, we need to include scala-reflect
@@ -120,7 +121,7 @@ object `package` extends MillStableScalaModule {
   }
 
   object worker extends MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(api, build.libs.util)
+    def moduleDeps = Seq(api, build.libs.javalib)
     def mvnDeps = Seq(Deps.zinc, Deps.log4j2Core)
     def buildInfoPackageName = "mill.javalib.worker"
     def buildInfoObjectName = "Versions"
