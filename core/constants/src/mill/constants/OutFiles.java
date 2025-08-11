@@ -1,7 +1,5 @@
 package mill.constants;
 
-import java.util.Optional;
-
 /**
  * Central place containing all the files that live inside the `out/` folder
  * and documentation about what they do
