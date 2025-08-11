@@ -25,7 +25,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
   def kotlinLanguageVersion = Versions.kotlinLanguageVersion
   def kspVersion = Versions.kspVersion
 
-  override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task.Input {
+  override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
     AndroidBuildTypeSettings(
       isMinifyEnabled = false,
       isShrinkEnabled = false
@@ -155,7 +155,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
 
     override def kspVersion = Versions.kspVersion
 
-    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task.Input {
+    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false
