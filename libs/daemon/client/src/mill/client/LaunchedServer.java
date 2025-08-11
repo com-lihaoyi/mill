@@ -2,6 +2,7 @@ package mill.client;
 
 public abstract class LaunchedServer {
   public abstract boolean isAlive();
+
   public abstract void kill();
 
   /// An operating system process was launched.
@@ -25,7 +26,8 @@ public abstract class LaunchedServer {
     @Override
     public void kill() {
       if (!process.destroy())
-        throw new IllegalStateException("Asked " + process + " to terminate, but the termination request failed.");
+        throw new IllegalStateException(
+            "Asked " + process + " to terminate, but the termination request failed.");
     }
   }
 
@@ -50,6 +52,8 @@ public abstract class LaunchedServer {
     }
 
     @Override
-    public void kill() { _kill.run(); }
+    public void kill() {
+      _kill.run();
+    }
   }
 }
