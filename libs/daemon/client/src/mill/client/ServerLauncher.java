@@ -1,6 +1,5 @@
 package mill.client;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -136,16 +135,16 @@ public abstract class ServerLauncher {
       Path daemonDir, long startTimeMonotonicNanos, long serverInitWaitMillis) throws Exception {
     var portFile = daemonDir.resolve(DaemonFiles.socketPort);
     return withTimeout(
-      startTimeMonotonicNanos, serverInitWaitMillis,
-      "Failed to read server port from " + portFile.toAbsolutePath(),
-      () -> {
-        try {
-          return Optional.of(Integer.parseInt(Files.readString(portFile)));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    );
+        startTimeMonotonicNanos,
+        serverInitWaitMillis,
+        "Failed to read server port from " + portFile.toAbsolutePath(),
+        () -> {
+          try {
+            return Optional.of(Integer.parseInt(Files.readString(portFile)));
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        });
   }
 
   /// Connects to the Mill server at the given port.
@@ -169,7 +168,10 @@ public abstract class ServerLauncher {
   }
 
   public static <A> A withTimeout(
-      long startTimeMonotonicNanos, long timeoutMillis, String errorMessage, Supplier<Optional<A>> supplier)
+      long startTimeMonotonicNanos,
+      long timeoutMillis,
+      String errorMessage,
+      Supplier<Optional<A>> supplier)
       throws Exception {
     var current = Optional.<A>empty();
     Throwable throwable = null;
@@ -229,37 +231,39 @@ public abstract class ServerLauncher {
         log.accept("The daemon lock is not available, there is already a server running.");
         var startTime = System.nanoTime();
         var pidFile = daemonDir.resolve(DaemonFiles.processId);
-        log.accept("Trying to read the process ID of a running daemon from " + pidFile.toAbsolutePath());
+        log.accept(
+            "Trying to read the process ID of a running daemon from " + pidFile.toAbsolutePath());
         var pid = withTimeout(
-          startTime, 10 * 1000,
-          "Could not read the process ID from " + pidFile.toAbsolutePath(),
-          () -> {
-            try {
-              // We need to read the contents of the file and then parse them in a loop because of a race
-              // condition where an empty file is created first and only then the process ID is written to it,
-              // and thus we can read an empty string from the file otherwise.
-              var contents = Files.readString(pidFile);
-              return Optional.of(Long.parseLong(contents));
-            }
-            catch (IOException | NumberFormatException e) {
-              return Optional.empty();
-            }
-          }
-        );
+            startTime,
+            10 * 1000,
+            "Could not read the process ID from " + pidFile.toAbsolutePath(),
+            () -> {
+              try {
+                // We need to read the contents of the file and then parse them in a loop because of
+                // a race
+                // condition where an empty file is created first and only then the process ID is
+                // written to it,
+                // and thus we can read an empty string from the file otherwise.
+                var contents = Files.readString(pidFile);
+                return Optional.of(Long.parseLong(contents));
+              } catch (IOException | NumberFormatException e) {
+                return Optional.empty();
+              }
+            });
         log.accept("Read PID: " + pid);
 
         var launchedServer =
-          // PID < 0 is only used in tests.
-          pid >= 0
-            ? new LaunchedServer.OsProcess(ProcessHandle.of(pid).orElseThrow(() ->
-              new IllegalStateException("No process found for PID " + pid)
-            ))
-            : new LaunchedServer() {
-              @Override
-              public boolean isAlive() {
-                throw new RuntimeException("not implemented, this should never happen");
-              }
-            };
+            // PID < 0 is only used in tests.
+            pid >= 0
+                ? new LaunchedServer.OsProcess(ProcessHandle.of(pid)
+                    .orElseThrow(
+                        () -> new IllegalStateException("No process found for PID " + pid)))
+                : new LaunchedServer() {
+                  @Override
+                  public boolean isAlive() {
+                    throw new RuntimeException("not implemented, this should never happen");
+                  }
+                };
         return new ServerLaunchResult.AlreadyRunning(launchedServer);
       }
     }

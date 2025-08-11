@@ -106,7 +106,11 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       taskDest: os.Path,
       log: Logger
   )
-  private case class SubprocessCacheValue(port: Int, daemonDir: os.Path, launchedServer: LaunchedServer) {
+  private case class SubprocessCacheValue(
+      port: Int,
+      daemonDir: os.Path,
+      launchedServer: LaunchedServer
+  ) {
     def isRunning(): Boolean =
       launchedServer.isAlive
 
