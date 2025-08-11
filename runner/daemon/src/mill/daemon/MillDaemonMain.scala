@@ -42,7 +42,8 @@ object MillDaemonMain {
       new MillDaemonMain(
         daemonDir = os.Path(args0(0)),
         acceptTimeoutMillis = acceptTimeoutMillis,
-        Locks.files(args0(0))
+        Locks.files(args0(0)),
+        bspMode = args0.lift(1).contains("bsp")
       ).run()
 
       System.exit(ClientUtil.ExitServerCodeWhenIdle())
@@ -52,7 +53,8 @@ object MillDaemonMain {
 class MillDaemonMain(
     daemonDir: os.Path,
     acceptTimeoutMillis: Int,
-    locks: Locks
+    locks: Locks,
+    bspMode: Boolean
 ) extends mill.server.Server[RunnerState](
       daemonDir,
       acceptTimeoutMillis,
@@ -61,7 +63,7 @@ class MillDaemonMain(
 
   def stateCache0 = RunnerState.empty
 
-  val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
+  val out = os.Path(OutFiles.outFor(bspMode), BuildCtx.workspaceRoot)
 
   val outLock = new DoubleLock(
     MillMain0.outMemoryLock,

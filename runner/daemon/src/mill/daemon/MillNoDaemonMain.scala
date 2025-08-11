@@ -21,8 +21,11 @@ object MillNoDaemonMain {
       // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
       sys.props("coursier.windows.disable-ffm") = "true"
 
+    val daemonDir = os.Path(args.head)
+    val bspMode = args.lift(1).contains("bsp")
+
     val processId = Server.computeProcessId()
-    val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
+    val out = os.Path(OutFiles.outFor(bspMode), BuildCtx.workspaceRoot)
     Server.watchProcessIdFile(
       out / OutFiles.millNoDaemon / processId / DaemonFiles.processId,
       processId,
@@ -38,7 +41,6 @@ object MillNoDaemonMain {
       Lock.file((out / OutFiles.millOutLock).toString)
     )
 
-    val daemonDir = os.Path(args.head)
     val (result, _) =
       try main0(
           args = args.tail,

@@ -1,23 +1,37 @@
 package mill.constants;
 
+import java.util.Optional;
+
 /**
  * Central place containing all the files that live inside the `out/` folder
  * and documentation about what they do
  */
 public class OutFiles {
 
+  /// Allows us to override the `out/` folder from the environment via the [EnvVars#MILL_OUTPUT_DIR] variable.
   private static final String envOutOrNull = System.getenv(EnvVars.MILL_OUTPUT_DIR);
 
-  /**
-   * Default hard-coded value for the Mill `out/` folder path. Unless you know
-   * what you are doing, you should favor using [[out]] instead.
-   */
+  /// Default hard-coded value for the Mill `out/` folder path. Unless you know
+  /// what you are doing, you should favor using [#outFor] instead.
   public static final String defaultOut = "out";
 
-  /**
-   * Path of the Mill `out/` folder
-   */
+  /// Path of the Mill `out/` folder. Unless you know what you are doing, you should
+  /// favor using [#outFor] instead.
   public static final String out = envOutOrNull == null ? defaultOut : envOutOrNull;
+
+  /// Path of the Mill `out/` folder when Mill is running in BSP mode. Unless you know
+  /// what you are doing, you should favor using [#outFor] instead.
+  public static final String bspOut = ".mill-bsp-out";
+
+  /// Path of the Mill [#out] folder.
+  ///
+  /// @param bspMode if true, we are running in BSP mode, so we need to return a different path.
+  ///                If [#envOutOrNull] is set, this parameter is ignored.
+  public static String outFor(boolean bspMode) {
+    if (envOutOrNull != null) return envOutOrNull;
+    if (bspMode) return bspOut;
+    return out;
+  }
 
   /**
    * Path of the Mill "meta-build", used to compile the `build.sc` file so we can

@@ -13,12 +13,14 @@ import mill.constants.OutFiles;
  * A Scala implementation would result in the JVM loading much more classes almost doubling the start-up times.
  */
 public class MillLauncherMain {
+  static final String bspFlag = "--bsp";
+
   public static void main(String[] args) throws Exception {
     boolean runNoServer = false;
     if (args.length > 0) {
       String firstArg = args[0];
       runNoServer =
-          Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", "--bsp", "--help")
+          Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", bspFlag, "--help")
                   .contains(firstArg)
               || firstArg.startsWith("-i");
     }
@@ -31,14 +33,16 @@ public class MillLauncherMain {
       }
     }
 
+    var bspMode = Arrays.asList(args).contains(bspFlag);
+
     if (runNoServer) {
       // start in no-server mode
-      System.exit(MillProcessLauncher.launchMillNoDaemon(args));
+      System.exit(MillProcessLauncher.launchMillNoDaemon(args, bspMode));
     } else
       try {
         // start in client-server mode
         java.util.List<String> optsArgs = new java.util.ArrayList<>();
-        optsArgs.addAll(MillProcessLauncher.millOpts());
+        optsArgs.addAll(MillProcessLauncher.millOpts(bspMode));
         Collections.addAll(optsArgs, args);
 
         ServerLauncher launcher =
@@ -51,7 +55,7 @@ public class MillLauncherMain {
                 null,
                 -1) {
               public Process initServer(Path daemonDir, Locks locks) throws Exception {
-                return MillProcessLauncher.launchMillDaemon(daemonDir);
+                return MillProcessLauncher.launchMillDaemon(daemonDir, bspMode);
               }
 
               public void preparedaemonDir(Path daemonDir) throws Exception {
@@ -59,8 +63,8 @@ public class MillLauncherMain {
               }
             };
 
-        Path daemonDir0 = Paths.get(OutFiles.out, OutFiles.millDaemon);
-        String javaHome = MillProcessLauncher.javaHome();
+        Path daemonDir0 = Paths.get(OutFiles.outFor(bspMode), OutFiles.millDaemon);
+        String javaHome = MillProcessLauncher.javaHome(bspMode);
         int exitCode = launcher.run(daemonDir0, javaHome).exitCode;
         if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
           exitCode = launcher.run(daemonDir0, javaHome).exitCode;

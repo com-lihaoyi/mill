@@ -61,12 +61,13 @@ object MillMain0 {
     if (bspMode) {
       // In BSP mode, don't let anything other than the BSP server write to stdout and read from stdin
 
+      val outDir = BuildCtx.workspaceRoot / OutFiles.outFor( /* bspMode */ true)
       val outFileStream = os.write.outputStream(
-        BuildCtx.workspaceRoot / OutFiles.out / "mill-bsp/out.log",
+        outDir / "mill-bsp/out.log",
         createFolders = true
       )
       val errFileStream = os.write.outputStream(
-        BuildCtx.workspaceRoot / OutFiles.out / "mill-bsp/err.log",
+        outDir / "mill-bsp/err.log",
         createFolders = true
       )
 
@@ -231,7 +232,7 @@ object MillMain0 {
                     if (threadCount == 1) None
                     else Some(mill.exec.ExecutionContexts.createExecutor(threadCount))
 
-                  val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
+                  val out = os.Path(OutFiles.outFor(bspMode), BuildCtx.workspaceRoot)
                   Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                     def runMillBootstrap(
                         enterKeyPressed: Boolean,
@@ -494,7 +495,8 @@ object MillMain0 {
     bspLogger.info("Trying to load BSP server...")
 
     val wsRoot = BuildCtx.workspaceRoot
-    val logDir = wsRoot / OutFiles.out / "mill-bsp"
+    val outFolder = wsRoot / OutFiles.outFor( /* bspMode */ true)
+    val logDir = outFolder / "mill-bsp"
     os.makeDir.all(logDir)
 
     val bspServerHandleRes =
@@ -505,7 +507,7 @@ object MillMain0 {
         true,
         outLock,
         bspLogger,
-        wsRoot / OutFiles.out
+        outFolder
       ).get
 
     bspLogger.info("BSP server started")
