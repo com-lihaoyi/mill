@@ -32,8 +32,8 @@ object JetLagged extends mill.api.Module {
       )
     }
 
-    def androidProjectProguardFiles: Seq[os.Path] = Seq(
-      moduleDir / "proguard-rules.pro"
+    def androidProjectProguardFiles: Seq[os.SubPath] = Seq(
+      "proguard-rules.pro"
     )
     def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
       Seq("proguard-android-optimize.txt")
@@ -158,8 +158,8 @@ object JetNews extends mill.api.Module {
         isShrinkEnabled = false
       )
     }
-    def androidProjectProguardFiles: Seq[os.Path] = Seq(
-      moduleDir / "proguard-rules.pro"
+    def androidProjectProguardFiles: Seq[os.SubPath] = Seq(
+      "proguard-rules.pro"
     )
     def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
       Seq("proguard-android-optimize.txt")

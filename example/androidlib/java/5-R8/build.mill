@@ -10,7 +10,7 @@
 //
 // * test-proguard-rules.pro: This file contains the rules for R8 to follow when shrinking and obfuscating the unit and instrumented tests.
 //
-// You can also override the default Proguard files by using `override def proguardConfigs: T[Seq[PathRef]]`
+// You can also override the default Proguard files by using `override def androidDefaultProguardFileNames: T[Seq[String]]`
 // More informations about the R8 in general and about the Proguard rules files can be found in the links below:
 //
 // https://developer.android.com/build/shrink-code
@@ -45,8 +45,8 @@ object app extends AndroidR8AppModule { // <2>
   override def androidVirtualDeviceIdentifier: String = "java-test"
   override def androidIsDebug: T[Boolean] = Task { false }
 
-  def androidProjectProguardFiles: Seq[os.Path] = Seq(
-    moduleDir / "proguard-rules.pro"
+  def androidProjectProguardFiles: Seq[os.SubPath] = Seq(
+    "proguard-rules.pro"
   )
 
   // Unit tests for the application
@@ -68,8 +68,8 @@ object app extends AndroidR8AppModule { // <2>
       AndroidBuildTypeSettings(isMinifyEnabled = false)
     }
 
-    override def androidProjectProguardFiles: Seq[os.Path] = Seq(
-      moduleDir / "test-proguard-rules.pro"
+    override def androidProjectProguardFiles: Seq[os.SubPath] = Seq(
+      "test-proguard-rules.pro"
     )
 
     def mvnDeps = super.mvnDeps() ++ Seq(
