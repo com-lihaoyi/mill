@@ -26,6 +26,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   def javacOptions: T[Seq[String]]
   def mandatoryJavacOptions: T[Seq[String]]
   def compileClasspath: T[Seq[PathRef]]
+  def moduleDeps: Seq[JavaModule]
 
   def semanticDbVersion: T[String] = Task.Input {
     val builtin = SemanticDbJavaModuleApi.buildTimeSemanticDbVersion
@@ -150,9 +151,14 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
    */
   def compiledClassesAndSemanticDbFiles: T[PathRef] = Task(persistent = true) {
     val dest = Task.dest
-    val sems = semanticDbData().path
+    val semanticDbDatum =
+      Task.sequence(semanticDbData +: moduleDeps.collect { case m: SemanticDbJavaModule =>
+        m.semanticDbData
+      })().map(_.path)
     os.list(dest).foreach(os.remove.all(_))
-    if (os.exists(sems)) os.copy(sems, dest, mergeFolders = true)
+    semanticDbDatum.foreach { data =>
+      if (os.exists(data)) os.copy(data, dest, mergeFolders = true)
+    }
     PathRef(dest)
   }
 
