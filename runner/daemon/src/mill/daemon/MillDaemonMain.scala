@@ -19,7 +19,7 @@ object MillDaemonMain {
       args match {
         case Array(daemonDir, outModeStr, rest*) =>
           Try(OutFolderMode.valueOf(outModeStr)) match {
-            case Failure(err) =>
+            case Failure(_) =>
               Left(usage(
                 s"\n\n<out-mode> must be one of ${OutFolderMode.values.mkString(", ")} but was '$outModeStr'"
               ))
