@@ -151,14 +151,14 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
    */
   def compiledClassesAndSemanticDbFiles: T[PathRef] = Task(persistent = true) {
     val dest = Task.dest
-    val semanticDbDatum =
-      Task.sequence(semanticDbData +: moduleDeps.collect { case m: SemanticDbJavaModule =>
-        m.semanticDbData
-      })().map(_.path)
+    // Run the `compiledClassesAndSemanticDbFiles` tasks of all module dependencies
+    val _ = Task.sequence(moduleDeps.collect { case m: SemanticDbJavaModule =>
+      m.compiledClassesAndSemanticDbFiles
+    })()
+
     os.list(dest).foreach(os.remove.all(_))
-    semanticDbDatum.foreach { data =>
-      if (os.exists(data)) os.copy(data, dest, mergeFolders = true)
-    }
+    val data = semanticDbData().path
+    if (os.exists(data)) os.copy(data, dest, mergeFolders = true)
     PathRef(dest)
   }
 
