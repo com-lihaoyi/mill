@@ -66,7 +66,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
   def androidProjectProguardFiles: T[Seq[PathRef]] = Task.Sources()
 
   /** ProGuard/R8 rules configuration files for release target (user-provided and generated) */
-  def androidAllProguardFiles: T[Seq[PathRef]] = Task {
+  def androidProguardConfigs: T[Seq[PathRef]] = Task {
     androidDefaultProguardFiles() ++ androidProjectProguardFiles() ++ androidLibraryProguardConfigs()
   }
 
@@ -75,7 +75,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
     val inheritedProguardFile = super.androidProguard()
 
     val globalProguard = Task.dest / "global-proguard.pro"
-    val files = androidAllProguardFiles()
+    val files = androidProguardConfigs()
     os.write(globalProguard, os.read(inheritedProguardFile.path))
 
     files.foreach(pg =>
