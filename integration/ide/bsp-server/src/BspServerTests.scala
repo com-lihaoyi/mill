@@ -3,15 +3,13 @@ package mill.integration
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.nio.file.Paths
-
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.given
-
 import ch.epfl.scala.bsp4j as b
 import mill.api.BuildInfo
 import mill.bsp.Constants
-import mill.constants.OutFiles
+import mill.constants.{OutFiles, OutFolderMode}
 import mill.integration.BspServerTestUtil.*
 import mill.javalib.testrunner.TestRunnerUtils
 import mill.testkit.UtestIntegrationTestSuite
@@ -446,7 +444,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
             val keep =
               !uriAsSubPath(
                 params.getTextDocument.getUri
-              ).startsWith(os.sub / OutFiles.outFor( /* bspMode */ true))
+              ).startsWith(os.sub / OutFiles.outFor(OutFolderMode.BSP))
             if (keep)
               diagnostics.append(params)
           }
@@ -491,7 +489,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
       val noPackageBuildMill =
         originalBuildMill.take(idx) + originalBuildMill.drop(idx + "package build".length)
       os.write.over(workspacePath / "build.mill", noPackageBuildMill)
-      os.remove.all(workspacePath / OutFiles.outFor( /* bspMode */ true))
+      os.remove.all(workspacePath / OutFiles.outFor(OutFolderMode.BSP))
       runTest()
     }
   }
@@ -519,7 +517,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         .filter(_.last.endsWith(".semanticdb"))
         .filter(_.startsWith(semDbPrefix))
         .map(_.relativeTo(semDbPrefix).asSubPath)
-        .filter(!_.startsWith(os.sub / OutFiles.outFor( /* bspMode */ true)))
+        .filter(!_.startsWith(os.sub / OutFiles.outFor(OutFolderMode.BSP)))
         .sorted
     else
       Nil

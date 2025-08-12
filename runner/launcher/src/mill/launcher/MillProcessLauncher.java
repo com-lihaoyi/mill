@@ -15,26 +15,23 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import mill.client.ClientUtil;
-import mill.constants.BuildInfo;
-import mill.constants.CodeGenConstants;
-import mill.constants.DaemonFiles;
-import mill.constants.EnvVars;
+import mill.constants.*;
 
 public class MillProcessLauncher {
 
-  static int launchMillNoDaemon(String[] args, boolean bspMode) throws Exception {
+  static int launchMillNoDaemon(String[] args, OutFolderMode outMode) throws Exception {
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
     final Path processDir =
-        Paths.get(".").resolve(outFor(bspMode)).resolve(millNoDaemon).resolve(sig);
+        Paths.get(".").resolve(outFor(outMode)).resolve(millNoDaemon).resolve(sig);
 
     final List<String> l = new ArrayList<>();
-    l.addAll(millLaunchJvmCommand(bspMode));
+    l.addAll(millLaunchJvmCommand(outMode));
     Map<String, String> propsMap = ClientUtil.getUserSetProperties();
     for (String key : propsMap.keySet()) l.add("-D" + key + "=" + propsMap.get(key));
     l.add("mill.daemon.MillNoDaemonMain");
     l.add(processDir.toAbsolutePath().toString());
-    l.add(bspMode ? "bsp" : "non-bsp");
-    l.addAll(millOpts(bspMode));
+    l.add(outMode.asString);
+    l.addAll(millOpts(outMode));
     l.addAll(Arrays.asList(args));
 
     final ProcessBuilder builder = new ProcessBuilder().command(l).inheritIO();
@@ -60,11 +57,11 @@ public class MillProcessLauncher {
     }
   }
 
-  static Process launchMillDaemon(Path daemonDir, boolean bspMode) throws Exception {
-    List<String> l = new ArrayList<>(millLaunchJvmCommand(bspMode));
+  static Process launchMillDaemon(Path daemonDir, OutFolderMode outMode) throws Exception {
+    List<String> l = new ArrayList<>(millLaunchJvmCommand(outMode));
     l.add("mill.daemon.MillDaemonMain");
     l.add(daemonDir.toFile().getCanonicalPath());
-    l.add(bspMode ? "bsp" : "non-bsp");
+    l.add(outMode.asString);
 
     ProcessBuilder builder = new ProcessBuilder()
         .command(l)
@@ -96,7 +93,7 @@ public class MillProcessLauncher {
     return builder.start();
   }
 
-  static List<String> loadMillConfig(boolean bspMode, String key) throws Exception {
+  static List<String> loadMillConfig(OutFolderMode outMode, String key) throws Exception {
 
     Path configFile = Paths.get("." + key);
     final Map<String, String> env = new HashMap<>();
@@ -117,7 +114,7 @@ public class MillProcessLauncher {
         Path buildFile = Paths.get(rootBuildFileName);
         if (Files.exists(buildFile)) {
           String[] config = cachedComputedValue(
-              bspMode,
+              outMode,
               key,
               mill.constants.Util.readBuildHeader(
                   buildFile, buildFile.getFileName().toString()),
@@ -150,16 +147,16 @@ public class MillProcessLauncher {
     return List.of();
   }
 
-  static List<String> millJvmOpts(boolean bspMode) throws Exception {
-    return loadMillConfig(bspMode, "mill-jvm-opts");
+  static List<String> millJvmOpts(OutFolderMode outMode) throws Exception {
+    return loadMillConfig(outMode, "mill-jvm-opts");
   }
 
-  static List<String> millOpts(boolean bspMode) throws Exception {
-    return loadMillConfig(bspMode, "mill-opts");
+  static List<String> millOpts(OutFolderMode outMode) throws Exception {
+    return loadMillConfig(outMode, "mill-opts");
   }
 
-  static String millJvmVersion(boolean bspMode) throws Exception {
-    List<String> res = loadMillConfig(bspMode, "mill-jvm-version");
+  static String millJvmVersion(OutFolderMode outMode) throws Exception {
+    List<String> res = loadMillConfig(outMode, "mill-jvm-version");
     if (res.isEmpty()) return null;
     else return res.get(0);
   }
@@ -172,8 +169,8 @@ public class MillProcessLauncher {
     return System.getProperty("os.name", "").startsWith("Windows");
   }
 
-  static String javaHome(boolean bspMode) throws Exception {
-    var jvmId = millJvmVersion(bspMode);
+  static String javaHome(OutFolderMode outMode) throws Exception {
+    var jvmId = millJvmVersion(outMode);
 
     String javaHome = null;
     if (jvmId == null) {
@@ -189,7 +186,7 @@ public class MillProcessLauncher {
     if (jvmId != null) {
       final String jvmIdFinal = jvmId;
       javaHome = cachedComputedValue0(
-          bspMode,
+          outMode,
           "java-home",
           jvmId,
           () -> new String[] {CoursierClient.resolveJavaHome(jvmIdFinal).getAbsolutePath()},
@@ -204,8 +201,8 @@ public class MillProcessLauncher {
     return javaHome;
   }
 
-  static String javaExe(boolean bspMode) throws Exception {
-    String javaHome = javaHome(bspMode);
+  static String javaExe(OutFolderMode outMode) throws Exception {
+    String javaHome = javaHome(outMode);
     if (javaHome == null) return "java";
     else {
       final Path exePath = Paths.get(
@@ -215,11 +212,11 @@ public class MillProcessLauncher {
     }
   }
 
-  static List<String> millLaunchJvmCommand(boolean bspMode) throws Exception {
+  static List<String> millLaunchJvmCommand(OutFolderMode outMode) throws Exception {
     final List<String> vmOptions = new ArrayList<>();
 
     // Java executable
-    vmOptions.add(javaExe(bspMode));
+    vmOptions.add(javaExe(outMode));
 
     // sys props
     final Properties sysProps = System.getProperties();
@@ -233,12 +230,12 @@ public class MillProcessLauncher {
     if (serverTimeout != null) vmOptions.add("-Dmill.server_timeout=" + serverTimeout);
 
     // extra opts
-    vmOptions.addAll(millJvmOpts(bspMode));
+    vmOptions.addAll(millJvmOpts(outMode));
 
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
     String[] runnerClasspath = cachedComputedValue0(
-        bspMode,
+        outMode,
         "resolve-runner",
         BuildInfo.millVersion,
         () -> CoursierClient.resolveMillDaemon(),
@@ -254,18 +251,18 @@ public class MillProcessLauncher {
   }
 
   static String[] cachedComputedValue(
-      boolean bspMode, String name, String key, Supplier<String[]> block) {
-    return cachedComputedValue0(bspMode, name, key, block, arr -> true);
+      OutFolderMode outMode, String name, String key, Supplier<String[]> block) {
+    return cachedComputedValue0(outMode, name, key, block, arr -> true);
   }
 
   static String[] cachedComputedValue0(
-      boolean bspMode,
+      OutFolderMode outMode,
       String name,
       String key,
       Supplier<String[]> block,
       Function<String[], Boolean> validate) {
     try {
-      Path cacheFile = Paths.get(".").resolve(outFor(bspMode)).resolve("mill-launcher/" + name);
+      Path cacheFile = Paths.get(".").resolve(outFor(outMode)).resolve("mill-launcher/" + name);
       String[] value = null;
       if (Files.exists(cacheFile)) {
         String[] savedInfo = Files.readString(cacheFile).split("\n");

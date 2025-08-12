@@ -3,20 +3,29 @@ package mill.daemon
 import mill.api.{BuildCtx, SystemStreams}
 import mill.client.ClientUtil
 import mill.client.lock.{Lock, Locks}
-import mill.constants.OutFiles
+import mill.constants.{OutFiles, OutFolderMode}
 import mill.server.Server
 
 import scala.concurrent.duration.*
-import scala.util.{Properties, Try}
+import scala.util.{Failure, Properties, Success, Try}
 
 object MillDaemonMain {
-  case class Args(daemonDir: os.Path, bspMode: Boolean, rest: Seq[String])
+  case class Args(daemonDir: os.Path, outMode: OutFolderMode, rest: Seq[String])
   object Args {
     def apply(appName: String, args: Array[String]): Either[String, Args] = {
+      def usage(extra: String = "") =
+        s"usage: $appName <daemon-dir> <out-mode> <mill-args>$extra"
+
       args match {
-        case Array(daemonDir, bspMode, rest*) =>
-          Right(apply(os.Path(daemonDir), bspMode == "bsp", rest))
-        case _ => Left(s"usage: $appName <daemon-dir> <bsp-mode> <mill-args>")
+        case Array(daemonDir, outModeStr, rest*) =>
+          Try(OutFolderMode.valueOf(outModeStr)) match {
+            case Failure(err) =>
+              Left(usage(
+                s"\n\n<out-mode> must be one of ${OutFolderMode.values.mkString(", ")} but was '$outModeStr'"
+              ))
+            case Success(outMode) => Right(apply(os.Path(daemonDir), outMode, rest))
+          }
+        case _ => Left(usage())
       }
     }
   }
@@ -46,7 +55,7 @@ object MillDaemonMain {
         daemonDir = args.daemonDir,
         acceptTimeout = acceptTimeout,
         Locks.files(args.daemonDir.toString),
-        bspMode = args.bspMode
+        outMode = args.outMode
       ).run()
 
       System.exit(ClientUtil.ExitServerCodeWhenIdle())
@@ -57,7 +66,7 @@ class MillDaemonMain(
     daemonDir: os.Path,
     acceptTimeout: FiniteDuration,
     locks: Locks,
-    bspMode: Boolean
+    outMode: OutFolderMode
 ) extends mill.server.MillDaemonServer[RunnerState](
       daemonDir,
       acceptTimeout,
@@ -66,7 +75,7 @@ class MillDaemonMain(
 
   def stateCache0 = RunnerState.empty
 
-  val out: os.Path = os.Path(OutFiles.outFor(bspMode), BuildCtx.workspaceRoot)
+  val out: os.Path = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
 
   val outLock = MillMain0.doubleLock(out)
 

@@ -6,7 +6,7 @@ import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
-import mill.constants.{DaemonFiles, OutFiles}
+import mill.constants.{DaemonFiles, OutFiles, OutFolderMode}
 import mill.api.BuildCtx
 import mill.internal.{
   Colors,
@@ -70,7 +70,7 @@ object MillMain0 {
     if (bspMode) {
       // In BSP mode, don't let anything other than the BSP server write to stdout and read from stdin
 
-      val outDir = BuildCtx.workspaceRoot / OutFiles.outFor( /* bspMode */ true)
+      val outDir = BuildCtx.workspaceRoot / OutFiles.outFor(OutFolderMode.BSP)
       val outFileStream = os.write.outputStream(
         outDir / "mill-bsp/out.log",
         createFolders = true
@@ -182,6 +182,7 @@ object MillMain0 {
 
               // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
               val bspMode = config.bsp.value && config.leftoverArgs.value.isEmpty
+              val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR
               val bspInstallModeJobCountOpt = {
                 def defaultJobCount =
                   maybeThreadCount.toOption.getOrElse(BSP.defaultJobCount)
@@ -241,7 +242,7 @@ object MillMain0 {
                     if (threadCount == 1) None
                     else Some(mill.exec.ExecutionContexts.createExecutor(threadCount))
 
-                  val out = os.Path(OutFiles.outFor(bspMode), BuildCtx.workspaceRoot)
+                  val out = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
                   Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                     def runMillBootstrap(
                         enterKeyPressed: Boolean,
@@ -504,7 +505,7 @@ object MillMain0 {
     bspLogger.info("Trying to load BSP server...")
 
     val wsRoot = BuildCtx.workspaceRoot
-    val outFolder = wsRoot / OutFiles.outFor( /* bspMode */ true)
+    val outFolder = wsRoot / OutFiles.outFor(OutFolderMode.BSP)
     val logDir = outFolder / "mill-bsp"
     os.makeDir.all(logDir)
 

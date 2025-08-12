@@ -1,9 +1,9 @@
 package mill.util
 
 import mill.api.{ExecResult, Result, Val}
-import mill.constants.OutFiles
+import mill.constants.{OutFiles, OutFolderMode}
 import mill.{Task, given}
-import mill.api.{Cross, Discover, Module, PathRef, DefaultTaskModule}
+import mill.api.{Cross, DefaultTaskModule, Discover, Module, PathRef}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import mill.util.MainModule
@@ -559,7 +559,7 @@ object MainModuleTests extends TestSuite {
           assert(workers.size == 2)
           assert(workers.exists(_ eq originalBarWorker))
 
-          val outDir = os.Path(OutFiles.outFor( /* bspMode */ false), workerModule.moduleDir)
+          val outDir = os.Path(OutFiles.outFor(OutFolderMode.REGULAR), workerModule.moduleDir)
 
           assert(!originalFooWorker.closed)
           os.remove(outDir / "foo/theWorker.json")

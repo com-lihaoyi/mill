@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import mill.client.*;
 import mill.client.lock.Locks;
 import mill.constants.OutFiles;
+import mill.constants.OutFolderMode;
 
 /**
  * This is a Java implementation to speed up repetitive starts.
@@ -35,16 +36,16 @@ public class MillLauncherMain {
       }
     }
 
-    var bspMode = Arrays.asList(args).contains(bspFlag);
+    var outMode = Arrays.asList(args).contains(bspFlag) ? OutFolderMode.BSP : OutFolderMode.REGULAR;
 
     if (runNoServer) {
       // start in no-server mode
-      System.exit(MillProcessLauncher.launchMillNoDaemon(args, bspMode));
+      System.exit(MillProcessLauncher.launchMillNoDaemon(args, outMode));
     } else
       try {
         // start in client-server mode
         java.util.List<String> optsArgs = new java.util.ArrayList<>();
-        optsArgs.addAll(MillProcessLauncher.millOpts(bspMode));
+        optsArgs.addAll(MillProcessLauncher.millOpts(outMode));
         Collections.addAll(optsArgs, args);
 
         MillServerLauncher launcher =
@@ -56,7 +57,7 @@ public class MillLauncherMain {
                 -1) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
                 return new LaunchedServer.OsProcess(
-                    MillProcessLauncher.launchMillDaemon(daemonDir, bspMode).toHandle());
+                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode).toHandle());
               }
 
               public void prepareDaemonDir(Path daemonDir) throws Exception {
@@ -64,8 +65,8 @@ public class MillLauncherMain {
               }
             };
 
-        Path daemonDir0 = Paths.get(OutFiles.outFor(bspMode), OutFiles.millDaemon);
-        String javaHome = MillProcessLauncher.javaHome(bspMode);
+        Path daemonDir0 = Paths.get(OutFiles.outFor(outMode), OutFiles.millDaemon);
+        String javaHome = MillProcessLauncher.javaHome(outMode);
         // No logging.
         Consumer<String> log = ignored -> {};
         var exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;

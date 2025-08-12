@@ -25,7 +25,7 @@ object MillNoDaemonMain {
       .fold(err => throw IllegalArgumentException(err), identity)
 
     val processId = Server.computeProcessId()
-    val out = os.Path(OutFiles.outFor(args.bspMode), BuildCtx.workspaceRoot)
+    val out = os.Path(OutFiles.outFor(args.outMode), BuildCtx.workspaceRoot)
     Server.watchProcessIdFile(
       out / OutFiles.millNoDaemon / s"pid-$processId" / DaemonFiles.processId,
       processId,
