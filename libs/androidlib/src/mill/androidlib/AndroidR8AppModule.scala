@@ -60,24 +60,14 @@ trait AndroidR8AppModule extends AndroidAppModule {
   }
 
   /**
-   * The SubPaths for the proguard files
-   * in this project's sources.
+   * The ProGuard/R8 rules configuration files for the Android project.
    * @return
    */
-  def androidProjectProguardFiles: Seq[os.SubPath] = Seq.empty[os.SubPath]
-
-  /**
-   * Defines the sources for the proguard files.
-   * By default, uses the SubPaths from [[androidProjectProguardFiles]].
-   * @return
-   */
-  def androidProjectProguardSources: T[Seq[PathRef]] = Task.Sources(
-    androidProjectProguardFiles*
-  )
+  def androidProjectProguardFiles: T[Seq[PathRef]] = Task.Sources()
 
   /** ProGuard/R8 rules configuration files for release target (user-provided and generated) */
   def androidProguardConfigs: T[Seq[PathRef]] = Task {
-    androidDefaultProguardFiles() ++ androidProjectProguardSources() ++ androidLibraryProguardConfigs()
+    androidDefaultProguardFiles() ++ androidProjectProguardFiles() ++ androidLibraryProguardConfigs()
   }
 
   /** Concatenates all rules into one file */

@@ -45,7 +45,7 @@ object app extends AndroidR8AppModule { // <2>
   override def androidVirtualDeviceIdentifier: String = "java-test"
   override def androidIsDebug: T[Boolean] = Task { false }
 
-  def androidProjectProguardFiles: Seq[os.SubPath] = Seq(
+  def androidProjectProguardFiles = Task.Sources(
     "proguard-rules.pro"
   )
 
@@ -68,7 +68,7 @@ object app extends AndroidR8AppModule { // <2>
       AndroidBuildTypeSettings(isMinifyEnabled = false)
     }
 
-    override def androidProjectProguardFiles: Seq[os.SubPath] = Seq(
+    override def androidProjectProguardFiles = Task.Sources(
       "test-proguard-rules.pro"
     )
 

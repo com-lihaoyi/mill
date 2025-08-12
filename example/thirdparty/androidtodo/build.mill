@@ -32,7 +32,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
     )
   }
 
-  def androidProjectProguardFiles: Seq[os.SubPath] = Seq(
+  def androidProjectProguardFiles = Task.Sources(
     "proguard-rules.pro"
   )
   def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
@@ -164,7 +164,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
       )
     }
 
-    override def androidProjectProguardFiles: Seq[os.SubPath] = Seq(
+    override def androidProjectProguardFiles = Task.Sources(
       "proguard-rules.pro",
       "proguardTest-rules.pro"
     )
