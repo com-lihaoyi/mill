@@ -679,7 +679,7 @@ that utilizes Hilt for dependency injection, based on the official
 <h2 id="_android_mill_setup_for_building_the_todo_app"><a class="anchor" href="#_android_mill_setup_for_building_the_todo_app"></a>Android Mill Setup for building the TODO App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-29-d6c533/mill-dist-1.0.3-29-d6c533-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/thirdparty/androidtodo">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-30-17211c/mill-dist-1.0.3-30-17211c-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/thirdparty/androidtodo">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -722,12 +722,14 @@ object Versions {
     AndroidBuildTypeSettings(
       isMinifyEnabled = false,
       isShrinkEnabled = false
-    ).withDefaultProguardFile(&quot;proguard-android.txt&quot;)
-      .withProguardLocalFiles(
-        Seq(
-          moduleDir / &quot;proguard-rules.pro&quot;
-        )
-      )
+    )
+  }
+
+  def androidProjectProguardFiles = Task.Sources(
+    &quot;proguard-rules.pro&quot;
+  )
+  def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+    Seq(&quot;proguard-android.txt&quot;)
   }
 
   // TODO consider using a debug module
@@ -852,13 +854,15 @@ object Versions {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false
-      ).withDefaultProguardFile(&quot;proguard-android.txt&quot;)
-        .withProguardLocalFiles(
-          Seq(
-            moduleDir / &quot;proguardTest-rules.pro&quot;,
-            moduleDir / &quot;proguard-rules.pro&quot;
-          )
-        )
+      )
+    }
+
+    override def androidProjectProguardFiles = Task.Sources(
+      &quot;proguard-rules.pro&quot;,
+      &quot;proguardTest-rules.pro&quot;
+    )
+    override def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      Seq(&quot;proguard-android.txt&quot;)
     }
 
     def bomMvnDeps = Seq(
