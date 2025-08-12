@@ -27,6 +27,12 @@ public class EnvVars {
    */
   public static final String MILL_OUTPUT_DIR = "MILL_OUTPUT_DIR";
 
+  /**
+   * If set to "1", Mill will re-use the regular @{Link OutFiles#out} folder instead of
+   * using a separate one for BSP output.
+   */
+  public static final String MILL_MERGE_BSP_OUTPUT_DIR = "MILL_MERGE_BSP_OUTPUT_DIR";
+
   // INTERNAL ENVIRONMENT VARIABLES
   /**
    * Used to pass the Mill workspace root from the client to the server, so

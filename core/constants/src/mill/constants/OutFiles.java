@@ -12,6 +12,9 @@ public class OutFiles {
    */
   private static final String envOutOrNull = System.getenv(EnvVars.MILL_OUTPUT_DIR);
 
+  /** @see EnvVars#MILL_MERGE_BSP_OUTPUT_DIR */
+  private static final boolean mergeBspOut = "1".equals(System.getenv(EnvVars.MILL_MERGE_BSP_OUTPUT_DIR));
+
   /**
    * Default hard-coded value for the Mill `out/` folder path. Unless you know
    * what you are doing, you should favor using {@link #outFor} instead.
@@ -32,7 +35,7 @@ public class OutFiles {
 
   /**
    * Path of the Mill {@link #out} folder.
-   * 
+   *
    * @param outMode If {@link #envOutOrNull} is set, this parameter is ignored.
    */
   public static String outFor(OutFolderMode outMode) {
@@ -41,7 +44,7 @@ public class OutFiles {
       case REGULAR:
         return out;
       case BSP:
-        return bspOut;
+        return mergeBspOut ? out : bspOut;
       default:
         throw new IllegalArgumentException("Unknown out folder mode: " + outMode);
     }
