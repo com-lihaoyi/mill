@@ -26,7 +26,7 @@ jobs:
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       # For normal PR jobs, just checkout the base_ref the PR is against
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with: { fetch-depth: 1 }
 
       - uses: ./.github/actions/pre-build-setup
