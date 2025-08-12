@@ -2,14 +2,16 @@ package mill.constants;
 
 public enum OutFolderMode {
   /** For regular invocations, uses {@link OutFiles#out}. */
-  REGULAR("regular"),
+  REGULAR,
 
   /** For BSP invocations, uses {@link OutFiles#bspOut}. */
-  BSP("bsp");
+  BSP;
 
-  public final String asString;
+  public String asString() {
+    return name().toLowerCase();
+  }
 
-  OutFolderMode(String asString) {
-    this.asString = asString;
+  public static OutFolderMode fromString(String s) {
+    return valueOf(s.toUpperCase());
   }
 }

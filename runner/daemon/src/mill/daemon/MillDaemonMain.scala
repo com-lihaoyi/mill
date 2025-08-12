@@ -18,11 +18,10 @@ object MillDaemonMain {
 
       args match {
         case Array(daemonDir, outModeStr, rest*) =>
-          Try(OutFolderMode.valueOf(outModeStr)) match {
-            case Failure(err) =>
-              Left(usage(
-                s"\n\n<out-mode> must be one of ${OutFolderMode.values.mkString(", ")} but was '$outModeStr'"
-              ))
+          Try(OutFolderMode.fromString(outModeStr)) match {
+            case Failure(_) =>
+              val possibleValues = OutFolderMode.values.map(_.asString).mkString(", ")
+              Left(usage(s"\n\n<out-mode> must be one of $possibleValues but was '$outModeStr'"))
             case Success(outMode) => Right(apply(os.Path(daemonDir), outMode, rest))
           }
         case _ => Left(usage())

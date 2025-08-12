@@ -30,7 +30,7 @@ public class MillProcessLauncher {
     for (String key : propsMap.keySet()) l.add("-D" + key + "=" + propsMap.get(key));
     l.add("mill.daemon.MillNoDaemonMain");
     l.add(processDir.toAbsolutePath().toString());
-    l.add(outMode.asString);
+    l.add(outMode.asString());
     l.addAll(millOpts(outMode));
     l.addAll(Arrays.asList(args));
 
@@ -61,7 +61,7 @@ public class MillProcessLauncher {
     List<String> l = new ArrayList<>(millLaunchJvmCommand(outMode));
     l.add("mill.daemon.MillDaemonMain");
     l.add(daemonDir.toFile().getCanonicalPath());
-    l.add(outMode.asString);
+    l.add(outMode.asString());
 
     ProcessBuilder builder = new ProcessBuilder()
         .command(l)
