@@ -169,7 +169,7 @@ object Deps {
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.4"
+  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.9"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
   val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.3-M5"
