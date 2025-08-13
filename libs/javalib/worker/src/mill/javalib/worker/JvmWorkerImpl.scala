@@ -4,7 +4,7 @@ import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.client.lock.{DoubleLock, Locks, MemoryLock}
-import mill.constants.DaemonFiles
+import mill.constants.{DaemonFiles, ProxyStream}
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.*
 import mill.javalib.internal.{JvmWorkerArgs, RpcCompileProblemReporterMessage}
@@ -353,7 +353,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
             port,
             s"From '${getClass.getName}'. Daemon directory: $daemonDir"
           ))
-          val stdin = use(PipedInputStream())
+          val stdin = use(PipedInputStream(ProxyStream.MAX_CHUNK_SIZE))
           val stdout = use(PipedOutputStream())
           val streams = ServerLauncher.Streams(
             stdin,
@@ -361,18 +361,22 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
             // stderr stream is not used in this case
             NullOutputStream.getInstance()
           )
+          val debugName =
+            s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}"
           ServerLauncher.runWithConnection(
+            debugName,
             socket,
-            streams, /* closeConnectionAfterCommand */ true,
+            streams,
+            /* closeConnectionAfterCommand */ true,
             /* sendInitData */ _ => {},
             () => {
-              val serverToClient = use(BufferedReader(InputStreamReader(PipedInputStream(stdout))))
+              val serverToClient = use(BufferedReader(InputStreamReader(PipedInputStream(
+                stdout,
+                ProxyStream.MAX_CHUNK_SIZE
+              ))))
               val clientToServer = use(PrintStream(BufferedOutputStream(PipedOutputStream(stdin))))
-              val wireTransport = MillRpcWireTransport.ViaStreams(
-                s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}",
-                serverToClient,
-                clientToServer
-              )
+              val wireTransport =
+                MillRpcWireTransport.ViaStreams(debugName, serverToClient, clientToServer)
 
               val init = ZincWorkerRpcServer.Initialize(
                 compilerBridgeWorkspace = compilerBridge.workspace,

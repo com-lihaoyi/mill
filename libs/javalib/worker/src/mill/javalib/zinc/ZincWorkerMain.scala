@@ -7,7 +7,7 @@ import mill.rpc.MillRpcWireTransport
 import mill.server.Server
 import pprint.{TPrint, TPrintColors}
 
-import java.io.{BufferedReader, InputStream, InputStreamReader, PrintStream}
+import java.io.{BufferedInputStream, BufferedReader, InputStreamReader, PrintStream}
 import scala.util.Using
 import scala.util.control.NonFatal
 
@@ -42,7 +42,7 @@ object ZincWorkerMain {
 
     override protected def preHandleConnection(
         socketInfo: Server.SocketInfo,
-        stdin: InputStream,
+        stdin: BufferedInputStream,
         stdout: PrintStream,
         stderr: PrintStream,
         stopServer: Server.StopServer,
@@ -51,7 +51,7 @@ object ZincWorkerMain {
 
     override protected def handleConnection(
         socketInfo: Server.SocketInfo,
-        stdin: InputStream,
+        stdin: BufferedInputStream,
         stdout: PrintStream,
         stderr: PrintStream,
         stopServer: Server.StopServer,

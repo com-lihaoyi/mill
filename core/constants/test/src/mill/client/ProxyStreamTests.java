@@ -18,7 +18,9 @@ public class ProxyStreamTests {
     // are likely sizes to have bugs since we write data in chunks of size 127
     int[] interestingLengths = {
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 100, 126, 127, 128, 129, 130, 253, 254, 255,
-      256, 257, 1000, 2000, 4000, 8000
+      256, 257, 1000, 2000, 4000, 8000,
+      ProxyStream.MAX_CHUNK_SIZE / 16, ProxyStream.MAX_CHUNK_SIZE / 8, ProxyStream.MAX_CHUNK_SIZE / 4,
+      ProxyStream.MAX_CHUNK_SIZE / 2, ProxyStream.MAX_CHUNK_SIZE
     };
     byte[] interestingBytes = {
       -1, -127, -126, -120, -100, -80, -60, -40, -20, -10, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 10,

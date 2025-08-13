@@ -15,47 +15,56 @@ import java.nio.ByteOrder;
 /// the form:
 /// ```
 ///  1 byte         n bytes
-/// | header |         body |
+/// | header |         frame |
 /// ```
 ///
 /// Where header is a single byte of the form:
 ///
-///   - header more than 0 indicating that this packet is for the `OUT` stream
-///   - header less than 0 indicating that this packet is for the `ERR` stream
-///   - abs(header) indicating the length of the packet body, in bytes
-///   - header == 0 indicating the end of the stream
+///   - [#HEADER_STREAM_OUT]/[#HEADER_STREAM_ERR] respectively indicating that this packet is for the `OUT`/`ERR`
+///     stream, and it will be followed by 4 bytes for the length of the body and then the body.
+///   - [#HEADER_STREAM_OUT_SINGLE_BYTE]/[#HEADER_STREAM_ERR_SINGLE_BYTE] respectively indicating that this packet is
+///     for the `OUT`/`ERR` stream, and it will be followed by a single byte for the body
+///   - [#HEADER_HEARTBEAT] indicating that this packet is a heartbeat and will be ignored
+///   - [#HEADER_END] indicating the end of the stream
 ///
 ///
 /// Writes to either of the two `Output`s are synchronized on the shared
 /// `destination` stream, ensuring that they always arrive complete and without
 /// interleaving. On the other side, a `Pumper` reads from the combined
 /// stream, forwards each packet to its respective destination stream, or terminates
-/// when it hits a packet with `header == 0`
+/// when it hits a packet with [#HEADER_END].
 public class ProxyStream {
-  private static final int MAX_CHUNK_SIZE = 256 * 1024; // 256kb
+  public static final int MAX_CHUNK_SIZE = 256 * 1024; // 256kb
 
   /** Indicates the end of the connection. */
   private static final byte HEADER_END = 0;
 
-  /** The key for the output stream */
+  /** The header for the output stream */
   private static final byte HEADER_STREAM_OUT = 1;
 
-  /** The key for the error stream */
-  private static final byte HEADER_STREAM_ERR = 2;
+  /** The header for the output stream when a single byte is sent. */
+  private static final byte HEADER_STREAM_OUT_SINGLE_BYTE = 2;
+
+  /** The header for the error stream */
+  private static final byte HEADER_STREAM_ERR = 3;
+
+  /** The header for the error stream when a single byte is sent. */
+  private static final byte HEADER_STREAM_ERR_SINGLE_BYTE = 4;
 
   /** A heartbeat packet to keep the connection alive. */
   private static final byte HEADER_HEARTBEAT = 127;
 
   public enum StreamType {
     /** The output stream */
-    OUT(ProxyStream.HEADER_STREAM_OUT),
+    OUT(ProxyStream.HEADER_STREAM_OUT, ProxyStream.HEADER_STREAM_OUT_SINGLE_BYTE),
     /** The error stream */
-    ERR(ProxyStream.HEADER_STREAM_ERR);
+    ERR(ProxyStream.HEADER_STREAM_ERR, ProxyStream.HEADER_STREAM_ERR_SINGLE_BYTE);
 
-    public final byte header;
+    public final byte header, headerSingleByte;
 
-    StreamType(byte key) {
-      this.header = key;
+    StreamType(byte header, byte headerSingleByte) {
+      this.header = header;
+      this.headerSingleByte = headerSingleByte;
     }
   }
 
@@ -68,7 +77,9 @@ public class ProxyStream {
     synchronized (out) {
       try {
         var buffer = new byte[5];
-        ByteBuffer.wrap(buffer).order(ByteOrder.BIG_ENDIAN).put(ProxyStream.HEADER_END).putInt(exitCode);
+        ByteBuffer.wrap(buffer).order(ByteOrder.BIG_ENDIAN)
+          .put(ProxyStream.HEADER_END)
+          .putInt(exitCode);
         out.write(buffer);
         out.flush();
       } catch (SocketException e) {
@@ -98,19 +109,17 @@ public class ProxyStream {
     @Override
     public void write(int b) throws IOException {
       synchronized (destination) {
-        destination.writeByte(streamType.header);
-        destination.writeInt(1); // 1 byte
-        destination.writeByte(b);
+        destination.write(streamType.headerSingleByte);
+        destination.write(b);
       }
     }
 
     @Override
     public void write(byte[] b) throws IOException {
-      if (b.length > 0) {
-        synchronized (destination) {
-          write(b, 0, b.length);
-        }
-      }
+      if (b.length <= 0) return;
+
+      if (b.length == 1) write(b[0]);
+      else write(b, 0, b.length);
     }
 
     @Override
@@ -127,13 +136,14 @@ public class ProxyStream {
       synchronized (destination) {
         var bytesWritten = 0;
 
-        while (bytesWritten < len) {
+        while (bytesWritten < len && bytesWritten + off < b.length) {
           var chunkLength = Math.min(len - bytesWritten, MAX_CHUNK_SIZE);
 
           if (chunkLength > 0) {
-            destination.writeByte(streamType.header);
+            destination.write(streamType.header);
             destination.writeInt(chunkLength);
-            destination.write(b, off + bytesWritten, chunkLength);
+            var bytesToWrite = Math.min(b.length - off - bytesWritten, chunkLength);
+            destination.write(b, off + bytesWritten, bytesToWrite);
             bytesWritten += chunkLength;
           }
         }
@@ -176,22 +186,40 @@ public class ProxyStream {
 
     public void preRead(DataInputStream src) {}
 
+    public void write(OutputStream dest, byte[] buffer, int length) throws IOException {
+      dest.write(buffer, 0, length);
+    }
+
     @Override
     public void run() {
       var buffer = new byte[MAX_CHUNK_SIZE];
       try {
+        readLoop:
         while (true) {
           this.preRead(src);
           var header = src.readByte();
 
-          if (header == HEADER_END) {
-            exitCode = src.readInt();
-            break;
+          switch (header) {
+            case HEADER_END:
+              exitCode = src.readInt();
+              break readLoop;
+            case HEADER_HEARTBEAT:
+              continue;
+            case HEADER_STREAM_OUT:
+              pumpData(buffer, false, destOut);
+              break;
+            case HEADER_STREAM_OUT_SINGLE_BYTE:
+              pumpData(buffer, true, destOut);
+              break;
+            case HEADER_STREAM_ERR:
+              pumpData(buffer, false, destErr);
+              break;
+            case HEADER_STREAM_ERR_SINGLE_BYTE:
+              pumpData(buffer, true, destErr);
+              break;
+            default:
+              throw new IllegalStateException("Unexpected header: " + header);
           }
-          else if (header == HEADER_HEARTBEAT) continue;
-          else if (header == HEADER_STREAM_OUT) pumpData(buffer, destOut);
-          else if (header == HEADER_STREAM_ERR) pumpData(buffer, destErr);
-          else throw new IllegalStateException("Unexpected header: " + header);
         }
       }
       catch (EOFException ignored) {
@@ -211,8 +239,8 @@ public class ProxyStream {
       }
     }
 
-    private void pumpData(byte[] buffer, OutputStream stream) throws IOException {
-      var quantity = src.readInt();
+    private void pumpData(byte[] buffer, boolean singleByte, OutputStream stream) throws IOException {
+      var quantity = singleByte ? 1 : src.readInt();
 
       if (quantity > buffer.length) {
         // Handle error: received chunk is larger than buffer
@@ -223,7 +251,7 @@ public class ProxyStream {
       src.readFully(buffer, 0, quantity);
 
       synchronized (synchronizer) {
-        stream.write(buffer, 0, quantity);
+        write(stream, buffer, quantity);
       }
     }
 

@@ -1,17 +1,10 @@
 package mill.server
 
 import mill.client.lock.{Lock, Locks}
-import mill.constants.{DaemonFiles, InputPumper, ProxyStream}
+import mill.constants.{DaemonFiles, ProxyStream}
 import sun.misc.{Signal, SignalHandler}
 
-import java.io.{
-  BufferedInputStream,
-  BufferedOutputStream,
-  InputStream,
-  PipedInputStream,
-  PipedOutputStream,
-  PrintStream
-}
+import java.io.{BufferedInputStream, PrintStream}
 import java.net.{InetAddress, Socket, SocketAddress}
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -55,7 +48,7 @@ abstract class Server(
    */
   protected def preHandleConnection(
       socketInfo: Server.SocketInfo,
-      stdin: InputStream,
+      stdin: BufferedInputStream,
       stdout: PrintStream,
       stderr: PrintStream,
       stopServer: Server.StopServer,
@@ -69,7 +62,7 @@ abstract class Server(
    */
   protected def handleConnection(
       socketInfo: Server.SocketInfo,
-      stdin: InputStream,
+      stdin: BufferedInputStream,
       stdout: PrintStream,
       stderr: PrintStream,
       stopServer: Server.StopServer,
@@ -190,10 +183,7 @@ abstract class Server(
 
             socketOpt match {
               case Some(sock) =>
-                val socketInfo = Server.SocketInfo(
-                  remote = sock.getRemoteSocketAddress,
-                  local = sock.getLocalSocketAddress
-                )
+                val socketInfo = Server.SocketInfo(sock)
                 serverLog(s"handling run for $socketInfo")
                 new Thread(
                   () =>
@@ -255,7 +245,7 @@ abstract class Server(
   ): Unit = {
 
     /** stdout and stderr combined into one stream */
-    val currentOutErr = BufferedOutputStream(clientSocket.getOutputStream)
+    val currentOutErr = clientSocket.getOutputStream
     val writtenExitCode = AtomicBoolean()
 
     def writeExitCode(exitCode: Int): Unit = {
@@ -287,7 +277,7 @@ abstract class Server(
     }
 
     try {
-      val socketIn = BufferedInputStream(clientSocket.getInputStream)
+      val socketIn = BufferedInputStream(clientSocket.getInputStream, ProxyStream.MAX_CHUNK_SIZE)
 
       val stdout =
         new PrintStream(new ProxyStream.Output(currentOutErr, ProxyStream.StreamType.OUT), true)
@@ -309,18 +299,9 @@ abstract class Server(
       val t = new Thread(
         () =>
           try {
-            // Proxy the input stream through a pair of Piped**putStream via a pumper,
-            // as the `UnixDomainSocketInputStream` we get directly from the socket does
-            // not properly implement `available(): Int` and thus messes up polling logic
-            // that relies on that method
-            //
-            // TODO: this seems to be a leftover from the times when unix sockets were used, we should try removing it
-            // in a separate PR.
-            val proxiedSocketInput = Server.proxyInputStreamThroughPumper(socketIn)
-
             val exitCode = handleConnection(
               socketInfo = socketInfo,
-              stdin = proxiedSocketInput,
+              stdin = socketIn,
               stdout = stdout,
               stderr = stderr,
               stopServer =
@@ -392,6 +373,10 @@ object Server {
    */
   case class SocketInfo(remote: SocketAddress, local: SocketAddress) {
     override def toString: String = s"SocketInfo(remote=$remote, local=$local)"
+  }
+  object SocketInfo {
+    def apply(socket: Socket): SocketInfo =
+      apply(socket.getRemoteSocketAddress, socket.getLocalSocketAddress)
   }
 
   /** Immediately stops the server reporting the provided exit code to all clients. */
@@ -476,15 +461,5 @@ object Server {
           None
         }
     }
-  }
-
-  private def proxyInputStreamThroughPumper(in: InputStream): PipedInputStream = {
-    val pipedInput = new PipedInputStream()
-    val pipedOutput = new PipedOutputStream(pipedInput)
-    val pumper = new InputPumper(() => in, () => pipedOutput, /* checkAvailable */ false)
-    val pumperThread = new Thread(pumper, "proxyInputStreamThroughPumper")
-    pumperThread.setDaemon(true)
-    pumperThread.start()
-    pipedInput
   }
 }

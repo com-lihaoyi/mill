@@ -47,7 +47,7 @@ abstract class MillDaemonServer[State](
 
   override protected def preHandleConnection(
       socketInfo: Server.SocketInfo,
-      stdin: InputStream,
+      stdin: BufferedInputStream,
       stdout: PrintStream,
       stderr: PrintStream,
       stopServer: Server.StopServer,
@@ -104,7 +104,7 @@ abstract class MillDaemonServer[State](
 
   override protected def handleConnection(
       socketInfo: Server.SocketInfo,
-      stdin: InputStream,
+      stdin: BufferedInputStream,
       stdout: PrintStream,
       stderr: PrintStream,
       stopServer: Server.StopServer,

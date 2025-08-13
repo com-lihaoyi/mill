@@ -59,6 +59,7 @@ public abstract class ServerLauncher {
   /// @param runClientLogic the client logic to run
   /// @return the exit code that the server sent back
   public static <A> RunWithConnectionResult<A> runWithConnection(
+      String debugName,
       Socket connection,
       Streams streams,
       boolean closeConnectionAfterClientLogic,
@@ -69,7 +70,7 @@ public abstract class ServerLauncher {
     var socketOutputStream = connection.getOutputStream();
     sendInitData.accept(socketOutputStream);
     socketOutputStream.flush();
-    var pumperThread = startStreamPumpers(socketInputStream, socketOutputStream, streams);
+    var pumperThread = startStreamPumpers(socketInputStream, socketOutputStream, streams, debugName);
     var result = runClientLogic.run();
     if (closeConnectionAfterClientLogic) socketInputStream.close();
     pumperThread.join();
@@ -323,12 +324,14 @@ public abstract class ServerLauncher {
    * @return a PumperThread that processes the output/error streams from the server
    */
   static PumperThread startStreamPumpers(
-      InputStream socketInputStream, OutputStream socketOutputStream, Streams streams) {
+      InputStream socketInputStream, OutputStream socketOutputStream, Streams streams,
+      String name
+  ) {
     var outPumper = new ProxyStream.Pumper(socketInputStream, streams.stdout, streams.stderr);
     var inPump = new InputPumper(() -> streams.stdin, () -> socketOutputStream, true);
-    var outPumperThread = new PumperThread(outPumper, "outPump");
+    var outPumperThread = new PumperThread(outPumper, "outPump-" + name);
     outPumperThread.setDaemon(true);
-    var inThread = new Thread(inPump, "inPump");
+    var inThread = new Thread(inPump, "inPump-" + name);
     inThread.setDaemon(true);
     outPumperThread.start();
     inThread.start();

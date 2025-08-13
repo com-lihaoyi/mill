@@ -1,14 +1,12 @@
 package mill.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.util.*;
 import mill.constants.ProxyStream;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 public class ClientTests {
 
@@ -154,7 +152,7 @@ public class ClientTests {
     ProxyStream.Pumper pumper =
         new ProxyStream.Pumper(new ByteArrayInputStream(bytes), dest1, dest2);
     pumper.run();
-    assertTrue(Arrays.equals(samples1, dest1.toByteArray()));
-    assertTrue(Arrays.equals(samples2, dest2.toByteArray()));
+    assertArrayEquals(samples1, dest1.toByteArray());
+    assertArrayEquals(samples2, dest2.toByteArray());
   }
 }

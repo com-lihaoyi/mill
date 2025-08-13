@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.function.Supplier;
 
-/// A `Runnable` that reads from `src` and writes to `dest`.
+/** A `Runnable` that reads from `src` and writes to `dest`. */
 public class InputPumper implements Runnable {
   private final Supplier<InputStream> src0;
   private final Supplier<OutputStream> dest0;
@@ -13,12 +13,11 @@ public class InputPumper implements Runnable {
   ///
   /// We need to do that because if we call `.read`
   /// and there is nothing to read, [it can unnecessarily delay the JVM exit by 350ms](
-  ///
-  // https://stackoverflow.com/questions/48951611/blocking-on-stdin-makes-java-process-take-350ms-more-to-exit)
-  private final Boolean checkAvailable;
+  /// https://stackoverflow.com/questions/48951611/blocking-on-stdin-makes-java-process-take-350ms-more-to-exit)
+  private final boolean checkAvailable;
 
   public InputPumper(
-      Supplier<InputStream> src, Supplier<OutputStream> dest, Boolean checkAvailable) {
+      Supplier<InputStream> src, Supplier<OutputStream> dest, boolean checkAvailable) {
     this.src0 = src;
     this.dest0 = dest;
     this.checkAvailable = checkAvailable;
@@ -28,8 +27,8 @@ public class InputPumper implements Runnable {
 
   @Override
   public void run() {
-    InputStream src = src0.get();
-    OutputStream dest = dest0.get();
+    var src = src0.get();
+    var dest = dest0.get();
 
     var buffer = new byte[256 * 1024 /* 256kb, otherwise it's too slow. */];
     try {
