@@ -70,7 +70,7 @@ object MillMain0 {
     if (bspMode) {
       // In BSP mode, don't let anything other than the BSP server write to stdout and read from stdin
 
-      val outDir = BuildCtx.workspaceRoot / OutFiles.outFor(OutFolderMode.BSP)
+      val outDir = BuildCtx.workspaceRoot / os.RelPath(OutFiles.outFor(OutFolderMode.BSP))
       val outFileStream = os.write.outputStream(
         outDir / "mill-bsp/out.log",
         createFolders = true
@@ -505,7 +505,7 @@ object MillMain0 {
     bspLogger.info("Trying to load BSP server...")
 
     val wsRoot = BuildCtx.workspaceRoot
-    val outFolder = wsRoot / OutFiles.outFor(OutFolderMode.BSP)
+    val outFolder = wsRoot / os.RelPath(OutFiles.outFor(OutFolderMode.BSP))
     val logDir = outFolder / "mill-bsp"
     os.makeDir.all(logDir)
 

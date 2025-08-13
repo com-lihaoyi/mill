@@ -444,7 +444,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
             val keep =
               !uriAsSubPath(
                 params.getTextDocument.getUri
-              ).startsWith(os.sub / OutFiles.outFor(OutFolderMode.BSP))
+              ).startsWith(os.sub / os.RelPath(OutFiles.outFor(OutFolderMode.BSP)))
             if (keep)
               diagnostics.append(params)
           }
@@ -489,7 +489,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
       val noPackageBuildMill =
         originalBuildMill.take(idx) + originalBuildMill.drop(idx + "package build".length)
       os.write.over(workspacePath / "build.mill", noPackageBuildMill)
-      os.remove.all(workspacePath / OutFiles.outFor(OutFolderMode.BSP))
+      os.remove.all(workspacePath / os.RelPath(OutFiles.outFor(OutFolderMode.BSP)))
       runTest()
     }
   }
@@ -517,7 +517,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         .filter(_.last.endsWith(".semanticdb"))
         .filter(_.startsWith(semDbPrefix))
         .map(_.relativeTo(semDbPrefix).asSubPath)
-        .filter(!_.startsWith(os.sub / OutFiles.outFor(OutFolderMode.BSP)))
+        .filter(!_.startsWith(os.sub / os.RelPath(OutFiles.outFor(OutFolderMode.BSP))))
         .sorted
     else
       Nil

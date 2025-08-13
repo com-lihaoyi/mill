@@ -32,7 +32,7 @@ public class OutFiles {
    * Path of the Mill `out/` folder when Mill is running in BSP mode. Unless you know
    * what you are doing, you should favor using {@link #outFor} instead.
    */
-  public static final String bspOut = ".mill-bsp-out";
+  public static final String bspOut = "out/mill-bsp-out";
 
   /**
    * Path of the Mill {@link #out} folder.
