@@ -1,0 +1,267 @@
+package build
+
+import coursier.params.ResolutionParams
+import coursier.{MavenRepository, Repository}
+import mill.*
+import mill.androidlib.*
+import mill.androidlib.hilt.AndroidHiltSupport
+import mill.api.{ModuleRef, PathRef, Task}
+import mill.javalib.TestModule.Junit4
+import mill.javalib.publish.PomSettings
+import mill.javalib.{CoursierModule, JavaModule}
+import mill.kotlinlib.*
+
+object androidSdkModule0 extends AndroidSdkModule {
+  override def buildToolsVersion = "36.0.0"
+  override def cmdlineToolsVersion = "19.0"
+}
+
+object database extends AndroidHiltLib, AndroidKotlinModule {
+  override def androidNamespace: String = "com.nicos.database"
+
+  override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+    mvn"androidx.core:core-ktx:1.16.0",
+    mvn"androidx.appcompat:appcompat:1.7.1",
+    mvn"com.google.android.material:material:1.12.0",
+    mvn"androidx.room:room-runtime:2.7.2",
+    mvn"androidx.room:room-ktx:2.7.2",
+    mvn"com.google.code.gson:gson:2.13.1",
+    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2",
+    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2"
+  )
+
+  override def kotlinSymbolProcessors: T[Seq[Dep]] = super.kotlinSymbolProcessors() ++ Seq(
+    mvn"androidx.room:room-compiler:2.7.2"
+  )
+
+  object test extends AndroidKotlinTestModule with TestModule.Junit4
+
+}
+
+object network extends AndroidHiltLib {
+  override def androidNamespace: String = "com.nicos.network"
+
+  override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(database)
+
+  override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+    mvn"com.squareup.retrofit2:retrofit:3.0.0",
+    mvn"com.squareup.retrofit2:converter-gson:3.0.0",
+    mvn"com.squareup.okhttp3:okhttp:5.1.0"
+  )
+
+  object test extends AndroidKotlinTestModule with TestModule.Junit4
+}
+
+object compose_ui extends AndroidHiltCompose {
+  override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(network)
+
+  override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+    super.repositoriesTask() ++
+      Seq(MavenRepository.apply("https://jitpack.io"))
+  }
+
+  override def androidNamespace: String = "com.nicos.compose_ui"
+
+  override def bomMvnDeps: T[Seq[Dep]] = Seq(
+    mvn"androidx.compose:compose-bom:2025.07.00"
+  )
+
+  override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+    mvn"com.github.NicosNicolaou16:PercentagesWithAnimationCompose:1.3.3",
+    mvn"androidx.core:core-ktx:1.16.0",
+    mvn"androidx.appcompat:appcompat:1.7.1",
+    mvn"androidx.swiperefreshlayout:swiperefreshlayout:1.1.0",
+    mvn"androidx.lifecycle:lifecycle-runtime-ktx:2.9.2",
+    mvn"androidx.lifecycle:lifecycle-runtime:2.9.2",
+    mvn"androidx.arch.core:core-runtime:2.2.0",
+    mvn"androidx.compose.runtime:runtime:1.8.3",
+    mvn"androidx.compose.runtime:runtime-livedata:1.8.3",
+    mvn"androidx.lifecycle:lifecycle-runtime-compose:2.9.2",
+    mvn"androidx.lifecycle:lifecycle-runtime-ktx:2.9.2",
+    mvn"androidx.navigation:navigation-runtime:2.9.2",
+    mvn"androidx.lifecycle:lifecycle-viewmodel-compose:2.9.2",
+    mvn"androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.2",
+    mvn"io.coil-kt:coil-compose:2.7.0",
+    mvn"androidx.palette:palette-ktx:1.0.0",
+    mvn"androidx.activity:activity-compose:1.10.1",
+
+    // versions are resolved with compose-bom
+    mvn"androidx.compose.animation:animation",
+    mvn"androidx.compose.material3:material3",
+    mvn"androidx.compose.material:material",
+    mvn"androidx.compose.material:material-icons-extended",
+    mvn"androidx.compose.ui:ui-tooling-preview",
+    mvn"androidx.compose.ui:ui",
+    mvn"androidx.compose.ui:ui-unit",
+    mvn"androidx.compose.ui:ui-text",
+    mvn"androidx.compose.ui:ui-graphics",
+    mvn"androidx.compose.foundation:foundation",
+    mvn"androidx.compose.foundation:foundation-layout"
+  )
+
+  object test extends AndroidKotlinTestModule with TestModule.Junit4
+
+}
+
+object navigation extends AndroidCompose {
+  override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(compose_ui)
+  override def androidNamespace: String = "com.nicos.navigation"
+
+  override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+    mvn"androidx.core:core-ktx:1.16.0",
+    mvn"androidx.appcompat:appcompat:1.7.1",
+    mvn"androidx.navigation:navigation-compose:2.9.3",
+    mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0"
+  )
+
+  override def kotlincPluginMvnDeps: T[Seq[Dep]] = super.kotlincPluginMvnDeps() ++ Seq(
+    mvn"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}"
+  )
+
+  object test extends AndroidKotlinTestModule with TestModule.Junit4
+
+}
+
+object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidHiltCompose {
+
+  override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(navigation)
+
+  override def androidAaptOptions: T[Seq[String]] = super.androidAaptOptions() ++ Seq(
+    "--no-version-vectors"
+  )
+
+  def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+    AndroidBuildTypeSettings(
+      isMinifyEnabled = true,
+      isShrinkEnabled = true
+    )
+  }
+
+  override def androidProjectProguardFiles: T[Seq[PathRef]] = Task.Sources(
+    "proguard-rules.pro"
+  )
+
+  override def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+    Seq("proguard-android-optimize.txt")
+  }
+
+  override def androidApplicationNamespace = "com.nicos.pokedex_compose_multi_module"
+  override def androidApplicationId = "com.nicos.pokedex_compose_multi_module"
+
+  override def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+
+  override def androidEnableCompose = true
+
+  override def androidIsDebug = true
+
+  override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+    mvn"androidx.savedstate:savedstate:1.3.1",
+    mvn"androidx.savedstate:savedstate-ktx:1.3.1",
+    mvn"androidx.vectordrawable:vectordrawable:1.2.0",
+    mvn"androidx.vectordrawable:vectordrawable-animated:1.2.0"
+  )
+
+  object test extends AndroidAppKotlinTests with TestModule.Junit4
+
+  object androidTest extends AndroidAppKotlinInstrumentedTests {
+    override def bomMvnDeps: T[Seq[Dep]] = Seq(
+      mvn"androidx.compose:compose-bom:2025.07.00"
+    )
+    override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+      mvn"androidx.test.ext:junit:1.3.0",
+      mvn"androidx.test.espresso:espresso-core:3.7.0",
+      mvn"androidx.compose.ui:ui-test-junit4"
+    )
+
+    override def androidEnableCompose = true
+
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+      true
+    }
+  }
+}
+
+trait AndroidKotlinLib extends AndroidKotlinModule {
+
+  override def androidMinSdk: T[Int] = Task { Versions.androidMinSdk }
+
+  override def androidCompileSdk: T[Int] = Task { Versions.androidCompileSdk }
+  override def androidSdkModule: ModuleRef[AndroidSdkModule] = ModuleRef(androidSdkModule0)
+
+  override def kotlinVersion: T[String] = Versions.kotlinVersion
+
+  override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+    true
+  }
+
+  override def kotlincOptions = super.kotlincOptions() ++ Seq(
+    "-jvm-target",
+    "17"
+  )
+
+}
+
+trait AndroidCompose extends AndroidKotlinLib {
+  override def androidEnableCompose: T[Boolean] = Task { true }
+}
+
+trait AndroidHiltLib extends AndroidKotlinLib with AndroidHiltSupport {
+  override def kspVersion: T[String] = Versions.kspVersion
+  override def kotlinLanguageVersion: T[String] = Versions.kotlinLanguageVersion
+
+  override def kotlinSymbolProcessors: T[Seq[Dep]] =
+    super[AndroidHiltSupport].kotlinSymbolProcessors() ++ Seq(
+      mvn"com.google.dagger:hilt-android-compiler:2.57",
+      mvn"androidx.hilt:hilt-compiler:1.2.0",
+      mvn"com.google.dagger:hilt-compiler:2.57"
+    )
+
+  override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+    mvn"com.google.dagger:hilt-android:2.57"
+  )
+
+  override def kspKotlincOptions: T[Seq[String]] = super.kspKotlincOptions() ++ Seq(
+    "-Xannotation-default-target=param-property"
+  )
+
+}
+
+trait AndroidHiltCompose extends AndroidHiltLib with AndroidCompose {
+
+  override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+    mvn"androidx.hilt:hilt-navigation-compose:1.2.0"
+  )
+}
+
+object Versions {
+  val kotlinVersion = "2.2.0"
+  val kotlinLanguageVersion = "1.9"
+
+  val kspVersion = "2.0.2"
+  val androidCompileSdk = 36
+  val androidMinSdk = 29
+}
+
+//This is a multi-module Android project using Mill build tool.
+//  It is based on Kotlin, Jetpack Compose, and Hilt for dependency injection.
+
+/** Usage
+
+> ./mill show app.createAndroidVirtualDevice
+
+> ./mill show app.startAndroidEmulator
+
+> ./mill show app.androidInstall
+
+> ./mill show app.androidRun --activity com.nicos.pokedex_compose_multi_module.MainActivity
+[
+  "Starting: Intent { cmp=com.nicos.pokedex_compose_multi_module/.MainActivity }",
+  "Status: ok",
+  "LaunchState: COLD",
+  "Activity: com.nicos.pokedex_compose_multi_module/.MainActivity",
+  "TotalTime: ...",
+  "WaitTime: ...",
+  "Complete"
+]
+
+*/
