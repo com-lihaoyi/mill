@@ -29,12 +29,14 @@ object JetLagged extends mill.api.Module {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false
-      ).withDefaultProguardFile("proguard-android-optimize.txt")
-        .withProguardLocalFiles(
-          Seq(
-            moduleDir / "proguard-rules.pro"
-          )
-        )
+      )
+    }
+
+    def androidProjectProguardFiles = Task.Sources(
+      "proguard-rules.pro"
+    )
+    def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      Seq("proguard-android-optimize.txt")
     }
 
     override def androidApplicationNamespace = "com.example.jetlagged"
@@ -105,8 +107,7 @@ object JetLagged extends mill.api.Module {
 
     def androidMinSdk = Versions.androidMinSdk
 
-    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule,
-          AndroidTestModule.AndroidJUnit {
+    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule {
 
       def bomMvnDeps = super.mvnDeps() ++ Seq(
         mvn"androidx.compose:compose-bom:2025.05.00"
@@ -155,12 +156,13 @@ object JetNews extends mill.api.Module {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false
-      ).withDefaultProguardFile("proguard-android-optimize.txt")
-        .withProguardLocalFiles(
-          Seq(
-            moduleDir / "proguard-rules.pro"
-          )
-        )
+      )
+    }
+    def androidProjectProguardFiles = Task.Sources(
+      "proguard-rules.pro"
+    )
+    def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      Seq("proguard-android-optimize.txt")
     }
 
     override def androidApplicationNamespace = "com.example.jetnews"
@@ -233,8 +235,7 @@ object JetNews extends mill.api.Module {
 
     def androidMinSdk = Versions.androidMinSdk
 
-    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule,
-          AndroidTestModule.AndroidJUnit {
+    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule {
 
       def bomMvnDeps = super.mvnDeps() ++ Seq(
         mvn"androidx.compose:compose-bom:2025.05.00"

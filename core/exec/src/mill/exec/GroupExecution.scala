@@ -24,12 +24,17 @@ private trait GroupExecution {
   def rootModule: BaseModuleApi
   def classLoaderSigHash: Int
   def classLoaderIdentityHash: Int
+
+  /**
+   * `String` is the worker name, `Int` is the worker hash, `Val` is the result of the worker invocation.
+   */
   def workerCache: mutable.Map[String, (Int, Val)]
+
   def env: Map[String, String]
   def failFast: Boolean
   def ec: Option[ThreadPoolExecutor]
   def codeSignatures: Map[String, Int]
-  def systemExit: Int => Nothing
+  def systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
   def headerData: String
@@ -287,7 +292,7 @@ private trait GroupExecution {
             reporter = reporter,
             testReporter = testReporter,
             workspace = workspace,
-            systemExit = systemExit,
+            _systemExitWithReason = systemExit,
             fork = executionContext,
             jobs = effectiveThreadCount,
             offline = offline
@@ -377,7 +382,7 @@ private trait GroupExecution {
         workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v))
       }
 
-    def normalJson(w: upickle.default.Writer[_]) = PathRef.withSerializedPaths {
+    def normalJson(w: upickle.default.Writer[?]) = PathRef.withSerializedPaths {
       upickle.default.writeJs(v.value)(using w.asInstanceOf[upickle.default.Writer[Any]])
     }
     lazy val workerJson = labelled.asWorker.map { _ =>

@@ -26,7 +26,7 @@ object ExecResult {
     try Success(t)
     catch {
       case e: Throwable =>
-        Exception(e, new OuterStack(new java.lang.Exception().getStackTrace().toIndexedSeq))
+        Exception(e, new OuterStack(new java.lang.Exception().getStackTrace.toIndexedSeq))
     }
   }
 
@@ -59,11 +59,13 @@ object ExecResult {
 
   /**
    * A failed task execution.
+   *
    * @tparam T The result type of the computed task.
    */
   sealed trait Failing[+T] extends ExecResult[T] {
     def map[V](f: T => V): Failing[V]
     def flatMap[V](f: T => ExecResult[V]): Failing[V]
+
     override def asFailing: Option[ExecResult.Failing[T]] = Some(this)
     def throwException: Nothing = this match {
       case f: ExecResult.Failure[?] => throw new Result.Exception(f.msg)
@@ -73,8 +75,8 @@ object ExecResult {
 
   /**
    * An intentional failure, which provides a proper error message as well as an optional result value.
+   *
    * @param msg The error message.
-   * @param value The optional result value.
    * @tparam T The result type of the computed task.
    */
   final case class Failure[T](msg: String) extends Failing[T] {
@@ -93,7 +95,7 @@ object ExecResult {
     def map[V](f: Nothing => V): Exception = this
     def flatMap[V](f: Nothing => ExecResult[V]): Exception = this
 
-    override def toString(): String = {
+    override def toString: String = {
       var current = List(throwable)
       while (current.head.getCause != null) {
         current = current.head.getCause :: current

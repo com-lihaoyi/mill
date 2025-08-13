@@ -27,7 +27,7 @@ private[mill] case class Execution(
     failFast: Boolean,
     ec: Option[ThreadPoolExecutor],
     codeSignatures: Map[String, Int],
-    systemExit: Int => Nothing,
+    systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing,
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
     offline: Boolean,
@@ -48,7 +48,7 @@ private[mill] case class Execution(
       failFast: Boolean,
       ec: Option[ThreadPoolExecutor],
       codeSignatures: Map[String, Int],
-      systemExit: Int => Nothing,
+      systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing,
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
       offline: Boolean,
@@ -98,8 +98,10 @@ private[mill] case class Execution(
   private def execute0(
       goals: Seq[Task[?]],
       logger: Logger,
-      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = TestReporter.DummyTestReporter,
+      reporter: Int => Option[
+        CompileProblemReporter
+      ] /* = _ => Option.empty[CompileProblemReporter]*/,
+      testReporter: TestReporter /* = TestReporter.DummyTestReporter*/,
       serialCommandExec: Boolean
   ): Execution.Results = {
     os.makeDir.all(outPath)
@@ -252,8 +254,14 @@ private[mill] case class Execution(
                   }
                 }
               } catch {
+                // Wrapping the fatal error in a non-fatal exception, so it would be caught by Scala's Future
+                // infrastructure, rather than silently terminating the future and leaving downstream Awaits hanging.
                 case e: Throwable if !scala.util.control.NonFatal(e) =>
-                  throw new Exception(e)
+                  val nonFatal = new Exception(s"fatal exception occurred: $e", e)
+                  // Set the stack trace of the non-fatal exception to the original exception's stack trace
+                  // as it actually indicates the location of the error.
+                  nonFatal.setStackTrace(e.getStackTrace)
+                  throw nonFatal
               }
             }
           }
@@ -302,7 +310,7 @@ private[mill] case class Execution(
                 t,
                 (Seq(t) ++ plan.sortedGroups.lookupKey(t))
                   .flatMap { t0 => res.newResults.get(t0) }
-                  .sortBy(!_.isInstanceOf[ExecResult.Failing[_]])
+                  .sortBy(!_.isInstanceOf[ExecResult.Failing[?]])
                   .head
               )
 

@@ -24,7 +24,7 @@ trait AndroidHiltSupport extends KspModule with AndroidKotlinModule {
     super.kspClasspath()
 
   def androidHiltProcessorPath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
+    kspDependencyResolver().classpath(
       kotlinSymbolProcessors().flatMap {
         dep =>
           if (dep.dep.module.name.value == "hilt-android-compiler")
@@ -66,6 +66,29 @@ trait AndroidHiltSupport extends KspModule with AndroidKotlinModule {
 
   def hiltProcessorClasspath: T[Seq[PathRef]] = Task {
     kspApClasspath() ++ kspClasspath()
+  }
+
+  override def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
+    kspDependencyResolver().classpath(
+      kotlinSymbolProcessors()
+    )
+  }
+
+  override def androidProguard: T[PathRef] = Task {
+    val inheritedProguardFile = super.androidProguard()
+
+    val hiltContent: String =
+      """
+        |# Keep any class annotated with @HiltAndroidApp, @AndroidEntryPoint, etc.
+        |-keep @dagger.hilt.android.HiltAndroidApp class * { *; }
+        |-keep @dagger.hilt.android.AndroidEntryPoint class * { *; }
+        |""".stripMargin
+
+    val globalProguard = Task.dest / "global-proguard.pro"
+    os.write(globalProguard, os.read(inheritedProguardFile.path))
+    os.write.append(globalProguard, hiltContent)
+    os.write.append(globalProguard, androidProviderProguardConfigRules().mkString("\n"))
+    PathRef(globalProguard)
   }
 
 }

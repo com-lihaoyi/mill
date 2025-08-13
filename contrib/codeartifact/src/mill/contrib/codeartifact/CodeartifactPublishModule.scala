@@ -18,6 +18,11 @@ trait CodeartifactPublishModule extends PublishModule {
       connectTimeout: Int = 5000
   ): Command[Unit] =
     Task.Command {
+      if (!publish) throw Exception(
+        "`publish` is set to false, but the parameter never did anything, so we're throwing an exception to at " +
+          "least get your attention."
+      )
+
       val (artifacts, artifactInfo) = publishArtifacts().withConcretePath
 
       new CodeartifactPublisher(

@@ -41,7 +41,7 @@ object LocalSummary {
       isAbstract: Boolean
   )
   object MethodInfo {
-    given rw(using SymbolTable): ReadWriter[MethodInfo] = macroRW
+    given rw: ReadWriter[MethodInfo] = macroRW
   }
 
   implicit def rw(implicit st: SymbolTable): ReadWriter[LocalSummary] = macroRW

@@ -10,7 +10,7 @@
 //
 // * test-proguard-rules.pro: This file contains the rules for R8 to follow when shrinking and obfuscating the unit and instrumented tests.
 //
-// You can also override the default Proguard files by using `override def proguardConfigs: T[Seq[PathRef]]`
+// You can also override the default Proguard files by using `override def androidDefaultProguardFileNames: T[Seq[String]]`
 // More informations about the R8 in general and about the Proguard rules files can be found in the links below:
 //
 // https://developer.android.com/build/shrink-code
@@ -45,13 +45,9 @@ object app extends AndroidR8AppModule { // <2>
   override def androidVirtualDeviceIdentifier: String = "java-test"
   override def androidIsDebug: T[Boolean] = Task { false }
 
-  override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
-    super.androidReleaseSettings().withProguardLocalFiles(
-      Seq(
-        moduleDir / "proguard-rules.pro"
-      )
-    )
-  }
+  def androidProjectProguardFiles = Task.Sources(
+    "proguard-rules.pro"
+  )
 
   // Unit tests for the application
   object test extends AndroidAppTests, TestModule.Junit4 {
@@ -61,8 +57,7 @@ object app extends AndroidR8AppModule { // <2>
   }
 
   // Instrumented tests (runs on emulator)
-  object it extends AndroidAppInstrumentedTests, AndroidR8AppModule,
-        AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppInstrumentedTests, AndroidR8AppModule {
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
     override def androidIsDebug: T[Boolean] = Task {
@@ -70,12 +65,12 @@ object app extends AndroidR8AppModule { // <2>
     }
 
     override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
-      AndroidBuildTypeSettings(isMinifyEnabled = false).withProguardLocalFiles(
-        Seq(
-          moduleDir / "test-proguard-rules.pro"
-        )
-      )
+      AndroidBuildTypeSettings(isMinifyEnabled = false)
     }
+
+    override def androidProjectProguardFiles = Task.Sources(
+      "test-proguard-rules.pro"
+    )
 
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"androidx.test.ext:junit:1.2.1",

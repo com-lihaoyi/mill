@@ -13,39 +13,69 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
-[#0-12-15]
-=== 0.12.15 - 2025-08-01
-:version: 0.12.15
-:milestone-name: 0.12.15
-:milestone: 116
-:prev-version: 0.12.14
+[#1-0-3]
+=== 1.0.3
+:version: 1.0.3
+:milestone-name: 1.0.3
+:milestone: 123
+:prev-version: 1.0.2
+_2025-08-05_
 
-* Fixes incorrect parsing of `PublishInfo` from string when artifact id or
-  version contains regex-sensitive characters ({link-pr}/5599[#5599])
+_Changes since {prev-version}:_
 
-* Use system calls to get terminal size on Linux / Mac ({link-pr}/4497[#4497])
+* Mill now tab-completes flags like `-j` or `--jobs` ({link-pr}/5642[#5642]),
+   as well as flags belonging to ``Task.Command``s that the user defines ({link-pr}/5643[#5643])
+   in addition to tab-completing modules and tasks that it did before. 
+   Mill also now displays the description for flags and tasks that get tab completed
+   ({link-pr}/5648[#5648], {link-pr}/5650[#5650]). Note that these improvements require
+   you to re-run `./mill mill.tabcomplete/install` to activate
++
+[,console]
+----
+$ ./mill -<tab>
+-D  <k=v> Define (or overwrite) a system property.
+-b  Ring the bell once if the run completes successfully, twice if it fails.
+-d  Show debug output on STDOUT
+-i  Run Mill in interactive mode, suitable for opening REPLs and taking user input.
+-j  <str> The number of parallel threads. It can be an integer e.g. `5`
+-k  Continue build, even after build failures.
+-v  Show mill version information and exit.
+-w  Watch and re-run the given tasks when when their inputs change.
 
-* Support Snapshot handling in `SonatypeCentralPublishModule/publishAll`
-  ({link-pr}/5542[#5542], {link-pr}/5541[#5541], {link-pr}/5576[#5576])
+$ ./mill core.<tab>
+core.api        This module contains the data types necessary for defining a Mill build:
+core.constants  This module contains basic constants and helpers shared between the client,
+core.eval       This folder contains the core evaluator logic for the Mill build tool,
+core.exec       This module contains code related to planning and execution of the Mill
+core.internal   This package contains internal helpers and utilities used throughout
+core.resolve    This module contains logic around resolving Mill command line
+----
 
-* Support `nativeServiceProviders` in `ScalaNativeModule` ({link-pr}/4744[#4744])
 
-* Fix -D property passing with graal native launcher ({link-pr}/5442[#5442])
+* Add a generator for Eclipse JDT project files ({link-pr}/5614[#5614]). This can be run
+  with `./mill mill.eclipse/` to generate the configuration that you can then import
+  into Eclipse JDT
 
-* Fix `./mill init` example download in 0.12.x ({link-pr}/5333[#5333])
+* Flesh out `os.Checker` error messages to make them more actionable ({link-pr}/5640[#5640])
+
+* Display individual test class timings in `mill-chrome-profile.json` ({link-pr}/5635[#5635])
+
+* Add `compileGeneratedSources` directory for Java annotation processors to place generated
+  sources to be picked up by IDEs ({link-pr}/5629[#5629])
+
+* Improvements to Android build support ({link-pr}/5623[#5623] {link-pr}/5608[#5608] {link-pr}/5634[#5634])
+
 
 
 [#1-0-2]
 === 1.0.2
-_2025-07-29_
-
-
 :version: 1.0.2
 :milestone-name: 1.0.2
 :milestone: 122
 :prev-version: 1.0.1
+_2025-07-29_
 
-
+_Changes since {prev-version}:_
 
 * Fix mill server timeout back to 30min ({link-pr}/5620[#5620])
 * Propagate environment variables to run and test unless `def propagateEnv = false` ({link-pr}/5617[#5617])
@@ -69,13 +99,13 @@ _2025-07-29_
 
 [#1-0-1]
 === 1.0.1
-_2025-07-21_
-
-
 :version: 1.0.1
 :milestone-name: 1.0.1
 :milestone: 121
 :prev-version: 1.0.0
+_2025-07-21_
+
+_Changes since {prev-version}:_
 
 * Make `def repositories` transitively aggregated from upstream modules ({link-pr}/5576[#5576])
 * Fix snapshot publishing in `SonatypeCentralPublishModule/publishAll` ({link-pr}/5539[#5539])
@@ -90,12 +120,12 @@ _2025-07-21_
 
 [#1-0-0]
 === 1.0.0
-_2025-07-10_
-
 :version: 1.0.0
 :milestone-name: 1.0.0
 :milestone: 121
 :prev-version: 1.0.0-RC3
+_2025-07-10_
+
 
 `1.0.0` is a major backwards incompatible release that fixes many long-standing
 issues and aims to build a strong technical foundation for the next few years of development. 
@@ -146,16 +176,20 @@ script in order to work, due to changes in the Sonatype Central package registry
 forced a change in the download URLs for new releases going forward. To update your
 bootstrap script, you can use:
 +
-```
-# linux
-curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-mill.sh -o mill
-chmod +x mill
-echo 1.0.0 > .mill-version
-
-# windows
-curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-mill.bat -o mill.bat
-echo 1.0.0 > .mill-version
-```
+.Linux
+[,console]
+----
+> curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-mill.sh -o mill
+> chmod +x mill
+> echo 1.0.0 > .mill-version
+----
++
+.Windows
+[,console]
+----
+> curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-mill.bat -o mill.bat
+> echo 1.0.0 > .mill-version
+----
 
 ==== Major Breaking Changes
 
@@ -165,7 +199,8 @@ echo 1.0.0 > .mill-version
   use Scala 3 language features such as https://docs.scala-lang.org/scala3/reference/other-new-features/indentation.html[Optional Braces]
   in your `.mill` files
 +
-```scala
+[,scala]
+----
 package build
 import mill.*, javalib.*
 
@@ -179,7 +214,7 @@ object foo extends JavaModule:
     def mvnDeps = Seq(
       mvn"com.google.guava:guava:33.3.0-jre"
     )
-```
+----
 
 
 * Mill now supports a YAML front-matter syntax (YAML version 1.2) in your root `build.mill`
@@ -187,7 +222,8 @@ object foo extends JavaModule:
   the `import $ivy...` syntax and allows external configuration files like `.mill-version`,
   `.mill-jvm-version`, etc. to be configured together e.g.
 +
-```scala
+[,scala]
+----
 //| mill-version: 1.0.0
 //| mill-jvm-version: 17
 //| repositories: [$PWD_URI/custom-repo]
@@ -197,7 +233,7 @@ object foo extends JavaModule:
 
 package build
 ...
-```
+----
 
 * The YAML front-matter allows you to configure arbitrary tasks in the meta-build.
   Above we show how to configure the `def repositories` and `def mvnDeps` tasks for the
@@ -213,23 +249,25 @@ package build
 * The `Agg()`/`Agg[T]` collection types have been removed and replaced by `Seq()`/`Seq[T]`
   ({link-pr}/4525[#4525]):
 +
-```diff
+[,diff]
+----
 -def ivyDeps = Agg(
 +def mvnDeps = Seq(
    mvn"org.scalameta::munit::0.7.29"
 )
-```
+----
 
 * `import $file` has been removed and replaced by direct references to the
   definitions ({link-pr}/4462[#4462]), e.g. if you have a `package build.foo.bar`
   containing `def qux` you can refer to the definition via `build.foo.bar.qux`
   or `import build.foo.bar.qux` without needing the `import $file`
 +
-```diff
+[,diff]
+----
 -import $file.foo.bar.Qux
 +import build.foo.bar.Qux
 ...Qux...
-```
+----
 
 * `import $packages` and `import $meta` are no longer necessary and have been removed
 
@@ -252,14 +290,15 @@ package build
 
 * The `T.*` methods have been removed. These were replaced by `Task.*` equivalents in 0.12.x.
 +
-```diff
+[,diff]
+----
 - def foo = T {
 -   ...T.dest...
 - }
 + def foo = Task{
 +   ...Task.dest...
 + }
-```
+----
 
 * `def zincWorker`, `ZincWorkerModule`, and `ZincWorkerUtil` have been renamed to
   `jvmWorker`, `JvmWorkerModule`, and `JvmWorkerUtil` {link-pr}/4834[#4834])
@@ -322,12 +361,13 @@ package build
   superclass, as they can be identified unambiguously by the `object package` name, so
   setting up the appropriate superclass is now taken care of by Mill automatically ({link-pr}/5008[#5008])
 +
-```diff
+[,diff]
+----
 -object `package` extends RootModule with JavaModule {
 +object `package` extends JavaModule {
    ...
  }
-```
+----
 
 * `Jvm.*` methods to spawn subprocesses and classloaders have been consolidated from 20+ helpers
   into 4 main functions ({link-pr}/4456[#4456]): `Jvm.createClassLoader`, `Jvm.withClassLoader`,
@@ -344,11 +384,12 @@ package build
   tasks ({link-pr}/4524[#4524]). Most cases where a `Task.Sources` was receiving an upstream
   task can be replaced by a separate `Task.Sources` and `Task{}`
 +
-```diff
+[,diff]
+----
 - def sources = Task.Sources{ super.sources() ++ Seq(PathRef(...)) }
 + def customSources =  Task.Sources(...)
 + def sources = Task { super.sources() ++ customSources() }
-```
+----
 
 * Mill's plugin infrastructure has changed with the release of Mill 1.0.0: plugins now need
   to use Scala 3.7.0, should now depend on `mill-libs` rather than `mill-dist`, and integration
@@ -394,11 +435,12 @@ package build
 
 * `Cross` can now be applied to root modules ({link-pr}/4593[#4593])
 +
-```scala
+[,scala]
+----
 object `package` extends Cross[FooModule]("3.6.2", "2.13.16") {
   ...
 }
-```
+----
 
 * Mill now supports a `--offline` option to run in offline mode.
   Custom tasks that need to download remote resources should respect that mode via
@@ -421,12 +463,13 @@ object `package` extends Cross[FooModule]("3.6.2", "2.13.16") {
 * Scala 3.7 https://docs.scala-lang.org/sips/named-tuples.html[Scala 3.7.0 Named Tuples]
   can be used as task return values:
 +
-```scala
+[,scala]
+----
 import upickle.implicits.namedTuples.default.given
 def namedTupleTask = Task {
   (hello = "world", i = Seq("am", "cow"))
 }
-```
+----
 
 * `def repositories: T[Seq[String]]` is now provided as a simpler alternative to
   `def repositoriesTask`, making it easier to add the most common URL/file-based repositories
@@ -468,14 +511,41 @@ def namedTupleTask = Task {
   {link-pr}/4786[#4786], {link-pr}/4771[#4771], {link-pr}/4779[#4779], {link-pr}/4797[#4797], {link-pr}/4963[#4963])
 
 
+[#0-12-15]
+=== 0.12.15
+:version: 0.12.15
+:milestone-name: 0.12.15
+:milestone: 116
+:prev-version: 0.12.14
+_2025-08-01_
+
+_Changes since {prev-version}:_
+
+* Fixes incorrect parsing of `PublishInfo` from string when artifact id or
+version contains regex-sensitive characters ({link-pr}/5599[#5599])
+
+* Use system calls to get terminal size on Linux / Mac ({link-pr}/4497[#4497])
+
+* Support Snapshot handling in `SonatypeCentralPublishModule/publishAll`
+({link-pr}/5542[#5542], {link-pr}/5541[#5541], {link-pr}/5576[#5576])
+
+* Support `nativeServiceProviders` in `ScalaNativeModule` ({link-pr}/4744[#4744])
+
+* Fix -D property passing with graal native launcher ({link-pr}/5442[#5442])
+
+* Fix `./mill init` example download in 0.12.x ({link-pr}/5333[#5333])
+
+
+
 [#0-12-14]
 === 0.12.14
-_2025-05-20_
-
 :version: 0.12.14
 :milestone-name: 0.12.14
 :milestone: 116
 :prev-version: 0.12.13
+_2025-05-20_
+
+_Changes since {prev-version}:_
 
 * Convert `runBackground` process exit detection from file-locks to process-ID liveness checks
   ({link-pr}/5120[#5120]), which should hopefully fix some non-deterministic bugs where the new
@@ -487,21 +557,23 @@ _2025-05-20_
 
 [#0-12-13]
 === 0.12.13
-_2025-05-18_
-
 :version: 0.12.13
 :milestone-name: 0.12.13
 :milestone: 115
 :prev-version: 0.12.11
+_2025-05-18_
+
+_Changes since {prev-version}:_
 
 * NOTE: Mill 0.12.13 requires an updated bootstrap script in order to work, due to changes in Sonatype
   Central that forced a change in the download URLs for new releases going forward. To update your 
   bootstrap script, you can use
 +
-```
-curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.13/mill-dist-0.12.13-mill.sh -o mill
-chmod +x mill
-```
+[,console]
+----
+> curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.13/mill-dist-0.12.13-mill.sh -o mill
+> chmod +x mill
+----
 
 * Backport `mill.scalalib.SonatypeCentralPublishModule/` from `main` ({link-pr}/5107[#5107]). With
 the https://central.sonatype.org/news/20250326_ossrh_sunset/[Sunset of `oss.sonatype.org`],
@@ -556,12 +628,13 @@ published with some other suffix via `def extraPublish`
 
 [#0-12-11]
 === 0.12.11
-_2025-05-10_
-
 :version: 0.12.11
 :milestone-name: 0.12.11
 :milestone: 114
 :prev-version: 0.12.10
+_2025-05-10_
+
+_Changes since {prev-version}:_
 
 * fix: Use root qualifier in Discover macro ({link-pr}/5055[#5055])
 * Fix selective execution when multiple changes are made to one module under `--watch` ({link-pr}/5032[#5032])
@@ -574,12 +647,13 @@ _2025-05-10_
 
 [#0-12-10]
 === 0.12.10
-_2025-04-01_
-
 :version: 0.12.10
 :milestone-name: 0.12.10
 :milestone: 113
 :prev-version: 0.12.9
+_2025-04-01_
+
+_Changes since {prev-version}:_
 
 * Find main classes with ClassGraph ({link-pr}/4832[#4832])
 * First-class support for Kotlin compiler plugins ({link-pr}/4782[#4782])
@@ -596,12 +670,13 @@ _2025-04-01_
 
 [#0-12-9]
 === 0.12.9
-_2025-03-17_
-
 :version: 0.12.9
 :milestone-name: 0.12.9
 :milestone: 112
 :prev-version: 0.12.8
+_2025-03-17_
+
+_Changes since {prev-version}:_
 
 * Support `mill init` for migrating from an existing sbt project on a best-effort basis
   (https://mill-build.org/mill/main-branch/migrating/sbt.html[docs]), mirroring the existing Maven and Gradle migration support
@@ -626,12 +701,13 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-12-8]
 === 0.12.8
-_2025-02-16_
-
 :version: 0.12.8
 :milestone-name: 0.12.8
 :milestone: 111
 :prev-version: 0.12.7
+_2025-02-16_
+
+_Changes since {prev-version}:_
 
 * Speed up incremental `.assembly` jar creation for updates in upstream local modules {link-pr}/4566[#4566]
 * Add examples of building Apache Spark applications using Mill (https://mill-build.org/mill/main-branch/scalalib/spark.html[docs])
@@ -646,12 +722,13 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-12-7]
 === 0.12.7
-_2025-02-01_
-
 :version: 0.12.7
 :milestone-name: 0.12.7
 :milestone: 110
 :prev-version: 0.12.6
+_2025-02-01_
+
+_Changes since {prev-version}:_
 
 * Upgrade OS-Lib to fix usage of `os.zip` on folders {link-pr}/4444[#4444]
 * Add example of using Mill to build a Http4S Web Application {link-pr}/4446[#4446]
@@ -663,12 +740,13 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-12-6]
 === 0.12.6
-_2025-01-31_
-
 :version: 0.12.6
 :milestone-name: 0.12.6
 :milestone: 109
 :prev-version: 0.12.5
+_2025-01-31_
+
+_Changes since {prev-version}:_
 
 * https://mill-build.org/mill/cli/installation-ide.html#_mill_native_executable[Mill now provides native executables] on windows-amd64, linux-{amd64,aarch64}, and
 macos-{amd64,aarch64}. These can be enabled by adding the `-native` suffix to your `.mill-version`
@@ -742,12 +820,13 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-12-5]
 === 0.12.5
-_2025-01-01_
-
 :version: 0.12.5
 :milestone-name: 0.12.5
 :milestone: 108
 :prev-version: 0.12.4
+_2025-01-01_
+
+_Changes since {prev-version}:_
 
 * Optimize Mill startup overhead by not blocking on stdin {link-pr}/4159[#4159]
 
@@ -789,12 +868,13 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-12-4]
 === 0.12.4
-_2024-12-16_
-
 :version: 0.12.4
 :milestone-name: 0.12.4
 :milestone: 107
 :prev-version: 0.12.3
+_2024-12-16_
+
+_Changes since {prev-version}:_
 
 * Mill now supports https://mill-build.org/mill/large/selective-execution.html[Selective Execution],
 allowing you to run tests and other tasks only if they are downstream of a code change.
@@ -835,12 +915,13 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-12-3]
 === 0.12.3
-_2024-11-24_
-
 :version: 0.12.3
 :milestone-name: 0.12.3
 :milestone: 106
 :prev-version: 0.12.2
+_2024-11-24_
+
+_Changes since {prev-version}:_
 
 * Set context classloader during Mill evaluation {link-pr}/3940[#3940]
 * Extended `mill init` to support importing an existing Maven project {link-pr}/3756[#3756]
@@ -866,12 +947,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-12-2]
 === 0.12.2
-_2024-11-11_
-
 :version: 0.12.2
 :milestone-name: 0.12.2
 :milestone: 105
 :prev-version: 0.12.1
+_2024-11-11_
 
 _Changes since {prev-version}:_
 
@@ -903,12 +983,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-12-1]
 === 0.12.1
-_2024-10-27_
-
 :version: 0.12.1
 :milestone-name: 0.12.1
 :milestone: 104
 :prev-version: 0.12.0
+_2024-10-27_
 
 _Changes since {prev-version}:_
 
@@ -922,8 +1001,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-12-0]
 === 0.12.0
+:version: 0.12.0
+:milestone-name: 0.12.0
+:milestone: 104
+:prev-version: 0.12.0
 _2024-10-23_
-
 
 The Mill 0.12.0 release focuses on improving the scalability of Mill builds: in terms
 of performance, code organization, adherence to best practices, and community.
@@ -968,13 +1050,13 @@ see the sections below on:
 * <<0-12-0-RC1>>
 * <<0-12-0-RC2>>
 * <<0-12-0-RC3>>
-* <<0-12-0-since-rc2>>
+* <<0-12-0-since-rc3>>
 
 0.12.x is binary compatible with 0.11.x, and so Mill plugins published for Mill 0.11.x can
 continue to be used without updating them. Although binary compatible, Mill 0.12.x does
 have breaking changes listed below with instructions provided on how to either disable the
 breaking change with a flag or adjust your code to accommodate it. You should download the
-latest version of the https://github.com/com-lihaoyi/mill/blob/main/mill[Mill Bootstrap Script]
+latest version of the link:mill[Mill Bootstrap Script]
 if you are upgrading from a prior version.
 
 If you need help upgrading from 0.11.x or hit any issues, please visit the
@@ -1000,7 +1082,7 @@ https://github.com/com-lihaoyi/scalasql/pull/30, https://github.com/com-lihaoyi/
 
 *** More involved upgrades: https://github.com/com-lihaoyi/cask/pull/143
 
-[#0-12-0-since-rc2]
+[#0-12-0-since-rc3]
 ==== 0.12.0 Changes since RC3
 
 * Mill now takes a lock on the `out/` folder whenver evaluating it to avoid race conditions on disk.
@@ -1061,8 +1143,8 @@ parallel builds {link-pr}/3577[#3577]
 ** Mill now shows all active tasks and their duration at the bottom of your terminal
 ** Stream task logs are now prefixed with the task index on the left and the task
 name above, so you can attribute each line of logs to the task that generated it
-
-```
++
+----
 ...
 [3861/4712] main.client.publishLocalCached
 [3861] Publishing Artifact(com.lihaoyi,mill-libs-client,0.12.0-RC2-67-a566d8-DIRTY875bcbb1) to ivy repo /Users/lihaoyi/.ivy2/local
@@ -1074,7 +1156,7 @@ name above, so you can attribute each line of logs to the task that generated it
 [3706] contrib.playlib.worker[2.9].docJar 1s
 [3707] contrib.playlib.worker[2.6].docJar 1s
 ... and 3 more threads
-```
+----
 
 * Add API for tasks to spawn concurrent and parallel futures via `Task.fork.{async,await}` {link-pr}/3478[#3478]
 
@@ -1084,8 +1166,9 @@ by overriding `def testForkGrouping` {link-pr}/3478[#3478]
 * Use coursier thread pool to run coursier-related tasks to avoid deadlocks {link-pr}/3614[#3614]
 
 * `inspect` now shows useful information when used on modules, not just tasks {link-pr}/3532[#3532]
-
-```
++
+[,console]
+----
 $ ./mill inspect dist0
 dist0(build.mill:745)
     Version of [[dist]] meant for local integration testing within the Mill
@@ -1099,7 +1182,7 @@ Module Dependencies: runner, idea
 Default Task: dist0.run
 
 Tasks: dist0.fix, dist0.testTransitiveDeps
-```
+----
 
 * `mill init` now supports creating a project based on examples from Mill's documentation {link-pr}/3583[#3583],
 and unpacks the example into the current folder rather than a subfolder {link-pr}/3626[#3626]
@@ -1258,12 +1341,11 @@ prefixed with `show` and no longer need a separate `graphviz`/`dot` install on M
 
 [#0-11-13]
 === 0.11.13
-_2024-01-14_
-
 :version: 0.11.13
 :milestone-name: 0.11.13
 :milestone: 100
 :prev-version: 0.11.12
+_2024-01-14_
 
 _Changes since {prev-version}:_
 
@@ -1281,12 +1363,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-12]
 === 0.11.12
-_2024-08-20_
-
 :version: 0.11.12
 :milestone-name: 0.11.12
 :milestone: 99
 :prev-version: 0.11.11
+_2024-08-20_
 
 _Changes since {prev-version}:_
 
@@ -1334,12 +1415,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-10]
 === 0.11.10
-_2024-07-23_
-
 :version: 0.11.10
 :milestone-name: 0.11.10
 :milestone: 95
 :prev-version: 0.11.9
+_2024-07-23_
 
 _Changes since {prev-version}:_
 
@@ -1356,12 +1436,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-9]
 === 0.11.9
-_2024-07-18_
-
 :version: 0.11.9
 :milestone-name: 0.11.9
 :milestone: 94
 :prev-version: 0.11.8
+_2024-07-18_
 
 _Changes since {prev-version}:_
 
@@ -1379,12 +1458,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-8]
 === 0.11.8
-_2024-06-21_
-
 :version: 0.11.8
 :milestone-name: 0.11.8
 :milestone: 93
 :prev-version: 0.11.7
+_2024-06-21_
 
 _Changes since {prev-version}:_
 
@@ -1470,12 +1548,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-7]
 === 0.11.7
-_2024-02-05_
-
 :version: 0.11.7
 :milestone-name: 0.11.7
 :milestone: 91
 :prev-version: 0.11.6
+_2024-02-05_
 
 _Changes since {prev-version}:_
 
@@ -1527,13 +1604,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-6]
 === 0.11.6
-_2023-11-21_
-
 :version: 0.11.6
 :milestone-name: 0.11.6
 :milestone: 90
 :prev-version: 0.11.5
-
+_2023-11-21_
 
 _Changes since {prev-version}:_
 
@@ -1560,12 +1635,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-5]
 === 0.11.5
-_2023-10-04_
-
 :version: 0.11.5
 :milestone-name: 0.11.5
 :milestone: 89
 :prev-version: 0.11.4
+_2023-10-04_
 
 _Changes since {prev-version}:_
 
@@ -1600,12 +1674,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-4]
 === 0.11.4
-_2023-09-19_
-
 :version: 0.11.4
 :milestone-name: 0.11.4
 :milestone: 88
 :prev-version: 0.11.3
+_2023-09-19_
 
 _Changes since {prev-version}:_
 
@@ -1618,12 +1691,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-3]
 === 0.11.3
-_2023-09-17_
-
 :version: 0.11.3
 :milestone-name: 0.11.3
 :milestone: 87
 :prev-version: 0.11.2
+_2023-09-17_
 
 _Changes since {prev-version}:_
 
@@ -1644,12 +1716,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-2]
 === 0.11.2
-_2023-08-28_
-
 :version: 0.11.2
 :milestone-name: 0.11.2
 :milestone: 86
 :prev-version: 0.11.1
+_2023-08-28_
 
 _Changes since {prev-version}:_
 
@@ -1678,12 +1749,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-1]
 === 0.11.1
-_2023-06-23_
-
 :version: 0.11.1
 :milestone-name: 0.11.1
 :milestone: 85
 :prev-version: 0.11.0
+_2023-06-23_
 
 _Changes since {prev-version}:_
 
@@ -1705,12 +1775,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0]
 === 0.11.0
-_2023-06-06_
-
 :version: 0.11.0
 :milestone-name: 0.11.0
 :milestone: 84
 :prev-version: 0.11.0-M11
+_2023-06-06_
 
 *This release is binary incompatible to {prev-version}.*
 
@@ -1732,12 +1801,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M11]
 === 0.11.0-M11
-_2023-06-04_
-
 :version: 0.11.0-M11
 :milestone-name: 0.11.0-M11
 :milestone: 83
 :prev-version: 0.11.0-M10
+_2023-06-04_
 
 *This release is binary incompatible to {prev-version}.*
 
@@ -1762,12 +1830,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M10]
 === 0.11.0-M10
-_2023-05-24_
-
 :version: 0.11.0-M10
 :milestone-name: 0.11.0-M10
 :milestone: 82
 :prev-version: 0.11.0-M9
+_2023-05-24_
 
 *This release is binary incompatible to {prev-version}.*
 
@@ -1794,12 +1861,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M9]
 === 0.11.0-M9
-_2023-05-18_
-
 :version: 0.11.0-M9
 :milestone-name: 0.11.0-M9
 :milestone: 80
 :prev-version: 0.11.0-M8
+_2023-05-18_
 
 *This release is binary incompatible to {prev-version}.*
 
@@ -1837,12 +1903,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M8]
 === 0.11.0-M8
-_2023-04-24_
-
 :version: 0.11.0-M8
 :milestone-name: 0.11.0-M8
 :milestone: 79
 :prev-version: 0.11.0-M7
+_2023-04-24_
 
 *This release is binary incompatible to {prev-version}.*
 
@@ -1882,12 +1947,12 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M7]
 === 0.11.0-M7
-_2023-03-30_
-
 :version: 0.11.0-M7
 :milestone-name: 0.11.0-M7
 :milestone: 78
 :prev-version: 0.11.0-M6
+_2023-03-30_
+
 
 *This release is binary incompatible to {prev-version}.*
 
@@ -1910,12 +1975,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M6]
 === 0.11.0-M6
-_2023-03-09_
-
 :version: 0.11.0-M6
 :milestone-name: 0.11.0-M6
 :milestone: 77
 :prev-version: 0.11.0-M5
+_2023-03-09_
 
 *This release is binary incompatible to {prev-version}.*
 
@@ -1929,12 +1993,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M5]
 === 0.11.0-M5
-_2023-03-09_
-
 :version: 0.11.0-M5
 :milestone-name: 0.11.0-M5
 :milestone: 76
 :prev-version: 0.11.0-M4
+_2023-03-09_
 
 *This release is binary incompatible to {prev-version}.*
 
@@ -1958,12 +2021,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M4]
 === 0.11.0-M4
-_2023-02-10_
-
 :version: 0.11.0-M4
 :milestone-name: 0.11.0-M4
 :milestone: 74
 :prev-version: 0.11.0-M3
+_2023-02-10_
 
 *This release is binary incompatible to {prev-version}.*
 
@@ -1985,12 +2047,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M3]
 === 0.11.0-M3
-_2023-01-23_
-
 :version: 0.11.0-M3
 :milestone-name: 0.11.0-M3
 :milestone: 73
 :prev-version: 0.11.0-M2
+_2023-01-23_
 
 *This release is binary incompatible to {prev-version}.*
 
@@ -2013,12 +2074,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M2]
 === 0.11.0-M2
-_2023-01-13_
-
 :version: 0.11.0-M2
 :milestone-name: 0.11.0-M2
 :milestone: 72
 :prev-version: 0.11.0-M1
+_2023-01-13_
 
 *This release is binary incompatible to {prev-version}.*
 
@@ -2039,12 +2099,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M1]
 === 0.11.0-M1
-_2022-12-17_
-
 :version: 0.11.0-M1
 :prev-version: 0.10.10
 :milestone: 70
 :milestone-name: 0.11.0-M1
+_2022-12-17_
 
 *This release is binary incompatible to {prev-version}.*
 
@@ -2086,12 +2145,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-13]
 === 0.10.13
-_2023-11-12_
-
 :version: 0.10.13
 :milestone-name: 0.10.13
 :milestone: 81
 :prev-version: 0.10.12
+_2023-11-12_
 
 _Changes since {prev-version}:_
 
@@ -2110,12 +2168,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-12]
 === 0.10.12
-_2023-03-20_
-
 :version: 0.10.12
 :milestone-name: 0.10.12
 :milestone: 75
 :prev-version: 0.10.11
+_2023-03-20_
 
 _Changes since {prev-version}:_
 
@@ -2131,12 +2188,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-11]
 === 0.10.11
-_2023-01-24_
-
 :version: 0.10.11
 :milestone-name: 0.10.11
 :milestone: 71
 :prev-version: 0.10.10
+_2023-01-24_
 
 _Changes since {prev-version}:_
 
@@ -2155,12 +2211,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-10]
 === 0.10.10
-_2022-12-06_
-
 :version: 0.10.10
 :prev-version: 0.10.9
 :milestone: 69
 :milestone-name: 0.10.10
+_2022-12-06_
 
 After this release, the `main` branch is open for development of the next major version of Mill, which is probably `0.11`.
 Further maintenance work will happen in the `0.10.x` branch.
@@ -2188,12 +2243,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-9]
 === 0.10.9
-_2022-11-10_
-
 :version: 0.10.9
 :prev-version: 0.10.8
 :milestone: 68
 :milestone-name: 0.10.9
+_2022-11-10_
 
 _Changes since {prev-version}:_
 
@@ -2212,12 +2266,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-8]
 === 0.10.8
-_2022-10-10_
-
 :version: 0.10.8
 :prev-version: 0.10.7
 :milestone: 67
 :milestone-name: 0.10.8
+_2022-10-10_
 
 _Changes since {prev-version}:_
 
@@ -2238,12 +2291,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-7]
 === 0.10.7
-_2022-08-24_
-
 :version: 0.10.7
 :prev-version: 0.10.6
 :milestone: 66
 :milestone-name: 0.10.7
+_2022-08-24_
 
 _Changes since {prev-version}:_
 
@@ -2256,12 +2308,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-6]
 === 0.10.6
-_2022-08-24_
-
 :version: 0.10.6
 :prev-version: 0.10.5
 :milestone: 64
 :milestone-name: 0.10.6
+_2022-08-24_
 
 _Changes since {prev-version}:_
 
@@ -2282,12 +2333,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-5]
 === 0.10.5
-_2022-07-01_
-
 :version: 0.10.5
 :prev-version: 0.10.4
 :milestone: 63
 :milestone-name: 0.10.5
+_2022-07-01_
 
 _Changes since {prev-version}:_
 
@@ -2314,12 +2364,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-4]
 === 0.10.4
-_2022-05-06_
-
 :version: 0.10.4
 :prev-version: 0.10.3
 :milestone: 62
 :milestone-name: 0.10.4
+_2022-05-06_
 
 _Changes since {prev-version}:_
 
@@ -2344,12 +2393,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-3]
 === 0.10.3
-_2022-04-11_
-
 :version: 0.10.3
 :prev-version: 0.10.2
 :milestone: 61
 :milestone-name: 0.10.3
+_2022-04-11_
 
 _Changes since {prev-version}:_
 
@@ -2375,12 +2423,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-2]
 === 0.10.2
-_2022-03-18_
-
 :version: 0.10.2
 :prev-version: 0.10.1
 :milestone: 60
 :milestone-name: 0.10.2
+_2022-03-18_
 
 _Changes since {prev-version}:_
 
@@ -2398,12 +2445,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-1]
 === 0.10.1
-_2022-03-08_
-
 :version: 0.10.1
 :prev-version: 0.10.0
 :milestone: 59
 :milestone-name: 0.10.1
+_2022-03-08_
 
 _Changes since {prev-version}:_
 
@@ -2433,12 +2479,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-0]
 === 0.10.0
-_2022-01-14_
-
 :version: 0.10.0
 :prev-version: 0.10.0-M5
 :milestone: 57
 :milestone-name: 0.10.0
+_2022-01-14_
 
 _Changes since {prev-version}:_
 
@@ -2458,12 +2503,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-0-M5]
 === 0.10.0-M5
-_2021-12-18_
-
 :version: main
 :prev-version: 0.10.0-M4
 :milestone: 55
 :milestone-name: 0.10.0-M5
+_2021-12-18_
 
 *This release breaks binary compatibility for external plugins.*
 
@@ -2488,12 +2532,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-0-M4]
 === 0.10.0-M4
-_2021-11-08_
-
 :version: 0.10.0-M4
 :prev-version: 0.10.0-M3
 :milestone: 54
 :milestone-name: 0.10.0-M4
+_2021-11-08_
 
 _Changes since {prev-version}:_
 
@@ -2513,12 +2556,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-1-0-M3]
 === 0.10.0-M3
-_2021-09-29_
-
 :version: 0.10.0-M3
 :prev-version: 0.10.0-M2
 :milestone: 53
 :milestone-name: 0.10.0-M3
+_2021-09-29_
 
 *This is a milestone release.
 This release breaks binary compatibility for external plugins build for mill 0.9.x.
@@ -2541,12 +2583,13 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-0-M2]
 === 0.10.0-M2
-_2021-09-17_
-
 :version: 0.10.0-M2
 :prev-version: 0.9.9
 :milestone: 51
 :milestone-name: 0.10.0-M2
+_2021-09-17_
+
+_Changes since {prev-version}:_
 
 *This is a early milestone release.
 This release breaks binary compatibility for external plugins build for mill 0.9.x.
@@ -2568,12 +2611,14 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-9-12]
 === 0.9.12
-_2022-01-07_
 
 :version: 0.9.12
 :prev-version: 0.9.11
 :milestone: 58
 :milestone-name: 0.9.12
+_2022-01-07_
+
+_Changes since {prev-version}:_
 
 * fixed parsing of command parameters in `show` command
 * zinc worker: Updated log4j2 to 2.17.1
@@ -2585,12 +2630,13 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-9-11]
 === 0.9.11
-_2021-12-15_
-
 :version: 0.9.11
 :prev-version: 0.9.10
 :milestone: 56
 :milestone-name: 0.9.11
+_2021-12-15_
+
+_Changes since {prev-version}:_
 
 * zinc worker: Updated log4j2 to 2.16.0 to fix Log4Shell (CVE-2021-44228) vulnerability
 
@@ -2601,12 +2647,13 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-9-10]
 === 0.9.10
-_2021-11-13_
-
 :version: 0.9.10
 :prev-version: 0.9.9
 :milestone: 52
 :milestone-name: 0.9.10
+_2021-11-13_
+
+_Changes since {prev-version}:_
 
 * Some feature backports from mill 0.10
 * New `+` separator to provide multiple targets (with parameters) via cmdline
@@ -2620,12 +2667,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-9-9]
 === 0.9.9
-_2021-07-15_
-
 :version: 0.9.9
 :prev-version: 0.9.8
 :milestone: 50
 :milestone-name: 0.9.9
+_2021-07-15_
 
 _Changes since {prev-version}:_
 
@@ -2641,12 +2687,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-9-8]
 === 0.9.8
-_2021-05-27_
-
 :version: 0.9.8
 :prev-version: 0.9.7
 :milestone: 49
 :milestone-name: 0.9.8
+_2021-05-27_
 
 _Changes since {prev-version}:_
 
@@ -2665,12 +2710,11 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-9-7]
 === 0.9.7
-_2021-05-14_
-
 :version: 0.9.7
 :prev-version: 0.9.6
 :milestone: 48
 :milestone-name: 0.9.7
+_2021-05-14_
 
 _Changes since {prev-version}:_
 

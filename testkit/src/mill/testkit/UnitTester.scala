@@ -1,12 +1,8 @@
 package mill.testkit
 
 import mill.Task
-import mill.api.DummyInputStream
-import mill.api.ExecResult
+import mill.api.{BuildCtx, DummyInputStream, ExecResult, Result, SystemStreams, Val}
 import mill.api.ExecResult.OuterStack
-import mill.api.Result
-import mill.api.SystemStreams
-import mill.api.Val
 import mill.constants.OutFiles.millChromeProfile
 import mill.constants.OutFiles.millProfile
 import mill.api.Evaluator
@@ -17,6 +13,7 @@ import mill.resolve.Resolve
 import java.io.InputStream
 import java.io.PrintStream
 import java.util.concurrent.ThreadPoolExecutor
+import scala.annotation.targetName
 
 object UnitTester {
   case class Result[T](value: T, evalCount: Int)
@@ -134,7 +131,8 @@ class UnitTester(
     failFast = failFast,
     ec = ec,
     codeSignatures = Map(),
-    systemExit = _ => ???,
+    systemExit = (reason, exitCode) =>
+      throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
@@ -165,9 +163,9 @@ class UnitTester(
     }
   }
 
+  @targetName("applyTasks")
   def apply(
-      tasks: Seq[Task[?]],
-      dummy: DummyImplicit = null
+      tasks: Seq[Task[?]]
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
 
     val evaluated = evaluator.execute(tasks).executionResults
@@ -221,9 +219,10 @@ class UnitTester(
     )
   }
 
+  /** Replaces the [[BuildCtx.workspaceRoot]] for the given scope with [[module.moduleDir]]. */
   def scoped[T](tester: UnitTester => T): T = {
     try {
-      mill.api.BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
+      BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
         tester(this)
       }
     } finally close()

@@ -59,6 +59,7 @@ object MillURLClassLoader {
       openClassloaders.updateWith(label) {
         case Some(1) => None
         case Some(n) => Some(n - 1)
+        case None => throw Exception(s"removeOpenClassLoader $label not found")
       }
     }
 

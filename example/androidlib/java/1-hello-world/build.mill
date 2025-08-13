@@ -41,7 +41,7 @@ object app extends AndroidAppModule {
     def junit4Version = "4.13.2"
   }
 
-  object it extends AndroidAppInstrumentedTests, AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppInstrumentedTests {
 
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 

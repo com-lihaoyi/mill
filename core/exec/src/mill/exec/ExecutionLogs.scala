@@ -13,7 +13,7 @@ private object ExecutionLogs {
       indexToTerminal: Array[Task[?]],
       outPath: os.Path
   ): Unit = {
-    val (vertexToIndex, edgeIndices) =
+    val ( /*vertexToIndex*/ _, edgeIndices) =
       SpanningForest.graphMapToIndices(indexToTerminal, interGroupDeps)
 
     SpanningForest.writeJsonFile(

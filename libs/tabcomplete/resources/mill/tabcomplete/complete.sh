@@ -1,31 +1,43 @@
+_mill_trim_line() {
+  local line="$1"
+  local ellipsis="..."
+
+  if (( ${#line} > COLUMNS )); then
+    echo "${line:0:$(( COLUMNS - ${#ellipsis} ))}${ellipsis}"
+  else
+    echo "$line"
+  fi
+}
+
 _mill_bash() {
-  # compopt makes bash not insert a newline after each completion, which
-  # is what we want for modules. Only works for bash 4+
   compopt -o nospace 2>/dev/null
-  COMPREPLY=( $(${COMP_WORDS[0]} --tab-complete "$COMP_CWORD" "${COMP_WORDS[@]}") )
+  local IFS=$'\n'
+
+  # in bash, keep $COLUMNS up-to-date; in zsh it’s automatic
+  shopt -s checkwinsize 2>/dev/null
+
+  # grab raw, newline-split completions
+  local raw=( $("${COMP_WORDS[0]}" --tab-complete "$COMP_CWORD" "${COMP_WORDS[@]}") )
+  local trimmed=()
+
+  # trim each one
+  for line in "${raw[@]}"; do
+    trimmed+=( "$(_mill_trim_line "$line")" )
+  done
+
+  COMPREPLY=( "${trimmed[@]}" )
 }
 
 _mill_zsh() {
-  # `-S` to avoid the trailing space after a completion, since it is
-  # common that the user will want to put a `.` and continue typing
-  #
-  # zsh $CURRENT is 1-indexed while bash $COMP_CWORD is 0-indexed, so
-  # subtract 1 from zsh's variable so Mill gets a consistent index
-  local -a descs opts expl
-  descs=("${(f)$($words[1] --tab-complete "$((CURRENT - 1))" --is-zsh $words)}")
-  for d in $descs; do
-    opts+=("${d%% *}")      # before the space
-    if (( ${#d} > COLUMNS )); then
-      # leave room for “…” (3 chars)
-      expl+=("${d:0:$((COLUMNS-3))}...")
-    else
-      expl+=("$d")
-    fi
+  local -a raw opts trimmed
+  raw=("${(f)$($words[1] --tab-complete "$((CURRENT - 1))" $words)}")
 
+  for d in $raw; do
+    opts+=( "${d%% *}" )             # value
+    trimmed+=( "$(_mill_trim_line "$d")" )  # trimmed “value description…”
   done
 
-  # -S '' = no suffix; -d expl = descriptions array
-  compadd -S '' -d expl -- $opts
+  compadd -S '' -d trimmed -- $opts
 }
 
 if [ -n "${ZSH_VERSION:-}" ]; then

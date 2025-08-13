@@ -43,7 +43,7 @@ object app extends AndroidNativeAppModule { // <1>
   }
 
   // Instrumented tests (runs on emulator)
-  object it extends AndroidAppInstrumentedTests, AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppInstrumentedTests {
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
     /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has

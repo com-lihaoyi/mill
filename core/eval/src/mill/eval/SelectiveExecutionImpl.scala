@@ -160,7 +160,7 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
         interGroupDeps.toSeq.sortBy(_._1.toString) // sort to ensure determinism
       )
 
-      val (vertexToIndex, edgeIndices) =
+      val ( /*vertexToIndex*/ _, edgeIndices) =
         SpanningForest.graphMapToIndices(indexToTerminal, reverseInterGroupDeps)
 
       val json = SpanningForest.writeJson(
@@ -216,7 +216,8 @@ object SelectiveExecutionImpl {
             reporter = _ => None,
             testReporter = TestReporter.DummyTestReporter,
             workspace = evaluator.workspace,
-            systemExit = n => ???,
+            _systemExitWithReason = (reason, exitCode) =>
+              throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
             fork = null,
             jobs = evaluator.effectiveThreadCount,
             offline = evaluator.offline
