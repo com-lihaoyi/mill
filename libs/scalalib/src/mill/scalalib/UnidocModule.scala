@@ -130,11 +130,12 @@ trait UnidocModule extends ScalaModule {
     } else {
       raw
     }
+    val replacePrefix = s"file://${BuildCtx.workspaceRoot}"
     for {
       sourceUrl <- unidocSourceUrl()
       p <- os.walk(dest) if p.ext == "scala"
     } {
-      os.write(p, os.read(p).replace(s"file://${BuildCtx.workspaceRoot}", sourceUrl))
+      os.write(p, os.read(p).replace(replacePrefix, sourceUrl))
     }
     PathRef(dest)
   }
