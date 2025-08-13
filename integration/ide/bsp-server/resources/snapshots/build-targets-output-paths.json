@@ -124,6 +124,12 @@
           "kind": 2
         }
       ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/sourcesNeedCompile"
+      },
+      "outputPaths": []
     }
   ]
 }
