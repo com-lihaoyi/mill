@@ -242,8 +242,8 @@ object Versions {
   val androidMinSdk = 29
 }
 
-//This is a multi-module Android project using Mill build tool.
-//  It is based on Kotlin, Jetpack Compose, and Hilt for dependency injection.
+// This is a multi-module Android project using Mill build tool.
+// It is based on Kotlin, Jetpack Compose, and Hilt for dependency injection.
 
 /** Usage
 
