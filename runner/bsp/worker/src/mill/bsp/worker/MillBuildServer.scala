@@ -394,7 +394,7 @@ private class MillBuildServer(
 
   override def buildTargetInverseSources(p: InverseSourcesParams)
       : CompletableFuture[InverseSourcesResult] = {
-    handlerEvaluators() { (state, _) =>
+    handlerEvaluators() { (state, logger) =>
       val tasksEvaluators = state.bspModulesIdList.collect {
         case (id, (m: JavaModuleApi, ev)) =>
           (
@@ -404,7 +404,17 @@ private class MillBuildServer(
       }
 
       val ids = groupList(tasksEvaluators)(_.evaluator)(_.result)
-        .flatMap { case (ev, ts) => ev.executeApi(ts).values.get }
+        .flatMap {
+          case (ev, ts) =>
+            ev
+              .executeApi(
+                tasks = ts,
+                reporter = Utils.getBspLoggedReporterPool("", state.bspIdByModule, client),
+                logger = logger
+              )
+              .values
+              .get
+        }
         .flatten
 
       new InverseSourcesResult(ids.asJava)

@@ -103,6 +103,12 @@ object BspServerTests extends UtestIntegrationTestSuite {
             .asScala
             .toSeq
 
+        val helloScalaTargetId = new b.BuildTargetIdentifier(
+          (workspacePath / "hello-scala").toURI.toASCIIString.stripSuffix("/")
+        )
+        val foundHelloScalaTargetIds = inverseSource(os.sub / "hello-scala/src/Hello.scala")
+        assert(foundHelloScalaTargetIds == Seq(helloScalaTargetId))
+
         compareWithGsonSnapshot(
           buildServer
             .buildTargetSources(new b.SourcesParams(targetIds))
@@ -294,7 +300,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
           os.sub / "errored/exception" -> Nil,
           os.sub / "errored/compilation-error" -> Nil,
           os.sub / "delayed" -> Nil,
-          os.sub / "diag/many" -> Nil
+          os.sub / "diag/many" -> Nil,
+          os.sub / "sourcesNeedCompile" -> Nil
         )
 
         {

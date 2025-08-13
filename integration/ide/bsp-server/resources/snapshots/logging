@@ -9,7 +9,7 @@
 [bsp-init-build.mill-59] [info] done compiling
 [bsp-init] SNAPSHOT
 [2-workspaceBuildTargets] Entered workspaceBuildTargets
-[2-workspaceBuildTargets] Evaluating 13 tasks
+[2-workspaceBuildTargets] Evaluating * tasks
 [2-workspaceBuildTargets] Done
 [2-workspaceBuildTargets] Evaluating 1 task
 [2-workspaceBuildTargets] Done
