@@ -2201,6 +2201,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/javalib/SemanticDbJavaModule.html#javacOptions-0","e":false,"i":"","n":"javacOptions","t":"javacOptions: Simple[Seq[String]]","d":"mill.javalib.SemanticDbJavaModule","k":"def","x":""},
 {"l":"mill/javalib/SemanticDbJavaModule.html#jvmWorker-0","e":false,"i":"","n":"jvmWorker","t":"jvmWorker: ModuleRef[JvmWorkerModule]","d":"mill.javalib.SemanticDbJavaModule","k":"def","x":""},
 {"l":"mill/javalib/SemanticDbJavaModule.html#mandatoryJavacOptions-0","e":false,"i":"","n":"mandatoryJavacOptions","t":"mandatoryJavacOptions: Simple[Seq[String]]","d":"mill.javalib.SemanticDbJavaModule","k":"def","x":""},
+{"l":"mill/javalib/SemanticDbJavaModule.html#moduleDeps-0","e":false,"i":"","n":"moduleDeps","t":"moduleDeps: Seq[JavaModule]","d":"mill.javalib.SemanticDbJavaModule","k":"def","x":""},
 {"l":"mill/javalib/SemanticDbJavaModule.html#semanticDbData-0","e":false,"i":"","n":"semanticDbData","t":"semanticDbData: Simple[PathRef]","d":"mill.javalib.SemanticDbJavaModule","k":"def","x":""},
 {"l":"mill/javalib/SemanticDbJavaModule.html#semanticDbJavaVersion-0","e":false,"i":"","n":"semanticDbJavaVersion","t":"semanticDbJavaVersion: Simple[String]","d":"mill.javalib.SemanticDbJavaModule","k":"def","x":""},
 {"l":"mill/javalib/SemanticDbJavaModule.html#semanticDbScalaVersion-0","e":false,"i":"","n":"semanticDbScalaVersion","t":"semanticDbScalaVersion: Simple[String]","d":"mill.javalib.SemanticDbJavaModule","k":"def","x":""},
