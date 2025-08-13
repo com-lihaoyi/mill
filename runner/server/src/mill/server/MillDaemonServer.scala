@@ -111,7 +111,7 @@ abstract class MillDaemonServer[State](
       setIdle: Server.SetIdle,
       initialSystemProperties: Map[String, String],
       data: ClientInitData
-  ): Int = {
+  ) = {
     val (result, newStateCache) = main0(
       data.args,
       stateCache,

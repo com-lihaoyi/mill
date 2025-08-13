@@ -1,9 +1,9 @@
 package mill.constants;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /// Logic to capture a pair of streams (typically stdout and stderr), combining
 /// them into a single stream, and splitting it back into two streams later while
@@ -32,11 +32,32 @@ import java.net.SocketException;
 /// stream, forwards each packet to its respective destination stream, or terminates
 /// when it hits a packet with `header == 0`
 public class ProxyStream {
+  private static final int MAX_CHUNK_SIZE = 256 * 1024; // 256kb
 
-  public static final int OUT = 1;
-  public static final int ERR = -1;
-  public static final int END = 0;
-  public static final int HEARTBEAT = 127;
+  /** Indicates the end of the connection. */
+  private static final byte HEADER_END = 0;
+
+  /** The key for the output stream */
+  private static final byte HEADER_STREAM_OUT = 1;
+
+  /** The key for the error stream */
+  private static final byte HEADER_STREAM_ERR = 2;
+
+  /** A heartbeat packet to keep the connection alive. */
+  private static final byte HEADER_HEARTBEAT = 127;
+
+  public enum StreamType {
+    /** The output stream */
+    OUT(ProxyStream.HEADER_STREAM_OUT),
+    /** The error stream */
+    ERR(ProxyStream.HEADER_STREAM_ERR);
+
+    public final byte header;
+
+    StreamType(byte key) {
+      this.header = key;
+    }
+  }
 
   private static boolean clientHasClosedConnection(SocketException e) {
     var message = e.getMessage();
@@ -46,8 +67,9 @@ public class ProxyStream {
   public static void sendEnd(OutputStream out, int exitCode) throws IOException {
     synchronized (out) {
       try {
-        out.write(ProxyStream.END);
-        out.write(exitCode);
+        var buffer = new byte[5];
+        ByteBuffer.wrap(buffer).order(ByteOrder.BIG_ENDIAN).put(ProxyStream.HEADER_END).putInt(exitCode);
+        out.write(buffer);
         out.flush();
       } catch (SocketException e) {
         // If the client has already closed the connection, we don't really care about sending the
@@ -59,25 +81,26 @@ public class ProxyStream {
 
   public static void sendHeartbeat(OutputStream out) throws IOException {
     synchronized (out) {
-      out.write(ProxyStream.HEARTBEAT);
+      out.write(ProxyStream.HEADER_HEARTBEAT);
       out.flush();
     }
   }
 
   public static class Output extends java.io.OutputStream {
-    private final java.io.OutputStream destination;
-    private final int key;
+    private final DataOutputStream destination;
+    private final StreamType streamType;
 
-    public Output(java.io.OutputStream out, int key) {
-      this.destination = out;
-      this.key = key;
+    public Output(java.io.OutputStream out, StreamType streamType) {
+      this.destination = new DataOutputStream(out);
+      this.streamType = streamType;
     }
 
     @Override
     public void write(int b) throws IOException {
       synchronized (destination) {
-        destination.write(key);
-        destination.write(b);
+        destination.writeByte(streamType.header);
+        destination.writeInt(1); // 1 byte
+        destination.writeByte(b);
       }
     }
 
@@ -92,15 +115,26 @@ public class ProxyStream {
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
+      // Validate arguments once at the beginning, which is cleaner
+      // and standard practice for public methods.
+      if (b == null) throw new NullPointerException("byte array is null");
+      else if (off < 0 || off > b.length || len < 0 || off + len > b.length || off + len < 0) {
+        throw new IndexOutOfBoundsException(
+          "Write indexes out of range: off=" + off + ", len=" + len + ", b.length=" + b.length
+        );
+      }
 
       synchronized (destination) {
-        int i = 0;
-        while (i < len && i + off < b.length) {
-          int chunkLength = Math.min(len - i, 126);
+        var bytesWritten = 0;
+
+        while (bytesWritten < len) {
+          var chunkLength = Math.min(len - bytesWritten, MAX_CHUNK_SIZE);
+
           if (chunkLength > 0) {
-            destination.write(chunkLength * key);
-            destination.write(b, off + i, Math.min(b.length - off - i, chunkLength));
-            i += chunkLength;
+            destination.writeByte(streamType.header);
+            destination.writeInt(chunkLength);
+            destination.write(b, off + bytesWritten, chunkLength);
+            bytesWritten += chunkLength;
           }
         }
       }
@@ -122,7 +156,7 @@ public class ProxyStream {
   }
 
   public static class Pumper implements Runnable {
-    private final InputStream src;
+    private final DataInputStream src;
     private final OutputStream destOut;
     private final OutputStream destErr;
     private final Object synchronizer;
@@ -130,7 +164,7 @@ public class ProxyStream {
 
     public Pumper(
         InputStream src, OutputStream destOut, OutputStream destErr, Object synchronizer) {
-      this.src = src;
+      this.src = new DataInputStream(src);
       this.destOut = destOut;
       this.destErr = destErr;
       this.synchronizer = synchronizer;
@@ -140,62 +174,32 @@ public class ProxyStream {
       this(src, destOut, destErr, new Object());
     }
 
-    public void preRead(InputStream src) {}
-
-    public void write(OutputStream dest, byte[] buffer, int length) throws IOException {
-      dest.write(buffer, 0, length);
-    }
+    public void preRead(DataInputStream src) {}
 
     @Override
     public void run() {
-
-      byte[] buffer = new byte[1024];
-      while (true) {
-        try {
+      var buffer = new byte[MAX_CHUNK_SIZE];
+      try {
+        while (true) {
           this.preRead(src);
-          int header = src.read();
-          // -1 means socket was closed, 0 means a ProxyStream.END was sent. Note
-          // that only header values > 0 represent actual data to read:
-          // - sign((byte)header) represents which stream the data should be sent to
-          // - abs((byte)header) represents the length of the data to read and send
-          if (header == -1) break;
-          else if (header == END) {
-            exitCode = src.read();
-            break;
-          } else if (header == HEARTBEAT) continue;
-          else {
-            int stream = (byte) header > 0 ? 1 : -1;
-            int quantity0 = (byte) header;
-            int quantity = Math.abs(quantity0);
-            int offset = 0;
-            int delta = -1;
-            while (offset < quantity) {
-              this.preRead(src);
-              delta = src.read(buffer, offset, quantity - offset);
-              if (delta == -1) {
-                break;
-              } else {
-                offset += delta;
-              }
-            }
+          var header = src.readByte();
 
-            if (delta != -1) {
-              synchronized (synchronizer) {
-                switch (stream) {
-                  case ProxyStream.OUT:
-                    this.write(destOut, buffer, offset);
-                    break;
-                  case ProxyStream.ERR:
-                    this.write(destErr, buffer, offset);
-                    break;
-                }
-              }
-            }
+          if (header == HEADER_END) {
+            exitCode = src.readInt();
+            break;
           }
-        } catch (IOException e) {
-          // This happens when the upstream pipe was closed
-          break;
+          else if (header == HEADER_HEARTBEAT) continue;
+          else if (header == HEADER_STREAM_OUT) pumpData(buffer, destOut);
+          else if (header == HEADER_STREAM_ERR) pumpData(buffer, destErr);
+          else throw new IllegalStateException("Unexpected header: " + header);
         }
+      }
+      catch (EOFException ignored) {
+        // This is a normal and expected way for the loop to terminate
+        // when the other side closes the connection.
+      }
+      catch (IOException ignored) {
+        // This happens when the upstream pipe was closed
       }
 
       try {
@@ -204,6 +208,22 @@ public class ProxyStream {
           destErr.flush();
         }
       } catch (IOException ignored) {
+      }
+    }
+
+    private void pumpData(byte[] buffer, OutputStream stream) throws IOException {
+      var quantity = src.readInt();
+
+      if (quantity > buffer.length) {
+        // Handle error: received chunk is larger than buffer
+        throw new IOException("Received chunk of size " + quantity +
+          " is larger than buffer of size " + buffer.length);
+      }
+
+      src.readFully(buffer, 0, quantity);
+
+      synchronized (synchronizer) {
+        stream.write(buffer, 0, quantity);
       }
     }
 

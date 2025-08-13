@@ -58,7 +58,7 @@ object ZincWorkerMain {
         setIdle: Server.SetIdle,
         initialSystemProperties: Map[String, String],
         data: PreHandleConnectionData
-    ): Int = {
+    ) = {
       val serverName = s"$className{${socketInfo.remote} -> ${socketInfo.local}}"
       Using.resource(BufferedReader(InputStreamReader(stdin))) { stdin =>
         val transport = MillRpcWireTransport.ViaStreams(serverName, stdin, stdout)

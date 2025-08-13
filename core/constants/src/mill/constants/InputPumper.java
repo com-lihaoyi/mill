@@ -31,26 +31,26 @@ public class InputPumper implements Runnable {
     InputStream src = src0.get();
     OutputStream dest = dest0.get();
 
-    byte[] buffer = new byte[1024];
+    var buffer = new byte[256 * 1024 /* 256kb, otherwise it's too slow. */];
     try {
       while (running) {
         if (checkAvailable && src.available() == 0)
           //noinspection BusyWait
           Thread.sleep(1);
         else {
-          int n;
+          int bytesRead;
           try {
-            n = src.read(buffer);
+            bytesRead = src.read(buffer);
           } catch (Exception e) {
-            n = -1;
+            bytesRead = -1;
           }
-          if (n == -1) running = false;
-          else if (n == 0)
+          if (bytesRead == -1) running = false;
+          else if (bytesRead == 0)
             //noinspection BusyWait
             Thread.sleep(1);
           else {
             try {
-              dest.write(buffer, 0, n);
+              dest.write(buffer, 0, bytesRead);
               dest.flush();
             } catch (java.io.IOException e) {
               running = false;

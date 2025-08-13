@@ -127,8 +127,8 @@ public class ClientTests {
       throws Exception {
 
     ByteArrayOutputStream pipe = new ByteArrayOutputStream();
-    OutputStream src1 = new ProxyStream.Output(pipe, ProxyStream.OUT);
-    OutputStream src2 = new ProxyStream.Output(pipe, ProxyStream.ERR);
+    var src1 = new ProxyStream.Output(pipe, ProxyStream.StreamType.OUT);
+    var src2 = new ProxyStream.Output(pipe, ProxyStream.StreamType.ERR);
 
     Random random = new Random(31337);
 

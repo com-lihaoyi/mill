@@ -309,6 +309,33 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
   ): ZincApi = {
     val cacheKey = SubprocessCacheKey(javaHome, runtimeOptions)
 
+    def makeClientLogger() = new Logger.Actions {
+      override def info(s: String): Unit = {
+        fileLog(s"[LOGGER:INFO] $s")
+        log.info(s)
+      }
+
+      override def debug(s: String): Unit = {
+        fileLog(s"[LOGGER:DEBUG] $s")
+        log.debug(s)
+      }
+
+      override def warn(s: String): Unit = {
+        fileLog(s"[LOGGER:WARN] $s")
+        log.warn(s)
+      }
+
+      override def error(s: String): Unit = {
+        fileLog(s"[LOGGER:ERROR] $s")
+        log.error(s)
+      }
+
+      override def ticker(s: String): Unit = {
+        fileLog(s"[LOGGER:TICKER] $s")
+        log.ticker(s)
+      }
+    }
+
     def withRpcClient[R](
         handler: MillRpcChannel[ZincWorkerRpcServer.ServerToClient]
     )(f: MillRpcClient[ZincWorkerRpcServer.ClientToServer, ZincWorkerRpcServer.ServerToClient] => R)
@@ -340,7 +367,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
             /* sendInitData */ _ => {},
             () => {
               val serverToClient = use(BufferedReader(InputStreamReader(PipedInputStream(stdout))))
-              val clientToServer = use(PrintStream(PipedOutputStream(stdin)))
+              val clientToServer = use(PrintStream(BufferedOutputStream(PipedOutputStream(stdin))))
               val wireTransport = MillRpcWireTransport.ViaStreams(
                 s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}",
                 serverToClient,
@@ -357,37 +384,11 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
                 log,
                 s"Connected to $daemonDir on port $port, sending init: ${pprint(init)}"
               )
-              val clientLogger = new Logger.Actions {
-                override def info(s: String): Unit = {
-                  fileLog(s"[LOGGER:INFO] $s")
-                  log.info(s)
-                }
-
-                override def debug(s: String): Unit = {
-                  fileLog(s"[LOGGER:DEBUG] $s")
-                  log.debug(s)
-                }
-
-                override def warn(s: String): Unit = {
-                  fileLog(s"[LOGGER:WARN] $s")
-                  log.warn(s)
-                }
-
-                override def error(s: String): Unit = {
-                  fileLog(s"[LOGGER:ERROR] $s")
-                  log.error(s)
-                }
-
-                override def ticker(s: String): Unit = {
-                  fileLog(s"[LOGGER:TICKER] $s")
-                  log.ticker(s)
-                }
-              }
               val client = MillRpcClient.create[
                 ZincWorkerRpcServer.Initialize,
                 ZincWorkerRpcServer.ClientToServer,
                 ZincWorkerRpcServer.ServerToClient
-              ](init, wireTransport, clientLogger)(handler)
+              ](init, wireTransport, makeClientLogger())(handler)
 
               fileAndDebugLog(log, "Running command.")
               val result = Timed(f(client))

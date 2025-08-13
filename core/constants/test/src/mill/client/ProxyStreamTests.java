@@ -56,8 +56,8 @@ public class ProxyStreamTests {
 
     pipedInputStream.connect(pipedOutputStream);
 
-    ProxyStream.Output srcOut = new ProxyStream.Output(pipedOutputStream, ProxyStream.OUT);
-    ProxyStream.Output srcErr = new ProxyStream.Output(pipedOutputStream, ProxyStream.ERR);
+    var srcOut = new ProxyStream.Output(pipedOutputStream, ProxyStream.StreamType.OUT);
+    var srcErr = new ProxyStream.Output(pipedOutputStream, ProxyStream.StreamType.ERR);
 
     // Capture both the destOut/destErr from the pumper, as well as the destCombined
     // to ensure the individual streams contain the right data and combined stream
@@ -77,7 +77,7 @@ public class ProxyStreamTests {
               srcErr.write(errData);
             }
 
-            if (gracefulEnd) ProxyStream.sendEnd(pipedOutputStream, 0);
+            if (gracefulEnd) ProxyStream.sendEnd(pipedOutputStream, (byte) 0);
             else {
               pipedOutputStream.close();
             }

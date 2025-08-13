@@ -4,7 +4,14 @@ import mill.client.lock.{Lock, Locks}
 import mill.constants.{DaemonFiles, InputPumper, ProxyStream}
 import sun.misc.{Signal, SignalHandler}
 
-import java.io.{InputStream, PipedInputStream, PipedOutputStream, PrintStream}
+import java.io.{
+  BufferedInputStream,
+  BufferedOutputStream,
+  InputStream,
+  PipedInputStream,
+  PipedOutputStream,
+  PrintStream
+}
 import java.net.{InetAddress, Socket, SocketAddress}
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -248,12 +255,12 @@ abstract class Server(
   ): Unit = {
 
     /** stdout and stderr combined into one stream */
-    val currentOutErr = clientSocket.getOutputStream
+    val currentOutErr = BufferedOutputStream(clientSocket.getOutputStream)
     val writtenExitCode = AtomicBoolean()
 
-    def writeExitCode(code: Int): Unit = {
+    def writeExitCode(exitCode: Int): Unit = {
       if (!writtenExitCode.getAndSet(true)) {
-        ProxyStream.sendEnd(currentOutErr, code)
+        ProxyStream.sendEnd(currentOutErr, exitCode)
       }
     }
 
@@ -280,10 +287,12 @@ abstract class Server(
     }
 
     try {
-      val socketIn = clientSocket.getInputStream
+      val socketIn = BufferedInputStream(clientSocket.getInputStream)
 
-      val stdout = new PrintStream(new ProxyStream.Output(currentOutErr, ProxyStream.OUT), true)
-      val stderr = new PrintStream(new ProxyStream.Output(currentOutErr, ProxyStream.ERR), true)
+      val stdout =
+        new PrintStream(new ProxyStream.Output(currentOutErr, ProxyStream.StreamType.OUT), true)
+      val stderr =
+        new PrintStream(new ProxyStream.Output(currentOutErr, ProxyStream.StreamType.ERR), true)
 
       val data = preHandleConnection(
         socketInfo = socketInfo,

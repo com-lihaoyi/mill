@@ -43,6 +43,7 @@ trait MillRpcWireTransport extends AutoCloseable {
     val serialized = upickle.default.write(message)
     log(s"Sending: $serialized")
     write(serialized)
+    log(s"Sent: $serialized")
   }
 }
 
