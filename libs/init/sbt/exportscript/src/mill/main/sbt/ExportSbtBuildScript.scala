@@ -282,7 +282,7 @@ object ExportSbtBuildScript extends (State => State) {
       TestModuleRepr.supertypeByDep((dep.organization, dep.name))
   }
 
-  // PublishModuleConfig (like in "enumeratum" test) cannot be supported.
+  // Disabling publish, like in "enumeratum" test, cannot be supported.
   // Others excluded due to no test cases.
   def crossConfigIsSupported(config: ModuleConfig) = config match {
     case _: JavaModuleConfig => true

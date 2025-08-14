@@ -114,11 +114,11 @@ object BuildRepr {
     Tree.from(Seq.empty[String]): segments =>
       val pkg = packages.find(_.root.segments == segments).getOrElse(Tree(ModuleRepr(segments)))
       val nextDepth = segments.length + 1
-      val (children, descendants) = packages.iterator.map(_.root.segments)
-        .filter(_.length > segments.length)
-        .partition(_.length == nextDepth)
-      val children0 =
-        if (children.nonEmpty) children else descendants.map(_.take(nextDepth)).distinct
-      (pkg, children0.toSeq.sortBy(os.sub / _))
+      val children = packages.iterator.collect:
+        case pkg
+            if pkg.root.segments.startsWith(segments) && pkg.root.segments.length >= nextDepth =>
+          pkg.root.segments.take(nextDepth)
+      .distinct.toSeq
+      (pkg, children.sortBy(os.sub / _))
   )
 }

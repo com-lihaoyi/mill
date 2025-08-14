@@ -65,5 +65,7 @@ object `package` extends PublishModule with SbtModule {
 
     def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
       Seq(Dependencies.scalatest, Dependencies.scalacheck)
+
   }
+
 }

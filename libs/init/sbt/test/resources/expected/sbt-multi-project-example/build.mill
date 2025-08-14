@@ -47,43 +47,10 @@ object `package` extends Module {
 
       def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
         Seq(Deps.scalatest, Deps.scalacheck)
+
     }
 
-    object nested extends SbtMultiProjectExampleBaseModule {
-
-      def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
-
-      def mvnDeps = super.mvnDeps() ++ Seq(Deps.nettyTransportNativeEpoll)
-
-      def pomSettings = PomSettings(
-        "This is an sbt sample project for testing Mill's init command.",
-        "com.pbassiner",
-        "https://github.com/com-lihaoyi/mill",
-        Seq(License(
-          "Apache-2.0",
-          "Apache-2.0",
-          "https://www.apache.org/licenses/LICENSE-2.0.txt",
-          false,
-          false,
-          ""
-        )),
-        VersionControl(
-          Some("https://github.com/com-lihaoyi/mill"),
-          Some("scm:git:https://github.com/com-lihaoyi/mill.git"),
-          None,
-          None
-        ),
-        Seq(Developer(
-          "johnd",
-          "John Doe",
-          "https://example.com/johnd",
-          None,
-          None
-        ))
-      )
-    }
   }
-
   object multi1 extends SbtMultiProjectExampleBaseModule {
 
     def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8", "-V")
@@ -128,43 +95,10 @@ object `package` extends Module {
 
       def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
         Seq(Deps.scalatest, Deps.scalacheck)
+
     }
 
-    object nested extends SbtMultiProjectExampleBaseModule {
-
-      def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
-
-      def mvnDeps = super.mvnDeps() ++ Seq(Deps.nettyTransportNativeEpoll)
-
-      def pomSettings = PomSettings(
-        "This is an sbt sample project for testing Mill's init command.",
-        "com.pbassiner",
-        "https://github.com/com-lihaoyi/mill",
-        Seq(License(
-          "Apache-2.0",
-          "Apache-2.0",
-          "https://www.apache.org/licenses/LICENSE-2.0.txt",
-          false,
-          false,
-          ""
-        )),
-        VersionControl(
-          Some("https://github.com/com-lihaoyi/mill"),
-          Some("scm:git:https://github.com/com-lihaoyi/mill.git"),
-          None,
-          None
-        ),
-        Seq(Developer(
-          "johnd",
-          "John Doe",
-          "https://example.com/johnd",
-          None,
-          None
-        ))
-      )
-    }
   }
-
   object multi2 extends SbtMultiProjectExampleBaseModule {
 
     def mvnDeps = super.mvnDeps() ++ Seq(
@@ -206,7 +140,11 @@ object `package` extends Module {
 
       def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
         Seq(Deps.scalatest, Deps.scalacheck)
+
     }
+
+  }
+  object nested extends Module {
 
     object nested extends SbtMultiProjectExampleBaseModule {
 
@@ -240,6 +178,7 @@ object `package` extends Module {
           None
         ))
       )
+
     }
   }
 
@@ -261,19 +200,19 @@ object `package` extends Module {
       Seq(Deps.wartremover)
 
     def publishVersion = "0.1.0-SNAPSHOT"
+
   }
 
   object Deps {
+
     val akkaStream = mvn"com.typesafe.akka::akka-stream:2.5.6"
     val config = mvn"com.typesafe:config:1.3.1"
     val jclOverSlf4j = mvn"org.slf4j:jcl-over-slf4j:1.7.25"
     val logbackClassic = mvn"ch.qos.logback:logback-classic:1.2.3"
-
     val logstashLogbackEncoder =
       mvn"net.logstash.logback:logstash-logback-encoder:4.11"
     val monocleCore = mvn"com.github.julien-truffaut::monocle-core:1.4.0"
     val monocleMacro = mvn"com.github.julien-truffaut::monocle-macro:1.4.0"
-
     val nettyTransportNativeEpoll =
       mvn"io.netty:netty-transport-native-epoll:4.1.118.Final;classifier=linux-x86_64;exclude=io.netty:netty-transport-native-epoll"
     val pureconfig = mvn"com.github.pureconfig::pureconfig:0.8.0"
