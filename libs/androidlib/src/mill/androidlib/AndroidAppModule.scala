@@ -284,7 +284,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val alignedApk: os.Path = Task.dest / "app.aligned.apk"
 
     os.call((
-      androidSdkModule().zipalignPath().path,
+      androidSdkModule().zipalignExe().path,
       "-f",
       "-p",
       "4",
@@ -498,7 +498,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;$androidEmulatorArchitecture"
     Task.log.info(s"Downloading $image")
     val installCall = os.call((
-      androidSdkModule().sdkManagerPath().path,
+      androidSdkModule().sdkManagerExe().path,
       "--install",
       image
     ))

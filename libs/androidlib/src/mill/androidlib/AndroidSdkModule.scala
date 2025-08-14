@@ -121,9 +121,9 @@ trait AndroidSdkModule extends Module {
    * Provides all the Android libraries classpaths, including `android.jar` and other necessary files,
    * for the Android R8 tool.
    */
-  def androidLibsClasspaths: T[Seq[PathRef]] = {
+  def androidLibsClasspaths: T[Seq[PathRef]] = Task {
+    installAndroidSdkComponents()
     val libs = Seq(
-      os.sub / "android.jar",
       os.sub / "core-for-system-modules.jar",
       os.sub / "optional" / "org.apache.http.legacy.jar",
       os.sub / "optional" / "android.car.jar",
@@ -131,12 +131,9 @@ trait AndroidSdkModule extends Module {
       os.sub / "optional" / "android.test.base.jar",
       os.sub / "optional" / "android.test.runner.jar"
     )
-    Task {
-      installAndroidSdkComponents()
-      Task.traverse(libs)(p =>
-        Task.Anon { toolPathRef(sdkPath() / "platforms" / platformsVersion() / p) }
-      )()
-    }
+      .map(p => sdkPath() / "platforms" / platformsVersion() / p)
+      .map(p => PathRef(p).withRevalidateOnce)
+    Seq(androidJarPath()) ++ libs
   }
 
   /**
@@ -186,12 +183,12 @@ trait AndroidSdkModule extends Module {
    *
    * For More Read Zipalign [[https://developer.android.com/tools/zipalign Documentation]]
    */
-  def zipalignPath: T[PathRef] = Task {
+  def zipalignExe: T[PathRef] = Task {
     toolPathRef(buildToolsPath() / "zipalign")
   }
 
-  def fontsPath: T[PathRef] = Task {
-    toolPathRef(sdkPath() / "fonts")
+  def fontsPath: T[os.Path] = Task {
+    sdkPath() / "fonts"
   }
 
   /**
@@ -412,7 +409,7 @@ trait AndroidSdkModule extends Module {
    * Provides the path for the Android SDK Manager tool
    * @return A task containing a [[PathRef]] pointing to the SDK directory.
    */
-  def sdkManagerPath: Task[PathRef] = Task {
+  def sdkManagerExe: Task[PathRef] = Task {
     toolPathRef(cmdlineToolsPath().path / "bin" / "sdkmanager")
   }
 
@@ -424,7 +421,7 @@ trait AndroidSdkModule extends Module {
    */
   def installAndroidSdkComponents: Task[Unit] = Task.Anon {
     val sdkPath0 = sdkPath()
-    val sdkManagerPath0 = sdkManagerPath().path
+    val sdkManagerPath0 = sdkManagerExe().path
 
     val packages = Seq(
       "platform-tools",
@@ -476,7 +473,7 @@ trait AndroidSdkModule extends Module {
     AndroidNdkLock.synchronized {
       os.call(
         Seq(
-          sdkManagerPath().path.toString,
+          sdkManagerExe().path.toString,
           "--install",
           s"ndk;${ndkVersion()}",
           s"cmake;${cmakeVersion()}"
