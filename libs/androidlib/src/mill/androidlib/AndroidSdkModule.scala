@@ -38,14 +38,14 @@ trait AndroidSdkModule extends Module {
   /**
    * Specifies the version of the Android Bundle tool to be used.
    */
-  def bundleToolVersion: T[String] = Task {
+  def bundleToolVersion: T[String] = Task.Input {
     Versions.bundleToolVersion
   }
 
   /**
    * Specifies the version of the Manifest Merger.
    */
-  def manifestMergerVersion: T[String] = Task {
+  def manifestMergerVersion: T[String] = Task.Input {
     Versions.manifestMergerVersion
   }
 
@@ -57,14 +57,14 @@ trait AndroidSdkModule extends Module {
   /**
    * Specifies the version of the Android NDK (Native Development Kit) to be used.
    */
-  def ndkVersion: T[String] = Task {
+  def ndkVersion: T[String] = Task.Input {
     Versions.ndkVersion
   }
 
   /**
    * Specifies the version of CMake to be used.
    */
-  def cmakeVersion: T[String] = Task {
+  def cmakeVersion: T[String] = Task.Input {
     Versions.cmakeVersion
   }
 
@@ -76,7 +76,7 @@ trait AndroidSdkModule extends Module {
   /**
    * Specifies the version of the internal Command Line Tools to be used.
    */
-  private def millCmdlineToolsVersion: T[String] = Task {
+  private def millCmdlineToolsVersion: T[String] = Task.Input {
     Versions.millCmdlineToolsVersion
   }
 
