@@ -247,9 +247,9 @@ trait AndroidSdkModule extends Module {
     toolPathRef(cmdlineToolsPath().path / "bin/r8")
   }
 
-  def ndkPath: T[PathRef] = Task {
+  def ndkPath: T[os.Path] = Task {
     installAndroidNdk()
-    toolPathRef(sdkPath() / "ndk" / ndkVersion())
+    sdkPath() / "ndk" / ndkVersion()
   }
 
   def ninjaPath: T[PathRef] = Task {
@@ -264,7 +264,7 @@ trait AndroidSdkModule extends Module {
 
   def cmakeToolchainFilePath: T[PathRef] = Task {
     installAndroidNdk()
-    toolPathRef(ndkPath().path / "build" / "cmake" / "android.toolchain.cmake")
+    toolPathRef(ndkPath() / "build" / "cmake" / "android.toolchain.cmake")
   }
 
   def autoAcceptLicenses: T[Boolean] = Task {
