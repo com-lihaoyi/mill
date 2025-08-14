@@ -122,22 +122,29 @@ trait AndroidSdkModule extends Module {
   def androidLibsClasspaths: T[Seq[PathRef]] = Task {
     installAndroidSdkComponents()
     Seq(
-      PathRef(sdkPath().path / "platforms" / platformsVersion() / "android.jar"),
-      PathRef(sdkPath().path / "platforms" / platformsVersion() / "core-for-system-modules.jar"),
-      PathRef(
+      toolPathRef(sdkPath().path / "platforms" / platformsVersion() / "android.jar")(),
+      toolPathRef(sdkPath().path / "platforms" / platformsVersion() / "core-for-system-modules.jar")(),
+      toolPathRef(
         sdkPath().path / "platforms" / platformsVersion() / "optional" / "org.apache.http.legacy.jar"
-      ),
-      PathRef(sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.car.jar"),
-      PathRef(
+      )(),
+      toolPathRef(sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.car.jar")(),
+      toolPathRef(
         sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.mock.jar"
-      ),
-      PathRef(
+      )(),
+      toolPathRef(
         sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.base.jar"
-      ),
-      PathRef(
+      )(),
+      toolPathRef(
         sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.runner.jar"
-      )
+      )()
     )
+  }
+
+  private def toolPathRef(path: os.Path): Task[PathRef] = Task.Anon {
+    os.exists(path) match {
+      case true => PathRef(path).withRevalidateOnce
+      case false => Task.fail(s"Tool at path ${path} does not exist")
+    }
   }
 
   /**
@@ -145,7 +152,7 @@ trait AndroidSdkModule extends Module {
    */
   def androidJarPath: T[PathRef] = Task {
     installAndroidSdkComponents()
-    PathRef(sdkPath().path / "platforms" / platformsVersion() / "android.jar")
+    toolPathRef(sdkPath().path / "platforms" / platformsVersion() / "android.jar")()
   }
 
   /**
@@ -153,7 +160,7 @@ trait AndroidSdkModule extends Module {
    */
   def buildToolsPath: T[PathRef] = Task {
     installAndroidSdkComponents()
-    PathRef(sdkPath().path / "build-tools" / buildToolsVersion())
+    toolPathRef(sdkPath().path / "build-tools" / buildToolsVersion())()
   }
 
   /**
@@ -161,7 +168,7 @@ trait AndroidSdkModule extends Module {
    */
   def lintToolPath: T[PathRef] = Task {
     installAndroidSdkComponents()
-    PathRef(cmdlineToolsPath().path / "bin/lint")
+    toolPathRef(cmdlineToolsPath().path / "bin/lint")()
   }
 
   /**
@@ -170,7 +177,7 @@ trait AndroidSdkModule extends Module {
    * For More Read D8 [[https://developer.android.com/tools/d8 Documentation]]
    */
   def d8Path: T[PathRef] = Task {
-    PathRef(buildToolsPath().path / "d8")
+    toolPathRef(buildToolsPath().path / "d8")()
   }
 
   /**
@@ -179,7 +186,7 @@ trait AndroidSdkModule extends Module {
    * For More Read AAPT2 [[https://developer.android.com/tools/aapt2 Documentation]]
    */
   def aapt2Path: T[PathRef] = Task {
-    PathRef(buildToolsPath().path / "aapt2")
+    toolPathRef(buildToolsPath().path / "aapt2")()
   }
 
   /**
@@ -188,11 +195,11 @@ trait AndroidSdkModule extends Module {
    * For More Read Zipalign [[https://developer.android.com/tools/zipalign Documentation]]
    */
   def zipalignPath: T[PathRef] = Task {
-    PathRef(buildToolsPath().path / "zipalign")
+    toolPathRef(buildToolsPath().path / "zipalign")()
   }
 
   def fontsPath: T[PathRef] = Task {
-    PathRef(sdkPath().path / "fonts")
+    toolPathRef(sdkPath().path / "fonts")()
   }
 
   /**
@@ -201,7 +208,7 @@ trait AndroidSdkModule extends Module {
    * For More Read APK Signer [[https://developer.android.com/tools/apksigner Documentation]]
    */
   def apksignerPath: T[PathRef] = Task {
-    PathRef(buildToolsPath().path / "apksigner")
+    toolPathRef(buildToolsPath().path / "apksigner")()
   }
 
   /**
@@ -210,7 +217,7 @@ trait AndroidSdkModule extends Module {
    * For more information, refer to the official Android documentation [[https://developer.android.com/tools/adb]]
    */
   def adbPath: T[PathRef] = Task {
-    PathRef(sdkPath().path / "platform-tools/adb")
+    toolPathRef(sdkPath().path / "platform-tools/adb")()
   }
 
   /**
@@ -219,7 +226,7 @@ trait AndroidSdkModule extends Module {
    *  For more information refer to the official Android documentation [[https://developer.android.com/tools/avdmanager]]
    */
   def avdPath: T[PathRef] = Task {
-    PathRef(cmdlineToolsPath().path / "bin/avdmanager")
+    toolPathRef(cmdlineToolsPath().path / "bin/avdmanager")()
   }
 
   /**
@@ -228,7 +235,7 @@ trait AndroidSdkModule extends Module {
    * For more information refer to [[https://developer.android.com/studio/run/emulator]]
    */
   def emulatorPath: T[PathRef] = Task {
-    PathRef(sdkPath().path / "emulator/emulator")
+    toolPathRef(sdkPath().path / "emulator/emulator")()
   }
 
   /**
@@ -236,7 +243,7 @@ trait AndroidSdkModule extends Module {
    * See also [[https://developer.android.com/build/shrink-code]]
    */
   def androidProguardPath: T[PathRef] = Task {
-    PathRef(sdkPath().path / "tools/proguard")
+    toolPathRef(sdkPath().path / "tools/proguard")()
   }
 
   /**
@@ -245,27 +252,27 @@ trait AndroidSdkModule extends Module {
    * @return A task containing a [[PathRef]] pointing to the r8 directory.
    */
   def r8Exe: T[PathRef] = Task {
-    PathRef(cmdlineToolsPath().path / "bin/r8")
+    toolPathRef(cmdlineToolsPath().path / "bin/r8")()
   }
 
   def ndkPath: T[PathRef] = Task {
     installAndroidNdk()
-    PathRef(sdkPath().path / "ndk" / ndkVersion())
+    toolPathRef(sdkPath().path / "ndk" / ndkVersion())()
   }
 
   def ninjaPath: T[PathRef] = Task {
     installAndroidNdk()
-    PathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "ninja")
+    toolPathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "ninja")()
   }
 
   def cmakePath: T[PathRef] = Task {
     installAndroidNdk()
-    PathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "cmake")
+    toolPathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "cmake")()
   }
 
   def cmakeToolchainFilePath: T[PathRef] = Task {
     installAndroidNdk()
-    PathRef(ndkPath().path / "build" / "cmake" / "android.toolchain.cmake")
+    toolPathRef(ndkPath().path / "build" / "cmake" / "android.toolchain.cmake")()
   }
 
   def autoAcceptLicenses: T[Boolean] = Task {
