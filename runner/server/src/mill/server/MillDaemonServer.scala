@@ -141,6 +141,18 @@ abstract class MillDaemonServer[State](
       initialSystemProperties: Map[String, String],
       stopServer: Server.StopServer
   ): (Boolean, State)
+
+  override protected def beforeSocketClose(
+      connectionData: ConnectionData,
+      stopServer: Server.StopServer,
+      data: ProxyStreamServerData
+  ): Unit = {
+    // flush before closing the socket
+    System.out.flush()
+    System.err.flush()
+
+    super.beforeSocketClose(connectionData, stopServer, data)
+  }
 }
 
 object MillDaemonServer {

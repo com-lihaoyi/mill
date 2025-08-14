@@ -156,11 +156,6 @@ abstract class ProxyStreamServer(args: Server.Args) extends Server(args) { self 
       stopServer: Server.StopServer,
       data: ProxyStreamServerData
   ): Unit = {
-    // TODO review: move to mill daemon
-    // flush before closing the socket
-    System.out.flush()
-    System.err.flush()
-
     try
       // Send a termination if it has not already happened
       data.writeExitCode(connectionData.serverToClient, 1)
