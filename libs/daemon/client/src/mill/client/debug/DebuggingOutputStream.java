@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+/* Writes everything you write to the output stream to a file as well. */
 public class DebuggingOutputStream extends OutputStream {
   private final OutputStream out;
   private final OutputStream debugOutput;

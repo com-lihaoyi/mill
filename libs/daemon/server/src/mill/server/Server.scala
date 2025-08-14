@@ -269,15 +269,8 @@ abstract class Server(args: Server.Args) {
       initialSystemProperties: Map[String, String],
       serverSocketClose: () => Unit
   ): Unit = {
-    val clientToServer = BufferedInputStream(
-      DebuggingInputStream(clientSocket.getInputStream, daemonDir.toNIO, "in_server", true),
-      bufferSize
-    )
-
-    val serverToClient = BufferedOutputStream(
-      DebuggingOutputStream(clientSocket.getOutputStream, daemonDir.toNIO, "out_server", true),
-      bufferSize
-    )
+    val clientToServer = BufferedInputStream(clientSocket.getInputStream, bufferSize)
+    val serverToClient = BufferedOutputStream(clientSocket.getOutputStream, bufferSize)
 
     val connectionData =
       ConnectionData(socketInfo, clientToServer, serverToClient, initialSystemProperties)

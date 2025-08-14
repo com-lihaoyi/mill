@@ -68,13 +68,8 @@ public abstract class ServerLauncher {
       Consumer<OutputStream> sendInitData,
       RunClientLogic<A> runClientLogic)
       throws Exception {
-    var wd = Paths.get(".");
-    var socketInputStream = new BufferedInputStream(
-      new DebuggingInputStream(connection.getInputStream(), wd, "in_" + debugName, true)
-    );
-    var socketOutputStream = new BufferedOutputStream(
-      new DebuggingOutputStream(connection.getOutputStream(), wd, "out_" + debugName, true)
-    );
+    var socketInputStream = new BufferedInputStream(connection.getInputStream());
+    var socketOutputStream = new BufferedOutputStream(connection.getOutputStream());
     sendInitData.accept(socketOutputStream);
     socketOutputStream.flush();
     var pumperThread = startStreamPumpers(socketInputStream, socketOutputStream, streams, debugName);
@@ -98,13 +93,8 @@ public abstract class ServerLauncher {
       Consumer<OutputStream> sendInitData,
       RunClientLogicWithStreams<A> runClientLogic)
       throws Exception {
-    var wd = Paths.get(".");
-    var socketInputStream = new BufferedInputStream(
-      new DebuggingInputStream(connection.getInputStream(), wd, "in_" + debugName, true)
-    );
-    var socketOutputStream = new BufferedOutputStream(
-      new DebuggingOutputStream(connection.getOutputStream(), wd, "out_" + debugName, true)
-    );
+    var socketInputStream = new BufferedInputStream(connection.getInputStream());
+    var socketOutputStream = new BufferedOutputStream(connection.getOutputStream());
     sendInitData.accept(socketOutputStream);
     socketOutputStream.flush();
     var result = runClientLogic.run(socketInputStream, socketOutputStream);

@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 
+/** Writes everything you read from the input stream to a file as well. */
 public class DebuggingInputStream extends InputStream {
 
   private final InputStream in;
