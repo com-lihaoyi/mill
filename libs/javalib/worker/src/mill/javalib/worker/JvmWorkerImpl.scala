@@ -4,7 +4,7 @@ import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.client.lock.{DoubleLock, Locks, MemoryLock}
-import mill.constants.{DaemonFiles, ProxyStream}
+import mill.constants.DaemonFiles
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.*
 import mill.javalib.internal.{JvmWorkerArgs, RpcCompileProblemReporterMessage}
@@ -12,7 +12,6 @@ import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
 import mill.util.{CachedFactoryWithInitData, HexFormat, Jvm, Timed}
-import org.apache.logging.log4j.core.util.NullOutputStream
 import sbt.internal.util.ConsoleOut
 
 import java.io.*

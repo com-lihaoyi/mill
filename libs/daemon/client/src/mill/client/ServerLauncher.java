@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
 import mill.client.lock.Lock;
 import mill.client.lock.Locks;
 import mill.constants.DaemonFiles;
@@ -69,7 +68,8 @@ public abstract class ServerLauncher {
     var socketOutputStream = new BufferedOutputStream(connection.getOutputStream());
     sendInitData.accept(socketOutputStream);
     socketOutputStream.flush();
-    var pumperThread = startStreamPumpers(socketInputStream, socketOutputStream, streams, debugName);
+    var pumperThread =
+        startStreamPumpers(socketInputStream, socketOutputStream, streams, debugName);
     var result = runClientLogic.run();
     if (closeConnectionAfterClientLogic) socketInputStream.close();
     pumperThread.join();
@@ -346,9 +346,10 @@ public abstract class ServerLauncher {
    * @return a PumperThread that processes the output/error streams from the server
    */
   static PumperThread startStreamPumpers(
-      InputStream socketInputStream, OutputStream socketOutputStream, Streams streams,
-      String name
-  ) {
+      InputStream socketInputStream,
+      OutputStream socketOutputStream,
+      Streams streams,
+      String name) {
     var outPumper = new ProxyStream.Pumper(socketInputStream, streams.stdout, streams.stderr);
     var inPump = new InputPumper(() -> streams.stdin, () -> socketOutputStream, true);
     var outPumperThread = new PumperThread(outPumper, "outPump-" + name);

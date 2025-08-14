@@ -7,7 +7,7 @@ import mill.rpc.MillRpcWireTransport
 import mill.server.Server
 import pprint.{TPrint, TPrintColors}
 
-import java.io.{BufferedInputStream, BufferedReader, InputStreamReader, PrintStream}
+import java.io.{BufferedReader, InputStreamReader, PrintStream}
 import scala.util.Using
 import scala.util.control.NonFatal
 

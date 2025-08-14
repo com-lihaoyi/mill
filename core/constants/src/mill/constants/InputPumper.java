@@ -13,7 +13,8 @@ public class InputPumper implements Runnable {
   ///
   /// We need to do that because if we call `.read`
   /// and there is nothing to read, [it can unnecessarily delay the JVM exit by 350ms](
-  /// https://stackoverflow.com/questions/48951611/blocking-on-stdin-makes-java-process-take-350ms-more-to-exit)
+  ///
+  // https://stackoverflow.com/questions/48951611/blocking-on-stdin-makes-java-process-take-350ms-more-to-exit)
   private final boolean checkAvailable;
 
   public InputPumper(

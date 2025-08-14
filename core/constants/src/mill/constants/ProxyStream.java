@@ -20,9 +20,11 @@ import java.nio.ByteOrder;
 ///
 /// Where header is a single byte of the form:
 ///
-///   - [#HEADER_STREAM_OUT]/[#HEADER_STREAM_ERR] respectively indicating that this packet is for the `OUT`/`ERR`
+///   - [#HEADER_STREAM_OUT]/[#HEADER_STREAM_ERR] respectively indicating that this packet is for
+// the `OUT`/`ERR`
 ///     stream, and it will be followed by 4 bytes for the length of the body and then the body.
-///   - [#HEADER_STREAM_OUT_SINGLE_BYTE]/[#HEADER_STREAM_ERR_SINGLE_BYTE] respectively indicating that this packet is
+///   - [#HEADER_STREAM_OUT_SINGLE_BYTE]/[#HEADER_STREAM_ERR_SINGLE_BYTE] respectively indicating
+// that this packet is
 ///     for the `OUT`/`ERR` stream, and it will be followed by a single byte for the body
 ///   - [#HEADER_HEARTBEAT] indicating that this packet is a heartbeat and will be ignored
 ///   - [#HEADER_END] indicating the end of the stream
@@ -61,7 +63,6 @@ public class ProxyStream {
     OUT(ProxyStream.HEADER_STREAM_OUT, ProxyStream.HEADER_STREAM_OUT_SINGLE_BYTE),
     /** The error stream */
     ERR(ProxyStream.HEADER_STREAM_ERR, ProxyStream.HEADER_STREAM_ERR_SINGLE_BYTE);
-
     public final byte header, headerSingleByte;
 
     StreamType(byte header, byte headerSingleByte) {
@@ -74,9 +75,10 @@ public class ProxyStream {
     synchronized (out) {
       try {
         var buffer = new byte[5];
-        ByteBuffer.wrap(buffer).order(ByteOrder.BIG_ENDIAN)
-          .put(ProxyStream.HEADER_END)
-          .putInt(exitCode);
+        ByteBuffer.wrap(buffer)
+            .order(ByteOrder.BIG_ENDIAN)
+            .put(ProxyStream.HEADER_END)
+            .putInt(exitCode);
         out.write(buffer);
         out.flush();
       } catch (SocketException e) {
@@ -139,11 +141,12 @@ public class ProxyStream {
       // Validate arguments once at the beginning, which is cleaner
       // and standard practice for public methods.
       if (sourceBuffer == null) throw new NullPointerException("byte array is null");
-      if (offset < 0 || offset > sourceBuffer.length) throw new IndexOutOfBoundsException("Write offset out of range: " + offset);
+      if (offset < 0 || offset > sourceBuffer.length)
+        throw new IndexOutOfBoundsException("Write offset out of range: " + offset);
       if (len < 0) throw new IndexOutOfBoundsException("Write length is negative: " + len);
-      if (offset + len > sourceBuffer.length) throw new IndexOutOfBoundsException(
-        "Write goes beyond end of buffer: offset=" + offset + ", len=" + len + ", end=" + (offset + len) + " > " + sourceBuffer.length
-      );
+      if (offset + len > sourceBuffer.length)
+        throw new IndexOutOfBoundsException("Write goes beyond end of buffer: offset=" + offset
+            + ", len=" + len + ", end=" + (offset + len) + " > " + sourceBuffer.length);
 
       synchronized (synchronizer) {
         var bytesRemaining = len;
@@ -233,12 +236,10 @@ public class ProxyStream {
               throw new IllegalStateException("Unexpected header: " + header);
           }
         }
-      }
-      catch (EOFException ignored) {
+      } catch (EOFException ignored) {
         // This is a normal and expected way for the loop to terminate
         // when the other side closes the connection.
-      }
-      catch (IOException ignored) {
+      } catch (IOException ignored) {
         // This happens when the upstream pipe was closed
       }
 
@@ -251,13 +252,14 @@ public class ProxyStream {
       }
     }
 
-    private void pumpData(byte[] buffer, boolean singleByte, OutputStream stream) throws IOException {
+    private void pumpData(byte[] buffer, boolean singleByte, OutputStream stream)
+        throws IOException {
       var quantity = singleByte ? 1 : src.readInt();
 
       if (quantity > buffer.length) {
         // Handle error: received chunk is larger than buffer
-        throw new IOException("Received chunk of size " + quantity +
-          " is larger than buffer of size " + buffer.length);
+        throw new IOException("Received chunk of size " + quantity
+            + " is larger than buffer of size " + buffer.length);
       }
 
       var totalBytesRead = 0;

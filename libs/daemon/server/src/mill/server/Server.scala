@@ -1,15 +1,13 @@
 package mill.server
 
-import mill.client.debug.{DebuggingInputStream, DebuggingOutputStream}
 import mill.client.lock.{Lock, Locks}
 import mill.constants.{DaemonFiles, SocketUtil}
 import sun.misc.{Signal, SignalHandler}
 
-import java.io.{BufferedInputStream, BufferedOutputStream, PrintStream}
+import java.io.{BufferedInputStream, BufferedOutputStream}
 import java.net.{InetAddress, Socket, SocketAddress, SocketException}
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 import scala.util.control.NonFatal

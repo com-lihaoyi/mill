@@ -1,12 +1,12 @@
 package mill.client;
 
+import static org.junit.Assert.*;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import mill.constants.ProxyStream;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class ClientTests {
 
