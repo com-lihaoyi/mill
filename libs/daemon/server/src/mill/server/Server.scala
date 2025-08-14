@@ -5,7 +5,7 @@ import mill.constants.{DaemonFiles, ProxyStream}
 import sun.misc.{Signal, SignalHandler}
 
 import java.io.{BufferedInputStream, PrintStream}
-import java.net.{InetAddress, Socket, SocketAddress}
+import java.net.{InetAddress, Socket, SocketAddress, SocketException}
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicBoolean
@@ -257,17 +257,21 @@ abstract class Server(
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
     // detect client-side connection closing, so instead we send a no-op heartbeat
     // message to see if the socket can receive data.
+    @volatile var lastClientAlive = true
     def checkClientAlive() = {
-      try {
-        ProxyStream.sendHeartbeat(currentOutErr)
-        true
-      } catch {
-        case NonFatal(err) =>
-          serverLog(
-            s"error sending heartbeat, client seems to be dead: $err\n\n${err.getStackTrace.mkString("\n")}"
-          )
-          false
-      }
+      val result =
+        try {
+          ProxyStream.sendHeartbeat(currentOutErr)
+          true
+        } catch {
+          case NonFatal(err) =>
+            serverLog(
+              s"error sending heartbeat, client seems to be dead: $err\n\n${err.getStackTrace.mkString("\n")}"
+            )
+            false
+        }
+      lastClientAlive = result
+      result
     }
 
     def stopServer(from: String, reason: String, exitCode: Int) = {
@@ -296,6 +300,7 @@ abstract class Server(
 
       @volatile var done = false
       @volatile var idle = false
+      @volatile var writingExceptionLog = false
       val t = new Thread(
         () =>
           try {
@@ -314,9 +319,16 @@ abstract class Server(
             serverLog(s"connection handler finished, sending exitCode $exitCode to client")
             writeExitCode(exitCode)
           } catch {
+            case e: SocketException if ProxyStream.clientHasClosedConnection(e) => // do nothing
             case e: Throwable =>
-              serverLog("connection handler error: " + e)
-              serverLog("connection handler stack trace: " + e.getStackTrace.mkString("\n"))
+              writingExceptionLog = true
+              try {
+                serverLog(
+                  s"""connection handler error: $e
+                     |connection handler stack trace: ${e.getStackTrace.mkString("\n")}
+                     |""".stripMargin
+                )
+              } finally writingExceptionLog = false
               writeExitCode(1)
           } finally {
             done = true
@@ -336,6 +348,10 @@ abstract class Server(
         serverSocketClose()
       }
 
+      serverLog(s"done=$done, idle=$idle, lastClientAlive=$lastClientAlive")
+
+      // Wait until exception log writer finishes.
+      while (writingExceptionLog) Thread.sleep(1)
       t.interrupt()
       // Try to give thread a moment to stop before we kill it for real
       //

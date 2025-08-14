@@ -34,25 +34,27 @@ import java.nio.ByteOrder;
 /// stream, forwards each packet to its respective destination stream, or terminates
 /// when it hits a packet with [#HEADER_END].
 public class ProxyStream {
-  public static final int MAX_CHUNK_SIZE = 256 * 1024; // 256kb
+  public static final int MAX_CHUNK_SIZE = 32 * 1024; // 32kb
 
-  /** Indicates the end of the connection. */
-  private static final byte HEADER_END = 0;
+  // The values are picked to make it a bit easier to spot when debugging the hex dump.
 
   /** The header for the output stream */
-  private static final byte HEADER_STREAM_OUT = 1;
+  private static final byte HEADER_STREAM_OUT = 26; // 0x1A
 
   /** The header for the output stream when a single byte is sent. */
-  private static final byte HEADER_STREAM_OUT_SINGLE_BYTE = 2;
+  private static final byte HEADER_STREAM_OUT_SINGLE_BYTE = 27; // 0x1B, B as in BYTE
 
   /** The header for the error stream */
-  private static final byte HEADER_STREAM_ERR = 3;
+  private static final byte HEADER_STREAM_ERR = 42; // 0x2A
 
   /** The header for the error stream when a single byte is sent. */
-  private static final byte HEADER_STREAM_ERR_SINGLE_BYTE = 4;
+  private static final byte HEADER_STREAM_ERR_SINGLE_BYTE = 43; // 0x2B, B as in BYTE
 
   /** A heartbeat packet to keep the connection alive. */
-  private static final byte HEADER_HEARTBEAT = 127;
+  private static final byte HEADER_HEARTBEAT = 123; // 0x7B, B as in BEAT
+
+  /** Indicates the end of the connection. */
+  private static final byte HEADER_END = 126; // 0x7E, E as in END
 
   public enum StreamType {
     /** The output stream */
@@ -68,9 +70,13 @@ public class ProxyStream {
     }
   }
 
-  private static boolean clientHasClosedConnection(SocketException e) {
+  public static boolean clientHasClosedConnection(SocketException e) {
     var message = e.getMessage();
-    return message != null && message.contains("Broken pipe");
+    return message != null && (
+      message.contains("Broken pipe")
+        || message.contains("Socket closed")
+        || message.contains("Connection reset by peer")
+    );
   }
 
   public static void sendEnd(OutputStream out, int exitCode) throws IOException {
@@ -98,17 +104,26 @@ public class ProxyStream {
   }
 
   public static class Output extends java.io.OutputStream {
+    /**
+     * Object used for synchronization so that our writes wouldn't interleave.
+     * <p>
+     * We can't use {@link #destination} because it's a private object that we create here and {@link #sendEnd}
+     * and {@link #sendHeartbeat} use a different object.
+     **/
+    private final java.io.OutputStream synchronizer;
+
     private final DataOutputStream destination;
     private final StreamType streamType;
 
     public Output(java.io.OutputStream out, StreamType streamType) {
+      this.synchronizer = out;
       this.destination = new DataOutputStream(out);
       this.streamType = streamType;
     }
 
     @Override
     public void write(int b) throws IOException {
-      synchronized (destination) {
+      synchronized (synchronizer) {
         destination.write(streamType.headerSingleByte);
         destination.write(b);
       }
@@ -116,50 +131,56 @@ public class ProxyStream {
 
     @Override
     public void write(byte[] b) throws IOException {
-      if (b.length <= 0) return;
-
-      if (b.length == 1) write(b[0]);
-      else write(b, 0, b.length);
+      switch (b.length) {
+        case 0:
+          return;
+        case 1:
+          write(b[0]);
+          break;
+        default:
+          write(b, 0, b.length);
+          break;
+      }
     }
 
     @Override
-    public void write(byte[] b, int off, int len) throws IOException {
+    public void write(byte[] sourceBuffer, int offset, int len) throws IOException {
       // Validate arguments once at the beginning, which is cleaner
       // and standard practice for public methods.
-      if (b == null) throw new NullPointerException("byte array is null");
-      else if (off < 0 || off > b.length || len < 0 || off + len > b.length || off + len < 0) {
-        throw new IndexOutOfBoundsException(
-          "Write indexes out of range: off=" + off + ", len=" + len + ", b.length=" + b.length
-        );
-      }
+      if (sourceBuffer == null) throw new NullPointerException("byte array is null");
+      if (offset < 0 || offset > sourceBuffer.length) throw new IndexOutOfBoundsException("Write offset out of range: " + offset);
+      if (len < 0) throw new IndexOutOfBoundsException("Write length is negative: " + len);
+      if (offset + len > sourceBuffer.length) throw new IndexOutOfBoundsException(
+        "Write goes beyond end of buffer: offset=" + offset + ", len=" + len + ", end=" + (offset + len) + " > " + sourceBuffer.length
+      );
 
-      synchronized (destination) {
-        var bytesWritten = 0;
+      synchronized (synchronizer) {
+        var bytesRemaining = len;
+        var currentOffset = offset;
 
-        while (bytesWritten < len && bytesWritten + off < b.length) {
-          var chunkLength = Math.min(len - bytesWritten, MAX_CHUNK_SIZE);
+        while (bytesRemaining > 0) {
+          var chunkSize = Math.min(bytesRemaining, MAX_CHUNK_SIZE);
 
-          if (chunkLength > 0) {
-            destination.write(streamType.header);
-            destination.writeInt(chunkLength);
-            var bytesToWrite = Math.min(b.length - off - bytesWritten, chunkLength);
-            destination.write(b, off + bytesWritten, bytesToWrite);
-            bytesWritten += chunkLength;
-          }
+          destination.writeByte(streamType.header);
+          destination.writeInt(chunkSize);
+          destination.write(sourceBuffer, currentOffset, chunkSize);
+
+          bytesRemaining -= chunkSize;
+          currentOffset += chunkSize;
         }
       }
     }
 
     @Override
     public void flush() throws IOException {
-      synchronized (destination) {
+      synchronized (synchronizer) {
         destination.flush();
       }
     }
 
     @Override
     public void close() throws IOException {
-      synchronized (destination) {
+      synchronized (synchronizer) {
         destination.close();
       }
     }
@@ -248,10 +269,22 @@ public class ProxyStream {
           " is larger than buffer of size " + buffer.length);
       }
 
-      src.readFully(buffer, 0, quantity);
+      var totalBytesRead = 0;
+      var bytesReadThisIteration = -1;
+      while (totalBytesRead < quantity) {
+        this.preRead(src);
+        bytesReadThisIteration = src.read(buffer, totalBytesRead, quantity - totalBytesRead);
+        if (bytesReadThisIteration == -1) {
+          break;
+        } else {
+          totalBytesRead += bytesReadThisIteration;
+        }
+      }
 
-      synchronized (synchronizer) {
-        write(stream, buffer, quantity);
+      if (bytesReadThisIteration != -1) {
+        synchronized (synchronizer) {
+          this.write(stream, buffer, totalBytesRead);
+        }
       }
     }
 
