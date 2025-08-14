@@ -485,9 +485,13 @@ trait AndroidSdkModule extends Module {
     }
   }
 
-  private def sdkPath: T[PathRef] = Task {
+  private def androidHomeEnv: T[Option[String]] = Task.Input {
     Task.env.get("ANDROID_HOME")
-      .orElse(Task.env.get("ANDROID_SDK_ROOT")) match {
+      .orElse(Task.env.get("ANDROID_SDK_ROOT"))
+  }
+
+  private def sdkPath: T[PathRef] = Task {
+    androidHomeEnv() match {
       case Some(x) => PathRef(os.Path(x))
       case _ => throw new IllegalStateException("Android SDK location not found. Define a valid" +
           " SDK location with an ANDROID_HOME environment variable.")
