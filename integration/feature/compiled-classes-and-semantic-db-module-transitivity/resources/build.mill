@@ -1,0 +1,13 @@
+package build
+
+import mill.*, scalalib.*
+
+object main extends ScalaModule {
+  def scalaVersion = "3.7.1"
+}
+
+object test extends ScalaModule {
+  def scalaVersion = "3.7.1"
+
+  def moduleDeps = Seq(main)
+}
