@@ -412,8 +412,8 @@ trait AndroidSdkModule extends Module {
    * Provides the path for the Android SDK Manager tool
    * @return A task containing a [[PathRef]] pointing to the SDK directory.
    */
-  def sdkManagerPath: Task[PathRef] = Task.Anon {
-    PathRef(cmdlineToolsPath().path / "bin" / "sdkmanager")
+  def sdkManagerPath: Task[PathRef] = Task {
+    toolPathRef(cmdlineToolsPath().path / "bin" / "sdkmanager")
   }
 
   /**
@@ -529,8 +529,8 @@ trait AndroidSdkModule extends Module {
 
   def remoteReposInfo: Task[PathRef] = Task.Anon {
     val repositoryFile = Task.dest / "repository.xml"
-    if (Task.offline) Result.Failure("Can't fetch remote repositories in offline mode.")
-    else Result.create {
+    if (Task.offline) Task.fail("Can't fetch remote repositories in offline mode.")
+    else {
       // shouldn't be persistent, allow it to be re-downloaded again.
       // it will be called only if some packages are not installed.
       os.write.over(
