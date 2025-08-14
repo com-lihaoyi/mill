@@ -34,7 +34,7 @@ import java.nio.ByteOrder;
 /// stream, forwards each packet to its respective destination stream, or terminates
 /// when it hits a packet with [#HEADER_END].
 public class ProxyStream {
-  public static final int MAX_CHUNK_SIZE = 126; // 32 * 1024; // 32kb
+  public static final int MAX_CHUNK_SIZE = 1024; // 32 * 1024; // 32kb
 
   // The values are picked to make it a bit easier to spot when debugging the hex dump.
 

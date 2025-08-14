@@ -69,14 +69,46 @@ public abstract class ServerLauncher {
       RunClientLogic<A> runClientLogic)
       throws Exception {
     var wd = Paths.get(".");
-    var socketInputStream = new DebuggingInputStream(connection.getInputStream(), wd, "in_" + debugName, true);
-    var socketOutputStream = new DebuggingOutputStream(connection.getOutputStream(), wd, "out_" + debugName, true);
+    var socketInputStream = new BufferedInputStream(
+      new DebuggingInputStream(connection.getInputStream(), wd, "in_" + debugName, true)
+    );
+    var socketOutputStream = new BufferedOutputStream(
+      new DebuggingOutputStream(connection.getOutputStream(), wd, "out_" + debugName, true)
+    );
     sendInitData.accept(socketOutputStream);
     socketOutputStream.flush();
     var pumperThread = startStreamPumpers(socketInputStream, socketOutputStream, streams, debugName);
     var result = runClientLogic.run();
     if (closeConnectionAfterClientLogic) socketInputStream.close();
     pumperThread.join();
+    return new RunWithConnectionResult<>(result, pumperThread.exitCode());
+  }
+
+  /// Run a client logic with a connection established to a Mill server (via [#connectToServer]).
+  ///
+  /// @param connection     the socket connected to the server
+  /// @param closeConnectionAfterClientLogic whether to close the connection after running the
+  // client logic
+  /// @param runClientLogic the client logic to run
+  /// @return the exit code that the server sent back
+  public static <A> RunWithConnectionResult<A> runWithConnection(
+      String debugName,
+      Socket connection,
+      boolean closeConnectionAfterClientLogic,
+      Consumer<OutputStream> sendInitData,
+      RunClientLogicWithStreams<A> runClientLogic)
+      throws Exception {
+    var wd = Paths.get(".");
+    var socketInputStream = new BufferedInputStream(
+      new DebuggingInputStream(connection.getInputStream(), wd, "in_" + debugName, true)
+    );
+    var socketOutputStream = new BufferedOutputStream(
+      new DebuggingOutputStream(connection.getOutputStream(), wd, "out_" + debugName, true)
+    );
+    sendInitData.accept(socketOutputStream);
+    socketOutputStream.flush();
+    var result = runClientLogic.run(socketInputStream, socketOutputStream);
+    if (closeConnectionAfterClientLogic) socketInputStream.close();
     return new RunWithConnectionResult<>(result, pumperThread.exitCode());
   }
 
@@ -349,6 +381,11 @@ public abstract class ServerLauncher {
   public interface RunClientLogic<A> {
     /// Runs the client logic.
     A run() throws Exception;
+  }
+  
+  public interface RunClientLogicWithStreams<A> {
+    /// Runs the client logic.
+    A run(InputStream inStream, OutputStream outStream) throws Exception;
   }
 
   public static class Result {

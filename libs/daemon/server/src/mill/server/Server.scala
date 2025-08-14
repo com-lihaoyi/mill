@@ -1,5 +1,6 @@
 package mill.server
 
+import mill.client.debug.{DebuggingInputStream, DebuggingOutputStream}
 import mill.client.lock.{Lock, Locks}
 import mill.constants.{DaemonFiles, ProxyStream}
 import sun.misc.{Signal, SignalHandler}
@@ -245,7 +246,8 @@ abstract class Server(
   ): Unit = {
 
     /** stdout and stderr combined into one stream */
-    val currentOutErr = clientSocket.getOutputStream
+    val currentOutErr =
+      DebuggingOutputStream(clientSocket.getOutputStream, daemonDir.toNIO, "out_server", true)
     val writtenExitCode = AtomicBoolean()
 
     def writeExitCode(exitCode: Int): Unit = {
@@ -281,7 +283,10 @@ abstract class Server(
     }
 
     try {
-      val socketIn = BufferedInputStream(clientSocket.getInputStream, ProxyStream.MAX_CHUNK_SIZE)
+      val socketIn = BufferedInputStream(
+        DebuggingInputStream(clientSocket.getInputStream, daemonDir.toNIO, "in_server", true),
+        ProxyStream.MAX_CHUNK_SIZE
+      )
 
       val stdout =
         new PrintStream(new ProxyStream.Output(currentOutErr, ProxyStream.StreamType.OUT), true)

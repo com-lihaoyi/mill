@@ -6,13 +6,13 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public class DebuggingOutputStream extends FilterOutputStream {
+public class DebuggingOutputStream extends OutputStream {
+  private final OutputStream out;
   private final OutputStream debugOutput;
   private final boolean writeSeparateOps;
 
   public DebuggingOutputStream(OutputStream out, Path workingDir, String name, boolean writeSeparateOps) {
-    super(out);
-
+    this.out = out;
     this.writeSeparateOps = writeSeparateOps;
     try {
       this.debugOutput = new FileOutputStream(workingDir.resolve(name.replaceAll("\\W", "_")).toFile());
@@ -31,7 +31,9 @@ public class DebuggingOutputStream extends FilterOutputStream {
     );
     else debugOutput.write(b);
 
-    super.write(b);
+    out.write(b);
+
+    if (writeSeparateOps) debugOutput.write((LocalDateTime.now() + " done\n").getBytes());
   }
 
   @Override
@@ -43,6 +45,8 @@ public class DebuggingOutputStream extends FilterOutputStream {
     );
     else debugOutput.write(b, off, len);
 
-    super.write(b, off, len);
+    out.write(b, off, len);
+
+    if (writeSeparateOps) debugOutput.write((LocalDateTime.now() + " done\n").getBytes());
   }
 }
