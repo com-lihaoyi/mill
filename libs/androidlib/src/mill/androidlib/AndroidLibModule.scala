@@ -94,7 +94,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     os.makeDir.all(compiledRes)
 
     val compileResult = os.proc(
-      androidSdkModule().aapt2Path().path,
+      androidSdkModule().aapt2Exe().path,
       "compile",
       "--dir",
       androidResources(),
@@ -109,7 +109,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
     }
 
     val linkResult = os.proc(
-      androidSdkModule().aapt2Path().path,
+      androidSdkModule().aapt2Exe().path,
       "link",
       "--static-lib",
       "-o",

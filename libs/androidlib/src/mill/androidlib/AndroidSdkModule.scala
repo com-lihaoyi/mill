@@ -158,7 +158,7 @@ trait AndroidSdkModule extends Module {
   /**
    * Provides path to the Android CLI lint tool.
    */
-  def lintToolPath: T[PathRef] = Task {
+  def lintExe: T[PathRef] = Task {
     installAndroidSdkComponents()
     toolPathRef(cmdlineToolsPath().path / "bin/lint")
   }
@@ -168,7 +168,7 @@ trait AndroidSdkModule extends Module {
    *
    * For More Read D8 [[https://developer.android.com/tools/d8 Documentation]]
    */
-  def d8Path: T[PathRef] = Task {
+  def d8Exe: T[PathRef] = Task {
     toolPathRef(buildToolsPath() / "d8")
   }
 
@@ -177,7 +177,7 @@ trait AndroidSdkModule extends Module {
    *
    * For More Read AAPT2 [[https://developer.android.com/tools/aapt2 Documentation]]
    */
-  def aapt2Path: T[PathRef] = Task {
+  def aapt2Exe: T[PathRef] = Task {
     toolPathRef(buildToolsPath() / "aapt2")
   }
 
@@ -199,7 +199,7 @@ trait AndroidSdkModule extends Module {
    *
    * For More Read APK Signer [[https://developer.android.com/tools/apksigner Documentation]]
    */
-  def apksignerPath: T[PathRef] = Task {
+  def apksignerExe: T[PathRef] = Task {
     toolPathRef(buildToolsPath() / "apksigner")
   }
 
@@ -208,7 +208,7 @@ trait AndroidSdkModule extends Module {
    *
    * For more information, refer to the official Android documentation [[https://developer.android.com/tools/adb]]
    */
-  def adbPath: T[PathRef] = Task {
+  def adbExe: T[PathRef] = Task {
     toolPathRef(sdkPath() / "platform-tools/adb")
   }
 
@@ -217,7 +217,7 @@ trait AndroidSdkModule extends Module {
    *
    *  For more information refer to the official Android documentation [[https://developer.android.com/tools/avdmanager]]
    */
-  def avdPath: T[PathRef] = Task {
+  def avdExe: T[PathRef] = Task {
     toolPathRef(cmdlineToolsPath().path / "bin/avdmanager")
   }
 
@@ -226,7 +226,7 @@ trait AndroidSdkModule extends Module {
    *
    * For more information refer to [[https://developer.android.com/studio/run/emulator]]
    */
-  def emulatorPath: T[PathRef] = Task {
+  def emulatorExe: T[PathRef] = Task {
     toolPathRef(sdkPath() / "emulator/emulator")
   }
 
@@ -252,12 +252,12 @@ trait AndroidSdkModule extends Module {
     sdkPath() / "ndk" / ndkVersion()
   }
 
-  def ninjaPath: T[PathRef] = Task {
+  def ninjaExe: T[PathRef] = Task {
     installAndroidNdk()
     toolPathRef(sdkPath() / "cmake" / cmakeVersion() / "bin" / "ninja")
   }
 
-  def cmakePath: T[PathRef] = Task {
+  def cmakeExe: T[PathRef] = Task {
     installAndroidNdk()
     toolPathRef(sdkPath() / "cmake" / cmakeVersion() / "bin" / "cmake")
   }
