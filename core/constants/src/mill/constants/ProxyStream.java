@@ -34,7 +34,7 @@ import java.nio.ByteOrder;
 /// stream, forwards each packet to its respective destination stream, or terminates
 /// when it hits a packet with [#HEADER_END].
 public class ProxyStream {
-  public static final int MAX_CHUNK_SIZE = 1024; // 32 * 1024; // 32kb
+  public static final int MAX_CHUNK_SIZE = 4 * 1024; // 4kb
 
   // The values are picked to make it a bit easier to spot when debugging the hex dump.
 
@@ -70,15 +70,6 @@ public class ProxyStream {
     }
   }
 
-  public static boolean clientHasClosedConnection(SocketException e) {
-    var message = e.getMessage();
-    return message != null && (
-      message.contains("Broken pipe")
-        || message.contains("Socket closed")
-        || message.contains("Connection reset by peer")
-    );
-  }
-
   public static void sendEnd(OutputStream out, int exitCode) throws IOException {
     synchronized (out) {
       try {
@@ -91,7 +82,7 @@ public class ProxyStream {
       } catch (SocketException e) {
         // If the client has already closed the connection, we don't really care about sending the
         // exit code to it.
-        if (!clientHasClosedConnection(e)) throw e;
+        if (!SocketUtil.clientHasClosedConnection(e)) throw e;
       }
     }
   }

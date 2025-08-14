@@ -91,7 +91,7 @@ public abstract class ServerLauncher {
   // client logic
   /// @param runClientLogic the client logic to run
   /// @return the exit code that the server sent back
-  public static <A> RunWithConnectionResult<A> runWithConnection(
+  public static <A> A runWithConnection(
       String debugName,
       Socket connection,
       boolean closeConnectionAfterClientLogic,
@@ -109,7 +109,7 @@ public abstract class ServerLauncher {
     socketOutputStream.flush();
     var result = runClientLogic.run(socketInputStream, socketOutputStream);
     if (closeConnectionAfterClientLogic) socketInputStream.close();
-    return new RunWithConnectionResult<>(result, pumperThread.exitCode());
+    return result;
   }
 
   /**
@@ -382,10 +382,10 @@ public abstract class ServerLauncher {
     /// Runs the client logic.
     A run() throws Exception;
   }
-  
+
   public interface RunClientLogicWithStreams<A> {
     /// Runs the client logic.
-    A run(InputStream inStream, OutputStream outStream) throws Exception;
+    A run(BufferedInputStream inStream, BufferedOutputStream outStream) throws Exception;
   }
 
   public static class Result {

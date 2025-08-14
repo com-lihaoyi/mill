@@ -5,6 +5,7 @@ import upickle.default.{Reader, Writer}
 
 import java.io.{BufferedReader, PrintStream}
 import java.util.concurrent.BlockingQueue
+import scala.annotation.tailrec
 
 trait MillRpcWireTransport extends AutoCloseable {
 
@@ -19,12 +20,19 @@ trait MillRpcWireTransport extends AutoCloseable {
     readAndTryToParse[A](typeName.render(using TPrintColors.Colors).render, log)
 
   /** Helper that reads a message from the wire and tries to parse it, logging along the way. */
-  def readAndTryToParse[A: Reader](typeName: String, log: String => Unit): Option[A] = {
+  @tailrec final def readAndTryToParse[A: Reader](
+      typeName: String,
+      log: String => Unit
+  ): Option[A] = {
     log(s"Trying to read $typeName")
     read() match {
       case None =>
         log("Transport wire broken.")
         None
+
+      // Empty line means a heartbeat message
+      case Some("") =>
+        readAndTryToParse[A](typeName, log)
 
       case Some(line) =>
         log(s"Received, will try to parse as $typeName: $line")
@@ -101,17 +109,21 @@ object MillRpcWireTransport {
   /**
    * @param serverToClient server to client stream
    * @param clientToServer client to server stream
+   * @param writeSynchronizer synchronizer for writes
    */
   class ViaStreams(
       override val name: String,
       serverToClient: BufferedReader,
-      clientToServer: PrintStream
+      clientToServer: PrintStream,
+      writeSynchronizer: AnyRef
   ) extends MillRpcWireTransport {
     override def read(): Option[String] = Option(serverToClient.readLine())
 
     override def write(message: String): Unit = {
-      clientToServer.println(message)
-      clientToServer.flush()
+      writeSynchronizer.synchronized {
+        clientToServer.println(message)
+        clientToServer.flush()
+      }
     }
 
     override def close(): Unit = {

@@ -23,12 +23,13 @@ abstract class MillDaemonServer[State](
     acceptTimeout: FiniteDuration,
     locks: Locks,
     testLogEvenWhenServerIdWrong: Boolean = false
-) extends Server(
+) extends ProxyStreamServer(Server.Args(
       daemonDir = daemonDir,
       acceptTimeout = Some(acceptTimeout),
       locks = locks,
-      testLogEvenWhenServerIdWrong = testLogEvenWhenServerIdWrong
-    ) {
+      testLogEvenWhenServerIdWrong = testLogEvenWhenServerIdWrong,
+      bufferSize = 4 * 1024
+    )) {
   def outLock: mill.client.lock.Lock
   def out: os.Path
 
@@ -43,7 +44,7 @@ abstract class MillDaemonServer[State](
   override protected def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
 
-  protected override type PreHandleConnectionData = ClientInitData
+  override protected type PreHandleConnectionCustomData = ClientInitData
 
   override protected def preHandleConnection(
       socketInfo: Server.SocketInfo,

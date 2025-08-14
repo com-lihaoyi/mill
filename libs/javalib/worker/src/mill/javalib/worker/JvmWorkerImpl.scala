@@ -353,30 +353,23 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
             port,
             s"From '${getClass.getName}'. Daemon directory: $daemonDir"
           ))
-          val stdin = use(PipedInputStream(ProxyStream.MAX_CHUNK_SIZE))
-          val stdout = use(PipedOutputStream())
-          val streams = ServerLauncher.Streams(
-            stdin,
-            stdout,
-            // stderr stream is not used in this case
-            NullOutputStream.getInstance()
-          )
           val debugName =
             s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}"
           ServerLauncher.runWithConnection(
             debugName,
             socket,
-            streams,
             /* closeConnectionAfterCommand */ true,
             /* sendInitData */ _ => {},
-            () => {
-              val serverToClient = use(BufferedReader(InputStreamReader(PipedInputStream(
-                stdout,
-                ProxyStream.MAX_CHUNK_SIZE
-              ))))
-              val clientToServer = use(PrintStream(BufferedOutputStream(PipedOutputStream(stdin))))
+            (in, out) => {
+              val serverToClient = use(BufferedReader(InputStreamReader(in)))
+              val clientToServer = use(PrintStream(out))
               val wireTransport =
-                MillRpcWireTransport.ViaStreams(debugName, serverToClient, clientToServer)
+                MillRpcWireTransport.ViaStreams(
+                  debugName,
+                  serverToClient,
+                  clientToServer,
+                  writeSynchronizer = clientToServer
+                )
 
               val init = ZincWorkerRpcServer.Initialize(
                 compilerBridgeWorkspace = compilerBridge.workspace,
@@ -399,7 +392,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
               fileAndDebugLog(log, s"Command finished in ${result.durationPretty}")
               result.result
             }
-          ).result
+          )
         }.get
       }
     }
