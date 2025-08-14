@@ -235,7 +235,7 @@ trait AndroidSdkModule extends Module {
    * See also [[https://developer.android.com/build/shrink-code]]
    */
   def androidProguardPath: T[PathRef] = Task {
-    toolPathRef(sdkPath() / "tools/proguard")
+    PathRef(sdkPath() / "tools/proguard").withRevalidateOnce
   }
 
   /**
