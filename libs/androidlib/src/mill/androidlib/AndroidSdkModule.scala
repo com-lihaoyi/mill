@@ -29,6 +29,8 @@ import scala.xml.XML
 @mill.api.experimental
 trait AndroidSdkModule extends Module {
 
+  import AndroidSdkModule._
+
   // this has a format `repository2-%d`, where the last number is schema version. For the needs of this module it
   // is okay to stick with the particular version.
   private val remotePackagesUrl = "https://dl.google.com/android/repository/repository2-3.xml"
@@ -123,11 +125,15 @@ trait AndroidSdkModule extends Module {
     installAndroidSdkComponents()
     Seq(
       toolPathRef(sdkPath().path / "platforms" / platformsVersion() / "android.jar")(),
-      toolPathRef(sdkPath().path / "platforms" / platformsVersion() / "core-for-system-modules.jar")(),
+      toolPathRef(
+        sdkPath().path / "platforms" / platformsVersion() / "core-for-system-modules.jar"
+      )(),
       toolPathRef(
         sdkPath().path / "platforms" / platformsVersion() / "optional" / "org.apache.http.legacy.jar"
       )(),
-      toolPathRef(sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.car.jar")(),
+      toolPathRef(
+        sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.car.jar"
+      )(),
       toolPathRef(
         sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.mock.jar"
       )(),
@@ -138,13 +144,6 @@ trait AndroidSdkModule extends Module {
         sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.runner.jar"
       )()
     )
-  }
-
-  private def toolPathRef(path: os.Path): Task[PathRef] = Task.Anon {
-    os.exists(path) match {
-      case true => PathRef(path).withRevalidateOnce
-      case false => Task.fail(s"Tool at path ${path} does not exist")
-    }
   }
 
   /**
@@ -567,4 +566,12 @@ object AndroidSdkModule {
    * Declaration of the Maven Google Repository.
    */
   val mavenGoogle: MavenRepository = MavenRepository("https://maven.google.com/")
+
+  private def toolPathRef(path: os.Path): Task[PathRef] = Task.Anon {
+    os.exists(path) match {
+      case true => PathRef(path).withRevalidateOnce
+      case false => Task.fail(s"Tool at path ${path} does not exist")
+    }
+  }
+
 }
