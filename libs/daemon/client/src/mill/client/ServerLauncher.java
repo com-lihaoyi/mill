@@ -5,13 +5,10 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import mill.client.debug.DebuggingInputStream;
-import mill.client.debug.DebuggingOutputStream;
 import mill.client.lock.Lock;
 import mill.client.lock.Locks;
 import mill.constants.DaemonFiles;
