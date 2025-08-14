@@ -150,9 +150,9 @@ trait AndroidSdkModule extends Module {
   /**
    * Provides path to the Android build tools for the selected version.
    */
-  def buildToolsPath: T[PathRef] = Task {
+  def buildToolsPath: T[os.Path] = Task {
     installAndroidSdkComponents()
-    toolPathRef(sdkPath() / "build-tools" / buildToolsVersion())
+    sdkPath() / "build-tools" / buildToolsVersion()
   }
 
   /**
@@ -169,7 +169,7 @@ trait AndroidSdkModule extends Module {
    * For More Read D8 [[https://developer.android.com/tools/d8 Documentation]]
    */
   def d8Path: T[PathRef] = Task {
-    toolPathRef(buildToolsPath().path / "d8")
+    toolPathRef(buildToolsPath() / "d8")
   }
 
   /**
@@ -178,7 +178,7 @@ trait AndroidSdkModule extends Module {
    * For More Read AAPT2 [[https://developer.android.com/tools/aapt2 Documentation]]
    */
   def aapt2Path: T[PathRef] = Task {
-    toolPathRef(buildToolsPath().path / "aapt2")
+    toolPathRef(buildToolsPath() / "aapt2")
   }
 
   /**
@@ -187,7 +187,7 @@ trait AndroidSdkModule extends Module {
    * For More Read Zipalign [[https://developer.android.com/tools/zipalign Documentation]]
    */
   def zipalignPath: T[PathRef] = Task {
-    toolPathRef(buildToolsPath().path / "zipalign")
+    toolPathRef(buildToolsPath() / "zipalign")
   }
 
   def fontsPath: T[PathRef] = Task {
@@ -200,7 +200,7 @@ trait AndroidSdkModule extends Module {
    * For More Read APK Signer [[https://developer.android.com/tools/apksigner Documentation]]
    */
   def apksignerPath: T[PathRef] = Task {
-    toolPathRef(buildToolsPath().path / "apksigner")
+    toolPathRef(buildToolsPath() / "apksigner")
   }
 
   /**
