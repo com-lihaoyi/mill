@@ -4,174 +4,324 @@ import mill.constants.CodeGenConstants.{nestedBuildFileNames, rootBuildFileNames
 import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
 
-import java.io.PrintStream
-import scala.util.Using
-
+import scala.reflect.TypeTest
 trait BuildWriter {
 
   final def writeFiles(build: BuildRepr): Unit = {
     import build.*
     val root +: nested = packages.iterator.toSeq: @unchecked
-    Using.resource(PrintStream(os.write.outputStream(os.pwd / rootBuildFileNames.get(0)))):
-      writeRootPackage(_, root, baseTraits, depsObject)
+    os.write(os.pwd / rootBuildFileNames.get(0), renderRootPackage(root, baseTraits, depsObject))
     nested.foreach: pkg =>
-      Using.resource(
-        PrintStream(os.write.outputStream(os.pwd / pkg.root.segments / nestedBuildFileNames.get(0)))
-      ):
-        writeNestedPackage(_, pkg)
+      os.write(os.pwd / pkg.root.segments / nestedBuildFileNames.get(0), renderNestedPackage(pkg))
   }
 
-  protected def writeRootPackage(
-      ps: PrintStream,
+  def renderRootPackage(
       pkg: Tree[ModuleRepr],
       baseTraits: Seq[BaseTrait],
       depsObject: Option[DepsObject]
-  ): Unit = {
-    ps.println(s"package $rootModuleAlias")
-    writeImports(ps, pkg)
+  ) = {
     import pkg.*
-    writeModuleDeclaration(ps, "package", root)
-    ps.println(" {")
-    writeModuleConfigs(ps, root.configs, root.crossConfigs)
-    root.testModule.foreach(writeTestModule(ps, _))
-    children.foreach(writeModuleSubtree(ps, _))
-    baseTraits.foreach(writeBaseTrait(ps, _))
-    depsObject.foreach(writeDepsObject(ps, _))
-    ps.println('}')
+    s"""package $rootModuleAlias
+       |
+       |${renderImports(pkg)}
+       |
+       |${renderModuleDeclaration("package", root)} {
+       |
+       |  ${renderModuleConfigs(root.configs, root.crossConfigs)}
+       |
+       |  ${root.testModule.fold("")(renderTestModule)}
+       |
+       |  ${renderLines(children.iterator.map(renderModuleSubtree))}
+       |  
+       |  ${renderLines(baseTraits.iterator.map(renderBaseTrait))}
+       |
+       |  ${depsObject.fold("")(renderDepsObject)}
+       |}""".stripMargin
   }
 
-  protected def writeNestedPackage(ps: PrintStream, pkg: Tree[ModuleRepr]): Unit = {
-    ps.println(pkg.root.segments.map(backtickWrap)
-      .mkString(s"package $rootModuleAlias.", ".", ""))
-    writeImports(ps, pkg)
+  def renderNestedPackage(pkg: Tree[ModuleRepr]) = {
     import pkg.*
-    writeModuleDeclaration(ps, "package", root)
-    ps.println(" {")
-    writeModuleConfigs(ps, root.configs, root.crossConfigs)
-    root.testModule.foreach(writeTestModule(ps, _))
-    children.foreach(writeModuleSubtree(ps, _))
-    ps.println('}')
+    s"""package $rootModuleAlias.${root.segments.map(backtickWrap).mkString(".")}
+       |
+       |${renderImports(pkg)}
+       |
+       |${renderModuleDeclaration("package", root)} {
+       |
+       |  ${renderModuleConfigs(root.configs, root.crossConfigs)}
+       |
+       |  ${root.testModule.fold("")(renderTestModule)}
+       |
+       |  ${renderLines(children.iterator.map(renderModuleSubtree))}
+       |}""".stripMargin
   }
 
-  protected def writeImports(ps: PrintStream, pkg: Tree[ModuleRepr]): Unit
+  def renderImports(pkg: Tree[ModuleRepr]): String
 
-  protected def writeModuleSubtree(ps: PrintStream, modules: Tree[ModuleRepr]): Unit = {
+  def renderModuleSubtree(modules: Tree[ModuleRepr]): String = {
     import modules.*
-    ps.println()
-    writeModuleDeclaration(ps, root.segments.last, root)
-    ps.println(" {")
-    writeModuleConfigs(ps, root.configs, root.crossConfigs)
-    root.testModule.foreach(writeTestModule(ps, _))
-    children.foreach(writeModuleSubtree(ps, _))
-    ps.println('}')
+    s"""${renderModuleDeclaration(root.segments.last, root)} {
+       |
+       |  ${renderModuleConfigs(root.configs, root.crossConfigs)}
+       |
+       |  ${root.testModule.fold("")(renderTestModule)}
+       |
+       |  ${renderLines(children.iterator.map(renderModuleSubtree))}
+       |}""".stripMargin
   }
 
-  protected def writeModuleDeclaration(ps: PrintStream, name: String, module: ModuleRepr): Unit = {
-    ps.println()
+  def renderCrossModuleDeclaration(name: String, module: ModuleRepr): String
+
+  def renderModuleDeclaration(name: String, module: ModuleRepr) = {
     import module.*
-    if (crossConfigs.nonEmpty) {
-      val crossTraitName = segments.lastOption.getOrElse(os.pwd.last).split("\\W").map(_.capitalize)
-        .mkString("", "", "Module")
-      val crossTraitExtends = crossConfigs.map((v, _) => literalize(v))
-        .mkString(s"extends Cross[$crossTraitName](", ", ", ")")
-      ps.println(s"object ${backtickWrap(name)} $crossTraitExtends")
-      ps.print(s"trait $crossTraitName ${renderExtendsClause(supertypes ++ mixins)}")
-    } else {
-      ps.print(s"object ${backtickWrap(name)} ${renderExtendsClause(supertypes ++ mixins)}")
-    }
+    if (crossConfigs.isEmpty)
+      s"object ${backtickWrap(name)} ${renderExtendsClause(supertypes ++ mixins)}"
+    else renderCrossModuleDeclaration(name, module)
   }
 
-  protected def renderExtendsClause(supertypes: Seq[String]): String = {
-    supertypes.tail.map(" with " + _).mkString(s" extends ${supertypes.head}", "", "")
+  def renderExtendsClause(supertypes: Seq[String]) = {
+    if (supertypes.isEmpty) ""
+    else
+      val head +: tail = supertypes: @unchecked
+      s" extends $head" + tail.map(" with " + _).mkString
   }
 
-  protected def writeTestModule(ps: PrintStream, module: TestModuleRepr): Unit = {
+  def renderTestModule(module: TestModuleRepr) = {
     import module.*
-    ps.println()
-    ps.println(s"object $name ${renderExtendsClause(supertypes ++ mixins)} {")
-    writeModuleConfigs(ps, configs, crossConfigs)
-    ps.println('}')
+    s"""object $name ${renderExtendsClause(supertypes ++ mixins)} {
+       |
+       |  ${renderModuleConfigs(configs, crossConfigs)}
+       |}""".stripMargin
   }
 
-  protected def writeModuleConfigs(
-      ps: PrintStream,
+  def renderBaseTrait(baseTrait: BaseTrait) = {
+    import baseTrait.*
+    s"""trait $name ${renderExtendsClause(supertypes ++ mixins)} {
+       |
+       |  ${renderModuleConfigs(configs, crossConfigs)}
+       |}""".stripMargin
+  }
+
+  def renderDepsObject(depsObject: DepsObject) = {
+    import depsObject.*
+    s"""object $name {
+       |
+       |  ${renderLines(refsByDep.toSeq.sortBy(_._2).iterator.map((dep, ref) =>
+        s"val ${backtickWrap(ref)} = $dep"
+      ))}
+       |}""".stripMargin
+  }
+
+  def renderModuleConfigs(
       configs: Seq[ModuleConfig],
       crossConfigs: Seq[(String, Seq[ModuleConfig])]
-  ): Unit = {
-    if (crossConfigs.isEmpty) configs.foreach:
-      case config: CoursierModuleConfig => writeCoursierModuleConfig(ps, config)
-      case config: JavaModuleConfig => writeJavaModuleConfig(ps, config)
-      case config: PublishModuleConfig => writePublishModuleConfig(ps, config)
-      case config: ScalaModuleConfig => writeScalaModuleConfig(ps, config)
-      case config: ScalaJSModuleConfig => writeScalaJSModuleConfig(ps, config)
-      case config: ScalaNativeModuleConfig => writeScalaNativeModuleConfig(ps, config)
+  ) = {
+    def collect[T <: ModuleConfig](using T: TypeTest[ModuleConfig, T]) = crossConfigs.collect:
+      case (k, T(t)) => (k, t)
+    renderLines(configs.iterator.map:
+      case config: CoursierModuleConfig => renderCoursierModuleConfig(config, collect)
+      case config: JavaModuleConfig => renderJavaModuleConfig(config, collect)
+      case config: PublishModuleConfig => renderPublishModuleConfig(config, collect)
+      case config: ScalaModuleConfig => renderScalaModuleConfig(config, collect)
+      case config: ScalaJSModuleConfig => renderScalaJSModuleConfig(config, collect)
+      case config: ScalaNativeModuleConfig => renderScalaNativeModuleConfig(config, collect))
   }
 
-  protected def writeCoursierModuleConfig(ps: PrintStream, config: CoursierModuleConfig): Unit = {
+  def renderCoursierModuleConfig(
+      config: CoursierModuleConfig,
+      crossConfigs: Seq[(String, CoursierModuleConfig)]
+  ) = {
+    def get[A](f: CoursierModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
-    if (repositories.nonEmpty)
-      ps.println()
-      ps.println(repositories.map(literalize(_))
-        .mkString("def repositories = super.repositories() ++ Seq(", ", ", ")"))
+    s"""${renderRepositories(repositories, get(_.repositories))}
+       |""".stripMargin
   }
 
-  protected def writeJavaModuleConfig(ps: PrintStream, config: JavaModuleConfig): Unit = {
+  def renderJavaModuleConfig(
+      config: JavaModuleConfig,
+      crossConfigs: Seq[(String, JavaModuleConfig)]
+  ) = {
+    def get[A](f: JavaModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
-    if (mandatoryMvnDeps.nonEmpty)
-      ps.println()
-      ps.println(mandatoryMvnDeps
-        .mkString("def mandatoryMvnDeps = super.mandatoryMvnDeps() ++ Seq(", ", ", ")"))
-    if (mvnDeps.nonEmpty)
-      ps.println()
-      ps.println(mvnDeps.mkString("def mvnDeps = super.mvnDeps() ++ Seq(", ", ", ")"))
-    if (compileMvnDeps.nonEmpty)
-      ps.println()
-      ps.println(compileMvnDeps
-        .mkString("def compileMvnDeps = super.compileMvnDeps() ++ Seq(", ", ", ")"))
-    if (runMvnDeps.nonEmpty)
-      ps.println()
-      ps.println(runMvnDeps.mkString("def runMvnDeps = super.runMvnDeps() ++ Seq(", ", ", ")"))
-    if (moduleDeps.nonEmpty)
-      ps.println()
-      ps.println(moduleDeps.map(renderModuleDep)
-        .mkString("def moduleDeps = super.moduleDeps ++ Seq(", ", ", ")"))
-    if (compileModuleDeps.nonEmpty)
-      ps.println()
-      ps.println(compileModuleDeps.map(renderModuleDep)
-        .mkString("def compileModuleDeps = super.compileModuleDeps ++ Seq(", ", ", ")"))
-    if (runModuleDeps.nonEmpty)
-      ps.println()
-      ps.println(runModuleDeps.map(renderModuleDep)
-        .mkString("def runModuleDeps = super.runModuleDeps ++ Seq(", ", ", ")"))
-    if (javacOptions.nonEmpty)
-      ps.println()
-      ps.println(javacOptions.map(literalize(_))
-        .mkString("def javacOptions = super.javacOptions() ++ Seq(", ", ", ")"))
+    s"""${renderMandatoryMvnDeps(mandatoryMvnDeps, get(_.mandatoryMvnDeps))}
+       |
+       |${renderMvnDeps(mvnDeps, get(_.mvnDeps))}
+       |
+       |${renderCompileMvnDeps(compileMvnDeps, get(_.compileMvnDeps))}
+       |
+       |${renderRunMvnDeps(runMvnDeps, get(_.runMvnDeps))}
+       |
+       |${renderModuleDeps(moduleDeps, get(_.moduleDeps))}
+       |
+       |${renderCompileModuleDeps(compileModuleDeps, get(_.compileModuleDeps))}
+       |
+       |${renderRunModuleDeps(runModuleDeps, get(_.runModuleDeps))}
+       |
+       |${renderJavacOptions(javacOptions, get(_.javacOptions))}
+       |""".stripMargin
   }
 
-  protected def renderModuleDep(dep: JavaModuleConfig.ModuleDep): String = {
+  def renderPublishModuleConfig(
+      config: PublishModuleConfig,
+      crossConfigs: Seq[(String, PublishModuleConfig)]
+  ) = {
+    def get[A](f: PublishModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
+    import config.*
+    s"""${renderPomSettings(pomSettings, get(_.pomSettings))}
+       |
+       |${renderPublishVersion(publishVersion, get(_.publishVersion))}
+       |
+       |${renderVersionScheme(versionScheme, get(_.versionScheme))}
+       |""".stripMargin
+  }
+
+  def renderScalaModuleConfig(
+      config: ScalaModuleConfig,
+      crossConfigs: Seq[(String, ScalaModuleConfig)]
+  ) = {
+    def get[A](f: ScalaModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
+    import config.*
+    s"""${renderScalaVersion(scalaVersion, get(_.scalaVersion))}
+       |
+       |${renderScalacOptions(scalacOptions, get(_.scalacOptions))}
+       |
+       |${renderScalacPluginMvnDeps(scalacPluginMvnDeps, get(_.scalacPluginMvnDeps))}
+       |""".stripMargin
+  }
+
+  def renderScalaJSModuleConfig(
+      config: ScalaJSModuleConfig,
+      crossConfigs: Seq[(String, ScalaJSModuleConfig)]
+  ) = {
+    def get[A](f: ScalaJSModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
+    import config.*
+    s"""${renderScalaJSVersion(scalaJSVersion, get(_.scalaJSVersion))}
+       |""".stripMargin
+  }
+
+  def renderScalaNativeModuleConfig(
+      config: ScalaNativeModuleConfig,
+      crossConfigs: Seq[(String, ScalaNativeModuleConfig)]
+  ) = {
+    def get[A](f: ScalaNativeModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
+    import config.*
+    s"""${renderScalaNativeVersion(scalaNativeVersion, get(_.scalaNativeVersion))}
+       |""".stripMargin
+  }
+
+  def renderTask[A](
+      name: String,
+      value: A,
+      crossValues: Seq[(String, A)],
+      renderValue: A => String,
+      defaultValue: String = "???"
+  ): String = {
+    val crossValues0 = crossValues.collect {
+      case (k, v) if v != null => (k, v)
+    }
+    if (value == null && crossValues0.isEmpty) ""
+    else
+      val value0 = if (value == null) defaultValue else renderValue(value)
+      s"def $name = " +
+        (if (crossValues0.isEmpty) value0 else renderCrossValue(crossValues0, renderValue, value0))
+  }
+
+  def renderTaskOption[A](
+      name: String,
+      value: Option[A],
+      crossValues: Seq[(String, Option[A])],
+      renderValue: A => String,
+      defaultValue: String = "None"
+  ): String = {
+    val crossValues0 = crossValues.collect {
+      case (k, Some(v)) => (k, v)
+    }
+    if (value.isEmpty && crossValues0.isEmpty) ""
+    else
+      val value0 = value.fold(defaultValue)(renderValue)
+      s"def $name = " +
+        (if (crossValues0.isEmpty) value0 else renderCrossValue(crossValues0, renderValue, value0))
+  }
+
+  def renderMemberSeq[A](
+      name: String,
+      values: Seq[A],
+      crossValues: Seq[(String, Seq[A])],
+      renderValue: A => String,
+      invokeSuper: String = ""
+  ): String =
+    if (values.isEmpty && crossValues.isEmpty) ""
+    else s"def $name = super.$name$invokeSuper" +
+      (if (values.isEmpty) "" else s" ++ Seq(${values.iterator.map(renderValue).mkString(", ")})") +
+      renderAppendedCrossValues(crossValues, renderValue)
+
+  def renderTaskSeq[A](
+      name: String,
+      values: Seq[A],
+      crossValues: Seq[(String, Seq[A])],
+      renderValue: A => String
+  ): String =
+    renderMemberSeq(name, values, crossValues, renderValue, "()")
+
+  def renderCrossValue[A](
+      crossValues: Seq[(String, A)],
+      renderValue: A => String,
+      defaultValue: String
+  ): String
+
+  def renderAppendedCrossValues[A](
+      crossValues: Seq[(String, Seq[A])],
+      renderValue: A => String
+  ): String
+
+  def renderRepositories(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
+    renderTaskSeq("repositories", values, crossValues, literalize(_))
+
+  def renderMandatoryMvnDeps(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
+    renderTaskSeq("mandatoryMvnDeps", values, crossValues, identity)
+
+  def renderMvnDeps(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
+    renderTaskSeq("mvnDeps", values, crossValues, identity)
+
+  def renderCompileMvnDeps(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
+    renderTaskSeq("compileMvnDeps", values, crossValues, identity)
+
+  def renderRunMvnDeps(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
+    renderTaskSeq("runMvnDeps", values, crossValues, identity)
+
+  def renderModuleDep(dep: JavaModuleConfig.ModuleDep) = {
     import dep.*
-    rootModuleAlias + crossArgs.getOrElse(-1, "") +
-      segments.indices
-        .map(i => "." + backtickWrap(segments(i)) + crossArgs.getOrElse(i, ""))
-        .mkString
+    rootModuleAlias + crossArgs.getOrElse(-1, "") + segments.indices
+      .map(i => "." + backtickWrap(segments(i)) + crossArgs.getOrElse(i, ""))
+      .mkString
   }
 
-  protected def writePublishModuleConfig(ps: PrintStream, config: PublishModuleConfig): Unit = {
-    import config.*
-    if (pomSettings != null)
-      ps.println()
-      ps.println(s"def pomSettings = ${renderPomSettings(pomSettings)}")
-    if (publishVersion != null)
-      ps.println()
-      ps.println(s"def publishVersion = ${literalize(publishVersion)}")
-    versionScheme.foreach: v =>
-      ps.println()
-      ps.println(s"def versionScheme = Some($v)")
-  }
+  def renderModuleDeps(
+      values: Seq[JavaModuleConfig.ModuleDep],
+      crossValues: Seq[(String, Seq[JavaModuleConfig.ModuleDep])]
+  ) = renderMemberSeq("moduleDeps", values, crossValues, renderModuleDep)
 
-  protected def renderPomSettings(pomSettings: PublishModuleConfig.PomSettings): String = {
-    import pomSettings.*
+  def renderCompileModuleDeps(
+      values: Seq[JavaModuleConfig.ModuleDep],
+      crossValues: Seq[(String, Seq[JavaModuleConfig.ModuleDep])]
+  ) = renderMemberSeq("compileModuleDeps", values, crossValues, renderModuleDep)
+
+  def renderRunModuleDeps(
+      values: Seq[JavaModuleConfig.ModuleDep],
+      crossValues: Seq[(String, Seq[JavaModuleConfig.ModuleDep])]
+  ) = renderMemberSeq("runModuleDeps", values, crossValues, renderModuleDep)
+
+  def renderJavacOptions(
+      values: Seq[String],
+      crossValues: Seq[(String, Seq[String])]
+  ) = renderTaskSeq("javacOptions", values, crossValues, literalize(_))
+
+  def renderPomSettings(
+      value: PublishModuleConfig.PomSettings,
+      crossValues: Seq[(String, PublishModuleConfig.PomSettings)]
+  ): String = renderTask("pomSettings", value, crossValues, renderPomSettings)
+
+  def renderPomSettings(value: PublishModuleConfig.PomSettings): String = {
+    import value.*
     s"PomSettings(${
         literalize(description)
       }, ${
@@ -187,8 +337,8 @@ trait BuildWriter {
       })"
   }
 
-  protected def renderLicense(license: PublishModuleConfig.License): String = {
-    import license.*
+  def renderLicense(value: PublishModuleConfig.License) = {
+    import value.*
     s"License(${
         literalize(id)
       }, ${
@@ -204,8 +354,8 @@ trait BuildWriter {
       })"
   }
 
-  protected def renderVersionControl(versionControl: PublishModuleConfig.VersionControl): String = {
-    import versionControl.*
+  def renderVersionControl(value: PublishModuleConfig.VersionControl) = {
+    import value.*
     s"VersionControl(${
         browsableRepository.fold("None")(v => s"Some(${literalize(v)})")
       }, ${
@@ -217,8 +367,8 @@ trait BuildWriter {
       })"
   }
 
-  protected def renderDeveloper(developer: PublishModuleConfig.Developer): String = {
-    import developer.*
+  def renderDeveloper(value: PublishModuleConfig.Developer) = {
+    import value.*
     s"Developer(${
         literalize(id)
       }, ${
@@ -232,51 +382,29 @@ trait BuildWriter {
       })"
   }
 
-  protected def writeScalaModuleConfig(ps: PrintStream, config: ScalaModuleConfig): Unit = {
-    import config.*
-    if (scalaVersion != null)
-      ps.println()
-      ps.println(s"def scalaVersion = ${literalize(scalaVersion)}")
-    if (scalacOptions.nonEmpty)
-      ps.println()
-      ps.println(scalacOptions.map(literalize(_))
-        .mkString("def scalacOptions = super.scalacOptions() ++ Seq(", ", ", ")"))
-    if (scalacPluginMvnDeps.nonEmpty)
-      ps.println()
-      ps.println(scalacPluginMvnDeps
-        .mkString("def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++ Seq(", ", ", ")"))
-  }
+  def renderPublishVersion(value: String, crossValues: Seq[(String, String)]) =
+    renderTask("publishVersion", value, crossValues, literalize(_))
 
-  protected def writeScalaJSModuleConfig(ps: PrintStream, config: ScalaJSModuleConfig): Unit = {
-    import config.*
-    if (scalaJSVersion != null)
-      ps.println()
-      ps.println(s"def scalaJSVersion = ${literalize(scalaJSVersion)}")
-  }
+  def renderVersionScheme(value: Option[String], crossValues: Seq[(String, Option[String])]) =
+    renderTaskOption("versionScheme", value, crossValues, v => s"Some($v)")
 
-  protected def writeScalaNativeModuleConfig(
-      ps: PrintStream,
-      config: ScalaNativeModuleConfig
-  ): Unit = {
-    import config.*
-    if (scalaNativeVersion != null)
-      ps.println()
-      ps.println(s"def scalaNativeVersion = ${literalize(scalaNativeVersion)}")
-  }
+  def renderScalaVersion(value: String, crossValues: Seq[(String, String)]) =
+    renderTask("scalaVersion", value, crossValues, literalize(_))
 
-  protected def writeBaseTrait(ps: PrintStream, baseTrait: BaseTrait): Unit = {
-    import baseTrait.*
-    ps.println()
-    ps.println(s"trait $name ${renderExtendsClause(supertypes ++ mixins)} {")
-    writeModuleConfigs(ps, configs, crossConfigs)
-    ps.println('}')
-  }
+  def renderScalacOptions(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
+    renderTaskSeq("scalacOptions", values, crossValues, literalize(_))
 
-  protected def writeDepsObject(ps: PrintStream, depsObject: DepsObject): Unit = {
-    import depsObject.*
-    ps.println(s"object $name {")
-    refsByDep.toSeq.sortBy(_._2).foreach: (dep, ref) =>
-      ps.println(s"val ${backtickWrap(ref)} = $dep")
-    ps.println('}')
-  }
+  def renderScalacPluginMvnDeps(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
+    renderTaskSeq("scalacPluginMvnDeps", values, crossValues, identity)
+
+  def renderScalaJSVersion(value: String, crossValues: Seq[(String, String)]) =
+    renderTask("scalaJSVersion", value, crossValues, literalize(_))
+
+  def renderScalaNativeVersion(value: String, crossValues: Seq[(String, String)]) =
+    renderTask("scalaNativeVersion", value, crossValues, literalize(_))
+
+  def renderLines(values: IterableOnce[String]) = values.iterator.mkString(
+    """
+      |""".stripMargin
+  )
 }

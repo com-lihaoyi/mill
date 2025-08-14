@@ -4,14 +4,9 @@ import mill.constants.CodeGenConstants.{nestedBuildFileNames, rootBuildFileNames
 object Util {
 
   def scalafmtConfigContent: String =
-    """version = "3.8.4"
+    """version = "3.8.5"
       |runner.dialect = scala213
       |newlines.source=fold
-      |newlines.topLevelStatementBlankLines = [
-      |  {
-      |    blanks { before = 1 }
-      |  }
-      |]
       |""".stripMargin
 
   def scalafmtConfigFile: os.Path =

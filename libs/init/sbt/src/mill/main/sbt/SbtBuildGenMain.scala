@@ -109,7 +109,8 @@ object SbtBuildGenMain {
         )
     .toSeq
 
-    var build = BuildRepr(packages).withDepsObject(DepsObject(depsObjectName))
+    var build = BuildRepr(packages)
+    build = build.withDepsObject(DepsObject(depsObjectName))
     if (!noBaseTraits.value) build = build.withBaseTraits
     if (!noMerge.value) build = build.merged
     SbtBuildWriter.writeFiles(build)

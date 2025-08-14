@@ -22,9 +22,11 @@ object `package` extends PublishModule with SbtModule {
   object test extends SbtTests with TestModule.Munit {
 
     def mandatoryMvnDeps = super.mandatoryMvnDeps() ++ Seq(Deps.munit)
+
   }
 
   object Deps {
+
     val munit = mvn"org.scalameta::munit:0.7.29"
   }
 }
