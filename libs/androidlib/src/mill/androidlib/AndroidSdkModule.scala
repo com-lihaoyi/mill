@@ -134,7 +134,7 @@ trait AndroidSdkModule extends Module {
     Task {
       installAndroidSdkComponents()
       Task.traverse(libs)(p =>
-        Task.Anon { toolPathRef(sdkPath().path / "platforms" / platformsVersion() / p) }
+        Task.Anon { toolPathRef(sdkPath() / "platforms" / platformsVersion() / p) }
       )()
     }
   }
@@ -144,7 +144,7 @@ trait AndroidSdkModule extends Module {
    */
   def androidJarPath: T[PathRef] = Task {
     installAndroidSdkComponents()
-    toolPathRef(sdkPath().path / "platforms" / platformsVersion() / "android.jar")
+    toolPathRef(sdkPath() / "platforms" / platformsVersion() / "android.jar")
   }
 
   /**
@@ -152,7 +152,7 @@ trait AndroidSdkModule extends Module {
    */
   def buildToolsPath: T[PathRef] = Task {
     installAndroidSdkComponents()
-    toolPathRef(sdkPath().path / "build-tools" / buildToolsVersion())
+    toolPathRef(sdkPath() / "build-tools" / buildToolsVersion())
   }
 
   /**
@@ -191,7 +191,7 @@ trait AndroidSdkModule extends Module {
   }
 
   def fontsPath: T[PathRef] = Task {
-    toolPathRef(sdkPath().path / "fonts")
+    toolPathRef(sdkPath() / "fonts")
   }
 
   /**
@@ -209,7 +209,7 @@ trait AndroidSdkModule extends Module {
    * For more information, refer to the official Android documentation [[https://developer.android.com/tools/adb]]
    */
   def adbPath: T[PathRef] = Task {
-    toolPathRef(sdkPath().path / "platform-tools/adb")
+    toolPathRef(sdkPath() / "platform-tools/adb")
   }
 
   /**
@@ -227,7 +227,7 @@ trait AndroidSdkModule extends Module {
    * For more information refer to [[https://developer.android.com/studio/run/emulator]]
    */
   def emulatorPath: T[PathRef] = Task {
-    toolPathRef(sdkPath().path / "emulator/emulator")
+    toolPathRef(sdkPath() / "emulator/emulator")
   }
 
   /**
@@ -235,7 +235,7 @@ trait AndroidSdkModule extends Module {
    * See also [[https://developer.android.com/build/shrink-code]]
    */
   def androidProguardPath: T[PathRef] = Task {
-    toolPathRef(sdkPath().path / "tools/proguard")
+    toolPathRef(sdkPath() / "tools/proguard")
   }
 
   /**
@@ -249,17 +249,17 @@ trait AndroidSdkModule extends Module {
 
   def ndkPath: T[PathRef] = Task {
     installAndroidNdk()
-    toolPathRef(sdkPath().path / "ndk" / ndkVersion())
+    toolPathRef(sdkPath() / "ndk" / ndkVersion())
   }
 
   def ninjaPath: T[PathRef] = Task {
     installAndroidNdk()
-    toolPathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "ninja")
+    toolPathRef(sdkPath() / "cmake" / cmakeVersion() / "bin" / "ninja")
   }
 
   def cmakePath: T[PathRef] = Task {
     installAndroidNdk()
-    toolPathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "cmake")
+    toolPathRef(sdkPath() / "cmake" / cmakeVersion() / "bin" / "cmake")
   }
 
   def cmakeToolchainFilePath: T[PathRef] = Task {
@@ -384,13 +384,13 @@ trait AndroidSdkModule extends Module {
   private def cmdlineToolsPath: Task[PathRef] = Task.Anon {
     AndroidCmdlineToolsLock.synchronized {
       val cmdlineToolsVersionShort = cmdlineToolsVersion()
-      val cmdlineToolsPath0 = sdkPath().path / "cmdline-tools" / cmdlineToolsVersionShort
+      val cmdlineToolsPath0 = sdkPath() / "cmdline-tools" / cmdlineToolsVersionShort
       if (!os.exists(cmdlineToolsPath0)) {
         Task.log.info(
           s"Cmdline tools version $cmdlineToolsVersionShort not found. Downloading and installing, this may take a while..."
         )
         installCmdlineTools(
-          sdkPath().path,
+          sdkPath(),
           millCmdlineToolsVersion(),
           cmdlineToolsVersionShort,
           remoteReposInfo().path,
@@ -435,9 +435,9 @@ trait AndroidSdkModule extends Module {
     // sdkmanager executable and state of the installed package is a shared resource, which can be accessed
     // from the different Android SDK modules.
     AndroidSdkLock.synchronized {
-      val missingPackages = packages.filter(p => !isPackageInstalled(sdkPath0.path, p))
+      val missingPackages = packages.filter(p => !isPackageInstalled(sdkPath0, p))
       val packagesWithoutLicense = missingPackages
-        .map(p => (p, isLicenseAccepted(sdkPath0.path, remoteReposInfo().path, p)))
+        .map(p => (p, isLicenseAccepted(sdkPath0, remoteReposInfo().path, p)))
         .filter(!_._2)
       if (packagesWithoutLicense.nonEmpty) {
         if (autoAcceptLicenses()) {
@@ -485,14 +485,10 @@ trait AndroidSdkModule extends Module {
     }
   }
 
-  private def androidHomeEnv: T[Option[String]] = Task.Input {
+  private def sdkPath: T[os.Path] = Task.Input {
     Task.env.get("ANDROID_HOME")
-      .orElse(Task.env.get("ANDROID_SDK_ROOT"))
-  }
-
-  private def sdkPath: T[PathRef] = Task {
-    androidHomeEnv() match {
-      case Some(x) => PathRef(os.Path(x))
+      .orElse(Task.env.get("ANDROID_SDK_ROOT")) match {
+      case Some(x) => os.Path(x)
       case _ => throw new IllegalStateException("Android SDK location not found. Define a valid" +
           " SDK location with an ANDROID_HOME environment variable.")
     }
