@@ -5,7 +5,7 @@ import coursier.cache.CachePolicy.LocalOnly
 import coursier.cache.FileCache
 import coursier.util.Artifact
 import mill.*
-import mill.api.Result
+import mill.api.{Result, TaskCtx}
 import mill.androidlib.Versions
 
 import java.math.BigInteger
@@ -121,29 +121,22 @@ trait AndroidSdkModule extends Module {
    * Provides all the Android libraries classpaths, including `android.jar` and other necessary files,
    * for the Android R8 tool.
    */
-  def androidLibsClasspaths: T[Seq[PathRef]] = Task {
-    installAndroidSdkComponents()
-    Seq(
-      toolPathRef(sdkPath().path / "platforms" / platformsVersion() / "android.jar")(),
-      toolPathRef(
-        sdkPath().path / "platforms" / platformsVersion() / "core-for-system-modules.jar"
-      )(),
-      toolPathRef(
-        sdkPath().path / "platforms" / platformsVersion() / "optional" / "org.apache.http.legacy.jar"
-      )(),
-      toolPathRef(
-        sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.car.jar"
-      )(),
-      toolPathRef(
-        sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.mock.jar"
-      )(),
-      toolPathRef(
-        sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.base.jar"
-      )(),
-      toolPathRef(
-        sdkPath().path / "platforms" / platformsVersion() / "optional" / "android.test.runner.jar"
-      )()
+  def androidLibsClasspaths: T[Seq[PathRef]] = {
+    val libs = Seq(
+      os.sub / "android.jar",
+      os.sub / "core-for-system-modules.jar",
+      os.sub / "optional" / "org.apache.http.legacy.jar",
+      os.sub / "optional" / "android.car.jar",
+      os.sub / "optional" / "android.test.mock.jar",
+      os.sub / "optional" / "android.test.base.jar",
+      os.sub / "optional" / "android.test.runner.jar"
     )
+    Task {
+      installAndroidSdkComponents()
+      Task.traverse(libs)(p =>
+        Task.Anon { toolPathRef(sdkPath().path / "platforms" / platformsVersion() / p) }
+      )()
+    }
   }
 
   /**
@@ -151,7 +144,7 @@ trait AndroidSdkModule extends Module {
    */
   def androidJarPath: T[PathRef] = Task {
     installAndroidSdkComponents()
-    toolPathRef(sdkPath().path / "platforms" / platformsVersion() / "android.jar")()
+    toolPathRef(sdkPath().path / "platforms" / platformsVersion() / "android.jar")
   }
 
   /**
@@ -159,7 +152,7 @@ trait AndroidSdkModule extends Module {
    */
   def buildToolsPath: T[PathRef] = Task {
     installAndroidSdkComponents()
-    toolPathRef(sdkPath().path / "build-tools" / buildToolsVersion())()
+    toolPathRef(sdkPath().path / "build-tools" / buildToolsVersion())
   }
 
   /**
@@ -167,7 +160,7 @@ trait AndroidSdkModule extends Module {
    */
   def lintToolPath: T[PathRef] = Task {
     installAndroidSdkComponents()
-    toolPathRef(cmdlineToolsPath().path / "bin/lint")()
+    toolPathRef(cmdlineToolsPath().path / "bin/lint")
   }
 
   /**
@@ -176,7 +169,7 @@ trait AndroidSdkModule extends Module {
    * For More Read D8 [[https://developer.android.com/tools/d8 Documentation]]
    */
   def d8Path: T[PathRef] = Task {
-    toolPathRef(buildToolsPath().path / "d8")()
+    toolPathRef(buildToolsPath().path / "d8")
   }
 
   /**
@@ -185,7 +178,7 @@ trait AndroidSdkModule extends Module {
    * For More Read AAPT2 [[https://developer.android.com/tools/aapt2 Documentation]]
    */
   def aapt2Path: T[PathRef] = Task {
-    toolPathRef(buildToolsPath().path / "aapt2")()
+    toolPathRef(buildToolsPath().path / "aapt2")
   }
 
   /**
@@ -194,11 +187,11 @@ trait AndroidSdkModule extends Module {
    * For More Read Zipalign [[https://developer.android.com/tools/zipalign Documentation]]
    */
   def zipalignPath: T[PathRef] = Task {
-    toolPathRef(buildToolsPath().path / "zipalign")()
+    toolPathRef(buildToolsPath().path / "zipalign")
   }
 
   def fontsPath: T[PathRef] = Task {
-    toolPathRef(sdkPath().path / "fonts")()
+    toolPathRef(sdkPath().path / "fonts")
   }
 
   /**
@@ -207,7 +200,7 @@ trait AndroidSdkModule extends Module {
    * For More Read APK Signer [[https://developer.android.com/tools/apksigner Documentation]]
    */
   def apksignerPath: T[PathRef] = Task {
-    toolPathRef(buildToolsPath().path / "apksigner")()
+    toolPathRef(buildToolsPath().path / "apksigner")
   }
 
   /**
@@ -216,7 +209,7 @@ trait AndroidSdkModule extends Module {
    * For more information, refer to the official Android documentation [[https://developer.android.com/tools/adb]]
    */
   def adbPath: T[PathRef] = Task {
-    toolPathRef(sdkPath().path / "platform-tools/adb")()
+    toolPathRef(sdkPath().path / "platform-tools/adb")
   }
 
   /**
@@ -225,7 +218,7 @@ trait AndroidSdkModule extends Module {
    *  For more information refer to the official Android documentation [[https://developer.android.com/tools/avdmanager]]
    */
   def avdPath: T[PathRef] = Task {
-    toolPathRef(cmdlineToolsPath().path / "bin/avdmanager")()
+    toolPathRef(cmdlineToolsPath().path / "bin/avdmanager")
   }
 
   /**
@@ -234,7 +227,7 @@ trait AndroidSdkModule extends Module {
    * For more information refer to [[https://developer.android.com/studio/run/emulator]]
    */
   def emulatorPath: T[PathRef] = Task {
-    toolPathRef(sdkPath().path / "emulator/emulator")()
+    toolPathRef(sdkPath().path / "emulator/emulator")
   }
 
   /**
@@ -242,7 +235,7 @@ trait AndroidSdkModule extends Module {
    * See also [[https://developer.android.com/build/shrink-code]]
    */
   def androidProguardPath: T[PathRef] = Task {
-    toolPathRef(sdkPath().path / "tools/proguard")()
+    toolPathRef(sdkPath().path / "tools/proguard")
   }
 
   /**
@@ -251,27 +244,27 @@ trait AndroidSdkModule extends Module {
    * @return A task containing a [[PathRef]] pointing to the r8 directory.
    */
   def r8Exe: T[PathRef] = Task {
-    toolPathRef(cmdlineToolsPath().path / "bin/r8")()
+    toolPathRef(cmdlineToolsPath().path / "bin/r8")
   }
 
   def ndkPath: T[PathRef] = Task {
     installAndroidNdk()
-    toolPathRef(sdkPath().path / "ndk" / ndkVersion())()
+    toolPathRef(sdkPath().path / "ndk" / ndkVersion())
   }
 
   def ninjaPath: T[PathRef] = Task {
     installAndroidNdk()
-    toolPathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "ninja")()
+    toolPathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "ninja")
   }
 
   def cmakePath: T[PathRef] = Task {
     installAndroidNdk()
-    toolPathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "cmake")()
+    toolPathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "cmake")
   }
 
   def cmakeToolchainFilePath: T[PathRef] = Task {
     installAndroidNdk()
-    toolPathRef(ndkPath().path / "build" / "cmake" / "android.toolchain.cmake")()
+    toolPathRef(ndkPath().path / "build" / "cmake" / "android.toolchain.cmake")
   }
 
   def autoAcceptLicenses: T[Boolean] = Task {
@@ -567,7 +560,7 @@ object AndroidSdkModule {
    */
   val mavenGoogle: MavenRepository = MavenRepository("https://maven.google.com/")
 
-  private def toolPathRef(path: os.Path): Task[PathRef] = Task.Anon {
+  private def toolPathRef(path: os.Path)(using TaskCtx): PathRef = {
     os.exists(path) match {
       case true => PathRef(path).withRevalidateOnce
       case false => Task.fail(s"Tool at path ${path} does not exist")
