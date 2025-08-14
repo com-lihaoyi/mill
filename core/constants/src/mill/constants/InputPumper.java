@@ -30,7 +30,7 @@ public class InputPumper implements Runnable {
     var src = src0.get();
     var dest = dest0.get();
 
-    var buffer = new byte[16 * 1024 /* 16kb, otherwise it's too slow. */];
+    var buffer = new byte[1024 /* 1kb */];
     try {
       while (running) {
         if (checkAvailable && src.available() == 0)

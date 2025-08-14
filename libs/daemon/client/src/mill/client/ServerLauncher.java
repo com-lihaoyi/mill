@@ -9,6 +9,9 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import mill.client.debug.DebuggingInputStream;
+import mill.client.debug.DebuggingOutputStream;
 import mill.client.lock.Lock;
 import mill.client.lock.Locks;
 import mill.constants.DaemonFiles;
@@ -65,8 +68,9 @@ public abstract class ServerLauncher {
       Consumer<OutputStream> sendInitData,
       RunClientLogic<A> runClientLogic)
       throws Exception {
-    var socketInputStream = connection.getInputStream();
-    var socketOutputStream = connection.getOutputStream();
+    var wd = Paths.get(".");
+    var socketInputStream = new DebuggingInputStream(connection.getInputStream(), wd, "in_" + debugName, true);
+    var socketOutputStream = new DebuggingOutputStream(connection.getOutputStream(), wd, "out_" + debugName, true);
     sendInitData.accept(socketOutputStream);
     socketOutputStream.flush();
     var pumperThread = startStreamPumpers(socketInputStream, socketOutputStream, streams, debugName);
