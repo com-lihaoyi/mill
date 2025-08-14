@@ -169,7 +169,7 @@ object Deps {
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.4"
+  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.9"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
   val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.3-M5"
@@ -187,7 +187,7 @@ object Deps {
   val jarjarabrams =
     mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.1".withDottyCompat(scalaVersion)
   val requests = mvn"com.lihaoyi::requests:0.9.0"
-  val logback = mvn"ch.qos.logback:logback-classic:1.5.17"
+  val logback = mvn"ch.qos.logback:logback-classic:1.5.18"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"
   val kotlinVersion = "2.1.20"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
