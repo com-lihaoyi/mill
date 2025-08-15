@@ -157,10 +157,13 @@ public class MillProcessLauncher {
   static String millJvmVersion() throws Exception {
     List<String> res = loadMillConfig("mill-jvm-version");
     if (res.isEmpty()) {
-      throw new Exception(
+      if (System.getenv("MILL_TEST_SUITE_USE_SYSTEM_JAVA") != null) return null;
+      else {
+        throw new Exception(
           "mill-jvm-version not set, and is required since Mill 1.1.0. Please set this inyour"
-              + " build header to specify the version of the JVM this project should use, e.g."
-              + " `//| mill-jvm-version: 17` or `//| mill-jvm-version: temurin:17.0.16`");
+            + " build header to specify the version of the JVM this project should use, e.g."
+            + " `//| mill-jvm-version: 17` or `//| mill-jvm-version: temurin:17.0.16`");
+      }
     } else return res.get(0);
   }
 
@@ -173,26 +176,15 @@ public class MillProcessLauncher {
   }
 
   static String javaHome() throws Exception {
-    String jvmId = null;
-    jvmId = millJvmVersion();
+    final String jvmId = millJvmVersion();
 
     String javaHome = null;
-    if (jvmId == null) {
-      boolean systemJavaExists =
-          new ProcessBuilder(isWin() ? "where" : "which", "java").start().waitFor() == 0;
-      if (systemJavaExists && System.getenv("MILL_TEST_SUITE_IGNORE_SYSTEM_JAVA") == null) {
-        jvmId = null;
-      } else {
-        jvmId = mill.client.BuildInfo.defaultJvmId;
-      }
-    }
 
     if (jvmId != null) {
-      final String jvmIdFinal = jvmId;
       javaHome = cachedComputedValue0(
           "java-home",
           jvmId,
-          () -> new String[] {CoursierClient.resolveJavaHome(jvmIdFinal).getAbsolutePath()},
+          () -> new String[] {CoursierClient.resolveJavaHome(jvmId).getAbsolutePath()},
           // Make sure we check to see if the saved java home exists before using
           // it, since it may have been since uninstalled, or the `out/` folder
           // may have been transferred to a different machine
