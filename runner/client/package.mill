@@ -16,7 +16,7 @@ object `package` extends MillPublishJavaModule with BuildInfo {
 
   def buildInfoMembers = Seq(
     BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
-    BuildInfo.Value("defaultJvmId", os.read(build.defaultMillJvmVersion().path).trim())
+    BuildInfo.Value("defaultJvmId", build.defaultMillJvmVersion())
   )
 
   def moduleDeps = Seq(build.libs.daemon.client)
