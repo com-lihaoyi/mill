@@ -160,7 +160,7 @@ public class MillProcessLauncher {
       if (System.getenv("MILL_TEST_SUITE_USE_SYSTEM_JAVA") != null) return null;
       else {
         throw new Exception(
-          "mill-jvm-version not set, and is required since Mill 1.1.0. Please set this inyour"
+          "mill-jvm-version not set, and is required since Mill 1.1.0. Please set this in your"
             + " build header to specify the version of the JVM this project should use, e.g."
             + " `//| mill-jvm-version: 17` or `//| mill-jvm-version: temurin:17.0.16`");
       }
