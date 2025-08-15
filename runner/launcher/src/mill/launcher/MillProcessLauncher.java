@@ -158,7 +158,7 @@ public class MillProcessLauncher {
     List<String> res = loadMillConfig("mill-jvm-version");
     if (res.isEmpty()) {
       throw new Exception(
-        "mill-jvm-version not set. Please set this in" +
+        "mill-jvm-version not set, and is required since Mill 1.1.0. Please set this in" +
           "your build header to specify the version of the JVM this project " +
           "should use, e.g. `//| mill-jvm-version: 17`, " +
           "`//| mill-jvm-version: temurin:17`, or `//| mill-jvm-version: system` " +
