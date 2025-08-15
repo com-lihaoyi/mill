@@ -9,9 +9,12 @@ trait IntegrationTesterBase {
 
   def propagateJavaHome: Boolean
 
-  def millTestSuiteEnv: Map[String, String] = (
-    Option.when(propagateJavaHome)("JAVA_HOME" -> sys.props("java.home"))
-  ).toMap
+  def millTestSuiteEnv: Map[String, String] =
+    if (!propagateJavaHome) Map.empty
+    else Map(
+      "JAVA_HOME" -> sys.props("java.home"),
+      "MILL_TEST_SUITE_USE_SYSTEM_JAVA" -> "1"
+    )
 
   /**
    * The working directory of the integration test suite, which is the root of the
