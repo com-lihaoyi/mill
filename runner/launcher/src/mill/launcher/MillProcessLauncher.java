@@ -160,7 +160,7 @@ public class MillProcessLauncher {
       throw new Exception(
         "mill-jvm-version not set, and is required since Mill 1.1.0. Please set this in"
           + "your build header to specify the version of the JVM this project "
-          + "should use, e.g. `//| mill-jvm-version: 17` or `//| mill-jvm-version: temurin:17`"
+          + "should use, e.g. `//| mill-jvm-version: 17` or `//| mill-jvm-version: temurin:17.0.16`"
       );
     }
     else return res.get(0);
