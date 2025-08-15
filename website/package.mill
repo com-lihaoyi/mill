@@ -210,7 +210,7 @@ object `package` extends mill.Module {
       displayVersion: String,
       millVersion: String,
       millDownloadUrl: String,
-      defaultMillJvmVersion: String,
+      defaultMillJvmVersion: String
   ): Unit = {
     val isPreRelease = version == "main-branch" || Seq("-M", "-RC").exists(version.contains)
     val preReleaseSuffix = if (isPreRelease) "\nprerelease: true" else ""

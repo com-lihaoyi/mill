@@ -248,7 +248,7 @@ object `package` extends MillJavaModule with DistModule {
         os.write.over(
           buildMill,
           s"//| mill-version: ${build.millVersion()}\n" +
-          s"//| mill-jvm-version: ${build.defaultMillJvmVersion()}\n" +
+            s"//| mill-jvm-version: ${build.defaultMillJvmVersion()}\n" +
             os.read(buildMill)
         )
         os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
