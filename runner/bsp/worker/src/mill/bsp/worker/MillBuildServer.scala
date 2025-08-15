@@ -394,7 +394,7 @@ private class MillBuildServer(
 
   override def buildTargetInverseSources(p: InverseSourcesParams)
       : CompletableFuture[InverseSourcesResult] = {
-    handlerEvaluators() { (state, _) =>
+    handlerEvaluators() { (state, logger) =>
       val tasksEvaluators = state.bspModulesIdList.collect {
         case (id, (m: JavaModuleApi, ev)) =>
           (
@@ -404,7 +404,17 @@ private class MillBuildServer(
       }
 
       val ids = groupList(tasksEvaluators)(_.evaluator)(_.result)
-        .flatMap { case (ev, ts) => ev.executeApi(ts).values.get }
+        .flatMap {
+          case (ev, ts) =>
+            ev
+              .executeApi(
+                tasks = ts,
+                reporter = Utils.getBspLoggedReporterPool("", state.bspIdByModule, client),
+                logger = logger
+              )
+              .values
+              .get
+        }
         .flatten
 
       new InverseSourcesResult(ids.asJava)
@@ -792,14 +802,14 @@ private class MillBuildServer(
 
       // group by evaluator (different root module)
       val groups0 = groupList(tasksSeq)(_._2._1) {
-        case (tasks, (_, id, m)) => (id, m.bspDisplayName, tasks)
+        case (tasks, (_, id, m)) => (id, m, tasks)
       }
 
       val evaluated = groups0.flatMap {
         case (ev, targetIdTasks) =>
           val requestDescription0 = requestDescription.replace(
             "{}",
-            targetIdTasks.map(_._2).mkString(", ")
+            targetIdTasks.map(_._2.bspDisplayName).mkString(", ")
           )
           val results = evaluate(
             ev,
@@ -809,11 +819,11 @@ private class MillBuildServer(
             reporter = Utils.getBspLoggedReporterPool(originId, state.bspIdByModule, client)
           )
           val resultsById = targetIdTasks.flatMap {
-            case (id, _, task) =>
+            case (id, m, task) =>
               results.transitiveResultsApi(task)
                 .asSuccess
                 .map(_.value.value.asInstanceOf[W])
-                .map((id, _))
+                .map((id, m, _))
           }
 
           def logError(id: BuildTargetIdentifier, errorMsg: String): Unit = {
@@ -823,8 +833,8 @@ private class MillBuildServer(
           }
 
           resultsById.flatMap {
-            case (id, values) =>
-              try Seq(block(ev, state, id, state.bspModulesById(id)._1, values))
+            case (id, m, values) =>
+              try Seq(block(ev, state, id, m, values))
               catch {
                 case NonFatal(e) =>
                   logError(id, e.toString)

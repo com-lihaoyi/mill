@@ -121,6 +121,14 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
 
       os.copy.over(workspacePath / "build.mill.broken", workspacePath / "build.mill")
 
+      eval(
+        ("--bsp-install", "--jobs", "1"),
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
+      )
+
       var didChangePromise = Promise[b.DidChangeBuildTarget]()
 
       val client = new DummyBuildClient {
@@ -131,8 +139,7 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
       withBspServer(
         workspacePath,
         millTestSuiteEnv,
-        client = client,
-        millExecutableNoBspFile = Some(tester.millExecutable)
+        client = client
       ) { (buildServer, initRes) =>
 
         compareWithGsonSnapshot(

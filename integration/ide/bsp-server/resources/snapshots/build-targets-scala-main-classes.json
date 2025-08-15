@@ -42,6 +42,24 @@
           ]
         }
       ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/sourcesNeedCompile"
+      },
+      "classes": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/mill-build"
+      },
+      "classes": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/mill-build/mill-build"
+      },
+      "classes": []
     }
   ]
 }

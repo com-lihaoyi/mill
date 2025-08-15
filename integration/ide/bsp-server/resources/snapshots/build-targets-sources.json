@@ -250,6 +250,33 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/mill-build/mill-build"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/mill-build/build.mill",
+          "kind": 1,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/mill-build/mill-build/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/out/mill-build/mill-build/generatedScriptSources.dest/support",
+          "kind": 2,
+          "generated": true
+        },
+        {
+          "uri": "file:///workspace/out/mill-build/mill-build/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/mill-synthetic-root-target"
       },
       "sources": [
@@ -257,6 +284,23 @@
           "uri": "file:///workspace/src",
           "kind": 2,
           "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/sourcesNeedCompile"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/sourcesNeedCompile/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/out/sourcesNeedCompile/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
         }
       ]
     }
