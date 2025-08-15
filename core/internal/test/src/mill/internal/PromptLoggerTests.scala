@@ -9,8 +9,8 @@ object PromptLoggerTests extends TestSuite {
 
   def setup(now: () => Long, terminfoPath: os.Path) = {
     val baos = new ByteArrayOutputStream()
-    val baosOut = new PrintStream(new ProxyStream.Output(baos, ProxyStream.OUT))
-    val baosErr = new PrintStream(new ProxyStream.Output(baos, ProxyStream.ERR))
+    val baosOut = new PrintStream(new ProxyStream.Output(baos, ProxyStream.StreamType.OUT))
+    val baosErr = new PrintStream(new ProxyStream.Output(baos, ProxyStream.StreamType.ERR))
     val promptLogger = new PromptLogger(
       colored = false,
       enableTicker = true,

@@ -286,9 +286,9 @@ private[mill] object PromptLogger {
     // `ProxyStream`, as we need to preserve the ordering of writes to each individual
     // stream, and also need to know when *both* streams are quiescent so that we can
     // print the prompt at the bottom
-    val pipe = new PipeStreams()
-    val proxyOut = new ProxyStream.Output(pipe.output, ProxyStream.OUT)
-    val proxyErr: ProxyStream.Output = new ProxyStream.Output(pipe.output, ProxyStream.ERR)
+    val pipe = PipeStreams()
+    val proxyOut = ProxyStream.Output(pipe.output, ProxyStream.StreamType.OUT)
+    val proxyErr = ProxyStream.Output(pipe.output, ProxyStream.StreamType.ERR)
     val proxySystemStreams = new SystemStreams(
       new PrintStream(proxyOut),
       new PrintStream(proxyErr),
@@ -330,7 +330,7 @@ private[mill] object PromptLogger {
       private var lastCharWritten = 0.toChar
 
       // Make sure we synchronize everywhere
-      override def preRead(src: InputStream): Unit = synchronizer.synchronized {
+      override def preRead(src: DataInputStream): Unit = synchronizer.synchronized {
 
         if (
           enableTicker &&

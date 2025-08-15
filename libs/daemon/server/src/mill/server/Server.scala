@@ -1,14 +1,13 @@
 package mill.server
 
 import mill.client.lock.{Lock, Locks}
-import mill.constants.{DaemonFiles, InputPumper, ProxyStream}
+import mill.constants.{DaemonFiles, SocketUtil}
 import sun.misc.{Signal, SignalHandler}
 
-import java.io.{InputStream, PipedInputStream, PipedOutputStream, PrintStream}
-import java.net.{InetAddress, Socket, SocketAddress}
+import java.io.{BufferedInputStream, BufferedOutputStream}
+import java.net.{InetAddress, Socket, SocketAddress, SocketException}
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -16,16 +15,10 @@ import scala.util.control.NonFatal
 /**
  * Implementation of a server that binds to a random port, informs a client of the port, and accepts a client
  * connections.
- *
- * @param daemonDir directory used for exchanging pre-TCP data with a client
- * @param acceptTimeout shuts down after this timeout if no clients are connected
  */
-abstract class Server(
-    daemonDir: os.Path,
-    acceptTimeout: Option[FiniteDuration],
-    locks: Locks,
-    testLogEvenWhenServerIdWrong: Boolean = false
-) {
+abstract class Server(args: Server.Args) {
+  import args.*
+
   val processId: Long = Server.computeProcessId()
   private val acceptTimeoutMillis = acceptTimeout.map(_.toMillis)
   private val handlerName = getClass.getName
@@ -43,36 +36,67 @@ abstract class Server(
 
   protected type PreHandleConnectionData
 
+  protected case class ConnectionData(
+      socketInfo: Server.SocketInfo,
+      clientToServer: BufferedInputStream,
+      serverToClient: BufferedOutputStream,
+      initialSystemProperties: Map[String, String]
+  )
+
   /**
    * Invoked before a thread that runs [[handleConnection]] is spawned.
    */
   protected def preHandleConnection(
-      socketInfo: Server.SocketInfo,
-      stdin: InputStream,
-      stdout: PrintStream,
-      stderr: PrintStream,
-      stopServer: Server.StopServer,
-      initialSystemProperties: Map[String, String]
+      connectionData: ConnectionData,
+      stopServer: Server.StopServer
   ): PreHandleConnectionData
 
   /**
    * Handle a single client connection in a separate thread.
-   *
-   * @return the exit code to return to the client
    */
   protected def handleConnection(
-      socketInfo: Server.SocketInfo,
-      stdin: InputStream,
-      stdout: PrintStream,
-      stderr: PrintStream,
+      connectionData: ConnectionData,
       stopServer: Server.StopServer,
       setIdle: Server.SetIdle,
-      initialSystemProperties: Map[String, String],
       data: PreHandleConnectionData
-  ): Int
+  ): Unit
+
+  /** Invoked in [[handleConnection]] results in an exception. */
+  protected def onExceptionInHandleConnection(
+      connectionData: ConnectionData,
+      stopServer: Server.StopServer,
+      data: PreHandleConnectionData,
+      exception: Throwable
+  ): Unit
+
+  protected def beforeSocketClose(
+      connectionData: ConnectionData,
+      stopServer: Server.StopServer,
+      data: PreHandleConnectionData
+  ): Unit
 
   protected def connectionHandlerThreadName(socket: Socket): String =
     s"ConnectionHandler($handlerName, ${socket.getInetAddress}:${socket.getPort})"
+
+  /** Returns true if the client is still alive. Invoked from another thread. */
+  protected def checkIfClientAlive(
+      connectionData: ConnectionData,
+      stopServer: Server.StopServer,
+      data: PreHandleConnectionData
+  ): Boolean
+
+  /**
+   * Invoked when the server is stopped.
+   *
+   * @param data will be [[None]] if [[preHandleConnection]] haven't been invoked yet.
+   */
+  protected def onStopServer(
+      from: String,
+      reason: String,
+      exitCode: Int,
+      connectionData: ConnectionData,
+      data: Option[PreHandleConnectionData]
+  ): Unit
 
   def run(): Unit = {
     serverLog(s"running server in $daemonDir")
@@ -183,10 +207,7 @@ abstract class Server(
 
             socketOpt match {
               case Some(sock) =>
-                val socketInfo = Server.SocketInfo(
-                  remote = sock.getRemoteSocketAddress,
-                  local = sock.getLocalSocketAddress
-                )
+                val socketInfo = Server.SocketInfo(sock)
                 serverLog(s"handling run for $socketInfo")
                 new Thread(
                   () =>
@@ -246,88 +267,83 @@ abstract class Server(
       initialSystemProperties: Map[String, String],
       serverSocketClose: () => Unit
   ): Unit = {
+    val clientToServer = BufferedInputStream(clientSocket.getInputStream, bufferSize)
+    val serverToClient = BufferedOutputStream(clientSocket.getOutputStream, bufferSize)
 
-    /** stdout and stderr combined into one stream */
-    val currentOutErr = clientSocket.getOutputStream
-    val writtenExitCode = AtomicBoolean()
+    val connectionData =
+      ConnectionData(socketInfo, clientToServer, serverToClient, initialSystemProperties)
 
-    def writeExitCode(code: Int): Unit = {
-      if (!writtenExitCode.getAndSet(true)) {
-        ProxyStream.sendEnd(currentOutErr, code)
-      }
+    def stopServer(
+        from: String,
+        reason: String,
+        exitCode: Int,
+        data: Option[PreHandleConnectionData]
+    ): Nothing = {
+      serverLog(s"$from invoked `stopServer` (reason: $reason), exitCode $exitCode")
+      onStopServer(from, reason, exitCode, connectionData, data)
+      systemExit0(reason, exitCode)
     }
+
+    val data = preHandleConnection(
+      connectionData,
+      stopServer =
+        (reason, exitCode) => stopServer("pre-connection handler", reason, exitCode, data = None)
+    )
 
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
     // detect client-side connection closing, so instead we send a no-op heartbeat
     // message to see if the socket can receive data.
+    @volatile var lastClientAlive = true
+    val stopServerFromCheckClientAlive: Server.StopServer = (reason, exitCode) =>
+      stopServer("checkClientAlive", reason, exitCode, Some(data))
     def checkClientAlive() = {
-      try {
-        ProxyStream.sendHeartbeat(currentOutErr)
-        true
-      } catch {
-        case NonFatal(err) =>
-          serverLog(
-            s"error sending heartbeat, client seems to be dead: $err\n\n${err.getStackTrace.mkString("\n")}"
-          )
-          false
-      }
-    }
-
-    def stopServer(from: String, reason: String, exitCode: Int) = {
-      serverLog(s"$from invoked `stopServer` (reason: $reason), exitCode $exitCode")
-      writeExitCode(exitCode)
-      systemExit0(reason, exitCode)
+      val result =
+        try checkIfClientAlive(connectionData, stopServerFromCheckClientAlive, data)
+        catch {
+          case NonFatal(err) =>
+            serverLog(
+              s"error checking for client liveness, assuming client to be dead: $err\n\n${err.getStackTrace.mkString("\n")}"
+            )
+            false
+        }
+      lastClientAlive = result
+      result
     }
 
     try {
-      val socketIn = clientSocket.getInputStream
-
-      val stdout = new PrintStream(new ProxyStream.Output(currentOutErr, ProxyStream.OUT), true)
-      val stderr = new PrintStream(new ProxyStream.Output(currentOutErr, ProxyStream.ERR), true)
-
-      val data = preHandleConnection(
-        socketInfo = socketInfo,
-        stdin = socketIn,
-        stdout = stdout,
-        stderr = stderr,
-        stopServer =
-          (reason, exitCode) => stopServer("pre-connection handler", reason, exitCode),
-        initialSystemProperties = initialSystemProperties
-      )
-
       @volatile var done = false
       @volatile var idle = false
+      @volatile var writingExceptionLog = false
       val t = new Thread(
         () =>
           try {
-            // Proxy the input stream through a pair of Piped**putStream via a pumper,
-            // as the `UnixDomainSocketInputStream` we get directly from the socket does
-            // not properly implement `available(): Int` and thus messes up polling logic
-            // that relies on that method
-            //
-            // TODO: this seems to be a leftover from the times when unix sockets were used, we should try removing it
-            // in a separate PR.
-            val proxiedSocketInput = Server.proxyInputStreamThroughPumper(socketIn)
-
-            val exitCode = handleConnection(
-              socketInfo = socketInfo,
-              stdin = proxiedSocketInput,
-              stdout = stdout,
-              stderr = stderr,
+            handleConnection(
+              connectionData,
               stopServer =
-                (reason, exitCode) => stopServer("connection handler", reason, exitCode),
+                (reason, exitCode) =>
+                  stopServer("connection handler", reason, exitCode, Some(data)),
               setIdle = idle = _,
-              initialSystemProperties = initialSystemProperties,
               data = data
             )
-
-            serverLog(s"connection handler finished, sending exitCode $exitCode to client")
-            writeExitCode(exitCode)
           } catch {
+            case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
             case e: Throwable =>
-              serverLog("connection handler error: " + e)
-              serverLog("connection handler stack trace: " + e.getStackTrace.mkString("\n"))
-              writeExitCode(1)
+              writingExceptionLog = true
+              try {
+                serverLog(
+                  s"""connection handler error: $e
+                     |connection handler stack trace: ${e.getStackTrace.mkString("\n")}
+                     |""".stripMargin
+                )
+              } finally writingExceptionLog = false
+              onExceptionInHandleConnection(
+                connectionData,
+                stopServer =
+                  (reason, exitCode) =>
+                    stopServer("onExceptionInHandleConnection", reason, exitCode, Some(data)),
+                data = data,
+                exception = e
+              )
           } finally {
             done = true
             idle = true
@@ -346,6 +362,11 @@ abstract class Server(
         serverSocketClose()
       }
 
+      serverLog(s"done=$done, idle=$idle, lastClientAlive=$lastClientAlive")
+
+      // Wait until exception log writer finishes.
+      while (writingExceptionLog) Thread.sleep(1)
+
       t.interrupt()
       // Try to give thread a moment to stop before we kill it for real
       //
@@ -360,22 +381,30 @@ abstract class Server(
         case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
         // ignore this error and do nothing; seems benign
       }
-
-      // flush before closing the socket
-      System.out.flush()
-      System.err.flush()
     } finally {
-      try writeExitCode(1) // Send a termination if it has not already happened
-      catch {
-        case NonFatal(err) =>
-          serverLog(
-            s"error sending exit code 1, client seems to be dead: $err\n\n${err.getStackTrace.mkString("\n")}"
-          )
-      }
+      beforeSocketClose(
+        connectionData,
+        stopServer =
+          (reason, exitCode) => stopServer("beforeSocketClose", reason, exitCode, Some(data)),
+        data
+      )
     }
   }
 }
 object Server {
+
+  /**
+   * @param daemonDir directory used for exchanging pre-TCP data with a client
+   * @param acceptTimeout shuts down after this timeout if no clients are connected
+   * @param bufferSize size of the buffer used to read/write from/to the client
+   */
+  case class Args(
+      daemonDir: os.Path,
+      acceptTimeout: Option[FiniteDuration],
+      locks: Locks,
+      bufferSize: Int,
+      testLogEvenWhenServerIdWrong: Boolean = false
+  )
 
   /**
    * @param remote the address of the client
@@ -384,8 +413,12 @@ object Server {
   case class SocketInfo(remote: SocketAddress, local: SocketAddress) {
     override def toString: String = s"SocketInfo(remote=$remote, local=$local)"
   }
+  object SocketInfo {
+    def apply(socket: Socket): SocketInfo =
+      apply(socket.getRemoteSocketAddress, socket.getLocalSocketAddress)
+  }
 
-  /** Immediately stops the server reporting the provided exit code to all clients. */
+  /** Immediately stops the server with the given exit code. */
   @FunctionalInterface trait StopServer {
     def apply(reason: String, exitCode: Int): Nothing
   }
@@ -467,15 +500,5 @@ object Server {
           None
         }
     }
-  }
-
-  private def proxyInputStreamThroughPumper(in: InputStream): PipedInputStream = {
-    val pipedInput = new PipedInputStream()
-    val pipedOutput = new PipedOutputStream(pipedInput)
-    val pumper = new InputPumper(() => in, () => pipedOutput, /* checkAvailable */ false)
-    val pumperThread = new Thread(pumper, "proxyInputStreamThroughPumper")
-    pumperThread.setDaemon(true)
-    pumperThread.start()
-    pipedInput
   }
 }

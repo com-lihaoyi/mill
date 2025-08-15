@@ -23,12 +23,13 @@ abstract class MillDaemonServer[State](
     acceptTimeout: FiniteDuration,
     locks: Locks,
     testLogEvenWhenServerIdWrong: Boolean = false
-) extends Server(
+) extends ProxyStreamServer(Server.Args(
       daemonDir = daemonDir,
       acceptTimeout = Some(acceptTimeout),
       locks = locks,
-      testLogEvenWhenServerIdWrong = testLogEvenWhenServerIdWrong
-    ) {
+      testLogEvenWhenServerIdWrong = testLogEvenWhenServerIdWrong,
+      bufferSize = 4 * 1024
+    )) {
   def outLock: mill.client.lock.Lock
   def out: os.Path
 
@@ -43,11 +44,11 @@ abstract class MillDaemonServer[State](
   override protected def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
 
-  protected override type PreHandleConnectionData = ClientInitData
+  override protected type PreHandleConnectionCustomData = ClientInitData
 
   override protected def preHandleConnection(
       socketInfo: Server.SocketInfo,
-      stdin: InputStream,
+      stdin: BufferedInputStream,
       stdout: PrintStream,
       stderr: PrintStream,
       stopServer: Server.StopServer,
@@ -104,14 +105,14 @@ abstract class MillDaemonServer[State](
 
   override protected def handleConnection(
       socketInfo: Server.SocketInfo,
-      stdin: InputStream,
+      stdin: BufferedInputStream,
       stdout: PrintStream,
       stderr: PrintStream,
       stopServer: Server.StopServer,
       setIdle: Server.SetIdle,
       initialSystemProperties: Map[String, String],
       data: ClientInitData
-  ): Int = {
+  ) = {
     val (result, newStateCache) = main0(
       data.args,
       stateCache,
@@ -140,6 +141,18 @@ abstract class MillDaemonServer[State](
       initialSystemProperties: Map[String, String],
       stopServer: Server.StopServer
   ): (Boolean, State)
+
+  override protected def beforeSocketClose(
+      connectionData: ConnectionData,
+      stopServer: Server.StopServer,
+      data: ProxyStreamServerData
+  ): Unit = {
+    // flush before closing the socket
+    System.out.flush()
+    System.err.flush()
+
+    super.beforeSocketClose(connectionData, stopServer, data)
+  }
 }
 
 object MillDaemonServer {
