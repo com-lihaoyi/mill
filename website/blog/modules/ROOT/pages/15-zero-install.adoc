@@ -12,9 +12,10 @@ https://github.com/orgs/Homebrew/discussions/1177[Homebrew being terribly slow] 
 https://www.reddit.com/r/Ubuntu/comments/1j3ldpm/why_are_all_my_apt_programs_so_outdated/[the versions available are all outdated].
 It's common to find it difficult to build a codebase downloaded from Github because
 you can't figure out not just what dependencies you need to install first on your machine,
-but what versions of those specific dependencies. Worse, you may find that the dependencies
+but what versions of those specific dependencies. You may find that the dependencies
 for one project conflict with the dependencies for another, making it impossible to get both
-working on the same machine!
+working on the same machine. or you may end up with set of installs that differs from what
+is present in CI, resulting in code that works on one machine but fails on another.
 
 The Mill build tool does something interesting here: unlike most CLI tools out there, it
 requires no installation at all! Mill uses a `./mill` or `./mill.bat` bootstrap script that
