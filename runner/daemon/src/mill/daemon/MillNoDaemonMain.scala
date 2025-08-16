@@ -9,7 +9,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 object MillNoDaemonMain {
-  def main(args: Array[String]): Unit = mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
+  def main(args0: Array[String]): Unit = mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
     val initialSystemStreams = mill.api.SystemStreams.original
 
     if (Properties.isWin && Util.hasConsole())
@@ -21,8 +21,11 @@ object MillNoDaemonMain {
       // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
       sys.props("coursier.windows.disable-ffm") = "true"
 
+    val args = MillDaemonMain.Args(getClass.getName, args0)
+      .fold(err => throw IllegalArgumentException(err), identity)
+
     val processId = Server.computeProcessId()
-    val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
+    val out = os.Path(OutFiles.outFor(args.outMode), BuildCtx.workspaceRoot)
     Server.watchProcessIdFile(
       out / OutFiles.millNoDaemon / s"pid-$processId" / DaemonFiles.processId,
       processId,
@@ -36,10 +39,9 @@ object MillNoDaemonMain {
 
     val outLock = MillMain0.doubleLock(out)
 
-    val daemonDir = os.Path(args.head)
     val (result, _) =
       try main0(
-          args = args.tail,
+          args = args.rest.toArray,
           stateCache = RunnerState.empty,
           mainInteractive = mill.constants.Util.hasConsole(),
           streams0 = initialSystemStreams,
@@ -48,7 +50,7 @@ object MillNoDaemonMain {
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap,
           systemExit = ( /*reason*/ _, exitCode) => sys.exit(exitCode),
-          daemonDir = daemonDir,
+          daemonDir = args.daemonDir,
           outLock = outLock
         )
       catch handleMillException(initialSystemStreams.err, ())

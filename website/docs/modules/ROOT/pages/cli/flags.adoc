@@ -60,7 +60,11 @@ options:
   -D --define <k=v>    Define (or overwrite) a system property.
   --allow-positional   Allows command args to be passed positionally without `--arg` by default
   -b --bell            Ring the bell once if the run completes successfully, twice if it fails.
-  --bsp                Enable BSP server mode.
+  --bsp                Enable BSP server mode. When running Mill in BSP mode, default output directory is
+                       `out/mill-bsp-out` under the project workspace. This ensures BSP mode is not blocked by regular
+                       Mill operations, however this also means that we need to compile the sources twice, which incurs
+                       extra CPU and memory usage. If you'd rather reuse regular `out/` directory, set
+                       the `MILL_MERGE_BSP_OUTPUT_DIR` environment variable to `1`.
   --color <bool>       Toggle colored output; by default enabled only if the console is interactive
                        and NO_COLOR environment variable is not set
   -d --debug           Show debug output on STDOUT

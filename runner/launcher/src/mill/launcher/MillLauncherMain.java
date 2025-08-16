@@ -9,18 +9,21 @@ import java.util.function.Consumer;
 import mill.client.*;
 import mill.client.lock.Locks;
 import mill.constants.OutFiles;
+import mill.constants.OutFolderMode;
 
 /**
  * This is a Java implementation to speed up repetitive starts.
  * A Scala implementation would result in the JVM loading much more classes almost doubling the start-up times.
  */
 public class MillLauncherMain {
+  static final String bspFlag = "--bsp";
+
   public static void main(String[] args) throws Exception {
     boolean runNoServer = false;
     if (args.length > 0) {
       String firstArg = args[0];
       runNoServer =
-          Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", "--bsp", "--help")
+          Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", bspFlag, "--help")
                   .contains(firstArg)
               || firstArg.startsWith("-i");
     }
@@ -33,14 +36,16 @@ public class MillLauncherMain {
       }
     }
 
+    var outMode = Arrays.asList(args).contains(bspFlag) ? OutFolderMode.BSP : OutFolderMode.REGULAR;
+
     if (runNoServer) {
       // start in no-server mode
-      System.exit(MillProcessLauncher.launchMillNoDaemon(args));
+      System.exit(MillProcessLauncher.launchMillNoDaemon(args, outMode));
     } else
       try {
         // start in client-server mode
         java.util.List<String> optsArgs = new java.util.ArrayList<>();
-        optsArgs.addAll(MillProcessLauncher.millOpts());
+        optsArgs.addAll(MillProcessLauncher.millOpts(outMode));
         Collections.addAll(optsArgs, args);
 
         MillServerLauncher launcher =
@@ -52,7 +57,7 @@ public class MillLauncherMain {
                 -1) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
                 return new LaunchedServer.OsProcess(
-                    MillProcessLauncher.launchMillDaemon(daemonDir).toHandle());
+                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode).toHandle());
               }
 
               public void prepareDaemonDir(Path daemonDir) throws Exception {
@@ -60,8 +65,8 @@ public class MillLauncherMain {
               }
             };
 
-        Path daemonDir0 = Paths.get(OutFiles.out, OutFiles.millDaemon);
-        String javaHome = MillProcessLauncher.javaHome();
+        Path daemonDir0 = Paths.get(OutFiles.outFor(outMode), OutFiles.millDaemon);
+        String javaHome = MillProcessLauncher.javaHome(outMode);
         // No logging.
         Consumer<String> log = ignored -> {};
         var exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;
