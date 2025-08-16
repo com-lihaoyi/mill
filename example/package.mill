@@ -315,6 +315,10 @@ $txt
     "android-compose-samples" -> (
       "android/compose-samples",
       "e4e6f0f96618f1ba04aa88d64ca19a166a662424"
+    ),
+    "android-pokedex-compose-multi-module" -> (
+      "NicosNicolaou16/Pokedex_Compose_Multi_Module",
+      "ead625725cab909ce6cf027091449b47eb34d2ec"
     )
   )
   object thirdparty extends Cross[ThirdPartyModule](build.listCross)
