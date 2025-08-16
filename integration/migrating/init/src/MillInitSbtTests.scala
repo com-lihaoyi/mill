@@ -35,6 +35,7 @@ object MillInitScala3ExampleProjectWithJvmOptsTests extends BuildGenTestSuite {
       os.write(it.workspacePath / ".jvmopts", "-Ddummy=prop -Ddummy2=prop2")
       testMillInit(
         it,
+        initCommand = Seq("init"),
         expectedAllSourceFileNums = Map("allSourceFiles" -> 13, "test.allSourceFiles" -> 1),
         expectedCompileTaskResults = Some(SplitTaskResults(
           successful = SortedSet("compile", "test.compile"),
@@ -60,7 +61,7 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
       "https://github.com/pbassiner/sbt-multi-project-example/archive/152b31df9837115b183576b0080628b43c505389.zip"
 
     test - integrationTest(url) { tester =>
-      import tester._
+      import tester.*
       bumpSbt(workspacePath)
       /*
       `multi1.compile` doesn't work well when Mill is run with JDK 17 and 21:
@@ -78,8 +79,8 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
       val submodules = SortedSet("common", "multi1", "multi2")
       testMillInit(
         tester,
+        initCommand = Seq("init"),
         expectedAllSourceFileNums = Map(
-          "allSourceFiles" -> 0,
           "multi1.test.allSourceFiles" -> 1,
           "multi1.allSourceFiles" -> 1,
           "multi2.allSourceFiles" -> 1,
@@ -88,7 +89,7 @@ object MillInitSbtMultiProjectExampleTests extends BuildGenTestSuite {
           "common.allSourceFiles" -> 1
         ),
         expectedCompileTaskResults = Some(SplitTaskResults(
-          successful = SortedSet("compile") ++ submodules.flatMap(allCompileTasks),
+          successful = submodules.flatMap(allCompileTasks),
           failed = SortedSet.empty
         )),
         expectedTestTaskResults =
@@ -146,8 +147,8 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
       if (!mill.constants.Util.isWindows) {
         testMillInit(
           tester,
+          initCommand = Seq("init"),
           expectedAllSourceFileNums = Map(
-            "allSourceFiles" -> 0,
             "gatling-http.test.allSourceFiles" -> 32,
             "gatling-jms.allSourceFiles" -> 30,
             "gatling-jdbc.allSourceFiles" -> 2,
@@ -192,8 +193,7 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
             os.remove(tester.workspacePath / os.SubPath(skipped))
           },
           expectedCompileTaskResults = Some(SplitTaskResults(
-            successful = SortedSet("compile")
-              ++ submodulesWithTests.flatMap(allCompileTasks)
+            successful = submodulesWithTests.flatMap(allCompileTasks)
               ++ submodulesWithoutTests.map(compileTask),
             failed = SortedSet.empty
           )),

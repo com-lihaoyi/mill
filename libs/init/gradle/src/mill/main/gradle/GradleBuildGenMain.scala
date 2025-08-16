@@ -74,7 +74,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
         val input = Tree.from(root) { tree =>
           val project = tree.project()
           val dirs = os.Path(project.directory()).subRelativeTo(workspace).segments
-          val children = tree.children().asScala.sortBy(_.project().name()).iterator
+          val children = tree.children().asScala.sortBy(_.project().name()).iterator.toSeq
           (Node(dirs, project), children)
         }
 
@@ -112,12 +112,12 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       packagesSize: Int
   ): IrBaseInfo = {
     val project = {
-      val projects = input.nodes(Tree.Traversal.BreadthFirst).map(_.value).toSeq
+      val projects = input.iterator.map(_.value).toSeq
       cfg.baseProject
         .flatMap(name => projects.collectFirst { case m if name == m.name => m })
         .orElse(projects.collectFirst { case m if null != m.maven().pom() => m })
         .orElse(projects.collectFirst { case m if !m.maven().repositories().isEmpty => m })
-        .getOrElse(input.node.value)
+        .getOrElse(input.root.value)
     }
     if (packagesSize > 1) {
       println(s"settings from ${project.name()} will be shared in base module")

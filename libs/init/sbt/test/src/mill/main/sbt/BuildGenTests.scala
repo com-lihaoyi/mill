@@ -26,30 +26,11 @@ object BuildGenTests extends TestSuite {
     }
 
     test("config") {
-      val commonArgs = Array(
-        "--base-module",
-        "BaseModule",
-        "--jvm-id",
-        "11",
-        "--test-module",
-        "tests",
-        "--deps-object",
-        "Deps",
-        "--merge"
-      )
       test("sbt-multi-project-example") {
         val sourceRoot = os.sub / "sbt-multi-project-example"
-        test("without-base-project") {
-          val expectedRoot =
-            os.sub / "expected/config/without-base-project/sbt-multi-project-example"
-          val args = commonArgs
-          assert(
-            checker.check(SbtBuildGenMain.main(args), sourceRoot, expectedRoot)
-          )
-        }
         test("all") {
           val expectedRoot = os.sub / "expected/config/all/sbt-multi-project-example"
-          val args = commonArgs ++ Array("--baseProject", "common")
+          val args = Array("-d", "Dependencies", "-t", "tests", "-B", "-M")
           assert(
             checker.check(SbtBuildGenMain.main(args), sourceRoot, expectedRoot)
           )
