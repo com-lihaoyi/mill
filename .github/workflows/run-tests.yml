@@ -13,7 +13,7 @@
 #    runs-on: ubuntu-latest
 ##    runs-on: windows-latest
 #    steps:
-#      - uses: actions/checkout@v4
+#      - uses: actions/checkout@v5
 #        with: { fetch-depth: 1 }
 #
 #      - run: "echo temurin:11 > .mill-jvm-version"
@@ -76,7 +76,7 @@ jobs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with: { fetch-depth: 1 }
 
       - run: ./mill -i website.fastPages + website.checkBrokenLinks
@@ -101,7 +101,7 @@ jobs:
             millargs: "'example.thirdparty[{jimfs,commons-io}].native.daemon'"
             java-version: 24
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with: { fetch-depth: 1 }
 
       - uses: ./.github/actions/pre-build-setup
