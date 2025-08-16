@@ -534,7 +534,7 @@ object BuildGenUtil {
     val name = backtickWrap(testModule)
     testModuleExtraType match {
       case Some(supertype) => s"object $name extends $testModuleMainType with $supertype"
-      case None => s"trait $name extends $testModuleMainType"
+      case None => s"object $name extends $testModuleMainType with TestModule.Junit4"
     }
   }
 
