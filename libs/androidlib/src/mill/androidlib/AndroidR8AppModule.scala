@@ -109,7 +109,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
   private def androidDefaultProguardFiles: Task[Seq[PathRef]] = Task.Anon {
     val dest = Task.dest
     androidDefaultProguardFileNames().map { fileName =>
-      androidSdkModule().androidProguardPath().path / fileName
+      androidSdkModule().androidProguardPath() / fileName
     }.filter(os.exists).foreach { proguardFile =>
       os.copy(proguardFile, dest / proguardFile.last)
     }

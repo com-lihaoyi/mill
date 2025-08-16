@@ -521,7 +521,7 @@ trait AndroidModule extends JavaModule { outer =>
   def androidCompiledLibResources: T[PathRef] = Task {
     val libAndroidResources: Seq[Path] = androidLibraryResources().map(_.path)
 
-    val aapt2Compile = Seq(androidSdkModule().aapt2Path().path.toString(), "compile")
+    val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
 
     for (libResDir <- libAndroidResources) {
       val segmentsSeq = libResDir.segments.toSeq
@@ -552,7 +552,7 @@ trait AndroidModule extends JavaModule { outer =>
     val moduleResources: Seq[os.Path] =
       androidResources().map(_.path).filter(os.exists)
 
-    val aapt2Compile = Seq(androidSdkModule().aapt2Path().path.toString(), "compile")
+    val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
 
     for (libResDir <- moduleResources) {
       val segmentsSeq = libResDir.segments.toSeq
@@ -597,7 +597,7 @@ trait AndroidModule extends JavaModule { outer =>
 
     val mainDexRulesProFile = proguard / "main-dex-rules.pro"
 
-    val aapt2Link = Seq(androidSdkModule().aapt2Path().path.toString(), "link")
+    val aapt2Link = Seq(androidSdkModule().aapt2Exe().path.toString(), "link")
 
     val linkArgs = Seq(
       "-I",
