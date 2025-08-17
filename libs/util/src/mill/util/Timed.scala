@@ -3,7 +3,7 @@ package mill.util
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 
-object Timed {
+private[mill] object Timed {
   case class Result[+A](result: A, duration: FiniteDuration) {
     def durationPretty: String = duration.toMillis + "ms"
   }
