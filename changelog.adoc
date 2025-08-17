@@ -510,6 +510,15 @@ def namedTupleTask = Task {
 * Major improvements to Kotlin Support in Mill, which is now marked as stable ({link-pr}/4557[#4557],
   {link-pr}/4786[#4786], {link-pr}/4771[#4771], {link-pr}/4779[#4779], {link-pr}/4797[#4797], {link-pr}/4963[#4963])
 
+* `VcsVersion` has been in-sourced to the mill repo. External references are no longer needed.
+[,diff]
+----
+- import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
+- import de.tobiasroeser.mill.vcs.version.VcsVersion
++ import mill.util.VcsVersion
+
+----
+
 
 [#0-12-15]
 === 0.12.15
