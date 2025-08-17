@@ -11,19 +11,31 @@ import mill.javalib.internal.{JvmWorkerArgs, RpcCompileProblemReporterMessage}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
-import mill.util.{CachedFactoryWithInitData, HexFormat, Jvm}
-import org.apache.logging.log4j.core.util.NullOutputStream
+import mill.util.{CachedFactoryWithInitData, HexFormat, Jvm, Timed}
 import sbt.internal.util.ConsoleOut
 
 import java.io.*
 import java.nio.file.FileSystemException
 import java.security.MessageDigest
+import java.time.LocalDateTime
 import scala.concurrent.duration.*
 import scala.util.Using
 
 @internal
 class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoCloseable {
   import args.*
+
+  private def fileLog(s: String): Unit =
+    os.write.append(
+      compilerBridge.workspace / "jvm-worker.log",
+      s"[${LocalDateTime.now()}] $s\n",
+      createFolders = true
+    )
+
+  private def fileAndDebugLog(log: Logger.Actions, s: String): Unit = {
+    fileLog(s)
+    log.debug(s)
+  }
 
   /** The local Zinc instance which is used when we do not want to override Java home or runtime options. */
   private val zincLocalWorker =
@@ -41,8 +53,12 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
+    fileLog(pprint.apply(op).render)
     val zinc = zincApi(javaHome, javaRuntimeOptions)
-    zinc.compileJava(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
+    val result =
+      Timed(zinc.compileJava(op, reporter = reporter, reportCachedProblems = reportCachedProblems))
+    fileLog(s"Compilation took ${result.durationPretty}")
+    result.result
   }
 
   override def compileMixed(
@@ -52,16 +68,23 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
+    fileLog(pprint.apply(op).render)
     val zinc = zincApi(javaHome, javaRuntimeOptions)
-    zinc.compileMixed(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
+    val result =
+      Timed(zinc.compileMixed(op, reporter = reporter, reportCachedProblems = reportCachedProblems))
+    fileLog(s"Compilation took ${result.durationPretty}")
+    result.result
   }
 
   def scaladocJar(
       op: ZincScaladocJar,
       javaHome: Option[os.Path]
   )(using ctx: JvmWorkerApi.Ctx): Boolean = {
+    fileLog(pprint.apply(op).render)
     val zinc = zincApi(javaHome, JavaRuntimeOptions(Seq.empty))
-    zinc.scaladocJar(op)
+    val result = Timed(zinc.scaladocJar(op))
+    fileLog(s"Scaladoc took ${result.durationPretty}")
+    result.result
   }
 
   override def close(): Unit = {
@@ -88,8 +111,20 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       logPromptColored = log.prompt.colored
     )
 
-    if (javaRuntimeOptions.options.isEmpty && javaHome.isEmpty) localZincApi(zincCtx, log)
-    else subprocessZincApi(javaHome, javaRuntimeOptions, zincCtx, log)
+    if (javaRuntimeOptions.options.isEmpty && javaHome.isEmpty) {
+      fileLog("Using local Zinc instance")
+      localZincApi(zincCtx, log)
+    } else {
+      fileLog(
+        s"""Using remote Zinc instance:
+           |  javaHome: $javaHome
+           |  javaRuntimeOptions: $javaRuntimeOptions
+           |""".stripMargin
+      )
+      val result = Timed(subprocessZincApi(javaHome, javaRuntimeOptions, zincCtx, log))
+      fileLog(s"Remote Zinc instance acquired in ${result.durationPretty}")
+      result.result
+    }
   }
 
   private case class SubprocessCacheKey(
@@ -186,34 +221,47 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         )
       }
 
-      log.debug(s"Checking if $mainClass is already running for $key")
-      val result = ServerLauncher.ensureServerIsRunning(
+      fileAndDebugLog(log, s"Checking if $mainClass is already running for $key")
+      val result = Timed(ServerLauncher.ensureServerIsRunning(
         locks,
         daemonDir.toNIO,
         () => {
-          log.debug(s"Starting JVM subprocess for $mainClass for $key")
-          val process = Jvm.spawnProcess(
+          fileAndDebugLog(log, s"Starting JVM subprocess for $mainClass for $key")
+          val process = Timed(Jvm.spawnProcess(
             mainClass = mainClass,
             mainArgs = Seq(daemonDir.toString),
             javaHome = key.javaHome,
             jvmArgs = key.runtimeOptions.options,
             classPath = classPath
+          ))
+          fileAndDebugLog(
+            log,
+            s"Starting JVM subprocess for $mainClass for $key took ${process.durationPretty}"
           )
-          LaunchedServer.OsProcess(process.wrapped.toHandle)
+          LaunchedServer.OsProcess(process.result.wrapped.toHandle)
         },
-        log.debug
+        fileAndDebugLog(log, _)
+      ))
+      fileAndDebugLog(
+        log,
+        s"Ensuring that server is running for $key took ${result.durationPretty}"
       )
 
       def onSuccess(launched: LaunchedServer) = {
         val serverInitWaitMillis = 5.seconds.toMillis
         val startTime = System.nanoTime()
-        log.debug(s"Reading server port: $daemonDir")
-        val port = ServerLauncher.readServerPort(daemonDir.toNIO, startTime, serverInitWaitMillis)
-        log.debug(s"Started $mainClass for $key on port $port")
-        SubprocessCacheValue(port, daemonDir, launched)
+        fileAndDebugLog(log, s"Reading server port: $daemonDir")
+        val port =
+          Timed(ServerLauncher.readServerPort(daemonDir.toNIO, startTime, serverInitWaitMillis))
+        fileAndDebugLog(
+          log,
+          s"Reading server port for $daemonDir took ${port.durationPretty}."
+        )
+        fileAndDebugLog(log, s"Started $mainClass for $key on port ${port.result}")
+        SubprocessCacheValue(port.result, daemonDir, launched)
       }
 
-      result.fold(
+      result.result.fold(
         success => onSuccess(success.server),
         alreadyRunning => onSuccess(alreadyRunning.server),
         processDied =>
@@ -260,6 +308,33 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
   ): ZincApi = {
     val cacheKey = SubprocessCacheKey(javaHome, runtimeOptions)
 
+    def makeClientLogger() = new Logger.Actions {
+      override def info(s: String): Unit = {
+        fileLog(s"[LOGGER:INFO] $s")
+        log.info(s)
+      }
+
+      override def debug(s: String): Unit = {
+        fileLog(s"[LOGGER:DEBUG] $s")
+        log.debug(s)
+      }
+
+      override def warn(s: String): Unit = {
+        fileLog(s"[LOGGER:WARN] $s")
+        log.warn(s)
+      }
+
+      override def error(s: String): Unit = {
+        fileLog(s"[LOGGER:ERROR] $s")
+        log.error(s)
+      }
+
+      override def ticker(s: String): Unit = {
+        fileLog(s"[LOGGER:TICKER] $s")
+        log.ticker(s)
+      }
+    }
+
     def withRpcClient[R](
         handler: MillRpcChannel[ZincWorkerRpcServer.ServerToClient]
     )(f: MillRpcClient[ZincWorkerRpcServer.ClientToServer, ZincWorkerRpcServer.ServerToClient] => R)
@@ -270,33 +345,30 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       ) { case SubprocessCacheValue(port, daemonDir, _) =>
         Using.Manager { use =>
           val startTimeNanos = System.nanoTime()
-          log.debug(s"Connecting to $daemonDir on port $port")
+          fileAndDebugLog(log, s"Connecting to $daemonDir on port $port")
           val socket = use(ServerLauncher.connectToServer(
             startTimeNanos,
             5.seconds.toMillis,
             port,
             s"From '${getClass.getName}'. Daemon directory: $daemonDir"
           ))
-          val stdin = use(PipedInputStream())
-          val stdout = use(PipedOutputStream())
-          val streams = ServerLauncher.Streams(
-            stdin,
-            stdout,
-            // stderr stream is not used in this case
-            NullOutputStream.getInstance()
-          )
+          val debugName =
+            s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}"
           ServerLauncher.runWithConnection(
+            debugName,
             socket,
-            streams, /* closeConnectionAfterCommand */ true,
+            /* closeConnectionAfterCommand */ true,
             /* sendInitData */ _ => {},
-            () => {
-              val serverToClient = use(BufferedReader(InputStreamReader(PipedInputStream(stdout))))
-              val clientToServer = use(PrintStream(PipedOutputStream(stdin)))
-              val wireTransport = MillRpcWireTransport.ViaStreams(
-                s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}",
-                serverToClient,
-                clientToServer
-              )
+            (in, out) => {
+              val serverToClient = use(BufferedReader(InputStreamReader(in)))
+              val clientToServer = use(PrintStream(out))
+              val wireTransport =
+                MillRpcWireTransport.ViaStreams(
+                  debugName,
+                  serverToClient,
+                  clientToServer,
+                  writeSynchronizer = clientToServer
+                )
 
               val init = ZincWorkerRpcServer.Initialize(
                 compilerBridgeWorkspace = compilerBridge.workspace,
@@ -304,15 +376,22 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
                 compileToJar = compileToJar,
                 zincLogDebug = zincLogDebug
               )
+              fileAndDebugLog(
+                log,
+                s"Connected to $daemonDir on port $port, sending init: ${pprint(init)}"
+              )
               val client = MillRpcClient.create[
                 ZincWorkerRpcServer.Initialize,
                 ZincWorkerRpcServer.ClientToServer,
                 ZincWorkerRpcServer.ServerToClient
-              ](init, wireTransport, log)(handler)
+              ](init, wireTransport, makeClientLogger())(handler)
 
-              f(client)
+              fileAndDebugLog(log, "Running command.")
+              val result = Timed(f(client))
+              fileAndDebugLog(log, s"Command finished in ${result.durationPretty}")
+              result.result
             }
-          ).result
+          )
         }.get
       }
     }

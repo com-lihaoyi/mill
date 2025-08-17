@@ -80,6 +80,8 @@ public abstract class MillServerLauncher extends ServerLauncher {
         log)) {
       log.accept("runWithConnection: " + connection);
       var result = runWithConnection(
+          "MillServerLauncher[" + connection.getLocalSocketAddress() + " -> "
+              + connection.getRemoteSocketAddress() + "]",
           connection,
           streams,
           false,
