@@ -21,10 +21,10 @@ import java.nio.ByteOrder;
 /// Where header is a single byte of the form:
 ///
 ///   - [#HEADER_STREAM_OUT]/[#HEADER_STREAM_ERR] respectively indicating that this packet is for
-// the `OUT`/`ERR`
+/// the `OUT`/`ERR`
 ///     stream, and it will be followed by 4 bytes for the length of the body and then the body.
 ///   - [#HEADER_STREAM_OUT_SINGLE_BYTE]/[#HEADER_STREAM_ERR_SINGLE_BYTE] respectively indicating
-// that this packet is
+/// that this packet is
 ///     for the `OUT`/`ERR` stream, and it will be followed by a single byte for the body
 ///   - [#HEADER_HEARTBEAT] indicating that this packet is a heartbeat and will be ignored
 ///   - [#HEADER_END] indicating the end of the stream
@@ -36,12 +36,16 @@ import java.nio.ByteOrder;
 /// stream, forwards each packet to its respective destination stream, or terminates
 /// when it hits a packet with [#HEADER_END].
 public class ProxyStream {
-  public static final int MAX_CHUNK_SIZE = 4 * 1024; // 4kb
+  private static final int MAX_CHUNK_SIZE = 4 * 1024; // 4kb
 
   // The values are picked to make it a bit easier to spot when debugging the hex dump.
 
   /** The header for the output stream */
   private static final byte HEADER_STREAM_OUT = 26; // 0x1A
+
+  // bincompat forwarder
+  @SuppressWarnings("unused")
+  public static final int OUT = HEADER_STREAM_OUT;
 
   /** The header for the output stream when a single byte is sent. */
   private static final byte HEADER_STREAM_OUT_SINGLE_BYTE = 27; // 0x1B, B as in BYTE
@@ -49,14 +53,26 @@ public class ProxyStream {
   /** The header for the error stream */
   private static final byte HEADER_STREAM_ERR = 42; // 0x2A
 
+  // bincompat forwarder
+  @SuppressWarnings("unused")
+  public static final int ERR = HEADER_STREAM_ERR;
+
   /** The header for the error stream when a single byte is sent. */
   private static final byte HEADER_STREAM_ERR_SINGLE_BYTE = 43; // 0x2B, B as in BYTE
 
   /** A heartbeat packet to keep the connection alive. */
   private static final byte HEADER_HEARTBEAT = 123; // 0x7B, B as in BEAT
 
+  // bincompat forwarder
+  @SuppressWarnings("unused")
+  public static final int HEARTBEAT = HEADER_HEARTBEAT;
+
   /** Indicates the end of the connection. */
   private static final byte HEADER_END = 126; // 0x7E, E as in END
+
+  // bincompat forwarder
+  @SuppressWarnings("unused")
+  public static final int END = HEADER_END;
 
   public enum StreamType {
     /** The output stream */
@@ -112,6 +128,11 @@ public class ProxyStream {
       this.synchronizer = out;
       this.destination = new DataOutputStream(out);
       this.streamType = streamType;
+    }
+
+    // bincompat forwarder
+    public Output(java.io.OutputStream out, int key) {
+      this(out, key == OUT ? StreamType.OUT : StreamType.ERR);
     }
 
     @Override
@@ -199,7 +220,13 @@ public class ProxyStream {
       this(src, destOut, destErr, new Object());
     }
 
-    public void preRead(DataInputStream src) {}
+    protected void preRead(DataInputStream src) {}
+
+    @Deprecated(forRemoval = true, since = "1.0.4")
+    public void preRead(InputStream src) {
+      if (src instanceof DataInputStream) preRead((DataInputStream) src);
+      else throw new UnsupportedOperationException("preRead(InputStream) is deprecated");
+    }
 
     public void write(OutputStream dest, byte[] buffer, int length) throws IOException {
       dest.write(buffer, 0, length);

@@ -18,7 +18,7 @@ public class InputPumper implements Runnable {
   private final boolean checkAvailable;
 
   public InputPumper(
-      Supplier<InputStream> src, Supplier<OutputStream> dest, boolean checkAvailable) {
+      Supplier<InputStream> src, Supplier<OutputStream> dest, Boolean checkAvailable) {
     this.src0 = src;
     this.dest0 = dest;
     this.checkAvailable = checkAvailable;

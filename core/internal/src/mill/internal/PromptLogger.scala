@@ -330,7 +330,7 @@ private[mill] object PromptLogger {
       private var lastCharWritten = 0.toChar
 
       // Make sure we synchronize everywhere
-      override def preRead(src: DataInputStream): Unit = synchronizer.synchronized {
+      override protected def preRead(src: DataInputStream): Unit = synchronizer.synchronized {
 
         if (
           enableTicker &&

@@ -46,11 +46,11 @@ public class ProxyStreamTests {
       2000,
       4000,
       8000,
-      ProxyStream.MAX_CHUNK_SIZE / 16,
-      ProxyStream.MAX_CHUNK_SIZE / 8,
-      ProxyStream.MAX_CHUNK_SIZE / 4,
-      ProxyStream.MAX_CHUNK_SIZE / 2,
-      ProxyStream.MAX_CHUNK_SIZE
+      16000,
+      32000,
+      64000,
+      128000,
+      256000,
     };
     byte[] interestingBytes = {
       -1, -127, -126, -120, -100, -80, -60, -40, -20, -10, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 10,
