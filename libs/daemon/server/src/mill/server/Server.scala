@@ -6,6 +6,7 @@ import sun.misc.{Signal, SignalHandler}
 
 import java.io.{BufferedInputStream, BufferedOutputStream}
 import java.net.{InetAddress, Socket, SocketAddress, SocketException}
+import java.nio.channels.ClosedByInterruptException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import scala.concurrent.duration.FiniteDuration
@@ -28,7 +29,10 @@ abstract class Server(args: Server.Args) {
 
   def serverLog0(s: String): Unit = {
     if (os.exists(daemonDir) || testLogEvenWhenServerIdWrong) {
-      os.write.append(daemonDir / DaemonFiles.serverLog, s"$s\n", createFolders = true)
+      try os.write.append(daemonDir / DaemonFiles.serverLog, s"$s\n", createFolders = true)
+      catch {
+        case _: ClosedByInterruptException => // write was interrupted with a thread interrupt
+      }
     }
   }
 
@@ -278,6 +282,9 @@ abstract class Server(args: Server.Args) {
       initialSystemProperties: Map[String, String],
       serverSocketClose: () => Unit
   ): Unit = {
+    // According to https://pzemtsov.github.io/2015/01/19/on-the-benefits-of-stream-buffering-in-Java.html it seems that
+    // buffering on the application level is still beneficial due to syscall overhead, even if kernel has its own
+    // socket buffers.
     val clientToServer = BufferedInputStream(clientSocket.getInputStream, bufferSize)
     val serverToClient = BufferedOutputStream(clientSocket.getOutputStream, bufferSize)
 
@@ -311,6 +318,9 @@ abstract class Server(args: Server.Args) {
       val result =
         try checkIfClientAlive(connectionData, stopServerFromCheckClientAlive, data)
         catch {
+          case e: SocketException if SocketUtil.clientHasClosedConnection(e) =>
+            serverLog(s"client has closed connection")
+            false
           case NonFatal(err) =>
             serverLog(
               s"error checking for client liveness, assuming client to be dead: $err\n\n${err.getStackTrace.mkString("\n")}"
@@ -339,13 +349,19 @@ abstract class Server(args: Server.Args) {
           } catch {
             case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
             case e: Throwable =>
+              val msg =
+                s"""connection handler for $socketInfo error: $e
+                   |connection handler stack trace: ${e.getStackTrace.mkString("\n")}
+                   |""".stripMargin
               writingExceptionLog = true
-              try {
-                serverLog(
-                  s"""connection handler error: $e
-                     |connection handler stack trace: ${e.getStackTrace.mkString("\n")}
-                     |""".stripMargin
-                )
+              try serverLog(msg)
+              catch {
+                // If we get interrupted while writing the exception log, there is not much we can do, so just print
+                // it to stderr
+                case _: ClosedByInterruptException =>
+                  Console.err.println(
+                    s"Interrupted while writing to server log, writing to stderr instead:\n${msg.indent(4)}"
+                  )
               } finally writingExceptionLog = false
               onExceptionInHandleConnection(
                 connectionData,

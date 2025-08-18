@@ -33,7 +33,7 @@ class ZincWorkerRpcServer(
       clientStdout: RpcConsole,
       clientStderr: RpcConsole,
       serverToClient: MillRpcChannel[ServerToClient]
-  ): MillRpcChannel[ClientToServer] = {
+  ): MillRpcChannel[ClientToServer] = setIdle.doWork {
     val result = Timed {
       val zincCompilerBridge = ZincCompilerBridgeProvider[MillRpcRequestId](
         workspace = initialize.compilerBridgeWorkspace,

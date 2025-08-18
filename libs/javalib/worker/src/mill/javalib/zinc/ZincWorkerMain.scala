@@ -1,7 +1,7 @@
 package mill.javalib.zinc
 
-import mill.api.daemon.{DummyInputStream, SystemStreams}
 import mill.api.SystemStreamsUtils
+import mill.api.daemon.{DummyInputStream, SystemStreams}
 import mill.client.lock.Locks
 import mill.rpc.MillRpcWireTransport
 import mill.server.Server
@@ -9,7 +9,6 @@ import pprint.{TPrint, TPrintColors}
 
 import java.io.{BufferedReader, InputStreamReader, PrintStream}
 import scala.util.Using
-import scala.util.control.NonFatal
 
 /** Entry point for the Zinc worker subprocess. */
 object ZincWorkerMain {
@@ -62,22 +61,17 @@ object ZincWorkerMain {
         val stdout = use(PrintStream(connectionData.serverToClient))
         val transport =
           MillRpcWireTransport.ViaStreams(serverName, stdin, stdout, writeSynchronizer)
-        try {
-          val server = ZincWorkerRpcServer(serverName, transport, setIdle, serverLog)
+        val server = ZincWorkerRpcServer(serverName, transport, setIdle, serverLog)
 
-          // Make sure stdout and stderr is sent to the client
-          SystemStreamsUtils.withStreams(SystemStreams(
-            out = PrintStream(server.clientStdout.asStream),
-            err = PrintStream(server.clientStderr.asStream),
-            in = DummyInputStream
-          )) {
-            serverLog("server.run() starting")
-            server.run()
-            serverLog("server.run() finished")
-          }
-        } catch {
-          case NonFatal(err) =>
-            serverLog(s"$socketInfo failed: $err")
+        // Make sure stdout and stderr is sent to the client
+        SystemStreamsUtils.withStreams(SystemStreams(
+          out = PrintStream(server.clientStdout.asStream),
+          err = PrintStream(server.clientStderr.asStream),
+          in = DummyInputStream
+        )) {
+          serverLog("server.run() starting")
+          server.run()
+          serverLog("server.run() finished")
         }
       }.get
     }
