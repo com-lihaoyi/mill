@@ -71,6 +71,7 @@ object BspServerTestUtil {
           .replaceAll("\\d+ msec", "* msec")
           .replaceAll("\\d+ Scala (sources?) to .*\\.\\.\\.", "* Scala $1 to * ...")
           .replaceAll("\\[error\\] [a-zA-Z0-9-_/.]+:2:3:", "[error] *:2:3:")
+          .replaceAll("Evaluating [0-9]+ tasks", "Evaluating * tasks")
       )
 
     utest.assertGoldenFile(
