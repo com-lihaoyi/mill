@@ -14,19 +14,19 @@ error: ...
 error: ...F401 [*] `os` imported but unused
 error:   |
 error: 1 | import os
-error:   |        ^^ F401
+error:   |        ^^
 error: 2 |
 error: 3 | def doit(x: int):
 error:   |
-error:   = help: Remove unused import: `os`
+error: help: Remove unused import: `os`
 error: ...
 error: ...F541 [*] f-string without any placeholders
 error:   |
 error: 3 | def doit(x: int):
 error: 4 |     print(f"")
-error:   |           ^^^ F541
+error:   |           ^^^
 error:   |
-error:   = help: Remove extraneous `f` prefix
+error: help: Remove extraneous `f` prefix
 error: ...
 error: Found 2 errors.
 error: [*] 2 fixable with the `--fix` option.
