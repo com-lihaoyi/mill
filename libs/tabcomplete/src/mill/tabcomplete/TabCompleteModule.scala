@@ -188,10 +188,19 @@ private object TabCompleteModule extends ExternalModule {
     res.out.lines().map((_, ""))
   }
 
-  def oneLine(s: String) = s match {
-    case "" => ""
-    case txt => txt.linesIterator.map(_.trim).filter(_.nonEmpty).mkString(" ")
-  }
+  def oneLine(txt: String) =
+    if (txt == "") ""
+    else {
+      txt
+        // People often forget trailing periods when there's a paragraph break (double newline), so
+        // mangle the text to add one if necessary so it looks good when combined onto a single line
+        .replaceAll("([a-zA-Z0-9_-])\n\n", "$1.\n\n")
+        .linesIterator
+        .map(_.trim)
+        // Drop empty lines, so if there are multiple paragraphs they get combined into one
+        .filter(_.nonEmpty)
+        .mkString(" ")
+    }
 
   def getDocs(resolved: Resolved) = {
     val allDocs: Iterable[String] = resolved match {

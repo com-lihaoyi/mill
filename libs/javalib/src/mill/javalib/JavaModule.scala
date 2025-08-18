@@ -1067,10 +1067,6 @@ trait JavaModule
     )
   }
 
-  /**
-   * All classfiles and resources from upstream modules and dependencies
-   * necessary to run this module's code after compilation
-   */
   override def runClasspath: T[Seq[PathRef]] = Task {
     super.runClasspath() ++
       resolvedRunMvnDeps().toSeq ++
