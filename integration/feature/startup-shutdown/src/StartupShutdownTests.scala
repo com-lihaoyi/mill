@@ -9,16 +9,16 @@ object StartupShutdownTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("rapid_cycle") - integrationTest { tester =>
       if (daemonMode) {
-        val NoCycles = 7
+        val numCycles = 7
 
-        for (index <- 1 to NoCycles) {
+        for (index <- 1 to numCycles) {
           println(s"Cycle $index")
 
           val result1 = tester.eval(("resolve", "_"))
           assert(result1.isSuccess)
 
           // No point in running shutdown on the last cycle, as the test suite will shut it down.
-          if (index != NoCycles) {
+          if (index != numCycles) {
             val result2 = tester.eval("shutdown")
             assert(result2.isSuccess)
           }
