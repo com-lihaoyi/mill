@@ -3097,7 +3097,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/server/Server$.html#checkProcessIdFile-fffff2b1","e":false,"i":"","n":"checkProcessIdFile","t":"checkProcessIdFile(processIdFile: Path, processId: String): Option[String]","d":"mill.server.Server","k":"def","x":""},
 {"l":"mill/server/Server$.html#computeProcessId-644","e":false,"i":"","n":"computeProcessId","t":"computeProcessId(): Long","d":"mill.server.Server","k":"def","x":""},
 {"l":"mill/server/Server$.html#overrideSigIntHandling-fffffb8e","e":false,"i":"","n":"overrideSigIntHandling","t":"overrideSigIntHandling(handler: SignalHandler): Unit","d":"mill.server.Server","k":"def","x":""},
-{"l":"mill/server/Server$.html#tryLockBlock-fffff002","e":false,"i":"","n":"tryLockBlock","t":"tryLockBlock[T](lock: Lock)(block: TryLocked => T): Option[T]","d":"mill.server.Server","k":"def","x":""},
+{"l":"mill/server/Server$.html#tryLockBlock-ffffff02","e":false,"i":"","n":"tryLockBlock","t":"tryLockBlock[T](lock: Lock, beforeClose: () => Unit, afterClose: () => Unit)(block: AutoCloseable => T): Option[T]","d":"mill.server.Server","k":"def","x":""},
 {"l":"mill/server/Server$.html#watchProcessIdFile-6c9","e":false,"i":"","n":"watchProcessIdFile","t":"watchProcessIdFile(processIdFile: Path, processId: Long, running: () => Boolean, exit: String => Unit, log: String => Unit): Unit","d":"mill.server.Server","k":"def","x":""},
 {"l":"mill/server/Server$$SetIdle.html#","e":false,"i":"","n":"SetIdle","t":"SetIdle","d":"mill.server.Server","k":"trait","x":""},
 {"l":"mill/server/Server$$SetIdle.html#apply-8ac","e":false,"i":"","n":"apply","t":"apply(idle: Boolean): Unit","d":"mill.server.Server.SetIdle","k":"def","x":""},
