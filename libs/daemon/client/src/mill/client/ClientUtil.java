@@ -8,15 +8,15 @@ import java.util.*;
 
 public class ClientUtil {
   // use methods instead of constants to avoid inlining by compiler
-  public static byte ExitClientCodeCannotReadFromExitCodeFile() {
+  public static int ExitClientCodeCannotReadFromExitCodeFile() {
     return 1;
   }
 
-  public static byte ExitServerCodeWhenIdle() {
+  public static int ExitServerCodeWhenIdle() {
     return 0;
   }
 
-  public static byte ExitServerCodeWhenVersionMismatch() {
+  public static int ExitServerCodeWhenVersionMismatch() {
     return 101;
   }
 
