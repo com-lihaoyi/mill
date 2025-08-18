@@ -3,10 +3,10 @@
 [1-buildInitialize] Entered buildInitialize
 [1-buildInitialize] Got client semanticdbVersion: * Enabling SemanticDB support.
 [1-buildInitialize] buildInitialize took * msec
-[bsp-init-mill-build/build.mill-*] [info] compiling * Scala sources to * ...
-[bsp-init-mill-build/build.mill-*] [info] done compiling
-[bsp-init-build.mill-*] [info] compiling * Scala sources to * ...
-[bsp-init-build.mill-*] [info] done compiling
+[bsp-init-mill-build/build.mill-59] [info] compiling * Scala sources to * ...
+[bsp-init-mill-build/build.mill-59] [info] done compiling
+[bsp-init-build.mill-59] [info] compiling * Scala sources to * ...
+[bsp-init-build.mill-59] [info] done compiling
 [bsp-init] SNAPSHOT
 [2-workspaceBuildTargets] Entered workspaceBuildTargets
 [2-workspaceBuildTargets] Evaluating 13 tasks
