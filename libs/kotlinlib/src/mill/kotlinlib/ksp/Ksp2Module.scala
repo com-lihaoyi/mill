@@ -27,7 +27,8 @@ trait Ksp2Module extends KotlinModule { outer =>
 
   def kspDeps: T[Seq[Dep]] = Task {
     Seq(
-      mvn"com.google.devtools.ksp:symbol-processing-aa:${kotlinVersion()}-${kspVersion()}",
+      mvn"com.google.devtools.ksp:symbol-processing-aa-embeddable:${kotlinVersion()}-${kspVersion()}",
+      mvn"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${kspVersion()}",
       mvn"com.google.devtools.ksp:symbol-processing-common-deps:${kotlinVersion()}-${kspVersion()}",
       mvn"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}",
       mvn"org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2"
@@ -87,7 +88,7 @@ trait Ksp2Module extends KotlinModule { outer =>
     val args = Seq(
       s"-module-name=${kspProjectBasedDir}",
       "-jvm-target", kspJvmTarget(),
-      s"-source-roots=${sources().map(_.path).mkString(":")}",
+      s"-source-roots=${moduleDir}/src/main",
       s"-project-base-dir=${moduleDir.toString}",
       s"-output-base-dir=${kspOutputDir}",
       s"-caches-dir=${kspCachesDir}",
@@ -96,12 +97,13 @@ trait Ksp2Module extends KotlinModule { outer =>
       s"-java-output-dir=${java}",
       s"-resource-output-dir=${resources}",
       s"-language-version=${kspLanguageVersion}",
+      s"-incremental=true",
       s"-api-version=${kspApiVersion}",
       processorOptions,
       s"-map-annotation-arguments-in-java=false",
     ) ++ kspArgs() :+ processorClasspath
 
-    val classpath = kspClasspath().map(_.path)
+    val classpath = (kspClasspath() ++ compileClasspath()).map(_.path)
     val mainClass = "com.google.devtools.ksp.cmdline.KSPJvmMain"
     Task.log.info(
       s"Running Kotlin Symbol Processing with java -cp ${classpath.mkString(File.pathSeparator)} ${mainClass} ${args.mkString(" ")}"
