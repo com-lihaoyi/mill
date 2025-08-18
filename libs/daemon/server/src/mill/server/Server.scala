@@ -282,6 +282,9 @@ abstract class Server(args: Server.Args) {
       initialSystemProperties: Map[String, String],
       serverSocketClose: () => Unit
   ): Unit = {
+    // According to https://pzemtsov.github.io/2015/01/19/on-the-benefits-of-stream-buffering-in-Java.html it seems that
+    // buffering on the application level is still beneficial due to syscall overhead, even if kernel has its own
+    // socket buffers.
     val clientToServer = BufferedInputStream(clientSocket.getInputStream, bufferSize)
     val serverToClient = BufferedOutputStream(clientSocket.getOutputStream, bufferSize)
 

@@ -64,6 +64,9 @@ public abstract class ServerLauncher {
       Consumer<OutputStream> sendInitData,
       RunClientLogic<A> runClientLogic)
       throws Exception {
+    // According to https://pzemtsov.github.io/2015/01/19/on-the-benefits-of-stream-buffering-in-Java.html it seems that
+    // buffering on the application level is still beneficial due to syscall overhead, even if kernel has its own
+    // socket buffers.
     var socketInputStream = new BufferedInputStream(connection.getInputStream());
     var socketOutputStream = new BufferedOutputStream(connection.getOutputStream());
     sendInitData.accept(socketOutputStream);
