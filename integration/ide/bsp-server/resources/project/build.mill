@@ -106,11 +106,3 @@ object diag extends scalalib.ScalaModule {
     def scalacOptions = Seq("-deprecation")
   }
 }
-
-object sourcesNeedCompile extends scalalib.ScalaModule {
-  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
-  def sources = Task {
-    `hello-scala`.compile()
-    super.sources()
-  }
-}

@@ -286,23 +286,6 @@
           "generated": false
         }
       ]
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/sourcesNeedCompile"
-      },
-      "sources": [
-        {
-          "uri": "file:///workspace/sourcesNeedCompile/src",
-          "kind": 2,
-          "generated": false
-        },
-        {
-          "uri": "file:///workspace/out/sourcesNeedCompile/compileGeneratedSources.dest",
-          "kind": 2,
-          "generated": true
-        }
-      ]
     }
   ]
 }
