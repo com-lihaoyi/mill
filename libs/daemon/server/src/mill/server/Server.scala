@@ -104,8 +104,24 @@ abstract class Server(args: Server.Args) {
     val initialSystemProperties = sys.props.toMap
     val socketPortFile = daemonDir / DaemonFiles.socketPort
 
+    def removeSocketPortFile(): Unit = {
+      // Make sure no one would read the old socket port file
+      serverLog(s"removing $socketPortFile")
+      os.remove(socketPortFile)
+      serverLog(s"removed $socketPortFile")
+    }
+
     try {
-      Server.tryLockBlock(locks.daemonLock) { locked =>
+      Server.tryLockBlock(
+        locks.daemonLock,
+        beforeClose = () => {
+          removeSocketPortFile()
+          serverLog("releasing daemonLock")
+        },
+        afterClose = () => {
+          serverLog("daemonLock released")
+        }
+      ) { locked =>
         serverLog("server file locked")
         val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
         Server.watchProcessIdFile(
@@ -181,8 +197,7 @@ abstract class Server(args: Server.Args) {
             // taking any more requests, and a new server should be spawned if necessary.
             // Otherwise, launchers may continue trying to connect to the server and
             // failing since the socket is closed.
-            locked.release()
-            serverLog("daemonLock released")
+            locked.close()
 
             sys.exit(exitCode)
           }
@@ -246,10 +261,6 @@ abstract class Server(args: Server.Args) {
         serverLog("server loop stack trace: " + e.getStackTrace.mkString("\n"))
         throw e
     } finally {
-      // Make sure no one would read the old socket port file
-      serverLog(s"removing $socketPortFile")
-      os.remove(socketPortFile)
-
       serverLog("exiting server")
     }
   }
@@ -489,13 +500,30 @@ object Server {
     processIdThread.start()
   }
 
-  def tryLockBlock[T](lock: Lock)(block: mill.client.lock.TryLocked => T): Option[T] = {
+  def tryLockBlock[T](
+      lock: Lock,
+      beforeClose: () => Unit,
+      afterClose: () => Unit
+  )(block: AutoCloseable => T): Option[T] = {
     lock.tryLock() match {
       case null => None
       case l =>
         if (l.isLocked) {
-          try Some(block(l))
-          finally l.release()
+          val autoCloseable = new AutoCloseable {
+            @volatile private var closed = false
+
+            override def close(): Unit = {
+              if (!closed) {
+                closed = true
+                beforeClose()
+                l.release()
+                afterClose()
+              }
+            }
+          }
+
+          try Some(block(autoCloseable))
+          finally autoCloseable.close()
         } else {
           None
         }
