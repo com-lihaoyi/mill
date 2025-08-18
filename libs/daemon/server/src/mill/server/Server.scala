@@ -477,10 +477,15 @@ object Server {
       case l =>
         if (l.isLocked) {
           val autoCloseable = new AutoCloseable {
+            @volatile private var closed = false
+
             override def close(): Unit = {
-              beforeClose()
-              l.release()
-              afterClose()
+              if (!closed) {
+                closed = true
+                beforeClose()
+                l.release()
+                afterClose()
+              }
             }
           }
 
