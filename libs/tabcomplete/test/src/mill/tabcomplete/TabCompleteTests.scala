@@ -168,7 +168,7 @@ object TabCompleteTests extends TestSuite {
       test("short") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "-"),
-          HashSet(
+          Set(
             "-b  Ring the bell once if the run completes successfully, twice if it fails.",
             "-w  Watch and re-run the given tasks when when their inputs change.",
             "-k  Continue build, even after build failures.",
@@ -203,7 +203,7 @@ object TabCompleteTests extends TestSuite {
       test("long") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "--"),
-          HashSet(
+          Set(
             "--bsp                     Enable BSP server mode.",
             "--debug                   Show debug output on STDOUT",
             "--bell                    Ring the bell once if the run completes successfully, twice if it fails.",
