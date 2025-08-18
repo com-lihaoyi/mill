@@ -360,7 +360,9 @@ abstract class Server(args: Server.Args) {
                 // it to stderr
                 case _: ClosedByInterruptException =>
                   Console.err.println(
-                    s"Interrupted while writing to server log, writing to stderr instead:\n${msg.indent(4)}"
+                    s"Interrupted while writing to server log, writing to stderr instead:\n${
+                        msg.linesIterator.map(s => s"    $s").mkString("\n")
+                      }"
                   )
               } finally writingExceptionLog = false
               onExceptionInHandleConnection(
