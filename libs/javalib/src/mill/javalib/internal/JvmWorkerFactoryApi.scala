@@ -9,8 +9,8 @@ import mill.javalib.api.internal.JvmWorkerApi
  *
  * @param classPath The classpath of the worker.
  */
-case class JvmWorkerArgs[CompilerBridgeData](
-    compilerBridge: ZincCompilerBridgeProvider[CompilerBridgeData],
+case class JvmWorkerArgs(
+    compilerBridge: ZincCompilerBridgeProvider,
     classPath: Seq[os.Path],
     jobs: Int,
     zincLogDebug: Boolean,
@@ -19,5 +19,5 @@ case class JvmWorkerArgs[CompilerBridgeData](
 
 @internal
 trait JvmWorkerFactoryApi {
-  def make(args: JvmWorkerArgs[Unit]): JvmWorkerApi
+  def make(args: JvmWorkerArgs): JvmWorkerApi
 }

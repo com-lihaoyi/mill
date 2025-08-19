@@ -31,8 +31,7 @@ import java.net.URLClassLoader
 import java.util.Optional
 import scala.collection.mutable
 
-class ZincWorker[CompilerBridgeData](
-    compilerBridge: ZincCompilerBridgeProvider[CompilerBridgeData],
+class ZincWorker(
     jobs: Int
 ) extends AutoCloseable { self =>
   private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
@@ -77,12 +76,16 @@ class ZincWorker[CompilerBridgeData](
   }
 
   private val scalaCompilerCache =
-    new CachedFactoryWithInitData[ScalaCompilerCacheKey, CompilerBridgeData, ScalaCompilerCached] {
+    new CachedFactoryWithInitData[
+      ScalaCompilerCacheKey,
+      ZincCompilerBridgeProvider,
+      ScalaCompilerCached
+    ] {
       override def maxCacheSize: Int = jobs
 
       override def setup(
           key: ScalaCompilerCacheKey,
-          compilerBridgeData: CompilerBridgeData
+          compilerBridge: ZincCompilerBridgeProvider
       ): ScalaCompilerCached = {
         import key.*
 
@@ -92,7 +95,7 @@ class ZincWorker[CompilerBridgeData](
           scalaVersion,
           scalaOrganization,
           compilerClasspath.map(_.path),
-          compilerBridgeData
+          compilerBridge
         )
         val classLoader = classloaderCache.get(key.combinedCompilerClasspath)
         val scalaInstance = new inc.ScalaInstance(
@@ -193,8 +196,7 @@ class ZincWorker[CompilerBridgeData](
   def compileMixed(
       op: ZincCompileMixed,
       reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean,
-      compilerBridgeData: CompilerBridgeData
+      reportCachedProblems: Boolean
   )(using
       ctx: ZincWorker.InvocationContext,
       deps: ZincWorker.InvocationDependencies
@@ -207,7 +209,7 @@ class ZincWorker[CompilerBridgeData](
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
       javacOptions = javacOptions,
-      compilerBridgeData
+      deps.compilerBridge
     ) { compilers =>
       compileInternal(
         upstreamCompileOutput = upstreamCompileOutput,
@@ -226,7 +228,7 @@ class ZincWorker[CompilerBridgeData](
 
   def scaladocJar(
       op: ZincScaladocJar,
-      compilerBridgeData: CompilerBridgeData
+      compilerBridge: ZincCompilerBridgeProvider
   ): Boolean = {
     import op.*
 
@@ -236,7 +238,7 @@ class ZincWorker[CompilerBridgeData](
       compilerClasspath,
       scalacPluginClasspath,
       JavaCompilerOptions.empty,
-      compilerBridgeData
+      compilerBridge
     ) { compilers =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
       // https://github.com/com-lihaoyi/mill/issues/4556
@@ -279,7 +281,7 @@ class ZincWorker[CompilerBridgeData](
   }
 
   /** Constructs a [[ZincApi]] given the invocation context and dependencies. */
-  def api(compilerBridgeData: CompilerBridgeData)(using
+  def api(using
       ctx: ZincWorker.InvocationContext,
       deps: ZincWorker.InvocationDependencies
   ): ZincApi = new {
@@ -295,10 +297,10 @@ class ZincWorker[CompilerBridgeData](
         reporter: Option[CompileProblemReporter],
         reportCachedProblems: Boolean
     ): Result[CompilationResult] =
-      self.compileMixed(op, reporter, reportCachedProblems, compilerBridgeData)
+      self.compileMixed(op, reporter, reportCachedProblems)
 
     override def scaladocJar(op: ZincScaladocJar): Boolean =
-      self.scaladocJar(op, compilerBridgeData)
+      self.scaladocJar(op, deps.compilerBridge)
   }
 
   def close(): Unit = {
@@ -313,7 +315,7 @@ class ZincWorker[CompilerBridgeData](
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
       javacOptions: JavaCompilerOptions,
-      compilerBridgeData: CompilerBridgeData
+      compilerBridge: ZincCompilerBridgeProvider
   )(f: Compilers => T) = {
     val cacheKey = ScalaCompilerCacheKey(
       scalaVersion,
@@ -322,7 +324,7 @@ class ZincWorker[CompilerBridgeData](
       scalaOrganization,
       javacOptions
     )
-    scalaCompilerCache.withValue(cacheKey, compilerBridgeData) { cached =>
+    scalaCompilerCache.withValue(cacheKey, compilerBridge) { cached =>
       f(cached.compilers)
     }
   }
@@ -541,7 +543,7 @@ class ZincWorker[CompilerBridgeData](
       scalaVersion: String,
       scalaOrganization: String,
       compilerClasspath: Seq[os.Path],
-      acquireData: CompilerBridgeData
+      compilerBridge: ZincCompilerBridgeProvider
   ): os.Path = {
     val workingDir = compilerBridge.workspace / s"zinc-${Versions.zinc}" / scalaVersion
     val lock = synchronized(compilerBridgeLocks.getOrElseUpdate(scalaVersion, new Object()))
@@ -551,11 +553,7 @@ class ZincWorker[CompilerBridgeData](
       if (os.exists(doneFile)) compiledDest
       else {
         val acquired =
-          compilerBridge.acquire(
-            scalaVersion = scalaVersion,
-            scalaOrganization = scalaOrganization,
-            acquireData
-          )
+          compilerBridge.acquire(scalaVersion = scalaVersion, scalaOrganization = scalaOrganization)
 
         acquired match {
           case AcquireResult.Compiled(bridgeJar) => bridgeJar
@@ -586,7 +584,8 @@ object ZincWorker {
    */
   case class InvocationDependencies(
       log: Logger.Actions,
-      consoleOut: ConsoleOut
+      consoleOut: ConsoleOut,
+      compilerBridge: ZincCompilerBridgeProvider
   )
 
   /** The invocation context, always comes from the Mill's process. */

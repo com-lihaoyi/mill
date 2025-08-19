@@ -22,7 +22,7 @@ import scala.concurrent.duration.*
 import scala.util.Using
 
 @internal
-class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoCloseable {
+class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable {
   import args.*
 
   private val requestIds = RequestIdFactory()
@@ -40,11 +40,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
   }
 
   /** The local Zinc instance which is used when we do not want to override Java home or runtime options. */
-  private val zincLocalWorker =
-    ZincWorker(
-      compilerBridge,
-      jobs = jobs
-    )
+  private val zincLocalWorker = ZincWorker(jobs = jobs)
 
   override def compileJava(
       op: ZincCompileJava,
@@ -297,10 +293,11 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
   ): ZincApi = {
     val zincDeps = ZincWorker.InvocationDependencies(
       log = log,
-      consoleOut = ConsoleOut.printStreamOut(log.streams.err)
+      consoleOut = ConsoleOut.printStreamOut(log.streams.err),
+      compilerBridge
     )
 
-    zincLocalWorker.api(compilerBridgeData = ())(using zincCtx, zincDeps)
+    zincLocalWorker.api(using zincCtx, zincDeps)
   }
 
   /**
@@ -451,7 +448,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     def acquireZincCompilerBridge(
         msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge
     ): msg.Response =
-      compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization, data = ())
+      compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization)
 
     def reportCompilationProblem(
         msg: ZincWorkerRpcServer.ServerToClient.ReportCompilationProblem
