@@ -17,15 +17,26 @@ import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     with WithJvmWorkerModule {
   def jvmWorker: ModuleRef[JvmWorkerModule]
-  def upstreamCompileOutput: T[Seq[CompilationResult]]
+
+  def upstreamSemanticDbDatas: Task[Seq[SemanticDbJavaModule.SemanticDbData]] =
+    Task.sequence(transitiveModuleCompileModuleDeps.map(_.semanticDbDataDetailed))
+
+  def transitiveModuleCompileModuleDeps: Seq[SemanticDbJavaModule]
   def zincReportCachedProblems: T[Boolean]
   def zincIncrementalCompilation: T[Boolean]
   def allSourceFiles: T[Seq[PathRef]]
   def compile: T[mill.javalib.api.CompilationResult]
+
+  def compileFor(compileFor: CompileFor): Task[mill.javalib.api.CompilationResult] =
+    compileFor match {
+      case CompileFor.Regular => compile
+      case CompileFor.SemanticDb => semanticDbDataDetailed.map(_.compilationResult)
+    }
+
   private[mill] def bspBuildTarget: BspBuildTarget
   def javacOptions: T[Seq[String]]
   def mandatoryJavacOptions: T[Seq[String]]
-  def compileClasspath: T[Seq[PathRef]]
+  def compileClasspathFor(compileFor: CompileFor): Task[Seq[PathRef]]
   def moduleDeps: Seq[JavaModule]
 
   def semanticDbVersion: T[String] = Task.Input {
@@ -103,7 +114,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     defaultResolver().classpath(semanticDbJavaPluginMvnDeps())
   }
 
-  def semanticDbData: T[PathRef] = Task(persistent = true) {
+  def semanticDbDataDetailed: T[SemanticDbJavaModule.SemanticDbData] = Task(persistent = true) {
     val javacOpts = SemanticDbJavaModule.javacOptionsTask(
       javacOptions() ++ mandatoryJavacOptions(),
       semanticDbJavaVersion()
@@ -116,10 +127,14 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     jvmWorker().internalWorker()
       .compileJava(
         ZincCompileJava(
-          upstreamCompileOutput = upstreamCompileOutput(),
+          upstreamCompileOutput = upstreamSemanticDbDatas().map(_.compilationResult),
           sources = allSourceFiles().map(_.path),
           compileClasspath =
-            (compileClasspath() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
+            (compileClasspathFor(
+              CompileFor.SemanticDb
+            )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(
+              _.path
+            ),
           javacOptions = jOpts.compiler,
           incrementalCompilation = zincIncrementalCompilation()
         ),
@@ -128,17 +143,23 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
         reporter = Task.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems()
       )
-      .map { r =>
-        BuildCtx.withFilesystemCheckerDisabled {
+      .map { compilationResult =>
+        val semanticDbFiles = BuildCtx.withFilesystemCheckerDisabled {
           SemanticDbJavaModule.copySemanticdbFiles(
-            r.classes.path,
+            compilationResult.classes.path,
             BuildCtx.workspaceRoot,
             Task.dest / "data",
             SemanticDbJavaModule.workerClasspath().map(_.path),
             allSourceFiles().map(_.path)
           )
         }
+
+        SemanticDbJavaModule.SemanticDbData(compilationResult, semanticDbFiles)
       }
+  }
+
+  def semanticDbData: T[PathRef] = Task {
+    semanticDbDataDetailed().semanticDbFiles
   }
 
   /**
@@ -192,6 +213,11 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 }
 
 object SemanticDbJavaModule extends ExternalModule with CoursierModule {
+  case class SemanticDbData(
+      compilationResult: CompilationResult,
+      semanticDbFiles: PathRef
+  ) derives upickle.default.ReadWriter
+
   private[mill] def workerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
       Dep.millProjectModule("mill-libs-javalib-scalameta-worker")

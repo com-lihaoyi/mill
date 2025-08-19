@@ -730,11 +730,18 @@ trait JavaModule
   }
 
   /**
-   * The transitive version of `compileClasspath`
+   * The transitive version of [[compileClasspath]]
    */
   def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
+    transitiveCompileClasspathFor(CompileFor.Regular)()
+  }
+
+  /**
+   * The transitive version of [[compileClasspathFor]]
+   */
+  def transitiveCompileClasspathFor(compileFor: CompileFor): Task[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps)(m =>
-      Task.Anon { m.localCompileClasspath() ++ Seq(m.compile().classes) }
+      Task.Anon { m.localCompileClasspath() ++ Seq(m.compileFor(compileFor)().classes) }
     )().flatten
   }
 
@@ -965,13 +972,18 @@ trait JavaModule
     }
 
   /**
+   * [[compileClasspathFor]] for regular compilations.
+   *
+   * Keep return value in sync with [[bspCompileClasspath]].
+   */
+  def compileClasspath: T[Seq[PathRef]] = Task { compileClasspathFor(CompileFor.Regular)() }
+
+  /**
    * All classfiles and resources from upstream modules and dependencies
    * necessary to compile this module.
-   *
-   * Keep in sync with [[bspCompileClasspath]]
    */
-  override def compileClasspath: T[Seq[PathRef]] = Task {
-    resolvedMvnDeps() ++ transitiveCompileClasspath() ++ localCompileClasspath()
+  override def compileClasspathFor(compileFor: CompileFor): Task[Seq[PathRef]] = Task {
+    resolvedMvnDeps() ++ transitiveCompileClasspathFor(compileFor)() ++ localCompileClasspath()
   }
 
   /**
