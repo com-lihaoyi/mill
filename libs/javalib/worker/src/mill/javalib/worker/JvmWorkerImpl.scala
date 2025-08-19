@@ -43,8 +43,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
   private val zincLocalWorker =
     ZincWorker(
       compilerBridge,
-      jobs = jobs,
-      zincLogDebug = zincLogDebug
+      jobs = jobs
     )
 
   override def compileJava(
@@ -113,7 +112,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       env = ctx.env,
       dest = ctx.dest,
       logDebugEnabled = log.debugEnabled,
-      logPromptColored = log.prompt.colored
+      logPromptColored = log.prompt.colored,
+      zincLogDebug = zincLogDebug
     )
 
     if (javaRuntimeOptions.options.isEmpty && javaHome.isEmpty) {
@@ -379,8 +379,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
 
               val init = ZincWorkerRpcServer.Initialize(
                 compilerBridgeWorkspace = compilerBridge.workspace,
-                jobs = jobs,
-                zincLogDebug = zincLogDebug
+                jobs = jobs
               )
               fileAndDebugLog(
                 log,

@@ -33,12 +33,10 @@ import scala.collection.mutable
 
 class ZincWorker[CompilerBridgeData](
     compilerBridge: ZincCompilerBridgeProvider[CompilerBridgeData],
-    jobs: Int,
-    zincLogDebug: Boolean
+    jobs: Int
 ) extends AutoCloseable { self =>
   private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
   private val compilerBridgeLocks: mutable.Map[String, Object] = mutable.Map.empty[String, Object]
-  private val zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
 
   private val classloaderCache = new RefCountedClassLoaderCache(
     sharedLoader = getClass.getClassLoader,
@@ -384,6 +382,7 @@ class ZincWorker[CompilerBridgeData](
       suppressedMessage = _ => None
     )
     val loggerId = Thread.currentThread().getId.toString
+    val zincLogLevel = if (ctx.zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
     val logger = SbtLoggerUtils.createLogger(loggerId, consoleAppender, zincLogLevel)
 
     val maxErrors = reporter.map(_.maxErrors).getOrElse(CompileProblemReporter.defaultMaxErrors)
@@ -595,7 +594,8 @@ object ZincWorker {
       env: Map[String, String],
       dest: os.Path,
       logDebugEnabled: Boolean,
-      logPromptColored: Boolean
+      logPromptColored: Boolean,
+      zincLogDebug: Boolean
   ) derives upickle.default.ReadWriter
 
   private case class ScalaCompilerCacheKey(

@@ -49,8 +49,7 @@ class ZincWorkerRpcServer(
       )
       val worker = ZincWorker(
         zincCompilerBridge,
-        jobs = initialize.jobs,
-        zincLogDebug = initialize.zincLogDebug
+        jobs = initialize.jobs
       )
 
       val deps = {
@@ -147,8 +146,7 @@ object ZincWorkerRpcServer {
    */
   case class Initialize(
       compilerBridgeWorkspace: os.Path,
-      jobs: Int,
-      zincLogDebug: Boolean
+      jobs: Int
   ) derives ReadWriter
 
   sealed trait ReporterMode derives ReadWriter {

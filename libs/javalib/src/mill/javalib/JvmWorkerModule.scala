@@ -45,6 +45,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     ))
   }
 
+  /** Whether Zinc debug logging is enabled. */
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
   def worker: Worker[JvmWorkerApi] = internalWorker
