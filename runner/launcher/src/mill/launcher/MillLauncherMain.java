@@ -11,6 +11,7 @@ import mill.client.lock.Locks;
 import mill.constants.EnvVars;
 import mill.constants.OutFiles;
 import mill.constants.OutFolderMode;
+import mill.internal.MillCliConfig;
 
 /**
  * This is a Java implementation to speed up repetitive starts.
@@ -37,7 +38,7 @@ public class MillLauncherMain {
       }
     }
 
-    var outMode = Arrays.asList(args).contains(bspFlag) ? OutFolderMode.BSP : OutFolderMode.REGULAR;
+    var outMode = containsBspFlag(args) ? OutFolderMode.BSP : OutFolderMode.REGULAR;
     var outDir = OutFiles.outFor(outMode);
 
     if (outMode == OutFolderMode.BSP) {
@@ -96,5 +97,18 @@ public class MillLauncherMain {
         e.printStackTrace();
         System.exit(1);
       }
+  }
+
+  private static boolean containsBspFlag(String[] args) {
+    // First do a simple check because it is faster, as it only uses java stdlib.
+    var simpleCheck = Arrays.asList(args).contains(bspFlag);
+    if (!simpleCheck) return false;
+
+    // If the simple check passed, do a more expensive check which loads more classes, thus introduces startup
+    // overhead.
+    //
+    // This is done to prevent false positives in the simple check, for example when the user passes
+    // "--bsp" as a flag to `run` task.
+    return MillCliConfig.parse(args).toOption().exists(config -> config.bsp().value());
   }
 }
