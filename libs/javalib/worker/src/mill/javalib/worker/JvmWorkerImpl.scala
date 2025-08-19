@@ -11,7 +11,7 @@ import mill.javalib.internal.{JvmWorkerArgs, RpcCompileProblemReporterMessage}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
-import mill.util.{CachedFactoryWithInitData, HexFormat, Jvm, Timed}
+import mill.util.{CachedFactoryWithInitData, HexFormat, Jvm, RequestId, RequestIdFactory, Timed}
 import sbt.internal.util.ConsoleOut
 
 import java.io.*
@@ -22,29 +22,25 @@ import scala.concurrent.duration.*
 import scala.util.Using
 
 @internal
-class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoCloseable {
+class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable {
   import args.*
 
-  private def fileLog(s: String): Unit =
+  private val requestIds = RequestIdFactory()
+
+  private def fileLog(s: String)(using requestId: RequestId): Unit =
     os.write.append(
       compilerBridge.workspace / "jvm-worker.log",
-      s"[${LocalDateTime.now()}] $s\n",
+      s"[${LocalDateTime.now()}|$requestId] $s\n",
       createFolders = true
     )
 
-  private def fileAndDebugLog(log: Logger.Actions, s: String): Unit = {
+  private def fileAndDebugLog(log: Logger.Actions, s: String)(using requestId: RequestId): Unit = {
     fileLog(s)
     log.debug(s)
   }
 
   /** The local Zinc instance which is used when we do not want to override Java home or runtime options. */
-  private val zincLocalWorker =
-    ZincWorker(
-      compilerBridge,
-      jobs = jobs,
-      compileToJar = compileToJar,
-      zincLogDebug = zincLogDebug
-    )
+  private val zincLocalWorker = ZincWorker(jobs = jobs)
 
   override def compileJava(
       op: ZincCompileJava,
@@ -53,6 +49,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
+    given RequestId = requestIds.next()
     fileLog(pprint.apply(op).render)
     val zinc = zincApi(javaHome, javaRuntimeOptions)
     val result =
@@ -68,6 +65,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
+    given RequestId = requestIds.next()
     fileLog(pprint.apply(op).render)
     val zinc = zincApi(javaHome, javaRuntimeOptions)
     val result =
@@ -80,6 +78,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       op: ZincScaladocJar,
       javaHome: Option[os.Path]
   )(using ctx: JvmWorkerApi.Ctx): Boolean = {
+    given RequestId = requestIds.next()
     fileLog(pprint.apply(op).render)
     val zinc = zincApi(javaHome, JavaRuntimeOptions(Seq.empty))
     val result = Timed(zinc.scaladocJar(op))
@@ -101,14 +100,16 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       javaHome: Option[os.Path],
       javaRuntimeOptions: JavaRuntimeOptions
   )(using
-      ctx: JvmWorkerApi.Ctx
+      ctx: JvmWorkerApi.Ctx,
+      requestId: RequestId
   ): ZincApi = {
     val log = ctx.log
     val zincCtx = ZincWorker.InvocationContext(
       env = ctx.env,
       dest = ctx.dest,
       logDebugEnabled = log.debugEnabled,
-      logPromptColored = log.prompt.colored
+      logPromptColored = log.prompt.colored,
+      zincLogDebug = zincLogDebug
     )
 
     if (javaRuntimeOptions.options.isEmpty && javaHome.isEmpty) {
@@ -140,7 +141,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
   }
   private case class SubprocessCacheInitialize(
       taskDest: os.Path,
-      log: Logger
+      log: Logger,
+      requestId: RequestId
   )
   private case class SubprocessCacheValue(
       port: Int,
@@ -200,6 +202,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         init: SubprocessCacheInitialize
     ): SubprocessCacheValue = {
       import init.log
+      given RequestId = init.requestId
 
       val workerDir = init.taskDest / "zinc-worker" / key.sha256
       val daemonDir = workerDir / "daemon"
@@ -229,7 +232,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
           fileAndDebugLog(log, s"Starting JVM subprocess for $mainClass for $key")
           val process = Timed(Jvm.spawnProcess(
             mainClass = mainClass,
-            mainArgs = Seq(daemonDir.toString),
+            mainArgs = Seq(daemonDir.toString, jobs.toString),
             javaHome = key.javaHome,
             jvmArgs = key.runtimeOptions.options,
             classPath = classPath
@@ -290,10 +293,11 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
   ): ZincApi = {
     val zincDeps = ZincWorker.InvocationDependencies(
       log = log,
-      consoleOut = ConsoleOut.printStreamOut(log.streams.err)
+      consoleOut = ConsoleOut.printStreamOut(log.streams.err),
+      compilerBridge
     )
 
-    zincLocalWorker.api(compilerBridgeData = ())(using zincCtx, zincDeps)
+    zincLocalWorker.api(using zincCtx, zincDeps)
   }
 
   /**
@@ -305,7 +309,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       runtimeOptions: JavaRuntimeOptions,
       ctx: ZincWorker.InvocationContext,
       log: Logger
-  ): ZincApi = {
+  )(using requestId: RequestId): ZincApi = {
     val cacheKey = SubprocessCacheKey(javaHome, runtimeOptions)
 
     def makeClientLogger() = new Logger.Actions {
@@ -341,7 +345,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         : R = {
       subprocessCache.withValue(
         cacheKey,
-        SubprocessCacheInitialize(compilerBridge.workspace, log)
+        SubprocessCacheInitialize(compilerBridge.workspace, log, requestId)
       ) { case SubprocessCacheValue(port, daemonDir, _) =>
         Using.Manager { use =>
           val startTimeNanos = System.nanoTime()
@@ -370,12 +374,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
                   writeSynchronizer = clientToServer
                 )
 
-              val init = ZincWorkerRpcServer.Initialize(
-                compilerBridgeWorkspace = compilerBridge.workspace,
-                jobs = jobs,
-                compileToJar = compileToJar,
-                zincLogDebug = zincLogDebug
-              )
+              val init =
+                ZincWorkerRpcServer.Initialize(compilerBridgeWorkspace = compilerBridge.workspace)
               fileAndDebugLog(
                 log,
                 s"Connected to $daemonDir on port $port, sending init: ${pprint(init)}"
@@ -446,7 +446,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     def acquireZincCompilerBridge(
         msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge
     ): msg.Response =
-      compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization, data = ())
+      compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization)
 
     def reportCompilationProblem(
         msg: ZincWorkerRpcServer.ServerToClient.ReportCompilationProblem

@@ -14,21 +14,17 @@ import scala.util.Properties.isWin
  * @param logInfo  logs a message at INFO level.
  */
 @internal
-case class ZincCompilerBridgeProvider[-AcquireData](
+case class ZincCompilerBridgeProvider(
     workspace: os.Path,
     logInfo: String => Unit,
-    acquire: ZincCompilerBridgeProvider.Acquire[AcquireData]
+    acquire: ZincCompilerBridgeProvider.Acquire
 )
 @internal
 object ZincCompilerBridgeProvider {
 
-  /**
-   * Provides the compiler bridge.
-   *
-   * @tparam Data extra data to pass to the acquire function.
-   */
-  trait Acquire[-Data] {
-    def apply(scalaVersion: String, scalaOrganization: String, data: Data): AcquireResult[os.Path]
+  /** Provides the compiler bridge. */
+  trait Acquire {
+    def apply(scalaVersion: String, scalaOrganization: String): AcquireResult[os.Path]
   }
 
   enum AcquireResult[+Path] derives ReadWriter {

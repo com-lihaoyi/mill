@@ -16,6 +16,7 @@ import upickle.default.ReadWriter
 import java.io.PrintStream
 
 class ZincWorkerRpcServer(
+    worker: ZincWorker,
     serverName: String,
     transport: MillRpcWireTransport,
     setIdle: Server.SetIdle,
@@ -35,41 +36,37 @@ class ZincWorkerRpcServer(
       serverToClient: MillRpcChannel[ServerToClient]
   ): MillRpcChannel[ClientToServer] = setIdle.doWork {
     val result = Timed {
-      val zincCompilerBridge = ZincCompilerBridgeProvider[MillRpcRequestId](
-        workspace = initialize.compilerBridgeWorkspace,
-        logInfo = log.info,
-        acquire = (scalaVersion, scalaOrganization, clientRequestId) =>
-          serverToClient(
-            clientRequestId,
-            ServerToClient.AcquireZincCompilerBridge(
-              scalaVersion = scalaVersion,
-              scalaOrganization = scalaOrganization
+      // This is an ugly hack. `ConsoleOut` is sealed, but we need to provide a way to send these logs to the Mill server
+      // over RPC, so we hijack `PrintStream` by overriding the methods that `ConsoleOut` uses.
+      //
+      // This is obviously extra fragile, but I couldn't find a better way to do it.
+      val consoleOut = ConsoleOut.printStreamOut(new PrintStream(NullOutputStream.getInstance()) {
+        override def print(s: String): Unit = clientStderr.print(s)
+
+        override def println(s: String): Unit = print(s + "\n")
+
+        override def println(): Unit = print("\n")
+
+        override def flush(): Unit = clientStderr.flush()
+      })
+
+      def makeCompilerBridge(clientRequestId: MillRpcRequestId) =
+        ZincCompilerBridgeProvider(
+          workspace = initialize.compilerBridgeWorkspace,
+          logInfo = log.info,
+          acquire = (scalaVersion, scalaOrganization) =>
+            serverToClient(
+              clientRequestId,
+              ServerToClient.AcquireZincCompilerBridge(
+                scalaVersion = scalaVersion,
+                scalaOrganization = scalaOrganization
+              )
             )
-          )
-      )
-      val worker = ZincWorker(
-        zincCompilerBridge,
-        jobs = initialize.jobs,
-        compileToJar = initialize.compileToJar,
-        zincLogDebug = initialize.zincLogDebug
-      )
+        )
 
-      val deps = {
-        // This is an ugly hack. `ConsoleOut` is sealed but we need to provide a way to send these logs to the Mill server
-        // over RPC, so we hijack `PrintStream` by overriding the methods that `ConsoleOut` uses.
-        //
-        // This is obviously extra fragile, but I couldn't find a better way to do it.
-        val consoleOut = ConsoleOut.printStreamOut(new PrintStream(NullOutputStream.getInstance()) {
-          override def print(s: String): Unit = clientStderr.print(s)
-
-          override def println(s: String): Unit = print(s + "\n")
-
-          override def println(): Unit = print("\n")
-
-          override def flush(): Unit = clientStderr.flush()
-        })
-
-        ZincWorker.InvocationDependencies(log, consoleOut)
+      def makeDeps(clientRequestId: MillRpcRequestId) = {
+        val compilerBridge = makeCompilerBridge(clientRequestId)
+        ZincWorker.InvocationDependencies(log, consoleOut, compilerBridge)
       }
 
       def reporter(clientRequestId: MillRpcRequestId, maxErrors: Int) = RpcCompileProblemReporter(
@@ -115,7 +112,7 @@ class ZincWorkerRpcServer(
             op = msg.op,
             reporter = reporterAsOption(clientRequestId, msg.reporterMode),
             reportCachedProblems = msg.reporterMode.reportCachedProblems
-          )(using msg.ctx, deps)
+          )(using msg.ctx, makeDeps(clientRequestId))
         }
 
         private def compileMixed(
@@ -125,16 +122,17 @@ class ZincWorkerRpcServer(
           worker.compileMixed(
             msg.op,
             reporter = reporterAsOption(clientRequestId, msg.reporterMode),
-            reportCachedProblems = msg.reporterMode.reportCachedProblems,
-            compilerBridgeData = clientRequestId
-          )(using msg.ctx, deps)
+            reportCachedProblems = msg.reporterMode.reportCachedProblems
+          )(using msg.ctx, makeDeps(clientRequestId))
         }
 
         private def docJar(
             clientRequestId: MillRpcRequestId,
             msg: ClientToServer.ScaladocJar
-        ): msg.Response =
-          worker.scaladocJar(msg.op, compilerBridgeData = clientRequestId)
+        ): msg.Response = {
+          val compilerBridge = makeCompilerBridge(clientRequestId)
+          worker.scaladocJar(msg.op, compilerBridge)
+        }
       }
     }
     writeToLocalLog(s"Initialized in ${result.durationPretty}.")
@@ -147,10 +145,7 @@ object ZincWorkerRpcServer {
    * @param compilerBridgeWorkspace The workspace to use for the compiler bridge.
    */
   case class Initialize(
-      compilerBridgeWorkspace: os.Path,
-      jobs: Int,
-      compileToJar: Boolean,
-      zincLogDebug: Boolean
+      compilerBridgeWorkspace: os.Path
   ) derives ReadWriter
 
   sealed trait ReporterMode derives ReadWriter {
