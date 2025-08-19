@@ -739,11 +739,12 @@ trait JavaModule
   /**
    * The transitive version of [[compileClasspathFor]]
    */
-  def transitiveCompileClasspathFor(compileFor: CompileFor): Task[Seq[PathRef]] = Task {
-    Task.traverse(transitiveModuleCompileModuleDeps)(m =>
-      Task.Anon { m.localCompileClasspath() ++ Seq(m.compileFor(compileFor)().classes) }
-    )().flatten
-  }
+  private[mill] def transitiveCompileClasspathFor(compileFor: CompileFor): Task[Seq[PathRef]] =
+    Task {
+      Task.traverse(transitiveModuleCompileModuleDeps)(m =>
+        Task.Anon { m.localCompileClasspath() ++ Seq(m.compileFor(compileFor)().classes) }
+      )().flatten
+    }
 
   /**
    * Same as [[transitiveCompileClasspath]], but with all dependencies on [[compile]]
@@ -982,9 +983,10 @@ trait JavaModule
    * All classfiles and resources from upstream modules and dependencies
    * necessary to compile this module.
    */
-  override def compileClasspathFor(compileFor: CompileFor): Task[Seq[PathRef]] = Task {
-    resolvedMvnDeps() ++ transitiveCompileClasspathFor(compileFor)() ++ localCompileClasspath()
-  }
+  override private[mill] def compileClasspathFor(compileFor: CompileFor): Task[Seq[PathRef]] =
+    Task {
+      resolvedMvnDeps() ++ transitiveCompileClasspathFor(compileFor)() ++ localCompileClasspath()
+    }
 
   /**
    * Same as [[compileClasspath]], but does not trigger compilation targets, if possible.

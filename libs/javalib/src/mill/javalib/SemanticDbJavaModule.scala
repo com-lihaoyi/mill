@@ -27,7 +27,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   def allSourceFiles: T[Seq[PathRef]]
   def compile: T[mill.javalib.api.CompilationResult]
 
-  def compileFor(compileFor: CompileFor): Task[mill.javalib.api.CompilationResult] =
+  private[mill] def compileFor(compileFor: CompileFor): Task[mill.javalib.api.CompilationResult] =
     compileFor match {
       case CompileFor.Regular => compile
       case CompileFor.SemanticDb => semanticDbDataDetailed.map(_.compilationResult)
@@ -36,7 +36,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   private[mill] def bspBuildTarget: BspBuildTarget
   def javacOptions: T[Seq[String]]
   def mandatoryJavacOptions: T[Seq[String]]
-  def compileClasspathFor(compileFor: CompileFor): Task[Seq[PathRef]]
+  private[mill] def compileClasspathFor(compileFor: CompileFor): Task[Seq[PathRef]]
   def moduleDeps: Seq[JavaModule]
 
   def semanticDbVersion: T[String] = Task.Input {

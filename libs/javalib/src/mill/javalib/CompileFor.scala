@@ -1,6 +1,6 @@
 package mill.javalib
 
-enum CompileFor {
+private[mill] enum CompileFor {
 
   /** This is a regular compilation, for example for `compile`. */
   case Regular
