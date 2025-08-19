@@ -323,7 +323,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
         propagateEnv: java.lang.Boolean = null
     )(implicit ctx: TaskCtx): Unit = {
 
-      val mainClass1 = Option(mainClass) match {
+      Option(mainClass) match {
         case None => mainClassDefault.fold(Task.fail, identity)
         case Some(mc) if Right(mc) == mainClassDefault => mc
         case Some(mc) => Task.fail(
@@ -333,7 +333,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
 
       val cwd = Option(workingDir).getOrElse(ctx.dest)
       val mainArgs = args.value
-      val jvmArgs = Option(forkArgs).getOrElse(forkArgsDefault)
+      Option(forkArgs).getOrElse(forkArgsDefault)
       val env = Option(forkEnv).getOrElse(forkEnvDefault)
       val propEnv = Option(propagateEnv).getOrElse(propagateEnvDefault: java.lang.Boolean)
       val native = nativeExe.path.toString
