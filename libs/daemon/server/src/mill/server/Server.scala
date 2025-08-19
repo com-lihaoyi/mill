@@ -36,7 +36,8 @@ abstract class Server(args: Server.Args) {
     }
   }
 
-  def serverLog(s: String): Unit = serverLog0(s"pid:$processId ${timestampStr()} $s")
+  def serverLog(s: String): Unit =
+    serverLog0(s"pid:$processId ${timestampStr()} [t${Thread.currentThread().getId}] $s")
 
   protected type PreHandleConnectionData
 
