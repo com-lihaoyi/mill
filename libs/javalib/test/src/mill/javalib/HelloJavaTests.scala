@@ -63,7 +63,7 @@ object HelloJavaTests extends TestSuite {
 
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
-          val dataPath = eval.outPath / "core/semanticDbData.dest/data"
+          val dataPath = eval.outPath / "core/semanticDbDataDetailed.dest/data"
 
           assert(
             result.value.path == dataPath,
@@ -109,7 +109,7 @@ object HelloJavaTests extends TestSuite {
           )
           val Right(result) = eval.apply(HelloJava.core.semanticDbData): @unchecked
 
-          val dataPath = eval.outPath / "core/semanticDbData.dest/data"
+          val dataPath = eval.outPath / "core/semanticDbDataDetailed.dest/data"
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
