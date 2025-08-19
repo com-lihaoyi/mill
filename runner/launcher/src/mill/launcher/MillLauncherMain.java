@@ -104,7 +104,8 @@ public class MillLauncherMain {
     var simpleCheck = Arrays.asList(args).contains(bspFlag);
     if (!simpleCheck) return false;
 
-    // If the simple check passed, do a more expensive check which loads more classes, thus introduces startup
+    // If the simple check passed, do a more expensive check which loads more classes, thus
+    // introduces startup
     // overhead.
     //
     // This is done to prevent false positives in the simple check, for example when the user passes
