@@ -31,7 +31,7 @@ public class EnvVars {
    * If set to "1", Mill will re-use the regular @{Link OutFiles#out} folder instead of
    * using a separate one for BSP output.
    */
-  public static final String MILL_MERGE_BSP_OUTPUT_DIR = "MILL_MERGE_BSP_OUTPUT_DIR";
+  public static final String MILL_NO_SEPARATE_BSP_OUTPUT_DIR = "MILL_NO_SEPARATE_BSP_OUTPUT_DIR";
 
   // INTERNAL ENVIRONMENT VARIABLES
   /**

@@ -12,9 +12,9 @@ public class OutFiles {
    */
   private static final String envOutOrNull = System.getenv(EnvVars.MILL_OUTPUT_DIR);
 
-  /** @see EnvVars#MILL_MERGE_BSP_OUTPUT_DIR */
+  /** @see EnvVars#MILL_NO_SEPARATE_BSP_OUTPUT_DIR */
   private static final boolean mergeBspOut =
-      "1".equals(System.getenv(EnvVars.MILL_MERGE_BSP_OUTPUT_DIR));
+      "1".equals(System.getenv(EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR));
 
   /**
    * Default hard-coded value for the Mill `out/` folder path. Unless you know
