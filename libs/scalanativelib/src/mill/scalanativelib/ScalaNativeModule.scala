@@ -2,13 +2,12 @@ package mill
 package scalanativelib
 
 import mainargs.Flag
-import mill.{api => _, *}
-
-import mill.api.Result
-import mill.api.CrossVersion
+import mill.{api as _, *}
+import mill.api.{CrossVersion, Result, TaskCtx}
 import mill.api.daemon.internal.bsp.ScalaBuildTarget
 import mill.javalib.api.JvmWorkerUtil
 import mill.api.daemon.internal.{ScalaNativeModuleApi, ScalaPlatform, internal}
+import mill.javalib.RunModule
 import mill.javalib.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.scalanativelib.api.*
@@ -18,6 +17,9 @@ import mill.scalanativelib.worker.{
   api as workerApi
 }
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
+import os.{Path, Shellable}
+
+import java.lang
 
 /**
  * Core configuration required to compile a single Scala-Native module
@@ -234,10 +236,10 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
    */
   def nativeServiceProviders: T[Map[String, Seq[String]]] = Task { Map.empty[String, Seq[String]] }
 
-  private def nativeConfig: Task[NativeConfig] = Task.Anon {
+  private def nativeConfig(mainClass: Option[String]): Task[NativeConfig] = Task.Anon {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
     withScalaNativeBridge.apply().apply(_.config(
-      finalMainClassOpt(),
+      mainClass.map(Right(_)).getOrElse(finalMainClassOpt()),
       classpath.map(_.toIO),
       nativeWorkdir().toIO,
       nativeClang().path.toIO,
@@ -282,20 +284,88 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   // Generates native binary
   def nativeLink: T[PathRef] = Task {
     PathRef(os.Path(withScalaNativeBridge.apply().apply(_.nativeLink(
-      nativeConfig().config,
+      nativeConfig(None)().config,
       Task.dest.toIO
     ))))
   }
 
-  // Runs the native binary
-  override def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
-    os.call(
-      cmd = nativeLink().path.toString +: args().value,
-      env = allForkEnv(),
-      cwd = forkWorkingDir(),
-      stdin = os.Inherit,
-      stdout = os.Inherit,
-      stderr = os.Inherit
+  def nativeLinkOtherMain(mainClass: String) = Task.Anon {
+    val dest = Task.dest / s"nativeLink-${mainClass.hashCode}"
+    os.remove.all(dest)
+    PathRef(os.Path(withScalaNativeBridge.apply().apply(_.nativeLink(
+      nativeConfig(Some(mainClass))().config,
+      Task.dest.toIO
+    ))))
+  }
+
+  override def runMain(mainClass: String, args: String*): Command[Unit] = Task.Command {
+    nativeRunnerOtherMain(mainClass)().run(args = args)
+  }
+
+  private class NativeRunner(
+      mainClassDefault: Either[String, String],
+      nativeExe: PathRef,
+      forkArgsDefault: Seq[String],
+      forkEnvDefault: Map[String, String],
+      propagateEnvDefault: Boolean = true
+  ) extends RunModule.Runner {
+
+    override def run(
+        args: os.Shellable,
+        mainClass: String = null,
+        forkArgs: Seq[String] = null,
+        forkEnv: Map[String, String] = null,
+        workingDir: os.Path = null,
+        useCpPassingJar: java.lang.Boolean = null,
+        extraRunClasspath: Seq[os.Path] = Nil,
+        background: Boolean = false,
+        runBackgroundLogToConsole: Boolean = false,
+        propagateEnv: java.lang.Boolean = null
+    )(implicit ctx: TaskCtx): Unit = {
+
+      val mainClass1 = Option(mainClass) match {
+        case None => mainClassDefault.fold(Task.fail, identity)
+        case Some(mc) if Right(mc) == mainClassDefault => mc
+        case Some(mc) => Task.fail(
+            s"This runner can not run main class '${mc}'. You need to use a dedicated runner for this main class."
+          )
+      }
+
+      val cwd = Option(workingDir).getOrElse(ctx.dest)
+      val mainArgs = args.value
+      val jvmArgs = Option(forkArgs).getOrElse(forkArgsDefault)
+      val env = Option(forkEnv).getOrElse(forkEnvDefault)
+      val propEnv = Option(propagateEnv).getOrElse(propagateEnvDefault: java.lang.Boolean)
+      val native = nativeExe.path.toString
+
+      os.call(
+        cmd = native +: mainArgs,
+        env = (if (propEnv) ctx.env else Map()) ++ env,
+        cwd = cwd,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      )
+    }
+  }
+
+  override def runner: Task[RunModule.Runner] = Task.Anon {
+    new NativeRunner(
+      mainClassDefault = finalMainClassOpt(),
+      nativeExe = nativeLink(),
+      forkArgsDefault = forkArgs(),
+      forkEnvDefault = allForkEnv(),
+      propagateEnvDefault = propagateEnv()
+    )
+  }
+
+  def nativeRunnerOtherMain(mainClass: String): Task[RunModule.Runner] = Task.Anon {
+    new NativeRunner(
+      mainClassDefault = Right(mainClass),
+      nativeExe = nativeLinkOtherMain(mainClass)(),
+      forkArgsDefault = forkArgs(),
+      forkEnvDefault = allForkEnv(),
+      propagateEnvDefault = propagateEnv()
     )
   }
 
