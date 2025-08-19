@@ -34,7 +34,6 @@ import scala.collection.mutable
 class ZincWorker[CompilerBridgeData](
     compilerBridge: ZincCompilerBridgeProvider[CompilerBridgeData],
     jobs: Int,
-    compileToJar: Boolean,
     zincLogDebug: Boolean
 ) extends AutoCloseable { self =>
   private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
@@ -361,9 +360,7 @@ class ZincWorker[CompilerBridgeData](
 
     os.makeDir.all(ctx.dest)
 
-    val classesDir =
-      if (compileToJar) ctx.dest / "classes.jar"
-      else ctx.dest / "classes"
+    val classesDir = ctx.dest / "classes"
 
     if (ctx.logDebugEnabled) {
       deps.log.debug(

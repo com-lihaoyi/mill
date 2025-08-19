@@ -13,7 +13,6 @@ case class JvmWorkerArgs[CompilerBridgeData](
     compilerBridge: ZincCompilerBridgeProvider[CompilerBridgeData],
     classPath: Seq[os.Path],
     jobs: Int,
-    compileToJar: Boolean,
     zincLogDebug: Boolean,
     close0: () => Unit
 )

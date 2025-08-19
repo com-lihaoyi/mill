@@ -50,7 +50,6 @@ class ZincWorkerRpcServer(
       val worker = ZincWorker(
         zincCompilerBridge,
         jobs = initialize.jobs,
-        compileToJar = initialize.compileToJar,
         zincLogDebug = initialize.zincLogDebug
       )
 
@@ -149,7 +148,6 @@ object ZincWorkerRpcServer {
   case class Initialize(
       compilerBridgeWorkspace: os.Path,
       jobs: Int,
-      compileToJar: Boolean,
       zincLogDebug: Boolean
   ) derives ReadWriter
 

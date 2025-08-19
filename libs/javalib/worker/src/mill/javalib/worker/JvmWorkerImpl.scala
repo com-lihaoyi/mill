@@ -44,7 +44,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     ZincWorker(
       compilerBridge,
       jobs = jobs,
-      compileToJar = compileToJar,
       zincLogDebug = zincLogDebug
     )
 
@@ -381,7 +380,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
               val init = ZincWorkerRpcServer.Initialize(
                 compilerBridgeWorkspace = compilerBridge.workspace,
                 jobs = jobs,
-                compileToJar = compileToJar,
                 zincLogDebug = zincLogDebug
               )
               fileAndDebugLog(

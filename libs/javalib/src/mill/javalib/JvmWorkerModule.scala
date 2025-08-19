@@ -76,7 +76,6 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       zincCompilerBridge,
       classPath = classpath().map(_.path),
       jobs = jobs,
-      compileToJar = false,
       zincLogDebug = zincLogDebug(),
       close0 = () => cl.close()
     )
