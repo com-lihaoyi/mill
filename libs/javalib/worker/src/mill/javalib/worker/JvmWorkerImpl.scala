@@ -11,7 +11,7 @@ import mill.javalib.internal.{JvmWorkerArgs, RpcCompileProblemReporterMessage}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
-import mill.util.{CachedFactoryWithInitData, HexFormat, Jvm, Timed}
+import mill.util.{CachedFactoryWithInitData, HexFormat, Jvm, RequestId, RequestIdFactory, Timed}
 import sbt.internal.util.ConsoleOut
 
 import java.io.*
@@ -25,14 +25,16 @@ import scala.util.Using
 class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoCloseable {
   import args.*
 
-  private def fileLog(s: String): Unit =
+  private val requestIds = RequestIdFactory()
+
+  private def fileLog(s: String)(using requestId: RequestId): Unit =
     os.write.append(
       compilerBridge.workspace / "jvm-worker.log",
-      s"[${LocalDateTime.now()}] $s\n",
+      s"[${LocalDateTime.now()}|$requestId] $s\n",
       createFolders = true
     )
 
-  private def fileAndDebugLog(log: Logger.Actions, s: String): Unit = {
+  private def fileAndDebugLog(log: Logger.Actions, s: String)(using requestId: RequestId): Unit = {
     fileLog(s)
     log.debug(s)
   }
@@ -53,6 +55,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
+    given RequestId = requestIds.next()
     fileLog(pprint.apply(op).render)
     val zinc = zincApi(javaHome, javaRuntimeOptions)
     val result =
@@ -68,6 +71,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
+    given RequestId = requestIds.next()
     fileLog(pprint.apply(op).render)
     val zinc = zincApi(javaHome, javaRuntimeOptions)
     val result =
@@ -80,6 +84,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       op: ZincScaladocJar,
       javaHome: Option[os.Path]
   )(using ctx: JvmWorkerApi.Ctx): Boolean = {
+    given RequestId = requestIds.next()
     fileLog(pprint.apply(op).render)
     val zinc = zincApi(javaHome, JavaRuntimeOptions(Seq.empty))
     val result = Timed(zinc.scaladocJar(op))
@@ -101,7 +106,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       javaHome: Option[os.Path],
       javaRuntimeOptions: JavaRuntimeOptions
   )(using
-      ctx: JvmWorkerApi.Ctx
+      ctx: JvmWorkerApi.Ctx,
+      requestId: RequestId
   ): ZincApi = {
     val log = ctx.log
     val zincCtx = ZincWorker.InvocationContext(
@@ -140,7 +146,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
   }
   private case class SubprocessCacheInitialize(
       taskDest: os.Path,
-      log: Logger
+      log: Logger,
+      requestId: RequestId
   )
   private case class SubprocessCacheValue(
       port: Int,
@@ -200,6 +207,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         init: SubprocessCacheInitialize
     ): SubprocessCacheValue = {
       import init.log
+      given RequestId = init.requestId
 
       val workerDir = init.taskDest / "zinc-worker" / key.sha256
       val daemonDir = workerDir / "daemon"
@@ -305,7 +313,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       runtimeOptions: JavaRuntimeOptions,
       ctx: ZincWorker.InvocationContext,
       log: Logger
-  ): ZincApi = {
+  )(using requestId: RequestId): ZincApi = {
     val cacheKey = SubprocessCacheKey(javaHome, runtimeOptions)
 
     def makeClientLogger() = new Logger.Actions {
@@ -341,7 +349,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         : R = {
       subprocessCache.withValue(
         cacheKey,
-        SubprocessCacheInitialize(compilerBridge.workspace, log)
+        SubprocessCacheInitialize(compilerBridge.workspace, log, requestId)
       ) { case SubprocessCacheValue(port, daemonDir, _) =>
         Using.Manager { use =>
           val startTimeNanos = System.nanoTime()

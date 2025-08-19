@@ -22,9 +22,12 @@ trait MillRpcWireTransport extends AutoCloseable {
   /** Helper that reads a message from the wire and tries to parse it, logging along the way. */
   @tailrec final def readAndTryToParse[A: Reader](
       typeName: String,
-      log: String => Unit
+      log: String => Unit,
+      firstInvocation: Boolean = true
   ): Option[A] = {
-    log(s"Trying to read $typeName")
+    // Only log on the first invocation, not when we get a heartbeat
+    if (firstInvocation) log(s"Trying to read $typeName")
+
     read() match {
       case None =>
         log("Transport wire broken.")
@@ -32,7 +35,7 @@ trait MillRpcWireTransport extends AutoCloseable {
 
       // Empty line means a heartbeat message
       case Some("") =>
-        readAndTryToParse[A](typeName, log)
+        readAndTryToParse[A](typeName, log, firstInvocation = false)
 
       case Some(line) =>
         log(s"Received, will try to parse as $typeName: $line")
