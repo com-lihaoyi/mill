@@ -42,15 +42,17 @@ public class MillLauncherMain {
 
     if (outMode == OutFolderMode.BSP) {
       System.err.println(
-        OutFiles.mergeBspOut
-          ? "Mill is running in BSP mode and '" + EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR + "' environment variable " +
-          "is set, Mill will use the regular '" + outDir + "' as the output directory. Unset this environment " +
-          "variable if you want to use a separate output directory for BSP. This will increase the CPU usage of the " +
-          "BSP server but make it more responsive."
-          : "Mill is running in BSP mode, using a separate output directory '" + outDir + "'. If you would like to " +
-          "reuse the regular `out/` directory, unset the '" + EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR +
-          "' environment variable. This will reduce the CPU usage of the BSP server but make it less responsive."
-      );
+          OutFiles.mergeBspOut
+              ? "Mill is running in BSP mode and '" + EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR
+                  + "' environment variable " + "is set, Mill will use the regular '"
+                  + outDir + "' as the output directory. Unset this environment variable if you"
+                  + " want to use a separate output directory for BSP. This will increase"
+                  + " the CPU usage of the BSP server but make it more responsive."
+              : "Mill is running in BSP mode, using a separate output directory '" + outDir
+                  + "'. If you would like to " + "reuse the regular `out/` directory, unset the '"
+                  + EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR
+                  + "' environment variable. This will reduce the CPU usage of the BSP server but"
+                  + " make it less responsive.");
     }
 
     if (runNoServer) {
