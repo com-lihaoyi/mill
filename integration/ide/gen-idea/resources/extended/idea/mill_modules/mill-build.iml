@@ -58,6 +58,7 @@
         <orderEntry type="library" name="mill-core-constants.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-eval_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-exec_3.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-core-internal-cli_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-internal_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-resolve_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-androidlib_3.jar" level="project"/>
