@@ -17,8 +17,8 @@ object Util {
     )
 
   def buildFiles(workspace: os.Path): geny.Generator[os.Path] = {
-    val outDir = workspace / OutFiles.out
-    val bspOutDir = workspace / OutFiles.bspOut
+    val outDir = workspace / os.RelPath(OutFiles.out)
+    val bspOutDir = workspace / os.RelPath(OutFiles.bspOut)
 
     os.walk.stream(workspace, skip = path => path == outDir || path == bspOutDir)
       .filter(file => buildFileExtensions.contains(file.ext))
