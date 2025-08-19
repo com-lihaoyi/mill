@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import mill.client.*;
 import mill.client.lock.Locks;
+import mill.constants.EnvVars;
 import mill.constants.OutFiles;
 import mill.constants.OutFolderMode;
 
@@ -37,6 +38,20 @@ public class MillLauncherMain {
     }
 
     var outMode = Arrays.asList(args).contains(bspFlag) ? OutFolderMode.BSP : OutFolderMode.REGULAR;
+    var outDir = OutFiles.outFor(outMode);
+
+    if (outMode == OutFolderMode.BSP) {
+      System.err.println(
+        OutFiles.mergeBspOut
+          ? "Mill is running in BSP mode and '" + EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR + "' environment variable " +
+          "is set, Mill will use the regular '" + outDir + "' as the output directory. Unset this environment " +
+          "variable if you want to use a separate output directory for BSP. This will increase the CPU usage of the " +
+          "BSP server but make it more responsive."
+          : "Mill is running in BSP mode, using a separate output directory '" + outDir + "'. If you would like to " +
+          "reuse the regular `out/` directory, unset the '" + EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR +
+          "' environment variable. This will reduce the CPU usage of the BSP server but make it less responsive."
+      );
+    }
 
     if (runNoServer) {
       // start in no-server mode
@@ -65,7 +80,7 @@ public class MillLauncherMain {
               }
             };
 
-        Path daemonDir0 = Paths.get(OutFiles.outFor(outMode), OutFiles.millDaemon);
+        var daemonDir0 = Paths.get(outDir, OutFiles.millDaemon);
         String javaHome = MillProcessLauncher.javaHome(outMode);
         // No logging.
         Consumer<String> log = ignored -> {};
