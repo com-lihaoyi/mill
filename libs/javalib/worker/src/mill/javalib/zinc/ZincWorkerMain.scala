@@ -14,13 +14,13 @@ import scala.util.Using
 object ZincWorkerMain {
   def main(args: Array[String]): Unit = SystemStreamsUtils.withTopLevelSystemStreamProxy {
     args match {
-      case Array(daemonDir) =>
-        val server = ZincWorkerTcpServer(os.Path(daemonDir))
+      case Array(daemonDir, jobsStr) =>
+        val server = ZincWorkerTcpServer(os.Path(daemonDir), jobsStr.toInt)
         server.run()
 
       case other =>
         Console.err.println(
-          s"""Usage: zinc-worker <daemonDir>
+          s"""Usage: zinc-worker <daemonDir> <jobs>
              |
              |Given: ${other.mkString(" ")}
              |""".stripMargin
@@ -29,7 +29,7 @@ object ZincWorkerMain {
     }
   }
 
-  private class ZincWorkerTcpServer(daemonDir: os.Path) extends Server(Server.Args(
+  private class ZincWorkerTcpServer(daemonDir: os.Path, jobs: Int) extends Server(Server.Args(
         daemonDir,
         // The worker kills the process when it needs to.
         acceptTimeout = None,
@@ -37,6 +37,14 @@ object ZincWorkerMain {
         bufferSize = 4 * 1024
       )) {
     private val className = summon[TPrint[ZincWorkerTcpServer]].render(using TPrintColors.Colors)
+
+    /**
+     * Shared instance of the Zinc worker.
+     *
+     * It is very important that the same instance is used in all connections as it contains the necessary caches
+     * to make Scala compilation fast!
+     */
+    private val worker = ZincWorker(jobs = jobs)
 
     protected class WriteSynchronizer
 
@@ -61,7 +69,7 @@ object ZincWorkerMain {
         val stdout = use(PrintStream(connectionData.serverToClient))
         val transport =
           MillRpcWireTransport.ViaStreams(serverName, stdin, stdout, writeSynchronizer)
-        val server = ZincWorkerRpcServer(serverName, transport, setIdle, serverLog)
+        val server = ZincWorkerRpcServer(worker, serverName, transport, setIdle, serverLog)
 
         // Make sure stdout and stderr is sent to the client
         SystemStreamsUtils.withStreams(SystemStreams(

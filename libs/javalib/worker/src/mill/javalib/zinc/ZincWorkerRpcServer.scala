@@ -16,6 +16,7 @@ import upickle.default.ReadWriter
 import java.io.PrintStream
 
 class ZincWorkerRpcServer(
+    worker: ZincWorker,
     serverName: String,
     transport: MillRpcWireTransport,
     setIdle: Server.SetIdle,
@@ -35,9 +36,7 @@ class ZincWorkerRpcServer(
       serverToClient: MillRpcChannel[ServerToClient]
   ): MillRpcChannel[ClientToServer] = setIdle.doWork {
     val result = Timed {
-      val worker = ZincWorker(jobs = initialize.jobs)
-
-      // This is an ugly hack. `ConsoleOut` is sealed but we need to provide a way to send these logs to the Mill server
+      // This is an ugly hack. `ConsoleOut` is sealed, but we need to provide a way to send these logs to the Mill server
       // over RPC, so we hijack `PrintStream` by overriding the methods that `ConsoleOut` uses.
       //
       // This is obviously extra fragile, but I couldn't find a better way to do it.
@@ -146,8 +145,7 @@ object ZincWorkerRpcServer {
    * @param compilerBridgeWorkspace The workspace to use for the compiler bridge.
    */
   case class Initialize(
-      compilerBridgeWorkspace: os.Path,
-      jobs: Int
+      compilerBridgeWorkspace: os.Path
   ) derives ReadWriter
 
   sealed trait ReporterMode derives ReadWriter {

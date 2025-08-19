@@ -232,7 +232,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
           fileAndDebugLog(log, s"Starting JVM subprocess for $mainClass for $key")
           val process = Timed(Jvm.spawnProcess(
             mainClass = mainClass,
-            mainArgs = Seq(daemonDir.toString),
+            mainArgs = Seq(daemonDir.toString, jobs.toString),
             javaHome = key.javaHome,
             jvmArgs = key.runtimeOptions.options,
             classPath = classPath
@@ -374,10 +374,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
                   writeSynchronizer = clientToServer
                 )
 
-              val init = ZincWorkerRpcServer.Initialize(
-                compilerBridgeWorkspace = compilerBridge.workspace,
-                jobs = jobs
-              )
+              val init =
+                ZincWorkerRpcServer.Initialize(compilerBridgeWorkspace = compilerBridge.workspace)
               fileAndDebugLog(
                 log,
                 s"Connected to $daemonDir on port $port, sending init: ${pprint(init)}"

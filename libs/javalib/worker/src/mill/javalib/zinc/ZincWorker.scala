@@ -31,6 +31,7 @@ import java.net.URLClassLoader
 import java.util.Optional
 import scala.collection.mutable
 
+/** @param jobs number of parallel jobs */
 class ZincWorker(
     jobs: Int
 ) extends AutoCloseable { self =>
