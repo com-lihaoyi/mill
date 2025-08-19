@@ -39,6 +39,7 @@ public class MillLauncherMain {
     }
 
     var outMode = containsBspFlag(args) ? OutFolderMode.BSP : OutFolderMode.REGULAR;
+    exitInTestsAfterBspCheck();
     var outDir = OutFiles.outFor(outMode);
 
     if (outMode == OutFolderMode.BSP) {
@@ -110,5 +111,11 @@ public class MillLauncherMain {
     // This is done to prevent false positives in the simple check, for example when the user passes
     // "--bsp" as a flag to `run` task.
     return MillCliConfig.parse(args).toOption().exists(config -> config.bsp().value());
+  }
+
+  private static void exitInTestsAfterBspCheck() {
+    if (System.getenv("MILL_TEST_EXIT_AFTER_BSP_CHECK") != null) {
+      System.exit(0);
+    }
   }
 }
