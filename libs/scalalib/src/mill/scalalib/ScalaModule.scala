@@ -661,7 +661,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     }
 
   // binary compatibility forwarder
-  override def semanticDbData: T[PathRef] = Task {
-    semanticDbDataDetailed().semanticDbFiles
-  }
+  override def semanticDbData: T[PathRef] =
+    // This is the same as `super.semanticDbData()`, but we can't call it directly
+    // because then it generates a forwarder which breaks binary compatibility.
+    Task { semanticDbDataDetailed().semanticDbFiles }
 }
