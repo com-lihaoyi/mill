@@ -1,0 +1,1271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Linting Kotlin Projects :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/kotlinlib/linting.html" />
+    <link rel="prev" href="testing.html" />
+    <link rel="next" href="publishing.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style></head><body class="article">
+  
+<header class="header">
+  
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.0.3-43-56843c">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-current-page is-active" data-depth="2">
+    <a class="nav-link" href="linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.0.3-43-56843c</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.0.3</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.0.3-43-56843c</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.14</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Linting Kotlin Projects</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This page will discuss common topics around enforcing the code quality of Kotlin
+codebases using the Mill build tool</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_linting_with_detekt"><a class="anchor" href="#_linting_with_detekt"></a>Linting with Detekt</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-43-56843c/mill-dist-1.0.3-43-56843c-example-kotlinlib-linting-1-detekt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3-43-56843c/example/kotlinlib/linting/1-detekt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*
+import kotlinlib.KotlinModule
+import kotlinlib.detekt.DetektModule
+
+object `package` extends KotlinModule, DetektModule {
+  def kotlinVersion = &quot;1.9.24&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example shows how to use the <a href="https://github.com/detekt/detekt">Detekt</a>
+static code analyzer for linting a <code>KotlinModule</code>, by mixing in the trait
+<code>DetektModule</code> and calling the <code>detekt</code> task:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/example/Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.3-43-56843c/example/kotlinlib/linting/1-detekt/src/example/Foo.kt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package example
+
+import java.util.Random
+
+fun main() {
+    if (Random.nextBoolean()) {
+        if (Random.nextBoolean()) {
+            if (Random.nextBoolean()) {
+                if (Random.nextBoolean()) {
+                    if (Random.nextBoolean()) {
+                        if (Random.nextBoolean()) {
+                            println(&quot;Hello World&quot;)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill detekt
+error: ...Foo.kt:5:5: Function main is nested too deeply. [NestedBlockDepth]
+
+&gt; ./mill detekt --check false
+...Foo.kt:5:5: Function main is nested too deeply. [NestedBlockDepth]</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_linting_with_ktlint"><a class="anchor" href="#_linting_with_ktlint"></a>Linting with KtLint</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-43-56843c/mill-dist-1.0.3-43-56843c-example-kotlinlib-linting-2-ktlint.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3-43-56843c/example/kotlinlib/linting/2-ktlint">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*
+import mill.util.Jvm
+
+import kotlinlib.KotlinModule
+import kotlinlib.ktlint.KtlintModule
+import mill.api.BuildCtx
+
+object `package` extends KotlinModule, KtlintModule {
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  def ktlintConfig0 = Task.Source(BuildCtx.workspaceRoot / &quot;.editorconfig&quot;)
+  def ktlintConfig = Some(ktlintConfig0())
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example shows how to use the <a href="https://github.com/pinterest/ktlint">KtLint</a>
+linter on a <code>KotlinModule</code>, by mixing in the trait <code>KtlintModule</code> and calling the
+<code>ktlint</code> task. <code>ktlint</code> also supports autoformatting to automatically resolve
+code formatting violations, via the <code>--format</code> flag shown below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill ktlint --check true # run ktlint to produce a report, defaults to warning without error
+error: ...src/example/FooWrong.kt:6:28: Missing newline before &quot;)&quot; (standard:parameter-list-wrapping)...
+...src/example/FooWrong.kt:6:28: Newline expected before closing parenthesis (standard:function-signature)...
+...src/example/FooWrong.kt:6:28: Missing trailing comma before &quot;)&quot; (standard:trailing-comma-on-declaration-site)...
+
+&gt; ./mill ktlint --format true
+
+&gt; ./mill ktlint # after fixing the violations, ktlint no longer errors
+
+&gt; ./mill mill.kotlinlib.ktlint/ # alternatively, use external module to check/format</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_autoformatting_with_ktfmt"><a class="anchor" href="#_autoformatting_with_ktfmt"></a>Autoformatting with KtFmt</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-43-56843c/mill-dist-1.0.3-43-56843c-example-kotlinlib-linting-3-ktfmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3-43-56843c/example/kotlinlib/linting/3-ktfmt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*
+import mill.util.Jvm
+
+import kotlinlib.KotlinModule
+import kotlinlib.ktfmt.KtfmtModule
+
+object `package` extends KotlinModule, KtfmtModule {
+  def kotlinVersion = &quot;1.9.24&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates how to use the <a href="https://github.com/facebook/ktfmt">KtFmt</a>
+autoformatter from Facebook both to enforce and apply formatting to your <code>KotlinModule</code>
+source files. You can configure a non-default version of KtFmt by overriding <code>def ktfmtVersion</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill ktfmt --format=false # run ktfmt to produce a list of files which should be formatter
+error: ...src/example/FooWrong.kt...
+
+&gt; ./mill ktfmt # running without arguments will format all files
+Done formatting ...src/example/FooWrong.kt
+
+&gt; ./mill ktfmt # after fixing the violations, ktfmt no longer prints any file
+
+&gt; ./mill mill.kotlinlib.ktfmt/ __.sources   # alternatively, use external module to check/format</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_auto_formatting_with_spotless"><a class="anchor" href="#_auto_formatting_with_spotless"></a>Auto-formatting with Spotless</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If your project has file groups each requiring different formatting,
+you may want to give Mill’s <a href="https://github.com/diffplug/spotless">Spotless</a> plugin a try.
+It supports formatting all files with a single command
+as opposed to using a different plugin/command for each group.</p>
+</div>
+<div class="paragraph">
+<p>We define a module that extends <a href="https://mill-build.org/api/latest/mill/scalalib/spotless/SpotlessModule.html">SpotlessModule</a> and
+provide a JSON configuration file with the format specifications.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-43-56843c/mill-dist-1.0.3-43-56843c-example-kotlinlib-linting-5-spotless.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3-43-56843c/example/kotlinlib/linting/5-spotless">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.kotlinlib.KotlinModule
+import mill.javalib.spotless.SpotlessModule
+
+object `package` extends KotlinModule, SpotlessModule {
+  def kotlinVersion = &quot;2.1.20&quot;
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/A.kt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.3-43-56843c/example/kotlinlib/linting/5-spotless/src/A.kt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import a.*
+
+import kotlinx.android.synthetic.main.layout_name.*
+
+import a.b.c.*
+import a.b
+
+fun main() {
+    fun name() { a(); return b }
+    println(&quot;;&quot;)
+    println();
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/B.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.3-43-56843c/example/kotlinlib/linting/5-spotless/src/B.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mylib.Unused;
+import mylib.UsedB;
+import mylib.UsedA;
+
+public class A {
+/**
+ * Some javadoc.
+ */
+public static void main(String[] args) {
+System.out.println(&quot;A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.&quot;);
+UsedB.someMethod();
+UsedA.someMethod();
+}
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">LICENSE (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.3-43-56843c/example/kotlinlib/linting/5-spotless/LICENSE">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// GPL</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">.spotless-formats.json (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.3-43-56843c/example/kotlinlib/linting/5-spotless/.spotless-formats.json">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">[
+  {
+    &quot;includes&quot;: [
+      &quot;glob:build.mill&quot;
+    ],
+    &quot;steps&quot;: [
+      {
+        &quot;$type&quot;: &quot;ScalaFmt&quot;
+      }
+    ]
+  },
+  {
+    &quot;includes&quot;: [
+      &quot;glob:**.java&quot;
+    ],
+    &quot;steps&quot;: [
+      {
+        &quot;$type&quot;: &quot;PalantirJavaFormat&quot;
+      },
+      {
+        &quot;$type&quot;: &quot;LicenseHeader&quot;,
+        &quot;delimiter&quot;: &quot;(package|import|public|class|module) &quot;
+      }
+    ]
+  },
+  {
+    &quot;includes&quot;: [
+      &quot;glob:**.{kt,kts}&quot;
+    ],
+    &quot;steps&quot;: [
+      {
+        &quot;$type&quot;: &quot;Ktfmt&quot;
+      },
+      {
+        &quot;$type&quot;: &quot;LicenseHeader&quot;,
+        &quot;delimiter&quot;: &quot;(package |@file|import )&quot;
+      }
+    ]
+  }
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As per the specifications:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>build.mill</code> is to be formatted using <code>ScalaFmt</code> step.</p>
+</li>
+<li>
+<p>All Java files are to be formatted using <code>PalantirFormatJava</code> and <code>LicenseHeader</code> steps.</p>
+</li>
+<li>
+<p>All Kotlin files are to be formatted using <code>Ktfmt</code> and <code>LicenseHeader</code> steps.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Most fields have default values and can be omitted in the JSON file.
+An example is the <code>LicenseHeader.header</code> field that references the <code>LICENSE</code> file.
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+as <code>.mill</code> files use Scala 3 syntax, we need the <code>.scalafmt.conf</code> above to
+configure ScalaFmt to use Scala 3 compatible formatting
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="paragraph">
+<p>Next, we run the inherited <code>spotless</code> command to check/apply the format specifications.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill spotless --check   # check fails initially
+checking format in 1 mill files
+format errors in build.mill
+checking format in 1 java files
+format errors in src/B.java
+checking format in 1 kt files
+format errors in src/A.kt
+format errors in 3 files
+error: ...format check failed for 3 files
+
+&gt; ./mill spotless           # auto-fix format
+formatting build.mill
+formatting src/B.java
+formatting src/A.kt
+formatted 3 files
+
+&gt; ./mill spotless           # fast incremental format
+1 mill files are already formatted
+1 java files are already formatted
+1 kt files are already formatted</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This demonstrates how different file groups can be formatted with a single command.</p>
+</div>
+<div class="paragraph">
+<p>For the full list of format steps and configuration options, please refer to the
+<a href="https://mill-build.org/api/latest/mill/scalalib/spotless/Format.html">API documentation</a>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+For a multi-module project, it is sufficient to extend <code>SpotlessModule</code> in your
+build root module and define a format specification for each use-case.
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="paragraph">
+<p>You can also run <code>spotless</code> <a href="../fundamentals/modules.html#_external_modules" class="xref page">globally</a>
+if you prefer not to have to extend <code>SpotlessModule</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.javalib.spotless.SpotlessModule/ --check
+checking format in 1 mill files
+checking format in 1 java files
+checking format in 1 kt files
+format check completed</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ratchet"><a class="anchor" href="#_ratchet"></a>Ratchet</h3>
+<div class="paragraph">
+<p>Similar to the Spotless Gradle and Maven plugins, Mill provides the ability to
+enforce formatting gradually aka <a href="https://github.com/diffplug/spotless/tree/main/plugin-gradle#ratchet">ratchet</a>.</p>
+</div>
+<div class="paragraph">
+<p>We define a module with an incorrectly formatted file.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-43-56843c/mill-dist-1.0.3-43-56843c-example-javalib-linting-5-spotless-ratchet.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3-43-56843c/example/javalib/linting/5-spotless-ratchet">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.javalib.JavaModule
+import mill.javalib.spotless.SpotlessModule
+
+object `package` extends JavaModule with SpotlessModule</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/A.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.3-43-56843c/example/javalib/linting/5-spotless-ratchet/src/A.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mylib.Unused;
+import mylib.UsedB;
+import mylib.UsedA;
+
+public class A {
+/**
+ * Some javadoc.
+ */
+public static void main(String[] args) {
+System.out.println(&quot;A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.&quot;);
+UsedB.someMethod();
+UsedA.someMethod();
+}
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A Git repository is initialized and a base commit is created with the incorrectly formatted file.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Since no <code>.spotless-formats.json</code> file is present, a default list of format specifications is used.
+The default is meant for use cases where some basic formatting is sufficient.
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init . -b main
+&gt; git add .gitignore build.mill src/A.java
+&gt; git commit -a -m &quot;1&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, we create a new file with format errors.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo &quot; module hello {}&quot; &gt; src/module-info.java  # content has leading space at start
+
+&gt; ./mill spotless --check
+format errors in build.mill
+format errors in src/A.java
+format errors in src/module-info.java
+error: ...format check failed for 3 files</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>spotless</code> command finds format errors in all files.
+But we do not want to fix the formatting in files that were committed previously.</p>
+</div>
+<div class="paragraph">
+<p>Instead, we use the <code>ratchet</code> command to identify and format files that differ between Git trees.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill ratchet --check      # format changes in working tree since HEAD commit
+ratchet found changes in 1 files
+format errors in src/module-info.java
+error: ...format check failed for 1 files
+
+&gt; ./mill ratchet              # auto-fix formatting in changeset
+ratchet found changes in 1 files
+formatting src/module-info.java
+formatted 1 files</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This demonstrates how to introduce formatting incrementally into your project.</p>
+</div>
+<div class="paragraph">
+<p>You can also set up actions on CI systems that compare and check/fix formatting between 2
+<a href="https://javadoc.io/doc/org.eclipse.jgit/org.eclipse.jgit/latest/org.eclipse.jgit/org/eclipse/jgit/lib/Repository.html#resolve(java.lang.String)">revisions</a>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git add src/module-info.java        # stage and
+&gt; git commit -a -m &quot;2&quot;                # commit changes
+
+&gt; ./mill ratchet --check HEAD^ HEAD   # format changes between last 2 commits
+ratchet found changes in 1 files
+1 java files are already formatted</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+CI actions may require additional
+<a href="https://github.com/diffplug/spotless/tree/main/plugin-gradle#using-ratchetfrom-on-ci-systems">setup</a>.
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="paragraph">
+<p>The <code>ratchet</code> command is also available globally.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.javalib.spotless.SpotlessModule/ratchet --check HEAD^ HEAD
+ratchet found changes in 1 files</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_code_coverage_with_kover"><a class="anchor" href="#_code_coverage_with_kover"></a>Code Coverage with Kover</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-43-56843c/mill-dist-1.0.3-43-56843c-example-kotlinlib-linting-4-kover.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3-43-56843c/example/kotlinlib/linting/4-kover">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, kotlinlib.*
+import kotlinlib.kover.KoverModule
+
+object `package` extends KotlinModule, KoverModule {
+
+  trait KotestTests extends TestModule.Junit5 {
+    override def forkArgs: T[Seq[String]] = Task {
+      super.forkArgs() ++ Seq(&quot;-Dkotest.framework.classpath.scanning.autoscan.disable=true&quot;)
+
+    }
+    override def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;io.kotest:kotest-runner-junit5:5.9.1&quot;
+    )
+  }
+
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  override def koverVersion = &quot;0.8.3&quot;
+
+  object test extends KotlinTests, KotestTests, KoverTests
+
+  object bar extends KotlinModule, KoverModule {
+    def kotlinVersion = &quot;1.9.24&quot;
+    object test extends KotlinTests, KotestTests, KoverTests
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a basic Mill build for a single <code>KotlinModule</code>, enhanced with
+Kover module. The root module extends the <code>KoverModule</code> and
+specifies the version of Kover version to use here: <code>0.8.3</code>. This
+version can be changed if there is a newer one. Now you can call the
+Kover tasks to produce coverage reports.
+The sub test module extends <code>KoverTests</code> to transform the
+execution of the various testXXX tasks to use Kover and produce
+coverage data.
+This lets us perform the coverage operations but before that you
+must first run the test.
+<code>./mill test</code> then <code>./mill show kover.htmlReport</code> and get your
+coverage in HTML format.
+Also reports for all modules can be collected in a single place by
+running <code>./mill show mill.kotlinlib.kover/htmlReportAll</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test # Run the tests and produce the coverage data
+...
+... foo.FooTests kotlin - success started
+
+&gt; ./mill resolve kover._ # List what tasks are available to run from kover
+...
+kover.htmlReport
+...
+kover.xmlReport
+...
+
+&gt; ./mill show kover.htmlReport
+...
+...out/kover/htmlReport.dest/kover-report...
+
+&gt; cat out/kover/htmlReport.dest/kover-report/index.html
+...
+...Kover HTML Report: Overall Coverage Summary...
+
+&gt; ./mill show mill.kotlinlib.kover/htmlReportAll # collect reports from all modules
+...
+...out/mill/kotlinlib/kover/Kover/htmlReportAll.dest/kover-report...
+
+&gt; cat out/mill/kotlinlib/kover/Kover/htmlReportAll.dest/kover-report/index.html
+...
+...Kover HTML Report: Overall Coverage Summary...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="testing.html">Testing Kotlin Projects</a></span>
+  <span class="next"><a href="publishing.html">Kotlin Packaging &amp; Publishing</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>
