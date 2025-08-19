@@ -185,7 +185,7 @@ out/mill-daemon
       }
     },
     "foo.compileClasspath": {
-      "foo.compileClasspathFor": {
+      "foo.compileClasspathTask": {
         "foo.localCompileClasspath": {
           "foo.unmanagedClasspath": {},
           "foo.compileResources": {}

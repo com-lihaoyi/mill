@@ -628,7 +628,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             upstreamCompileOutput = upstreamSemanticDbDatas().map(_.compilationResult),
             sources = allSourceFiles().map(_.path),
             compileClasspath =
-              (compileClasspathFor(
+              (compileClasspathTask(
                 CompileFor.SemanticDb
               )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
             javacOptions = jOpts.compiler,

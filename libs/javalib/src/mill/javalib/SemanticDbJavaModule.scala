@@ -36,7 +36,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   private[mill] def bspBuildTarget: BspBuildTarget
   def javacOptions: T[Seq[String]]
   def mandatoryJavacOptions: T[Seq[String]]
-  private[mill] def compileClasspathFor(compileFor: CompileFor): Task[Seq[PathRef]]
+  private[mill] def compileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]]
   def moduleDeps: Seq[JavaModule]
 
   def semanticDbVersion: T[String] = Task.Input {
@@ -130,7 +130,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
           upstreamCompileOutput = upstreamSemanticDbDatas().map(_.compilationResult),
           sources = allSourceFiles().map(_.path),
           compileClasspath =
-            (compileClasspathFor(
+            (compileClasspathTask(
               CompileFor.SemanticDb
             )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(
               _.path

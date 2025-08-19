@@ -241,7 +241,7 @@ foo.assembly
 /** Usage
 
 > ./mill plan foo.compileClasspath
-foo.transitiveCompileClasspathFor
+foo.transitiveCompileClasspathTask
 foo.compileResources
 foo.unmanagedClasspath
 ...
