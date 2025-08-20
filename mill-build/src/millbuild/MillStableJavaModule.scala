@@ -8,7 +8,17 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
 
   override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
     // private class
-    ProblemFilter.exclude[Problem]("mill.javalib.RunModule#RunnerImpl*")
+    ProblemFilter.exclude[Problem]("mill.javalib.RunModule#RunnerImpl*"),
+    ProblemFilter.exclude[NewMixinForwarderProblem]("mill.javalib.MavenModule.sources"),
+    ProblemFilter.exclude[NewMixinForwarderProblem]("mill.javalib.MavenModule#MavenTests.sources"),
+    ProblemFilter.exclude[NewMixinForwarderProblem]("mill.scalalib.SbtModule.sources"),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.SbtModule.mill$scalalib$SbtModule$$super$sourcesFolders"
+    ),
+    ProblemFilter.exclude[NewMixinForwarderProblem]("mill.scalalib.SbtModule#SbtTests.sources"),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.SbtModule#SbtTests.mill$scalalib$SbtModule$SbtTests$$super$sourcesFolders"
+    )
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions

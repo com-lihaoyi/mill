@@ -511,7 +511,7 @@ object BuildGenUtil {
   )
 
   def writeBuildObject(tree: Tree[Node[BuildObject]], jvmId: Option[String]): Unit = {
-    val nodes = tree.nodes().toSeq
+    val nodes = tree.iterator.toSeq
     println(s"generated ${nodes.length} Mill build file(s)")
 
     println("removing existing Mill build files")
