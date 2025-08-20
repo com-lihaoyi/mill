@@ -10,10 +10,6 @@ object dagger extends Ksp2Module {
 
   def kspVersion = "2.0.2"
 
-  override def repositoriesTask = Task.Anon {
-    super.repositoriesTask()
-  }
-
   def mainClass = Some("com.example.dagger.MainKt")
 
   def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
@@ -22,12 +18,6 @@ object dagger extends Ksp2Module {
     mvn"com.google.dagger:dagger:2.57"
   )
 
-  override def kspArgs = super.kspArgs()
-  def kspProcessorOptions: T[Map[String, String]] = Task {
-    Map(
-      "dagger.includeStacktraceWithDeferredErrorMessages" -> "enabled"
-    )
-  }
   def kotlinSymbolProcessors = Seq(
     mvn"com.google.dagger:dagger-compiler:2.57"
   )
