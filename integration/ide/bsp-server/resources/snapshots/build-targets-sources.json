@@ -264,12 +264,12 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/mill-build/mill-build/generatedScriptSources.dest/support",
+          "uri": "file:///workspace/out/mill-bsp-out/mill-build/mill-build/generatedScriptSources.dest/support",
           "kind": 2,
           "generated": true
         },
         {
-          "uri": "file:///workspace/out/mill-build/mill-build/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/mill-build/mill-build/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -298,7 +298,7 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/sourcesNeedCompile/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/sourcesNeedCompile/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }

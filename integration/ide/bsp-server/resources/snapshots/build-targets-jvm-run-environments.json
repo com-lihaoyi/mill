@@ -230,7 +230,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/sourcesNeedCompile/compile-resources",
         "file:///workspace/sourcesNeedCompile/resources",
-        "file:///workspace/out/sourcesNeedCompile/compile.dest/classes"
+        "file:///workspace/out/mill-bsp-out/sourcesNeedCompile/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",

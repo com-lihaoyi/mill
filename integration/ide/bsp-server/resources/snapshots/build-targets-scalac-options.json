@@ -96,7 +96,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/sourcesNeedCompile/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/sourcesNeedCompile/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/out/mill-bsp-out/sourcesNeedCompile/compiledClassesAndSemanticDbFiles.dest"
     }
   ]
 }
