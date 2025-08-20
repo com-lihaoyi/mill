@@ -49,7 +49,7 @@ object ExportSbtBuildScript extends (State => State) {
   // Generates and writes the ADT, for the current Scala version, for a module.
   def exportModule = Def.taskDyn {
     val project = Keys.thisProject.value
-    val (outDir, testModuleName) = (millInitExportArgs.value)
+    val (outDir, testModuleName) = millInitExportArgs.value
     val data = Project.structure(Keys.state.value).data
 
     val mvnDependencies = Keys.libraryDependencies.value.collect {
@@ -140,31 +140,12 @@ object ExportSbtBuildScript extends (State => State) {
             description = Keys.description.value,
             organization = Keys.organization.value,
             url = Keys.homepage.value.fold("")(_.toExternalForm),
-            licenses = Keys.licenses.value.map {
-              case (name, url) => PublishModuleConfig.License(name, name, url.toExternalForm)
-            },
-            versionControl = Keys.scmInfo.value.fold(PublishModuleConfig.VersionControl()) {
-              scmInfo =>
-                import scmInfo._
-                PublishModuleConfig.VersionControl(
-                  Some(browseUrl.toExternalForm),
-                  Some(connection),
-                  devConnection
-                )
-            },
-            developers = Keys.developers.value.map { developer =>
-              import developer._
-              PublishModuleConfig.Developer(id, name, url.toExternalForm)
-            }
+            licenses = Keys.licenses.value.map(toLicense),
+            versionControl = toVersionControl(Keys.scmInfo.value),
+            developers = Keys.developers.value.map(toDeveloper)
           ),
           publishVersion = Keys.version.value,
-          versionScheme = Keys.versionScheme.value match {
-            case Some("early-semver") => Some("VersionScheme.EarlySemVer")
-            case Some("pvp") => Some("VersionScheme.PVP")
-            case Some("semver-spec") => Some("VersionScheme.SemVerSpec")
-            case Some("strict") => Some("VersionScheme.Strict")
-            case _ => None
-          }
+          versionScheme = Keys.versionScheme.value.collect(toVersionScheme)
         ))
       ).flatten
       val useVersionRanges = isCrossVersion && os.walk.stream(moduleDir).exists(path =>
@@ -178,38 +159,28 @@ object ExportSbtBuildScript extends (State => State) {
           (Test / Keys.unmanagedSourceDirectories).value.exists(_.exists()) ||
           (Test / Keys.unmanagedResourceDirectories).value.exists(_.exists())
         ) {
-          val (testMandatoryDependencies, testDependencies) = mvnDependencies.collect {
-            case (dep, configs) if configs.contains("test") => dep
-          }.partition(testSupertypeByModuleID.isDefinedAt)
-          val frameworkSupertypes =
-            testMandatoryDependencies.collect(testSupertypeByModuleID).distinct
-          if (frameworkSupertypes.isEmpty) {
-            val reportOnce =
-              Keys.crossScalaVersions.value.lastOption.contains(Keys.scalaVersion.value)
-            if (reportOnce) println(s"skipping test module for ${project.id}")
-            None
-          } else {
-            val (testSupertypes, testMixins) =
-              testHierarchy(mainSupertypes ++ mainMixins, frameworkSupertypes)
-            val testConfigs = Seq(JavaModuleConfig(
-              mandatoryMvnDeps = testMandatoryDependencies.map(toMvnDep),
-              mvnDeps = testDependencies.map(toMvnDep),
-              moduleDeps = moduleDeps(cs => Seq("test", "test->compile").exists(cs.contains)) ++
-                moduleDeps(_.contains("test->test")).map(d => d.copy(d.segments :+ testModuleName)),
-              compileModuleDeps =
-                moduleDeps(cs => Seq("test->provided", "test->optional").exists(cs.contains)),
-              runModuleDeps = moduleDeps(_.contains("test->runtime"))
-            ))
-            Some(TestModuleRepr(
-              name = testModuleName,
-              supertypes = testSupertypes,
-              mixins = testMixins,
-              configs = testConfigs,
-              crossConfigs = if (isCrossVersion) {
-                // config data is duplicated here for ease of processing in importer
-                Seq((Keys.scalaVersion.value, testConfigs.filter(crossConfigIsSupported)))
-              } else Nil
-            ))
+          val testMvnDeps = mvnDeps(_.contains("test"))
+          TestModuleRepr.frameworkMvnDeps(testMvnDeps).map {
+            case (mixin, mandatoryMvnDeps) =>
+              val (testSupertypes, testMixins) = testHierarchy(mainSupertypes ++ mainMixins, mixin)
+              val testConfigs = Seq(JavaModuleConfig(
+                mandatoryMvnDeps = mandatoryMvnDeps,
+                mvnDeps = testMvnDeps.diff(mandatoryMvnDeps),
+                moduleDeps = moduleDeps(cs => Seq("test", "test->compile").exists(cs.contains)) ++
+                  moduleDeps(_.contains("test->test"))
+                    .map(d => d.copy(d.segments :+ testModuleName)),
+                compileModuleDeps =
+                  moduleDeps(cs => Seq("test->provided", "test->optional").exists(cs.contains)),
+                runModuleDeps = moduleDeps(_.contains("test->runtime"))
+              ))
+              TestModuleRepr(
+                name = testModuleName,
+                supertypes = testSupertypes,
+                mixins = testMixins,
+                configs = testConfigs,
+                crossConfigs =
+                  if (isCrossVersion) Seq((Keys.scalaVersion.value, testConfigs)) else Nil
+              )
           }
         } else None
 
@@ -220,10 +191,7 @@ object ExportSbtBuildScript extends (State => State) {
           supertypes = mainSupertypes,
           mixins = mainMixins,
           configs = mainConfigs,
-          crossConfigs = if (isCrossVersion)
-            // config data is duplicated here for ease of processing in importer
-            Seq((Keys.scalaVersion.value, mainConfigs.filter(crossConfigIsSupported)))
-          else Nil,
+          crossConfigs = if (isCrossVersion) Seq((Keys.scalaVersion.value, mainConfigs)) else Nil,
           testModule = testModule
         )
       )
@@ -250,14 +218,14 @@ object ExportSbtBuildScript extends (State => State) {
     }
     supertypes ++= sbtPlatformSupertype
     if (isCrossVersion) {
-      supertypes += "CrossScalaModule" // added for sharing configs in baseTrait
+      supertypes += "CrossScalaModule" // added for sharing cross configs in baseTrait
       mixins += (if (sbtPlatformSupertype.isEmpty) "CrossSbtModule" else "CrossSbtPlatformModule")
       if (useVersionRanges) mixins += "CrossScalaVersionRanges"
     } else supertypes += "SbtModule"
     (supertypes.result(), mixins.result())
   }
 
-  def testHierarchy(mainHierarchy: Seq[String], frameworkSupertypes: Seq[String]) = {
+  def testHierarchy(mainHierarchy: Seq[String], testFramework: String) = {
     val supertypes = Seq.newBuilder[String]
     val mixins = Seq.newBuilder[String]
     mainHierarchy.foreach {
@@ -269,52 +237,66 @@ object ExportSbtBuildScript extends (State => State) {
       case "CrossSbtPlatformModule" => mixins += "CrossSbtPlatformTests"
       case _ =>
     }
-    mixins ++= (
-      if (Set("TestModule.ScalaTest", "TestModule.ScalaCheck") == frameworkSupertypes.toSet)
-        Seq("TestModule.ScalaTest")
-      else frameworkSupertypes.take(1)
-    )
+    mixins += testFramework
     (supertypes.result(), mixins.result())
-  }
-
-  val testSupertypeByModuleID: PartialFunction[ModuleID, String] = {
-    case dep if TestModuleRepr.supertypeByDep.isDefinedAt((dep.organization, dep.name)) =>
-      TestModuleRepr.supertypeByDep((dep.organization, dep.name))
-  }
-
-  // Disabling publish, like in "enumeratum" test, cannot be supported.
-  // Others excluded due to no test cases.
-  def crossConfigIsSupported(config: ModuleConfig) = config match {
-    case _: JavaModuleConfig => true
-    case _: ScalaModuleConfig => true
-    case _ => false
   }
 
   def toMvnDep(dep: ModuleID) = {
     import dep._
-    val bin = crossVersion match {
-      case _: librarymanagement.Full => ":::"
-      case _: librarymanagement.Patch => ":::"
-      case _: librarymanagement.Binary => "::"
-      case _ => ":"
-    }
-    val name0 = name + (crossVersion match {
-      case v: librarymanagement.Constant if v.value.nonEmpty => "_" + v.value
-      case _: librarymanagement.For2_13Use3 => "_3"
-      case _: librarymanagement.For3Use2_13 => "_2.13"
-      case _ => ""
-    })
-    val platform = crossVersion match {
-      case v: librarymanagement.Full if v.prefix.nonEmpty => "::"
-      case v: librarymanagement.Binary if v.prefix.nonEmpty => "::"
-      case v: librarymanagement.For2_13Use3 if v.prefix.nonEmpty => "::"
-      case v: librarymanagement.For3Use2_13 if v.prefix.nonEmpty => "::"
-      case _ => ":"
-    }
     val artifact = explicitArtifacts.find(_.name == name)
-    val classifier = artifact.flatMap(_.classifier).fold("")(";classifier=" + _)
-    val typ = artifact.map(_.`type`).filter(_ == "jar").fold("")(";type=" + _)
-    val excludes = exclusions.map(x => s";exclude=${x.organization}:${x.name}").mkString
-    s"""mvn"$organization$bin$name0$platform$revision$classifier$typ$excludes""""
+    JavaModuleConfig.mvnDep(
+      org = organization,
+      name = name + (crossVersion match {
+        case v: librarymanagement.Constant if v.value.nonEmpty => "_" + v.value
+        case _: librarymanagement.For2_13Use3 => "_3"
+        case _: librarymanagement.For3Use2_13 => "_2.13"
+        case _ => ""
+      }),
+      version = revision,
+      classifier = artifact.flatMap(_.classifier),
+      typ = artifact.map(_.`type`),
+      excludes = exclusions.map(x => (x.organization, x.name)),
+      sep1 = crossVersion match {
+        case _: librarymanagement.Full => ":::"
+        case _: librarymanagement.Patch => ":::"
+        case _: librarymanagement.Binary => "::"
+        case _ => ":"
+      },
+      sep2 = crossVersion match {
+        case v: librarymanagement.Full if v.prefix.nonEmpty => "::"
+        case v: librarymanagement.Binary if v.prefix.nonEmpty => "::"
+        case v: librarymanagement.For2_13Use3 if v.prefix.nonEmpty => "::"
+        case v: librarymanagement.For3Use2_13 if v.prefix.nonEmpty => "::"
+        case _ => ":"
+      }
+    )
+  }
+
+  def toLicense(license: (String, URL)) = {
+    val (name, url) = license
+    PublishModuleConfig.License(name, name, url.toExternalForm)
+  }
+
+  def toVersionControl(scmInfo: Option[ScmInfo]) = scmInfo match {
+    case Some(scmInfo) =>
+      import scmInfo._
+      PublishModuleConfig.VersionControl(
+        Some(browseUrl.toExternalForm),
+        Some(connection),
+        devConnection
+      )
+    case None => PublishModuleConfig.VersionControl()
+  }
+
+  def toDeveloper(developer: Developer) = {
+    import developer._
+    PublishModuleConfig.Developer(id, name, url.toExternalForm)
+  }
+
+  val toVersionScheme: PartialFunction[String, String] = {
+    case "early-semver" => "VersionScheme.EarlySemVer"
+    case "pvp" => "VersionScheme.PVP"
+    case "semver-spec" => "VersionScheme.SemVerSpec"
+    case "strict" => "VersionScheme.Strict"
   }
 }

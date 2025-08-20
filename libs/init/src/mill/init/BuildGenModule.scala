@@ -40,7 +40,7 @@ trait BuildGenModule extends CoursierModule with DefaultTaskModule {
     ).exitCode
 
     if (exitCode == 0) {
-      val files = mill.init.Util.buildFiles(root).map(PathRef(_)).toSeq
+      val files = mill.init.Util.buildFiles(root).map(PathRef(_))
       val config = buildGenScalafmtConfig()
       Task.log.info("formatting Mill build files")
       ScalafmtWorkerModule.worker().reformat(files, config)

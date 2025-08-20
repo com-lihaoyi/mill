@@ -2,83 +2,87 @@ package mill.integration
 
 import mill.constants.Util
 import mill.integration.MillInitUtils.*
+import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
 
 import scala.collection.immutable.{Seq, SortedSet}
 
-object MillInitGradleJCommanderTests extends BuildGenTestSuite {
+object MillInitGradleJCommanderTests extends GitRepoIntegrationTestSuite {
+
+  // gradle 8.9
+  // single module
+  // testng 7.0.0
+  def gitRepoUrl = "git@github.com:cbeust/jcommander.git"
+  def gitRepoBranch = "2.0"
 
   def tests: Tests = Tests {
-    // - single module
-    // - custom javacOptions
-    // - TestNg
-    // - Gradle 8.9
-    val url = "https://github.com/cbeust/jcommander/archive/refs/tags/2.0.zip"
+    test - integrationTest { tester =>
+      import tester.*
 
-    test - integrationTest(url)(
-      testMillInit(
-        _,
-        expectedAllSourceFileNums = Map("allSourceFiles" -> 65, "test.allSourceFiles" -> 107),
-        expectedCompileTaskResults =
-          Some(SplitTaskResults(
-            successful = SortedSet("compile"),
-            // errors related to annotation classes defined in main module
-            failed = SortedSet("test.compile")
-          )),
-        expectedTestTaskResults =
-          Some(SplitTaskResults(successful = SortedSet(), failed = SortedSet("test")))
-      )
-    )
+      writeMillJvmVersion(workspacePath, "11")
+
+      eval("init").isSuccess ==> true
+      eval("publishLocal").isSuccess ==> true // implies compile
+
+      // annotations defined in main-module cannot be used in test-module?
+      eval("test.compile").err.linesIterator.exists(_.contains(
+        "jcommander/src/test/java/com/beust/jcommander/ParameterOrderTest.java:33:23: cannot find symbol"
+      )) ==> true
+    }
   }
 }
 
-object MillInitGradleFastCsvTests extends BuildGenTestSuite {
+object MillInitGradleFastCsvTests extends GitRepoIntegrationTestSuite {
+
+  // gradle 9.0.0-rc-1
+  // Junit5
+  def gitRepoUrl = "git@github.com:osiegmar/FastCSV.git"
+  def gitRepoBranch = "v4.0.0"
 
   def tests: Tests = Tests {
-    // - multi-module
-    // - JUnit 5
-    // - requires Java 17+
-    // - Gradle 8.10.1
-    val url = "https://github.com/osiegmar/FastCSV/archive/refs/tags/v3.4.0.zip"
+    test - integrationTest { tester =>
+      import tester.*
 
-    test - integrationTest(url)(
-      testMillInit(
-        _,
-        initCommand = defaultInitCommand ++ Seq("--jvm-id", "17"),
-        expectedAllSourceFileNums = Map(
-          "example.allSourceFiles" -> 24,
-          "lib.allSourceFiles" -> 41,
-          "lib.test.allSourceFiles" -> 9
-        ),
-        expectedCompileTaskResults = Some(SplitTaskResults(
-          successful = SortedSet("lib.compile"),
-          failed = SortedSet(
-            "example.compile",
-            "lib.test.compile"
-          )
-        )),
-        expectedTestTaskResults =
-          Some(SplitTaskResults(successful = SortedSet(), failed = SortedSet("lib.test")))
-      )
-    )
+      // from tasks.compileJava.options.release
+      writeMillJvmVersion(workspacePath, "17")
+
+      eval("init").isSuccess ==> true
+      eval("lib.publishLocal").isSuccess ==> true // implies compile
+
+      // requires javacOptions for Java modules
+      eval("example.compile").err.linesIterator.exists(_.contains(
+        "FastCSV/example/src/main/java/module-info.java:3:24: module not found: de.siegmar.fastcsv"
+      )) ==> true
+
+      // junit-platform-launcher version is set implicitly (tasks.test.useJunitPlatform())
+      eval("lib.test.compile").err.linesIterator.exists(_.contains(
+        "lib.test.resolvedMvnDeps coursier.error.ResolutionError$Several: Error downloading org.junit.platform:junit-platform-launcher:"
+      )) ==> true
+    }
   }
 }
 
-object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
+object MillInitGradleEhcache3Tests extends GitRepoIntegrationTestSuite {
+
+  // gradle 7.2
+  // custom dependency configurations
+  // dependencies with version constraints
+  // custom layout
+  // custom repository
+  // bom dependencies
+  // modules with pom packaging
+  // Junit4
+  def gitRepoUrl = "git@github.com:ehcache/ehcache3.git"
+  def gitRepoBranch = "v3.10.8"
 
   def tests: Tests = Tests {
-    // - multi-level modules
-    // - additional repository (Terracotta)
-    // - JUnit 5
-    // - Gradle 7.6.2
-    val url = "https://github.com/ehcache/ehcache3/archive/refs/tags/v3.10.8.zip"
-
-    test - integrationTest(url) { tester =>
+    test - integrationTest { tester =>
       // Takes forever on windows
       if (!Util.isWindows) {
         writeMillJvmVersionTemurin11(tester.workspacePath)
         testMillInit(
           tester,
+          initCommand = Seq("init"),
           expectedAllSourceFileNums = Map(
             "ehcache-xml.test.allSourceFiles" -> 55,
             "ehcache-xml.ehcache-xml-spi.allSourceFiles" -> 7,
@@ -91,7 +95,6 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
             "ehcache-core.test.allSourceFiles" -> 61,
             "clustered.server.ehcache-service.allSourceFiles" -> 12,
             "clustered.ehcache-client.allSourceFiles" -> 82,
-            "demos.allSourceFiles" -> 0,
             "ehcache-core.allSourceFiles" -> 120,
             "clustered.server.ehcache-entity.allSourceFiles" -> 38,
             "integration-test.allSourceFiles" -> 0,
@@ -113,11 +116,9 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
             "clustered.server.ehcache-service-api.test.allSourceFiles" -> 2,
             "ehcache-transactions.allSourceFiles" -> 12,
             "ehcache-107.allSourceFiles" -> 38,
-            "clustered.allSourceFiles" -> 0,
             "clustered.ops-tool.test.allSourceFiles" -> 1,
             "demos.01-CacheAside.allSourceFiles" -> 4,
             "clustered.ops-tool.allSourceFiles" -> 9,
-            "clustered.server.allSourceFiles" -> 0,
             "docs.allSourceFiles" -> 0,
             "clustered.server.ehcache-entity.test.allSourceFiles" -> 16,
             "ehcache-impl.test.allSourceFiles" -> 182,
@@ -132,18 +133,16 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
           ),
           expectedCompileTaskResults = Some(SplitTaskResults(
             successful = SortedSet(
-              "clustered.compile",
               "clustered.ehcache-clustered.compile",
               "clustered.ehcache-common-api.compile",
               "clustered.ehcache-common-api.test.compile",
               "clustered.ehcache-common.compile",
+              "clustered.ehcache-common.test.compile",
               "clustered.integration-test.compile",
               "clustered.ops-tool.compile",
               "clustered.ops-tool.test.compile",
               "clustered.osgi-test.compile",
-              "clustered.server.compile",
               "clustered.test-utils.compile",
-              "demos.compile",
               "docs.compile",
               "ehcache-api.compile",
               "ehcache-api.test.compile",
@@ -156,12 +155,9 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
               "osgi-test.compile",
               "spi-tester.compile"
             ),
-            // [warn] Unexpected javac output: warning: [path] bad path element...ehcache-api/compile-resources": no such file or directory
-            // [warn] error: warnings found and -Werror specified
             failed = SortedSet(
               "clustered.ehcache-client.compile",
               "clustered.ehcache-client.test.compile",
-              "clustered.ehcache-common.test.compile",
               "clustered.integration-test.test.compile",
               "clustered.osgi-test.test.compile",
               "clustered.server.ehcache-entity.compile",
@@ -190,6 +186,7 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
           expectedTestTaskResults = Some(SplitTaskResults(
             successful = SortedSet(
               "clustered.ehcache-common-api.test",
+              "clustered.ehcache-common.test",
               "clustered.ops-tool.test",
               "ehcache-api.test",
               "ehcache-core.test",
@@ -197,7 +194,6 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
             ),
             failed = SortedSet(
               "clustered.ehcache-client.test",
-              "clustered.ehcache-common.test",
               "clustered.integration-test.test",
               "clustered.osgi-test.test",
               "clustered.server.ehcache-entity.test",

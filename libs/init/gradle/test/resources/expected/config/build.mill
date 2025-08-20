@@ -1,56 +1,47 @@
-//| mill-version: SNAPSHOT
-//| mill-jvm-version: 11
 package build
 
-import _root_.build_.BaseModule
-import mill._
+import mill.api._
 import mill.javalib._
-import mill.javalib.publish._
 
-object Deps {
+object `package` extends Module {
 
-  val `org.apache.commons:commons-text` = mvn"org.apache.commons:commons-text"
-  val `org.junit.jupiter:junit-jupiter` =
-    mvn"org.junit.jupiter:junit-jupiter:5.10.3"
-}
+  object app extends MavenModule {
 
-object `package` extends mill.Module {
-
-  def artifactName = "application-library"
-
-  object app extends BaseModule {
-
-    def mvnDeps = Seq(Deps.`org.apache.commons:commons-text`)
+    def mvnDeps = super.mvnDeps() ++ Seq(mvn"org.apache.commons:commons-text")
 
     def moduleDeps = super.moduleDeps ++ Seq(build.utilities)
 
-    object tests extends MavenTests with TestModule.Junit5 {
-
-      def mvnDeps = Seq(Deps.`org.junit.jupiter:junit-jupiter`)
-
-      def testSandboxWorkingDir = false
-      def testParallelism = false
-
-    }
-  }
-
-  object list extends BaseModule {
+    def jvmId = "8"
 
     object tests extends MavenTests with TestModule.Junit5 {
 
-      def mvnDeps = Seq(Deps.`org.junit.jupiter:junit-jupiter`)
-
-      def testSandboxWorkingDir = false
-      def testParallelism = false
+      def mandatoryMvnDeps = super.mandatoryMvnDeps() ++ Seq(
+        mvn"org.junit.jupiter:junit-jupiter:5.10.3",
+        mvn"org.junit.platform:junit-platform-launcher"
+      )
 
     }
-  }
 
-  object utilities extends BaseModule {
+  }
+  object list extends MavenModule {
+
+    def jvmId = "8"
+
+    object tests extends MavenTests with TestModule.Junit5 {
+
+      def mandatoryMvnDeps = super.mandatoryMvnDeps() ++ Seq(
+        mvn"org.junit.jupiter:junit-jupiter:5.10.3",
+        mvn"org.junit.platform:junit-platform-launcher"
+      )
+
+    }
+
+  }
+  object utilities extends MavenModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(build.list)
 
+    def jvmId = "8"
+
   }
 }
-
-trait BaseModule extends MavenModule {}

@@ -78,13 +78,28 @@ object `package` extends MillPublishScalaModule {
       def mvnDeps = Seq(Deps.upickle)
     }
   }
-  object gradle extends MillPublishScalaModule {
-    def moduleDeps = Seq(buildgen)
-    def mvnDeps = Seq(
-      Deps.gradleApi,
-      Deps.logback
-    )
+  object gradle extends MillPublishScalaModule with BuildInfo {
+    def moduleDeps = Seq(api, buildgen)
+    def mvnDeps = Seq(Deps.gradleApi)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
+    def buildInfoPackageName = "mill.main.gradle"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("exportpluginAssemblyResource", "/exportplugin-assembly.jar")
+    )
+    def exportpluginAssemblyResource = Task {
+      os.copy(exportplugin.assembly().path, Task.dest / "exportplugin-assembly.jar")
+      PathRef(Task.dest)
+    }
+    def resources = Task { super.resources() ++ Seq(exportpluginAssemblyResource()) }
+
+    object api extends MillPublishJavaModule
+
+    object exportplugin extends ScalaModule {
+      def scalaVersion = Deps.scalaVersion
+      def mvnDeps = Seq(Deps.osLib)
+      def moduleDeps = Seq(api, buildgen.api(Deps.scalaVersion))
+      def compileMvnDeps = Seq(Deps.gradleApi)
+    }
   }
   object maven extends MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)

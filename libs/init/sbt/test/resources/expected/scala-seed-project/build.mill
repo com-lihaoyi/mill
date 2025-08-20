@@ -3,6 +3,7 @@ package build
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib._
+import millbuild._
 
 object `package` extends PublishModule with SbtModule {
 
@@ -25,8 +26,4 @@ object `package` extends PublishModule with SbtModule {
 
   }
 
-  object Deps {
-
-    val munit = mvn"org.scalameta::munit:0.7.29"
-  }
 }

@@ -18,26 +18,3 @@ case class BaseTrait(
       .getOrElse((cross, configs1))
   )
 }
-object BaseTrait {
-
-  def compute(suffix: String, modules: IterableOnce[ModuleRepr]): Option[BaseTrait] =
-    modules.iterator.reduceOption: (m1, m2) =>
-      m1.copy(
-        supertypes = m1.supertypes.intersect(m2.supertypes),
-        mixins = if (m1.mixins == m2.mixins) m1.mixins else Nil,
-        configs = ModuleConfig.abstracted(m1.configs, m2.configs),
-        crossConfigs = m1.crossConfigs.flatMap: (cross, configs1) =>
-          m2.crossConfigs.collectFirst:
-            case (`cross`, configs2) => (cross, ModuleConfig.abstracted(configs1, configs2))
-      )
-    .collect:
-      case module if module.supertypes.nonEmpty || module.mixins.nonEmpty =>
-        import module.*
-        BaseTrait(
-          name = os.pwd.last.split("\\W").map(_.capitalize).mkString("", "", suffix),
-          supertypes,
-          mixins,
-          configs,
-          crossConfigs
-        )
-}

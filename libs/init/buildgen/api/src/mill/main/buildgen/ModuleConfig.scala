@@ -2,6 +2,8 @@ package mill.main.buildgen
 
 import upickle.default.{ReadWriter, macroRW}
 
+import scala.util.matching.Regex
+
 /**
  * Configuration settings for a module in a build that are optimized for code generation.
  */
@@ -24,23 +26,39 @@ object ModuleConfig {
               self.repositories.intersect(that.repositories)
             )
         }
+      case self: JavaHomeModuleConfig => that.collectFirst {
+          case that: JavaHomeModuleConfig => JavaHomeModuleConfig(
+              value(self.jvmId, that.jvmId)
+            )
+        }
       case self: JavaModuleConfig => that.collectFirst {
           case that: JavaModuleConfig => JavaModuleConfig(
               self.mandatoryMvnDeps.intersect(that.mandatoryMvnDeps),
               self.mvnDeps.intersect(that.mvnDeps),
               self.compileMvnDeps.intersect(that.compileMvnDeps),
               self.runMvnDeps.intersect(that.runMvnDeps),
+              self.bomMvnDeps.intersect(that.bomMvnDeps),
               self.moduleDeps.intersect(that.moduleDeps),
               self.compileModuleDeps.intersect(that.compileModuleDeps),
               self.runModuleDeps.intersect(that.runModuleDeps),
-              args(self.javacOptions, that.javacOptions)
+              args(self.javacOptions, that.javacOptions),
+              args(self.javadocOptions, that.javadocOptions)
             )
         }
       case self: PublishModuleConfig => that.collectFirst {
           case that: PublishModuleConfig => PublishModuleConfig(
+              value(self.pomPackagingType, that.pomPackagingType),
               value(self.pomSettings, that.pomSettings),
+              value(self.artifactMetadata, that.artifactMetadata),
               value(self.publishVersion, that.publishVersion),
               value(self.versionScheme, that.versionScheme, None)
+            )
+        }
+      case self: ErrorProneModuleConfig => that.collectFirst {
+          case that: ErrorProneModuleConfig => ErrorProneModuleConfig(
+              self.errorProneOptions.intersect(that.errorProneOptions),
+              self.errorProneJavacEnableOptions.intersect(that.errorProneJavacEnableOptions),
+              self.errorProneDeps.intersect(that.errorProneDeps)
             )
         }
       case self: ScalaModuleConfig => that.collectFirst {
@@ -81,40 +99,56 @@ object ModuleConfig {
               self.repositories.diff(base.repositories)
             )
         }.getOrElse(self)
+      case self: JavaHomeModuleConfig => base.collectFirst {
+          case base: JavaHomeModuleConfig => JavaHomeModuleConfig(
+              value(self.jvmId, base.jvmId)
+            )
+        }.getOrElse(self)
       case self: JavaModuleConfig => base.collectFirst {
           case base: JavaModuleConfig => JavaModuleConfig(
               self.mandatoryMvnDeps.diff(base.mandatoryMvnDeps),
               self.mvnDeps.diff(base.mvnDeps),
               self.compileMvnDeps.diff(base.compileMvnDeps),
               self.runMvnDeps.diff(base.runMvnDeps),
+              self.bomMvnDeps.diff(base.bomMvnDeps),
               self.moduleDeps.diff(base.moduleDeps),
               self.compileModuleDeps.diff(base.compileModuleDeps),
               self.runModuleDeps.diff(base.runModuleDeps),
-              args(self.javacOptions, base.javacOptions)
+              args(self.javacOptions, base.javacOptions),
+              args(self.javadocOptions, base.javadocOptions)
             )
         }.getOrElse(self)
       case self: PublishModuleConfig => base.collectFirst {
-          case that: PublishModuleConfig => PublishModuleConfig(
-              value(self.pomSettings, that.pomSettings),
-              value(self.publishVersion, that.publishVersion),
-              value(self.versionScheme, that.versionScheme, None)
+          case base: PublishModuleConfig => PublishModuleConfig(
+              value(self.pomPackagingType, base.pomPackagingType),
+              value(self.pomSettings, base.pomSettings),
+              value(self.artifactMetadata, base.artifactMetadata),
+              value(self.publishVersion, base.publishVersion),
+              value(self.versionScheme, base.versionScheme, None)
+            )
+        }.getOrElse(self)
+      case self: ErrorProneModuleConfig => base.collectFirst {
+          case base: ErrorProneModuleConfig => ErrorProneModuleConfig(
+              self.errorProneOptions.diff(base.errorProneOptions),
+              self.errorProneJavacEnableOptions.diff(base.errorProneJavacEnableOptions),
+              self.errorProneDeps.diff(base.errorProneDeps)
             )
         }.getOrElse(self)
       case self: ScalaModuleConfig => base.collectFirst {
-          case that: ScalaModuleConfig => ScalaModuleConfig(
-              value(self.scalaVersion, that.scalaVersion),
-              args(self.scalacOptions, that.scalacOptions),
-              self.scalacPluginMvnDeps.diff(that.scalacPluginMvnDeps)
+          case base: ScalaModuleConfig => ScalaModuleConfig(
+              value(self.scalaVersion, base.scalaVersion),
+              args(self.scalacOptions, base.scalacOptions),
+              self.scalacPluginMvnDeps.diff(base.scalacPluginMvnDeps)
             )
         }.getOrElse(self)
       case self: ScalaJSModuleConfig => base.collectFirst {
-          case that: ScalaJSModuleConfig => ScalaJSModuleConfig(
-              value(self.scalaJSVersion, that.scalaJSVersion)
+          case base: ScalaJSModuleConfig => ScalaJSModuleConfig(
+              value(self.scalaJSVersion, base.scalaJSVersion)
             )
         }.getOrElse(self)
       case self: ScalaNativeModuleConfig => base.collectFirst {
-          case that: ScalaNativeModuleConfig => ScalaNativeModuleConfig(
-              value(self.scalaNativeVersion, that.scalaNativeVersion)
+          case base: ScalaNativeModuleConfig => ScalaNativeModuleConfig(
+              value(self.scalaNativeVersion, base.scalaNativeVersion)
             )
         }.getOrElse(self)
     }
@@ -126,17 +160,59 @@ object CoursierModuleConfig {
   implicit val rw: ReadWriter[CoursierModuleConfig] = macroRW
 }
 
+case class JavaHomeModuleConfig(jvmId: String) extends ModuleConfig
+object JavaHomeModuleConfig {
+  implicit val rw: ReadWriter[JavaHomeModuleConfig] = macroRW
+}
+
 case class JavaModuleConfig(
     mandatoryMvnDeps: Seq[String] = Nil,
     mvnDeps: Seq[String] = Nil,
     compileMvnDeps: Seq[String] = Nil,
     runMvnDeps: Seq[String] = Nil,
+    bomMvnDeps: Seq[String] = Nil,
     moduleDeps: Seq[JavaModuleConfig.ModuleDep] = Nil,
     compileModuleDeps: Seq[JavaModuleConfig.ModuleDep] = Nil,
     runModuleDeps: Seq[JavaModuleConfig.ModuleDep] = Nil,
-    javacOptions: Seq[String] = Nil
+    javacOptions: Seq[String] = Nil,
+    javadocOptions: Seq[String] = Nil
 ) extends ModuleConfig
 object JavaModuleConfig {
+
+  val mvnDepOrgNameRegex: Regex = """^mvn"([^:]+)[:]+([^:"]+)[:"].*$""".r
+
+  def isBomMvnDep(mvnDep: String): Boolean = {
+    val mvnDepOrgNameRegex(org, name) = mvnDep: @unchecked
+    name.endsWith("-bom") ||
+    (org == "org.springframework.boot" && name == "spring-boot-dependencies")
+  }
+
+  def mvnDep(
+      org: String,
+      name: String,
+      version: String = null,
+      classifier: Option[String] = None,
+      typ: Option[String] = None,
+      excludes: Iterable[(String, String)] = Nil,
+      sep1: String = ":",
+      sep2: String = ":"
+  ): String = {
+    var suffix =
+      (version match {
+        case null => ""
+        case _ => version
+      }) + classifier.fold("") {
+        case null | "" => ""
+        case attr => s";classifier=$attr"
+      } + typ.fold("") {
+        case null | "" | "jar" => ""
+        case attr => s";type=$typ"
+      } + excludes.iterator.map {
+        case (org, name) => s";exclude=$org:$name"
+      }.mkString
+    if (suffix.nonEmpty) suffix = sep2 + suffix
+    s"""mvn"$org$sep1$name$suffix""""
+  }
 
   /**
    * Represents a module dependency.
@@ -152,12 +228,14 @@ object JavaModuleConfig {
 }
 
 case class PublishModuleConfig(
+    pomPackagingType: String = null,
     pomSettings: PublishModuleConfig.PomSettings = null,
+    artifactMetadata: PublishModuleConfig.Artifact = null,
     publishVersion: String = null,
     versionScheme: Option[String] = None
 ) extends ModuleConfig
 object PublishModuleConfig {
-  case class Artifact(group: String, id: String, verison: String)
+  case class Artifact(group: String, id: String, version: String)
   object Artifact {
     implicit val rw: ReadWriter[Artifact] = macroRW
   }
@@ -208,6 +286,27 @@ object PublishModuleConfig {
   }
 
   implicit val rw: ReadWriter[PublishModuleConfig] = macroRW
+}
+
+case class ErrorProneModuleConfig(
+    errorProneOptions: Seq[String] = Nil,
+    errorProneJavacEnableOptions: Seq[String] = Nil,
+    errorProneDeps: Seq[String] = Nil
+) extends ModuleConfig
+object ErrorProneModuleConfig {
+  implicit val rw: ReadWriter[ErrorProneModuleConfig] = macroRW
+
+  def from(javacOptions: Iterable[String], errorProneDeps: Seq[String] = Nil) =
+    javacOptions.collectFirst {
+      case s if s.startsWith("-Xplugin:ErrorProne") =>
+        ErrorProneModuleConfig(
+          errorProneOptions = s.split(" ").toSeq.tail,
+          errorProneJavacEnableOptions = javacOptions.iterator.filter(s =>
+            s.startsWith("-XD") && s != "-XDcompilePolicy=simple"
+          ).toSeq,
+          errorProneDeps = errorProneDeps
+        )
+    }
 }
 
 case class ScalaModuleConfig(

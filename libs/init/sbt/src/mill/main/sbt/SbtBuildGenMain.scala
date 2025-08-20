@@ -7,18 +7,14 @@ import pprint.Util.literalize
 import scala.util.Using
 
 @mainargs.main
-case class SbtBuildGenMainArgs(
-    @mainargs.arg(short = 'd')
-    depsObjectName: String = "Deps",
+case class SbtBuildGenArgs(
     @mainargs.arg(short = 't')
     testModuleName: String = "test",
-    @mainargs.arg(short = 'B')
-    noBaseTraits: mainargs.Flag,
-    @mainargs.arg(short = 'M')
-    noMerge: mainargs.Flag,
+    @mainargs.arg(short = 'U')
+    noUnify: mainargs.Flag,
     @mainargs.arg(short = 'c')
     sbtCmd: Option[String],
-    sbtOptions: mainargs.Leftover[String]
+    metaBuild: MetaBuildArgs
 )
 
 object SbtBuildGenMain {
@@ -26,7 +22,7 @@ object SbtBuildGenMain {
   def main(args: Array[String]): Unit = {
     println("converting sbt build")
 
-    val args0 = mainargs.ParserForClass[SbtBuildGenMainArgs].constructOrExit(args.toSeq)
+    val args0 = mainargs.ParserForClass[SbtBuildGenArgs].constructOrExit(args.toSeq)
     import args0.{getClass as _, *}
 
     val cmd = sbtCmd.getOrElse:
@@ -58,7 +54,7 @@ object SbtBuildGenMain {
       s"apply -cp ${literalize(jar.toString())} mill.main.sbt.ExportSbtBuildScript",
       s"+millInitExportBuild"
     )
-    os.proc(cmd, sbtOptions.value, script).call(stdout = os.Inherit, stderr = os.Inherit)
+    os.proc(cmd, script).call(stdout = os.Inherit, stderr = os.Inherit)
 
     // ((moduleDir, isCrossPlatform), ModuleRepr)
     type SbtModuleRepr = ((Seq[String], Boolean), ModuleRepr)
@@ -109,11 +105,10 @@ object SbtBuildGenMain {
         )
     .toSeq
 
-    var build = BuildRepr(packages)
-    build = build.withDepsObject(DepsObject(depsObjectName))
-    if (!noBaseTraits.value) build = build.withBaseTraits
-    if (!noMerge.value) build = build.merged
-    SbtBuildWriter.writeFiles(build)
+    var build = BuildRepr.fill(packages)
+    build = build.withMetaBuild(metaBuild)
+    if (!noUnify.value) build = build.unified
+    BuildWriter(build, renderCrossValueInTask = "scalaVersion()").writeFiles()
 
     locally {
       val jvmOptsSbt = os.pwd / ".jvmopts"
@@ -142,9 +137,10 @@ object SbtBuildGenMain {
 
       val sbtOpts = os.pwd / ".sbtopts"
       if (os.exists(sbtOpts)) {
-        var jvmArgs = os.read.lines.stream(sbtOpts).collect:
-          case s if s.startsWith("-J") => s.substring("-J".length)
-        .toSeq
+        var jvmArgs = os.read.lines(sbtOpts).flatMap: s =>
+          if (s.startsWith("#")) Nil
+          else s.split(" ").iterator.collect:
+            case s if s.startsWith("-J") => s.substring(2)
         if (jvmArgs.nonEmpty && os.exists(jvmOptsMill)) {
           jvmArgs = jvmArgs.diff(os.read.lines(jvmOptsMill))
         }
