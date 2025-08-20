@@ -14,7 +14,7 @@ import java.io.File
  *
  * Use of kotlin-compiler-embedded is also recommended (and thus enabled by default)
  * to avoid any classpath conflicts between the compiler and user defined plugins!
- * 
+ *
  * This module is based on KSP 1.x which relies on language version 1.9 or earlier.
  * For KSP 2.x, use [[Ksp2Module]] instead.
  */
@@ -27,6 +27,7 @@ trait KspModule extends KotlinModule { outer =>
    * Defaults to `1.9` which is compatible with KSP 1.x.
    */
   def kspLanguageVersion: String = "1.9"
+
   /**
    * The version of the symbol processing library to use.
    *
