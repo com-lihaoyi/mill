@@ -1,6 +1,17 @@
 [
   {
     "textDocument": {
+      "uri": "file:///workspace/mill-build/build.mill"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/mill-build/mill-build"
+    },
+    "originId": "",
+    "diagnostics": [],
+    "reset": true
+  },
+  {
+    "textDocument": {
       "uri": "file:///workspace/build.mill"
     },
     "buildTarget": {
