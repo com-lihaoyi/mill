@@ -18,19 +18,35 @@ object BspServerTestUtil {
 
   private[mill] def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
 
-  trait DummyBuildClient extends b.BuildClient {
+  trait TestBuildClient extends b.BuildClient {
+    // Whether to check the validity of some messages
+    protected def enableAsserts: Boolean = true
+    private var gotInvalidMessages0 = false
+    def gotInvalidMessages: Boolean = gotInvalidMessages0
+
+    protected def doAssert(condition: Boolean): Unit = {
+      if (enableAsserts) {
+        if (!condition)
+          gotInvalidMessages0 = true
+        assert(condition)
+      }
+    }
+
+    def onBuildTaskProgress(params: b.TaskProgressParams): Unit = {
+      doAssert(params.getProgress <= params.getTotal)
+    }
+  }
+
+  trait DummyBuildClient extends TestBuildClient {
     def onBuildLogMessage(params: b.LogMessageParams): Unit = ()
     def onBuildPublishDiagnostics(params: b.PublishDiagnosticsParams): Unit = ()
     def onBuildShowMessage(params: b.ShowMessageParams): Unit = ()
     def onBuildTargetDidChange(params: b.DidChangeBuildTarget): Unit = ()
     def onBuildTaskFinish(params: b.TaskFinishParams): Unit = ()
-    def onBuildTaskProgress(params: b.TaskProgressParams): Unit = ()
     def onBuildTaskStart(params: b.TaskStartParams): Unit = ()
     def onRunPrintStderr(params: b.PrintParams): Unit = ()
     def onRunPrintStdout(params: b.PrintParams): Unit = ()
   }
-
-  object DummyBuildClient extends DummyBuildClient
 
   val gson: Gson = new GsonBuilder().setPrettyPrinting().create()
   def compareWithGsonSnapshot[T: ClassTag](
@@ -101,7 +117,7 @@ object BspServerTestUtil {
       workspacePath: os.Path,
       millTestSuiteEnv: Map[String, String],
       bspLog: Option[(Array[Byte], Int) => Unit] = None,
-      client: b.BuildClient = DummyBuildClient
+      client: TestBuildClient = new DummyBuildClient {}
   )(f: (MillBuildServer, b.InitializeBuildResult) => T): T = {
 
     val outputOnErrorOnly = System.getenv("CI") != null
@@ -180,6 +196,10 @@ object BspServerTestUtil {
           buildServer.onBuildExit()
         }
       success = true
+      assert(
+        !client.gotInvalidMessages,
+        "Test build client got invalid messages from Mill, see assertions above"
+      )
       value
     } finally {
       try {

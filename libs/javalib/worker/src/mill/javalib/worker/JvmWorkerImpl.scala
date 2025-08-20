@@ -462,8 +462,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
               reporter.fileVisited(file.toNIO)
             case RpcCompileProblemReporterMessage.PrintSummary => reporter.printSummary()
             case RpcCompileProblemReporterMessage.Finish => reporter.finish()
-            case RpcCompileProblemReporterMessage.NotifyProgress(percentage, total) =>
-              reporter.notifyProgress(percentage = percentage, total = total)
+            case RpcCompileProblemReporterMessage.NotifyProgress(progress, total) =>
+              reporter.notifyProgress(progress = progress, total = total)
           }
 
         case None =>
