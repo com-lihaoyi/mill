@@ -2,8 +2,7 @@ package mill.javalib
 
 import mill.T
 import mill.api.Result
-import mill.api.daemon.internal.TestModuleApi
-import mill.api.daemon.internal.TestReporter
+import mill.api.daemon.internal.{TestModuleApi, TestReporter}
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 import mill.api.PathRef
 import mill.api.Task
@@ -58,6 +57,7 @@ trait TestModule
    * - [[TestModule.Utest]]
    * - [[TestModule.Weaver]]
    * - [[TestModule.ZioTest]]
+   * - [[TestModule.Spock]]
    *
    * Most of these provide additional `xxxVersion` tasks, to manage the test framework dependencies for you.
    */
@@ -597,6 +597,41 @@ object TestModule {
         Seq(scalaCheckVersion())
           .filter(!_.isBlank())
           .map(v => mvn"org.scalacheck::scalacheck:${v.trim()}")
+    }
+  }
+
+  /**
+   * TestModule that uses Spock Test Framework to run tests.
+   * You can override the [[spockTestVersion]] task or provide the Spock-dependency yourself.
+   */
+  trait Spock extends TestModule.Junit5 {
+
+    /** The Spock Test version to use, or the empty string, if you want to provide the Spock Test-dependency yourself. */
+    def spockVersion: T[String] = Task {
+      ""
+    }
+
+    /** The Groovy version to use, or the empty string, if you want to provide the Groovy Test-dependency yourself. */
+    def groovyVersion: T[String] = Task {
+      ""
+    }
+
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(spockVersion())
+          .filter(!_.isBlank())
+          .flatMap(v =>
+            Seq(
+              mvn"org.spockframework:spock-core:${v.trim()}"
+            )
+          ) ++
+        Seq(groovyVersion())
+          .filter(!_.isBlank())
+          .flatMap(v =>
+            Seq(
+              mvn"org.apache.groovy:groovy:${v.trim()}"
+            )
+          )
     }
   }
 

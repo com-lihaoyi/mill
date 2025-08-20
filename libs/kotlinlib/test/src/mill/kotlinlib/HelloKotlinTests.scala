@@ -40,6 +40,7 @@ object HelloKotlinTests extends TestSuite {
     object main extends Cross[KotlinVersionCross](crossMatrix)
 
     lazy val millDiscover = Discover[this.type]
+    println(millDiscover)
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-kotlin"

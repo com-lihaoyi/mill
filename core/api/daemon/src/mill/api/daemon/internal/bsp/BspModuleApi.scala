@@ -15,6 +15,7 @@ object BspModuleApi {
     val Java = "java"
     val Scala = "scala"
     val Kotlin = "kotlin"
+    val Groovy = "groovy"
   }
 
   /** Used to define the [[BspBuildTarget.tags]] field. */
