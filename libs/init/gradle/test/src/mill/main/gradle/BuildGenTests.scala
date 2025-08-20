@@ -28,17 +28,10 @@ object BuildGenTests extends TestSuite {
       val sourceRoot = os.sub / "application-library"
       val expectedRoot = os.sub / "expected/config"
       val args = Array(
-        "--base-module",
-        "BaseModule",
-        "--base-project",
-        "utilities",
-        "--jvm-id",
-        "11",
-        "--test-module",
+        "--test-module-name",
         "tests",
-        "--deps-object",
-        "Deps",
-        "--merge"
+        "--unify",
+        "--no-meta-build"
       )
       assert(
         checker.check(GradleBuildGenMain.main(args), sourceRoot, expectedRoot)

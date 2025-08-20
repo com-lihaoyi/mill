@@ -1,10 +1,9 @@
 package build.utilities
 
-import mill._
 import mill.javalib._
-import mill.javalib.publish._
+import millbuild._
 
-object `package` extends MavenModule {
+object `package` extends ApplicationLibraryBaseModule {
 
   def moduleDeps = super.moduleDeps ++ Seq(build.list)
 

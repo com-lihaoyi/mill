@@ -1,6 +1,5 @@
 package build.multi1
 
-import build._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib._
@@ -23,17 +22,17 @@ object `package` extends PublishModule with SbtModule {
   )
 
   def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++
-    Seq(Dependencies.wartremover)
+    Seq(mvn"org.wartremover::wartremover:2.2.1")
 
   def mvnDeps = super.mvnDeps() ++ Seq(
-    Dependencies.logbackClassic,
-    Dependencies.logstashLogbackEncoder,
-    Dependencies.scalaLogging,
-    Dependencies.jclOverSlf4j,
-    Dependencies.config,
-    Dependencies.akkaStream,
-    Dependencies.monocleCore,
-    Dependencies.monocleMacro
+    mvn"ch.qos.logback:logback-classic:1.2.3",
+    mvn"net.logstash.logback:logstash-logback-encoder:4.11",
+    mvn"com.typesafe.scala-logging::scala-logging:3.7.2",
+    mvn"org.slf4j:jcl-over-slf4j:1.7.25",
+    mvn"com.typesafe:config:1.3.1",
+    mvn"com.typesafe.akka::akka-stream:2.5.6",
+    mvn"com.github.julien-truffaut::monocle-core:1.4.0",
+    mvn"com.github.julien-truffaut::monocle-macro:1.4.0"
   )
 
   def moduleDeps = super.moduleDeps ++ Seq(build.common)
@@ -63,8 +62,10 @@ object `package` extends PublishModule with SbtModule {
 
   object tests extends SbtTests with TestModule.ScalaTest {
 
-    def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
-      Seq(Dependencies.scalatest, Dependencies.scalacheck)
+    def mandatoryMvnDeps = super.mandatoryMvnDeps() ++ Seq(
+      mvn"org.scalatest::scalatest:3.0.4",
+      mvn"org.scalacheck::scalacheck:1.13.5"
+    )
 
   }
 

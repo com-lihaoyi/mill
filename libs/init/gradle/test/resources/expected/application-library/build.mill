@@ -1,12 +1,6 @@
-//| mill-version: SNAPSHOT
 package build
 
-import mill._
-import mill.javalib._
-import mill.javalib.publish._
+import mill.api._
+import millbuild._
 
-object `package` extends mill.Module {
-
-  def artifactName = "application-library"
-
-}
+object `package` extends Module {}

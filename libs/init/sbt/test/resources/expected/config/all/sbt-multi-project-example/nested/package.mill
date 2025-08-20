@@ -1,7 +1,5 @@
 package build.nested
 
-import build._
 import mill.api._
-import mill.scalalib._
 
 object `package` extends Module {}

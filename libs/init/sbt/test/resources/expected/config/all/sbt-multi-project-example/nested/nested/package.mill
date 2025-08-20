@@ -1,6 +1,5 @@
 package build.nested.nested
 
-import build._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalalib._
@@ -22,9 +21,11 @@ object `package` extends PublishModule with SbtModule {
   )
 
   def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++
-    Seq(Dependencies.wartremover)
+    Seq(mvn"org.wartremover::wartremover:2.2.1")
 
-  def mvnDeps = super.mvnDeps() ++ Seq(Dependencies.nettyTransportNativeEpoll)
+  def mvnDeps = super.mvnDeps() ++ Seq(
+    mvn"io.netty:netty-transport-native-epoll:4.1.118.Final;classifier=linux-x86_64;type=Some(pom);exclude=io.netty:netty-transport-native-epoll"
+  )
 
   def pomSettings = PomSettings(
     "This is an sbt sample project for testing Mill's init command.",

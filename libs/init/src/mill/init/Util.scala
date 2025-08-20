@@ -1,6 +1,6 @@
 package mill.init
-import mill.constants.OutFiles
 import mill.constants.CodeGenConstants.{nestedBuildFileNames, rootBuildFileNames}
+import mill.constants.OutFiles
 object Util {
 
   def scalafmtConfigContent: String =
@@ -12,10 +12,16 @@ object Util {
   def scalafmtConfigFile: os.Path =
     os.temp(scalafmtConfigContent)
 
-  def buildFiles(workspace: os.Path): geny.Generator[os.Path] =
-    os.walk.stream(workspace, skip = (workspace / OutFiles.out).equals)
-      .filter(file =>
-        nestedBuildFileNames.contains(file.last) || rootBuildFileNames.contains(file.last)
-      )
-
+  def buildFiles(workspace: os.Path): Seq[os.Path] =
+    os.walk.stream(
+      workspace,
+      skip = Seq(workspace / OutFiles.out, workspace / OutFiles.millBuild).contains
+    ).filter(path =>
+      os.isFile(path) &&
+        (nestedBuildFileNames.contains(path.last) || rootBuildFileNames.contains(path.last))
+    ).toSeq ++ (
+      if (os.exists(workspace / OutFiles.millBuild))
+        os.walk.stream(workspace / OutFiles.millBuild).filter(os.isFile).toSeq
+      else Nil
+    )
 }
