@@ -51,7 +51,7 @@ public class MillLauncherMain {
                   + " want to use a separate output directory for BSP. This will increase"
                   + " the CPU usage of the BSP server but make it more responsive."
               : "Mill is running in BSP mode, using a separate output directory '" + outDir
-                  + "'. If you would like to " + "reuse the regular `out/` directory, unset the '"
+                  + "'. If you would like to reuse the regular `out/` directory, set the '"
                   + EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR
                   + "' environment variable. This will reduce the CPU usage of the BSP server but"
                   + " make it less responsive.");
