@@ -18,8 +18,9 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
       searched: String
   ): Task[Seq[T]] =
     Task.Anon {
-      val src = jm.allSourceFiles()
-      val found = src.map(jm.sanitizeUri).contains(searched)
+      val srcFiles = jm.allSourceFiles().map(_.path)
+      val baseSrc = jm.allSources().map(_.path).filter(os.isFile)
+      val found = (srcFiles ++ baseSrc).map(jm.sanitizeUri).contains(searched)
       if (found) Seq(id) else Seq()
     }
 

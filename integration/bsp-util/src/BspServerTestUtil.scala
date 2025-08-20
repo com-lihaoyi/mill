@@ -71,6 +71,7 @@ object BspServerTestUtil {
           .replaceAll("\\d+ msec", "* msec")
           .replaceAll("\\d+ Scala (sources?) to .*\\.\\.\\.", "* Scala $1 to * ...")
           .replaceAll("\\[error\\] [a-zA-Z0-9-_/.]+:2:3:", "[error] *:2:3:")
+          .replaceAll("Evaluating [0-9]+ tasks", "Evaluating * tasks")
       )
 
     utest.assertGoldenFile(
@@ -100,34 +101,21 @@ object BspServerTestUtil {
       workspacePath: os.Path,
       millTestSuiteEnv: Map[String, String],
       bspLog: Option[(Array[Byte], Int) => Unit] = None,
-      client: b.BuildClient = DummyBuildClient,
-      millExecutableNoBspFile: Option[os.Path] = None
+      client: b.BuildClient = DummyBuildClient
   )(f: (MillBuildServer, b.InitializeBuildResult) => T): T = {
 
     val outputOnErrorOnly = System.getenv("CI") != null
 
-    val bspCommand = millExecutableNoBspFile match {
-      case None =>
-        val bspMetadataFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
-        assert(os.exists(bspMetadataFile))
-        val contents = os.read(bspMetadataFile)
-        assert(
-          !contents.contains("--debug"),
-          contents.contains(s""""bspVersion":"$bsp4jVersion"""")
-        )
-        val contentsJson = ujson.read(contents)
-        contentsJson("argv").arr.map(_.str)
-      case Some(millExecutableNoBspFile0) =>
-        Seq(
-          millExecutableNoBspFile0.toString,
-          "--bsp",
-          "--ticker",
-          "false",
-          "--color",
-          "false",
-          "--jobs",
-          "1"
-        )
+    val bspCommand = {
+      val bspMetadataFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
+      assert(os.exists(bspMetadataFile))
+      val contents = os.read(bspMetadataFile)
+      assert(
+        !contents.contains("--debug"),
+        contents.contains(s""""bspVersion":"$bsp4jVersion"""")
+      )
+      val contentsJson = ujson.read(contents)
+      contentsJson("argv").arr.map(_.str)
     }
 
     val stderr = new ByteArrayOutputStream

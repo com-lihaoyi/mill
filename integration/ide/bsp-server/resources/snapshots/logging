@@ -3,11 +3,19 @@
 [1-buildInitialize] Entered buildInitialize
 [1-buildInitialize] Got client semanticdbVersion: * Enabling SemanticDB support.
 [1-buildInitialize] buildInitialize took * msec
+[bsp-init-mill-build/build.mill-58] [info] compiling * Scala sources to * ...
+[bsp-init-mill-build/build.mill-58] [warn] package scala contains object and package with same name: caps.
+[bsp-init-mill-build/build.mill-58] [warn] This indicates that there are several versions of the Scala standard library on the classpath.
+[bsp-init-mill-build/build.mill-58] [warn] The build should be reconfigured so that only one version of the standard library is on the classpath.
+[bsp-init-mill-build/build.mill-58] [warn] one warning found
+[bsp-init-mill-build/build.mill-58] [info] done compiling
 [bsp-init-build.mill-58] [info] compiling * Scala sources to * ...
 [bsp-init-build.mill-58] [info] done compiling
 [bsp-init] SNAPSHOT
 [2-workspaceBuildTargets] Entered workspaceBuildTargets
-[2-workspaceBuildTargets] Evaluating 13 tasks
+[2-workspaceBuildTargets] Evaluating * tasks
+[2-workspaceBuildTargets] Done
+[2-workspaceBuildTargets] Evaluating 1 task
 [2-workspaceBuildTargets] Done
 [2-workspaceBuildTargets] Evaluating 1 task
 [2-workspaceBuildTargets] Done
