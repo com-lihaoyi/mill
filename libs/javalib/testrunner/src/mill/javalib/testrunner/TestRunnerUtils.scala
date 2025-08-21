@@ -180,7 +180,7 @@ import scala.math.Ordering.Implicits.*
             })
           )
         catch {
-          case e: Throwable =>
+          case _: Throwable =>
             // Sometimes test suites fail really early during instantiation, which might not
             // get properly caught by the test framework which expects failures during execution.
             // When that happens, just treat this task as having no children, and don't blow up
