@@ -526,18 +526,20 @@ object Task {
       Cacher.impl0(expr)
     }
 
-    def assertTaskShapeOwner(using quotes: Quotes)(typeName: String,
-                                                   expectedParamListCount: Int) = {
+    def assertTaskShapeOwner(using
+        quotes: Quotes
+    )(typeName: String, expectedParamListCount: Int) = {
       import quotes.reflect.*
       val owner = sourcecode.Macros.actualOwner(Symbol.spliceOwner)
       owner match {
         case defSym
-          if defSym.isDefDef
-            && defSym.tree.asInstanceOf[DefDef].paramss.length == expectedParamListCount =>
-        case _  =>
+            if defSym.isDefDef
+              && defSym.tree.asInstanceOf[DefDef].paramss.length == expectedParamListCount =>
+        case _ =>
           val plural = if (expectedParamListCount == 1) "" else "s"
-          val err = s"`$typeName` definition `$owner` must have $expectedParamListCount parameter list$plural"
-          owner.pos match{
+          val err =
+            s"`$typeName` definition `$owner` must have $expectedParamListCount parameter list$plural"
+          owner.pos match {
             case Some(p) => report.error(err, p)
             case None => report.error(err)
           }
