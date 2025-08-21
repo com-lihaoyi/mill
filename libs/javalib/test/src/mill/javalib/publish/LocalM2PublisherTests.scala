@@ -1,8 +1,8 @@
 package mill.javalib.publish
 
-import mill.api.{TaskCtx, PathRef}
-import mill.api.{Logger}
-import mill.internal.DummyLogger
+import mill.api.{PathRef, TaskCtx}
+import mill.api.Logger
+import mill.api.Logger.DummyLogger
 import utest.{TestSuite, Tests, assert, test}
 
 object LocalM2PublisherTests extends TestSuite {

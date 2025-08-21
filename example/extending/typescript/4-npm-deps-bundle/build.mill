@@ -20,7 +20,7 @@ import mill.*
 trait TypeScriptModule extends Module {
   def moduleDeps: Seq[TypeScriptModule] = Nil
 
-  def npmDeps: T[Seq[String]] = Task { Seq.empty[String] }
+  def npmDeps: T[Seq[String]] = Task { Seq() }
 
   def transitiveNpmDeps: T[Seq[String]] = Task {
     Task.traverse(moduleDeps)(_.npmDeps)().flatten ++ npmDeps()

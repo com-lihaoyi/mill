@@ -5,13 +5,13 @@ import mill.util.JarManifest
 import mill.api.{BuildCtx, DummyInputStream, ModuleRef, PathRef, Result, Task}
 import mill.util.BuildInfo
 import mill.util.Jvm
-import mill.util.Jvm.createJar
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
 import mill.api.daemon.internal.{ScalaModuleApi, ScalaPlatform, internal}
 import mill.javalib.dependency.versions.{ValidVersion, Version}
-import mill.javalib.SemanticDbJavaModule
+import mill.javalib.{CompileFor, SemanticDbJavaModule}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileMixed, ZincScaladocJar}
 
 // this import requires scala-reflect library to be on the classpath
 // it was duplicated to scala3-compiler, but is that too powerful to add as a dependency?
@@ -124,7 +124,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
     // Zinc isn't outputting any help with `-help` options, so we ask the compiler directly
     val cp = scalaCompilerClasspath()
-    Using.resource(ScalaClassLoader.fromURLs(cp.toSeq.map(_.path.toNIO.toUri().toURL()))) { cl =>
+    Using.resource(ScalaClassLoader.fromURLs(cp.toSeq.map(_.path.toURL))) { cl =>
       def handleResult(trueIsSuccess: Boolean): PartialFunction[Any, Result[Unit]] = {
         val ok = Result.Success(())
         val fail = Result.Failure("The compiler exited with errors (exit code 1)")
@@ -277,23 +277,29 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         |You may want to select another version. Upgrading to a more recent Scala version is recommended.
         |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin
     )
+
+    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
+
     jvmWorker()
-      .worker()
+      .internalWorker()
       .compileMixed(
-        upstreamCompileOutput = upstreamCompileOutput(),
-        sources = allSourceFiles().map(_.path),
-        compileClasspath = compileClasspath().map(_.path),
+        ZincCompileMixed(
+          upstreamCompileOutput = upstreamCompileOutput(),
+          sources = allSourceFiles().map(_.path),
+          compileClasspath = compileClasspath().map(_.path),
+          javacOptions = jOpts.compiler,
+          scalaVersion = sv,
+          scalaOrganization = scalaOrganization(),
+          scalacOptions = allScalacOptions(),
+          compilerClasspath = scalaCompilerClasspath(),
+          scalacPluginClasspath = scalacPluginClasspath(),
+          incrementalCompilation = zincIncrementalCompilation(),
+          auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+        ),
         javaHome = javaHome().map(_.path),
-        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
-        scalaVersion = sv,
-        scalaOrganization = scalaOrganization(),
-        scalacOptions = allScalacOptions(),
-        compilerClasspath = scalaCompilerClasspath(),
-        scalacPluginClasspath = scalacPluginClasspath(),
+        javaRuntimeOptions = jOpts.runtime,
         reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = zincIncrementalCompilation(),
-        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+        reportCachedProblems = zincReportCachedProblems()
       )
   }
 
@@ -303,7 +309,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     else allSources()
   }
 
-  override def docJar: T[PathRef] = Task {
+  def scalaDocGenerated: T[PathRef] = Task {
     val compileCp = Seq(
       "-classpath",
       compileClasspath()
@@ -313,52 +319,33 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         .mkString(java.io.File.pathSeparator)
     )
 
-    def packageWithZinc(options: Seq[String], files: Seq[os.Path], javadocDir: os.Path) = {
+    def generateWithZinc(
+        options: Seq[String],
+        files: Seq[os.Path],
+        javadocDir: os.Path
+    ): PathRef = {
       if (files.isEmpty) {
-        Result.Success(PathRef(createJar(Task.dest / "out.jar", Seq(javadocDir))))
+        PathRef(javadocDir)
       } else {
         jvmWorker()
-          .worker()
-          .docJar(
-            scalaVersion(),
-            scalaOrganization(),
-            scalaDocClasspath(),
-            scalacPluginClasspath(),
-            javaHome().map(_.path),
-            options ++ compileCp ++ scalaDocOptions() ++
-              files.map(_.toString())
+          .internalWorker()
+          .scaladocJar(
+            ZincScaladocJar(
+              scalaVersion(),
+              scalaOrganization(),
+              scalaDocClasspath(),
+              scalacPluginClasspath(),
+              options ++ compileCp ++ scalaDocOptions() ++ files.map(_.toString())
+            ),
+            javaHome = javaHome().map(_.path)
           ) match {
-          case true => Result.Success(PathRef(createJar(Task.dest / "out.jar", Seq(javadocDir))))
-          case false => Result.Failure("docJar generation failed")
+          case true => PathRef(javadocDir)
+          case false => Task.fail("scaladoc generation failed")
         }
       }
     }
 
-    if (JvmWorkerUtil.isDotty(scalaVersion()) || JvmWorkerUtil.isScala3Milestone(scalaVersion())) { // dottydoc
-      val javadocDir = Task.dest / "javadoc"
-      os.makeDir.all(javadocDir)
-
-      for {
-        ref <- docResources()
-        docResource = ref.path
-        if os.exists(docResource) && os.isDir(docResource)
-        children = os.walk(docResource)
-        child <- children
-        if os.isFile(child) && !child.last.startsWith(".")
-      } {
-        os.copy.over(
-          child,
-          javadocDir / (child.subRelativeTo(docResource)),
-          createFolders = true
-        )
-      }
-      packageWithZinc(
-        Seq("-siteroot", javadocDir.toNIO.toString),
-        Lib.findSourceFiles(docSources(), Seq("java", "scala")),
-        javadocDir / "_site"
-      )
-
-    } else if (JvmWorkerUtil.isScala3(scalaVersion())) { // scaladoc 3
+    if (JvmWorkerUtil.isScala3(scalaVersion())) { // scaladoc 3
       val javadocDir = Task.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
@@ -384,7 +371,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         )
       }
 
-      packageWithZinc(
+      generateWithZinc(
         Seq(
           "-d",
           javadocDir.toNIO.toString,
@@ -398,13 +385,18 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       val javadocDir = Task.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
-      packageWithZinc(
+      generateWithZinc(
         Seq("-d", javadocDir.toNIO.toString),
         Lib.findSourceFiles(docSources(), Seq("java", "scala")),
         javadocDir
       )
     }
 
+  }
+
+  override def docJar: T[PathRef] = Task {
+    os.copy(scalaDocGenerated().path, Task.dest / "docs")
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(Task.dest / "docs")))
   }
 
   /**
@@ -558,13 +550,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             scalaDocPluginMvnDeps()
           ) ++
           (
-            jvmWorker().scalaCompilerBridgeJar(
+            jvmWorker().scalaCompilerBridgeJarV2(
               scalaVersion(),
               scalaOrganization(),
               defaultResolver()
-            ) match {
-              case (opt, single) => opt.toSeq.flatten ++ Seq(single)
-            }
+            ).fullClasspath
           ) ++
           Task.sequence(tasks)().flatten
       ).distinct
@@ -594,7 +584,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JVM,
-        jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
+        jars = scalaCompilerClasspath().map(_.path.toURI.toString).iterator.toSeq,
         jvmBuildTarget = Some(bspJvmBuildTargetTask())
       )
     ))
@@ -608,63 +598,71 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     )
   }
 
-  override def semanticDbData: T[PathRef] = Task(persistent = true) {
-    val sv = scalaVersion()
+  override def semanticDbDataDetailed: T[SemanticDbJavaModule.SemanticDbData] =
+    Task(persistent = true) {
+      val sv = scalaVersion()
 
-    val hasScala = allSourceFiles().exists(_.path.ext == "scala")
-    val hasJava = allSourceFiles().exists(_.path.ext == "java")
-    val isMixedProject = hasScala && hasJava
-    // See https://github.com/com-lihaoyi/mill/issues/2981
-    val stopAfterSemanticDbOpts =
-      if (isMixedProject) Seq.empty else Seq("-Ystop-after:semanticdb-typer")
+      val additionalScalacOptions = if (JvmWorkerUtil.isScala3(sv)) {
+        Seq("-Xsemanticdb", s"-sourceroot:${BuildCtx.workspaceRoot}")
+      } else {
+        Seq("-Yrangepos", s"-P:semanticdb:sourceroot:${BuildCtx.workspaceRoot}")
+      }
 
-    val additionalScalacOptions = if (JvmWorkerUtil.isScala3(sv)) {
-      Seq("-Xsemanticdb", s"-sourceroot:${BuildCtx.workspaceRoot}")
-    } else {
-      Seq(
-        "-Yrangepos",
-        s"-P:semanticdb:sourceroot:${BuildCtx.workspaceRoot}"
-      ) ++ stopAfterSemanticDbOpts
+      val scalacOptions = (
+        allScalacOptions() ++
+          semanticDbEnablePluginScalacOptions() ++
+          additionalScalacOptions
+      )
+        .filterNot(_ == "-Xfatal-warnings")
+
+      val javacOpts = SemanticDbJavaModule.javacOptionsTask(javacOptions(), semanticDbJavaVersion())
+
+      Task.log.debug(s"effective scalac options: ${scalacOptions}")
+      Task.log.debug(s"effective javac options: ${javacOpts}")
+
+      val jOpts = JavaCompilerOptions(javacOpts)
+
+      jvmWorker().internalWorker()
+        .compileMixed(
+          ZincCompileMixed(
+            upstreamCompileOutput = upstreamSemanticDbDatas().map(_.compilationResult),
+            sources = allSourceFiles().map(_.path),
+            compileClasspath =
+              (compileClasspathTask(
+                CompileFor.SemanticDb
+              )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
+            javacOptions = jOpts.compiler,
+            scalaVersion = sv,
+            scalaOrganization = scalaOrganization(),
+            scalacOptions = scalacOptions,
+            compilerClasspath = scalaCompilerClasspath(),
+            scalacPluginClasspath = semanticDbPluginClasspath(),
+            incrementalCompilation = zincIncrementalCompilation(),
+            auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+          ),
+          javaHome = javaHome().map(_.path),
+          javaRuntimeOptions = jOpts.runtime,
+          reporter = Task.reporter.apply(hashCode),
+          reportCachedProblems = zincReportCachedProblems()
+        )
+        .map { compilationResult =>
+          val semanticDbFiles = BuildCtx.withFilesystemCheckerDisabled {
+            SemanticDbJavaModule.copySemanticdbFiles(
+              compilationResult.classes.path,
+              BuildCtx.workspaceRoot,
+              Task.dest / "data",
+              SemanticDbJavaModule.workerClasspath().map(_.path),
+              allSourceFiles().map(_.path)
+            )
+          }
+
+          SemanticDbJavaModule.SemanticDbData(compilationResult, semanticDbFiles)
+        }
     }
 
-    val scalacOptions = (
-      allScalacOptions() ++
-        semanticDbEnablePluginScalacOptions() ++
-        additionalScalacOptions
-    )
-      .filterNot(_ == "-Xfatal-warnings")
-
-    val javacOpts = SemanticDbJavaModule.javacOptionsTask(javacOptions(), semanticDbJavaVersion())
-
-    Task.log.debug(s"effective scalac options: ${scalacOptions}")
-    Task.log.debug(s"effective javac options: ${javacOpts}")
-
-    jvmWorker().worker()
-      .compileMixed(
-        upstreamCompileOutput = upstreamCompileOutput(),
-        sources = allSourceFiles().map(_.path),
-        compileClasspath =
-          (compileClasspath() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
-        javaHome = javaHome().map(_.path),
-        javacOptions = javacOpts,
-        scalaVersion = sv,
-        scalaOrganization = scalaOrganization(),
-        scalacOptions = scalacOptions,
-        compilerClasspath = scalaCompilerClasspath(),
-        scalacPluginClasspath = semanticDbPluginClasspath(),
-        reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = zincIncrementalCompilation(),
-        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
-      )
-      .map { compileRes =>
-        BuildCtx.withFilesystemCheckerDisabled {
-          SemanticDbJavaModule.copySemanticdbFiles(
-            compileRes.classes.path,
-            BuildCtx.workspaceRoot,
-            Task.dest / "data"
-          )
-        }
-      }
-  }
+  // binary compatibility forwarder
+  override def semanticDbData: T[PathRef] =
+    // This is the same as `super.semanticDbData()`, but we can't call it directly
+    // because then it generates a forwarder which breaks binary compatibility.
+    Task { semanticDbDataDetailed().semanticDbFiles }
 }

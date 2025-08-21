@@ -43,7 +43,7 @@ private[mill] object Mirrors {
     ${ Internal.autoMirrorImpl[R, T]('h, 'p) }
 
   /** Try to synthesize a proof that `T` has a synthetic Mirror inside of `Root[R]`. */
-  transparent inline given autoPath[R, T <: R](using inline h: Root[R]): Path[R, T] =
+  transparent inline given autoPath[R, T <: R]: Path[R, T] =
     ${ Internal.autoPathImpl[R, T] }
 
   def makeRoot[T](ms: Map[String, Mirror]): Root[T] = new Internal.Rooted(ms)
@@ -302,6 +302,7 @@ private[mill] object Mirrors {
                 '[
                 type ts <: Tuple; `ts`]
               ) => TypeRepr.of[t *: ts]
+          case other => throw Exception(s"unexpected: $other")
       )
     }
 
@@ -350,6 +351,8 @@ private[mill] object Mirrors {
               }
             ]
           }
+
+        case other => throw Exception(s"unexpected: $other")
       }
     }
 
@@ -369,6 +372,8 @@ private[mill] object Mirrors {
               type MirroredElemLabels = names
             }]
           }
+
+        case other => throw Exception(s"unexpected: $other")
       }
     }
 
@@ -424,6 +429,8 @@ private[mill] object Mirrors {
               '[
               type types <: Tuple; `types`]
             ) => '{ AutoSum[T, label, names, types]((arg: T) => ${ ordinalBody('arg) }) }
+
+        case other => throw Exception(s"unexpected: $other")
       }
 
       innerMirrors + (structure.clsName -> sumMirror)
@@ -439,6 +446,8 @@ private[mill] object Mirrors {
           tpe.asType match
             case '[t] =>
               '{ $arg.productElement(${ Expr(i) }).asInstanceOf[t] }.asTerm
+
+            case other => throw Exception(s"unexpected: $other")
         )
         Ref(structure.companion)
           .select(structure.applyMethod)
@@ -455,6 +464,7 @@ private[mill] object Mirrors {
               '[
               type types <: Tuple; `types`]
             ) => '{ AutoProduct[T, label, names, types](p => ${ applyCall('p) }) }
+        case other => throw Exception(s"unexpected: $other")
       }
       structure.clsName -> mirror
     }

@@ -4,7 +4,6 @@ import mill.*
 import os.*
 
 import scala.annotation.tailrec
-import scala.util.Try
 import mill.javalib.publish.JsonFormatters.licenseFormat
 import mill.api.BuildCtx
 
@@ -572,7 +571,6 @@ trait TypeScriptModule extends Module { outer =>
         .map {
           case (key, "") => Some(s"--$key")
           case (key, value) => Some(s"--$key=$value")
-          case _ => None
         }.toSeq ++ Seq(if (enableEsm()) Some("--loader") else None)).flatten
 
     val runnable: Shellable = (

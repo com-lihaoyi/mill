@@ -14,7 +14,7 @@ trait PythonModule extends Module {
   def mainFileName: T[String] = Task { "main.py" }
   def sources: T[PathRef] = Task.Source("src")
 
-  def pythonDeps: T[Seq[String]] = Task { Seq.empty[String] }
+  def pythonDeps: T[Seq[String]] = Task { Seq() }
 
   def transitivePythonDeps: T[Seq[String]] = Task {
     val upstreamDependencies = Task.traverse(moduleDeps)(_.transitivePythonDeps)().flatten
@@ -74,9 +74,7 @@ trait PythonModule extends Module {
         "-c",
         sources().path / mainFileName(),
         "-o",
-        pexFile,
-        "--scie",
-        "eager"
+        pexFile
       ),
       env = Map("PYTHONPATH" -> Task.dest.toString),
       stdout = os.Inherit

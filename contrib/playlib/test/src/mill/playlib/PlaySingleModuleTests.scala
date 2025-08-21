@@ -3,8 +3,8 @@ package mill.playlib
 import mill.api.Discover
 import mill.Task
 import mill.testkit.{TestRootModule, UnitTester}
-import utest.{TestSuite, Tests, assert, _}
-import mill.util.TokenReaders._
+import utest.{TestSuite, Tests, *}
+import mill.util.TokenReaders.*
 object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingle extends TestRootModule with PlayModule {
@@ -75,7 +75,7 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
       )
 
       // don't recompile if nothing changed
-      val Right(result2) = eval.apply(playsingle.compile): @unchecked
+      val Right(_) = eval.apply(playsingle.compile): @unchecked
       // assert(unchangedEvalCount == 0)
     }
   }

@@ -1,17 +1,14 @@
 package mill.util
 
 import mill.{util, *}
+import mill.api.daemon.internal.MainModuleApi
 import mill.api.*
-import mill.api.daemon.internal.{EvaluatorApi, MainModuleApi, TaskApi}
-import mill.api.*
-import mill.api.internal.{RootModule0, RootModule}
+import mill.api.internal.{RootModule, RootModule0}
 import mill.api.SelectMode.Separated
 import mill.api.daemon.Watchable
 import mill.moduledefs.Scaladoc
 import mill.api.BuildCtx
-
-import java.util.concurrent.LinkedBlockingQueue
-import scala.collection.mutable
+import mill.api.daemon.internal.bsp.BspMainModuleApi
 
 abstract class MainRootModule()(implicit
     baseModuleInfo: RootModule.Info,
@@ -24,7 +21,14 @@ abstract class MainRootModule()(implicit
  * [[mill.api.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
  */
-trait MainModule extends RootModule0 with MainModuleApi {
+trait MainModule extends RootModule0, MainModuleApi {
+
+  private lazy val bspExt = {
+    import bsp.BspMainModule.given
+    ModuleRef(this.internalBspMainModule)
+  }
+
+  private[mill] def bspMainModule: () => BspMainModuleApi = () => bspExt()
 
   /**
    * Show the mill version.
@@ -122,7 +126,7 @@ trait MainModule extends RootModule0 with MainModuleApi {
     Task.Command(exclusive = true) {
       MainModule.show0(evaluator, tasks, Task.log, BuildCtx.evalWatch0) { res =>
         res.flatMap(_._2) match {
-          case Seq((k, singleValue)) => singleValue
+          case Seq((_, singleValue)) => singleValue
           case multiple => ujson.Obj.from(multiple)
         }
       }
@@ -138,13 +142,6 @@ trait MainModule extends RootModule0 with MainModuleApi {
         ujson.Obj.from(res.flatMap(_._2))
       }
     }
-
-  private[mill] def bspClean(
-      evaluator: EvaluatorApi,
-      tasks: String*
-  ): TaskApi[Seq[java.nio.file.Path]] = Task.Anon {
-    cleanTask(evaluator.asInstanceOf[Evaluator], tasks*)().map(_.path.toNIO)
-  }
 
   /**
    * Deletes the given targets from the out directory. Providing no targets
@@ -238,7 +235,7 @@ trait MainModule extends RootModule0 with MainModuleApi {
    */
   def shutdown(): Command[Unit] = Task.Command(exclusive = true) {
     Task.log.info("Shutting down Mill server...")
-    Task.ctx().systemExit(0)
+    Task.ctx().systemExitWithReason("`shutdown` command received", 0)
     ()
   }
 
@@ -352,7 +349,7 @@ object MainModule {
           watched.foreach(watch0)
           Result.Failure(err)
 
-        case Evaluator.Result(watched, Result.Success(res), selectedTasks, executionResults) =>
+        case Evaluator.Result(watched, Result.Success(_), selectedTasks, executionResults) =>
           val namesAndJson = for (t <- selectedTasks) yield {
             t match {
               case t: mill.api.Task.Named[_] =>

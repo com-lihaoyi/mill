@@ -29,7 +29,7 @@ object HelloJavaTests extends TestSuite {
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"
 
-  def testEval() = UnitTester(HelloJava, resourcePath)
+  def testEval() = UnitTester(HelloJava, resourcePath, debugEnabled = true)
   def tests: Tests = Tests {
     test("compile") {
       testEval().scoped { eval =>
@@ -54,6 +54,8 @@ object HelloJavaTests extends TestSuite {
     test("semanticDbData") {
       val expectedFile1 =
         os.rel / "META-INF/semanticdb/core/src/Core.java.semanticdb"
+      val expectedFile2 =
+        os.rel / "hello/Core.class"
 
       test("fromScratch") {
         testEval().scoped { eval =>
@@ -61,12 +63,12 @@ object HelloJavaTests extends TestSuite {
 
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
-          val dataPath = eval.outPath / "core/semanticDbData.dest/data"
+          val dataPath = eval.outPath / "core/semanticDbDataDetailed.dest/data"
 
           assert(
             result.value.path == dataPath,
             outputFiles.nonEmpty,
-            outputFiles == Seq(expectedFile1),
+            outputFiles.toSet == Set(expectedFile1, expectedFile2),
             result.evalCount > 0
           )
 
@@ -107,7 +109,7 @@ object HelloJavaTests extends TestSuite {
           )
           val Right(result) = eval.apply(HelloJava.core.semanticDbData): @unchecked
 
-          val dataPath = eval.outPath / "core/semanticDbData.dest/data"
+          val dataPath = eval.outPath / "core/semanticDbDataDetailed.dest/data"
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
@@ -118,10 +120,20 @@ object HelloJavaTests extends TestSuite {
           assert(
             result.value.path == dataPath,
             outputFiles.nonEmpty,
-            outputFiles.toSet == Set(expectedFile1, expectedFile2, expectedFile3),
+            outputFiles.toSet == Set(
+              expectedFile1,
+              expectedFile2,
+              expectedFile3,
+              os.rel / "hello/Core.class",
+              os.rel / "hello/Second.class",
+              os.rel / "hello/Third.class"
+            ),
             result.evalCount > 0
           )
 
+          println(
+            "================================delete one, keep one, change one================================"
+          )
           // delete one, keep one, change one
           os.remove(secondFile)
           os.write.append(thirdFile, "  ")
@@ -130,7 +142,12 @@ object HelloJavaTests extends TestSuite {
           val files2 =
             os.walk(result2.value.path).filter(os.isFile).map(_.relativeTo(result2.value.path))
           assert(
-            files2.toSet == Set(expectedFile1, expectedFile3),
+            files2.toSet == Set(
+              expectedFile1,
+              expectedFile3,
+              os.rel / "hello/Core.class",
+              os.rel / "hello/Third.class"
+            ),
             result2.evalCount > 0
           )
         }
@@ -157,7 +174,7 @@ object HelloJavaTests extends TestSuite {
     test("test") - {
       testEval().scoped { eval =>
 
-        val Left(ExecResult.Failure(ref1)) =
+        val Left(ExecResult.Failure(_)) =
           eval.apply(HelloJava.core.test.testForked()): @unchecked
 
         //      assert(

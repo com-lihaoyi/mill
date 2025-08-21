@@ -15,24 +15,23 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import mill.client.ClientUtil;
-import mill.constants.BuildInfo;
-import mill.constants.CodeGenConstants;
-import mill.constants.DaemonFiles;
-import mill.constants.EnvVars;
+import mill.constants.*;
 
 public class MillProcessLauncher {
 
-  static int launchMillNoDaemon(String[] args) throws Exception {
+  static int launchMillNoDaemon(String[] args, OutFolderMode outMode) throws Exception {
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
-    final Path processDir = Paths.get(".").resolve(out).resolve(millNoDaemon).resolve(sig);
+    final Path processDir =
+        Paths.get(".").resolve(outFor(outMode)).resolve(millNoDaemon).resolve(sig);
 
     final List<String> l = new ArrayList<>();
-    l.addAll(millLaunchJvmCommand());
+    l.addAll(millLaunchJvmCommand(outMode));
     Map<String, String> propsMap = ClientUtil.getUserSetProperties();
     for (String key : propsMap.keySet()) l.add("-D" + key + "=" + propsMap.get(key));
     l.add("mill.daemon.MillNoDaemonMain");
     l.add(processDir.toAbsolutePath().toString());
-    l.addAll(millOpts());
+    l.add(outMode.asString());
+    l.addAll(millOpts(outMode));
     l.addAll(Arrays.asList(args));
 
     final ProcessBuilder builder = new ProcessBuilder().command(l).inheritIO();
@@ -58,11 +57,11 @@ public class MillProcessLauncher {
     }
   }
 
-  static Process launchMillDaemon(Path daemonDir) throws Exception {
-    List<String> l = new ArrayList<>();
-    l.addAll(millLaunchJvmCommand());
+  static Process launchMillDaemon(Path daemonDir, OutFolderMode outMode) throws Exception {
+    List<String> l = new ArrayList<>(millLaunchJvmCommand(outMode));
     l.add("mill.daemon.MillDaemonMain");
     l.add(daemonDir.toFile().getCanonicalPath());
+    l.add(outMode.asString());
 
     ProcessBuilder builder = new ProcessBuilder()
         .command(l)
@@ -94,7 +93,7 @@ public class MillProcessLauncher {
     return builder.start();
   }
 
-  static List<String> loadMillConfig(String key) throws Exception {
+  static List<String> loadMillConfig(OutFolderMode outMode, String key) throws Exception {
 
     Path configFile = Paths.get("." + key);
     final Map<String, String> env = new HashMap<>();
@@ -115,6 +114,7 @@ public class MillProcessLauncher {
         Path buildFile = Paths.get(rootBuildFileName);
         if (Files.exists(buildFile)) {
           String[] config = cachedComputedValue(
+              outMode,
               key,
               mill.constants.Util.readBuildHeader(
                   buildFile, buildFile.getFileName().toString()),
@@ -122,11 +122,13 @@ public class MillProcessLauncher {
                 Object conf = mill.launcher.ConfigReader.readYaml(
                     buildFile, buildFile.getFileName().toString());
                 if (!(conf instanceof Map)) return new String[] {};
-                Map<String, Object> conf2 = (Map<String, Object>) conf;
+                @SuppressWarnings("unchecked")
+                var conf2 = (Map<String, Object>) conf;
 
                 if (!conf2.containsKey(key)) return new String[] {};
                 if (conf2.get(key) instanceof List) {
-                  List<String> list = (List<String>) conf2.get(key);
+                  @SuppressWarnings("unchecked")
+                  var list = (List<String>) conf2.get(key);
                   String[] arr = new String[list.size()];
                   for (int i = 0; i < arr.length; i++) {
                     arr[i] = mill.constants.Util.interpolateEnvVars(list.get(i), env);
@@ -145,16 +147,16 @@ public class MillProcessLauncher {
     return List.of();
   }
 
-  static List<String> millJvmOpts() throws Exception {
-    return loadMillConfig("mill-jvm-opts");
+  static List<String> millJvmOpts(OutFolderMode outMode) throws Exception {
+    return loadMillConfig(outMode, "mill-jvm-opts");
   }
 
-  static List<String> millOpts() throws Exception {
-    return loadMillConfig("mill-opts");
+  static List<String> millOpts(OutFolderMode outMode) throws Exception {
+    return loadMillConfig(outMode, "mill-opts");
   }
 
-  static String millJvmVersion() throws Exception {
-    List<String> res = loadMillConfig("mill-jvm-version");
+  static String millJvmVersion(OutFolderMode outMode) throws Exception {
+    List<String> res = loadMillConfig(outMode, "mill-jvm-version");
     if (res.isEmpty()) return null;
     else return res.get(0);
   }
@@ -167,9 +169,8 @@ public class MillProcessLauncher {
     return System.getProperty("os.name", "").startsWith("Windows");
   }
 
-  static String javaHome() throws Exception {
-    String jvmId = null;
-    jvmId = millJvmVersion();
+  static String javaHome(OutFolderMode outMode) throws Exception {
+    var jvmId = millJvmVersion(outMode);
 
     String javaHome = null;
     if (jvmId == null) {
@@ -185,6 +186,7 @@ public class MillProcessLauncher {
     if (jvmId != null) {
       final String jvmIdFinal = jvmId;
       javaHome = cachedComputedValue0(
+          outMode,
           "java-home",
           jvmId,
           () -> new String[] {CoursierClient.resolveJavaHome(jvmIdFinal).getAbsolutePath()},
@@ -199,8 +201,8 @@ public class MillProcessLauncher {
     return javaHome;
   }
 
-  static String javaExe() throws Exception {
-    String javaHome = javaHome();
+  static String javaExe(OutFolderMode outMode) throws Exception {
+    String javaHome = javaHome(outMode);
     if (javaHome == null) return "java";
     else {
       final Path exePath = Paths.get(
@@ -210,11 +212,11 @@ public class MillProcessLauncher {
     }
   }
 
-  static List<String> millLaunchJvmCommand() throws Exception {
+  static List<String> millLaunchJvmCommand(OutFolderMode outMode) throws Exception {
     final List<String> vmOptions = new ArrayList<>();
 
     // Java executable
-    vmOptions.add(javaExe());
+    vmOptions.add(javaExe(outMode));
 
     // sys props
     final Properties sysProps = System.getProperties();
@@ -228,12 +230,16 @@ public class MillProcessLauncher {
     if (serverTimeout != null) vmOptions.add("-Dmill.server_timeout=" + serverTimeout);
 
     // extra opts
-    vmOptions.addAll(millJvmOpts());
+    vmOptions.addAll(millJvmOpts(outMode));
 
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
     String[] runnerClasspath = cachedComputedValue0(
-        "resolve-runner", BuildInfo.millVersion, () -> CoursierClient.resolveMillDaemon(), arr -> {
+        outMode,
+        "resolve-runner",
+        BuildInfo.millVersion,
+        () -> CoursierClient.resolveMillDaemon(),
+        arr -> {
           for (String s : arr) {
             if (!Files.exists(Paths.get(s))) return false;
           }
@@ -244,14 +250,19 @@ public class MillProcessLauncher {
     return vmOptions;
   }
 
-  static String[] cachedComputedValue(String name, String key, Supplier<String[]> block) {
-    return cachedComputedValue0(name, key, block, arr -> true);
+  static String[] cachedComputedValue(
+      OutFolderMode outMode, String name, String key, Supplier<String[]> block) {
+    return cachedComputedValue0(outMode, name, key, block, arr -> true);
   }
 
   static String[] cachedComputedValue0(
-      String name, String key, Supplier<String[]> block, Function<String[], Boolean> validate) {
+      OutFolderMode outMode,
+      String name,
+      String key,
+      Supplier<String[]> block,
+      Function<String[], Boolean> validate) {
     try {
-      Path cacheFile = Paths.get(".").resolve(out).resolve("mill-launcher/" + name);
+      Path cacheFile = Paths.get(".").resolve(outFor(outMode)).resolve("mill-launcher/" + name);
       String[] value = null;
       if (Files.exists(cacheFile)) {
         String[] savedInfo = Files.readString(cacheFile).split("\n");
@@ -299,7 +310,7 @@ public class MillProcessLauncher {
     return Integer.parseInt(new String(proc.getInputStream().readAllBytes()).trim());
   }
 
-  private static AtomicReference<String> memoizedTerminalDims = new AtomicReference();
+  private static final AtomicReference<String> memoizedTerminalDims = new AtomicReference<>();
 
   private static final boolean canUseNativeTerminal;
 

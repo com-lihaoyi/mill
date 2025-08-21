@@ -12,8 +12,6 @@ export mill.javalib.CoursierModule
 
 export mill.javalib.Dep
 
-object Dependency extends mill.api.ExternalModule.Alias(mill.javalib.Dependency)
-
 export mill.javalib.GenIdeaModule
 
 export mill.javalib.JavaHomeModule
@@ -46,8 +44,7 @@ export mill.javalib.RunModule
 
 export mill.javalib.SonatypeCentralPublisher
 
-object SonatypeCentralPublishModule
-    extends mill.api.ExternalModule.Alias(mill.javalib.SonatypeCentralPublishModule)
+type SonatypeCentralPublishModule = mill.javalib.SonatypeCentralPublishModule
 
 export mill.javalib.TestModule
 

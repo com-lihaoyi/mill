@@ -9,15 +9,26 @@ import java.lang.reflect.Method
 private[mill] object CodeSigUtils {
   def precomputeMethodNamesPerClass(transitiveNamed: Seq[Task.Named[?]])
       : (Map[Class[?], IndexedSeq[Class[?]]], Map[Class[?], Map[String, Method]]) = {
-    def resolveTransitiveParents(c: Class[?]): Iterator[Class[?]] = {
-      Iterator(c) ++
-        Option(c.getSuperclass).iterator.flatMap(resolveTransitiveParents) ++
-        c.getInterfaces.iterator.flatMap(resolveTransitiveParents)
+
+    def resolveTransitiveParents(c: Class[?]): Iterable[Class[?]] = {
+      val seen = collection.mutable.LinkedHashSet(c) // Maintain first-seen ordering
+      val queue = collection.mutable.Queue(c)
+      while (queue.nonEmpty) {
+        val current = queue.dequeue()
+        for (
+          next <- Option(current.getSuperclass) ++ current.getInterfaces if !seen.contains(next)
+        ) {
+          seen.add(next)
+          queue.enqueue(next)
+        }
+      }
+
+      seen
     }
 
     val classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]] = transitiveNamed
-      .iterator
       .map { case namedTask: Task.Named[?] => namedTask.ctx.enclosingCls }
+      .distinct
       .map(cls => cls -> resolveTransitiveParents(cls).toVector)
       .toMap
 
@@ -51,7 +62,7 @@ private[mill] object CodeSigUtils {
       : Map[String, Seq[(String, Int)]] =
     codeSignatures
       .toSeq
-      .collect { case (method @ s"$prefix#<init>($args)void", hash) => (prefix, method, hash) }
+      .collect { case (method @ s"$prefix#<init>($_)void", hash) => (prefix, method, hash) }
       .groupMap(_._1)(t => (t._2, t._3))
 
   def codeSigForTask(
@@ -106,7 +117,7 @@ private[mill] object CodeSigUtils {
     val constructorHashes = allEnclosingModules
       .map(m =>
         constructorHashSignatures.get(m.getClass.getName) match {
-          case Some(Seq((singleMethod, hash))) => hash
+          case Some(Seq((_, hash))) => hash
           case Some(multiple) => throw new MillException(
               s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
             )

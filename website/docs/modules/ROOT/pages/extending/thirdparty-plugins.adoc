@@ -41,15 +41,17 @@ object MyAliases extends Aliases {
 
 To show all the defined aliases:
 
-```sh
-./mill Alias/list
-```
+[,console]
+----
+> ./mill Alias/list
+----
 
 Run an alias:
 
-```sh
-./mill Alias/run testall
-```
+[,console]
+----
+> ./mill Alias/run testall
+----
 
 When run, each aliased task is checked if valid.
 
@@ -665,7 +667,7 @@ Small script to automatically fetch and execute mill build tool.
 
 Project home: https://github.com/lefou/millw
 
-This porject has been moved into the Mill repository with Mill 0.13 / 1.0
+This project has been moved into the Mill repository with Mill 0.13 / 1.0
 
 
 == MiMa
@@ -779,6 +781,74 @@ Finished generating 'hello' in 2m 0s.
 
 For more configuration options, building binaries inside Docker, a sample project
 and more, check the project readme.
+
+== OpenApi
+
+Mill plugin for generating source files from an OpenApi spec.
+
+Project home: https://github.com/mikybars/openapi-generator-mill-plugin
+
+.`build.mill`
+[,scala]
+----
+//| mvnDeps: ["io.github.mikybars::openapi-generator-mill-plugin::0.1.0"]
+package build
+
+import mill._, scalalib._
+import mill.api.BuildCtx
+
+import io.github.mikybars.mill.openapi.OpenApiModule
+
+object foo extends JavaModule, OpenApiModule {
+
+  object openapi extends OpenApiConfig {
+     def inputSpec = Task.Source(BuildCtx.workspaceRoot / "api/rest/v1/openapi.yml")
+    def apiPackage: T[String] = "com.example.foo.rest.api"
+    def modelPackage: T[String] = "com.example.foo.rest.model"
+    def generatorName: T[String] = "spring"
+    def modelNameSuffix: T[String] = "Dto"
+    def additionalProperties: T[Map[String, String]] = Map(
+      // ...
+      "useSpringBoot3" -> "true",
+      // ...
+    )
+  }
+
+}
+----
+
+.Generate source files
+[,console]
+----
+$ ./mill foo.openapi.generate
+----
+
+
+== OpenApi4s
+
+Mill plugin for OpenApi4s generators.
+
+Project home: https://github.com/sake92/mill-openapi4s
+
+[source,scala]
+----
+//| mvnDeps: ["ba.sake::mill-openapi4s::0.7.0"]
+
+import mill.*
+import mill.scalalib._
+import ba.sake.mill.openapi4s.OpenApiGeneratorModule
+
+object app extends ScalaModule, OpenApiGeneratorModule {
+  def openApi4sPackage = "com.example.api"
+  def openApi4sVersion = "0.6.1"
+  // def openApi4sGenerator = "sharaf" // or "http4s"
+----
+
+.Generate source files
+[source,console]
+----
+$ ./mill app.openApi4sGenerate
+----
 
 
 == OSGi
@@ -1011,32 +1081,27 @@ $ mill app.springBootAssembly
 
 Source code generator for https://github.com/sake92/squery/[Squery] SQL library boilerplate.
 
-Project home: https://github.com/sake92/squery
+Project home: https://github.com/sake92/mill-squery
 
 [source,scala,subs="attributes,verbatim"]
 ----
-//| mvnDeps: ["ba.sake::mill-squery-generator_mill0.11:0.6.2"]
+//| mvnDeps: ["ba.sake::mill-squery-generator::0.10.0"]
 
 import mill.*
 import mill.scalalib._
-import ba.sake.squery.generator._
-import ba.sake.squery.generator.mill.SqueryGeneratorModule
+import ba.sake.mill.squery.generator.SqueryGeneratorModule
 
 object app extends ScalaModule, SqueryGeneratorModule {
   // use Task.Input(Task.ctx.env("MY_ENV_VAR")) to set sensitive variables like password etc
-  def squeryJdbcUrl = "jdbc:..."
-  def squeryUsername = ".."
-  def squeryPassword = ".."
-  def squerySchemas = Seq("myschema" -> "com.mypackage.myschema")
-
-  // override to tweak codegen settings
-  def squeryGeneratorConfig: T[SqueryGeneratorConfig] = ...
+  def squeryJdbcUrl = jdbcUrl()
+  def squerySchemaMappings = Seq("PUBLIC" -> "com.mypackage.myschema")
+  def squeryJdbcDeps = Seq(mvn"com.h2database:h2:..")
 ----
 
 .Generate source files
 [source,console]
 ----
-$ ./mill root.squeryGenerate
+$ ./mill app.squeryGenerate
 ----
 
 

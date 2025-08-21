@@ -89,12 +89,12 @@ object Discover {
       ): Unit = {
         for (m <- methods.toList) {
           cases
-            .find { case (tt, n, label) =>
+            .find { case (tt, _, _) =>
               val mType = curCls.memberType(m)
               val returnType = methodReturn(mType)
               returnType <:< tt && !(returnType <:< TypeRepr.of[Nothing])
             }
-            .foreach { case (tt, n, label) =>
+            .foreach { case (_, n, label) =>
 
               if (m.paramSymss.length != n) report.errorAndAbort(
                 s"$label definition `$m` must have $n parameter list" + (if (n == 1) "" else "s"),

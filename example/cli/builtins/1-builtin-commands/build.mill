@@ -241,7 +241,6 @@ foo.assembly
 /** Usage
 
 > ./mill plan foo.compileClasspath
-foo.transitiveCompileClasspath
 foo.compileResources
 foo.unmanagedClasspath
 ...
@@ -409,8 +408,7 @@ kotlinlib/web/1-hello-ktor
 // `init` can also be used to initialize a Mill build configuration based on
 // an existing Maven or Gradle build. See the linked page for more details:
 //
-// * xref:migrating/maven.adoc[]
-// * xref:migrating/gradle.adoc[]
+// * xref:migrating/auto-migrating.adoc[]
 //
 // == selective.*
 //

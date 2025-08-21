@@ -41,12 +41,12 @@ trait MockitoModule extends MavenModule {
   def jvmId = "temurin:11.0.24"
   def javacOptions = Seq("-encoding", "UTF-8")
   def testModuleDeps: Seq[JavaModule] = Nil
-  def testMvnDeps: T[Seq[Dep]] = Seq.empty[Dep]
-  def testRuntimeMvnDeps: T[Seq[Dep]] = Seq.empty[Dep]
+  def testMvnDeps: T[Seq[Dep]] = Seq()
+  def testRuntimeMvnDeps: T[Seq[Dep]] = Seq()
   def testFramework = "com.novocode.junit.JUnitFramework"
-  def testForkArgs: T[Seq[String]] = Seq.empty[String]
+  def testForkArgs: T[Seq[String]] = Seq()
 
-  def testFilteredSources: T[Seq[os.Path]] = Task { Seq.empty[os.Path] }
+  def testFilteredSources: T[Seq[os.Path]] = Task { Seq() }
 
   object test extends MavenTests {
     def moduleDeps = super.moduleDeps ++ MockitoModule.this.testModuleDeps

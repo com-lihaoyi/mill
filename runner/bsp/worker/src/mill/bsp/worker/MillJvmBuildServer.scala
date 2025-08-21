@@ -46,7 +46,9 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
   )(implicit name: sourcecode.Name): CompletableFuture[V] = {
     handlerTasks(
       targetIds = _ => targetIds,
-      tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmTestEnvironment },
+      tasks = { case m: (RunModuleApi & TestModuleApi & JavaModuleApi) =>
+        m.bspRunModule().bspJvmTestEnvironment
+      },
       requestDescription = "Getting JVM test environment of {}",
       originId = originId
     ) {
@@ -54,7 +56,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             _,
             _,
             id,
-            _: (TestModuleApi & JavaModuleApi),
+            _,
             (
               _,
               forkArgs,
@@ -78,9 +80,6 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
           fullMainArgs.asJava
         )).asJava)
         item
-
-      case other =>
-        throw new NotImplementedError(s"Unsupported target: ${pprint(other).plainText}")
     } {
       agg
     }
@@ -101,26 +100,19 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             _,
             _,
             id,
-            _: RunModuleApi,
-            (
-              runClasspath,
-              forkArgs,
-              forkWorkingDir,
-              forkEnv,
-              mainClass,
-              localMainClasses
-            )
+            _,
+            res
           ) =>
-        val classpath = runClasspath.map(sanitizeUri)
+        val classpath = res.runClasspath.map(sanitizeUri)
         val item = new JvmEnvironmentItem(
           id,
           classpath.asJava,
-          forkArgs.asJava,
-          forkWorkingDir.toString(),
-          forkEnv.asJava
+          res.forkArgs.asJava,
+          res.forkWorkingDir.toString(),
+          res.forkEnv.asJava
         )
 
-        val classes = mainClass.toList ++ localMainClasses
+        val classes = res.mainClass.toList ++ res.localMainClasses
         item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
         item
     } {

@@ -4,13 +4,14 @@ import coursier.cache.FileCache
 import coursier.core.Resolution
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import coursier.{Dependency, Repository, Resolve, Type}
+import coursier.{Dependency, Repository, Resolve}
 import mill.api.Task
-import mill.api.{PathRef}
-import mill.api.{Result}
+import mill.api.PathRef
+import mill.api.Result
 import mill.util.Jvm
 import mill.T
 
+import scala.annotation.unused
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -99,7 +100,10 @@ trait CoursierModule extends mill.api.Module {
    *
    * See [[allRepositories]] if you need to resolve Mill internal modules.
    */
-  def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+  def repositoriesTask: Task[Seq[Repository]] = repositoriesTask0
+
+  // Bincompat stub
+  private[mill] def repositoriesTask0 = Task.Anon {
     val resolve = Resolve()
     val repos = Await.result(
       resolve.finalRepositories.future()(using resolve.cache.ec),
@@ -230,7 +234,9 @@ object CoursierModule {
         coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
       ] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      offline: Boolean,
+      // TODO: this does nothing? :/
+      // Introduced in https://github.com/com-lihaoyi/mill/commit/451df6846861a9c7d265bffec0c5fcf07133b320
+      @unused offline: Boolean,
       checkGradleModules: Boolean
   ) {
 

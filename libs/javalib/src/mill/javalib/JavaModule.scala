@@ -16,15 +16,18 @@ import mill.api.daemon.internal.bsp.{
   BspUri,
   JvmBuildTarget
 }
+import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
-import mill.api.{ModuleRef, PathRef, Segment, Task, TaskCtx, DefaultTaskModule}
+import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
 import mill.javalib.api.CompilationResult
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 import mill.javalib.bsp.{BspJavaModule, BspModule}
 import mill.javalib.internal.ModuleUtils
 import mill.javalib.publish.Artifact
 import mill.util.{JarManifest, Jvm}
 import os.Path
+
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
 
@@ -49,6 +52,13 @@ trait JavaModule
     ModuleRef(new BspJavaModule.Wrap(this) {}.internalBspJavaModule)
   }
   override private[mill] def bspJavaModule: () => BspJavaModuleApi = () => bspExt()
+
+  private[mill] lazy val genEclipseInternalExt: ModuleRef[mill.javalib.eclipse.GenEclipseModule] = {
+    ModuleRef(new mill.javalib.eclipse.GenEclipseModule.Wrap(this) {}.internalGenEclipse)
+  }
+
+  private[mill] override def genEclipseInternal: () => GenEclipseInternalApi =
+    () => genEclipseInternalExt()
 
   private[mill] lazy val genIdeaInternalExt: ModuleRef[mill.javalib.idea.GenIdeaModule] = {
     ModuleRef(new mill.javalib.idea.GenIdeaModule.Wrap(this) {}.internalGenIdea)
@@ -287,19 +297,19 @@ trait JavaModule
    *  which uses a cached result which is also checked to be free of cycle.
    *  @see [[moduleDepsChecked]]
    */
-  def moduleDeps: Seq[JavaModule] = Seq.empty
+  def moduleDeps: Seq[JavaModule] = Seq()
 
   /**
    *  The compile-only direct dependencies of this module. These are *not*
    *  transitive, and only take effect in the module that they are declared in.
    */
-  def compileModuleDeps: Seq[JavaModule] = Seq.empty
+  def compileModuleDeps: Seq[JavaModule] = Seq()
 
   /**
    * The runtime-only direct dependencies of this module. These *are* transitive,
    * and so get propagated to downstream modules automatically
    */
-  def runModuleDeps: Seq[JavaModule] = Seq.empty
+  def runModuleDeps: Seq[JavaModule] = Seq()
 
   /**
    *  Bill of Material (BOM) dependencies of this module.
@@ -308,7 +318,7 @@ trait JavaModule
    *  which uses a cached result which is also checked to be free of cycles.
    *  @see [[bomModuleDepsChecked]]
    */
-  def bomModuleDeps: Seq[BomModule] = Seq.empty
+  def bomModuleDeps: Seq[BomModule] = Seq()
 
   /**
    * Same as [[moduleDeps]] but checked to not contain cycles.
@@ -720,13 +730,21 @@ trait JavaModule
   }
 
   /**
-   * The transitive version of `compileClasspath`
+   * The transitive version of [[compileClasspath]]
    */
   def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
-    Task.traverse(transitiveModuleCompileModuleDeps)(m =>
-      Task.Anon { m.localCompileClasspath() ++ Seq(m.compile().classes) }
-    )().flatten
+    transitiveCompileClasspathTask(CompileFor.Regular)()
   }
+
+  /**
+   * The transitive version of [[compileClasspathTask]]
+   */
+  private[mill] def transitiveCompileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]] =
+    Task.Anon {
+      Task.traverse(transitiveModuleCompileModuleDeps)(m =>
+        Task.Anon { m.localCompileClasspath() ++ Seq(m.compileFor(compileFor)().classes) }
+      )().flatten
+    }
 
   /**
    * Same as [[transitiveCompileClasspath]], but with all dependencies on [[compile]]
@@ -789,6 +807,14 @@ trait JavaModule
   def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   /**
+   * Path to sources generated as part of the `compile` step, eg.  by Java annotation
+   * processors which often generate source code alongside classfiles during compilation.
+   *
+   * Typically these do not need to be compiled again, and are only used by IDEs
+   */
+  def compileGeneratedSources: T[os.Path] = Task(persistent = true) { Task.dest }
+
+  /**
    * The folders containing all source files fed into the compiler
    */
   def allSources: T[Seq[PathRef]] = Task { sources() ++ generatedSources() }
@@ -824,17 +850,33 @@ trait JavaModule
    * Keep in sync with [[bspCompileClassesPath]]
    */
   def compile: T[mill.javalib.api.CompilationResult] = Task(persistent = true) {
+    // Prepare an empty `compileGeneratedSources` folder for java annotation processors
+    // to write generated sources into, that can then be picked up by IDEs like IntelliJ
+    val compileGenSources = compileGeneratedSources()
+    mill.api.BuildCtx.withFilesystemCheckerDisabled {
+      os.remove.all(compileGenSources)
+      os.makeDir.all(compileGenSources)
+    }
+
+    val jOpts = JavaCompilerOptions(Seq(
+      "-s",
+      compileGenSources.toString
+    ) ++ javacOptions() ++ mandatoryJavacOptions())
+
     jvmWorker()
-      .worker()
+      .internalWorker()
       .compileJava(
-        upstreamCompileOutput = upstreamCompileOutput(),
-        sources = allSourceFiles().map(_.path),
-        compileClasspath = compileClasspath().map(_.path),
+        ZincCompileJava(
+          upstreamCompileOutput = upstreamCompileOutput(),
+          sources = allSourceFiles().map(_.path),
+          compileClasspath = compileClasspath().map(_.path),
+          javacOptions = jOpts.compiler,
+          incrementalCompilation = zincIncrementalCompilation()
+        ),
         javaHome = javaHome().map(_.path),
-        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
+        javaRuntimeOptions = jOpts.runtime,
         reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = zincIncrementalCompilation()
+        reportCachedProblems = zincReportCachedProblems()
       )
   }
 
@@ -931,14 +973,20 @@ trait JavaModule
     }
 
   /**
+   * [[compileClasspathTask]] for regular compilations.
+   *
+   * Keep return value in sync with [[bspCompileClasspath]].
+   */
+  def compileClasspath: T[Seq[PathRef]] = Task { compileClasspathTask(CompileFor.Regular)() }
+
+  /**
    * All classfiles and resources from upstream modules and dependencies
    * necessary to compile this module.
-   *
-   * Keep in sync with [[bspCompileClasspath]]
    */
-  override def compileClasspath: T[Seq[PathRef]] = Task {
-    resolvedMvnDeps() ++ transitiveCompileClasspath() ++ localCompileClasspath()
-  }
+  override private[mill] def compileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]] =
+    Task.Anon {
+      resolvedMvnDeps() ++ transitiveCompileClasspathTask(compileFor)() ++ localCompileClasspath()
+    }
 
   /**
    * Same as [[compileClasspath]], but does not trigger compilation targets, if possible.
@@ -1033,10 +1081,6 @@ trait JavaModule
     )
   }
 
-  /**
-   * All classfiles and resources from upstream modules and dependencies
-   * necessary to run this module's code after compilation
-   */
   override def runClasspath: T[Seq[PathRef]] = Task {
     super.runClasspath() ++
       resolvedRunMvnDeps().toSeq ++
@@ -1085,11 +1129,7 @@ trait JavaModule
    */
   def docJarUseArgsFile: T[Boolean] = Task { scala.util.Properties.isWin }
 
-  /**
-   * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
-   * publishing to Maven Central
-   */
-  def docJar: T[PathRef] = Task[PathRef] {
+  def javadocGenerated: T[PathRef] = Task[PathRef] {
     val outDir = Task.dest
 
     val javadocDir = outDir / "javadoc"
@@ -1098,6 +1138,8 @@ trait JavaModule
     val files = Lib.findSourceFiles(docSources(), Seq("java"))
 
     if (files.nonEmpty) {
+      val javaHome = this.javaHome().map(_.path)
+
       val classPath = compileClasspath().iterator.map(_.path).filter(_.ext != "pom").toSeq
       val cpOptions =
         if (classPath.isEmpty) Seq()
@@ -1131,18 +1173,27 @@ trait JavaModule
           options
         }
 
+      Task.log.info(s"java home: ${javaHome.fold("default")(_.toString)}")
       Task.log.info("options: " + cmdArgs)
 
+      val cmd = Seq(Jvm.jdkTool("javadoc", javaHome)) ++ cmdArgs
       os.call(
-        cmd = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
+        cmd = cmd,
         env = Map(),
         cwd = Task.dest,
         stdin = os.Inherit,
         stdout = os.Inherit
       )
     }
+    PathRef(javadocDir)
+  }
 
-    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(javadocDir)))
+  /**
+   * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
+   * publishing to Maven Central
+   */
+  def docJar: T[PathRef] = Task[PathRef] {
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(javadocGenerated().path)))
   }
 
   /**
@@ -1407,7 +1458,7 @@ trait JavaModule
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
 
-  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toNIO.toUri.toString)
+  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toURI.toString)
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 
@@ -1446,6 +1497,21 @@ trait JavaModule
     else Task.Anon { compile().classes.path.toNIO }
   }
 
+  /**
+   * Stable version of [[repositoriesTask]] so it doesn't keep getting
+   * recomputed over and over during the recursive traversal
+   */
+  private lazy val repositoriesTaskStable = Task.Anon {
+    val transitive = Task.traverse(recursiveModuleDeps)(_.repositoriesTask)()
+    val sup = repositoriesTask0()
+    (sup ++ transitive.flatten).distinct
+  }
+
+  /**
+   * Repositories are transitively aggregated from upstream modules, following
+   * the behavior of Maven, Gradle, and SBT
+   */
+  override def repositoriesTask: Task[Seq[Repository]] = repositoriesTaskStable
 }
 
 object JavaModule {

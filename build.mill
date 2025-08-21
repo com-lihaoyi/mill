@@ -1,4 +1,4 @@
-//| mill-version: 1.0.0-RC3-31-eb2d11
+//| mill-version: 1.0.3-44-c2d57a
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C"]
 
@@ -7,15 +7,17 @@ package build
 import coursier.{MavenRepository, Repository}
 import millbuild.*
 
+import scala.language.reflectiveCalls
+
 //import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
 import coursier.VersionConstraint
-import mill.vcs.VcsVersion
+import mill.util.VcsVersion
 //import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
 import mill.util.Tasks
 import mill.scalalib._
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.api.SelectMode
 import mill.T
@@ -24,25 +26,16 @@ import scala.util.Properties
 import mill.api.BuildCtx
 import mill.androidlib.AndroidSdkModule
 
-def millVersionIsStable: T[Boolean] = Task.Input {
-  Task.env.contains("MILL_STABLE_VERSION")
-}
+def millVersionIsStable0(implicit ctx: mill.api.TaskCtx) = ctx.env.contains("MILL_STABLE_VERSION")
+def millVersionIsStable: T[Boolean] = Task.Input { millVersionIsStable0 }
 
-def isCI: T[Boolean] = Task.Input {
-  Task.env.contains("CI")
-}
-
-def millVersionTruth: T[String] = Task.Input {
-  VcsVersion.calcVcsState(Task.log).format()
-}
-
-def millVersion: T[String] = Task {
-  if (millVersionIsStable()) {
+def millVersion: T[String] = Task.Input {
+  if (millVersionIsStable0) {
     val vcsState = VcsVersion.calcVcsState(Task.log)
     // Ignore local changes when computing the VCS version string in CI,
     // since we make those in CI and can promise they are safe, but make
     // sure we include local dirty changes when iterating locally.
-    if (isCI()) vcsState.copy(dirtyHash = None).format()
+    if (Task.env.contains("CI")) vcsState.copy(dirtyHash = None).format()
     else vcsState.format()
   } else "SNAPSHOT"
 }
@@ -57,8 +50,8 @@ def latestUnstableVersion = Task.Input {
   (xml \\ "version").map(_.text).last
 }
 
-def millLastTag: T[String] = Task {
-  if (millVersionIsStable())
+def millLastTag: T[String] = Task.Input {
+  if (millVersionIsStable0)
     VcsVersion.calcVcsState(Task.log).lastTag.getOrElse(
       sys.error("No (last) git tag found. Your git history seems incomplete!")
     )

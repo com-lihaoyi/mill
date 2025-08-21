@@ -23,7 +23,6 @@ import mill.javalib.testrunner.{
 }
 
 import java.nio.file.Path
-import java.nio.file.Path
 
 /**
  * A module containing JVM test suites. Requires you define a [[testFramework]] for your
@@ -216,7 +215,7 @@ trait TestModule
 
       val testRunnerClasspathArg =
         jvmWorker().scalalibClasspath()
-          .map(_.path.toNIO.toUri.toURL).mkString(",")
+          .map(_.path.toURL).mkString(",")
 
       val cp = (runClasspath() ++ jvmWorker().testrunnerEntrypointClasspath()).map(_.path.toNIO)
 
@@ -265,7 +264,8 @@ trait TestModule
         testReportXml(),
         javaHome().map(_.path),
         testParallelism(),
-        testLogLevel()
+        testLogLevel(),
+        propagateEnv()
       )
       testModuleUtil.runTests()
     }
@@ -301,7 +301,7 @@ trait TestModule
     val (frameworkName, classFingerprint) =
       mill.util.Jvm.withClassLoader(
         classPath = runClasspath().map(_.path),
-        sharedPrefixes = Seq("sbt.testing.")
+        sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.internal.TestReporter")
       ) { classLoader =>
         val framework = Framework.framework(testFramework())(classLoader)
         framework.name() -> TestRunnerUtils
@@ -408,7 +408,7 @@ object TestModule {
     override def discoveredTestClasses: T[Seq[String]] = Task {
       Jvm.withClassLoader(
         classPath = runClasspath().map(_.path).toVector,
-        sharedPrefixes = Seq("sbt.testing.")
+        sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.internal.TestReporter")
       ) { classLoader =>
         val builderClass: Class[?] =
           classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
@@ -423,7 +423,7 @@ object TestModule {
 
         builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
           builder,
-          testClasspath().map(_.path.wrapped.toUri().toURL()).toArray
+          testClasspath().map(_.path.toURL).toArray
         )
         builderClass.getMethod("withClassLoader", classOf[ClassLoader]).invoke(builder, classLoader)
 
@@ -617,13 +617,13 @@ object TestModule {
     TestModuleUtil.handleResults(doneMsg, results, ctx, testReportXml, props)
 
   trait JavaModuleBase extends BspModule {
-    def mvnDeps: T[Seq[Dep]] = Seq.empty[Dep]
-    def mandatoryMvnDeps: T[Seq[Dep]] = Seq.empty[Dep]
+    def mvnDeps: T[Seq[Dep]] = Seq()
+    def mandatoryMvnDeps: T[Seq[Dep]] = Seq()
     def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
   }
 
   trait ScalaModuleBase extends mill.Module {
-    def scalacOptions: T[Seq[String]] = Seq.empty[String]
+    def scalacOptions: T[Seq[String]] = Seq()
   }
 
 }

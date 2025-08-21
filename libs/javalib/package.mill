@@ -1,13 +1,14 @@
 package build.libs.javalib
-import scala.util.Properties
-import scala.util.chaining._
+import com.github.lolgab.mill.mima.{Problem, ProblemFilter}
 
+import scala.util.Properties
+import scala.util.chaining.*
 import coursier.maven.MavenRepository
-import mill._
+import mill.*
 import mill.util.Tasks
-import mill.scalalib._
-import mill.jvmlib.api.JvmWorkerUtil
-import mill.scalalib.publish._
+import mill.scalalib.*
+import mill.javalib.api.JvmWorkerUtil
+import mill.scalalib.publish.*
 import mill.util.Jvm
 import mill.api.SelectMode
 import mill.contrib.buildinfo.BuildInfo
@@ -17,9 +18,10 @@ import millbuild.*
 
 object `package` extends MillStableScalaModule {
 
-  def moduleDeps = Seq(build.libs.util, build.libs.javalib.api, build.libs.javalib.testrunner)
+  def moduleDeps =
+    Seq(build.libs.util, build.libs.rpc, build.libs.javalib.api, build.libs.javalib.testrunner)
   def mvnDeps =
-    Seq(Deps.scalaXml, Deps.semanticDbShared) ++
+    Seq(Deps.scalaXml) ++
       // despite compiling with Scala 3, we need to include scala-reflect
       // for the scala.reflect.internal.util.ScalaClassLoader
       // used in ScalaModule.scalacHelp,
@@ -27,21 +29,31 @@ object `package` extends MillStableScalaModule {
       // perhaps the class can be copied here?
       Seq(Deps.scalaReflect(scalaVersion()))
 
+  // These are not exposed as transitive compile dependencies to `build.mill`.
   def compileMvnDeps = Seq(Deps.sonatypeCentralClient)
   def runMvnDeps = Seq(Deps.sonatypeCentralClient)
 
   def testMvnDeps = super.testMvnDeps() ++ Seq(Deps.TestDeps.scalaCheck)
-  def transitiveLocalTestOverrides =
-    super.transitiveLocalTestOverrides() ++ Seq(
-      worker.localTestOverride(),
-      `classgraph-worker`.localTestOverride(),
-      `jarjarabrams-worker`.localTestOverride(),
-      `spotless-worker`.localTestOverride()
+  def localTestExtraModules =
+    super.localTestExtraModules ++ Seq(
+      worker,
+      `classgraph-worker`,
+      `jarjarabrams-worker`,
+      `spotless-worker`,
+      `scalameta-worker`
     )
   def testForkEnv = {
     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
     super.testForkEnv() ++ Map("LC_ALL" -> locale)
   }
+
+  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] =
+    super.mimaBinaryIssueFilters() ++ Seq(
+      // This was `private[mill]`, package private doesn't have the JVM bytecode equivalent, so mima can't check it.
+      ProblemFilter.exclude[Problem]("mill.javalib.PublishModule.checkSonatypeCreds"),
+      ProblemFilter.exclude[Problem]("mill.javalib.publish.SonatypeHelpers.getArtifactMappings"),
+      ProblemFilter.exclude[Problem]("mill.javalib.publish.PublishInfo.parseFromFile")
+    )
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
     def mvnDeps = Seq(Deps.sbtTestInterface)
@@ -109,7 +121,7 @@ object `package` extends MillStableScalaModule {
   }
 
   object worker extends MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(api, build.libs.util)
+    def moduleDeps = Seq(api, build.libs.javalib)
     def mvnDeps = Seq(Deps.zinc, Deps.log4j2Core)
     def buildInfoPackageName = "mill.javalib.worker"
     def buildInfoObjectName = "Versions"
@@ -139,5 +151,39 @@ object `package` extends MillStableScalaModule {
   object `spotless-worker` extends MillPublishScalaModule {
     def moduleDeps = Seq(build.libs.javalib)
     def mvnDeps = Seq(Deps.spotlessLibExtra, Deps.jgit)
+  }
+
+  /** Isolates Maven on classpath to prevent clashes with `mill init maven`. */
+  object `maven-worker` extends MillPublishScalaModule {
+    override def moduleDeps = Seq(build.libs.javalib)
+
+    override def compileMvnDeps = super.compileMvnDeps() ++ Seq(
+      Deps.logback
+    )
+
+    override def mvnDeps = {
+      val mavenResolverVersion = "2.0.10"
+
+      /** Dependencies necessary for publishing snapshots to Sonatype Central. */
+      def mavenPublishingDeps = Seq(
+        // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-connector-basic
+        mvn"org.apache.maven.resolver:maven-resolver-connector-basic:$mavenResolverVersion",
+        // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-supplier
+        mvn"org.apache.maven.resolver:maven-resolver-supplier:2.0.0-alpha-8",
+        // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-transport-http
+        mvn"org.apache.maven.resolver:maven-resolver-transport-http:2.0.0-alpha-2",
+        // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-api
+        mvn"org.apache.maven.resolver:maven-resolver-api:$mavenResolverVersion",
+        // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-util
+        mvn"org.apache.maven.resolver:maven-resolver-util:$mavenResolverVersion"
+      )
+
+      super.mvnDeps() ++ mavenPublishingDeps
+    }
+  }
+
+  object `scalameta-worker` extends MillPublishScalaModule {
+    def moduleDeps = Seq(build.libs.javalib)
+    def mvnDeps = Seq(Deps.semanticDbShared)
   }
 }

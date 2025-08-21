@@ -20,7 +20,7 @@ object BuildInfoTests extends TestSuite {
   object EmptyBuildInfo extends TestRootModule with BuildInfo with ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
-    def buildInfoMembers = Seq.empty[BuildInfo.Value]
+    def buildInfoMembers = Seq()
 
     lazy val millDiscover = Discover[this.type]
   }
@@ -214,7 +214,10 @@ object BuildInfoTests extends TestSuite {
     test("scalajs") - UnitTester(BuildInfoScalaJS, testModuleSourcesPath / "scala-simple").scoped {
       eval =>
         eval.outPath / "hello-mill"
-        assert(eval.apply(BuildInfoScalaJS.fastLinkJS).isRight)
+        val res = eval.apply(BuildInfoScalaJS.fastLinkJS)
+        if (!res.isRight)
+          pprint.err.log(res)
+        assert(res.isRight)
     }
 
     test("static") - UnitTester(BuildInfoStatic, testModuleSourcesPath / "scala").scoped { eval =>

@@ -18,6 +18,7 @@ import utest.*
 import mill.util.TokenReaders._
 import scala.jdk.CollectionConverters.*
 import scala.xml.NodeSeq
+import mill.javalib.internal
 
 object PublishModuleTests extends TestSuite {
 
@@ -47,7 +48,7 @@ object PublishModuleTests extends TestSuite {
       override def versionScheme = Some(VersionScheme.EarlySemVer)
 
       def checkSonatypeCreds(sonatypeCreds: String) = Task.Command {
-        PublishModule.checkSonatypeCreds(sonatypeCreds)()
+        internal.PublishModule.checkSonatypeCreds(sonatypeCreds)()
       }
     }
 
@@ -301,13 +302,13 @@ object PublishModuleTests extends TestSuite {
       }
       def ivy2Cp(moduleName: String, config: String) =
         localRepoCp(
-          coursierapi.IvyRepository.of(ivy2Repo.toNIO.toUri.toASCIIString + "[defaultPattern]"),
+          coursierapi.IvyRepository.of(ivy2Repo.toURI.toASCIIString + "[defaultPattern]"),
           moduleName,
           config
         )
       def m2Cp(moduleName: String, config: String) =
         localRepoCp(
-          coursierapi.MavenRepository.of(m2Repo.toNIO.toUri.toASCIIString),
+          coursierapi.MavenRepository.of(m2Repo.toURI.toASCIIString),
           moduleName,
           config
         )

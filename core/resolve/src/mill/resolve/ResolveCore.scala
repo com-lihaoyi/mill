@@ -1,7 +1,7 @@
 package mill.resolve
 
 import mill.api.*
-import mill.api.internal.{RootModule0, Reflect}
+import mill.api.internal.{Reflect, Resolved, RootModule0}
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -22,30 +22,6 @@ import java.lang.reflect.Method
  * metadata about what it was looking for, or [[Error]] if something blew up.
  */
 private object ResolveCore {
-  sealed trait Resolved {
-    def segments: Segments
-  }
-
-  object Resolved {
-    implicit object resolvedOrder extends Ordering[Resolved] {
-      def orderingKey(r: Resolved) = r match {
-        case _: Module => 1
-        case _: Command => 2
-        case _: NamedTask => 3
-      }
-
-      override def compare(x: Resolved, y: Resolved): Int = {
-        val keyX = orderingKey(x)
-        val keyY = orderingKey(y)
-        if (keyX == keyY) Segments.ordering.compare(x.segments, y.segments)
-        else Ordering.Int.compare(keyX, keyY)
-      }
-    }
-
-    case class Module(segments: Segments, cls: Class[?]) extends Resolved
-    case class Command(segments: Segments) extends Resolved
-    case class NamedTask(segments: Segments) extends Resolved
-  }
 
   sealed trait Result
 
@@ -77,15 +53,22 @@ private object ResolveCore {
       val instantiatedModules: collection.mutable.Map[Segments, mill.api.Result[Module]] =
         collection.mutable.Map(),
       decodedNames: collection.mutable.Map[String, String] = collection.mutable.Map(),
-      methods: collection.mutable.Map[Class[?], Array[(java.lang.reflect.Method, String)]] =
+      methods: collection.mutable.Map[(Class[?], Boolean, Class[?]), Array[(
+          java.lang.reflect.Method,
+          String
+      )]] =
         collection.mutable.Map()
   ) {
     def decode(s: String): String = {
       decodedNames.getOrElseUpdate(s, scala.reflect.NameTransformer.decode(s))
     }
 
-    def getMethods(cls: Class[?]): Array[(Method, String)] = {
-      methods.getOrElseUpdate(cls, Reflect.getMethods(cls, decode))
+    def getMethods(cls: Class[?], noParams: Boolean, inner: Class[?]): Array[(Method, String)] = {
+      methods.getOrElseUpdate(
+        (cls, noParams, inner),
+        Reflect.getMethods(cls, noParams, inner, decode)
+      )
+
     }
   }
 
@@ -141,7 +124,10 @@ private object ResolveCore {
                 )
               }
             }
-            .partitionMap { case s: Success => Right(s.value); case f: Failed => Left(f) }
+            .partitionMap {
+              case s: Success => Right(s.value)
+              case f: Failed => Left(f)
+            }
 
           val (errors, notFounds) = failures.partitionMap {
             case s: NotFound => Right(s)
@@ -408,8 +394,8 @@ private object ResolveCore {
     def expandSegments(direct: Seq[(Resolved, Option[Module => mill.api.Result[Module]])]) = {
       direct.map {
         case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
-        case (Resolved.NamedTask(s), _) => Resolved.NamedTask(segments ++ s)
-        case (Resolved.Command(s), _) => Resolved.Command(segments ++ s)
+        case (Resolved.NamedTask(s, enclosing), _) => Resolved.NamedTask(segments ++ s, enclosing)
+        case (Resolved.Command(s, enclosing), _) => Resolved.Command(segments ++ s, enclosing)
       }
     }
 
@@ -464,14 +450,14 @@ private object ResolveCore {
     val namedTasks = Reflect
       .reflect(cls, classOf[Task.Named[?]], namePred, noParams = true, cache.getMethods)
       .map { m =>
-        Resolved.NamedTask(Segments.labels(cache.decode(m.getName))) ->
+        Resolved.NamedTask(Segments.labels(cache.decode(m.getName)), cls) ->
           None
       }
 
     val commands = Reflect
       .reflect(cls, classOf[Task.Command[?]], namePred, noParams = false, cache.getMethods)
       .map(m => cache.decode(m.getName))
-      .map { name => Resolved.Command(Segments.labels(name)) -> None }
+      .map { name => Resolved.Command(Segments.labels(name), cls) -> None }
 
     modulesOrErr.map(_ ++ namedTasks ++ commands)
   }

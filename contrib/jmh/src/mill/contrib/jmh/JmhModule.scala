@@ -42,7 +42,7 @@ trait JmhModule extends JavaModule {
       Jvm.callProcess(
         mainClass = "org.openjdk.jmh.Main",
         classPath = (runClasspath() ++ generatorDeps()).map(_.path) ++
-          Seq(compileGeneratedSources().path, resources.path),
+          Seq(jmhGeneratedSources().path, resources.path),
         mainArgs = args,
         cwd = Task.ctx().dest,
         javaHome = javaHome().map(_.path),
@@ -54,7 +54,7 @@ trait JmhModule extends JavaModule {
 
   def listJmhBenchmarks(args: String*) = runJmh(("-l" +: args)*)
 
-  def compileGeneratedSources =
+  def jmhGeneratedSources =
     Task {
       val dest = Task.ctx().dest
       val (sourcesDir, _) = generateBenchmarkSources()

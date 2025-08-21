@@ -183,7 +183,9 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       // skipped, requires relatively new API (JavaPluginExtension.getSourceSets)
       resources = Nil,
       testResources = Nil,
-      publishProperties = getPublishProperties(project, cfg.shared)
+      publishProperties = getPublishProperties(project, cfg.shared),
+      jvmId = cfg.shared.basicConfig.jvmId,
+      testForkDir = None
     )
   }
 
@@ -316,14 +318,14 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
             appendMvnDepPackage(
               config.deps.asScala,
               onPackage = v => sd.copy(mainCompileModuleDeps = sd.mainCompileModuleDeps + v),
-              onMvn = (v, id) => sd.copy(mainCompileMvnDeps = sd.mainCompileMvnDeps + v)
+              onMvn = (v, /*id*/ _) => sd.copy(mainCompileMvnDeps = sd.mainCompileMvnDeps + v)
             )
 
           case RUNTIME_ONLY_CONFIGURATION_NAME =>
             appendMvnDepPackage(
               config.deps.asScala,
               onPackage = v => sd.copy(mainRunModuleDeps = sd.mainRunModuleDeps + v),
-              onMvn = (v, id) => sd.copy(mainRunMvnDeps = sd.mainRunMvnDeps + v)
+              onMvn = (v, /*id*/ _) => sd.copy(mainRunMvnDeps = sd.mainRunMvnDeps + v)
             )
 
           case TEST_IMPLEMENTATION_CONFIGURATION_NAME =>
@@ -344,7 +346,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
             appendMvnDepPackage(
               config.deps.asScala,
               onPackage = v => sd.copy(testCompileModuleDeps = sd.testCompileModuleDeps + v),
-              onMvn = (v, id) => sd.copy(testCompileMvnDeps = sd.testCompileMvnDeps + v)
+              onMvn = (v, /*id*/ _) => sd.copy(testCompileMvnDeps = sd.testCompileMvnDeps + v)
             )
 
           case name =>

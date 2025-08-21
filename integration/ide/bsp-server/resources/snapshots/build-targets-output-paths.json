@@ -86,6 +86,12 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/mill-build/mill-build"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/mill-synthetic-root-target"
       },
       "outputPaths": [
@@ -104,8 +110,26 @@
         {
           "uri": "file:///workspace/.bloop/",
           "kind": 2
+        },
+        {
+          "uri": "file:///workspace/.project/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///workspace/.classpath/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///workspace/.settings/",
+          "kind": 2
         }
       ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/sourcesNeedCompile"
+      },
+      "outputPaths": []
     }
   ]
 }

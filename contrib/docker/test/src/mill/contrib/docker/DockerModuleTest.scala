@@ -95,7 +95,7 @@ object DockerModuleTest extends TestSuite {
         assert(result.value == List(testArtifactName))
       }
 
-      "dockerEnv" - workspaceTest(Docker) { eval =>
+      test("dockerEnv") - workspaceTest(Docker) { eval =>
         // since stdout and stderr are inherited we can only test
         // that docker fails with wrong DOCKER_HOST
         val Left(ExecResult.Exception(error: os.SubprocessException, _)) =

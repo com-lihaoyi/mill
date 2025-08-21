@@ -1,3 +1,5 @@
+//| mill-version: SNAPSHOT
+//| mill-jvm-version: 11
 package build
 
 import _root_.build_.BaseModule
@@ -80,6 +82,7 @@ object `package` extends BaseModule {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+
     }
   }
 
@@ -130,6 +133,7 @@ object `package` extends BaseModule {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+
     }
   }
 
@@ -187,6 +191,7 @@ object `package` extends BaseModule {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+
     }
   }
 
@@ -270,6 +275,4 @@ trait BaseModule extends SbtModule with PublishModule {
     "https://oss.sonatype.org/service/local/repositories/releases/content/",
     "https://oss.sonatype.org/content/repositories/snapshots"
   )
-
-  def jvmId = "11"
 }

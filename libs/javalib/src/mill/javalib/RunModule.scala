@@ -1,7 +1,6 @@
 package mill.javalib
 
 import java.lang.reflect.Modifier
-
 import scala.util.control.NonFatal
 import mill.api.BuildCtx
 import mainargs.arg
@@ -177,9 +176,18 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
       forkArgs(),
       allForkEnv(),
       runUseArgsFile(),
-      javaHome().map(_.path)
+      javaHome().map(_.path),
+      propagateEnv()
     )
   }
+
+  /**
+   * Whether or not to propagate the enclosing shell's environment variables to the
+   * `.run` or `.testForked` process. Defaults to `true`, which is convenient when
+   * you need to configure your subprocess or tests with environment variables, but
+   * can be set to `false` if you prefer having additional hermeticity.
+   */
+  def propagateEnv: T[Boolean] = Task { true }
 
   def runLocalTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
@@ -272,25 +280,28 @@ object RunModule {
   trait Runner {
     def run(
         args: os.Shellable,
-        mainClass: String = null,
-        forkArgs: Seq[String] = null,
-        forkEnv: Map[String, String] = null,
-        workingDir: os.Path = null,
-        useCpPassingJar: java.lang.Boolean = null,
-        extraRunClasspath: Seq[os.Path] = Nil,
-        background: Boolean = false,
-        runBackgroundLogToConsole: Boolean = false
-    )(implicit ctx: TaskCtx): Unit
-  }
-  private class RunnerImpl(
-      mainClass0: Either[String, String],
-      runClasspath: Seq[os.Path],
-      forkArgs0: Seq[String],
-      forkEnv0: Map[String, String],
-      useCpPassingJar0: Boolean,
-      javaHome: Option[os.Path]
-  ) extends Runner {
-
+        mainClass: String,
+        forkArgs: Seq[String],
+        forkEnv: Map[String, String],
+        workingDir: os.Path,
+        useCpPassingJar: java.lang.Boolean,
+        extraRunClasspath: Seq[os.Path],
+        background: Boolean,
+        runBackgroundLogToConsole: Boolean
+    )(implicit ctx: TaskCtx): Unit = {
+      run(
+        args,
+        mainClass,
+        forkArgs,
+        forkEnv,
+        workingDir,
+        useCpPassingJar,
+        extraRunClasspath,
+        background,
+        runBackgroundLogToConsole,
+        null
+      )
+    }
     def run(
         args: os.Shellable,
         mainClass: String = null,
@@ -300,7 +311,45 @@ object RunModule {
         useCpPassingJar: java.lang.Boolean = null,
         extraRunClasspath: Seq[os.Path] = Nil,
         background: Boolean = false,
-        runBackgroundLogToConsole: Boolean = false
+        runBackgroundLogToConsole: Boolean = false,
+        propagateEnv: java.lang.Boolean = null
+    )(implicit ctx: TaskCtx): Unit = {
+      val _ = propagateEnv // silence unused, this is used in the override
+
+      run(
+        args,
+        mainClass,
+        forkArgs,
+        forkEnv,
+        workingDir,
+        useCpPassingJar,
+        extraRunClasspath,
+        background,
+        runBackgroundLogToConsole
+      )
+    }
+  }
+  private class RunnerImpl(
+      mainClass0: Either[String, String],
+      runClasspath: Seq[os.Path],
+      forkArgs0: Seq[String],
+      forkEnv0: Map[String, String],
+      useCpPassingJar0: Boolean,
+      javaHome: Option[os.Path],
+      propagateEnv0: Boolean = true
+  ) extends Runner {
+
+    override def run(
+        args: os.Shellable,
+        mainClass: String = null,
+        forkArgs: Seq[String] = null,
+        forkEnv: Map[String, String] = null,
+        workingDir: os.Path = null,
+        useCpPassingJar: java.lang.Boolean = null,
+        extraRunClasspath: Seq[os.Path] = Nil,
+        background: Boolean = false,
+        runBackgroundLogToConsole: Boolean = false,
+        propagateEnv: java.lang.Boolean = null
     )(implicit ctx: TaskCtx): Unit = {
       val dest = ctx.dest
       val cwd = Option(workingDir).getOrElse(dest)
@@ -308,11 +357,18 @@ object RunModule {
       val mainArgs = args.value
       val classPath = runClasspath ++ extraRunClasspath
       val jvmArgs = Option(forkArgs).getOrElse(forkArgs0)
-      Option(useCpPassingJar) match {
+      val useCpPassingJar1 = Option(useCpPassingJar) match {
         case Some(b) => b: Boolean
         case None => useCpPassingJar0
       }
       val env = Option(forkEnv).getOrElse(forkEnv0)
+
+      val propEnv = Option(propagateEnv).getOrElse(propagateEnv0: java.lang.Boolean)
+      val cpPassingJarPath =
+        if useCpPassingJar1 then
+          Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false))
+        else
+          None
 
       BuildCtx.withFilesystemCheckerDisabled {
         if (background) {
@@ -332,31 +388,31 @@ object RunModule {
             mainClass = mainClass1,
             classPath = classPath,
             jvmArgs = jvmArgs,
-            env = env,
+            env = (if (propEnv) ctx.env else Map()) ++ env,
             mainArgs = mainArgs,
             cwd = cwd,
             stdin = "",
             stdout = stdout,
             stderr = stderr,
-            cpPassingJarPath =
-              Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
+            cpPassingJarPath = cpPassingJarPath,
             javaHome = javaHome,
-            destroyOnExit = false
+            destroyOnExit = false,
+            propagateEnv = false
           )
         } else {
           Jvm.callProcess(
             mainClass = mainClass1,
             classPath = classPath,
             jvmArgs = jvmArgs,
-            env = env,
+            env = (if (propEnv) ctx.env else Map()) ++ env,
             mainArgs = mainArgs,
             cwd = cwd,
             stdin = os.Inherit,
             stdout = os.Inherit,
             stderr = os.Inherit,
-            cpPassingJarPath =
-              Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
-            javaHome = javaHome
+            cpPassingJarPath = cpPassingJarPath,
+            javaHome = javaHome,
+            propagateEnv = false
           )
         }
       }

@@ -11,10 +11,7 @@ import millbuild.*
 object `package` extends MillPublishScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.libs.javalib, build.libs.kotlinlib)
-  def transitiveLocalTestOverrides =
-    super.transitiveLocalTestOverrides() ++ Seq(
-      build.libs.kotlinlib.worker.localTestOverride()
-    )
+  def localTestExtraModules = super.localTestExtraModules ++ Seq(build.libs.kotlinlib.worker)
 
   def buildInfoPackageName = "mill.androidlib"
   def buildInfoObjectName = "Versions"
@@ -46,27 +43,22 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       "screenshotValidationJunitEngineVersion",
       Deps.AndroidDeps.screenshotValidationJunitEngine.version,
       "Version of screenshotValidationJunitEngine"
+    ),
+    BuildInfo.Value(
+      "millCmdlineToolsVersion",
+      Deps.AndroidDeps.millCmdlineToolsVersion,
+      "Version of Internal CommandLineTools"
     )
   )
 
   trait MillAndroidModule extends MillPublishScalaModule {
-    override def javacOptions = {
+    override def javacOptions = super.javacOptions() ++ {
       val release = Seq("-source", "1.8", "-target", "1.8")
       release ++ Seq("-encoding", "UTF-8", "-deprecation")
     }
 
     override def repositoriesTask = Task.Anon {
       super.repositoriesTask() :+ MavenRepository("https://maven.google.com/")
-    }
-  }
-
-  object api extends MillAndroidModule {
-    def moduleDeps = Seq(build.libs.javalib.testrunner)
-
-    override def compileMvnDeps: T[Seq[Dep]] = Task {
-      super.compileMvnDeps() ++ Seq(
-        Deps.androidTools
-      )
     }
   }
 
@@ -77,6 +69,14 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       Deps.hiltGradlePlugin,
       Deps.androidTools
     )
+  }
+
+  object keytool extends MillPublishScalaModule {
+    override def moduleDeps = Seq(build.libs.androidlib)
+
+    override def mvnDeps = Seq(
+      Deps.mainargs
+    ) ++ Deps.keytoolDeps
   }
 
 }

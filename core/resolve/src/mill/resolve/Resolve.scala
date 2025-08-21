@@ -1,18 +1,18 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
-import mill.api.internal.{RootModule0, Reflect}
+import mill.api.internal.{Reflect, Resolved, RootModule0}
 import mill.api.{
+  DefaultTaskModule,
   Discover,
   Module,
-  Task,
   Segments,
   SelectMode,
-  DefaultTaskModule,
-  SimpleTaskTokenReader
+  SimpleTaskTokenReader,
+  Task
 }
 import mill.api.Result
-import mill.resolve.ResolveCore.{Resolved, makeResultException}
+import mill.resolve.ResolveCore.makeResultException
 
 private[mill] object Resolve {
   object Segments extends Resolve[Segments] {
@@ -30,6 +30,23 @@ private[mill] object Resolve {
     }
 
     private[mill] override def deduplicate(items: List[Segments]): List[Segments] = items.distinct
+  }
+
+  object Raw extends Resolve[Resolved] {
+    private[mill] def handleResolved(
+        rootModule: RootModule0,
+        resolved: Seq[Resolved],
+        args: Seq[String],
+        selector: Segments,
+        nullCommandDefaults: Boolean,
+        allowPositionalCommandArgs: Boolean,
+        resolveToModuleTasks: Boolean,
+        cache: ResolveCore.Cache
+    ) = {
+      Result.Success(resolved)
+    }
+
+    private[mill] override def deduplicate(items: List[Resolved]): List[Resolved] = items.distinct
   }
 
   object Inspect extends Resolve[Either[Module, Task.Named[Any]]] {
@@ -316,10 +333,7 @@ private[mill] trait Resolve[T] {
           }
         }
 
-        Result
-          .sequence(selected)
-          .flatMap(Result.sequence(_))
-          .map(_.flatten)
+        Result.sequence(selected.map(_.flatten)).map(_.flatten)
       }
 
       Result.sequence(resolved)
@@ -336,7 +350,7 @@ private[mill] trait Resolve[T] {
       allowPositionalCommandArgs: Boolean,
       resolveToModuleTasks: Boolean
   ): Result[Seq[T]] = {
-    val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
+    val rootResolved = Resolved.Module(Segments(), rootModule.getClass)
     val cache = new ResolveCore.Cache()
     val resolved =
       ResolveCore.resolve(

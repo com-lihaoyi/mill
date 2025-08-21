@@ -34,7 +34,7 @@ private[mill] object BspRunModule extends ExternalModule {
           runClasspath: Seq[Path],
           forkArgs: Seq[String],
           forkWorkingDir: Path,
-          forEnv: Map[String, String],
+          forkEnv: Map[String, String],
           mainClass: Option[String],
           localMainClasses: Seq[String]
       )] =

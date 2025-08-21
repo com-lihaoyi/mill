@@ -1,7 +1,10 @@
 package mill.api
 
-import utest._
+import utest.*
 import mill.testkit.TestRootModule
+
+import scala.annotation.unused
+
 object MacroErrorTests extends TestSuite {
 
   val tests = Tests {
@@ -10,13 +13,13 @@ object MacroErrorTests extends TestSuite {
       val expectedMsg =
         "Task{} members must be defs defined in a Module class/trait/object body"
 
-      val err = compileError("object Foo extends TestRootModule{ val x = Task {1} }")
+      val err = assertCompileError("object Foo extends TestRootModule{ val x = Task {1} }")
       assert(err.msg == expectedMsg)
     }
 
     test("badParameterSets") {
       test("command") {
-        val e = compileError("""
+        val e = assertCompileError("""
           object foo extends TestRootModule{
             def w = Task.Command{1}
             lazy val millDiscover = Discover[this.type]
@@ -30,7 +33,7 @@ object MacroErrorTests extends TestSuite {
       }
 
       test("task") {
-        val e = compileError("""
+        val e = assertCompileError("""
           object foo extends TestRootModule{
             def x() = Task {1}
             lazy val millDiscover = Discover[this.type]
@@ -43,7 +46,7 @@ object MacroErrorTests extends TestSuite {
         )
       }
       test("input") {
-        val e = compileError("""
+        val e = assertCompileError("""
           object foo extends TestRootModule{
             def y() = Task.Input{1}
             lazy val millDiscover = Discover[this.type]
@@ -56,7 +59,7 @@ object MacroErrorTests extends TestSuite {
         )
       }
       test("sources") {
-        val e = compileError("""
+        val e = assertCompileError("""
           object foo extends TestRootModule{
             def z() = Task.Sources{os.pwd}
             lazy val millDiscover = Discover[this.type]
@@ -69,7 +72,7 @@ object MacroErrorTests extends TestSuite {
         )
       }
       test("persistent") {
-        val e = compileError("""
+        val e = assertCompileError("""
           object foo extends TestRootModule{
             def a() = Task(persistent = true){1}
             lazy val millDiscover = Discover[this.type]
@@ -88,7 +91,7 @@ object MacroErrorTests extends TestSuite {
       // come from inside the Task{...} block
       test("pos") {
         // This should compile
-        object foo extends TestRootModule {
+        @unused object foo extends TestRootModule {
           def a = Task { 1 }
           val arr = Array(a)
           def b = {
@@ -101,14 +104,14 @@ object MacroErrorTests extends TestSuite {
         }
       }
       test("neg1") {
-        val e = compileError("""def a = Task { 1 }""")
+        val e = assertCompileError("""def a = Task { 1 }""")
         assert(e.msg.contains(
           "Task{} members must be defs defined in a Module class/trait/object body"
         ))
       }
 
       test("neg2") {
-        val e = compileError("object foo extends TestRootModule{ val a = Task { 1 } }")
+        val e = assertCompileError("object foo extends TestRootModule{ val a = Task { 1 } }")
         assert(e.msg.contains(
           "Task{} members must be defs defined in a Module class/trait/object body"
         ))
@@ -117,7 +120,7 @@ object MacroErrorTests extends TestSuite {
 
         val expectedMsg =
           "Task#apply() call cannot use `val n` defined within the Task{...} block"
-        val err = compileError("""
+        val err = assertCompileError("""
           object foo extends TestRootModule{
             def a = Task { 1 }
             val arr = Array(a)
@@ -136,7 +139,7 @@ object MacroErrorTests extends TestSuite {
 
         val expectedMsg =
           "Task#apply() call cannot use `val x` defined within the Task{...} block"
-        val err = compileError("""
+        val err = assertCompileError("""
           object foo extends TestRootModule{
             def a = Task { 1 }
             val arr = Array(a)
@@ -151,7 +154,7 @@ object MacroErrorTests extends TestSuite {
         assert(err.msg == expectedMsg)
       }
 //      test("neg5") {
-//        val borkedCachedDiamond1 = utest.compileError("""
+//        val borkedCachedDiamond1 = utest.assertCompileError("""
 //          object borkedCachedDiamond1 {
 //            def up = Task { TestUtil.test() }
 //            def left = Task { TestUtil.test(up) }
@@ -166,7 +169,7 @@ object MacroErrorTests extends TestSuite {
     }
 
     test("badCrossKeys") {
-      val error = utest.compileError(
+      val error = utest.assertCompileError(
         """
         object foo extends TestRootModule{
           object cross extends Cross[MyCrossModule](Seq(1, 2, 3))
@@ -181,7 +184,7 @@ object MacroErrorTests extends TestSuite {
     }
 
     test("badCrossKeys2") {
-      val error = utest.compileError(
+      val error = utest.assertCompileError(
         """
         object foo extends TestRootModule{
           object cross extends Cross[MyCrossModule](Seq((1, 2), (2, 2), (3, 3)))
@@ -202,7 +205,7 @@ object MacroErrorTests extends TestSuite {
     }
 
     test("invalidCrossType") {
-      val error = utest.compileError(
+      val error = utest.assertCompileError(
         """
         object foo extends TestRootModule{
           object cross extends Cross[MyCrossModule](null.asInstanceOf[sun.misc.Unsafe])
@@ -214,6 +217,52 @@ object MacroErrorTests extends TestSuite {
       assert(error.msg.contains(
         "Could not summon ToSegments[sun.misc.Unsafe]"
       ))
+    }
+
+    test("taskWithinATask") {
+      val nestedTaskError = "A `Task[A]` cannot be a parameter of another `Task[A]`"
+
+      test("simple") {
+        val error = utest.assertCompileError(
+          """
+          object foo extends TestRootModule {
+            def taskWithinTask = Task.Anon { Task.Anon { 42 } }
+
+            lazy val millDiscover = Discover[this.type]
+          }
+          """
+        )
+
+        assert(error.msg.contains(nestedTaskError))
+      }
+
+      test("nested") {
+        val error = utest.assertCompileError(
+          """
+          object foo extends TestRootModule {
+            def taskWithinTask = Task.Anon { Seq(Task.Anon { 42 }) }
+
+            lazy val millDiscover = Discover[this.type]
+          }
+          """
+        )
+
+        assert(error.msg.contains(nestedTaskError))
+      }
+
+      test("inAnotherType") {
+        val error = utest.assertCompileError(
+          """
+          object foo extends TestRootModule {
+            def taskWithinTask = Seq(Task.Anon { Task.Anon { 42 } })
+
+            lazy val millDiscover = Discover[this.type]
+          }
+          """
+        )
+
+        assert(error.msg.contains(nestedTaskError))
+      }
     }
   }
 }

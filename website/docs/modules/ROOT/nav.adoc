@@ -32,9 +32,13 @@
 []
 * Experimental Platform Support
 ** Building Android Apps
+*** xref:android/android-initial-setup.adoc[]
+*** xref:android/ide.adoc[]
 *** xref:android/java.adoc[]
 *** xref:android/kotlin.adoc[]
 *** xref:android/android-linting.adoc[]
+*** xref:android/compose-samples.adoc[]
+*** xref:android/hilt-sample.adoc[]
 ** xref:pythonlib/intro.adoc[]
 *** xref:pythonlib/module-config.adoc[]
 *** xref:pythonlib/dependencies.adoc[]
@@ -60,9 +64,7 @@
 ** xref:cli/query-syntax.adoc[]
 ** xref:cli/build-header.adoc[]
 * xref:migrating/migrating.adoc[]
-** xref:migrating/maven.adoc[]
-** xref:migrating/gradle.adoc[]
-** xref:migrating/sbt.adoc[]
+** xref:migrating/auto-migrating.adoc[]
 // This section gives a tour of the various user-facing features of Mill:
 // library deps, out folder, queries, tasks, etc.. These are things that
 // every Mill user will likely encounter, and are touched upon in the various

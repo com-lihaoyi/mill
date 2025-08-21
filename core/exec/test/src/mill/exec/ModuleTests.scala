@@ -50,7 +50,6 @@ object ModuleTests extends TestSuite {
     }
     test("externalModuleTargetsAreNamespacedByModulePackagePath") {
       UnitTester(Build, null).scoped { check =>
-        os.remove.all(check.outPath)
         val zresult = check.apply(Build.z)
         assert(
           zresult == Right(Result(30, 1)),
@@ -72,7 +71,7 @@ object ModuleTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
 
-      intercept[java.lang.AssertionError] { Build }
+      assertThrows[java.lang.AssertionError] { Build }
     }
   }
 }

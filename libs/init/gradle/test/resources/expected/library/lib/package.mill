@@ -17,5 +17,6 @@ object `package` extends MavenModule {
 
     def testSandboxWorkingDir = false
     def testParallelism = false
+
   }
 }

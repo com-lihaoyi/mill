@@ -10,21 +10,24 @@ import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.api.Result
 import mill.api.ModuleRef
-import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
-import mill.javalib.api.{CompilationResult, JvmWorkerApi}
-import mill.api.daemon.internal.{CompileProblemReporter, internal}
+import mill.kotlinlib.worker.api.KotlinWorkerTarget
+import mill.javalib.api.CompilationResult
+import mill.javalib.api.{JvmWorkerApi => PublicJvmWorkerApi}
+import mill.javalib.api.internal.JvmWorkerApi
+import mill.api.daemon.internal.{CompileProblemReporter, KotlinModuleApi, internal}
 import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
 import mill.*
-import java.io.File
 
+import java.io.File
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 
 /**
  * Core configuration required to compile a single Kotlin module
  */
-trait KotlinModule extends JavaModule { outer =>
+trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
   /**
    * The Kotlin version to be used (for API and Language level settings).
@@ -181,14 +184,12 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   /**
-   * The documentation jar, containing all the Dokka HTML files, for
+   * The generated documentation, containing all the Dokka HTML files, for
    * publishing to Maven Central. You can control Dokka version by using [[dokkaVersion]]
    * and option by using [[dokkaOptions]].
    */
-  override def docJar: T[PathRef] = Task[PathRef] {
-    val outDir = Task.dest
-
-    val dokkaDir = outDir / "dokka"
+  def dokkaGenerated: T[PathRef] = Task[PathRef] {
+    val dokkaDir = Task.dest / "dokka"
     os.makeDir.all(dokkaDir)
 
     val files = Lib.findSourceFiles(docSources(), Seq("java", "kt"))
@@ -232,7 +233,16 @@ trait KotlinModule extends JavaModule { outer =>
       )
     }
 
-    PathRef(Jvm.createJar(outDir / "out.jar", Seq(dokkaDir)))
+    PathRef(dokkaDir)
+  }
+
+  /**
+   * The documentation jar, containing all the Dokka HTML files, for
+   * publishing to Maven Central. You can control Dokka version by using [[dokkaVersion]]
+   * and option by using [[dokkaOptions]].
+   */
+  override def docJar: T[PathRef] = Task[PathRef] {
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(dokkaGenerated().path)))
   }
 
   /**
@@ -304,7 +314,7 @@ trait KotlinModule extends JavaModule { outer =>
         )
         // The compile step is lazy, but its dependencies are not!
         internalCompileJavaFiles(
-          worker = jvmWorkerRef().worker(),
+          worker = jvmWorkerRef().internalWorker(),
           upstreamCompileOutput = updateCompileOutput,
           javaSourceFiles = javaSourceFiles,
           compileCp = compileCp,
@@ -402,16 +412,20 @@ trait KotlinModule extends JavaModule { outer =>
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
       reportOldProblems: Boolean
-  )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
+  )(implicit ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
+    val jOpts = JavaCompilerOptions(javacOptions)
     worker.compileJava(
-      upstreamCompileOutput = upstreamCompileOutput,
-      sources = javaSourceFiles,
-      compileClasspath = compileCp,
+      ZincCompileJava(
+        upstreamCompileOutput = upstreamCompileOutput,
+        sources = javaSourceFiles,
+        compileClasspath = compileCp,
+        javacOptions = jOpts.compiler,
+        incrementalCompilation = true
+      ),
       javaHome = javaHome,
-      javacOptions = javacOptions,
+      javaRuntimeOptions = jOpts.runtime,
       reporter = compileProblemReporter,
-      reportCachedProblems = reportOldProblems,
-      incrementalCompilation = true
+      reportCachedProblems = reportOldProblems
     )
   }
 

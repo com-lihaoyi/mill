@@ -32,7 +32,7 @@ case class PathRef private[mill] (
       path: os.Path = path,
       quick: Boolean = quick,
       sig: Int = sig,
-      revalidate: PathRef.Revalidate = revalidate
+      revalidate: PathRef.Revalidate
   ): PathRef = PathRef(path, quick, sig, revalidate)
 
   def withRevalidate(revalidate: PathRef.Revalidate): PathRef = copy(revalidate = revalidate)
@@ -156,7 +156,7 @@ object PathRef {
                 is.foreach(os.Internals.transfer(_, digestOut))
               }
             } catch {
-              case e: java.nio.file.NoSuchFileException =>
+              case _: java.nio.file.NoSuchFileException =>
               // If file was deleted after we listed the folder but before we operate on it,
               // `os.perms` or `os.read.inputStream` will crash. In that case, just do nothing,
               // so next time we calculate the `PathRef` we'll get a different hash signature

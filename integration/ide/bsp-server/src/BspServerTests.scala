@@ -3,15 +3,13 @@ package mill.integration
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.nio.file.Paths
-
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.given
-
 import ch.epfl.scala.bsp4j as b
 import mill.api.BuildInfo
 import mill.bsp.Constants
-import mill.constants.OutFiles
+import mill.constants.{OutFiles, OutFolderMode}
 import mill.integration.BspServerTestUtil.*
 import mill.javalib.testrunner.TestRunnerUtils
 import mill.testkit.UtestIntegrationTestSuite
@@ -41,7 +39,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         millTestSuiteEnv
       ) { (buildServer, initRes) =>
         val kotlinVersion = sys.props.getOrElse("TEST_KOTLIN_VERSION", ???)
-        val kotlinTransitiveSubstitutions = transitiveDependenciesSubstitutions(
+        transitiveDependenciesSubstitutions(
           coursierapi.Dependency.of(
             "org.jetbrains.kotlin",
             "kotlin-stdlib",
@@ -72,15 +70,42 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         val targetIds = buildTargets.getTargets.asScala.map(_.getId).asJava
         val metaBuildTargetId = new b.BuildTargetIdentifier(
-          (workspacePath / "mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
+          (workspacePath / "mill-build").toURI.toASCIIString.stripSuffix("/")
+        )
+        val metaBuildBuildTargetId = new b.BuildTargetIdentifier(
+          (workspacePath / "mill-build/mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
         )
         assert(targetIds.contains(metaBuildTargetId))
-        val targetIdsSubset = targetIds.asScala.filter(_ != metaBuildTargetId).asJava
+        assert(targetIds.contains(metaBuildBuildTargetId))
+        val targetIdsSubset = targetIds.asScala
+          .filter(_ != metaBuildTargetId)
+          .filter(_ != metaBuildBuildTargetId)
+          .asJava
 
         val appTargetId = new b.BuildTargetIdentifier(
-          (workspacePath / "app").toNIO.toUri.toASCIIString.stripSuffix("/")
+          (workspacePath / "app").toURI.toASCIIString.stripSuffix("/")
         )
         assert(targetIds.contains(appTargetId))
+
+        def inverseSource(src: os.SubPath): Seq[b.BuildTargetIdentifier] =
+          buildServer
+            .buildTargetInverseSources(
+              new b.InverseSourcesParams(
+                new b.TextDocumentIdentifier(
+                  (workspacePath / src).toNIO.toUri.toASCIIString
+                )
+              )
+            )
+            .get()
+            .getTargets
+            .asScala
+            .toSeq
+
+        val helloScalaTargetId = new b.BuildTargetIdentifier(
+          (workspacePath / "hello-scala").toURI.toASCIIString.stripSuffix("/")
+        )
+        val foundHelloScalaTargetIds = inverseSource(os.sub / "hello-scala/src/Hello.scala")
+        assert(foundHelloScalaTargetIds == Seq(helloScalaTargetId))
 
         compareWithGsonSnapshot(
           buildServer
@@ -99,13 +124,19 @@ object BspServerTests extends UtestIntegrationTestSuite {
             buildServer
               .buildTargetInverseSources(
                 new b.InverseSourcesParams(
-                  new b.TextDocumentIdentifier(file.toNIO.toUri().toASCIIString)
+                  new b.TextDocumentIdentifier(file.toURI.toASCIIString)
                 )
               )
               .get(),
             snapshotsPath / "build-targets-inverse-sources.json",
             normalizedLocalValues = normalizedLocalValues
           )
+
+          // check that inverseSources works fine for the build.mill files
+          val buildMillTargetIds = inverseSource(os.sub / "build.mill")
+          assert(buildMillTargetIds == Seq(metaBuildTargetId))
+          val buildBuildMillTargetIds = inverseSource(os.sub / "mill-build/build.mill")
+          assert(buildBuildMillTargetIds == Seq(metaBuildBuildTargetId))
         }
 
         compareWithGsonSnapshot(
@@ -214,9 +245,9 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetScalaMainClasses(new b.ScalaMainClassesParams(targetIdsSubset))
+            .buildTargetScalaMainClasses(new b.ScalaMainClassesParams(targetIds))
             .get(),
-          snapshotsPath / "build-targets-scalac-main-classes.json",
+          snapshotsPath / "build-targets-scala-main-classes.json",
           normalizedLocalValues = normalizedLocalValues
         )
 
@@ -258,13 +289,17 @@ object BspServerTests extends UtestIntegrationTestSuite {
           os.sub / "mill-build" -> Seq(
             os.sub / "build.mill.semanticdb"
           ),
+          os.sub / "mill-build/mill-build" -> Seq(
+            os.sub / "mill-build/build.mill.semanticdb"
+          ),
           os.sub / "diag" -> Seq(
             os.sub / "diag/src/DiagCheck.scala.semanticdb"
           ),
           os.sub / "errored/exception" -> Nil,
           os.sub / "errored/compilation-error" -> Nil,
           os.sub / "delayed" -> Nil,
-          os.sub / "diag/many" -> Nil
+          os.sub / "diag/many" -> Nil,
+          os.sub / "sourcesNeedCompile" -> Nil
         )
 
         {
@@ -417,7 +452,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
       }
       val expectedMessages = Seq(
         // no message for errored.compilation-error, compilation diagnostics are enough
-        (b.MessageType.ERROR, "Compiling errored.exception failed, see Mill logs for more details")
       )
       assert(expectedMessages == messages0)
     }
@@ -445,7 +479,9 @@ object BspServerTests extends UtestIntegrationTestSuite {
           override def onBuildPublishDiagnostics(params: b.PublishDiagnosticsParams): Unit = {
             // Not looking at diagnostics for generated sources of the build
             val keep =
-              !uriAsSubPath(params.getTextDocument.getUri).startsWith(os.sub / OutFiles.out)
+              !uriAsSubPath(
+                params.getTextDocument.getUri
+              ).startsWith(os.sub / os.RelPath(OutFiles.outFor(OutFolderMode.BSP)))
             if (keep)
               diagnostics.append(params)
           }
@@ -490,7 +526,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
       val noPackageBuildMill =
         originalBuildMill.take(idx) + originalBuildMill.drop(idx + "package build".length)
       os.write.over(workspacePath / "build.mill", noPackageBuildMill)
-      os.remove.all(workspacePath / OutFiles.out)
+      os.remove.all(workspacePath / os.RelPath(OutFiles.outFor(OutFolderMode.BSP)))
       runTest()
     }
   }
@@ -518,7 +554,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         .filter(_.last.endsWith(".semanticdb"))
         .filter(_.startsWith(semDbPrefix))
         .map(_.relativeTo(semDbPrefix).asSubPath)
-        .filter(!_.startsWith(os.sub / OutFiles.out))
+        .filter(!_.startsWith(os.sub / os.RelPath(OutFiles.outFor(OutFolderMode.BSP))))
         .sorted
     else
       Nil

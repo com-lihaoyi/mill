@@ -5,7 +5,7 @@ import coursier.maven.MavenRepository
 import mill.*
 import mill.util.Tasks
 import mill.scalalib.*
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.publish.*
 import mill.util.Jvm
 import mill.api.SelectMode
@@ -80,6 +80,7 @@ object `package` extends Module {
 
   object cli extends Module {
     object builtins extends Cross[ExampleCrossModule](build.listCross)
+    object header extends Cross[ExampleCrossModule](build.listCross)
   }
 
   object fundamentals extends Module {
@@ -226,6 +227,7 @@ object `package` extends Module {
     def localRunClasspath = build.testkit.localRunClasspath()
 
     def forkEnv = Map("LANG" -> "C")
+    def forkArgs: T[Seq[String]] = Task(List.empty[String])
 
     /**
      * Parses a `build.mill` for specific comments and return the split-by-type content
@@ -290,6 +292,8 @@ $txt
 ----
 $txt
 ----"""
+            case (kind, txt) =>
+              throw Exception(s"Unknown kind: $kind\n\nText: $txt")
           }
           .mkString("\n")
       )

@@ -10,6 +10,7 @@ import mill.*, javalib.*
 
 object foo extends MavenModule {
   object test extends MavenTests, TestModule.Junit4
+  object integration extends MavenTests, TestModule.Junit4
 }
 
 // `MavenModule` is a variant of `JavaModule`
@@ -40,6 +41,9 @@ compiling 1 Java source...
 
 > ./mill foo.test
 ...foo.FooTests.hello ...
+
+> ./mill foo.integration
+...foo.FooIntegrationTests.hello ...
 
 */
 

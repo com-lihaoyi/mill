@@ -11,10 +11,8 @@ object DependencyUpdatesImpl {
       evaluator: Evaluator,
       ctx: TaskCtx,
       rootModule: RootModule0,
-      discover: Discover,
       allowPreRelease: Boolean
   ): Seq[ModuleDependenciesUpdates] = {
-
     // 1. Find all available versions for each dependency
     val allDependencyVersions: Seq[ModuleDependenciesVersions] =
       VersionsFinder.findVersions(evaluator, ctx, rootModule)
@@ -26,6 +24,18 @@ object DependencyUpdatesImpl {
 
     // 3. Return the results
     allUpdates
+  }
+
+  @deprecated("Use apply without `discover` instead", "1.0.3")
+  def apply(
+      evaluator: Evaluator,
+      ctx: TaskCtx,
+      rootModule: RootModule0,
+      discover: Discover,
+      allowPreRelease: Boolean
+  ): Seq[ModuleDependenciesUpdates] = {
+    val _ = discover // unused but part of public API
+    apply(evaluator, ctx, rootModule, allowPreRelease)
   }
 
   def showAllUpdates(

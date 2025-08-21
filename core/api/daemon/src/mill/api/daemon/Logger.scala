@@ -1,6 +1,6 @@
 package mill.api.daemon
 
-import java.io.PrintStream
+import java.io.{ByteArrayInputStream, PrintStream}
 
 /**
  * The standard logging interface of the Mill build tool.
@@ -9,7 +9,7 @@ import java.io.PrintStream
  * but when `show` is used both are forwarded to stderr and stdout is only
  * used to display the final `show` output for easy piping.
  */
-trait Logger {
+trait Logger extends Logger.Actions {
 
   /**
    * This Logger's versions of stdin, stdout, and stderr. Typically enabled
@@ -26,40 +26,6 @@ trait Logger {
   private[mill] def unprefixedStreams: SystemStreams = streams
 
   /**
-   * Prints miscellaneous logging output which isn't part of the main output
-   * a user is looking for, but useful to provide context on what Mill is doing
-   */
-  def info(s: String): Unit
-
-  /**
-   * Prints internal debug messages normally not shown to the user;
-   * mostly useful when debugging issues
-   */
-  def debug(s: String): Unit
-
-  /**
-   * Prints logging output which represents warnings the user should care
-   * about
-   */
-  def warn(s: String): Unit
-
-  /**
-   * Prints logging output which represents problems the user should care
-   * about
-   */
-  def error(s: String): Unit
-
-  /**
-   * Prints short-lived logging output where consecutive lines over-write
-   * each other; this shows up in the logger's prompt line in the multi-line
-   * prompt when [[withPromptLine]] is running.
-   *
-   * Useful for information which is transient and disposable, e.g. progress
-   * indicators.
-   */
-  def ticker(s: String): Unit
-
-  /**
    * Global APIs that let the logger access the command line configuration and
    * manipulate the global prompt, e.g. enabling or disabling it
    */
@@ -72,7 +38,17 @@ trait Logger {
   private[mill] final def withPromptLine[T](t: => T): T = {
     prompt.setPromptLine(logKey, keySuffix, message)
     try t
-    finally prompt.removePromptLine(logKey)
+    finally prompt.removePromptLine(logKey, message)
+  }
+
+  /**
+   * Helper method to enable this logger as a line item in the global prompt
+   * while the given code block is running
+   */
+  private[mill] final def withChromeProfile[T](text: String)(t: => T): T = {
+    prompt.beginChromeProfileEntry(text)
+    try t
+    finally prompt.endChromeProfileEntry()
   }
 
   /**
@@ -112,6 +88,64 @@ trait Logger {
 }
 
 object Logger {
+  object DummyLogger extends Logger {
+    def colored = false
+
+    val streams = new SystemStreams(
+      new PrintStream(_ => ()),
+      new PrintStream(_ => ()),
+      new ByteArrayInputStream(Array())
+    )
+
+    def info(s: String) = ()
+
+    def warn(s: String) = ()
+
+    def error(s: String) = ()
+
+    def ticker(s: String) = ()
+
+    def debug(s: String) = ()
+
+    def prompt = new Logger.Prompt.NoOp
+  }
+
+  trait Actions {
+
+    /**
+     * Prints miscellaneous logging output which isn't part of the main output
+     * a user is looking for, but useful to provide context on what Mill is doing
+     */
+    def info(s: String): Unit
+
+    /**
+     * Prints internal debug messages normally not shown to the user;
+     * mostly useful when debugging issues
+     */
+    def debug(s: String): Unit
+
+    /**
+     * Prints logging output which represents warnings the user should care
+     * about
+     */
+    def warn(s: String): Unit
+
+    /**
+     * Prints logging output which represents problems the user should care
+     * about
+     */
+    def error(s: String): Unit
+
+    /**
+     * Prints short-lived logging output where consecutive lines over-write
+     * each other; this shows up in the logger's prompt line in the multi-line
+     * prompt when [[Logger.withPromptLine]] is running.
+     *
+     * Useful for information which is transient and disposable, e.g. progress
+     * indicators.
+     */
+    def ticker(s: String): Unit
+  }
 
   /**
    * APIs that allow a logger to interact with the global prompt: setting and unsetting
@@ -119,15 +153,20 @@ object Logger {
    * to logger unchanged without any customization.
    */
   private[mill] trait Prompt {
-
     private[mill] def setPromptDetail(key: Seq[String], s: String): Unit
     private[mill] def reportKey(key: Seq[String]): Unit
     private[mill] def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit
     private[mill] def setPromptHeaderPrefix(s: String): Unit
     private[mill] def clearPromptStatuses(): Unit
-    private[mill] def removePromptLine(key: Seq[String]): Unit
+    private[mill] def removePromptLine(key: Seq[String], message: String): Unit
     private[mill] def withPromptPaused[T](t: => T): T
     private[mill] def withPromptUnpaused[T](t: => T): T
+
+    private[mill] def beginChromeProfileEntry(text: String): Unit
+    private[mill] def endChromeProfileEntry(): Unit
+
+    private[mill] def logBeginChromeProfileEntry(message: String, timestamp: Long) = ()
+    private[mill] def logEndChromeProfileEntry(timestamp: Long) = ()
 
     def debugEnabled: Boolean
 
@@ -146,9 +185,13 @@ object Logger {
         ()
       private[mill] def setPromptHeaderPrefix(s: String): Unit = ()
       private[mill] def clearPromptStatuses(): Unit = ()
-      private[mill] def removePromptLine(key: Seq[String]): Unit = ()
+      private[mill] def removePromptLine(key: Seq[String], message: String): Unit = ()
       private[mill] def withPromptPaused[T](t: => T): T = t
       private[mill] def withPromptUnpaused[T](t: => T): T = t
+
+      private[mill] def beginChromeProfileEntry(text: String): Unit = ()
+
+      private[mill] def endChromeProfileEntry(): Unit = ()
 
       def debugEnabled: Boolean = false
 

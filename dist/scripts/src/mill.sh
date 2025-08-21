@@ -33,7 +33,7 @@
 set -e
 
 if [ -z "${DEFAULT_MILL_VERSION}" ] ; then
-  DEFAULT_MILL_VERSION="{{{ mill-best-version }}}"
+  DEFAULT_MILL_VERSION="{{{ mill-version }}}"
 fi
 
 

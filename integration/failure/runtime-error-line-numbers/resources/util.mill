@@ -1,0 +1,4 @@
+package build
+import mill.*
+
+def myScalaVersion = { sys.error("boom util"); 1 }

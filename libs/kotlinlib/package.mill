@@ -11,8 +11,8 @@ import millbuild.*
 object `package` extends MillStableScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.libs.javalib, build.libs.javalib.testrunner, api)
-  def transitiveLocalTestOverrides =
-    super.transitiveLocalTestOverrides() ++ Seq(worker.localTestOverride())
+  def localTestExtraModules =
+    super.localTestExtraModules ++ Seq(worker)
 
   def buildInfoPackageName = "mill.kotlinlib"
   def buildInfoObjectName = "Versions"
@@ -40,7 +40,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
   )
 
   trait MillKotlinModule extends MillPublishScalaModule {
-    override def javacOptions = {
+    override def javacOptions = super.javacOptions() ++ {
       val release =
         if (scala.util.Properties.isJavaAtLeast(11)) Seq("-release", "8")
         else Seq("-source", "1.8", "-target", "1.8")

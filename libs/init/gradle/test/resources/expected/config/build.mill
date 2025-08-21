@@ -1,3 +1,5 @@
+//| mill-version: SNAPSHOT
+//| mill-jvm-version: 11
 package build
 
 import _root_.build_.BaseModule
@@ -29,6 +31,7 @@ object `package` extends mill.Module {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+
     }
   }
 
@@ -40,6 +43,7 @@ object `package` extends mill.Module {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+
     }
   }
 
@@ -50,7 +54,4 @@ object `package` extends mill.Module {
   }
 }
 
-trait BaseModule extends MavenModule {
-
-  def jvmId = "11"
-}
+trait BaseModule extends MavenModule {}

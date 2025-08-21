@@ -18,8 +18,12 @@ trait CodeartifactPublishModule extends PublishModule {
       connectTimeout: Int = 5000
   ): Command[Unit] =
     Task.Command {
-      val PublishModule.PublishData(artifactInfo, artifacts) =
-        publishArtifacts()
+      if (!publish) throw Exception(
+        "`publish` is set to false, but the parameter never did anything, so we're throwing an exception to at " +
+          "least get your attention."
+      )
+
+      val (artifacts, artifactInfo) = publishArtifacts().withConcretePath
 
       new CodeartifactPublisher(
         codeartifactUri,
@@ -28,7 +32,7 @@ trait CodeartifactPublishModule extends PublishModule {
         readTimeout,
         connectTimeout,
         Task.log
-      ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo)
+      ).publish(artifacts, artifactInfo)
     }
 }
 
@@ -42,9 +46,7 @@ object CodeartifactPublishModule extends ExternalModule {
       connectTimeout: Int = 5000
   ) =
     Task.Command {
-      val artifacts = Task.sequence(publishArtifacts.value)().map {
-        case data @ PublishModule.PublishData(_, _) => data.withConcretePath
-      }
+      val artifacts = Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
       new CodeartifactPublisher(
         codeartifactUri,
         codeartifactSnapshotUri,

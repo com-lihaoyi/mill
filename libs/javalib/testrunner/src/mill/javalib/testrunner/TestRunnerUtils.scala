@@ -81,7 +81,7 @@ import scala.math.Ordering.Implicits.*
       // so makes the jimfs test suite fail
       //
       // https://stackoverflow.com/a/17468590
-      .filter { case (c, f) => !c.isMemberClass && !c.isAnonymousClass }
+      .filter { case (c, _) => !c.isMemberClass && !c.isAnonymousClass }
 
     testClasses
   }
@@ -311,13 +311,22 @@ import scala.math.Ordering.Implicits.*
       os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
     }
 
+    def logClaim[T](testClass: String)(t: => T): T = {
+      val claimLog = claimFolder / os.up / "claim.log"
+      os.write.append(claimLog, s"CLAIM $testClass ${System.nanoTime()}\n")
+      try t
+      finally {
+        os.write.append(claimLog, s"COMPLETED ${System.nanoTime()}\n")
+      }
+    }
     startingTestClass.foreach { testClass =>
-      os.write.append(claimFolder / os.up / s"${claimFolder.last}.log", s"$testClass\n")
-      runClaimedTestClass(testClass)
+      logClaim(testClass) { runClaimedTestClass(testClass) }
     }
 
     for (file <- os.list(testClassQueueFolder)) {
-      for (claimedTestClass <- claimFile(file, claimFolder)) runClaimedTestClass(claimedTestClass)
+      for (claimedTestClass <- claimFile(file, claimFolder)) {
+        logClaim(claimedTestClass) { runClaimedTestClass(claimedTestClass) }
+      }
     }
 
     handleRunnerDone(runner, events)
@@ -328,10 +337,7 @@ import scala.math.Ordering.Implicits.*
       os.exists(file) &&
         scala.util.Try(os.move(file, claimFolder / file.last, atomicMove = true)).isSuccess
     ) {
-      // append only log, used to communicate with parent about what test is being claimed
-      // so that the parent can log the claimed test's name to its logger
-      val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
-      os.write.append(claimLog, s"${file.last}\n")
+
       file.last
     }
   }
@@ -375,7 +381,8 @@ import scala.math.Ordering.Implicits.*
       cl: ClassLoader
   ): Array[String] = {
     val framework = frameworkInstances(cl)
-    val (runner, tasksArr) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
+    val ( /*runner*/ _, tasksArr) =
+      getTestTasks(framework, args, classFilter, cl, testClassfilePath)
     tasksArr.flatten.map(_.taskDef().fullyQualifiedName())
   }
 

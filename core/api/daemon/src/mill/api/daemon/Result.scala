@@ -1,6 +1,7 @@
 package mill.api.daemon
 
-import scala.collection.{BuildFrom, mutable}
+import scala.collection.Factory
+import scala.util.boundary
 
 /**
  * Represents a computation that either succeeds with a value [[T]] or
@@ -47,16 +48,44 @@ object Result {
     case Right(value) => Result.Success(value)
   }
 
-  // implementation similar to scala.concurrent.Future#sequence
-  def sequence[B, M[X] <: IterableOnce[X]](in: M[Result[B]])(
-      implicit cbf: BuildFrom[M[Result[B]], B, M[B]]
+  extension [A](rr: Result[Result[A]]) {
+    def flatten: Result[A] = rr.flatMap(identity)
+  }
+
+  /**
+   * Converts a `Collection[Result[T]]` into a `Result[Collection[T]]`
+   */
+  def sequence[B, M[X] <: IterableOnce[X]](in: M[Result[B]])(using
+      factory: Factory[B, M[B]]
   ): Result[M[B]] = {
-    in.iterator
-      .foldLeft[Result[mutable.Builder[B, M[B]]]](Success(cbf.newBuilder(in))) {
-        case (acc, el) =>
-          for (a <- acc; e <- el) yield a += e
+    boundary {
+      val builder = factory.newBuilder
+      builder.sizeHint(in)
+      in.iterator.foreach {
+        case Success(b) => builder += b
+        case Failure(error) => boundary.break(Failure(error))
       }
-      .map(_.result())
+
+      builder.result()
+    }
+  }
+
+  /**
+   * Converts a `Collection[T]` into a `Result[Collection[V]]` using the given `f: T => Result[V]`
+   */
+  def traverse[A, B, Collection[x] <: IterableOnce[x]](collection: Collection[Result[A]])(
+      f: A => Result[B]
+  )(using factory: Factory[B, Collection[B]]): Result[Collection[B]] = {
+    boundary {
+      val builder = factory.newBuilder
+      builder.sizeHint(collection)
+      collection.iterator.map(_.flatMap(f)).foreach {
+        case Success(b) => builder += b
+        case Failure(error) => boundary.break(Failure(error))
+      }
+
+      builder.result()
+    }
   }
 
   final class Exception(val error: String) extends java.lang.Exception(error)

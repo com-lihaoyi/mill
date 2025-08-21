@@ -5,14 +5,14 @@ import coursier.maven.MavenRepository
 import mill._
 import mill.util.Tasks
 import mill.scalalib._
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
 import mill.api.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.api.Cross
-import mill.testrunner.TestResult
+import mill.javalib.testrunner.TestResult
 import millbuild.*
 import upickle.implicits.namedTuples.default.given
 import mill.api.BuildCtx
@@ -21,6 +21,24 @@ object `package` extends mill.Module {
   // We compile the test code once and then offer multiple modes to
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
   // and pass `lib`'s compile output back to `test`.
+
+  def localOutFolder = Task.Worker {
+    val counter = new java.util.concurrent.atomic.AtomicInteger(0)
+    new mill.util.CachedFactory[Unit, os.Path] {
+      def setup(key: Unit): os.Path = {
+        val res = Task.dest / s"local-${counter.getAndIncrement()}" / "out"
+        os.remove.all(res)
+        os.makeDir.all(res)
+        res
+      }
+
+      def teardown(key: Unit, value: os.Path): Unit = {
+        os.remove.all(value)
+      }
+
+      def maxCacheSize: Int = Task.ctx().jobs
+    }
+  }
 
   trait IntegrationTestModule extends Cross.Module[String] {
     def moduleDir = super.moduleDir / crossValue
@@ -31,22 +49,39 @@ object `package` extends mill.Module {
     def runClasspath: T[Seq[PathRef]]
     def localRunClasspath: T[Seq[PathRef]]
     def forkEnv: T[Map[String, String]]
+    def forkArgs: T[Seq[String]]
     def testExclusive = false
+
     trait ModeModule extends MillBaseTestsModule {
       override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
-        testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
+        val useSharedOut = moduleSegments.parts.contains("local")
+        localOutFolder().withValue(()) { sharedOutFolder =>
+          val testModuleUtil = new mill.javalib.TestModuleUtil(
+            testUseArgsFile(),
+            forkArgs(),
+            Seq.empty[String],
+            jvmWorker().scalalibClasspath(),
+            resources(),
+            testFramework(),
+            runClasspath(),
+            testClasspath(),
+            args,
+            testForkGrouping(),
+            jvmWorker().testrunnerEntrypointClasspath(),
+            allForkEnv() ++ Option.when(useSharedOut) { "MILL_TEST_SHARED_OUTPUT_DIR" -> "1" },
+            testSandboxWorkingDir = !useSharedOut,
+            if (useSharedOut) sharedOutFolder else forkWorkingDir(),
+            testReportXml(),
+            javaHome().map(_.path),
+            testParallelism(),
+            testLogLevel()
+          )
+          testModuleUtil.runTests()
+        }
       }
 
       def mode: String = moduleSegments.parts.last
       def scalaVersion = Deps.scalaVersion
-
-      private def envUpdateSnapshots: Task.Simple[Map[String, String]] = Task.Input {
-        val key = "MILL_TESTS_BSP_UPDATE_SNAPSHOTS"
-        Task.env.get(key) match {
-          case Some(value) => Map(key -> value)
-          case None => Map.empty
-        }
-      }
 
       def forkEnv = Task {
         super.forkEnv() ++
@@ -58,7 +93,6 @@ object `package` extends mill.Module {
             "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
           ) ++
-          envUpdateSnapshots() ++
           (if (millIntegrationIsPackagedLauncher()) Map() else build.dist.localTestOverridesEnv())
       }
 
@@ -67,7 +101,9 @@ object `package` extends mill.Module {
       /** Whether the Mill JARs are published locally alongside this Mill launcher */
       def millIntegrationIsPackagedLauncher: Task[Boolean]
 
-      def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }
+      def forkArgs = Task {
+        super.forkArgs() ++ IntegrationTestModule.this.forkArgs() ++ build.dist.forkArgs()
+      }
 
       def resources = IntegrationTestModule.this.resources()
       def runClasspath = IntegrationTestModule.this.runClasspath()
@@ -111,6 +147,7 @@ object `package` extends mill.Module {
   object migrating extends Cross[IdeIntegrationCrossModule](build.listCross)
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
+    def forkArgs: T[Seq[String]] = Task(List.empty[String])
     def forkEnv = super.forkEnv() ++ Seq(
       "MILL_PROJECT_ROOT" -> BuildCtx.workspaceRoot.toString,
       "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
@@ -121,6 +158,9 @@ object `package` extends mill.Module {
     def moduleDeps = super.moduleDeps ++ Seq(`bsp-util`)
     def mvnDeps = super.mvnDeps() ++ Seq(
       Deps.bsp4j
+    )
+    def forkArgs = super.forkArgs() ++ Seq(
+      s"-Dmill.integration.coursier-version=${Deps.coursier.dep.versionConstraint.asString}"
     )
   }
 

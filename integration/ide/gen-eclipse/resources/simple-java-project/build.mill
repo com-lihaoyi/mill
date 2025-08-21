@@ -1,0 +1,7 @@
+package build
+
+import mill.*, javalib.*
+
+object `package` extends JavaModule {
+  object test extends JavaTests, TestModule.Junit4
+}

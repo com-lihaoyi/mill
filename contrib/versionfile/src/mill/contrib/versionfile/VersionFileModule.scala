@@ -61,8 +61,8 @@ trait VersionFileModule extends Module {
 
   def generateCommitMessage(version: Version): String =
     version match {
-      case release: Version.Release => s"Setting release version to $version"
-      case snapshot: Version.Snapshot => s"Setting next version to $version"
+      case _: Version.Release => s"Setting release version to $version"
+      case _: Version.Snapshot => s"Setting next version to $version"
     }
 
   import upickle.default._

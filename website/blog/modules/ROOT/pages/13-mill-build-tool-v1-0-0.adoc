@@ -1,0 +1,385 @@
+= Mill Build Tool v1.0.0 Release Highlights
+
+:link-github: https://github.com/com-lihaoyi/mill
+:link-pr: {link-github}/pull
+
+// tag::header[]
+:author: Li Haoyi
+:revdate: 10 July 2025
+
+_{author}, {revdate}_
+
+{mill-doc-url}[Mill] is a build tool for Java, Scala, and Kotlin that aims to
+improve upon existing build tools in areas like
+xref:mill::comparisons/why-mill.adoc#_performance[performance],
+xref:mill::comparisons/why-mill.adoc#_extensibility[extensibility],
+and xref:mill::comparisons/why-mill.adoc#_ide_support[IDE support].
+The new release of Mill 1.0.0 is a major breaking version of the Mill project focused on setting
+a solid technical foundation that can provide stability for the coming years of development. While the
+https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#100[Changelog] contains a thorough
+listing of the various changes, as well as detailed migration instructions, this article
+instead spends more time discussing some of the highlights of the Mill 1.0.0 release.
+
+// end::header[]
+
+== Feature Highlights
+
+=== Graal Native Launchers by Default
+
+Mill 1.0.0 defaults to using a https://www.graalvm.org/latest/reference-manual/native-image/[Graal-Native Image]
+launchers by default. This shaves significant overhead off of Mill command line invocations,
+meaning running `./mill` commands in the terminal can often complete in as little as 100ms:
+
+[,console]
+----
+$  time ./mill foo.compile
+[35/35] foo.compile
+[35] [info] compiling 1 Java source...
+[35] [info] done compiling
+./mill foo.compile  0.01s user 0.01s system 20% cpu 0.109 total
+----
+
+Slow startups and long warmup times have always been a pain point working in the
+JVM ecosystem, and this has always applied to JVM command-line tooling as well. Mill had
+previously used a xref:mill::depth/process-architecture.adoc[long-lived background daemons] to
+try and mitigate the problem, but even if the heavyweight background daemon is long-lived,
+the lightweight launcher/client process still adds a substantial overhead. With
+Mill's Graal Native Image launcher, Mill's command-line experience feels as snappy
+as any native binary, because it is one!
+
+Apart from being a Graal Native Image itself, Mill also can be used to build your
+own Java, Scala, and Kotlin apps into native images. See
+xref:mill::javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Building
+Native Image Binaries with Graal VM] for more details.
+
+
+=== JVM-free Installation and Bootstrapping
+
+One consequence of using a Graal native launcher is that Mill's launcher
+no longer needs a JVM pre-installed in order to run. The launcher binary is self-contained,
+and is able to download and cache any JVM it needs in order to start itself or other Java
+processes.
+
+[,console]
+----
+$ echo temurin:23 > .mill-jvm-version
+
+$ ./mill foo.test
+https://github.com/adoptium/temurin23-binaries/releases/download/jdk-23.0.2%2B7/OpenJDK23U-jdk_aarch64_mac_hotspot_23.0.2_7.tar.gz
+  100.0% [##########] 197.6 MiB (11.1 MiB / s)
+[build.mill-60/65] compile
+[build.mill-60] [info] compiling 3 Scala sources to /Users/lihaoyi/test/mill-dist-1.0.0-RC2-68-43069c-example-javalib-basic-1-simple/out/mill-build/compile.dest/classes ...
+[build.mill-60] [info] done compiling
+[81/95] foo.compile
+[81] [info] compiling 1 Java source...
+----
+
+This means that Mill is able to manage your JVM installations completely on your behalf,
+without you needing to first install a JVM ahead of time, external tools like
+https://github.com/jenv/jenv[JEnv] or https://sdkman.io/[SDKMan], or package managers like
+https://brew.sh/[Homebrew]. Mill can manage the JVM necessary for Mill itself to run, any JVM
+necessary for your project modules to run, as well as any third-party libraries used in both
+scenarios.
+
+With this change, Mill becomes one of the few CLI tools that is truly zero-install: by using
+Mill's xref:mill::cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script]
+(an idea borrowed from Gradle's `./gradlew` and Maven's `./mvnw`) you can run `./mill` on any
+clean Mac, Linux, or Windows or development machine or CI worker and have it bootstrap everything
+necessary with zero installation up front. That's pretty unique among the wide variety
+of CLI tools out there, and should hopefully make it convenient for Mill users to build their
+JVM projects on the wide variety of different environments out there in the wild.
+
+See the docs for configuring xref:mill::cli/build-header.adoc#_mill_jvm_version[mill-jvm-version]
+for more details.
+
+=== Bash/Zsh Tab-Completion
+
+Mill 1.0.0 comes with built-in support for
+xref:mill::cli/installation-ide.adoc#_bashzsh_tab_completion[Bash and Zsh tab-completion].
+This can be installed via
+
+[,console]
+----
+$ ./mill mill.tabcomplete/install
+Writing to /Users/lihaoyi/.cache/mill/download/mill-completion.sh
+Writing to /Users/lihaoyi/.bash_profile
+Writing to /Users/lihaoyi/.zshrc
+----
+
+Once set up, you can then use `<TAB>` to auto-complete Mill modules and tasks from the command-line:
+
+[,console]
+----
+$ ./mill f<TAB>
+$ ./mill foo
+
+$ ./mill foo.run<TAB>
+foo.run                foo.runClasspath       foo.runMain            foo.runMainLocal       foo.runUseArgsFile
+foo.runBackground      foo.runLocal           foo.runMainBackground  foo.runMvnDeps
+
+$ ./mill foo.runB<TAB>
+$ ./mill foo.runBackground
+----
+
+While this is not rocket science, we expect that this will be a significant quality-of-life
+improvement to everyone using Mill. Nobody memorizes the names of every module and task within
+a large project, and using `./mill resolve` to try and list things or opening your IDE to rely
+on in-code autocomplete can be tedious and annoying. Mill's Bash/Zsh tab-completion relies on
+the same underlying infrastructure that powers `./mill resolve` and other existing functionality,
+but integrates it nicely into your shell so you have a smooth experience exploring and interacting
+with your build from the command line
+
+=== Task Filesystem Sandbox Enforcement
+
+Like Gradle, Mill build files contain arbitrary JVM code. And like Gradle, writing arbitrary
+code means you have a chance to make a big mess of your Mill build files. For example,
+although Mill relies on the assumption that tasks would only write to their destination
+folder (available as `Task.dest` within any task body), and that module initialization
+did not write to the filesystem, there was never enforcement of these expectations:
+
+[,scala]
+----
+object foo extends Module {
+  def bannedWriteTask = Task {
+    os.write(BuildCtx.workspaceRoot / "banned-path", "hello")  // bad!
+  }
+
+  os.write(moduleDir / "banned-write.txt", "hello") // bad!
+}
+----
+
+This meant it was possible to write code that violated Mill's internal expectations,
+which could cause all sorts of things to go wrong: cache invalidation issues, race
+conditions, etc. So onboarding new developers to use
+Mill often resulted in a long process to teach them these conventions since the tool
+itself would not give any feedback until things loudly (or worse, silently!) misbehaved.
+
+In Mill 1.0.0, most common filesystem read/write APIs have been instrumented to check
+that they are not misused. That means code that violates Mill's conventions raises an
+immediate error:
+
+[,console]
+----
+$ ./mill foo.bannedWriteTask
+error: ...Writing to banned-path not allowed during execution of `foo.bannedWriteTask`
+----
+
+These sandboxes are not intended to be fully hermetic: there are escape hatches
+(e.g. `BuildCtx.withFilesystemCheckerDisabled{ ... }`), not all APIs are instrumented
+(e.g. direct use of `java.io.`/`java.nio`), and they are not intended to be a security
+boundary against malicious code. Rather, they are meant to be simple guardrails to nudge
+developers in the right direction to follow Mill's conventions and coding style, so
+that developers will naturally fall into configuring Mill the "right" way that leads
+to the fewest surprises.
+
+See the documentation for xref:mill::depth/sandboxing.adoc[Mill Sandboxing] for more details.
+
+=== YAML Build Headers for Early Configuration
+
+Mill now supports a build header comment syntax for "early" configuration that needs to be processed
+before the main `build.mill` file is compiled and evaluated, and
+contains configuration like the `mill-version`, `mill-jvm-version`, the `build.mill` file's `mvnDeps`
+(separate from your application code's `mvnDeps`!) in a single `//|`-prefixed comment block.
+This is reminiscent of https://jekyllrb.com/docs/front-matter/[Jekyll FrontMatter] or Python's
+https://peps.python.org/pep-0723/[PEP723 Inline script metadata]:
+
+.`build.mill`
+[,scala]
+----
+//| mill-version: 1.0.0
+//| mill-jvm-version: 17
+//| repositories: [$PWD_URI/custom-repo]
+//| mvnDeps:
+//| - com.grack:nanojson:1.8-custom-test
+//| - com.lihaoyi::scalatags:0.12.0
+
+package build
+...
+----
+
+Previously, Mill had a wide variety of ways these things were configured:
+
+- A `.mill-version` file to configure your Mill version
+- A `.mill-jvm-version` file to configure the JVM used to run the Mill process
+- `.config/mill-version` and `.config/mill-jvm-version` flavors of these config files
+- `import $ivy` for configuring dependencies for your `build.mill`
+- `import $repo` for configuring maven repositories used to resolve dependencies for compiling your `build.mill`
+
+These are all configuration values that need to be used early on in the Mill
+bootstrapping process, and thus we couldn't rely on them being configured in the "main"
+`build.mill` config-as-code. For example, before even compiling your `build.mill`, Mill
+already needs to know what version of Mill you want to use and what JVM to run it on!
+
+With Mill's YAML build headers, we can consolidate this zoo of different configuration
+styles into a single compact block at the top of every `build.mill`. While the older
+configuration styles continue to be supported for migration-compatibility, using
+Mill's build headers is the recommended approach for configuring these values going forward.
+
+Lastly, build headers are expected to future-proof this "early" configuration
+and allow all sorts of interesting use cases in future. For example, we can extend this
+format to support running self-contained Java/Scala/Kotlin scripts that contain both their
+dependency configuration and code, similar to
+https://docs.astral.sh/uv/guides/scripts/#running-a-script-without-dependencies[uv scripts]
+in Python.
+
+See the docs for configuring xref:mill::cli/build-header.adoc[Build Header Config]
+for more details.
+
+=== Mill Support for Kotlin Builds is now Stable
+
+Mill 1.0.0 includes substantial improvements for building Kotlin projects with Mill:
+
+* {link-pr}/4557[#4557], {link-pr}/4786[#4786], {link-pr}/4771[#4771],
+{link-pr}/4779[#4779], {link-pr}/4797[#4797], {link-pr}/4963[#4963]
+
+These PRs really flesh out the previously-experimental support for Kotlin projects in Mill:
+main class discovery, compiler plugins, BuildInfo support, etc.. Other PRs upstream in the
+https://get-coursier.io/[Coursier] add support for resolving Kotlin Multiplatform dependencies,
+supporting Kotlin-JS and Kotlin-Android projects.
+
+With 1.0.0, Kotlin support in Mill is no longer experimental, and we are enabling
+binary-compatibility enforcement for `mill.kotlinlib` just as we already have for
+`mill.javalib` and `mill.scalalib`. We hope that you will try out Mill in your Kotlin
+projects, and let us know how it goes in https://github.com/com-lihaoyi/mill/discussions[Mill's Github Discussions].
+
+See the docs for xref:mill::kotlinlib/intro.adoc[Building Kotlin with Mill] for more details
+
+=== Mill Support for Android Builds
+
+A huge amount of work went into 1.0.0 improving Mill's support for Android builds. Android
+apps have traditionally only been buildable using Gradle, and Mill is one of the only
+other build tools that you can use as an alternative. While
+in 0.12.x Android support was a demo-quality integration, in 1.0.0 it has been
+fleshed out into a robust and complete framework that can build many of the
+sample apps available in the Android ecosystem.
+
+For example, Mill is now able to build, run, and test the https://github.com/android/compose-samples/tree/main/JetLagged[JetLagged Android Example App]:
+
+image:blog::AndroidJetLagged.png[]
+
+As well as the https://android.googlesource.com/platform/ndk/+/froyo-release/samples/san-angeles[San Angeles NDK example]:
+
+image:blog::AndroidSanAngeles.png[]
+
+This work was done by the folks https://www.vaslabs.io/[VasLabs], who put in an
+immense amount of work:
+
+* {link-pr}/4485[#4485], {link-pr}/4540[#4540], {link-pr}/4583[#4583],
+{link-pr}/4626[#4626], {link-pr}/4759[#4759], {link-pr}/4892[#4892], {link-pr}/4947[#4947],
+{link-pr}/5013[#5013], {link-pr}/5053[#5053]
+
+
+Updating the Mill Android documentation is a work in progress. We
+will be fleshing out the Mill Android docs over the following weeks and months and
+writing up blog posts on our experience integrating Mill with the Android toolchain
+But if you are unsatisfied with Gradle and interested in trying out an
+alternate Android build tool, you should definitely take a look and try it out
+and let us know how it goes in https://github.com/com-lihaoyi/mill/discussions[Mill's Github Discussions].
+
+See Mill's docs for xref:mill::android/java.adoc[Android Java Projects] or
+xref:mill::android/java.adoc[Android Kotlin Projects] for more details.
+
+== Quality Highlights
+
+=== IDE Support
+
+Mill has always had a xref:mill::comparisons/why-mill.adoc#_ide_support[best-in-class IDE experience]
+in IntelliJ and VSCode that surpasses the experience you get with Maven, Gradle, or SBT.
+For example, in Mill builds your IDE is able to autocomplete, pull up docs, or otherwise
+navigate around your build graph as easily as you can any application codebase in Java, Scala,
+or Kotlin:
+
+image:blog::IntelliJAutoComplete.png[]
+
+But even so, there was a ton of room for improvement.
+Many PRs went into improving Mill's IDE support with IntelliJ and VSCode, which
+goes through the "BSP" https://github.com/build-server-protocol/build-server-protocol[build-server-protocol]:
+
+- {link-pr}/5275[#5275], {link-pr}/5265[#5265],
+{link-pr}/5220[#5220], {link-pr}/5202[#5202], {link-pr}/5200[#5200]m {link-pr}/4851[#4851], {link-pr}/4873[#4873],
+{link-pr}/4876[#4876], {link-pr}/4881[#4881], {link-pr}/4873[#4873],
+{link-pr}/4940[#4940], {link-pr}/4941[#4941]
+
+There were also some fixes on the IntelliJ side of the build-tool-integration:
+
+- https://youtrack.jetbrains.com/issue/SCL-23262[SCL-23262],
+  https://youtrack.jetbrains.com/issue/SCL-23198[SCL-23198],
+  https://youtrack.jetbrains.com/issue/SCL-23961[SCL-23961],
+  https://youtrack.jetbrains.com/issue/SCL-23975[SCL-23976]
+
+And on the VSCode side of things:
+
+- https://github.com/scalameta/metals/pull/7193[#7193],
+  https://github.com/scalameta/metals/pull/7200[#7200],
+  https://github.com/scalameta/metals/pull/7429[#7429],
+  https://github.com/scalameta/metals/pull/7544[#7544]
+
+As Mill builds is able to leverage the existing IntelliJ/VSCode IDE infrastructure,
+we did not need to implement support for the Mill build tool from scratch in its
+own plugin. But nevertheless there is still a lot of work to properly wire up
+Mill to talk to these IDEs and pass the necessary data so the IDEs can do their thing.
+
+Improving IDE support is a grind: lots of fiddling with undocumented APIs and
+undocumented behavior, with bugs randomly scattered across organizational boundaries
+(some in Mill, some in IntelliJ, some in VSCode). But hopefully this work will provide
+a smoother experience for anyone getting using Mill, and improve upon Mill's
+ability to provide a best-in-class IDE experience for your build system.
+
+=== Classpath Cleanup and Stabilization
+
+Mill 1.0.0 runs your build logic with a much more minimal JVM classpath than earlier versions.
+We expect that this will provide faster downloads, speedup compiles, and also allow
+better long-term backwards compatibility as the Mill project itself and user's
+Mill builds both evolve over time.
+
+- Mill 0.12.x compiled and ran your `build.mill` with the entire Mill assembly jar
+  on the classpath. That meant that
+  your `build.mill` could access all of Mill's internal code and dependencies,
+  and versions of dependencies used by Mill are pinned and unchangeable
+  (e.g. see https://github.com/com-lihaoyi/mill/issues/2985[#2985])
+
+- Mill 1.0.0 compiles and runs your `build.mill` with only the code and
+  dependencies that it actually requires on the classpath, with the rest of
+  Mill's internal code and internal dependencies isolated via subprocess or
+  classloader isolation, with interop happening through a narrow interface
+
+While this may seem like an esoteric change, concretely it means two things:
+
+- You are now much free-er to use or upgrade third-party dependencies
+  in your `build.mill` via `//| mvnDeps`: they will not conflict with Mill's internal
+  dependencies, and are not pinned to the versions that Mill uses. This is important
+  because xref:mill::comparisons/why-mill.adoc#_extensibility[extending Mill
+  with third-party libraries] is a core part of its unique value proposition.
+
+- Mill can evolve much more freely without worrying about breaking user code. All
+  of Mill's internal code is now completely hidden from the user, so users don't
+  need to worry about accidentally depending on some internal class or static method
+  that may change and cause breakage when they upgrade.
+
+Clean classpaths aren't a "feature" in the common sense of the word, but regardless
+we hope that this classpath cleanup will pay dividends over time.
+
+== Try out Mill 1.0.0!
+
+This blog post covers just the highlights of the new Mill 1.0.0 release; the full
+changelog goes into a lot more breadth and depth about the changes, and what migration
+steps are necessary for upgrading from earlier versions of Mill:
+
+- https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#100[Mill 1.0.0 Changelog]
+
+If you would like to try Mill 1.0.0 for the first time, check out the links below:
+
+- xref:mill::javalib/intro.adoc[], for starting a greenfield Mill project with Java
+
+- xref:mill::scalalib/intro.adoc[], for starting a greenfield Mill project with Scala
+
+- xref:mill::kotlinlib/intro.adoc[], for trying out the newly-stable Kotlin support in Mill
+
+- xref:mill::migrating/migrating.adoc[], for migrating an existing project from to Mill from
+  Maven, Gradle or SBT
+
+- xref:mill::android/java.adoc[], for trying out the experimental Android support in Mill
+
+If you are curious about the motivation behind the Mill project, see:
+
+- xref:mill::comparisons/why-mill.adoc[]

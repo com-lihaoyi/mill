@@ -1,7 +1,7 @@
 package millbuild
 
 import mill.scalalib.*
-import mill.jvmlib.api.*
+import mill.javalib.api.*
 
 object Deps {
 
@@ -22,7 +22,7 @@ object Deps {
   val testScala33Version = "3.3.1"
 
   object Scalajs_1 {
-    val scalaJsVersion = "1.18.1"
+    val scalaJsVersion = "1.19.0"
     val scalajsEnvJsdomNodejs =
       mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0".withDottyCompat(scalaVersion)
     val scalajsEnvExoegoJsdomNodejs =
@@ -41,7 +41,7 @@ object Deps {
   }
 
   object Scalanative_0_5 {
-    val scalanativeVersion = "0.5.7"
+    val scalanativeVersion = "0.5.8"
     val scalanativeTools = mvn"org.scala-native::tools:${scalanativeVersion}"
     val scalanativeUtil = mvn"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = mvn"org.scala-native::nir:${scalanativeVersion}"
@@ -85,12 +85,16 @@ object Deps {
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.180"
-  val coursierVersion = "2.1.25-M13"
+  val coursierVersion = "2.1.25-M17"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierArchiveCache =
+    mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierCore =
     mvn"io.get-coursier::coursier-core:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierCache =
     mvn"io.get-coursier::coursier-cache:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierPaths =
+    mvn"io.get-coursier:coursier-paths:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierUtil =
     mvn"io.get-coursier::coursier-util:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierVersions = mvn"io.get-coursier::versions:0.5.1".withDottyCompat(scalaVersion)
@@ -131,16 +135,18 @@ object Deps {
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.18.0"
   val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.24.3"
-  val osLibVersion = "0.11.5-M10"
+  val osLibVersion = "0.11.5"
   val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
-  val pprint = mvn"com.lihaoyi::pprint:0.9.0"
+  val pprint = mvn"com.lihaoyi::pprint:0.9.3"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.6"
   val millModuledefsVersion = "0.11.10"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
     mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
+  val unrollAnnotation = mvn"com.lihaoyi::unroll-annotation:0.2.0"
+  val unrollPlugin = mvn"com.lihaoyi::unroll-plugin:0.2.0"
   // can't use newer versions, as these need higher Java versions
   val testng = mvn"org.testng:testng:7.5.1"
   val sbtTestInterface = mvn"org.scala-sbt:test-interface:1.0"
@@ -161,13 +167,13 @@ object Deps {
     mvn"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = mvn"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
-  val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.3.0"
+  val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.4"
+  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.9"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
   val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.3-M5"
-  val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.4.5"
+  val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.3"
   val upickle = mvn"com.lihaoyi::upickle:4.2.1"
   val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.2.1"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
@@ -181,24 +187,29 @@ object Deps {
   val jarjarabrams =
     mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.1".withDottyCompat(scalaVersion)
   val requests = mvn"com.lihaoyi::requests:0.9.0"
-  val logback = mvn"ch.qos.logback:logback-classic:1.5.17"
-  val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.3.0"
+  val logback = mvn"ch.qos.logback:logback-classic:1.5.18"
+  val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"
   val kotlinVersion = "2.1.20"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
-  val mavenVersion = "3.9.9"
-  val mavenEmbedder = mvn"org.apache.maven:maven-embedder:$mavenVersion"
-  val mavenResolverVersion = "1.9.22"
-  val mavenResolverConnectorBasic =
-    mvn"org.apache.maven.resolver:maven-resolver-connector-basic:$mavenResolverVersion"
-  val mavenResolverSupplier =
-    mvn"org.apache.maven.resolver:maven-resolver-supplier:$mavenResolverVersion"
-  val mavenResolverTransportFile =
-    mvn"org.apache.maven.resolver:maven-resolver-transport-file:$mavenResolverVersion"
-  val mavenResolverTransportHttp =
-    mvn"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
-  val mavenResolverTransportWagon =
-    mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
-  val coursierJvmIndexVersion = "0.0.4-111-eb6e08"
+
+  /** Used for the `mill init` from a Maven project. */
+  object MavenInit {
+    val mavenVersion = "3.9.9"
+    val mavenEmbedder = mvn"org.apache.maven:maven-embedder:$mavenVersion"
+    val mavenResolverVersion = "1.9.22"
+    val mavenResolverConnectorBasic =
+      mvn"org.apache.maven.resolver:maven-resolver-connector-basic:$mavenResolverVersion"
+    val mavenResolverSupplier =
+      mvn"org.apache.maven.resolver:maven-resolver-supplier:$mavenResolverVersion"
+    val mavenResolverTransportFile =
+      mvn"org.apache.maven.resolver:maven-resolver-transport-file:$mavenResolverVersion"
+    val mavenResolverTransportHttp =
+      mvn"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
+    val mavenResolverTransportWagon =
+      mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
+  }
+
+  val coursierJvmIndexVersion = "0.0.4-116-9b244a"
   val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
@@ -206,7 +217,7 @@ object Deps {
 
   val sbt = mvn"org.scala-sbt:sbt:1.10.10"
   val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:2.9"
-  val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.1.2"
+  val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.2.0"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
   // subsequent releases require Java 17+
   val jgit = mvn"org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r"
@@ -263,7 +274,7 @@ object Deps {
     mvn"org.apache.ant:ant:1.10.15",
     Deps.commonsIo,
     Deps.gson,
-    mvn"com.google.protobuf:protobuf-java:4.29.3",
+    mvn"com.google.protobuf:protobuf-java:4.29.5",
     mvn"com.google.guava:guava:33.4.0-jre",
     mvn"org.yaml:snakeyaml:2.3",
     mvn"org.apache.commons:commons-compress:1.27.1"
@@ -274,7 +285,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
-    val utest = mvn"com.lihaoyi::utest:0.8.9"
+    val utest = mvn"com.lihaoyi::utest:0.9.1"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }
 
@@ -296,7 +307,7 @@ object Deps {
     val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
     val screenshotValidationJunitEngine =
       mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
-
+    val millCmdlineToolsVersion = "19.0"
     // TODO: uiTooling is needed for screenshot tests
     // so we handle it diferrently.
     // Removed it from updaetable for now
@@ -310,5 +321,10 @@ object Deps {
     )
 
   }
+  val keytoolDeps = Seq(
+    mvn"org.bouncycastle:bcpkix-jdk18on:1.81",
+    mvn"org.bouncycastle:bcprov-jdk18on:1.81",
+    mvn"org.bouncycastle:bcutil-jdk18on:1.81"
+  )
 
 }

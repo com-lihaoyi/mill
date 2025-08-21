@@ -27,8 +27,10 @@ private[mill] class PromptLogger(
     titleText: String,
     terminfoPath: os.Path,
     currentTimeMillis: () => Long,
-    autoUpdate: Boolean = true
+    autoUpdate: Boolean = true,
+    val chromeProfileLogger: JsonArrayLogger.ChromeProfile
 ) extends Logger with AutoCloseable {
+  prompt.beginChromeProfileEntry("mill " + titleText)
   override def toString: String = s"PromptLogger(${literalize(titleText)})"
   import PromptLogger.*
 
@@ -104,6 +106,32 @@ private[mill] class PromptLogger(
   def error(s: String): Unit = streams.err.println(s)
 
   object prompt extends Logger.Prompt {
+
+    private[mill] def beginChromeProfileEntry(text: String): Unit = {
+      logBeginChromeProfileEntry(text, System.nanoTime())
+    }
+
+    private[mill] def endChromeProfileEntry(): Unit = {
+      logEndChromeProfileEntry(System.nanoTime())
+    }
+
+    override private[mill] def logBeginChromeProfileEntry(message: String, nanoTime: Long) = {
+      chromeProfileLogger.logBegin(
+        message,
+        "job",
+        nanoTime / 1000,
+        threadNumberer.getThreadId(Thread.currentThread())
+      )
+    }
+
+    override private[mill] def logEndChromeProfileEntry(nanoTime: Long) = {
+      chromeProfileLogger.logEnd(
+        nanoTime / 1000,
+        threadNumberer.getThreadId(Thread.currentThread())
+      )
+    }
+
+    val threadNumberer = new ThreadNumberer()
     override def setPromptHeaderPrefix(s: String): Unit = PromptLogger.this.synchronized {
       promptLineState.setHeaderPrefix(s)
     }
@@ -112,9 +140,11 @@ private[mill] class PromptLogger(
       promptLineState.clearStatuses()
     }
 
-    override def removePromptLine(key: Seq[String]): Unit = PromptLogger.this.synchronized {
-      promptLineState.setCurrent(key, None)
-    }
+    override def removePromptLine(key: Seq[String], message: String): Unit =
+      PromptLogger.this.synchronized {
+        promptLineState.setCurrent(key, None)
+        if (message != "") endChromeProfileEntry()
+      }
 
     override def setPromptDetail(key: Seq[String], s: String): Unit =
       PromptLogger.this.synchronized {
@@ -141,6 +171,7 @@ private[mill] class PromptLogger(
 
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
       PromptLogger.this.synchronized {
+        if (message != "") beginChromeProfileEntry(message)
         promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}]${spaceNonEmpty(message)}"))
         seenIdentifiers(key) = (keySuffix, message)
       }
@@ -183,6 +214,8 @@ private[mill] class PromptLogger(
     // Needs to be outside the lock so we don't deadlock with `promptUpdaterThread`
     // trying to take the lock one last time to check running/paused status before exiting
     promptUpdaterThread.join()
+    prompt.endChromeProfileEntry()
+    chromeProfileLogger.close()
   }
 
   def streams = streamManager.proxySystemStreams
@@ -423,7 +456,7 @@ private[mill] object PromptLogger {
       statuses.updateWith(key)(_.map(se => se.copy(next = se.next.map(_.copy(detail = detail)))))
     }
 
-    def setCurrent(key: Seq[String], sOpt: Option[String]): Unit = {
+    def setCurrent(key: Seq[String], sOpt: Option[String]): Option[Status] = {
 
       val now = currentTimeMillis()
       def stillTransitioning(status: Status) = {

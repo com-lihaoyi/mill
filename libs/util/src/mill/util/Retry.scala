@@ -1,7 +1,6 @@
 package mill.util
 
 import mill.api.TaskCtx
-import mill.util.Retry
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets
@@ -36,7 +35,7 @@ case class Retry(
 ) {
 
   def apply[T](t: => T): T = {
-    indexed(i => t)
+    indexed(_ => t)
   }
 
   def indexed[T](t: Int => T): T = {

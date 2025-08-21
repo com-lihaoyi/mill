@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 import mill.testkit.IntegrationTester
-import scala.collection.SortedMap
+import scala.collection.Map
 import utest._
 
 /**
@@ -13,18 +13,19 @@ import utest._
  * doesn't increase when nothing has changed.
  */
 object LeakHygieneTests extends UtestIntegrationTestSuite {
-  def checkClassloaders(tester: IntegrationTester)(kvs: (String, Int)*) = {
-    val res = tester.eval(("show", "countClassLoaders"))
+  def checkClassloaders(tester: IntegrationTester)(expected: utest.framework.GoldenFix.Span[Seq[
+    (String, Int)
+  ]]) = {
+    val res = tester.eval(("show", "countClassLoaders"), check = true)
 
-    val read = upickle.default.read[SortedMap[String, Int]](res.out)
-    val expected = SortedMap(kvs*)
-    // pprint.log(read)
-    // pprint.log(expected)
-    assert(read == expected)
+    val read = upickle.default.read[Map[String, Int]](res.out).toSeq.sorted
+
+    assertGoldenLiteral(read, expected)
   }
 
-  def checkThreads(tester: IntegrationTester)(expected0: String*) = {
-    val expected = expected0.sorted
+  def checkThreads(tester: IntegrationTester)(
+      expected: utest.framework.GoldenFix.Span[Seq[String]]
+  ) = {
     val out = tester.eval(("show", "countThreads")).out
     val read = upickle.default.read[Seq[String]](out)
     // Filter out threads from the thread pool that runs tasks
@@ -46,183 +47,213 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
       .map {
         // Timers have incrementing IDs, but we don't care what
         // the ID is as long as it is a timer thread.
-        case s"Timer-$n" => "Timer"
+        case s"Timer-$_" => "Timer"
+        // The action runners have the socket address in them, we don't care about that
+        case s"MillServerActionRunner$_" => "MillServerActionRunner"
+        // Same here
+        case s"HandleRunThread$_" => "HandleRunThread"
         case s => s
       }
       .sorted
 
-    if (filtered != expected) {
-      pprint.log(expected)
-      pprint.log(filtered)
-    }
-    assert(filtered == expected)
+    assertGoldenLiteral(filtered, expected)
   }
 
   val tests: Tests = Tests {
     test - integrationTest { tester =>
       if (daemonMode) {
-        mill.constants.DebugLog("\nstart")
         checkClassloaders(tester)(
-          "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-          "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
-          "mill.javalib.JvmWorkerModule#worker cl" -> 1,
-          "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
+          Map(
+            "mill.javalib.JvmWorkerModule#internalWorker cl" -> 1,
+            "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
+            "mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader" -> 1
+          ).toSeq.sorted
         )
         checkThreads(tester)(
-          "HandleRunThread",
-          "MillServerActionRunner",
-          "MillServerTimeoutThread",
-          "Process ID Checker Thread",
-          "FileToStreamTailerThread",
-          "FileToStreamTailerThread",
-          "main",
-          "prompt-logger-stream-pumper-thread",
-          "proxyInputStreamThroughPumper"
-        )
-
-        // Exercise clean compile all
-        for (i <- Range(0, 2)) {
-          tester.eval(("show", "clean"))
-          tester.eval(("show", "__.compile"))
-          checkClassloaders(tester)(
-            "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
-            "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerManager" -> 1,
-            "mill.javalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 2
-          )
-          checkThreads(tester)(
+          List(
+            "FileToStreamTailerThread",
+            "FileToStreamTailerThread",
             "HandleRunThread",
+            "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
-            "FileToStreamTailerThread",
-            "FileToStreamTailerThread",
-            "Timer",
             "main",
-            "prompt-logger-stream-pumper-thread",
-            "proxyInputStreamThroughPumper"
+            "prompt-logger-stream-pumper-thread"
+          )
+        )
+
+        // Exercise clean compile all
+        for (_ <- Range(0, 2)) {
+          tester.eval(("show", "clean"))
+          tester.eval(("show", "__.compile"))
+          checkClassloaders(tester)(
+            Map(
+              "mill.kotlinlib.KotlinWorkerManager" -> 1,
+              "mill.javalib.JvmWorkerModule#internalWorker cl" -> 2,
+              "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
+              "mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader" -> 2
+            ).toSeq.sorted
+          )
+          checkThreads(tester)(
+            List(
+              "FileToStreamTailerThread",
+              "FileToStreamTailerThread",
+              "HandleRunThread",
+              "JsonArrayLogger mill-chrome-profile.json",
+              "JsonArrayLogger mill-profile.json",
+              "MillServerActionRunner",
+              "MillServerTimeoutThread",
+              "Process ID Checker Thread",
+              "Timer",
+              "main",
+              "prompt-logger-stream-pumper-thread"
+            )
           )
 
         }
 
         // Exercise no-op compile all
-        for (i <- Range(0, 2)) {
+        for (_ <- Range(0, 2)) {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
-            "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
-            "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerManager" -> 1,
-            "mill.javalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 2
+            Map(
+              "mill.kotlinlib.KotlinWorkerManager" -> 1,
+              "mill.javalib.JvmWorkerModule#internalWorker cl" -> 2,
+              "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
+              "mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader" -> 2
+            ).toSeq.sorted
           )
           checkThreads(tester)(
-            "HandleRunThread",
-            "MillServerActionRunner",
-            "MillServerTimeoutThread",
-            "Process ID Checker Thread",
-            "FileToStreamTailerThread",
-            "FileToStreamTailerThread",
-            "Timer",
-            "main",
-            "prompt-logger-stream-pumper-thread",
-            "proxyInputStreamThroughPumper"
+            List(
+              "FileToStreamTailerThread",
+              "FileToStreamTailerThread",
+              "HandleRunThread",
+              "JsonArrayLogger mill-chrome-profile.json",
+              "JsonArrayLogger mill-profile.json",
+              "MillServerActionRunner",
+              "MillServerTimeoutThread",
+              "Process ID Checker Thread",
+              "Timer",
+              "main",
+              "prompt-logger-stream-pumper-thread"
+            )
           )
-
         }
 
         // Exercise post-shutdown
 
-        tester.eval(("shutdown"))
+        tester.eval(("shutdown"), check = true)
         checkClassloaders(tester)(
-          "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-          "mill.javalib.JvmWorkerModule#worker cl" -> 1
+          List(
+            ("mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl", 1),
+            ("mill.javalib.JvmWorkerModule#internalWorker cl", 1)
+          )
         )
         checkThreads(tester)(
-          "HandleRunThread",
-          "MillServerActionRunner",
-          "MillServerTimeoutThread",
-          "Process ID Checker Thread",
-          "FileToStreamTailerThread",
-          "FileToStreamTailerThread",
-          "main",
-          "prompt-logger-stream-pumper-thread",
-          "proxyInputStreamThroughPumper"
-        )
-
-        // Exercise clean compile all post-shutdown
-        for (i <- Range(0, 2)) {
-          tester.eval(("show", "clean"))
-          tester.eval(("show", "__.compile"))
-          checkClassloaders(tester)(
-            "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerManager" -> 1,
-            "mill.javalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
-          )
-          checkThreads(tester)(
+          List(
+            "FileToStreamTailerThread",
+            "FileToStreamTailerThread",
             "HandleRunThread",
+            "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
-            "FileToStreamTailerThread",
-            "FileToStreamTailerThread",
-            "Timer",
             "main",
-            "prompt-logger-stream-pumper-thread",
-            "proxyInputStreamThroughPumper"
+            "prompt-logger-stream-pumper-thread"
+          )
+        )
+
+        // Exercise clean compile all post-shutdown
+        for (_ <- Range(0, 2)) {
+          tester.eval(("show", "clean"))
+          tester.eval(("show", "__.compile"))
+          checkClassloaders(tester)(
+            List(
+              ("mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl", 1),
+              ("mill.javalib.JvmWorkerModule#internalWorker cl", 2),
+              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
+              ("mill.kotlinlib.KotlinWorkerManager", 1)
+            )
+          )
+          checkThreads(tester)(
+            List(
+              "FileToStreamTailerThread",
+              "FileToStreamTailerThread",
+              "HandleRunThread",
+              "JsonArrayLogger mill-chrome-profile.json",
+              "JsonArrayLogger mill-profile.json",
+              "MillServerActionRunner",
+              "MillServerTimeoutThread",
+              "Process ID Checker Thread",
+              "Timer",
+              "main",
+              "prompt-logger-stream-pumper-thread"
+            )
           )
         }
 
         // Exercise modifying build.mill
-        for (i <- Range(0, 2)) {
+        for (_ <- Range(0, 2)) {
           tester.modifyFile(tester.workspacePath / "build.mill", _ + "\n")
 
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
-            "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerManager" -> 1,
-            "mill.javalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
+            List(
+              ("mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl", 1),
+              ("mill.javalib.JvmWorkerModule#internalWorker cl", 2),
+              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
+              ("mill.kotlinlib.KotlinWorkerManager", 1)
+            )
           )
           checkThreads(tester)(
-            "HandleRunThread",
-            "MillServerActionRunner",
-            "MillServerTimeoutThread",
-            "Process ID Checker Thread",
-            "FileToStreamTailerThread",
-            "FileToStreamTailerThread",
-            "Timer",
-            "main",
-            "prompt-logger-stream-pumper-thread",
-            "proxyInputStreamThroughPumper"
+            List(
+              "FileToStreamTailerThread",
+              "FileToStreamTailerThread",
+              "HandleRunThread",
+              "JsonArrayLogger mill-chrome-profile.json",
+              "JsonArrayLogger mill-profile.json",
+              "MillServerActionRunner",
+              "MillServerTimeoutThread",
+              "Process ID Checker Thread",
+              "Timer",
+              "main",
+              "prompt-logger-stream-pumper-thread"
+            )
           )
 
         }
         // Exercise modifying Foo.java, Foo.kt, Foo.scala
-        for (i <- Range(0, 2)) {
+        for (_ <- Range(0, 2)) {
           tester.modifyFile(tester.workspacePath / "hello-java/src/Foo.java", "//hello\n" + _)
           tester.modifyFile(tester.workspacePath / "hello-kotlin/src/Foo.kt", "//hello\n" + _)
           tester.modifyFile(tester.workspacePath / "hello-scala/src/Foo.scala", "//hello\n" + _)
 
-          val res = tester.eval(("show", "__.compile"))
+          tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
-            "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerManager" -> 1,
-            "mill.javalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
+            List(
+              ("mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl", 1),
+              ("mill.javalib.JvmWorkerModule#internalWorker cl", 2),
+              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
+              ("mill.kotlinlib.KotlinWorkerManager", 1)
+            )
           )
           checkThreads(tester)(
-            "HandleRunThread",
-            "MillServerActionRunner",
-            "MillServerTimeoutThread",
-            "Process ID Checker Thread",
-            "FileToStreamTailerThread",
-            "FileToStreamTailerThread",
-            "Timer",
-            "main",
-            "prompt-logger-stream-pumper-thread",
-            "proxyInputStreamThroughPumper"
+            List(
+              "FileToStreamTailerThread",
+              "FileToStreamTailerThread",
+              "HandleRunThread",
+              "JsonArrayLogger mill-chrome-profile.json",
+              "JsonArrayLogger mill-profile.json",
+              "MillServerActionRunner",
+              "MillServerTimeoutThread",
+              "Process ID Checker Thread",
+              "Timer",
+              "main",
+              "prompt-logger-stream-pumper-thread"
+            )
           )
 
         }
@@ -230,24 +261,29 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         // Make sure we can detect leaked classloaders and threads when the do happen
         tester.eval(("leakThreadClassloader"))
         checkClassloaders(tester)(
-          "leaked classloader" -> 1,
-          "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-          "mill.kotlinlib.KotlinWorkerManager" -> 1,
-          "mill.javalib.JvmWorkerModule#worker cl" -> 2,
-          "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
+          List(
+            ("leaked classloader", 1),
+            ("mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl", 1),
+            ("mill.javalib.JvmWorkerModule#internalWorker cl", 2),
+            ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
+            ("mill.kotlinlib.KotlinWorkerManager", 1)
+          )
         )
         checkThreads(tester)(
-          "HandleRunThread",
-          "MillServerActionRunner",
-          "MillServerTimeoutThread",
-          "Process ID Checker Thread",
-          "FileToStreamTailerThread",
-          "FileToStreamTailerThread",
-          "Timer",
-          "leaked thread",
-          "main",
-          "prompt-logger-stream-pumper-thread",
-          "proxyInputStreamThroughPumper"
+          List(
+            "FileToStreamTailerThread",
+            "FileToStreamTailerThread",
+            "HandleRunThread",
+            "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
+            "MillServerActionRunner",
+            "MillServerTimeoutThread",
+            "Process ID Checker Thread",
+            "Timer",
+            "leaked thread",
+            "main",
+            "prompt-logger-stream-pumper-thread"
+          )
         )
       }
     }

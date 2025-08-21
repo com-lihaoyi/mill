@@ -1,13 +1,21 @@
 [bsp] Trying to load BSP server...
 [bsp] BSP server started
 [1-buildInitialize] Entered buildInitialize
-[1-buildInitialize] Got client semanticdbVersion: *. Enabling SemanticDB support.
+[1-buildInitialize] Got client semanticdbVersion: * Enabling SemanticDB support.
 [1-buildInitialize] buildInitialize took * msec
-[bsp-init-build.mill-*] [info] compiling * Scala sources to * ...
-[bsp-init-build.mill-*] [info] done compiling
+[bsp-init-mill-build/build.mill-58] [info] compiling * Scala sources to * ...
+[bsp-init-mill-build/build.mill-58] [warn] package scala contains object and package with same name: caps.
+[bsp-init-mill-build/build.mill-58] [warn] This indicates that there are several versions of the Scala standard library on the classpath.
+[bsp-init-mill-build/build.mill-58] [warn] The build should be reconfigured so that only one version of the standard library is on the classpath.
+[bsp-init-mill-build/build.mill-58] [warn] one warning found
+[bsp-init-mill-build/build.mill-58] [info] done compiling
+[bsp-init-build.mill-58] [info] compiling * Scala sources to * ...
+[bsp-init-build.mill-58] [info] done compiling
 [bsp-init] SNAPSHOT
 [2-workspaceBuildTargets] Entered workspaceBuildTargets
 [2-workspaceBuildTargets] Evaluating * tasks
+[2-workspaceBuildTargets] Done
+[2-workspaceBuildTargets] Evaluating 1 task
 [2-workspaceBuildTargets] Done
 [2-workspaceBuildTargets] Evaluating 1 task
 [2-workspaceBuildTargets] Done
@@ -23,30 +31,16 @@
 [3-loggingTest] loggingTest took * msec
 [4-compile] Entered buildTargetCompile
 [4-compile] Evaluating 1 task
-[4-compile-*] errored.exception.compile failed
-[4-compile] * tasks failed
-[4-compile] errored.exception.compile java.lang.RuntimeException: nope
-[4-compile]     scala.sys.package$.error(package.scala:*)
-[4-compile]     build_.package_.build_*(build.mill:*)
-[4-compile]     mill.api.Task$Named.evaluate(Task.scala:*)
-[4-compile]     mill.api.Task$Named.evaluate$(Task.scala:*)
-[4-compile]     mill.api.Task$Computed.evaluate(Task.scala:*)
-[4-compile] Failed
+[4-compile] Done
 [4-compile] buildTargetCompile took * msec
 [5-compile] Entered buildTargetCompile
 [5-compile] Evaluating 1 task
-[5-compile-*] [info] compiling 1 Scala source to * ...
-[5-compile-*] [error] */errored/compilation-error/src/Thing.scala:2:3: not found: value nope
-[5-compile-*] [error]   nope
-[5-compile-*] [error]   ^
-[5-compile-*] [error] one error found
-[5-compile-*] errored.compilation-error.compile failed
-[5-compile-*] [info] compiling 1 Scala source to * ...
-[5-compile-*] [error] */errored/compilation-error/src/Thing.scala:2:3: not found: value nope
-[5-compile-*] [error]   nope
-[5-compile-*] [error]   ^
-[5-compile-*] [error] one error found
-[5-compile-*] errored.compilation-error.semanticDbData failed
+[5-compile-54] [info] compiling * Scala source to * ...
+[5-compile-54] [error] *:2:3: not found: value nope
+[5-compile-54] [error]   nope
+[5-compile-54] [error]   ^
+[5-compile-54] [error] one error found
+[5-compile-54] errored.compilation-error.semanticDbDataDetailed failed
 [5-compile] Done
 [5-compile] buildTargetCompile took * msec
 [6-compile] Entered buildTargetCompile

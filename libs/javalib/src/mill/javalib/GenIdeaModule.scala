@@ -1,7 +1,7 @@
 package mill.javalib
 
-import mill.api.{ModuleRef, Task}
-import mill.{Module, PathRef, T}
+import mill.api.Task
+import mill.Module
 import mill.api.daemon.internal.idea.{GenIdeaModuleApi, IdeaConfigFile, JavaFacet}
 
 /**
@@ -24,13 +24,17 @@ trait GenIdeaModule extends Module with GenIdeaModuleApi {
    * @param ideaConfigVersion The IDEA configuration version in use. Probably `4`.
    * @return
    */
-  def ideaJavaModuleFacets(ideaConfigVersion: Int): Task[Seq[JavaFacet]] =
+  def ideaJavaModuleFacets(ideaConfigVersion: Int): Task[Seq[JavaFacet]] = {
+    val _ = ideaConfigVersion // silence unused, this is part of API
     Task.Anon { Seq[JavaFacet]() }
+  }
 
   /**
    * Contribute components to idea config files.
    */
-  def ideaConfigFiles(ideaConfigVersion: Int): Task[Seq[IdeaConfigFile]] =
+  def ideaConfigFiles(ideaConfigVersion: Int): Task[Seq[IdeaConfigFile]] = {
+    val _ = ideaConfigVersion // silence unused, this is part of API
     Task.Anon { Seq[IdeaConfigFile]() }
+  }
 
 }

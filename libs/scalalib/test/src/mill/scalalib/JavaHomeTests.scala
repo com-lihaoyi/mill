@@ -1,7 +1,8 @@
 package mill.javalib
 
-import mill.api.{Args, Discover, ModuleRef, Task}
-import mill.api.ExecResult
+import mill.api.daemon.ExecResult
+import mill.api.{Discover, Task}
+import mill.scalalib.ScalaModule
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.*
 import utest.*
@@ -15,7 +16,7 @@ object JavaHomeTests extends TestSuite {
     object javamodule extends JavaModule {
       def jvmId = "temurin:11.0.25"
     }
-    object scalamodule extends JavaModule {
+    object scalamodule extends ScalaModule {
       def jvmId = "temurin:11.0.25"
       def scalaVersion = "2.13.14"
     }
@@ -26,7 +27,7 @@ object JavaHomeTests extends TestSuite {
     object javamodule extends JavaModule {
       def jvmId = "temurin:17.0.13"
     }
-    object scalamodule extends JavaModule {
+    object scalamodule extends ScalaModule {
       def jvmId = "temurin:17.0.13"
 
       def scalaVersion = "2.13.14"
@@ -34,45 +35,73 @@ object JavaHomeTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"
-
   def tests: Tests = Tests {
-
     test("compileApis") {
       val resourcePathCompile = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "java-scala-11"
-      test("jdk11java") {
-        val baos = new ByteArrayOutputStream()
-        UnitTester(
-          JavaJdk11DoesntCompile,
-          resourcePathCompile,
-          errStream = new PrintStream(baos)
-        ).scoped { eval =>
-          val Left(_) = eval.apply(JavaJdk11DoesntCompile.javamodule.compile): @unchecked
-          assert(baos.toString.contains("cannot find symbol"))
-          assert(baos.toString.contains("method indent"))
+
+      def captureOutput[A, R](
+          module: TestRootModule,
+          task: Task[A]
+      )(f: (Either[ExecResult.Failing[A], UnitTester.Result[A]], String) => R): R = {
+        val errStream = new ByteArrayOutputStream()
+        UnitTester(module, resourcePathCompile, errStream = new PrintStream(errStream)).scoped {
+          eval =>
+            val result = eval.apply(task)
+            val stderr = errStream.toString()
+//            println("STDERR: " + stderr)
+            f(result, stderr)
         }
       }
 
-      test("jdk17java") {
-        UnitTester(JavaJdk17Compiles, resourcePathCompile).scoped { eval =>
-          val Right(_) = eval.apply(JavaJdk17Compiles.javamodule.compile): @unchecked
+      def testSuccess(module: TestRootModule, task: Task[?]): Unit = {
+        captureOutput(module, task) { (result, _) =>
+          val Right(_) = result: @unchecked
         }
       }
 
-      // This doesn't work because Zinc doesn't apply the javaHome config to
-      // the Scala compiler JVM, which always runs in-memory https://github.com/sbt/zinc/discussions/1498
-//      test("jdk11scala"){
-//        val baos = new ByteArrayOutputStream()
-//        val eval = UnitTester(JavaJdk11DoesntCompile, resourcePathCompile)
-//        val Left(result) = eval.apply(JavaJdk11DoesntCompile.scalamodule.compile)
-//      }
+      def testFailure(module: TestRootModule, task: Task[?], errors: String*): Unit = {
+        captureOutput(module, task) { (result, stderr) =>
+          val Left(failing) = result: @unchecked
+          failing match {
+            case _: ExecResult.Failure[?]
+                // javadoc fails with a process error code 1
+                | ExecResult.Exception(_: os.SubprocessException, _) =>
+              errors.foreach(error => assert(stderr.contains(error)))
+            case _ =>
+              failing.throwException
+          }
+        }
+      }
 
-      test("jdk17scala") {
-        UnitTester(JavaJdk17Compiles, resourcePathCompile).scoped { eval =>
-          val Right(_) = eval.apply(JavaJdk17Compiles.scalamodule.compile): @unchecked
+      test("jdk11") {
+        test("java") {
+          def doTest[A](task: Task[A]): Unit =
+            testFailure(JavaJdk11DoesntCompile, task, "package java.lang.runtime does not exist")
+
+          test("compile") - doTest(JavaJdk11DoesntCompile.javamodule.compile)
+          test("docJar") - doTest(JavaJdk11DoesntCompile.javamodule.docJar)
+        }
+
+        test("scala") {
+          def doTest[A](task: Task[A]): Unit =
+            testFailure(JavaJdk11DoesntCompile, task, "value indent is not a member of String")
+
+          test("compile") - doTest(JavaJdk11DoesntCompile.scalamodule.compile)
+          test("docJar") - doTest(JavaJdk11DoesntCompile.scalamodule.docJar)
+        }
+      }
+
+      test("jdk17") {
+        test("java") {
+          test("compile") - testSuccess(JavaJdk17Compiles, JavaJdk17Compiles.javamodule.compile)
+          test("docJar") - testSuccess(JavaJdk17Compiles, JavaJdk17Compiles.javamodule.docJar)
+        }
+
+        test("scala") {
+          test("compile") - testSuccess(JavaJdk17Compiles, JavaJdk17Compiles.scalamodule.compile)
+          test("docJar") - testSuccess(JavaJdk17Compiles, JavaJdk17Compiles.scalamodule.docJar)
         }
       }
     }
-
   }
 }

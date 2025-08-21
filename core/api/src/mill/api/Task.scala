@@ -9,6 +9,7 @@ import mill.api.internal.{Applicative, Cacher, NamedParameterOnlyDummy}
 import upickle.default.ReadWriter
 import upickle.default.Writer
 
+import scala.annotation.{targetName, unused}
 import scala.language.implicitConversions
 import scala.quoted.*
 
@@ -148,7 +149,7 @@ object Task {
       inline ctx: mill.api.ModuleCtx
   ): os.Path = value match {
     // TODO: support "."
-    case str: String => ctx.millSourcePath / os.up / os.PathChunk.segmentsFromString(str)
+//    case str: String => ctx.millSourcePath / os.up / os.PathChunk.segmentsFromString(str)
     case sub: os.SubPath => ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk(sub)
     case rel: os.RelPath => ctx.millSourcePath / os.up / os.PathChunk.RelPathChunk(rel)
     case p: os.Path => p
@@ -209,7 +210,7 @@ object Task {
    *                   runs.
    */
   def Command(
-      t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
+      @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       exclusive: Boolean = false,
       persistent: Boolean = false
   ): CommandFactory = new CommandFactory(exclusive = exclusive, persistent = persistent)
@@ -255,6 +256,15 @@ object Task {
   ): Simple[T] =
     ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
+  // Overload of [[apply]] to improve type inference for `Task{ Nil }` and `Task { Seq() }`
+  @targetName("applySeq")
+  inline def apply[T](inline t: Result[Seq[T]])(implicit
+      inline rw: ReadWriter[Seq[T]],
+      inline ctx: mill.api.ModuleCtx
+  ): Simple[Seq[T]] = ${
+    Macros.taskResultImpl[Seq[T]]('t)('rw, 'ctx, '{ false })
+  }
+
   /**
    * Persistent tasks are defined using
    * the `Task(persistent = true){...}` syntax. The main difference is that while
@@ -269,7 +279,7 @@ object Task {
    * Violating that invariant can result in confusing mis-behaviors
    */
   def apply(
-      t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
+      @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       persistent: Boolean = false
   ): ApplyFactory = new ApplyFactory(persistent)
   class ApplyFactory private[mill] (val persistent: Boolean) {
@@ -370,6 +380,14 @@ object Task {
     ): Simple[T] =
       ${ Macros.taskResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
 
+    // Overload of [[create]] specialized to working on `Seq`s, to improve the type
+    // inference for `Task{ Nil }` or `Task{ Seq() }`
+    implicit inline def createSeq[T](inline t: Seq[T])(implicit
+        inline rw: ReadWriter[Seq[T]],
+        inline ctx: ModuleCtx
+    ): Simple[Seq[T]] =
+      ${ Macros.taskResultImpl[Seq[T]]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
+
     implicit inline def create[T](inline t: Result[T])(implicit
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
@@ -379,7 +397,7 @@ object Task {
   }
 
   class Anon[T](
-      val inputs: Seq[Task[_]],
+      val inputs: Seq[Task[?]],
       evaluate0: (Seq[Any], mill.api.TaskCtx) => Result[T],
       enclosing: sourcecode.Enclosing
   ) extends Task[T] {
@@ -499,7 +517,7 @@ object Task {
         ctx: Expr[mill.api.ModuleCtx]
     ): Expr[Simple[Seq[PathRef]]] = {
       val expr = appImpl[Simple, Seq[PathRef]](
-        (in, ev) => '{ new Sources($ev, $ctx, ${ taskIsPrivate() }) },
+        ( /*in*/ _, ev) => '{ new Sources($ev, $ctx, ${ taskIsPrivate() }) },
         values,
         allowTaskReferences = false
       )
@@ -513,7 +531,7 @@ object Task {
     ): Expr[Simple[PathRef]] = {
 
       val expr = appImpl[Simple, PathRef](
-        (in, ev) => '{ new Source($ev, $ctx, ${ taskIsPrivate() }) },
+        ( /*in*/ _, ev) => '{ new Source($ev, $ctx, ${ taskIsPrivate() }) },
         value,
         allowTaskReferences = false
       )
@@ -529,7 +547,7 @@ object Task {
     ): Expr[Simple[T]] = {
 
       val expr = appImpl[Simple, T](
-        (in, ev) => '{ new Input[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
+        ( /*in*/ _, ev) => '{ new Input[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
         value,
         allowTaskReferences = false
       )

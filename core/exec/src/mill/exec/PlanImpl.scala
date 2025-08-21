@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.api.{Task, Plan}
+import mill.api.{Plan, Task}
 import mill.api.MultiBiMap
 import mill.api.TopoSorted
 
@@ -33,20 +33,28 @@ private[mill] object PlanImpl {
   ]): MultiBiMap[T, Task[?]] = {
 
     val output = new MultiBiMap.Mutable[T, Task[?]]()
-    for ((task, t) <- topoSortedTasks.values.flatMap(t => important.lift(t).map((t, _))).iterator) {
+    val topoSortedIndices = topoSortedTasks.values.zipWithIndex.toMap
+    for (task <- topoSortedTasks.values) {
+      for (t <- important.lift(task)) {
 
-      val transitiveTasks = collection.mutable.LinkedHashSet[Task[?]]()
-      def rec(t: Task[?]): Unit = {
-        if (transitiveTasks.contains(t)) () // do nothing
-        else if (important.isDefinedAt(t) && t != task) () // do nothing
-        else {
-          transitiveTasks.add(t)
-          t.inputs.foreach(rec)
+        val transitiveTasks = collection.mutable.Map[Task[?], Int]()
+
+        def rec(t: Task[?]): Unit = {
+          if (transitiveTasks.contains(t)) () // do nothing
+          else if (important.isDefinedAt(t) && t != task) () // do nothing
+          else {
+            transitiveTasks.put(t, topoSortedIndices(t))
+            t.inputs.foreach(rec)
+          }
         }
+
+        rec(task)
+        val out = transitiveTasks.toArray
+        out.sortInPlaceBy(_._2)
+        output.addAll(t, out.map(_._1))
       }
-      rec(task)
-      output.addAll(t, topoSorted(transitiveTasks.toIndexedSeq).values)
     }
+
     output
   }
 
@@ -88,13 +96,10 @@ private[mill] object PlanImpl {
     val indexed = transitiveTasks
     val taskIndices = indexed.zipWithIndex.toMap
 
-    val numberedEdges =
-      for (t <- transitiveTasks)
-        yield t.inputs.collect(taskIndices).toArray
+    val numberedEdges = transitiveTasks.map(_.inputs.collect(taskIndices).toArray)
 
-    val sortedClusters = mill.internal.Tarjans(numberedEdges.toArray)
-    val nonTrivialClusters = sortedClusters.filter(_.length > 1)
-    assert(nonTrivialClusters.isEmpty, nonTrivialClusters)
-    new TopoSorted(IndexedSeq.from(sortedClusters.flatten.map(indexed)))
+    val sortedClusters = mill.internal.Tarjans(numberedEdges)
+    assert(sortedClusters.count(_.length > 1) == 0, sortedClusters.filter(_.length > 1))
+    new TopoSorted(sortedClusters.map(_(0)).map(indexed))
   }
 }

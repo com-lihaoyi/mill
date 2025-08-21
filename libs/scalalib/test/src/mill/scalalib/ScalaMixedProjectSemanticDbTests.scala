@@ -20,7 +20,10 @@ object ScalaMixedProjectSemanticDbTests extends TestSuite {
     test("semanticDbData") {
       def semanticDbFiles: Set[os.SubPath] = Set(
         os.sub / "META-INF/semanticdb/core/src/Foo.scala.semanticdb",
-        os.sub / "META-INF/semanticdb/core/src/JFoo.java.semanticdb"
+        os.sub / "META-INF/semanticdb/core/src/JFoo.java.semanticdb",
+        os.sub / "foo/JFoo.class",
+        os.sub / "foo/Foo.class",
+        os.sub / "foo/Foo$.class"
       )
 
       test("fromScratch") - UnitTester(SemanticWorld, sourceRoot = resourcePath).scoped { eval =>
@@ -28,7 +31,7 @@ object ScalaMixedProjectSemanticDbTests extends TestSuite {
           println("first - expected full compile")
           val Right(result) = eval.apply(SemanticWorld.core.semanticDbData): @unchecked
 
-          val dataPath = eval.outPath / "core/semanticDbData.dest/data"
+          val dataPath = eval.outPath / "core/semanticDbDataDetailed.dest/data"
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 

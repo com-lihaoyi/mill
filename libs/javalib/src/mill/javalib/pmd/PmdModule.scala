@@ -2,6 +2,7 @@ package mill.javalib.pmd
 
 import mill.*
 import mill.api.{Discover, ExternalModule, TaskCtx}
+import mill.api.daemon.experimental
 import mill.javalib.api.Versions
 import mill.javalib.{CoursierModule, Dep, DepSyntax, OfflineSupportModule}
 import mill.util.{Jvm, Version}
@@ -9,6 +10,7 @@ import mill.util.{Jvm, Version}
 /**
  * Checks Java source files with PMD static code analyzer [[https://pmd.github.io/]].
  */
+@experimental
 trait PmdModule extends CoursierModule, OfflineSupportModule {
 
   /**
@@ -168,6 +170,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
  *
  * Allows usage via `import mill.javalib.pmd/` in build.mill.
  */
+@experimental
 object PmdModule extends ExternalModule, PmdModule, DefaultTaskModule {
   lazy val millDiscover: Discover = Discover[this.type]
   override def defaultTask() = "pmd"

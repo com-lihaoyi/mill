@@ -1,13 +1,13 @@
 package mill.eval
 
-import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, ExecutionResultsApi, TestReporter}
 import mill.constants.OutFiles
 import mill.constants.OutFiles.*
 import mill.api.{PathRef, *}
-import mill.api.internal.{RootModule0, ResolveChecker}
+import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
 import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
+import mill.internal.PrefixLogger
 import mill.resolve.Resolve
 
 /**
@@ -55,6 +55,22 @@ final class EvaluatorImpl private[mill] (
   ): mill.api.Result[List[Segments]] = {
     os.checker.withValue(ResolveChecker(workspace)) {
       Resolve.Segments.resolve(
+        rootModule,
+        scriptArgs,
+        selectMode,
+        allowPositionalCommandArgs,
+        resolveToModuleTasks
+      )
+    }
+  }
+  override def resolveRaw(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean = false,
+      resolveToModuleTasks: Boolean = false
+  ): mill.api.Result[List[Resolved]] = {
+    os.checker.withValue(ResolveChecker(workspace)) {
+      Resolve.Raw.resolve(
         rootModule,
         scriptArgs,
         selectMode,
@@ -180,9 +196,9 @@ final class EvaluatorImpl private[mill] (
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.transitiveResults.iterator ++ selectiveResults)
           .collect {
-            case (t: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
+            case (_: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
               ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
-            case (t: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
+            case (_: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
               Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
             case (t: Task.Input[_], result) =>
 
@@ -194,7 +210,8 @@ final class EvaluatorImpl private[mill] (
                 reporter = reporter,
                 testReporter = testReporter,
                 workspace = workspace,
-                systemExit = _ => ???,
+                _systemExitWithReason = (reason, exitCode) =>
+                  throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
                 fork = null,
                 jobs = execution.effectiveThreadCount,
                 offline = offline
@@ -246,19 +263,26 @@ final class EvaluatorImpl private[mill] (
       reporter: Int => Option[CompileProblemReporter] = _ => None,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    val resolved = os.checker.withValue(ResolveChecker(workspace)) {
-      Evaluator.withCurrentEvaluator(this) {
-        Resolve.Tasks.resolve(
-          rootModule,
-          scriptArgs,
-          selectMode,
-          allowPositionalCommandArgs
-        )
+    val promptLineLogger = new PrefixLogger(
+      logger0 = baseLogger,
+      key0 = Seq("resolve"),
+      message = "resolve " + scriptArgs.mkString(" ")
+    )
+
+    val resolved = promptLineLogger.withPromptLine {
+      os.checker.withValue(ResolveChecker(workspace)) {
+        Evaluator.withCurrentEvaluator(this) {
+          Resolve.Tasks.resolve(
+            rootModule,
+            scriptArgs,
+            selectMode,
+            allowPositionalCommandArgs
+          )
+        }
       }
     }
-
-    for (task <- resolved)
-      yield execute(Seq.from(task), reporter = reporter, selectiveExecution = selectiveExecution)
+    for (tasks <- resolved)
+      yield execute(Seq.from(tasks), reporter = reporter, selectiveExecution = selectiveExecution)
   }
 
   def close(): Unit = execution.close()

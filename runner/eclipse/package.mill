@@ -1,0 +1,9 @@
+package build.runner.eclipse
+
+import mill.*
+import millbuild.*
+
+object `package` extends MillPublishScalaModule {
+  def moduleDeps = Seq(build.libs.util)
+  def mvnDeps = Seq(Deps.scalaXml)
+}

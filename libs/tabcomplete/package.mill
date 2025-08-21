@@ -8,5 +8,5 @@ import millbuild.*
  * script that runs in both shells
  */
 object `package` extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.core.api, build.libs.util)
+  def moduleDeps = Seq(build.core.api, build.libs.util, build.core.internal)
 }

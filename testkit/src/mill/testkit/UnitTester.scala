@@ -1,22 +1,19 @@
 package mill.testkit
 
 import mill.Task
-import mill.api.DummyInputStream
-import mill.api.ExecResult
+import mill.api.{BuildCtx, DummyInputStream, ExecResult, Result, SystemStreams, Val}
 import mill.api.ExecResult.OuterStack
-import mill.api.Result
-import mill.api.SystemStreams
-import mill.api.Val
 import mill.constants.OutFiles.millChromeProfile
 import mill.constants.OutFiles.millProfile
 import mill.api.Evaluator
 import mill.api.SelectMode
-import mill.exec.JsonArrayLogger
+import mill.internal.JsonArrayLogger
 import mill.resolve.Resolve
 
 import java.io.InputStream
 import java.io.PrintStream
 import java.util.concurrent.ThreadPoolExecutor
+import scala.annotation.targetName
 
 object UnitTester {
   case class Result[T](value: T, evalCount: Int)
@@ -99,7 +96,8 @@ class UnitTester(
         debugEnabled = debugEnabled,
         titleText = "",
         terminfoPath = os.temp(),
-        currentTimeMillis = () => System.currentTimeMillis()
+        currentTimeMillis = () => System.currentTimeMillis(),
+        chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile)
       ) {
     val prefix: String = {
       val idx = fullName.value.lastIndexOf(".")
@@ -121,8 +119,7 @@ class UnitTester(
 
   val execution = new mill.exec.Execution(
     baseLogger = logger,
-    chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
-    profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
+    profileLogger = new mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
     workspace = module.moduleDir,
     outPath = outPath,
     externalOutPath = outPath,
@@ -134,7 +131,8 @@ class UnitTester(
     failFast = failFast,
     ec = ec,
     codeSignatures = Map(),
-    systemExit = _ => ???,
+    systemExit = (reason, exitCode) =>
+      throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
@@ -165,9 +163,9 @@ class UnitTester(
     }
   }
 
+  @targetName("applyTasks")
   def apply(
-      tasks: Seq[Task[?]],
-      dummy: DummyImplicit = null
+      tasks: Seq[Task[?]]
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
 
     val evaluated = evaluator.execute(tasks).executionResults
@@ -221,20 +219,27 @@ class UnitTester(
     )
   }
 
+  /** Replaces the [[BuildCtx.workspaceRoot]] for the given scope with [[module.moduleDir]]. */
   def scoped[T](tester: UnitTester => T): T = {
     try {
-      mill.api.BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
+      BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
         tester(this)
       }
     } finally close()
   }
 
-  def close(): Unit = {
+  def closeWithoutCheckingLeaks(): Unit = {
     for (case (_, Val(obsolete: AutoCloseable)) <- evaluator.workerCache.values) {
       obsolete.close()
     }
     evaluator.close()
+  }
 
+  def close(): Unit = {
+    closeWithoutCheckingLeaks()
+    checkLeaks()
+  }
+  def checkLeaks() = {
     assert(
       mill.api.MillURLClassLoader.openClassloaders.isEmpty,
       s"Unit tester detected leaked classloaders on close: \n${mill.api.MillURLClassLoader.openClassloaders.mkString("\n")}"

@@ -2,7 +2,6 @@ package mill.resolve
 
 import mill.api.Result
 import mill.api.Discover
-import mill.api.TestGraphs
 import mill.api.TestGraphs.*
 import mill.testkit.TestRootModule
 import mill.{Module, Task}
@@ -90,7 +89,7 @@ object ResolveTests extends TestSuite {
       test("neg5") - check(
         "invisible",
         Result.Failure(
-          "Cannot resolve invisible. Try `mill resolve _` or `mill resolve __.invisible&` to see what's available."
+          "Cannot resolve invisible. Try `mill resolve _`, `mill resolve __.invisible&` to see what's available, or `mill __.invisible&` to run all `invisible&` tasks"
         )
       )
       test("negBadParse") - check(
@@ -181,7 +180,7 @@ object ResolveTests extends TestSuite {
       test("wildcardNeg") - check(
         "_._.single",
         Result.Failure(
-          "Cannot resolve _._.single. Try `mill resolve _` or `mill resolve __.single` to see what's available."
+          "Cannot resolve _._.single. Try `mill resolve _`, `mill resolve __.single` to see what's available, or `mill __.single` to run all `single` tasks"
         )
       )
       test("wildcardNeg2") - check(

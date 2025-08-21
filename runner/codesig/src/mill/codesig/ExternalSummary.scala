@@ -4,7 +4,7 @@ import mill.codesig.JvmModel.JType.Cls as JCls
 import mill.codesig.JvmModel.*
 import org.objectweb.asm.{ClassReader, ClassVisitor, MethodVisitor, Opcodes}
 
-import java.net.URLClassLoader
+import scala.util.Using
 
 case class ExternalSummary(
     directMethods: Map[JCls, Map[MethodSig, Boolean]],
@@ -27,46 +27,48 @@ object ExternalSummary {
       localSummary: LocalSummary,
       upstreamClasspath: Seq[os.Path]
   )(implicit st: SymbolTable): ExternalSummary = {
-    val upstreamClassloader = mill.util.Jvm.createClassLoader(
+    def createUpstreamClassloader() = mill.util.Jvm.createClassLoader(
       upstreamClasspath,
       getClass.getClassLoader
     )
-
-    val allDirectAncestors = localSummary.mapValuesOnly(_.directAncestors).flatten
-
-    val allMethodCallParamClasses = localSummary
-      .mapValuesOnly(_.methods.values)
-      .flatten
-      .flatMap(_.calls)
-      .flatMap(call => Seq(call.cls) ++ call.desc.args)
-      .collect { case c: JType.Cls => c }
 
     val methodsPerCls = collection.mutable.Map.empty[JCls, Map[MethodSig, Boolean]]
     val ancestorsPerCls = collection.mutable.Map.empty[JCls, Set[JCls]]
     val directSuperclasses = collection.mutable.Map.empty[JCls, JCls]
 
-    def load(cls: JCls): Unit = methodsPerCls.getOrElse(cls, load0(cls))
+    Using.resource(createUpstreamClassloader()) { upstreamClassloader =>
+      val allDirectAncestors = localSummary.mapValuesOnly(_.directAncestors).flatten
 
-    def load0(cls: JCls): Unit = {
-      val visitor = new MyClassVisitor()
-      val resourcePath =
-        os.resource(upstreamClassloader) / os.SubPath(cls.name.replace('.', '/') + ".class")
+      val allMethodCallParamClasses = localSummary
+        .mapValuesOnly(_.methods.values)
+        .flatten
+        .flatMap(_.calls)
+        .flatMap(call => Seq(call.cls) ++ call.desc.args)
+        .collect { case c: JType.Cls => c }
 
-      new ClassReader(os.read.inputStream(resourcePath)).accept(
-        visitor,
-        ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG
-      )
+      def load(cls: JCls): Unit = methodsPerCls.getOrElse(cls, load0(cls))
 
-      directSuperclasses(cls) = visitor.superclass
-      methodsPerCls(cls) = visitor.methods
-      ancestorsPerCls(cls) = visitor.ancestors
-      ancestorsPerCls(cls).foreach(load)
+      def load0(cls: JCls): Unit = {
+        val visitor = new MyClassVisitor()
+        val resourcePath =
+          os.resource(using upstreamClassloader) / os.SubPath(cls.name.replace('.', '/') + ".class")
+
+        new ClassReader(os.read.inputStream(resourcePath)).accept(
+          visitor,
+          ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG
+        )
+
+        directSuperclasses(cls) = visitor.superclass
+        methodsPerCls(cls) = visitor.methods
+        ancestorsPerCls(cls) = visitor.ancestors
+        ancestorsPerCls(cls).foreach(load)
+      }
+
+      (allDirectAncestors ++ allMethodCallParamClasses)
+        .filter(!localSummary.contains(_))
+        .toSet
+        .foreach(load)
     }
-
-    (allDirectAncestors ++ allMethodCallParamClasses)
-      .filter(!localSummary.contains(_))
-      .toSet
-      .foreach(load)
 
     ExternalSummary(methodsPerCls.toMap, ancestorsPerCls.toMap, directSuperclasses.toMap)
   }

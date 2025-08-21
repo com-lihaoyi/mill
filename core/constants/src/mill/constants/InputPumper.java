@@ -4,11 +4,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.function.Supplier;
 
+/// A `Runnable` that reads from `src` and writes to `dest`.
 public class InputPumper implements Runnable {
-  private Supplier<InputStream> src0;
-  private Supplier<OutputStream> dest0;
+  private final Supplier<InputStream> src0;
+  private final Supplier<OutputStream> dest0;
 
-  private Boolean checkAvailable;
+  /// Controls whether we check `.available` before calling `.read`.
+  ///
+  /// We need to do that because if we call `.read`
+  /// and there is nothing to read, [it can unnecessarily delay the JVM exit by 350ms](
+  ///
+  // https://stackoverflow.com/questions/48951611/blocking-on-stdin-makes-java-process-take-350ms-more-to-exit)
+  private final Boolean checkAvailable;
 
   public InputPumper(
       Supplier<InputStream> src, Supplier<OutputStream> dest, Boolean checkAvailable) {
@@ -27,10 +34,9 @@ public class InputPumper implements Runnable {
     byte[] buffer = new byte[1024];
     try {
       while (running) {
-        // We need to check `.available` and avoid calling `.read`, because if we call `.read`
-        // and there is nothing to read, it can unnecessarily delay the JVM exit by 350ms
-        // https://stackoverflow.com/questions/48951611/blocking-on-stdin-makes-java-process-take-350ms-more-to-exit
-        if (checkAvailable && src.available() == 0) Thread.sleep(1);
+        if (checkAvailable && src.available() == 0)
+          //noinspection BusyWait
+          Thread.sleep(1);
         else {
           int n;
           try {
@@ -39,7 +45,9 @@ public class InputPumper implements Runnable {
             n = -1;
           }
           if (n == -1) running = false;
-          else if (n == 0) Thread.sleep(1);
+          else if (n == 0)
+            //noinspection BusyWait
+            Thread.sleep(1);
           else {
             try {
               dest.write(buffer, 0, n);

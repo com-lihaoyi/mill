@@ -21,6 +21,6 @@ def testTask = Task { os.read(testSource().path).toUpperCase() }
 
 > ls out/mill-daemon # not --no-daemon, make sure `mill-daemon` is generated
 
-> ls out/mill-no-deamon # --no-daemon, make sure `mill-no-deamon` is generated
+> ls out/mill-no-daemon # --no-daemon, make sure `mill-no-daemon` is generated
 
 */

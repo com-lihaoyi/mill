@@ -1,7 +1,7 @@
 package mill.resolve
 
+import mill.api.internal.Resolved
 import mill.api.{Segment, Segments}
-import mill.resolve.ResolveCore.Resolved
 
 /**
  * Reports errors in the case where nothing was resolved
@@ -41,17 +41,23 @@ private object ResolveNotFoundHandler {
   ): String = {
     val search = revSelectorsSoFar.render
 
-    val lastSearchOpt = for {
+    val lastSearchSuffixOpt = for {
       case Segment.Label(s) <- Option(lastSegment)
       if s != "_" && s != "__"
       possibility <- findMostSimilar(s, allPossibleNames)
-    } yield "__." + possibility
+    } yield possibility
+
+    val lastSearchOpt = lastSearchSuffixOpt.map("__." + _)
 
     val searchStr = (Seq(search) ++ lastSearchOpt)
       .map { s => s"`mill resolve $s`" }
-      .mkString(" or ")
+      .mkString(", ")
 
-    s" Try $searchStr to see what's available."
+    val everythingSuffix = lastSearchSuffixOpt match {
+      case None => "."
+      case Some(s) => s", or `mill __.$s` to run all `$s` tasks"
+    }
+    s" Try $searchStr to see what's available$everythingSuffix"
   }
 
   def hintListLabel(

@@ -2,14 +2,14 @@ package millbuild
 
 import mill.*
 import mill.scalalib.*
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.api.BuildCtx
-// import com.goyeau.mill.scalafix.ScalafixModule
+import com.goyeau.mill.scalafix.ScalafixModule
 
 /**
  * Some custom scala settings and test convenience
  */
-trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixModule*/ { outer =>
+trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
   def scalaVersion = Deps.scalaVersion
   def scalapVersion: T[String] = Deps.scala2Version
   def scalafixScalaBinaryVersion = Task {
@@ -22,15 +22,22 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
 
   def semanticDbVersion = Deps.semanticDBscala.version
 
+  def isScala3: T[Boolean] = Task { JvmWorkerUtil.isScala3(scalaVersion()) }
+
+  def ciScalacOptions: T[Seq[String]] = Task {
+    if (isCI()) {
+      // Turn warnings into errors on CI
+      if (isScala3()) Seq("-Werror") else Seq("-Xfatal-warnings")
+    } else Nil
+  }
+
   def scalacOptions =
     super.scalacOptions() ++ Seq(
       "-deprecation",
       "-feature"
-    ) ++ (
-      if (JvmWorkerUtil.isScala3(scalaVersion())) Seq(
-        // "-Werror",
+    ) ++ ciScalacOptions() ++ (
+      if (isScala3()) Seq(
         "-Wunused:all",
-        // "-Xfatal-warnings",
         "-Wconf:msg=An existential type that came from a Scala-2 classfile:silent",
         "-Wconf:msg=import scala.language.implicitConversions:silent",
         "-Wconf:msg=IterableOnceExtensionMethods:silent",
@@ -43,11 +50,10 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
         // "-Wsafe-init",
         // "-Wnonunit-statement",
         // "-Wimplausible-patterns",
-        // "-rewrite", "-source", "3.6-migration"
+        // "-rewrite", "-source", "3.7-migration"
       )
       else Seq(
         "-P:acyclic:force",
-        // "-Xfatal-warnings",
         "-Xlint:unused",
         "-Xlint:adapted-args",
         "-Xsource:3",
@@ -65,7 +71,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
     val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
     super.scalacPluginMvnDeps() ++
       Option.when(binaryVersion != "3")(Deps.acyclic) ++
-      Option.when(hasModuleDefs)(Deps.millModuledefsPlugin)
+      Option.when(hasModuleDefs)(Deps.millModuledefsPlugin) ++
+      Seq(Deps.unrollPlugin)
   }
 
   def mandatoryMvnDeps = Task {
@@ -73,13 +80,14 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
     val binaryVersion = JvmWorkerUtil.scalaBinaryVersion(sv)
     val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
     super.mandatoryMvnDeps() ++
-      Option.when(hasModuleDefs)(Deps.millModuledefs)
+      Option.when(hasModuleDefs)(Deps.millModuledefs) ++
+      Seq(Deps.unrollAnnotation)
   }
 
   /** Default tests module. */
   lazy val test: MillScalaTests = new MillScalaTests {}
   trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule
-      /*with ScalafixModule*/ {
+      with ScalafixModule {
     def scalafixConfig = Task { Some(BuildCtx.workspaceRoot / ".scalafix.conf") }
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps

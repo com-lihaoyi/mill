@@ -4,18 +4,17 @@ import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
 import mill.api.*
-import mill.api.internal.*
 import mill.api.Segment.Label
 import mill.bsp.Constants
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.client.lock.Lock
 import mill.api.internal.WatchSig
 import mill.internal.PrefixLogger
-import mill.server.Server
+import mill.server.MillDaemonServer
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
+
 import java.util.concurrent.{CompletableFuture, ConcurrentHashMap, LinkedBlockingQueue, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
-
 import scala.collection.mutable
 import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration.Duration
@@ -23,7 +22,6 @@ import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
-
 import mill.api.daemon.internal.bsp.{
   BspModuleApi,
   BspServerResult,
@@ -31,6 +29,8 @@ import mill.api.daemon.internal.bsp.{
   ScalaBuildTarget
 }
 import mill.api.daemon.internal.*
+
+import scala.annotation.unused
 
 private class MillBuildServer(
     topLevelProjectRoot: os.Path,
@@ -375,7 +375,7 @@ private class MillBuildServer(
         s"Getting sources of ${sourcesParams.getTargets.asScala.map(_.getUri).mkString(", ")}",
       originId = ""
     ) {
-      case (_, _, id, _: JavaModuleApi, result) => new SourcesItem(
+      case (_, _, id, _, result) => new SourcesItem(
           id,
           (
             result.sources.map(p => sourceItem(os.Path(p), false)) ++
@@ -394,7 +394,7 @@ private class MillBuildServer(
 
   override def buildTargetInverseSources(p: InverseSourcesParams)
       : CompletableFuture[InverseSourcesResult] = {
-    handlerEvaluators() { (state, _) =>
+    handlerEvaluators() { (state, logger) =>
       val tasksEvaluators = state.bspModulesIdList.collect {
         case (id, (m: JavaModuleApi, ev)) =>
           (
@@ -404,7 +404,17 @@ private class MillBuildServer(
       }
 
       val ids = groupList(tasksEvaluators)(_.evaluator)(_.result)
-        .flatMap { case (ev, ts) => ev.executeApi(ts).values.get }
+        .flatMap {
+          case (ev, ts) =>
+            ev
+              .executeApi(
+                tasks = ts,
+                reporter = Utils.getBspLoggedReporterPool("", state.bspIdByModule, client),
+                logger = logger
+              )
+              .values
+              .get
+        }
         .flatten
 
       new InverseSourcesResult(ids.asJava)
@@ -706,7 +716,7 @@ private class MillBuildServer(
             val mainModule = ev.rootModule.asInstanceOf[mill.api.daemon.internal.MainModuleApi]
             val compileTaskName = (module.moduleSegments ++ Label("compile")).render
             logger.debug(s"about to clean: ${compileTaskName}")
-            val cleanTask = mainModule.bspClean(ev, Seq(compileTaskName)*)
+            val cleanTask = mainModule.bspMainModule().bspClean(ev, Seq(compileTaskName)*)
             val cleanResult = evaluate(
               ev,
               s"Cleaning cache of ${module.bspDisplayName}",
@@ -792,14 +802,14 @@ private class MillBuildServer(
 
       // group by evaluator (different root module)
       val groups0 = groupList(tasksSeq)(_._2._1) {
-        case (tasks, (_, id, m)) => (id, m.bspDisplayName, tasks)
+        case (tasks, (_, id, m)) => (id, m, tasks)
       }
 
       val evaluated = groups0.flatMap {
         case (ev, targetIdTasks) =>
           val requestDescription0 = requestDescription.replace(
             "{}",
-            targetIdTasks.map(_._2).mkString(", ")
+            targetIdTasks.map(_._2.bspDisplayName).mkString(", ")
           )
           val results = evaluate(
             ev,
@@ -809,11 +819,11 @@ private class MillBuildServer(
             reporter = Utils.getBspLoggedReporterPool(originId, state.bspIdByModule, client)
           )
           val resultsById = targetIdTasks.flatMap {
-            case (id, _, task) =>
+            case (id, m, task) =>
               results.transitiveResultsApi(task)
                 .asSuccess
                 .map(_.value.value.asInstanceOf[W])
-                .map((id, _))
+                .map((id, m, _))
           }
 
           def logError(id: BuildTargetIdentifier, errorMsg: String): Unit = {
@@ -823,8 +833,8 @@ private class MillBuildServer(
           }
 
           resultsById.flatMap {
-            case (id, values) =>
-              try Seq(block(ev, state, id, state.bspModulesById(id)._1, values))
+            case (id, m, values) =>
+              try Seq(block(ev, state, id, m, values))
               catch {
                 case NonFatal(e) =>
                   logError(id, e.toString)
@@ -852,7 +862,7 @@ private class MillBuildServer(
               elemOpt = Option(queue.poll(1L, TimeUnit.SECONDS))
             for ((block, logger, name) <- elemOpt) {
               waitForEvaluators()
-              Server.withOutLock(
+              MillDaemonServer.withOutLock(
                 noBuildLock = false,
                 noWaitForBuildLock = false,
                 out = out,
@@ -990,12 +1000,12 @@ private class MillBuildServer(
 
   private def evaluate(
       evaluator: EvaluatorApi,
-      requestDescription: String,
+      @unused requestDescription: String,
       goals: Seq[TaskApi[?]],
       logger: Logger,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
-      errorOpt: EvaluatorApi.Result[Any] => Option[String] = evaluatorErrorOpt(_)
+      errorOpt: EvaluatorApi.Result[Any] => Option[String] = evaluatorErrorOpt
   ): ExecutionResultsApi = {
     val goalCount = goals.length
     logger.info(s"Evaluating $goalCount ${if (goalCount > 1) "tasks" else "task"}")
@@ -1010,13 +1020,9 @@ private class MillBuildServer(
       case None =>
         logger.info("Done")
       case Some(error) =>
-        logger.error(error)
+        logger.warn(error)
         logger.info("Failed")
-        client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, error))
-        client.onBuildShowMessage(new ShowMessageParams(
-          MessageType.ERROR,
-          s"$requestDescription failed, see Mill logs for more details"
-        ))
+        client.onBuildLogMessage(new LogMessageParams(MessageType.WARNING, error))
     }
     result.executionResults
   }

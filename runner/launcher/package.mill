@@ -11,7 +11,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
 
   def buildInfoPackageName = "mill.client"
 
-  def moduleDeps = Seq(build.runner.client, build.core.coursierutil)
+  def moduleDeps = Seq(build.runner.client, build.core.internal.cli)
 
   def mvnDeps = Seq(
     Deps.nativeTerminal,
