@@ -185,6 +185,7 @@ import scala.math.Ordering.Implicits.*
             // get properly caught by the test framework which expects failures during execution.
             // When that happens, just treat this task as having no children, and don't blow up
             // the test runner process
+            taskStatus.set(false)
             Array.empty[Task]
         }
 
