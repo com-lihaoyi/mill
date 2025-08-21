@@ -151,39 +151,42 @@ import scala.math.Ordering.Implicits.*
     val taskStatus = new AtomicBoolean(true)
     val taskQueue = tasks.to(mutable.Queue)
     while (taskQueue.nonEmpty) {
-      val next = try taskQueue.dequeue().execute(
-        new EventHandler {
-          def handle(event: Event) = {
-            testReporter.logStart(event)
-            events.add(event)
-            event.status match {
-              case Status.Error => taskStatus.set(false)
-              case Status.Failure => taskStatus.set(false)
-              case _ => () // consider success as a default
-            }
-            testReporter.logFinish(event)
-          }
-        },
-        Array(new Logger {
-          private val logDebug = testReporter.logLevel <= TestReporter.LogLevel.Debug
-          private val logInfo = testReporter.logLevel <= TestReporter.LogLevel.Info
-          private val logWarn = testReporter.logLevel <= TestReporter.LogLevel.Warn
-          private val logError = testReporter.logLevel <= TestReporter.LogLevel.Error
+      val next =
+        try taskQueue.dequeue().execute(
+            new EventHandler {
+              def handle(event: Event) = {
+                testReporter.logStart(event)
+                events.add(event)
+                event.status match {
+                  case Status.Error => taskStatus.set(false)
+                  case Status.Failure => taskStatus.set(false)
+                  case _ => () // consider success as a default
+                }
+                testReporter.logFinish(event)
+              }
+            },
+            Array(new Logger {
+              private val logDebug = testReporter.logLevel <= TestReporter.LogLevel.Debug
+              private val logInfo = testReporter.logLevel <= TestReporter.LogLevel.Info
+              private val logWarn = testReporter.logLevel <= TestReporter.LogLevel.Warn
+              private val logError = testReporter.logLevel <= TestReporter.LogLevel.Error
 
-          def debug(msg: String) = if (logDebug) systemOut.println(msg)
-          def error(msg: String) = if (logError) systemOut.println(msg)
-          def ansiCodesSupported() = true
-          def warn(msg: String) = if (logWarn) systemOut.println(msg)
-          def trace(t: Throwable) = t.printStackTrace(systemOut)
-          def info(msg: String) = if (logInfo) systemOut.println(msg)
-        })
-      ) catch{case e: Throwable =>
-        // Sometimes test suites fail really early during instantiation, which might not
-        // get properly caught by the test framework which expects failures during execution.
-        // When that happens, just treat this task as having no children, and don't blow up
-        // the test runner process
-        Array.empty[Task]
-      }
+              def debug(msg: String) = if (logDebug) systemOut.println(msg)
+              def error(msg: String) = if (logError) systemOut.println(msg)
+              def ansiCodesSupported() = true
+              def warn(msg: String) = if (logWarn) systemOut.println(msg)
+              def trace(t: Throwable) = t.printStackTrace(systemOut)
+              def info(msg: String) = if (logInfo) systemOut.println(msg)
+            })
+          )
+        catch {
+          case e: Throwable =>
+            // Sometimes test suites fail really early during instantiation, which might not
+            // get properly caught by the test framework which expects failures during execution.
+            // When that happens, just treat this task as having no children, and don't blow up
+            // the test runner process
+            Array.empty[Task]
+        }
 
       taskQueue.enqueueAll(next)
     }
