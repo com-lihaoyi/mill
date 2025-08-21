@@ -6,7 +6,7 @@ import kotlinlib.ksp.Ksp2Module
 
 object dagger extends Ksp2Module {
 
-  def kotlinVersion = "2.2.10"
+  def kotlinVersion = "2.2.0"
 
   def kspVersion = "2.0.2"
 

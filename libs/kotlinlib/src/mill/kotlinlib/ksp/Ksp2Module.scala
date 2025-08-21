@@ -11,21 +11,17 @@ import mill.util.Jvm
 import java.io.File
 
 /**
- * Sets up the kotlin compiler for using KSP (Kotlin Symbol Processing)
- * by plugging in the symbol-processing and symbol-processing-api dependencies.
- *
- * Use of kotlin-compiler-embedded is also recommended (and thus enabled by default)
- * to avoid any classpath conflicts between the compiler and user defined plugins!
+ * TODO
  */
 @mill.api.experimental
 trait Ksp2Module extends KotlinModule { outer =>
 
   def kspVersion: T[String] = "2.0.2"
   def kspJvmTarget: T[String] = "11"
-  def kotlinVersion = "2.2.10"
 
-  def kspLanguageVersion = "2.0"
-  def kspApiVersion = "2.0"
+  def kspLanguageVersion: T[String] = "2.0"
+
+  def kspApiVersion: T[String] = "2.0"
 
   def kspDeps: T[Seq[Dep]] = Task {
     Seq(
@@ -35,6 +31,10 @@ trait Ksp2Module extends KotlinModule { outer =>
       mvn"org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2"
     )
   }
+
+  def kspLibraries: T[Seq[PathRef]] = compileClasspath()
+
+  def kspModuleName = moduleSegments.render
 
   def kspClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(kspDeps(), resolutionParamsMapOpt = Some(addJvmVariantAttributes))
@@ -71,6 +71,16 @@ trait Ksp2Module extends KotlinModule { outer =>
 
   def kspArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
+  def kspFriendPaths: T[Seq[PathRef]] = Task {
+    val compiledCodePaths = Task.traverse(transitiveModuleCompileModuleDeps)(m =>
+      Task.Anon {
+        Seq(PathRef(m.compile().classes.path))
+      }
+    )().flatten
+
+    compiledCodePaths
+  }
+
   /**
    * The Kotlin compile task with KSP.
    * This task should run as part of the [[generatedSources]] task to
@@ -81,8 +91,6 @@ trait Ksp2Module extends KotlinModule { outer =>
 
     val processorResolvedClasspath = kotlinSymbolProcessorsResolved().map(_.path)
     val processorClasspath = processorResolvedClasspath.mkString(File.pathSeparator)
-
-    val kspProjectBasedDir = moduleSegments.render
 
     val kspOutputDir = Task.dest / "generated"
     val java = kspOutputDir / "java"
@@ -99,22 +107,22 @@ trait Ksp2Module extends KotlinModule { outer =>
     else
       s"-processor-options=${processorOptionsValue}"
     val args = Seq(
-      s"-module-name=${kspProjectBasedDir}",
+      s"-module-name=${kspModuleName}",
       "-jvm-target",
       kspJvmTarget(),
       s"-source-roots=${sources().map(_.path).mkString(File.pathSeparator)}",
       s"-project-base-dir=${moduleDir.toString}",
       s"-output-base-dir=${kspOutputDir}",
       s"-caches-dir=${kspCachesDir}",
-      s"-libraries=${compileClasspath().map(_.path).mkString(File.pathSeparator)}",
+      s"-libraries=${kspLibraries().map(_.path).mkString(File.pathSeparator)}",
       s"-class-output-dir=${classes}",
       s"-kotlin-output-dir=${kotlin}",
       s"-java-output-dir=${java}",
       s"-resource-output-dir=${resources}",
-      s"-language-version=${kspLanguageVersion}",
+      s"-language-version=${kspLanguageVersion()}",
       s"-incremental=true",
       s"-incremental-log=true",
-      s"-api-version=${kspApiVersion}",
+      s"-api-version=${kspApiVersion()}",
       processorOptions,
       s"-map-annotation-arguments-in-java=false"
     ) ++ kspArgs() :+ processorClasspath
@@ -147,6 +155,11 @@ trait Ksp2Module extends KotlinModule { outer =>
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
   trait Ksp2Tests extends Ksp2Module with KotlinTests {
-    override def kspVersion: T[String] = outer.kspVersion
+    override def kspVersion: T[String] = outer.kspVersion()
+    override def kspJvmTarget: T[String] = outer.kspJvmTarget()
+    override def kotlinVersion: T[String] = outer.kotlinVersion()
+    override def kspLanguageVersion: T[String] = outer.kotlinLanguageVersion()
+
+    override def kspApiVersion: T[String] = outer.kspApiVersion()
   }
 }
