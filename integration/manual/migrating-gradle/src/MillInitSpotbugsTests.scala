@@ -10,7 +10,7 @@ object MillInitSpotbugsTests extends GitRepoIntegrationTestSuite {
   // dependencies with version constraints
   // custom layout
   // Junit5
-  def gitRepoUrl = "git@github.com:spotbugs/spotbugs.git"
+  def gitRepoUrl = "https://github.com/spotbugs/spotbugs.git"
   def gitRepoBranch = "4.9.4"
 
   def tests = Tests {

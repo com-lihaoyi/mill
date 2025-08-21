@@ -7,7 +7,7 @@ object MillInitScala3Tests extends GitRepoIntegrationTestSuite {
 
   // sbt 1.11.0
   // Scala version 3.7.0
-  def gitRepoUrl = "git@github.com:scala/scala3.git"
+  def gitRepoUrl = "https://github.com/scala/scala3.git"
   def gitRepoBranch = "3.7.1"
 
   def tests = Tests {

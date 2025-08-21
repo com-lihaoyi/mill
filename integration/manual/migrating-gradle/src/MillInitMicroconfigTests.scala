@@ -8,7 +8,7 @@ object MillInitMicroconfigTests extends GitRepoIntegrationTestSuite {
   // gradle 8.10.1
   // uses spring-boot-dependencies BOM
   // Junit5
-  def gitRepoUrl = "git@github.com:microconfig/microconfig.git"
+  def gitRepoUrl = "https://github.com/microconfig/microconfig.git"
   def gitRepoBranch = "v4.9.5"
 
   def tests = Tests {

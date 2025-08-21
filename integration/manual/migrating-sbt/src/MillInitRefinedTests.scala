@@ -8,7 +8,7 @@ object MillInitRefinedTests extends GitRepoIntegrationTestSuite {
   // sbt 1.10.7
   // cross Scala versions 2.12.20 2.13.15 3.3.4
   // sbt-crossproject 1.3.2
-  def gitRepoUrl = "git@github.com:fthomas/refined.git"
+  def gitRepoUrl = "https://github.com/fthomas/refined.git"
   def gitRepoBranch = "v0.11.3"
 
   def tests = Tests {

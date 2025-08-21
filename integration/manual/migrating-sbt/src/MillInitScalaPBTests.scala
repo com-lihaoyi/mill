@@ -6,7 +6,7 @@ import utest.*
 object MillInitScalaPBTests extends GitRepoIntegrationTestSuite {
 
   // sbt 1.11.2
-  def gitRepoUrl = "git@github.com:scalapb/ScalaPB.git"
+  def gitRepoUrl = "https://github.com/scalapb/ScalaPB.git"
   def gitRepoBranch = "v0.11.19"
 
   def tests = Tests {

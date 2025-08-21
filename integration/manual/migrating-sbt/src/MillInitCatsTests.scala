@@ -10,7 +10,7 @@ object MillInitCatsTests extends GitRepoIntegrationTestSuite {
   // sources for cross Scala version ranges
   // sbt-crossproject 1.3.2
   // different CrossType modules
-  def gitRepoUrl = "git@github.com:typelevel/cats.git"
+  def gitRepoUrl = "https://github.com/typelevel/cats.git"
   def gitRepoBranch = "v2.13.0"
 
   def tests = Tests {

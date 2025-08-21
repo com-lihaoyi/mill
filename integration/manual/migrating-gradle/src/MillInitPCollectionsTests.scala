@@ -8,7 +8,7 @@ object MillInitPCollectionsTests extends GitRepoIntegrationTestSuite {
   // gradle 8.14.3
   // single module
   // Junit5
-  def gitRepoUrl = "git@github.com:hrldcpr/pcollections.git"
+  def gitRepoUrl = "https://github.com/hrldcpr/pcollections.git"
   def gitRepoBranch = "v5.0.0"
 
   def tests = Tests {

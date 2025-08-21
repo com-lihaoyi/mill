@@ -9,7 +9,7 @@ object MillInitAirstreamTests extends GitRepoIntegrationTestSuite {
   // cross Scala versions 3.3.3 2.13.16
   // single ScalaJS root module
   // scalajs-dom dependency
-  def gitRepoUrl = "git@github.com:raquo/Airstream.git"
+  def gitRepoUrl = "https://github.com/raquo/Airstream.git"
   def gitRepoBranch = "v17.2.1"
 
   def tests = Tests {
