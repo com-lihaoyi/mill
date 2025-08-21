@@ -437,8 +437,7 @@ class ZincWorker(
             prevPhase: String,
             nextPhase: String
         ): Boolean = {
-          val percentage = current * 100 / total
-          reporter.notifyProgress(percentage = percentage, total = total)
+          reporter.notifyProgress(progress = current, total = total)
           true
         }
       }
