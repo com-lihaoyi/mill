@@ -7,7 +7,7 @@ object MillInitMockitoTests extends GitRepoIntegrationTestSuite {
 
   // gradle 8.14.2
   // contains BOM module
-  def gitRepoUrl = "git@github.com:mockito/mockito.git"
+  def gitRepoUrl = "https://github.com/mockito/mockito.git"
   def gitRepoBranch = "v5.19.0"
 
   def tests = Tests {

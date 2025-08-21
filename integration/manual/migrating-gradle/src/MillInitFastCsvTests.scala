@@ -8,7 +8,7 @@ object MillInitFastCsvTests extends GitRepoIntegrationTestSuite {
   // gradle 9.0.0-rc-1
   // Junit5
   // uses ErrorProne
-  def gitRepoUrl = "git@github.com:osiegmar/FastCSV.git"
+  def gitRepoUrl = "https://github.com/osiegmar/FastCSV.git"
   def gitRepoBranch = "v4.0.0"
 
   def tests = Tests {

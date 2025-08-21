@@ -10,7 +10,7 @@ object MillInitFs2Tests extends GitRepoIntegrationTestSuite {
   // sbt-crossproject 1.3.2
   // cross partial source roots in core, io
   // .sbtopts with JVM args
-  def gitRepoUrl = "git@github.com:typelevel/fs2.git"
+  def gitRepoUrl = "https://github.com/typelevel/fs2.git"
   def gitRepoBranch = "v3.12.0"
 
   def tests = Tests {

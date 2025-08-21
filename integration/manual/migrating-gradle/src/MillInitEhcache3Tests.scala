@@ -13,7 +13,7 @@ object MillInitEhcache3Tests extends GitRepoIntegrationTestSuite {
   // bom dependencies
   // modules with pom packaging
   // Junit4
-  def gitRepoUrl = "git@github.com:ehcache/ehcache3.git"
+  def gitRepoUrl = "https://github.com/ehcache/ehcache3.git"
   def gitRepoBranch = "v3.10.8"
 
   def tests = Tests {

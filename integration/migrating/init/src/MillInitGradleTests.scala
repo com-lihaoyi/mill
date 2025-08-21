@@ -2,81 +2,81 @@ package mill.integration
 
 import mill.constants.Util
 import mill.integration.MillInitUtils.*
-import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
 
 import scala.collection.immutable.{Seq, SortedSet}
 
-object MillInitGradleJCommanderTests extends GitRepoIntegrationTestSuite {
-
-  // gradle 8.9
-  // single module
-  // testng 7.0.0
-  def gitRepoUrl = "git@github.com:cbeust/jcommander.git"
-  def gitRepoBranch = "2.0"
+object MillInitGradleJCommanderTests extends BuildGenTestSuite {
 
   def tests: Tests = Tests {
-    test - integrationTest { tester =>
-      import tester.*
+    // - single module
+    // - custom javacOptions
+    // - TestNg
+    // - Gradle 8.9
+    val url = "https://github.com/cbeust/jcommander/archive/refs/tags/2.0.zip"
 
-      writeMillJvmVersion(workspacePath, "11")
+    test - integrationTest(url)(
+      testMillInit(
+        _,
+        initCommand = Seq("init"),
+        expectedAllSourceFileNums = Map("allSourceFiles" -> 65, "test.allSourceFiles" -> 107),
+        expectedCompileTaskResults =
+          Some(SplitTaskResults(
+            successful = SortedSet("compile"),
+            // errors related to annotation classes defined in main module
+            failed = SortedSet("test.compile")
+          )),
+        expectedTestTaskResults =
+          Some(SplitTaskResults(successful = SortedSet(), failed = SortedSet("test")))
+      )
+    )
+  }
+}
 
-      eval("init").isSuccess ==> true
-      eval("publishLocal").isSuccess ==> true // implies compile
+object MillInitGradleFastCsvTests extends BuildGenTestSuite {
 
-      // annotations defined in main-module cannot be used in test-module?
-      eval("test.compile").err.linesIterator.exists(_.contains(
-        "jcommander/src/test/java/com/beust/jcommander/ParameterOrderTest.java:33:23: cannot find symbol"
-      )) ==> true
+  def tests: Tests = Tests {
+    // - multi-module
+    // - JUnit 5
+    // - requires Java 17+
+    // - Gradle 8.10.1
+    val url = "https://github.com/osiegmar/FastCSV/archive/refs/tags/v3.4.0.zip"
+
+    test - integrationTest(url) { tester =>
+      writeMillJvmVersion(tester.workspacePath, "17")
+
+      testMillInit(
+        tester,
+        initCommand = Seq("init"),
+        expectedAllSourceFileNums = Map(
+          "example.allSourceFiles" -> 24,
+          "lib.allSourceFiles" -> 41,
+          "lib.test.allSourceFiles" -> 9
+        ),
+        expectedCompileTaskResults = Some(SplitTaskResults(
+          successful = SortedSet("lib.compile"),
+          failed = SortedSet(
+            "example.compile",
+            "lib.test.compile"
+          )
+        )),
+        expectedTestTaskResults =
+          Some(SplitTaskResults(successful = SortedSet(), failed = SortedSet("lib.test")))
+      )
     }
   }
 }
 
-object MillInitGradleFastCsvTests extends GitRepoIntegrationTestSuite {
-
-  // gradle 9.0.0-rc-1
-  // Junit5
-  def gitRepoUrl = "git@github.com:osiegmar/FastCSV.git"
-  def gitRepoBranch = "v4.0.0"
+object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
 
   def tests: Tests = Tests {
-    test - integrationTest { tester =>
-      import tester.*
+    // - multi-level modules
+    // - additional repository (Terracotta)
+    // - JUnit 5
+    // - Gradle 7.6.2
+    val url = "https://github.com/ehcache/ehcache3/archive/refs/tags/v3.10.8.zip"
 
-      // from tasks.compileJava.options.release
-      writeMillJvmVersion(workspacePath, "17")
-
-      eval("init").isSuccess ==> true
-      eval("lib.publishLocal").isSuccess ==> true // implies compile
-
-      // requires javacOptions for Java modules
-      eval("example.compile").err.linesIterator.exists(_.contains(
-        "FastCSV/example/src/main/java/module-info.java:3:24: module not found: de.siegmar.fastcsv"
-      )) ==> true
-
-      // junit-platform-launcher version is set implicitly (tasks.test.useJunitPlatform())
-      eval("lib.test.compile").err.linesIterator.exists(_.contains(
-        "lib.test.resolvedMvnDeps coursier.error.ResolutionError$Several: Error downloading org.junit.platform:junit-platform-launcher:"
-      )) ==> true
-    }
-  }
-}
-
-object MillInitGradleEhcache3Tests extends GitRepoIntegrationTestSuite {
-
-  // gradle 7.2
-  // custom dependency configurations
-  // dependencies with version constraints
-  // custom layout
-  // custom repository
-  // bom dependencies
-  // modules with pom packaging
-  // Junit4
-  def gitRepoUrl = "git@github.com:ehcache/ehcache3.git"
-  def gitRepoBranch = "v3.10.8"
-
-  def tests: Tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTest(url) { tester =>
       // Takes forever on windows
       if (!Util.isWindows) {
         writeMillJvmVersionTemurin11(tester.workspacePath)

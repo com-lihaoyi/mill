@@ -8,7 +8,7 @@ object MillInitJCommanderTests extends GitRepoIntegrationTestSuite {
   // gradle 8.9
   // single module
   // testng 7.0.0
-  def gitRepoUrl = "git@github.com:cbeust/jcommander.git"
+  def gitRepoUrl = "https://github.com/cbeust/jcommander.git"
   def gitRepoBranch = "2.0"
 
   def tests = Tests {
