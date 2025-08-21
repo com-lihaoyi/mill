@@ -41,10 +41,26 @@ object MacroErrorTests extends TestSuite {
           mill.api.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("Task definition `method x` must have 0 parameter lists"),
+          e.msg.contains("`Task` definition `method x` must have 0 parameter lists"),
           e.pos.contains("def x() = ")
         )
       }
+      test("taskHiddenType") {
+        // Make sure we raise an error even if the `T`/`Task.Simple` type is hidden
+        // by a `Task[Int]` type ascription
+        val e = assertCompileError("""
+          object foo extends TestRootModule{
+            def x(): Task[Int] = Task {1}
+            lazy val millDiscover = Discover[this.type]
+          }
+          mill.api.Discover[foo.type]
+        """)
+        assert(
+          e.msg.contains("`Task` definition `method x` must have 0 parameter lists"),
+          e.pos.contains("def x():")
+        )
+      }
+
       test("input") {
         val e = assertCompileError("""
           object foo extends TestRootModule{
@@ -54,7 +70,7 @@ object MacroErrorTests extends TestSuite {
           mill.api.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("Task definition `method y` must have 0 parameter lists"),
+          e.msg.contains("`Task.Input` definition `method y` must have 0 parameter lists"),
           e.pos.contains("def y() = ")
         )
       }
@@ -67,7 +83,7 @@ object MacroErrorTests extends TestSuite {
           mill.api.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("Task definition `method z` must have 0 parameter lists"),
+          e.msg.contains("`Task.Sources` definition `method z` must have 0 parameter lists"),
           e.pos.contains("def z() = ")
         )
       }
@@ -80,7 +96,7 @@ object MacroErrorTests extends TestSuite {
           mill.api.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("Task definition `method a` must have 0 parameter lists"),
+          e.msg.contains("`Task` definition `method a` must have 0 parameter lists"),
           e.pos.contains("def a() = ")
         )
       }

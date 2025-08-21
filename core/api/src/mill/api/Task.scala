@@ -500,7 +500,7 @@ object Task {
         ctx: Expr[mill.api.ModuleCtx],
         persistent: Expr[Boolean]
     ): Expr[Simple[T]] = {
-      assertTaskShapeOwner(0)
+      assertTaskShapeOwner("Task", 0)
       val expr = appImpl[Simple, T](
         (in, ev) =>
           '{ new Task.Computed[T]($in, $ev, $ctx, $rw, ${ taskIsPrivate() }, $persistent) },
@@ -517,7 +517,7 @@ object Task {
     )(
         ctx: Expr[mill.api.ModuleCtx]
     ): Expr[Simple[Seq[PathRef]]] = {
-      assertTaskShapeOwner(0)
+      assertTaskShapeOwner("Task.Sources", 0)
       val expr = appImpl[Simple, Seq[PathRef]](
         ( /*in*/ _, ev) => '{ new Sources($ev, $ctx, ${ taskIsPrivate() }) },
         values,
@@ -526,14 +526,21 @@ object Task {
       Cacher.impl0(expr)
     }
 
-    def assertTaskShapeOwner(using quotes: Quotes)(expectedParamListCount: Int) = {
+    def assertTaskShapeOwner(using quotes: Quotes)(typeName: String,
+                                                   expectedParamListCount: Int) = {
       import quotes.reflect.*
       val owner = sourcecode.Macros.actualOwner(Symbol.spliceOwner)
       owner match {
         case defSym
           if defSym.isDefDef
             && defSym.tree.asInstanceOf[DefDef].paramss.length == expectedParamListCount =>
-        case _  => report.error(s"Owner of task must be a zero-parameter `def`, not $owner")
+        case _  =>
+          val plural = if (expectedParamListCount == 1) "" else "s"
+          val err = s"`$typeName` definition `$owner` must have $expectedParamListCount parameter list$plural"
+          owner.pos match{
+            case Some(p) => report.error(err, p)
+            case None => report.error(err)
+          }
       }
     }
     def sourceImpl(using
@@ -541,7 +548,7 @@ object Task {
     )(value: Expr[Result[PathRef]])(
         ctx: Expr[mill.api.ModuleCtx]
     ): Expr[Simple[PathRef]] = {
-      assertTaskShapeOwner(0)
+      assertTaskShapeOwner("Task.Source", 0)
       val expr = appImpl[Simple, PathRef](
         ( /*in*/ _, ev) => '{ new Source($ev, $ctx, ${ taskIsPrivate() }) },
         value,
@@ -557,7 +564,7 @@ object Task {
         w: Expr[upickle.default.Writer[T]],
         ctx: Expr[mill.api.ModuleCtx]
     ): Expr[Simple[T]] = {
-      assertTaskShapeOwner(0)
+      assertTaskShapeOwner("Task.Input", 0)
       val expr = appImpl[Simple, T](
         ( /*in*/ _, ev) => '{ new Input[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
         value,
@@ -574,7 +581,7 @@ object Task {
         exclusive: Expr[Boolean],
         persistent: Expr[Boolean]
     ): Expr[Command[T]] = {
-      assertTaskShapeOwner(1)
+      assertTaskShapeOwner("Task.Command", 1)
       appImpl[Command, T](
         (in, ev) =>
           '{
@@ -597,7 +604,7 @@ object Task {
     )(t: Expr[Result[T]])(
         ctx: Expr[mill.api.ModuleCtx]
     ): Expr[Worker[T]] = {
-      assertTaskShapeOwner(0)
+      assertTaskShapeOwner("Task.Worker", 0)
       val expr = appImpl[Worker, T](
         (in, ev) => '{ new Worker[T]($in, $ev, $ctx, ${ taskIsPrivate() }) },
         t
