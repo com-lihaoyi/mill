@@ -158,7 +158,7 @@ trait Ksp2Module extends KotlinModule { outer =>
     override def kspVersion: T[String] = outer.kspVersion()
     override def kspJvmTarget: T[String] = outer.kspJvmTarget()
     override def kotlinVersion: T[String] = outer.kotlinVersion()
-    override def kspLanguageVersion: T[String] = outer.kotlinLanguageVersion()
+    override def kspLanguageVersion: T[String] = outer.kspLanguageVersion()
 
     override def kspApiVersion: T[String] = outer.kspApiVersion()
   }
