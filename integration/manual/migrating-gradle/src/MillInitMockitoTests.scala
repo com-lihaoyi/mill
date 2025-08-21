@@ -14,10 +14,13 @@ object MillInitMockitoTests extends GitRepoIntegrationTestSuite {
     test - integrationTest { tester =>
       import tester.*
 
+      // project requires Java 11 but Gradle version in use requires Java 17
+      os.write(workspacePath / ".mill-jvm-version", "17")
+
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
-      // requires support for Java modules
+      // requires javacOptions for Java modules
       eval("mockito-core.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
     }
   }

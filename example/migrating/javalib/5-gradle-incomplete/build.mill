@@ -4,7 +4,9 @@
 
 > git init .
 > git remote add -f origin https://github.com/mockito/mockito.git
-> git checkout v5.19.0 # multi-module Java project that requires Java 17+
+> git checkout v5.19.0 # multi-module Java project that requires Java 11
+
+> echo "17" > .mill-jvm-version # Gradle version in use requires Java 17
 
 > ./mill init # imported modules are not fully functional
 converting Gradle build
