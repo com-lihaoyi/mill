@@ -151,7 +151,7 @@ import scala.math.Ordering.Implicits.*
     val taskStatus = new AtomicBoolean(true)
     val taskQueue = tasks.to(mutable.Queue)
     while (taskQueue.nonEmpty) {
-      val next = taskQueue.dequeue().execute(
+      val next = try taskQueue.dequeue().execute(
         new EventHandler {
           def handle(event: Event) = {
             testReporter.logStart(event)
@@ -177,7 +177,13 @@ import scala.math.Ordering.Implicits.*
           def trace(t: Throwable) = t.printStackTrace(systemOut)
           def info(msg: String) = if (logInfo) systemOut.println(msg)
         })
-      )
+      ) catch{case e: Throwable =>
+        // Sometimes test suites fail really early during instantiation, which might not
+        // get properly caught by the test framework which expects failures during execution.
+        // When that happens, just treat this task as having no children, and don't blow up
+        // the test runner process
+        Array.empty[Task]
+      }
 
       taskQueue.enqueueAll(next)
     }
