@@ -6,6 +6,8 @@
 > git remote add -f origin https://github.com/komamitsu/fluency.git
 > git checkout 2.7.3 # multi-module Java project that requires Java 16+
 
+> echo "16" > .mill-jvm-version
+
 > ./mill init
 converting Gradle build
 ...
