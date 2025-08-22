@@ -5,16 +5,20 @@ import coursier.params.ResolutionParams
 import mill.*
 import mill.api.Result
 import mill.api.{PathRef, Task}
-import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
+import mill.kotlinlib.{Dep, DepSyntax}
 import mill.util.Jvm
 
 import java.io.File
 
 /**
- * TODO
+ * Sets up the kotlin compiler for using KSP 2.x (Kotlin Symbol Processing)
+ * This module is based on KSP 2.x which supports language version 2.0 and later.
+ * For KSP 1.x, use [[KspModule]] instead.
+ *
+ *  Documentation: https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md
  */
 @mill.api.experimental
-trait Ksp2Module extends KotlinModule { outer =>
+trait Ksp2Module extends KspBaseModule { outer =>
 
   def kspVersion: T[String] = "2.0.2"
   def kspJvmTarget: T[String] = "11"
@@ -47,26 +51,10 @@ trait Ksp2Module extends KotlinModule { outer =>
     )
   }
 
-  def kspProcessorOptions: T[Map[String, String]] = Task {
-    Map.empty[String, String]
-  }
-
-  /**
-   * The symbol processors to be used by the Kotlin compiler.
-   * Default is empty.
-   */
-  def kotlinSymbolProcessors: T[Seq[Dep]] = Task {
-    Seq.empty[Dep]
-  }
-
   def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       kotlinSymbolProcessors()
     )
-  }
-
-  def generatedSources: T[Seq[PathRef]] = Task {
-    super.generatedSources() ++ generatedSourcesWithKSP().sources
   }
 
   def kspArgs: T[Seq[String]] = Task { Seq.empty[String] }
@@ -110,6 +98,7 @@ trait Ksp2Module extends KotlinModule { outer =>
       s"-module-name=${kspModuleName}",
       "-jvm-target",
       kspJvmTarget(),
+      s"-jdk-home=${System.getProperty("java.home")}",
       s"-source-roots=${sources().map(_.path).mkString(File.pathSeparator)}",
       s"-project-base-dir=${moduleDir.toString}",
       s"-output-base-dir=${kspOutputDir}",

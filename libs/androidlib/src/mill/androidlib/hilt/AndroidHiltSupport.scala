@@ -3,7 +3,7 @@ package mill.androidlib.hilt
 import mill.androidlib.AndroidKotlinModule
 import mill.api.{ModuleRef, PathRef}
 import mill.kotlinlib.DepSyntax
-import mill.kotlinlib.ksp.Ksp2Module
+import mill.kotlinlib.ksp.KspBaseModule
 import mill.javalib.Dep
 import mill.javalib.api.CompilationResult
 import mill.{T, Task}
@@ -16,12 +16,19 @@ import mill.{T, Task}
  * for pre-processing the Hilt annotations and generating the necessary classes for Hilt to work, then
  * compiles all the sources together with a Java pre-processor step and finally a transform ASM step
  * to achieve the compile time dependency injection!
+ *
+ * Usage:
+ * ```
+ *
+ * object app extends KspModule with AndroidHiltSupport { ... }
+ *
+ * // or
+ *
+ * object app extends Ksp2Module with AndroidHiltSupport { ... }
+ * ```
  */
 @mill.api.experimental
-trait AndroidHiltSupport extends Ksp2Module with AndroidKotlinModule {
-
-  override def kspLibraries: T[Seq[PathRef]] =
-    super.kspLibraries()
+trait AndroidHiltSupport extends KspBaseModule with AndroidKotlinModule {
 
   def androidHiltProcessorPath: T[Seq[PathRef]] = Task {
     kspDependencyResolver().classpath(

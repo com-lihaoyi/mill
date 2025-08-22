@@ -4,7 +4,7 @@ import mill.*
 import mill.api.Result
 import mill.api.{PathRef, Task}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
-import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
+import mill.kotlinlib.{Dep, DepSyntax, KotlinWorkerManager}
 
 import java.io.File
 
@@ -19,7 +19,7 @@ import java.io.File
  * For KSP 2.x, use [[Ksp2Module]] instead.
  */
 @mill.api.experimental
-trait KspModule extends KotlinModule { outer =>
+trait KspModule extends KspBaseModule { outer =>
 
   /**
    * The version of the Kotlin language to use.
@@ -56,20 +56,8 @@ trait KspModule extends KotlinModule { outer =>
     )
   }
 
-  override def generatedSources: T[Seq[PathRef]] = Task {
-    super.generatedSources() ++ generatedSourcesWithKSP().sources
-  }
-
   def kspPluginsResolved: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(kspPlugins())
-  }
-
-  /**
-   * The symbol processors to be used by the Kotlin compiler.
-   * Default is empty.
-   */
-  def kotlinSymbolProcessors: T[Seq[Dep]] = Task {
-    Seq.empty[Dep]
   }
 
   def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
@@ -130,14 +118,7 @@ trait KspModule extends KotlinModule { outer =>
     )
   }
 
-  /**
-   * Any extra plugin parameters to be passed to the KSP plugin.
-   * These depend on the plugin being used and the relevant plugin docs
-   * should be consulted.
-   *
-   * For example see [[AndroidHiltSupport]]
-   * @return
-   */
+  @deprecated("Use `kspProcessorOptions`")
   def kspPluginParameters: T[Seq[String]] = Task {
     Seq.empty
   }
@@ -162,6 +143,10 @@ trait KspModule extends KotlinModule { outer =>
 
     val apClasspath = kotlinSymbolProcessorsResolved().map(_.path).mkString(File.pathSeparator)
 
+    val kspPluginParameters = kspProcessorOptions().map {
+      case (key, value) => s"apoption=$key=$value"
+    }.toSeq
+
     val kspProjectBasedDir = moduleDir
     val kspOutputDir = Task.dest / "generated/ksp/main"
 
@@ -184,7 +169,7 @@ trait KspModule extends KotlinModule { outer =>
       s"$pluginOpt:allWarningsAsErrors=false",
       s"$pluginOpt:returnOkOnError=true",
       s"$pluginOpt:mapAnnotationArgumentsInJava=false"
-    ) ++ kspPluginParameters().map(p => s"$pluginOpt:$p")
+    ) ++ kspPluginParameters.map(p => s"$pluginOpt:$p")
 
     val kspCompilerArgs =
       kspKotlincOptions() ++ Seq(xPluginArg) ++ Seq("-P", pluginConfigs.mkString(","))
