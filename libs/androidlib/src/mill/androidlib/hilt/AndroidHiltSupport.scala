@@ -3,7 +3,7 @@ package mill.androidlib.hilt
 import mill.androidlib.AndroidKotlinModule
 import mill.api.{ModuleRef, PathRef}
 import mill.kotlinlib.DepSyntax
-import mill.kotlinlib.ksp.KspModule
+import mill.kotlinlib.ksp.Ksp2Module
 import mill.javalib.Dep
 import mill.javalib.api.CompilationResult
 import mill.{T, Task}
@@ -18,10 +18,10 @@ import mill.{T, Task}
  * to achieve the compile time dependency injection!
  */
 @mill.api.experimental
-trait AndroidHiltSupport extends KspModule with AndroidKotlinModule {
+trait AndroidHiltSupport extends Ksp2Module with AndroidKotlinModule {
 
-  override def kspClasspath: T[Seq[PathRef]] =
-    super.kspClasspath()
+  override def kspLibraries: T[Seq[PathRef]] =
+    super.kspLibraries()
 
   def androidHiltProcessorPath: T[Seq[PathRef]] = Task {
     kspDependencyResolver().classpath(
@@ -38,14 +38,13 @@ trait AndroidHiltSupport extends KspModule with AndroidKotlinModule {
     )
   }
 
-  override def kspPluginParameters: T[Seq[String]] = Task {
-    super.kspPluginParameters() ++
-      Seq(
-        s"apoption=dagger.fastInit=enabled",
-        s"apoption=dagger.hilt.android.internal.disableAndroidSuperclassValidation=true",
-        s"apoption=dagger.hilt.android.internal.projectType=APP",
-        s"apoption=dagger.hilt.internal.useAggregatingRootProcessor=true"
-      )
+  override def kspProcessorOptions: T[Map[String, String]] = Task {
+    super.kspProcessorOptions() ++ Map(
+      "dagger.fastInit" -> "enabled",
+      "dagger.hilt.android.internal.disableAndroidSuperclassValidation" -> "true",
+      "dagger.hilt.android.internal.projectType" -> "APP",
+      "dagger.hilt.internal.useAggregatingRootProcessor" -> "true"
+    )
   }
 
   def androidHiltModule: ModuleRef[AndroidHiltTransform] = ModuleRef(AndroidHiltTransform)
@@ -65,7 +64,7 @@ trait AndroidHiltSupport extends KspModule with AndroidKotlinModule {
   }
 
   def hiltProcessorClasspath: T[Seq[PathRef]] = Task {
-    kspApClasspath() ++ kspClasspath()
+    kotlinSymbolProcessorsResolved() ++ kspClasspath()
   }
 
   override def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
