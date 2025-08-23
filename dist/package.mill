@@ -247,8 +247,7 @@ object `package` extends MillJavaModule with DistModule {
         val buildMill = Task.dest / exampleStr / "build.mill"
         os.write.over(
           buildMill,
-          s"//| mill-version: ${build.millVersion()}\n" +
-            os.read(buildMill)
+          s"//| mill-version: ${build.millVersion()}\n" + os.read(buildMill)
         )
         os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
         os.copy(bootstrapLauncherBat().path, Task.dest / exampleStr / "mill.bat")
