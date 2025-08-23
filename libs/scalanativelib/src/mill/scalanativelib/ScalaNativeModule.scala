@@ -298,6 +298,11 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     ))))
   }
 
+  // Same as super.run, but kept for bincompat
+  override def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
+    runForkedTask(finalMainClass, args)()
+  }
+
   override def runMain(mainClass: String, args: String*): Command[Unit] = Task.Command {
     nativeRunnerOtherMain(mainClass)().run(args = args)
   }
