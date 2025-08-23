@@ -18,4 +18,3 @@ object foo extends JavaModule, SonatypeCentralPublishModule {
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 }
-
