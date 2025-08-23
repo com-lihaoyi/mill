@@ -3,18 +3,40 @@ package mill.daemon
 import mill.api.{BuildCtx, SystemStreams}
 import mill.client.ClientUtil
 import mill.client.lock.{Lock, Locks}
-import mill.constants.OutFiles
+import mill.constants.{OutFiles, OutFolderMode}
 import mill.server.Server
 
 import scala.concurrent.duration.*
-import scala.util.{Properties, Try}
+import scala.util.{Failure, Properties, Success, Try}
 
 object MillDaemonMain {
+  case class Args(daemonDir: os.Path, outMode: OutFolderMode, rest: Seq[String])
+  object Args {
+    def apply(appName: String, args: Array[String]): Either[String, Args] = {
+      def usage(extra: String = "") =
+        s"usage: $appName <daemon-dir> <out-mode> <mill-args>$extra"
+
+      args match {
+        case Array(daemonDir, outModeStr, rest*) =>
+          Try(OutFolderMode.fromString(outModeStr)) match {
+            case Failure(_) =>
+              val possibleValues = OutFolderMode.values.map(_.asString).mkString(", ")
+              Left(usage(s"\n\n<out-mode> must be one of $possibleValues but was '$outModeStr'"))
+            case Success(outMode) => Right(apply(os.Path(daemonDir), outMode, rest))
+          }
+        case _ => Left(usage())
+      }
+    }
+  }
+
   def main(args0: Array[String]): Unit = {
 
     // Set by an integration test
     if (System.getenv("MILL_DAEMON_CRASH") == "true")
       sys.error("Mill daemon early crash requested")
+
+    val args =
+      Args(getClass.getName, args0).fold(err => throw IllegalArgumentException(err), identity)
 
     if (Properties.isWin)
       // temporarily disabling FFM use by coursier, which has issues with the way
@@ -29,9 +51,10 @@ object MillDaemonMain {
         Try(System.getProperty("mill.server_timeout").toInt.millis).getOrElse(30.minutes)
 
       new MillDaemonMain(
-        daemonDir = os.Path(args0(0)),
+        daemonDir = args.daemonDir,
         acceptTimeout = acceptTimeout,
-        Locks.files(args0(0))
+        Locks.files(args.daemonDir.toString),
+        outMode = args.outMode
       ).run()
 
       System.exit(ClientUtil.ExitServerCodeWhenIdle())
@@ -41,7 +64,8 @@ object MillDaemonMain {
 class MillDaemonMain(
     daemonDir: os.Path,
     acceptTimeout: FiniteDuration,
-    locks: Locks
+    locks: Locks,
+    outMode: OutFolderMode
 ) extends mill.server.MillDaemonServer[RunnerState](
       daemonDir,
       acceptTimeout,
@@ -50,7 +74,7 @@ class MillDaemonMain(
 
   def stateCache0 = RunnerState.empty
 
-  val out: os.Path = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
+  val out: os.Path = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
 
   val outLock = MillMain0.doubleLock(out)
 

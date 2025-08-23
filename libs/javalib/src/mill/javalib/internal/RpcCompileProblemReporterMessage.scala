@@ -11,5 +11,5 @@ object RpcCompileProblemReporterMessage {
   case class FileVisited(file: os.Path) extends RpcCompileProblemReporterMessage
   case object PrintSummary extends RpcCompileProblemReporterMessage
   case object Finish extends RpcCompileProblemReporterMessage
-  case class NotifyProgress(percentage: Long, total: Long) extends RpcCompileProblemReporterMessage
+  case class NotifyProgress(progress: Long, total: Long) extends RpcCompileProblemReporterMessage
 }

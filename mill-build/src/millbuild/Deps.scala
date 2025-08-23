@@ -85,7 +85,7 @@ object Deps {
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.180"
-  val coursierVersion = "2.1.25-M16"
+  val coursierVersion = "2.1.25-M18"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
     mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
@@ -169,7 +169,7 @@ object Deps {
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.4"
+  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.9"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
   val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.3-M5"
@@ -187,7 +187,7 @@ object Deps {
   val jarjarabrams =
     mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.1".withDottyCompat(scalaVersion)
   val requests = mvn"com.lihaoyi::requests:0.9.0"
-  val logback = mvn"ch.qos.logback:logback-classic:1.5.17"
+  val logback = mvn"ch.qos.logback:logback-classic:1.5.18"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"
   val kotlinVersion = "2.1.20"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
@@ -209,7 +209,7 @@ object Deps {
       mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   }
 
-  val coursierJvmIndexVersion = "0.0.4-111-eb6e08"
+  val coursierJvmIndexVersion = "0.0.4-116-9b244a"
   val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
@@ -285,7 +285,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
-    val utest = mvn"com.lihaoyi::utest:0.9.0"
+    val utest = mvn"com.lihaoyi::utest:0.9.1"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }
 

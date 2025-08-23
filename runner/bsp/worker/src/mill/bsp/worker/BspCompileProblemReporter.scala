@@ -185,13 +185,15 @@ private class BspCompileProblemReporter(
     client.onBuildTaskStart(taskStartParams)
   }
 
-  override def notifyProgress(percentage: Long, total: Long): Unit = {
+  override def notifyProgress(progress: Long, total: Long): Unit = {
     val params = new TaskProgressParams(taskId).tap { it =>
       it.setEventTime(System.currentTimeMillis())
       it.setData(new CompileTask(targetId))
       it.setDataKind("compile-progress")
-      it.setMessage(s"Compiling target ${targetDisplayName} ($percentage%)")
-      it.setProgress(percentage)
+      it.setMessage(s"Compiling target ${targetDisplayName} (${progress * 100 / total}%)")
+      // Not a percentage, but the # of units done,
+      // see https://github.com/build-server-protocol/build-server-protocol/blob/bc6835d240b0810bcebe1738e7b71caa49b24f29/spec/src/main/resources/META-INF/smithy/bsp/bsp.smithy#L1150
+      it.setProgress(progress)
       it.setTotal(total)
     }
     client.onBuildTaskProgress(params)

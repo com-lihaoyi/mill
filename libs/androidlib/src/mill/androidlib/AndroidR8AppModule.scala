@@ -2,7 +2,6 @@ package mill.androidlib
 
 import mill.*
 import mill.api.{PathRef, Task}
-import mill.api.BuildCtx
 
 @mill.api.experimental
 trait AndroidR8AppModule extends AndroidAppModule {
@@ -60,19 +59,15 @@ trait AndroidR8AppModule extends AndroidAppModule {
       .flatMap(_.proguardRules)
   }
 
+  /**
+   * The ProGuard/R8 rules configuration files for the Android project.
+   * @return
+   */
+  def androidProjectProguardFiles: T[Seq[PathRef]] = Task.Sources()
+
   /** ProGuard/R8 rules configuration files for release target (user-provided and generated) */
-  def androidProguardConfigs: Task[Seq[PathRef]] = Task {
-    val proguardFilesFromBuildSettings = androidBuildSettings().proguardFiles
-    val androidProguardPath = androidSdkModule().androidProguardPath().path
-    val defaultProguardFile = proguardFilesFromBuildSettings.defaultProguardFile.map {
-      pf => androidProguardPath / pf
-    }
-    val userProguardFiles = proguardFilesFromBuildSettings.localFiles
-    BuildCtx.withFilesystemCheckerDisabled {
-      (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(
-        _
-      )) ++ androidLibraryProguardConfigs()
-    }
+  def androidProguardConfigs: T[Seq[PathRef]] = Task {
+    androidDefaultProguardFiles() ++ androidProjectProguardFiles() ++ androidLibraryProguardConfigs()
   }
 
   /** Concatenates all rules into one file */
@@ -94,18 +89,31 @@ trait AndroidR8AppModule extends AndroidAppModule {
    * The default release settings with the following settings:
    * - minifyEnabled=true
    * - shrinkEnabled=true
-   * - proguardFiles=proguard-android-optimize.txt
-   *
    * @return
    */
   def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
     AndroidBuildTypeSettings(
       isMinifyEnabled = true,
-      isShrinkEnabled = true,
-      proguardFiles = ProguardFiles(
-        defaultProguardFile = Some("proguard-android-optimize.txt")
-      )
+      isShrinkEnabled = true
     )
+  }
+
+  /**
+   * File names that are provided by the Android SDK in `androidSdkModule().androidProguardPath().path`
+   * @return
+   */
+  def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+    Seq.empty[String]
+  }
+
+  private def androidDefaultProguardFiles: Task[Seq[PathRef]] = Task.Anon {
+    val dest = Task.dest
+    androidDefaultProguardFileNames().map { fileName =>
+      androidSdkModule().androidProguardPath() / fileName
+    }.filter(os.exists).foreach { proguardFile =>
+      os.copy(proguardFile, dest / proguardFile.last)
+    }
+    os.walk(dest).filter(os.isFile).map(PathRef(_))
   }
 
   def androidR8Args: T[Seq[String]] = Task {

@@ -34,7 +34,7 @@ object ScalaSemanticDbTests extends TestSuite {
           println("first - expected full compile")
           val Right(result) = eval.apply(SemanticWorld.core.semanticDbData): @unchecked
 
-          val dataPath = eval.outPath / "core/semanticDbData.dest/data"
+          val dataPath = eval.outPath / "core/semanticDbDataDetailed.dest/data"
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
@@ -79,7 +79,7 @@ object ScalaSemanticDbTests extends TestSuite {
           println("first - expected full compile")
           val Right(result) = eval.apply(SemanticWorld.core.semanticDbData): @unchecked
 
-          val dataPath = eval.outPath / "core/semanticDbData.dest/data"
+          val dataPath = eval.outPath / "core/semanticDbDataDetailed.dest/data"
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
