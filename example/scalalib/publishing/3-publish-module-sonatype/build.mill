@@ -28,7 +28,6 @@ object foo extends ScalaModule, SonatypeCentralPublishModule {
 // possible, e.g. `mill-jvm-version: 11` in this example which is the lowest version supported
 // by Mill.
 //
-
 // If the `publishVersion` ends with `SNAPSHOT`, then the artifacts will NOT be signed and will be
 // published as a snapshot, which allows overwriting it at a later date. Mill takes care of timestamping
 // the snapshots and updating the appropriate `maven-metadata.xml` file to point to the latest snapshot version.
