@@ -78,6 +78,7 @@ object CompileRunTests extends TestSuite {
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-native-world"
 
   def tests: Tests = Tests {
+
     test("compile") {
       def testCompileFromScratch(
           scalaVersion: String,
@@ -142,6 +143,10 @@ object CompileRunTests extends TestSuite {
         )
       }
 
+    test("run") {
+      testAllMatrix((scala, scalaNative, releaseMode) => checkRun(scala, scalaNative, releaseMode))
+    }
+
     def checkRunMain(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit =
       UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
         val task =
@@ -155,10 +160,6 @@ object CompileRunTests extends TestSuite {
           result.evalCount > 0
         )
       }
-
-    test("run") {
-      testAllMatrix((scala, scalaNative, releaseMode) => checkRun(scala, scalaNative, releaseMode))
-    }
 
     test("runMain") {
       testAllMatrix((scala, scalaNative, releaseMode) =>
@@ -177,6 +178,7 @@ object CompileRunTests extends TestSuite {
       "Main$.class",
       "Main$.nir",
       "Main2.class",
+      "Main2.nir",
       "Main2$.class",
       "Main2$.nir"
     )
@@ -185,7 +187,9 @@ object CompileRunTests extends TestSuite {
       if (JvmWorkerUtil.isScala3(scalaVersion)) Set("ArgsParser.tasty", "Main.tasty", "Main2.tasty")
       else Set(
         "Main$delayedInit$body.class",
-        "Main$delayedInit$body.nir"
+        "Main$delayedInit$body.nir",
+        "Main2$delayedInit$body.class",
+        "Main2$delayedInit$body.nir"
       )
 
     val scalaNativeVersionSpecific = Set("Main.nir", "ArgsParser.nir")
