@@ -157,15 +157,8 @@ public class MillProcessLauncher {
 
   static String millJvmVersion(OutFolderMode outMode) throws Exception {
     List<String> res = loadMillConfig(outMode, "mill-jvm-version");
-    if (res.isEmpty()) {
-      if (System.getenv("MILL_TEST_SUITE_USE_SYSTEM_JAVA") != null) return null;
-      else {
-        throw new Exception(
-          "mill-jvm-version not set, and is required since Mill 1.1.0. Please set this in your"
-            + " build header to specify the version of the JVM this project should use, e.g."
-            + " `//| mill-jvm-version: 17` or `//| mill-jvm-version: temurin:17.0.16`");
-      }
-    } else return res.get(0);
+    if (res.isEmpty()) return null;
+    else return res.get(0);
   }
 
   static String millServerTimeout() {
@@ -177,16 +170,20 @@ public class MillProcessLauncher {
   }
 
   static String javaHome(OutFolderMode outMode) throws Exception {
-    final String jvmId = millJvmVersion(outMode);
+    var jvmId = millJvmVersion(outMode);
 
     String javaHome = null;
+    if (jvmId == null) {
+      jvmId = mill.client.BuildInfo.defaultJvmId;
+    }
 
     if (jvmId != null) {
+      final String jvmIdFinal = jvmId;
       javaHome = cachedComputedValue0(
           outMode,
           "java-home",
           jvmId,
-          () -> new String[] {CoursierClient.resolveJavaHome(jvmId).getAbsolutePath()},
+          () -> new String[] {CoursierClient.resolveJavaHome(jvmIdFinal).getAbsolutePath()},
           // Make sure we check to see if the saved java home exists before using
           // it, since it may have been since uninstalled, or the `out/` folder
           // may have been transferred to a different machine
