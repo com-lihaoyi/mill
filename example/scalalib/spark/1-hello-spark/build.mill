@@ -11,7 +11,7 @@ object foo extends ScalaModule {
   def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
 
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
     def testFramework = "utest.runner.Framework"
 
     def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")

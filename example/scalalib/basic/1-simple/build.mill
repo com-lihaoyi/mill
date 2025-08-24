@@ -11,7 +11,7 @@ object foo extends ScalaModule {
   )
 
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
     def testFramework = "utest.runner.Framework"
   }
 }

@@ -15,7 +15,7 @@ object `package` extends ScoverageModule {
   )
 
   object test extends ScoverageTests /*with TestModule.Utest */ {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
     def testFramework = "utest.runner.Framework"
   }
 }
