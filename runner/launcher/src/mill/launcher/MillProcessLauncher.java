@@ -190,8 +190,10 @@ public class MillProcessLauncher {
           arr -> Files.exists(Paths.get(arr[0])))[0];
     }
 
-    if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
-    if (javaHome == null || javaHome.isEmpty()) javaHome = System.getenv("JAVA_HOME");
+    if (jvmId == "system") {
+      if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
+      if (javaHome == null || javaHome.isEmpty()) javaHome = System.getenv("JAVA_HOME");
+    }
     return javaHome;
   }
 
