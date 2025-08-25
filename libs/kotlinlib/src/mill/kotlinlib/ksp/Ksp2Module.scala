@@ -57,16 +57,6 @@ trait Ksp2Module extends KspBaseModule { outer =>
 
   def kspArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
-  def kspFriendPaths: T[Seq[PathRef]] = Task {
-    val compiledCodePaths = Task.traverse(transitiveModuleCompileModuleDeps)(m =>
-      Task.Anon {
-        Seq(PathRef(m.compile().classes.path))
-      }
-    )().flatten
-
-    compiledCodePaths
-  }
-
   /**
    * The Kotlin compile task with KSP.
    * This task should run as part of the [[generatedSources]] task to
