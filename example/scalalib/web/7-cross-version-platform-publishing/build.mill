@@ -52,7 +52,7 @@ trait FooModule extends Cross.Module[String] {
 }
 
 // This example demonstrates how to publish Scala modules which are both
-// cross-version and cross-platform: running on both Scala 2.13.14/3.3.3 as
+// cross-version and cross-platform: running on both Scala 2.13.14/3.3.6 as
 // well as Scala-JVM/JS.
 
 /** Usage
@@ -69,12 +69,12 @@ trait FooModule extends Cross.Module[String] {
   ".../foo/bar/src-2-jvm"
 ]
 
-> ./mill show foo[3.3.3].qux.js.sources
+> ./mill show foo[3.3.6].qux.js.sources
 [
   ".../foo/qux/src",
   ".../foo/qux/src-js",
-  ".../foo/qux/src-3.3.3",
-  ".../foo/qux/src-3.3.3-js",
+  ".../foo/qux/src-3.3.6",
+  ".../foo/qux/src-3.3.6-js",
   ".../foo/qux/src-3.3",
   ".../foo/qux/src-3.3-js",
   ".../foo/qux/src-3",
@@ -86,12 +86,12 @@ Bar.value: <p>world Specific code for Scala 2.x</p>
 Parsing JSON with ujson.read
 Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
 
-> ./mill foo[3.3.3].qux.js.run
+> ./mill foo[3.3.6].qux.js.run
 Bar.value: <p>world Specific code for Scala 3.x</p>
 Parsing JSON with js.JSON.parse
 Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
 
-> ./mill foo[3.3.3].__.js.test
+> ./mill foo[3.3.6].__.js.test
 + bar.BarTests.test ...  <p>world Specific code for Scala 3.x</p>
 + qux.QuxTests.parseJsonGetKeys ...  Set(i, cow, me)
 
