@@ -43,7 +43,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "<java-version>"
+          "javaVersion": "21.0.8"
         }
       }
     },
