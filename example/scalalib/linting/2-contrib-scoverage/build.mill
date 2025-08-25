@@ -15,7 +15,7 @@ object `package` extends ScoverageModule {
   )
 
   object test extends ScoverageTests /*with TestModule.Utest */ {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -37,8 +37,8 @@ object `package` extends ScoverageModule {
 
 > ./mill test # Run the tests and produce the coverage data
 ...
-+ foo.FooTests...simple ...  <h1>hello</h1>
-+ foo.FooTests...escaping ...  <h1>&lt;hello&gt;</h1>
++ foo.FooTests...simple ...  "<h1>hello</h1>"
++ foo.FooTests...escaping ...  "<h1>&lt;hello&gt;</h1>"
 
 > ./mill resolve scoverage._ # List what tasks are available to run from scoverage
 ...

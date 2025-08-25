@@ -1,3 +1,4 @@
+//| mill-jvm-version: 17
 package build
 import mill.*, javalib.*
 

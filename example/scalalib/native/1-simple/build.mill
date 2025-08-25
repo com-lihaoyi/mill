@@ -2,7 +2,7 @@ package build
 import mill.*, scalalib.*, scalanativelib.*
 
 object `package` extends ScalaNativeModule {
-  def scalaVersion = "3.3.4"
+  def scalaVersion = "3.3.6"
   def scalaNativeVersion = "0.5.8"
 
   // You can have arbitrary numbers of third-party dependencies

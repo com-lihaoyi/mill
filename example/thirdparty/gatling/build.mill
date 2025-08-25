@@ -217,7 +217,7 @@ object Dependencies {
 
 trait GatlingModule extends SbtModule {
 
-  def scalaVersion = "2.13.14"
+  def scalaVersion = "2.13.16"
   def testModuleDeps: Seq[JavaModule] = Nil
   object test extends SbtTests, TestModule.ScalaTest {
     def moduleDeps = super.moduleDeps ++ testModuleDeps

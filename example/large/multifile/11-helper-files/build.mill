@@ -31,11 +31,11 @@ object `package` extends MyModule {
 /** Usage
 
 > ./mill run
-Main Env build.util.myScalaVersion: 2.13.14
+Main Env build.util.myScalaVersion: 2.13.16
 Main Env build.foo.versions.myProjectVersion: 0.0.1
 
 > ./mill foo.run
-Foo Env build.util.myScalaVersion: 2.13.14
+Foo Env build.util.myScalaVersion: 2.13.16
 Foo Env build.foo.versions.myProjectVersion: 0.0.1
 
 */

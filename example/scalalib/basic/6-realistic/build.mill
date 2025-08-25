@@ -23,12 +23,12 @@ trait MyModule extends PublishModule {
 trait MyScalaModule extends MyModule, CrossScalaModule {
   def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.13.1")
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
     def testFramework = "utest.runner.Framework"
   }
 }
 
-val scalaVersions = Seq("2.13.16", "3.3.3")
+val scalaVersions = Seq("2.13.16", "3.3.6")
 
 object foo extends Cross[FooModule](scalaVersions)
 trait FooModule extends MyScalaModule {
@@ -90,12 +90,12 @@ object qux extends JavaModule, MyModule
 > ./mill resolve __.run
 bar[2.13.16].run
 bar[2.13.16].test.run
-bar[3.3.3].run
-bar[3.3.3].test.run
+bar[3.3.6].run
+bar[3.3.6].test.run
 foo[2.13.16].run
 foo[2.13.16].test.run
-foo[3.3.3].run
-foo[3.3.3].test.run
+foo[3.3.6].run
+foo[3.3.6].test.run
 qux.run
 
 > ./mill foo[2.13.16].run
@@ -104,8 +104,8 @@ Foo.value: <h1>hello</h1>
 Bar.value: <p>world Specific code for Scala 2.x</p>
 Qux.value: 31337
 
-> ./mill bar[3.3.3].test
-+ bar.BarTests.test ... <p>world Specific code for Scala 3.x</p>
+> ./mill bar[3.3.6].test
++ bar.BarTests.test ... "<p>world Specific code for Scala 3.x</p>"
 
 > ./mill qux.run
 Qux.value: 31337
@@ -113,10 +113,10 @@ Qux.value: 31337
 > ./mill __.compile
 
 > ./mill __.test
-+ bar.BarTests.test ... <p>world Specific code for Scala 2.x</p>
-+ bar.BarTests.test ... <p>world Specific code for Scala 3.x</p>
-+ foo.FooTests.test ... <h1>hello</h1>
-+ foo.FooTests.test ... <h1>hello</h1>
++ bar.BarTests.test ... "<p>world Specific code for Scala 2.x</p>"
++ bar.BarTests.test ... "<p>world Specific code for Scala 3.x</p>"
++ foo.FooTests.test ... "<h1>hello</h1>"
++ foo.FooTests.test ... "<h1>hello</h1>"
 
 > ./mill __.publishLocal
 Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
