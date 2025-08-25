@@ -115,6 +115,7 @@ class ExampleTester(
 
     /** The command we're about to execute */
     val debugCommandStr = s"$workspacePath> $commandStr"
+    Console.err.println("\nRunning:")
     Console.err.println(debugCommandStr)
     Console.err.println(
       s"""--- Expected output ----------
@@ -148,6 +149,9 @@ class ExampleTester(
       check,
       debugCommandStr
     )
+
+    Console.err.println("Success:")
+    Console.err.println(debugCommandStr + "\n")
   }
 
   def validateEval(

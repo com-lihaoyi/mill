@@ -60,11 +60,11 @@ public class MillLauncherMain {
     if (runNoServer) {
       // start in no-server mode
       System.exit(MillProcessLauncher.launchMillNoDaemon(args, outMode));
-    } else
+    } else {
+      var logs = new java.util.ArrayList<String>();
       try {
         // start in client-server mode
-        java.util.List<String> optsArgs = new java.util.ArrayList<>();
-        optsArgs.addAll(MillProcessLauncher.millOpts(outMode));
+        var optsArgs = new java.util.ArrayList<>(MillProcessLauncher.millOpts(outMode));
         Collections.addAll(optsArgs, args);
 
         MillServerLauncher launcher =
@@ -86,18 +86,25 @@ public class MillLauncherMain {
 
         var daemonDir0 = Paths.get(outDir, OutFiles.millDaemon);
         String javaHome = MillProcessLauncher.javaHome(outMode);
-        // No logging.
-        Consumer<String> log = ignored -> {};
+        Consumer<String> log = logs::add;
         var exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;
         if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
           exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;
         }
         System.exit(exitCode);
       } catch (Exception e) {
-        System.err.println("Mill client failed with unknown exception");
+        System.err.println("Mill client failed with unknown exception.");
+        System.err.println();
+
+        System.err.println("Exception:");
+        //noinspection CallToPrintStackTrace
         e.printStackTrace();
+        System.err.println();
+        System.err.println("Logs:");
+        logs.forEach(System.err::println);
         System.exit(1);
       }
+    }
   }
 
   private static boolean containsBspFlag(String[] args) {
