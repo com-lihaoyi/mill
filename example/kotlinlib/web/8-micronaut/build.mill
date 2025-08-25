@@ -8,11 +8,6 @@ import kotlinlib.ksp.Ksp2Module
 
 object micronaut extends MicronautModule {
 
-  override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-    super.repositoriesTask() ++
-      Seq(MavenRepository.apply("https://plugins.gradle.org/m2"))
-  }
-
   def mvnDeps: Task.Simple[Seq[Dep]] = Seq(
     mvn"io.micronaut:micronaut-http-server-netty",
     mvn"io.micronaut.serde:micronaut-serde-jackson",
@@ -50,17 +45,12 @@ object micronaut extends MicronautModule {
 
   }
 
-  // Micronaut test not compatible with running in parallel
-  def testParallelism = false
 }
 
 trait MicronautModule extends Ksp2Module {
   def kspVersion: T[String] = "2.0.2"
   def kspJvmTarget: T[String] = "11"
   def kotlinVersion = "2.2.0"
-
-  def kspLanguageVersion = "2.0"
-  def kspApiVersion = "2.0"
 
   def bomMvnDeps: T[Seq[Dep]] = Seq(
     mvn"io.micronaut.platform:micronaut-platform:4.9.2"
