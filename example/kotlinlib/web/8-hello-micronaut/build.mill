@@ -22,7 +22,7 @@ object micronaut extends MicronautModule {
 
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"io.micronaut:micronaut-http-client",
-      mvn"io.micronaut.test:micronaut-test-junit5",
+      mvn"io.micronaut.test:micronaut-test-junit5"
     )
 
   }
