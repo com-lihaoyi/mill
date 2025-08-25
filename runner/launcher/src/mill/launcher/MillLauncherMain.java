@@ -68,21 +68,21 @@ public class MillLauncherMain {
         Collections.addAll(optsArgs, args);
 
         MillServerLauncher launcher =
-          new MillServerLauncher(
-            new MillServerLauncher.Streams(System.in, System.out, System.err),
-            System.getenv(),
-            optsArgs.toArray(new String[0]),
-            Optional.empty(),
-            -1) {
-            public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
-              return new LaunchedServer.OsProcess(
-                MillProcessLauncher.launchMillDaemon(daemonDir, outMode).toHandle());
-            }
+            new MillServerLauncher(
+                new MillServerLauncher.Streams(System.in, System.out, System.err),
+                System.getenv(),
+                optsArgs.toArray(new String[0]),
+                Optional.empty(),
+                -1) {
+              public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
+                return new LaunchedServer.OsProcess(
+                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode).toHandle());
+              }
 
-            public void prepareDaemonDir(Path daemonDir) throws Exception {
-              MillProcessLauncher.prepareMillRunFolder(daemonDir);
-            }
-          };
+              public void prepareDaemonDir(Path daemonDir) throws Exception {
+                MillProcessLauncher.prepareMillRunFolder(daemonDir);
+              }
+            };
 
         var daemonDir0 = Paths.get(outDir, OutFiles.millDaemon);
         String javaHome = MillProcessLauncher.javaHome(outMode);
