@@ -198,8 +198,7 @@ object `package` extends mill.Module {
       "main-branch",
       "main-branch",
       build.millLastTag(),
-      build.millDownloadUrlCurrent(),
-      build.defaultMillJvmVersion()
+      build.millDownloadUrlCurrent()
     )
     PathRef(dest)
   }
@@ -209,8 +208,7 @@ object `package` extends mill.Module {
       version: String,
       displayVersion: String,
       millVersion: String,
-      millDownloadUrl: String,
-      defaultMillJvmVersion: String
+      millDownloadUrl: String
   ): Unit = {
     val isPreRelease = version == "main-branch" || Seq("-M", "-RC").exists(version.contains)
     val preReleaseSuffix = if (isPreRelease) "\nprerelease: true" else ""
@@ -223,7 +221,6 @@ object `package` extends mill.Module {
     }
 
     val newLines = Seq(
-      s"    default-mill-jvm-version: $defaultMillJvmVersion",
       s"    mill-download-url: $millDownloadUrl",
       s"    mill-example-url: ${Settings.projectUrl}/blob/$millVersion"
     )
@@ -368,14 +365,7 @@ object `package` extends mill.Module {
           if (useOldDownloadUrl) s"${Settings.projectUrl}/releases/download/$millVersion"
           else s"${build.millDownloadPrefix()}/$millVersion"
 
-        sanitizeAntoraYml(
-          outputFolder,
-          antoraVersion,
-          displayVersion,
-          millVersion,
-          millDownloadUrl,
-          build.defaultMillJvmVersion()
-        )
+        sanitizeAntoraYml(outputFolder, antoraVersion, displayVersion, millVersion, millDownloadUrl)
         PathRef(outputFolder)
       }
     }
