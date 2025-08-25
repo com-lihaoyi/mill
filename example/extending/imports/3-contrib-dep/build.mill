@@ -20,7 +20,7 @@ object foo extends ScalaModule, BuildInfo {
 
 > ./mill foo.run
 ...
-foo.BuildInfo.scalaVersion: 2.13.10
+foo.BuildInfo.scalaVersion: 2.13.16
 
 */
 
