@@ -1,11 +1,9 @@
 package mill.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.util.*;
 import mill.constants.ProxyStream;
 import org.junit.Test;
@@ -127,8 +125,8 @@ public class ClientTests {
       throws Exception {
 
     ByteArrayOutputStream pipe = new ByteArrayOutputStream();
-    OutputStream src1 = new ProxyStream.Output(pipe, ProxyStream.OUT);
-    OutputStream src2 = new ProxyStream.Output(pipe, ProxyStream.ERR);
+    var src1 = new ProxyStream.Output(pipe, ProxyStream.StreamType.OUT);
+    var src2 = new ProxyStream.Output(pipe, ProxyStream.StreamType.ERR);
 
     Random random = new Random(31337);
 
@@ -154,7 +152,7 @@ public class ClientTests {
     ProxyStream.Pumper pumper =
         new ProxyStream.Pumper(new ByteArrayInputStream(bytes), dest1, dest2);
     pumper.run();
-    assertTrue(Arrays.equals(samples1, dest1.toByteArray()));
-    assertTrue(Arrays.equals(samples2, dest2.toByteArray()));
+    assertArrayEquals(samples1, dest1.toByteArray());
+    assertArrayEquals(samples2, dest2.toByteArray());
   }
 }
