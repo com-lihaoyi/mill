@@ -9,9 +9,14 @@ trait IntegrationTesterBase {
 
   def propagateJavaHome: Boolean
 
-  def millTestSuiteEnv: Map[String, String] =
+  def millTestSuiteEnv: Map[String, String] = {
+    val javaHomeBin = sys.props("java.home") + "/bin"
     if (!propagateJavaHome) Map.empty
-    else Map("JAVA_HOME" -> sys.props("java.home"))
+    else Map(
+      "JAVA_HOME" -> sys.props("java.home"),
+      "PATH" -> s"$javaHomeBin${System.getProperty("path.separator")}${sys.env("PATH")}"
+    )
+  }
 
   /**
    * The working directory of the integration test suite, which is the root of the
