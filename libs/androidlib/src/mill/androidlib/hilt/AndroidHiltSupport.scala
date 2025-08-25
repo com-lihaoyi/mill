@@ -2,7 +2,6 @@ package mill.androidlib.hilt
 
 import mill.androidlib.AndroidKotlinModule
 import mill.api.{ModuleRef, PathRef}
-import mill.kotlinlib.DepSyntax
 import mill.kotlinlib.ksp.KspBaseModule
 import mill.javalib.Dep
 import mill.javalib.api.CompilationResult
@@ -29,21 +28,6 @@ import mill.{T, Task}
  */
 @mill.api.experimental
 trait AndroidHiltSupport extends KspBaseModule with AndroidKotlinModule {
-
-  def androidHiltProcessorPath: T[Seq[PathRef]] = Task {
-    kspDependencyResolver().classpath(
-      kotlinSymbolProcessors().flatMap {
-        dep =>
-          if (dep.dep.module.name.value == "hilt-android-compiler")
-            Seq(
-              dep,
-              mvn"com.google.dagger:hilt-compiler:${dep.version}"
-            )
-          else
-            Seq(dep)
-      }
-    )
-  }
 
   override def kspProcessorOptions: T[Map[String, String]] = Task {
     super.kspProcessorOptions() ++ Map(

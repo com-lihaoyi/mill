@@ -26,7 +26,7 @@ trait KspModule extends KspBaseModule { outer =>
    * This is used to determine the KSP version to use.
    * Defaults to `1.9` which is compatible with KSP 1.x.
    */
-  def kspLanguageVersion: String = "1.9"
+  def kspLanguageVersion: T[String] = "1.9"
 
   /**
    * The version of the symbol processing library to use.
@@ -58,12 +58,6 @@ trait KspModule extends KspBaseModule { outer =>
 
   def kspPluginsResolved: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(kspPlugins())
-  }
-
-  def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
-      kotlinSymbolProcessors()
-    )
   }
 
   override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { true }
@@ -106,7 +100,7 @@ trait KspModule extends KspBaseModule { outer =>
    * @return
    */
   def kspKotlincOptions: T[Seq[String]] = Task {
-    if (kspLanguageVersion.isBlank) {
+    if (kspLanguageVersion().isBlank) {
       throw new RuntimeException("KSP needs a compatible language version to be set!")
     }
     kotlincOptions() ++ Seq(
@@ -114,7 +108,7 @@ trait KspModule extends KspBaseModule { outer =>
       "-no-reflect",
       "-no-stdlib",
       "-language-version",
-      kspLanguageVersion
+      kspLanguageVersion()
     )
   }
 

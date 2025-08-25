@@ -36,6 +36,10 @@ trait Ksp2Module extends KspBaseModule { outer =>
     )
   }
 
+  /**
+   * The libraries that should be passed to the KSP compiler.
+   * This defaults to the compile classpath of the module.
+   */
   def kspLibraries: T[Seq[PathRef]] = compileClasspath()
 
   def kspModuleName = moduleSegments.render
@@ -48,12 +52,6 @@ trait Ksp2Module extends KspBaseModule { outer =>
     params.addVariantAttributes(
       "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
       "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
-    )
-  }
-
-  def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
-      kotlinSymbolProcessors()
     )
   }
 

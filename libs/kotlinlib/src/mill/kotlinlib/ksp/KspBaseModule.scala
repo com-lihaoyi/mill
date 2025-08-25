@@ -11,6 +11,10 @@ import mill.kotlinlib.{Dep, KotlinModule}
 @mill.api.experimental
 trait KspBaseModule extends KotlinModule {
 
+  def kspLanguageVersion: T[String]
+
+  def kspVersion: T[String]
+
   /**
    * The symbol processors to be used by the Kotlin compiler.
    * Default is empty.
@@ -22,7 +26,11 @@ trait KspBaseModule extends KotlinModule {
   /**
    * Resolved classpath for the symbol processors.
    */
-  def kotlinSymbolProcessorsResolved: T[Seq[PathRef]]
+  def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      kotlinSymbolProcessors()
+    )
+  }
 
   /**
    * The classpath when running Kotlin Symbol processing.
