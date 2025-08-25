@@ -1,0 +1,90 @@
+package build
+
+import coursier.{MavenRepository, Repository}
+
+import mill.*
+import kotlinlib.*
+import kotlinlib.ksp.Ksp2Module
+
+object micronaut extends MicronautModule {
+
+  def mvnDeps: Task.Simple[Seq[Dep]] = Seq(
+    mvn"io.micronaut:micronaut-http-server-netty",
+    mvn"io.micronaut.serde:micronaut-serde-jackson",
+    mvn"io.micronaut:micronaut-jackson-databind",
+    mvn"io.micronaut:micronaut-http-validation",
+    mvn"ch.qos.logback:logback-classic:1.5.3",
+    mvn"io.micronaut.kotlin:micronaut-kotlin-runtime",
+    mvn"io.micronaut.data:micronaut-data-processor"
+  )
+
+  object test extends MicronautTests, TestModule.Junit5 {
+
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"io.micronaut:micronaut-http-client",
+      mvn"io.micronaut.test:micronaut-test-junit5",
+      mvn"io.micronaut.kotlin:micronaut-kotlin-runtime"
+    )
+
+  }
+
+}
+
+trait MicronautModule extends Ksp2Module { outer =>
+  def kspVersion: T[String] = "2.0.2"
+  def kspJvmTarget: T[String] = "11"
+  def kotlinVersion = "2.2.0"
+
+  def bomMvnDeps: T[Seq[Dep]] = Seq(
+    mvn"io.micronaut.platform:micronaut-platform:4.9.2"
+  )
+
+  def kotlinSymbolProcessors = Seq(
+    mvn"io.micronaut:micronaut-inject-kotlin:4.9.9"
+  )
+
+  override def kspProcessorOptions: T[Map[String, String]] = Task {
+    super.kspProcessorOptions() ++ Map(
+      "micronaut.processing.module" -> moduleSegments.render,
+      "micronaut.processing.incremental" -> "true"
+    )
+  }
+
+  override def resources: T[Seq[PathRef]] = Task {
+    super.resources() ++ Seq(generatedSourcesWithKSP().resources)
+  }
+
+  override def runClasspath: T[Seq[PathRef]] = Task {
+    super.runClasspath() ++ Seq(generatedSourcesWithKSP().classes)
+  }
+
+  trait MicronautTests extends MicronautModule, Ksp2Tests {
+
+    override def resources: T[Seq[PathRef]] = Task {
+      super.resources() ++ Seq(generatedSourcesWithKSP().resources)
+    }
+
+    override def runClasspath: T[Seq[PathRef]] = Task {
+      super.runClasspath() ++ Seq(
+        generatedSourcesWithKSP().classes,
+        outer.generatedSourcesWithKSP().classes
+      )
+    }
+
+  }
+
+}
+
+/** Usage
+
+ > ./mill micronaut.test
+ ...micronaut.HelloControllerTest#testHello()...
+
+ > ./mill micronaut.runBackground
+
+ > curl http://localhost:8088/hello
+ ...Hello World...
+
+ > ./mill __.clean micronaut.runBackground
+
+ */
