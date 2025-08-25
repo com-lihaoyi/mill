@@ -1,14 +1,14 @@
 package build
 
 import mill.*, androidlib.*, kotlinlib.*
-import kotlinlib.ksp.*
+import kotlinlib.ksp.Ksp2Module
 import hilt.AndroidHiltSupport
 
 object Versions {
-  val kotlinVersion = "2.0.21"
-  val kotlinLanguageVersion = "1.9"
+  val kotlinVersion = "2.2.0"
+  val kotlinLanguageVersion = "2.0"
 
-  val kspVersion = "1.0.28"
+  val kspVersion = "2.0.2"
   val androidCompileSdk = 35
   val androidMinSdk = 26
 }
@@ -20,7 +20,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 
 // Mill configuration for the Android Todo App project.
 object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfig,
-      KspModule, AndroidHiltSupport {
+      Ksp2Module, AndroidHiltSupport {
 
   def kotlinVersion = Versions.kotlinVersion
   def kotlinLanguageVersion = Versions.kotlinLanguageVersion
@@ -70,8 +70,8 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
     mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0",
     mvn"com.jakewharton.timber:timber:5.0.1",
     mvn"androidx.test.espresso:espresso-idling-resource:3.6.1",
-    mvn"androidx.room:room-runtime:2.6.1",
-    mvn"androidx.room:room-ktx:2.6.1",
+    mvn"androidx.room:room-runtime:2.7.1",
+    mvn"androidx.room:room-ktx:2.7.1",
     mvn"androidx.activity:activity-compose:1.10.0",
     mvn"androidx.navigation:navigation-compose:2.8.5",
     mvn"androidx.emoji2:emoji2:1.3.0",
@@ -105,11 +105,11 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
   )
 
   def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
-    mvn"androidx.room:room-compiler:2.6.1",
+    mvn"androidx.room:room-compiler:2.7.1",
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  object test extends AndroidAppKotlinTests, KspModule, AndroidHiltSupport, TestModule.Junit4 {
+  object test extends AndroidAppKotlinTests, Ksp2Module, AndroidHiltSupport, TestModule.Junit4 {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
 
@@ -118,7 +118,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
     override def kspVersion = Versions.kspVersion
 
     def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
-      mvn"androidx.room:room-compiler:2.6.1",
+      mvn"androidx.room:room-compiler:2.7.1",
       mvn"com.google.dagger:hilt-android-compiler:2.56"
     )
 
@@ -146,7 +146,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
   }
 
   object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule,
-        KspModule, AndroidHiltSupport {
+        Ksp2Module, AndroidHiltSupport {
 
     override def kotlinLanguageVersion = Versions.kotlinLanguageVersion
 
@@ -191,7 +191,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
       mvn"androidx.test:core-ktx:1.6.1",
       mvn"androidx.test.ext:junit-ktx:1.2.1",
       mvn"androidx.test:rules:1.6.1",
-      mvn"androidx.room:room-testing:2.6.1",
+      mvn"androidx.room:room-testing:2.7.1",
       mvn"androidx.arch.core:core-testing:2.2.0",
       mvn"androidx.navigation:navigation-testing:2.8.5",
       mvn"androidx.test.espresso:espresso-core:3.6.1",
@@ -204,7 +204,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
     )
 
     def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
-      mvn"androidx.room:room-compiler:2.6.1",
+      mvn"androidx.room:room-compiler:2.7.1",
       mvn"com.google.dagger:hilt-android-compiler:2.56"
     )
 
@@ -212,7 +212,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
 
 }
 
-object `shared-test` extends AndroidKotlinModule, KspModule, AndroidHiltSupport {
+object `shared-test` extends AndroidKotlinModule, Ksp2Module, AndroidHiltSupport {
 
   def moduleDeps = Seq(app)
 
@@ -230,7 +230,7 @@ object `shared-test` extends AndroidKotlinModule, KspModule, AndroidHiltSupport 
   def androidNamespace = "com.example.android.architecture.blueprints.todoapp.daemon.test"
 
   def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
-    mvn"androidx.room:room-compiler:2.6.1",
+    mvn"androidx.room:room-compiler:2.7.1",
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
@@ -244,8 +244,8 @@ object `shared-test` extends AndroidKotlinModule, KspModule, AndroidHiltSupport 
     mvn"androidx.test:rules:1.6.1",
     mvn"com.google.dagger:hilt-android:2.56",
     mvn"com.google.dagger:hilt-android-testing:2.56",
-    mvn"androidx.room:room-runtime:2.6.1",
-    mvn"androidx.room:room-ktx:2.6.1"
+    mvn"androidx.room:room-runtime:2.7.1",
+    mvn"androidx.room:room-ktx:2.7.1"
   )
 }
 
