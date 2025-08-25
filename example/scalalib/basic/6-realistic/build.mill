@@ -113,10 +113,10 @@ Qux.value: 31337
 > ./mill __.compile
 
 > ./mill __.test
-+ bar.BarTests.test ... <p>world Specific code for Scala 2.x</p>
-+ bar.BarTests.test ... <p>world Specific code for Scala 3.x</p>
-+ foo.FooTests.test ... <h1>hello</h1>
-+ foo.FooTests.test ... <h1>hello</h1>
++ bar.BarTests.test ... "<p>world Specific code for Scala 2.x</p>"
++ bar.BarTests.test ... "<p>world Specific code for Scala 3.x</p>"
++ foo.FooTests.test ... "<h1>hello</h1>"
++ foo.FooTests.test ... "<h1>hello</h1>"
 
 > ./mill __.publishLocal
 Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
