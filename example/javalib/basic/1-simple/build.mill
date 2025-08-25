@@ -55,7 +55,59 @@ object foo extends JavaModule {
 
 /** Usage
 
-> java -version
-???
+> ./mill resolve foo._ # List what tasks are available to run
+foo.assembly
+...
+foo.compile
+...
+foo.run
+*/
+/** Usage
+> ./mill inspect foo.compile # Show documentation and inputs of a task
+foo.compile(JavaModule...)
+    Compiles the current module to generate compiled classfiles/bytecode.
+Inputs:
+    foo.upstreamCompileOutput
+    foo.allSourceFiles
+    foo.compileClasspath
+...
+*/
+/** Usage
+> ./mill foo.compile # compile sources into classfiles
+...
+compiling 1 Java source to...
+*/
+/** Usage
+> ./mill foo.run # run the main method, if any
+error: argument -t/--text is required
+...
+*/
+/** Usage
+> ./mill foo.run --text hello
+<h1>hello</h1>
+*/
+/** Usage
+> ./mill foo.test
+...
+Test foo.FooTest.testEscaping finished, ...
+Test foo.FooTest.testSimple finished, ...
+Test run foo.FooTest finished: 0 failed, 0 ignored, 2 total, ...
+*/
+/** Usage
+> ./mill foo.assembly # bundle classfiles and libraries into a jar for deployment
+
+> ./mill show foo.assembly # show the output of the assembly task
+".../out/foo/assembly.dest/out.jar"
+
+> java -jar ./out/foo/assembly.dest/out.jar --text hello
+<h1>hello</h1>
+
+> ./out/foo/assembly.dest/out.jar --text hello # mac/linux
+<h1>hello</h1>
+
+> cp ./out/foo/assembly.dest/out.jar out.bat # windows
+
+> ./out.bat --text hello # windows
+<h1>hello</h1>
 
 */
