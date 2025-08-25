@@ -19,15 +19,15 @@ import mill.{T, Task}
  * Usage:
  * ```
  *
- * object app extends KspModule with AndroidHiltSupport { ... }
+ * object app extends KspModule, AndroidHiltSupport { ... }
  *
  * // or
  *
- * object app extends Ksp2Module with AndroidHiltSupport { ... }
+ * object app extends Ksp2Module, AndroidHiltSupport { ... }
  * ```
  */
 @mill.api.experimental
-trait AndroidHiltSupport extends KspBaseModule with AndroidKotlinModule {
+trait AndroidHiltSupport extends KspBaseModule, AndroidKotlinModule {
 
   override def kspProcessorOptions: T[Map[String, String]] = Task {
     super.kspProcessorOptions() ++ Map(
