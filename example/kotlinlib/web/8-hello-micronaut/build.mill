@@ -13,7 +13,7 @@ object micronaut extends MicronautModule {
     mvn"io.micronaut.serde:micronaut-serde-jackson",
     mvn"io.micronaut:micronaut-jackson-databind",
     mvn"io.micronaut:micronaut-http-validation",
-    mvn"ch.qos.logback:logback-classic:1.5.3",
+    mvn"ch.qos.logback:logback-classic",
     mvn"io.micronaut.kotlin:micronaut-kotlin-runtime",
     mvn"io.micronaut.data:micronaut-data-processor"
   )
@@ -23,7 +23,6 @@ object micronaut extends MicronautModule {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"io.micronaut:micronaut-http-client",
       mvn"io.micronaut.test:micronaut-test-junit5",
-      mvn"io.micronaut.kotlin:micronaut-kotlin-runtime"
     )
 
   }
@@ -61,8 +60,12 @@ trait MicronautModule extends Ksp2Module { outer =>
   trait MicronautTests extends MicronautModule, Ksp2Tests {
 
     override def resources: T[Seq[PathRef]] = Task {
-      super.resources() ++ Seq(generatedSourcesWithKSP().resources)
+      super[Ksp2Tests].resources() ++ Seq(generatedSourcesWithKSP().resources)
     }
+
+    def kotlinSymbolProcessors = Seq(
+      mvn"io.micronaut:micronaut-inject-kotlin-test:4.9.9"
+    )
 
     override def runClasspath: T[Seq[PathRef]] = Task {
       super.runClasspath() ++ Seq(
@@ -77,14 +80,27 @@ trait MicronautModule extends Ksp2Module { outer =>
 
 /** Usage
 
- > ./mill micronaut.test
- ...micronaut.HelloControllerTest#testHello()...
+> ./mill show micronaut.test
+...
+{
+  "msg": " ",
+  "results": [
+    {
+      "fullyQualifiedName": "example.micronaut.HelloControllerTest",
+      "selector": "testHello()",
+      "duration": ...,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "example.micronaut.FnrSearchServiceTest",
+      "selector": "testItWorks()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+...
 
- > ./mill micronaut.runBackground
+> ./mill show clean
 
- > curl http://localhost:8088/hello
- ...Hello World...
-
- > ./mill __.clean micronaut.runBackground
-
- */
+*/
