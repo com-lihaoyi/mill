@@ -11,10 +11,7 @@ trait IntegrationTesterBase {
 
   def millTestSuiteEnv: Map[String, String] =
     if (!propagateJavaHome) Map.empty
-    else Map(
-      "JAVA_HOME" -> sys.props("java.home"),
-      "MILL_TEST_SUITE_USE_SYSTEM_JAVA" -> "1"
-    )
+    else Map("JAVA_HOME" -> sys.props("java.home"))
 
   /**
    * The working directory of the integration test suite, which is the root of the
