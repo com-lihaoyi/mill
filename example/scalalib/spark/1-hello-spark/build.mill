@@ -2,7 +2,7 @@ package build
 import mill.*, scalalib.*
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.15"
+  def scalaVersion = "2.12.20"
   def mvnDeps = Seq(
     mvn"org.apache.spark::spark-core:3.5.4",
     mvn"org.apache.spark::spark-sql:3.5.4"

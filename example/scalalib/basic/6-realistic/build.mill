@@ -28,7 +28,7 @@ trait MyScalaModule extends MyModule, CrossScalaModule {
   }
 }
 
-val scalaVersions = Seq("2.13.16", "3.3.3")
+val scalaVersions = Seq("2.13.16", "3.3.6")
 
 object foo extends Cross[FooModule](scalaVersions)
 trait FooModule extends MyScalaModule {
@@ -105,7 +105,7 @@ Bar.value: <p>world Specific code for Scala 2.x</p>
 Qux.value: 31337
 
 > ./mill bar[3.3.3].test
-+ bar.BarTests.test ... <p>world Specific code for Scala 3.x</p>
++ bar.BarTests.test ... "<p>world Specific code for Scala 3.x</p>"
 
 > ./mill qux.run
 Qux.value: 31337

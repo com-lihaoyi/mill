@@ -1,7 +1,7 @@
 package build
 import mill.*, scalalib.*, scalajslib.*, publish.*
 
-object foo extends Cross[FooModule]("2.13.14", "3.3.3")
+object foo extends Cross[FooModule]("2.13.16", "3.3.6")
 trait FooModule extends Cross.Module[String] {
   trait Shared extends CrossScalaModule, CrossValue, PlatformScalaModule, PublishModule {
     def publishVersion = "0.0.1"

@@ -24,7 +24,7 @@ trait SharedJS extends Shared, ScalaJSModule {
   def scalaJSVersion = "1.19.0"
 }
 
-val scalaVersions = Seq("2.13.14", "3.3.3")
+val scalaVersions = Seq("2.13.16", "3.3.6")
 
 object bar extends Module {
   object jvm extends Cross[JvmModule](scalaVersions)
