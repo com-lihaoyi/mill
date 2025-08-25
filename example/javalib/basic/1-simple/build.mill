@@ -55,7 +55,7 @@ object foo extends JavaModule {
 
 /** Usage
 
-> echo $JAVA_HOME
+> java -version
 ???
 
 */
