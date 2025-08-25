@@ -20,7 +20,7 @@ object Deps {
 }
 
 val crosses =
-    Range.inclusive(8, 20).map("2.12." + _) ++
+  Range.inclusive(8, 20).map("2.12." + _) ++
     Range.inclusive(0, 16).map("2.13." + _)
 
 object acyclic extends Cross[AcyclicModule](crosses)
