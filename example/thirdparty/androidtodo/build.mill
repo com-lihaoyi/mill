@@ -1,12 +1,14 @@
 package build
 
 import mill.*, androidlib.*, kotlinlib.*
+import kotlinlib.ksp.Ksp2Module
 import hilt.AndroidHiltSupport
 
 object Versions {
-  val kotlinVersion = "2.2.0" // Updated from 2.0.21
-  val kotlinLanguageVersion = "2.2" // Updated from 1.9
-  val kspVersion = "2.0.2" // Updated from 1.0.28
+  val kotlinVersion = "2.2.0"
+  val kotlinLanguageVersion = "2.0"
+
+  val kspVersion = "2.0.2"
   val androidCompileSdk = 35
   val androidMinSdk = 26
 }
@@ -18,7 +20,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 
 // Mill configuration for the Android Todo App project.
 object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfig,
-      AndroidHiltSupport {
+      Ksp2Module, AndroidHiltSupport {
 
   def kotlinVersion = Versions.kotlinVersion
   def kotlinLanguageVersion = Versions.kotlinLanguageVersion
@@ -107,13 +109,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  override def generatedSources = Task {
-    super[
-      AndroidHiltSupport
-    ].generatedSources() :+ generatedBuildConfig()
-  }
-
-  object test extends AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4 {
+  object test extends AndroidAppKotlinTests, Ksp2Module, AndroidHiltSupport, TestModule.Junit4 {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
 
@@ -150,7 +146,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
   }
 
   object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule,
-        AndroidHiltSupport {
+        Ksp2Module, AndroidHiltSupport {
 
     override def kotlinLanguageVersion = Versions.kotlinLanguageVersion
 
@@ -216,7 +212,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
 
 }
 
-object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
+object `shared-test` extends AndroidKotlinModule, Ksp2Module, AndroidHiltSupport {
 
   def moduleDeps = Seq(app)
 
