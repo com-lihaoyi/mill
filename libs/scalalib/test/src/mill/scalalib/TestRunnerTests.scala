@@ -3,12 +3,13 @@ package mill.scalalib
 import mill.api.ExecResult
 import mill.testkit.UnitTester
 import sbt.testing.Status
-import utest._
+import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
 object TestRunnerTests extends TestSuite {
-  import TestRunnerTestUtils._
+  import TestRunnerTestUtils.*
+
   override def tests: Tests = Tests {
 
     test("doneMessage") {

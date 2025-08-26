@@ -1,12 +1,9 @@
 package mill.scalalib
 
-import mill.api.Result
-import mill.api.Discover
-import mill.testkit.UnitTester
-import mill.testkit.TestRootModule
-import mill.util.TokenReaders._
-import mill.Task
-import mill.T
+import mill.{T, Task}
+import mill.api.{Discover, Result}
+import mill.testkit.{TestRootModule, UnitTester}
+import mill.util.TokenReaders.*
 import os.Path
 import sbt.testing.Status
 import utest.*

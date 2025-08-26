@@ -1,10 +1,11 @@
 package mill.scalalib
 
 import mill.*
-import mill.testkit.TestRootModule
-import mill.util.TokenReaders._
-import HelloWorldTests.*
 import mill.api.Discover
+import mill.scalalib.HelloWorldTests.*
+import mill.testkit.TestRootModule
+import mill.util.TokenReaders.*
+
 trait ScalaAssemblyTestUtils {
 
   val akkaHttpDeps = Seq(mvn"com.typesafe.akka::akka-http:10.0.13")

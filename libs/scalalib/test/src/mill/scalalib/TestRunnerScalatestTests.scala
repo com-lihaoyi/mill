@@ -3,10 +3,10 @@ package mill.scalalib
 import mill.api.ExecResult
 import mill.testkit.UnitTester
 import sbt.testing.Status
-import utest._
+import utest.*
 
 object TestRunnerScalatestTests extends TestSuite {
-  import TestRunnerTestUtils._
+  import TestRunnerTestUtils.*
   override def tests: Tests = Tests {
     test("test") - UnitTester(testrunner, resourcePath).scoped { eval =>
       val Right(result) = eval(testrunner.scalatest.testForked()): @unchecked
