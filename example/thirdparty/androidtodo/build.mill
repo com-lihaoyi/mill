@@ -6,7 +6,6 @@ import hilt.AndroidHiltSupport
 
 object Versions {
   val kotlinVersion = "2.2.0"
-  val kotlinLanguageVersion = "2.0"
 
   val kspVersion = "2.0.2"
   val androidCompileSdk = 35
@@ -23,7 +22,6 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
       Ksp2Module, AndroidHiltSupport {
 
   def kotlinVersion = Versions.kotlinVersion
-  def kotlinLanguageVersion = Versions.kotlinLanguageVersion
   def kspVersion = Versions.kspVersion
 
   override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
@@ -148,8 +146,6 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
   object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule,
         Ksp2Module, AndroidHiltSupport {
 
-    override def kotlinLanguageVersion = Versions.kotlinLanguageVersion
-
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
 
     def testFramework = "com.example.android.architecture.blueprints.todoapp.CustomTestRunner"
@@ -217,7 +213,6 @@ object `shared-test` extends AndroidKotlinModule, Ksp2Module, AndroidHiltSupport
   def moduleDeps = Seq(app)
 
   def kotlinVersion = Versions.kotlinVersion
-  def kotlinLanguageVersion = Versions.kotlinLanguageVersion
   def kspVersion = Versions.kspVersion
   def androidIsDebug = true
 
