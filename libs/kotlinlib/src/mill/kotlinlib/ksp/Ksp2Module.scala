@@ -1,7 +1,5 @@
 package mill.kotlinlib.ksp
 
-import coursier.core.VariantSelector.VariantMatcher
-import coursier.params.ResolutionParams
 import mill.*
 import mill.api.Result
 import mill.api.{PathRef, Task}
