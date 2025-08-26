@@ -174,13 +174,7 @@ public class MillProcessLauncher {
 
     String javaHome = null;
     if (jvmId == null) {
-      boolean systemJavaExists =
-          new ProcessBuilder(isWin() ? "where" : "which", "java").start().waitFor() == 0;
-      if (systemJavaExists && System.getenv("MILL_TEST_SUITE_IGNORE_SYSTEM_JAVA") == null) {
-        jvmId = null;
-      } else {
-        jvmId = mill.client.BuildInfo.defaultJvmId;
-      }
+      jvmId = mill.client.BuildInfo.defaultJvmId;
     }
 
     if (jvmId != null) {
@@ -196,8 +190,10 @@ public class MillProcessLauncher {
           arr -> Files.exists(Paths.get(arr[0])))[0];
     }
 
-    if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
-    if (javaHome == null || javaHome.isEmpty()) javaHome = System.getenv("JAVA_HOME");
+    if (jvmId == "system") {
+      if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
+      if (javaHome == null || javaHome.isEmpty()) javaHome = System.getenv("JAVA_HOME");
+    }
     return javaHome;
   }
 

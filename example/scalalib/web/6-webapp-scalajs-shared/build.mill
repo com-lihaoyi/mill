@@ -2,7 +2,7 @@ package build
 import mill.*, scalalib.*, scalajslib.*
 
 trait AppScalaModule extends ScalaModule {
-  def scalaVersion = "3.3.3"
+  def scalaVersion = "3.3.6"
 }
 
 trait AppScalaJSModule extends AppScalaModule, ScalaJSModule {

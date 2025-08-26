@@ -1,11 +1,15 @@
 package build
-import mill.*, scalalib.*, scalajslib.*, scalanativelib.*, publish.*
+import mill._, scalalib._, scalajslib._, scalanativelib._, publish._
+import mill.util.VcsVersion
+import mill.javalib.api.JvmWorkerUtil.isScala3
 
-val dottyCommunityBuildVersion = sys.props.get("dottyVersion").toList
+val dottyCommunityBuildVersion = sys.props.get("dottyVersion")
 
-val scalaVersions = Seq("2.12.17", "2.13.16", "2.11.12", "3.1.3") ++ dottyCommunityBuildVersion
+val scalaVersions = Seq("2.12.20", "2.13.16", "3.3.6") ++ dottyCommunityBuildVersion
 
-trait FansiModule extends PublishModule, CrossScalaModule, PlatformScalaModule {
+trait FansiModule extends PublishModule with CrossScalaModule with PlatformScalaModule {
+  def artifactName = "fansi"
+
   def publishVersion = "1.3.3.7"
 
   def pomSettings = PomSettings(
@@ -14,35 +18,36 @@ trait FansiModule extends PublishModule, CrossScalaModule, PlatformScalaModule {
     url = "https://github.com/com-lihaoyi/Fansi",
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github(owner = "com-lihaoyi", repo = "fansi"),
-    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+    developers = Seq(
+      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
+    )
   )
 
-  def mvnDeps = Seq(mvn"com.lihaoyi::sourcecode::0.3.0")
+  def mvnDeps = Seq(mvn"com.lihaoyi::sourcecode::0.4.0")
+}
 
-  trait FansiTests extends ScalaTests, TestModule.Utest {
-    def utestVersion = "0.8.5"
-  }
+trait FansiTestModule extends ScalaModule with TestModule.Utest {
+  def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.8.3")
 }
 
 object fansi extends Module {
   object jvm extends Cross[JvmFansiModule](scalaVersions)
-  trait JvmFansiModule extends FansiModule, ScalaModule {
-    object test extends FansiTests, ScalaTests
+  trait JvmFansiModule extends FansiModule with ScalaModule {
+    object test extends ScalaTests with FansiTestModule
   }
 
   object js extends Cross[JsFansiModule](scalaVersions)
-  trait JsFansiModule extends FansiModule, ScalaJSModule {
-    def scalaJSVersion = "1.16.0"
-    object test extends FansiTests, ScalaJSTests
+  trait JsFansiModule extends FansiModule with ScalaJSModule {
+    def scalaJSVersion = "1.19.0"
+    object test extends ScalaJSTests with FansiTestModule
   }
 
   object native extends Cross[NativeFansiModule](scalaVersions)
-  trait NativeFansiModule extends FansiModule, ScalaNativeModule {
-    def scalaNativeVersion = "0.4.5"
-    object test extends FansiTests, ScalaNativeTests
+  trait NativeFansiModule extends FansiModule with ScalaNativeModule {
+    def scalaNativeVersion = "0.5.8"
+    object test extends ScalaNativeTests with FansiTestModule
   }
 }
-
 // Fansi is an example of a small library that is cross built against every
 // minor version of Scala (including Scala 3.x) and every platform: JVM, JS,
 // and Native.
@@ -55,31 +60,26 @@ object fansi extends Module {
 /** Usage
 
 > ./mill resolve __.compile
-fansi.js[2.11.12].test.compile
-fansi.js[2.12.17].compile
-fansi.js[2.12.17].test.compile
+fansi.js[2.12.20].compile
+fansi.js[2.12.20].test.compile
 fansi.js[2.13.16].compile
 fansi.js[2.13.16].test.compile
-fansi.js[3.1.3].compile
-fansi.js[3.1.3].test.compile
-fansi.jvm[2.11.12].compile
-fansi.jvm[2.11.12].test.compile
-fansi.jvm[2.12.17].compile
-fansi.jvm[2.12.17].test.compile
+fansi.js[3.3.6].compile
+fansi.js[3.3.6].test.compile
+fansi.jvm[2.12.20].compile
+fansi.jvm[2.12.20].test.compile
 fansi.jvm[2.13.16].compile
 fansi.jvm[2.13.16].test.compile
-fansi.jvm[3.1.3].compile
-fansi.jvm[3.1.3].test.compile
-fansi.native[2.11.12].compile
-fansi.native[2.11.12].test.compile
-fansi.native[2.12.17].compile
-fansi.native[2.12.17].test.compile
+fansi.jvm[3.3.6].compile
+fansi.jvm[3.3.6].test.compile
+fansi.native[2.12.20].compile
+fansi.native[2.12.20].test.compile
 fansi.native[2.13.16].compile
 fansi.native[2.13.16].test.compile
-fansi.native[3.1.3].compile
-fansi.native[3.1.3].test.compile
+fansi.native[3.3.6].compile
+fansi.native[3.3.6].test.compile
 
-> ./mill fansi.jvm[2.12.17].compile
+> ./mill fansi.jvm[2.12.20].compile
 compiling 1 Scala source...
 ...
 
@@ -88,8 +88,8 @@ Starting process: node
 -------------------------------- Running Tests --------------------------------
 ...
 
-> ./mill fansi.native[3.1.3].publishLocal
-Publishing Artifact(com.lihaoyi,fansi_native0.4_3,1.3.3.7) to ivy repo...
+> ./mill fansi.native[3.3.6].publishLocal
+Publishing Artifact(com.lihaoyi,fansi_native0.5_3,1.3.3.7) to ivy repo...
 ...
 
 */
