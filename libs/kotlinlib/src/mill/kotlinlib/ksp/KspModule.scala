@@ -76,12 +76,14 @@ trait KspModule extends KspBaseModule { outer =>
   }
 
   /**
-   * Kotlinc arguments used with KSP
+   * Kotlinc arguments used with KSP. Sets the language version for the
+   * ksp processing stage using [[kspLanguageVersion]]. [[kspLanguageVersion]] needs
+   * to be 1.9 or earlier for KSP 1.x.
    * @return
    */
   def kspKotlincOptions: T[Seq[String]] = Task {
-    if (kspLanguageVersion().isBlank) {
-      throw new RuntimeException("KSP needs a compatible language version to be set!")
+    if (!kspLanguageVersion().startsWith("1.")) {
+      throw new RuntimeException("KSP needs a compatible language version <= 1.9 to be set!")
     }
     kotlincOptions() ++ Seq(
       "-Xallow-unstable-dependencies",

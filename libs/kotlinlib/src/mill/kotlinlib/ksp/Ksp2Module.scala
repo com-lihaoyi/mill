@@ -24,7 +24,7 @@ trait Ksp2Module extends KspBaseModule { outer =>
    * The JVM target version for the KSP compilation step.
    * Default is derived from `java.specification.version`.
    */
-  def kspJvmTarget: T[String] = Task {
+  def kspJvmTarget: T[String] = Task.Input {
     System.getProperty("java.specification.version")
   }
 
