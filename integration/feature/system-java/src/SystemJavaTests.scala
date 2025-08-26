@@ -1,7 +1,6 @@
 package mill.integration
 
-import mill.constants.Util
-import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
+import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 
 object SystemJavaTests extends UtestIntegrationTestSuite {
