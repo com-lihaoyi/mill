@@ -26,14 +26,23 @@ trait Ksp2Module extends KspBaseModule { outer =>
    */
   def kspJvmTarget: T[String] = "11"
 
+  /**
+   * The kotlin language version used for the KSP compilation stage.
+   * [[kspApiVersion]] must be less than or equal to this version.
+   * @return
+   */
   def kspLanguageVersion: T[String] = kotlinLanguageVersion()
 
+  /**
+   * The kotlin api version used for the KSP compilation stage.
+   * @return
+   */
   def kspApiVersion: T[String] = kotlinApiVersion()
 
   /**
    * The jars needed to run KSP 2 via `com.google.devtools.ksp.cmdline.KSPJvmMain` .
    *
-   * Also consult [[https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md]]
+   * For more info go to [[https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md]]
    */
   def kspDeps: T[Seq[Dep]] = Task {
     Seq(
@@ -48,6 +57,13 @@ trait Ksp2Module extends KspBaseModule { outer =>
     defaultResolver().classpath(kspDeps(), resolutionParamsMapOpt = Some(addJvmVariantAttributes))
   }
 
+  /**
+   * Any extra args passed to the KSP
+   * com.google.devtools.ksp.cmdline.KSPJvmMain
+   *
+   * For more info go to [[https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md]]
+   * @return
+   */
   def kspArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
