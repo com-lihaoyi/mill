@@ -259,6 +259,13 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     super.mandatoryMvnDeps() ++ scalaLibraryMvnDeps()
   }
 
+  override private[mill] def repositoriesTask0 = Task.Anon {
+    super.repositoriesTask0() ++ Seq(
+      // Scala 3 compiler nightlies
+      coursier.maven.MavenRepository("https://repo.scala-lang.org/artifactory/maven-nightlies")
+    )
+  }
+
   /**
    * Classpath of the Scala Compiler & any compiler plugins
    */
