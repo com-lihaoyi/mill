@@ -682,9 +682,11 @@ via <a href="import-mvn-plugins.html" class="xref page">//| mvnDeps</a>.</p>
 <h2 id="_project_configuration"><a class="anchor" href="#_project_configuration"></a>Project Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-57-9d2561/mill-dist-1.0.3-57-9d2561-example-extending-plugins-1-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/extending/plugins/1-writing-mill-plugins">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-58-fc16b4/mill-dist-1.0.3-58-fc16b4-example-extending-plugins-1-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/extending/plugins/1-writing-mill-plugins">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: 11
+
+package build
 import mill.*, scalalib.*, publish.*
 import mill.util.BuildInfo.{millVersion, millBinPlatform}
 
@@ -727,6 +729,13 @@ compile your Mill plugin project, but also to run unit tests using <code>mill-te
 and to configure it for publishing to Maven Central via <code>PublishModule</code>.
 It looks like any other Scala project, except for a few dependencies on <code>mill-libs</code>
 and <code>mill-testkit</code> to bring in the appropriate libraries</p>
+</div>
+<div class="paragraph">
+<p>Note that when publishing artifacts to Maven repositories, the JVM version used to build the
+artifacts will be the minimum version that downstream projects will need to use in order to
+use your artifacts. Thus it is best to set your <code>mill-jvm-version</code> to the lowest version
+possible, e.g. <code>mill-jvm-version: 11</code> in this example which is the lowest version supported
+by Mill.</p>
 </div>
 </div>
 </div>
@@ -930,7 +939,7 @@ to running Mill in a subprocess, but are able to exercise the end-to-end lifecyc
 command. Integration tests require further build configuration, which is shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-57-9d2561/mill-dist-1.0.3-57-9d2561-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/extending/plugins/2-plugin-integration-tests">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-58-fc16b4/mill-dist-1.0.3-58-fc16b4-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/extending/plugins/2-plugin-integration-tests">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, publish.*
