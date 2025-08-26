@@ -8,10 +8,16 @@ import mill.api.Task.Simple as T
 import mill.javalib.Assembly.UnopenedInputStream
 import mill.util.Jvm
 
+trait AssemblyModuleOfflineSupport extends OfflineSupportModule {
+  override def prepareOffline(all: mainargs.Flag): Task.Command[Seq[PathRef]] = Task.Command {
+    AssemblyModule.prepareOffline(all)()
+  }
+}
+
 /**
  * Module that provides functionality around creating and configuring JVM assembly jars
  */
-trait AssemblyModule extends mill.api.Module with OfflineSupportModule {
+trait AssemblyModule extends mill.api.Module with AssemblyModuleOfflineSupport {
   outer =>
 
   def finalMainClassOpt: T[Either[String, String]]
@@ -148,15 +154,8 @@ trait AssemblyModule extends mill.api.Module with OfflineSupportModule {
       created.pathRef
     }
   }
-
-  override def prepareOffline(all: mainargs.Flag): Task.Command[Seq[PathRef]] = Task.Command {
-    (
-      super.prepareOffline(all)() ++
-        AssemblyModule.jarjarabramsWorkerClasspath()
-    ).distinct
-  }
 }
-object AssemblyModule extends ExternalModule with CoursierModule {
+object AssemblyModule extends ExternalModule with CoursierModule with AssemblyModuleOfflineSupport {
 
   def jarjarabramsWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
