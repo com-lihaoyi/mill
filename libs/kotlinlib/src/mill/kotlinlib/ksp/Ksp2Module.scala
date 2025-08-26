@@ -22,9 +22,11 @@ trait Ksp2Module extends KspBaseModule { outer =>
 
   /**
    * The JVM target version for the KSP compilation step.
-   * Default is "11".
+   * Default is derived from `java.specification.version`.
    */
-  def kspJvmTarget: T[String] = "11"
+  def kspJvmTarget: T[String] = Task {
+    System.getProperty("java.specification.version")
+  }
 
   /**
    * The kotlin language version used for the KSP compilation stage.
@@ -42,6 +44,9 @@ trait Ksp2Module extends KspBaseModule { outer =>
   /**
    * The jars needed to run KSP 2 via `com.google.devtools.ksp.cmdline.KSPJvmMain` .
    *
+   * The versions are computed from [[kotlinVersion]]-[[kspVersion]]
+   *
+   * For finding the right versions, also see [[https://github.com/google/ksp/releases]]
    * For more info go to [[https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md]]
    */
   def kspDeps: T[Seq[Dep]] = Task {

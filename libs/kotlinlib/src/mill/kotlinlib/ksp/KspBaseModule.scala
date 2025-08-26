@@ -22,7 +22,10 @@ trait KspBaseModule extends KotlinModule {
 
   /**
    * The version of the symbol processing library to use, which needs to be compatible with
-   * the Kotlin version used. Check [[https://github.com/google/ksp/releases]] for available versions.
+   * the Kotlin version used.
+   *
+   * For finding the right versions, also see [[https://github.com/google/ksp/releases]]
+   *
    * @return
    */
   def kspVersion: T[String]
