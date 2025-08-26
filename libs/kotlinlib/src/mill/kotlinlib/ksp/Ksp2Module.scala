@@ -20,13 +20,21 @@ import java.io.File
 @mill.api.experimental
 trait Ksp2Module extends KspBaseModule { outer =>
 
-  def kspVersion: T[String] = "2.0.2"
+  /**
+   * The JVM target version for the KSP compilation step.
+   * Default is "11".
+   */
   def kspJvmTarget: T[String] = "11"
 
-  def kspLanguageVersion: T[String] = "2.0"
+  def kspLanguageVersion: T[String] = kotlinLanguageVersion()
 
-  def kspApiVersion: T[String] = "2.0"
+  def kspApiVersion: T[String] = kotlinApiVersion()
 
+  /**
+   * The jars needed to run KSP 2 via `com.google.devtools.ksp.cmdline.KSPJvmMain` .
+   *
+   * Also consult [[https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md]]
+   */
   def kspDeps: T[Seq[Dep]] = Task {
     Seq(
       mvn"com.google.devtools.ksp:symbol-processing-aa-embeddable:${kotlinVersion()}-${kspVersion()}",
@@ -36,23 +44,8 @@ trait Ksp2Module extends KspBaseModule { outer =>
     )
   }
 
-  /**
-   * The libraries that should be passed to the KSP compiler.
-   * This defaults to the compile classpath of the module.
-   */
-  def kspLibraries: T[Seq[PathRef]] = compileClasspath()
-
-  def kspModuleName = moduleSegments.render
-
-  def kspClasspath: T[Seq[PathRef]] = Task {
+  def kspDepsResolved: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(kspDeps(), resolutionParamsMapOpt = Some(addJvmVariantAttributes))
-  }
-
-  private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
-    params.addVariantAttributes(
-      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
-      "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
-    )
   }
 
   def kspArgs: T[Seq[String]] = Task { Seq.empty[String] }
@@ -91,7 +84,7 @@ trait Ksp2Module extends KspBaseModule { outer =>
       s"-project-base-dir=${moduleDir.toString}",
       s"-output-base-dir=${kspOutputDir}",
       s"-caches-dir=${kspCachesDir}",
-      s"-libraries=${kspLibraries().map(_.path).mkString(File.pathSeparator)}",
+      s"-libraries=${kspClasspath().map(_.path).mkString(File.pathSeparator)}",
       s"-class-output-dir=${classes}",
       s"-kotlin-output-dir=${kotlin}",
       s"-java-output-dir=${java}",
@@ -104,15 +97,15 @@ trait Ksp2Module extends KspBaseModule { outer =>
       s"-map-annotation-arguments-in-java=false"
     ) ++ kspArgs() :+ processorClasspath
 
-    val classpath = kspClasspath().map(_.path)
+    val kspJvmMainClasspath = kspDepsResolved().map(_.path)
     val mainClass = "com.google.devtools.ksp.cmdline.KSPJvmMain"
-    Task.log.info(
-      s"Running Kotlin Symbol Processing with java -cp ${classpath.mkString(File.pathSeparator)} ${mainClass} ${args.mkString(" ")}"
+    Task.log.debug(
+      s"Running Kotlin Symbol Processing with java -cp ${kspJvmMainClasspath.mkString(File.pathSeparator)} ${mainClass} ${args.mkString(" ")}"
     )
 
     val jvmCall = Jvm.callProcess(
       mainClass = mainClass,
-      classPath = classpath,
+      classPath = kspJvmMainClasspath,
       mainArgs = args
     )
 
@@ -120,7 +113,7 @@ trait Ksp2Module extends KspBaseModule { outer =>
       s"KSP finished with exit code: ${jvmCall.exitCode}"
     )
 
-    Task.log.debug(
+    Task.log.info(
       s"KSP output: ${jvmCall.out.text()}"
     )
 

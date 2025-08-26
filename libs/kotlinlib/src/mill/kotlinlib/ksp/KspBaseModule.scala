@@ -1,5 +1,7 @@
 package mill.kotlinlib.ksp
 
+import coursier.core.VariantSelector.VariantMatcher
+import coursier.params.ResolutionParams
 import mill.*
 import mill.api.{PathRef, Task}
 import mill.kotlinlib.{Dep, KotlinModule}
@@ -11,8 +13,18 @@ import mill.kotlinlib.{Dep, KotlinModule}
 @mill.api.experimental
 trait KspBaseModule extends KotlinModule {
 
+  /**
+   * The version of the Kotlin language to use for the KSP stage.
+   * For KSP 1.x, this should be 1.9 or earlier.
+   * For KSP 2.x, this should be 2.0 or later.
+   */
   def kspLanguageVersion: T[String]
 
+  /**
+   * The version of the symbol processing library to use, which needs to be compatible with
+   * the Kotlin version used. Check [[https://github.com/google/ksp/releases]] for available versions.
+   * @return
+   */
   def kspVersion: T[String]
 
   /**
@@ -32,10 +44,17 @@ trait KspBaseModule extends KotlinModule {
     )
   }
 
+  private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
+    params.addVariantAttributes(
+      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
+      "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
+    )
+  }
+
   /**
-   * The classpath when running Kotlin Symbol processing.
+   * The classpath when running Kotlin Symbol processing. Default is this module's compile classpath.
    */
-  def kspClasspath: T[Seq[PathRef]]
+  def kspClasspath: T[Seq[PathRef]] = compileClasspath()
 
   /**
    * Processor options to be passed to KSP.
@@ -43,6 +62,12 @@ trait KspBaseModule extends KotlinModule {
   def kspProcessorOptions: T[Map[String, String]] = Task {
     Map.empty[String, String]
   }
+
+  /**
+   * The module name to be used by KSP.
+   * Default is the same as the module name of this module.
+   */
+  def kspModuleName = moduleSegments.render
 
   /**
    * Generated sources from KSP processing.

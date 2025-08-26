@@ -22,13 +22,6 @@ import java.io.File
 trait KspModule extends KspBaseModule { outer =>
 
   /**
-   * The version of the Kotlin language to use.
-   * This is used to determine the KSP version to use.
-   * Defaults to `1.9` which is compatible with KSP 1.x.
-   */
-  def kspLanguageVersion: T[String] = "1.9"
-
-  /**
    * The version of the symbol processing library to use.
    *
    * This is combined with the version of the kotlin compiler to pull the symbol processing
@@ -47,6 +40,8 @@ trait KspModule extends KspBaseModule { outer =>
    * Mandatory plugins that are needed for KSP to work.
    * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
    *
+   * @deprecated Use `kspDeps` instead
+   *
    * @return
    */
   def kspPlugins: T[Seq[Dep]] = Task {
@@ -57,7 +52,10 @@ trait KspModule extends KspBaseModule { outer =>
   }
 
   def kspPluginsResolved: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(kspPlugins())
+    defaultResolver().classpath(
+      kspPlugins(),
+      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
+    )
   }
 
   override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { true }
@@ -69,30 +67,12 @@ trait KspModule extends KspBaseModule { outer =>
     "com.google.devtools.ksp.symbol-processing"
 
   /**
-   * The KSP ap classpath
-   *
-   * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
-   */
-  def kspApClasspath: T[Seq[PathRef]] = Task {
-    kotlinSymbolProcessorsResolved()
-  }
-
-  /**
    * The sources for being used in KSP, in case
    * the user wants to separate KSP specific sources
    * from others. Defaults to [[sources]] (i.e. no splitting)
    */
   def kspSources: T[Seq[PathRef]] = Task {
     sources()
-  }
-
-  /**
-   * The classpath when running Kotlin Symbol processing
-   *
-   * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
-   */
-  def kspClasspath: T[Seq[PathRef]] = Task {
-    super.compileClasspath()
   }
 
   /**
@@ -141,17 +121,16 @@ trait KspModule extends KspBaseModule { outer =>
       case (key, value) => s"apoption=$key=$value"
     }.toSeq
 
-    val kspProjectBasedDir = moduleDir
-    val kspOutputDir = Task.dest / "generated/ksp/main"
+    val kspOutputDir = Task.dest / "generated"
 
-    val kspCachesDir = Task.dest / "caches/main"
+    val kspCachesDir = Task.dest / "caches"
     val java = kspOutputDir / "java"
     val kotlin = kspOutputDir / "kotlin"
     val resources = kspOutputDir / "resources"
     val classes = kspOutputDir / "classes"
     val pluginConfigs = Seq(
       s"$pluginOpt:apclasspath=$apClasspath",
-      s"$pluginOpt:projectBaseDir=${kspProjectBasedDir}",
+      s"$pluginOpt:projectBaseDir=${moduleDir.toString}",
       s"$pluginOpt:classOutputDir=${classes}",
       s"$pluginOpt:javaOutputDir=${java}",
       s"$pluginOpt:kotlinOutputDir=${kotlin}",
