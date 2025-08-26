@@ -107,15 +107,14 @@ class ZincWorker(
           libraryJars = Array(libraryJarNameGrep(
             compilerClasspath,
             if (
-              JvmWorkerUtil.isDottyOrScala3(
-                key.scalaVersion
-              ) && !JvmWorkerUtil.isUnifiedLibraryAvailable(key.scalaVersion)
+              JvmWorkerUtil.isDottyOrScala3(key.scalaVersion) && 
+              !JvmWorkerUtil.isUnifiedLibraryAvailable(key.scalaVersion)
             )
-              // we don't support too outdated dotty versions
-              // and because there will be no scala 2.14, so hardcode "2.13." here is acceptable.
-              // Since 3.8, we can just use the unified library.
+              // All stable Scala 3 versions before 3.8 use the Scala 2.13 library
               "2.13."
-            else key.scalaVersion
+            else
+              // Since Scala 3.8, we can just use the unified library
+              key.scalaVersion
           ).path.toIO),
           compilerJars = combinedCompilerJars,
           allJars = combinedCompilerJars,
