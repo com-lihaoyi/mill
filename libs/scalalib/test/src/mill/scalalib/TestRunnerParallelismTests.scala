@@ -7,6 +7,7 @@ import utest.*
 import mill.util.TokenReaders.*
 
 object TestRunnerParallelismTests extends TestSuite {
+
   object utestSingleTest extends TestRootModule with ScalaModule with TestModule.Utest {
     override def scalaVersion: T[String] = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 

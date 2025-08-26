@@ -1,4 +1,4 @@
-package mill.javalib
+package mill.scalalib
 
 import mill.api.daemon.ExecResult
 import mill.api.{Discover, Task}

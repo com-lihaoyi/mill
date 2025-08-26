@@ -7,6 +7,7 @@ import mill.util.TokenReaders.*
 import utest.*
 
 object TestClassLoaderTests extends TestSuite {
+
   object testclassloader extends TestRootModule with ScalaModule {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 

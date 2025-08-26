@@ -1,9 +1,8 @@
 package mill.scalalib
 
 import mill.api.{Discover, Task}
-import mill.testkit.UnitTester
-import mill.testkit.TestRootModule
-import mill.util.TokenReaders._
+import mill.testkit.{TestRootModule, UnitTester}
+import mill.util.TokenReaders.*
 import utest.*
 
 object CoursierParametersTests extends TestSuite {

@@ -7,6 +7,7 @@ import mill.testkit.TestRootModule
 import utest.*
 
 object ScalaVersionsRangesTests extends TestSuite {
+
   object ScalaVersionsRanges extends TestRootModule {
     object core extends Cross[CoreCrossModule]("2.12.13", "2.13.5", "3.3.3")
     trait CoreCrossModule extends CrossScalaModule

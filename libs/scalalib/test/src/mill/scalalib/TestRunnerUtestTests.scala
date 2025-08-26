@@ -7,7 +7,7 @@ import sbt.testing.Status
 import utest.*
 
 object TestRunnerUtestTests extends TestSuite {
-  import TestRunnerTestUtils._
+  import TestRunnerTestUtils.*
   override def tests: Tests = Tests {
     test("test case lookup") - UnitTester(testrunner, resourcePath).scoped { eval =>
       val Right(result) = eval.apply(testrunner.utest.testForked()): @unchecked

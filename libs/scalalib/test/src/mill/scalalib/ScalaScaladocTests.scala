@@ -6,6 +6,7 @@ import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import HelloWorldTests.*
 import mill.api.Discover
+
 object ScalaScaladocTests extends TestSuite {
 
   object HelloWorldWithDocVersion extends TestRootModule {

@@ -1,14 +1,13 @@
 package mill.scalalib
 
 import mill.*
+import mill.api.Task
+import mill.scalalib.HelloWorldTests.*
 import mill.testkit.UnitTester
 import utest.*
+
 import java.util.jar.JarFile
-
 import scala.util.Using
-
-import HelloWorldTests.*
-import mill.api.Task
 
 object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
   def tests: Tests = Tests {
