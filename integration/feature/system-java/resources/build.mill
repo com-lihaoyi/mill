@@ -1,0 +1,10 @@
+package build
+import mill._
+
+def printJavaVersion() = Task.Command{
+  println(scala.util.Properties.javaVersion)
+}
+
+def printJavaHome() = Task.Command{
+  println(scala.util.Properties.javaHome)
+}
