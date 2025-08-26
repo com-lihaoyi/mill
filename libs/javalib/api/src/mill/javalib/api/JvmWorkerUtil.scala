@@ -42,7 +42,7 @@ object JvmWorkerUtil {
       ))
   }
 
-  val PartialVersion: Regex = raw"""(\d+)\.(\d+)\.*""".r
+  val PartialVersion: Regex = raw"""(\d+)\.(\d+)\..*""".r
   val ReleaseVersion: Regex = raw"""(\d+)\.(\d+)\.(\d+)""".r
   val MinorSnapshotVersion: Regex = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
   val DottyVersion: Regex = raw"""0\.(\d+)\.(\d+).*""".r
@@ -61,6 +61,10 @@ object JvmWorkerUtil {
     case DottyVersion(minor, _) => s"0.$minor"
     case TypelevelVersion(major, minor, _) => s"$major.$minor"
     case _ => scalaVersion
+  }
+
+  private def minorMajorVersion(version: String): (major: Int, minor: Int) = version match {
+    case PartialVersion(major, minor) => (major = major.toInt, minor = minor.toInt)
   }
 
   private val ScalaJSFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
@@ -145,5 +149,16 @@ object JvmWorkerUtil {
     val minus =
       all.filter(v => v.nonEmpty && v >= versionParts.take(v.length)).map(_.mkString(".") + "-")
     (plus ++ minus).distinct.toSeq
+  }
+
+  /**
+   * Checks whether the version of the scala-library should be `2.13.x` or match the given `scalaVersion`
+   * @param scalaVersion The Scala version
+   * @return `true` if the scala-library version should be a `2.13.`
+   */
+  def needsScala213Library(scalaVersion: String): Boolean = {
+    val sv = minorMajorVersion(scalaVersion)
+    // Some Dotty versions and all Scala 3 versions before 3.8
+    sv.major == 0 || (sv.major == 3 && sv.minor < 8)
   }
 }

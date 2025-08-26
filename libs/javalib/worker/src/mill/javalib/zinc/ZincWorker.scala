@@ -106,9 +106,7 @@ class ZincWorker(
           loaderLibraryOnly = ClasspathUtil.rootLoader,
           libraryJars = Array(libraryJarNameGrep(
             compilerClasspath,
-            // we don't support too outdated dotty versions
-            // and because there will be no scala 2.14, so hardcode "2.13." here is acceptable
-            if (JvmWorkerUtil.isDottyOrScala3(key.scalaVersion)) "2.13." else key.scalaVersion
+            if (JvmWorkerUtil.needsScala213Library(key.scalaVersion)) "2.13." else key.scalaVersion
           ).path.toIO),
           compilerJars = combinedCompilerJars,
           allJars = combinedCompilerJars,
