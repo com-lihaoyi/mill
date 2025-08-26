@@ -1,13 +1,13 @@
 package mill.scalalib
 
-import mill.api.ExecResult
+import mill.api.{Discover, ExecResult}
+import mill.scalalib.HelloWorldTests.*
 import mill.testkit.{TestRootModule, UnitTester}
+import mill.util.TokenReaders.*
 import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
-import HelloWorldTests.*
-import mill.api.Discover
-import mill.util.TokenReaders._
+
 object ScalaColorOutputTests extends TestSuite {
 
   object HelloWorldColorOutput extends TestRootModule {

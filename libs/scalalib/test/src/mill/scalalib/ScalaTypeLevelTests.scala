@@ -5,6 +5,7 @@ import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import HelloWorldTests.*
 import mill.api.Discover
+
 object ScalaTypeLevelTests extends TestSuite {
 
   object HelloWorldTypeLevel extends TestRootModule {
