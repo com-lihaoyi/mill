@@ -31,7 +31,6 @@ object micronaut extends MicronautModule {
 
 trait MicronautModule extends Ksp2Module { outer =>
   def kspVersion: T[String] = "2.0.2"
-  def kspJvmTarget: T[String] = "11"
   def kotlinVersion = "2.2.0"
 
   def bomMvnDeps: T[Seq[Dep]] = Seq(
