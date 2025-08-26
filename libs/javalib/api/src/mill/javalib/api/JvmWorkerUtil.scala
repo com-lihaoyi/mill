@@ -112,6 +112,15 @@ object JvmWorkerUtil {
     }
 
   /**
+   * @return true if scala-library contains both Scala 2 and 3 libraries, as opposed to
+   * having both scala3-library and scala2-library.
+   */
+  def isUnifiedLibraryAvailable(scalaVersion: String): Boolean =
+    scalaVersion match {
+      case Scala3Version(minor, _) => minor.toInt >= 8 // 3.8 or later
+    }
+
+  /**
    * Given a version string using a semantic versioning scheme (like x.y.z) it
    * returns all the sub-versions in it (major, minor, patch, etc.).
    * For example, matchingVersions("2.0.0") returns "2.0.0", "2.0" and "2"
