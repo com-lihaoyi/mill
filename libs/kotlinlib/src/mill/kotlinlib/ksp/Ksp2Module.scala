@@ -44,7 +44,7 @@ trait Ksp2Module extends KspBaseModule { outer =>
    * For finding the right versions, also see [[https://github.com/google/ksp/releases]]
    * For more info go to [[https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md]]
    */
-  def kspDeps: T[Seq[Dep]] = Task {
+  def kspToolsDeps: T[Seq[Dep]] = Task {
     Seq(
       mvn"com.google.devtools.ksp:symbol-processing-aa-embeddable:${kotlinVersion()}-${kspVersion()}",
       mvn"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${kspVersion()}",
@@ -53,8 +53,11 @@ trait Ksp2Module extends KspBaseModule { outer =>
     )
   }
 
-  def kspDepsResolved: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(kspDeps(), resolutionParamsMapOpt = Some(addJvmVariantAttributes))
+  def kspToolsDepsClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      kspToolsDeps(),
+      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
+    )
   }
 
   /**
@@ -113,7 +116,7 @@ trait Ksp2Module extends KspBaseModule { outer =>
       s"-map-annotation-arguments-in-java=false"
     ) ++ kspArgs() :+ processorClasspath
 
-    val kspJvmMainClasspath = kspDepsResolved().map(_.path)
+    val kspJvmMainClasspath = kspToolsDepsClasspath().map(_.path)
     val mainClass = "com.google.devtools.ksp.cmdline.KSPJvmMain"
     Task.log.debug(
       s"Running Kotlin Symbol Processing with java -cp ${kspJvmMainClasspath.mkString(File.pathSeparator)} ${mainClass} ${args.mkString(" ")}"

@@ -40,8 +40,6 @@ trait KspModule extends KspBaseModule { outer =>
    * Mandatory plugins that are needed for KSP to work.
    * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
    *
-   * @deprecated Use `kspDeps` instead
-   *
    * @return
    */
   def kspPlugins: T[Seq[Dep]] = Task {
