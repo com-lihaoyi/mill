@@ -106,7 +106,7 @@ class ZincWorker(
           loaderLibraryOnly = ClasspathUtil.rootLoader,
           libraryJars = Array(libraryJarNameGrep(
             compilerClasspath,
-            if (JvmWorkerUtil.needsScala213Library(key.scalaVersion)) "2.13." else key.scalaVersion
+            if (JvmWorkerUtil.enforceScala213Library(key.scalaVersion)) "2.13." else key.scalaVersion
           ).path.toIO),
           compilerJars = combinedCompilerJars,
           allJars = combinedCompilerJars,

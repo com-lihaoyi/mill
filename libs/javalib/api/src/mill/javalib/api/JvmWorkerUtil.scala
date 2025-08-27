@@ -152,11 +152,11 @@ object JvmWorkerUtil {
   }
 
   /**
-   * Checks whether the version of the scala-library should be `2.13.x` or match the given `scalaVersion`
+   * Checks whether the version of the scala-library should be `2.13.x` or just match the given `scalaVersion`
    * @param scalaVersion The Scala version
-   * @return `true` if the scala-library version should be a `2.13.`
+   * @return `true` if the scala-library version should be enforced to be a `2.13.`
    */
-  def needsScala213Library(scalaVersion: String): Boolean = {
+  def enforceScala213Library(scalaVersion: String): Boolean = {
     val sv = minorMajorVersion(scalaVersion)
     // Some Dotty versions and all Scala 3 versions before 3.8
     sv.major == 0 || (sv.major == 3 && sv.minor < 8)
