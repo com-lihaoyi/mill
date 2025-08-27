@@ -1,10 +1,9 @@
 package mill.scalalib
 
 import mill.api.Discover
-import mill.testkit.UnitTester
-import mill.testkit.TestRootModule
+import mill.testkit.{TestRootModule, UnitTester}
+import mill.util.TokenReaders.*
 import utest.{TestSuite, Tests, assert, assertThrows, test}
-import mill.util.TokenReaders._
 
 object CycleTests extends TestSuite {
 

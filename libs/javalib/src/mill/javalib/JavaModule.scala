@@ -730,13 +730,21 @@ trait JavaModule
   }
 
   /**
-   * The transitive version of `compileClasspath`
+   * The transitive version of [[compileClasspath]]
    */
   def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
-    Task.traverse(transitiveModuleCompileModuleDeps)(m =>
-      Task.Anon { m.localCompileClasspath() ++ Seq(m.compile().classes) }
-    )().flatten
+    transitiveCompileClasspathTask(CompileFor.Regular)()
   }
+
+  /**
+   * The transitive version of [[compileClasspathTask]]
+   */
+  private[mill] def transitiveCompileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]] =
+    Task.Anon {
+      Task.traverse(transitiveModuleCompileModuleDeps)(m =>
+        Task.Anon { m.localCompileClasspath() ++ Seq(m.compileFor(compileFor)().classes) }
+      )().flatten
+    }
 
   /**
    * Same as [[transitiveCompileClasspath]], but with all dependencies on [[compile]]
@@ -965,14 +973,20 @@ trait JavaModule
     }
 
   /**
+   * [[compileClasspathTask]] for regular compilations.
+   *
+   * Keep return value in sync with [[bspCompileClasspath]].
+   */
+  def compileClasspath: T[Seq[PathRef]] = Task { compileClasspathTask(CompileFor.Regular)() }
+
+  /**
    * All classfiles and resources from upstream modules and dependencies
    * necessary to compile this module.
-   *
-   * Keep in sync with [[bspCompileClasspath]]
    */
-  override def compileClasspath: T[Seq[PathRef]] = Task {
-    resolvedMvnDeps() ++ transitiveCompileClasspath() ++ localCompileClasspath()
-  }
+  override private[mill] def compileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]] =
+    Task.Anon {
+      resolvedMvnDeps() ++ transitiveCompileClasspathTask(compileFor)() ++ localCompileClasspath()
+    }
 
   /**
    * Same as [[compileClasspath]], but does not trigger compilation targets, if possible.
@@ -1067,10 +1081,6 @@ trait JavaModule
     )
   }
 
-  /**
-   * All classfiles and resources from upstream modules and dependencies
-   * necessary to run this module's code after compilation
-   */
   override def runClasspath: T[Seq[PathRef]] = Task {
     super.runClasspath() ++
       resolvedRunMvnDeps().toSeq ++

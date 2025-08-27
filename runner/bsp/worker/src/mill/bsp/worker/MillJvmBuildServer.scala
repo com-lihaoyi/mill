@@ -46,7 +46,9 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
   )(implicit name: sourcecode.Name): CompletableFuture[V] = {
     handlerTasks(
       targetIds = _ => targetIds,
-      tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmTestEnvironment },
+      tasks = { case m: (RunModuleApi & TestModuleApi & JavaModuleApi) =>
+        m.bspRunModule().bspJvmTestEnvironment
+      },
       requestDescription = "Getting JVM test environment of {}",
       originId = originId
     ) {
@@ -54,7 +56,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             _,
             _,
             id,
-            _: (TestModuleApi & JavaModuleApi),
+            _,
             (
               _,
               forkArgs,
@@ -78,9 +80,6 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
           fullMainArgs.asJava
         )).asJava)
         item
-
-      case other =>
-        throw new NotImplementedError(s"Unsupported target: ${pprint(other).plainText}")
     } {
       agg
     }

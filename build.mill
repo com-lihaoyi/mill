@@ -1,4 +1,4 @@
-//| mill-version: 1.0.3
+//| mill-version: 1.0.4
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C"]
 
@@ -74,7 +74,10 @@ def millBinPlatform: T[String] = Task {
   }
 }
 
-def millJvmVersion = Task.Source(BuildCtx.workspaceRoot / "default-mill-jvm-version")
+def defaultMillJvmVersion0 = Task.Source(BuildCtx.workspaceRoot / "default-mill-jvm-version")
+def defaultMillJvmVersion = Task {
+  os.read(defaultMillJvmVersion0().path).trim()
+}
 
 val essentialBridgeScalaVersions =
   Seq(Deps.scalaVersion, Deps.scala2Version, Deps.workerScalaVersion212)

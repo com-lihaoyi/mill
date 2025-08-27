@@ -6,18 +6,50 @@ package mill.constants;
  */
 public class OutFiles {
 
+  /**
+   * Allows us to override the `out/` folder from the environment via the {@link EnvVars#MILL_OUTPUT_DIR}
+   * variable.
+   */
   private static final String envOutOrNull = System.getenv(EnvVars.MILL_OUTPUT_DIR);
+
+  /** @see EnvVars#MILL_NO_SEPARATE_BSP_OUTPUT_DIR */
+  public static final boolean mergeBspOut =
+      "1".equals(System.getenv(EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR));
 
   /**
    * Default hard-coded value for the Mill `out/` folder path. Unless you know
-   * what you are doing, you should favor using [[out]] instead.
+   * what you are doing, you should favor using {@link #outFor} instead.
    */
   public static final String defaultOut = "out";
 
   /**
-   * Path of the Mill `out/` folder
+   * Path of the Mill `out/` folder. Unless you know what you are doing, you should
+   * favor using {@link #outFor} instead.
    */
   public static final String out = envOutOrNull == null ? defaultOut : envOutOrNull;
+
+  /**
+   * Path of the Mill `out/` folder when Mill is running in BSP mode. Unless you know
+   * what you are doing, you should favor using {@link #outFor} instead.
+   */
+  public static final String bspOut = "out/mill-bsp-out";
+
+  /**
+   * Path of the Mill {@link #out} folder.
+   *
+   * @param outMode If {@link #envOutOrNull} is set, this parameter is ignored.
+   */
+  public static String outFor(OutFolderMode outMode) {
+    if (envOutOrNull != null) return envOutOrNull;
+    switch (outMode) {
+      case REGULAR:
+        return out;
+      case BSP:
+        return mergeBspOut ? out : bspOut;
+      default:
+        throw new IllegalArgumentException("Unknown out folder mode: " + outMode);
+    }
+  }
 
   /**
    * Path of the Mill "meta-build", used to compile the `build.sc` file so we can

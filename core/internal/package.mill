@@ -8,7 +8,7 @@ import millbuild.*
  * Mill's own internal code but not intended for use by user-land code.
  */
 object `package` extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.core.api.daemon, build.libs.util)
+  def moduleDeps = Seq(build.core.api.daemon, build.core.internal.cli, build.libs.util)
 
   def mvnDeps = Seq(
     Deps.millModuledefs,
@@ -16,7 +16,6 @@ object `package` extends MillPublishScalaModule {
     // but we need the latest version to bring the macro improvements.
     Deps.sourcecode,
     Deps.osLib,
-    Deps.mainargs,
     Deps.upickle,
     Deps.pprint,
     Deps.fansi,

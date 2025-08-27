@@ -5,6 +5,7 @@ import mill.api.{Discover, Task}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
+
 object ScalaValidatedPathRefTests extends TestSuite {
 
   object ValidatedTarget extends TestRootModule {

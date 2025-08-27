@@ -227,6 +227,7 @@ object `package` extends Module {
     def localRunClasspath = build.testkit.localRunClasspath()
 
     def forkEnv = Map("LANG" -> "C")
+    def forkArgs: T[Seq[String]] = Task(List.empty[String])
 
     /**
      * Parses a `build.mill` for specific comments and return the split-by-type content
@@ -302,7 +303,7 @@ $txt
 
   def repoInfo = Map(
     "acyclic" -> ("com-lihaoyi/acyclic", "1ec221f377794db39e8ff9b43415f81c703c202f"),
-    "fansi" -> ("com-lihaoyi/fansi", "169ac96d7c6761a72590d312a433cf12c572573c"),
+    "fansi" -> ("com-lihaoyi/fansi", "387754bc1fc0be0ac787b195490275012d80c683"),
     "jimfs" -> ("google/jimfs", "5b60a42eb9d3cd7a2073d549bd0cb833f5a7e7e9"),
     "commons-io" -> ("apache/commons-io", "b91a48074231ef813bc9b91a815d77f6343ff8f0"),
     "netty" -> ("netty/netty", "20a790ed362a3c11e0e990b58598e4ac6aa88bef"),
