@@ -37,7 +37,7 @@ class ZincWorker(
     jobs: Int
 ) extends AutoCloseable { self =>
   private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
-  private val compilerBridgeLocks: mutable.Map[String, DoubleLock] = mutable.Map.empty
+  private val compilerBridgeLocks: mutable.Map[String, MemoryLock] = mutable.Map.empty
 
   private val classloaderCache = new RefCountedClassLoaderCache(
     sharedLoader = getClass.getClassLoader,
@@ -548,21 +548,18 @@ class ZincWorker(
   ): os.Path = {
     val workingDir = compilerBridge.workspace / s"zinc-${Versions.zinc}" / scalaVersion
 
-    val lock = synchronized(
-      compilerBridgeLocks.getOrElseUpdate(
-        scalaVersion,
-        // Use a double-lock here because we need mutex both between threads within this
-        // process, as well as between different processes since sometimes we are initializing
-        // the compiler bridge inside a separate `ZincWorkerMain` subprocess
-        new DoubleLock(
-          new MemoryLock(),
-          new FileLock((compilerBridge.workspace / "compiler-bridge-locks" / scalaVersion).toString)
-        )
-      )
+    os.makeDir.all(compilerBridge.workspace / "compiler-bridge-locks")
+    val memoryLock = synchronized(
+      compilerBridgeLocks.getOrElseUpdate(scalaVersion, new MemoryLock)
     )
     val compiledDest = workingDir / "compiled"
     val doneFile = compiledDest / "DONE"
-    scala.util.Using.resource(lock) { _ =>
+    val doubleLock = new DoubleLock(
+      memoryLock,
+      new FileLock((compilerBridge.workspace / "compiler-bridge-locks" / scalaVersion).toString)
+    )
+    try {
+      doubleLock.lock()
       if (os.exists(doneFile)) compiledDest
       else {
         val acquired =
@@ -584,7 +581,7 @@ class ZincWorker(
             compiledDest
         }
       }
-    }
+    } finally doubleLock.close()
   }
 }
 object ZincWorker {
