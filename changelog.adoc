@@ -13,6 +13,24 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#1-0-4]
+=== 1.0.4
+:version: 1.0.4
+:milestone-name: 1.0.4
+:milestone: 124
+:prev-version: 1.0.3
+_2025-08-27_
+
+* Fix flicker in PromptLogger reporting of current test class running for each worker ({link-pr}/5675[#5675])
+* Fix Rapid shutdown/startup cycles fail to connect to the mill daemon ({link-pr}/5711[#5711])
+* Use custom JVM versions during Scala compilation, avoid forking for Java compilation ({link-pr}/5604[#5604])
+* BSP fixes ({link-pr}/5698[#5698], {link-pr}/5725[#5725]), move `out/` to `out/mill-bsp-out/` when running in BSP mode ({link-pr}/5689[#5689])
+* Handle uncaught errors in test frameworks ({link-pr}/5728[#5728])
+* Support `ScalaNativeModule.runMain` ({link-pr}/5723[#5723])
+* Assert task method shape in task macros to catch more mis-placed tasks hidden behind task ascriptions ({link-pr}/5729[#5729])
+* Lots of Android support improvements ({link-pr}/5701[#5701], {link-pr}/5700[#5700], {link-pr}/5688[#5688], {link-pr}/5678[#5678], {link-pr}/5677[#5677], {link-pr}/5674[#5674], {link-pr}/5662[#5662], {link-pr}/5656[#5656])
+
+_Changes since {prev-version}:_
 [#1-0-3]
 === 1.0.3
 :version: 1.0.3
