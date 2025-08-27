@@ -74,6 +74,9 @@ trait KspBaseModule extends KotlinModule {
 
   /**
    * Generated sources from KSP processing.
+   * There are 2 implementations: Extend [[KspModule]] for KSP 1.x and [[Ksp2Module]] for KSP 2.x.
+   * Typically, with Kotlin >=2.0 Ksp2Module should be used and with Kotlin <=1.9 KspModule should be used.
+   * You can also use KspModule with Kotlin 2.x but that you will need to set the kspLanguageVersion to 1.9 or earlier.
    */
   def generatedSourcesWithKSP: T[GeneratedKSPSources]
 
