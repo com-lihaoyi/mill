@@ -44,7 +44,7 @@ trait ZincWorkerUtil {
       ))
   }
 
-  val PartialVersion: Regex = raw"""(\d+)\.(\d+)\.*""".r
+  val PartialVersion: Regex = raw"""(\d+)\.(\d+)\..*""".r
   val ReleaseVersion: Regex = raw"""(\d+)\.(\d+)\.(\d+)""".r
   val MinorSnapshotVersion: Regex = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
   val DottyVersion: Regex = raw"""0\.(\d+)\.(\d+).*""".r
@@ -63,6 +63,11 @@ trait ZincWorkerUtil {
     case DottyVersion(minor, _) => s"0.$minor"
     case TypelevelVersion(major, minor, _) => s"$major.$minor"
     case _ => scalaVersion
+  }
+  
+  private case class Version(major: Int, minor: Int)
+  private def minorMajorVersion(version: String): Version = version match {
+    case PartialVersion(major, minor) => Version(major = major.toInt, minor = minor.toInt)
   }
 
   private val ScalaJSFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
@@ -156,6 +161,24 @@ trait ZincWorkerUtil {
     val minus =
       all.filter(v => v.nonEmpty && v >= versionParts.take(v.length)).map(_.mkString(".") + "-")
     (plus ++ minus).distinct.toSeq
+  }
+
+  /**
+   * Checks whether the version of the scala-library should be `2.13.x` or just match the given `scalaVersion`
+   *
+   * Background:
+   * To help in Scala 3 adoption and ensure binary compatibility,
+   * Scala 3.x up to 3.7.x used the same Scala standard library as Scala 2.13.
+   * Since this also hinders further improvements of the standard library,
+   * Scala 3.8 will ship with a newer library built with a Scala 3 compiler.
+   *
+   * @param scalaVersion The Scala version
+   * @return `true` if the scala-library version should be enforced to be a `2.13.`
+   */
+  def enforceScala213Library(scalaVersion: String): Boolean = {
+    val sv = minorMajorVersion(scalaVersion)
+    // Some Dotty versions and all Scala 3 versions before 3.8
+    sv.major == 0 || (sv.major == 3 && sv.minor < 8)
   }
 }
 
