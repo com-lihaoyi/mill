@@ -1,18 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/basicjava/4-builtin-commands.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/basicjava/4-builtin-commands.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,7 +41,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -62,9 +63,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -387,7 +388,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -406,14 +407,14 @@ trait MyModule extends JavaModule{
 object foo extends MyModule{
   def moduleDeps = Seq(bar)
   def ivyDeps = Agg(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
   )
 }
 
 object bar extends MyModule{
   def ivyDeps = Agg(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.apache.commons:commons-text:1.12.0"
+    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    ivy&quot;org.apache.commons:commons-text:1.12.0&quot;
   )
 }</code></pre>
 </div>
@@ -423,7 +424,7 @@ object bar extends MyModule{
 <div class="sectionbody">
 <div class="paragraph">
 <p><code>resolve</code> lists the tasks that match a particular query, without running them.
-This is useful for "dry running" an <code>mill</code> command to see what would be run
+This is useful for &quot;dry running&quot; an <code>mill</code> command to see what would be run
 before you run them, or to explore what modules or tasks are available
 from the command line using <code>resolve _</code>, <code>resolve foo._</code>, etc.</p>
 </div>
@@ -462,7 +463,7 @@ Lists within curly braces (<code>{</code>, <code>}</code>) are also supported.</
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve foo.{compile,run}
-&gt; mill resolve "foo.{compile,run}"
+&gt; mill resolve &quot;foo.{compile,run}&quot;
 &gt; mill resolve foo.compile foo.run
 &gt; mill resolve _.compile  # list the compile tasks for every top-level module
 &gt; mill resolve __.compile # list the compile tasks for every module
@@ -516,12 +517,12 @@ metadata output for a task using the <code>show</code> command:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo.sources
 [
-  ".../foo/src"
+  &quot;.../foo/src&quot;
 ]
 
 &gt; mill show foo.allSourceFiles
 [
-  ".../foo/src.../Foo..."
+  &quot;.../foo/src.../Foo...&quot;
 ]</code></pre>
 </div>
 </div>
@@ -535,8 +536,8 @@ file produced by the compilation:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo.compile
 {
-  "analysisFile": ".../out/foo/compile.dest/zinc",
-  "classes": ".../out/foo/compile.dest/classes"
+  &quot;analysisFile&quot;: &quot;.../out/foo/compile.dest/zinc&quot;,
+  &quot;classes&quot;: &quot;.../out/foo/compile.dest/classes&quot;
 }</code></pre>
 </div>
 </div>
@@ -547,13 +548,13 @@ file produced by the compilation:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo.sources
 [
-  ".../foo/src"
+  &quot;.../foo/src&quot;
 ]
 
 &gt; mill show foo.compileClasspath
 [
   ...
-  ".../foo/compile-resources"
+  &quot;.../foo/compile-resources&quot;
 ]</code></pre>
 </div>
 </div>
@@ -567,14 +568,14 @@ JSON array, containing all the results of the given targets.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show "foo.{sources,compileClasspath}"
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show &quot;foo.{sources,compileClasspath}&quot;
 {
-  "foo.sources": [
-    ".../foo/src"
+  &quot;foo.sources&quot;: [
+    &quot;.../foo/src&quot;
   ],
-  "foo.compileClasspath": [
+  &quot;foo.compileClasspath&quot;: [
     ...
-    ".../foo/compile-resources"
+    &quot;.../foo/compile-resources&quot;
   ]
 }</code></pre>
 </div>
@@ -590,14 +591,14 @@ dictionary, whether there is one or more targets in the selection</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill showNamed "foo.{sources,compileClasspath}"
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill showNamed &quot;foo.{sources,compileClasspath}&quot;
 {
-  "foo.sources": [
-    ".../foo/src"
+  &quot;foo.sources&quot;: [
+    &quot;.../foo/src&quot;
   ],
-  "foo.compileClasspath": [
+  &quot;foo.compileClasspath&quot;: [
     ...
-    ".../foo/compile-resources"
+    &quot;.../foo/compile-resources&quot;
   ]
 }</code></pre>
 </div>
@@ -611,7 +612,7 @@ dictionary, whether there is one or more targets in the selection</p>
 <p><code>mill path</code> prints out a dependency chain between the first task and the
 second. It is very useful for exploring the build graph and trying to figure
 out how data gets from one task to another, or trying to figure out why
-running <code>mill foo</code> ends up running another task <code>bar</code> that you didn&#8217;t
+running <code>mill foo</code> ends up running another task <code>bar</code> that you didn’t
 expect it to.</p>
 </div>
 <div class="listingblock">
@@ -639,7 +640,7 @@ arbitrarily.</p>
 <p><code>mill plan foo</code> shows which tasks would be evaluated if you ran <code>mill foo</code>,
 and in what order, but without actually running them. This is a useful tool for
 debugging your build: e.g. if you suspect a task <code>foo</code> is running things that
-it shouldn&#8217;t be running, a quick <code>mill plan</code> will list out all the upstream
+it shouldn’t be running, a quick <code>mill plan</code> will list out all the upstream
 tasks that <code>foo</code> needs to run, and you can then follow up with <code>mill path</code> on
 any individual upstream task to see exactly how <code>foo</code> depends on it.</p>
 </div>
@@ -680,7 +681,7 @@ It also accepts arguments to clean entire modules, or specific tasks.</p>
 &gt; mill clean foo         # clean all outputs for module 'foo' (including nested modules)
 &gt; mill clean foo.compile # only clean outputs for task 'compile' in module 'foo'
 &gt; mill clean foo.{compile,run}
-&gt; mill clean "foo.{compile,run}"
+&gt; mill clean &quot;foo.{compile,run}&quot;
 &gt; mill clean foo.compile foo.run
 &gt; mill clean _.compile
 &gt; mill clean __.compile</code></pre>
@@ -692,8 +693,8 @@ It also accepts arguments to clean entire modules, or specific tasks.</p>
 <h2 id="_search_for_dependency_updates"><a class="anchor" href="#_search_for_dependency_updates"></a>Search for dependency updates</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill can search for updated versions of your project&#8217;s dependencies, if
-available from your project&#8217;s configured repositories. Note that it uses
+<p>Mill can search for updated versions of your project’s dependencies, if
+available from your project’s configured repositories. Note that it uses
 heuristics based on common versioning schemes, so it may not work as expected for
 dependencies with particularly weird version numbers.</p>
 </div>
@@ -717,7 +718,7 @@ dependencies with particularly weird version numbers.</p>
 <p>Always applies to all modules in the build.</p>
 </li>
 <li>
-<p>Doesn&#8217;t apply to <code>$ivy</code> dependencies used in the build definition itself.</p>
+<p>Doesn’t apply to <code>$ivy</code> dependencies used in the build definition itself.</p>
 </li>
 </ul>
 </div>
@@ -728,9 +729,9 @@ dependencies with particularly weird version numbers.</p>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async src="../../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async src="../../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../../search-index.js"></script>
+  
+</body></html>

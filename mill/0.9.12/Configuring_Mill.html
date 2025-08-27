@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Configuring Mill :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.10.15/Configuration.html">
-    <link rel="prev" href="Intro_to_Mill.html">
-    <link rel="next" href="Common_Project_Layouts.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.10.15/Configuration.html" />
+    <link rel="prev" href="Intro_to_Mill.html" />
+    <link rel="next" href="Common_Project_Layouts.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -223,7 +224,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -247,13 +248,13 @@
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = &quot;2.12.4&quot;
 
-  def scalacOptions = Seq("-Ydelambdafy:inline")
+  def scalacOptions = Seq(&quot;-Ydelambdafy:inline&quot;)
 
-  def forkArgs = Seq("-Xmx4g")
+  def forkArgs = Seq(&quot;-Xmx4g&quot;)
 
-  def forkEnv = Map("HELLO_MY_ENV_VAR" -&gt; "WORLD")
+  def forkEnv = Map(&quot;HELLO_MY_ENV_VAR&quot; -&gt; &quot;WORLD&quot;)
 }</code></pre>
 </div>
 </div>
@@ -295,27 +296,27 @@ mill foo.runLocal arg1 arg2 arg3</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = &quot;2.12.4&quot;
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::upickle:0.5.1",
-    ivy"com.lihaoyi::pprint:0.5.2",
-    ivy"com.lihaoyi::fansi:0.2.4",
-    ivy"${scalaOrganization()}:scala-reflect:${scalaVersion()}"
+    ivy&quot;com.lihaoyi::upickle:0.5.1&quot;,
+    ivy&quot;com.lihaoyi::pprint:0.5.2&quot;,
+    ivy&quot;com.lihaoyi::fansi:0.2.4&quot;,
+    ivy&quot;${scalaOrganization()}:scala-reflect:${scalaVersion()}&quot;
   )
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>You can define the <code>ivyDeps</code> field to add ivy dependencies to your module. The
-<code>ivy"com.lihaoyi::upickle:0.5.1"</code> syntax (with <code>::</code>) represents Scala
+<code>ivy&quot;com.lihaoyi::upickle:0.5.1&quot;</code> syntax (with <code>::</code>) represents Scala
 dependencies; for Java dependencies you would use a single <code>:</code> e.g.
-<code>"ivy"com.lihaoyi:upickle:0.5.1"</code>. If you have dependencies cross-published
+<code>&quot;ivy&quot;com.lihaoyi:upickle:0.5.1&quot;</code>. If you have dependencies cross-published
 against the full Scala version (eg. <code>2.12.4</code> instead of just <code>2.12</code>),
-you can use <code>:::</code> as in <code>ivy"org.scalamacros:::paradise:2.1.1"</code>.</p>
+you can use <code>:::</code> as in <code>ivy&quot;org.scalamacros:::paradise:2.1.1&quot;</code>.</p>
 </div>
 <div class="paragraph">
 <p>To select the test-jars from a dependency use the following syntax:
-<code>ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests</code>.</p>
+<code>ivy&quot;org.apache.spark::spark-sql:2.4.0;classifier=tests</code>.</p>
 </div>
 <div class="paragraph">
 <p>By default, these are resolved from maven central, but you can add your own
@@ -327,7 +328,7 @@ resolvers by overriding the <code>repositories</code> definition in the module:<
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import coursier.maven.MavenRepository
 
 def repositoriesTask = T.task { super.repositoriesTask() ++ Seq(
-  MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+  MavenRepository(&quot;https://oss.sonatype.org/content/repositories/releases&quot;)
 ) }</code></pre>
 </div>
 </div>
@@ -343,7 +344,7 @@ custom <code>ZincWorkerModule</code>, and override the <code>zincWorker</code> m
 
 object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
   def repositoriesTask() = T.task { super.repositoriesTask() ++ Seq(
-    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+    MavenRepository(&quot;https://oss.sonatype.org/content/repositories/releases&quot;)
   ) }
 }
 
@@ -364,11 +365,11 @@ object YourBuild extends ScalaModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.1"
+  def scalaVersion = &quot;2.13.1&quot;
 
   object test extends Tests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.1")
-    def testFramework = "utest.runner.Framework"
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.1&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
 </div>
@@ -404,10 +405,10 @@ object foo extends ScalaModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.1"
+  def scalaVersion = &quot;2.13.1&quot;
 
   object test extends Tests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.1")
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.1&quot;)
   }
 }</code></pre>
 </div>
@@ -483,13 +484,13 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = &quot;2.12.4&quot;
 
   object test extends Tests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.6.0&quot;)
   }
   object integration extends Tests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.6.0&quot;)
   }
 }</code></pre>
 </div>
@@ -519,10 +520,10 @@ configuration options apply.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = &quot;2.12.4&quot;
 
   object test extends Tests with TestModule.ScalaTest {
-    def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
+    def ivyDeps = Agg(ivy&quot;org.scalatest::scalatest:3.0.4&quot;)
   }
 }</code></pre>
 </div>
@@ -536,10 +537,10 @@ object foo extends ScalaModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = &quot;2.12.4&quot;
 
   object test extends Tests with TestModule.Specs2 {
-    def ivyDeps = Agg(ivy"org.specs2::specs2-core:4.6.0")
+    def ivyDeps = Agg(ivy&quot;org.specs2::specs2-core:4.6.0&quot;)
   }
 }</code></pre>
 </div>
@@ -558,17 +559,17 @@ object foo extends ScalaModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = &quot;2.12.4&quot;
 
-  def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
-  def scalacOptions = Seq("-P:acyclic:force")
-  def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
+  def compileIvyDeps = Agg(ivy&quot;com.lihaoyi::acyclic:0.1.7&quot;)
+  def scalacOptions = Seq(&quot;-P:acyclic:force&quot;)
+  def scalacPluginIvyDeps = Agg(ivy&quot;com.lihaoyi::acyclic:0.1.7&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>You can use Scala compiler plugins by setting <code>scalacPluginIvyDeps</code>. The above
-example also adds the plugin to <code>compileIvyDeps</code>, since that plugin&#8217;s artifact
+example also adds the plugin to <code>compileIvyDeps</code>, since that plugin’s artifact
 is needed on the compilation classpath (though not at runtime).</p>
 </div>
 </div>
@@ -588,7 +589,7 @@ is needed on the compilation classpath (though not at runtime).</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, scalafmt._
 
 object foo extends ScalaModule with ScalafmtModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = &quot;2.12.4&quot;
 }</code></pre>
 </div>
 </div>
@@ -596,8 +597,8 @@ object foo extends ScalaModule with ScalafmtModule {
 <p>Now you can reformat code with <code>mill foo.reformat</code> command, or only check for misformatted files with <code>mill foo.checkFormat</code>.</p>
 </div>
 <div class="paragraph">
-<p>You can also reformat your project&#8217;s code globally with <code>mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll <em>.sources</code> command,
-or only check the code&#8217;s format with <code>mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll </em>.sources</code>.
+<p>You can also reformat your project’s code globally with <code>mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll <em>.sources</em></code> command,
+or only check the code’s format with <code>mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll .sources</code>.
 It will reformat all sources that matches <code>__.sources</code> query.</p>
 </div>
 <div class="paragraph">
@@ -618,7 +619,7 @@ for details.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 trait CommonModule extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = &quot;2.12.4&quot;
 }
 
 object foo extends CommonModule
@@ -654,8 +655,8 @@ a symlink from one to the other to avoid duplication.</p>
 <div class="listingblock">
 <div class="title"><code>~/.mill/ammonite/predef.sc</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val nexusUser = "myuser"
-val nexusPassword = "mysecret"</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val nexusUser = &quot;myuser&quot;
+val nexusPassword = &quot;mysecret&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -665,7 +666,7 @@ val nexusPassword = "mysecret"</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">  def repositories = super.repositories ++ Seq(
     // login and pass are globally configured
-    MavenRepository("https://nexus.mycompany.com/repository/maven-releases", authentication = Some(coursier.core.Authentication(nexusUser, nexusPassword)))
+    MavenRepository(&quot;https://nexus.mycompany.com/repository/maven-releases&quot;, authentication = Some(coursier.core.Authentication(nexusUser, nexusPassword)))
   )</code></pre>
 </div>
 </div>
@@ -680,7 +681,7 @@ val nexusPassword = "mysecret"</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = &quot;2.12.4&quot;
 }
 
 def lineCount = T {
@@ -694,7 +695,7 @@ def printLineCount() = T.command {
 </div>
 </div>
 <div class="paragraph">
-<p>You can define new cached Targets using the <code>T {&#8230;&#8203;}</code> syntax, depending on
+<p>You can define new cached Targets using the <code>T {...​}</code> syntax, depending on
 existing Targets e.g. <code>foo.sources</code> via the <code>foo.sources()</code> syntax to extract
 their current value, as shown in <code>lineCount</code> above. The return-type of a Target
 has to be JSON-serializable (using
@@ -712,14 +713,14 @@ parameters.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>You can define new un-cached Commands using the <code>T.command {&#8230;&#8203;}</code> syntax. These
+<p>You can define new un-cached Commands using the <code>T.command {...​}</code> syntax. These
 are un-cached and re-evaluate every time you run them, but can take parameters.
 Their return type needs to be JSON-writable as well, or <code>(): Unit</code> if you want
 to return nothing.</p>
 </div>
 <div class="paragraph">
-<p>Your custom targets can depend on each other using the <code>def bar = T {&#8230;&#8203; foo()
-&#8230;&#8203;}</code> syntax, and you can create arbitrarily long chains of dependent targets.
+<p>Your custom targets can depend on each other using the <code>def bar = T {...​ foo()
+...​}</code> syntax, and you can create arbitrarily long chains of dependent targets.
 Mill will handle the re-evaluation and caching of the targets' output for you,
 and will provide you a <code>T.dest</code> folder for you to use as scratch space or
 to store files you want to return.</p>
@@ -730,7 +731,7 @@ download files (e.g. using <code>mill.modules.Util.download</code>), shell-out t
 to compile some Javascript, generate sources to feed into a compiler, or create
 some custom jar/zip assembly with the files you want (e.g. using
 <code>mill.modules.Jvm.createJar</code>), all of these can simply be custom targets with
-your code running in the <code>T {&#8230;&#8203;}</code> block.</p>
+your code running in the <code>T {...​}</code> block.</p>
 </div>
 </div>
 </div>
@@ -744,11 +745,11 @@ your code running in the <code>T {&#8230;&#8203;}</code> block.</p>
 
 object qux extends Module {
   object foo extends ScalaModule {
-    def scalaVersion = "2.12.4"
+    def scalaVersion = &quot;2.12.4&quot;
   }
   object bar extends ScalaModule {
     def moduleDeps = Seq(foo)
-    def scalaVersion = "2.12.4"
+    def scalaVersion = &quot;2.12.4&quot;
   }
 }</code></pre>
 </div>
@@ -791,16 +792,16 @@ import mill.scalalib._
 
 object `hyphenated-module` extends Module {
   def `hyphenated-target` = T{
-    println("This is a hyphenated target in a hyphenated module.")
+    println(&quot;This is a hyphenated target in a hyphenated module.&quot;)
   }
 }
 
 object unhyphenatedModule extends Module {
   def unhyphenated_target = T{
-    println("This is an unhyphenated target in an unhyphenated module.")
+    println(&quot;This is an unhyphenated target in an unhyphenated module.&quot;)
   }
   def unhyphenated_target2 = T{
-    println("This is the second unhyphenated target in an unhyphenated module.")
+    println(&quot;This is the second unhyphenated target in an unhyphenated module.&quot;)
   }
 }</code></pre>
 </div>
@@ -845,13 +846,13 @@ mill unhyphenatedModule.unhyphenated_target2</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = &quot;2.12.4&quot;
   def compile = T {
-    println("Compiling...")
+    println(&quot;Compiling...&quot;)
     super.compile()
   }
   def run(args: String*) = T.command {
-    println("Running..." + args.mkString(" "))
+    println(&quot;Running...&quot; + args.mkString(&quot; &quot;))
     super.run(args:_*)
   }
 }</code></pre>
@@ -880,10 +881,10 @@ REPL.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = &quot;2.12.4&quot;
   def unmanagedClasspath = T {
-    if (!os.exists(millSourcePath / "lib")) Agg()
-    else Agg.from(os.list(millSourcePath / "lib").map(PathRef(_)))
+    if (!os.exists(millSourcePath / &quot;lib&quot;)) Agg()
+    else Agg.from(os.list(millSourcePath / &quot;lib&quot;).map(PathRef(_)))
   }
 }</code></pre>
 </div>
@@ -904,13 +905,13 @@ filesystem, e.g. in the above snippet any jars that happen to live in the
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
-  def mainClass = Some("foo.bar.Baz")
+  def scalaVersion = &quot;2.12.4&quot;
+  def mainClass = Some(&quot;foo.bar.Baz&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s <code>foo.run</code> by default will discover which main class to run from your
+<p>Mill’s <code>foo.run</code> by default will discover which main class to run from your
 compilation output, but if there is more than one or the main class comes from
 some library you can explicitly specify which one to use. This also adds the
 main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
@@ -936,12 +937,12 @@ You can also define your own merge/exclude rules.</p>
 import mill.modules.Assembly._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = &quot;2.12.4&quot;
   def assemblyRules = Seq(
-    Rule.Append("application.conf"), // all application.conf files will be concatenated into single file
-    Rule.AppendPattern(".*\\.conf"), // all *.conf files will be concatenated into single file
-    Rule.ExcludePattern("*.temp"), // all *.temp files will be excluded from a final jar
-    Rule.Relocate("shapeless.**", "shade.shapless.@1") // the `shapeless` package will be shaded under the `shade` package
+    Rule.Append(&quot;application.conf&quot;), // all application.conf files will be concatenated into single file
+    Rule.AppendPattern(&quot;.*\\.conf&quot;), // all *.conf files will be concatenated into single file
+    Rule.ExcludePattern(&quot;*.temp&quot;), // all *.temp files will be excluded from a final jar
+    Rule.Relocate(&quot;shapeless.**&quot;, &quot;shade.shapless.@1&quot;) // the `shapeless` package will be shaded under the `shade` package
   )
 }</code></pre>
 </div>
@@ -956,7 +957,7 @@ object foo extends ScalaModule {
 import mill.modules.Assembly._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = &quot;2.12.4&quot;
 
   def scalaLibraryIvyDeps = T { Agg.empty }
 }</code></pre>
@@ -973,11 +974,11 @@ object foo extends ScalaModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = &quot;2.12.4&quot;
   def unmanagedClasspath = Agg(
     mill.modules.Util.download(
-      "https://github.com/williamfiset/FastJavaIO/releases/download/v1.0/fastjavaio.jar",
-      "fastjavaio.jar"
+      &quot;https://github.com/williamfiset/FastJavaIO/releases/download/v1.0/fastjavaio.jar&quot;,
+      &quot;fastjavaio.jar&quot;
     )
   )
 }</code></pre>
@@ -999,9 +1000,9 @@ cached, so your jar is downloaded only once and re-used indefinitely after that.
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

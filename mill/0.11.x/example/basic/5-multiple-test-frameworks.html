@@ -1,18 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/basic/5-multiple-test-frameworks.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/basic/5-multiple-test-frameworks.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,7 +41,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -62,9 +63,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -387,7 +388,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -402,18 +403,18 @@ import mill.scalalib._
 import mill.scalalib.api.CompilationResult
 
 object foo extends RootModule with ScalaModule {
-  def scalaVersion = "2.13.11"
+  def scalaVersion = &quot;2.13.11&quot;
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::scalatags:0.12.0",
-    ivy"com.lihaoyi::mainargs:0.6.2"
+    ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;,
+    ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
   )
 
   object test extends ScalaTests {
     def ivyDeps = Agg(
-      ivy"com.lihaoyi::utest:0.8.4",
-      ivy"org.scalatest::scalatest-freespec:3.2.18"
+      ivy&quot;com.lihaoyi::utest:0.8.4&quot;,
+      ivy&quot;org.scalatest::scalatest-freespec:3.2.18&quot;
     )
-    def testFramework = "utest.runner.Framework"
+    def testFramework = &quot;utest.runner.Framework&quot;
   }
   object test2 extends TestModule with TestModule.ScalaTest {
     override def compile: T[CompilationResult] = ???
@@ -458,9 +459,9 @@ Tests: succeeded 2, failed 0, canceled 0, ignored 0, pending 0</code></pre>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async src="../../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async src="../../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../../search-index.js"></script>
+  
+</body></html>

@@ -1,18 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/cross/4-cross-dependencies.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/cross/4-cross-dependencies.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,7 +41,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -62,9 +63,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -387,7 +388,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -403,107 +404,106 @@ external targets:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait FooModule extends Cross.Module[String] {
-  def suffix = T { "_" + crossValue }
+  def suffix = T { &quot;_&quot; + crossValue }
 }
 
-object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
+object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
 trait BarModule extends Cross.Module[String] {
-  def bigSuffix = T { "[[[" + foo(crossValue).suffix() + "]]]" }
+  def bigSuffix = T { &quot;[[[&quot; + foo(crossValue).suffix() + &quot;]]]&quot; }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <center>
-<svg width="305px" height="235px"
- viewBox="0.00 0.00 304.72 235.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="305px" height="235px" viewBox="0.00 0.00 304.72 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-231 300.72,-231 300.72,4 -4,4"/>
-<g id="clust4" class="cluster">
-<title>cluster_4</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-81 148.64,-146 288.72,-146 288.72,-81 148.64,-81"/>
-<text text-anchor="middle" x="218.68" y="-129.4" font-family="Times,serif" font-size="14.00">bar[2.11]</text>
-</g>
-<g id="clust5" class="cluster">
-<title>cluster_5</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-8 148.64,-73 288.72,-73 288.72,-8 148.64,-8"/>
-<text text-anchor="middle" x="218.68" y="-56.4" font-family="Times,serif" font-size="14.00">bar[2.12]</text>
-</g>
-<g id="clust6" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-154 148.64,-219 288.72,-219 288.72,-154 148.64,-154"/>
-<text text-anchor="middle" x="218.68" y="-202.4" font-family="Times,serif" font-size="14.00">bar[2.10]</text>
-</g>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-231 300.72,-231 300.72,4 -4,4"></polygon>
 <g id="clust1" class="cluster">
 <title>cluster_2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"></polygon>
 <text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"></polygon>
 <text text-anchor="middle" x="68.32" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
 </g>
 <g id="clust3" class="cluster">
 <title>cluster_0</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
 <text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-81 148.64,-146 288.72,-146 288.72,-81 148.64,-81"></polygon>
+<text text-anchor="middle" x="218.68" y="-129.4" font-family="Times,serif" font-size="14.00">bar[2.11]</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-8 148.64,-73 288.72,-73 288.72,-8 148.64,-8"></polygon>
+<text text-anchor="middle" x="218.68" y="-56.4" font-family="Times,serif" font-size="14.00">bar[2.12]</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-154 148.64,-219 288.72,-219 288.72,-154 148.64,-154"></polygon>
+<text text-anchor="middle" x="218.68" y="-202.4" font-family="Times,serif" font-size="14.00">bar[2.10]</text>
 </g>
 <!-- foo[2.12].suffix -->
 <g id="node1" class="node">
 <title>foo[2.12].suffix</title>
-<polygon fill="white" stroke="black" points="120.46,-40.3 16.18,-40.3 16.18,-15.7 120.46,-15.7 120.46,-40.3"/>
+<polygon fill="white" stroke="black" points="120.46,-40.3 16.18,-40.3 16.18,-15.7 120.46,-15.7 120.46,-40.3"></polygon>
 <text text-anchor="middle" x="68.32" y="-23.8" font-family="Times,serif" font-size="14.00">foo[2.12].suffix</text>
 </g>
 <!-- bar[2.12].bigSuffix -->
 <g id="node5" class="node">
 <title>bar[2.12].bigSuffix</title>
-<polygon fill="white" stroke="black" points="280.76,-40.3 156.6,-40.3 156.6,-15.7 280.76,-15.7 280.76,-40.3"/>
+<polygon fill="white" stroke="black" points="280.76,-40.3 156.6,-40.3 156.6,-15.7 280.76,-15.7 280.76,-40.3"></polygon>
 <text text-anchor="middle" x="218.68" y="-23.8" font-family="Times,serif" font-size="14.00">bar[2.12].bigSuffix</text>
 </g>
 <!-- foo[2.12].suffix&#45;&gt;bar[2.12].bigSuffix -->
 <g id="edge3" class="edge">
-<title>foo[2.12].suffix&#45;&gt;bar[2.12].bigSuffix</title>
-<path fill="none" stroke="black" d="M120.79,-28C129.09,-28 137.81,-28 146.48,-28"/>
-<polygon fill="black" stroke="black" points="146.6,-31.5 156.6,-28 146.6,-24.5 146.6,-31.5"/>
+<title>foo[2.12].suffix-&gt;bar[2.12].bigSuffix</title>
+<path fill="none" stroke="black" d="M120.79,-28C129.09,-28 137.81,-28 146.48,-28"></path>
+<polygon fill="black" stroke="black" points="146.6,-31.5 156.6,-28 146.6,-24.5 146.6,-31.5"></polygon>
 </g>
 <!-- foo[2.11].suffix -->
 <g id="node2" class="node">
 <title>foo[2.11].suffix</title>
-<polygon fill="white" stroke="black" points="120.46,-113.3 16.18,-113.3 16.18,-88.7 120.46,-88.7 120.46,-113.3"/>
+<polygon fill="white" stroke="black" points="120.46,-113.3 16.18,-113.3 16.18,-88.7 120.46,-88.7 120.46,-113.3"></polygon>
 <text text-anchor="middle" x="68.32" y="-96.8" font-family="Times,serif" font-size="14.00">foo[2.11].suffix</text>
 </g>
 <!-- bar[2.11].bigSuffix -->
 <g id="node4" class="node">
 <title>bar[2.11].bigSuffix</title>
-<polygon fill="white" stroke="black" points="280.76,-113.3 156.6,-113.3 156.6,-88.7 280.76,-88.7 280.76,-113.3"/>
+<polygon fill="white" stroke="black" points="280.76,-113.3 156.6,-113.3 156.6,-88.7 280.76,-88.7 280.76,-113.3"></polygon>
 <text text-anchor="middle" x="218.68" y="-96.8" font-family="Times,serif" font-size="14.00">bar[2.11].bigSuffix</text>
 </g>
 <!-- foo[2.11].suffix&#45;&gt;bar[2.11].bigSuffix -->
 <g id="edge2" class="edge">
-<title>foo[2.11].suffix&#45;&gt;bar[2.11].bigSuffix</title>
-<path fill="none" stroke="black" d="M120.79,-101C129.09,-101 137.81,-101 146.48,-101"/>
-<polygon fill="black" stroke="black" points="146.6,-104.5 156.6,-101 146.6,-97.5 146.6,-104.5"/>
+<title>foo[2.11].suffix-&gt;bar[2.11].bigSuffix</title>
+<path fill="none" stroke="black" d="M120.79,-101C129.09,-101 137.81,-101 146.48,-101"></path>
+<polygon fill="black" stroke="black" points="146.6,-104.5 156.6,-101 146.6,-97.5 146.6,-104.5"></polygon>
 </g>
 <!-- foo[2.10].suffix -->
 <g id="node3" class="node">
 <title>foo[2.10].suffix</title>
-<polygon fill="white" stroke="black" points="120.46,-186.3 16.18,-186.3 16.18,-161.7 120.46,-161.7 120.46,-186.3"/>
+<polygon fill="white" stroke="black" points="120.46,-186.3 16.18,-186.3 16.18,-161.7 120.46,-161.7 120.46,-186.3"></polygon>
 <text text-anchor="middle" x="68.32" y="-169.8" font-family="Times,serif" font-size="14.00">foo[2.10].suffix</text>
 </g>
 <!-- bar[2.10].bigSuffix -->
 <g id="node6" class="node">
 <title>bar[2.10].bigSuffix</title>
-<polygon fill="white" stroke="black" points="280.76,-186.3 156.6,-186.3 156.6,-161.7 280.76,-161.7 280.76,-186.3"/>
+<polygon fill="white" stroke="black" points="280.76,-186.3 156.6,-186.3 156.6,-161.7 280.76,-161.7 280.76,-186.3"></polygon>
 <text text-anchor="middle" x="218.68" y="-169.8" font-family="Times,serif" font-size="14.00">bar[2.10].bigSuffix</text>
 </g>
 <!-- foo[2.10].suffix&#45;&gt;bar[2.10].bigSuffix -->
 <g id="edge1" class="edge">
-<title>foo[2.10].suffix&#45;&gt;bar[2.10].bigSuffix</title>
-<path fill="none" stroke="black" d="M120.79,-174C129.09,-174 137.81,-174 146.48,-174"/>
-<polygon fill="black" stroke="black" points="146.6,-177.5 156.6,-174 146.6,-170.5 146.6,-177.5"/>
+<title>foo[2.10].suffix-&gt;bar[2.10].bigSuffix</title>
+<path fill="none" stroke="black" d="M120.79,-174C129.09,-174 137.81,-174 146.48,-174"></path>
+<polygon fill="black" stroke="black" points="146.6,-177.5 156.6,-174 146.6,-170.5 146.6,-177.5"></polygon>
 </g>
 </g>
 </svg>
@@ -511,26 +511,26 @@ trait BarModule extends Cross.Module[String] {
 </center>
 </div>
 <div class="paragraph">
-<p>Rather than pssing in a literal <code>"2.10"</code> to the <code>foo</code> cross module, we pass
+<p>Rather than pssing in a literal <code>&quot;2.10&quot;</code> to the <code>foo</code> cross module, we pass
 in the <code>crossValue</code> property that is available within every <code>Cross.Module</code>.
 This ensures that each version of <code>bar</code> depends on the corresponding version
-of <code>foo</code>: <code>bar("2.10")</code> depends on <code>foo("2.10")</code>, <code>bar("2.11")</code> depends on
-<code>foo("2.11")</code>, etc.</p>
+of <code>foo</code>: <code>bar(&quot;2.10&quot;)</code> depends on <code>foo(&quot;2.10&quot;)</code>, <code>bar(&quot;2.11&quot;)</code> depends on
+<code>foo(&quot;2.11&quot;)</code>, etc.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill showNamed foo[__].suffix
 {
-  "foo[2.10].suffix": "_2.10",
-  "foo[2.11].suffix": "_2.11",
-  "foo[2.12].suffix": "_2.12"
+  &quot;foo[2.10].suffix&quot;: &quot;_2.10&quot;,
+  &quot;foo[2.11].suffix&quot;: &quot;_2.11&quot;,
+  &quot;foo[2.12].suffix&quot;: &quot;_2.12&quot;
 }
 
 &gt; mill showNamed bar[__].bigSuffix
 {
-  "bar[2.10].bigSuffix": "[[[_2.10]]]",
-  "bar[2.11].bigSuffix": "[[[_2.11]]]",
-  "bar[2.12].bigSuffix": "[[[_2.12]]]"
+  &quot;bar[2.10].bigSuffix&quot;: &quot;[[[_2.10]]]&quot;,
+  &quot;bar[2.11].bigSuffix&quot;: &quot;[[[_2.11]]]&quot;,
+  &quot;bar[2.12].bigSuffix&quot;: &quot;[[[_2.12]]]&quot;
 }</code></pre>
 </div>
 </div>
@@ -539,9 +539,9 @@ of <code>foo</code>: <code>bar("2.10")</code> depends on <code>foo("2.10")</code
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async src="../../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async src="../../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../../search-index.js"></script>
+  
+</body></html>

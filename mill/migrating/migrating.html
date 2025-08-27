@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Migrating to Mill :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/migrating/migrating.html">
-    <link rel="prev" href="../cli/build-header.html">
-    <link rel="next" href="auto-migrating.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/migrating/migrating.html" />
+    <link rel="prev" href="../cli/build-header.html" />
+    <link rel="next" href="auto-migrating.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -656,7 +657,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -698,10 +699,10 @@ complex multi-module builds with dozens of modules:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -795,7 +796,7 @@ perform head-to-head comparisons between old and new build systems</p>
 <p>Sub-project <code>pom.xml</code> and <code>build.gradle</code> files need to be translated into Mill <code>Module</code>s</p>
 </li>
 <li>
-<p>Third-party dependencies need to be translated into Mill&#8217;s <code>def mvnDeps</code></p>
+<p>Third-party dependencies need to be translated into Mill’s <code>def mvnDeps</code></p>
 </li>
 <li>
 <p>Third-party Plugins need to be replaced by their Mill equivalent, or re-implemented</p>
@@ -869,8 +870,8 @@ and a <code>test</code> module for each.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 75%;">
+<col style="width: 25%;" />
+<col style="width: 75%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -931,11 +932,11 @@ or a subproject <code>bar/qux/</code> should be a nested:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Wire up the existing inter-subproject dependencies using <code>def moduleDeps = Seq(&#8230;&#8203;)</code> inside <code>object foo</code>.</p>
+<p>Wire up the existing inter-subproject dependencies using <code>def moduleDeps = Seq(...​)</code> inside <code>object foo</code>.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Test dependencies can also be specified, using <code>def moduleDeps = super.moduleDeps ++ Seq(&#8230;&#8203;)</code>
+<p>Test dependencies can also be specified, using <code>def moduleDeps = super.moduleDeps ++ Seq(...​)</code>
 inside the <code>object test</code>. Note that test modules need to use <code>super.moduleDeps</code> to preserve
 the dependency on the enclosing application module</p>
 </li>
@@ -961,8 +962,8 @@ object bar extends MavenModule{
 </div>
 <div class="paragraph">
 <p>At this point, you have the rough skeleton of the project laid out. You can run
-<code>./mill visualize <em>.compile</code> to show an SVG graph of how the project is laid out, and
-<code>./mill show </em>.sources</code> to show where the source folders for each module are to eyeball
+<code>./mill visualize <em>.compile</em></code> to show an SVG graph of how the project is laid out, and
+<code>./mill show .sources</code> to show where the source folders for each module are to eyeball
 them and verify they are pointing at the right place. For a fully-self-contained project
 with no external dependencies you could even compile it at this point, but most projects
 will require some degree of third party dependencies that will need to be configured:</p>
@@ -984,8 +985,8 @@ will require some degree of third party dependencies that will need to be config
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 75%;">
+<col style="width: 25%;" />
+<col style="width: 75%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -1008,7 +1009,7 @@ will require some degree of third party dependencies that will need to be config
 <td class="tableblock halign-left valign-top"><p class="tableblock">Gradle</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">implementation "com.google.guava:guava:3.3.1-jre"</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">implementation &quot;com.google.guava:guava:3.3.1-jre&quot;</code></pre>
 </div>
 </div></div></td>
 </tr>
@@ -1016,7 +1017,7 @@ will require some degree of third party dependencies that will need to be config
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>sbt</code></p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">libraryDependencies += "com.google.guava" % "guava" % "3.3.1-jre"</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">libraryDependencies += &quot;com.google.guava&quot; % &quot;guava&quot; % &quot;3.3.1-jre&quot;</code></pre>
 </div>
 </div></div></td>
 </tr>
@@ -1024,7 +1025,7 @@ will require some degree of third party dependencies that will need to be config
 <td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mvnDeps = Seq(mvn"com.google.guava:guava:3.3.1-jre")</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mvnDeps = Seq(mvn&quot;com.google.guava:guava:3.3.1-jre&quot;)</code></pre>
 </div>
 </div></div></td>
 </tr>
@@ -1035,8 +1036,8 @@ will require some degree of third party dependencies that will need to be config
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 75%;">
+<col style="width: 25%;" />
+<col style="width: 75%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -1047,7 +1048,7 @@ will require some degree of third party dependencies that will need to be config
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>sbt</code></p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">libraryDependencies += "com.lihaoyi" %% "scalatags" % "0.12.0"</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">libraryDependencies += &quot;com.lihaoyi&quot; %% &quot;scalatags&quot; % &quot;0.12.0&quot;</code></pre>
 </div>
 </div></div></td>
 </tr>
@@ -1055,7 +1056,7 @@ will require some degree of third party dependencies that will need to be config
 <td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.12.0")</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mvnDeps = Seq(mvn&quot;com.lihaoyi::scalatags:0.12.0&quot;)</code></pre>
 </div>
 </div></div></td>
 </tr>
@@ -1119,7 +1120,7 @@ comes from an external tool (e.g. third-party compilers, code-generators, linter
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>For the simple cases, you can usually accomplish what you want using Mill&#8217;s
+<p>For the simple cases, you can usually accomplish what you want using Mill’s
 <a href="../javalib/intro.html#_custom_build_logic" class="xref page">custom build logic</a>. Mill provides bundled
 libraries for working with filesystem/subprocesses (<a href="../fundamentals/bundled-libraries.html#_os_lib" class="xref page">OS-Lib</a>),
 JSON/binary serialization (<a href="../fundamentals/bundled-libraries.html#_upickle" class="xref page">uPickle</a>),
@@ -1153,7 +1154,7 @@ new Mill build:</p>
 <ul>
 <li>
 <p>You may need to update code to use the <code>MILL_TEST_RESOURCE_DIR</code> environment variable
-rather than the <code>"resources/"</code> folder directly in code, since Mill runs tests in
+rather than the <code>&quot;resources/&quot;</code> folder directly in code, since Mill runs tests in
 <a href="../depth/sandboxing.html" class="xref page">Sandboxes</a> that guard against unwanted filesystem access.</p>
 </li>
 <li>
@@ -1241,9 +1242,9 @@ which becomes more true as the lifespan and pace of development on a project gro
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

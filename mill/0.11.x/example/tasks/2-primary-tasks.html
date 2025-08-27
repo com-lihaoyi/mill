@@ -1,18 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/tasks/2-primary-tasks.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/tasks/2-primary-tasks.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,7 +41,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -62,9 +63,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -387,7 +388,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -400,13 +401,13 @@
 <div class="ulist">
 <ul>
 <li>
-<p><a href="#_sources">Sources</a>, defined using <code>T.sources {&#8230;&#8203;}</code></p>
+<p><a href="#_sources">Sources</a>, defined using <code>T.sources {...​}</code></p>
 </li>
 <li>
-<p><a href="#_targets">Targets</a>, defined using <code>T {&#8230;&#8203;}</code></p>
+<p><a href="#_targets">Targets</a>, defined using <code>T {...​}</code></p>
 </li>
 <li>
-<p><a href="#_commands">Commands</a>, defined using <code>T.command {&#8230;&#8203;}</code></p>
+<p><a href="#_commands">Commands</a>, defined using <code>T.command {...​}</code></p>
 </li>
 </ul>
 </div>
@@ -417,12 +418,12 @@
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.{Module, T, _}
 
-def sources = T.source { millSourcePath / "src" }
-def resources = T.source { millSourcePath / "resources" }</code></pre>
+def sources = T.source { millSourcePath / &quot;src&quot; }
+def resources = T.source { millSourcePath / &quot;resources&quot; }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>Source</code>s are defined using <code>T.source{&#8230;&#8203;}</code> taking one <code>os.Path</code>, or <code>T.sources{&#8230;&#8203;}</code>,
+<p><code>Source</code>s are defined using <code>T.source{...​}</code> taking one <code>os.Path</code>, or <code>T.sources{...​}</code>,
 taking multiple <code>os.Path</code>s as arguments. A <code>Source</code>'s':
 its build signature/<code>hashCode</code> depends not just on the path
 it refers to (e.g. <code>foo/bar/baz</code>) but also the MD5 hash of the filesystem
@@ -440,12 +441,12 @@ re-compute if a change is detected.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def allSources = T {
   os.walk(sources().path)
-    .filter(_.ext == "java")
+    .filter(_.ext == &quot;java&quot;)
     .map(PathRef(_))
 }
 
 def lineCount: T[Int] = T {
-  println("Computing line count")
+  println(&quot;Computing line count&quot;)
   allSources()
     .map(p =&gt; os.read.lines(p.path).size)
     .sum
@@ -454,40 +455,39 @@ def lineCount: T[Int] = T {
 </div>
 <div class="paragraph">
 <center>
-<svg width="284px" height="33px"
- viewBox="0.00 0.00 283.51 32.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="284px" height="33px" viewBox="0.00 0.00 283.51 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28.8 279.51,-28.8 279.51,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28.8 279.51,-28.8 279.51,4 -4,4"></polygon>
 <!-- sources -->
 <g id="node1" class="node">
 <title>sources</title>
-<polygon fill="white" stroke="white" points="57.97,-24.7 0.01,-24.7 0.01,-0.1 57.97,-0.1 57.97,-24.7"/>
+<polygon fill="white" stroke="white" points="57.97,-24.7 0.01,-24.7 0.01,-0.1 57.97,-0.1 57.97,-24.7"></polygon>
 <text text-anchor="middle" x="28.99" y="-8.2" font-family="Times,serif" font-size="14.00">sources</text>
 </g>
 <!-- allSources -->
 <g id="node2" class="node">
 <title>allSources</title>
-<polygon fill="white" stroke="black" points="168.45,-24.7 93.82,-24.7 93.82,-0.1 168.45,-0.1 168.45,-24.7"/>
+<polygon fill="white" stroke="black" points="168.45,-24.7 93.82,-24.7 93.82,-0.1 168.45,-0.1 168.45,-24.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">allSources</text>
 </g>
 <!-- sources&#45;&gt;allSources -->
 <g id="edge1" class="edge">
-<title>sources&#45;&gt;allSources</title>
-<path fill="none" stroke="black" d="M58.15,-12.4C66.14,-12.4 75.05,-12.4 83.8,-12.4"/>
-<polygon fill="black" stroke="black" points="83.95,-15.9 93.95,-12.4 83.95,-8.9 83.95,-15.9"/>
+<title>sources-&gt;allSources</title>
+<path fill="none" stroke="black" d="M58.15,-12.4C66.14,-12.4 75.05,-12.4 83.8,-12.4"></path>
+<polygon fill="black" stroke="black" points="83.95,-15.9 93.95,-12.4 83.95,-8.9 83.95,-15.9"></polygon>
 </g>
 <!-- lineCount -->
 <g id="node3" class="node">
 <title>lineCount</title>
-<polygon fill="white" stroke="black" points="275.63,-24.7 204.18,-24.7 204.18,-0.1 275.63,-0.1 275.63,-24.7"/>
+<polygon fill="white" stroke="black" points="275.63,-24.7 204.18,-24.7 204.18,-0.1 275.63,-0.1 275.63,-24.7"></polygon>
 <text text-anchor="middle" x="239.9" y="-8.2" font-family="Times,serif" font-size="14.00">lineCount</text>
 </g>
 <!-- allSources&#45;&gt;lineCount -->
 <g id="edge2" class="edge">
-<title>allSources&#45;&gt;lineCount</title>
-<path fill="none" stroke="black" d="M168.58,-12.4C176.74,-12.4 185.49,-12.4 193.95,-12.4"/>
-<polygon fill="black" stroke="black" points="194.06,-15.9 204.06,-12.4 194.06,-8.9 194.06,-15.9"/>
+<title>allSources-&gt;lineCount</title>
+<path fill="none" stroke="black" d="M168.58,-12.4C176.74,-12.4 185.49,-12.4 193.95,-12.4"></path>
+<polygon fill="black" stroke="black" points="194.06,-15.9 204.06,-12.4 194.06,-8.9 194.06,-15.9"></polygon>
 </g>
 </g>
 </svg>
@@ -495,16 +495,16 @@ def lineCount: T[Int] = T {
 </center>
 </div>
 <div class="paragraph">
-<p><code>Target</code>s are defined using the <code>def foo = T {&#8230;&#8203;}</code> syntax, and dependencies
+<p><code>Target</code>s are defined using the <code>def foo = T {...​}</code> syntax, and dependencies
 on other targets are defined using <code>foo()</code> to extract the value from them.
-Apart from the <code>foo()</code> calls, the <code>T {&#8230;&#8203;}</code> block contains arbitrary code that
+Apart from the <code>foo()</code> calls, the <code>T {...​}</code> block contains arbitrary code that
 does some work and returns a result.</p>
 </div>
 <div class="paragraph">
-<p>If a target&#8217;s inputs change but its output does not, e.g. someone changes a
-comment within the source files that doesn&#8217;t affect the classfiles, then
+<p>If a target’s inputs change but its output does not, e.g. someone changes a
+comment within the source files that doesn’t affect the classfiles, then
 downstream targets do not re-evaluate. This is determined using the
-<code>.hashCode</code> of the Target&#8217;s return value.</p>
+<code>.hashCode</code> of the Target’s return value.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -534,73 +534,72 @@ you want to return:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def classFiles = T {
-  println("Generating classfiles")
+  println(&quot;Generating classfiles&quot;)
 
-  os.proc("javac", allSources().map(_.path), "-d", T.dest)
+  os.proc(&quot;javac&quot;, allSources().map(_.path), &quot;-d&quot;, T.dest)
     .call(cwd = T.dest)
 
   PathRef(T.dest)
 }
 
 def jar = T {
-  println("Generating jar")
+  println(&quot;Generating jar&quot;)
   os.copy(classFiles().path, T.dest, mergeFolders = true)
   os.copy(resources().path, T.dest, mergeFolders = true)
 
-  os.proc("jar", "-cfe", T.dest / "foo.jar", "foo.Foo", ".").call(cwd = T.dest)
+  os.proc(&quot;jar&quot;, &quot;-cfe&quot;, T.dest / &quot;foo.jar&quot;, &quot;foo.Foo&quot;, &quot;.&quot;).call(cwd = T.dest)
 
-  PathRef(T.dest / "foo.jar")
+  PathRef(T.dest / &quot;foo.jar&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <center>
-<svg width="256px" height="76px"
- viewBox="0.00 0.00 255.51 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="256px" height="76px" viewBox="0.00 0.00 255.51 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 251.51,-71.8 251.51,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 251.51,-71.8 251.51,4 -4,4"></polygon>
 <!-- allSources -->
 <g id="node1" class="node">
 <title>allSources</title>
-<polygon fill="white" stroke="white" points="74.47,-67.7 -0.16,-67.7 -0.16,-43.1 74.47,-43.1 74.47,-67.7"/>
+<polygon fill="white" stroke="white" points="74.47,-67.7 -0.16,-67.7 -0.16,-43.1 74.47,-43.1 74.47,-67.7"></polygon>
 <text text-anchor="middle" x="37.16" y="-51.2" font-family="Times,serif" font-size="14.00">allSources</text>
 </g>
 <!-- classFiles -->
 <g id="node2" class="node">
 <title>classFiles</title>
-<polygon fill="white" stroke="black" points="180.96,-67.7 110.1,-67.7 110.1,-43.1 180.96,-43.1 180.96,-67.7"/>
+<polygon fill="white" stroke="black" points="180.96,-67.7 110.1,-67.7 110.1,-43.1 180.96,-43.1 180.96,-67.7"></polygon>
 <text text-anchor="middle" x="145.53" y="-51.2" font-family="Times,serif" font-size="14.00">classFiles</text>
 </g>
 <!-- allSources&#45;&gt;classFiles -->
 <g id="edge1" class="edge">
-<title>allSources&#45;&gt;classFiles</title>
-<path fill="none" stroke="black" d="M74.47,-55.4C82.68,-55.4 91.5,-55.4 100.01,-55.4"/>
-<polygon fill="black" stroke="black" points="100.18,-58.9 110.18,-55.4 100.18,-51.9 100.18,-58.9"/>
+<title>allSources-&gt;classFiles</title>
+<path fill="none" stroke="black" d="M74.47,-55.4C82.68,-55.4 91.5,-55.4 100.01,-55.4"></path>
+<polygon fill="black" stroke="black" points="100.18,-58.9 110.18,-55.4 100.18,-51.9 100.18,-58.9"></polygon>
 </g>
 <!-- jar -->
 <g id="node3" class="node">
 <title>jar</title>
-<polygon fill="white" stroke="black" points="247.39,-45.7 216.86,-45.7 216.86,-21.1 247.39,-21.1 247.39,-45.7"/>
+<polygon fill="white" stroke="black" points="247.39,-45.7 216.86,-45.7 216.86,-21.1 247.39,-21.1 247.39,-45.7"></polygon>
 <text text-anchor="middle" x="232.13" y="-29.2" font-family="Times,serif" font-size="14.00">jar</text>
 </g>
 <!-- classFiles&#45;&gt;jar -->
 <g id="edge2" class="edge">
-<title>classFiles&#45;&gt;jar</title>
-<path fill="none" stroke="black" d="M180.94,-46.45C189.59,-44.2 198.7,-41.83 206.75,-39.74"/>
-<polygon fill="black" stroke="black" points="207.79,-43.09 216.58,-37.18 206.03,-36.31 207.79,-43.09"/>
+<title>classFiles-&gt;jar</title>
+<path fill="none" stroke="black" d="M180.94,-46.45C189.59,-44.2 198.7,-41.83 206.75,-39.74"></path>
+<polygon fill="black" stroke="black" points="207.79,-43.09 216.58,-37.18 206.03,-36.31 207.79,-43.09"></polygon>
 </g>
 <!-- resources -->
 <g id="node4" class="node">
 <title>resources</title>
-<polygon fill="white" stroke="white" points="179.88,-24.7 111.17,-24.7 111.17,-0.1 179.88,-0.1 179.88,-24.7"/>
+<polygon fill="white" stroke="white" points="179.88,-24.7 111.17,-24.7 111.17,-0.1 179.88,-0.1 179.88,-24.7"></polygon>
 <text text-anchor="middle" x="145.53" y="-8.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- resources&#45;&gt;jar -->
 <g id="edge3" class="edge">
-<title>resources&#45;&gt;jar</title>
-<path fill="none" stroke="black" d="M179.96,-20.7C188.93,-22.92 198.45,-25.29 206.81,-27.36"/>
-<polygon fill="black" stroke="black" points="206.11,-30.8 216.66,-29.81 207.8,-24 206.11,-30.8"/>
+<title>resources-&gt;jar</title>
+<path fill="none" stroke="black" d="M179.96,-20.7C188.93,-22.92 198.45,-25.29 206.81,-27.36"></path>
+<polygon fill="black" stroke="black" points="206.11,-30.8 216.66,-29.81 207.8,-24 206.11,-30.8"></polygon>
 </g>
 </g>
 </svg>
@@ -614,7 +613,7 @@ Generating classfiles
 Generating jar
 
 &gt; ./mill show jar
-".../out/jar.dest/foo.jar"</code></pre>
+&quot;.../out/jar.dest/foo.jar&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -633,55 +632,54 @@ in <code>def largeFile</code> running even though the <code>largeFile()</code> b
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def largeFile = T {
-  println("Finding Largest File")
+  println(&quot;Finding Largest File&quot;)
   allSources()
     .map(_.path)
-    .filter(_.ext == "java")
+    .filter(_.ext == &quot;java&quot;)
     .maxBy(os.read.lines(_).size)
 }
 
 def hugeFileName = T{
   if (lineCount() &gt; 999) largeFile().last
-  else "&lt;no-huge-file&gt;"
+  else &quot;&lt;no-huge-file&gt;&quot;
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <center>
-<svg width="318px" height="33px"
- viewBox="0.00 0.00 318.49 32.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="318px" height="33px" viewBox="0.00 0.00 318.49 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28.8 314.49,-28.8 314.49,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28.8 314.49,-28.8 314.49,4 -4,4"></polygon>
 <!-- allSources -->
 <g id="node1" class="node">
 <title>allSources</title>
-<polygon fill="white" stroke="white" points="74.47,-24.7 -0.16,-24.7 -0.16,-0.1 74.47,-0.1 74.47,-24.7"/>
+<polygon fill="white" stroke="white" points="74.47,-24.7 -0.16,-24.7 -0.16,-0.1 74.47,-0.1 74.47,-24.7"></polygon>
 <text text-anchor="middle" x="37.16" y="-8.2" font-family="Times,serif" font-size="14.00">allSources</text>
 </g>
 <!-- largeFile -->
 <g id="node2" class="node">
 <title>largeFile</title>
-<polygon fill="white" stroke="black" points="175.95,-24.7 110.43,-24.7 110.43,-0.1 175.95,-0.1 175.95,-24.7"/>
+<polygon fill="white" stroke="black" points="175.95,-24.7 110.43,-24.7 110.43,-0.1 175.95,-0.1 175.95,-24.7"></polygon>
 <text text-anchor="middle" x="143.19" y="-8.2" font-family="Times,serif" font-size="14.00">largeFile</text>
 </g>
 <!-- allSources&#45;&gt;largeFile -->
 <g id="edge1" class="edge">
-<title>allSources&#45;&gt;largeFile</title>
-<path fill="none" stroke="black" d="M74.54,-12.4C82.79,-12.4 91.62,-12.4 100.08,-12.4"/>
-<polygon fill="black" stroke="black" points="100.16,-15.9 110.16,-12.4 100.16,-8.9 100.16,-15.9"/>
+<title>allSources-&gt;largeFile</title>
+<path fill="none" stroke="black" d="M74.54,-12.4C82.79,-12.4 91.62,-12.4 100.08,-12.4"></path>
+<polygon fill="black" stroke="black" points="100.16,-15.9 110.16,-12.4 100.16,-8.9 100.16,-15.9"></polygon>
 </g>
 <!-- hugeFileName -->
 <g id="node3" class="node">
 <title>hugeFileName</title>
-<polygon fill="white" stroke="black" points="310.7,-24.7 211.86,-24.7 211.86,-0.1 310.7,-0.1 310.7,-24.7"/>
+<polygon fill="white" stroke="black" points="310.7,-24.7 211.86,-24.7 211.86,-0.1 310.7,-0.1 310.7,-24.7"></polygon>
 <text text-anchor="middle" x="261.28" y="-8.2" font-family="Times,serif" font-size="14.00">hugeFileName</text>
 </g>
 <!-- largeFile&#45;&gt;hugeFileName -->
 <g id="edge2" class="edge">
-<title>largeFile&#45;&gt;hugeFileName</title>
-<path fill="none" stroke="black" d="M176.22,-12.4C184.13,-12.4 192.86,-12.4 201.6,-12.4"/>
-<polygon fill="black" stroke="black" points="201.82,-15.9 211.82,-12.4 201.82,-8.9 201.82,-15.9"/>
+<title>largeFile-&gt;hugeFileName</title>
+<path fill="none" stroke="black" d="M176.22,-12.4C184.13,-12.4 192.86,-12.4 201.6,-12.4"></path>
+<polygon fill="black" stroke="black" points="201.82,-15.9 211.82,-12.4 201.82,-8.9 201.82,-15.9"></polygon>
 </g>
 </g>
 </svg>
@@ -695,7 +693,7 @@ def hugeFileName = T{
 
 &gt; ./mill show hugeFileName # This still runs `largestFile` even though `lineCount() &lt; 999`
 Finding Largest File
-"&lt;no-huge-file&gt;"</code></pre>
+&quot;&lt;no-huge-file&gt;&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -724,28 +722,27 @@ def summarizeClassFileStats = T{
 </div>
 <div class="paragraph">
 <center>
-<svg width="278px" height="33px"
- viewBox="0.00 0.00 278.19 32.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="278px" height="33px" viewBox="0.00 0.00 278.19 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28.8 274.19,-28.8 274.19,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28.8 274.19,-28.8 274.19,4 -4,4"></polygon>
 <!-- classFiles -->
 <g id="node1" class="node">
 <title>classFiles</title>
-<polygon fill="white" stroke="white" points="70.65,-24.7 -0.22,-24.7 -0.22,-0.1 70.65,-0.1 70.65,-24.7"/>
+<polygon fill="white" stroke="white" points="70.65,-24.7 -0.22,-24.7 -0.22,-0.1 70.65,-0.1 70.65,-24.7"></polygon>
 <text text-anchor="middle" x="35.22" y="-8.2" font-family="Times,serif" font-size="14.00">classFiles</text>
 </g>
 <!-- summarizedClassFileStats -->
 <g id="node2" class="node">
 <title>summarizedClassFileStats</title>
-<polygon fill="white" stroke="black" points="270.06,-24.7 106.56,-24.7 106.56,-0.1 270.06,-0.1 270.06,-24.7"/>
+<polygon fill="white" stroke="black" points="270.06,-24.7 106.56,-24.7 106.56,-0.1 270.06,-0.1 270.06,-24.7"></polygon>
 <text text-anchor="middle" x="188.31" y="-8.2" font-family="Times,serif" font-size="14.00">summarizedClassFileStats</text>
 </g>
 <!-- classFiles&#45;&gt;summarizedClassFileStats -->
 <g id="edge1" class="edge">
-<title>classFiles&#45;&gt;summarizedClassFileStats</title>
-<path fill="none" stroke="black" d="M70.5,-12.4C78.35,-12.4 87.05,-12.4 96.06,-12.4"/>
-<polygon fill="black" stroke="black" points="96.34,-15.9 106.34,-12.4 96.34,-8.9 96.34,-15.9"/>
+<title>classFiles-&gt;summarizedClassFileStats</title>
+<path fill="none" stroke="black" d="M70.5,-12.4C78.35,-12.4 87.05,-12.4 96.06,-12.4"></path>
+<polygon fill="black" stroke="black" points="96.34,-15.9 106.34,-12.4 96.34,-8.9 96.34,-15.9"></polygon>
 </g>
 </g>
 </svg>
@@ -756,8 +753,8 @@ def summarizeClassFileStats = T{
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show summarizeClassFileStats
 {
-  "totalFileSize": ...,
-  "largestFile": "..."
+  &quot;totalFileSize&quot;: ...,
+  &quot;largestFile&quot;: &quot;...&quot;
 }</code></pre>
 </div>
 </div>
@@ -768,9 +765,9 @@ def summarizeClassFileStats = T{
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(args: String*) = T.command {
   os.proc(
-      "java",
-      "-cp", s"${classFiles().path}:${resources().path}",
-      "foo.Foo",
+      &quot;java&quot;,
+      &quot;-cp&quot;, s&quot;${classFiles().path}:${resources().path}&quot;,
+      &quot;foo.Foo&quot;,
       args
     )
     .call(stdout = os.Inherit)
@@ -779,40 +776,39 @@ def summarizeClassFileStats = T{
 </div>
 <div class="paragraph">
 <center>
-<svg width="149px" height="76px"
- viewBox="0.00 0.00 149.09 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="149px" height="76px" viewBox="0.00 0.00 149.09 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 145.09,-71.8 145.09,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 145.09,-71.8 145.09,4 -4,4"></polygon>
 <!-- classFiles -->
 <g id="node1" class="node">
 <title>classFiles</title>
-<polygon fill="white" stroke="white" points="70.65,-67.7 -0.22,-67.7 -0.22,-43.1 70.65,-43.1 70.65,-67.7"/>
+<polygon fill="white" stroke="white" points="70.65,-67.7 -0.22,-67.7 -0.22,-43.1 70.65,-43.1 70.65,-67.7"></polygon>
 <text text-anchor="middle" x="35.22" y="-51.2" font-family="Times,serif" font-size="14.00">classFiles</text>
 </g>
 <!-- run -->
 <g id="node2" class="node">
 <title>run</title>
-<polygon fill="white" stroke="black" points="140.92,-45.7 106.6,-45.7 106.6,-21.1 140.92,-21.1 140.92,-45.7"/>
+<polygon fill="white" stroke="black" points="140.92,-45.7 106.6,-45.7 106.6,-21.1 140.92,-21.1 140.92,-45.7"></polygon>
 <text text-anchor="middle" x="123.76" y="-29.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- classFiles&#45;&gt;run -->
 <g id="edge1" class="edge">
-<title>classFiles&#45;&gt;run</title>
-<path fill="none" stroke="black" d="M70.92,-46.58C79.42,-44.42 88.38,-42.14 96.42,-40.1"/>
-<polygon fill="black" stroke="black" points="97.5,-43.43 106.33,-37.58 95.78,-36.65 97.5,-43.43"/>
+<title>classFiles-&gt;run</title>
+<path fill="none" stroke="black" d="M70.92,-46.58C79.42,-44.42 88.38,-42.14 96.42,-40.1"></path>
+<polygon fill="black" stroke="black" points="97.5,-43.43 106.33,-37.58 95.78,-36.65 97.5,-43.43"></polygon>
 </g>
 <!-- resources -->
 <g id="node3" class="node">
 <title>resources</title>
-<polygon fill="white" stroke="white" points="69.57,-24.7 0.86,-24.7 0.86,-0.1 69.57,-0.1 69.57,-24.7"/>
+<polygon fill="white" stroke="white" points="69.57,-24.7 0.86,-24.7 0.86,-0.1 69.57,-0.1 69.57,-24.7"></polygon>
 <text text-anchor="middle" x="35.22" y="-8.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- resources&#45;&gt;run -->
 <g id="edge2" class="edge">
-<title>resources&#45;&gt;run</title>
-<path fill="none" stroke="black" d="M69.92,-20.58C78.74,-22.72 88.1,-24.99 96.46,-27.02"/>
-<polygon fill="black" stroke="black" points="95.86,-30.47 106.4,-29.43 97.51,-23.67 95.86,-30.47"/>
+<title>resources-&gt;run</title>
+<path fill="none" stroke="black" d="M69.92,-20.58C78.74,-22.72 88.1,-24.99 96.46,-27.02"></path>
+<polygon fill="black" stroke="black" points="95.86,-30.47 106.4,-29.43 97.51,-23.67 95.86,-30.47"></polygon>
 </g>
 </g>
 </svg>
@@ -820,11 +816,11 @@ def summarizeClassFileStats = T{
 </center>
 </div>
 <div class="paragraph">
-<p>Defined using <code>T.command {&#8230;&#8203;}</code> syntax, <code>Command</code>s can run arbitrary code, with
+<p>Defined using <code>T.command {...​}</code> syntax, <code>Command</code>s can run arbitrary code, with
 dependencies declared using the same <code>foo()</code> syntax (e.g. <code>classFiles()</code> above).
 Commands can be parametrized, but their output is not cached, so they will
 re-evaluate every time even if none of their inputs have changed.
-A command with no parameter is defined as <code>def myCommand() = T.command {&#8230;&#8203;}</code>.
+A command with no parameter is defined as <code>def myCommand() = T.command {...​}</code>.
 It is a compile error if <code>()</code> is missing.</p>
 </div>
 <div class="paragraph">
@@ -851,18 +847,18 @@ definition:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait Foo extends Module {
-  def sourceRoots = T.sources(millSourcePath / "src")
+  def sourceRoots = T.sources(millSourcePath / &quot;src&quot;)
   def sourceContents = T{
     sourceRoots()
       .flatMap(pref =&gt; os.walk(pref.path))
-      .filter(_.ext == "txt")
+      .filter(_.ext == &quot;txt&quot;)
       .sorted
       .map(os.read(_))
   }
 }
 
 trait Bar extends Foo {
-  def additionalSources = T.sources(millSourcePath / "src2")
+  def additionalSources = T.sources(millSourcePath / &quot;src2&quot;)
   def sourceRoots = T { super.sourceRoots() ++ additionalSources() }
 }
 
@@ -871,52 +867,51 @@ object bar extends Bar</code></pre>
 </div>
 <div class="paragraph">
 <center>
-<svg width="451px" height="76px"
- viewBox="0.00 0.00 450.67 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="451px" height="76px" viewBox="0.00 0.00 450.67 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 446.67,-71.8 446.67,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 446.67,-71.8 446.67,4 -4,4"></polygon>
 <!-- bar.sourceRoots.super -->
 <g id="node1" class="node">
 <title>bar.sourceRoots.super</title>
-<polygon fill="white" stroke="black" points="140.6,-67.7 -0.2,-67.7 -0.2,-43.1 140.6,-43.1 140.6,-67.7"/>
+<polygon fill="white" stroke="black" points="140.6,-67.7 -0.2,-67.7 -0.2,-43.1 140.6,-43.1 140.6,-67.7"></polygon>
 <text text-anchor="middle" x="70.2" y="-51.2" font-family="Times,serif" font-size="14.00">bar.sourceRoots.super</text>
 </g>
 <!-- bar.sourceRoots -->
 <g id="node2" class="node">
 <title>bar.sourceRoots</title>
-<polygon fill="white" stroke="black" points="282.77,-45.7 176.61,-45.7 176.61,-21.1 282.77,-21.1 282.77,-45.7"/>
+<polygon fill="white" stroke="black" points="282.77,-45.7 176.61,-45.7 176.61,-21.1 282.77,-21.1 282.77,-45.7"></polygon>
 <text text-anchor="middle" x="229.69" y="-29.2" font-family="Times,serif" font-size="14.00">bar.sourceRoots</text>
 </g>
 <!-- bar.sourceRoots.super&#45;&gt;bar.sourceRoots -->
 <g id="edge1" class="edge">
-<title>bar.sourceRoots.super&#45;&gt;bar.sourceRoots</title>
-<path fill="none" stroke="black" d="M140.74,-45.69C149.29,-44.49 157.99,-43.28 166.43,-42.1"/>
-<polygon fill="black" stroke="black" points="167.14,-45.53 176.56,-40.68 166.17,-38.6 167.14,-45.53"/>
+<title>bar.sourceRoots.super-&gt;bar.sourceRoots</title>
+<path fill="none" stroke="black" d="M140.74,-45.69C149.29,-44.49 157.99,-43.28 166.43,-42.1"></path>
+<polygon fill="black" stroke="black" points="167.14,-45.53 176.56,-40.68 166.17,-38.6 167.14,-45.53"></polygon>
 </g>
 <!-- bar.sourceContents -->
 <g id="node3" class="node">
 <title>bar.sourceContents</title>
-<polygon fill="white" stroke="black" points="442.51,-45.7 319.14,-45.7 319.14,-21.1 442.51,-21.1 442.51,-45.7"/>
+<polygon fill="white" stroke="black" points="442.51,-45.7 319.14,-45.7 319.14,-21.1 442.51,-21.1 442.51,-45.7"></polygon>
 <text text-anchor="middle" x="380.83" y="-29.2" font-family="Times,serif" font-size="14.00">bar.sourceContents</text>
 </g>
 <!-- bar.sourceRoots&#45;&gt;bar.sourceContents -->
 <g id="edge2" class="edge">
-<title>bar.sourceRoots&#45;&gt;bar.sourceContents</title>
-<path fill="none" stroke="black" d="M282.85,-33.4C291.24,-33.4 300.05,-33.4 308.8,-33.4"/>
-<polygon fill="black" stroke="black" points="309,-36.9 319,-33.4 309,-29.9 309,-36.9"/>
+<title>bar.sourceRoots-&gt;bar.sourceContents</title>
+<path fill="none" stroke="black" d="M282.85,-33.4C291.24,-33.4 300.05,-33.4 308.8,-33.4"></path>
+<polygon fill="black" stroke="black" points="309,-36.9 319,-33.4 309,-29.9 309,-36.9"></polygon>
 </g>
 <!-- bar.additionalSources -->
 <g id="node4" class="node">
 <title>bar.additionalSources</title>
-<polygon fill="white" stroke="black" points="138.88,-24.7 1.52,-24.7 1.52,-0.1 138.88,-0.1 138.88,-24.7"/>
+<polygon fill="white" stroke="black" points="138.88,-24.7 1.52,-24.7 1.52,-0.1 138.88,-0.1 138.88,-24.7"></polygon>
 <text text-anchor="middle" x="70.2" y="-8.2" font-family="Times,serif" font-size="14.00">bar.additionalSources</text>
 </g>
 <!-- bar.additionalSources&#45;&gt;bar.sourceRoots -->
 <g id="edge3" class="edge">
-<title>bar.additionalSources&#45;&gt;bar.sourceRoots</title>
-<path fill="none" stroke="black" d="M138.91,-21.43C147.99,-22.64 157.28,-23.88 166.27,-25.08"/>
-<polygon fill="black" stroke="black" points="165.89,-28.56 176.26,-26.41 166.81,-21.62 165.89,-28.56"/>
+<title>bar.additionalSources-&gt;bar.sourceRoots</title>
+<path fill="none" stroke="black" d="M138.91,-21.43C147.99,-22.64 157.28,-23.88 166.27,-25.08"></path>
+<polygon fill="black" stroke="black" points="165.89,-28.56 176.26,-26.41 166.81,-21.62 165.89,-28.56"></polygon>
 </g>
 </g>
 </svg>
@@ -927,8 +922,8 @@ object bar extends Bar</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar.sourceContents # includes both source folders
 [
-  "File Data From src/",
-  "File Data From src2/"
+  &quot;File Data From src/&quot;,
+  &quot;File Data From src2/&quot;
 ]</code></pre>
 </div>
 </div>
@@ -938,9 +933,9 @@ object bar extends Bar</code></pre>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async src="../../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async src="../../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../../search-index.js"></script>
+  
+</body></html>

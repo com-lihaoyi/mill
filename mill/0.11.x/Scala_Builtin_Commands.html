@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Built-in Commands :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/cli/builtin-commands.html">
-    <link rel="prev" href="Scala_Installation_IDE_Support.html">
-    <link rel="next" href="Scala_Build_Examples.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/cli/builtin-commands.html" />
+    <link rel="prev" href="Scala_Installation_IDE_Support.html" />
+    <link rel="next" href="Scala_Build_Examples.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -389,7 +390,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -411,7 +412,7 @@ in the Scaladoc:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s built-in commands are typically not directly related to building your
+<p>Mill’s built-in commands are typically not directly related to building your
 application code, but instead are utilities that help you understand and work
 with your Mill build.</p>
 </div>
@@ -429,16 +430,16 @@ with your Mill build.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
-  def scalaVersion = "2.13.11"
+  def scalaVersion = &quot;2.13.11&quot;
 }
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
 }
 
 object bar extends MyModule {
-  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;)
 }</code></pre>
 </div>
 </div>
@@ -449,7 +450,7 @@ object bar extends MyModule {
 <div class="sectionbody">
 <div class="paragraph">
 <p><code>resolve</code> lists the tasks that match a particular query, without running them.
-This is useful for "dry running" an <code>mill</code> command to see what would be run
+This is useful for &quot;dry running&quot; an <code>mill</code> command to see what would be run
 before you run them, or to explore what modules or tasks are available
 from the command line using <code>resolve _</code>, <code>resolve foo._</code>, etc.</p>
 </div>
@@ -488,7 +489,7 @@ Lists within curly braces (<code>{</code>, <code>}</code>) are also supported.</
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill resolve foo.{compile,run}
-&gt; mill resolve "foo.{compile,run}"
+&gt; mill resolve &quot;foo.{compile,run}&quot;
 &gt; mill resolve foo.compile foo.run
 &gt; mill resolve _.compile  # list the compile tasks for every top-level module
 &gt; mill resolve __.compile # list the compile tasks for every module
@@ -542,12 +543,12 @@ metadata output for a task using the <code>show</code> command:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo.sources
 [
-  ".../foo/src"
+  &quot;.../foo/src&quot;
 ]
 
 &gt; mill show foo.allSourceFiles
 [
-  ".../foo/src.../Foo..."
+  &quot;.../foo/src.../Foo...&quot;
 ]</code></pre>
 </div>
 </div>
@@ -561,8 +562,8 @@ file produced by the compilation:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo.compile
 {
-  "analysisFile": ".../out/foo/compile.dest/zinc",
-  "classes": ".../out/foo/compile.dest/classes"
+  &quot;analysisFile&quot;: &quot;.../out/foo/compile.dest/zinc&quot;,
+  &quot;classes&quot;: &quot;.../out/foo/compile.dest/classes&quot;
 }</code></pre>
 </div>
 </div>
@@ -573,13 +574,13 @@ file produced by the compilation:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo.sources
 [
-  ".../foo/src"
+  &quot;.../foo/src&quot;
 ]
 
 &gt; mill show foo.compileClasspath
 [
   ...
-  ".../foo/compile-resources"
+  &quot;.../foo/compile-resources&quot;
 ]</code></pre>
 </div>
 </div>
@@ -593,14 +594,14 @@ JSON array, containing all the results of the given targets.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show "foo.{sources,compileClasspath}"
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show &quot;foo.{sources,compileClasspath}&quot;
 {
-  "foo.sources": [
-    ".../foo/src"
+  &quot;foo.sources&quot;: [
+    &quot;.../foo/src&quot;
   ],
-  "foo.compileClasspath": [
+  &quot;foo.compileClasspath&quot;: [
     ...
-    ".../foo/compile-resources"
+    &quot;.../foo/compile-resources&quot;
   ]
 }</code></pre>
 </div>
@@ -616,14 +617,14 @@ dictionary, whether there is one or more targets in the selection</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill showNamed "foo.{sources,compileClasspath}"
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill showNamed &quot;foo.{sources,compileClasspath}&quot;
 {
-  "foo.sources": [
-    ".../foo/src"
+  &quot;foo.sources&quot;: [
+    &quot;.../foo/src&quot;
   ],
-  "foo.compileClasspath": [
+  &quot;foo.compileClasspath&quot;: [
     ...
-    ".../foo/compile-resources"
+    &quot;.../foo/compile-resources&quot;
   ]
 }</code></pre>
 </div>
@@ -637,7 +638,7 @@ dictionary, whether there is one or more targets in the selection</p>
 <p><code>mill path</code> prints out a dependency chain between the first task and the
 second. It is very useful for exploring the build graph and trying to figure
 out how data gets from one task to another, or trying to figure out why
-running <code>mill foo</code> ends up running another task <code>bar</code> that you didn&#8217;t
+running <code>mill foo</code> ends up running another task <code>bar</code> that you didn’t
 expect it to.</p>
 </div>
 <div class="listingblock">
@@ -665,7 +666,7 @@ arbitrarily.</p>
 <p><code>mill plan foo</code> shows which tasks would be evaluated if you ran <code>mill foo</code>,
 and in what order, but without actually running them. This is a useful tool for
 debugging your build: e.g. if you suspect a task <code>foo</code> is running things that
-it shouldn&#8217;t be running, a quick <code>mill plan</code> will list out all the upstream
+it shouldn’t be running, a quick <code>mill plan</code> will list out all the upstream
 tasks that <code>foo</code> needs to run, and you can then follow up with <code>mill path</code> on
 any individual upstream task to see exactly how <code>foo</code> depends on it.</p>
 </div>
@@ -706,7 +707,7 @@ It also accepts arguments to clean entire modules, or specific tasks.</p>
 &gt; mill clean foo         # clean all outputs for module 'foo' (including nested modules)
 &gt; mill clean foo.compile # only clean outputs for task 'compile' in module 'foo'
 &gt; mill clean foo.{compile,run}
-&gt; mill clean "foo.{compile,run}"
+&gt; mill clean &quot;foo.{compile,run}&quot;
 &gt; mill clean foo.compile foo.run
 &gt; mill clean _.compile
 &gt; mill clean __.compile</code></pre>
@@ -718,8 +719,8 @@ It also accepts arguments to clean entire modules, or specific tasks.</p>
 <h2 id="_search_for_dependency_updates"><a class="anchor" href="#_search_for_dependency_updates"></a>Search for dependency updates</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill can search for updated versions of your project&#8217;s dependencies, if
-available from your project&#8217;s configured repositories. Note that it uses
+<p>Mill can search for updated versions of your project’s dependencies, if
+available from your project’s configured repositories. Note that it uses
 heuristics based on common versioning schemes, so it may not work as expected for
 dependencies with particularly weird version numbers.</p>
 </div>
@@ -743,7 +744,7 @@ dependencies with particularly weird version numbers.</p>
 <p>Always applies to all modules in the build.</p>
 </li>
 <li>
-<p>Doesn&#8217;t apply to <code>$ivy</code> dependencies used in the build definition itself.</p>
+<p>Doesn’t apply to <code>$ivy</code> dependencies used in the build definition itself.</p>
 </li>
 </ul>
 </div>
@@ -778,11 +779,11 @@ There are lots of templates out there for many frameworks and tools!</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill show visualize foo._
 [
-    ".../out/visualize.dest/out.txt",
-    ".../out/visualize.dest/out.dot",
-    ".../out/visualize.dest/out.json",
-    ".../out/visualize.dest/out.png",
-    ".../out/visualize.dest/out.svg"
+    &quot;.../out/visualize.dest/out.txt&quot;,
+    &quot;.../out/visualize.dest/out.dot&quot;,
+    &quot;.../out/visualize.dest/out.json&quot;,
+    &quot;.../out/visualize.dest/out.png&quot;,
+    &quot;.../out/visualize.dest/out.svg&quot;
 ]</code></pre>
 </div>
 </div>
@@ -797,7 +798,7 @@ relationships in <code>.svg</code> and <code>.png</code> form for you to inspect
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/VisualizeFoo.svg" alt="VisualizeFoo.svg">
+<img src="_images/VisualizeFoo.svg" alt="VisualizeFoo.svg" />
 </div>
 </div>
 <div class="paragraph">
@@ -813,11 +814,11 @@ tasks within your Mill build.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill show visualizePlan foo.compile
 [
-    ".../out/visualizePlan.dest/out.txt",
-    ".../out/visualizePlan.dest/out.dot",
-    ".../out/visualizePlan.dest/out.json",
-    ".../out/visualizePlan.dest/out.png",
-    ".../out/visualizePlan.dest/out.svg"
+    &quot;.../out/visualizePlan.dest/out.txt&quot;,
+    &quot;.../out/visualizePlan.dest/out.dot&quot;,
+    &quot;.../out/visualizePlan.dest/out.json&quot;,
+    &quot;.../out/visualizePlan.dest/out.png&quot;,
+    &quot;.../out/visualizePlan.dest/out.svg&quot;
 ]</code></pre>
 </div>
 </div>
@@ -832,7 +833,7 @@ dependencies are shown with a dotted border.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/VisualizeCompile.svg" alt="VisualizeCompile.svg">
+<img src="_images/VisualizeCompile.svg" alt="VisualizeCompile.svg" />
 </div>
 </div>
 </div>
@@ -841,8 +842,8 @@ dependencies are shown with a dotted border.</p>
 <h2 id="_running_mill_with_custom_jvm_options"><a class="anchor" href="#_running_mill_with_custom_jvm_options"></a>Running Mill with custom JVM options</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>It&#8217;s possible to pass JVM options to the Mill launcher. To do this you need to
-create a <code>.mill-jvm-opts</code> file in your project&#8217;s root. This file should contain
+<p>It’s possible to pass JVM options to the Mill launcher. To do this you need to
+create a <code>.mill-jvm-opts</code> file in your project’s root. This file should contain
 JVM options, one per line.</p>
 </div>
 <div class="paragraph">
@@ -857,10 +858,10 @@ JVM options, one per line.</p>
 </div>
 <div class="paragraph">
 <p>The file name for passing JVM options to the Mill launcher is configurable. If
-for some reason you don&#8217;t want to use <code>.mill-jvm-opts</code> file name, add
+for some reason you don’t want to use <code>.mill-jvm-opts</code> file name, add
 <code>MILL_JVM_OPTS_PATH</code> environment variable with any other file name.</p>
 </div>
-<hr>
+<hr />
 <div class="paragraph">
 <p>Come by our <a href="https://discord.com/channels/632150470000902164/940067748103487558">Discord Channel</a>
 if you want to ask questions or say hi!</p>
@@ -876,9 +877,9 @@ if you want to ask questions or say hi!</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

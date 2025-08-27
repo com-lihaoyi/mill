@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Common Project Layouts :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.10.15/Common_Project_Layouts.html">
-    <link rel="prev" href="Configuring_Mill.html">
-    <link rel="next" href="Tasks.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.10.15/Common_Project_Layouts.html" />
+    <link rel="prev" href="Configuring_Mill.html" />
+    <link rel="next" href="Tasks.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -223,7 +224,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -301,7 +302,7 @@ project:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 import mill.scalalib._
-object foo extends Cross[FooModule]("2.10.6", "2.11.11", "2.12.4")
+object foo extends Cross[FooModule](&quot;2.10.6&quot;, &quot;2.11.11&quot;, &quot;2.12.4&quot;)
 class FooModule(val crossScalaVersion: String) extends CrossScalaModule {
    ...
    object test extends Tests {
@@ -346,8 +347,8 @@ version lives in <code>src-x.y</code>.</p>
 import mill.scalajslib._
 
 object foo extends ScalaJSModule {
-  def scalaVersion = "2.12.4"
-  def scalaJSVersion = "0.6.22"
+  def scalaVersion = &quot;2.12.4&quot;
+  def scalaJSVersion = &quot;0.6.22&quot;
 }</code></pre>
 </div>
 </div>
@@ -369,8 +370,8 @@ generating the optimized Javascript file.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, scalanativelib._
 
 object hello extends ScalaNativeModule {
-  def scalaVersion = "2.11.12"
-  def scalaNativeVersion = "0.3.8"
+  def scalaVersion = &quot;2.11.12&quot;
+  def scalaNativeVersion = &quot;0.3.8&quot;
   def logLevel = NativeLogLevel.Info // optional
   def releaseMode = ReleaseMode.Debug // optional
 }</code></pre>
@@ -382,8 +383,8 @@ object hello extends ScalaNativeModule {
 ├── build.sc
 └── hello
     ├── src
-    │   └── hello
-    │       └── Hello.scala</code></pre>
+    │&nbsp;&nbsp; └── hello
+    │&nbsp;&nbsp;     └── Hello.scala</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -393,8 +394,8 @@ object hello extends ScalaNativeModule {
 import scalatags.Text.all._
 object Hello{
   def main(args: Array[String]): Unit = {
-    println("Hello! " + args.toList)
-    println(div("one"))
+    println(&quot;Hello! &quot; + args.toList)
+    println(div(&quot;one&quot;))
   }
 }</code></pre>
 </div>
@@ -417,7 +418,7 @@ setting <code>releaseMode</code> (see above) and more verbose logging can be ena
 artifacts have been published for scala native.</p>
 </div>
 <div class="paragraph">
-<p>Here&#8217;s a slightly larger example, demonstrating how to use third party
+<p>Here’s a slightly larger example, demonstrating how to use third party
 dependencies (note the two sets of double-colons <code>::</code> necessary) and a test
 suite:</p>
 </div>
@@ -427,11 +428,11 @@ suite:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, scalanativelib._
 
 object hello extends ScalaNativeModule {
-  def scalaNativeVersion = "0.3.8"
-  def scalaVersion = "2.11.12"
-  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags::0.6.7")
+  def scalaNativeVersion = &quot;0.3.8&quot;
+  def scalaVersion = &quot;2.11.12&quot;
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags::0.6.7&quot;)
   object test extends Tests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.6.3")
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.6.3&quot;)
   }
 }</code></pre>
 </div>
@@ -442,8 +443,8 @@ object hello extends ScalaNativeModule {
 ├── build.sc
 └── hello
     ├── src
-    │   └── hello
-    │       └── Hello.scala
+    │&nbsp;&nbsp; └── hello
+    │&nbsp;&nbsp;     └── Hello.scala
     └── test
         └── src
             └── HelloTests.scala</code></pre>
@@ -458,7 +459,7 @@ import scalatags.Text.all._
 object HelloTests extends TestSuite{
   val tests = Tests{
     'pass - {
-      assert(div("1").toString == "&lt;div&gt;1&lt;/div&gt;")
+      assert(div(&quot;1&quot;).toString == &quot;&lt;div&gt;1&lt;/div&gt;&quot;)
     }
     'fail - {
       assert(123 == 1243)
@@ -483,7 +484,7 @@ hello.test</code> to run the test suite defined here.</p>
 import mill.scalalib._
 
 object foo extends SbtModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = &quot;2.12.4&quot;
 }</code></pre>
 </div>
 </div>
@@ -516,7 +517,7 @@ to re-organize all your files</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 import mill.scalalib._
-object foo extends Cross[FooModule]("2.10.6", "2.11.11", "2.12.4")
+object foo extends Cross[FooModule](&quot;2.10.6&quot;, &quot;2.11.11&quot;, &quot;2.12.4&quot;)
 class FooModule(val crossScalaVersion: String) extends CrossSbtModule {
    ...
    object test extends Tests {
@@ -558,16 +559,16 @@ foo/
 import mill.scalalib._
 import mill.scalalib.publish._
 object foo extends ScalaModule with PublishModule {
-  def scalaVersion = "2.12.4"
-  def publishVersion = "0.0.1"
+  def scalaVersion = &quot;2.12.4&quot;
+  def publishVersion = &quot;0.0.1&quot;
   def pomSettings = PomSettings(
-    description = "My first library",
-    organization = "com.lihaoyi",
-    url = "https://github.com/com-lihaoyi/mill",
+    description = &quot;My first library&quot;,
+    organization = &quot;com.lihaoyi&quot;,
+    url = &quot;https://github.com/com-lihaoyi/mill&quot;,
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("lihaoyi", "mill"),
+    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;mill&quot;),
     developers = Seq(
-      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
+      Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;)
     )
   )
 }</code></pre>
@@ -582,7 +583,7 @@ The <code>artifactName</code> defaults to the name of your module (in this case 
 can be overridden. The <code>organization</code> is defined in <code>pomSettings</code>.</p>
 </div>
 <div class="paragraph">
-<p>Once you&#8217;ve mixed in <code>PublishModule</code>, you can publish your libraries to maven
+<p>Once you’ve mixed in <code>PublishModule</code>, you can publish your libraries to maven
 central via:</p>
 </div>
 <div class="listingblock">
@@ -608,7 +609,7 @@ staging/release automatically:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>If you want to publish/release multiple modules, you can use the <code><em></code> or <code>_</em></code>
+<p>If you want to publish/release multiple modules, you can use the <code><em></em></code> or <code>_</code>
 wildcard syntax:</p>
 </div>
 <div class="listingblock">
@@ -731,7 +732,7 @@ versions of Scala, including the setup necessary for publishing to Maven Central
 Scala major versions while others are cross-built against Scala minor versions.</p>
 </div>
 <div class="paragraph">
-<p>Also demonstrates how to pass one module&#8217;s compiled artifacts to the
+<p>Also demonstrates how to pass one module’s compiled artifacts to the
 <code>run</code>/<code>test</code> commands of another, via their <code>forkEnv</code>.</p>
 </div>
 </div>
@@ -746,9 +747,9 @@ Scala major versions while others are cross-built against Scala minor versions.<
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

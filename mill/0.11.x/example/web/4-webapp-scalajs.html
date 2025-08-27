@@ -1,18 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/web/4-webapp-scalajs.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/web/4-webapp-scalajs.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,7 +41,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -62,9 +63,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -387,7 +388,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -401,35 +402,35 @@
 
 object root extends RootModule with ScalaModule {
 
-  def scalaVersion = "2.13.14"
+  def scalaVersion = &quot;2.13.14&quot;
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::cask:0.9.1",
-    ivy"com.lihaoyi::scalatags:0.12.0"
+    ivy&quot;com.lihaoyi::cask:0.9.1&quot;,
+    ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;
   )
 
   def resources = T {
-    os.makeDir(T.dest / "webapp")
+    os.makeDir(T.dest / &quot;webapp&quot;)
     val jsPath = client.fastLinkJS().dest.path
     // Move main.js[.map]into the proper filesystem position
     // in the resource folder for the web server code to pick up
-    os.copy(jsPath / "main.js", T.dest / "webapp" / "main.js")
-    os.copy(jsPath / "main.js.map", T.dest / "webapp" / "main.js.map")
+    os.copy(jsPath / &quot;main.js&quot;, T.dest / &quot;webapp&quot; / &quot;main.js&quot;)
+    os.copy(jsPath / &quot;main.js.map&quot;, T.dest / &quot;webapp&quot; / &quot;main.js.map&quot;)
     super.resources() ++ Seq(PathRef(T.dest))
   }
 
   object test extends ScalaTests {
-    def testFramework = "utest.runner.Framework"
+    def testFramework = &quot;utest.runner.Framework&quot;
 
     def ivyDeps = Agg(
-      ivy"com.lihaoyi::utest::0.8.4",
-      ivy"com.lihaoyi::requests::0.6.9",
+      ivy&quot;com.lihaoyi::utest::0.8.4&quot;,
+      ivy&quot;com.lihaoyi::requests::0.6.9&quot;,
     )
   }
 
   object client extends ScalaJSModule {
-    def scalaVersion = "2.13.14"
-    def scalaJSVersion = "1.16.0"
-    def ivyDeps = Agg(ivy"org.scala-js::scalajs-dom::2.2.0")
+    def scalaVersion = &quot;2.13.14&quot;
+    def scalaJSVersion = &quot;1.16.0&quot;
+    def ivyDeps = Agg(ivy&quot;org.scala-js::scalajs-dom::2.2.0&quot;)
   }
 }</code></pre>
 </div>
@@ -459,7 +460,7 @@ scope of this example.</p>
 ...
 
 &gt; curl http://localhost:8082/static/main.js
-..."org.scalajs.linker.runtime.RuntimeLong"...
+...&quot;org.scalajs.linker.runtime.RuntimeLong&quot;...
 ...
 
 &gt; ./mill clean runBackground</code></pre>
@@ -470,9 +471,9 @@ scope of this example.</p>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async src="../../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async src="../../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../../search-index.js"></script>
+  
+</body></html>

@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Python Module Configuration :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/pythonlib/module-config.html">
-    <link rel="prev" href="intro.html">
-    <link rel="next" href="dependencies.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/pythonlib/module-config.html" />
+    <link rel="prev" href="intro.html" />
+    <link rel="next" href="dependencies.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -656,7 +657,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -690,40 +691,40 @@ import mill.*, pythonlib.*
 
 object foo extends PythonModule {
   // You can have arbitrary numbers of third-party libraries
-  def pythonDeps = Seq("MarkupSafe==3.0.2", "Jinja2==3.1.4")
+  def pythonDeps = Seq(&quot;MarkupSafe==3.0.2&quot;, &quot;Jinja2==3.1.4&quot;)
 
   // choose a main Script to run if there are multiple present
-  def mainScript = Task.Source("custom-src/foo2.py")
+  def mainScript = Task.Source(&quot;custom-src/foo2.py&quot;)
 
   // Add (or replace) source folders for the module to use
-  def customSources = Task.Sources("custom-src")
+  def customSources = Task.Sources(&quot;custom-src&quot;)
   def sources = Task { super.sources() ++ customSources() }
 
   // Add (or replace) resource folders for the module to use
-  def customResources = Task.Sources("custom-resources")
+  def customResources = Task.Sources(&quot;custom-resources&quot;)
   def resources = Task { super.resources() ++ customResources() }
 
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = Task {
-    val destPath = Task.dest / "generatedSources"
+    val destPath = Task.dest / &quot;generatedSources&quot;
     os.makeDir.all(destPath)
-    for (name &lt;- Seq("A", "B", "C")) os.write(
-      destPath / s"foo$name.py",
-      s"""
+    for (name &lt;- Seq(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)) os.write(
+      destPath / s&quot;foo$name.py&quot;,
+      s&quot;&quot;&quot;
          |class Foo$name:
-         |    value = "hello $name"
-      """.stripMargin
+         |    value = &quot;hello $name&quot;
+      &quot;&quot;&quot;.stripMargin
     )
 
     Seq(PathRef(destPath))
   }
   // Pass additional environmental variables when `.run` is called.
-  def forkEnv: T[Map[String, String]] = Map("MY_CUSTOM_ENV" -&gt; "my-env-value")
+  def forkEnv: T[Map[String, String]] = Map(&quot;MY_CUSTOM_ENV&quot; -&gt; &quot;my-env-value&quot;)
 
   // Additional Python options e.g. to Turn On Warnings and ignore import and resource warnings
   // we can use -Werror to treat warnings as errors
   def pythonOptions: T[Seq[String]] =
-    Seq("-Wall", "-Wignore::ImportWarning", "-Wignore::ResourceWarning")
+    Seq(&quot;-Wall&quot;, &quot;-Wignore::ImportWarning&quot;, &quot;-Wignore::ResourceWarning&quot;)
 
 }</code></pre>
 </div>
@@ -735,8 +736,8 @@ various filesystem operations:</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><code>moduleDir</code>: Base path of the module. For the root module, it&#8217;s the repo root.
-For inner modules, it&#8217;s the module path (e.g., <code>foo/bar/qux</code> for <code>foo.bar.qux</code>). Can be overridden if needed.</p>
+<p><code>moduleDir</code>: Base path of the module. For the root module, it’s the repo root.
+For inner modules, it’s the module path (e.g., <code>foo/bar/qux</code> for <code>foo.bar.qux</code>). Can be overridden if needed.</p>
 </li>
 <li>
 <p><code>Task.dest</code>: Destination folder in the <code>out/</code> folder for task output.
@@ -766,7 +767,7 @@ MY_CUSTOM_ENV: my-env-value
 ...
 
 &gt; ./mill show foo.bundle
-".../out/foo/bundle.dest/bundle.pex"
+&quot;.../out/foo/bundle.dest/bundle.pex&quot;
 
 &gt; out/foo/bundle.dest/bundle.pex
 ...
@@ -779,7 +780,7 @@ MyResource: My Resource Contents
 MyOtherResource: My Other Resource Contents
 ...
 
-&gt; sed -i.bak 's/import os/import os, warnings; warnings.warn("This is a test warning!")/g' foo/custom-src/foo2.py
+&gt; sed -i.bak 's/import os/import os, warnings; warnings.warn(&quot;This is a test warning!&quot;)/g' foo/custom-src/foo2.py
 
 &gt; ./mill foo.run
 ...UserWarning: This is a test warning!...</code></pre>
@@ -815,25 +816,25 @@ import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 
-  def pythonDeps = Seq("argparse==1.4.0", "jinja2==3.1.4")
+  def pythonDeps = Seq(&quot;argparse==1.4.0&quot;, &quot;jinja2==3.1.4&quot;)
 
-  def mainScript = Task.Source("src/foo.py")
+  def mainScript = Task.Source(&quot;src/foo.py&quot;)
 
   def generatedSources: T[Seq[PathRef]] = Task {
-    val destPath = Task.dest / "generatedSources"
+    val destPath = Task.dest / &quot;generatedSources&quot;
     os.makeDir.all(destPath)
 
     val prettyPythonDeps = pythonDeps().map { dep =&gt;
-      val parts = dep.split("==")
-      s"""("${parts(0)}", "${parts(1)}")"""
-    }.mkString(", ")
+      val parts = dep.split(&quot;==&quot;)
+      s&quot;&quot;&quot;(&quot;${parts(0)}&quot;, &quot;${parts(1)}&quot;)&quot;&quot;&quot;
+    }.mkString(&quot;, &quot;)
 
     os.write(
-      destPath / s"myDeps.py",
-      s"""
+      destPath / s&quot;myDeps.py&quot;,
+      s&quot;&quot;&quot;
          |class MyDeps:
          |    value = [${prettyPythonDeps}]
-			""".stripMargin
+   &quot;&quot;&quot;.stripMargin
     )
 
     Seq(PathRef(destPath))
@@ -842,12 +843,12 @@ object foo extends PythonModule {
   def lineCount: T[Int] = Task {
     sources()
       .flatMap(pathRef =&gt; os.walk(pathRef.path))
-      .filter(_.ext == "py")
+      .filter(_.ext == &quot;py&quot;)
       .map(os.read.lines(_).size)
       .sum
   }
 
-  def forkEnv: T[Map[String, String]] = Map("MY_LINE_COUNT" -&gt; s"${lineCount()}")
+  def forkEnv: T[Map[String, String]] = Map(&quot;MY_LINE_COUNT&quot; -&gt; s&quot;${lineCount()}&quot;)
 
   def printLineCount() = Task.Command { println(lineCount()) }
 
@@ -861,100 +862,99 @@ labels representing existing Mill tasks:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="470px" height="119px"
- viewBox="0.00 0.00 469.52 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="470px" height="119px" viewBox="0.00 0.00 469.52 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 465.52,-114.8 465.52,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 465.52,-114.8 465.52,4 -4,4"></polygon>
 <!-- pythonDeps -->
 <g id="node1" class="node">
 <title>pythonDeps</title>
-<polygon fill="none" stroke="black" points="177.46,-110.7 94.15,-110.7 94.15,-86.1 177.46,-86.1 177.46,-110.7"/>
+<polygon fill="none" stroke="black" points="177.46,-110.7 94.15,-110.7 94.15,-86.1 177.46,-86.1 177.46,-110.7"></polygon>
 <text text-anchor="middle" x="135.81" y="-94.2" font-family="Times,serif" font-size="14.00">pythonDeps</text>
 </g>
 <!-- generatedSources -->
 <g id="node2" class="node">
 <title>generatedSources</title>
-<polygon fill="none" stroke="black" points="328.23,-110.7 213.77,-110.7 213.77,-86.1 328.23,-86.1 328.23,-110.7"/>
+<polygon fill="none" stroke="black" points="328.23,-110.7 213.77,-110.7 213.77,-86.1 328.23,-86.1 328.23,-110.7"></polygon>
 <text text-anchor="middle" x="271" y="-94.2" font-family="Times,serif" font-size="14.00">generatedSources</text>
 </g>
 <!-- pythonDeps&#45;&gt;generatedSources -->
 <g id="edge1" class="edge">
-<title>pythonDeps&#45;&gt;generatedSources</title>
-<path fill="none" stroke="black" d="M177.49,-98.4C185.63,-98.4 194.38,-98.4 203.14,-98.4"/>
-<polygon fill="black" stroke="black" points="203.38,-101.9 213.38,-98.4 203.38,-94.9 203.38,-101.9"/>
+<title>pythonDeps-&gt;generatedSources</title>
+<path fill="none" stroke="black" d="M177.49,-98.4C185.63,-98.4 194.38,-98.4 203.14,-98.4"></path>
+<polygon fill="black" stroke="black" points="203.38,-101.9 213.38,-98.4 203.38,-94.9 203.38,-101.9"></polygon>
 </g>
 <!-- ... -->
 <g id="node3" class="node">
 <title>...</title>
-<polygon fill="none" stroke="white" points="391.12,-88.7 364.11,-88.7 364.11,-64.1 391.12,-64.1 391.12,-88.7"/>
+<polygon fill="none" stroke="white" points="391.12,-88.7 364.11,-88.7 364.11,-64.1 391.12,-64.1 391.12,-88.7"></polygon>
 <text text-anchor="middle" x="377.61" y="-72.2" font-family="Times,serif" font-size="14.00">...</text>
 </g>
 <!-- generatedSources&#45;&gt;... -->
 <g id="edge2" class="edge">
-<title>generatedSources&#45;&gt;...</title>
-<path fill="none" stroke="black" d="M328.29,-86.56C337.49,-84.63 346.53,-82.73 354.25,-81.1"/>
-<polygon fill="black" stroke="black" points="355.11,-84.5 364.18,-79.01 353.67,-77.65 355.11,-84.5"/>
+<title>generatedSources-&gt;...</title>
+<path fill="none" stroke="black" d="M328.29,-86.56C337.49,-84.63 346.53,-82.73 354.25,-81.1"></path>
+<polygon fill="black" stroke="black" points="355.11,-84.5 364.18,-79.01 353.67,-77.65 355.11,-84.5"></polygon>
 </g>
 <!-- run -->
 <g id="node7" class="node">
 <title>run</title>
-<polygon fill="none" stroke="white" points="461.35,-88.7 427.03,-88.7 427.03,-64.1 461.35,-64.1 461.35,-88.7"/>
+<polygon fill="none" stroke="white" points="461.35,-88.7 427.03,-88.7 427.03,-64.1 461.35,-64.1 461.35,-88.7"></polygon>
 <text text-anchor="middle" x="444.19" y="-72.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- ...&#45;&gt;run -->
 <g id="edge6" class="edge">
-<title>...&#45;&gt;run</title>
-<path fill="none" stroke="black" d="M391.06,-76.4C398.26,-76.4 407.59,-76.4 416.37,-76.4"/>
-<polygon fill="black" stroke="black" points="416.62,-79.9 426.62,-76.4 416.62,-72.9 416.62,-79.9"/>
+<title>...-&gt;run</title>
+<path fill="none" stroke="black" d="M391.06,-76.4C398.26,-76.4 407.59,-76.4 416.37,-76.4"></path>
+<polygon fill="black" stroke="black" points="416.62,-79.9 426.62,-76.4 416.62,-72.9 416.62,-79.9"></polygon>
 </g>
 <!-- sources -->
 <g id="node4" class="node">
 <title>sources</title>
-<polygon fill="none" stroke="white" points="57.97,-46.7 0.01,-46.7 0.01,-22.1 57.97,-22.1 57.97,-46.7"/>
+<polygon fill="none" stroke="white" points="57.97,-46.7 0.01,-46.7 0.01,-22.1 57.97,-22.1 57.97,-46.7"></polygon>
 <text text-anchor="middle" x="28.99" y="-30.2" font-family="Times,serif" font-size="14.00">sources</text>
 </g>
 <!-- lineCount -->
 <g id="node5" class="node">
 <title>lineCount</title>
-<polygon fill="none" stroke="black" points="171.53,-46.7 100.08,-46.7 100.08,-22.1 171.53,-22.1 171.53,-46.7"/>
+<polygon fill="none" stroke="black" points="171.53,-46.7 100.08,-46.7 100.08,-22.1 171.53,-22.1 171.53,-46.7"></polygon>
 <text text-anchor="middle" x="135.81" y="-30.2" font-family="Times,serif" font-size="14.00">lineCount</text>
 </g>
 <!-- sources&#45;&gt;lineCount -->
 <g id="edge3" class="edge">
-<title>sources&#45;&gt;lineCount</title>
-<path fill="none" stroke="black" d="M58.08,-34.4C67.82,-34.4 79,-34.4 89.76,-34.4"/>
-<polygon fill="black" stroke="black" points="89.89,-37.9 99.89,-34.4 89.89,-30.9 89.89,-37.9"/>
+<title>sources-&gt;lineCount</title>
+<path fill="none" stroke="black" d="M58.08,-34.4C67.82,-34.4 79,-34.4 89.76,-34.4"></path>
+<polygon fill="black" stroke="black" points="89.89,-37.9 99.89,-34.4 89.89,-30.9 89.89,-37.9"></polygon>
 </g>
 <!-- forkEnv -->
 <g id="node6" class="node">
 <title>forkEnv</title>
-<polygon fill="none" stroke="black" points="301.87,-67.7 240.12,-67.7 240.12,-43.1 301.87,-43.1 301.87,-67.7"/>
+<polygon fill="none" stroke="black" points="301.87,-67.7 240.12,-67.7 240.12,-43.1 301.87,-43.1 301.87,-67.7"></polygon>
 <text text-anchor="middle" x="271" y="-51.2" font-family="Times,serif" font-size="14.00">forkEnv</text>
 </g>
 <!-- lineCount&#45;&gt;forkEnv -->
 <g id="edge4" class="edge">
-<title>lineCount&#45;&gt;forkEnv</title>
-<path fill="none" stroke="black" d="M171.45,-39.86C189.4,-42.69 211.41,-46.16 230.07,-49.1"/>
-<polygon fill="black" stroke="black" points="229.63,-52.58 240.05,-50.68 230.72,-45.66 229.63,-52.58"/>
+<title>lineCount-&gt;forkEnv</title>
+<path fill="none" stroke="black" d="M171.45,-39.86C189.4,-42.69 211.41,-46.16 230.07,-49.1"></path>
+<polygon fill="black" stroke="black" points="229.63,-52.58 240.05,-50.68 230.72,-45.66 229.63,-52.58"></polygon>
 </g>
 <!-- printLineCount -->
 <g id="node8" class="node">
 <title>printLineCount</title>
-<polygon fill="none" stroke="black" points="322.33,-24.7 219.67,-24.7 219.67,-0.1 322.33,-0.1 322.33,-24.7"/>
+<polygon fill="none" stroke="black" points="322.33,-24.7 219.67,-24.7 219.67,-0.1 322.33,-0.1 322.33,-24.7"></polygon>
 <text text-anchor="middle" x="271" y="-8.2" font-family="Times,serif" font-size="14.00">printLineCount</text>
 </g>
 <!-- lineCount&#45;&gt;printLineCount -->
 <g id="edge7" class="edge">
-<title>lineCount&#45;&gt;printLineCount</title>
-<path fill="none" stroke="black" d="M171.45,-28.68C183.19,-26.74 196.65,-24.52 209.78,-22.35"/>
-<polygon fill="black" stroke="black" points="210.43,-25.79 219.72,-20.7 209.29,-18.88 210.43,-25.79"/>
+<title>lineCount-&gt;printLineCount</title>
+<path fill="none" stroke="black" d="M171.45,-28.68C183.19,-26.74 196.65,-24.52 209.78,-22.35"></path>
+<polygon fill="black" stroke="black" points="210.43,-25.79 219.72,-20.7 209.29,-18.88 210.43,-25.79"></polygon>
 </g>
 <!-- forkEnv&#45;&gt;... -->
 <g id="edge5" class="edge">
-<title>forkEnv&#45;&gt;...</title>
-<path fill="none" stroke="black" d="M301.98,-61.42C318.59,-64.75 338.91,-68.83 354.15,-71.89"/>
-<polygon fill="black" stroke="black" points="353.73,-75.38 364.22,-73.91 355.11,-68.51 353.73,-75.38"/>
+<title>forkEnv-&gt;...</title>
+<path fill="none" stroke="black" d="M301.98,-61.42C318.59,-64.75 338.91,-68.83 354.15,-71.89"></path>
+<polygon fill="black" stroke="black" points="353.73,-75.38 364.22,-73.91 355.11,-68.51 353.73,-75.38"></polygon>
 </g>
 </g>
 </svg>
@@ -962,11 +962,11 @@ labels representing existing Mill tasks:</p>
 </center>
 </div>
 <div class="paragraph">
-<p>Mill lets you define new cached Tasks using the <code>Task {&#8230;&#8203;}</code> syntax,
+<p>Mill lets you define new cached Tasks using the <code>Task {...​}</code> syntax,
 depending on existing Tasks e.g. <code>foo.sources</code> via the <code>foo.sources()</code>
 syntax to extract their current value, as shown in <code>lineCount</code> above. The
 return-type of a Task has to be JSON-serializable (using
-<a href="https://github.com/lihaoyi/upickle">uPickle</a>, one of Mill&#8217;s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>)
+<a href="https://github.com/lihaoyi/upickle">uPickle</a>, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>)
 and the Task is cached when first run until its inputs change (in this case, if
 someone edits the <code>foo.sources</code> files which live in <code>foo/src</code>). Cached Tasks
 cannot take parameters.</p>
@@ -998,7 +998,7 @@ My_Line_Count:  23
 <p>Custom tasks can contain arbitrary code. Whether you want to download files
 using <code>requests.get</code>, generate sources to feed into a Python Interpreter, or
 create some custom pex bundle with the files you want , all of these
-can simply be custom tasks with your code running in the <code>Task {&#8230;&#8203;}</code> block.</p>
+can simply be custom tasks with your code running in the <code>Task {...​}</code> block.</p>
 </div>
 <div class="paragraph">
 <p>You can create arbitrarily long chains of dependent tasks, and Mill will
@@ -1026,7 +1026,7 @@ within <code>Task.dest</code></p>
 <p>That ensures that the files belonging to a particular task all live in one place,
 avoiding file-name conflicts, preventing race conditions when tasks evaluate
 in parallel, and letting Mill automatically invalidate the files when
-the task&#8217;s inputs change.</p>
+the task’s inputs change.</p>
 </div>
 </div>
 </div>
@@ -1041,33 +1041,33 @@ import mill.*, pythonlib.*
 
 object foo extends PythonModule {
   def sources = Task {
-    val destPath = Task.dest / "src"
+    val destPath = Task.dest / &quot;src&quot;
     os.makeDir.all(destPath)
 
     os.write(
-      destPath / "foo.py",
-      s"""
+      destPath / &quot;foo.py&quot;,
+      s&quot;&quot;&quot;
          |class Foo:
          |    def main(self) -&gt; None:
-         |        print("Hello World")
+         |        print(&quot;Hello World&quot;)
          |
          |if __name__ ==  '__main__':
          |    Foo().main()
-      """.stripMargin
+      &quot;&quot;&quot;.stripMargin
     )
     Seq(PathRef(destPath))
   }
 
-  def mainScript = Task { PathRef(sources().head.path / "foo.py") }
+  def mainScript = Task { PathRef(sources().head.path / &quot;foo.py&quot;) }
 
   def typeCheck = Task {
-    println("Type Checking...")
+    println(&quot;Type Checking...&quot;)
     super.typeCheck()
   }
 
   def run(args: mill.api.Args) = Task.Command {
     typeCheck()
-    println("Running..." + args.value.mkString(" "))
+    println(&quot;Running...&quot; + args.value.mkString(&quot; &quot;))
     super.run(args)()
   }
 }</code></pre>
@@ -1078,11 +1078,11 @@ object foo extends PythonModule {
 want to refer to the originally defined task. The above example shows how to
 override <code>typeCheck</code> and <code>run</code> to add additional logging messages, and we
 override <code>sources</code> which was <code>Task.Sources</code> for the <code>src/</code> folder with a plain
-<code>T{&#8230;&#8203;}</code> task that generates the  necessary source files on-the-fly.</p>
+<code>T{...​}</code> task that generates the  necessary source files on-the-fly.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -1093,30 +1093,30 @@ generated sources, you can either override <code>generatedSources</code>, or you
 override <code>sources</code> and use <code>super</code> to include the original source folder with <code>super</code>:
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo2 extends PythonModule {
   def generatedSources = Task {
-    val destPath = Task.dest / "src"
+    val destPath = Task.dest / &quot;src&quot;
     os.makeDir.all(destPath)
-    os.write(destPath / "foo.py", """...""")
+    os.write(destPath / &quot;foo.py&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
     Seq(PathRef(destPath))
   }
 
-  def mainScript = Task { PathRef(generatedSources().head.path / "foo.py") }
+  def mainScript = Task { PathRef(generatedSources().head.path / &quot;foo.py&quot;) }
 
 }
 
 object foo3 extends PythonModule {
   def sources = Task {
-    val destPath = Task.dest / "src"
+    val destPath = Task.dest / &quot;src&quot;
     os.makeDir.all(destPath)
-    os.write(destPath / "foo.py", """...""")
+    os.write(destPath / &quot;foo.py&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
     super.sources() ++ Seq(PathRef(destPath))
   }
-  def mainScript = Task { PathRef(sources().head.path / "foo.py") }
+  def mainScript = Task { PathRef(sources().head.path / &quot;foo.py&quot;) }
 
 }</code></pre>
 </div>
@@ -1145,9 +1145,9 @@ Hello World</code></pre>
 import mill.*, pythonlib.*
 
 object `package` extends PythonModule {
-  def mainScript = Task.Source("src/foo.py")
-  def pythonOptions = Seq("-Wall", "-Xdev")
-  def forkEnv = Map("MY_ENV_VAR" -&gt; "HELLO MILL!")
+  def mainScript = Task.Source(&quot;src/foo.py&quot;)
+  def pythonOptions = Seq(&quot;-Wall&quot;, &quot;-Xdev&quot;)
+  def forkEnv = Map(&quot;MY_ENV_VAR&quot; -&gt; &quot;HELLO MILL!&quot;)
 }</code></pre>
 </div>
 </div>
@@ -1177,18 +1177,18 @@ environment-variables via <code>forkEnv</code>.</p>
 import mill.*, pythonlib.*
 
 object foo extends PythonModule {
-  def mainScript = Task.Source("src/foo.py")
+  def mainScript = Task.Source(&quot;src/foo.py&quot;)
 
   // Add (or replace) resource folders for the module to use
-  def customResources = Task.Sources("custom")
+  def customResources = Task.Sources(&quot;custom&quot;)
   def resources = Task { super.resources() ++ customResources() }
 
   object test extends PythonTests, TestModule.Unittest {
 
-    def otherFiles = Task.Source("other-files")
+    def otherFiles = Task.Source(&quot;other-files&quot;)
 
     def forkEnv: T[Map[String, String]] =
-      super.forkEnv() ++ Map("OTHER_FILES_DIR" -&gt; otherFiles().path.toString)
+      super.forkEnv() ++ Map(&quot;OTHER_FILES_DIR&quot; -&gt; otherFiles().path.toString)
   }
 }</code></pre>
 </div>
@@ -1276,8 +1276,8 @@ class Foo:
         return resource_content.strip()
 
 
-if __name__ == "__main__":
-    print(Foo().PythonPathResourceText("res", "file.txt"))</code></pre>
+if __name__ == &quot;__main__&quot;:
+    print(Foo().PythonPathResourceText(&quot;res&quot;, &quot;file.txt&quot;))</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1292,25 +1292,25 @@ from foo import Foo  # type: ignore
 
 class TestScript(unittest.TestCase):
     def test_all(self) -&gt; None:
-        appPythonPathResourceText = Foo().PythonPathResourceText("res", "file.txt")
-        self.assertEqual(appPythonPathResourceText, "Hello World Resource File")
+        appPythonPathResourceText = Foo().PythonPathResourceText(&quot;res&quot;, &quot;file.txt&quot;)
+        self.assertEqual(appPythonPathResourceText, &quot;Hello World Resource File&quot;)
 
         testPythonPathResourceText = (
-            importlib.resources.files("res")
-            .joinpath("test-file-a.txt")
+            importlib.resources.files(&quot;res&quot;)
+            .joinpath(&quot;test-file-a.txt&quot;)
             .read_text()
             .strip()
         )
-        self.assertEqual(testPythonPathResourceText, "Test Hello World Resource File A")
+        self.assertEqual(testPythonPathResourceText, &quot;Test Hello World Resource File A&quot;)
 
         with open(
-            Path(os.getenv("OTHER_FILES_DIR"), "other-file.txt"), "r", encoding="utf-8"
+            Path(os.getenv(&quot;OTHER_FILES_DIR&quot;), &quot;other-file.txt&quot;), &quot;r&quot;, encoding=&quot;utf-8&quot;
         ) as file:
             otherFileText = file.readline()
-        self.assertEqual(otherFileText, "Other Hello World File")
+        self.assertEqual(otherFileText, &quot;Other Hello World File&quot;)
 
 
-if __name__ == "__main__":
+if __name__ == &quot;__main__&quot;:
     unittest.main()</code></pre>
 </div>
 </div>
@@ -1324,7 +1324,7 @@ files, especially when running in parallel.</p>
 <div class="paragraph">
 <p>Mill runs test processes in a <a href="../depth/sandboxing.html" class="xref page">sandbox/ folder</a>, not in your project root folder, to
 prevent you from accidentally accessing files without explicitly passing them. Thus
-you cannot just read resources off disk via <code>with open("foo/resources/test-file-a.txt")</code> as file.
+you cannot just read resources off disk via <code>with open(&quot;foo/resources/test-file-a.txt&quot;)</code> as file.
 If you have legacy tests that need to run in the project root folder to work, you
 can configure your test suite with <code>def testSandboxWorkingDir = false</code> to disable
 the sandbox and make the tests run in the project root.</p>
@@ -1340,9 +1340,9 @@ the sandbox and make the tests run in the project root.</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

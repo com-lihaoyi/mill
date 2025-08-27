@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Java Module Configuration :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/javalib/module-config.html">
-    <link rel="prev" href="Java_Build_Examples.html">
-    <link rel="next" href="Java_Web_Build_Examples.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/javalib/module-config.html" />
+    <link rel="prev" href="Java_Build_Examples.html" />
+    <link rel="next" href="Java_Web_Build_Examples.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -389,7 +390,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -427,8 +428,8 @@ for <code>JavaModule</code>.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
 object foo extends RootModule with JavaModule{
-  def forkArgs = Seq("-Xmx4g", "-Dmy.jvm.property=hello")
-  def forkEnv = Map("MY_ENV_VAR" -&gt; "WORLD")
+  def forkArgs = Seq(&quot;-Xmx4g&quot;, &quot;-Dmy.jvm.property=hello&quot;)
+  def forkEnv = Map(&quot;MY_ENV_VAR&quot; -&gt; &quot;WORLD&quot;)
 }</code></pre>
 </div>
 </div>
@@ -477,7 +478,7 @@ hello WORLD</code></pre>
 
 object foo extends RootModule with JavaModule {
   def ivyDeps = Agg(
-    ivy"com.fasterxml.jackson.core:jackson-databind:2.13.4",
+    ivy&quot;com.fasterxml.jackson.core:jackson-databind:2.13.4&quot;,
   )
 }</code></pre>
 </div>
@@ -488,7 +489,7 @@ object foo extends RootModule with JavaModule {
 <div class="ulist">
 <ul>
 <li>
-<p>Single <code>:</code> syntax (e.g. <code>"ivy"org.testng:testng:6.11"</code>) defines Java
+<p>Single <code>:</code> syntax (e.g. <code>&quot;ivy&quot;org.testng:testng:6.11&quot;</code>) defines Java
 dependencies</p>
 </li>
 </ul>
@@ -499,7 +500,7 @@ dependencies</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests</code>.</p>
+<p><code>ivy&quot;org.apache.spark::spark-sql:2.4.0;classifier=tests</code>.</p>
 </li>
 </ul>
 </div>
@@ -509,7 +510,7 @@ dependencies</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run i am cow
-JSONified using Jackson: ["i","am","cow"]</code></pre>
+JSONified using Jackson: [&quot;i&quot;,&quot;am&quot;,&quot;cow&quot;]</code></pre>
 </div>
 </div>
 </div>
@@ -525,11 +526,11 @@ JSONified using Jackson: ["i","am","cow"]</code></pre>
 object foo extends JavaModule {
   def moduleDeps = Seq(bar)
   def runIvyDeps = Agg(
-    ivy"javax.servlet:servlet-api:2.5",
-    ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
-    ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
+    ivy&quot;javax.servlet:servlet-api:2.5&quot;,
+    ivy&quot;org.eclipse.jetty:jetty-server:9.4.42.v20210604&quot;,
+    ivy&quot;org.eclipse.jetty:jetty-servlet:9.4.42.v20210604&quot;
   )
-  def mainClass = Some("bar.Bar")
+  def mainClass = Some(&quot;bar.Bar&quot;)
 }</code></pre>
 </div>
 </div>
@@ -542,9 +543,9 @@ transitive dependencies.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
   def compileIvyDeps = Agg(
-    ivy"javax.servlet:servlet-api:2.5",
-    ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
-    ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
+    ivy&quot;javax.servlet:servlet-api:2.5&quot;,
+    ivy&quot;org.eclipse.jetty:jetty-server:9.4.42.v20210604&quot;,
+    ivy&quot;org.eclipse.jetty:jetty-servlet:9.4.42.v20210604&quot;
   )
 }</code></pre>
 </div>
@@ -566,7 +567,7 @@ dependencies. That is why we can run <code>foo</code> as show below:</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -575,7 +576,7 @@ Compile-time dependencies are translated to <code>provided</code>-scoped
 dependencies when publish to Maven or Ivy-Repositories.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 </div>
@@ -592,14 +593,14 @@ object qux extends JavaModule {
 
   object test extends JavaTests with TestModule.Junit4 {
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
-    def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.google.guava:guava:33.2.1-jre")
+    def ivyDeps = super.ivyDeps() ++ Agg(ivy&quot;com.google.guava:guava:33.2.1-jre&quot;)
   }
 }
 
 
 object baz extends JavaModule {
   object test extends JavaTests with TestModule.Junit4{
-    def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.google.guava:guava:33.2.1-jre")
+    def ivyDeps = super.ivyDeps() ++ Agg(ivy&quot;com.google.guava:guava:33.2.1-jre&quot;)
   }
 }</code></pre>
 </div>
@@ -634,7 +635,7 @@ Using BazTestUtils.bazAssertEquals
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
 object foo extends JavaModule {
-  def javadocOptions = Seq("-quiet")
+  def javadocOptions = Seq(&quot;-quiet&quot;)
 }</code></pre>
 </div>
 </div>
@@ -659,8 +660,8 @@ object foo extends JavaModule {
 
 object foo extends RootModule with JavaModule {
   def unmanagedClasspath = T {
-    if (!os.exists(millSourcePath / "lib")) Agg()
-    else Agg.from(os.list(millSourcePath / "lib").map(PathRef(_)))
+    if (!os.exists(millSourcePath / &quot;lib&quot;)) Agg()
+    else Agg.from(os.list(millSourcePath / &quot;lib&quot;).map(PathRef(_)))
   }
 }</code></pre>
 </div>
@@ -672,7 +673,7 @@ filesystem, e.g. in the above snippet any jars that happen to live in the
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run '{"name":"John","age":30}'     # mac/linux
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run '{&quot;name&quot;:&quot;John&quot;,&quot;age&quot;:30}'     # mac/linux
 Key: name, Value: John
 Key: age, Value: 30</code></pre>
 </div>
@@ -688,12 +689,12 @@ Key: age, Value: 30</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
 object foo extends RootModule with JavaModule {
-  def mainClass = Some("foo.Qux")
+  def mainClass = Some(&quot;foo.Qux&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s <code>foo.run</code> by default will discover which main class to run from your
+<p>Mill’s <code>foo.run</code> by default will discover which main class to run from your
 compilation output, but if there is more than one or the main class comes from
 some library you can explicitly specify which one to use. This also adds the
 main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
@@ -717,12 +718,12 @@ Hello Qux</code></pre>
 object foo extends RootModule with JavaModule {
   def unmanagedClasspath = T {
     os.write(
-      T.dest / "fastjavaio.jar",
+      T.dest / &quot;fastjavaio.jar&quot;,
       requests.get.stream(
-        "https://github.com/williamfiset/FastJavaIO/releases/download/1.1/fastjavaio.jar"
+        &quot;https://github.com/williamfiset/FastJavaIO/releases/download/1.1/fastjavaio.jar&quot;
       )
     )
-    Agg(PathRef(T.dest / "fastjavaio.jar"))
+    Agg(PathRef(T.dest / &quot;fastjavaio.jar&quot;))
   }
 }</code></pre>
 </div>
@@ -736,7 +737,7 @@ library, which is bundled with Mill</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run "textfile.txt" # mac/linux
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run &quot;textfile.txt&quot; # mac/linux
 I am cow
 hear me moo
 I weigh twice as much as you</code></pre>
@@ -757,13 +758,13 @@ object foo extends JavaModule {
   def moduleDeps = Seq(bar)
   def assemblyRules = Seq(
     // all application.conf files will be concatenated into single file
-    Rule.Append("application.conf"),
+    Rule.Append(&quot;application.conf&quot;),
     // all *.conf files will be concatenated into single file
-    Rule.AppendPattern(".*\\.conf"),
+    Rule.AppendPattern(&quot;.*\\.conf&quot;),
     // all *.temp files will be excluded from a final jar
-    Rule.ExcludePattern(".*\\.temp"),
+    Rule.ExcludePattern(&quot;.*\\.temp&quot;),
     // the `shapeless` package will be shaded under the `shade` package
-    Rule.Relocate("shapeless.**", "shade.shapless.@1")
+    Rule.Relocate(&quot;shapeless.**&quot;, &quot;shade.shapless.@1&quot;)
   )
 }
 
@@ -809,14 +810,14 @@ import mill.define.ModuleRef
 import coursier.maven.MavenRepository
 
 val sonatypeReleases = Seq(
-  MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+  MavenRepository(&quot;https://oss.sonatype.org/content/repositories/releases&quot;)
 )
 
 object foo extends JavaModule {
 
   def ivyDeps = Agg(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.apache.commons:commons-text:1.12.0"
+    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    ivy&quot;org.apache.commons:commons-text:1.12.0&quot;
   )
 
   def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
@@ -897,7 +898,7 @@ Resolution failed for 1 modules:
 </div>
 </div>
 <div class="paragraph">
-<p>It is expected that basic commands (e.g. clean) will not work, as Mill saying it is unable to resolve it&#8217;s own, fundamental, dependencies. Under such circumstances, you will normally have access to some proxy, or other corporate repository which resolves maven artefacts. The strategy is simply to tell mill to use that instead.</p>
+<p>It is expected that basic commands (e.g. clean) will not work, as Mill saying it is unable to resolve it’s own, fundamental, dependencies. Under such circumstances, you will normally have access to some proxy, or other corporate repository which resolves maven artefacts. The strategy is simply to tell mill to use that instead.</p>
 </div>
 <div class="paragraph">
 <p>The idea is to set an environment variable COURSIER_REPOSITORIES (see coursier docs). The below command should set the environment variable for the current shell, and then run the mill command.</p>
@@ -923,25 +924,25 @@ Resolution failed for 1 modules:
 
 object foo extends RootModule with JavaModule {
   // Additional source folder to put C sources
-  def nativeSources = T.sources(millSourcePath / "native-src")
+  def nativeSources = T.sources(millSourcePath / &quot;native-src&quot;)
 
   // Auto-generate JNI `.h` files from Java classes using Javac
   def nativeHeaders = T {
-    os.proc(Jvm.jdkTool("javac"), "-h", T.dest, "-d", T.dest.toString, allSourceFiles().map(_.path)).call()
+    os.proc(Jvm.jdkTool(&quot;javac&quot;), &quot;-h&quot;, T.dest, &quot;-d&quot;, T.dest.toString, allSourceFiles().map(_.path)).call()
     PathRef(T.dest)
   }
 
   // Compile C
   def nativeCompiled = T{
-    val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
-    val output = "libhelloworld.so"
+    val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == &quot;c&quot;)
+    val output = &quot;libhelloworld.so&quot;
     os.proc(
-        "clang", "-shared", "-fPIC",
-        "-I" + nativeHeaders().path, //
-        "-I" + sys.props("java.home") + "/include/", // global JVM header files
-        "-I" + sys.props("java.home") + "/include/darwin",
-        "-I" + sys.props("java.home") + "/include/linux",
-        "-o", T.dest / output,
+        &quot;clang&quot;, &quot;-shared&quot;, &quot;-fPIC&quot;,
+        &quot;-I&quot; + nativeHeaders().path, //
+        &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/&quot;, // global JVM header files
+        &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/darwin&quot;,
+        &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/linux&quot;,
+        &quot;-o&quot;, T.dest / output,
         cSourceFiles
       )
       .call(stdout = os.Inherit)
@@ -949,10 +950,10 @@ object foo extends RootModule with JavaModule {
     PathRef(T.dest / output)
   }
 
-  def forkEnv = Map("HELLO_WORLD_BINARY" -&gt; nativeCompiled().path.toString)
+  def forkEnv = Map(&quot;HELLO_WORLD_BINARY&quot; -&gt; nativeCompiled().path.toString)
 
   object test extends JavaTests with TestModule.Junit4{
-    def forkEnv = Map("HELLO_WORLD_BINARY" -&gt; nativeCompiled().path.toString)
+    def forkEnv = Map(&quot;HELLO_WORLD_BINARY&quot; -&gt; nativeCompiled().path.toString)
   }
 }</code></pre>
 </div>
@@ -1013,7 +1014,7 @@ Test foo.HelloWorldTest.testSimple finished...
 
 
 object foo extends JavaModule {
-  def compileIvyDeps = Agg(ivy"org.projectlombok:lombok:1.18.34")
+  def compileIvyDeps = Agg(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
 
   object test extends JavaTests with TestModule.Junit4
 }</code></pre>
@@ -1049,15 +1050,15 @@ in <code>-processorpath</code> to <code>javacOptions</code> explicitly:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
-  def compileIvyDeps = Agg(ivy"org.projectlombok:lombok:1.18.34")
+  def compileIvyDeps = Agg(ivy&quot;org.projectlombok:lombok:1.18.34&quot;)
 
   def processors = T{
-    defaultResolver().resolveDeps(Agg(ivy"org.projectlombok:lombok:1.18.34"))
+    defaultResolver().resolveDeps(Agg(ivy&quot;org.projectlombok:lombok:1.18.34&quot;))
   }
 
   def javacOptions = Seq(
-    "-processorpath",
-    processors().map(_.path).mkString(":"),
+    &quot;-processorpath&quot;,
+    processors().map(_.path).mkString(&quot;:&quot;),
   )
 
   object test extends JavaTests with TestModule.Junit4
@@ -1083,9 +1084,9 @@ Test bar.HelloWorldTest.testSimple finished...
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

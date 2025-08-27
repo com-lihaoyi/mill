@@ -1,18 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/scalabuilds/6-publish-module.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/scalabuilds/6-publish-module.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,7 +41,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -62,9 +63,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -387,7 +388,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -400,17 +401,17 @@
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
 
 object foo extends ScalaModule with PublishModule {
-  def scalaVersion = "2.13.8"
-  def publishVersion = "0.0.1"
+  def scalaVersion = &quot;2.13.8&quot;
+  def publishVersion = &quot;0.0.1&quot;
 
   def pomSettings = PomSettings(
-    description = "Hello",
-    organization = "com.lihaoyi",
-    url = "https://github.com/lihaoyi/example",
+    description = &quot;Hello&quot;,
+    organization = &quot;com.lihaoyi&quot;,
+    url = &quot;https://github.com/lihaoyi/example&quot;,
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("lihaoyi", "example"),
+    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
     developers = Seq(
-      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
+      Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;)
     )
   )
 }</code></pre>
@@ -440,7 +441,7 @@ which may not be correct if you have a newer Sonatype account (when created afte
 <div class="sect2">
 <h3 id="_staging_releases"><a class="anchor" href="#_staging_releases"></a>Staging Releases</h3>
 <div class="paragraph">
-<p>Once you&#8217;ve mixed in <code>PublishModule</code>, you can publish your libraries to maven
+<p>Once you’ve mixed in <code>PublishModule</code>, you can publish your libraries to maven
 central via:</p>
 </div>
 <div class="listingblock">
@@ -458,7 +459,7 @@ staging/release automatically:</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -478,7 +479,7 @@ due to security risks.</p>
 </div>
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -490,7 +491,7 @@ due to security risks.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>If you want to publish/release multiple modules, you can use the <code><em></code> or <code>_</em></code>
+<p>If you want to publish/release multiple modules, you can use the <code><em></em></code> or <code>_</code>
 wildcard syntax:</p>
 </div>
 <div class="listingblock">
@@ -518,17 +519,17 @@ nexus at <code>example.company.com</code>, you can pass in the <code>--sonatypeU
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
 <div class="paragraph">
 <p>Since Feb. 2021 any new Sonatype accounts have been created on
-<code>s01.oss.sonatype.org</code>, so you&#8217;ll want to ensure you set the relevant URIs to match.</p>
+<code>s01.oss.sonatype.org</code>, so you’ll want to ensure you set the relevant URIs to match.</p>
 </div>
 <div class="paragraph">
-<p>The symptom of using the "wrong" URL for publishling is typically a 403 error code, in response to the publish request.</p>
+<p>The symptom of using the &quot;wrong&quot; URL for publishling is typically a 403 error code, in response to the publish request.</p>
 </div>
 <div class="paragraph">
 <p>See <a href="https://central.sonatype.org/publish/publish-guide/#releasing-to-central" class="bare">https://central.sonatype.org/publish/publish-guide/#releasing-to-central</a></p>
@@ -548,7 +549,7 @@ nexus at <code>example.company.com</code>, you can pass in the <code>--sonatypeU
 </div>
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 <div class="sect2">
@@ -574,9 +575,9 @@ maven path under <code>sonatypeUri</code> instead of staging path.</p>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async src="../../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async src="../../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../../search-index.js"></script>
+  
+</body></html>

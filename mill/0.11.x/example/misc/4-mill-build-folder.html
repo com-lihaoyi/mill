@@ -1,18 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/misc/4-mill-build-folder.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/misc/4-mill-build-folder.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,7 +41,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -62,9 +63,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -387,7 +388,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -403,23 +404,23 @@ import scalatags.Text.all._
 
 object foo extends RootModule with ScalaModule {
   def scalaVersion = millbuild.ScalaVersion.myScalaVersion
-  def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::os-lib:0.9.1&quot;)
 
-  def htmlSnippet = T{ h1("hello").toString }
+  def htmlSnippet = T{ h1(&quot;hello&quot;).toString }
   def resources = T.sources{
-    os.write(T.dest / "snippet.txt", htmlSnippet())
+    os.write(T.dest / &quot;snippet.txt&quot;, htmlSnippet())
     super.resources() ++ Seq(PathRef(T.dest))
   }
 
   def forkArgs = Seq(
-    s"-Dmill.scalatags.version=${millbuild.DepVersions.scalatagsVersion}"
+    s&quot;-Dmill.scalatags.version=${millbuild.DepVersions.scalatagsVersion}&quot;
   )
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This example illustrates usage of the <code>mill-build/</code> folder. Mill&#8217;s <code>build.sc</code>
-file and it&#8217;s <code>import $file</code> and <code>$ivy</code> are a shorthand syntax for defining
+<p>This example illustrates usage of the <code>mill-build/</code> folder. Mill’s <code>build.sc</code>
+file and it’s <code>import $file</code> and <code>$ivy</code> are a shorthand syntax for defining
 a Mill <code>ScalaModule</code>, with sources and <code>ivyDeps</code> and so on, which is
 compiled and executed to perform your build. This module lives in
 <code>mill-build/</code>, and can be enabled via the <code>import $meta._</code> statement above.</p>
@@ -430,18 +431,18 @@ compiled and executed to perform your build. This module lives in
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object millbuild extends MillBuildRootModule{
-  val scalatagsVersion = "0.12.0"
-  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:$scalatagsVersion")
+  val scalatagsVersion = &quot;0.12.0&quot;
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:$scalatagsVersion&quot;)
 
   def generatedSources = T {
     os.write(
-      T.dest / "DepVersions.scala",
-      s"""
+      T.dest / &quot;DepVersions.scala&quot;,
+      s&quot;&quot;&quot;
 package millbuild
 object DepVersions{
-  def scalatagsVersion = "$scalatagsVersion"
+  def scalatagsVersion = &quot;$scalatagsVersion&quot;
 }
-      """.stripMargin
+      &quot;&quot;&quot;.stripMargin
     )
     super.generatedSources() ++ Seq(PathRef(T.dest))
   }
@@ -453,7 +454,7 @@ object DepVersions{
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
 object ScalaVersion{
-  def myScalaVersion = "2.13.10"
+  def myScalaVersion = &quot;2.13.10&quot;
 }</code></pre>
 </div>
 </div>
@@ -493,7 +494,7 @@ Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
 scalatagsVersion: 0.12.0
 
 &gt; mill show assembly
-".../out/assembly.dest/out.jar"
+&quot;.../out/assembly.dest/out.jar&quot;
 
 &gt; ./out/assembly.dest/out.jar # mac/linux
 Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
@@ -508,12 +509,12 @@ cli option.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill --meta-level 1 show sources
 [
-.../build.sc",
-.../mill-build/src"
+.../build.sc&quot;,
+.../mill-build/src&quot;
 ]
 
 &gt; mill --meta-level 2 show sources
-.../mill-build/build.sc"</code></pre>
+.../mill-build/build.sc&quot;</code></pre>
 </div>
 </div>
 </article>
@@ -521,9 +522,9 @@ cli option.</p>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async src="../../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async src="../../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../../search-index.js"></script>
+  
+</body></html>

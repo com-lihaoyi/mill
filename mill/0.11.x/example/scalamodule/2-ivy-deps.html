@@ -1,18 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/scalamodule/2-ivy-deps.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/scalamodule/2-ivy-deps.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,7 +41,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -62,9 +63,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -387,7 +388,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -400,11 +401,11 @@
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
-  def scalaVersion = "2.12.17"
+  def scalaVersion = &quot;2.12.17&quot;
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::upickle:3.1.0",
-    ivy"com.lihaoyi::pprint:0.8.1",
-    ivy"${scalaOrganization()}:scala-reflect:${scalaVersion()}"
+    ivy&quot;com.lihaoyi::upickle:3.1.0&quot;,
+    ivy&quot;com.lihaoyi::pprint:0.8.1&quot;,
+    ivy&quot;${scalaOrganization()}:scala-reflect:${scalaVersion()}&quot;
   )
 }</code></pre>
 </div>
@@ -415,7 +416,7 @@ object foo extends RootModule with ScalaModule {
 <div class="ulist">
 <ul>
 <li>
-<p>Single <code>:</code> syntax (e.g. <code>"ivy"org.testng:testng:6.11"</code>) defines Java
+<p>Single <code>:</code> syntax (e.g. <code>&quot;ivy&quot;org.testng:testng:6.11&quot;</code>) defines Java
 dependencies</p>
 </li>
 </ul>
@@ -423,11 +424,11 @@ dependencies</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Double <code>::</code> syntax (e.g. <code>ivy"com.lihaoyi::upickle:0.5.1"</code>) defines Scala
+<p>Double <code>::</code> syntax (e.g. <code>ivy&quot;com.lihaoyi::upickle:0.5.1&quot;</code>) defines Scala
 dependencies</p>
 </li>
 <li>
-<p>Triple <code>:::</code> syntax (e.g. <code>ivy"org.scalamacros:::paradise:2.1.1"</code>) defines
+<p>Triple <code>:::</code> syntax (e.g. <code>ivy&quot;org.scalamacros:::paradise:2.1.1&quot;</code>) defines
 dependencies cross-published against the full Scala version e.g. <code>2.12.4</code>
 instead of just <code>2.12</code>. These are typically Scala compiler plugins or
 similar.</p>
@@ -440,7 +441,7 @@ similar.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests</code>.</p>
+<p><code>ivy&quot;org.apache.spark::spark-sql:2.4.0;classifier=tests</code>.</p>
 </li>
 </ul>
 </div>
@@ -450,8 +451,8 @@ similar.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run i am cow
-pretty-printed using PPrint: Array("i", "am", "cow")
-serialized using uPickle: ["i","am","cow"]</code></pre>
+pretty-printed using PPrint: Array(&quot;i&quot;, &quot;am&quot;, &quot;cow&quot;)
+serialized using uPickle: [&quot;i&quot;,&quot;am&quot;,&quot;cow&quot;]</code></pre>
 </div>
 </div>
 </article>
@@ -459,9 +460,9 @@ serialized using uPickle: ["i","am","cow"]</code></pre>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async src="../../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async src="../../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../../search-index.js"></script>
+  
+</body></html>
