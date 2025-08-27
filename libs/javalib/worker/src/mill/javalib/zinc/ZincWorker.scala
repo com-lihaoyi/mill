@@ -554,6 +554,9 @@ class ZincWorker(
     )
     val compiledDest = workingDir / "compiled"
     val doneFile = compiledDest / "DONE"
+    // Use a double-lock here because we need mutex both between threads within this
+    // process, as well as between different processes since sometimes we are initializing
+    // the compiler bridge inside a separate `ZincWorkerMain` subprocess
     val doubleLock = new DoubleLock(
       memoryLock,
       new FileLock((compilerBridge.workspace / "compiler-bridge-locks" / scalaVersion).toString)
