@@ -8,6 +8,7 @@ object Versions {
   val kotlinVersion = "2.2.0"
 
   val kspVersion = "2.0.2"
+  val kspJvmTarget = "17"
   val androidCompileSdk = 35
   val androidMinSdk = 26
 }
@@ -23,6 +24,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
 
   def kotlinVersion = Versions.kotlinVersion
   def kspVersion = Versions.kspVersion
+  def kspJvmTarget = "17"
 
   override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
     AndroidBuildTypeSettings(
@@ -107,7 +109,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  object test extends AndroidAppKotlinTests, Ksp2Module, AndroidHiltSupport, TestModule.Junit4 {
+  object test extends Ksp2Tests, AndroidHiltSupport, TestModule.Junit4 {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
 
@@ -147,6 +149,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
         Ksp2Module, AndroidHiltSupport {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
+    def kspJvmTarget = "17"
 
     def testFramework = "com.example.android.architecture.blueprints.todoapp.CustomTestRunner"
 
@@ -214,6 +217,8 @@ object `shared-test` extends AndroidKotlinModule, Ksp2Module, AndroidHiltSupport
 
   def kotlinVersion = Versions.kotlinVersion
   def kspVersion = Versions.kspVersion
+  def kspJvmTarget = Versions.kspJvmTarget
+
   def androidIsDebug = true
 
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)

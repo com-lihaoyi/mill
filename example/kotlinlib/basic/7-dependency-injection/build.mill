@@ -10,6 +10,8 @@ object dagger extends Ksp2Module {
 
   def kspVersion = "2.0.2"
 
+  def kspJvmTarget = "17"
+
   def mainClass = Some("com.example.dagger.MainKt")
 
   def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
