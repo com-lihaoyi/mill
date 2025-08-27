@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Android Java Projects :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/android/java.html" />
-    <link rel="prev" href="android-initial-setup.html" />
+    <link rel="prev" href="ide.html" />
     <link rel="next" href="kotlin.html" />
     <meta name="generator" content="Antora 3.1.12" />
     <link rel="stylesheet" href="../../_/css/site.css" />
@@ -254,11 +254,15 @@
     <a class="nav-link" href="android-initial-setup.html">Android Initial Setup</a>
   </li>
 
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="ide.html">Android IDE Support</a>
+  </li>
+
   <li class="nav-item is-current-page" data-depth="3">
     <a class="nav-link" href="java.html">Android Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="3">
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="kotlin.html">Android Kotlin Projects</a>
   </li>
 
@@ -614,7 +618,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.3</span>
+    <span class="version">1.0.4</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -624,10 +628,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.3</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.0.3-43-56843c/index.html">dev-1.0.3-43-56843c</a>
+          <a href="../index.html">1.0.4</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -706,7 +707,7 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3/mill-dist-1.0.3-example-androidlib-java-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/androidlib/java/1-hello-world">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4/mill-dist-1.0.4-example-androidlib-java-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/androidlib/java/1-hello-world">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -752,7 +753,7 @@ import mill.*, androidlib.*, scalalib.*</code></pre>
     def junit4Version = &quot;4.13.2&quot;
   }
 
-  object it extends AndroidAppInstrumentedTests, AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppInstrumentedTests {
 
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
@@ -944,7 +945,7 @@ Android Bundle zip generation, Bundle Creation and Bundle signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3/mill-dist-1.0.3-example-androidlib-java-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/androidlib/java/2-app-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4/mill-dist-1.0.4-example-androidlib-java-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/androidlib/java/2-app-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1069,7 +1070,7 @@ You need 2 files on the root of your project:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>You can also override the default Proguard files by using <code>override def proguardConfigs: T[Seq[PathRef]]</code>
+<p>You can also override the default Proguard files by using <code>override def androidDefaultProguardFileNames: T[Seq[String]]</code>
 More informations about the R8 in general and about the Proguard rules files can be found in the links below:</p>
 </div>
 <div class="paragraph">
@@ -1079,7 +1080,7 @@ More informations about the R8 in general and about the Proguard rules files can
 <p><a href="https://www.guardsquare.com/manual/configuration/usage" class="bare">https://www.guardsquare.com/manual/configuration/usage</a></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3/mill-dist-1.0.3-example-androidlib-java-5-R8.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/androidlib/java/5-R8">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4/mill-dist-1.0.4-example-androidlib-java-5-R8.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/androidlib/java/5-R8">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1110,13 +1111,9 @@ object app extends AndroidR8AppModule { <i class="conum" data-value="2"></i><b>(
   override def androidVirtualDeviceIdentifier: String = &quot;java-test&quot;
   override def androidIsDebug: T[Boolean] = Task { false }
 
-  override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
-    super.androidReleaseSettings().withProguardLocalFiles(
-      Seq(
-        moduleDir / &quot;proguard-rules.pro&quot;
-      )
-    )
-  }
+  def androidProjectProguardFiles = Task.Sources(
+    &quot;proguard-rules.pro&quot;
+  )
 
   // Unit tests for the application
   object test extends AndroidAppTests, TestModule.Junit4 {
@@ -1126,8 +1123,7 @@ object app extends AndroidR8AppModule { <i class="conum" data-value="2"></i><b>(
   }
 
   // Instrumented tests (runs on emulator)
-  object it extends AndroidAppInstrumentedTests, AndroidR8AppModule,
-        AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppInstrumentedTests, AndroidR8AppModule {
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
     override def androidIsDebug: T[Boolean] = Task {
@@ -1135,12 +1131,12 @@ object app extends AndroidR8AppModule { <i class="conum" data-value="2"></i><b>(
     }
 
     override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
-      AndroidBuildTypeSettings(isMinifyEnabled = false).withProguardLocalFiles(
-        Seq(
-          moduleDir / &quot;test-proguard-rules.pro&quot;
-        )
-      )
+      AndroidBuildTypeSettings(isMinifyEnabled = false)
     }
+
+    override def androidProjectProguardFiles = Task.Sources(
+      &quot;test-proguard-rules.pro&quot;
+    )
 
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn&quot;androidx.test.ext:junit:1.2.1&quot;,
@@ -1222,7 +1218,7 @@ There is a list of the core C/C++ libraries that can be used in the android here
 <a href="https://developer.android.com/ndk/reference" class="bare">https://developer.android.com/ndk/reference</a></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3/mill-dist-1.0.3-example-androidlib-java-6-native-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/androidlib/java/6-native-libs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4/mill-dist-1.0.4-example-androidlib-java-6-native-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/androidlib/java/6-native-libs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1259,7 +1255,7 @@ object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i>
   }
 
   // Instrumented tests (runs on emulator)
-  object it extends AndroidAppInstrumentedTests, AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppInstrumentedTests {
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
     /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
@@ -1325,7 +1321,7 @@ object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="android-initial-setup.html">Android Initial Setup</a></span>
+  <span class="prev"><a href="ide.html">Android IDE Support</a></span>
   <span class="next"><a href="kotlin.html">Android Kotlin Projects</a></span>
 </nav>
 </article>

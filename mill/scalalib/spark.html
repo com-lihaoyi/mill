@@ -255,10 +255,14 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
   </li>
 
   <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
   </li>
 
@@ -614,7 +618,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.3</span>
+    <span class="version">1.0.4</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -624,10 +628,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.3</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.0.3-43-56843c/index.html">dev-1.0.3-43-56843c</a>
+          <a href="../index.html">1.0.4</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -675,7 +676,7 @@
 <h2 id="_hello_spark"><a class="anchor" href="#_hello_spark"></a>Hello Spark</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3/mill-dist-1.0.3-example-scalalib-spark-1-hello-spark.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/scalalib/spark/1-hello-spark">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4/mill-dist-1.0.4-example-scalalib-spark-1-hello-spark.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/spark/1-hello-spark">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -725,7 +726,7 @@ object foo extends ScalaModule {
 <h2 id="_hello_pyspark"><a class="anchor" href="#_hello_pyspark"></a>Hello Pyspark</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3/mill-dist-1.0.3-example-scalalib-spark-1-hello-spark.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/scalalib/spark/1-hello-spark">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4/mill-dist-1.0.4-example-scalalib-spark-1-hello-spark.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/spark/1-hello-spark">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -775,7 +776,7 @@ object foo extends ScalaModule {
 <h2 id="_semi_realistic_spark_project_with_spark_submit"><a class="anchor" href="#_semi_realistic_spark_project_with_spark_submit"></a>Semi realistic spark project with spark submit</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3/mill-dist-1.0.3-example-scalalib-spark-3-semi-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.3/example/scalalib/spark/3-semi-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4/mill-dist-1.0.4-example-scalalib-spark-3-semi-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/spark/3-semi-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -783,8 +784,8 @@ import mill.*, scalalib.*
 object `package` extends ScalaModule {
   def scalaVersion = &quot;2.12.15&quot;
   def mvnDeps = Seq(
-    mvn&quot;org.apache.spark::spark-core:3.5.4&quot;,
-    mvn&quot;org.apache.spark::spark-sql:3.5.4&quot;
+    mvn&quot;org.apache.spark::spark-core:3.5.6&quot;,
+    mvn&quot;org.apache.spark::spark-sql:3.5.6&quot;
   )
 
   def forkArgs = Seq(&quot;--add-opens&quot;, &quot;java.base/sun.nio.ch=ALL-UNNAMED&quot;)

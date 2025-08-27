@@ -255,10 +255,14 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
   </li>
 
   <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
   </li>
 
@@ -614,7 +618,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.3</span>
+    <span class="version">1.0.4</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -624,10 +628,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.3</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.0.3-43-56843c/index.html">dev-1.0.3-43-56843c</a>
+          <a href="../index.html">1.0.4</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -678,8 +679,8 @@ demonstrating how Mill can be used to build code outside of tiny example codebas
 your JavaScript project with Ollama.</p>
 </div>
 <div class="paragraph">
-<p>In this example we show how to integrate <code>ollama-js</code> with mill,
-showing off mill’s scalability with custom tasks and traits.</p>
+<p>In this example we show how to integrate <code>ollama-js</code> with Mill,
+showing off Mill’s scalability with custom tasks and traits.</p>
 </div>
 <div class="paragraph">
 <p>Using custom tasks we build our library and then prepare the bundled code to be used
@@ -698,158 +699,126 @@ examples/
 src/
 test/
 package.json
-tsconfig.json
+tsconfig.json</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4/mill-dist-1.0.4-example-thirdparty-ollama-js.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/thirdparty/ollama-js">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-
-.build.mill ({mill-download-url}/mill-dist-1.0.3-example-thirdparty-ollama-js.zip[download], {mill-example-url}/example/thirdparty/ollama-js[browse])
-[source,scala,subs=&quot;attributes,verbatim&quot;]</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>package build</p>
-</div>
-<div class="paragraph">
-<p>import mill.<strong>, javascriptlib.</strong>
+import mill.*, javascriptlib.*
 import os.*
-import ujson.*</p>
-</div>
-<div class="paragraph">
-<p>trait OllamaModule extends TypeScriptModule {
+import ujson.*
+
+trait OllamaModule extends TypeScriptModule {
   def moduleName = &quot;ollama&quot;
   def npmDeps = Seq(&quot;whatwg-fetch@3.6.20&quot;)
   def npmDevDeps = Seq(
     &quot;@swc/core@1.10.12&quot;,
     &quot;@types/whatwg-fetch@0.0.33&quot;,
     &quot;unbuild@2.0.0&quot;
-  )</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>def packageJson = PackageJson(
-  name = &quot;ollama&quot;,
-  version = &quot;0.0.0&quot;,
-  description = &quot;Ollama Javascript library&quot;,
-  main = &quot;dist/index.cjs&quot;,
-  module = &quot;dist/index.mjs&quot;,
-  types = &quot;dist/index.d.ts&quot;,
-  exports = ujson.Obj(
-    &quot;.&quot; -&gt; ujson.Obj(
-      &quot;require&quot; -&gt; &quot;./dist/index.cjs&quot;,
-      &quot;import&quot; -&gt; &quot;./dist/index.mjs&quot;,
-      &quot;types&quot; -&gt; &quot;./dist/index.d.ts&quot;
-    ),
-    &quot;./browser&quot; -&gt; ujson.Obj(
-      &quot;require&quot; -&gt; &quot;./dist/browser.cjs&quot;,
-      &quot;import&quot; -&gt; &quot;./dist/browser.mjs&quot;,
-      &quot;types&quot; -&gt; &quot;./dist/browser.d.ts&quot;
-    ),
-    &quot;./*&quot; -&gt; &quot;./*&quot;
   )
-)</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>def options =
-  super.options() + (
-    &quot;ts-node&quot; -&gt; ujson.Obj(
-      &quot;swc&quot; -&gt; ujson.True,
-      &quot;esm&quot; -&gt; ujson.True
+
+  def packageJson = PackageJson(
+    name = &quot;ollama&quot;,
+    version = &quot;0.0.0&quot;,
+    description = &quot;Ollama Javascript library&quot;,
+    main = &quot;dist/index.cjs&quot;,
+    module = &quot;dist/index.mjs&quot;,
+    types = &quot;dist/index.d.ts&quot;,
+    exports = ujson.Obj(
+      &quot;.&quot; -&gt; ujson.Obj(
+        &quot;require&quot; -&gt; &quot;./dist/index.cjs&quot;,
+        &quot;import&quot; -&gt; &quot;./dist/index.mjs&quot;,
+        &quot;types&quot; -&gt; &quot;./dist/index.d.ts&quot;
+      ),
+      &quot;./browser&quot; -&gt; ujson.Obj(
+        &quot;require&quot; -&gt; &quot;./dist/browser.cjs&quot;,
+        &quot;import&quot; -&gt; &quot;./dist/browser.mjs&quot;,
+        &quot;types&quot; -&gt; &quot;./dist/browser.d.ts&quot;
+      ),
+      &quot;./*&quot; -&gt; &quot;./*&quot;
     )
-  )</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>def compilerOptions =
-  super.compilerOptions() + (
-    &quot;noImplicitAny&quot; -&gt; ujson.True,
-    &quot;noImplicitThis&quot; -&gt; ujson.True,
-    &quot;strictNullChecks&quot; -&gt; ujson.True,
-    &quot;declarationMap&quot; -&gt; ujson.True,
-    &quot;skipLibCheck&quot; -&gt; ujson.True,
-    &quot;strict&quot; -&gt; ujson.True,
-    &quot;forceConsistentCasingInFileNames&quot; -&gt; ujson.True,
-    &quot;module&quot; -&gt; ujson.Str(&quot;ES2022&quot;),
-    &quot;target&quot; -&gt; ujson.Str(&quot;es6&quot;),
-    &quot;lib&quot; -&gt; ujson.Arr.from(Seq(&quot;es6&quot;, &quot;es2018.asyncgenerator&quot;, &quot;dom&quot;))
-  )</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>// disable declarations output in compile stage
-def runTypeCheck = false</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>// bundle ollama with `unbuild`
-def unbuild = Task {
-  createNodeModulesSymlink()
-  val out = compile().path</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>os.walk(
-  out,
-  skip = p =&gt;
-    p.last == &quot;node_modules&quot; ||
-      p.last == &quot;package-lock.json&quot;
-)
-  .foreach(p =&gt; os.copy.over(p, Task.dest / p.relativeTo(out), createFolders = true))</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>os.call(&quot;node_modules/.bin/unbuild&quot;)</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>// prepare bundled ouptut to be used as `unmanagedDeps` in examples section.
-os.makeDir.all(Task.dest / &quot;ollama&quot;)
-os.copy(Task.dest / &quot;package.json&quot;, Task.dest / &quot;ollama&quot; / &quot;package.json&quot;)
-os.copy(Task.dest / &quot;dist&quot;, Task.dest / &quot;ollama&quot; / &quot;dist&quot;)</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>    PathRef(Task.dest / &quot;ollama&quot;)
+  )
+
+  def options =
+    super.options() + (
+      &quot;ts-node&quot; -&gt; ujson.Obj(
+        &quot;swc&quot; -&gt; ujson.True,
+        &quot;esm&quot; -&gt; ujson.True
+      )
+    )
+
+  def compilerOptions =
+    super.compilerOptions() + (
+      &quot;noImplicitAny&quot; -&gt; ujson.True,
+      &quot;noImplicitThis&quot; -&gt; ujson.True,
+      &quot;strictNullChecks&quot; -&gt; ujson.True,
+      &quot;declarationMap&quot; -&gt; ujson.True,
+      &quot;skipLibCheck&quot; -&gt; ujson.True,
+      &quot;strict&quot; -&gt; ujson.True,
+      &quot;forceConsistentCasingInFileNames&quot; -&gt; ujson.True,
+      &quot;module&quot; -&gt; ujson.Str(&quot;ES2022&quot;),
+      &quot;target&quot; -&gt; ujson.Str(&quot;es6&quot;),
+      &quot;lib&quot; -&gt; ujson.Arr.from(Seq(&quot;es6&quot;, &quot;es2018.asyncgenerator&quot;, &quot;dom&quot;))
+    )
+
+  // disable declarations output in compile stage
+  def runTypeCheck = false
+
+  // bundle ollama with `unbuild`
+  def unbuild = Task {
+    createNodeModulesSymlink()
+    val out = compile().path
+
+    os.walk(
+      out,
+      skip = p =&gt;
+        p.last == &quot;node_modules&quot; ||
+          p.last == &quot;package-lock.json&quot;
+    )
+      .foreach(p =&gt; os.copy.over(p, Task.dest / p.relativeTo(out), createFolders = true))
+
+    os.call(&quot;node_modules/.bin/unbuild&quot;)
+
+    // prepare bundled ouptut to be used as `unmanagedDeps` in examples section.
+    os.makeDir.all(Task.dest / &quot;ollama&quot;)
+    os.copy(Task.dest / &quot;package.json&quot;, Task.dest / &quot;ollama&quot; / &quot;package.json&quot;)
+    os.copy(Task.dest / &quot;dist&quot;, Task.dest / &quot;ollama&quot; / &quot;dist&quot;)
+
+    PathRef(Task.dest / &quot;ollama&quot;)
   }
-}</pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>Here we take advantage of mill to reduce boiler plate code, providing clean,
-reusable traits specific to our many mini example usage projects found in `ollama-js` source.
-
-
-
-[source,scala,subs=&quot;attributes,verbatim&quot;]</pre>
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>trait Examples extends TypeScriptModule {
+<p>We take advantage of Mill to reduce boiler plate code, providing clean,
+reusable traits specific to our many mini example usage projects found in <code>ollama-js</code> source.</p>
+</div>
+<div class="paragraph">
+<p><strong><code>unbuild</code>:</strong></p>
+</div>
+<div class="paragraph">
+<p>The <code>unbuild</code> task defined in <code>OllamaModule</code> uses the <code>unbuild</code> npm package to bundle the ollama-js project.
+It then prepares the output to be used as an unmanaged dependency <code>unmanagedDeps</code> for our example projects.
+See: <a href="https://github.com/unjs/unbuild" class="bare">https://github.com/unjs/unbuild</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait Examples extends TypeScriptModule {
   trait ExampleModule extends TypeScriptModule {
     def sources = Task.Sources(moduleDir)
     def mainFilePath = Task { compile().path / mainFileName() }
     def unmanagedDeps = Examples.this.unmanagedDeps()
-  }</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>trait EsmModule extends ExampleModule {
-  def enableEsm = true
-  def runTypeCheck = false
-}</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>  trait Es6Module extends ExampleModule {
+  }
+
+  trait EsmModule extends ExampleModule {
+    def enableEsm = true
+    def runTypeCheck = false
+  }
+
+  trait Es6Module extends ExampleModule {
     def compilerOptions =
       super.compilerOptions() + (
         &quot;module&quot; -&gt; ujson.Str(&quot;nodenext&quot;),
@@ -857,101 +826,77 @@ reusable traits specific to our many mini example usage projects found in `ollam
         &quot;target&quot; -&gt; ujson.Str(&quot;es6&quot;)
       )
   }
-}</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>object <code>package</code> extends OllamaModule, TsLintModule {
+}
+
+object `package` extends OllamaModule, TsLintModule {
   def npmLintDeps = Seq(
     &quot;prettier@3.2.4&quot;,
     &quot;eslint@8.29.0&quot;,
     &quot;@typescript-eslint/eslint-plugin@5.42.1&quot;,
     &quot;@typescript-eslint/parser@5.42.1&quot;
-  )</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>object test extends TypeScriptTests, TestModule.Vitest</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>object examples extends Examples {
-  def unmanagedDeps = Seq(unbuild())
-  object abort extends ExampleModule {
-    def mainFileName = &quot;abort-all-requests.ts&quot;
-  }</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>object `fill-in-middle` extends EsmModule {
-  def npmDeps = Seq(&quot;ollama@0.5.12&quot;)
-  def mainFileName = &quot;fill.ts&quot;
-}</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>object multimodal extends EsmModule {
-  def mainFileName = &quot;multimodal.ts&quot;
-}</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>object `pull-progress` extends EsmModule {
-  def mainFileName = &quot;pull.ts&quot;
-}</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>object structured_outputs extends Es6Module {
-  def npmDeps = Seq(&quot;zod@3.24.1&quot;, &quot;zod-to-json-schema@3.24.1&quot;)
-  def mainFileName = &quot;structured-outputs.ts&quot;
-}</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>    object tools extends Es6Module {
+  )
+
+  object test extends TypeScriptTests, TestModule.Vitest
+
+  object examples extends Examples {
+    def unmanagedDeps = Seq(unbuild())
+    object abort extends ExampleModule {
+      def mainFileName = &quot;abort-all-requests.ts&quot;
+    }
+
+    object `fill-in-middle` extends EsmModule {
+      def npmDeps = Seq(&quot;ollama@0.5.12&quot;)
+      def mainFileName = &quot;fill.ts&quot;
+    }
+
+    object multimodal extends EsmModule {
+      def mainFileName = &quot;multimodal.ts&quot;
+    }
+
+    object `pull-progress` extends EsmModule {
+      def mainFileName = &quot;pull.ts&quot;
+    }
+
+    object structured_outputs extends Es6Module {
+      def npmDeps = Seq(&quot;zod@3.24.1&quot;, &quot;zod-to-json-schema@3.24.1&quot;)
+      def mainFileName = &quot;structured-outputs.ts&quot;
+    }
+
+    object tools extends Es6Module {
       def mainFileName = &quot;calculator.ts&quot;
     }
   }
-}</pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>// `unbuild`:
-The `unbuild` task defined in `OllamaModule`, uses the `unbuild` npm package to bundle the ollama-js project,
-it then prepares the output to be used as an unmanaged dependency `unmanagedDeps` for our example projects.
-See: https://github.com/unjs/unbuild
-
-// Example projects:
-All example projects featured in `examples/` do not have a `src` directory,
-they contain stand alone file(s) intended to be run independently with a command like
-`npx tsx &lt;folder-name&gt;/&lt;file-name&gt;.ts`.
-
-The `ExampleModule` trait configures the `sources` and `mainFilePath` task,
-accounting for the absence of `src` directory in the example projects.
-
-`EsmModule` enables esm, defining `compilerOptions` for select project with esm features,
-while the `Es6Module` defines compilerOptions for projects with `es6` features.
-
-Ordinarily the compile stages `mill compile` would build our `declarations` and or `dist` files (depending on configurations),
-but since we intend to use `unbuild` task to handle bundling we don't need this output
-from running the `tsc` command. We can turn of its generation by settig the task `runTypeCheck` to false.
-
-// User Defined JSON:
-
-// package.json
-[source,json]</pre>
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>{
+<p><strong>Example projects:</strong></p>
+</div>
+<div class="paragraph">
+<p>All example projects featured in <code>examples/</code> do not have a <code>src</code> directory,
+they contain stand alone file(s) intended to be run independently with a command like
+<code>npx tsx &lt;folder-name&gt;/&lt;file-name&gt;.ts</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>ExampleModule</code> trait configures the <code>sources</code> and <code>mainFilePath</code> task,
+accounting for the absence of <code>src</code> directory in the example projects.</p>
+</div>
+<div class="paragraph">
+<p><code>EsmModule</code> enables esm, defining <code>compilerOptions</code> for select project with esm features,
+while the <code>Es6Module</code> defines compilerOptions for projects with <code>es6</code> features.</p>
+</div>
+<div class="paragraph">
+<p>Ordinarily the compile stages <code>mill compile</code> would build our <code>declarations</code> and or <code>dist</code> files (depending on configurations),
+but since we intend to use <code>unbuild</code> task to handle bundling we don’t need this output
+from running the <code>tsc</code> command. We can turn of its generation by settig the task <code>runTypeCheck</code> to false.</p>
+</div>
+<div class="paragraph">
+<p><strong>User Defined JSON:</strong></p>
+</div>
+<div class="listingblock">
+<div class="title"><code>package.json</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
  &quot;name&quot;: &quot;ollama&quot;,
  &quot;version&quot;: &quot;0.0.0&quot;,
  &quot;description&quot;: &quot;Ollama Javascript library&quot;,
@@ -969,7 +914,7 @@ from running the `tsc` command. We can turn of its generation by settig the task
      &quot;import&quot;: &quot;./dist/browser.mjs&quot;,
      &quot;types&quot;: &quot;./dist/browser.d.ts&quot;
    },
-   &quot;./<strong>&quot;: &quot;./</strong>&quot;
+   &quot;./*&quot;: &quot;./*&quot;
  },
  &quot;scripts&quot;: {
    &quot;format&quot;: &quot;prettier --write .&quot;,
@@ -980,26 +925,23 @@ from running the `tsc` command. We can turn of its generation by settig the task
  },
  &quot;homepage&quot;: &quot;https://github.com/ollama/ollama-js&quot;,
  &quot;repository&quot;: {
-   ...​
+   ...
  },
  &quot;author&quot;: &quot;Saul Boyd&quot;,
  &quot;license&quot;: &quot;MIT&quot;,
  &quot;devDependencies&quot;: {
-   ...​
+   ...
  },
  &quot;dependencies&quot;: {
-   ...​
+   ...
  }
-}</p>
+}</code></pre>
+</div>
 </div>
 <div class="listingblock">
+<div class="title"><code>tsconfig.json</code></div>
 <div class="content">
-<pre>// tsconfig.json
-[source,json]</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>{
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
   &quot;compilerOptions&quot;: {
    &quot;noImplicitAny&quot;: false,
    &quot;noImplicitThis&quot;: true,
@@ -1019,43 +961,26 @@ from running the `tsc` command. We can turn of its generation by settig the task
      &quot;es2018.asyncgenerator&quot;,
      &quot;dom&quot;
    ]
- },</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>&quot;ts-node&quot;: {
-  &quot;swc&quot;: true,
-  &quot;esm&quot;: true,
-},</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>&quot;include&quot;: [&quot;./src/**/*.ts&quot;],</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre> &quot;exclude&quot;: [&quot;node_modules&quot;]
-}</pre>
+ },
+
+ &quot;ts-node&quot;: {
+   &quot;swc&quot;: true,
+   &quot;esm&quot;: true,
+ },
+
+ &quot;include&quot;: [&quot;./src/**/*.ts&quot;],
+
+ &quot;exclude&quot;: [&quot;node_modules&quot;]
+}</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>[source,console,subs=&quot;attributes,verbatim&quot;]</pre>
-</div>
-</div>
-<div class="quoteblock">
-<blockquote>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill checkFormatEslint # expected no failures, equivalent of running `npm run lint`
 
-</blockquote>
-</div>
-<div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<div class="title">/mill checkFormatPrettier # expected failures, equivalent of running <code>prettier --check .</code></div>
-<p>...​
-Checking formatting...​
+&gt; ./mill checkFormatPrettier # expected failures, equivalent of running `prettier --check .`
+...
+Checking formatting...
 [warn] examples/abort/abort-all-requests.ts
 [warn] examples/abort/abort-single-request.ts
 [warn] examples/structured_outputs/structured-outputs-image.ts
@@ -1068,126 +993,75 @@ Checking formatting...​
 [warn] src/interfaces.ts
 [warn] src/utils.ts
 [warn] test/utils.test.ts
-...​</p>
-</div>
-</blockquote>
-</div>
-<div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<div class="title">/mill reformatPrettier # fixes code style issues with prettier, equivalent of running <code>npm run format</code></div>
-<p>...​
-examples/abort/abort-all-requests.ts...​
-examples/abort/abort-single-request.ts...​
-examples/fill-in-middle/fill.ts...​
-examples/multimodal/multimodal.ts...​
-examples/pull-progress/pull.ts...​
-examples/structured_outputs/structured-outputs-image.ts...​
-examples/structured_outputs/structured-outputs.ts...​
-examples/tools/calculator.ts...​
-examples/tools/flight-tracker.ts...​
-src/browser.ts...​
-src/constant.ts...​
-src/index.ts...​
-src/interfaces.ts...​
-src/utils.ts...​
-src/version.ts...​
-test/index.test.ts...​
-test/utils.test.ts...​
-All matched files have been reformatted!</p>
-</div>
-</blockquote>
-</div>
-<div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<div class="title">/mill checkFormatPrettier # no more failures after formatting, equivalent of running <code>prettier --check .</code></div>
-<p>...​
-Checking formatting...​
-All matched files use Prettier code style!</p>
-</div>
-</blockquote>
-</div>
-<div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<div class="title">/mill test # Run vitest, this would be the equivalent of the <code>npm run test</code> command</div>
-<p>...​
-...​/index.test.ts (15 tests) ...​
-...​/utils.test.ts (5 tests) ...​
-...​
-...​Test Files  2 passed (2)
-...​     Tests  20 passed (20)
-...​</p>
-</div>
-</blockquote>
-</div>
-<div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<div class="title">/mill examples.abort.run</div>
-<p>...​Aborting all requests...​</p>
-</div>
-</blockquote>
-</div>
-<div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<div class="title">/mill examples.fill-in-middle.run</div>
-<p>...​syscall: 'connect',
-...​address: '127.0.0.1',
-...​port: 11434
-...​</p>
-</div>
-</blockquote>
-</div>
-<div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<div class="title">/mill examples.multimodal.run</div>
-<p>...​syscall: 'connect',
-...​address: '127.0.0.1',
-...​port: 11434
-...​</p>
-</div>
-</blockquote>
-</div>
-<div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<div class="title">/mill examples.pull-progress.run</div>
-<p>...​syscall: 'connect',
-...​address: '127.0.0.1',
-...​port: 11434
-...​</p>
-</div>
-</blockquote>
-</div>
-<div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<div class="title">/mill examples.structured_outputs.run</div>
-<p>...​syscall: 'connect',
-...​address: '127.0.0.1',
-...​port: 11434
-...​</p>
-</div>
-</blockquote>
-</div>
-<div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<div class="title">/mill examples.tools.run</div>
-<p>...​syscall: 'connect',
-...​address: '127.0.0.1',
-...​port: 11434
-...​</p>
-</div>
-</blockquote>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre></pre>
+...
+
+&gt; ./mill reformatPrettier # fixes code style issues with prettier, equivalent of running `npm run format`
+...
+examples/abort/abort-all-requests.ts...
+examples/abort/abort-single-request.ts...
+examples/fill-in-middle/fill.ts...
+examples/multimodal/multimodal.ts...
+examples/pull-progress/pull.ts...
+examples/structured_outputs/structured-outputs-image.ts...
+examples/structured_outputs/structured-outputs.ts...
+examples/tools/calculator.ts...
+examples/tools/flight-tracker.ts...
+src/browser.ts...
+src/constant.ts...
+src/index.ts...
+src/interfaces.ts...
+src/utils.ts...
+src/version.ts...
+test/index.test.ts...
+test/utils.test.ts...
+All matched files have been reformatted!
+
+&gt; ./mill checkFormatPrettier # no more failures after formatting, equivalent of running `prettier --check .`
+...
+Checking formatting...
+All matched files use Prettier code style!
+
+&gt; ./mill test # Run vitest, this would be the equivalent of the `npm run test` command
+...
+.../index.test.ts (15 tests) ...
+.../utils.test.ts (5 tests) ...
+...
+...Test Files  2 passed (2)
+...     Tests  20 passed (20)
+...
+
+&gt; ./mill examples.abort.run
+...Aborting all requests...
+
+&gt; ./mill examples.fill-in-middle.run
+...syscall: 'connect',
+...address: '127.0.0.1',
+...port: 11434
+...
+
+&gt; ./mill examples.multimodal.run
+...syscall: 'connect',
+...address: '127.0.0.1',
+...port: 11434
+...
+
+&gt; ./mill examples.pull-progress.run
+...syscall: 'connect',
+...address: '127.0.0.1',
+...port: 11434
+...
+
+&gt; ./mill examples.structured_outputs.run
+...syscall: 'connect',
+...address: '127.0.0.1',
+...port: 11434
+...
+
+&gt; ./mill examples.tools.run
+...syscall: 'connect',
+...address: '127.0.0.1',
+...port: 11434
+...</code></pre>
 </div>
 </div>
 </div>
