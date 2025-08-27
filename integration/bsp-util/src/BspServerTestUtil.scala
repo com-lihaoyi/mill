@@ -234,7 +234,6 @@ object BspServerTestUtil {
       millWorkspace.toURI.toASCIIString -> "file:///mill-workspace/",
       javaHome.toURI.toASCIIString.stripSuffix("/") -> "file:///java-home",
       os.home.toURI.toASCIIString.stripSuffix("/") -> "file:///user-home",
-      ("\"" + javaVersion + "\"") -> "\"<java-version>\"",
       workspacePath.toString -> "/workspace",
       coursierCache.toString -> "/coursier-cache",
       millWorkspace.toString -> "/mill-workspace",
