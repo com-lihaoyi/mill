@@ -207,7 +207,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   /**
    * Picks all jni deps from the resolved dependencies to be packaged into the APK.
-   * @return
    */
   def androidPackageableNativeDeps: T[Seq[AndroidPackageableExtraFile]] = Task {
     androidTransformAarFiles(resolvedRunMvnDeps)().flatMap {
