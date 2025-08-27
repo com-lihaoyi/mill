@@ -26,7 +26,7 @@ The following table contains the main ways you can test the code in
 
 |===
 | Config | Automated Testing | Manual Testing | Manual Testing CI
-| In-Process Tests | `main.__.test`, `scalalib.test`, `contrib.buildinfo.test`, etc. |  |
+| In-Process Tests | `core.__.test`, `scalalib.test`, `contrib.buildinfo.test`, etc. |  |
 | Sub-Process w/o packaging/publishing| `example.\\__.local.daemon`, `integration.__.local.daemon` | `dist.run` | `test-mill-dev.sh`
 | Sub-Process w/ packaging/publishing | `example.\\__.packaged.daemon`, `integration.__.packaged.daemon` | `dist.assembly` | `test-mill-release.sh`
 | Bootstrapping: Building Mill with your current checkout of Mill |  | `dist.installLocal` | `test-mill-bootstrap.sh`
@@ -34,7 +34,7 @@ The following table contains the main ways you can test the code in
 
 In general, `println` or `pprint.log` should work in most places and be sufficient for
 instrumenting and debugging the Mill codebase. In the occasional spot where `println`
-doesn't work you can use `mill.main.client.DebugLog.println` which writes to a file
+doesn't work you can use `mill.constants.DebugLog.println` which writes to a file
 `~/mill-debug-log.txt` in your home folder. `DebugLog` is useful for scenarios like
 debugging Mill's terminal UI (where `println` would mess things up) or subprocesses
 (where stdout/stderr may get captured or used and cannot be used to display your own
@@ -46,7 +46,7 @@ In-process tests live in the `.test` sub-modules of the various Mill modules.
 These range from tiny unit tests, to larger integration tests that instantiate a
 `mill.testkit.BaseModule` in-process and a `UnitTester` to evaluate tasks on it.
 
-Most "core" tests live in `main.__test`; these should run almost instantly, and cover
+Most "core" tests live in `core.__.test`; these should run almost instantly, and cover
 most of Mill's functionality that is not specific to Scala/Scala.js/etc..
 Tests specific to Scala/Scala.js/Scala-Native live in
 `scalalib.test`/`scalajslib.test`/`scalanativelib.test` respectively, and take a lot longer
