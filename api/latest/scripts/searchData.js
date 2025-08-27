@@ -1001,6 +1001,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/javalib/api/JvmWorkerUtil$.html#Scala3EarlyVersion-0","e":false,"i":"","n":"Scala3EarlyVersion","t":"Scala3EarlyVersion: Regex","d":"mill.javalib.api.JvmWorkerUtil","k":"val","x":""},
 {"l":"mill/javalib/api/JvmWorkerUtil$.html#Scala3Version-0","e":false,"i":"","n":"Scala3Version","t":"Scala3Version: Regex","d":"mill.javalib.api.JvmWorkerUtil","k":"val","x":""},
 {"l":"mill/javalib/api/JvmWorkerUtil$.html#TypelevelVersion-0","e":false,"i":"","n":"TypelevelVersion","t":"TypelevelVersion: Regex","d":"mill.javalib.api.JvmWorkerUtil","k":"val","x":""},
+{"l":"mill/javalib/api/JvmWorkerUtil$.html#enforceScala213Library-fffffd1b","e":false,"i":"","n":"enforceScala213Library","t":"enforceScala213Library(scalaVersion: String): Boolean","d":"mill.javalib.api.JvmWorkerUtil","k":"def","x":""},
 {"l":"mill/javalib/api/JvmWorkerUtil$.html#grepJar-df3","e":false,"i":"","n":"grepJar","t":"grepJar(classPath: Seq[PathRef], name: String, versionPrefix: String, sources: Boolean): PathRef","d":"mill.javalib.api.JvmWorkerUtil","k":"def","x":""},
 {"l":"mill/javalib/api/JvmWorkerUtil$.html#isBinaryBridgeAvailable-fffffd1b","e":false,"i":"","n":"isBinaryBridgeAvailable","t":"isBinaryBridgeAvailable(scalaVersion: String): Boolean","d":"mill.javalib.api.JvmWorkerUtil","k":"def","x":""},
 {"l":"mill/javalib/api/JvmWorkerUtil$.html#isDotty-fffffd1b","e":false,"i":"","n":"isDotty","t":"isDotty(scalaVersion: String): Boolean","d":"mill.javalib.api.JvmWorkerUtil","k":"def","x":""},

@@ -93,6 +93,57 @@ node3 -> node2;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Concrete methods</h4>
         </div>
+        <div class="documentableElement" id="enforceScala213Library-fffffd1b">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="JvmWorkerUtil$.html#enforceScala213Library-fffffd1b" t="n" class="documentableName ">enforceScala213Library</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">scalaVersion</span>: <span data-unresolved-link="" t="t">String</span>): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Checks whether the version of the scala-library should be <code>2.13.x</code> or just match the given <code>scalaVersion</code></p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Checks whether the version of the scala-library should be <code>2.13.x</code> or just match the given <code>scalaVersion</code></p>
+              <p>Background: To help in Scala 3 adoption and ensure binary compatibility, Scala 3.x up to 3.7.x used the same Scala standard library as Scala 2.13. Since this also hinders further improvements of the standard library, Scala 3.8 will ship with a newer library built with a Scala 3 compiler.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               scalaVersion
+              </dt>
+              <dd class="body-medium">
+               <p>The Scala version</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p><code>true</code> if the scala-library version should be enforced to be a <code>2.13.</code></p>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/api/src/mill/javalib/api/JvmWorkerUtil.scala" target="_blank">JvmWorkerUtil.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="grepJar-df3">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
