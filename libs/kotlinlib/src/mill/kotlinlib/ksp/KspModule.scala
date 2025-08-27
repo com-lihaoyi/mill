@@ -4,7 +4,7 @@ import mill.*
 import mill.api.Result
 import mill.api.{PathRef, Task}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
-import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
+import mill.kotlinlib.{Dep, DepSyntax, KotlinWorkerManager}
 
 import java.io.File
 
@@ -14,9 +14,12 @@ import java.io.File
  *
  * Use of kotlin-compiler-embedded is also recommended (and thus enabled by default)
  * to avoid any classpath conflicts between the compiler and user defined plugins!
+ *
+ * This module is based on KSP 1.x which relies on language version 1.9 or earlier.
+ * For KSP 2.x, use [[Ksp2Module]] instead.
  */
 @mill.api.experimental
-trait KspModule extends KotlinModule { outer =>
+trait KspModule extends KspBaseModule { outer =>
 
   /**
    * The version of the symbol processing library to use.
@@ -37,6 +40,8 @@ trait KspModule extends KotlinModule { outer =>
    * Mandatory plugins that are needed for KSP to work.
    * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
    *
+   * @deprecated Use `kspDeps` instead
+   *
    * @return
    */
   def kspPlugins: T[Seq[Dep]] = Task {
@@ -46,25 +51,10 @@ trait KspModule extends KotlinModule { outer =>
     )
   }
 
-  override def generatedSources: T[Seq[PathRef]] = Task {
-    super.generatedSources() ++ generatedSourcesWithKSP().sources
-  }
-
   def kspPluginsResolved: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(kspPlugins())
-  }
-
-  /**
-   * The symbol processors to be used by the Kotlin compiler.
-   * Default is empty.
-   */
-  def kotlinSymbolProcessors: T[Seq[Dep]] = Task {
-    Seq.empty[Dep]
-  }
-
-  def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      kotlinSymbolProcessors()
+      kspPlugins(),
+      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
     )
   }
 
@@ -77,15 +67,6 @@ trait KspModule extends KotlinModule { outer =>
     "com.google.devtools.ksp.symbol-processing"
 
   /**
-   * The KSP ap classpath
-   *
-   * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
-   */
-  def kspApClasspath: T[Seq[PathRef]] = Task {
-    kotlinSymbolProcessorsResolved()
-  }
-
-  /**
    * The sources for being used in KSP, in case
    * the user wants to separate KSP specific sources
    * from others. Defaults to [[sources]] (i.e. no splitting)
@@ -95,39 +76,25 @@ trait KspModule extends KotlinModule { outer =>
   }
 
   /**
-   * The classpath when running Kotlin Symbol processing
-   *
-   * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
-   */
-  def kspClasspath: T[Seq[PathRef]] = Task {
-    super.compileClasspath()
-  }
-
-  /**
-   * Kotlinc arguments used with KSP
+   * Kotlinc arguments used with KSP. Sets the language version for the
+   * ksp processing stage using [[kspLanguageVersion]]. [[kspLanguageVersion]] needs
+   * to be 1.9 or earlier for KSP 1.x.
    * @return
    */
   def kspKotlincOptions: T[Seq[String]] = Task {
-    if (kotlinLanguageVersion().isBlank) {
-      throw new RuntimeException("KSP needs a compatible language version to be set!")
+    if (!kspLanguageVersion().startsWith("1.")) {
+      throw new RuntimeException("KSP needs a compatible language version <= 1.9 to be set!")
     }
     kotlincOptions() ++ Seq(
       "-Xallow-unstable-dependencies",
       "-no-reflect",
       "-no-stdlib",
       "-language-version",
-      kotlinLanguageVersion()
+      kspLanguageVersion()
     )
   }
 
-  /**
-   * Any extra plugin parameters to be passed to the KSP plugin.
-   * These depend on the plugin being used and the relevant plugin docs
-   * should be consulted.
-   *
-   * For example see [[AndroidHiltSupport]]
-   * @return
-   */
+  @deprecated("Use `kspProcessorOptions`")
   def kspPluginParameters: T[Seq[String]] = Task {
     Seq.empty
   }
@@ -152,17 +119,20 @@ trait KspModule extends KotlinModule { outer =>
 
     val apClasspath = kotlinSymbolProcessorsResolved().map(_.path).mkString(File.pathSeparator)
 
-    val kspProjectBasedDir = moduleDir
-    val kspOutputDir = Task.dest / "generated/ksp/main"
+    val kspPluginParameters = kspProcessorOptions().map {
+      case (key, value) => s"apoption=$key=$value"
+    }.toSeq
 
-    val kspCachesDir = Task.dest / "caches/main"
+    val kspOutputDir = Task.dest / "generated"
+
+    val kspCachesDir = Task.dest / "caches"
     val java = kspOutputDir / "java"
     val kotlin = kspOutputDir / "kotlin"
     val resources = kspOutputDir / "resources"
     val classes = kspOutputDir / "classes"
     val pluginConfigs = Seq(
       s"$pluginOpt:apclasspath=$apClasspath",
-      s"$pluginOpt:projectBaseDir=${kspProjectBasedDir}",
+      s"$pluginOpt:projectBaseDir=${moduleDir.toString}",
       s"$pluginOpt:classOutputDir=${classes}",
       s"$pluginOpt:javaOutputDir=${java}",
       s"$pluginOpt:kotlinOutputDir=${kotlin}",
@@ -174,7 +144,7 @@ trait KspModule extends KotlinModule { outer =>
       s"$pluginOpt:allWarningsAsErrors=false",
       s"$pluginOpt:returnOkOnError=true",
       s"$pluginOpt:mapAnnotationArgumentsInJava=false"
-    ) ++ kspPluginParameters().map(p => s"$pluginOpt:$p")
+    ) ++ kspPluginParameters.map(p => s"$pluginOpt:$p")
 
     val kspCompilerArgs =
       kspKotlincOptions() ++ Seq(xPluginArg) ++ Seq("-P", pluginConfigs.mkString(","))
