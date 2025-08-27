@@ -209,10 +209,11 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * Picks all jni deps from the resolved dependencies to be packaged into the APK.
    * @return
    */
-  def androidPackageableNativeLibs: T[Seq[AndroidPackageableExtraFile]] = Task {
+  def androidPackageableNativeDeps: T[Seq[AndroidPackageableExtraFile]] = Task {
     androidTransformAarFiles(resolvedRunMvnDeps)().flatMap {
       unpackedDep =>
-        unpackedDep.nativeLibs.toList.flatMap(lib => os.list(lib.path))
+        unpackedDep.nativeLibs.toList.filter(pr => os.exists(pr.path))
+          .flatMap(lib => os.list(lib.path))
     }.map(nativeLibDir =>
       AndroidPackageableExtraFile(PathRef(nativeLibDir), "lib" / nativeLibDir.last)
     )
@@ -238,7 +239,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val metaInf = androidPackageMetaInfoFiles().map(asZipSource)
 
-    val nativeLibs = androidPackageableNativeLibs().map(asZipSource)
+    val nativeDeps = androidPackageableNativeDeps().map(asZipSource)
 
     // add all the extra files to the APK
     val extraFiles: Seq[zip.ZipSource] = androidPackageableExtraFiles().map(asZipSource)
@@ -257,7 +258,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     // androidGradlePluginVersion=8.7.2
     os.zip(unsignedApk, dexFiles)
     os.zip(unsignedApk, metaInf)
-    os.zip(unsignedApk, nativeLibs)
+    os.zip(unsignedApk, nativeDeps)
     os.zip(unsignedApk, extraFiles)
 
     PathRef(unsignedApk)
