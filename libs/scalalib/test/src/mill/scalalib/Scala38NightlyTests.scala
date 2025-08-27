@@ -5,7 +5,7 @@ import mill.api.{Discover, ModuleRef}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
-// TODO: Once Scala 3.8.0 is out, we can change this test to use 3.8.0
+// TODO: Once Scala 3.8.0 is out, we can change this test to use 3.8.0 and remove the extra repo
 object Scala38NightlyTests extends TestSuite {
 
   val repo = "https://repo.scala-lang.org/artifactory/maven-nightlies"
