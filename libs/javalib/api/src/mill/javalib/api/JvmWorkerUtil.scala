@@ -153,6 +153,13 @@ object JvmWorkerUtil {
 
   /**
    * Checks whether the version of the scala-library should be `2.13.x` or just match the given `scalaVersion`
+   *
+   * Background:
+   * To help in Scala 3 adoption and ensure binary compatibility,
+   * Scala 3.x up to 3.7.x used the same Scala standard library as Scala 2.13.
+   * Since this also hinders further improvements of the standard library,
+   * Scala 3.8 will ship with a newer library build with a Scala 3 compiler.
+   *
    * @param scalaVersion The Scala version
    * @return `true` if the scala-library version should be enforced to be a `2.13.`
    */
