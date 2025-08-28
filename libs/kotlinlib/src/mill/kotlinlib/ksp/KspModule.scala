@@ -1,18 +1,374 @@
 package mill.kotlinlib.ksp
 
+import coursier.core.VariantSelector.VariantMatcher
+import coursier.params.ResolutionParams
+import mill.*
+import mill.api.{PathRef, Task}
+import mill.kotlinlib.worker.api.KotlinWorkerTarget
+import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
+import mill.util.Jvm
+
+import java.io.File
+
 /**
- * Sets up the kotlin compiler for using KSP (Kotlin Symbol Processing)
- * by plugging in the symbol-processing and symbol-processing-api dependencies.
+ * Trait for KSP (Kotlin Symbol Processing) modules.
  *
- * Use of kotlin-compiler-embedded is also recommended (and thus enabled by default)
+ * To use KSP 2, which supports Kotlin 2.0 and later, use `def ksmModuleMode = Ksp2Cli`.
+ * KSP 2 Documentation: https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md
+ *
+ * For the older KSP 1 which supports Kotlin up to 1.9, use `def kspModuleMode = Ksp1`.
+ * For KSP 1, the use of kotlin-compiler-embedded is also recommended (and thus enabled by default)
  * to avoid any classpath conflicts between the compiler and user defined plugins!
- *
- * This module is based on KSP 1.x which relies on language version 1.9 or earlier.
- * For KSP 2.x, use [[Ksp2Module]] instead.
  */
 @mill.api.experimental
-trait KspModule extends KspBaseModule {
+trait KspModule extends KotlinModule { outer =>
 
-  def kspModuleMode: KspModuleMode = KspModuleMode.Ksp1
+  def kspModuleMode: KspModuleMode = KspModuleMode.Ksp2Cli
 
+  /**
+   * The version of the symbol processing library to use, which needs to be compatible with
+   * the Kotlin version used.
+   *
+   * For finding the right versions, also see [[https://github.com/google/ksp/releases]]
+   *
+   * @return
+   */
+  def kspVersion: T[String] = kotlinVersion()
+
+  /**
+   * The version of the Kotlin language to use for the KSP stage.
+   * For KSP 1.x, this should be 1.9 or earlier.
+   * For KSP 2.x, this should be 2.0 or later.
+   *
+   * The KSP language version used for the KSP compilation stage.
+   * * [[kspApiVersion]] must be less than or equal to this version.
+   */
+  def kspLanguageVersion: T[String] = Task { kspVersion().split("[.]").take(2).mkString(".") }
+
+  /**
+   * The KSP api version used for the KSP compilation stage.
+   */
+  def kspApiVersion: T[String] = kspLanguageVersion()
+
+  /**
+   * The JVM target version for the KSP compilation step.
+   */
+  def kspJvmTarget: T[String]
+
+  /**
+   * The symbol processors to be used by the Kotlin compiler.
+   * Default is empty.
+   */
+  def kotlinSymbolProcessors: T[Seq[Dep]] = Task {
+    Seq.empty[Dep]
+  }
+
+  /**
+   * Resolved classpath for the symbol processors.
+   */
+  def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      kotlinSymbolProcessors()
+    )
+  }
+
+  private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
+    params.addVariantAttributes(
+      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
+      "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
+    )
+  }
+
+  /**
+   * The classpath when running Kotlin Symbol processing. Default is this module's compile classpath.
+   */
+  def kspClasspath: T[Seq[PathRef]] = compileClasspath()
+
+  /**
+   * Processor options to be passed to KSP.
+   */
+  def kspProcessorOptions: T[Map[String, String]] = Task {
+    Map.empty[String, String]
+  }
+
+  /**
+   * The module name to be used by KSP.
+   * Default is the same as the module name of this module.
+   */
+  def kspModuleName = moduleSegments.render
+
+  /**
+   * The sources for being used in KSP, in case
+   * the user wants to separate KSP specific sources
+   * from others. Defaults to [[sources]] (i.e. no splitting)
+   */
+  def kspSources: T[Seq[PathRef]] = Task {
+    sources()
+  }
+
+  override def kotlinUseEmbeddableCompiler: Task[Boolean] = kspModuleMode match {
+    case KspModuleMode.Ksp1 => Task { true }
+    case KspModuleMode.Ksp2Cli => Task { super.kotlinUseEmbeddableCompiler() }
+  }
+
+  /**
+   * Generated sources from KSP processing.
+   * There are 2 implementations: Extend [[KspModule]] for KSP 1.x and [[Ksp2Module]] for KSP 2.x.
+   * Typically, with Kotlin >=2.0 Ksp2Module should be used and with Kotlin <=1.9 KspModule should be used.
+   * You can also use KspModule with Kotlin 2.x but that you will need to set the kspLanguageVersion to 1.9 or earlier.
+   */
+  def generatedSourcesWithKsp: T[GeneratedKspSources] = kspModuleMode match {
+    case KspModuleMode.Ksp1 => generatedSourcesWithKsp1()
+    case KspModuleMode.Ksp2Cli => generatedSourcesWithKsp2Cli()
+  }
+
+  override def generatedSources: T[Seq[PathRef]] = Task {
+    super.generatedSources() ++ generatedSourcesWithKsp().sources
+  }
+
+  ///////////////////////////////////////////////
+  // KSP 1 tasks
+
+  /**
+   * Kotlinc arguments used with KSP. Sets the language version for the
+   * ksp processing stage using [[kspLanguageVersion]]. [[kspLanguageVersion]] needs
+   * to be 1.9 or earlier for KSP 1.x.
+   *
+   * @return
+   */
+  def ksp1KotlincOptions: T[Seq[String]] = Task {
+    if (!kspLanguageVersion().startsWith("1.")) {
+      throw new RuntimeException("KSP needs a compatible language version <= 1.9 to be set!")
+    }
+    kotlincOptions() ++ Seq(
+      "-Xallow-unstable-dependencies",
+      "-no-reflect",
+      "-no-stdlib",
+      "-language-version",
+      kspLanguageVersion()
+    )
+  }
+
+  /**
+   * Mandatory plugins that are needed for KSP to work.
+   * These are:
+   * - com.google.devtools.ksp:symbol-processing-api
+   * - com.google.devtools.ksp:symbol-processing
+   *
+   * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
+   */
+  def ksp1Plugins: T[Seq[Dep]] = Task {
+    Seq(
+      mvn"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${kspVersion()}",
+      mvn"com.google.devtools.ksp:symbol-processing:${kotlinVersion()}-${kspVersion()}"
+    )
+  }
+
+  /** The symbol processing plugin id */
+  private val ksp1PluginId: String = "com.google.devtools.ksp.symbol-processing"
+
+  def ksp1PluginsResolved: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      ksp1Plugins(),
+      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
+    )
+  }
+
+  /**
+   * The Kotlin compile task with KSP.
+   * This task should run as part of the [[generatedSources]] task to
+   * so that the generated  sources are in the [[compileClasspath]]
+   * for the main compile task.
+   */
+  def generatedSourcesWithKsp1: T[GeneratedKspSources] = Task {
+    val sourceFiles = kspSources().map(_.path).filter(os.exists)
+
+    val compileCp = kspClasspath().map(_.path).filter(os.exists)
+
+    val pluginArgs: String = ksp1PluginsResolved().map(_.path)
+      .mkString(",")
+
+    val xPluginArg = s"-Xplugin=$pluginArgs"
+
+    val pluginOpt = s"plugin:${ksp1PluginId}"
+
+    val apClasspath = kotlinSymbolProcessorsResolved().map(_.path).mkString(File.pathSeparator)
+
+    val kspPluginParameters = kspProcessorOptions().map {
+      case (key, value) => s"apoption=$key=$value"
+    }.toSeq
+
+    val kspOutputDir = Task.dest / "generated"
+
+    val kspCachesDir = Task.dest / "caches"
+    val java = kspOutputDir / "java"
+    val kotlin = kspOutputDir / "kotlin"
+    val resources = kspOutputDir / "resources"
+    val classes = kspOutputDir / "classes"
+    val pluginConfigs = Seq(
+      s"$pluginOpt:apclasspath=$apClasspath",
+      s"$pluginOpt:projectBaseDir=${moduleDir.toString}",
+      s"$pluginOpt:classOutputDir=${classes}",
+      s"$pluginOpt:javaOutputDir=${java}",
+      s"$pluginOpt:kotlinOutputDir=${kotlin}",
+      s"$pluginOpt:resourceOutputDir=${resources}",
+      s"$pluginOpt:kspOutputDir=${kspOutputDir}",
+      s"$pluginOpt:cachesDir=${kspCachesDir}",
+      s"$pluginOpt:incremental=true",
+      s"${pluginOpt}:incrementalLog=false",
+      s"$pluginOpt:allWarningsAsErrors=false",
+      s"$pluginOpt:returnOkOnError=true",
+      s"$pluginOpt:mapAnnotationArgumentsInJava=false"
+    ) ++ kspPluginParameters.map(p => s"$pluginOpt:$p")
+
+    val kspCompilerArgs =
+      ksp1KotlincOptions() ++ Seq(xPluginArg) ++ Seq("-P", pluginConfigs.mkString(","))
+
+    Task.log.info(
+      s"Running Kotlin Symbol Processing for ${sourceFiles.size} Kotlin sources to ${kspOutputDir} ..."
+    )
+
+    val compiledSources = Task.dest / "compiled"
+    os.makeDir.all(compiledSources)
+
+    val classpath = Seq(
+      // destdir
+      "-d",
+      compiledSources.toString,
+      // classpath
+      "-classpath",
+      compileCp.iterator.mkString(File.pathSeparator)
+    )
+
+    val compilerArgs: Seq[String] = classpath ++ kspCompilerArgs ++ sourceFiles.map(_.toString)
+
+    Task.log.info(s"KSP arguments: ${compilerArgs.mkString(" ")}")
+
+    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
+      _.compile(KotlinWorkerTarget.Jvm, compilerArgs)
+    }
+
+    GeneratedKspSources(PathRef(java), PathRef(kotlin), PathRef(resources), PathRef(classes))
+  }
+
+  ///////////////////////////////////////////////
+  // KSP 2 tasks
+
+  /**
+   * Any extra args passed to the KSP (when run in forked mode)
+   * com.google.devtools.ksp.cmdline.KSPJvmMain
+   *
+   * For more info go to [[https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md]]
+   *
+   * @return
+   */
+  def ksp2Args: T[Seq[String]] = Task {
+    Seq.empty[String]
+  }
+
+  /**
+   * The jars needed to run KSP 2 via `com.google.devtools.ksp.cmdline.KSPJvmMain` .
+   *
+   * The versions are computed from [[kotlinVersion]]-[[kspVersion]]
+   *
+   * For finding the right versions, also see [[https://github.com/google/ksp/releases]]
+   * For more info go to [[https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md]]
+   */
+  def ksp2ToolsDeps: T[Seq[Dep]] = Task {
+    Seq(
+      mvn"com.google.devtools.ksp:symbol-processing-aa-embeddable:${kotlinVersion()}-${kspVersion()}",
+      mvn"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${kspVersion()}",
+      mvn"com.google.devtools.ksp:symbol-processing-common-deps:${kotlinVersion()}-${kspVersion()}",
+      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2"
+    )
+  }
+
+  def ksp2ToolsDepsClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      ksp2ToolsDeps(),
+      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
+    )
+  }
+
+  /**
+   * The Kotlin compile task with KSP.
+   * This task should run as part of the [[generatedSources]] task to
+   * so that the generated  sources are in the [[compileClasspath]]
+   * for the main compile task.
+   */
+  private def generatedSourcesWithKsp2Cli: T[GeneratedKspSources] = Task {
+
+    val processorResolvedClasspath = kotlinSymbolProcessorsResolved().map(_.path)
+    val processorClasspath = processorResolvedClasspath.mkString(File.pathSeparator)
+
+    val kspOutputDir = Task.dest / "generated"
+    val java = kspOutputDir / "java"
+    val kotlin = kspOutputDir / "kotlin"
+    val resources = kspOutputDir / "resources"
+    val classes = kspOutputDir / "classes"
+    val kspCachesDir = Task.dest / "caches"
+
+    val processorOptionsValue =
+      kspProcessorOptions().map((key, value) => s"$key=$value").toSeq.mkString(File.pathSeparator)
+
+    val processorOptions = if (processorOptionsValue.isEmpty)
+      ""
+    else
+      s"-processor-options=${processorOptionsValue}"
+    val args = Seq(
+      s"-module-name=${kspModuleName}",
+      "-jvm-target",
+      kspJvmTarget(),
+      s"-jdk-home=${System.getProperty("java.home")}",
+      s"-source-roots=${kspSources().map(_.path).mkString(File.pathSeparator)}",
+      s"-project-base-dir=${moduleDir.toString}",
+      s"-output-base-dir=${kspOutputDir}",
+      s"-caches-dir=${kspCachesDir}",
+      s"-libraries=${kspClasspath().map(_.path).mkString(File.pathSeparator)}",
+      s"-class-output-dir=${classes}",
+      s"-kotlin-output-dir=${kotlin}",
+      s"-java-output-dir=${java}",
+      s"-resource-output-dir=${resources}",
+      s"-language-version=${kspLanguageVersion()}",
+      s"-incremental=true",
+      s"-incremental-log=true",
+      s"-api-version=${kspApiVersion()}",
+      processorOptions,
+      s"-map-annotation-arguments-in-java=false"
+    ) ++ ksp2Args() :+ processorClasspath
+
+    val kspJvmMainClasspath = ksp2ToolsDepsClasspath().map(_.path)
+    val mainClass = "com.google.devtools.ksp.cmdline.KSPJvmMain"
+    Task.log.debug(
+      s"Running Kotlin Symbol Processing with java -cp ${kspJvmMainClasspath.mkString(File.pathSeparator)} ${mainClass} ${args.mkString(" ")}"
+    )
+
+    val jvmCall = Jvm.callProcess(
+      mainClass = mainClass,
+      classPath = kspJvmMainClasspath,
+      mainArgs = args
+    )
+
+    Task.log.info(
+      s"KSP finished with exit code: ${jvmCall.exitCode}"
+    )
+
+    Task.log.info(
+      s"KSP output: ${jvmCall.out.text()}"
+    )
+
+    GeneratedKspSources(PathRef(java), PathRef(kotlin), PathRef(resources), PathRef(classes))
+
+  }
+
+  /**
+   * A test sub-module linked to its parent module best suited for unit-tests.
+   */
+  trait KspTests extends KspModule with KotlinTests {
+    override def kspModuleMode: KspModuleMode = outer.kspModuleMode
+    override def kspVersion: T[String] = outer.kspVersion()
+    override def kspLanguageVersion: T[String] = outer.kspLanguageVersion()
+    override def kspApiVersion: T[String] = outer.kspApiVersion()
+    override def kspJvmTarget: T[String] = outer.kspJvmTarget()
+  }
 }
