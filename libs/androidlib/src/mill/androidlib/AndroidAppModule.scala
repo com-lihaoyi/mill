@@ -10,6 +10,7 @@ import mill.api.JsonFormatters.given
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import os.{Path, RelPath, zip}
+import os.RelPath.stringRelPathValidated
 import upickle.default.*
 import scala.concurrent.duration.*
 
@@ -205,6 +206,19 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
+   * Picks all jni deps from the resolved dependencies to be packaged into the APK.
+   */
+  def androidPackageableNativeDeps: T[Seq[AndroidPackageableExtraFile]] = Task {
+    androidTransformAarFiles(resolvedRunMvnDeps)().flatMap {
+      unpackedDep =>
+        unpackedDep.nativeLibs.toList.filter(pr => os.exists(pr.path))
+          .flatMap(lib => os.list(lib.path))
+    }.map(nativeLibDir =>
+      AndroidPackageableExtraFile(PathRef(nativeLibDir), "lib" / nativeLibDir.last)
+    )
+  }
+
+  /**
    * Packages DEX files and Android resources into an unsigned APK.
    *
    * @return A `PathRef` to the generated unsigned APK file (`app.unsigned.apk`).
@@ -217,14 +231,17 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .filter(_.ext == "dex")
       .map(os.zip.ZipSource.fromPath)
 
-    val metaInf = androidPackageMetaInfoFiles().map(extraFile =>
-      os.zip.ZipSource.fromPathTuple((extraFile.source.path, extraFile.destination.asSubPath))
-    )
+    def asZipSource(androidPackageableExtraFile: AndroidPackageableExtraFile): os.zip.ZipSource =
+      os.zip.ZipSource.fromPathTuple(
+        (androidPackageableExtraFile.source.path, androidPackageableExtraFile.destination.asSubPath)
+      )
+
+    val metaInf = androidPackageMetaInfoFiles().map(asZipSource)
+
+    val nativeDeps = androidPackageableNativeDeps().map(asZipSource)
 
     // add all the extra files to the APK
-    val extraFiles: Seq[zip.ZipSource] = androidPackageableExtraFiles().map(extraFile =>
-      os.zip.ZipSource.fromPathTuple((extraFile.source.path, extraFile.destination.asSubPath))
-    )
+    val extraFiles: Seq[zip.ZipSource] = androidPackageableExtraFiles().map(asZipSource)
 
     // TODO generate aar-metadata.properties (for lib distribution, not in this module) or
     //  app-metadata.properties (for app distribution).
@@ -240,6 +257,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     // androidGradlePluginVersion=8.7.2
     os.zip(unsignedApk, dexFiles)
     os.zip(unsignedApk, metaInf)
+    os.zip(unsignedApk, nativeDeps)
     os.zip(unsignedApk, extraFiles)
 
     PathRef(unsignedApk)
