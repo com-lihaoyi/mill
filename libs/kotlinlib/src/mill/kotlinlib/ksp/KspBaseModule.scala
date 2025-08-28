@@ -114,13 +114,13 @@ trait KspBaseModule extends KotlinModule { outer =>
    * Typically, with Kotlin >=2.0 Ksp2Module should be used and with Kotlin <=1.9 KspModule should be used.
    * You can also use KspModule with Kotlin 2.x but that you will need to set the kspLanguageVersion to 1.9 or earlier.
    */
-  def generatedSourcesWithKSP: T[GeneratedKSPSources] = kspModuleMode match {
+  def generatedSourcesWithKsp: T[GeneratedKSPSources] = kspModuleMode match {
     case KspModuleMode.Ksp1 => generatedSourcesWithKsp1()
     case KspModuleMode.Ksp2Cli => generatedSourcesWithKsp2Cli()
   }
 
   override def generatedSources: T[Seq[PathRef]] = Task {
-    super.generatedSources() ++ generatedSourcesWithKSP().sources
+    super.generatedSources() ++ generatedSourcesWithKsp().sources
   }
 
   ///////////////////////////////////////////////
