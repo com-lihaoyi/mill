@@ -535,7 +535,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   def createAndroidVirtualDevice(): Command[String] = Task.Command(exclusive = true) {
     val command = os.call((
-      androidSdkModule().avdExe().path,
+      androidSdkModule().avdmanagerExe().path,
       "create",
       "avd",
       "--name",
@@ -558,7 +558,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   def deleteAndroidVirtualDevice: T[os.CommandResult] = Task {
     os.call((
-      androidSdkModule().avdExe().path,
+      androidSdkModule().avdmanagerExe().path,
       "delete",
       "avd",
       "--name",
