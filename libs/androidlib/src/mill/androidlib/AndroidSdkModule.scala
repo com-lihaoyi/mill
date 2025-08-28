@@ -357,20 +357,20 @@ trait AndroidSdkModule extends Module {
     }
   }
 
-  case class CmdlineTools(
+  case class CmdlineToolsComponents(
       basePath: os.Path,
       avdmanagerExe: PathRef,
       r8Exe: PathRef,
       sdkmanagerExe: PathRef,
       lintExe: PathRef
-  )
+  ) derives upickle.default.ReadWriter
 
   /**
    * Provides the path for the Cmdline Tools, which is essential for managing Android SDK components.
    * Downloads if missing.
    * @return A task containing a [[PathRef]] pointing to the SDK directory.
    */
-  private def cmdlineTools: Task[CmdlineTools] = Task.Anon {
+  private def cmdlineTools: Task[CmdlineToolsComponents] = Task {
     AndroidCmdlineToolsLock.synchronized {
       val cmdlineToolsVersionShort = cmdlineToolsVersion()
       val basePath = sdkPath() / "cmdline-tools" / cmdlineToolsVersionShort
@@ -396,7 +396,7 @@ trait AndroidSdkModule extends Module {
       }
 
       PathRef(basePath)
-      CmdlineTools(
+      CmdlineToolsComponents(
         basePath = basePath,
         avdmanagerExe = toolPathRef(basePath / "bin/avdmanager"),
         r8Exe = toolPathRef(basePath / "bin/r8"),
