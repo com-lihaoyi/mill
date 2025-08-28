@@ -388,7 +388,6 @@ trait AndroidSdkModule extends Module {
         )
       }
 
-      PathRef(basePath)
       CmdlineToolsComponents(
         basePath = basePath,
         avdmanagerExe = toolPathRef(basePath / "bin/avdmanager"),
