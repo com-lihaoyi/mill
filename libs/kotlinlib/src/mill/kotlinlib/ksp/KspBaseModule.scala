@@ -92,15 +92,12 @@ trait KspBaseModule extends KotlinModule { outer =>
   def kspModuleName = moduleSegments.render
 
   /**
-   * Any extra args passed to the KSP (when run in forked mode)
-   * com.google.devtools.ksp.cmdline.KSPJvmMain
-   *
-   * For more info go to [[https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md]]
-   *
-   * @return
+   * The sources for being used in KSP, in case
+   * the user wants to separate KSP specific sources
+   * from others. Defaults to [[sources]] (i.e. no splitting)
    */
-  def ksp2Args: T[Seq[String]] = Task {
-    Seq.empty[String]
+  def kspSources: T[Seq[PathRef]] = Task {
+    sources()
   }
 
   override def kotlinUseEmbeddableCompiler: Task[Boolean] = kspModuleMode match {
@@ -125,15 +122,6 @@ trait KspBaseModule extends KotlinModule { outer =>
 
   ///////////////////////////////////////////////
   // KSP 1 tasks
-
-  /**
-   * The sources for being used in KSP, in case
-   * the user wants to separate KSP specific sources
-   * from others. Defaults to [[sources]] (i.e. no splitting)
-   */
-  def ksp1Sources: T[Seq[PathRef]] = Task {
-    sources()
-  }
 
   /**
    * Kotlinc arguments used with KSP. Sets the language version for the
@@ -187,7 +175,7 @@ trait KspBaseModule extends KotlinModule { outer =>
    * for the main compile task.
    */
   def generatedSourcesWithKsp1: T[GeneratedKspSources] = Task {
-    val sourceFiles = ksp1Sources().map(_.path).filter(os.exists)
+    val sourceFiles = kspSources().map(_.path).filter(os.exists)
 
     val compileCp = kspClasspath().map(_.path).filter(os.exists)
 
@@ -261,6 +249,18 @@ trait KspBaseModule extends KotlinModule { outer =>
   // KSP 2 tasks
 
   /**
+   * Any extra args passed to the KSP (when run in forked mode)
+   * com.google.devtools.ksp.cmdline.KSPJvmMain
+   *
+   * For more info go to [[https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md]]
+   *
+   * @return
+   */
+  def ksp2Args: T[Seq[String]] = Task {
+    Seq.empty[String]
+  }
+
+  /**
    * The jars needed to run KSP 2 via `com.google.devtools.ksp.cmdline.KSPJvmMain` .
    *
    * The versions are computed from [[kotlinVersion]]-[[kspVersion]]
@@ -314,7 +314,7 @@ trait KspBaseModule extends KotlinModule { outer =>
       "-jvm-target",
       kspJvmTarget(),
       s"-jdk-home=${System.getProperty("java.home")}",
-      s"-source-roots=${sources().map(_.path).mkString(File.pathSeparator)}",
+      s"-source-roots=${kspSources().map(_.path).mkString(File.pathSeparator)}",
       s"-project-base-dir=${moduleDir.toString}",
       s"-output-base-dir=${kspOutputDir}",
       s"-caches-dir=${kspCachesDir}",
