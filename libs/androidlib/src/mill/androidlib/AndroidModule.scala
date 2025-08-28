@@ -601,7 +601,6 @@ trait AndroidModule extends JavaModule { outer =>
     val aapt2Link = Seq(androidSdkModule().aapt2Exe().path.toString(), "link")
 
     val linkArgs = Seq(
-      s"@$argFile",
       "-I",
       androidSdkModule().androidJarPath().path.toString,
       "--manifest",
@@ -623,7 +622,9 @@ trait AndroidModule extends JavaModule { outer =>
       "--proguard-conditional-keep-rules"
     ) ++ androidAaptOptions() ++ Seq(
       "-o",
-      resApkFile.toString
+      resApkFile.toString,
+      "-R",
+      "@" + argFile.toString
     )
 
     Task.log.info((aapt2Link ++ linkArgs).mkString(" "))

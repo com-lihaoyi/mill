@@ -635,7 +635,7 @@ object AndroidSdkModule {
       if (isWindows && path.ext.isEmpty) {
         Seq("exe", "bat").foreach { ext =>
           // try to find the tool with extension
-          val winPath = os.Path(path.toString + ext)
+          val winPath = os.Path(s"${path.toString}.$ext")
           if (os.exists(winPath)) {
             boundary.break(PathRef(winPath).withRevalidateOnce)
           }
