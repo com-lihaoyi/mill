@@ -119,6 +119,22 @@ trait KspBaseModule extends KotlinModule { outer =>
     case KspModuleMode.Ksp2Cli => generatedSourcesWithKsp2Cli()
   }
 
+  override def generatedSources: T[Seq[PathRef]] = Task {
+    super.generatedSources() ++ generatedSourcesWithKSP().sources
+  }
+
+  ///////////////////////////////////////////////
+  // KSP 1 tasks
+
+  /**
+   * The sources for being used in KSP, in case
+   * the user wants to separate KSP specific sources
+   * from others. Defaults to [[sources]] (i.e. no splitting)
+   */
+  def ksp1Sources: T[Seq[PathRef]] = Task {
+    sources()
+  }
+
   /**
    * Kotlinc arguments used with KSP. Sets the language version for the
    * ksp processing stage using [[kspLanguageVersion]]. [[kspLanguageVersion]] needs
@@ -139,21 +155,6 @@ trait KspBaseModule extends KotlinModule { outer =>
     )
   }
 
-  override def generatedSources: T[Seq[PathRef]] = Task {
-    super.generatedSources() ++ generatedSourcesWithKSP().sources
-  }
-
-  ///////////////////////////////////////////////
-  // KSP 1 tasks
-
-  /**
-   * The sources for being used in KSP, in case
-   * the user wants to separate KSP specific sources
-   * from others. Defaults to [[sources]] (i.e. no splitting)
-   */
-  def ksp1Sources: T[Seq[PathRef]] = Task {
-    sources()
-  }
 
   /**
    * Mandatory plugins that are needed for KSP to work.
