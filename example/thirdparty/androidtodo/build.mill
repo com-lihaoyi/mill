@@ -109,7 +109,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  object test extends Ksp2Tests, AndroidHiltSupport, TestModule.Junit4 {
+  object test extends Ksp2Tests, AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4 {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
 
