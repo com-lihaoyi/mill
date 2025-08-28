@@ -1031,12 +1031,47 @@ node31 -> node0;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="kspDeps-0">
+        <div class="documentableElement" id="kspLanguageVersion-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Ksp2Module.html#kspDeps-0" t="n" class="documentableName ">kspDeps</a>: <a href="../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../kotlinlib.html#Dep-0" t="t">Dep</a>]]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Ksp2Module.html#kspLanguageVersion-0" t="n" class="documentableName ">kspLanguageVersion</a>: <a href="../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The kotlin language version used for the KSP compilation stage. <a href="Ksp2Module.html#kspApiVersion-0">kspApiVersion</a> must be less than or equal to this version.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The kotlin language version used for the KSP compilation stage. <a href="Ksp2Module.html#kspApiVersion-0">kspApiVersion</a> must be less than or equal to this version.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/kotlinlib/src/mill/kotlinlib/ksp/Ksp2Module.scala" target="_blank">Ksp2Module.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="kspToolsDeps-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Ksp2Module.html#kspToolsDeps-0" t="n" class="documentableName ">kspToolsDeps</a>: <a href="../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../kotlinlib.html#Dep-0" t="t">Dep</a>]]
            </div>
           </div>
          </div>
@@ -1068,12 +1103,12 @@ node31 -> node0;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="kspDepsResolved-0">
+        <div class="documentableElement" id="kspToolsDepsClasspath-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Ksp2Module.html#kspDepsResolved-0" t="n" class="documentableName ">kspDepsResolved</a>: <a href="../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../api/PathRef.html" t="t">PathRef</a>]]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Ksp2Module.html#kspToolsDepsClasspath-0" t="n" class="documentableName ">kspToolsDepsClasspath</a>: <a href="../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../api/PathRef.html" t="t">PathRef</a>]]
            </div>
           </div>
          </div>
@@ -1084,41 +1119,6 @@ node31 -> node0;
            <div class="memberDocumentation">
             <div class="cover">
              <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/kotlinlib/src/mill/kotlinlib/ksp/Ksp2Module.scala" target="_blank">Ksp2Module.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="kspLanguageVersion-0">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Ksp2Module.html#kspLanguageVersion-0" t="n" class="documentableName ">kspLanguageVersion</a>: <a href="../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>The kotlin language version used for the KSP compilation stage. <a href="Ksp2Module.html#kspApiVersion-0">kspApiVersion</a> must be less than or equal to this version.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>The kotlin language version used for the KSP compilation stage. <a href="Ksp2Module.html#kspApiVersion-0">kspApiVersion</a> must be less than or equal to this version.</p>
-             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
