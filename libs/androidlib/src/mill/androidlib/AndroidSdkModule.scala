@@ -7,6 +7,7 @@ import coursier.util.Artifact
 import mill.*
 import mill.api.{Result, TaskCtx}
 import mill.androidlib.Versions
+import upickle.default.ReadWriter
 
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
@@ -357,14 +358,6 @@ trait AndroidSdkModule extends Module {
     }
   }
 
-  case class CmdlineToolsComponents(
-      basePath: os.Path,
-      avdmanagerExe: PathRef,
-      r8Exe: PathRef,
-      sdkmanagerExe: PathRef,
-      lintExe: PathRef
-  ) derives upickle.default.ReadWriter
-
   /**
    * Provides the path for the Cmdline Tools, which is essential for managing Android SDK components.
    * Downloads if missing.
@@ -413,19 +406,6 @@ trait AndroidSdkModule extends Module {
   def sdkManagerExe: Task[PathRef] = Task {
     cmdlineTools().sdkmanagerExe
   }
-
-  case class AndroidSdkComponents(
-      sdkPath: os.Path,
-      androidJar: PathRef,
-      libs: Seq[PathRef],
-      buildToolsPath: os.Path,
-      d8Exe: PathRef,
-      aapt2Exe: PathRef,
-      zipalignExe: PathRef,
-      apksignerExe: PathRef,
-      adbExe: PathRef,
-      proguardPath: os.Path
-  ) derives upickle.default.ReadWriter
 
   /**
    * Installs the necessary Android SDK components such as platform-tools, build-tools, and Android platforms.
@@ -504,14 +484,6 @@ trait AndroidSdkModule extends Module {
       proguardPath = sdkPath0 / "tools/proguard"
     )
   }
-
-  case class AndroidNdkComponents(
-      ndkVersion: String,
-      ndkPath: os.Path,
-      ninjaExe: PathRef,
-      cmakeExe: PathRef,
-      cmakeToolchainPath: PathRef
-  ) derives upickle.default.ReadWriter
 
   /**
    * Install the Android NDK (Native Development Kit) for building native code.
@@ -613,26 +585,54 @@ private object AndroidCmdlineToolsLock
 
 object AndroidSdkModule {
 
+  case class CmdlineToolsComponents(
+      basePath: os.Path,
+      avdmanagerExe: PathRef,
+      r8Exe: PathRef,
+      sdkmanagerExe: PathRef,
+      lintExe: PathRef
+  ) derives ReadWriter
+
+  case class AndroidSdkComponents(
+      sdkPath: os.Path,
+      androidJar: PathRef,
+      libs: Seq[PathRef],
+      buildToolsPath: os.Path,
+      d8Exe: PathRef,
+      aapt2Exe: PathRef,
+      zipalignExe: PathRef,
+      apksignerExe: PathRef,
+      adbExe: PathRef,
+      proguardPath: os.Path
+  ) derives ReadWriter
+
+  case class AndroidNdkComponents(
+      ndkVersion: String,
+      ndkPath: os.Path,
+      ninjaExe: PathRef,
+      cmakeExe: PathRef,
+      cmakeToolchainPath: PathRef
+  ) derives ReadWriter
+
   /**
    * Declaration of the Maven Google Repository.
    */
   val mavenGoogle: MavenRepository = MavenRepository("https://maven.google.com/")
 
   private def toolPathRef(path: os.Path)(using TaskCtx): PathRef = {
-      if (os.exists(path)) {
-        PathRef(path).withRevalidateOnce
-      } else boundary {
-        if (scala.util.Properties.isWin && path.lastOpt.isEmpty && path.ext != "bat") {
-          Seq("exe", "bat").foreach { ext =>
-            // try to find the tool with extension
-            val winPath = path / os.up / s"${path.last}.$ext"
-            if (os.exists(winPath)) {
-              boundary.break(PathRef(winPath).withRevalidateOnce)
-            }
+    if (os.exists(path)) {
+      PathRef(path).withRevalidateOnce
+    } else boundary {
+      if (scala.util.Properties.isWin && path.lastOpt.isEmpty && path.ext != "bat") {
+        Seq("exe", "bat").foreach { ext =>
+          // try to find the tool with extension
+          val winPath = path / os.up / s"${path.last}.$ext"
+          if (os.exists(winPath)) {
+            boundary.break(PathRef(winPath).withRevalidateOnce)
           }
         }
-        Task.fail(s"Tool at path ${path} does not exist")
       }
+      Task.fail(s"Tool at path ${path} does not exist")
     }
   }
 
