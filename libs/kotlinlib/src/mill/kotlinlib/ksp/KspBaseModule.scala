@@ -155,7 +155,6 @@ trait KspBaseModule extends KotlinModule { outer =>
     )
   }
 
-
   /**
    * Mandatory plugins that are needed for KSP to work.
    * These are:
