@@ -7,12 +7,13 @@ import coursier.util.Artifact
 import mill.*
 import mill.api.{Result, TaskCtx}
 import mill.androidlib.Versions
-import mill.constants.Util.{isJava17OrAbove, isWindows, isLinux, isMac}
+import mill.constants.Util.{isJava17OrAbove, isLinux, isMac, isWindows}
 import upickle.default.ReadWriter
 
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+import scala.util.boundary
 import scala.util.chaining.given
 import scala.xml.XML
 
@@ -308,6 +309,14 @@ trait AndroidSdkModule extends Module {
     s"https://dl.google.com/android/repository/commandlinetools-$platform-${versionLong}_latest.zip"
   }
 
+  /**
+   * Provides the correct path to the sdkmanager executable based on the OS.
+   */
+  private def sdkManagerExePath(cmdlineToolsPath: os.Path): os.Path = {
+    val ext = if (isWindows) ".bat" else ""
+    cmdlineToolsPath / "bin" / s"sdkmanager$ext"
+  }
+
   private def installCmdlineTools(
       sdkPath: os.Path,
       millVersionShort: String,
@@ -317,7 +326,7 @@ trait AndroidSdkModule extends Module {
       autoAcceptLicenses: Boolean
   ) = {
     val millCmdlineToolsPath = sdkPath / "cmdline-tools" / millVersionShort
-    val millSdkManagerExe = sdkToolPath(millCmdlineToolsPath / "bin" / "sdkmanager")
+    val millSdkManagerExe = sdkManagerExePath(millCmdlineToolsPath)
     if (!os.exists(millSdkManagerExe)) {
       val zipDestination = destination / "cmdline-tools.zip"
       os.write(
@@ -367,7 +376,7 @@ trait AndroidSdkModule extends Module {
     AndroidCmdlineToolsLock.synchronized {
       val cmdlineToolsVersionShort = cmdlineToolsVersion()
       val basePath = sdkPath() / "cmdline-tools" / cmdlineToolsVersionShort
-      val sdkmanagerPath = basePath / "bin/sdkmanager"
+      val sdkmanagerPath = sdkManagerExePath(basePath)
 
       if (!os.exists(basePath)) {
         Task.log.info(
@@ -381,7 +390,7 @@ trait AndroidSdkModule extends Module {
           Task.dest,
           autoAcceptLicenses()
         )
-      } else if (!os.exists(sdkToolPath(sdkmanagerPath))) {
+      } else if (!os.exists(sdkmanagerPath)) {
         throw new IllegalStateException(
           s"$basePath exists but is not setup correctly. " +
             "Please remove it and retry or fix the installation manually (e.g. via Android Studio)."
@@ -619,22 +628,20 @@ object AndroidSdkModule {
    */
   val mavenGoogle: MavenRepository = MavenRepository("https://maven.google.com/")
 
-  /**
-   * Used for SDK tools that require a `.bat` extension on Windows.
-   */
-  private def sdkToolPath(path: os.Path, ext: String = ".bat"): os.Path = {
-    if isWindows && path.ext.isEmpty then os.Path(path.toString + ext)
-    else path
-  }
-
   private def toolPathRef(path: os.Path)(using TaskCtx): PathRef = {
-    if (os.exists(path)) PathRef(path).withRevalidateOnce
-    else {
-      val bat = sdkToolPath(path)
-      val exe = sdkToolPath(path, ".exe")
-      if (os.exists(bat)) PathRef(bat).withRevalidateOnce
-      else if (os.exists(exe)) PathRef(exe).withRevalidateOnce
-      else Task.fail(s"Tool at path ${path} does not exist")
+    if (os.exists(path)) {
+      PathRef(path).withRevalidateOnce
+    } else boundary {
+      if (isWindows && path.ext.isEmpty) {
+        Seq("exe", "bat").foreach { ext =>
+          // try to find the tool with extension
+          val winPath = os.Path(path.toString + ext)
+          if (os.exists(winPath)) {
+            boundary.break(PathRef(winPath).withRevalidateOnce)
+          }
+        }
+      }
+      Task.fail(s"Tool at path ${path} does not exist")
     }
   }
 
