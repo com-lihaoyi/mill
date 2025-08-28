@@ -35,7 +35,7 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with: { fetch-depth: 0 }
 
       - run: "echo temurin:11 > .mill-jvm-version"
