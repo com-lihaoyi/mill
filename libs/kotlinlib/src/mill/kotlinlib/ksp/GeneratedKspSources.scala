@@ -3,7 +3,7 @@ package mill.kotlinlib.ksp
 import mill.api.PathRef
 import upickle.default.ReadWriter
 
-case class GeneratedKSPSources(
+case class GeneratedKspSources(
     java: PathRef,
     kotlin: PathRef,
     resources: PathRef,

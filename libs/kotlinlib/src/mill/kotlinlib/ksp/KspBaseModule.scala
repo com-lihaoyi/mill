@@ -114,7 +114,7 @@ trait KspBaseModule extends KotlinModule { outer =>
    * Typically, with Kotlin >=2.0 Ksp2Module should be used and with Kotlin <=1.9 KspModule should be used.
    * You can also use KspModule with Kotlin 2.x but that you will need to set the kspLanguageVersion to 1.9 or earlier.
    */
-  def generatedSourcesWithKsp: T[GeneratedKSPSources] = kspModuleMode match {
+  def generatedSourcesWithKsp: T[GeneratedKspSources] = kspModuleMode match {
     case KspModuleMode.Ksp1 => generatedSourcesWithKsp1()
     case KspModuleMode.Ksp2Cli => generatedSourcesWithKsp2Cli()
   }
@@ -186,7 +186,7 @@ trait KspBaseModule extends KotlinModule { outer =>
    * so that the generated  sources are in the [[compileClasspath]]
    * for the main compile task.
    */
-  def generatedSourcesWithKsp1: T[GeneratedKSPSources] = Task {
+  def generatedSourcesWithKsp1: T[GeneratedKspSources] = Task {
     val sourceFiles = ksp1Sources().map(_.path).filter(os.exists)
 
     val compileCp = kspClasspath().map(_.path).filter(os.exists)
@@ -254,7 +254,7 @@ trait KspBaseModule extends KotlinModule { outer =>
       _.compile(KotlinWorkerTarget.Jvm, compilerArgs)
     }
 
-    GeneratedKSPSources(PathRef(java), PathRef(kotlin), PathRef(resources), PathRef(classes))
+    GeneratedKspSources(PathRef(java), PathRef(kotlin), PathRef(resources), PathRef(classes))
   }
 
   ///////////////////////////////////////////////
@@ -290,7 +290,7 @@ trait KspBaseModule extends KotlinModule { outer =>
    * so that the generated  sources are in the [[compileClasspath]]
    * for the main compile task.
    */
-  private def generatedSourcesWithKsp2Cli: T[GeneratedKSPSources] = Task {
+  private def generatedSourcesWithKsp2Cli: T[GeneratedKspSources] = Task {
 
     val processorResolvedClasspath = kotlinSymbolProcessorsResolved().map(_.path)
     val processorClasspath = processorResolvedClasspath.mkString(File.pathSeparator)
@@ -351,7 +351,7 @@ trait KspBaseModule extends KotlinModule { outer =>
       s"KSP output: ${jvmCall.out.text()}"
     )
 
-    GeneratedKSPSources(PathRef(java), PathRef(kotlin), PathRef(resources), PathRef(classes))
+    GeneratedKspSources(PathRef(java), PathRef(kotlin), PathRef(resources), PathRef(classes))
 
   }
 
