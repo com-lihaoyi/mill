@@ -11,6 +11,7 @@ import mill.androidlib.Versions
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+import scala.util.boundary
 import scala.util.chaining.given
 import scala.xml.XML
 
@@ -618,9 +619,20 @@ object AndroidSdkModule {
   val mavenGoogle: MavenRepository = MavenRepository("https://maven.google.com/")
 
   private def toolPathRef(path: os.Path)(using TaskCtx): PathRef = {
-    os.exists(path) match {
-      case true => PathRef(path).withRevalidateOnce
-      case false => Task.fail(s"Tool at path ${path} does not exist")
+      if (os.exists(path)) {
+        PathRef(path).withRevalidateOnce
+      } else boundary {
+        if (scala.util.Properties.isWin && path.lastOpt.isEmpty && path.ext != "bat") {
+          Seq("exe", "bat").foreach { ext =>
+            // try to find the tool with extension
+            val winPath = path / os.up / s"${path.last}.$ext"
+            if (os.exists(winPath)) {
+              boundary.break(PathRef(winPath).withRevalidateOnce)
+            }
+          }
+        }
+        Task.fail(s"Tool at path ${path} does not exist")
+      }
     }
   }
 
