@@ -503,7 +503,7 @@ trait PublishModule extends JavaModule { outer =>
   final def publishArtifactsPayload(
       sources: Boolean = true,
       docs: Boolean = true
-  ): Task[Map[os.SubPath, PathRef]] = Task {
+  ): Task[Map[os.SubPath, PathRef]] = Task.Anon {
     val defaultPayload = publishArtifactsDefaultPayload(sources = sources, docs = docs)()
     val baseName = publishArtifactsBaseName()
     val extraPayload = extraPublishPayload()(baseName)

@@ -28,6 +28,6 @@ class RpcCompileProblemReporter(
 
   override def finish(): Unit = send(RpcCompileProblemReporterMessage.Finish)
 
-  override def notifyProgress(percentage: Long, total: Long): Unit =
-    send(RpcCompileProblemReporterMessage.NotifyProgress(percentage, total))
+  override def notifyProgress(progress: Long, total: Long): Unit =
+    send(RpcCompileProblemReporterMessage.NotifyProgress(progress, total))
 }

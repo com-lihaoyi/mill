@@ -11,13 +11,13 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.26.1/protobuf-java-4.26.1.jar",
         "file:///workspace/lib/compile-resources",
         "file:///workspace/lib/resources",
-        "file:///workspace/out/lib/compile.dest/classes",
+        "file:///workspace/out/mill-bsp-out/lib/compile.dest/classes",
         "file:///workspace/app/compile-resources",
         "file:///workspace/app/resources",
-        "file:///workspace/out/app/compile.dest/classes",
+        "file:///workspace/out/mill-bsp-out/app/compile.dest/classes",
         "file:///workspace/app/test/compile-resources",
         "file:///workspace/app/test/resources",
-        "file:///workspace/out/app/test/compile.dest/classes",
+        "file:///workspace/out/mill-bsp-out/app/test/compile.dest/classes",
         "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-javalib-testrunner-entrypoint.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
@@ -32,7 +32,7 @@
           "className": "mill.javalib.testrunner.entrypoint.TestRunnerMain",
           "arguments": [
             "",
-            "/workspace/out/app/test/getTestEnvironmentVars.dest/testargs"
+            "/workspace/out/mill-bsp-out/app/test/getTestEnvironmentVars.dest/testargs"
           ]
         }
       ]
@@ -48,10 +48,10 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
         "file:///workspace/hello-java/compile-resources",
         "file:///workspace/hello-java/resources",
-        "file:///workspace/out/hello-java/compile.dest/classes",
+        "file:///workspace/out/mill-bsp-out/hello-java/compile.dest/classes",
         "file:///workspace/hello-java/test/compile-resources",
         "file:///workspace/hello-java/test/resources",
-        "file:///workspace/out/hello-java/test/compile.dest/classes",
+        "file:///workspace/out/mill-bsp-out/hello-java/test/compile.dest/classes",
         "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-javalib-testrunner-entrypoint.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
@@ -66,7 +66,7 @@
           "className": "mill.javalib.testrunner.entrypoint.TestRunnerMain",
           "arguments": [
             "",
-            "/workspace/out/hello-java/test/getTestEnvironmentVars.dest/testargs"
+            "/workspace/out/mill-bsp-out/hello-java/test/getTestEnvironmentVars.dest/testargs"
           ]
         }
       ]
@@ -83,10 +83,10 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<scala-version>/scala-reflect-<scala-version>.jar",
         "file:///workspace/hello-scala/compile-resources",
         "file:///workspace/hello-scala/resources",
-        "file:///workspace/out/hello-scala/compile.dest/classes",
+        "file:///workspace/out/mill-bsp-out/hello-scala/compile.dest/classes",
         "file:///workspace/hello-scala/test/compile-resources",
         "file:///workspace/hello-scala/test/resources",
-        "file:///workspace/out/hello-scala/test/compile.dest/classes",
+        "file:///workspace/out/mill-bsp-out/hello-scala/test/compile.dest/classes",
         "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-javalib-testrunner-entrypoint.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
@@ -101,7 +101,7 @@
           "className": "mill.javalib.testrunner.entrypoint.TestRunnerMain",
           "arguments": [
             "",
-            "/workspace/out/hello-scala/test/getTestEnvironmentVars.dest/testargs"
+            "/workspace/out/mill-bsp-out/hello-scala/test/getTestEnvironmentVars.dest/testargs"
           ]
         }
       ]

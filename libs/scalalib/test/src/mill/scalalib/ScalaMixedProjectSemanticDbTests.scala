@@ -1,9 +1,9 @@
 package mill.scalalib
 
-import mill.testkit.{TestRootModule, UnitTester}
-import utest.*
 import mill.api.Discover
-import mill.util.TokenReaders._
+import mill.testkit.{TestRootModule, UnitTester}
+import mill.util.TokenReaders.*
+import utest.*
 
 object ScalaMixedProjectSemanticDbTests extends TestSuite {
 
@@ -31,7 +31,7 @@ object ScalaMixedProjectSemanticDbTests extends TestSuite {
           println("first - expected full compile")
           val Right(result) = eval.apply(SemanticWorld.core.semanticDbData): @unchecked
 
-          val dataPath = eval.outPath / "core/semanticDbData.dest/data"
+          val dataPath = eval.outPath / "core/semanticDbDataDetailed.dest/data"
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 

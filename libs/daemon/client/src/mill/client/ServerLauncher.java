@@ -1,8 +1,6 @@
 package mill.client;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -59,21 +57,52 @@ public abstract class ServerLauncher {
   /// @param runClientLogic the client logic to run
   /// @return the exit code that the server sent back
   public static <A> RunWithConnectionResult<A> runWithConnection(
+      String debugName,
       Socket connection,
       Streams streams,
       boolean closeConnectionAfterClientLogic,
       Consumer<OutputStream> sendInitData,
       RunClientLogic<A> runClientLogic)
       throws Exception {
-    var socketInputStream = connection.getInputStream();
-    var socketOutputStream = connection.getOutputStream();
+    // According to
+    // https://pzemtsov.github.io/2015/01/19/on-the-benefits-of-stream-buffering-in-Java.html it
+    // seems that
+    // buffering on the application level is still beneficial due to syscall overhead, even if
+    // kernel has its own
+    // socket buffers.
+    var socketInputStream = new BufferedInputStream(connection.getInputStream());
+    var socketOutputStream = new BufferedOutputStream(connection.getOutputStream());
     sendInitData.accept(socketOutputStream);
     socketOutputStream.flush();
-    var pumperThread = startStreamPumpers(socketInputStream, socketOutputStream, streams);
+    var pumperThread =
+        startStreamPumpers(socketInputStream, socketOutputStream, streams, debugName);
     var result = runClientLogic.run();
     if (closeConnectionAfterClientLogic) socketInputStream.close();
     pumperThread.join();
     return new RunWithConnectionResult<>(result, pumperThread.exitCode());
+  }
+
+  /// Run a client logic with a connection established to a Mill server (via [#connectToServer]).
+  ///
+  /// @param connection     the socket connected to the server
+  /// @param closeConnectionAfterClientLogic whether to close the connection after running the
+  // client logic
+  /// @param runClientLogic the client logic to run
+  /// @return the exit code that the server sent back
+  public static <A> A runWithConnection(
+      String debugName,
+      Socket connection,
+      boolean closeConnectionAfterClientLogic,
+      Consumer<OutputStream> sendInitData,
+      RunClientLogicWithStreams<A> runClientLogic)
+      throws Exception {
+    var socketInputStream = new BufferedInputStream(connection.getInputStream());
+    var socketOutputStream = new BufferedOutputStream(connection.getOutputStream());
+    sendInitData.accept(socketOutputStream);
+    socketOutputStream.flush();
+    var result = runClientLogic.run(socketInputStream, socketOutputStream);
+    if (closeConnectionAfterClientLogic) socketInputStream.close();
+    return result;
   }
 
   /**
@@ -323,12 +352,15 @@ public abstract class ServerLauncher {
    * @return a PumperThread that processes the output/error streams from the server
    */
   static PumperThread startStreamPumpers(
-      InputStream socketInputStream, OutputStream socketOutputStream, Streams streams) {
+      InputStream socketInputStream,
+      OutputStream socketOutputStream,
+      Streams streams,
+      String name) {
     var outPumper = new ProxyStream.Pumper(socketInputStream, streams.stdout, streams.stderr);
     var inPump = new InputPumper(() -> streams.stdin, () -> socketOutputStream, true);
-    var outPumperThread = new PumperThread(outPumper, "outPump");
+    var outPumperThread = new PumperThread(outPumper, "outPump-" + name);
     outPumperThread.setDaemon(true);
-    var inThread = new Thread(inPump, "inPump");
+    var inThread = new Thread(inPump, "inPump-" + name);
     inThread.setDaemon(true);
     outPumperThread.start();
     inThread.start();
@@ -343,6 +375,11 @@ public abstract class ServerLauncher {
   public interface RunClientLogic<A> {
     /// Runs the client logic.
     A run() throws Exception;
+  }
+
+  public interface RunClientLogicWithStreams<A> {
+    /// Runs the client logic.
+    A run(BufferedInputStream inStream, BufferedOutputStream outStream) throws Exception;
   }
 
   public static class Result {

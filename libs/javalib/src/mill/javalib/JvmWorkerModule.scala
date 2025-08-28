@@ -45,6 +45,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     ))
   }
 
+  /** Whether Zinc debug logging is enabled. */
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
   def worker: Worker[JvmWorkerApi] = internalWorker
@@ -62,10 +63,10 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
         .asInstanceOf[JvmWorkerFactoryApi]
 
     val ctx = Task.ctx()
-    val zincCompilerBridge = ZincCompilerBridgeProvider[Unit](
+    val zincCompilerBridge = ZincCompilerBridgeProvider(
       workspace = ctx.dest,
       logInfo = ctx.log.info,
-      acquire = (scalaVersion, scalaOrganization, _) =>
+      acquire = (scalaVersion, scalaOrganization) =>
         scalaCompilerBridgeJarV2(
           scalaVersion = scalaVersion,
           scalaOrganization = scalaOrganization,
@@ -76,7 +77,6 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       zincCompilerBridge,
       classPath = classpath().map(_.path),
       jobs = jobs,
-      compileToJar = false,
       zincLogDebug = zincLogDebug(),
       close0 = () => cl.close()
     )
