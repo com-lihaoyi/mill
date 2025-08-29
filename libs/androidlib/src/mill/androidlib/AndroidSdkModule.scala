@@ -7,7 +7,7 @@ import coursier.util.Artifact
 import mill.*
 import mill.api.{Result, TaskCtx}
 import mill.androidlib.Versions
-import mill.constants.Util.{isJava17OrAbove, isLinux, isMac, isWindows}
+import scala.util.Properties.{isLinux, isMac, isWin}
 import upickle.default.ReadWriter
 
 import java.math.BigInteger
@@ -256,7 +256,7 @@ trait AndroidSdkModule extends Module {
   }
 
   private def acceptLicenses(sdkManagerExePath: os.Path) = {
-    val args = if (isWindows)
+    val args = if (isWin)
       Seq("cmd", "/c", "(for /l %i in (1,1,10) do @echo y)")
     else
       Seq("echo", "y\n" * 10)
@@ -301,7 +301,7 @@ trait AndroidSdkModule extends Module {
 
   private def cmdlineToolsURL(versionLong: String): String = {
     val platform =
-      if (isWindows) "win"
+      if (isWin) "win"
       else if (isMac) "mac"
       else if (isLinux) "linux"
       else throw new IllegalStateException("Unknown platform")
@@ -313,7 +313,7 @@ trait AndroidSdkModule extends Module {
    * Provides the correct path to the sdkmanager executable based on the OS.
    */
   private def sdkManagerExePath(cmdlineToolsPath: os.Path): os.Path = {
-    val ext = if (isWindows) ".bat" else ""
+    val ext = if (isWin) ".bat" else ""
     cmdlineToolsPath / "bin" / s"sdkmanager$ext"
   }
 
@@ -592,7 +592,6 @@ private object AndroidNdkLock
 private object AndroidCmdlineToolsLock
 
 object AndroidSdkModule {
-  require(isJava17OrAbove, "Android SDK requires Java 17 or above to run.")
 
   case class CmdlineToolsComponents(
       basePath: os.Path,
@@ -632,8 +631,9 @@ object AndroidSdkModule {
     if (os.exists(path)) {
       PathRef(path).withRevalidateOnce
     } else boundary {
-      if (isWindows && path.ext.isEmpty) {
-        Seq("exe", "bat").foreach { ext =>
+      val winExts = Seq("exe", "bat")
+      if (isWin && !winExts.contains(path.ext)) {
+        winExts.foreach { ext =>
           // try to find the tool with extension
           val winPath = os.Path(s"${path.toString}.$ext")
           if (os.exists(winPath)) {

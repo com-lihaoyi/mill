@@ -19,7 +19,7 @@ import scala.xml.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.daemon.internal.EvaluatorApi
 import mill.javalib.testrunner.TestResult
-import mill.constants.Util.isWindows
+import scala.util.Properties.isWin
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -149,7 +149,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         os.unzip(ref.path, dest)
 
         // Fix permissions of unzipped directories (skip on Windows)
-        if (!isWindows) {
+        if (!isWin) {
           // `os.walk.stream` doesn't work
           def walkStream(p: os.Path): geny.Generator[os.Path] = {
             if (!os.isDir(p)) geny.Generator()

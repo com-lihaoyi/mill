@@ -22,11 +22,8 @@ public class Util {
 
   public static boolean isWindows = lowerCaseOsName().startsWith("windows");
   public static boolean isLinux = lowerCaseOsName().equals("linux");
-  public static boolean isMac = lowerCaseOsName().contains("mac");
-  public static String javaSpecificationVersion = System.getProperty("java.specification.version");
-  public static boolean isJava9OrAbove = !javaSpecificationVersion.startsWith("1.");
-  public static boolean isJava17OrAbove =
-      isJava9OrAbove && Integer.parseInt(javaSpecificationVersion) >= 17;
+  public static boolean isJava9OrAbove =
+      !System.getProperty("java.specification.version").startsWith("1.");
 
   /**
    * @return Hex encoded MD5 hash of input string.
