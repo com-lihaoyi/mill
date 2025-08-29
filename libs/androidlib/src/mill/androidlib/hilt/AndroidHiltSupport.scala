@@ -2,7 +2,7 @@ package mill.androidlib.hilt
 
 import mill.androidlib.AndroidKotlinModule
 import mill.api.{ModuleRef, PathRef}
-import mill.kotlinlib.ksp.KspBaseModule
+import mill.kotlinlib.ksp.KspModule
 import mill.javalib.Dep
 import mill.javalib.api.CompilationResult
 import mill.{T, Task}
@@ -18,16 +18,11 @@ import mill.{T, Task}
  *
  * Usage:
  * ```
- *
- * object app extends KspModule, AndroidHiltSupport { ... }
- *
- * // or
- *
- * object app extends Ksp2Module, AndroidHiltSupport { ... }
+ * object app extends AndroidHiltSupport { ... }
  * ```
  */
 @mill.api.experimental
-trait AndroidHiltSupport extends KspBaseModule, AndroidKotlinModule {
+trait AndroidHiltSupport extends KspModule, AndroidKotlinModule {
 
   override def kspProcessorOptions: T[Map[String, String]] = Task {
     super.kspProcessorOptions() ++ Map(

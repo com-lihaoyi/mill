@@ -4,7 +4,7 @@ import coursier.{MavenRepository, Repository}
 
 import mill.*
 import kotlinlib.*
-import kotlinlib.ksp.Ksp2Module
+import kotlinlib.ksp.KspModule
 
 object micronaut extends MicronautModule {
 
@@ -29,7 +29,7 @@ object micronaut extends MicronautModule {
 
 }
 
-trait MicronautModule extends Ksp2Module { outer =>
+trait MicronautModule extends KspModule { outer =>
   def kspVersion: T[String] = "2.0.2"
   def kotlinVersion = "2.2.0"
   def kspJvmTarget: T[String] = "11"
@@ -50,17 +50,17 @@ trait MicronautModule extends Ksp2Module { outer =>
   }
 
   override def resources: T[Seq[PathRef]] = Task {
-    super.resources() ++ Seq(generatedSourcesWithKSP().resources)
+    super.resources() ++ Seq(generatedSourcesWithKsp().resources)
   }
 
   override def runClasspath: T[Seq[PathRef]] = Task {
-    super.runClasspath() ++ Seq(generatedSourcesWithKSP().classes)
+    super.runClasspath() ++ Seq(generatedSourcesWithKsp().classes)
   }
 
-  trait MicronautTests extends MicronautModule, Ksp2Tests {
+  trait MicronautTests extends MicronautModule, KspTests {
 
     override def resources: T[Seq[PathRef]] = Task {
-      super[Ksp2Tests].resources() ++ Seq(generatedSourcesWithKSP().resources)
+      super[KspTests].resources() ++ Seq(generatedSourcesWithKsp().resources)
     }
 
     def kotlinSymbolProcessors = Seq(
@@ -69,8 +69,8 @@ trait MicronautModule extends Ksp2Module { outer =>
 
     override def runClasspath: T[Seq[PathRef]] = Task {
       super.runClasspath() ++ Seq(
-        generatedSourcesWithKSP().classes,
-        outer.generatedSourcesWithKSP().classes
+        generatedSourcesWithKsp().classes,
+        outer.generatedSourcesWithKsp().classes
       )
     }
 
