@@ -1,4 +1,5 @@
 * xref:blog::index.adoc[_The Mill Build Engineering Blog_]
+* xref:15-android-build-flow.adoc[]
 * xref:14-bash-zsh-completion.adoc[]
 * xref:13-mill-build-tool-v1-0-0.adoc[]
 * xref:12-direct-style-build-tool.adoc[]
