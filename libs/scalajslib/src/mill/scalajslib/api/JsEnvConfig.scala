@@ -11,6 +11,7 @@ object JsEnvConfig {
   implicit def rwExoegoJsDomNodeJs: RW[ExoegoJsDomNodeJs] = macroRW
   implicit def rwPhantom: RW[Phantom] = macroRW
   implicit def rwSelenium: RW[Selenium] = macroRW
+  implicit def rwPlaywright: RW[Playwright] = macroRW
   implicit def rw: RW[JsEnvConfig] = macroRW
 
   private given Root_JsEnvConfig: Mirrors.Root[JsEnvConfig] =
@@ -116,4 +117,15 @@ object JsEnvConfig {
         new SafariOptions()
     }
   }
+
+  final case class Playwright(
+      browserName: String = "chromium",
+      headless: Boolean = true,
+      showLogs: Boolean = false,
+      debug: Boolean = false,
+      //   pwConfig: Config = Config(),
+      runConfigEnv: Map[String, String] = Map.empty,
+      launchOptions: List[String] = Nil,
+      additionalLaunchOptions: List[String] = Nil
+  ) extends JsEnvConfig
 }
