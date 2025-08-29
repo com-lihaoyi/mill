@@ -106,7 +106,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
     val log = ctx.log
     val zincCtx = ZincWorker.InvocationContext(
       env = ctx.env,
-      dest = ctx.dest,
       logDebugEnabled = log.debugEnabled,
       logPromptColored = log.prompt.colored,
       zincLogDebug = zincLogDebug

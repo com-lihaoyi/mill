@@ -359,7 +359,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
         workerResult match {
           case Result.Success(_) =>
-            val cr = CompilationResult(analysisFile, PathRef(classes))
+            val cr = CompilationResult(analysisFile, PathRef(classes), semanticDbFiles = None)
             if (!isJava) {
               // pure Kotlin project
               cr
@@ -416,6 +416,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     val jOpts = JavaCompilerOptions(javacOptions)
     worker.compileJava(
       ZincCompileJava(
+        compileTo = Task.dest,
         upstreamCompileOutput = upstreamCompileOutput,
         sources = javaSourceFiles,
         compileClasspath = compileCp,

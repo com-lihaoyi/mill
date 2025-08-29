@@ -1,7 +1,5 @@
 package mill.javalib
 
-import mill.api.Task
-
 /**
  * @param compileTo the directory to which the classes will be compiled. We need this because we can't use the task's
  *                  destination folder as we need that folder to be persistent and persistent tasks can not take
@@ -15,9 +13,6 @@ private[mill] case class CompileArgs(
     forceSemanticDb: Boolean
 )
 private[mill] object CompileArgs {
-  // TODO review: this is a terrible hack
-  def compileTaskPath(thisTaskDest: os.Path, compileTask: Task.Named[?]): os.Path =
-    thisTaskDest / ".." / s"${compileTask.ctx.segments.last.value}.dest"
 
   /** Arguments for the default compilation. */
   def default(compileTo: os.Path): CompileArgs = CompileArgs(compileTo, forceSemanticDb = false)

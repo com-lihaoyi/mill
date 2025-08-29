@@ -21,7 +21,6 @@ import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
 import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
 import mill.javalib.api.CompilationResult
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 import mill.javalib.bsp.{BspJavaModule, BspModule}
 import mill.javalib.internal.ModuleUtils
 import mill.javalib.publish.Artifact
@@ -726,21 +725,10 @@ trait JavaModule
    * The transitive version of [[compileClasspath]]
    */
   def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
-    transitiveCompileClasspathTask(CompileArgs.default)()
+    Task.traverse(transitiveModuleCompileModuleDeps)(m =>
+      Task.Anon(m.localCompileClasspath() :+ m.compile().classes)
+    )().flatten
   }
-
-  /**
-   * The transitive version of [[compileClasspathTask]]
-   */
-  private[mill] def transitiveCompileClasspathTask(compileArgs: CompileArgs): Task[Seq[PathRef]] =
-    Task.Anon {
-      Task.traverse(transitiveModuleCompileModuleDeps)(m =>
-        Task.Anon {
-          val compileResult = m.compileWithArgs.apply()(compileArgs)
-          compileResult.map(res => m.localCompileClasspath() :+ res.classes)
-        }
-      )().flatten
-    }
 
   /**
    * Same as [[transitiveCompileClasspath]], but with all dependencies on [[compile]]
@@ -831,26 +819,6 @@ trait JavaModule
     true
   }
 
-  /**
-   * Compiles the current module to generate compiled classfiles/bytecode.
-   *
-   * When you override this, you probably also want/need to override [[bspCompileClassesPath]],
-   * as that needs to point to the same compilation output path.
-   *
-   * Keep in sync with [[bspCompileClassesPath]]
-   */
-  def compile: T[mill.javalib.api.CompilationResult] = Task(persistent = true) {
-    // Prepare an empty `compileGeneratedSources` folder for java annotation processors
-    // to write generated sources into, that can then be picked up by IDEs like IntelliJ
-    val compileGenSources = compileGeneratedSources()
-    mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      os.remove.all(compileGenSources)
-      os.makeDir.all(compileGenSources)
-    }
-
-    ???
-  }
-
   /** The path where the compiled classes produced by [[compile]] are stored. */
   @internal
   private[mill] def compileClassesPath: UnresolvedPath.DestPath =
@@ -937,20 +905,14 @@ trait JavaModule
     }
 
   /**
-   * [[compileClasspathTask]] for regular compilations.
+   * All classfiles and resources from upstream modules and dependencies
+   * necessary to compile this module.
    *
    * Keep return value in sync with [[bspCompileClasspath]].
    */
-  def compileClasspath: T[Seq[PathRef]] = Task { compileClasspathTask(CompileArgs.default)() }
-
-  /**
-   * All classfiles and resources from upstream modules and dependencies
-   * necessary to compile this module.
-   */
-  override private[mill] def compileClasspathTask(compileArgs: CompileArgs): Task[Seq[PathRef]] =
-    Task.Anon {
-      resolvedMvnDeps() ++ transitiveCompileClasspathTask(compileArgs)() ++ localCompileClasspath()
-    }
+  def compileClasspath: T[Seq[PathRef]] = Task {
+    resolvedMvnDeps() ++ transitiveCompileClasspath() ++ localCompileClasspath()
+  }
 
   /**
    * Same as [[compileClasspath]], but does not trigger compilation targets, if possible.

@@ -295,6 +295,11 @@ object Task {
     def withFilter(f: T => Boolean): Task[T] = this
     def zip[V](other: Task[V]): Task[(T, V)] = new Task.Zipped(this, other)
 
+    /** Runs `before` function before the task and then `after` funciton after the task. */
+    def wrap[IntermediateData, TaskResult](
+        before: => IntermediateData
+    )(after: (IntermediateData, T) => TaskResult): Task[TaskResult] =
+      Task.Wrapped(this, () => before, after)
   }
 
   private[api] class Sequence[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]] {
@@ -307,6 +312,27 @@ object Task {
 
   private[api] class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V] {
     def evaluate(ctx: mill.api.TaskCtx): Result[V] = f(ctx.arg(0))
+    val inputs: Seq[Task[?]] = List(source)
+  }
+
+  private[api] class Wrapped[Input, IntermediateData, TaskResult](
+      source: Task[Input],
+      before: () => IntermediateData,
+      after: (IntermediateData, Input) => TaskResult
+  ) extends Task[TaskResult] {
+
+    def evaluate(ctx: mill.api.TaskCtx): Result[TaskResult] = {
+      println("before()")
+      val intermediateData = before()
+      println(s"intermediateData=$intermediateData")
+      val input = ctx.arg(0).asInstanceOf[Input]
+      println(s"input=$input")
+      println("after()")
+      val result = after(intermediateData, input)
+      println(s"result=$result")
+      result
+    }
+
     val inputs: Seq[Task[?]] = List(source)
   }
 
