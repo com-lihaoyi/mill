@@ -16,28 +16,16 @@ object BuildGenTests extends TestSuite {
         checker.check(MavenBuildGenMain.main(Array.empty), sourceRoot, expectedRoot)
       )
     }
-    test("maven-samples-jvm-id") {
-      val sourceRoot = os.sub / "maven-samples"
-      val expectedRoot = os.sub / "expected/maven-samples-jvm-id"
-      assert(
-        checker.check(MavenBuildGenMain.main(Array("--jvm-id", "11")), sourceRoot, expectedRoot)
-      )
-    }
 
     test("config") {
       val sourceRoot = os.sub / "maven-samples"
       val expectedRoot = os.sub / "expected/config"
       val args = Array(
-        "--base-module",
-        "MyModule",
-        "--jvm-id",
-        "11",
-        "--test-module",
+        "--test-module-name",
         "tests",
-        "--deps-object",
-        "Deps",
+        "--unify",
         "--publish-properties",
-        "--merge",
+        "--no-meta-build",
         "--cache-repository",
         "--process-plugins"
       )

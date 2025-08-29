@@ -1,6 +1,5 @@
 package mill.main.maven
 
-import mill.api.daemon.internal.internal
 import org.apache.maven.model.building.{FileModelSource, ModelSource}
 import org.apache.maven.model.resolution.{ModelResolver, UnresolvableModelException}
 import org.apache.maven.model.{Dependency, Parent, Repository}
@@ -17,7 +16,6 @@ import scala.jdk.CollectionConverters.*
  *
  * The implementation is inspired by [[https://github.com/sbt/sbt-pom-reader/ sbt-pom-reader]].
  */
-@internal
 class Resolver(
     system: RepositorySystem,
     session: RepositorySystemSession,

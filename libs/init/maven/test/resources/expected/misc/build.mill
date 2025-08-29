@@ -1,27 +1,19 @@
-//| mill-version: SNAPSHOT
 package build
 
-import mill._
 import mill.javalib._
 import mill.javalib.publish._
+import millbuild._
 
-object `package` extends PublishModule with MavenModule {
+object `package` extends MavenModule with PublishModule {
 
-  def artifactName = "single-module-project"
+  def mvnDeps = super.mvnDeps() ++ Seq(Deps.servletApi, Deps.jspApi)
 
-  def javacOptions = Seq("-source", "1.6", "-target", "1.6")
-
-  def repositories = Seq(
-    "http://repository.jboss.org/nexus/content/groups/public/",
-    "https://maven.java.net/content/repositories/public/"
-  )
-
-  def mvnDeps =
-    Seq(mvn"javax.servlet.jsp:jsp-api:2.2", mvn"javax.servlet:servlet-api:2.5")
+  def javacOptions = super.javacOptions() ++
+    Seq("-source", "1.6", "-target", "1.6")
 
   def pomSettings = PomSettings(
     "Sample single module Maven project with a working, deployable site.",
-    "com.example.maven-samples",
+    "",
     "http://www.example.com",
     Seq(),
     VersionControl(
@@ -35,24 +27,24 @@ object `package` extends PublishModule with MavenModule {
 
   def publishVersion = "1.0-SNAPSHOT"
 
-  def resources = Task { super.resources() ++ customResources() }
-  def customResources = Task.Sources("resources")
+  def artifactMetadata = Artifact(
+    "com.example.maven-samples",
+    "single-module-project",
+    "1.0-SNAPSHOT"
+  )
+
+  def repositories = super.repositories() ++ Seq(
+    "https://maven.java.net/content/repositories/public/",
+    "http://repository.jboss.org/nexus/content/groups/public/"
+  )
 
   object test extends MavenTests with TestModule.Junit4 {
 
-    def mvnDeps = Seq(
-      mvn"junit:junit-dep:4.10",
-      mvn"org.hamcrest:hamcrest-core:1.2.1",
-      mvn"org.hamcrest:hamcrest-library:1.2.1",
-      mvn"org.mockito:mockito-core:1.8.5"
-    )
+    def mandatoryMvnDeps = super.mandatoryMvnDeps() ++ Seq(Deps.junitDep)
 
-    def resources = Task { super.resources() ++ customResources() }
-    def customResources = Task.Sources("test/resources", "src/test/secrets")
-
-    def testSandboxWorkingDir = false
-    def testParallelism = false
-    def forkWorkingDir = moduleDir
+    def mvnDeps = super.mvnDeps() ++
+      Seq(Deps.hamcrestCore, Deps.hamcrestLibrary, Deps.mockitoCore)
 
   }
+
 }

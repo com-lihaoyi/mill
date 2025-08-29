@@ -1,18 +1,19 @@
 package build.`multi-module`
 
-import mill._
 import mill.javalib._
 import mill.javalib.publish._
+import millbuild._
 
-object `package` extends PublishModule with MavenModule {
+object `package` extends MavenSamplesBaseModule {
 
-  def artifactName = "multi-module-parent"
+  def javacOptions = super.javacOptions() ++
+    Seq("-source", "1.6", "-target", "1.6")
 
-  def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+  def pomPackagingType = "pom"
 
   def pomSettings = PomSettings(
     "Sample multi module Maven project with a working, deployable site.",
-    "com.example.maven-samples",
+    "",
     "http://www.example.com",
     Seq(),
     VersionControl(
@@ -24,8 +25,7 @@ object `package` extends PublishModule with MavenModule {
     Seq()
   )
 
-  def publishVersion = "1.0-SNAPSHOT"
-
-  def pomPackagingType = PackagingType.Pom
+  def artifactMetadata =
+    Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
 
 }

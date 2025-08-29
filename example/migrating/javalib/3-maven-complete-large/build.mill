@@ -6,7 +6,9 @@
 > git remote add -f origin https://github.com/iluwatar/java-design-patterns
 > git checkout ede37bd05568b1b8b814d8e9a1d2bbd71d9d615d
 
-> ./mill init --jvm-id 21 # Repo needs Java >=21 to build and test
+> echo 21 > .mill-jvm-version # Repo needs Java >=21 to build and test
+
+> ./mill init
 
 > rm twin/src/test/java/com/iluwatar/twin/BallThreadTest.java # skip flaky test
 > rm actor-model/src/test/java/com/iluwatar/actor/ActorModelTest.java # skip flaky test

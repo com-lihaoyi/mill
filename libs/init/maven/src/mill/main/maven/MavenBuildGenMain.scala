@@ -1,300 +1,191 @@
 package mill.main.maven
 
 import mainargs.{Flag, ParserForClass, arg, main}
-import mill.api.daemon.internal.internal
 import mill.main.buildgen.*
-import mill.main.buildgen.BuildGenUtil.*
-import org.apache.maven.model.{Dependency, Model, Parent}
-import os.{Path, SubPath}
+import org.apache.maven.model.*
 
 import scala.jdk.CollectionConverters.*
 
+@mainargs.main
+case class MavenBuildGenArgs(
+    @mainargs.arg(short = 't')
+    testModuleName: String = "test",
+    @mainargs.arg(short = 'u')
+    unify: mainargs.Flag,
+    @mainargs.arg(short = 'o')
+    publishProperties: mainargs.Flag,
+    metaBuild: MetaBuildArgs,
+    cacheRepository: mainargs.Flag,
+    processPlugins: mainargs.Flag
+) extends ModelerConfig
+
 /**
- * Converts a Maven build to Mill by generating Mill build file(s) from POM file(s).
- *
- * The generated output should be considered scaffolding and will likely require edits to complete conversion.
- *
- * ===Capabilities===
- * The conversion
- *  - handles deeply nested modules
- *  - captures project settings
- *  - configures dependencies for scopes:
- *    - compile
- *    - provided
- *    - runtime
- *    - test
- *  - configures testing frameworks:
- *    - JUnit 4
- *    - JUnit 5
- *    - TestNG
- *  - configures multiple, compile and test, resource directories
- *
- * ===Limitations===
- * The conversion does not support:
- *  - plugins, other than maven-compiler-plugin
- *  - packaging, other than jar, pom
- *  - build extensions
- *  - build profiles
+ * @see [[https://maven.apache.org/download.cgi JDK compatibility]]
  */
-@internal
-object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] {
-  override type C = Config
+object MavenBuildGenMain {
 
   def main(args: Array[String]): Unit = {
-    val cfg = ParserForClass[Config].constructOrExit(args.toSeq)
-    run(cfg)
-  }
-
-  private def run(cfg: Config): Unit = {
-    val workspace = os.pwd
-
+    val args0 = ParserForClass[MavenBuildGenArgs].constructOrExit(args.toSeq)
+    import args0.*
     println("converting Maven build")
-    val modeler = Modeler(cfg)
-    val input = Tree.from(Seq.empty[String]) { dirs =>
-      val model = modeler(workspace / dirs)
-      (Node(dirs, model), model.getModules.iterator().asScala.map(dirs :+ _).toSeq)
-    }
+    val modeler = Modeler(args0)
+    val segmentsModels = Tree.from(os.sub): sub =>
+      val model = modeler(os.pwd / sub)
+      ((sub.segments, model), model.getModules.iterator.asScala.map(s => sub / os.SubPath(s)).toSeq)
+    val segmentsByGav = segmentsModels.iterator.map((segments, model) =>
+      ((model.getGroupId, model.getArtifactId, model.getVersion), segments)
+    ).toMap
+    def gav(dep: Dependency) = (dep.getGroupId, dep.getArtifactId, dep.getVersion)
 
-    convertWriteOut(cfg, cfg.shared.basicConfig, input)
-
-    println("converted Maven build to Mill")
-  }
-
-  override def getBaseInfo(
-      input: Tree[Node[Model]],
-      cfg: Config,
-      baseModule: String,
-      packagesSize: Int
-  ): IrBaseInfo = {
-    val model = input.root.value
-    val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
-    val scalaVersion = None
-    val scalacOptions = None
-    val repositories = getRepositories(model)
-    val pomSettings = extractPomSettings(model)
-    val publishVersion = model.getVersion
-    val publishProperties = getPublishProperties(model, cfg.shared)
-
-    val typedef = IrTrait(
-      cfg.shared.basicConfig.jvmId,
-      baseModule,
-      getModuleSupertypes,
-      javacOptions,
-      scalaVersion,
-      scalacOptions,
-      pomSettings,
-      publishVersion,
-      publishProperties,
-      repositories
-    )
-
-    IrBaseInfo(typedef)
-  }
-
-  override type ModuleFqnMap = Map[(String, String, String), String]
-  override def getModuleFqnMap(moduleNodes: Seq[Node[Model]])
-      : Map[(String, String, String), String] =
-    buildModuleFqnMap(moduleNodes)(getProjectGav)
-
-  override def extractIrBuild(
-      cfg: Config,
-      // baseInfo: IrBaseInfo,
-      build: Node[Model],
-      moduleFqnMap: Map[(String, String, String), String]
-  ): IrBuild = {
-    val model = build.value
-    val scopedDeps = extractScopedDeps(model, moduleFqnMap, cfg)
-    val version = model.getVersion
-    IrBuild(
-      scopedDeps = scopedDeps,
-      testModule = cfg.shared.basicConfig.testModule,
-      testModuleMainType = "MavenTests",
-      hasTest = os.exists(getMillSourcePath(model) / "src/test"),
-      dirs = build.dirs,
-      repositories = getRepositories(model),
-      javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model),
-      scalaVersion = None,
-      scalacOptions = None,
-      projectName = getArtifactId(model),
-      pomSettings = extractPomSettings(model),
-      publishVersion = version,
-      packaging = model.getPackaging,
-      pomParentArtifact = mkPomParent(model.getParent),
-      resources =
-        processResources(model.getBuild.getResources, getMillSourcePath(model))
-          .filterNot(_ == mavenMainResourceDir),
-      testResources =
-        processResources(model.getBuild.getTestResources, getMillSourcePath(model))
-          .filterNot(_ == mavenTestResourceDir),
-      publishProperties = getPublishProperties(model, cfg.shared),
-      jvmId = cfg.shared.basicConfig.jvmId,
-      // Maven subproject tests run in the subproject folder, unlike Gradle
-      // and SBT whose subproject tests run in the root project folder
-      testForkDir = Some("moduleDir")
-    )
-  }
-
-  def getModuleSupertypes: Seq[String] = Seq("PublishModule", "MavenModule")
-
-  def getProjectGav(model: Model): (String, String, String) =
-    (model.getGroupId, model.getArtifactId, model.getVersion)
-
-  override def getArtifactId(model: Model): String = model.getArtifactId
-
-  def getMillSourcePath(model: Model): Path = os.Path(model.getProjectDirectory)
-
-  override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] =
-    cfg.shared.basicConfig.baseModule.fold(getModuleSupertypes)(Seq(_))
-
-  def processResources(
-      input: java.util.List[org.apache.maven.model.Resource],
-      millSourcePath: os.Path
-  ): Seq[SubPath] = {
-    input
-      .asScala
-      .map(_.getDirectory)
-      .map(os.Path(_).subRelativeTo(millSourcePath))
-      .toSeq
-  }
-
-  def getRepositories(model: Model): Seq[String] =
-    model.getRepositories.iterator().asScala
-      .filterNot(_.getId == "central")
-      .map(repo => escape(repo.getUrl))
-      .toSeq
-      .sorted
-
-  def getPublishProperties(model: Model, cfg: BuildGenUtil.Config): Seq[(String, String)] =
-    if (cfg.publishProperties.value) {
-      val props = model.getProperties
-      props.stringPropertyNames().iterator().asScala
-        .map(key => (key, props.getProperty(key)))
+    val modules = segmentsModels.iterator.map: (segments, model) =>
+      def mvnDeps(scopes: String*) = model.getDependencies.iterator.asScala.collect:
+        case dep if scopes.contains(dep.getScope) && !segmentsByGav.contains(gav(dep)) =>
+          toMvnDep(dep)
+      .filterNot(JavaModuleConfig.isBomMvnDep).toSeq
+      def bomMvnDeps(scopes: String*) = model.getDependencies.iterator.asScala.collect:
+        case dep if scopes.contains(dep.getScope) && !segmentsByGav.contains(gav(dep)) =>
+          toMvnDep(dep)
+      .filter(JavaModuleConfig.isBomMvnDep).toSeq
+      def moduleDeps(scopes: String*) = model.getDependencies.iterator.asScala
+        .collect:
+          case dep if scopes.contains(dep.getScope) => gav(dep)
+        .collect(segmentsByGav)
+        .map(JavaModuleConfig.ModuleDep(_))
         .toSeq
-        .sorted
-    } else Seq.empty
 
-  def interpMvn(dep: Dependency): String =
-    BuildGenUtil.renderMvnString(
-      dep.getGroupId,
-      dep.getArtifactId,
-      None,
-      dep.getVersion,
-      dep.getType,
-      dep.getClassifier,
-      dep.getExclusions.iterator().asScala.map(x => (x.getGroupId, x.getArtifactId))
-    )
-
-  def mkPomParent(parent: Parent): IrArtifact =
-    if (null == parent) null
-    else IrArtifact(parent.getGroupId, parent.getArtifactId, parent.getVersion)
-
-  def extractPomSettings(model: Model): IrPom = {
-    IrPom(
-      model.getDescription,
-      model.getGroupId, // Mill uses group for POM org
-      model.getUrl,
-      licenses = model.getLicenses.asScala.toSeq
-        .map(lic => IrLicense(lic.getName, lic.getName, lic.getUrl)),
-      versionControl = Option(model.getScm).fold(IrVersionControl(null, null, null, null))(scm =>
-        IrVersionControl(scm.getUrl, scm.getConnection, scm.getDeveloperConnection, scm.getTag)
-      ),
-      developers = model.getDevelopers.iterator().asScala.toSeq
-        .map(dev =>
-          IrDeveloper(
-            dev.getId,
-            dev.getName,
-            dev.getUrl,
-            dev.getOrganization,
-            dev.getOrganizationUrl
+      val moduleDir = os.pwd / segments
+      val testModule = if (os.exists(moduleDir / "src/test")) {
+        // "provided" scope is for both compilation and testing
+        val testDeps = mvnDeps("test", "provided")
+        TestModuleRepr.mixinAndMandatoryMvnDeps(testDeps).map: (mixin, mandatoryMvnDeps) =>
+          TestModuleRepr(
+            name = testModuleName,
+            supertypes = Seq("MavenTests"),
+            mixins = Seq(mixin),
+            configs = Seq(JavaModuleConfig(
+              mandatoryMvnDeps = mandatoryMvnDeps,
+              mvnDeps = testDeps.diff(mandatoryMvnDeps),
+              bomMvnDeps = bomMvnDeps("test"),
+              moduleDeps = moduleDeps("test", "provided")
+            ))
           )
+      } else None
+
+      val (javacOptions, errorProneModuleConfig) = ErrorProneModuleConfig.javacOptionsAndConfig(
+        Plugins.javacOptions(model),
+        Plugins.annotationProcessorMvnDeps(model) // TODO Filter known error-prone specific deps
+      )
+      val javaModuleConfig = JavaModuleConfig(
+        mvnDeps = mvnDeps("compile"),
+        compileMvnDeps = mvnDeps("provided"),
+        runMvnDeps = mvnDeps("runtime"),
+        bomMvnDeps = bomMvnDeps("compile"),
+        moduleDeps = moduleDeps("compile"),
+        compileModuleDeps = moduleDeps("provided"),
+        runModuleDeps = moduleDeps("runtime"),
+        javacOptions = javacOptions
+      )
+      val publishModuleConfig = Option.when(!Plugins.skipDeploy(model)):
+        PublishModuleConfig(
+          pomPackagingType = toPomPublishingType(model.getPackaging),
+          pomParentProject = toPomParentProject(model.getParent),
+          pomSettings = toPomSettings(model),
+          publishVersion = model.getVersion,
+          artifactMetadata = toArtifactMetadata(model),
+          publishProperties =
+            if (publishProperties.value) model.getProperties.asScala.toMap else Map()
         )
+      val javaHomeModuleConfig = Plugins.jvmId(model).map(JavaHomeModuleConfig(_))
+      val coursierModuleConfig =
+        model.getRepositories.iterator.asScala.collect:
+          case repo if repo.getId != "central" => repo.getUrl
+        .toSeq match {
+          case Nil => None
+          case repositories => Some(CoursierModuleConfig(repositories))
+        }
+
+      ModuleRepr(
+        segments = segments,
+        supertypes = Seq("MavenModule") ++
+          (if (publishModuleConfig.isEmpty) Nil else Seq("PublishModule")) ++
+          (if (errorProneModuleConfig.isEmpty) Nil else Seq("ErrorProneModule")),
+        configs = javaModuleConfig +: Seq(
+          publishModuleConfig,
+          javaHomeModuleConfig,
+          coursierModuleConfig,
+          errorProneModuleConfig
+        ).flatten,
+        testModule = testModule
+      )
+    end modules
+
+    var build = BuildRepr.fill(modules.map(Tree(_)).toSeq)
+    build = build.withMetaBuild(metaBuild)
+    if (unify.value) build = build.unified
+    BuildWriter(build).writeFiles()
+  }
+
+  def toMvnDep(dep: Dependency) =
+    import dep.*
+    JavaModuleConfig.mvnDep(
+      getGroupId,
+      getArtifactId,
+      getVersion,
+      // prevent interpolation in dynamic values such as ${os.detected.name}
+      Option(getClassifier).map(_.replace("$", "$$")),
+      Option(getType),
+      getExclusions.asScala.map(x => (x.getGroupId, x.getArtifactId))
+    )
+
+  def toPomPublishingType(tpe: String) =
+    if (tpe == "jar") null else tpe
+
+  def toPomParentProject(parent: Parent) = Option.when(parent != null) {
+    import parent.*
+    PublishModuleConfig.Artifact(getGroupId, getArtifactId, getVersion)
+  }
+
+  def toPomSettings(model: Model) = {
+    import model.*
+    PublishModuleConfig.PomSettings(
+      description = getDescription,
+      organization = if (getOrganization == null) null else getOrganization.getName,
+      url = getUrl,
+      licenses = getLicenses.iterator.asScala.map(toLicense).toSeq,
+      versionControl = toVersionControl(getScm),
+      developers = getDevelopers.iterator.asScala.map(toDeveloper).toSeq
     )
   }
 
-  def extractScopedDeps(
-      model: Model,
-      packages: PartialFunction[(String, String, String), String],
-      cfg: Config
-  ): IrScopedDeps = {
-    var sd = IrScopedDeps()
+  def toLicense(license: License) =
+    import license.*
+    PublishModuleConfig.License(
+      name = getName,
+      url = getUrl,
+      distribution = getDistribution
+    )
 
-    val hasTest = os.exists(os.Path(model.getProjectDirectory) / "src/test")
-    val mvnDep: Dependency => String = {
-      cfg.shared.basicConfig.depsObject.fold(interpMvn(_)) { objName => dep =>
-        {
-          val depName = s"`${dep.getGroupId}:${dep.getArtifactId}`"
-          sd = sd.copy(namedMvnDeps = sd.namedMvnDeps :+ (depName, interpMvn(dep)))
-          s"$objName.$depName"
-        }
-      }
-    }
+  def toVersionControl(scm: Scm) = if (scm == null) PublishModuleConfig.VersionControl()
+  else
+    import scm.*
+    PublishModuleConfig.VersionControl(
+      browsableRepository = Option(getUrl),
+      connection = Option(getConnection),
+      developerConnection = Option(getDeveloperConnection),
+      tag = Option(getTag)
+    )
 
-    model.getDependencies.forEach { dep =>
-      val id = (dep.getGroupId, dep.getArtifactId, dep.getVersion)
-      dep.getScope match {
+  def toDeveloper(developer: Developer) =
+    import developer.*
+    PublishModuleConfig.Developer(
+      id = getId,
+      name = getName,
+      url = getUrl,
+      organization = Option(getOrganization),
+      organizationUrl = Option(getOrganizationUrl)
+    )
 
-        case "compile" =>
-          if (packages.isDefinedAt(id))
-            sd = sd.copy(mainModuleDeps = sd.mainModuleDeps + packages(id))
-          else {
-            if (isBom(id)) println(s"assuming compile dependency $id is a BOM")
-            val mvn = mvnDep(dep)
-            sd = sd.copy(mainMvnDeps = sd.mainMvnDeps + mvn)
-          }
-        case "provided" =>
-          // Provided dependencies are available at compile time in both
-          // `src/main/java` and `src/test/java`
-          if (packages.isDefinedAt(id))
-            sd = sd.copy(
-              mainCompileModuleDeps = sd.mainCompileModuleDeps + packages(id),
-              testCompileModuleDeps = sd.testCompileModuleDeps + packages(id)
-            )
-          else {
-            val mvn = mvnDep(dep)
-            sd = sd.copy(
-              mainCompileMvnDeps = sd.mainCompileMvnDeps + mvn,
-              testCompileMvnDeps = sd.testCompileMvnDeps + mvn
-            )
-          }
-        case "runtime" =>
-          if (packages.isDefinedAt(id))
-            sd = sd.copy(mainRunModuleDeps = sd.mainRunModuleDeps + packages(id))
-          else {
-            val mvn = mvnDep(dep)
-            sd = sd.copy(mainRunMvnDeps = sd.mainRunMvnDeps + mvn)
-          }
-
-        case "test" =>
-          if (packages.isDefinedAt(id))
-            sd = sd.copy(testModuleDeps = sd.testModuleDeps + packages(id))
-          else {
-            val mvn = mvnDep(dep)
-            if (isBom(id)) {
-              sd = sd.copy(testBomMvnDeps = sd.testBomMvnDeps + mvn)
-            } else {
-              sd = sd.copy(testMvnDeps = sd.testMvnDeps + mvn)
-            }
-          }
-
-        case scope =>
-          println(s"ignoring $scope dependency $id")
-
-      }
-      if (hasTest && sd.testModule.isEmpty) {
-        sd = sd.copy(testModule = testModulesByGroup.get(dep.getGroupId))
-      }
-    }
-    sd
-  }
-
-  @main
-  @internal
-  case class Config(
-      shared: BuildGenUtil.Config,
-      @arg(doc = "use cache for Maven repository system")
-      cacheRepository: Flag = Flag(),
-      @arg(doc = "process Maven plugin executions and configurations")
-      processPlugins: Flag = Flag()
-  ) extends ModelerConfig
-
+  def toArtifactMetadata(model: Model) =
+    import model.*
+    PublishModuleConfig.Artifact(getGroupId, getArtifactId, getVersion)
 }

@@ -1,37 +1,36 @@
-//| mill-version: SNAPSHOT
-//| mill-jvm-version: 11
 package build
 
-import _root_.build_.MyModule
-import mill._
 import mill.javalib._
 import mill.javalib.publish._
 
-object Deps {
+object `package` extends MavenModule with PublishModule {
 
-  val `javax.servlet.jsp:jsp-api` = mvn"javax.servlet.jsp:jsp-api:2.2"
-  val `javax.servlet:servlet-api` = mvn"javax.servlet:servlet-api:2.5"
-  val `junit:junit-dep` = mvn"junit:junit-dep:4.10"
-  val `org.hamcrest:hamcrest-core` = mvn"org.hamcrest:hamcrest-core:1.2.1"
-  val `org.hamcrest:hamcrest-library` = mvn"org.hamcrest:hamcrest-library:1.2.1"
-  val `org.mockito:mockito-core` = mvn"org.mockito:mockito-core:1.8.5"
-}
+  def pomPackagingType = "pom"
 
-object `package` extends MyModule {
+  def pomSettings = PomSettings(
+    "Just a pom that makes it easy to build both projects at the same time.",
+    "",
+    "",
+    Seq(),
+    VersionControl(None, None, None, None),
+    Seq()
+  )
 
-  def artifactName = "parent"
+  def publishVersion = "1.0-SNAPSHOT"
 
-  def pomPackagingType = PackagingType.Pom
+  def artifactMetadata =
+    Artifact("com.example.maven-samples", "parent", "1.0-SNAPSHOT")
 
-  object `multi-module` extends MyModule {
+  object `multi-module` extends MavenModule with PublishModule {
 
-    def artifactName = "multi-module-parent"
+    def javacOptions = super.javacOptions() ++
+      Seq("-source", "1.6", "-target", "1.6")
 
-    def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+    def pomPackagingType = "pom"
 
     def pomSettings = PomSettings(
       "Sample multi module Maven project with a working, deployable site.",
-      "com.example.maven-samples",
+      "",
       "http://www.example.com",
       Seq(),
       VersionControl(
@@ -43,20 +42,33 @@ object `package` extends MyModule {
       Seq()
     )
 
-    def pomPackagingType = PackagingType.Pom
+    def publishVersion = "1.0-SNAPSHOT"
+
+    def artifactMetadata = Artifact(
+      "com.example.maven-samples",
+      "multi-module-parent",
+      "1.0-SNAPSHOT"
+    )
 
     def publishProperties = super.publishProperties() ++ Map(
       ("project.build.sourceEncoding", "utf-8"),
       ("project.reporting.outputEncoding", "utf-8")
     )
 
-    object server extends MyModule {
+    object server extends MavenModule with PublishModule {
 
-      def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+      def javacOptions = super.javacOptions() ++
+        Seq("-source", "1.6", "-target", "1.6")
+
+      def pomParentProject = Some(Artifact(
+        "com.example.maven-samples",
+        "multi-module-parent",
+        "1.0-SNAPSHOT"
+      ))
 
       def pomSettings = PomSettings(
         "Logic.",
-        "com.example.maven-samples",
+        "",
         "http://www.example.com/server",
         Seq(),
         VersionControl(
@@ -68,11 +80,10 @@ object `package` extends MyModule {
         Seq()
       )
 
-      def pomParentProject = Some(Artifact(
-        "com.example.maven-samples",
-        "multi-module-parent",
-        "1.0-SNAPSHOT"
-      ))
+      def publishVersion = "1.0-SNAPSHOT"
+
+      def artifactMetadata =
+        Artifact("com.example.maven-samples", "server", "1.0-SNAPSHOT")
 
       def publishProperties = super.publishProperties() ++ Map(
         ("project.build.sourceEncoding", "utf-8"),
@@ -81,32 +92,41 @@ object `package` extends MyModule {
 
       object tests extends MavenTests with TestModule.Junit4 {
 
-        def mvnDeps = Seq(
-          Deps.`junit:junit-dep`,
-          Deps.`org.hamcrest:hamcrest-core`,
-          Deps.`org.hamcrest:hamcrest-library`,
-          Deps.`org.mockito:mockito-core`
+        def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
+          Seq(mvn"junit:junit-dep:4.10")
+
+        def mvnDeps = super.mvnDeps() ++ Seq(
+          mvn"org.hamcrest:hamcrest-core:1.2.1",
+          mvn"org.hamcrest:hamcrest-library:1.2.1",
+          mvn"org.mockito:mockito-core:1.8.5"
         )
 
-        def testSandboxWorkingDir = false
-        def testParallelism = false
-        def forkWorkingDir = moduleDir
-
       }
+
     }
+    object webapp extends MavenModule with PublishModule {
 
-    object webapp extends MyModule {
-
-      def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+      def compileMvnDeps = super.compileMvnDeps() ++ Seq(
+        mvn"javax.servlet:servlet-api:2.5",
+        mvn"javax.servlet.jsp:jsp-api:2.2"
+      )
 
       def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
 
-      def compileMvnDeps =
-        Seq(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
+      def javacOptions = super.javacOptions() ++
+        Seq("-source", "1.6", "-target", "1.6")
+
+      def pomPackagingType = "war"
+
+      def pomParentProject = Some(Artifact(
+        "com.example.maven-samples",
+        "multi-module-parent",
+        "1.0-SNAPSHOT"
+      ))
 
       def pomSettings = PomSettings(
         "Webapp.",
-        "com.example.maven-samples",
+        "",
         "http://www.example.com/webapp",
         Seq(),
         VersionControl(
@@ -118,13 +138,10 @@ object `package` extends MyModule {
         Seq()
       )
 
-      def pomPackagingType = "war"
+      def publishVersion = "1.0-SNAPSHOT"
 
-      def pomParentProject = Some(Artifact(
-        "com.example.maven-samples",
-        "multi-module-parent",
-        "1.0-SNAPSHOT"
-      ))
+      def artifactMetadata =
+        Artifact("com.example.maven-samples", "webapp", "1.0-SNAPSHOT")
 
       def publishProperties = super.publishProperties() ++ Map(
         ("project.build.sourceEncoding", "utf-8"),
@@ -133,19 +150,19 @@ object `package` extends MyModule {
 
     }
   }
+  object `single-module` extends MavenModule with PublishModule {
 
-  object `single-module` extends MyModule {
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"javax.servlet:servlet-api:2.5",
+      mvn"javax.servlet.jsp:jsp-api:2.2"
+    )
 
-    def artifactName = "single-module-project"
-
-    def javacOptions = Seq("-source", "1.6", "-target", "1.6")
-
-    def mvnDeps =
-      Seq(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
+    def javacOptions = super.javacOptions() ++
+      Seq("-source", "1.6", "-target", "1.6")
 
     def pomSettings = PomSettings(
       "Sample single module Maven project with a working, deployable site.",
-      "com.example.maven-samples",
+      "",
       "http://www.example.com",
       Seq(),
       VersionControl(
@@ -157,6 +174,14 @@ object `package` extends MyModule {
       Seq()
     )
 
+    def publishVersion = "1.0-SNAPSHOT"
+
+    def artifactMetadata = Artifact(
+      "com.example.maven-samples",
+      "single-module-project",
+      "1.0-SNAPSHOT"
+    )
+
     def publishProperties = super.publishProperties() ++ Map(
       ("project.build.sourceEncoding", "utf-8"),
       ("project.reporting.outputEncoding", "utf-8")
@@ -164,32 +189,16 @@ object `package` extends MyModule {
 
     object tests extends MavenTests with TestModule.Junit4 {
 
-      def mvnDeps = Seq(
-        Deps.`junit:junit-dep`,
-        Deps.`org.hamcrest:hamcrest-core`,
-        Deps.`org.hamcrest:hamcrest-library`,
-        Deps.`org.mockito:mockito-core`
+      def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
+        Seq(mvn"junit:junit-dep:4.10")
+
+      def mvnDeps = super.mvnDeps() ++ Seq(
+        mvn"org.hamcrest:hamcrest-core:1.2.1",
+        mvn"org.hamcrest:hamcrest-library:1.2.1",
+        mvn"org.mockito:mockito-core:1.8.5"
       )
 
-      def testSandboxWorkingDir = false
-      def testParallelism = false
-      def forkWorkingDir = moduleDir
-
     }
+
   }
-}
-
-trait MyModule extends PublishModule with MavenModule {
-
-  def pomSettings = PomSettings(
-    "Just a pom that makes it easy to build both projects at the same time.",
-    "com.example.maven-samples",
-    "",
-    Seq(),
-    VersionControl(None, None, None, None),
-    Seq()
-  )
-
-  def publishVersion = "1.0-SNAPSHOT"
-
 }

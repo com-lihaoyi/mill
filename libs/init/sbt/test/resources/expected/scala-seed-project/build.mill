@@ -11,7 +11,7 @@ object `package` extends PublishModule with SbtModule {
 
   def pomSettings = PomSettings(
     "Scala Seed Project",
-    "com.example",
+    "example",
     "",
     Seq(),
     VersionControl(None, None, None, None),
@@ -19,6 +19,9 @@ object `package` extends PublishModule with SbtModule {
   )
 
   def publishVersion = "0.1.0-SNAPSHOT"
+
+  def artifactMetadata =
+    Artifact("com.example", "scala-seed-project", "0.1.0-SNAPSHOT")
 
   object test extends SbtTests with TestModule.Munit {
 

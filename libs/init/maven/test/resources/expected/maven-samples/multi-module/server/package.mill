@@ -1,16 +1,21 @@
 package build.`multi-module`.server
 
-import mill._
 import mill.javalib._
 import mill.javalib.publish._
+import millbuild._
 
-object `package` extends PublishModule with MavenModule {
+object `package` extends MavenSamplesBaseModule {
 
-  def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+  def javacOptions = super.javacOptions() ++
+    Seq("-source", "1.6", "-target", "1.6")
+
+  def pomParentProject = Some(
+    Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
+  )
 
   def pomSettings = PomSettings(
     "Logic.",
-    "com.example.maven-samples",
+    "",
     "http://www.example.com/server",
     Seq(),
     VersionControl(
@@ -22,24 +27,16 @@ object `package` extends PublishModule with MavenModule {
     Seq()
   )
 
-  def publishVersion = "1.0-SNAPSHOT"
-
-  def pomParentProject = Some(
-    Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
-  )
+  def artifactMetadata =
+    Artifact("com.example.maven-samples", "server", "1.0-SNAPSHOT")
 
   object test extends MavenTests with TestModule.Junit4 {
 
-    def mvnDeps = Seq(
-      mvn"junit:junit-dep:4.10",
-      mvn"org.hamcrest:hamcrest-core:1.2.1",
-      mvn"org.hamcrest:hamcrest-library:1.2.1",
-      mvn"org.mockito:mockito-core:1.8.5"
-    )
+    def mandatoryMvnDeps = super.mandatoryMvnDeps() ++ Seq(Deps.junitDep)
 
-    def testSandboxWorkingDir = false
-    def testParallelism = false
-    def forkWorkingDir = moduleDir
+    def mvnDeps = super.mvnDeps() ++
+      Seq(Deps.hamcrestCore, Deps.hamcrestLibrary, Deps.mockitoCore)
 
   }
+
 }

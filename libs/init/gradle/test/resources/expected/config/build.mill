@@ -11,6 +11,9 @@ object `package` extends Module {
 
     def moduleDeps = super.moduleDeps ++ Seq(build.utilities)
 
+    def javacOptions = super.javacOptions() ++
+      Seq("-source", "1.8", "-target", "1.8")
+
     def jvmId = "8"
 
     object tests extends MavenTests with TestModule.Junit5 {
@@ -24,6 +27,9 @@ object `package` extends Module {
 
   }
   object list extends MavenModule {
+
+    def javacOptions = super.javacOptions() ++
+      Seq("-source", "1.8", "-target", "1.8")
 
     def jvmId = "8"
 
@@ -40,6 +46,9 @@ object `package` extends Module {
   object utilities extends MavenModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(build.list)
+
+    def javacOptions = super.javacOptions() ++
+      Seq("-source", "1.8", "-target", "1.8")
 
     def jvmId = "8"
 

@@ -17,10 +17,8 @@ case class GradleBuildGenArgs(
 )
 
 /**
- * **Limitations**
- *  - When `useJUnitPlatform()` is used, the `junit-platform-launcher` dependency version is
- *  auto-selected by Gradle and not available during conversion. See
- *  [[https://discuss.gradle.org/t/why-do-gradle-docs-specify-junit-platform-launcher-for-junit-5-tests/46286]].
+ * @see [[https://docs.gradle.org/current/userguide/compatibility.html#java_runtime JDK compatibility]]
+ * @see [[https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_framework_implementation_dependencies Test auto-dependencies]]
  */
 object GradleBuildGenMain {
 

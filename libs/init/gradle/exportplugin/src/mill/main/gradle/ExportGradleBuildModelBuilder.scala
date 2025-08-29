@@ -54,15 +54,12 @@ class ExportGradleBuildModelBuilder(
       else Nil
     .toSeq
 
-    val javaCompileTask = Option(getTasks.findByName(COMPILE_JAVA_TASK_NAME)).collect:
-      case task: JavaCompile => task
-
     val testModule =
-      if (os.exists(moduleDir / "src/test")) TestModuleRepr.frameworkMvnDeps(
-        mvnDeps(
-          TEST_IMPLEMENTATION_CONFIGURATION_NAME,
-          TEST_RUNTIME_ONLY_CONFIGURATION_NAME
-        )
+      val testDeps = mvnDeps(TEST_IMPLEMENTATION_CONFIGURATION_NAME)
+      val testCompileDeps = mvnDeps(TEST_COMPILE_ONLY_CONFIGURATION_NAME)
+      val testRunDeps = mvnDeps(TEST_RUNTIME_ONLY_CONFIGURATION_NAME)
+      if (os.exists(moduleDir / "src/test")) TestModuleRepr.mixinAndMandatoryMvnDeps(
+        testDeps ++ testCompileDeps ++ testRunDeps
       ).map: (mixin, mandatoryMvnDeps) =>
         TestModuleRepr(
           name = testModuleName,
@@ -70,9 +67,9 @@ class ExportGradleBuildModelBuilder(
           mixins = Seq(mixin),
           configs = Seq(JavaModuleConfig(
             mandatoryMvnDeps = mandatoryMvnDeps,
-            mvnDeps = mvnDeps(TEST_IMPLEMENTATION_CONFIGURATION_NAME).diff(mandatoryMvnDeps),
-            compileMvnDeps = mvnDeps(TEST_COMPILE_ONLY_CONFIGURATION_NAME),
-            runMvnDeps = mvnDeps(TEST_RUNTIME_ONLY_CONFIGURATION_NAME).diff(mandatoryMvnDeps),
+            mvnDeps = testDeps.diff(mandatoryMvnDeps),
+            compileMvnDeps = testCompileDeps.diff(mandatoryMvnDeps),
+            runMvnDeps = testRunDeps.diff(mandatoryMvnDeps),
             bomMvnDeps = bomMvnDeps(TEST_IMPLEMENTATION_CONFIGURATION_NAME),
             moduleDeps = moduleDeps(TEST_IMPLEMENTATION_CONFIGURATION_NAME),
             compileModuleDeps = moduleDeps(TEST_COMPILE_ONLY_CONFIGURATION_NAME),
@@ -81,6 +78,21 @@ class ExportGradleBuildModelBuilder(
         )
       else None
 
+    val javaCompileTask = Option(getTasks.findByName(COMPILE_JAVA_TASK_NAME)).collect:
+      case task: JavaCompile => task
+    val (javacOptions, errorProneModuleConfig) = ErrorProneModuleConfig.javacOptionsAndConfig(
+      javaCompileTask.fold(Nil) { task =>
+        // javac requires --release to be mutually exclusive with -source/-target
+        val opts = Option(task.getOptions.getRelease.getOrNull).fold(
+          Option(task.getSourceCompatibility).fold(Nil)(Seq("-source", _)) ++
+            Option(task.getTargetCompatibility).fold(Nil)(Seq("-target", _))
+        )(n => Seq("--release", n.toString)) ++
+          Option(task.getOptions.getEncoding).fold(Nil)(Seq("-encoding", _)) ++
+          task.getOptions.getAllCompilerArgs.asScala.toSeq
+        opts.diff(JavaModuleConfig.unsupportedJavacOptions)
+      },
+      mvnDeps("errorprone")
+    )
     val javaModuleConfig = Option.when(getPluginManager.hasPlugin("java")):
       JavaModuleConfig(
         mvnDeps = mvnDeps(IMPLEMENTATION_CONFIGURATION_NAME, API_CONFIGURATION_NAME),
@@ -92,13 +104,7 @@ class ExportGradleBuildModelBuilder(
         compileModuleDeps =
           moduleDeps(COMPILE_ONLY_CONFIGURATION_NAME, COMPILE_ONLY_API_CONFIGURATION_NAME),
         runModuleDeps = moduleDeps(RUNTIME_ONLY_CONFIGURATION_NAME),
-        javacOptions = javaCompileTask.fold(Nil) { task =>
-          // TODO Support structured options like release?
-          // TODO Supporting -Werror in Mill would require removing non-existent paths from the classpath
-          task.getOptions.getCompilerArgs.iterator.asScala.toSeq.diff(Seq("-Werror"))
-        },
-        // TODO Support structured org.gradle.external.javadoc.CoreJavadocOptions?
-        javadocOptions = Nil
+        javacOptions = javacOptions
       )
     val javaHomeModuleConfig = ctx.jvmId(project0).map(JavaHomeModuleConfig(_))
     val coursierModuleConfig = {
@@ -120,16 +126,11 @@ class ExportGradleBuildModelBuilder(
         ext.getPublications.withType(classOf[MavenPublication]).asScala.headOption
       .map: pub =>
         PublishModuleConfig(
-          pomPackagingType = toPomPackagingType(pub.getPom),
+          pomPackagingType = toPomPackagingType(pub.getPom.getPackaging),
           pomSettings = toPomSettings(pub.getPom),
           artifactMetadata = toArtifactMetadata(pub),
           publishVersion = getVersion.toString
         )
-    val errorProneModuleConfig = javaCompileTask.flatMap: task =>
-      ErrorProneModuleConfig.from(
-        task.getOptions.getAllCompilerArgs.asScala,
-        errorProneDeps = mvnDeps("errorprone")
-      )
 
     val configs = Seq(
       javaModuleConfig,
@@ -168,10 +169,8 @@ class ExportGradleBuildModelBuilder(
     )
   }
 
-  def toPomPackagingType(pom: MavenPom) = {
-    pom.getPackaging match
-      case null | "jar" => null
-      case s => s
+  def toPomPackagingType(tpe: String) = {
+    if ("jar" == tpe) null else tpe
   }
 
   def toPomSettings(pom: MavenPom) = {

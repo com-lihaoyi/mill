@@ -69,7 +69,7 @@ object MillInitUtils {
       expectedCompileTaskResults: Option[SplitTaskResults],
       expectedTestTaskResults: Option[SplitTaskResults]
   ): Unit = {
-    import tester._
+    import tester.*
 
     val initResult = eval(initCommand)
     if (expectedInitResult) assertEvalSuccess(initResult) else assert(!initResult.isSuccess)
@@ -204,4 +204,12 @@ object MillInitUtils {
     os.write(workspace / ".mill-jvm-version", jvmId)
   def writeMillJvmVersionTemurin11(workspace: os.Path) =
     writeMillJvmVersion(workspace, "temurin:11")
+
+  def combinedTask(tasks: String*) =
+    tasks.iterator.map(Seq(_)).reduce(_ ++ Seq("+") ++ _)
+
+  def evalAllSourceFileCounts(tester: IntegrationTester) = {
+    val result = tester.eval(("show", "__.allSourceFiles"))
+    upickle.default.read[Map[String, Seq[String]]](result.out).map((k, v) => (k, v.length))
+  }
 }
