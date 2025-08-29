@@ -144,7 +144,7 @@ The diagram above still doesn’t tell the whole story! It shows a typical build
 - Instrumented tests (separate APK, own resources, manifests, dependencies)
 - Native code (NDK builds, CMake integration)
 
-We cover a lot of these architecture styles in the https://github.com/com-lihaoyi/mill/tree/main/example/androidlib[Android examples] and third party integration examples covering xref:mill::android/compose-samples.adoc[Android Compose], xref:mill::android/java.adoc#_using_third_party_native_libraries[Android Native] and xref:mill::android/hilt-sample.adoc[Dependency Injection with Hilt].
+We cover a lot of these architecture styles in various Android examples, based on xref:mill::android/java.adoc[Java], xref:mill::android/kotlin.adoc[Kotlin] and third party integration examples covering xref:mill::android/compose-samples.adoc[Android Compose], xref:mill::android/android-native-example.adoc[Android Native] and xref:mill::android/hilt-sample.adoc[Dependency Injection with Hilt].
 
 
 == Try it out
@@ -175,6 +175,6 @@ Then install it with
 $ mill app.androidInstall
 ----
 
-You may also inspect xref:mill::android/android-initial-setup.adoc[the documented examples] to find out more.
+You may also inspect xref:mill::android/android-initial-setup.adoc[the getting started docs] to find out more.
 
 We’d love feedback from the Android community, whether it’s bug reports, feature requests, or success stories. If you’ve ever wished Android builds felt less like a black box, Mill is worth a look.
