@@ -97,12 +97,12 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
   /**
    * Compiler Plugin dependencies.
    */
-  def groovycPluginMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+  def groovyCompilerPluginMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
   /**
    * The resolved plugin jars
    */
-  def groovycPluginJars: T[Seq[PathRef]] = Task {
+  def groovyCompilerPluginJars: T[Seq[PathRef]] = Task {
     val jars = defaultResolver().classpath(
       groovycPluginMvnDeps()
         // Don't resolve transitive jars
