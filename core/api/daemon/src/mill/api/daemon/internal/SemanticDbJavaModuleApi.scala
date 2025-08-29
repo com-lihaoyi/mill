@@ -17,6 +17,8 @@ object SemanticDbJavaModuleApi {
       protected override def initialValue(): Option[String] = None.asInstanceOf[Option[String]]
     }
 
+  private[mill] def clientNeedsSemanticDb(): Boolean = contextSemanticDbVersion.get().isDefined
+
   private[mill] val contextJavaSemanticDbVersion: InheritableThreadLocal[Option[String]] =
     new InheritableThreadLocal[Option[String]] {
       protected override def initialValue(): Option[String] = None.asInstanceOf[Option[String]]

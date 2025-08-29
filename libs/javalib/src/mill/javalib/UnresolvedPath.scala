@@ -1,12 +1,14 @@
 package mill.javalib
 
-import mill.api.daemon.internal.UnresolvedPathApi
-import mill.api.{ExecutionPaths, Segment, Segments}
+import mill.api.daemon.internal.{UnresolvedPathApi, internal}
+import mill.api.{ExecutionPaths, Segment, Segments, Task}
 import upickle.default.{ReadWriter, macroRW}
 
 /**
  * An unresolved path is relative to some unspecified destination
  * which depends on the actual configuration at evaluation time.
+ *
+ * TODO REVIEW: outdated comment
  * Hence, you need to call [[#resolve]] with an instance of
  * [[ExecutionPathsResolver]] to get the final [[os.Path]].
  */
@@ -14,6 +16,15 @@ sealed trait UnresolvedPath extends UnresolvedPathApi[os.Path] {
   def resolve(outPath: os.Path): os.Path
 }
 object UnresolvedPath {
+
+  /** Resolves paths relative to the `out` folder. */
+  @internal
+  private[mill] def resolveRelativeToOut(
+      task: Task.Named[?],
+      mkPath: os.SubPath => os.SubPath = identity
+  ): UnresolvedPath.DestPath =
+    UnresolvedPath.DestPath(mkPath(os.sub), task.ctx.segments)
+
   case class ResolvedPath private (path: String) extends UnresolvedPath {
     override def resolve(outPath: os.Path): os.Path = os.Path(path)
   }

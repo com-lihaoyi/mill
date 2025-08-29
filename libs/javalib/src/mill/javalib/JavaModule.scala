@@ -709,13 +709,6 @@ trait JavaModule
   }
 
   /**
-   * The upstream compilation output of all this module's upstream modules
-   */
-  def upstreamCompileOutput: T[Seq[CompilationResult]] = Task {
-    Task.traverse(transitiveModuleCompileModuleDeps)(_.compile)()
-  }
-
-  /**
    * The transitive version of `localClasspath`
    */
   def transitiveLocalClasspath: T[Seq[PathRef]] = Task {
@@ -733,16 +726,19 @@ trait JavaModule
    * The transitive version of [[compileClasspath]]
    */
   def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
-    transitiveCompileClasspathTask(CompileFor.Regular)()
+    transitiveCompileClasspathTask(CompileArgs.default)()
   }
 
   /**
    * The transitive version of [[compileClasspathTask]]
    */
-  private[mill] def transitiveCompileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]] =
+  private[mill] def transitiveCompileClasspathTask(compileArgs: CompileArgs): Task[Seq[PathRef]] =
     Task.Anon {
       Task.traverse(transitiveModuleCompileModuleDeps)(m =>
-        Task.Anon { m.localCompileClasspath() ++ Seq(m.compileFor(compileFor)().classes) }
+        Task.Anon {
+          val compileResult = m.compileWithArgs.apply()(compileArgs)
+          compileResult.map(res => m.localCompileClasspath() :+ res.classes)
+        }
       )().flatten
     }
 
@@ -806,13 +802,7 @@ trait JavaModule
    */
   def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
-  /**
-   * Path to sources generated as part of the `compile` step, eg.  by Java annotation
-   * processors which often generate source code alongside classfiles during compilation.
-   *
-   * Typically these do not need to be compiled again, and are only used by IDEs
-   */
-  def compileGeneratedSources: T[os.Path] = Task(persistent = true) { Task.dest }
+  override def compileGeneratedSources: T[os.Path] = Task(persistent = true) { Task.dest }
 
   /**
    * The folders containing all source files fed into the compiler
@@ -858,40 +848,13 @@ trait JavaModule
       os.makeDir.all(compileGenSources)
     }
 
-    val jOpts = JavaCompilerOptions(Seq(
-      "-s",
-      compileGenSources.toString
-    ) ++ javacOptions() ++ mandatoryJavacOptions())
-
-    jvmWorker()
-      .internalWorker()
-      .compileJava(
-        ZincCompileJava(
-          upstreamCompileOutput = upstreamCompileOutput(),
-          sources = allSourceFiles().map(_.path),
-          compileClasspath = compileClasspath().map(_.path),
-          javacOptions = jOpts.compiler,
-          incrementalCompilation = zincIncrementalCompilation()
-        ),
-        javaHome = javaHome().map(_.path),
-        javaRuntimeOptions = jOpts.runtime,
-        reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
-      )
+    ???
   }
-
-  /** Resolves paths relative to the `out` folder. */
-  @internal
-  private[mill] def resolveRelativeToOut(
-      task: Task.Named[?],
-      mkPath: os.SubPath => os.SubPath = identity
-  ): UnresolvedPath.DestPath =
-    UnresolvedPath.DestPath(mkPath(os.sub), task.ctx.segments)
 
   /** The path where the compiled classes produced by [[compile]] are stored. */
   @internal
   private[mill] def compileClassesPath: UnresolvedPath.DestPath =
-    resolveRelativeToOut(compile, _ / "classes")
+    UnresolvedPath.resolveRelativeToOut(compile, _ / "classes")
 
   /**
    * The path to the compiled classes by [[compile]] without forcing to actually run the compilation.
@@ -916,14 +879,15 @@ trait JavaModule
       needsToMergeResourcesIntoCompileDest: Boolean
   ): Task[UnresolvedPath] =
     Task.Anon {
-      if (needsToMergeResourcesIntoCompileDest) resolveRelativeToOut(bspBuildTargetCompileMerged)
+      if (needsToMergeResourcesIntoCompileDest)
+        UnresolvedPath.resolveRelativeToOut(bspBuildTargetCompileMerged)
       else compileClassesPath
     }
 
   /**
    * The part of the [[localClasspath]] which is available "after compilation".
    *
-   * Keep in sync with [[bspLocalRunClasspath]]
+   * Keep the return value in sync with [[bspLocalRunClasspath]]
    */
   override def localRunClasspath: T[Seq[PathRef]] = Task {
     super.localRunClasspath() ++ resources() ++ Seq(compile().classes)
@@ -977,15 +941,15 @@ trait JavaModule
    *
    * Keep return value in sync with [[bspCompileClasspath]].
    */
-  def compileClasspath: T[Seq[PathRef]] = Task { compileClasspathTask(CompileFor.Regular)() }
+  def compileClasspath: T[Seq[PathRef]] = Task { compileClasspathTask(CompileArgs.default)() }
 
   /**
    * All classfiles and resources from upstream modules and dependencies
    * necessary to compile this module.
    */
-  override private[mill] def compileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]] =
+  override private[mill] def compileClasspathTask(compileArgs: CompileArgs): Task[Seq[PathRef]] =
     Task.Anon {
-      resolvedMvnDeps() ++ transitiveCompileClasspathTask(compileFor)() ++ localCompileClasspath()
+      resolvedMvnDeps() ++ transitiveCompileClasspathTask(compileArgs)() ++ localCompileClasspath()
     }
 
   /**
@@ -1577,7 +1541,7 @@ trait BomModule extends JavaModule {
     val sources = allSourceFiles()
     if (sources.nonEmpty)
       throw new Exception("A BomModule cannot have sources")
-    CompilationResult(Task.dest / "zinc", PathRef(Task.dest / "classes"))
+    CompilationResult(Task.dest / "zinc", PathRef(Task.dest / "classes"), semanticDbFiles = None)
   }
 
   abstract override def resources: T[Seq[PathRef]] = Task {

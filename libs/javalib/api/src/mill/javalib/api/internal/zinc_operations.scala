@@ -6,6 +6,7 @@ import mill.api.JsonFormatters.*
 
 /** Compiles Java-only sources. */
 case class ZincCompileJava(
+    compileTo: os.Path,
     upstreamCompileOutput: Seq[CompilationResult],
     sources: Seq[os.Path],
     compileClasspath: Seq[os.Path],
@@ -15,6 +16,7 @@ case class ZincCompileJava(
 
 /** Compiles Java and Scala sources. */
 case class ZincCompileMixed(
+    compileTo: os.Path,
     upstreamCompileOutput: Seq[CompilationResult],
     sources: Seq[os.Path],
     compileClasspath: Seq[os.Path],

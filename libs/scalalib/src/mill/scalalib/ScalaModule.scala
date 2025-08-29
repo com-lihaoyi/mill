@@ -600,6 +600,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
   override def semanticDbDataDetailed: T[SemanticDbJavaModule.SemanticDbData] =
     Task(persistent = true) {
+      compile
+      
       val sv = scalaVersion()
 
       val additionalScalacOptions = if (JvmWorkerUtil.isScala3(sv)) {

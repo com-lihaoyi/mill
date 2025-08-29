@@ -1,6 +1,7 @@
 package mill.util
 
-import mill.api.{Evaluator, SelectMode}
+import mill.api.daemon.internal.internal
+import mill.api.{Evaluator, SelectMode, Task}
 
 /**
  * Used in the signature of [[Task.Command]]s to allow them to take one or more tasks selectors

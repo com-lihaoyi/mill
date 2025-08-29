@@ -173,7 +173,7 @@ public class MillBackgroundWrapper {
     }
   }
 
-  static Optional<Long> readPreviousPid(Path pidFilePath) {
+  public static Optional<Long> readPreviousPid(Path pidFilePath) {
     try {
       var pidStr = Files.readString(pidFilePath);
       return Optional.of(Long.parseLong(pidStr));
