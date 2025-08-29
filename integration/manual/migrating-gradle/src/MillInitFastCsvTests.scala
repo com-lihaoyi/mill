@@ -15,7 +15,6 @@ object MillInitFastCsvTests extends GitRepoIntegrationTestSuite {
     test - integrationTest { tester =>
       import tester.*
 
-      // from tasks.compileJava.options.release
       os.write(workspacePath / ".mill-jvm-version", "17")
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true

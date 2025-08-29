@@ -41,17 +41,18 @@ object ModuleConfig {
               self.moduleDeps.intersect(that.moduleDeps),
               self.compileModuleDeps.intersect(that.compileModuleDeps),
               self.runModuleDeps.intersect(that.runModuleDeps),
-              args(self.javacOptions, that.javacOptions),
-              args(self.javadocOptions, that.javadocOptions)
+              args(self.javacOptions, that.javacOptions)
             )
         }
       case self: PublishModuleConfig => that.collectFirst {
           case that: PublishModuleConfig => PublishModuleConfig(
               value(self.pomPackagingType, that.pomPackagingType),
+              value(self.pomParentProject, that.pomParentProject, None),
               value(self.pomSettings, that.pomSettings),
-              value(self.artifactMetadata, that.artifactMetadata),
               value(self.publishVersion, that.publishVersion),
-              value(self.versionScheme, that.versionScheme, None)
+              value(self.versionScheme, that.versionScheme, None),
+              value(self.artifactMetadata, that.artifactMetadata),
+              self.publishProperties.toSeq.intersect(that.publishProperties.toSeq).toMap
             )
         }
       case self: ErrorProneModuleConfig => that.collectFirst {
@@ -114,17 +115,18 @@ object ModuleConfig {
               self.moduleDeps.diff(base.moduleDeps),
               self.compileModuleDeps.diff(base.compileModuleDeps),
               self.runModuleDeps.diff(base.runModuleDeps),
-              args(self.javacOptions, base.javacOptions),
-              args(self.javadocOptions, base.javadocOptions)
+              args(self.javacOptions, base.javacOptions)
             )
         }.getOrElse(self)
       case self: PublishModuleConfig => base.collectFirst {
           case base: PublishModuleConfig => PublishModuleConfig(
               value(self.pomPackagingType, base.pomPackagingType),
+              value(self.pomParentProject, base.pomParentProject, None),
               value(self.pomSettings, base.pomSettings),
-              value(self.artifactMetadata, base.artifactMetadata),
               value(self.publishVersion, base.publishVersion),
-              value(self.versionScheme, base.versionScheme, None)
+              value(self.versionScheme, base.versionScheme, None),
+              value(self.artifactMetadata, base.artifactMetadata),
+              self.publishProperties.toSeq.diff(base.publishProperties.toSeq).toMap
             )
         }.getOrElse(self)
       case self: ErrorProneModuleConfig => base.collectFirst {
@@ -174,8 +176,7 @@ case class JavaModuleConfig(
     moduleDeps: Seq[JavaModuleConfig.ModuleDep] = Nil,
     compileModuleDeps: Seq[JavaModuleConfig.ModuleDep] = Nil,
     runModuleDeps: Seq[JavaModuleConfig.ModuleDep] = Nil,
-    javacOptions: Seq[String] = Nil,
-    javadocOptions: Seq[String] = Nil
+    javacOptions: Seq[String] = Nil
 ) extends ModuleConfig
 object JavaModuleConfig {
 
@@ -214,6 +215,9 @@ object JavaModuleConfig {
     s"""mvn"$org$sep1$name$suffix""""
   }
 
+  // TODO Supporting -Werror would require removing non-existent paths from the compile classpath
+  def unsupportedJavacOptions = Seq("-Werror")
+
   /**
    * Represents a module dependency.
    * @param segments Path identifying the module.
@@ -229,10 +233,12 @@ object JavaModuleConfig {
 
 case class PublishModuleConfig(
     pomPackagingType: String = null,
+    pomParentProject: Option[PublishModuleConfig.Artifact] = None,
     pomSettings: PublishModuleConfig.PomSettings = null,
-    artifactMetadata: PublishModuleConfig.Artifact = null,
     publishVersion: String = null,
-    versionScheme: Option[String] = None
+    versionScheme: Option[String] = None,
+    artifactMetadata: PublishModuleConfig.Artifact = null,
+    publishProperties: Map[String, String] = Map()
 ) extends ModuleConfig
 object PublishModuleConfig {
   case class Artifact(group: String, id: String, version: String)
@@ -240,8 +246,8 @@ object PublishModuleConfig {
     implicit val rw: ReadWriter[Artifact] = macroRW
   }
   case class License(
-      id: String,
-      name: String,
+      id: String = null,
+      name: String = null,
       url: String = "",
       isOsiApproved: Boolean = false,
       isFsfLibre: Boolean = false,
@@ -260,9 +266,9 @@ object PublishModuleConfig {
     implicit val rw: ReadWriter[VersionControl] = macroRW
   }
   case class Developer(
-      id: String,
-      name: String,
-      url: String,
+      id: String = null,
+      name: String = null,
+      url: String = null,
       organization: Option[String] = None,
       organizationUrl: Option[String] = None
   )
@@ -270,9 +276,9 @@ object PublishModuleConfig {
     implicit val rw: ReadWriter[Developer] = macroRW
   }
   case class PomSettings(
-      description: String,
-      organization: String,
-      url: String,
+      description: String = null,
+      organization: String = null,
+      url: String = null,
       licenses: Seq[License] = Nil,
       versionControl: VersionControl = VersionControl(),
       developers: Seq[Developer] = Nil
@@ -296,17 +302,21 @@ case class ErrorProneModuleConfig(
 object ErrorProneModuleConfig {
   implicit val rw: ReadWriter[ErrorProneModuleConfig] = macroRW
 
-  def from(javacOptions: Iterable[String], errorProneDeps: Seq[String] = Nil) =
-    javacOptions.collectFirst {
-      case s if s.startsWith("-Xplugin:ErrorProne") =>
-        ErrorProneModuleConfig(
-          errorProneOptions = s.split(" ").toSeq.tail,
-          errorProneJavacEnableOptions = javacOptions.iterator.filter(s =>
-            s.startsWith("-XD") && s != "-XDcompilePolicy=simple"
-          ).toSeq,
-          errorProneDeps = errorProneDeps
-        )
-    }
+  def javacOptionsAndConfig(javacOptions0: Seq[String], errorProneDeps: Seq[String] = Nil) = {
+    val (pluginOptions, javacOptions) =
+      javacOptions0.partition(s => s.startsWith("-Xplugin:ErrorProne") || s.startsWith("-XD"))
+    (
+      javacOptions,
+      pluginOptions.collectFirst {
+        case s if s.startsWith("-Xplugin:ErrorProne") =>
+          ErrorProneModuleConfig(
+            errorProneOptions = s.split(" ").toSeq.tail,
+            errorProneJavacEnableOptions = pluginOptions.diff(Seq(s)),
+            errorProneDeps = errorProneDeps
+          )
+      }
+    )
+  }
 }
 
 case class ScalaModuleConfig(

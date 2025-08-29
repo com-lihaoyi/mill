@@ -17,7 +17,7 @@ case class TestModuleRepr(
 object TestModuleRepr {
   implicit val rw: ReadWriter[TestModuleRepr] = macroRW
 
-  def frameworkMvnDeps(mvnDeps: Iterable[String]): Option[(String, Seq[String])] = {
+  def mixinAndMandatoryMvnDeps(mvnDeps: Iterable[String]): Option[(String, Seq[String])] = {
     val mandatoryMvnDeps = Seq.newBuilder[String]
     var mixin: String = null
     // frameworks like scalatest and specs2 provide integrations with other frameworks

@@ -50,4 +50,6 @@ object `package` extends PublishModule with SbtModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
+  def artifactMetadata = Artifact("com.pbassiner", "nested", "0.1.0-SNAPSHOT")
+
 }

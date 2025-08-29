@@ -97,57 +97,54 @@ object ExportSbtBuildScript extends (State => State) {
     else None
 
     Def.task {
-      val mainConfigs = Seq(
-        Keys.libraryDependencies.value.collectFirst {
-          case dep
-              if dep.organization == "org.scala-js" && dep.name.startsWith("scalajs-library") =>
-            ScalaJSModuleConfig(dep.revision)
-        },
-        Keys.libraryDependencies.value.collectFirst {
-          case dep
-              if dep.organization == "org.scala-native" &&
-                dep.configurations.contains("plugin->default(compile)") =>
-            ScalaNativeModuleConfig(dep.revision)
-        }
-      ).flatten ++ Seq(
-        ScalaModuleConfig(
-          scalaVersion = if (isCrossVersion) null else Keys.scalaVersion.value,
-          // skip options added by plugins
-          scalacOptions = Keys.scalacOptions.value.filterNot(option =>
-            option.startsWith("-P") || option.startsWith("-scalajs")
-          ),
-          scalacPluginMvnDeps = mvnDeps(_.contains("plugin->default(compile)"))
+      val scalaJSModuleConfig = Keys.libraryDependencies.value.collectFirst {
+        case dep
+            if dep.organization == "org.scala-js" && dep.name.startsWith("scalajs-library") =>
+          ScalaJSModuleConfig(dep.revision)
+      }
+      val scalaNativeModuleConfig = Keys.libraryDependencies.value.collectFirst {
+        case dep
+            if dep.organization == "org.scala-native" &&
+              dep.configurations.contains("plugin->default(compile)") =>
+          ScalaNativeModuleConfig(dep.revision)
+      }
+      val scalaModuleConfig = ScalaModuleConfig(
+        scalaVersion = if (isCrossVersion) null else Keys.scalaVersion.value,
+        // skip options added by plugins
+        scalacOptions = Keys.scalacOptions.value.filterNot(option =>
+          option.startsWith("-P") || option.startsWith("-scalajs")
         ),
-        JavaModuleConfig(
-          mvnDeps = mvnDeps(cs => cs.isEmpty || cs.contains("compile")),
-          compileMvnDeps = mvnDeps(_.exists(Seq("provided", "optional").contains)),
-          runMvnDeps = mvnDeps(_.contains("runtime")),
-          moduleDeps = moduleDeps(cs =>
-            cs.isEmpty || cs.contains("compile") || cs.exists(_.startsWith("compile->"))
-          ),
-          compileModuleDeps = moduleDeps(cs =>
-            Seq("provided", "optional").exists(cs.contains) ||
-              Seq("provided->", "optional->").exists(s => cs.exists(_.startsWith(s)))
-          ),
-          runModuleDeps =
-            moduleDeps(cs => cs.contains("runtime") || cs.exists(_.startsWith("runtime->"))),
-          javacOptions = Keys.javacOptions.value
+        scalacPluginMvnDeps = mvnDeps(_.contains("plugin->default(compile)"))
+      )
+      val javaModuleConfig = JavaModuleConfig(
+        mvnDeps = mvnDeps(cs => cs.isEmpty || cs.contains("compile")),
+        compileMvnDeps = mvnDeps(_.exists(Seq("provided", "optional").contains)),
+        runMvnDeps = mvnDeps(_.contains("runtime")),
+        moduleDeps = moduleDeps(cs =>
+          cs.isEmpty || cs.contains("compile") || cs.exists(_.startsWith("compile->"))
+        ),
+        compileModuleDeps = moduleDeps(cs =>
+          Seq("provided", "optional").exists(cs.contains) ||
+            Seq("provided->", "optional->").exists(s => cs.exists(_.startsWith(s)))
+        ),
+        runModuleDeps =
+          moduleDeps(cs => cs.contains("runtime") || cs.exists(_.startsWith("runtime->"))),
+        javacOptions = Keys.javacOptions.value
+      )
+      val publishModuleConfig = if ((Keys.publish / Keys.skip).value || !Keys.publishArtifact.value)
+        None
+      else Some(PublishModuleConfig(
+        pomSettings = toPomSettings(Keys.projectInfo.value),
+        publishVersion = Keys.version.value,
+        versionScheme = Keys.versionScheme.value.collect(toVersionScheme),
+        artifactMetadata = PublishModuleConfig.Artifact(
+          Keys.organization.value,
+          Keys.moduleName.value,
+          Keys.version.value
         )
-      ) ++ Seq(
-        if ((Keys.publish / Keys.skip).value || !Keys.publishArtifact.value) None
-        else Some(PublishModuleConfig(
-          pomSettings = PublishModuleConfig.PomSettings(
-            description = Keys.description.value,
-            organization = Keys.organization.value,
-            url = Keys.homepage.value.fold("")(_.toExternalForm),
-            licenses = Keys.licenses.value.map(toLicense),
-            versionControl = toVersionControl(Keys.scmInfo.value),
-            developers = Keys.developers.value.map(toDeveloper)
-          ),
-          publishVersion = Keys.version.value,
-          versionScheme = Keys.versionScheme.value.collect(toVersionScheme)
-        ))
-      ).flatten
+      ))
+      val mainConfigs = Seq(scalaJSModuleConfig, scalaNativeModuleConfig).flatten ++
+        Seq(scalaModuleConfig, javaModuleConfig) ++ publishModuleConfig
       val useVersionRanges = isCrossVersion && os.walk.stream(moduleDir).exists(path =>
         os.isDir(path) && path.last.matches("""^scala-\d+\.\d*(-.*|\+)$""")
       )
@@ -160,7 +157,7 @@ object ExportSbtBuildScript extends (State => State) {
           (Test / Keys.unmanagedResourceDirectories).value.exists(_.exists())
         ) {
           val testMvnDeps = mvnDeps(_.contains("test"))
-          TestModuleRepr.frameworkMvnDeps(testMvnDeps).map {
+          TestModuleRepr.mixinAndMandatoryMvnDeps(testMvnDeps).map {
             case (mixin, mandatoryMvnDeps) =>
               val (testSupertypes, testMixins) = testHierarchy(mainSupertypes ++ mainMixins, mixin)
               val testConfigs = Seq(JavaModuleConfig(
@@ -269,6 +266,18 @@ object ExportSbtBuildScript extends (State => State) {
         case v: librarymanagement.For3Use2_13 if v.prefix.nonEmpty => "::"
         case _ => ":"
       }
+    )
+  }
+
+  def toPomSettings(moduleInfo: ModuleInfo) = {
+    import moduleInfo._
+    PublishModuleConfig.PomSettings(
+      description = description,
+      organization = organizationName,
+      url = homepage.fold[String](null)(_.toExternalForm),
+      licenses = licenses.map(toLicense),
+      versionControl = toVersionControl(scmInfo),
+      developers = developers.map(toDeveloper)
     )
   }
 

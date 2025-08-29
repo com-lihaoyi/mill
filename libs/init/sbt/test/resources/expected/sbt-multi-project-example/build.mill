@@ -44,6 +44,8 @@ object `package` extends Module {
       )
     )
 
+    def artifactMetadata = Artifact("com.pbassiner", "common", "0.1.0-SNAPSHOT")
+
     object test extends SbtTests with TestModule.ScalaTest {
 
       def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
@@ -92,6 +94,8 @@ object `package` extends Module {
       )
     )
 
+    def artifactMetadata = Artifact("com.pbassiner", "multi1", "0.1.0-SNAPSHOT")
+
     object test extends SbtTests with TestModule.ScalaTest {
 
       def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
@@ -137,6 +141,8 @@ object `package` extends Module {
       )
     )
 
+    def artifactMetadata = Artifact("com.pbassiner", "multi2", "0.1.0-SNAPSHOT")
+
     object test extends SbtTests with TestModule.ScalaTest {
 
       def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
@@ -179,6 +185,9 @@ object `package` extends Module {
           None
         ))
       )
+
+      def artifactMetadata =
+        Artifact("com.pbassiner", "nested", "0.1.0-SNAPSHOT")
 
     }
   }

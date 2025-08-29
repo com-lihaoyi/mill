@@ -14,24 +14,24 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
 
     meta.foreach: meta =>
       val sub = os.sub / millBuild / rootBuildFileNames.get(0)
-      println(s"writing meta-build file $sub")
+      println(s"writing Mill meta-build file to $sub")
       os.write(os.pwd / sub, renderMetaBuildRoot, createFolders = true)
       import meta.*
       val sub1 = os.sub / millBuild / "src" / s"${depsObject.name}.scala"
-      println(s"writing meta-build file $sub1")
+      println(s"writing Mill meta-build file to $sub1")
       os.write(os.pwd / sub1, renderDepsObject(packageName, depsObject), createFolders = true)
       baseTraits.foreach: baseTrait =>
         val sub = os.sub / millBuild / "src" / s"${baseTrait.name}.scala"
-        println(s"writing meta-build file $sub")
+        println(s"writing Mill meta-build file to $sub")
         os.write(os.pwd / sub, renderBaseTrait(packageName, baseTrait))
 
     val root +: nested = packages.iterator.toSeq: @unchecked
     val sub = os.sub / rootBuildFileNames.get(0)
-    println(s"writing build file $sub")
+    println(s"writing Mill build file to $sub")
     os.write(os.pwd / rootBuildFileNames.get(0), renderPackage(root))
     nested.foreach: pkg =>
       val sub = os.sub / pkg.root.segments / nestedBuildFileNames.get(0)
-      println(s"writing build file $sub")
+      println(s"writing Mill build file to $sub")
       os.write(os.pwd / sub, renderPackage(pkg))
   }
 
@@ -233,8 +233,6 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
        |${renderRunModuleDeps(runModuleDeps, get(_.runModuleDeps))}
        |
        |${renderJavacOptions(javacOptions, get(_.javacOptions))}
-       |
-       |${renderJavadocOptions(javadocOptions, get(_.javadocOptions))}
        |""".stripMargin
   }
 
@@ -246,13 +244,17 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
     import config.*
     s"""${renderPomPackagingType(pomPackagingType, get(_.pomPackagingType))}
        |
-       |${renderPomSettings(pomSettings, get(_.pomSettings))}
+       |${renderPomParentProject(pomParentProject, get(_.pomParentProject))}
        |
-       |${renderArtifactMetadata(artifactMetadata, get(_.artifactMetadata))}
+       |${renderPomSettings(pomSettings, get(_.pomSettings))}
        |
        |${renderPublishVersion(publishVersion, get(_.publishVersion))}
        |
        |${renderVersionScheme(versionScheme, get(_.versionScheme))}
+       |
+       |${renderArtifactMetadata(artifactMetadata, get(_.artifactMetadata))}
+       |
+       |${renderPublishProperties(publishProperties, get(_.publishProperties))}
        |""".stripMargin
   }
 
@@ -308,104 +310,101 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
   }
 
   def renderRepositories(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
-    renderTaskWithValues("repositories", values, crossValues, literalize(_))
+    renderTaskSeq("repositories", values, crossValues, literalize(_))
 
   def renderJvmId(value: String, crossValues: Seq[(String, String)]) =
-    renderTaskWithValue("jvmId", value, crossValues, literalize(_))
+    renderTask("jvmId", value, crossValues, literalize(_))
 
   def renderMandatoryMvnDeps(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
-    renderTaskWithValues("mandatoryMvnDeps", values, crossValues, identity)
+    renderTaskSeq("mandatoryMvnDeps", values, crossValues, identity)
 
   def renderMvnDeps(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
-    renderTaskWithValues("mvnDeps", values, crossValues, identity)
+    renderTaskSeq("mvnDeps", values, crossValues, identity)
 
   def renderCompileMvnDeps(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
-    renderTaskWithValues("compileMvnDeps", values, crossValues, identity)
+    renderTaskSeq("compileMvnDeps", values, crossValues, identity)
 
   def renderRunMvnDeps(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
-    renderTaskWithValues("runMvnDeps", values, crossValues, identity)
+    renderTaskSeq("runMvnDeps", values, crossValues, identity)
 
   def renderBomMvnDeps(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
-    renderTaskWithValues("bomMvnDeps", values, crossValues, identity)
+    renderTaskSeq("bomMvnDeps", values, crossValues, identity)
 
   def renderModuleDeps(
       values: Seq[JavaModuleConfig.ModuleDep],
       crossValues: Seq[(String, Seq[JavaModuleConfig.ModuleDep])]
-  ) = renderMemberWithValues("moduleDeps", values, crossValues, renderModuleDep)
+  ) = renderMemberSeq("moduleDeps", values, crossValues, renderModuleDep)
 
   def renderCompileModuleDeps(
       values: Seq[JavaModuleConfig.ModuleDep],
       crossValues: Seq[(String, Seq[JavaModuleConfig.ModuleDep])]
-  ) = renderMemberWithValues("compileModuleDeps", values, crossValues, renderModuleDep)
+  ) = renderMemberSeq("compileModuleDeps", values, crossValues, renderModuleDep)
 
   def renderRunModuleDeps(
       values: Seq[JavaModuleConfig.ModuleDep],
       crossValues: Seq[(String, Seq[JavaModuleConfig.ModuleDep])]
-  ) = renderMemberWithValues("runModuleDeps", values, crossValues, renderModuleDep)
+  ) = renderMemberSeq("runModuleDeps", values, crossValues, renderModuleDep)
 
   def renderJavacOptions(
       values: Seq[String],
       crossValues: Seq[(String, Seq[String])]
-  ) = renderTaskWithValues("javacOptions", values, crossValues, literalize(_))
-
-  def renderJavadocOptions(
-      values: Seq[String],
-      crossValues: Seq[(String, Seq[String])]
-  ) = renderTaskWithValues("javadocOptions", values, crossValues, literalize(_))
+  ) = renderTaskSeq("javacOptions", values, crossValues, literalize(_))
 
   def renderPomPackagingType(value: String, crossValues: Seq[(String, String)]) =
-    renderMemberWithValue("pomPackagingType", value, crossValues, literalize(_))
+    renderMember("pomPackagingType", value, crossValues, literalize(_))
+
+  def renderPomParentProject(
+      value: Option[PublishModuleConfig.Artifact],
+      crossValues: Seq[(String, Option[PublishModuleConfig.Artifact])]
+  ) = renderTaskOption("pomParentProject", value, crossValues, renderArtifact)
 
   def renderPomSettings(
       value: PublishModuleConfig.PomSettings,
       crossValues: Seq[(String, PublishModuleConfig.PomSettings)]
-  ): String = renderTaskWithValue("pomSettings", value, crossValues, renderPomSettings)
+  ): String = renderTask("pomSettings", value, crossValues, renderPomSettings)
+
+  def renderPublishVersion(value: String, crossValues: Seq[(String, String)]) =
+    renderTask("publishVersion", value, crossValues, literalize(_))
+
+  def renderVersionScheme(value: Option[String], crossValues: Seq[(String, Option[String])]) =
+    renderTaskOption("versionScheme", value, crossValues, identity)
 
   def renderArtifactMetadata(
       value: PublishModuleConfig.Artifact,
       crossValues: Seq[(String, PublishModuleConfig.Artifact)]
-  ) =
-    renderTaskWithValue("artifactMetadata", value, crossValues, renderArtifact)
+  ) = renderTask("artifactMetadata", value, crossValues, renderArtifact)
 
-  def renderPublishVersion(value: String, crossValues: Seq[(String, String)]) =
-    renderTaskWithValue("publishVersion", value, crossValues, literalize(_))
-
-  def renderVersionScheme(value: Option[String], crossValues: Seq[(String, Option[String])]) =
-    renderTaskWithValue(
-      "versionScheme",
-      value.orNull,
-      crossValues.collect {
-        case (k, Some(v)) => (k, v)
-      },
-      v => s"Some($v)"
-    )
+  def renderPublishProperties(
+      values: Map[String, String],
+      crossValues: Seq[(String, Map[String, String])]
+  ) = renderTaskMap("publishProperties", values, crossValues, literalize(_), literalize(_))
 
   def renderErrorProneOptions(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
-    renderTaskWithValues("errorProneOptions", values, crossValues, literalize(_))
+    renderTaskSeq("errorProneOptions", values, crossValues, literalize(_))
 
   def renderErrorProneJavacEnableOptions(
       values: Seq[String],
       crossValues: Seq[(String, Seq[String])]
   ) =
-    renderTaskWithValues("errorProneJavacEnableOptions", values, crossValues, literalize(_))
+    renderTaskSeq("errorProneJavacEnableOptions", values, crossValues, literalize(_))
 
   def renderErrorProneDeps(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
-    renderTaskWithValues("errorProneDeps", values, crossValues, identity)
+    renderTaskSeq("errorProneDeps", values, crossValues, identity)
 
   def renderScalaVersion(value: String, crossValues: Seq[(String, String)]) =
-    renderTaskWithValue("scalaVersion", value, crossValues, literalize(_))
+    renderTask("scalaVersion", value, crossValues, literalize(_))
 
   def renderScalacOptions(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
-    renderTaskWithValues("scalacOptions", values, crossValues, literalize(_))
+    renderTaskSeq("scalacOptions", values, crossValues, literalize(_))
 
   def renderScalacPluginMvnDeps(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
-    renderTaskWithValues("scalacPluginMvnDeps", values, crossValues, identity)
+    renderTaskSeq("scalacPluginMvnDeps", values, crossValues, identity)
 
   def renderScalaJSVersion(value: String, crossValues: Seq[(String, String)]) =
-    renderTaskWithValue("scalaJSVersion", value, crossValues, literalize(_))
+    renderTask("scalaJSVersion", value, crossValues, literalize(_))
 
   def renderScalaNativeVersion(value: String, crossValues: Seq[(String, String)]) =
-    renderTaskWithValue("scalaNativeVersion", value, crossValues, literalize(_))
+    renderTask("scalaNativeVersion", value, crossValues, literalize(_))
 
   def renderModuleDep(dep: JavaModuleConfig.ModuleDep) = {
     import dep.*
@@ -486,15 +485,14 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
       |""".stripMargin
   )
 
-  def renderMemberWithValue[A](
+  def renderMember[A](
       name: String,
       value: A,
       crossValues: Seq[(String, A)],
       renderValue: A => String
   ) = {
-    val crossValues0 = crossValues.collect {
+    val crossValues0 = crossValues.collect:
       case (k, v) if v != null => (k, v)
-    }
     if (value == null && crossValues0.isEmpty) ""
     else
       val value0 = if (value == null) s"super.$name" else renderValue(value)
@@ -509,7 +507,7 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
               |}""".stripMargin)
   }
 
-  def renderMemberWithValues[A](
+  def renderMemberSeq[A](
       name: String,
       values: Seq[A],
       crossValues: Seq[(String, Seq[A])],
@@ -529,15 +527,14 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
             |  case _ => Nil
             |}""".stripMargin)
 
-  def renderTaskWithValue[A](
+  def renderTask[A](
       name: String,
       value: A,
       crossValues: Seq[(String, A)],
       renderValue: A => String
   ) = {
-    val crossValues0 = crossValues.collect {
-      case (k, v) if v != null => (k, v)
-    }
+    val crossValues0 = crossValues.collect:
+      case (k, v) if v != null => (k, renderValue(v))
     if (value == null && crossValues0.isEmpty) ""
     else
       val value0 = if (value == null) s"super.$name()" else renderValue(value)
@@ -546,13 +543,58 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
          else
            s"""$renderCrossValueInTask match {
               |${renderLines(crossValues.groupMap(_._2)(_._1).iterator.map((v, crosses) =>
-               s"  case ${crosses.map(literalize(_)).mkString(" | ")} => ${renderValue(v)}"
+               s"  case ${crosses.map(literalize(_)).mkString(" | ")} => $v"
              ))}
               |  case _ => $value0
               |}""".stripMargin)
   }
 
-  def renderTaskWithValues[A](
+  def renderTaskOption[A](
+      name: String,
+      value: Option[A],
+      crossValues: Seq[(String, Option[A])],
+      renderValue: A => String
+  ) = {
+    val crossValues0 = crossValues.collect:
+      case (k, Some(v)) if v != null => (k, s"Some(${renderValue(v)})")
+    if (value.isEmpty && crossValues0.isEmpty) ""
+    else
+      val value0 = value.fold("None")(value => s"Some(${renderValue(value)})")
+      s"def $name = " +
+        (if (crossValues0.isEmpty) value0
+         else
+           s"""$renderCrossValueInTask match {
+              |${renderLines(crossValues.groupMap(_._2)(_._1).iterator.map((v, crosses) =>
+               s"  case ${crosses.map(literalize(_)).mkString(" | ")} => $v}"
+             ))}
+              |  case _ => $value0
+              |}""".stripMargin)
+  }
+
+  def renderTaskMap[K, V](
+      name: String,
+      values: Map[K, V],
+      crossValues: Seq[(String, Map[K, V])],
+      renderKey: K => String,
+      renderValue: V => String
+  ) =
+    if (values.isEmpty && crossValues.isEmpty) ""
+    else s"def $name = super.$name()" +
+      (if (values.isEmpty) ""
+       else
+         s" ++ Map(${values.map((k, v) => s"(${renderKey(k)}, ${renderValue(v)})").mkString(", ")})") +
+      (if (crossValues.isEmpty) ""
+       else
+         s""" ++ ($renderCrossValueInTask match {
+            |${renderLines(crossValues.groupMap(_._2)(_._1).iterator.map((v, crosses) =>
+             s"  case ${crosses.map(literalize(_)).mkString(" | ")} => Map(${v.map((k, v) =>
+                 s"(${renderKey(k)}, ${renderValue(v)})"
+               ).mkString(", ")})"
+           ))}
+            |  case _ => Map()
+            |})""".stripMargin)
+
+  def renderTaskSeq[A](
       name: String,
       values: Seq[A],
       crossValues: Seq[(String, Seq[A])],

@@ -7,6 +7,9 @@ object `package` extends MavenModule {
 
   def mvnDeps = super.mvnDeps() ++ Seq(Deps.commonsMath3, Deps.guava)
 
+  def javacOptions = super.javacOptions() ++
+    Seq("-source", "1.8", "-target", "1.8")
+
   def jvmId = "8"
 
   object test extends MavenTests with TestModule.Junit5 {

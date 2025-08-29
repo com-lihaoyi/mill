@@ -1,62 +1,103 @@
 package mill.main.maven
 
-import mill.api.daemon.internal.internal
-import org.apache.maven.model.{Model, Plugin}
+import mill.main.buildgen.JavaModuleConfig
+import org.apache.maven.model.{ConfigurationContainer, Model, Plugin}
 import org.codehaus.plexus.util.xml.Xpp3Dom
 
 import scala.jdk.CollectionConverters.*
 
-/** Utilities for handling Maven plugins. */
-@internal
 object Plugins {
 
-  def find(model: Model, groupId: String, artifactId: String): Option[Plugin] =
-    model.getBuild.getPlugins.asScala
-      .find(p => p.getGroupId == groupId && p.getArtifactId == artifactId)
+  def annotationProcessorMvnDeps(model: Model): Seq[String] =
+    mavenCompilerPlugin(model).flatMap(config).fold(Nil)(
+      children(_, "annotationProcessorPaths", "path").iterator.flatMap: dom =>
+        for
+          groupId <- value(dom, "groupId")
+          artifactId <- value(dom, "artifactId")
+          version = value(dom, "version").orNull
+          exclusions = children(dom, "exclusions").iterator.flatMap: dom =>
+            for
+              groupId <- value(dom, "groupId")
+              artifactId <- value(dom, "artifactId")
+            yield (groupId, artifactId)
+          .toSeq
+        yield JavaModuleConfig.mvnDep(groupId, artifactId, version, excludes = exclusions)
+      .toSeq
+    )
 
-  def dom(plugin: Plugin): Option[Xpp3Dom] =
-    plugin.getConfiguration match {
-      case xpp3: Xpp3Dom => Some(xpp3)
-      case _ => None
+  def javacOptions(model: Model): Seq[String] = {
+    val b = Seq.newBuilder[String]
+    mavenCompilerPlugin(model).flatMap(config).foreach { dom =>
+      // javac requires --release to be mutually exclusive with -source/-target
+      value(dom, "release") match {
+        case Some(value) => b += "--release" += value
+        case None =>
+          value(dom, "source").foreach(b += "-source" += _)
+          value(dom, "target").foreach(b += "-target" += _)
+      }
+      value(dom, "encoding").foreach(b += "-encoding" += _)
+      b ++= values(dom, "compilerArgs")
     }
+    // https://maven.apache.org/configure.html
+    val configFile = os.pwd / ".mvn/jvm.config"
+    if (os.exists(configFile)) b ++= os.read.lines(configFile).iterator.flatMap(_.split(" "))
+    b.result().diff(JavaModuleConfig.unsupportedJavacOptions)
+  }
+
+  def skipDeploy(model: Model): Boolean =
+    mavenDeployPlugin(model).flatMap(config).flatMap(value(_, "skip")).fold(false)(_.toBoolean)
+
+  def jvmId(model: Model): Option[String] =
+    mavenEnforcerPlugin(model).flatMap(
+      _.getExecutions.iterator.asScala.flatMap(config)
+        .flatMap(value(_, "requireJavaVersion", "version")) // TODO Handle version range?
+        .find(_ => true) // get the first value
+    )
 
   /**
    * @see [[https://maven.apache.org/plugins/maven-compiler-plugin/index.html]]
    */
-  object MavenCompilerPlugin {
+  def mavenCompilerPlugin(model: Model): Option[Plugin] =
+    plugin(model, "org.apache.maven.plugins", "maven-compiler-plugin")
 
-    def find(model: Model): Option[Plugin] =
-      Plugins.find(model, "org.apache.maven.plugins", "maven-compiler-plugin")
+  /**
+   * @see [[https://maven.apache.org/plugins/maven-deploy-plugin/index.html]]
+   */
+  def mavenDeployPlugin(model: Model): Option[Plugin] =
+    plugin(model, "org.apache.maven.plugins", "maven-deploy-plugin")
 
-    def javacOptions(model: Model): Seq[String] = {
-      val options = Seq.newBuilder[String]
-      find(model).flatMap(dom).foreach { dom =>
-        // javac throws exception if release is specified with source/target, and
-        // plugin configuration returns default values for source/target when not specified
-        val release = dom.child("release")
-        if (null == release) {
-          dom.child("source").foreachValue(options += "-source" += _)
-          dom.child("target").foreachValue(options += "-target" += _)
-        } else {
-          options += "--release" += release.getValue
-        }
-        dom.child("encoding").foreachValue(options += "-encoding" += _)
-        dom.child("compilerArgs").foreachChildValue(options += _)
-      }
+  /**
+   * @see [[https://maven.apache.org/enforcer/maven-enforcer-plugin/index.html]]
+   */
+  def mavenEnforcerPlugin(model: Model): Option[Plugin] =
+    plugin(model, "org.apache.maven.plugins", "maven-enforcer-plugin")
 
-      options.result()
-    }
+  def plugin(model: Model, groupId: String, artifactId: String): Option[Plugin] =
+    model.getBuild.getPlugins.iterator.asScala
+      .find(p => p.getGroupId == groupId && p.getArtifactId == artifactId)
+
+  def config(cc: ConfigurationContainer): Option[Xpp3Dom] = cc.getConfiguration match {
+    case dom: Xpp3Dom => Some(dom)
+    case _ => None
   }
 
-  private implicit class NullableDomOps(val self: Xpp3Dom) extends AnyVal {
+  def children(dom: Xpp3Dom, path: String*): IterableOnce[Xpp3Dom] =
+    if (dom == null) Nil
+    else if (path.isEmpty) dom.getChildren.iterator
+    else dom.getChildren(path.head).flatMap(children(_, path.tail*))
 
-    def child(name: String): Xpp3Dom =
-      if (null == self) self else self.getChild(name)
+  def child(dom: Xpp3Dom, path: String*): Option[Xpp3Dom] =
+    if (dom == null) None
+    else if (path.isEmpty) Some(dom)
+    else child(dom.getChild(path.head), path.tail*)
 
-    def foreachValue(f: String => Unit): Unit =
-      if (null != self) f(self.getValue)
+  def value(dom: Xpp3Dom, path: String*): Option[String] =
+    if (null == dom) None
+    else if (path.isEmpty) Option(dom.getValue)
+    else value(dom.getChild(path.head), path.tail*)
 
-    def foreachChildValue(f: String => Unit): Unit =
-      if (null != self) self.getChildren.iterator.foreach(dom => f(dom.getValue))
-  }
+  def values(dom: Xpp3Dom, path: String*): IterableOnce[String] =
+    if (dom == null) Nil
+    else if (path.isEmpty) dom.getChildren.iterator.flatMap(dom => Option(dom.getValue))
+    else dom.getChildren(path.head).flatMap(values(_, path.tail*))
 }
