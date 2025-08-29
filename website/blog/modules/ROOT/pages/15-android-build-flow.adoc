@@ -13,7 +13,7 @@ In less than a year, Mill went from minimal Android support to producing install
 
 This was possible because Mill’s design, incremental, transparent, and extensible maps surprisingly well onto Android’s intricate build process.
 
-This post is a walk through the basic Android build flow in Mill: what it does, why it’s complex, and why Mill makes it easier to reason about.
+This post is a walk through of the basic Android build flow in Mill: what it does, why it’s complex, and why Mill makes it easier to reason about.
 
 
 == The Android build process
