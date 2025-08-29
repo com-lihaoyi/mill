@@ -280,7 +280,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin
     )
 
-    val compileSemanticDb = semanticDbWillBeNeeded()
+    // TODO review: uncomment
+    val compileSemanticDb = false // semanticDbWillBeNeeded()
 
     val jOpts = JavaCompilerOptions {
       val baseOpts = javacOptions() ++ mandatoryJavacOptions()

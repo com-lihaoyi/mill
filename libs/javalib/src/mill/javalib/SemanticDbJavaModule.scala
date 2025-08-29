@@ -52,8 +52,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     }
 
     println("compile() check")
-    val compileSemanticDb =
-      SemanticDbJavaModule.forceSemanticDbCompilation() || semanticDbWillBeNeeded()
+    val compileSemanticDb = semanticDbWillBeNeeded().apply(Task.dest)
     Task.log.info(s"compileSemanticDb: $compileSemanticDb")
 
     val jOpts = JavaCompilerOptions {
@@ -118,20 +117,21 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
    * Returns true if the semanticdb will be needed by the BSP client or any of the other Mill daemons that are using
    * the same `out/` directory.
    */
-  private[mill] def semanticDbWillBeNeeded: T[Boolean] = Task.Input {
-    // TODO review: read from the files and document why
+  private[mill] def semanticDbWillBeNeeded: Task[os.Path => Boolean] = Task.Anon {
+    (taskDest: os.Path) =>
+      // TODO review: read from the files and document why
 //    MillBackgroundWrapper.readPreviousPid()
 //    val root = os.list(
 //      BuildCtx.workspaceRoot / OutFiles.outFor(OutFolderMode.REGULAR) / "bsp-semanticdb-sessions"
 //    ).exists()
 
-    val forced = SemanticDbJavaModule.forceSemanticDbCompilation()
-    val neededByClient = SemanticDbJavaModuleApi.clientNeedsSemanticDb()
+      val forced = SemanticDbJavaModule.forceSemanticDbCompilation(taskDest)
+      val neededByClient = SemanticDbJavaModuleApi.clientNeedsSemanticDb()
 
-    // TODO review: change to debug
-    Task.log.info(s"semanticDbWillBeNeeded: forced=$forced, neededByClient=$neededByClient")
+      // TODO review: change to debug
+      Task.log.info(s"semanticDbWillBeNeeded: forced=$forced, neededByClient=$neededByClient")
 
-    forced || neededByClient
+      forced || neededByClient
   }
 
   private[mill] def bspBuildTarget: BspBuildTarget
@@ -215,8 +215,21 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     defaultResolver().classpath(semanticDbJavaPluginMvnDeps())
   }
 
-  def semanticDbDataDetailed: T[SemanticDbJavaModule.SemanticDbData] = Task {
-    val compilationResult = SemanticDbJavaModule.withForcedSemanticDbCompilation(compile)()
+  def semanticDbDataDetailed: Task[SemanticDbJavaModule.SemanticDbData] = Task.Anon {
+    // TODO review: this is an ugly hack
+    val compileTo = Task.dest / ".." / "compile.Dest"
+
+    println("set the flag")
+    os.write.over(compileTo / SemanticDbJavaModule.forceSemanticDbCompilationFilename, "")
+    val compilationResult =
+      try compile()
+      finally {
+        println("reset the flag")
+        os.remove(compileTo / SemanticDbJavaModule.forceSemanticDbCompilationFilename)
+      }
+    // TODO review: how to do this?
+//    val compileWithSemanticDb = SemanticDbJavaModule.withForcedSemanticDbCompilation(compile)
+//    val compilationResult = compileWithSemanticDb.apply().apply(compileTo)
     val semanticDbData =
       compilationResult.semanticDbFiles.getOrElse(throw IllegalStateException(
         "SemanticDB files were not produced, this is a bug in Mill."
@@ -290,24 +303,29 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
     ))
   }
 
-  private val forceSemanticDbCompilationThreadLocal: InheritableThreadLocal[Boolean] =
-    new InheritableThreadLocal[Boolean] {
-      protected override def initialValue(): Boolean = false
-    }
+  private val forceSemanticDbCompilationFilename = "forceSemanticDbCompilation"
 
-  private[mill] def forceSemanticDbCompilation(): Boolean =
-    forceSemanticDbCompilationThreadLocal.get()
+  private[mill] def forceSemanticDbCompilation(taskDest: os.Path): Boolean =
+    os.exists(taskDest / forceSemanticDbCompilationFilename)
 
-  private[mill] def withForcedSemanticDbCompilation[T](task: Task[T]): Task[T] = {
-    task.wrap {
-      val previous = forceSemanticDbCompilationThreadLocal.get()
-      println("set the flag")
-      forceSemanticDbCompilationThreadLocal.set(true)
-      previous
-    } { (previous, result) =>
+  private[mill] def withForcedSemanticDbCompilation[T](
+      task: Task[T]
+  ): Task[os.Path => T] = Task.Anon { (taskDest: os.Path) =>
+//    task.wrap {
+//      println("set the flag")
+//      os.write.over(taskDest / forceSemanticDbCompilationFilename, "")
+//    } { (_, result) =>
+//      println("reset the flag")
+//      os.remove(taskDest / forceSemanticDbCompilationFilename)
+//      result
+//    }
+
+    println("set the flag")
+    os.write.over(taskDest / forceSemanticDbCompilationFilename, "")
+    try task()
+    finally {
       println("reset the flag")
-      forceSemanticDbCompilationThreadLocal.set(previous)
-      result
+      os.remove(taskDest / forceSemanticDbCompilationFilename)
     }
   }
 
