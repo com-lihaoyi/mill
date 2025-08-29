@@ -418,7 +418,7 @@ object `jvm-project` extends JavaModule, GitVersionedPublishModule {
 
 == GitHub Dependency Graph Submission
 
-A plugin to submit your mill dependency graph to GiHub through their
+A plugin to submit your mill dependency graph to GitHub through their
 https://github.blog/2022-06-17-creating-comprehensive-dependency-graph-build-time-detection/[Dependency
 Submission API].
 
