@@ -1,6 +1,5 @@
 = How does Mill build Android apps?
 
-
 // tag::header[]
 :author: Vasilis Nicolaou
 :revdate: 29 August 2025
@@ -10,7 +9,7 @@ _{author}, {revdate}_
 
 Until recently, Gradle was the only realistic option for Android builds. Today, Mill - a fast, predictable build tool for Java, Scala, and Kotlin - can build Android applications end-to-end.
 
-In less than a year, Mill went from minimal Android support to producing installable APKs for projects as complex as https://mill-build.org/mill/android/hilt-sample.html[the Android Architecture Samples] and https://github.com/vaslabs/Pokedex_Compose_Multi_Module/tree/testing-mill[multi-module apps] with https://mill-build.org/mill/android/java.html#_using_third_party_native_libraries[native code] and https://github.com/android/compose-samples/tree/main/JetLagged[Jetpack Compose].
+In less than a year, Mill went from minimal Android support to producing installable APKs for projects as complex as xref:mill::android/hilt-sample.adoc[the Android Architecture Samples] and https://github.com/vaslabs/Pokedex_Compose_Multi_Module/tree/testing-mill[multi-module apps] with xref:mill::android/java.adoc#_using_third_party_native_libraries[native code] and https://github.com/android/compose-samples/tree/main/JetLagged[Jetpack Compose].
 
 This was possible because Mill’s design, incremental, transparent, and extensible maps surprisingly well onto Android’s intricate build process.
 
@@ -154,13 +153,12 @@ If you’re curious, the best way to appreciate this is to try it yourself:
 
 Clone one of the example Android projects (Compose, Native code, Hilt DI, etc).
 
-Run mill
+Package the app with
 [,console]
 ----
 $ ./mill app.androidApk
 ----
 
-to build an installable APK.
 
 Create and run an emulator with
 [,console]
@@ -170,12 +168,11 @@ $ mill app.startAndroidEmulator
 ----
 
 Then install it with
-
 [,console]
 ----
 $ mill app.androidInstall
 ----
 
-You may also inspect https://mill-build.org/mill/android/android-initial-setup.html[the documented examples] to find out more.
+You may also inspect xref:mill::android/android-initial-setup.adoc[the documented examples] to find out more.
 
 We’d love feedback from the Android community, whether it’s bug reports, feature requests, or success stories. If you’ve ever wished Android builds felt less like a black box, Mill is worth a look.
