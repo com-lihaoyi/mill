@@ -682,12 +682,12 @@ that utilizes Hilt for dependency injection, based on the official
 <h2 id="_android_mill_setup_for_building_the_todo_app"><a class="anchor" href="#_android_mill_setup_for_building_the_todo_app"></a>Android Mill Setup for building the TODO App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-19-905e50/mill-dist-1.0.4-19-905e50-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/thirdparty/androidtodo">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-20-89604d/mill-dist-1.0.4-20-89604d-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/thirdparty/androidtodo">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill.*, androidlib.*, kotlinlib.*
-import kotlinlib.ksp.Ksp2Module
+import kotlinlib.ksp.{KspModule, KspModuleMode}
 import hilt.AndroidHiltSupport
 
 object Versions {
@@ -715,12 +715,16 @@ object Versions {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfig,
-      Ksp2Module, AndroidHiltSupport {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object app
+    extends AndroidAppKotlinModule,
+      AndroidR8AppModule,
+      AndroidBuildConfig,
+      AndroidHiltSupport {
 
   def kotlinVersion = Versions.kotlinVersion
   def kspVersion = Versions.kspVersion
   def kspJvmTarget = &quot;17&quot;
+  def kspModuleMode = KspModuleMode.Ksp2Cli
 
   override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
     AndroidBuildTypeSettings(
@@ -805,7 +809,7 @@ object Versions {
     mvn&quot;com.google.dagger:hilt-android-compiler:2.56&quot;
   )
 
-  object test extends Ksp2Tests, AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4 {
+  object test extends KspTests, AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4 {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
 
@@ -841,8 +845,10 @@ object Versions {
     )
   }
 
-  object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule,
-        Ksp2Module, AndroidHiltSupport {
+  object androidTest
+      extends AndroidAppKotlinInstrumentedTests,
+        AndroidR8AppModule,
+        AndroidHiltSupport {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
     def kspJvmTarget = &quot;17&quot;
@@ -907,7 +913,7 @@ object Versions {
 
 }
 
-object `shared-test` extends AndroidKotlinModule, Ksp2Module, AndroidHiltSupport {
+object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
 
   def moduleDeps = Seq(app)
 
