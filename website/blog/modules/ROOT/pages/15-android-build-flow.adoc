@@ -12,7 +12,7 @@ Until recently, Gradle was the only realistic option for Android builds. Today, 
 
 In less than a year, Mill went from minimal Android support to producing installable APKs for projects as complex as https://mill-build.org/mill/android/hilt-sample.html[the Android Architecture Samples] and https://github.com/vaslabs/Pokedex_Compose_Multi_Module/tree/testing-mill[multi-module apps] with https://mill-build.org/mill/android/java.html#_using_third_party_native_libraries[native code] and https://github.com/android/compose-samples/tree/main/JetLagged[Jetpack Compose].
 
-. This was possible because Mill’s design, incremental, transparent, and extensible maps surprisingly well onto Android’s intricate build process.
+This was possible because Mill’s design, incremental, transparent, and extensible maps surprisingly well onto Android’s intricate build process.
 
 This post is a walk through the basic Android build flow in Mill: what it does, why it’s complex, and why Mill makes it easier to reason about.
 
