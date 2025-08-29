@@ -148,7 +148,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
     val outputPath = destDir
 
-    Task.log.debug("outptuPath: " + outputPath)
+    Task.log.debug("outputPath: " + outputPath)
 
     // Define diagnostic output file paths
     val mappingOut = destDir / "mapping.txt"

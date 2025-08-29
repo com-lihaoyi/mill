@@ -859,6 +859,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val libsJarFiles = libsJarPathRefs.map(_.path.toString())
 
+    val filenamesFile = Task.dest / "all-files.txt"
+    os.write.over(filenamesFile, (appCompiledFiles ++ libsJarFiles).mkString("\n"))
+
     val proguardFile = androidProguard().path
 
     val d8Args = Seq(
@@ -873,7 +876,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       androidMinSdk().toString,
       "--main-dex-rules",
       proguardFile.toString()
-    ) ++ appCompiledFiles ++ libsJarFiles
+    ) :+ s"@$filenamesFile"
 
     Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
 
