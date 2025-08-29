@@ -16,9 +16,11 @@ import java.io.File
  * To use KSP 2, which supports Kotlin 2.0 and later, use `def ksmModuleMode = Ksp2Cli`.
  * KSP 2 Documentation: https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md
  *
- * For the older KSP 1 which supports Kotlin up to 1.9, use `def kspModuleMode = Ksp1`.
+ * For the older KSP 1 which supports Kotlin language versions up to 1.9, use `def kspModuleMode = Ksp1`.
  * For KSP 1, the use of kotlin-compiler-embedded is also recommended (and thus enabled by default)
  * to avoid any classpath conflicts between the compiler and user defined plugins!
+ * You can also use KspModuleMode.Ksp1 with Kotlin 2.x,
+ * but you will need to set the kspLanguageVersion to 1.9 or earlier.
  */
 @mill.api.experimental
 trait KspModule extends KotlinModule { outer =>
@@ -113,9 +115,6 @@ trait KspModule extends KotlinModule { outer =>
 
   /**
    * Generated sources from KSP processing.
-   * There are 2 implementations: Extend [[KspModule]] for KSP 1.x and [[Ksp2Module]] for KSP 2.x.
-   * Typically, with Kotlin >=2.0 Ksp2Module should be used and with Kotlin <=1.9 KspModule should be used.
-   * You can also use KspModule with Kotlin 2.x but that you will need to set the kspLanguageVersion to 1.9 or earlier.
    */
   def generatedSourcesWithKsp: T[GeneratedKspSources] = kspModuleMode match {
     case KspModuleMode.Ksp1 => generatedSourcesWithKsp1()
