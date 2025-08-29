@@ -144,7 +144,7 @@ The diagram above still doesn’t tell the whole story! It shows a typical build
 - Instrumented tests (separate APK, own resources, manifests, dependencies)
 - Native code (NDK builds, CMake integration)
 
-We cover a lot of these architecture styles in the https://github.com/com-lihaoyi/mill/tree/main/example/androidlib[Android examples] and third party integration examples covering https://github.com/com-lihaoyi/mill/tree/main/example/thirdparty/android-compose-samples[Android Compose], https://github.com/com-lihaoyi/mill/tree/main/example/thirdparty/android-endless-tunnel[Android Native] and https://github.com/com-lihaoyi/mill/tree/main/example/thirdparty/androidtodo[Dependency Injection with Hilt].
+We cover a lot of these architecture styles in the https://github.com/com-lihaoyi/mill/tree/main/example/androidlib[Android examples] and third party integration examples covering xref:mill::android/compose-samples.adoc[Android Compose], xref:mill::android/java.adoc#_using_third_party_native_libraries[Android Native] and xref:mill::android/hilt-sample.adoc[Dependency Injection with Hilt].
 
 
 == Try it out
