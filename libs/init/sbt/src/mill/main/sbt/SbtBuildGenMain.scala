@@ -6,17 +6,11 @@ import pprint.Util.literalize
 
 import scala.util.Using
 
-@mainargs.main
-case class SbtBuildGenArgs(
-    @mainargs.arg(short = 't')
-    testModuleName: String = "test",
-    @mainargs.arg(short = 'U')
-    noUnify: mainargs.Flag,
-    @mainargs.arg(short = 'c')
-    sbtCmd: Option[String],
-    metaBuild: MetaBuildArgs
-)
-
+/**
+ * Converts an SBT build to Mill by selecting module configurations using a custom script.
+ * @see [[https://docs.scala-lang.org/overviews/jdk-compatibility/overview.html#tooling-compatibility-table SBT JDK compatibility]]
+ * @see [[SbtBuildGenArgs Command line arguments]]
+ */
 object SbtBuildGenMain {
 
   def main(args: Array[String]): Unit = {
@@ -40,17 +34,14 @@ object SbtBuildGenMain {
         identity
       )
     val jar =
-      Using.resource(getClass.getResourceAsStream(BuildInfo.exportscriptAssemblyResource))(os.temp(
-        _,
-        suffix = ".jar"
-      ))
+      Using.resource(getClass.getResourceAsStream(BuildInfo.exportscriptAssemblyResource))(
+        os.temp(_, suffix = ".jar")
+      )
     val exportDir = os.temp.dir()
     // Run export with "+" to generate a file per project and cross Scala version.
-    // NOTE: SBT can generate duplicate files for modules. If a project "foo" defines 3 cross
-    // Scala versions and another module "bar" specifies 2 of those cross Scala versions, a
-    // duplicate file will be generated for module "bar".
+    // https://github.com/JetBrains/sbt-structure/#sideloading
     val script = Seq(
-      s"set SettingKey[(File, String)](\"millInitExportArgs\") in Global := (file(${literalize(exportDir.toString())}), ${literalize(testModuleName)})",
+      s"set SettingKey[(File, String)](\"millInitExportArgs\") in Global := (file(${literalize(exportDir.toString())}), ${literalize(testModule)})",
       s"apply -cp ${literalize(jar.toString())} mill.main.sbt.ExportSbtBuildScript",
       s"+millInitExportBuild"
     )
@@ -58,9 +49,12 @@ object SbtBuildGenMain {
 
     // ((moduleDir, isCrossPlatform), ModuleRepr)
     type SbtModuleRepr = ((Seq[String], Boolean), ModuleRepr)
-    val sbtModules = os.list.stream(exportDir).map(path =>
-      upickle.default.read[SbtModuleRepr](path.toNIO)
-    ).toSeq.distinct // eliminate any cross version duplicates
+    // SBT can generate duplicate files for modules. For example, if a project "foo" defines 3
+    // cross Scala versions and another module "bar" specifies 2 of those cross Scala versions,
+    // a duplicate file is generated for module "bar".
+    val sbtModules = os.list.stream(exportDir)
+      .map(path => upickle.default.read[SbtModuleRepr](path.toNIO))
+      .toSeq.distinct
     if (sbtModules.isEmpty) {
       sys.error(s"no modules found using $cmd")
     }
@@ -106,9 +100,16 @@ object SbtBuildGenMain {
     .toSeq
 
     var build = BuildRepr.fill(packages)
-    build = build.withMetaBuild(metaBuild)
-    if (!noUnify.value) build = build.unified
-    BuildWriter(build, renderCrossValueInTask = "scalaVersion()").writeFiles()
+    if (merge.value) build = BuildRepr.merged(build)
+
+    val writer = {
+      val renderCrossValueInTask = "scalaVersion()"
+      if (noMetaBuild.value) BuildWriter(build, renderCrossValueInTask = renderCrossValueInTask)
+      else
+        val (build0, metaBuild) = MetaBuildRepr.of(build)
+        BuildWriter(build0, Some(metaBuild), renderCrossValueInTask)
+    }
+    writer.writeFiles()
 
     locally {
       val jvmOptsSbt = os.pwd / ".jvmopts"
@@ -152,3 +153,15 @@ object SbtBuildGenMain {
     }
   }
 }
+
+@mainargs.main
+case class SbtBuildGenArgs(
+    @mainargs.arg(doc = "name of generated test module")
+    testModule: String = "test",
+    @mainargs.arg(doc = "merge generated build files")
+    merge: mainargs.Flag,
+    @mainargs.arg(doc = "path to sbt executable")
+    sbtCmd: Option[String],
+    @mainargs.arg(doc = "disables generating meta-build")
+    noMetaBuild: mainargs.Flag
+)

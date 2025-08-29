@@ -1,7 +1,5 @@
 package mill.main.buildgen
 
-import upickle.default.{ReadWriter, macroRW}
-
 /**
  * A data structure that captures parent-child relationships between elements.
  */
@@ -22,6 +20,4 @@ object Tree {
     }
     recurse(init)
   }
-
-  implicit def rw[A: ReadWriter]: ReadWriter[Tree[A]] = macroRW
 }

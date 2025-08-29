@@ -5,7 +5,7 @@ import upickle.default.{ReadWriter, macroRW}
 import scala.util.matching.Regex
 
 /**
- * Configuration settings for a module in a build that are optimized for code generation.
+ * ADT that defines configuration settings for a build module.
  */
 sealed trait ModuleConfig
 object ModuleConfig {
@@ -29,6 +29,11 @@ object ModuleConfig {
       case self: JavaHomeModuleConfig => that.collectFirst {
           case that: JavaHomeModuleConfig => JavaHomeModuleConfig(
               value(self.jvmId, that.jvmId)
+            )
+        }
+      case self: RunModuleConfig => that.collectFirst {
+          case that: RunModuleConfig => RunModuleConfig(
+              value(self.forkWorkingDir, that.forkWorkingDir)
             )
         }
       case self: JavaModuleConfig => that.collectFirst {
@@ -105,6 +110,11 @@ object ModuleConfig {
               value(self.jvmId, base.jvmId)
             )
         }.getOrElse(self)
+      case self: RunModuleConfig => base.collectFirst {
+          case base: RunModuleConfig => RunModuleConfig(
+              value(self.forkWorkingDir, base.forkWorkingDir)
+            )
+        }.getOrElse(self)
       case self: JavaModuleConfig => base.collectFirst {
           case base: JavaModuleConfig => JavaModuleConfig(
               self.mandatoryMvnDeps.diff(base.mandatoryMvnDeps),
@@ -164,7 +174,19 @@ object CoursierModuleConfig {
 
 case class JavaHomeModuleConfig(jvmId: String) extends ModuleConfig
 object JavaHomeModuleConfig {
+
+  def jvmId(version: Int) = Option(version match {
+    case i if i < 11 => null // https://github.com/com-lihaoyi/mill/issues/5782
+    case 8 | 11 | 17 | 21 => version.toString // default JDK, temurin, supports LTS versions
+    case _ => s"zulu:$version"
+  })
+
   implicit val rw: ReadWriter[JavaHomeModuleConfig] = macroRW
+}
+
+case class RunModuleConfig(forkWorkingDir: String = null) extends ModuleConfig
+object RunModuleConfig {
+  implicit val rw: ReadWriter[RunModuleConfig] = macroRW
 }
 
 case class JavaModuleConfig(
@@ -215,8 +237,10 @@ object JavaModuleConfig {
     s"""mvn"$org$sep1$name$suffix""""
   }
 
-  // TODO Supporting -Werror would require removing non-existent paths from the compile classpath
-  def unsupportedJavacOptions = Seq("-Werror")
+  def unsupportedJavacOptions = Seq(
+    // TODO Supporting -Werror would require removing non-existent paths from the classpath
+    "-Werror"
+  )
 
   /**
    * Represents a module dependency.
@@ -302,11 +326,11 @@ case class ErrorProneModuleConfig(
 object ErrorProneModuleConfig {
   implicit val rw: ReadWriter[ErrorProneModuleConfig] = macroRW
 
-  def javacOptionsAndConfig(javacOptions0: Seq[String], errorProneDeps: Seq[String] = Nil) = {
-    val (pluginOptions, javacOptions) =
-      javacOptions0.partition(s => s.startsWith("-Xplugin:ErrorProne") || s.startsWith("-XD"))
+  def javacOptionsAndConfig(javacOptions: Seq[String], errorProneDeps: Seq[String] = Nil) = {
+    val (pluginOptions, javacOptions0) =
+      javacOptions.partition(s => s.startsWith("-Xplugin:ErrorProne") || s.startsWith("-XD"))
     (
-      javacOptions,
+      javacOptions0,
       pluginOptions.collectFirst {
         case s if s.startsWith("-Xplugin:ErrorProne") =>
           ErrorProneModuleConfig(

@@ -14,6 +14,9 @@ object `package` extends ApplicationLibraryBaseModule {
     def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
       Seq(Deps.junitJupiter, Deps.junitPlatformLauncher)
 
+    def testParallelism = false
+
+    def testSandboxWorkingDir = false
   }
 
 }

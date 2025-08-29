@@ -1,3 +1,4 @@
+//| mill-version: SNAPSHOT
 package build
 
 import mill.javalib._
@@ -27,6 +28,9 @@ object `package` extends PublishModule with SbtModule {
 
     def mandatoryMvnDeps = super.mandatoryMvnDeps() ++ Seq(Deps.munit)
 
+    def testParallelism = false
+
+    def testSandboxWorkingDir = false
   }
 
 }

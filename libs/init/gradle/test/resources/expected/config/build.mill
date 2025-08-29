@@ -1,3 +1,4 @@
+//| mill-version: SNAPSHOT
 package build
 
 import mill.api._
@@ -14,8 +15,6 @@ object `package` extends Module {
     def javacOptions = super.javacOptions() ++
       Seq("-source", "1.8", "-target", "1.8")
 
-    def jvmId = "8"
-
     object tests extends MavenTests with TestModule.Junit5 {
 
       def mandatoryMvnDeps = super.mandatoryMvnDeps() ++ Seq(
@@ -23,6 +22,9 @@ object `package` extends Module {
         mvn"org.junit.platform:junit-platform-launcher"
       )
 
+      def testParallelism = false
+
+      def testSandboxWorkingDir = false
     }
 
   }
@@ -31,8 +33,6 @@ object `package` extends Module {
     def javacOptions = super.javacOptions() ++
       Seq("-source", "1.8", "-target", "1.8")
 
-    def jvmId = "8"
-
     object tests extends MavenTests with TestModule.Junit5 {
 
       def mandatoryMvnDeps = super.mandatoryMvnDeps() ++ Seq(
@@ -40,6 +40,9 @@ object `package` extends Module {
         mvn"org.junit.platform:junit-platform-launcher"
       )
 
+      def testParallelism = false
+
+      def testSandboxWorkingDir = false
     }
 
   }
@@ -49,8 +52,6 @@ object `package` extends Module {
 
     def javacOptions = super.javacOptions() ++
       Seq("-source", "1.8", "-target", "1.8")
-
-    def jvmId = "8"
 
   }
 }

@@ -23,12 +23,12 @@ class ExportGradleBuildModelBuilder(
   def canBuild(modelName: String) = classOf[ExportGradleBuildModel].getName == modelName
 
   def buildAll(modelName: String, project: Project) = {
-    val packages = Iterator.iterate(Set(project))(_.flatMap(_.getSubprojects.asScala))
+    val modules = Iterator.iterate(Set(project))(_.flatMap(_.getSubprojects.asScala))
       .takeWhile(_.nonEmpty)
       .flatten
       .map(toModule)
       .toSeq
-    new ExportGradleBuildModel.Impl(upickle.default.write(packages))
+    new ExportGradleBuildModel.Impl(upickle.default.write(modules))
   }
 
   def toModule(project0: Project) = {
@@ -74,7 +74,10 @@ class ExportGradleBuildModelBuilder(
             moduleDeps = moduleDeps(TEST_IMPLEMENTATION_CONFIGURATION_NAME),
             compileModuleDeps = moduleDeps(TEST_COMPILE_ONLY_CONFIGURATION_NAME),
             runModuleDeps = moduleDeps(TEST_RUNTIME_ONLY_CONFIGURATION_NAME)
-          ))
+          )),
+          // Retained from https://github.com/com-lihaoyi/mill/commit/ba5960983895565f230166464e66524f0a1a5fd8
+          testParallelism = false,
+          testSandboxWorkingDir = false
         )
       else None
 
@@ -83,13 +86,12 @@ class ExportGradleBuildModelBuilder(
     val (javacOptions, errorProneModuleConfig) = ErrorProneModuleConfig.javacOptionsAndConfig(
       javaCompileTask.fold(Nil) { task =>
         // javac requires --release to be mutually exclusive with -source/-target
-        val opts = Option(task.getOptions.getRelease.getOrNull).fold(
+        Option(task.getOptions.getRelease.getOrNull).fold(
           Option(task.getSourceCompatibility).fold(Nil)(Seq("-source", _)) ++
             Option(task.getTargetCompatibility).fold(Nil)(Seq("-target", _))
         )(n => Seq("--release", n.toString)) ++
           Option(task.getOptions.getEncoding).fold(Nil)(Seq("-encoding", _)) ++
           task.getOptions.getAllCompilerArgs.asScala.toSeq
-        opts.diff(JavaModuleConfig.unsupportedJavacOptions)
       },
       mvnDeps("errorprone")
     )
@@ -104,20 +106,19 @@ class ExportGradleBuildModelBuilder(
         compileModuleDeps =
           moduleDeps(COMPILE_ONLY_CONFIGURATION_NAME, COMPILE_ONLY_API_CONFIGURATION_NAME),
         runModuleDeps = moduleDeps(RUNTIME_ONLY_CONFIGURATION_NAME),
-        javacOptions = javacOptions
+        javacOptions = javacOptions.diff(JavaModuleConfig.unsupportedJavacOptions)
       )
     val javaHomeModuleConfig = ctx.jvmId(project0).map(JavaHomeModuleConfig(_))
     val coursierModuleConfig = {
-      val repos = getRepositories
-      val url: PartialFunction[ArtifactRepository, String] = {
+      val toUrlString: PartialFunction[ArtifactRepository, String] = {
         case repo: UrlArtifactRepository => repo.getUrl.toURL.toExternalForm
       }
       val skip = Seq(
-        repos.mavenCentral(),
-        repos.mavenLocal(),
-        repos.gradlePluginPortal()
-      ).collect(url)
-      repos.iterator.asScala.collect(url).distinct.toSeq.diff(skip) match
+        getRepositories.mavenCentral(),
+        getRepositories.mavenLocal(),
+        getRepositories.gradlePluginPortal()
+      ).collect(toUrlString)
+      getRepositories.iterator.asScala.collect(toUrlString).distinct.toSeq.diff(skip) match
         case Nil => None
         case repositories => Some(CoursierModuleConfig(repositories = repositories))
     }
@@ -126,7 +127,7 @@ class ExportGradleBuildModelBuilder(
         ext.getPublications.withType(classOf[MavenPublication]).asScala.headOption
       .map: pub =>
         PublishModuleConfig(
-          pomPackagingType = toPomPackagingType(pub.getPom.getPackaging),
+          pomPackagingType = Option(pub.getPom.getPackaging).filter(_ != "jar").orNull,
           pomSettings = toPomSettings(pub.getPom),
           artifactMetadata = toArtifactMetadata(pub),
           publishVersion = getVersion.toString
@@ -152,9 +153,11 @@ class ExportGradleBuildModelBuilder(
     )
   }
 
-  def toModuleDep(dep: ProjectDependency) = JavaModuleConfig.ModuleDep(
-    os.Path(ctx.project(dep).getProjectDir).subRelativeTo(workspace).segments
-  )
+  def toModuleDep(dep: ProjectDependency) = {
+    JavaModuleConfig.ModuleDep(
+      os.Path(ctx.project(dep).getProjectDir).subRelativeTo(workspace).segments
+    )
+  }
 
   def toMvnDep(dep: ExternalDependency) = {
     import dep.*
@@ -169,14 +172,10 @@ class ExportGradleBuildModelBuilder(
     )
   }
 
-  def toPomPackagingType(tpe: String) = {
-    if ("jar" == tpe) null else tpe
-  }
-
   def toPomSettings(pom: MavenPom) = {
     import pom.*
     var org: String = null
-    organization(pomOrg => if (null != pomOrg) org = pomOrg.getName.getOrNull)
+    organization(pomOrg => org = Option(pomOrg).fold(null)(_.getName.getOrNull))
     val licenses = Seq.newBuilder[PublishModuleConfig.License]
     pom.licenses(_.license(licenses += toLicense(_)))
     var versionControl: PublishModuleConfig.VersionControl = null

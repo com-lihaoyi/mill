@@ -3,64 +3,78 @@ package mill.main.gradle
 import mainargs.ParserForClass
 import mill.main.buildgen.*
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import pprint.Util.literalize
 
+import java.util.concurrent.TimeUnit
 import scala.util.Using
 
-@mainargs.arg
-case class GradleBuildGenArgs(
-    @mainargs.arg(short = 't')
-    testModuleName: String = "test",
-    @mainargs.arg(short = 'u')
-    unify: mainargs.Flag,
-    metaBuild: MetaBuildArgs
-)
-
 /**
- * @see [[https://docs.gradle.org/current/userguide/compatibility.html#java_runtime JDK compatibility]]
- * @see [[https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_framework_implementation_dependencies Test auto-dependencies]]
+ * Converts a Gradle build to Mill by selecting module configurations using a custom plugin.
+ * @see [[https://docs.gradle.org/current/userguide/compatibility.html#java_runtime Gradle JDK compatibility]]
+ * @see [[GradleBuildGenArgs Command line arguments]]
  */
 object GradleBuildGenMain {
 
   def main(args: Array[String]): Unit = {
     val args0 = ParserForClass[GradleBuildGenArgs].constructOrExit(args.toSeq)
-    import args0.{getClass as _, *}
     println("converting Gradle build")
+    import args0.{getClass as _, *}
 
-    val modules =
-      val connector = GradleConnector.newConnector()
+    val jar = Using.resource(
+      getClass.getResourceAsStream(BuildInfo.exportpluginAssemblyResource)
+    )(os.temp(_, suffix = ".jar"))
+    val script = os.temp(
+      s"""initscript {
+         |    dependencies {
+         |      classpath files(${literalize(jar.toString())})
+         |    }
+         |}
+         |rootProject {
+         |    apply plugin: mill.main.gradle.ExportGradleBuildPlugin
+         |}
+         |""".stripMargin,
+      suffix = ".gradle"
+    )
+    val packages = {
+      val connector = GradleConnector.newConnector() match {
+        case conn: DefaultGradleConnector =>
+          conn.daemonMaxIdleTime(1, TimeUnit.SECONDS)
+          conn
+        case conn => conn
+      }
       try
-        val jar = Using.resource(
-          getClass.getResourceAsStream(BuildInfo.exportpluginAssemblyResource)
-        )(os.temp(_, suffix = ".jar"))
-        val script = os.temp(
-          s"""initscript {
-             |    dependencies {
-             |      classpath files(${literalize(jar.toString())})
-             |    }
-             |}
-             |rootProject {
-             |    apply plugin: mill.main.gradle.ExportGradleBuildPlugin
-             |}
-             |""".stripMargin,
-          suffix = ".gradle"
-        )
         val connection = connector.forProjectDirectory(os.pwd.toIO).connect()
         connection.action()
         try
           upickle.default.read[Seq[ModuleRepr]](
             connection.model(classOf[ExportGradleBuildModel])
               .addArguments("--init-script", script.toString())
-              .addJvmArguments(s"-Dmill.init.test.module.name=$testModuleName")
+              .addJvmArguments(s"-Dmill.init.test.module.name=$testModule")
               .setStandardOutput(System.out)
-              .get().getModulesJson()
-          )
+              .get().getModulesJson
+          ).map(Tree(_))
         finally connection.close()
       finally connector.disconnect()
+    }
 
-    var build = BuildRepr.fill(modules.map(Tree(_)))
-    build = build.withMetaBuild(metaBuild)
-    if (unify.value) build = build.unified
-    BuildWriter(build).writeFiles()
+    var build = BuildRepr.fill(packages)
+    if (merge.value) build = BuildRepr.merged(build)
+
+    val writer = if (noMetaBuild.value) BuildWriter(build)
+    else
+      val (build0, metaBuild) = MetaBuildRepr.of(build)
+      BuildWriter(build0, Some(metaBuild))
+    writer.writeFiles()
   }
 }
+
+@mainargs.arg
+case class GradleBuildGenArgs(
+    @mainargs.arg(doc = "name of generated test module")
+    testModule: String = "test",
+    @mainargs.arg(doc = "merge generated build files")
+    merge: mainargs.Flag,
+    @mainargs.arg(doc = "disables generating meta-build")
+    noMetaBuild: mainargs.Flag
+)

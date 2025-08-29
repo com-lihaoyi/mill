@@ -8,7 +8,6 @@ import org.apache.maven.model.building.{
 }
 import org.apache.maven.model.resolution.ModelResolver
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
-import org.eclipse.aether.DefaultRepositoryCache
 import org.eclipse.aether.repository.{LocalRepository, RemoteRepository}
 import org.eclipse.aether.supplier.RepositorySystemSupplier
 
@@ -21,23 +20,21 @@ import java.util.Properties
  * The implementation is inspired by [[https://github.com/sbt/sbt-pom-reader/ sbt-pom-reader]].
  */
 class Modeler(
-    config: ModelerConfig,
     builder: ModelBuilder,
     resolver: ModelResolver,
     systemProperties: Properties
 ) {
 
   /** Builds and returns the effective [[Model]] from `pomDir / "pom.xml"`. */
-  def apply(pomDir: os.Path): Model =
-    build((pomDir / "pom.xml").toIO)
+  def read(pomDir: os.Path): Model =
+    read((pomDir / "pom.xml").toIO)
 
   /** Builds and returns the effective [[Model]] from `pomFile`. */
-  def build(pomFile: File): Model = {
+  def read(pomFile: File): Model = {
     val request = new DefaultModelBuildingRequest()
     request.setPomFile(pomFile)
     request.setModelResolver(resolver.newCopy())
     request.setSystemProperties(systemProperties)
-    request.setProcessPlugins(config.processPlugins.value)
 
     val result = builder.build(request)
     result.getEffectiveModel
@@ -46,7 +43,6 @@ class Modeler(
 object Modeler {
 
   def apply(
-      config: ModelerConfig,
       local: LocalRepository = defaultLocalRepository,
       remotes: Seq[RemoteRepository] = defaultRemoteRepositories,
       context: String = "",
@@ -56,9 +52,8 @@ object Modeler {
     val system = new RepositorySystemSupplier().get()
     val session = MavenRepositorySystemUtils.newSession()
     session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, local))
-    if (config.cacheRepository.value) session.setCache(new DefaultRepositoryCache)
     val resolver = new Resolver(system, session, remotes, context)
-    new Modeler(config, builder, resolver, systemProperties)
+    new Modeler(builder, resolver, systemProperties)
   }
 
   def defaultLocalRepository: LocalRepository =
@@ -76,9 +71,4 @@ object Modeler {
     sys.props.foreachEntry(props.put)
     props
   }
-}
-
-trait ModelerConfig {
-  def cacheRepository: mainargs.Flag
-  def processPlugins: mainargs.Flag
 }

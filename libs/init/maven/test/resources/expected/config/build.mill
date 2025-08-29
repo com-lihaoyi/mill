@@ -1,3 +1,4 @@
+//| mill-version: SNAPSHOT
 package build
 
 import mill.javalib._
@@ -101,6 +102,11 @@ object `package` extends MavenModule with PublishModule {
           mvn"org.mockito:mockito-core:1.8.5"
         )
 
+        def forkWorkingDir = moduleDir
+
+        def testParallelism = false
+
+        def testSandboxWorkingDir = false
       }
 
     }
@@ -198,6 +204,11 @@ object `package` extends MavenModule with PublishModule {
         mvn"org.mockito:mockito-core:1.8.5"
       )
 
+      def forkWorkingDir = moduleDir
+
+      def testParallelism = false
+
+      def testSandboxWorkingDir = false
     }
 
   }

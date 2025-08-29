@@ -20,15 +20,8 @@ object BuildGenTests extends TestSuite {
     test("config") {
       val sourceRoot = os.sub / "maven-samples"
       val expectedRoot = os.sub / "expected/config"
-      val args = Array(
-        "--test-module-name",
-        "tests",
-        "--unify",
-        "--publish-properties",
-        "--no-meta-build",
-        "--cache-repository",
-        "--process-plugins"
-      )
+      val args =
+        Array("--test-module", "tests", "--merge", "--publish-properties", "--no-meta-build")
       assert(
         checker.check(MavenBuildGenMain.main(args), sourceRoot, expectedRoot)
       )

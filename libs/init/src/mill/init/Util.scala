@@ -9,25 +9,14 @@ object Util {
       |newlines.source=fold
       |""".stripMargin
 
-  def scalafmtConfigFile: os.Path =
-    os.temp(scalafmtConfigContent)
-
-  def buildFiles(workspace: os.Path): Seq[os.Path] =
-    os.walk.stream(
-      workspace,
-      skip = Seq(workspace / OutFiles.out, workspace / OutFiles.millBuild).contains
-    ).filter(path =>
   def buildFiles(workspace: os.Path): Seq[os.Path] = {
-    val skip = Seq(bspOut, millBuild, out).map(workspace / _)
+    val skip = Seq(bspOut, millBuild, out).map(s => workspace / os.RelPath(s))
     os.walk.stream(workspace, skip = skip.contains).filter(path =>
       os.isFile(path) &&
         (nestedBuildFileNames.contains(path.last) || rootBuildFileNames.contains(path.last))
-    ).toSeq ++ (
-      if (os.exists(workspace / OutFiles.millBuild))
-        os.walk.stream(workspace / OutFiles.millBuild).filter(os.isFile).toSeq
-    if (os.exists(workspace / millBuild))
-      os.walk.stream(workspace / millBuild).filter(os.isFile).toSeq
-    else Nil
-    )
+    ).toSeq ++ {
+      val path = workspace / os.RelPath(millBuild)
+      if (os.exists(path)) os.walk.stream(path).filter(os.isFile).toSeq else Nil
+    }
   }
 }

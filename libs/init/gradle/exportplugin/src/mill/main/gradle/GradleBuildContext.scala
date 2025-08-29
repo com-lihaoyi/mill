@@ -1,5 +1,6 @@
 package mill.main.gradle
 
+import mill.main.buildgen.JavaHomeModuleConfig
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.invocation.Gradle
@@ -26,12 +27,12 @@ object GradleBuildContext {
           .flatMap: ext =>
             Option(ext.getToolchain)
           .flatMap: tc =>
-            // TODO Support vendor?
             Option(tc.getLanguageVersion.getOrNull())
-          .map(_.toString)
-      @scala.annotation.nowarn("cat=deprecation")
+          .flatMap: v =>
+            JavaHomeModuleConfig.jvmId(v.asInt())
       def project(dep: ProjectDependency) =
-        if (version < version_8_11) dep.getDependencyProject
+        if (version < version_8_11)
+          dep.getDependencyProject: @scala.annotation.nowarn("cat=deprecation")
         else gradle.getRootProject.findProject(dep.getPath)
     }
   }

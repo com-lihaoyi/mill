@@ -1,6 +1,7 @@
 package mill.main.buildgen
 
 import mill.api.Discover
+import mill.init.Util
 import mill.scalalib.scalafmt.ScalafmtModule
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.*
@@ -76,5 +77,5 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
 object BuildGenChecker {
 
   def apply(sourceRoot: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))): BuildGenChecker =
-    new BuildGenChecker(sourceRoot, mill.init.Util.scalafmtConfigFile)
+    new BuildGenChecker(sourceRoot, os.temp(Util.scalafmtConfigContent))
 }

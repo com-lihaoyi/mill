@@ -9,7 +9,7 @@ class ExportGradleBuildPlugin @Inject (registry: ToolingModelBuilderRegistry)
     extends Plugin[Project] {
 
   def apply(target: Project) = registry.register(ExportGradleBuildModelBuilder(
-    ctx = GradleBuildContext(gradle = target.getGradle),
+    ctx = GradleBuildContext(target.getGradle),
     testModuleName = System.getProperty("mill.init.test.module.name"),
     workspace = os.Path(target.getRootProject.getRootDir)
   ))

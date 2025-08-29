@@ -3,20 +3,23 @@ package mill.main.buildgen
 import mill.constants.CodeGenConstants.{nestedBuildFileNames, rootBuildFileNames, rootModuleAlias}
 import mill.constants.OutFiles.millBuild
 import mill.internal.Util.backtickWrap
+import mill.util.BuildInfo.millVersion
 import pprint.Util.literalize
 
 import scala.reflect.TypeTest
 
-class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue") {
+class BuildWriter(
+    build: BuildRepr,
+    metaBuild: Option[MetaBuildRepr] = None,
+    renderCrossValueInTask: String = "crossValue"
+) {
 
   def writeFiles(): Unit = {
-    import build.*
-
-    meta.foreach: meta =>
+    metaBuild.foreach { metaBuild =>
       val sub = os.sub / millBuild / rootBuildFileNames.get(0)
       println(s"writing Mill meta-build file to $sub")
       os.write(os.pwd / sub, renderMetaBuildRoot, createFolders = true)
-      import meta.*
+      import metaBuild.*
       val sub1 = os.sub / millBuild / "src" / s"${depsObject.name}.scala"
       println(s"writing Mill meta-build file to $sub1")
       os.write(os.pwd / sub1, renderDepsObject(packageName, depsObject), createFolders = true)
@@ -24,11 +27,16 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
         val sub = os.sub / millBuild / "src" / s"${baseTrait.name}.scala"
         println(s"writing Mill meta-build file to $sub")
         os.write(os.pwd / sub, renderBaseTrait(packageName, baseTrait))
+    }
 
-    val root +: nested = packages.iterator.toSeq: @unchecked
+    val root +: nested = build.iterator.toSeq: @unchecked
     val sub = os.sub / rootBuildFileNames.get(0)
     println(s"writing Mill build file to $sub")
-    os.write(os.pwd / rootBuildFileNames.get(0), renderPackage(root))
+    os.write(
+      os.pwd / rootBuildFileNames.get(0),
+      s"""//| mill-version: $millVersion
+         |${renderPackage(root)}""".stripMargin
+    )
     nested.foreach: pkg =>
       val sub = os.sub / pkg.root.segments / nestedBuildFileNames.get(0)
       println(s"writing Mill build file to $sub")
@@ -44,7 +52,7 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
        |""".stripMargin
   }
 
-  def renderDepsObject(packageName: String, depsObject: DepsObject) = {
+  def renderDepsObject(packageName: String, depsObject: MetaBuildRepr.DepsObject) = {
     import depsObject.*
     s"""package $packageName
        |
@@ -58,7 +66,7 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
        |}""".stripMargin
   }
 
-  def renderBaseTrait(packageName: String, baseTrait: BaseTrait) = {
+  def renderBaseTrait(packageName: String, baseTrait: MetaBuildRepr.BaseTrait) = {
     import baseTrait.*
     s"""package $packageName
        |
@@ -70,7 +78,7 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
        |}""".stripMargin
   }
 
-  def renderImports(baseTrait: BaseTrait): String = {
+  def renderImports(baseTrait: MetaBuildRepr.BaseTrait): String = {
     val b = Set.newBuilder[String]
     import baseTrait.*
     (supertypes ++ mixins).foreach:
@@ -87,6 +95,7 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
     configs.foreach:
       case _: CoursierModuleConfig => b += "mill.javalib"
       case _: JavaHomeModuleConfig => b += "mill.javalib"
+      case _: RunModuleConfig => b += "mill.javalib"
       case _: JavaModuleConfig => b += "mill.javalib"
       case _: PublishModuleConfig => b += "mill.javalib" += "mill.javalib.publish"
       case _: ErrorProneModuleConfig => b += "mill.javalib" += "mill.javalib.errorprone"
@@ -115,14 +124,15 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
 
   def renderImports(pkg: Tree[ModuleRepr]): String = {
     val b = Set.newBuilder[String]
-    b ++= build.meta.map(_.packageName)
+    b ++= metaBuild.map(_.packageName)
     for module <- pkg.iterator do
-      if (module.supertypes == Seq("Module")) b += "mill.api"
+      if (module.supertypes.contains("Module") || module.crossConfigs.nonEmpty) b += "mill.api"
       if (module.testModule.exists(_.mixins.exists(_.startsWith("TestModule"))))
         b += "mill.javalib"
       module.configs.foreach:
         case _: CoursierModuleConfig => b += "mill.javalib"
         case _: JavaHomeModuleConfig => b += "mill.javalib"
+        case _: RunModuleConfig => b += "mill.javalib"
         case _: JavaModuleConfig => b += "mill.javalib"
         case _: PublishModuleConfig => b += "mill.javalib" += "mill.javalib.publish"
         case _: ErrorProneModuleConfig => b += "mill.javalib" += "mill.javalib.errorprone"
@@ -152,9 +162,9 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
     else
       val crossTraitName = segments.lastOption.getOrElse(os.pwd.last).split("\\W").map(_.capitalize)
         .mkString("", "", "Module")
-      val crossTraitExtends = crossConfigs.map((v, _) => literalize(v))
+      val crossModuleExtends = crossConfigs.map((v, _) => literalize(v))
         .mkString(s"extends Cross[$crossTraitName](", ", ", ")")
-      s"""object ${backtickWrap(name)} $crossTraitExtends
+      s"""object ${backtickWrap(name)} $crossModuleExtends
          |trait $crossTraitName ${renderExtendsClause(supertypes ++ mixins)}""".stripMargin
   }
 
@@ -170,6 +180,10 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
     s"""object $name ${renderExtendsClause(supertypes ++ mixins)} {
        |
        |  ${renderModuleConfigs(configs, crossConfigs)}
+       |
+       |  ${if (testParallelism) "" else "def testParallelism = false"}
+       |
+       |  ${if (testSandboxWorkingDir) "" else "def testSandboxWorkingDir = false"}
        |}""".stripMargin
   }
 
@@ -182,6 +196,7 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
     renderLines(configs.iterator.map:
       case config: CoursierModuleConfig => renderCoursierModuleConfig(config, collect)
       case config: JavaHomeModuleConfig => renderJavaHomeModuleConfig(config, collect)
+      case config: RunModuleConfig => renderRunModuleConfig(config, collect)
       case config: JavaModuleConfig => renderJavaModuleConfig(config, collect)
       case config: PublishModuleConfig => renderPublishModuleConfig(config, collect)
       case config: ErrorProneModuleConfig => renderErrorProneModuleConfig(config, collect)
@@ -207,6 +222,16 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
     def get[A](f: JavaHomeModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
     s"""${renderJvmId(jvmId, get(_.jvmId))}
+       |""".stripMargin
+  }
+
+  def renderRunModuleConfig(
+      config: RunModuleConfig,
+      crossConfigs: Seq[(String, RunModuleConfig)]
+  ) = {
+    def get[A](f: RunModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
+    import config.*
+    s"""${renderForkWorkingDir(forkWorkingDir, get(_.forkWorkingDir))}
        |""".stripMargin
   }
 
@@ -315,6 +340,9 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
   def renderJvmId(value: String, crossValues: Seq[(String, String)]) =
     renderTask("jvmId", value, crossValues, literalize(_))
 
+  def renderForkWorkingDir(value: String, crossValues: Seq[(String, String)]) =
+    renderTask("forkWorkingDir", value, crossValues, identity)
+
   def renderMandatoryMvnDeps(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
     renderTaskSeq("mandatoryMvnDeps", values, crossValues, identity)
 
@@ -366,8 +394,10 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
   def renderPublishVersion(value: String, crossValues: Seq[(String, String)]) =
     renderTask("publishVersion", value, crossValues, literalize(_))
 
-  def renderVersionScheme(value: Option[String], crossValues: Seq[(String, Option[String])]) =
-    renderTaskOption("versionScheme", value, crossValues, identity)
+  def renderVersionScheme(
+      value: Option[String],
+      crossValues: Seq[(String, Option[String])]
+  ): String = renderTaskOption("versionScheme", value, crossValues, renderVersionScheme)
 
   def renderArtifactMetadata(
       value: PublishModuleConfig.Artifact,
@@ -385,8 +415,7 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
   def renderErrorProneJavacEnableOptions(
       values: Seq[String],
       crossValues: Seq[(String, Seq[String])]
-  ) =
-    renderTaskSeq("errorProneJavacEnableOptions", values, crossValues, literalize(_))
+  ) = renderTaskSeq("errorProneJavacEnableOptions", values, crossValues, literalize(_))
 
   def renderErrorProneDeps(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
     renderTaskSeq("errorProneDeps", values, crossValues, identity)
@@ -478,6 +507,13 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
   def renderArtifact(value: PublishModuleConfig.Artifact) = {
     import value.*
     s"Artifact(${literalize(group)}, ${literalize(id)}, ${literalize(version)})"
+  }
+
+  def renderVersionScheme(value: String): String = value match {
+    case "early-semver" => "VersionScheme.EarlySemVer"
+    case "pvp" => "VersionScheme.PVP"
+    case "semver-spec" => "VersionScheme.SemVerSpec"
+    case "strict" => "VersionScheme.Strict"
   }
 
   def renderLines(values: IterableOnce[String]) = values.iterator.mkString(

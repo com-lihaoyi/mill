@@ -10,13 +10,14 @@ object `package` extends MavenModule {
   def javacOptions = super.javacOptions() ++
     Seq("-source", "1.8", "-target", "1.8")
 
-  def jvmId = "8"
-
   object test extends MavenTests with TestModule.Junit5 {
 
     def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
       Seq(Deps.junitJupiter, Deps.junitPlatformLauncher)
 
+    def testParallelism = false
+
+    def testSandboxWorkingDir = false
   }
 
 }

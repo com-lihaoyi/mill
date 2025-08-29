@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.IntegrationTester
 import mill.testkit.IntegrationTester.EvalResult
-import utest._
+import utest.*
 
 import scala.collection.immutable.SortedSet
 
@@ -204,12 +204,4 @@ object MillInitUtils {
     os.write(workspace / ".mill-jvm-version", jvmId)
   def writeMillJvmVersionTemurin11(workspace: os.Path) =
     writeMillJvmVersion(workspace, "temurin:11")
-
-  def combinedTask(tasks: String*) =
-    tasks.iterator.map(Seq(_)).reduce(_ ++ Seq("+") ++ _)
-
-  def evalAllSourceFileCounts(tester: IntegrationTester) = {
-    val result = tester.eval(("show", "__.allSourceFiles"))
-    upickle.default.read[Map[String, Seq[String]]](result.out).map((k, v) => (k, v.length))
-  }
 }

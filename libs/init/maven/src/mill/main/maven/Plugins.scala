@@ -1,10 +1,12 @@
 package mill.main.maven
 
-import mill.main.buildgen.JavaModuleConfig
+import mill.main.buildgen.{JavaHomeModuleConfig, JavaModuleConfig}
+import org.apache.maven.artifact.versioning.VersionRange
 import org.apache.maven.model.{ConfigurationContainer, Model, Plugin}
 import org.codehaus.plexus.util.xml.Xpp3Dom
 
 import scala.jdk.CollectionConverters.*
+import scala.math.Ordering.Implicits.infixOrderingOps
 
 object Plugins {
 
@@ -41,18 +43,28 @@ object Plugins {
     // https://maven.apache.org/configure.html
     val configFile = os.pwd / ".mvn/jvm.config"
     if (os.exists(configFile)) b ++= os.read.lines(configFile).iterator.flatMap(_.split(" "))
-    b.result().diff(JavaModuleConfig.unsupportedJavacOptions)
+    b.result()
   }
 
   def skipDeploy(model: Model): Boolean =
     mavenDeployPlugin(model).flatMap(config).flatMap(value(_, "skip")).fold(false)(_.toBoolean)
 
-  def jvmId(model: Model): Option[String] =
+  /**
+   * @see [[https://maven.apache.org/enforcer/enforcer-rules/requireJavaVersion.html]]
+   */
+  def jvmId(model: Model): Option[String] = {
     mavenEnforcerPlugin(model).flatMap(
       _.getExecutions.iterator.asScala.flatMap(config)
-        .flatMap(value(_, "requireJavaVersion", "version")) // TODO Handle version range?
-        .find(_ => true) // get the first value
+        .flatMap(value(_, "rules", "requireJavaVersion", "version"))
+        .map(VersionRange.createFromVersionSpec)
+        .flatMap: v =>
+          Option(v.getRecommendedVersion)
+            .orElse(v.getRestrictions.iterator.asScala.collectFirst:
+              case r if r.getLowerBound != null => r.getLowerBound)
+        .reduceOption(_.min(_))
+        .flatMap(v => JavaHomeModuleConfig.jvmId(v.getMinorVersion))
     )
+  }
 
   /**
    * @see [[https://maven.apache.org/plugins/maven-compiler-plugin/index.html]]

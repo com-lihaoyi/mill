@@ -6,38 +6,31 @@ import org.apache.maven.model.*
 
 import scala.jdk.CollectionConverters.*
 
-@mainargs.main
-case class MavenBuildGenArgs(
-    @mainargs.arg(short = 't')
-    testModuleName: String = "test",
-    @mainargs.arg(short = 'u')
-    unify: mainargs.Flag,
-    @mainargs.arg(short = 'o')
-    publishProperties: mainargs.Flag,
-    metaBuild: MetaBuildArgs,
-    cacheRepository: mainargs.Flag,
-    processPlugins: mainargs.Flag
-) extends ModelerConfig
-
 /**
- * @see [[https://maven.apache.org/download.cgi JDK compatibility]]
+ * Converts a Maven build to Mill by selecting module configurations from POM files.
+ * @see [[https://maven.apache.org/download.cgi Maven JDK compatibility]]
+ * @see [[MavenBuildGenArgs Command line arguments]]
  */
 object MavenBuildGenMain {
 
   def main(args: Array[String]): Unit = {
     val args0 = ParserForClass[MavenBuildGenArgs].constructOrExit(args.toSeq)
-    import args0.*
     println("converting Maven build")
-    val modeler = Modeler(args0)
+    import args0.*
+
+    val modeler = Modeler()
     val segmentsModels = Tree.from(os.sub): sub =>
-      val model = modeler(os.pwd / sub)
-      ((sub.segments, model), model.getModules.iterator.asScala.map(s => sub / os.SubPath(s)).toSeq)
+      val model = modeler.read(os.pwd / sub)
+      (
+        (sub.segments, model),
+        model.getModules.iterator.asScala.map(s => sub / os.SubPath(s)).toSeq
+      )
     val segmentsByGav = segmentsModels.iterator.map((segments, model) =>
       ((model.getGroupId, model.getArtifactId, model.getVersion), segments)
     ).toMap
     def gav(dep: Dependency) = (dep.getGroupId, dep.getArtifactId, dep.getVersion)
 
-    val modules = segmentsModels.iterator.map: (segments, model) =>
+    val packages = segmentsModels.iterator.map: (segments, model) =>
       def mvnDeps(scopes: String*) = model.getDependencies.iterator.asScala.collect:
         case dep if scopes.contains(dep.getScope) && !segmentsByGav.contains(gav(dep)) =>
           toMvnDep(dep)
@@ -54,20 +47,29 @@ object MavenBuildGenMain {
         .toSeq
 
       val moduleDir = os.pwd / segments
-      val testModule = if (os.exists(moduleDir / "src/test")) {
+      val testModule0 = if (os.exists(moduleDir / "src/test")) {
         // "provided" scope is for both compilation and testing
         val testDeps = mvnDeps("test", "provided")
         TestModuleRepr.mixinAndMandatoryMvnDeps(testDeps).map: (mixin, mandatoryMvnDeps) =>
           TestModuleRepr(
-            name = testModuleName,
+            name = testModule,
             supertypes = Seq("MavenTests"),
             mixins = Seq(mixin),
-            configs = Seq(JavaModuleConfig(
-              mandatoryMvnDeps = mandatoryMvnDeps,
-              mvnDeps = testDeps.diff(mandatoryMvnDeps),
-              bomMvnDeps = bomMvnDeps("test"),
-              moduleDeps = moduleDeps("test", "provided")
-            ))
+            configs = Seq(
+              JavaModuleConfig(
+                mandatoryMvnDeps = mandatoryMvnDeps,
+                mvnDeps = testDeps.diff(mandatoryMvnDeps),
+                bomMvnDeps = bomMvnDeps("test"),
+                moduleDeps = moduleDeps("test", "provided")
+              ),
+              RunModuleConfig(
+                // Retained from https://github.com/com-lihaoyi/mill/commit/5e650f6b78d903f34e122a9f97c6b223c6251d8f
+                forkWorkingDir = "moduleDir"
+              )
+            ),
+            // Retained from https://github.com/com-lihaoyi/mill/commit/ba5960983895565f230166464e66524f0a1a5fd8
+            testParallelism = false,
+            testSandboxWorkingDir = false
           )
       } else None
 
@@ -83,11 +85,11 @@ object MavenBuildGenMain {
         moduleDeps = moduleDeps("compile"),
         compileModuleDeps = moduleDeps("provided"),
         runModuleDeps = moduleDeps("runtime"),
-        javacOptions = javacOptions
+        javacOptions = javacOptions.diff(JavaModuleConfig.unsupportedJavacOptions)
       )
       val publishModuleConfig = Option.when(!Plugins.skipDeploy(model)):
         PublishModuleConfig(
-          pomPackagingType = toPomPublishingType(model.getPackaging),
+          pomPackagingType = Option(model.getPackaging).filter(_ != "jar").orNull,
           pomParentProject = toPomParentProject(model.getParent),
           pomSettings = toPomSettings(model),
           publishVersion = model.getVersion,
@@ -115,17 +117,21 @@ object MavenBuildGenMain {
           coursierModuleConfig,
           errorProneModuleConfig
         ).flatten,
-        testModule = testModule
+        testModule = testModule0
       )
-    end modules
+    .map(Tree(_)).toSeq
 
-    var build = BuildRepr.fill(modules.map(Tree(_)).toSeq)
-    build = build.withMetaBuild(metaBuild)
-    if (unify.value) build = build.unified
-    BuildWriter(build).writeFiles()
+    var build = BuildRepr.fill(packages)
+    if (merge.value) build = BuildRepr.merged(build)
+
+    val writer = if (noMetaBuild.value) BuildWriter(build)
+    else
+      val (build0, metaBuild) = MetaBuildRepr.of(build)
+      BuildWriter(build0, Some(metaBuild))
+    writer.writeFiles()
   }
 
-  def toMvnDep(dep: Dependency) =
+  def toMvnDep(dep: Dependency) = {
     import dep.*
     JavaModuleConfig.mvnDep(
       getGroupId,
@@ -136,20 +142,19 @@ object MavenBuildGenMain {
       Option(getType),
       getExclusions.asScala.map(x => (x.getGroupId, x.getArtifactId))
     )
+  }
 
-  def toPomPublishingType(tpe: String) =
-    if (tpe == "jar") null else tpe
-
-  def toPomParentProject(parent: Parent) = Option.when(parent != null) {
-    import parent.*
-    PublishModuleConfig.Artifact(getGroupId, getArtifactId, getVersion)
+  def toPomParentProject(parent: Parent) = {
+    Option.when(parent != null):
+      import parent.*
+      PublishModuleConfig.Artifact(getGroupId, getArtifactId, getVersion)
   }
 
   def toPomSettings(model: Model) = {
     import model.*
     PublishModuleConfig.PomSettings(
       description = getDescription,
-      organization = if (getOrganization == null) null else getOrganization.getName,
+      organization = Option(getOrganization).fold(null)(_.getName),
       url = getUrl,
       licenses = getLicenses.iterator.asScala.map(toLicense).toSeq,
       versionControl = toVersionControl(getScm),
@@ -157,25 +162,28 @@ object MavenBuildGenMain {
     )
   }
 
-  def toLicense(license: License) =
+  def toLicense(license: License) = {
     import license.*
     PublishModuleConfig.License(
       name = getName,
       url = getUrl,
       distribution = getDistribution
     )
+  }
 
-  def toVersionControl(scm: Scm) = if (scm == null) PublishModuleConfig.VersionControl()
-  else
-    import scm.*
-    PublishModuleConfig.VersionControl(
-      browsableRepository = Option(getUrl),
-      connection = Option(getConnection),
-      developerConnection = Option(getDeveloperConnection),
-      tag = Option(getTag)
-    )
+  def toVersionControl(scm: Scm) = {
+    if (scm == null) PublishModuleConfig.VersionControl()
+    else
+      import scm.*
+      PublishModuleConfig.VersionControl(
+        browsableRepository = Option(getUrl),
+        connection = Option(getConnection),
+        developerConnection = Option(getDeveloperConnection),
+        tag = Option(getTag)
+      )
+  }
 
-  def toDeveloper(developer: Developer) =
+  def toDeveloper(developer: Developer) = {
     import developer.*
     PublishModuleConfig.Developer(
       id = getId,
@@ -184,8 +192,22 @@ object MavenBuildGenMain {
       organization = Option(getOrganization),
       organizationUrl = Option(getOrganizationUrl)
     )
+  }
 
-  def toArtifactMetadata(model: Model) =
+  def toArtifactMetadata(model: Model) = {
     import model.*
     PublishModuleConfig.Artifact(getGroupId, getArtifactId, getVersion)
+  }
 }
+
+@mainargs.main
+case class MavenBuildGenArgs(
+    @mainargs.arg(doc = "name of generated test module")
+    testModule: String = "test",
+    @mainargs.arg(doc = "merge generated build files")
+    merge: mainargs.Flag,
+    @mainargs.arg(doc = "copy properties for publish")
+    publishProperties: mainargs.Flag,
+    @mainargs.arg(doc = "disables generating meta-build")
+    noMetaBuild: mainargs.Flag
+)

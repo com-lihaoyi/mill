@@ -1,8 +1,10 @@
 package mill.integration
 
 import mill.constants.Util
-import mill.integration.MillInitUtils.*
+import mill.integration.MillInitUtils.{SplitTaskResults, testMillInit}
 import utest.*
+
+import scala.collection.immutable.SortedSet
 
 object MillInitMavenJansiTests extends BuildGenTestSuite {
 
@@ -79,17 +81,13 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
     test - integrationTest(url) { tester =>
       // Takes forever on windows and behaves differently from linux/mac
       if (!Util.isWindows) {
-        import tester.*
-
-        eval("init").isSuccess ==> true
-
-        val allSourceFileCounts = evalAllSourceFileCounts(tester)
-        assertGoldenLiteral(
-          allSourceFileCounts,
-          Map(
+        testMillInit(
+          tester,
+          initCommand = Seq("init"),
+          expectedAllSourceFileNums = Map(
             "transport-classes-kqueue.allSourceFiles" -> 29,
             "allSourceFiles" -> 0,
-            "testsuite-native.allSourceFiles" -> 0,
+            "testsuite-native.allSourceFiles" -> 0, // tests only
             "transport-native-epoll.test.allSourceFiles" -> 82,
             "resolver.test.allSourceFiles" -> 4,
             "handler.allSourceFiles" -> 175,
@@ -98,7 +96,7 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
             "handler-proxy.test.allSourceFiles" -> 9,
             "transport.test.allSourceFiles" -> 55,
             "common.allSourceFiles" -> 164,
-            "dev-tools.allSourceFiles" -> 0,
+            "dev-tools.allSourceFiles" -> 0, // resources only
             "codec-smtp.allSourceFiles" -> 14,
             "example.allSourceFiles" -> 208,
             "resolver.allSourceFiles" -> 20,
@@ -108,29 +106,29 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
             "codec-smtp.test.allSourceFiles" -> 4,
             "bom.allSourceFiles" -> 0,
             "codec-redis.test.allSourceFiles" -> 5,
-            "transport-native-epoll.allSourceFiles" -> 0,
+            "transport-native-epoll.allSourceFiles" -> 0, // C sources
             "testsuite-native-image.allSourceFiles" -> 4,
             "codec-mqtt.allSourceFiles" -> 39,
             "transport-udt.allSourceFiles" -> 18,
             "codec-xml.allSourceFiles" -> 17,
             "codec-redis.allSourceFiles" -> 25,
-            "transport-native-unix-common.allSourceFiles" -> 31,
+            "transport-native-unix-common.allSourceFiles" -> 31, // Java and C sources
             "resolver-dns-native-macos.allSourceFiles" -> 0,
             "all.allSourceFiles" -> 0,
             "resolver-dns.test.allSourceFiles" -> 18,
-            "transport-blockhound-tests.allSourceFiles" -> 0,
+            "transport-blockhound-tests.allSourceFiles" -> 0, // tests only
             "codec-stomp.allSourceFiles" -> 17,
-            "testsuite-shading.allSourceFiles" -> 0,
+            "testsuite-shading.allSourceFiles" -> 0, // tests only
             "codec-stomp.test.allSourceFiles" -> 8,
             "transport-sctp.test.allSourceFiles" -> 6,
-            "transport-native-kqueue.allSourceFiles" -> 0,
+            "transport-native-kqueue.allSourceFiles" -> 0, // C sources
             "codec.allSourceFiles" -> 155,
             "codec-socks.allSourceFiles" -> 78,
             "transport-native-kqueue.test.allSourceFiles" -> 62,
             "handler-proxy.allSourceFiles" -> 7,
             "transport-sctp.allSourceFiles" -> 37,
             "handler-ssl-ocsp.allSourceFiles" -> 7,
-            "testsuite-osgi.allSourceFiles" -> 0,
+            "testsuite-osgi.allSourceFiles" -> 0, // tests only
             "handler-ssl-ocsp.test.allSourceFiles" -> 2,
             "buffer.test.allSourceFiles" -> 63,
             "transport-native-unix-common-tests.allSourceFiles" -> 5,
@@ -164,98 +162,133 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
             "codec-http2.allSourceFiles" -> 127,
             "testsuite-autobahn.allSourceFiles" -> 4,
             "testsuite-native-image-client-runtime-init.allSourceFiles" -> 2
-          )
+          ),
+          expectedCompileTaskResults = Some(SplitTaskResults(
+            successful = SortedSet(
+              "bom.compile",
+              "buffer.compile",
+              "buffer.test.compile",
+              "codec-haproxy.compile",
+              "codec-http.compile",
+              "codec-memcache.compile",
+              "codec-smtp.compile",
+              "codec-socks.compile",
+              "codec-stomp.compile",
+              "codec-xml.compile",
+              "codec.compile",
+              "common.compile",
+              "common.test.compile",
+              "compile",
+              "dev-tools.compile",
+              "handler-proxy.compile",
+              "handler.compile",
+              "resolver.compile",
+              "resolver.test.compile",
+              "testsuite-autobahn.compile",
+              "testsuite-native-image-client-runtime-init.compile",
+              "testsuite-native-image.compile",
+              "testsuite-osgi.compile",
+              "transport-native-unix-common-tests.compile",
+              "transport-native-unix-common.compile",
+              "transport-native-unix-common.test.compile",
+              "transport-rxtx.compile",
+              "transport-udt.compile",
+              "transport-udt.test.compile",
+              "transport.compile",
+              "transport.test.compile"
+            ),
+            failed = SortedSet(
+              "all.compile",
+              "codec-dns.compile",
+              "codec-dns.test.compile",
+              "codec-haproxy.test.compile",
+              "codec-http.test.compile",
+              "codec-http2.compile",
+              "codec-http2.test.compile",
+              "codec-memcache.test.compile",
+              "codec-mqtt.compile",
+              "codec-mqtt.test.compile", /* upstream compile fails */
+              "codec-redis.compile",
+              "codec-redis.test.compile",
+              "codec-smtp.test.compile",
+              "codec-socks.test.compile",
+              "codec-stomp.test.compile",
+              "codec-xml.test.compile",
+              "codec.test.compile", /* missing native dependency */
+              "example.compile",
+              "handler-proxy.test.compile",
+              "handler-ssl-ocsp.compile",
+              "handler-ssl-ocsp.test.compile",
+              "handler.test.compile",
+              "microbench.compile",
+              "resolver-dns-classes-macos.compile",
+              "resolver-dns-native-macos.compile",
+              "resolver-dns-native-macos.test.compile",
+              "resolver-dns.compile",
+              "resolver-dns.test.compile",
+              "testsuite-http2.compile",
+              "testsuite-native-image-client.compile",
+              "testsuite-native.compile",
+              "testsuite-native.test.compile",
+              "testsuite-osgi.test.compile",
+              "testsuite-shading.compile",
+              "testsuite-shading.test.compile",
+              "testsuite.compile",
+              "transport-blockhound-tests.compile",
+              "transport-blockhound-tests.test.compile",
+              "transport-classes-epoll.compile",
+              "transport-classes-kqueue.compile",
+              "transport-native-epoll.compile",
+              "transport-native-epoll.test.compile",
+              "transport-native-kqueue.compile",
+              "transport-native-kqueue.test.compile",
+              "transport-sctp.compile", /* missing generated sources */
+              "transport-sctp.test.compile"
+            )
+          )),
+          expectedTestTaskResults = Some(SplitTaskResults(
+            all = SortedSet(
+              "buffer.test",
+              "resolver.test",
+              "transport-native-unix-common.test",
+              "transport-udt.test",
+              "common.test",
+              "codec-dns.test",
+              "codec-haproxy.test",
+              "codec-http.test",
+              "codec-http2.test",
+              "codec-memcache.test",
+              "codec-mqtt.test",
+              "codec-redis.test",
+              "codec-smtp.test",
+              "codec-socks.test",
+              "codec-stomp.test",
+              "codec-xml.test",
+              "codec.test",
+              "handler-proxy.test",
+              "handler-ssl-ocsp.test",
+              "handler.test",
+              "resolver-dns-native-macos.test",
+              "resolver-dns.test",
+              "testsuite-native.test",
+              "testsuite-osgi.test",
+              "testsuite-shading.test",
+              "transport-blockhound-tests.test",
+              "transport-native-epoll.test",
+              "transport-native-kqueue.test",
+              "transport-sctp.test",
+              "transport.test"
+            ),
+            successful = SortedSet(
+              "buffer.test",
+              "resolver.test",
+              "transport-native-unix-common.test",
+              "transport-udt.test",
+              "common.test"
+            ),
+            failed = SortedSet()
+          ))
         )
-
-        assert(eval(combinedTask(
-          "bom.compile",
-          "buffer.compile",
-          "buffer.test.compile",
-          "codec-haproxy.compile",
-          "codec-http.compile",
-          "codec-memcache.compile",
-          "codec-smtp.compile",
-          "codec-socks.compile",
-          "codec-stomp.compile",
-          "codec-xml.compile",
-          "codec.compile",
-          "common.compile",
-          "common.test.compile",
-          "compile",
-          "dev-tools.compile",
-          "handler-proxy.compile",
-          "handler.compile",
-          "resolver.compile",
-          "resolver.test.compile",
-          "testsuite-autobahn.compile",
-          "testsuite-native-image-client-runtime-init.compile",
-          "testsuite-native-image.compile",
-          "testsuite-osgi.compile",
-          "transport-native-unix-common-tests.compile",
-          "transport-native-unix-common.compile",
-          "transport-native-unix-common.test.compile",
-          "transport-rxtx.compile",
-          "transport-udt.compile",
-          "transport-udt.test.compile",
-          "transport.compile",
-          "transport.test.compile"
-        )).isSuccess)
-
-        assert(!eval(combinedTask(
-          "all.compile",
-          "codec-dns.compile",
-          "codec-dns.test.compile",
-          "codec-haproxy.test.compile",
-          "codec-http.test.compile",
-          "codec-http2.compile",
-          "codec-http2.test.compile",
-          "codec-memcache.test.compile",
-          "codec-mqtt.compile",
-          "codec-mqtt.test.compile", /* upstream compile fails */
-          "codec-redis.compile",
-          "codec-redis.test.compile",
-          "codec-smtp.test.compile",
-          "codec-socks.test.compile",
-          "codec-stomp.test.compile",
-          "codec-xml.test.compile",
-          "codec.test.compile", /* missing native dependency */
-          "example.compile",
-          "handler-proxy.test.compile",
-          "handler-ssl-ocsp.compile",
-          "handler-ssl-ocsp.test.compile",
-          "handler.test.compile",
-          "microbench.compile",
-          "resolver-dns-classes-macos.compile",
-          "resolver-dns-native-macos.compile",
-          "resolver-dns-native-macos.test.compile",
-          "resolver-dns.compile",
-          "resolver-dns.test.compile",
-          "testsuite-http2.compile",
-          "testsuite-native-image-client.compile",
-          "testsuite-native.compile",
-          "testsuite-native.test.compile",
-          "testsuite-osgi.test.compile",
-          "testsuite-shading.compile",
-          "testsuite-shading.test.compile",
-          "testsuite.compile",
-          "transport-blockhound-tests.compile",
-          "transport-blockhound-tests.test.compile",
-          "transport-classes-epoll.compile",
-          "transport-classes-kqueue.compile",
-          "transport-native-epoll.compile",
-          "transport-native-epoll.test.compile",
-          "transport-native-kqueue.compile",
-          "transport-native-kqueue.test.compile",
-          "transport-sctp.compile", /* missing generated sources */
-          "transport-sctp.test.compile"
-        )).isSuccess)
-
-        assert(eval(combinedTask(
-          "buffer.test",
-          "resolver.test",
-          "transport-native-unix-common.test",
-          "transport-udt.test"
-        )).isSuccess)
       }
     }
   }

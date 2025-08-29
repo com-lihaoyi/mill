@@ -1,5 +1,0 @@
-package build.nested
-
-import mill.api._
-
-object `package` extends Module {}

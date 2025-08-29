@@ -5,14 +5,16 @@ import upickle.default.{ReadWriter, macroRW}
 import scala.collection.mutable
 
 /**
- * A representation for a test module in a build that is optimized for code generation.
+ * A representation for a test module that is optimized for code generation.
  */
 case class TestModuleRepr(
     name: String,
     supertypes: Seq[String],
     mixins: Seq[String] = Nil,
     configs: Seq[ModuleConfig] = Nil,
-    crossConfigs: Seq[(String, Seq[ModuleConfig])] = Nil
+    crossConfigs: Seq[(String, Seq[ModuleConfig])] = Nil,
+    testParallelism: Boolean = true,
+    testSandboxWorkingDir: Boolean = true
 )
 object TestModuleRepr {
   implicit val rw: ReadWriter[TestModuleRepr] = macroRW

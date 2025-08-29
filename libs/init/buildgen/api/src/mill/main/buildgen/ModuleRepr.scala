@@ -3,7 +3,7 @@ package mill.main.buildgen
 import upickle.default.{ReadWriter, macroRW}
 
 /**
- * A representation for a module in a build that is optimized for code generation.
+ * A representation for a build module that is optimized for code generation.
  */
 case class ModuleRepr(
     segments: Seq[String],

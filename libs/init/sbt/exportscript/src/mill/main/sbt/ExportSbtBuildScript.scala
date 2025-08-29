@@ -129,14 +129,14 @@ object ExportSbtBuildScript extends (State => State) {
         ),
         runModuleDeps =
           moduleDeps(cs => cs.contains("runtime") || cs.exists(_.startsWith("runtime->"))),
-        javacOptions = Keys.javacOptions.value
+        javacOptions = Keys.javacOptions.value.diff(JavaModuleConfig.unsupportedJavacOptions)
       )
       val publishModuleConfig = if ((Keys.publish / Keys.skip).value || !Keys.publishArtifact.value)
         None
       else Some(PublishModuleConfig(
         pomSettings = toPomSettings(Keys.projectInfo.value),
         publishVersion = Keys.version.value,
-        versionScheme = Keys.versionScheme.value.collect(toVersionScheme),
+        versionScheme = Keys.versionScheme.value,
         artifactMetadata = PublishModuleConfig.Artifact(
           Keys.organization.value,
           Keys.moduleName.value,
@@ -176,7 +176,9 @@ object ExportSbtBuildScript extends (State => State) {
                 mixins = testMixins,
                 configs = testConfigs,
                 crossConfigs =
-                  if (isCrossVersion) Seq((Keys.scalaVersion.value, testConfigs)) else Nil
+                  if (isCrossVersion) Seq((Keys.scalaVersion.value, testConfigs)) else Nil,
+                testParallelism = false,
+                testSandboxWorkingDir = false
               )
           }
         } else None
@@ -300,12 +302,5 @@ object ExportSbtBuildScript extends (State => State) {
   def toDeveloper(developer: Developer) = {
     import developer._
     PublishModuleConfig.Developer(id, name, url.toExternalForm)
-  }
-
-  val toVersionScheme: PartialFunction[String, String] = {
-    case "early-semver" => "VersionScheme.EarlySemVer"
-    case "pvp" => "VersionScheme.PVP"
-    case "semver-spec" => "VersionScheme.SemVerSpec"
-    case "strict" => "VersionScheme.Strict"
   }
 }
