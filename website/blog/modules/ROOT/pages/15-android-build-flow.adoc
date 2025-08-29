@@ -9,7 +9,7 @@ _{author}, {revdate}_
 
 Until recently, Gradle was the only realistic option for Android builds. Today, Mill - a fast, predictable build tool for Java, Scala, and Kotlin - can build Android applications end-to-end.
 
-In less than a year, Mill went from minimal Android support to producing installable APKs for projects as complex as xref:mill::android/hilt-sample.adoc[the Android Architecture Samples] and https://github.com/vaslabs/Pokedex_Compose_Multi_Module/tree/testing-mill[multi-module apps] with xref:mill::android/java.adoc#_using_third_party_native_libraries[native code] and https://github.com/android/compose-samples/tree/main/JetLagged[Jetpack Compose].
+In less than a year, Mill went from minimal Android support to producing installable APKs for projects as complex as xref:mill::android/hilt-sample.adoc[the Android Architecture Samples] and https://github.com/vaslabs/Pokedex_Compose_Multi_Module/tree/testing-mill[multi-module apps] with xref:mill::android/java.adoc#_using_third_party_native_libraries[native code] and xref:mill::android/compose-samples.adoc[Jetpack Compose].
 
 This was possible because Mill’s design, incremental, transparent, and extensible maps surprisingly well onto Android’s intricate build process.
 
@@ -83,7 +83,7 @@ This flow considers plain apps without any dependencies. But real-world apps dep
 ....
 digraph G {
   rankdir=TB
-  node [shape=box width=0 height=0]
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
 
   // --- App inputs
   "App Java/Kotlin Sources" -> "Compile (Java/Kotlin)"
@@ -94,13 +94,15 @@ digraph G {
   // --- Library inputs
   subgraph cluster_aar {
     label="Dependency (AARs)"
+    rankdir=TB
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+
     "AAR Files" -> "Unpack AARs"
     "Unpack AARs" -> "AAR classes.jar"
     "Unpack AARs" -> "AAR res/"
     "Unpack AARs" -> "AAR AndroidManifest.xml"
     "Unpack AARs" -> "AAR proguard.txt"
     "Unpack AARs" -> "AAR native .so (optional)"
-    "Unpack AARs" -> "Repackaged jars (libs/*.jar) (optional)"
   }
 
   // --- Resource/link phase
