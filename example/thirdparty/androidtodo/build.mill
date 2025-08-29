@@ -1,7 +1,7 @@
 package build
 
 import mill.*, androidlib.*, kotlinlib.*
-import kotlinlib.ksp.Ksp2Module
+import kotlinlib.ksp.{KspModule, KspModuleMode}
 import hilt.AndroidHiltSupport
 
 object Versions {
@@ -19,12 +19,16 @@ object androidSdkModule0 extends AndroidSdkModule {
 }
 
 // Mill configuration for the Android Todo App project.
-object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfig,
-      Ksp2Module, AndroidHiltSupport {
+object app
+    extends AndroidAppKotlinModule,
+      AndroidR8AppModule,
+      AndroidBuildConfig,
+      AndroidHiltSupport {
 
   def kotlinVersion = Versions.kotlinVersion
   def kspVersion = Versions.kspVersion
   def kspJvmTarget = "17"
+  def kspModuleMode = KspModuleMode.Ksp2Cli
 
   override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
     AndroidBuildTypeSettings(
@@ -109,7 +113,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  object test extends Ksp2Tests, AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4 {
+  object test extends KspTests, AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4 {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
 
@@ -145,8 +149,10 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
     )
   }
 
-  object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule,
-        Ksp2Module, AndroidHiltSupport {
+  object androidTest
+      extends AndroidAppKotlinInstrumentedTests,
+        AndroidR8AppModule,
+        AndroidHiltSupport {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
     def kspJvmTarget = "17"
@@ -211,7 +217,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
 
 }
 
-object `shared-test` extends AndroidKotlinModule, Ksp2Module, AndroidHiltSupport {
+object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
 
   def moduleDeps = Seq(app)
 
