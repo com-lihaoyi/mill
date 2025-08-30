@@ -1,7 +1,6 @@
 package mill.scalajslib.worker.jsenv
 
 import mill.scalajslib.worker.api._
-import scala.util.chaining.given
 
 object Playwright {
   def apply(config: JsEnvConfig.Playwright) =
