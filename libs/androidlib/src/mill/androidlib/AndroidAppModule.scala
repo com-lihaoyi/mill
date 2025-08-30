@@ -19,6 +19,7 @@ import scala.xml.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.daemon.internal.EvaluatorApi
 import mill.javalib.testrunner.TestResult
+import scala.util.Properties.isWin
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -147,22 +148,24 @@ trait AndroidAppModule extends AndroidModule { outer =>
         val dest = Task.dest / ref.path.baseName
         os.unzip(ref.path, dest)
 
-        // Fix permissions of unzipped directories
-        // `os.walk.stream` doesn't work
-        def walkStream(p: os.Path): geny.Generator[os.Path] = {
-          if (!os.isDir(p)) geny.Generator()
-          else {
-            val streamed = os.list.stream(p)
-            streamed ++ streamed.flatMap(walkStream)
+        // Fix permissions of unzipped directories (skip on Windows)
+        if (!isWin) {
+          // `os.walk.stream` doesn't work
+          def walkStream(p: os.Path): geny.Generator[os.Path] = {
+            if (!os.isDir(p)) geny.Generator()
+            else {
+              val streamed = os.list.stream(p)
+              streamed ++ streamed.flatMap(walkStream)
+            }
           }
-        }
 
-        for (p <- walkStream(dest) if os.isDir(p)) {
-          import java.nio.file.attribute.PosixFilePermission
-          val newPerms =
-            os.perms(p) + PosixFilePermission.OWNER_READ + PosixFilePermission.OWNER_EXECUTE
+          for (p <- walkStream(dest) if os.isDir(p)) {
+            import java.nio.file.attribute.PosixFilePermission
+            val newPerms =
+              os.perms(p) + PosixFilePermission.OWNER_READ + PosixFilePermission.OWNER_EXECUTE
 
-          os.perms.set(p, newPerms)
+            os.perms.set(p, newPerms)
+          }
         }
 
         val lookupPath = dest / "META-INF"
@@ -856,6 +859,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val libsJarFiles = libsJarPathRefs.map(_.path.toString())
 
+    val filenamesFile = Task.dest / "all-files.txt"
+    os.write.over(filenamesFile, (appCompiledFiles ++ libsJarFiles).mkString("\n"))
+
     val proguardFile = androidProguard().path
 
     val d8Args = Seq(
@@ -870,7 +876,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       androidMinSdk().toString,
       "--main-dex-rules",
       proguardFile.toString()
-    ) ++ appCompiledFiles ++ libsJarFiles
+    ) :+ s"@$filenamesFile"
 
     Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
 
