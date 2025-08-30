@@ -109,6 +109,17 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
               workerApi.JsEnvConfig.Selenium.SafariOptions()
           }
         )
+      case config: api.JsEnvConfig.Playwright =>
+        workerApi.JsEnvConfig.Playwright(
+          browserName = config.browserName,
+          headless = config.headless,
+          showLogs = config.showLogs,
+          debug = config.debug,
+          // pwConfig = config.pwConfig,
+          runConfigEnv = config.runConfigEnv,
+          launchOptions = config.launchOptions,
+          additionalLaunchOptions = config.additionalLaunchOptions
+        )
     }
   }
 
