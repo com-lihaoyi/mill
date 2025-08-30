@@ -229,7 +229,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/androidlib/AndroidSdkModule.html#platformsVersion-0","e":false,"i":"","n":"platformsVersion","t":"platformsVersion: Simple[String]","d":"mill.androidlib.AndroidSdkModule","k":"def","x":""},
 {"l":"mill/androidlib/AndroidSdkModule.html#r8Exe-0","e":false,"i":"","n":"r8Exe","t":"r8Exe: Simple[PathRef]","d":"mill.androidlib.AndroidSdkModule","k":"def","x":""},
 {"l":"mill/androidlib/AndroidSdkModule.html#remoteReposInfo-0","e":false,"i":"","n":"remoteReposInfo","t":"remoteReposInfo: Task[PathRef]","d":"mill.androidlib.AndroidSdkModule","k":"def","x":""},
-{"l":"mill/androidlib/AndroidSdkModule.html#sdkManagerExe-0","e":false,"i":"","n":"sdkManagerExe","t":"sdkManagerExe: Task[PathRef]","d":"mill.androidlib.AndroidSdkModule","k":"def","x":""},
+{"l":"mill/androidlib/AndroidSdkModule.html#sdkManagerExe-0","e":false,"i":"","n":"sdkManagerExe","t":"sdkManagerExe: Simple[PathRef]","d":"mill.androidlib.AndroidSdkModule","k":"def","x":""},
 {"l":"mill/androidlib/AndroidSdkModule.html#zipalignExe-0","e":false,"i":"","n":"zipalignExe","t":"zipalignExe: Simple[PathRef]","d":"mill.androidlib.AndroidSdkModule","k":"def","x":""},
 {"l":"mill/androidlib/AndroidSdkModule$.html#","e":false,"i":"","n":"AndroidSdkModule","t":"AndroidSdkModule","d":"mill.androidlib","k":"object","x":""},
 {"l":"mill/androidlib/AndroidSdkModule$.html#mavenGoogle-0","e":false,"i":"","n":"mavenGoogle","t":"mavenGoogle: MavenRepository","d":"mill.androidlib.AndroidSdkModule","k":"val","x":""},
