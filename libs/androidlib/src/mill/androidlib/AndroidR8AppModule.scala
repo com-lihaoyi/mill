@@ -148,7 +148,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
     val outputPath = destDir
 
-    Task.log.debug("outptuPath: " + outputPath)
+    Task.log.debug("outputPath: " + outputPath)
 
     // Define diagnostic output file paths
     val mappingOut = destDir / "mapping.txt"
@@ -177,6 +177,8 @@ trait AndroidR8AppModule extends AndroidAppModule {
       classpathClassFiles ++ appCompiledFiles ++ androidPackagedDeps()
 
     val allClassFiles = allClassFilesPathRefs.map(_.path.toString)
+    val allClassFilesFile = Task.dest / "all-classes.txt"
+    os.write.over(allClassFilesFile, allClassFiles.mkString("\n"))
 
     val r8ArgsBuilder = Seq.newBuilder[String]
 
@@ -233,7 +235,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
     r8ArgsBuilder ++= androidR8Args()
 
-    r8ArgsBuilder ++= allClassFiles
+    r8ArgsBuilder += "@" + allClassFilesFile.toString
 
     val r8Args = r8ArgsBuilder.result()
 
