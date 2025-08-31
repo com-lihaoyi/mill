@@ -68,6 +68,7 @@ trait JavaModule
     () => genIdeaInternalExt()
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
+
   trait JavaTests extends JavaModule with TestModule {
     // Run some consistence checks
     hierarchyChecks()

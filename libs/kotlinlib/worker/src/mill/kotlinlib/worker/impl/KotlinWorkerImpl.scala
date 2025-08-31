@@ -5,29 +5,37 @@
  */
 package mill.kotlinlib.worker.impl
 
-import mill.api.Result
-import mill.api.TaskCtx
+import mill.api.{Result, Task, TaskCtx}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
-import org.jetbrains.kotlin.cli.js.K2JSCompiler
-import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 
 class KotlinWorkerImpl extends KotlinWorker {
 
-  def compile(target: KotlinWorkerTarget, args: Seq[String])(implicit
+  def compile(
+      target: KotlinWorkerTarget,
+      args: Seq[String],
+      sources: Seq[os.Path]
+  )(implicit
       ctx: TaskCtx
   ): Result[Unit] = {
     ctx.log.debug("Using kotlin compiler arguments: " + args.map(v => s"'${v}'").mkString(" "))
 
-    val compiler = target match {
-      case KotlinWorkerTarget.Jvm => new K2JVMCompiler()
-      case KotlinWorkerTarget.Js => new K2JSCompiler()
+    val (exitCode, exitCodeName) = target match {
+
+      case KotlinWorkerTarget.Jvm =>
+        // Use dedicated class to load classes lazily
+        JvmCompileImpl().compile(args, sources)
+
+      case KotlinWorkerTarget.Js =>
+        // Use dedicated class to load classes lazily
+        JsCompileImpl().compile(args, sources)
+
     }
-    val exitCode = compiler.exec(ctx.log.streams.err, args*)
-    if (exitCode.getCode != 0) {
-      Result.Failure(s"Kotlin compiler failed with exit code ${exitCode.getCode} ($exitCode)")
-    } else {
-      Result.Success(())
+
+    if (exitCode != 0) {
+      Task.fail(s"Kotlin compiler failed with exit code ${exitCode} ($exitCodeName)")
     }
+    ()
+
   }
 
 }

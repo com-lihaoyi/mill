@@ -5,17 +5,14 @@
  */
 package mill.kotlinlib.worker.api
 
-import mill.api.{TaskCtx}
-import mill.api.{Result}
+import mill.api.TaskCtx
+import mill.api.Result
 
 trait KotlinWorker {
 
-  def compile(target: KotlinWorkerTarget, args: Seq[String])(implicit ctx: TaskCtx): Result[Unit]
-  val x = 1
+  def compile(target: KotlinWorkerTarget, args: Seq[String], sources: Seq[os.Path])(implicit ctx: TaskCtx): Result[Unit]
+
 }
 
-sealed trait KotlinWorkerTarget
-object KotlinWorkerTarget {
-  case object Jvm extends KotlinWorkerTarget
-  case object Js extends KotlinWorkerTarget
-}
+
+

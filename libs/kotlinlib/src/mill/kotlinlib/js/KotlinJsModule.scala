@@ -308,10 +308,15 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // * https://kotlinlang.org/docs/compiler-reference.html#kotlin-js-compiler-options
     // * https://github.com/JetBrains/kotlin/blob/v1.9.25/compiler/cli/cli-common/src/org/jetbrains/kotlin/cli/common/arguments/K2JSCompilerArguments.kt
 
-    val inputFiles = irClasspath match {
-      case Some(x) => Seq(s"-Xinclude=${x.path.toIO.getAbsolutePath}")
-      case None => allKotlinSourceFiles.map(_.path.toIO.getAbsolutePath)
-    }
+//    val (inputFiles, includeArgs) = irClasspath match {
+//      case Some(x) =>
+//        (Seq(), Seq(s"-Xinclude=${x.path.toIO.getAbsolutePath}"))
+//      case None =>
+//        (allKotlinSourceFiles.map(_.path.toIO.getAbsolutePath), Seq())
+//    }
+
+    val includeArgs = irClasspath.map(p => s"-Xinclude=${p.path}").toSeq
+    val inputFiles = irClasspath.fold(allKotlinSourceFiles.map(_.path))(_ => Seq())
 
     val librariesCp = librariesClasspath.map(_.path)
       .filter(os.exists)
@@ -399,8 +404,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     val compilerArgs: Seq[String] = Seq(
       innerCompilerArgs.result(),
       extraKotlinArgs,
-      // parameters
-      inputFiles
+      includeArgs
     ).flatten
 
     val compileDestination = os.Path(outputArgs.last)
@@ -411,7 +415,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     } else {
       Task.log.info(s"Linking IR to $compileDestination")
     }
-    val workerResult = worker.compile(KotlinWorkerTarget.Js, compilerArgs)
+    val workerResult = worker.compile(KotlinWorkerTarget.Js, compilerArgs, inputFiles)
 
     val analysisFile = Task.dest / "kotlin.analysis.dummy"
     if (!os.exists(analysisFile)) {

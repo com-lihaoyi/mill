@@ -140,13 +140,21 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       mvn"org.jetbrains.kotlin:kotlin-compiler:${kv}"
     }
 
-    val scriptCompilerDep = if (useEmbeddable) {
-      mvn"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kv}"
-    } else {
-      mvn"org.jetbrains.kotlin:kotlin-scripting-compiler:${kv}"
-    }
+    val scriptCompilerDeps =
+      if (useEmbeddable) Seq(
+        mvn"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kv}"
+      )
+      else Seq(
+        mvn"org.jetbrains.kotlin:kotlin-scripting-compiler:${kv}",
+        mvn"org.jetbrains.kotlin:kotlin-scripting-compiler-impl:${kv}",
+        mvn"org.jetbrains.kotlin:kotlin-scripting-jvm:$kv"
+      )
 
-    Seq(compilerDep) ++ when(!isOldKotlin)(scriptCompilerDep)
+    Seq(
+      compilerDep,
+      mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kv",
+      mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kv"
+    ) ++ when(!isOldKotlin)(scriptCompilerDeps*)
   }
 
   /**
@@ -329,6 +337,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
         ctx.log.info(
           s"Compiling ${kotlinSourceFiles.size} Kotlin sources to ${classes} ..."
         )
+
         val compilerArgs: Seq[String] = Seq(
           // destdir
           Seq("-d", classes.toString()),
@@ -344,14 +353,16 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
             "-Xexplicit-api=strict"
           ),
           allKotlincOptions(),
-          extraKotlinArgs,
-          // parameters
-          (kotlinSourceFiles ++ javaSourceFiles).map(_.toString())
+          extraKotlinArgs
         ).flatten
 
         val workerResult =
           KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
-            _.compile(KotlinWorkerTarget.Jvm, compilerArgs)
+            _.compile(
+              KotlinWorkerTarget.Jvm,
+              compilerArgs,
+              kotlinSourceFiles ++ javaSourceFiles
+            )
           }
 
         val analysisFile = dest / "kotlin.analysis.dummy"
