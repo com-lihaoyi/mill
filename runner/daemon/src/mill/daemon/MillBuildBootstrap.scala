@@ -93,17 +93,16 @@ class MillBuildBootstrap(
 
       val requestedDepth = requestedMetaLevel.filter(_ >= 0).getOrElse(0)
 
+      val currentRootContainsBuildFile = rootBuildFileNames.asScala.exists(rootBuildFileName =>
+        os.exists(currentRoot / rootBuildFileName)
+      )
       val (nestedState, headerDataOpt) =
         if (depth == 0) {
           // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
           // Unfortunately, some tasks also make sense without a `build.mill`, e.g. the `init` command.
           // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
           lazy val state = evaluateRec(depth + 1)
-          if (
-            rootBuildFileNames.asScala.exists(rootBuildFileName =>
-              os.exists(currentRoot / rootBuildFileName)
-            )
-          ) (state, None)
+          if (currentRootContainsBuildFile) (state, None)
           else {
             val msg =
               s"No build file (${rootBuildFileNames.asScala.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
@@ -129,7 +128,7 @@ class MillBuildBootstrap(
             )
 
           val state =
-            if (os.exists(currentRoot)) evaluateRec(depth + 1)
+            if (currentRootContainsBuildFile) evaluateRec(depth + 1)
             else {
               val bootstrapModule =
                 new MillBuildRootModule.BootstrapModule()(
