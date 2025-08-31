@@ -96,6 +96,7 @@ class MillBuildBootstrap(
       val currentRootContainsBuildFile = rootBuildFileNames.asScala.exists(rootBuildFileName =>
         os.exists(currentRoot / rootBuildFileName)
       )
+
       val (nestedState, headerDataOpt) =
         if (depth == 0) {
           // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
