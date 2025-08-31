@@ -43,6 +43,9 @@ class JvmCompileImpl() {
       case CompilationResult.COMPILER_INTERNAL_ERROR => ExitCode.INTERNAL_ERROR
     }
 
+    // Do we really need to call this (after each compilation)?
+    service.finishProjectCompilation(projectId)
+
     //        val compiler = new K2JVMCompiler()
     //        compiler.exec(ctx.log.streams.err, args*)
 
