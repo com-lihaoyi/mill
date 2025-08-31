@@ -7,7 +7,6 @@ import org.jetbrains.kotlin.cli.common.ExitCode
 import java.util.UUID
 import scala.util.chaining.scalaUtilChainingOps
 
-
 class JvmCompileImpl() {
 
   def compile(
@@ -46,7 +45,6 @@ class JvmCompileImpl() {
 
     //        val compiler = new K2JVMCompiler()
     //        compiler.exec(ctx.log.streams.err, args*)
-
 
     (exitCode.getCode(), exitCode.name())
   }

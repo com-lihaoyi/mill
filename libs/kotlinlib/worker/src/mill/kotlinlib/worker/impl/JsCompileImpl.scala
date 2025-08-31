@@ -3,7 +3,6 @@ package mill.kotlinlib.worker.impl
 import mill.api.TaskCtx
 import org.jetbrains.kotlin.cli.js.K2JSCompiler
 
-
 class JsCompileImpl() {
 
   def compile(

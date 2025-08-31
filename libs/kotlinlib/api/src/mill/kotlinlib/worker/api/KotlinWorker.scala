@@ -10,9 +10,8 @@ import mill.api.Result
 
 trait KotlinWorker {
 
-  def compile(target: KotlinWorkerTarget, args: Seq[String], sources: Seq[os.Path])(implicit ctx: TaskCtx): Result[Unit]
+  def compile(target: KotlinWorkerTarget, args: Seq[String], sources: Seq[os.Path])(implicit
+      ctx: TaskCtx
+  ): Result[Unit]
 
 }
-
-
-

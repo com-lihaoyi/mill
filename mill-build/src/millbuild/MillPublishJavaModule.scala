@@ -3,12 +3,7 @@ package millbuild
 import build_.package_ as build
 import mill.Task
 import mill.scalalib.PublishModule
-import mill.scalalib.publish.{
-  Developer,
-  License,
-  PomSettings,
-  VersionControl
-}
+import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 
 trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 

@@ -6,5 +6,4 @@ public class KotlinInterop {
   public static <T> List<T> toKotlinList(T[] args) {
     return kotlin.collections.CollectionsKt.listOf(args);
   }
-
 }

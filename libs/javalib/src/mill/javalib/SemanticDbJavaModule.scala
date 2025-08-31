@@ -16,7 +16,7 @@ import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 @experimental
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     with WithJvmWorkerModule {
-  
+
   def jvmWorker: ModuleRef[JvmWorkerModule]
 
   def upstreamSemanticDbDatas: Task[Seq[SemanticDbJavaModule.SemanticDbData]] =
