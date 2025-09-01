@@ -10,6 +10,9 @@ _{author}, {revdate}_
 Until recently, Gradle was the only realistic option for Android builds. Today, Mill - a fast, predictable build tool for Java, Scala, and Kotlin - can build Android applications end-to-end.
 
 In less than a year, Mill went from minimal Android support to producing installable APKs for projects as complex as xref:mill::android/hilt-sample.adoc[the Android Architecture Samples] and https://github.com/vaslabs/Pokedex_Compose_Multi_Module/tree/testing-mill[multi-module apps] with xref:mill::android/java.adoc#_using_third_party_native_libraries[native code] and xref:mill::android/compose-samples.adoc[Jetpack Compose].
+// end::header[]
+Multi-module Pokedex sample app (https://github.com/NicosNicolaou16/Pokedex_Compose_Multi_Module[original], https://github.com/vaslabs/Pokedex_Compose_Multi_Module/tree/testing-mill[with mill])
+image:AndroidPokedexMultimoduleExample.png[A multi-module Android app built with Mill, showing a list of Pokémon and details for each pokemon.]
 
 This was possible because Mill’s design, incremental, transparent, and extensible maps surprisingly well onto Android’s intricate build process.
 
@@ -146,6 +149,8 @@ The diagram above still doesn’t tell the whole story! It shows a typical build
 
 We cover a lot of these architecture styles in various Android examples, based on xref:mill::android/java.adoc[Java], xref:mill::android/kotlin.adoc[Kotlin] and third party integration examples covering xref:mill::android/compose-samples.adoc[Android Compose], xref:mill::android/android-native-example.adoc[Android Native] and xref:mill::android/hilt-sample.adoc[Dependency Injection with Hilt].
 
+Endless tunnel sample app
+image:AndroidEndlessTunnelExample.png[An Android app built with Mill using native code, showing a 3D tunnel effect.]
 
 == Try it out
 
@@ -153,27 +158,50 @@ Mill’s Android support is still young, but it already covers the full build pi
 
 If you’re curious, the best way to appreciate this is to try it yourself:
 
-Clone one of the example Android projects (Compose, Native code, Hilt DI, etc).
+Get the `architecture-samples` containing the Todo App.
 
-Package the app with
-[,console]
+[source,bash]
 ----
-$ ./mill app.androidApk
-----
-
-
-Create and run an emulator with
-[,console]
-----
-$ mill app.createAndroidVirtualDevice
-$ mill app.startAndroidEmulator
+git clone git@github.com:android/architecture-samples.git
+cd architecture-samples
 ----
 
-Then install it with
-[,console]
+Install mill
+
+[source,bash]
 ----
-$ mill app.androidInstall
+curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4/mill-dist-1.0.4-mill.sh -o mill
+chmod +x mill
+echo "//| mill-version: 1.0.4-22-bcbf85" > build.mill
+./mill version
 ----
+
+Configure the mill build
+
+[source,bash]
+----
+curl https://raw.githubusercontent.com/com-lihaoyi/mill/186ede23a7e8f2b8f4da80877ed5f316cece9477/example/thirdparty/androidtodo/build.mill >> build.mill
+----
+
+Start the emulator and run the app
+
+[source,bash]
+----
+./mill show app.createAndroidVirtualDevice
+./mill show app.startAndroidEmulator
+./mill show app.androidInstall
+./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
+----
+
+Run the instrumented tests and watch the app being tested inside the emulator:
+
+[source,bash]
+----
+./mill app.androidTest
+----
+
+The Android Todo App built with Mill
+image:AndroidTodoExample.png[The Todo app built with Mill, showing a list of tasks and a button to add new tasks.]
 
 You may also inspect xref:mill::android/android-initial-setup.adoc[the getting started docs] to find out more.
 
