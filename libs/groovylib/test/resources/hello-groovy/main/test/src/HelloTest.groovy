@@ -9,9 +9,4 @@ class HelloTest {
     void testSuccess() {
         assertEquals("Hello, world!", Hello.getHelloString())
     }
-
-    @Test
-    void testFailure() {
-        assertEquals("world!", Hello.getHelloString())
-    }
 }

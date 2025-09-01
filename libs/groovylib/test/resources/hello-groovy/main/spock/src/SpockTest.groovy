@@ -10,11 +10,6 @@ class SpockTest extends Specification {
         getHelloString() == "Hello, world!"
     }
 
-    def "test fails"() {
-        expect:
-        getHelloString() == "Wrong"
-    }
-
     def "sayHello to '#name' equals '#expected'"() {
         expect:
         sayHello(name) == expected

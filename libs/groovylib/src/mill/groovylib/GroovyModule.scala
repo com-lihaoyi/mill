@@ -17,7 +17,7 @@ import mill.javalib.api.internal.{JavaCompilerOptions, JvmWorkerApi, ZincCompile
 trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
   /**
-   * The Groovy version to be used (for API and Language level settings).
+   * The Groovy version to be used.
    */
   def groovyVersion: T[String]
 
@@ -55,7 +55,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
   /**
    * The dependencies of this module.
-   * Defaults to add the groovy-stdlib dependency matching the [[groovyVersion]].
+   * Defaults to add the groovy dependency matching the [[groovyVersion]].
    */
   override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
     super.mandatoryMvnDeps() ++ Seq(
@@ -168,7 +168,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
             _.compile(groovySourceFiles, compileCp, classes)
           }
 
-        val analysisFile = dest / "groovy.analysis.dummy" // FIXME
+        val analysisFile = dest / "groovy.analysis.dummy" // needed for mills CompilationResult
         os.write(target = analysisFile, data = "", createFolders = true)
 
         workerResult match {
@@ -196,7 +196,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
   /**
    * Aggregation of all the options passed to the Groovy compiler.
-   * In most cases, instead of overriding this Target you want to override `groovycOptions` instead.
+   * In most cases, instead of overriding this target you want to override `groovycOptions` instead.
    */
   def allGroovycOptions: T[Seq[String]] = Task {
     groovycOptions()
