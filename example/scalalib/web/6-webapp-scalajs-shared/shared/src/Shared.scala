@@ -5,7 +5,7 @@ import scalatags.Text.tags2
 case class Todo(checked: Boolean, text: String)
 
 object Todo {
-  implicit def todoRW: upickle.default.ReadWriter[Todo] = upickle.default.macroRW[Todo]
+  implicit def todoRW: upickle.ReadWriter[Todo] = upickle.macroRW[Todo]
 }
 
 object Shared {

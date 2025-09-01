@@ -19,7 +19,7 @@ object `package` extends ScalaModule {
 
     os.write(
       Task.dest / "hashed-resource-mapping.json",
-      upickle.default.write(hashMapping.toMap, indent = 4)
+      upickle.write(hashMapping.toMap, indent = 4)
     )
 
     Seq(PathRef(Task.dest))

@@ -1,7 +1,7 @@
 package mill.scalajslib.api
 
 import mill.api.internal.Mirrors
-import upickle.default.{ReadWriter => RW, macroRW}
+import upickle.{ReadWriter => RW, macroRW}
 import mill.api.internal.Mirrors.autoMirror
 
 class OutputPatterns private (

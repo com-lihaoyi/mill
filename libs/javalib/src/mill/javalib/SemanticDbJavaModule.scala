@@ -216,7 +216,7 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
   case class SemanticDbData(
       compilationResult: CompilationResult,
       semanticDbFiles: PathRef
-  ) derives upickle.default.ReadWriter
+  ) derives upickle.ReadWriter
 
   private[mill] def workerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(

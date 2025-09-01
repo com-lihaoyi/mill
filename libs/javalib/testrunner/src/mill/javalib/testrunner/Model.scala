@@ -22,12 +22,12 @@ import mill.api.daemon.internal.{TestReporter, internal}
 )
 
 @internal object TestArgs {
-  implicit lazy val logLevelRW: upickle.default.ReadWriter[TestReporter.LogLevel] =
-    implicitly[upickle.default.ReadWriter[String]].bimap(
+  implicit lazy val logLevelRW: upickle.ReadWriter[TestReporter.LogLevel] =
+    implicitly[upickle.ReadWriter[String]].bimap(
       _.asString,
       TestReporter.LogLevel.fromString(_)
     )
-  implicit def resultRW: upickle.default.ReadWriter[TestArgs] = upickle.default.macroRW
+  implicit def resultRW: upickle.ReadWriter[TestArgs] = upickle.macroRW
 }
 
 @internal case class TestResult(
@@ -41,5 +41,5 @@ import mill.api.daemon.internal.{TestReporter, internal}
 )
 
 @internal object TestResult {
-  implicit def resultRW: upickle.default.ReadWriter[TestResult] = upickle.default.macroRW
+  implicit def resultRW: upickle.ReadWriter[TestResult] = upickle.macroRW
 }

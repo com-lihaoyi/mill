@@ -13,6 +13,6 @@ final case class DependencyUpdates(
 object DependencyUpdates {
   import mill.javalib.JsonFormatters.depFormat
 
-  implicit val rw: upickle.default.ReadWriter[DependencyUpdates] =
-    upickle.default.macroRW
+  implicit val rw: upickle.ReadWriter[DependencyUpdates] =
+    upickle.macroRW
 }

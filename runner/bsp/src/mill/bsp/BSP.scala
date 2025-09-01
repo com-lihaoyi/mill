@@ -37,7 +37,7 @@ private[mill] object BSP {
     val millPath = sys.env.get("MILL_EXECUTABLE_PATH")
       .getOrElse(throw new IllegalStateException("Env 'MILL_EXECUTABLE_PATH' not set"))
 
-    upickle.default.write(
+    upickle.write(
       BspConfigJson(
         name = "mill-bsp",
         argv = Seq(

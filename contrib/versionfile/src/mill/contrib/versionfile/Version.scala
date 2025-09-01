@@ -64,7 +64,7 @@ object Version {
   val ReleaseVersion: Regex = raw"""(\d+)\.(\d+)\.(\d+)""".r
   val MinorSnapshotVersion: Regex = raw"""(\d+)\.(\d+)\.(\d+)-SNAPSHOT""".r
 
-  import upickle.default._
+  import upickle._
 
   implicit val readWriter: ReadWriter[Version] =
     readwriter[String].bimap(_.toString, Version.of)

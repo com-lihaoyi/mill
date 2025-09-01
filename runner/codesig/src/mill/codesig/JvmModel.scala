@@ -1,6 +1,6 @@
 package mill.codesig
 
-import upickle.default.{ReadWriter, readwriter, stringKeyRW}
+import upickle.{ReadWriter, readwriter, stringKeyRW}
 
 import scala.annotation.switch
 import scala.collection.immutable.ArraySeq

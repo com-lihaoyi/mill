@@ -32,7 +32,7 @@ object `package` extends AppScalaModule {
     trait SharedModule extends AppScalaModule, PlatformScalaModule {
       def mvnDeps = Seq(
         mvn"com.lihaoyi::scalatags::0.13.1",
-        mvn"com.lihaoyi::upickle::4.1.0"
+        mvn"com.lihaoyi::upickle::4.3.0"
       )
     }
 
