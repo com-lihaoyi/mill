@@ -24,7 +24,7 @@ class MillURLClassLoader(
       try {
         sharedLoader.loadClass(name)
       } catch {
-        case e: ClassNotFoundException =>
+        case _: ClassNotFoundException =>
           // this fixes the case, when different projects share the same class namespace
           // like `scala.meta` which is not part of scala-library.
           // See issue https://github.com/com-lihaoyi/mill/issues/5759 (Scalameta in task does not work)
