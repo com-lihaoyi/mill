@@ -110,16 +110,29 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
           }
         )
       case config: api.JsEnvConfig.Playwright =>
-        workerApi.JsEnvConfig.Playwright(
-          browserName = config.browserName,
-          headless = config.headless,
-          showLogs = config.showLogs,
-          debug = config.debug,
-          // pwConfig = config.pwConfig,
-          runConfigEnv = config.runConfigEnv,
-          launchOptions = config.launchOptions,
-          additionalLaunchOptions = config.additionalLaunchOptions
-        )
+        val options = config.capabilities match
+          case options: api.JsEnvConfig.Playwright.ChromeOptions =>
+            workerApi.JsEnvConfig.Playwright.ChromeOptions(
+              headless = options.headless,
+              showLogs = options.showLogs,
+              debug = options.debug,
+              launchOptions = options.launchOptions
+            )
+          case options: api.JsEnvConfig.Playwright.FirefoxOptions =>
+            workerApi.JsEnvConfig.Playwright.FirefoxOptions(
+              headless = options.headless,
+              showLogs = options.showLogs,
+              debug = options.debug,
+              firefoxUserPrefs = options.firefoxUserPrefs
+            )
+          case options: api.JsEnvConfig.Playwright.WebkitOptions =>
+            workerApi.JsEnvConfig.Playwright.WebkitOptions(
+              headless = options.headless,
+              showLogs = options.showLogs,
+              debug = options.debug,
+              launchOptions = options.launchOptions
+            )
+        workerApi.JsEnvConfig.Playwright(options)
     }
   }
 
