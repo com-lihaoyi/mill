@@ -68,4 +68,12 @@ object `package` extends MillStableScalaModule with BuildInfo {
       )
   }
 
+  object ksp extends MillKotlinModule {
+    override def compileMvnDeps: T[Seq[Dep]] = super.compileMvnDeps() ++ Seq(
+      mvn"com.google.devtools.ksp:symbol-processing-common-deps:${Deps.kotlinVersion}-${Deps.kspVersion}",
+      mvn"com.google.devtools.ksp:symbol-processing-api:${Deps.kotlinVersion}-${Deps.kspVersion}",
+      mvn"com.google.devtools.ksp:symbol-processing-aa:${Deps.kotlinVersion}-${Deps.kspVersion}"
+    )
+  }
+
 }
