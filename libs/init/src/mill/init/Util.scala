@@ -3,7 +3,7 @@ import mill.constants.CodeGenConstants.{nestedBuildFileNames, rootBuildFileNames
 import mill.constants.OutFiles.{bspOut, millBuild, out}
 object Util {
 
-  def scalafmtConfigContent: String =
+  def scalafmtConfig: String =
     """version = "3.8.5"
       |runner.dialect = scala213
       |newlines.source=fold

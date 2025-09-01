@@ -21,7 +21,7 @@ trait BuildGenModule extends CoursierModule with DefaultTaskModule {
 
   def buildGenScalafmtConfig: T[PathRef] = Task {
     val out = Task.dest / ".scalafmt.conf"
-    os.write(out, mill.init.Util.scalafmtConfigContent)
+    os.write(out, mill.init.Util.scalafmtConfig)
     PathRef(out)
   }
 
