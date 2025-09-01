@@ -175,7 +175,7 @@ object Deps {
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.3-M5"
   val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
   val upickle = mvn"com.lihaoyi::upickle:4.3.0"
-  val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.2.1"
+  val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.3.0"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
   val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"

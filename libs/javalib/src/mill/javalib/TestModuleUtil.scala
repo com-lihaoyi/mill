@@ -207,18 +207,42 @@ final class TestModuleUtil(
 
     val groupFolderData: Seq[(Path, Path, Int)] = prepareTestGroups(filteredClassLists)
 
-    val outputs = {
-      // We got "--jobs" threads, and "groupLength" test groups, so we will spawn at most jobs * groupLength runners here
-      // In most case, this is more than necessary, and runner creation is expensive,
-      // but we have a check for non-empty test-classes folder before really spawning a new runner, so in practice the overhead is low
-      val subprocessFutures = for {
-        ((groupFolder, testClassQueueFolder, numTests), groupIndex) <-
-          groupFolderData.zipWithIndex.toVector
-        (jobs, maxProcessLength) = jobsProcessLength(numTests)
-        paddedGroupIndex = Util.leftPad(
-          groupIndex.toString,
-          groupFolderData.length.toString.length,
-          '0'
+    def runTestRunnerSubprocess(
+        base: os.Path,
+        testClassQueueFolder: os.Path,
+        force: Boolean,
+        logger: Logger,
+        workerStatusMap: java.util.concurrent.ConcurrentMap[os.Path, String => Unit],
+        workerResultSet: java.util.concurrent.ConcurrentMap[os.Path, Unit]
+    ) = {
+      val claimFolder = base / "claim"
+      os.makeDir.all(claimFolder)
+
+      // Make sure we can claim at least one test class to start before we spawn the
+      // subprocess, because creating JVM subprocesses are expensive and we don't want
+      // to spawn one if there is nothing for it to do
+      val startingTestClass = os
+        .list
+        .stream(testClassQueueFolder)
+        .map(TestRunnerUtils.claimFile(_, claimFolder))
+        .collectFirst { case Some(name) => name }
+
+      if (force || startingTestClass.nonEmpty) {
+        startingTestClass.foreach(logger.ticker(_))
+        // claim.log file will be appended by the runner with the stolen test class's name
+        // it can be used to check the order of test classes of the runner
+        val claimLog = claimFolder / "../claim.log"
+        os.write.over(claimLog, Array.empty[Byte])
+        workerStatusMap.put(claimLog, logger.ticker)
+        // test runner will log success/failure test class counter here while running
+        val resultPath = base / "result.log"
+        os.write.over(resultPath, upickle.write((0L, 0L)))
+        workerResultSet.put(resultPath, ())
+
+        val result = callTestRunnerSubprocess(
+          base,
+          resultPath,
+          Right((startingTestClass, testClassQueueFolder, claimFolder))
         )
         processIndex <- 0 until Math.max(Math.min(jobs, numTests), 1)
       } yield runTestFuture(
