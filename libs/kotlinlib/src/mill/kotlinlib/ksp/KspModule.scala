@@ -284,7 +284,23 @@ trait KspModule extends KotlinModule { outer =>
     )
   }
 
+  def ksp2InProcessToolsDeps: T[Seq[Dep]] = Task {
+    Seq(
+      mvn"com.google.devtools.ksp:symbol-processing-aa:${kotlinVersion()}-${kspVersion()}",
+      mvn"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${kspVersion()}",
+      mvn"com.google.devtools.ksp:symbol-processing-common-deps:${kotlinVersion()}-${kspVersion()}",
+      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2"
+    )
+  }
+
   def ksp2ToolsDepsClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      ksp2ToolsDeps(),
+      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
+    )
+  }
+
+  def ksp2InProcessToolsDepsClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       ksp2ToolsDeps(),
       resolutionParamsMapOpt = Some(addJvmVariantAttributes)
@@ -420,11 +436,6 @@ trait KspModule extends KotlinModule { outer =>
       s"-map-annotation-arguments-in-java=false"
     ) ++ ksp2Args() :+ processorClasspath
 
-    val kspJvmMainClasspath = ksp2ToolsDepsClasspath().map(_.path)
-    val mainClass = "com.google.devtools.ksp.cmdline.KSPJvmMain"
-    Task.log.debug(
-      s"Running Kotlin Symbol Processing with java -cp ${kspJvmMainClasspath.mkString(File.pathSeparator)} ${mainClass} ${args.mkString(" ")}"
-    )
 
     val kspLogLevel = if (Task.log.debugEnabled)
       "Debug"
@@ -461,6 +472,7 @@ object KspWorkerModule extends KspWorkerModule {
 
   def runKsp(logLevel: String, workerClasspath: Seq[PathRef], kspArgs: Seq[String]): Unit = {
 
+    println("worker classpath is: " + workerClasspath.map(_.path).mkString(":"))
     val kspClassLoader = Jvm.createClassLoader(
       workerClasspath.map(_.path),
       getClass.getClassLoader

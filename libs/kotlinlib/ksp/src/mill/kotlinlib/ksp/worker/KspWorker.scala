@@ -38,12 +38,20 @@ object KspWorker {
       new File(pathStr).toURI.toURL
     }.toArray)
 
-    val processorProviders: List[SymbolProcessorProvider] = ServiceLoader.load(
+
+    val processorProvidersSearch = ServiceLoader.load(
       processorClassloader.loadClass("com.google.devtools.ksp.processing.SymbolProcessorProvider"),
       processorClassloader
-    ).asScala.toList.collect {
-      case provider: SymbolProcessorProvider => provider
-    }
+    ).asScala.toList
+
+    println("Processor providers found before casting: " + processorProvidersSearch.map(_.getClass.getName).mkString(", "))
+
+    val processorProviders: List[SymbolProcessorProvider] =
+      processorProvidersSearch.asInstanceOf[List[SymbolProcessorProvider]]
+
+    println("Processor providers picked: " + processorProviders.map(_.getClass.getName).mkString(", "))
+    println("Classpath: " + classpath.mkString(":"))
+
     val logger = new KspGradleLogger(gradleLogLevel)
 
     val exitCode = new KotlinSymbolProcessing(config, processorProviders.asJava, logger).execute()
