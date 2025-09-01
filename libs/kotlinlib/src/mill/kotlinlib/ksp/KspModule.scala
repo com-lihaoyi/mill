@@ -436,7 +436,6 @@ trait KspModule extends KotlinModule { outer =>
       s"-map-annotation-arguments-in-java=false"
     ) ++ ksp2Args() :+ processorClasspath
 
-
     val kspLogLevel = if (Task.log.debugEnabled)
       "Debug"
     else
