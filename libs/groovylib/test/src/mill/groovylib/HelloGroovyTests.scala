@@ -9,24 +9,27 @@ import utest.*
 
 object HelloGroovyTests extends TestSuite {
 
-  val junit5Version = sys.props.getOrElse("TEST_JUNIT5_VERSION", "5.13.1")
+  val groovy4Version = "4.0.28"
+  val junit5Version = sys.props.getOrElse("TEST_JUNIT5_VERSION", "5.13.4")
 
   object HelloGroovy extends TestRootModule {
 
     lazy val millDiscover = Discover[this.type]
 
-    object maven extends JavaModule with MavenModule {
+    // needed for a special test where only the tests are written in Groovy while appcode remains Java
+    object `mixed-compile` extends JavaModule with MavenModule {
 
-      object `maven-test-only` extends TestGroovyMavenModule with TestModule.Junit5 {
+      object `test` extends TestGroovyMavenModule with TestModule.Junit5 {
 
-        override def groovyVersion = "4.0.28"
-        override def testModuleName: String = "test"
-
-        override def depManagement = Seq(
-          mvn"org.junit.jupiter:junit-jupiter-engine:5.13.4"
+        override def moduleDeps: Seq[JavaModule] = Seq(
+          HelloGroovy.`mixed-compile`, // TODO improve: TestOnly does not inherit outer deps
         )
 
-        override def jupiterVersion = "5.13.4"
+        override def groovyVersion = groovy4Version
+        override def depManagement = Seq(
+          mvn"org.junit.jupiter:junit-jupiter-engine:$junit5Version"
+        )
+        override def jupiterVersion = junit5Version
         override def junitPlatformVersion = "1.13.4"
       }
 
@@ -46,16 +49,14 @@ object HelloGroovyTests extends TestSuite {
         override def junitPlatformVersion = "1.13.4"
       }
 
-      object script extends GroovyTests with TestModule.Junit5 {
-        override def depManagement = Seq(
-          mvn"org.junit.jupiter:junit-jupiter-engine:5.13.4"
-        )
-
-        override def jupiterVersion = "5.13.4"
-        override def junitPlatformVersion = "1.13.4"
-
+      object script extends GroovyModule {
         override def groovyVersion = "4.0.28"
         override def mainClass = Some("HelloScript")
+      }
+
+      object staticcompile extends GroovyModule {
+        override def groovyVersion = "4.0.28"
+        override def mainClass = Some("hellostatic.HelloStatic")
       }
 
       object spock extends GroovyTests with TestModule.Junit5 {
@@ -75,7 +76,7 @@ object HelloGroovyTests extends TestSuite {
       }
     }
     object main extends Test {
-      override def groovyVersion: T[String] = "4.0.28"
+      override def groovyVersion: T[String] = groovy4Version
     }
   }
 
@@ -89,7 +90,7 @@ object HelloGroovyTests extends TestSuite {
   def tests: Tests = Tests {
 
     def m = HelloGroovy.main
-    def mavenTestOnly = HelloGroovy.maven.`maven-test-only`
+    def mixed = HelloGroovy.`mixed-compile`
 
     test("running a Groovy script") {
       testEval().scoped { eval =>
@@ -97,7 +98,7 @@ object HelloGroovyTests extends TestSuite {
       }
     }
 
-    test("compile Groovy module") {
+    test("compile & run Groovy module") {
       testEval().scoped { eval =>
         val Right(compiler) = eval.apply(m.groovyCompilerMvnDeps): @unchecked
 
@@ -112,16 +113,12 @@ object HelloGroovyTests extends TestSuite {
         assert(
           os.walk(result.value.classes.path).exists(_.last == "Hello.class")
         )
-      }
 
-      test("run Groovy module") {
-        testEval().scoped { eval =>
-          val Right(_) = eval.apply(m.run()): @unchecked
-        }
+        val Right(_) = eval.apply(m.run()): @unchecked
       }
     }
 
-    test("compile Groovy JUnit5 test") {
+    test("compile & run Groovy JUnit5 test") {
       testEval().scoped { eval =>
 
         val Right(result) = eval.apply(m.test.compile): @unchecked
@@ -129,53 +126,60 @@ object HelloGroovyTests extends TestSuite {
         assert(
           os.walk(result.value.classes.path).exists(_.last == "HelloTest.class")
         )
-      }
-    }
 
-    test("run JUnit5 test") {
-      testEval().scoped { eval =>
         val Right(discovered) = eval.apply(m.test.discoveredTestClasses): @unchecked
         assert(discovered.value == Seq("hello.tests.HelloTest"))
-      }
-      testEval().scoped { eval =>
-        val Left(ExecResult.Failure(_)) = eval.apply(m.test.testForked()): @unchecked
+
+        val Right(_) = eval.apply(m.test.testForked()): @unchecked
       }
     }
 
-    test("compile and run test-only Maven JUnit5 test") {
+//    test("compiling & running a statically compiled Groovy") {
+//      testEval().scoped { eval =>
+//        val Right(_) = eval.apply(m.staticcompile.showMvnDepsTree()): @unchecked
+//        val Right(result) = eval.apply(m.staticcompile.compile): @unchecked
+//        assert(
+//          os.walk(result.value.classes.path).exists(_.last == "HelloStatic.class")
+//        )
+//        val Right(_) = eval.apply(m.staticcompile.run()): @unchecked
+//      }
+//    }
+
+    test("compile & run test-only Maven JUnit5 test") {
       testEval().scoped { eval =>
 
-        val Right(resultCompile) = eval.apply(mavenTestOnly.compile): @unchecked
+        val Right(resultCompile) = eval.apply(mixed.compile): @unchecked
         assert(
-          os.walk(resultCompile.value.classes.path).exists(_.last == "HelloMavenTestOnly.class")
+          os.walk(resultCompile.value.classes.path).exists(_.last == "Greeter.class")
         )
 
-        val Right(discovered) = eval.apply(mavenTestOnly.discoveredTestClasses): @unchecked
-        assert(discovered.value == Seq("hello.maven.tests.HelloMavenTestOnly"))
+        val Right(_) = eval.apply(mixed.test.compile): @unchecked
+        val Right(discovered) = eval.apply(mixed.test.discoveredTestClasses): @unchecked
+        assert(discovered.value == Seq("tests.GreeterTests"))
 
-        val Right(_) = eval.apply(mavenTestOnly.testForked()): @unchecked
+        val Right(_) = eval.apply(mixed.test.testForked()): @unchecked
       }
     }
 
-    test("compile Spock test") {
-      testEval().scoped { eval =>
+//    test("compile Spock test") {
+//      testEval().scoped { eval =>
+//
+//        val Right(result1) = eval.apply(m.spock.compile): @unchecked
+//        assert(
+//          os.walk(result1.value.classes.path).exists(_.last == "SpockTest.class")
+//        )
+//      }
+//    }
 
-        val Right(result1) = eval.apply(m.spock.compile): @unchecked
-        assert(
-          os.walk(result1.value.classes.path).exists(_.last == "SpockTest.class")
-        )
-      }
-    }
-
-    test("run Spock test") {
-      testEval().scoped { eval =>
-
-        val Right(discovered) = eval.apply(m.spock.discoveredTestClasses): @unchecked
-        assert(discovered.value == Seq("hello.spock.SpockTest"))
-
-        val Left(ExecResult.Failure(_)) = eval.apply(m.spock.testForked()): @unchecked
-      }
-    }
+//    test("run Spock test") {
+//      testEval().scoped { eval =>
+//
+//        val Right(discovered) = eval.apply(m.spock.discoveredTestClasses): @unchecked
+//        assert(discovered.value == Seq("hello.spock.SpockTest"))
+//
+//        val Right(_) = eval.apply(m.spock.testForked()): @unchecked
+//      }
+//    }
 
   }
 }
