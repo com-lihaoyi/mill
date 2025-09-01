@@ -14,7 +14,20 @@ In less than a year, Mill went from minimal Android support to producing install
 Multi-module Pokedex sample app (https://github.com/NicosNicolaou16/Pokedex_Compose_Multi_Module[original], https://github.com/vaslabs/Pokedex_Compose_Multi_Module/tree/testing-mill[with mill])
 image:AndroidPokedexMultimoduleExample.png[A multi-module Android app built with Mill, showing a list of Pokémon and details for each pokemon.]
 
-This was possible because Mill’s design, incremental, transparent, and extensible maps surprisingly well onto Android’s intricate build process.
+Unlike Gradle, where build steps are buried inside plugins and DSL magic, Mill exposes each Android step as a task you can run, override, or extend.
+Want to see the merged manifest? Run
+[,console]
+----
+./mill app.androidMergedManifest
+----
+
+Curious what rules are passed to R8? Run
+[,console]
+----
+./mill app.androidProguard
+----
+
+Because Mill’s Android support is built out of simple, object-oriented modules (AndroidModule, AndroidAppModule, etc.), the entire pipeline is transparent and hackable. If something doesn’t work, you don’t need to wait for a plugin update — you can open the task in your IDE, see the source, and tweak it yourself. This is the same design that let us implement end-to-end Android support in under a year, and it’s what makes Mill attractive if you value control and debuggability in your build.
 
 This post is a walk through of the basic Android build flow in Mill: what it does, why it’s complex, and why Mill makes it easier to reason about.
 
@@ -154,7 +167,9 @@ image:AndroidEndlessTunnelExample.png[An Android app built with Mill using nativ
 
 == Try it out
 
-Mill’s Android support is still young, but it already covers the full build pipeline: resource compilation, manifest merging, packaging, signing, running, and even testing on emulators. This is possible thanks to Mill’s core design, fast, incremental, transparent, and extensible, which maps Android’s intricate flow into understandable, inspectable build targets.
+Mill’s Android support is still young, but it already covers the full build pipeline: resource compilation, manifest merging, packaging, signing, running, and even testing on emulators.
+
+What makes this different from other build tools is control: every build step is a visible Mill task, easy to run on its own, inspect, or override. That means you can debug problems faster, adapt the pipeline to your project’s needs, and extend it without fighting opaque built-in or plugin logic.
 
 If you’re curious, the best way to appreciate this is to try it yourself:
 
