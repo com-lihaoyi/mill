@@ -3,7 +3,7 @@ package mill.kotlinlib.ksp
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.*
-import mill.api.{PathRef, Task}
+import mill.api.{Discover, ExternalModule, ModuleRef, PathRef, Task}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
 import mill.util.Jvm
@@ -25,7 +25,7 @@ import java.io.File
 @mill.api.experimental
 trait KspModule extends KotlinModule { outer =>
 
-  def kspModuleMode: KspModuleMode = KspModuleMode.Ksp2Cli
+  def kspModuleMode: KspModuleMode = KspModuleMode.Ksp2
 
   /**
    * The version of the symbol processing library to use, which needs to be compatible with
@@ -110,6 +110,7 @@ trait KspModule extends KotlinModule { outer =>
 
   override def kotlinUseEmbeddableCompiler: Task[Boolean] = kspModuleMode match {
     case KspModuleMode.Ksp1 => Task { true }
+    case KspModuleMode.Ksp2 => Task { super.kotlinUseEmbeddableCompiler() }
     case KspModuleMode.Ksp2Cli => Task { super.kotlinUseEmbeddableCompiler() }
   }
 
@@ -118,6 +119,7 @@ trait KspModule extends KotlinModule { outer =>
    */
   def generatedSourcesWithKsp: T[GeneratedKspSources] = kspModuleMode match {
     case KspModuleMode.Ksp1 => generatedSourcesWithKsp1()
+    case KspModuleMode.Ksp2 => generatedSourcesWithKsp2()
     case KspModuleMode.Ksp2Cli => generatedSourcesWithKsp2Cli()
   }
 
@@ -289,6 +291,14 @@ trait KspModule extends KotlinModule { outer =>
     )
   }
 
+  def ksp2InProgramToolsClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      Seq(
+        Dep.millProjectModule("mill-libs-kotlinlib-ksp")
+      ) ++ ksp2ToolsDeps()
+    )
+  }
+
   /**
    * The Kotlin compile task with KSP.
    * This task should run as part of the [[generatedSources]] task to
@@ -360,6 +370,77 @@ trait KspModule extends KotlinModule { outer =>
 
   }
 
+  def kspWorkerModule: ModuleRef[KspWorkerModule] = ModuleRef(KspWorkerModule)
+
+  /**
+   * The Kotlin compile task with KSP.
+   * This task should run as part of the [[generatedSources]] task to
+   * so that the generated  sources are in the [[compileClasspath]]
+   * for the main compile task. It uses an in-process worker to run KSP
+   * provided from [[kspWorkerModule]]
+   */
+  private def generatedSourcesWithKsp2: T[GeneratedKspSources] = Task {
+
+    val processorResolvedClasspath = kotlinSymbolProcessorsResolved().map(_.path)
+    val processorClasspath = processorResolvedClasspath.mkString(File.pathSeparator)
+
+    val kspOutputDir = Task.dest / "generated"
+    val java = kspOutputDir / "java"
+    val kotlin = kspOutputDir / "kotlin"
+    val resources = kspOutputDir / "resources"
+    val classes = kspOutputDir / "classes"
+    val kspCachesDir = Task.dest / "caches"
+
+    val processorOptionsValue =
+      kspProcessorOptions().map((key, value) => s"$key=$value").toSeq.mkString(File.pathSeparator)
+
+    val processorOptions = if (processorOptionsValue.isEmpty)
+      ""
+    else
+      s"-processor-options=${processorOptionsValue}"
+    val args = Seq(
+      s"-module-name=${kspModuleName}",
+      "-jvm-target",
+      kspJvmTarget(),
+      s"-jdk-home=${System.getProperty("java.home")}",
+      s"-source-roots=${kspSources().map(_.path).mkString(File.pathSeparator)}",
+      s"-project-base-dir=${moduleDir.toString}",
+      s"-output-base-dir=${kspOutputDir}",
+      s"-caches-dir=${kspCachesDir}",
+      s"-libraries=${kspClasspath().map(_.path).mkString(File.pathSeparator)}",
+      s"-class-output-dir=${classes}",
+      s"-kotlin-output-dir=${kotlin}",
+      s"-java-output-dir=${java}",
+      s"-resource-output-dir=${resources}",
+      s"-language-version=${kspLanguageVersion()}",
+      s"-incremental=true",
+      s"-incremental-log=true",
+      s"-api-version=${kspApiVersion()}",
+      processorOptions,
+      s"-map-annotation-arguments-in-java=false"
+    ) ++ ksp2Args() :+ processorClasspath
+
+    val kspJvmMainClasspath = ksp2ToolsDepsClasspath().map(_.path)
+    val mainClass = "com.google.devtools.ksp.cmdline.KSPJvmMain"
+    Task.log.debug(
+      s"Running Kotlin Symbol Processing with java -cp ${kspJvmMainClasspath.mkString(File.pathSeparator)} ${mainClass} ${args.mkString(" ")}"
+    )
+
+    val kspLogLevel = if (Task.log.debugEnabled)
+      "Debug"
+    else
+      "Warn"
+
+    kspWorkerModule().runKsp(
+      kspLogLevel,
+      ksp2InProgramToolsClasspath(),
+      args
+    )
+
+    GeneratedKspSources(PathRef(java), PathRef(kotlin), PathRef(resources), PathRef(classes))
+
+  }
+
   /**
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
@@ -370,4 +451,34 @@ trait KspModule extends KotlinModule { outer =>
     override def kspApiVersion: T[String] = outer.kspApiVersion()
     override def kspJvmTarget: T[String] = outer.kspJvmTarget()
   }
+}
+
+trait KspWorkerModule extends ExternalModule {
+  def runKsp(logLevel: String, workerClasspath: Seq[PathRef], kspArgs: Seq[String]): Unit
+}
+
+object KspWorkerModule extends KspWorkerModule {
+
+  def runKsp(logLevel: String, workerClasspath: Seq[PathRef], kspArgs: Seq[String]): Unit = {
+
+    val kspClassLoader = Jvm.createClassLoader(
+      workerClasspath.map(_.path),
+      getClass.getClassLoader
+    )
+
+    val mainClass = "mill.kotlinlib.ksp.worker.KspWorker"
+
+    kspClassLoader.findClass(mainClass).getMethod(
+      "runKsp",
+      classOf[Map[String, String]],
+      classOf[Seq[String]]
+    ).invoke(
+      null,
+      Map("logLevel" -> logLevel),
+      kspArgs
+    )
+
+  }
+
+  override protected def millDiscover: Discover = Discover[this.type]
 }

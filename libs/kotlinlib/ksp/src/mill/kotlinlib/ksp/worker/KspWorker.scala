@@ -12,18 +12,22 @@ import java.net.URLClassLoader
 import java.util.ServiceLoader
 import scala.jdk.CollectionConverters.*
 
-class KspWorker {
+object KspWorker {
 
-  def loggingLevel(logLevel: LogLevel) = logLevel match {
+  def toGradleLogLevel(logLevel: LogLevel) = logLevel match {
     case LogLevel.Debug => KspGradleLogger.LOGGING_LEVEL_LOGGING
     case LogLevel.Info => KspGradleLogger.LOGGING_LEVEL_INFO
     case LogLevel.Warn => KspGradleLogger.LOGGING_LEVEL_WARN
     case LogLevel.Error => KspGradleLogger.LOGGING_LEVEL_ERROR
   }
 
-  def runKsp(workerArgs: KspWorkerArgs, symbolProcessingArgs: Seq[String]): Unit = {
+  def runKsp(workerArgs: Map[String, String], symbolProcessingArgs: Seq[String]): Unit = {
 
-    val logLevel = loggingLevel(workerArgs.logLevel)
+    val logLevelStr = workerArgs.getOrElse("logLevel", LogLevel.Info.toString)
+    val logLevel =
+      LogLevel.values.find(_.toString == logLevelStr).getOrElse(LogLevel.Warn)
+
+    val gradleLogLevel = toGradleLogLevel(logLevel)
 
     val (config, classpath) = {
       val configClasspath = KspJvmArgParserKt.kspJvmArgParser(symbolProcessingArgs.toArray)
@@ -40,7 +44,7 @@ class KspWorker {
     ).asScala.toList.collect {
       case provider: SymbolProcessorProvider => provider
     }
-    val logger = new KspGradleLogger(logLevel)
+    val logger = new KspGradleLogger(gradleLogLevel)
 
     val exitCode = new KotlinSymbolProcessing(config, processorProviders.asJava, logger).execute()
 
