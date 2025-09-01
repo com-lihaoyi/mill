@@ -6,17 +6,25 @@ import java.net.URLClassLoader
  * Convenience wrapper around `java.net.URLClassLoader`. Allows configuration
  * of shared class prefixes, and tracks creation/closing to help detect leaks
  */
-class MillURLClassLoader(
+class MillURLClassLoader private (
     classPath: Iterable[java.nio.file.Path],
     parent: ClassLoader,
     sharedLoader: ClassLoader,
     sharedPrefixes: Iterable[String],
-    val label: String
+    val label: String,
+    initParallelClassloading: Boolean
 ) extends URLClassLoader(
       classPath.iterator.map(_.toUri.toURL).toArray,
       MillURLClassLoader.refinePlatformParent(parent)
     ) {
+
   import MillURLClassLoader.*
+
+  if (initParallelClassloading) {
+    java.lang.ClassLoader.registerAsParallelCapable()
+    throw new DoNotUseThisInstanceException()
+  }
+
   addOpenClassloader(label)
 
   override def findClass(name: String): Class[?] =
@@ -35,6 +43,42 @@ class MillURLClassLoader(
 }
 
 object MillURLClassLoader {
+
+  class DoNotUseThisInstanceException() extends Exception()
+
+  private var parallelRegistered = false
+
+  def apply(
+      classPath: Iterable[java.nio.file.Path],
+      parent: ClassLoader,
+      sharedLoader: ClassLoader,
+      sharedPrefixes: Iterable[String],
+      label: String
+  ): MillURLClassLoader = {
+    if (!parallelRegistered) {
+      try {
+        new MillURLClassLoader(
+          classPath,
+          parent,
+          sharedLoader,
+          sharedPrefixes,
+          label,
+          true
+        )
+      } catch {
+        case _: DoNotUseThisInstanceException => // this is ok
+      }
+      parallelRegistered = true
+    }
+    new MillURLClassLoader(
+      classPath,
+      parent,
+      sharedLoader,
+      sharedPrefixes,
+      label,
+      false
+    )
+  }
 
   /**
    * Shows a count of what `MillURLClassLoader`s are instantiated and have not yet
