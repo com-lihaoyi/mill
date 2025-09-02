@@ -8,17 +8,18 @@ import utest.*
 // TODO: Once Scala 3.8.0 is out, we can change this test to use 3.8.0 and remove the extra repo
 object Scala38NightlyTests extends TestSuite {
 
-  val repo = coursier.maven.MavenRepository("https://repo.scala-lang.org/artifactory/maven-nightlies")
+  val repo =
+    coursier.maven.MavenRepository("https://repo.scala-lang.org/artifactory/maven-nightlies")
 
   object Scala38Nightly extends TestBaseModule {
     object JvmWorker extends JvmWorkerModule {
-      override def repositoriesTask = Task.Anon { 
+      override def repositoriesTask = Task.Anon {
         super.repositoriesTask() ++ Seq(repo)
       }
     }
     object foo extends ScalaModule {
       override def zincWorker: ModuleRef[JvmWorkerModule] = ModuleRef(JvmWorker)
-      override def repositoriesTask = Task.Anon { 
+      override def repositoriesTask = Task.Anon {
         super.repositoriesTask() ++ Seq(repo)
       }
       override def scalaVersion = "3.8.0-RC1-bin-20250825-ee2f641-NIGHTLY"

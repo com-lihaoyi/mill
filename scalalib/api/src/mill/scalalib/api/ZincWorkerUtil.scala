@@ -64,7 +64,7 @@ trait ZincWorkerUtil {
     case TypelevelVersion(major, minor, _) => s"$major.$minor"
     case _ => scalaVersion
   }
-  
+
   private case class Version(major: Int, minor: Int)
   private def minorMajorVersion(version: String): Version = version match {
     case PartialVersion(major, minor) => Version(major = major.toInt, minor = minor.toInt)
