@@ -25,6 +25,19 @@ import java.io.File
 @mill.api.experimental
 trait KspModule extends KotlinModule { outer =>
 
+  /**
+   * Controls the mechanism in which the Kotlin Symbol Processing is run.
+   * [[KspModuleMode.Ksp1]] works with the embeddable kotlin compiler and via the KSP compiler plugin.
+   * In case of Ksp1 choice, you need to set [[kspLanguageVersion]] to 1.9 or earlier, the compiler flags
+   * via [[ksp1KotlincOptions]]. The mandatory KSP plugins are automatically added via [[ksp1Plugins]].
+   *
+   * [[KspModuleMode.Ksp2Cli]] works with the KSP 2 command line tool `com.google.devtools.ksp.cmdline.KSPJvmMain`
+   * which is run in a separate JVM process.
+   * [[KspModuleMode.Ksp2]] works with an internal worker that runs KSP in the same JVM as Mill. This is the recommended
+   * way to run KSP 2, as it is faster than the CLI mode and doesn't have the cli limitations of Ksp2Cli (e.g. exceeding
+   * character limit on Windows).
+   * @return
+   */
   def kspModuleMode: KspModuleMode = KspModuleMode.Ksp2
 
   /**
@@ -291,6 +304,12 @@ trait KspModule extends KotlinModule { outer =>
     )
   }
 
+  /**
+   * The classpath used to run KSP 2 in-process worker mode, which is provided via
+   * [[KspWorkerModule]]. It includes the KSP 2 API via [[ksp2ToolsDeps]], the user defined symbol processors
+   * via [[kotlinSymbolProcessors]] and Mill's kotlinlib-ksp module with the worker that executes the SymbolProcessingProviders.
+   * @return
+   */
   def ksp2InProgramToolsClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       Seq(
