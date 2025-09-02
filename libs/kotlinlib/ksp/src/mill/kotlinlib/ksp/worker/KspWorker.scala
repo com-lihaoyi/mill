@@ -12,7 +12,7 @@ import scala.jdk.CollectionConverters.*
 
 object KspWorker {
 
-  def toGradleLogLevel(logLevel: LogLevel) = logLevel match {
+  private def toGradleLogLevel(logLevel: LogLevel) = logLevel match {
     case LogLevel.Debug => KspGradleLogger.LOGGING_LEVEL_LOGGING
     case LogLevel.Info => KspGradleLogger.LOGGING_LEVEL_INFO
     case LogLevel.Warn => KspGradleLogger.LOGGING_LEVEL_WARN

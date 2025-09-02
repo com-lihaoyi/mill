@@ -3,7 +3,7 @@ package mill.kotlinlib.ksp
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.*
-import mill.api.{Discover, ExternalModule, ModuleRef, PathRef, Task}
+import mill.api.{ModuleRef, PathRef, Task}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
 import mill.util.Jvm
@@ -446,34 +446,4 @@ trait KspModule extends KotlinModule { outer =>
     override def kspApiVersion: T[String] = outer.kspApiVersion()
     override def kspJvmTarget: T[String] = outer.kspJvmTarget()
   }
-}
-
-trait KspWorkerModule extends ExternalModule {
-  def runKsp(logLevel: String, workerClasspath: Seq[PathRef], kspArgs: Seq[String]): Unit
-}
-
-object KspWorkerModule extends KspWorkerModule {
-
-  def runKsp(logLevel: String, workerClasspath: Seq[PathRef], kspArgs: Seq[String]): Unit = {
-
-    val kspClassLoader = Jvm.createClassLoader(
-      workerClasspath.map(_.path),
-      getClass.getClassLoader
-    )
-
-    val mainClass = "mill.kotlinlib.ksp.worker.KspWorker"
-
-    kspClassLoader.findClass(mainClass).getMethod(
-      "runKsp",
-      classOf[Map[String, String]],
-      classOf[Seq[String]]
-    ).invoke(
-      null,
-      Map("logLevel" -> logLevel),
-      kspArgs
-    )
-
-  }
-
-  override protected def millDiscover: Discover = Discover[this.type]
 }
