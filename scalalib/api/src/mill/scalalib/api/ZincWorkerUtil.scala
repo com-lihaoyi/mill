@@ -175,7 +175,7 @@ trait ZincWorkerUtil {
    * @return `true` if the scala-library version should be enforced to be a `2.13.`
    */
   def enforceScala213Library(scalaVersion: String): Boolean = {
-    val (major, minor) = partial(scalaVersion)
+    val (major, minor) = partialVersion(scalaVersion)
     // Some Dotty versions and all Scala 3 versions before 3.8
     major == 0 || (major == 3 && minor < 8)
   }
