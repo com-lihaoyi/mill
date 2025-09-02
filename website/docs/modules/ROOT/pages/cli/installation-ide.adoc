@@ -61,6 +61,10 @@ In-project bootstrap scripts are also useful for running Mill in CI/CD, ensuring
 that your build server like Jenkins or Github Actions has the correct version of Mill
 present to build, compile or test your code.
 
+You can also configure a `//| mill-version` in your xref:cli/build-header.adoc[build header]
+if you want to try a different version, but the best practice when upgrading is to just
+update your bootstrap scripts which ensures the script version and Mill version are compatible.
+
 If you are starting a new project using a Mill bootstrap script, you can use the
 xref:cli/builtin-commands.adoc#_init[mill init] to initialize the project
 folder with one of the Mill example projects. There are a wide range of example projects,
