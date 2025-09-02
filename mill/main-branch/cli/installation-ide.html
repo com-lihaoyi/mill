@@ -696,9 +696,8 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-27-4e9e84/mill-dist-1.0.4-mill.sh -o mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-28-f16413/mill-dist-1.0.4-mill.sh -o mill
 &gt; chmod +x mill
-&gt; echo &quot;//| mill-version: 1.0.4&quot; &gt; build.mill
 &gt; ./mill version
 1.0.4</code></pre>
 </div>
@@ -706,8 +705,7 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-27-4e9e84/mill-dist-1.0.4-mill.bat -o mill.bat
-&gt; echo &quot;//| mill-version: 1.0.4&quot; &gt; build.mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-28-f16413/mill-dist-1.0.4-mill.bat -o mill.bat
 &gt; ./mill version
 1.0.4</code></pre>
 </div>
@@ -748,6 +746,11 @@ being incompatible with the version expected by your build.
 In-project bootstrap scripts are also useful for running Mill in CI/CD, ensuring
 that your build server like Jenkins or Github Actions has the correct version of Mill
 present to build, compile or test your code.</p>
+</div>
+<div class="paragraph">
+<p>You can also configure a <code>//| mill-version</code> in your <a href="build-header.html" class="xref page">build header</a>
+if you want to try a different version, but the best practice when upgrading is to just
+update your bootstrap scripts which ensures the script version and Mill version are compatible.</p>
 </div>
 <div class="paragraph">
 <p>If you are starting a new project using a Mill bootstrap script, you can use the
