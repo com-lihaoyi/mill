@@ -65,7 +65,7 @@ trait ZincWorkerUtil {
     case _ => scalaVersion
   }
 
-  private def binaryVersion(version: String): ( /*major: */ Int, /*minor:*/ Int) = version match {
+  private def majorMinorVersion(version: String): ( /*major: */ Int, /*minor:*/ Int) = version match {
     case PartialVersion(major, minor) => (major.toInt, minor.toInt)
   }
 
@@ -175,7 +175,7 @@ trait ZincWorkerUtil {
    * @return `true` if the scala-library version should be enforced to be a `2.13.`
    */
   def enforceScala213Library(scalaVersion: String): Boolean = {
-    val (major, minor) = binaryVersion(scalaVersion)
+    val (major, minor) = majorMinorVersion(scalaVersion)
     // Some Dotty versions and all Scala 3 versions before 3.8
     major == 0 || (major == 3 && minor < 8)
   }
