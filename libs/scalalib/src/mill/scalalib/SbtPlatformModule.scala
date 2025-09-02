@@ -3,8 +3,39 @@ package mill.scalalib
 import mill.api.PathRef
 
 /**
- * A cross-platform [[SbtModule]] that supports multiple source root folders each having a sbt
- * compatible directory layout.
+ * A cross-platform [[SbtModule]] that can share sources with other modules.
+ * {{{
+ *  object foo extends Module {
+ *    object js extends SbtPlatformModule
+ *    object jvm extends SbtPlatformModule
+ *    object native extends SbtPlatformModule
+ *  }
+ * }}}
+ * The example above corresponds to the following directory structure:
+ * {{{
+ *  foo
+ *    ├─js
+ *    │ └─src
+ *    │   └─main
+ *    │     ├─java
+ *    │     └─scala
+ *    ├─jvm
+ *    │ └─src
+ *    │   └─main
+ *    │     ├─java
+ *    │     └─scala
+ *    ├─native
+ *    │ └─src
+ *    │   └─main
+ *    │     ├─java
+ *    │     └─scala
+ *    └─src
+ *      └─main
+ *        ├─java
+ *        └─scala
+ * }}}
+ * Source directories `foo/src/main/java` and `foo/src/main/scala` are shared by each submodule.
+ * Each submodule can define platform specific sources under a similar `sbt` compatible layout.
  *
  * For `sbt-crossproject` plugin layout, use one of the following presets:
  *  - [[SbtPlatformModule.CrossTypeFull]]

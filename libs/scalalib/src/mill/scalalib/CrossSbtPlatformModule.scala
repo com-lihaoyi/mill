@@ -1,11 +1,17 @@
 package mill.scalalib
 
 /**
- * A [[SbtPlatformModule]] suited to be used with [[mill.api.Cross]]. It supports additional source
- * directories with the scala version pattern as suffix (src/main/scala-{scalaversionprefix}), e.g.
+ * A [[mill.api.Cross]] that extends the [[SbtPlatformModule]] layout with additional source
+ * directories with the scala version patterns as suffix, e.g.
  *  - src/main/scala-2
  *  - src/main/scala-2.12
  *  - src/main/scala-2.13
+ *  - js/src/main/scala-2
+ *  - js/src/main/scala-2.13
+ *  - jvm/src/main/scala-2.12
+ *  - jvm/src/main/scala-2.13
+ *  - native/src/main/scala-2
+ *  - native/src/main/scala-3
  * @note Use with [[CrossScalaVersionRanges]] to add version range specific sources.
  */
 trait CrossSbtPlatformModule extends CrossSbtModule with SbtPlatformModule { outer =>
