@@ -28,7 +28,7 @@ object GradleBuildContext {
             Option(ext.getToolchain)
           .flatMap: tc =>
             Option(tc.getLanguageVersion.getOrNull())
-          .flatMap: v =>
+          .map: v =>
             JavaHomeModuleConfig.jvmId(v.asInt())
       def project(dep: ProjectDependency) =
         if (version < version_8_11)

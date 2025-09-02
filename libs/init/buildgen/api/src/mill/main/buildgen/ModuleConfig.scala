@@ -175,11 +175,15 @@ object CoursierModuleConfig {
 case class JavaHomeModuleConfig(jvmId: String) extends ModuleConfig
 object JavaHomeModuleConfig {
 
-  def jvmId(version: Int) = Option(version match {
-    case i if i < 11 => null // https://github.com/com-lihaoyi/mill/issues/5782
-    case 8 | 11 | 17 | 21 => version.toString // default JDK, temurin, supports LTS versions
-    case _ => s"zulu:$version"
-  })
+  def minJvmVersion: Int = 11 // https://github.com/com-lihaoyi/mill/issues/5782
+
+  def jvmId(jvmVersion: Int) = {
+    val version = minJvmVersion.max(jvmVersion)
+    version match {
+      case 8 | 11 | 17 | 21 => version.toString // default JDK temurin supports LTS versions
+      case _ => s"zulu:$version"
+    }
+  }
 
   implicit val rw: ReadWriter[JavaHomeModuleConfig] = macroRW
 }

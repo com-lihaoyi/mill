@@ -6,7 +6,6 @@ import org.apache.maven.model.{ConfigurationContainer, Model, Plugin}
 import org.codehaus.plexus.util.xml.Xpp3Dom
 
 import scala.jdk.CollectionConverters.*
-import scala.math.Ordering.Implicits.infixOrderingOps
 
 object Plugins {
 
@@ -61,8 +60,8 @@ object Plugins {
           Option(v.getRecommendedVersion)
             .orElse(v.getRestrictions.iterator.asScala.collectFirst:
               case r if r.getLowerBound != null => r.getLowerBound)
-        .reduceOption(_.min(_))
-        .flatMap(v => JavaHomeModuleConfig.jvmId(v.getMinorVersion))
+        .minOption
+        .map(v => JavaHomeModuleConfig.jvmId(v.getMinorVersion))
     )
   }
 

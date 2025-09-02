@@ -34,7 +34,7 @@ class BuildWriter(
     println(s"writing Mill build file to $sub")
     os.write(
       os.pwd / rootBuildFileNames.get(0),
-      s"""//| mill-version: $millVersion
+      s"""${renderBuildHeader}
          |${renderPackage(root)}""".stripMargin
     )
     nested.foreach: pkg =>
@@ -104,6 +104,22 @@ class BuildWriter(
       case _: ScalaNativeModuleConfig => b += "mill.scalalib" += "mill.scalanativelib"
 
     renderLines(b.result().toSeq.sorted.iterator.map(s => s"import $s._"))
+  }
+
+  def renderBuildHeader = {
+    val millJvmVersionHeader = (
+      metaBuild.iterator.flatMap(_.baseTraits).flatMap(_.configs) ++
+        build.iterator.flatMap(_.iterator).flatMap(_.configs)
+    ).collect {
+      case config: JavaModuleConfig => config.javacOptions
+    }.flatMap(javacOptions =>
+      Option(1 + javacOptions.indexOf("--release")).filter(_ > 0)
+        .orElse(Option(1 + javacOptions.indexOf("-target")).filter(_ > 0))
+        .map(javacOptions(_).stripPrefix("1.").toInt)
+    ).minOption.map(v => s"//| mill-jvm-version: ${JavaHomeModuleConfig.jvmId(v)}")
+    renderLines(
+      s"//| mill-version: $millVersion" +: millJvmVersionHeader.toSeq
+    )
   }
 
   def renderPackage(pkg: Tree[ModuleRepr]) = {
