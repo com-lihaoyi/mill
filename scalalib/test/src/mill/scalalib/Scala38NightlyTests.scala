@@ -13,6 +13,8 @@ object Scala38NightlyTests extends TestSuite {
 
   object Scala38Nightly extends TestBaseModule {
     object JvmWorker extends JvmWorkerModule {
+      // Scala 3.8 requires at least JDK 17
+      override def jvmId = "temurin:17"
       override def repositoriesTask = Task.Anon {
         super.repositoriesTask() ++ Seq(repo)
       }
