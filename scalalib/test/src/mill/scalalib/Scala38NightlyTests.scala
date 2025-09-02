@@ -13,8 +13,6 @@ object Scala38NightlyTests extends TestSuite {
 
   object Scala38Nightly extends TestBaseModule {
     object JvmWorker extends JvmWorkerModule {
-      // Scala 3.8 requires at least JDK 17
-      override def jvmId = "temurin:17"
       override def repositoriesTask = Task.Anon {
         super.repositoriesTask() ++ Seq(repo)
       }
@@ -39,8 +37,15 @@ object Scala38NightlyTests extends TestSuite {
       Scala38Nightly,
       sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "dotty213"
     ).scoped { eval =>
-      val Right(result) = eval.apply(Scala38Nightly.foo.run()): @unchecked
-      assert(result.evalCount > 0)
+      // Scala 3.8 requires at least JDK 17
+      if (sys.props("java.vm.specification.version").toInt < 17)
+        System.err.println(
+          s"Skipped ${Scala38NightlyTests.getClass().getName}.scala38nightly test: requires JDK 17"
+        )
+      else {
+        val Right(result) = eval.apply(Scala38Nightly.foo.run()): @unchecked
+        assert(result.evalCount > 0)
+      }
     }
 
   }
