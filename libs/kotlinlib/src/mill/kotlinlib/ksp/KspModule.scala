@@ -284,23 +284,7 @@ trait KspModule extends KotlinModule { outer =>
     )
   }
 
-  def ksp2InProcessToolsDeps: T[Seq[Dep]] = Task {
-    Seq(
-      mvn"com.google.devtools.ksp:symbol-processing-aa:${kotlinVersion()}-${kspVersion()}",
-      mvn"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${kspVersion()}",
-      mvn"com.google.devtools.ksp:symbol-processing-common-deps:${kotlinVersion()}-${kspVersion()}",
-      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2"
-    )
-  }
-
   def ksp2ToolsDepsClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
-      ksp2ToolsDeps(),
-      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
-    )
-  }
-
-  def ksp2InProcessToolsDepsClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       ksp2ToolsDeps(),
       resolutionParamsMapOpt = Some(addJvmVariantAttributes)
@@ -311,7 +295,8 @@ trait KspModule extends KotlinModule { outer =>
     defaultResolver().classpath(
       Seq(
         Dep.millProjectModule("mill-libs-kotlinlib-ksp")
-      ) ++ ksp2ToolsDeps()
+      ) ++ ksp2ToolsDeps() ++ kotlinSymbolProcessors(),
+      resolutionParamsMapOpt = Some(addJvmVariantAttributes)
     )
   }
 

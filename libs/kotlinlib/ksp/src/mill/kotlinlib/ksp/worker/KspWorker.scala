@@ -7,8 +7,6 @@ import com.google.devtools.ksp.processing.{
   SymbolProcessorProvider
 }
 
-import java.io.File
-import java.net.URLClassLoader
 import java.util.ServiceLoader
 import scala.jdk.CollectionConverters.*
 
@@ -29,31 +27,20 @@ object KspWorker {
 
     val gradleLogLevel = toGradleLogLevel(logLevel)
 
-    val (config, classpath) = {
+    val config = {
       val configClasspath = KspJvmArgParserKt.kspJvmArgParser(symbolProcessingArgs.toArray)
-      configClasspath.getFirst -> configClasspath.getSecond.asScala
+      configClasspath.getFirst
     }
 
-    val processorClassloader = new URLClassLoader(classpath.map { pathStr =>
-      new File(pathStr).toURI.toURL
-    }.toArray)
+    val processorClassloader = getClass.getClassLoader
 
     val processorProvidersSearch = ServiceLoader.load(
       processorClassloader.loadClass("com.google.devtools.ksp.processing.SymbolProcessorProvider"),
       processorClassloader
     ).asScala.toList
 
-    println("Processor providers found before casting: " + processorProvidersSearch.map(
-      _.getClass.getName
-    ).mkString(", "))
-
     val processorProviders: List[SymbolProcessorProvider] =
       processorProvidersSearch.asInstanceOf[List[SymbolProcessorProvider]]
-
-    println(
-      "Processor providers picked: " + processorProviders.map(_.getClass.getName).mkString(", ")
-    )
-    println("Classpath: " + classpath.mkString(":"))
 
     val logger = new KspGradleLogger(gradleLogLevel)
 
