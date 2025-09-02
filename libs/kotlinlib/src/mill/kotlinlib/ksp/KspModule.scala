@@ -456,7 +456,6 @@ object KspWorkerModule extends KspWorkerModule {
 
   def runKsp(logLevel: String, workerClasspath: Seq[PathRef], kspArgs: Seq[String]): Unit = {
 
-    println("worker classpath is: " + workerClasspath.map(_.path).mkString(":"))
     val kspClassLoader = Jvm.createClassLoader(
       workerClasspath.map(_.path),
       getClass.getClassLoader
