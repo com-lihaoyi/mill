@@ -190,9 +190,6 @@ object `package` extends MillJavaModule with DistModule {
     }
   }
 
-  def millBootstrap = Task.Source(BuildCtx.workspaceRoot / "mill")
-  def millBootstrapBat = Task.Source(BuildCtx.workspaceRoot / "mill.bat")
-
   def prepareBootstrapLauncher(
       bootstrap: os.Path,
       dest: os.Path,
@@ -216,10 +213,10 @@ object `package` extends MillJavaModule with DistModule {
     PathRef(outputPath)
   }
   def bootstrapLauncher = Task {
-    prepareBootstrapLauncher(millBootstrap().path, Task.dest, build.millVersion(), "mill")
+    prepareBootstrapLauncher(build.dist.scripts.millSh.compile0().path, Task.dest, build.millVersion(), "mill")
   }
   def bootstrapLauncherBat = Task {
-    prepareBootstrapLauncher(millBootstrapBat().path, Task.dest, build.millVersion(), "mill.bat")
+    prepareBootstrapLauncher(build.dist.scripts.millBat.compile0().path, Task.dest, build.millVersion(), "mill.bat")
   }
 
   def examplePaths: Task[Seq[os.Path]] = Task.Input {
