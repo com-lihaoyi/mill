@@ -2,7 +2,7 @@ package mill.api
 
 import mill.api.daemon.internal.Severity
 import os.Path
-import upickle.default.{ReadWriter as RW, Reader, Writer}
+import upickle.{ReadWriter as RW, Reader, Writer}
 
 import scala.reflect.ClassTag
 import scala.util.matching.Regex
@@ -21,13 +21,13 @@ trait JsonFormatters {
       Right(os.Path(strs.last, BuildCtx.workspaceRoot))
   }
 
-  implicit val pathReadWrite: RW[os.Path] = upickle.default.readwriter[String]
+  implicit val pathReadWrite: RW[os.Path] = upickle.readwriter[String]
     .bimap[os.Path](
       _.toString,
       os.Path(_)
     )
 
-  implicit val relPathRW: RW[os.RelPath] = upickle.default.readwriter[String]
+  implicit val relPathRW: RW[os.RelPath] = upickle.readwriter[String]
     .bimap[os.RelPath](_.toString, os.RelPath(_))
 
   implicit def subPathRW: RW[os.SubPath] = JsonFormatters.Default.subPathRW
@@ -38,28 +38,28 @@ trait JsonFormatters {
 
   implicit def resultRW[A: { Reader, Writer }]: RW[Result[A]] = JsonFormatters.Default.resultRW
 
-  implicit val nioPathRW: RW[java.nio.file.Path] = upickle.default.readwriter[String]
+  implicit val nioPathRW: RW[java.nio.file.Path] = upickle.readwriter[String]
     .bimap[java.nio.file.Path](
       _.toUri().toString(),
       s => java.nio.file.Path.of(new java.net.URI(s))
     )
 
-  implicit val regexReadWrite: RW[Regex] = upickle.default.readwriter[String]
+  implicit val regexReadWrite: RW[Regex] = upickle.readwriter[String]
     .bimap[Regex](
       _.pattern.toString,
       _.r
     )
 
-  implicit val bytesReadWrite: RW[geny.Bytes] = upickle.default.readwriter[String]
+  implicit val bytesReadWrite: RW[geny.Bytes] = upickle.readwriter[String]
     .bimap(
       o => java.util.Base64.getEncoder.encodeToString(o.array),
       str => new geny.Bytes(java.util.Base64.getDecoder.decode(str))
     )
 
-  implicit val crFormat: RW[os.CommandResult] = upickle.default.macroRW
+  implicit val crFormat: RW[os.CommandResult] = upickle.macroRW
 
   implicit val stackTraceRW: RW[StackTraceElement] =
-    upickle.default.readwriter[ujson.Obj].bimap[StackTraceElement](
+    upickle.readwriter[ujson.Obj].bimap[StackTraceElement](
       ste =>
         ujson.Obj(
           "declaringClass" -> ujson.Str(ste.getClassName),
@@ -77,7 +77,7 @@ trait JsonFormatters {
     )
 
   implicit def enumFormat[T <: java.lang.Enum[?]: ClassTag]: RW[T] =
-    upickle.default.readwriter[String].bimap(
+    upickle.readwriter[String].bimap(
       _.name(),
       (s: String) =>
         implicitly[ClassTag[T]]
@@ -93,12 +93,12 @@ trait JsonFormatters {
 object JsonFormatters extends JsonFormatters {
   object Default {
     val subPathRW: RW[os.SubPath] =
-      upickle.default.readwriter[String].bimap[os.SubPath](_.toString, os.SubPath(_))
+      upickle.readwriter[String].bimap[os.SubPath](_.toString, os.SubPath(_))
 
     val fileRW: RW[java.io.File] =
-      upickle.default.readwriter[String].bimap[java.io.File](_.toString, java.io.File(_))
+      upickle.readwriter[String].bimap[java.io.File](_.toString, java.io.File(_))
 
-    val severityRW: RW[Severity] = upickle.default.readwriter[String].bimap[Severity](
+    val severityRW: RW[Severity] = upickle.readwriter[String].bimap[Severity](
       {
         case mill.api.daemon.internal.Error => "error"
         case mill.api.daemon.internal.Warn => "warn"

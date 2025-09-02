@@ -11,7 +11,7 @@ import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import os.{Path, RelPath, zip}
 import os.RelPath.stringRelPathValidated
-import upickle.default.*
+import upickle.*
 import scala.concurrent.duration.*
 
 import scala.jdk.OptionConverters.RichOptional

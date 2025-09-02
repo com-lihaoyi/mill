@@ -10,8 +10,8 @@ case class JavaCompilerOptions private (options: Seq[String]) {
   }
 }
 object JavaCompilerOptions {
-  given rw: upickle.default.ReadWriter[JavaCompilerOptions] =
-    summon[upickle.default.ReadWriter[Seq[String]]]
+  given rw: upickle.ReadWriter[JavaCompilerOptions] =
+    summon[upickle.ReadWriter[Seq[String]]]
       .bimap(_.options, new JavaCompilerOptions(_))
 
   def empty: JavaCompilerOptions = new JavaCompilerOptions(Seq.empty)

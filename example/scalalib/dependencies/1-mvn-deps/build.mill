@@ -5,7 +5,7 @@ import mill.*, scalalib.*
 object `package` extends ScalaModule {
   def scalaVersion = "2.12.20"
   def mvnDeps = Seq(
-    mvn"com.lihaoyi::upickle:4.1.0",
+    mvn"com.lihaoyi::upickle:4.3.0",
     mvn"com.lihaoyi::pprint:0.9.0",
     mvn"${scalaOrganization()}:scala-reflect:${scalaVersion()}"
   )

@@ -129,8 +129,8 @@ private trait GroupExecution {
           case Seq(Segment.Label(single)) if parsedHeaderData.contains(single) =>
             val jsonData = parsedHeaderData(single)
             val (resultData, serializedPaths) = PathRef.withSerializedPaths {
-              upickle.default.read[Any](jsonData)(
-                using labelled.readWriterOpt.get.asInstanceOf[upickle.default.Reader[Any]]
+              upickle.read[Any](jsonData)(
+                using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
               )
             }
             GroupExecution.Results(
@@ -382,8 +382,8 @@ private trait GroupExecution {
         workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v))
       }
 
-    def normalJson(w: upickle.default.Writer[?]) = PathRef.withSerializedPaths {
-      upickle.default.writeJs(v.value)(using w.asInstanceOf[upickle.default.Writer[Any]])
+    def normalJson(w: upickle.Writer[?]) = PathRef.withSerializedPaths {
+      upickle.writeJs(v.value)(using w.asInstanceOf[upickle.Writer[Any]])
     }
     lazy val workerJson = labelled.asWorker.map { _ =>
       ujson.Obj(
@@ -402,7 +402,7 @@ private trait GroupExecution {
       case Some((json, serializedPaths)) =>
         os.write.over(
           metaPath,
-          upickle.default.stream(
+          upickle.stream(
             mill.api.Cached(json, hashCode, inputsHash),
             indent = 4
           ),
@@ -438,7 +438,7 @@ private trait GroupExecution {
   ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
     for {
       cached <-
-        try Some(upickle.default.read[Cached](paths.meta.toIO))
+        try Some(upickle.read[Cached](paths.meta.toIO))
         catch {
           case NonFatal(_) => None
         }
@@ -448,7 +448,7 @@ private trait GroupExecution {
         _ <- Option.when(cached.inputsHash == inputsHash)(())
         reader <- labelled.readWriterOpt
         (parsed, serializedPaths) <-
-          try Some(PathRef.withSerializedPaths(upickle.default.read(cached.value)(using reader)))
+          try Some(PathRef.withSerializedPaths(upickle.read(cached.value)(using reader)))
           catch {
             case e: PathRef.PathRefValidationException =>
               logger.debug(

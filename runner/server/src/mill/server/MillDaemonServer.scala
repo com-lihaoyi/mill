@@ -60,9 +60,9 @@ abstract class MillDaemonServer[State](
     serverLog(s"read client init data: $initData")
     import initData.*
 
-    serverLog("args " + upickle.default.write(args))
-    serverLog("env " + upickle.default.write(env.asScala))
-    serverLog("props " + upickle.default.write(userSpecifiedProperties.asScala))
+    serverLog("args " + upickle.write(args))
+    serverLog("env " + upickle.write(env.asScala))
+    serverLog("props " + upickle.write(userSpecifiedProperties.asScala))
 
     val millVersionChanged = lastMillVersion.exists(_ != clientMillVersion)
     val javaVersionChanged = lastJavaVersion.exists(_ != clientJavaVersion)

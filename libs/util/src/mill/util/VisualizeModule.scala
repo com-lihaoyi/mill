@@ -48,7 +48,7 @@ object VisualizeModule extends ExternalModule {
       in.put((tasks, transitiveTasks, sortedGroups, plan, ctx.dest))
       val res = out.take()
       res.map { v =>
-        println(upickle.default.write(v.map(_.path.toString()), indent = 2))
+        println(upickle.write(v.map(_.path.toString()), indent = 2))
         v
       }
     }

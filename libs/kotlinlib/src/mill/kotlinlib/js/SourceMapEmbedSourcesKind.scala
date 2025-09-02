@@ -1,6 +1,6 @@
 package mill.kotlinlib.js
 
-import upickle.default.ReadWriter
+import upickle.ReadWriter
 
 enum SourceMapEmbedSourcesKind derives ReadWriter {
   case Always
