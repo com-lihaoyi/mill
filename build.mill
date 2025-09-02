@@ -635,7 +635,11 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.util.PromptLogger#*"),
     ProblemFilter.exclude[Problem]("mill.util.PromptLoggerUtil.*"),
     ProblemFilter.exclude[Problem]("mill.main.SelectiveExecution*"),
-    ProblemFilter.exclude[Problem]("mill.eval.ExecutionContexts*")
+    ProblemFilter.exclude[Problem]("mill.eval.ExecutionContexts*"),
+    // https://github.com/com-lihaoyi/mill/pull/5797 private nested class inside trait, maybe false-positive problem
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.api.ZincWorkerUtil.mill$scalalib$api$ZincWorkerUtil$$MinorMajorVersion"
+    )
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
