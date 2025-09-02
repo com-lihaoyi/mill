@@ -1,14 +1,17 @@
 package mill.scalalib
 
+import mill.api.Task
+
 /**
  * A [[ScalaModule]] with sbt compatible directory layout.
  */
 trait SbtModule extends ScalaModule with MavenModule {
 
-  override def sourcesFolders = super.sourcesFolders ++ Seq("src/main/scala")
+  override def sourcesFolders = sourcesFolders0 ++ Seq("src/main/scala")
+  override def sources = Task.Sources(sourcesFolders*) // redefined for binary compatibility
 
   trait SbtTests extends ScalaTests with MavenTests {
-    override def sourcesFolders =
-      super.sourcesFolders ++ Seq(os.sub / "src" / testModuleName / "scala")
+    override def sourcesFolders = sourcesFolders0 ++ Seq(os.sub / "src" / testModuleName / "scala")
+    override def sources = Task.Sources(sourcesFolders*) // redefined for binary compatibility
   }
 }

@@ -11,18 +11,7 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.javalib.RunModule#RunnerImpl*"),
     // forgot to mark this class experimental
     ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources"),
-    ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources$"),
-    // refactored layout modules for extensibility
-    ProblemFilter.exclude[NewMixinForwarderProblem]("mill.javalib.MavenModule.sources"),
-    ProblemFilter.exclude[NewMixinForwarderProblem]("mill.javalib.MavenModule#MavenTests.sources"),
-    ProblemFilter.exclude[NewMixinForwarderProblem]("mill.scalalib.SbtModule.sources"),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.SbtModule.mill$scalalib$SbtModule$$super$sourcesFolders"
-    ),
-    ProblemFilter.exclude[NewMixinForwarderProblem]("mill.scalalib.SbtModule#SbtTests.sources"),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.SbtModule#SbtTests.mill$scalalib$SbtModule$SbtTests$$super$sourcesFolders"
-    )
+    ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources$")
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
