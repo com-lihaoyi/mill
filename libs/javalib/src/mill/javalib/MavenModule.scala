@@ -15,7 +15,7 @@ trait MavenModule extends JavaModule { outer =>
   // added for binary compatibility
   private[mill] def sourcesFolders0 = Seq(os.sub / "src/main/java")
   override def sourcesFolders = sourcesFolders0
-  override def sources = Task.Sources(sourcesFolders*) // redefined for binary compatibility
+  override def sources = Task.Sources(sourcesFolders*) // replicated for binary compatibility
   override def resources = Task.Sources("src/main/resources")
 
   trait MavenTests extends JavaTests {
@@ -33,7 +33,7 @@ trait MavenModule extends JavaModule { outer =>
     // added for binary compatibility
     private[mill] def sourcesFolders0 = Seq(os.sub / "src" / testModuleName / "java")
     override def sourcesFolders = sourcesFolders0
-    override def sources = Task.Sources(sourcesFolders*) // redefined for binary compatibility
+    override def sources = Task.Sources(sourcesFolders*) // replicated for binary compatibility
     override def resources = Task.Sources(moduleDir / "src" / testModuleName / "resources")
   }
 }
