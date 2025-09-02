@@ -22,7 +22,6 @@ bootstrap script, included. You can also download the bootstrap script manually:
 ----
 > curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o mill
 > chmod +x mill
-> echo "//| mill-version: {mill-version}" > build.mill
 > ./mill version
 {mill-version}
 ----
@@ -31,7 +30,6 @@ bootstrap script, included. You can also download the bootstrap script manually:
 [source,console,subs="verbatim,attributes"]
 ----
 > curl.exe -L {mill-download-url}/mill-dist-{mill-version}-mill.bat -o mill.bat
-> echo "//| mill-version: {mill-version}" > build.mill
 > ./mill version
 {mill-version}
 ----
