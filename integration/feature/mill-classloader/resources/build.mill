@@ -1,0 +1,16 @@
+//| mvnDeps: [
+//|   "org.scalameta::scalameta:4.13.9"
+//| ]
+
+package build
+import mill._, mill.scalalib._
+import scala.meta._
+
+def graphDependencies: T[String] = Task {
+  val program: String = """object Main extends App { print("Hello!") }"""
+  val tree = program.parse[Source].get
+  tree.syntax
+}
+
+
+
