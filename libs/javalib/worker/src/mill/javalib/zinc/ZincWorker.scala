@@ -609,7 +609,7 @@ object ZincWorker {
       logDebugEnabled: Boolean,
       logPromptColored: Boolean,
       zincLogDebug: Boolean
-  ) derives upickle.default.ReadWriter
+  ) derives upickle.ReadWriter
 
   private case class ScalaCompilerCacheKey(
       scalaVersion: String,

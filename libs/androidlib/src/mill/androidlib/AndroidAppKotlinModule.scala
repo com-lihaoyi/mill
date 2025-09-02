@@ -203,7 +203,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
         resourceApkPath = resourceApkPath().path.toString(),
         resultsFilePath = resultsFilePath.toString()
       )
-      os.write(cliArgsFile, upickle.default.write(cliArgs))
+      os.write(cliArgsFile, upickle.write(cliArgs))
 
       PathRef(cliArgsFile)
 
@@ -279,7 +279,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
       )
       os.write(
         androidDiscoveredPreviewsPath,
-        upickle.default.write(Map("screenshots" -> screenshotConfigurations))
+        upickle.write(Map("screenshots" -> screenshotConfigurations))
       )
 
       (

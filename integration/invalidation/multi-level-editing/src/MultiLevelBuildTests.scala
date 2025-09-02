@@ -48,7 +48,7 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
       yield {
         val path =
           tester.workspacePath / "out" / Seq.fill(depth)(millBuild) / millRunnerState
-        if (os.exists(path)) upickle.default.read[RunnerState.Frame.Logged](os.read(path)) -> path
+        if (os.exists(path)) upickle.read[RunnerState.Frame.Logged](os.read(path)) -> path
         else RunnerState.Frame.Logged(Map(), Seq(), Seq(), None, Seq(), 0) -> path
       }
   }

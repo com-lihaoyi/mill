@@ -72,7 +72,7 @@ class MillBuildBootstrap(
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
       os.write.over(
         recOut(output, depth) / millRunnerState,
-        upickle.default.write(frame.loggedData, indent = 4),
+        upickle.write(frame.loggedData, indent = 4),
         createFolders = true
       )
     }
