@@ -9,7 +9,6 @@ import mill.util.Version
 import mill.{T, Task}
 
 import scala.jdk.CollectionConverters.*
-import scala.util.Properties
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 
