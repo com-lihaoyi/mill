@@ -38,7 +38,6 @@ trait KspModule extends KotlinModule { outer =>
    * [[KspModuleMode.Ksp2]] works with an internal worker that runs KSP in the same JVM as Mill. This is the recommended
    * way to run KSP 2, as it is faster than the CLI mode and doesn't have the cli limitations of Ksp2Cli (e.g. exceeding
    * character limit on Windows).
-   * @return
    */
   def kspModuleMode: KspModuleMode = KspModuleMode.Ksp2
 
@@ -310,7 +309,6 @@ trait KspModule extends KotlinModule { outer =>
    * The classpath used to run KSP 2 in-process worker mode, which is provided via
    * [[KspWorkerModule]]. It includes the KSP 2 API via [[ksp2ToolsDeps]], the user defined symbol processors
    * via [[kotlinSymbolProcessors]] and Mill's kotlinlib-ksp module with the worker that executes the SymbolProcessingProviders.
-   * @return
    */
   def ksp2InProgramToolsClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
