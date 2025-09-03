@@ -19,7 +19,11 @@ trait BuildGenModule extends CoursierModule with DefaultTaskModule {
 
   def buildGenMainClass: T[String]
 
-  def buildGenScalafmtConfig: T[PathRef] = PathRef(mill.init.Util.scalafmtConfigFile)
+  def buildGenScalafmtConfig: T[PathRef] = Task {
+    val out = Task.dest / ".scalafmt.conf"
+    os.write(out, mill.init.Util.scalafmtConfig)
+    PathRef(out)
+  }
 
   def init(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     val root = moduleDir
@@ -36,7 +40,7 @@ trait BuildGenModule extends CoursierModule with DefaultTaskModule {
     ).exitCode
 
     if (exitCode == 0) {
-      val files = mill.init.Util.buildFiles(root).map(PathRef(_)).toSeq
+      val files = mill.init.Util.buildFiles(root).map(PathRef(_))
       val config = buildGenScalafmtConfig()
       Task.log.info("formatting Mill build files")
       ScalafmtWorkerModule.worker().reformat(files, config)

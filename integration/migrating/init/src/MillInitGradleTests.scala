@@ -18,6 +18,7 @@ object MillInitGradleJCommanderTests extends BuildGenTestSuite {
     test - integrationTest(url)(
       testMillInit(
         _,
+        initCommand = Seq("init"),
         expectedAllSourceFileNums = Map("allSourceFiles" -> 65, "test.allSourceFiles" -> 107),
         expectedCompileTaskResults =
           Some(SplitTaskResults(
@@ -41,10 +42,12 @@ object MillInitGradleFastCsvTests extends BuildGenTestSuite {
     // - Gradle 8.10.1
     val url = "https://github.com/osiegmar/FastCSV/archive/refs/tags/v3.4.0.zip"
 
-    test - integrationTest(url)(
+    test - integrationTest(url) { tester =>
+      writeMillJvmVersion(tester.workspacePath, "17")
+
       testMillInit(
-        _,
-        initCommand = defaultInitCommand ++ Seq("--jvm-id", "17"),
+        tester,
+        initCommand = Seq("init"),
         expectedAllSourceFileNums = Map(
           "example.allSourceFiles" -> 24,
           "lib.allSourceFiles" -> 41,
@@ -60,7 +63,7 @@ object MillInitGradleFastCsvTests extends BuildGenTestSuite {
         expectedTestTaskResults =
           Some(SplitTaskResults(successful = SortedSet(), failed = SortedSet("lib.test")))
       )
-    )
+    }
   }
 }
 
@@ -79,6 +82,7 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
         writeMillJvmVersionTemurin11(tester.workspacePath)
         testMillInit(
           tester,
+          initCommand = Seq("init"),
           expectedAllSourceFileNums = Map(
             "ehcache-xml.test.allSourceFiles" -> 55,
             "ehcache-xml.ehcache-xml-spi.allSourceFiles" -> 7,
@@ -91,7 +95,6 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
             "ehcache-core.test.allSourceFiles" -> 61,
             "clustered.server.ehcache-service.allSourceFiles" -> 12,
             "clustered.ehcache-client.allSourceFiles" -> 82,
-            "demos.allSourceFiles" -> 0,
             "ehcache-core.allSourceFiles" -> 120,
             "clustered.server.ehcache-entity.allSourceFiles" -> 38,
             "integration-test.allSourceFiles" -> 0,
@@ -113,11 +116,9 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
             "clustered.server.ehcache-service-api.test.allSourceFiles" -> 2,
             "ehcache-transactions.allSourceFiles" -> 12,
             "ehcache-107.allSourceFiles" -> 38,
-            "clustered.allSourceFiles" -> 0,
             "clustered.ops-tool.test.allSourceFiles" -> 1,
             "demos.01-CacheAside.allSourceFiles" -> 4,
             "clustered.ops-tool.allSourceFiles" -> 9,
-            "clustered.server.allSourceFiles" -> 0,
             "docs.allSourceFiles" -> 0,
             "clustered.server.ehcache-entity.test.allSourceFiles" -> 16,
             "ehcache-impl.test.allSourceFiles" -> 182,
@@ -132,18 +133,16 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
           ),
           expectedCompileTaskResults = Some(SplitTaskResults(
             successful = SortedSet(
-              "clustered.compile",
               "clustered.ehcache-clustered.compile",
               "clustered.ehcache-common-api.compile",
               "clustered.ehcache-common-api.test.compile",
               "clustered.ehcache-common.compile",
+              "clustered.ehcache-common.test.compile",
               "clustered.integration-test.compile",
               "clustered.ops-tool.compile",
               "clustered.ops-tool.test.compile",
               "clustered.osgi-test.compile",
-              "clustered.server.compile",
               "clustered.test-utils.compile",
-              "demos.compile",
               "docs.compile",
               "ehcache-api.compile",
               "ehcache-api.test.compile",
@@ -156,12 +155,9 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
               "osgi-test.compile",
               "spi-tester.compile"
             ),
-            // [warn] Unexpected javac output: warning: [path] bad path element...ehcache-api/compile-resources": no such file or directory
-            // [warn] error: warnings found and -Werror specified
             failed = SortedSet(
               "clustered.ehcache-client.compile",
               "clustered.ehcache-client.test.compile",
-              "clustered.ehcache-common.test.compile",
               "clustered.integration-test.test.compile",
               "clustered.osgi-test.test.compile",
               "clustered.server.ehcache-entity.compile",
@@ -190,6 +186,7 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
           expectedTestTaskResults = Some(SplitTaskResults(
             successful = SortedSet(
               "clustered.ehcache-common-api.test",
+              "clustered.ehcache-common.test",
               "clustered.ops-tool.test",
               "ehcache-api.test",
               "ehcache-core.test",
@@ -197,7 +194,6 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
             ),
             failed = SortedSet(
               "clustered.ehcache-client.test",
-              "clustered.ehcache-common.test",
               "clustered.integration-test.test",
               "clustered.osgi-test.test",
               "clustered.server.ehcache-entity.test",

@@ -1,12 +1,7 @@
 package mill.integration
 
 import mill.constants.Util
-import mill.integration.MillInitUtils.{
-  SplitTaskResults,
-  defaultInitCommand,
-  defaultInitCommandWithoutMerge,
-  testMillInit
-}
+import mill.integration.MillInitUtils.{SplitTaskResults, testMillInit}
 import utest.*
 
 import scala.collection.immutable.SortedSet
@@ -20,11 +15,11 @@ object MillInitMavenJansiTests extends BuildGenTestSuite {
     val url = "https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip"
 
     test - integrationTest(url) { tester =>
-      import tester._
+      import tester.*
 
       val initRes = eval("init")
       assert(
-        initRes.out.contains(initMessage(1)),
+        initRes.err.contains("""init completed, run "mill resolve _" to list available tasks"""),
         initRes.isSuccess
       )
 
@@ -49,35 +44,6 @@ object MillInitMavenJansiTests extends BuildGenTestSuite {
         publishLocalRes.isSuccess
       )
     }
-
-    test("realistic") - integrationTest(url) { tester =>
-      import tester._
-
-      // set jvmId to test the feature
-      val init =
-        (
-          "init",
-          "--base-module",
-          "JansiModule",
-          "--jvm-id",
-          "11",
-          "--deps-object",
-          "Deps",
-          "--cache-repository",
-          "--process-plugins"
-        )
-      val initRes = eval(init)
-      assert(initRes.isSuccess)
-
-      val compileRes = eval("compile")
-      assert(compileRes.isSuccess)
-
-      val testRes = eval("test")
-      assert(testRes.isSuccess)
-
-      val publishLocalRes = eval("publishLocal")
-      assert(publishLocalRes.isSuccess)
-    }
   }
 }
 
@@ -90,10 +56,9 @@ object MillInitMavenDotEnvTests extends BuildGenTestSuite {
     val url = "https://github.com/shyiko/dotenv/archive/refs/tags/0.1.1.zip"
 
     test - integrationTest(url) { tester =>
-      import tester._
+      import tester.*
 
-      val init = defaultInitCommand
-      val initRes = eval(init)
+      val initRes = eval("init")
       assert(initRes.isSuccess)
 
       val compileRes = eval("__.compile")
@@ -111,7 +76,6 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
     // - module directory and artifact names differ
     // - multi line description, properties
     // - property <jetty.alpnAgent.path> contains quotes
-    // - defines test dependencies in root pom.xml that get propagated to every module
     val url = "https://github.com/netty/netty/archive/refs/tags/netty-4.1.114.Final.zip"
 
     test - integrationTest(url) { tester =>
@@ -119,14 +83,7 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
       if (!Util.isWindows) {
         testMillInit(
           tester,
-          /*
-          `--merge` causes init to fail here:
-          ```text
-          Exception in thread "main" java.lang.NullPointerException: Cannot invoke "mill.main.buildgen.Tree.nodes$default$1()" because "tree" is null
-               at mill.main.buildgen.BuildGenUtil$.writeBuildObject(BuildGenUtil.scala:551)
-          ```
-           */
-          initCommand = defaultInitCommandWithoutMerge :+ "--publish-properties",
+          initCommand = Seq("init"),
           expectedAllSourceFileNums = Map(
             "transport-classes-kqueue.allSourceFiles" -> 29,
             "allSourceFiles" -> 0,
