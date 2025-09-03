@@ -416,7 +416,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       Task.log.info(s"Linking IR to $compileDestination")
     }
     val workerResult = worker.compile(
-      kotlinVersion = kotlinVersion(),
+      kotlinVersion = kotlinVersion,
       target = KotlinWorkerTarget.Js,
       args = compilerArgs,
       sources = inputFiles
