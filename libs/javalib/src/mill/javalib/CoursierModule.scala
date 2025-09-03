@@ -1,5 +1,6 @@
 package mill.javalib
 
+import com.lihaoyi.unroll
 import coursier.cache.FileCache
 import coursier.core.Resolution
 import coursier.core.VariantSelector.VariantMatcher
@@ -235,35 +236,8 @@ object CoursierModule {
       // Introduced in https://github.com/com-lihaoyi/mill/commit/451df6846861a9c7d265bffec0c5fcf07133b320
       @unused offline: Boolean,
       checkGradleModules: Boolean,
-      config: mill.util.CoursierConfig
+      @unroll config: mill.util.CoursierConfig = mill.util.CoursierConfig.default()
   ) {
-
-    // bin-compat shim
-    def this(
-        repositories: Seq[Repository],
-        bind: Dep => BoundDep,
-        mapDependencies: Option[Dependency => Dependency],
-        customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-        coursierCacheCustomizer: Option[
-          coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[
-            coursier.util.Task
-          ]
-        ],
-        resolutionParams: ResolutionParams,
-        offline: Boolean,
-        checkGradleModules: Boolean
-    ) =
-      this(
-        repositories,
-        bind,
-        mapDependencies,
-        customizer,
-        coursierCacheCustomizer,
-        resolutionParams,
-        offline,
-        checkGradleModules,
-        mill.util.CoursierConfig.default()
-      )
 
     /**
      * Class path of the passed dependencies

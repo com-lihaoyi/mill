@@ -1,5 +1,6 @@
 package mill.util
 
+import com.lihaoyi.unroll
 import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
 import coursier.core.{BomDependency, VariantSelector}
 import coursier.error.FetchError.DownloadingArtifacts
@@ -477,7 +478,7 @@ object Jvm {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       checkGradleModules: Boolean = false,
-      config: CoursierConfig
+      @unroll config: CoursierConfig = CoursierConfig.default()
   ): Result[coursier.Artifacts.Result] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
@@ -523,35 +524,6 @@ object Jvm {
     }
   }
 
-  // bin-compat shim
-  def getArtifacts(
-      repositories: Seq[Repository],
-      deps: IterableOnce[Dependency],
-      force: IterableOnce[Dependency],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[Resolution => Resolution],
-      ctx: Option[mill.api.TaskCtx],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      artifactTypes: Option[Set[Type]],
-      resolutionParams: ResolutionParams,
-      checkGradleModules: Boolean
-  ): Result[coursier.Artifacts.Result] =
-    getArtifacts(
-      repositories,
-      deps,
-      force,
-      sources,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      artifactTypes,
-      resolutionParams,
-      checkGradleModules,
-      CoursierConfig.default()
-    )
-
   /**
    * Resolve dependencies using Coursier.
    *
@@ -571,7 +543,7 @@ object Jvm {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       checkGradleModules: Boolean = false,
-      config: CoursierConfig = CoursierConfig.default()
+      @unroll config: CoursierConfig = CoursierConfig.default()
   ): Result[Seq[PathRef]] =
     getArtifacts(
       repositories,
@@ -594,61 +566,21 @@ object Jvm {
       }
     }
 
-  // bin-compat shim
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      deps: IterableOnce[Dependency],
-      force: IterableOnce[Dependency],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[Resolution => Resolution],
-      ctx: Option[mill.api.TaskCtx],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      artifactTypes: Option[Set[Type]],
-      resolutionParams: ResolutionParams,
-      checkGradleModules: Boolean
-  ): Result[Seq[PathRef]] =
-    resolveDependencies(
-      repositories,
-      deps,
-      force,
-      sources,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      artifactTypes,
-      resolutionParams,
-      checkGradleModules,
-      CoursierConfig.default()
-    )
-
   def jvmIndex(
       ctx: Option[mill.api.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      config: CoursierConfig
+      @unroll config: CoursierConfig = CoursierConfig.default()
   ): JvmIndex = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
     coursierCache0.logger.use(jvmIndex0(ctx, coursierCacheCustomizer, config = config))
       .unsafeRun()(using coursierCache0.ec)
   }
 
-  // bin-compat shim
-  def jvmIndex(
-      ctx: Option[mill.api.TaskCtx],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
-  ): JvmIndex =
-    jvmIndex(
-      ctx,
-      coursierCacheCustomizer,
-      CoursierConfig.default()
-    )
-
   def jvmIndex0(
       ctx: Option[mill.api.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       jvmIndexVersion: String = "latest.release",
-      config: CoursierConfig
+      @unroll config: CoursierConfig = CoursierConfig.default()
   ): Task[JvmIndex] = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
     JvmIndex.load(
@@ -661,19 +593,6 @@ object Jvm {
     )
   }
 
-  // bin-compat shim
-  def jvmIndex0(
-      ctx: Option[mill.api.TaskCtx],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      jvmIndexVersion: String
-  ): Task[JvmIndex] =
-    jvmIndex0(
-      ctx,
-      coursierCacheCustomizer,
-      jvmIndexVersion,
-      CoursierConfig.default()
-    )
-
   /**
    * Resolve java home using Coursier.
    *
@@ -685,7 +604,7 @@ object Jvm {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       jvmIndexVersion: String = mill.api.BuildInfo.coursierJvmIndexVersion,
       useShortPaths: Boolean = false,
-      config: CoursierConfig
+      @unroll config: CoursierConfig = CoursierConfig.default()
   ): Result[os.Path] = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
     val shortPathDirOpt = Option.when(useShortPaths) {
@@ -727,23 +646,6 @@ object Jvm {
 
   }
 
-  // bin-compat shim
-  def resolveJavaHome(
-      id: String,
-      ctx: Option[mill.api.TaskCtx],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      jvmIndexVersion: String,
-      useShortPaths: Boolean
-  ): Result[os.Path] =
-    resolveJavaHome(
-      id,
-      ctx,
-      coursierCacheCustomizer,
-      jvmIndexVersion,
-      useShortPaths,
-      CoursierConfig.default()
-    )
-
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
@@ -755,7 +657,7 @@ object Jvm {
       resolutionParams: ResolutionParams = ResolutionParams(),
       boms: IterableOnce[BomDependency] = Nil,
       checkGradleModules: Boolean = false,
-      config: CoursierConfig
+      @unroll config: CoursierConfig = CoursierConfig.default()
   ): Result[Resolution] = {
 
     val rootDeps = deps.iterator
@@ -853,33 +755,6 @@ object Jvm {
         Result.Success(resolution)
     }
   }
-
-  // bin-compat shim
-  def resolveDependenciesMetadataSafe(
-      repositories: Seq[Repository],
-      deps: IterableOnce[Dependency],
-      force: IterableOnce[Dependency],
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[Resolution => Resolution],
-      ctx: Option[mill.api.TaskCtx],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      resolutionParams: ResolutionParams,
-      boms: IterableOnce[BomDependency],
-      checkGradleModules: Boolean
-  ): Result[Resolution] =
-    resolveDependenciesMetadataSafe(
-      repositories,
-      deps,
-      force,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      resolutionParams,
-      boms,
-      checkGradleModules,
-      CoursierConfig.default()
-    )
 
   // Parse a list of repositories from their string representation
   private[mill] def reposFromStrings(repoList: Seq[String]): Result[Seq[Repository]] = {

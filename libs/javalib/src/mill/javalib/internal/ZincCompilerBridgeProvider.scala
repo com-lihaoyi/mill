@@ -122,11 +122,9 @@ object ZincCompilerBridgeProvider {
           if (JvmWorkerUtil.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
           else "scala.tools.nsc.Main"
         )
-        mill.api.ClassLoader.withContextClassLoader(classloader) {
-          compilerMain
-            .getMethod("process", classOf[Array[String]])
-            .invoke(null, argsArray ++ Array("-nowarn"))
-        }
+        compilerMain
+          .getMethod("process", classOf[Array[String]])
+          .invoke(null, argsArray ++ Array("-nowarn"))
       } else {
         throw new IllegalArgumentException("Currently not implemented case.")
       }

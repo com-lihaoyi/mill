@@ -1,5 +1,6 @@
 package mill.javalib.dependency
 
+import com.lihaoyi.unroll
 import mill.api.*
 import mill.api.internal.RootModule0
 import mill.javalib.CoursierConfigModule
@@ -13,7 +14,7 @@ object DependencyUpdatesImpl {
       ctx: TaskCtx,
       rootModule: RootModule0,
       allowPreRelease: Boolean,
-      coursierConfigModule: CoursierConfigModule
+      @unroll coursierConfigModule: CoursierConfigModule = CoursierConfigModule
   ): Seq[ModuleDependenciesUpdates] = {
     // 1. Find all available versions for each dependency
     val allDependencyVersions: Seq[ModuleDependenciesVersions] =
@@ -39,21 +40,6 @@ object DependencyUpdatesImpl {
     val _ = discover // unused but part of public API
     apply(evaluator, ctx, rootModule, allowPreRelease)
   }
-
-  @deprecated("Use the override accepting a CoursierConfigModule instead", "Mill after 1.0.0-RC3")
-  def apply(
-      evaluator: Evaluator,
-      ctx: TaskCtx,
-      rootModule: RootModule0,
-      allowPreRelease: Boolean
-  ): Seq[ModuleDependenciesUpdates] =
-    apply(
-      evaluator,
-      ctx,
-      rootModule,
-      allowPreRelease,
-      CoursierConfigModule
-    )
 
   def showAllUpdates(
       updates: Seq[ModuleDependenciesUpdates],

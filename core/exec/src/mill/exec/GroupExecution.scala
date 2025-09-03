@@ -571,16 +571,21 @@ private object GroupExecution {
     os.dynamicPwdFunction.withValue(destFunc) {
       os.checker.withValue(executionChecker) {
         mill.api.SystemStreamsUtils.withStreams(streams) {
-          mill.api.ClassLoader.withContextClassLoader(classLoader) {
-            val exposedEvaluator =
-              if (exclusive) evaluator.asInstanceOf[Evaluator]
-              else new EvaluatorProxy(() =>
-                sys.error(
-                  "No evaluator available here; Evaluator is only available in exclusive commands"
-                )
+          val exposedEvaluator =
+            if (exclusive) evaluator.asInstanceOf[Evaluator]
+            else new EvaluatorProxy(() =>
+              sys.error(
+                "No evaluator available here; Evaluator is only available in exclusive commands"
               )
+            )
 
-            Evaluator.withCurrentEvaluator(exposedEvaluator) {
+          Evaluator.withCurrentEvaluator(exposedEvaluator) {
+            // Ensure the class loader used to load user code
+            // is set as context class loader when running user code.
+            // This is useful if users rely on libraries that look
+            // for resources added by other libraries, by using
+            // using java.util.ServiceLoader for example.
+            mill.api.ClassLoader.withContextClassLoader(classLoader) {
               if (!exclusive) t
               else {
                 logger.prompt.reportKey(Seq(counterMsg))
