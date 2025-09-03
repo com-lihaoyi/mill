@@ -5,6 +5,7 @@ import coursier.params.ResolutionParams
 import mill.*
 import mill.api.daemon.MillURLClassLoader
 import mill.api.{ModuleRef, PathRef, Task}
+import mill.kotlinlib.ksp2.{KspWorker, KspWorkerArgs}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
 import mill.util.Jvm
@@ -314,7 +315,7 @@ trait KspModule extends KotlinModule { outer =>
   def ksp2InProgramToolsClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       Seq(
-        Dep.millProjectModule("mill-libs-kotlinlib-ksp")
+        Dep.millProjectModule("mill-libs-kotlinlib-ksp2")
       ) ++ ksp2ToolsDeps(),
       resolutionParamsMapOpt = Some(addJvmVariantAttributes)
     )
@@ -391,15 +392,32 @@ trait KspModule extends KotlinModule { outer =>
 
   }
 
-  def ksp2Classloader: Worker[MillURLClassLoader] = Task.Worker {
+  /**
+   * The in-process worker instance of the KSP 2 processor.
+   * The classloader contains [[ksp2InProgramToolsClasspath]], which includes the KSP 2 Worker
+   * and the user defined symbol processors via [[kotlinSymbolProcessors]]. The classloader used here
+   * is also a parent of [[kotlinSymbolProcessorClassloader]], so that classes are shared between
+   * the KSP API and the user defined symbol processors.
+   */
+  def ksp2Worker = Task.Worker {
     Jvm.createClassLoader(
-      ksp2InProgramToolsClasspath().map(_.path)
-    )
+      classPath = ksp2InProgramToolsClasspath().map(_.path),
+      parent = getClass.getClassLoader
+    ).loadClass("mill.kotlinlib.ksp2.worker.KspWorkerImpl").getConstructor().newInstance()
+      .asInstanceOf[KspWorker]
   }
 
+  /**
+   * The classloader with [[kotlinSymbolProcessorsResolved]] classpath. This is a child of
+   * [[ksp2Worker]] classloader, as classes are shared between the [[ksp2ToolsDeps]]  and
+   * [[kotlinSymbolProcessors]].
+   *
+   * For more info see reference implementation: [[https://github.com/google/ksp/blob/main/docs/ksp2entrypoints.md]]
+   */
   def kotlinSymbolProcessorClassloader: Worker[MillURLClassLoader] = Task.Worker {
     Jvm.createClassLoader(
-      kotlinSymbolProcessorsResolved().map(_.path)
+      kotlinSymbolProcessorsResolved().map(_.path),
+      parent = ksp2Worker().getClass.getClassLoader
     )
   }
 
@@ -413,8 +431,6 @@ trait KspModule extends KotlinModule { outer =>
    * provided from [[kspWorkerModule]]
    */
   private def generatedSourcesWithKsp2: T[GeneratedKspSources] = Task {
-
-    val processorResolvedClasspath = kotlinSymbolProcessorsResolved().map(_.path)
 
     val kspOutputDir = Task.dest / "generated"
     val java = kspOutputDir / "java"
@@ -453,13 +469,13 @@ trait KspModule extends KotlinModule { outer =>
     ) ++ ksp2Args()
 
     val kspLogLevel = if (Task.log.debugEnabled)
-      "Debug"
+      mill.kotlinlib.ksp2.LogLevel.Debug
     else
-      "Warn"
+      mill.kotlinlib.ksp2.LogLevel.Warn
 
     kspWorkerModule().runKsp(
-      kspLogLevel,
-      ksp2Classloader(),
+      KspWorkerArgs(kspLogLevel),
+      ksp2Worker(),
       kotlinSymbolProcessorClassloader(),
       args
     )

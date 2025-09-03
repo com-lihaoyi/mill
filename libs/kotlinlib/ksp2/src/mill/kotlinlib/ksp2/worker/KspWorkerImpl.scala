@@ -1,4 +1,6 @@
-package mill.kotlinlib.ksp.worker
+package mill.kotlinlib.ksp2.worker
+
+import mill.kotlinlib.ksp2.KspWorker
 
 import com.google.devtools.ksp.impl.KotlinSymbolProcessing
 import com.google.devtools.ksp.processing.{
@@ -6,12 +8,13 @@ import com.google.devtools.ksp.processing.{
   KspJvmArgParserKt,
   SymbolProcessorProvider
 }
+import mill.kotlinlib.ksp2.{KspWorkerArgs, LogLevel}
 
 import java.net.URLClassLoader
 import java.util.ServiceLoader
 import scala.jdk.CollectionConverters.*
 
-object KspWorker {
+class KspWorkerImpl extends KspWorker {
 
   private def toGradleLogLevel(logLevel: LogLevel) = logLevel match {
     case LogLevel.Debug => KspGradleLogger.LOGGING_LEVEL_LOGGING
@@ -21,16 +24,12 @@ object KspWorker {
   }
 
   def runKsp(
-      workerArgs: Map[String, String],
-      symbolProcessingArgs: Seq[String],
-      symbolProcessorClassloader: URLClassLoader
+      symbolProcessorClassloader: URLClassLoader,
+      kspWorkerArgs: KspWorkerArgs,
+      symbolProcessingArgs: Seq[String]
   ): Unit = {
 
-    val logLevelStr = workerArgs.getOrElse("logLevel", LogLevel.Info.toString)
-    val logLevel =
-      LogLevel.values.find(_.toString == logLevelStr).getOrElse(LogLevel.Warn)
-
-    val gradleLogLevel = toGradleLogLevel(logLevel)
+    val gradleLogLevel = toGradleLogLevel(kspWorkerArgs.logLevel)
 
     val config = {
       val configClasspath = KspJvmArgParserKt.kspJvmArgParser(symbolProcessingArgs.toArray)
@@ -38,7 +37,9 @@ object KspWorker {
     }
 
     val processorProvidersSearch = ServiceLoader.load(
-      symbolProcessorClassloader.loadClass("com.google.devtools.ksp.processing.SymbolProcessorProvider"),
+      symbolProcessorClassloader.loadClass(
+        "com.google.devtools.ksp.processing.SymbolProcessorProvider"
+      ),
       symbolProcessorClassloader
     ).asScala.toList
 
@@ -47,6 +48,13 @@ object KspWorker {
 
     val logger = new KspGradleLogger(gradleLogLevel)
 
+    println("Executing KSP with the following arguments:")
+    println(s"  - logLevel: ${kspWorkerArgs.logLevel}")
+    println(
+      s"  - symbolProcessorClassloader URLs: ${symbolProcessorClassloader.getURLs.mkString(", ")}"
+    )
+    println(s"  - symbolProcessingArgs: ${symbolProcessingArgs.mkString(" ")}")
+    println(s"  - discovered ${processorProviders.size} SymbolProcessorProvider(s)")
     val exitCode = new KotlinSymbolProcessing(config, processorProviders.asJava, logger).execute()
 
     if (exitCode.getCode != 0) {

@@ -10,7 +10,7 @@ import millbuild.*
 //  because currently there is no previous artifact version
 object `package` extends MillStableScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(build.libs.javalib, build.libs.javalib.testrunner, api)
+  def moduleDeps = Seq(build.libs.javalib, build.libs.javalib.testrunner, api, `ksp2-api`)
   def localTestExtraModules =
     super.localTestExtraModules ++ Seq(worker)
 
@@ -68,7 +68,10 @@ object `package` extends MillStableScalaModule with BuildInfo {
       )
   }
 
-  object ksp extends MillKotlinModule {
+  object `ksp2-api` extends MillKotlinModule
+
+  object ksp2 extends MillKotlinModule {
+    def moduleDeps = Seq(`ksp2-api`)
     override def compileMvnDeps: T[Seq[Dep]] = super.compileMvnDeps() ++ Seq(
       mvn"com.google.devtools.ksp:symbol-processing-common-deps:${Deps.kotlinVersion}-${Deps.kspVersion}",
       mvn"com.google.devtools.ksp:symbol-processing-api:${Deps.kotlinVersion}-${Deps.kspVersion}",

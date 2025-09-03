@@ -1,3 +1,3 @@
-package mill.kotlinlib.ksp.worker
+package mill.kotlinlib.ksp2
 
 case class KspWorkerArgs(logLevel: LogLevel)
