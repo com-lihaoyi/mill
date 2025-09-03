@@ -684,9 +684,9 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       (PublishData.withConcretePath(payloadAsMap), meta)
   }
   object PublishData {
-    implicit def jsonify: upickle.default.ReadWriter[PublishData] = {
+    implicit def jsonify: upickle.ReadWriter[PublishData] = {
       import mill.javalib.publish.JsonFormatters.artifactFormat
-      upickle.default.macroRW
+      upickle.macroRW
     }
 
     def apply(meta: Artifact, payload: Map[os.SubPath, PathRef]): PublishData =

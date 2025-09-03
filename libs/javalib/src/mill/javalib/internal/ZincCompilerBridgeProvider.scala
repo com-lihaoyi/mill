@@ -2,7 +2,7 @@ package mill.javalib.internal
 
 import mill.api.daemon.internal.internal
 import mill.javalib.api.JvmWorkerUtil
-import upickle.default.ReadWriter
+import upickle.ReadWriter
 
 import java.io.File
 import scala.util.Properties.isWin

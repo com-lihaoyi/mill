@@ -2,7 +2,7 @@ package mill.javalib.spotless
 
 import mill.api.{BuildCtx, PathRef}
 import upickle.core.Visitor
-import upickle.default.*
+import upickle.*
 
 import scala.util.DynamicVariable
 
@@ -293,7 +293,7 @@ object Format {
         def write0[V](out: Visitor[?, V], v: RelPathRef) =
           summon[ReadWriter[PathRef]].write0(out, v.ref)
         def mapNonNullsFunction(t: String) =
-          if t.startsWith("ref:") then RelPathRef(upickle.default.read[PathRef](t))
+          if t.startsWith("ref:") then RelPathRef(upickle.read[PathRef](t))
           else t
       }
   }

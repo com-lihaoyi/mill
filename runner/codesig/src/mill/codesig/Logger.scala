@@ -5,22 +5,22 @@ class Logger(mandatoryLogFolder: os.Path, logFolder: Option[os.Path]) {
   os.remove.all(mandatoryLogFolder)
   private var count = 1
 
-  def log0[T: upickle.default.Writer](
+  def log0[T: upickle.Writer](
       p: os.Path,
       res: sourcecode.Text[T],
       prefix: String = ""
   ): Unit = {
     os.write(
       p / s"$prefix${res.source}.json",
-      upickle.default.stream(res.value, indent = 2),
+      upickle.stream(res.value, indent = 2),
       createFolders = true
     )
     count += 1
   }
-  def log[T: upickle.default.Writer](t: => sourcecode.Text[T], prefix: String = ""): Unit = {
+  def log[T: upickle.Writer](t: => sourcecode.Text[T], prefix: String = ""): Unit = {
     logFolder.foreach(log0(_, t, s"$count-$prefix"))
   }
-  def mandatoryLog[T: upickle.default.Writer](
+  def mandatoryLog[T: upickle.Writer](
       t: => sourcecode.Text[T],
       prefix: String = ""
   ): Unit = {

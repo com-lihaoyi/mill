@@ -18,7 +18,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
   ]]) = {
     val res = tester.eval(("show", "countClassLoaders"), check = true)
 
-    val read = upickle.default.read[Map[String, Int]](res.out).toSeq.sorted
+    val read = upickle.read[Map[String, Int]](res.out).toSeq.sorted
 
     assertGoldenLiteral(read, expected)
   }
@@ -27,7 +27,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
       expected: utest.framework.GoldenFix.Span[Seq[String]]
   ) = {
     val out = tester.eval(("show", "countThreads")).out
-    val read = upickle.default.read[Seq[String]](out)
+    val read = upickle.read[Seq[String]](out)
     // Filter out threads from the thread pool that runs tasks
     // 'countThreads' marks the thread that runs it with a '!' prefix
     val taskPoolPrefixOpt = read

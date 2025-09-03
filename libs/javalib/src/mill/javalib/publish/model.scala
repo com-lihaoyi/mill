@@ -1,7 +1,7 @@
 package mill.javalib.publish
 
 import mill.javalib.Dep
-import upickle.default.ReadWriter as RW
+import upickle.ReadWriter as RW
 import JsonFormatters._
 case class Artifact(group: String, id: String, version: String) derives RW {
   require(

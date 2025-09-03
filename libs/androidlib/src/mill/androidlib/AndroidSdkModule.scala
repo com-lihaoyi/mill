@@ -8,7 +8,7 @@ import mill.*
 import mill.api.{Result, TaskCtx}
 import mill.androidlib.Versions
 import scala.util.Properties.{isLinux, isMac, isWin}
-import upickle.default.ReadWriter
+import upickle.ReadWriter
 
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets

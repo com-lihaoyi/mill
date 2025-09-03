@@ -32,7 +32,7 @@ object ResolveDepsTests extends TestSuite {
       } else {
         assert(unparsed.isEmpty)
       }
-      assert(upickle.default.read[Dep](upickle.default.write(dep)) == dep)
+      assert(upickle.read[Dep](upickle.write(dep)) == dep)
     }
   }
 

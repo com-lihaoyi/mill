@@ -65,7 +65,7 @@ trait VersionFileModule extends Module {
       case _: Version.Snapshot => s"Setting next version to $version"
     }
 
-  import upickle.default._
+  import upickle._
 
   implicit val shellableReadWriter: ReadWriter[os.Shellable] =
     readwriter[Seq[String]].bimap(

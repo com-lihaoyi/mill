@@ -22,7 +22,6 @@ bootstrap script, included. You can also download the bootstrap script manually:
 ----
 > curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o mill
 > chmod +x mill
-> echo "//| mill-version: {mill-version}" > build.mill
 > ./mill version
 {mill-version}
 ----
@@ -31,7 +30,6 @@ bootstrap script, included. You can also download the bootstrap script manually:
 [source,console,subs="verbatim,attributes"]
 ----
 > curl.exe -L {mill-download-url}/mill-dist-{mill-version}-mill.bat -o mill.bat
-> echo "//| mill-version: {mill-version}" > build.mill
 > ./mill version
 {mill-version}
 ----
@@ -62,6 +60,10 @@ being incompatible with the version expected by your build.
 In-project bootstrap scripts are also useful for running Mill in CI/CD, ensuring
 that your build server like Jenkins or Github Actions has the correct version of Mill
 present to build, compile or test your code.
+
+You can also configure a `//| mill-version` in your xref:cli/build-header.adoc[build header]
+if you want to try a different version, but the best practice when upgrading is to just
+update your bootstrap scripts which ensures the script version and Mill version are compatible.
 
 If you are starting a new project using a Mill bootstrap script, you can use the
 xref:cli/builtin-commands.adoc#_init[mill init] to initialize the project

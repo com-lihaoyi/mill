@@ -4,7 +4,7 @@ import mill.codesig.JvmModel.*
 import mill.codesig.JvmModel.JType.Cls as JCls
 import mill.internal.SpanningForest
 import mill.internal.SpanningForest.breadthFirst
-import upickle.default.{ReadWriter, macroRW}
+import upickle.{ReadWriter, macroRW}
 
 case class ResolvedCalls(
     localCalls: Map[MethodCall, ResolvedCalls.MethodCallInfo],

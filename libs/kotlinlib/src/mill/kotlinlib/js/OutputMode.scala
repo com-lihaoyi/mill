@@ -1,6 +1,6 @@
 package mill.kotlinlib.js
 
-import upickle.default.ReadWriter
+import upickle.ReadWriter
 
 private[kotlinlib] enum OutputMode derives ReadWriter {
   case Js

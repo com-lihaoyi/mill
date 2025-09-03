@@ -47,8 +47,8 @@ object MillRpcRequestId {
     else Right(MillRpcRequestId(parts.flatten))
   }
 
-  given rw: upickle.default.ReadWriter[MillRpcRequestId] =
-    upickle.default.readwriter[String].bimap(
+  given rw: upickle.ReadWriter[MillRpcRequestId] =
+    upickle.readwriter[String].bimap(
       _.toString,
       fromString(_).fold(err => throw IllegalArgumentException(err), identity)
     )

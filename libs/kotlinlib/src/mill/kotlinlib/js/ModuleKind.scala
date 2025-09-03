@@ -1,6 +1,6 @@
 package mill.kotlinlib.js
 
-import upickle.default.ReadWriter
+import upickle.ReadWriter
 
 enum ModuleKind(val extension: String) derives ReadWriter {
   case NoModule extends ModuleKind("js")

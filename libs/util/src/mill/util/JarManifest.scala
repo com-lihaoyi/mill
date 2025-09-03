@@ -4,7 +4,7 @@ import mill.api.BuildInfo
 import mill.api.internal.Mirrors
 import mill.api.internal.Mirrors.autoMirror
 import mill.util.JarManifest
-import upickle.default.ReadWriter
+import upickle.ReadWriter
 
 import java.util.jar.{Attributes, Manifest}
 
@@ -67,6 +67,6 @@ object JarManifest {
 
   private given Root_JarManifest: Mirrors.Root[JarManifest] = Mirrors.autoRoot[JarManifest]
 
-  implicit val jarManifestRW: ReadWriter[JarManifest] = upickle.default.macroRW
+  implicit val jarManifestRW: ReadWriter[JarManifest] = upickle.macroRW
 
 }

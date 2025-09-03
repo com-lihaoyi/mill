@@ -14,7 +14,7 @@ object ClientApp {
     ).`then`[String](response => response.text())
       .`then`[Unit] { text =>
         todoApp.innerHTML = Shared
-          .renderBody(upickle.default.read[Seq[Todo]](text), state)
+          .renderBody(upickle.read[Seq[Todo]](text), state)
           .render
 
         initListeners()
@@ -66,7 +66,7 @@ object ClientApp {
               newTodoInput.value = ""
 
               todoApp.innerHTML = Shared
-                .renderBody(upickle.default.read[Seq[Todo]](text), state)
+                .renderBody(upickle.read[Seq[Todo]](text), state)
                 .render
 
               initListeners()

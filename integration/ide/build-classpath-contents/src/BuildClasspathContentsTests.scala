@@ -8,7 +8,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
     test("test") - integrationTest { tester =>
       val result1 =
         tester.eval(("--meta-level", "1", "show", "compileClasspath"), stderr = os.Inherit)
-      val deserialized = upickle.default.read[Seq[mill.api.PathRef]](result1.out)
+      val deserialized = upickle.read[Seq[mill.api.PathRef]](result1.out)
       val millPublishedJars = deserialized
         .map(_.path.last)
         .filter(_.startsWith("mill-"))
