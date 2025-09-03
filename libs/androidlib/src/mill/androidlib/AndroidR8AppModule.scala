@@ -234,9 +234,17 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
     r8ArgsBuilder ++= libArgs
 
-    // ProGuard configuration files: add our extra rules file and all provided config files.
+    // ProGuard configuration files: add our extra rules file,
+    // all provided config files and the common rules.
     val pgArgs =
-      Seq("--pg-conf", androidProguard().path.toString, "--pg-conf", extraRulesFile.toString)
+      Seq(
+        "--pg-conf",
+        androidProguard().path.toString,
+        "--pg-conf",
+        extraRulesFile.toString,
+        "--pg-conf",
+        commonProguardFile().path.toString
+      )
 
     r8ArgsBuilder ++= pgArgs
 
