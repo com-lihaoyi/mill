@@ -137,6 +137,10 @@ trait AndroidR8AppModule extends AndroidAppModule {
       androidReleaseSettings()
   }
 
+  def androidR8ExtraRules: T[Seq[String]] = Task {
+    Seq.empty[String]
+  }
+
   /**
    * Prepares the R8 cli command to build this android app!
    * @return
@@ -159,12 +163,14 @@ trait AndroidR8AppModule extends AndroidAppModule {
     val baselineOutOpt = destDir / "baseline-profile-rewritten.txt"
     destDir / "res"
 
-    // Create an extra ProGuard config file that instructs R8 to print seeds and usage.
+    // Instruct R8 to print seeds and usage.
+    val extraRules = androidR8ExtraRules() ++ Seq(
+      s"-printseeds $seedsOut",
+      s"-printusage $usageOut"
+    )
+    // Create an extra ProGuard config file
     val extraRulesFile = destDir / "extra-rules.pro"
-    val extraRulesContent =
-      s"""-printseeds ${seedsOut.toString}
-         |-printusage ${usageOut.toString}
-         |""".stripMargin.trim
+    val extraRulesContent = extraRules.mkString("\n")
     os.write.over(extraRulesFile, extraRulesContent)
 
     val classpathClassFiles: Seq[PathRef] = androidPackagedClassfiles()
@@ -229,7 +235,8 @@ trait AndroidR8AppModule extends AndroidAppModule {
     r8ArgsBuilder ++= libArgs
 
     // ProGuard configuration files: add our extra rules file and all provided config files.
-    val pgArgs = Seq("--pg-conf", androidProguard().path.toString)
+    val pgArgs =
+      Seq("--pg-conf", androidProguard().path.toString, "--pg-conf", extraRulesFile.toString)
 
     r8ArgsBuilder ++= pgArgs
 
