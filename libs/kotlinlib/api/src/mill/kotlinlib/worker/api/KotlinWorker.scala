@@ -7,10 +7,12 @@ package mill.kotlinlib.worker.api
 
 import mill.api.TaskCtx
 import mill.api.Result
+import mill.util.Version
 
 trait KotlinWorker {
 
   def compile(
+      kotlinVersion: String,
       target: KotlinWorkerTarget,
       args: Seq[String],
       sources: Seq[os.Path]

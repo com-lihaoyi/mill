@@ -359,9 +359,10 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
         val workerResult =
           KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
             _.compile(
-              KotlinWorkerTarget.Jvm,
-              compilerArgs,
-              kotlinSourceFiles ++ javaSourceFiles
+              kotlinVersion = kotlinVersion(),
+              target = KotlinWorkerTarget.Jvm,
+              args = compilerArgs,
+              sources = kotlinSourceFiles ++ javaSourceFiles
             )
           }
 
