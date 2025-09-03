@@ -392,6 +392,12 @@ trait KspModule extends KotlinModule { outer =>
 
   }
 
+  /**
+   * The classloader with [[ksp2InProgramToolsClasspath]], which includes the KSP 2 Worker
+   * and the user defined symbol processors via [[kotlinSymbolProcessors]]. This classloader is a
+   * parent of [[kotlinSymbolProcessorClassloader]] as classes are shared between the [[ksp2ToolsDeps]]
+   * and [[kotlinSymbolProcessors]] (symbol processors depend on the KSP API).
+   */
   def ksp2WorkerClassloader: Worker[MillURLClassLoader] = Task.Worker {
     Jvm.createClassLoader(
       classPath = ksp2InProgramToolsClasspath().map(_.path),
@@ -403,8 +409,7 @@ trait KspModule extends KotlinModule { outer =>
    * The in-process worker instance of the KSP 2 processor.
    * The classloader contains [[ksp2InProgramToolsClasspath]], which includes the KSP 2 Worker
    * and the user defined symbol processors via [[kotlinSymbolProcessors]]. The classloader used here
-   * is also a parent of [[kotlinSymbolProcessorClassloader]], so that classes are shared between
-   * the KSP API and the user defined symbol processors.
+   * is [[ksp2WorkerClassloader]]
    */
   def ksp2Worker: Worker[KspWorker] = Task.Worker {
     ksp2WorkerClassloader()
