@@ -3,6 +3,7 @@ package mill.kotlinlib.ksp
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.*
+import mill.api.daemon.MillURLClassLoader
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
@@ -314,7 +315,7 @@ trait KspModule extends KotlinModule { outer =>
     defaultResolver().classpath(
       Seq(
         Dep.millProjectModule("mill-libs-kotlinlib-ksp")
-      ) ++ ksp2ToolsDeps() ++ kotlinSymbolProcessors(),
+      ) ++ ksp2ToolsDeps(),
       resolutionParamsMapOpt = Some(addJvmVariantAttributes)
     )
   }
@@ -390,6 +391,18 @@ trait KspModule extends KotlinModule { outer =>
 
   }
 
+  def ksp2Classloader: Worker[MillURLClassLoader] = Task.Worker {
+    Jvm.createClassLoader(
+      ksp2InProgramToolsClasspath().map(_.path)
+    )
+  }
+
+  def kotlinSymbolProcessorClassloader: Worker[MillURLClassLoader] = Task.Worker {
+    Jvm.createClassLoader(
+      kotlinSymbolProcessorsResolved().map(_.path)
+    )
+  }
+
   def kspWorkerModule: ModuleRef[KspWorkerModule] = ModuleRef(KspWorkerModule)
 
   /**
@@ -402,7 +415,6 @@ trait KspModule extends KotlinModule { outer =>
   private def generatedSourcesWithKsp2: T[GeneratedKspSources] = Task {
 
     val processorResolvedClasspath = kotlinSymbolProcessorsResolved().map(_.path)
-    val processorClasspath = processorResolvedClasspath.mkString(File.pathSeparator)
 
     val kspOutputDir = Task.dest / "generated"
     val java = kspOutputDir / "java"
@@ -438,7 +450,7 @@ trait KspModule extends KotlinModule { outer =>
       s"-api-version=${kspApiVersion()}",
       processorOptions,
       s"-map-annotation-arguments-in-java=false"
-    ) ++ ksp2Args() :+ processorClasspath
+    ) ++ ksp2Args()
 
     val kspLogLevel = if (Task.log.debugEnabled)
       "Debug"
@@ -447,7 +459,8 @@ trait KspModule extends KotlinModule { outer =>
 
     kspWorkerModule().runKsp(
       kspLogLevel,
-      ksp2InProgramToolsClasspath(),
+      ksp2Classloader(),
+      kotlinSymbolProcessorClassloader(),
       args
     )
 

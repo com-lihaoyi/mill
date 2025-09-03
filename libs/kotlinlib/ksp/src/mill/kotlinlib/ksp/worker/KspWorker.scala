@@ -7,6 +7,7 @@ import com.google.devtools.ksp.processing.{
   SymbolProcessorProvider
 }
 
+import java.net.URLClassLoader
 import java.util.ServiceLoader
 import scala.jdk.CollectionConverters.*
 
@@ -19,7 +20,11 @@ object KspWorker {
     case LogLevel.Error => KspGradleLogger.LOGGING_LEVEL_ERROR
   }
 
-  def runKsp(workerArgs: Map[String, String], symbolProcessingArgs: Seq[String]): Unit = {
+  def runKsp(
+      workerArgs: Map[String, String],
+      symbolProcessingArgs: Seq[String],
+      symbolProcessorClassloader: URLClassLoader
+  ): Unit = {
 
     val logLevelStr = workerArgs.getOrElse("logLevel", LogLevel.Info.toString)
     val logLevel =
@@ -32,11 +37,9 @@ object KspWorker {
       configClasspath.getFirst
     }
 
-    val processorClassloader = getClass.getClassLoader
-
     val processorProvidersSearch = ServiceLoader.load(
-      processorClassloader.loadClass("com.google.devtools.ksp.processing.SymbolProcessorProvider"),
-      processorClassloader
+      symbolProcessorClassloader.loadClass("com.google.devtools.ksp.processing.SymbolProcessorProvider"),
+      symbolProcessorClassloader
     ).asScala.toList
 
     val processorProviders: List[SymbolProcessorProvider] =
