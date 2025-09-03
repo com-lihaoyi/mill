@@ -399,7 +399,7 @@ trait KspModule extends KotlinModule { outer =>
    * is also a parent of [[kotlinSymbolProcessorClassloader]], so that classes are shared between
    * the KSP API and the user defined symbol processors.
    */
-  def ksp2Worker = Task.Worker {
+  def ksp2Worker: Worker[KspWorker] = Task.Worker {
     Jvm.createClassLoader(
       classPath = ksp2InProgramToolsClasspath().map(_.path),
       parent = getClass.getClassLoader

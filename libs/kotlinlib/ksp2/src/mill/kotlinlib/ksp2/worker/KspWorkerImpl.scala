@@ -48,13 +48,6 @@ class KspWorkerImpl extends KspWorker {
 
     val logger = new KspGradleLogger(gradleLogLevel)
 
-    println("Executing KSP with the following arguments:")
-    println(s"  - logLevel: ${kspWorkerArgs.logLevel}")
-    println(
-      s"  - symbolProcessorClassloader URLs: ${symbolProcessorClassloader.getURLs.mkString(", ")}"
-    )
-    println(s"  - symbolProcessingArgs: ${symbolProcessingArgs.mkString(" ")}")
-    println(s"  - discovered ${processorProviders.size} SymbolProcessorProvider(s)")
     val exitCode = new KotlinSymbolProcessing(config, processorProviders.asJava, logger).execute()
 
     if (exitCode.getCode != 0) {
