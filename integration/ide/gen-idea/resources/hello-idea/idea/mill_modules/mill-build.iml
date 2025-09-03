@@ -68,6 +68,7 @@
         <orderEntry type="library" name="mill-libs-javalib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-javascriptlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-kotlinlib-api_3.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-kotlinlib-ksp2-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-kotlinlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-pythonlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-rpc_3.jar" level="project"/>
