@@ -19,9 +19,8 @@ class KotlinWorkerImpl extends KotlinWorker {
   )(implicit
       ctx: TaskCtx
   ): Result[Unit] = {
-    ctx.log.debug(s"Using Kotlin ${kotlinVersion} compiler arguments: " + args.map(v =>
-      s"'${v}'"
-    ).mkString(" "))
+    ctx.log.debug(s"Using Kotlin ${kotlinVersion} compiler arguments: " +
+      args.map(v => s"'${v}'").mkString(" "))
 
     val kv = Version.parse(kotlinVersion)
 
