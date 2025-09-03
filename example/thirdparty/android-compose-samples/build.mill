@@ -21,11 +21,6 @@ object JetLagged extends mill.api.Module {
 
     def androidIsDebug = true
 
-    def androidR8ExtraRules = Seq(
-      "-dontwarn androidx.window.extensions.**",
-      "-dontwarn androidx.window.sidecar.**"
-    )
-
     override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
@@ -148,10 +143,6 @@ object JetNews extends mill.api.Module {
     def kotlinLanguageVersion = Versions.kotlinLanguageVersion
 
     def androidIsDebug = true
-
-    // FIXME: ideally R8 should compile without erroring, but the app seems to be working
-    // without some reportedly missing classes.
-    override def androidR8Args = Seq("--map-diagnostics", "error", "warning")
 
     override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(
