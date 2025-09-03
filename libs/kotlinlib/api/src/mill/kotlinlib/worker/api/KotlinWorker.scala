@@ -7,7 +7,6 @@ package mill.kotlinlib.worker.api
 
 import mill.api.TaskCtx
 import mill.api.Result
-import mill.util.Version
 
 trait KotlinWorker {
 

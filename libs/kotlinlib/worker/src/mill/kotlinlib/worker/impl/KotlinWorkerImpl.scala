@@ -19,13 +19,16 @@ class KotlinWorkerImpl extends KotlinWorker {
   )(implicit
       ctx: TaskCtx
   ): Result[Unit] = {
-    ctx.log.debug(s"Using Kotlin ${kotlinVersion} compiler arguments: " + args.map(v => s"'${v}'").mkString(" "))
+    ctx.log.debug(s"Using Kotlin ${kotlinVersion} compiler arguments: " + args.map(v =>
+      s"'${v}'"
+    ).mkString(" "))
 
     val kv = Version.parse(kotlinVersion)
 
     val (exitCode, exitCodeName) = target match {
 
-      case KotlinWorkerTarget.Jvm if kv.isNewerThan(Version.parse("2.0.0"))(Version.IgnoreQualifierOrdering) =>
+      case KotlinWorkerTarget.Jvm
+          if kv.isNewerThan(Version.parse("2.0.0"))(Version.IgnoreQualifierOrdering) =>
         // Use dedicated class to load classes lazily
         JvmCompileBtApiImpl().compile(args, sources)
 
