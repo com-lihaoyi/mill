@@ -6,6 +6,6 @@ final case class ModuleDependenciesUpdates(
 )
 
 object ModuleDependenciesUpdates {
-  implicit val rw: upickle.default.ReadWriter[ModuleDependenciesUpdates] =
-    upickle.default.macroRW
+  implicit val rw: upickle.ReadWriter[ModuleDependenciesUpdates] =
+    upickle.macroRW
 }

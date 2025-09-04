@@ -44,7 +44,7 @@ object VersionTests extends TestSuite {
       test("upickle") {
         val in = Version.of("1.2.3")
         val out = Version.readWriter.visitString(
-          Version.readWriter.write(upickle.default.StringReader, in),
+          Version.readWriter.write(upickle.StringReader, in),
           0
         )
         assert(in == out)

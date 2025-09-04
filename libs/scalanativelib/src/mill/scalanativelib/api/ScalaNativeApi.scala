@@ -1,6 +1,6 @@
 package mill.scalanativelib.api
 
-import upickle.default._
+import upickle._
 
 sealed abstract class LTO(val value: String)
 object LTO {

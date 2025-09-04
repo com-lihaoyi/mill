@@ -11,7 +11,7 @@ import mill.server.Server
 import mill.util.Timed
 import org.apache.logging.log4j.core.util.NullOutputStream
 import sbt.internal.util.ConsoleOut
-import upickle.default.ReadWriter
+import upickle.ReadWriter
 
 import java.io.PrintStream
 

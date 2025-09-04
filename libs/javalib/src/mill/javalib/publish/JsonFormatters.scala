@@ -1,12 +1,12 @@
 package mill.javalib.publish
 
-import upickle.default.{ReadWriter => RW}
+import upickle.{ReadWriter => RW}
 
 trait JsonFormatters {
-  implicit lazy val artifactFormat: RW[Artifact] = upickle.default.macroRW
-  implicit lazy val developerFormat: RW[Developer] = upickle.default.macroRW
-  implicit lazy val licenseFormat: RW[License] = upickle.default.macroRW
-  implicit lazy val versionControlFormat: RW[VersionControl] = upickle.default.macroRW
-  implicit lazy val pomSettingsFormat: RW[PomSettings] = upickle.default.macroRW
+  implicit lazy val artifactFormat: RW[Artifact] = upickle.macroRW
+  implicit lazy val developerFormat: RW[Developer] = upickle.macroRW
+  implicit lazy val licenseFormat: RW[License] = upickle.macroRW
+  implicit lazy val versionControlFormat: RW[VersionControl] = upickle.macroRW
+  implicit lazy val pomSettingsFormat: RW[PomSettings] = upickle.macroRW
 }
 object JsonFormatters extends JsonFormatters

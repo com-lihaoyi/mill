@@ -1,7 +1,7 @@
 package mill.rpc
 
 import pprint.TPrint
-import upickle.default.ReadWriter
+import upickle.ReadWriter
 
 trait MillRpcMessage {
   type Response

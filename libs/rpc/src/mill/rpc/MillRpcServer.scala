@@ -2,7 +2,7 @@ package mill.rpc
 
 import mill.api.daemon.Logger
 import pprint.TPrint
-import upickle.default.{Reader, Writer}
+import upickle.{Reader, Writer}
 
 import scala.util.control.NonFatal
 

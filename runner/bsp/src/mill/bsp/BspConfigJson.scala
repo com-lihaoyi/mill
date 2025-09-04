@@ -1,6 +1,6 @@
 package mill.bsp
 
-import upickle.default._
+import upickle._
 
 private case class BspConfigJson(
     name: String,

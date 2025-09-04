@@ -1,7 +1,7 @@
 package mill.rpc
 
 import mill.api.daemon.Logger
-import upickle.default.ReadWriter
+import upickle.ReadWriter
 import utest.*
 
 import java.util.concurrent.ArrayBlockingQueue

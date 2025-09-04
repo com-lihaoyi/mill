@@ -903,7 +903,7 @@ object TypeScriptModule {
   }
 
   object PackageJson {
-    implicit val rw: upickle.default.ReadWriter[PackageJson] = upickle.default.macroRW
+    implicit val rw: upickle.ReadWriter[PackageJson] = upickle.macroRW
   }
 
   private def removeEmptyValues(json: ujson.Value): ujson.Value = {

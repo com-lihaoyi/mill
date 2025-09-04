@@ -22,7 +22,7 @@ private[androidlib] object ComposeRenderer {
   )
 
   object Args {
-    implicit def resultRW: upickle.default.ReadWriter[Args] = upickle.default.macroRW
+    implicit def resultRW: upickle.ReadWriter[Args] = upickle.macroRW
   }
 
   case class Screenshot(
@@ -33,7 +33,7 @@ private[androidlib] object ComposeRenderer {
   )
 
   object Screenshot {
-    implicit def resultRW: upickle.default.ReadWriter[Screenshot] = upickle.default.macroRW
+    implicit def resultRW: upickle.ReadWriter[Screenshot] = upickle.macroRW
   }
 
   case class PreviewParams(
@@ -43,7 +43,7 @@ private[androidlib] object ComposeRenderer {
   )
 
   object PreviewParams {
-    implicit def resultRW: upickle.default.ReadWriter[PreviewParams] = upickle.default.macroRW
+    implicit def resultRW: upickle.ReadWriter[PreviewParams] = upickle.macroRW
   }
 
   object Tests {

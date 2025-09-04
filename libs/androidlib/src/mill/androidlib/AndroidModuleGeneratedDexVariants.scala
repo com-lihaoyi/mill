@@ -9,6 +9,6 @@ case class AndroidModuleGeneratedDexVariants(
 )
 
 object AndroidModuleGeneratedDexVariants {
-  implicit def resultRW: upickle.default.ReadWriter[AndroidModuleGeneratedDexVariants] =
-    upickle.default.macroRW
+  implicit def resultRW: upickle.ReadWriter[AndroidModuleGeneratedDexVariants] =
+    upickle.macroRW
 }

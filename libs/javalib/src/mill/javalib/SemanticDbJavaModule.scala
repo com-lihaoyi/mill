@@ -9,7 +9,6 @@ import mill.util.Version
 import mill.{T, Task}
 
 import scala.jdk.CollectionConverters.*
-import scala.util.Properties
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 
@@ -216,7 +215,7 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
   case class SemanticDbData(
       compilationResult: CompilationResult,
       semanticDbFiles: PathRef
-  ) derives upickle.default.ReadWriter
+  ) derives upickle.ReadWriter
 
   private[mill] def workerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
@@ -227,29 +226,13 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
   def javacOptionsTask(javacOptions: Seq[String], semanticDbJavaVersion: String)(implicit
       ctx: mill.api.TaskCtx
   ): Seq[String] = {
-    // these are only needed for Java 17+
-    val extracJavacExports =
-      if (Properties.isJavaAtLeast(17)) List(
-        "-J--add-exports",
-        "-Jjdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-        "-J--add-exports",
-        "-Jjdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
-        "-J--add-exports",
-        "-Jjdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
-        "-J--add-exports",
-        "-Jjdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
-        "-J--add-exports",
-        "-Jjdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
-      )
-      else List.empty
-
     val isNewEnough =
       Version.isAtLeast(semanticDbJavaVersion, "0.8.10")(using Version.IgnoreQualifierOrdering)
     val buildTool = s" -build-tool:${if (isNewEnough) "mill" else "sbt"}"
     val verbose = if (ctx.log.debugEnabled) " -verbose" else ""
     javacOptions ++ Seq(
       s"-Xplugin:semanticdb -sourceroot:${ctx.workspace} -targetroot:${ctx.dest / "classes"}${buildTool}${verbose}"
-    ) ++ extracJavacExports
+    )
   }
 
   private val userCodeStartMarker = "//SOURCECODE_ORIGINAL_CODE_START_MARKER"

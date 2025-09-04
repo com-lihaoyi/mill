@@ -18,7 +18,7 @@ trait RpcConsole { self =>
   }
 }
 object RpcConsole {
-  enum Message derives upickle.default.ReadWriter {
+  enum Message derives upickle.ReadWriter {
     case Print(s: String)
     case Flush
   }

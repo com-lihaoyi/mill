@@ -65,7 +65,7 @@ trait SpotlessModule extends CoursierModule, OfflineSupportModule {
       import Format.*
       RelPathRef.withDynamicRoot(moduleDir) {
         val file = moduleDir / ".spotless-formats.json"
-        if os.exists(file) then upickle.default.read[Seq[Format]](file.toNIO)
+        if os.exists(file) then upickle.read[Seq[Format]](file.toNIO)
         else Seq(defaultJava, defaultKotlin, defaultScala)
       }
     }
