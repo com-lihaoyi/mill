@@ -1,11 +1,9 @@
 package mill.kotlinlib.ksp2
 
-import java.net.URLClassLoader
-
 trait KspWorker {
 
   def runKsp(
-      symbolProcessorClassloader: URLClassLoader,
+      symbolProcessorClassloader: ClassLoader,
       kspWorkerArgs: KspWorkerArgs,
       symbolProcessingArgs: Seq[String]
   ): Unit

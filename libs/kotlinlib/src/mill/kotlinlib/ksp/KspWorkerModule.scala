@@ -1,6 +1,5 @@
 package mill.kotlinlib.ksp
 
-import mill.api.daemon.MillURLClassLoader
 import mill.api.{Discover, ExternalModule}
 import mill.kotlinlib.ksp2.{KspWorker, KspWorkerArgs}
 
@@ -9,7 +8,7 @@ trait KspWorkerModule extends mill.Module {
   def runKsp(
       kspWorkerArgs: KspWorkerArgs,
       kspWorker: KspWorker,
-      symbolProcessorClassloader: MillURLClassLoader,
+      symbolProcessorClassloader: ClassLoader,
       kspArgs: Seq[String]
   ): Unit = {
 

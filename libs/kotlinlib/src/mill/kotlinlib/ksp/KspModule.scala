@@ -124,8 +124,7 @@ trait KspModule extends KotlinModule { outer =>
 
   override def kotlinUseEmbeddableCompiler: Task[Boolean] = kspModuleMode match {
     case KspModuleMode.Ksp1 => Task { true }
-    case KspModuleMode.Ksp2 => Task { super.kotlinUseEmbeddableCompiler() }
-    case KspModuleMode.Ksp2Cli => Task { super.kotlinUseEmbeddableCompiler() }
+    case KspModuleMode.Ksp2Cli | KspModuleMode.Ksp2 => Task { super.kotlinUseEmbeddableCompiler() }
   }
 
   /**
@@ -274,15 +273,14 @@ trait KspModule extends KotlinModule { outer =>
    * com.google.devtools.ksp.cmdline.KSPJvmMain
    *
    * For more info go to [[https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md]]
-   *
-   * @return
    */
   def ksp2Args: T[Seq[String]] = Task {
     Seq.empty[String]
   }
 
   /**
-   * The jars needed to run KSP 2 via `com.google.devtools.ksp.cmdline.KSPJvmMain` .
+   * The jars needed to run KSP 2 via `com.google.devtools.ksp.cmdline.KSPJvmMain` or
+   * the in-process worker via [[KspWorkerModule]].
    *
    * The versions are computed from [[kotlinVersion]]-[[kspVersion]]
    *
@@ -307,8 +305,8 @@ trait KspModule extends KotlinModule { outer =>
 
   /**
    * The classpath used to run KSP 2 in-process worker mode, which is provided via
-   * [[KspWorkerModule]]. It includes the KSP 2 API via [[ksp2ToolsDeps]], the user defined symbol processors
-   * via [[kotlinSymbolProcessors]] and Mill's kotlinlib-ksp module with the worker that executes the SymbolProcessingProviders.
+   * [[KspWorkerModule]]. It includes the KSP 2 API provided from [[ksp2ToolsDeps]]
+   * and mill-libs-kotlinlib-ksp2 module with the worker that executes the SymbolProcessingProviders.
    */
   def ksp2InProgramToolsClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
@@ -392,11 +390,11 @@ trait KspModule extends KotlinModule { outer =>
 
   /**
    * The classloader with [[ksp2InProgramToolsClasspath]], which includes the KSP 2 Worker
-   * and the user defined symbol processors via [[kotlinSymbolProcessors]]. This classloader is a
+   * with the KSP deps from [[ksp2InProgramToolsClasspath]]. This classloader is a
    * parent of [[kotlinSymbolProcessorClassloader]] as classes are shared between the [[ksp2ToolsDeps]]
    * and [[kotlinSymbolProcessors]] (symbol processors depend on the KSP API).
    */
-  def ksp2WorkerClassloader: Worker[MillURLClassLoader] = Task.Worker {
+  def ksp2WorkerClassloader: Worker[ClassLoader] = Task.Worker {
     Jvm.createClassLoader(
       classPath = ksp2InProgramToolsClasspath().map(_.path),
       parent = getClass.getClassLoader
@@ -404,10 +402,7 @@ trait KspModule extends KotlinModule { outer =>
   }
 
   /**
-   * The in-process worker instance of the KSP 2 processor.
-   * The classloader contains [[ksp2InProgramToolsClasspath]], which includes the KSP 2 Worker
-   * and the user defined symbol processors via [[kotlinSymbolProcessors]]. The classloader used here
-   * is [[ksp2WorkerClassloader]]
+   * The in-process worker instance of the KSP 2 processor with the [[ksp2WorkerClassloader]].
    */
   def ksp2Worker: Worker[KspWorker] = Task.Worker {
     ksp2WorkerClassloader()
@@ -422,10 +417,10 @@ trait KspModule extends KotlinModule { outer =>
    *
    * For more info see reference implementation: [[https://github.com/google/ksp/blob/main/docs/ksp2entrypoints.md]]
    */
-  def kotlinSymbolProcessorClassloader: Worker[MillURLClassLoader] = Task.Worker {
+  def kotlinSymbolProcessorClassloader: Worker[ClassLoader] = Task.Worker {
     Jvm.createClassLoader(
       kotlinSymbolProcessorsResolved().map(_.path),
-      parent = ksp2Worker().getClass.getClassLoader
+      parent = ksp2WorkerClassloader()
     )
   }
 

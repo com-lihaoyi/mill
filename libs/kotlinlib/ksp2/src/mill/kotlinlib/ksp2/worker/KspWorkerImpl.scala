@@ -10,10 +10,18 @@ import com.google.devtools.ksp.processing.{
 }
 import mill.kotlinlib.ksp2.{KspWorkerArgs, LogLevel}
 
-import java.net.URLClassLoader
 import java.util.ServiceLoader
 import scala.jdk.CollectionConverters.*
 
+/**
+ * This class implements the in-process KSP against the KSP API which is only present at compile time.
+ * The implementation is derived from [[https://github.com/google/ksp/blob/main/docs/ksp2entrypoints.md]] with
+ * the major difference being that instead of creating a new classloader, users are expected to pass the classloader
+ * which contains the symbol processors (for example dagger-compiler, hilt-android-compiler, micronaut-inject-kotlin etc).
+ *
+ * The provided classloader needs to be a child of the classloader of this, otherwise the discovery result of user defined processors
+ * will fail to be cast to [[com.google.devtools.ksp.processing.SymbolProcessorProvider]].
+ */
 class KspWorkerImpl extends KspWorker {
 
   private def toGradleLogLevel(logLevel: LogLevel) = logLevel match {
@@ -24,7 +32,7 @@ class KspWorkerImpl extends KspWorker {
   }
 
   def runKsp(
-      symbolProcessorClassloader: URLClassLoader,
+      symbolProcessorClassloader: ClassLoader,
       kspWorkerArgs: KspWorkerArgs,
       symbolProcessingArgs: Seq[String]
   ): Unit = {
