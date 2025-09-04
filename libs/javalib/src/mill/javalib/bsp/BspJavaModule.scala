@@ -54,8 +54,8 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
     (
       resolvedDepsSources = jm.millResolver().classpath(
         Seq(
-          jm.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-          jm.coursierDependency
+          jm.coursierDependencyTask().withConfiguration(coursier.core.Configuration.provided),
+          jm.coursierDependencyTask()
         ),
         sources = true
       ).map(_.path.toNIO),
@@ -73,8 +73,8 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
       jm.millResolver()
         .resolution(
           Seq(
-            jm.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-            jm.coursierDependency
+            jm.coursierDependencyTask().withConfiguration(coursier.core.Configuration.provided),
+            jm.coursierDependencyTask()
           )
         )
         .orderedDependencies

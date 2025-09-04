@@ -211,7 +211,7 @@ trait PublishModule extends JavaModule { outer =>
    * @return
    */
   private def ivy(hasJar: Boolean): Task[String] = Task.Anon {
-    val dep = coursierDependency.withConfiguration(Configuration.runtime)
+    val dep = coursierDependencyTask().withConfiguration(Configuration.runtime)
     val resolution = millResolver().resolution(Seq(BoundDep(dep, force = false)))
 
     val (results, bomDepMgmt) =

@@ -464,7 +464,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       }
       val bind = bindDependency()
       Seq(BoundDep(
-        coursierDependency.withConfiguration(coursier.core.Configuration.runtime),
+        coursierDependencyTask().withConfiguration(coursier.core.Configuration.runtime),
         force = false
       )) ++
         Seq(mvn"com.lihaoyi:::ammonite:${ammVersion}").map(bind)
