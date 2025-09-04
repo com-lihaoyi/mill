@@ -53,8 +53,7 @@ class MillURLClassLoader(
 
 object MillURLClassLoader {
 
-  @static
-  private val initalized = {
+  locally {
     // Unused static field here exists for its side-effect:
     // we statically initialize the classloader as parallel capable
     java.lang.ClassLoader.registerAsParallelCapable()
