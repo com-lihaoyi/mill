@@ -1,19 +1,16 @@
 package mill.javalib
 
+import com.lihaoyi.unroll
 import coursier.cache.FileCache
 import coursier.core.Resolution
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import coursier.{Dependency, Repository, Resolve}
-import mill.api.Task
-import mill.api.PathRef
-import mill.api.Result
+import coursier.{Dependency, Repository}
+import mill.api.{ModuleRef, PathRef, Result, Task}
 import mill.util.Jvm
 import mill.T
 
 import scala.annotation.unused
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 /**
  * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
@@ -36,6 +33,9 @@ trait CoursierModule extends mill.api.Module {
     BoundDep(Lib.depToDependencyJava(dep), dep.force)
   }
 
+  def coursierConfigModule: ModuleRef[CoursierConfigModule] =
+    ModuleRef(CoursierConfigModule)
+
   /**
    * A [[CoursierModule.Resolver]] to resolve dependencies.
    *
@@ -53,7 +53,8 @@ trait CoursierModule extends mill.api.Module {
       coursierCacheCustomizer = coursierCacheCustomizer(),
       resolutionParams = resolutionParams(),
       offline = Task.offline,
-      checkGradleModules = checkGradleModules()
+      checkGradleModules = checkGradleModules(),
+      config = coursierConfigModule().coursierConfig()
     )
   }
 
@@ -74,7 +75,8 @@ trait CoursierModule extends mill.api.Module {
       coursierCacheCustomizer = coursierCacheCustomizer(),
       resolutionParams = resolutionParams(),
       offline = Task.offline,
-      checkGradleModules = checkGradleModules()
+      checkGradleModules = checkGradleModules(),
+      config = coursierConfigModule().coursierConfig()
     )
   }
 
@@ -104,11 +106,7 @@ trait CoursierModule extends mill.api.Module {
 
   // Bincompat stub
   private[mill] def repositoriesTask0 = Task.Anon {
-    val resolve = Resolve()
-    val repos = Await.result(
-      resolve.finalRepositories.future()(using resolve.cache.ec),
-      Duration.Inf
-    )
+    val repos = coursierConfigModule().defaultRepositories()
     Jvm.reposFromStrings(repositories()).map(_ ++ repos)
   }
 
@@ -237,7 +235,8 @@ object CoursierModule {
       // TODO: this does nothing? :/
       // Introduced in https://github.com/com-lihaoyi/mill/commit/451df6846861a9c7d265bffec0c5fcf07133b320
       @unused offline: Boolean,
-      checkGradleModules: Boolean
+      checkGradleModules: Boolean,
+      @unroll config: mill.util.CoursierConfig = mill.util.CoursierConfig.default()
   ) {
 
     /**
@@ -263,7 +262,8 @@ object CoursierModule {
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = Some(ctx),
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams)),
-        checkGradleModules = checkGradleModules
+        checkGradleModules = checkGradleModules,
+        config = config
       ).get
 
     /**
@@ -287,7 +287,8 @@ object CoursierModule {
         ctx = Some(ctx),
         resolutionParams = resolutionParams,
         boms = Nil,
-        checkGradleModules = checkGradleModules
+        checkGradleModules = checkGradleModules,
+        config = config
       ).get
     }
 
@@ -307,7 +308,8 @@ object CoursierModule {
         deps0.map(_.dep),
         sources = sources,
         ctx = Some(ctx),
-        checkGradleModules = checkGradleModules
+        checkGradleModules = checkGradleModules,
+        config = config
       ).get
     }
   }

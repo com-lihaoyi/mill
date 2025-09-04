@@ -525,15 +525,12 @@ object MillBuildBootstrap {
   ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     import buildFileApi._
     evalWatchedValues.clear()
-    val evalTaskResult =
-      mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader) {
-        evaluator.evaluate(
-          tasksAndParams,
-          SelectMode.Separated,
-          reporter = reporter,
-          selectiveExecution = selectiveExecution
-        )
-      }
+    val evalTaskResult = evaluator.evaluate(
+      tasksAndParams,
+      SelectMode.Separated,
+      reporter = reporter,
+      selectiveExecution = selectiveExecution
+    )
 
     evalTaskResult match {
       case Result.Failure(msg) => (Result.Failure(msg), Nil, moduleWatchedValues)
