@@ -873,33 +873,51 @@ Snapshots or to the normal releases if it’s a new tag.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Use mill as a launcher for self-building systemd daemons,
-convenient for handling of code-as-config, or quick editing and rebuilding
-of code-generating templates.</p>
+convenient for quick editing and rebuilding of compiled templates,
+or quick recompilation of code-as-config.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This is a plugin adding functionality to mill. It should not be confused with mill’s <a href="https://mill-build.org/mill/depth/process-architecture.html#_the_mill_daemon">internal long-lived daemon</a>.
+</td>
+</tr>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/swaldman/mill-daemon" class="bare">https://github.com/swaldman/mill-daemon</a></p>
 </div>
 <div class="paragraph">
-<p>Place the millw script from <a href="https://github.com/lefou/millw" class="bare">https://github.com/lefou/millw</a> in your project directory.</p>
+<p>This example assumes your project directory is <code>/opt/coolproj</code>
+Place the mill bootstrap script in your project directory.</p>
 </div>
 <div class="listingblock">
 <div class="title">/opt/coolproj/build.mill</div>
 <div class="content">
-<pre>//| mvnDeps: [&quot;com.mchange::mill-daemon:0.0.1&quot;]
+<pre>//| mvnDeps: [&quot;com.mchange::mill-daemon:0.2.1&quot;]
 
 import com.mchange.milldaemon.DaemonModule
 
-object coolproj extends RootModule, DaemonModule {
-  override def runDaemonPidFile = Some( os.pwd / &quot;coolproj.pid&quot; )
-}</pre>
+object coolproj extends DaemonModule:
+  override def runDaemonPidFile = defaultRunDaemonPidFile(&quot;coolproj&quot;)</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>This will cause PID files to be placed in the root of the project
+directory as <code>coolproj.pid</code>. Of course, you can
+<a href="https://github.com/swaldman/mill-daemon#more-on-rundaemonpidfile">place PID files anywhere you want</a>,
+or set this to <code>None</code> to refrain from generating PID files at all.</p>
 </div>
 <div class="listingblock">
 <div class="title">/opt/coolproj/rebuild-and-start</div>
 <div class="content">
-<pre>#!/bin.bash
+<pre>#!/usr/bin/env bash
 
-./millw runMainDaemon coolproj.Main &quot;$@&quot;</pre>
+./mill runMainDaemon coolproj.Main &quot;$@&quot;</pre>
 </div>
 </div>
 <div class="listingblock">
