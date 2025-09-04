@@ -1,7 +1,6 @@
 package mill.api.daemon
 
 import java.net.URLClassLoader
-import scala.annotation.static
 
 /**
  * Convenience wrapper around `java.net.URLClassLoader`. Allows configuration
