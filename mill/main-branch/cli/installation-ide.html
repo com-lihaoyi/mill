@@ -696,7 +696,7 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-31-10677a/mill-dist-1.0.4-mill.sh -o mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-32-fea671/mill-dist-1.0.4-mill.sh -o mill
 &gt; chmod +x mill
 &gt; ./mill version
 1.0.4</code></pre>
@@ -705,7 +705,7 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-31-10677a/mill-dist-1.0.4-mill.bat -o mill.bat
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-32-fea671/mill-dist-1.0.4-mill.bat -o mill.bat
 &gt; ./mill version
 1.0.4</code></pre>
 </div>
@@ -1246,19 +1246,6 @@ The below command should pass the environment variable to the <code>mill</code> 
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _</code></pre>
 </div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Currently, you may need to <code>./mill shutdown</code> before calling Mill with the environment variable to make sure it gets properly propagated to Mill’s background daemon.
-There is an <a href="https://github.com/com-lihaoyi/mill/issues/5134">open issue</a> to let Mill  detect these changes automatically.
-</td>
-</tr>
-</tbody></table>
 </div>
 <div class="paragraph">
 <p>If you are using bootstrap script, a more permanent solution could be to set the environment variable
