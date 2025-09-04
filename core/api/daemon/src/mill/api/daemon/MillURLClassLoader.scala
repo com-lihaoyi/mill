@@ -1,6 +1,7 @@
 package mill.api.daemon
 
 import java.net.URLClassLoader
+import scala.annotation.static
 
 /**
  * Convenience wrapper around `java.net.URLClassLoader`. Allows configuration
@@ -18,8 +19,9 @@ class MillURLClassLoader(
       classPath.iterator.map(_.toUri.toURL).toArray,
       MillURLClassLoader.refinePlatformParent(parent)
     ) {
-
   import MillURLClassLoader.*
+
+  require(initialized)
 
   addOpenClassloader(label)
 
@@ -52,7 +54,7 @@ class MillURLClassLoader(
 
 object MillURLClassLoader {
 
-  locally {
+  @static private val initialized: Boolean = {
     // Unused static field here exists for its side-effect:
     // we statically initialize the classloader as parallel capable
     java.lang.ClassLoader.registerAsParallelCapable()
