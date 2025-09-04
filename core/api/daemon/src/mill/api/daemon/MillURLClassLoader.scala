@@ -1,91 +1,27 @@
 package mill.api.daemon
 
 import java.net.URLClassLoader
+import scala.annotation.static
 
 /**
  * Convenience wrapper around `java.net.URLClassLoader`. Allows configuration
  * of shared class prefixes, and tracks creation/closing to help detect leaks.
  *
- * Intrinsic: This classloader is parallel capable.
- * Due to the way parallel capable classloader need to be registered in the JVM,
- * we need to drop and never use the first class instance that was created.
- *
- * In Java, parallel capable classloaders need to invoke a caller sensitive
- * protected static method. Since Scala has no `static` initialization syntax,
- * the only way to invoke a caller-sensitive method is from within the class (instance).
- * Since this instance isn't yet seen as parallel capable from the JVM, we need to
- * drop it and create a new instance. All that logic is nicely hidden from the user
- * by making this constructor private. Instead, the companion object's
- * [[MillURLClassLoader.apply()]] method is used to create an instance, which
- * handles all the initialization logic.
- *
- * @constructor
- *
- * This private constructor should only be used by the companion object.
- *
- * @throws DoNotUseThisInstanceException When the [[initParallelClassloading]] parameter is `true`.
- *
- * @param initParallelClassloading When true, this classloader will be registered as
- *                                 parallel capable by calling the caller sensitive
- *                                 [[java.lang.ClassLoader.registerAsParallelCapable()]].
- *                                 The contructor will then throw a
- *                                 [[MillURLClassLoader.DoNotUseThisInstanceException]] to prevent
- *                                 any use of this improperly initialized class instance.
+ * This classloader is parallel capable.
  */
-class MillURLClassLoader private (
+class MillURLClassLoader(
     classPath: Iterable[java.nio.file.Path],
     parent: ClassLoader,
     sharedLoader: ClassLoader,
     sharedPrefixes: Iterable[String],
-    val label: String,
-    initParallelClassloading: Boolean
+    val label: String
 ) extends URLClassLoader(
       classPath.iterator.map(_.toUri.toURL).toArray,
       MillURLClassLoader.refinePlatformParent(parent)
     ) {
-
   import MillURLClassLoader.*
 
-  if (initParallelClassloading) {
-    // This method is caller sensitive, so we must call it from inside the class.
-    // The just created class instance is improperly initialized, hence we need to not use it.
-    // Therefore, we throw an exception.
-    java.lang.ClassLoader.registerAsParallelCapable()
-    parallelRegistered = true
-    throw new DoNotUseThisInstanceException()
-  }
-
-  /**
-   * This constructor is deprecated and should not be used, since it can throw a
-   * [[DoNotUseThisInstanceException]]. Instead, you should use the companion
-   * object's [[MillURLClassLoader.apply()]] method.
-   *
-   * If you need to use this constructor, make sure to catch the
-   * [[DoNotUseThisInstanceException]] and recover by a second constructor attempt,
-   * which should succeed.
-   *
-   * @throws DoNotUseThisInstanceException When this is the first instance to be
-   *                                       created in this JVM.
-   */
-  @deprecated("Use the companion object's apply method instead.", "Mill 1.1.0")
-  def this(
-      classPath: Iterable[java.nio.file.Path],
-      parent: ClassLoader,
-      sharedLoader: ClassLoader,
-      sharedPrefixes: Iterable[String],
-      label: String
-  ) = {
-    // This is on best effort base, but if this ctr is used for the first creation
-    // of this class, it will throw a DoNotUseThisInstanceException
-    this(
-      classPath,
-      parent,
-      sharedLoader,
-      sharedPrefixes,
-      label,
-      !MillURLClassLoader.parallelRegistered
-    )
-  }
+  require(initialized)
 
   addOpenClassloader(label)
 
@@ -118,43 +54,10 @@ class MillURLClassLoader private (
 
 object MillURLClassLoader {
 
-  /**
-   * This exception is thrown from the first created instance of a [[MillURLClassLoader]].
-   * See https://github.com/com-lihaoyi/mill/pull/5791
-   */
-  class DoNotUseThisInstanceException() extends Exception()
-
-  private var parallelRegistered = false
-
-  def apply(
-      classPath: Iterable[java.nio.file.Path],
-      parent: ClassLoader,
-      sharedLoader: ClassLoader,
-      sharedPrefixes: Iterable[String],
-      label: String
-  ): MillURLClassLoader = {
-    if (!parallelRegistered) {
-      try {
-        new MillURLClassLoader(
-          classPath,
-          parent,
-          sharedLoader,
-          sharedPrefixes,
-          label,
-          true
-        )
-      } catch {
-        case _: DoNotUseThisInstanceException => // this is ok
-      }
-    }
-    new MillURLClassLoader(
-      classPath,
-      parent,
-      sharedLoader,
-      sharedPrefixes,
-      label,
-      false
-    )
+  @static private val initialized: Boolean = {
+    // Unused static field here exists for its side-effect:
+    // we statically initialize the classloader as parallel capable
+    java.lang.ClassLoader.registerAsParallelCapable()
   }
 
   /**
