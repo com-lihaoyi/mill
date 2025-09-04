@@ -1,7 +1,7 @@
 package build
 
 import mill.*, androidlib.*, kotlinlib.*
-import kotlinlib.ksp.{KspModule, KspModuleMode}
+import kotlinlib.ksp.KspModule
 import hilt.AndroidHiltSupport
 
 object Versions {
@@ -28,7 +28,6 @@ object app
   def kotlinVersion = Versions.kotlinVersion
   def kspVersion = Versions.kspVersion
   def kspJvmTarget = "17"
-  def kspModuleMode = KspModuleMode.Ksp2Cli
 
   override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
     AndroidBuildTypeSettings(
