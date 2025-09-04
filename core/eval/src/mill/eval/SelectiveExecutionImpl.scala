@@ -76,7 +76,7 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
   def saveMetadata(metadata: SelectiveExecution.Metadata): Unit = {
     os.write.over(
       evaluator.outPath / OutFiles.millSelectiveExecution,
-      upickle.default.write(metadata, indent = 2)
+      upickle.write(metadata, indent = 2)
     )
   }
 
@@ -111,7 +111,7 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
     if (oldMetadataTxt == "") None
     else Some {
       val transitiveNamed = PlanImpl.transitiveNamed(tasks)
-      val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
+      val oldMetadata = upickle.read[SelectiveExecution.Metadata](oldMetadataTxt)
       val (changedRootTasks, downstreamTasks) =
         evaluator.selective.computeDownstream(
           transitiveNamed,

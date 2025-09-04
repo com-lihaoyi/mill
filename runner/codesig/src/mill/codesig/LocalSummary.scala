@@ -4,7 +4,7 @@ import mill.codesig.JvmModel.*
 import mill.codesig.JvmModel.JType.Cls as JCls
 import mill.codesig.LocalSummary.ClassInfo
 import org.objectweb.asm.*
-import upickle.default.{ReadWriter, macroRW}
+import upickle.{ReadWriter, macroRW}
 
 import scala.collection.mutable
 

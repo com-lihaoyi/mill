@@ -3,7 +3,7 @@ package mill.api
 /**
  * Models the different kinds of cross-versions supported by Mill for Scala dependencies.
  */
-enum CrossVersion derives upickle.default.ReadWriter {
+enum CrossVersion derives upickle.ReadWriter {
   import CrossVersion.*
 
   /** If true, the cross-version suffix should start with a platform suffix if it exists */

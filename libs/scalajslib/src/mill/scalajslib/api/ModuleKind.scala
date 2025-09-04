@@ -1,6 +1,6 @@
 package mill.scalajslib.api
 
-import upickle.default.ReadWriter
+import upickle.ReadWriter
 
 enum ModuleKind derives ReadWriter {
   case NoModule

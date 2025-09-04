@@ -32,7 +32,7 @@ case class FileImportGraph(
 object FileImportGraph {
 
   import mill.api.JsonFormatters.pathReadWrite
-  implicit val readWriter: upickle.default.ReadWriter[FileImportGraph] = upickle.default.macroRW
+  implicit val readWriter: upickle.ReadWriter[FileImportGraph] = upickle.macroRW
 
   /**
    * We perform a depth-first traversal of the import graph of `.sc` files,

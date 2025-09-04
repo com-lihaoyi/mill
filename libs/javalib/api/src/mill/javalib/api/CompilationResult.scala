@@ -7,6 +7,6 @@ import mill.api.JsonFormatters._
 case class CompilationResult(analysisFile: os.Path, classes: PathRef)
 
 object CompilationResult {
-  implicit val jsonFormatter: upickle.default.ReadWriter[CompilationResult] =
-    upickle.default.macroRW
+  implicit val jsonFormatter: upickle.ReadWriter[CompilationResult] =
+    upickle.macroRW
 }

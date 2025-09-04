@@ -54,8 +54,8 @@ case class ValidVersion(
   override def toString: String = text
 }
 object ValidVersion {
-  implicit val rw: upickle.default.ReadWriter[ValidVersion] =
-    upickle.default.macroRW
+  implicit val rw: upickle.ReadWriter[ValidVersion] =
+    upickle.macroRW
 }
 
 case class InvalidVersion(text: String) extends Version {
@@ -66,8 +66,8 @@ case class InvalidVersion(text: String) extends Version {
   def patch: Long = -1
 }
 object InvalidVersion {
-  implicit val rw: upickle.default.ReadWriter[InvalidVersion] =
-    upickle.default.macroRW
+  implicit val rw: upickle.ReadWriter[InvalidVersion] =
+    upickle.macroRW
 }
 
 private[dependency] object ReleaseVersion {
@@ -128,8 +128,8 @@ object Version {
   }
 
   implicit def versionOrdering: Ordering[Version] = VersionOrdering
-  implicit val rw: upickle.default.ReadWriter[Version] =
-    upickle.default.macroRW
+  implicit val rw: upickle.ReadWriter[Version] =
+    upickle.macroRW
 }
 
 private[dependency] object VersionOrdering extends Ordering[Version] {

@@ -7,7 +7,8 @@ import coursier.util.Artifact
 import mill.*
 import mill.api.{Result, TaskCtx}
 import mill.androidlib.Versions
-import upickle.default.ReadWriter
+import scala.util.Properties.{isLinux, isMac, isWin}
+import upickle.ReadWriter
 
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
@@ -255,11 +256,13 @@ trait AndroidSdkModule extends Module {
   }
 
   private def acceptLicenses(sdkManagerExePath: os.Path) = {
-    // Use `echo` to ensure compatibility with Windows environments
+    val args = if (isWin)
+      Seq("cmd", "/c", "(for /l %i in (1,1,10) do @echo y)")
+    else
+      Seq("echo", "y\n" * 10)
     os.proc(
-      "echo",
-      "y\n" * 10
-    ).pipeTo(os.proc(sdkManagerExePath.toString, "--licenses")).call()
+      args
+    ).pipeTo(os.proc(sdkManagerExePath.toString, "--licenses")).call(stdout = os.Pipe)
   }
 
   private def isCI(env: Map[String, String]): Boolean = {
@@ -297,15 +300,21 @@ trait AndroidSdkModule extends Module {
   }
 
   private def cmdlineToolsURL(versionLong: String): String = {
-    val osName: Option[String] = sys.props.get("os.name").map(_.toLowerCase)
-
-    val platform = Seq("linux", "mac", "windows").find(osName.contains) match {
-      case Some(p) => p
-      case None =>
-        throw new IllegalStateException(s"Unsupported platform for cmdline tools: $osName")
-    }
+    val platform =
+      if (isWin) "win"
+      else if (isMac) "mac"
+      else if (isLinux) "linux"
+      else throw new IllegalStateException("Unknown platform")
 
     s"https://dl.google.com/android/repository/commandlinetools-$platform-${versionLong}_latest.zip"
+  }
+
+  /**
+   * Provides the correct path to the sdkmanager executable based on the OS.
+   */
+  private def sdkManagerExePath(cmdlineToolsPath: os.Path): os.Path = {
+    val ext = if (isWin) ".bat" else ""
+    cmdlineToolsPath / "bin" / s"sdkmanager$ext"
   }
 
   private def installCmdlineTools(
@@ -317,7 +326,7 @@ trait AndroidSdkModule extends Module {
       autoAcceptLicenses: Boolean
   ) = {
     val millCmdlineToolsPath = sdkPath / "cmdline-tools" / millVersionShort
-    val millSdkManagerExe = millCmdlineToolsPath / "bin" / "sdkmanager"
+    val millSdkManagerExe = sdkManagerExePath(millCmdlineToolsPath)
     if (!os.exists(millSdkManagerExe)) {
       val zipDestination = destination / "cmdline-tools.zip"
       os.write(
@@ -367,7 +376,7 @@ trait AndroidSdkModule extends Module {
     AndroidCmdlineToolsLock.synchronized {
       val cmdlineToolsVersionShort = cmdlineToolsVersion()
       val basePath = sdkPath() / "cmdline-tools" / cmdlineToolsVersionShort
-      val sdkmanagerPath = basePath / "bin/sdkmanager"
+      val sdkmanagerPath = sdkManagerExePath(basePath)
 
       if (!os.exists(basePath)) {
         Task.log.info(
@@ -402,7 +411,7 @@ trait AndroidSdkModule extends Module {
    * Provides the path for the Android SDK Manager tool
    * @return A task containing a [[PathRef]] pointing to the SDK directory.
    */
-  def sdkManagerExe: Task[PathRef] = Task {
+  def sdkManagerExe: T[PathRef] = Task {
     cmdlineTools().sdkmanagerExe
   }
 
@@ -622,10 +631,11 @@ object AndroidSdkModule {
     if (os.exists(path)) {
       PathRef(path).withRevalidateOnce
     } else boundary {
-      if (scala.util.Properties.isWin && path.lastOpt.isEmpty && path.ext != "bat") {
-        Seq("exe", "bat").foreach { ext =>
+      val winExts = Seq("exe", "bat")
+      if (isWin && !winExts.contains(path.ext)) {
+        winExts.foreach { ext =>
           // try to find the tool with extension
-          val winPath = path / os.up / s"${path.last}.$ext"
+          val winPath = os.Path(s"${path.toString}.$ext")
           if (os.exists(winPath)) {
             boundary.break(PathRef(winPath).withRevalidateOnce)
           }

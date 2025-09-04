@@ -4,7 +4,7 @@ import java.io.{BufferedOutputStream, PrintStream}
 import java.nio.file.{Files, StandardOpenOption}
 import java.util.concurrent.ArrayBlockingQueue
 
-private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, indent: Int) {
+private[mill] class JsonArrayLogger[T: upickle.Writer](outPath: os.Path, indent: Int) {
   private var used = false
 
   @volatile var closed = false
@@ -33,7 +33,7 @@ private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path,
               if (used) traceStream.println(",")
               else traceStream.println("[")
               used = true
-              val indented = upickle.default.write(v, indent = indent)
+              val indented = upickle.write(v, indent = indent)
                 .linesIterator
                 .map(indentStr + _)
                 .mkString("\n")
@@ -106,7 +106,7 @@ private[mill] object JsonArrayLogger {
     )
 
     object Timing {
-      implicit val readWrite: upickle.default.ReadWriter[Timing] = upickle.default.macroRW
+      implicit val readWrite: upickle.ReadWriter[Timing] = upickle.macroRW
     }
   }
 
@@ -151,7 +151,7 @@ private[mill] object JsonArrayLogger {
      * See https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/
      */
     @upickle.implicits.key("ph")
-    enum TraceEvent derives upickle.default.ReadWriter {
+    enum TraceEvent derives upickle.ReadWriter {
       @upickle.implicits.key("B") case Begin(
           name: String,
           cat: String,

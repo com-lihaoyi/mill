@@ -108,7 +108,7 @@ object BuildInfo {
 
   case class Value(key: String, value: String, comment: String = "")
   object Value {
-    implicit val rw: upickle.default.ReadWriter[Value] = upickle.default.macroRW
+    implicit val rw: upickle.ReadWriter[Value] = upickle.macroRW
   }
   def staticCompiledCodegen(
       buildInfoMembers: Seq[Value],
