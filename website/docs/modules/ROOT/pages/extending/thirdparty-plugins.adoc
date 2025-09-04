@@ -156,29 +156,38 @@ Snapshots or to the normal releases if it's a new tag.
 == Daemon
 
 Use mill as a launcher for self-building systemd daemons,
-convenient for handling of code-as-config, or quick editing and rebuilding
-of code-generating templates.
+convenient for quick editing and rebuilding of compiled templates,
+or quick recompilation of code-as-config.
+
+
+NOTE: This is a plugin adding functionality to mill. It should not be confused with mill's https://mill-build.org/mill/depth/process-architecture.html#_the_mill_daemon[internal long-lived daemon].
 
 Project home: https://github.com/swaldman/mill-daemon
 
-Place the millw script from https://github.com/lefou/millw in your project directory.
+This example assumes your project directory is `/opt/coolproj`
+Place the mill bootstrap script in your project directory.
+
 
 ./opt/coolproj/build.mill
 ----
-//| mvnDeps: ["com.mchange::mill-daemon:0.0.1"]
+//| mvnDeps: ["com.mchange::mill-daemon:0.2.1"]
 
 import com.mchange.milldaemon.DaemonModule
 
-object coolproj extends RootModule, DaemonModule {
-  override def runDaemonPidFile = Some( os.pwd / "coolproj.pid" )
-}
+object coolproj extends DaemonModule:
+  override def runDaemonPidFile = defaultRunDaemonPidFile("coolproj")
 ----
+
+This will cause PID files to be placed in the root of the project
+directory as `coolproj.pid`. Of course, you can
+https://github.com/swaldman/mill-daemon#more-on-rundaemonpidfile[place PID files anywhere you want],
+or set this to `None` to refrain from generating PID files at all.
 
 ./opt/coolproj/rebuild-and-start
 ----
-#!/bin.bash
+#!/usr/bin/env bash
 
-./millw runMainDaemon coolproj.Main "$@"
+./mill runMainDaemon coolproj.Main "$@"
 ----
 
 ./opt/coolproj/coolproj.service
