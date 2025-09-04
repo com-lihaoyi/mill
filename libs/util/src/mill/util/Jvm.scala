@@ -224,7 +224,7 @@ object Jvm {
       sharedLoader: ClassLoader = getClass.getClassLoader,
       sharedPrefixes: Iterable[String] = Seq(),
       label: String = null
-  )(implicit e: sourcecode.Enclosing): MillURLClassLoader = new MillURLClassLoader(
+  )(implicit e: sourcecode.Enclosing): MillURLClassLoader = MillURLClassLoader(
     classPath.map(_.toNIO),
     parent,
     sharedLoader,
