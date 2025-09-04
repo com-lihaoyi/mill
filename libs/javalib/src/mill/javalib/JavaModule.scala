@@ -493,7 +493,12 @@ trait JavaModule
     ).withConfiguration(cs.Configuration.compile)
 
   def coursierDependencyTask: Task[cs.Dependency] = Task.Anon {
-    coursierDependency0
+    val bindDependency0 = bindDependency()
+    val forceVersions = mvnDeps().filter(_.force).map(bindDependency0(_).dep).map { dep =>
+      DependencyManagement.Key.from(dep) ->
+        DependencyManagement.Values.from(Configuration.empty, dep)
+    }
+    coursierDependency0.addOverrides(cs.Overrides(forceVersions.toMap))
   }
 
   /**

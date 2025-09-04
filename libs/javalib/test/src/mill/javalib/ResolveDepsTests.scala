@@ -91,6 +91,36 @@ object ResolveDepsTests extends TestSuite {
       }
     }
 
+    object forceVersion extends JavaModule {
+      def mvnDeps = Seq(
+        mvn"org.apache.lucene:lucene-analyzers-common:4.6.1",
+        mvn"org.apache.lucene:lucene-core:4.6.0".forceVersion()
+      )
+
+      object dependee extends JavaModule {
+        def moduleDeps = Seq(forceVersion)
+      }
+
+      object dependeeWithNonForced extends JavaModule {
+        def moduleDeps = Seq(forceVersion)
+        def mvnDeps = Seq(
+          mvn"org.apache.lucene:lucene-analyzers-common:4.6.1",
+          mvn"org.apache.lucene:lucene-core:4.6.1"
+        )
+      }
+
+      object other extends JavaModule {
+        def mvnDeps = Seq(
+          mvn"org.apache.lucene:lucene-analyzers-common:4.6.1",
+          mvn"org.apache.lucene:lucene-core:4.6.1"
+        )
+      }
+
+      object dependsOnForcedAndNonForced extends JavaModule {
+        def moduleDeps = Seq(forceVersion, other)
+      }
+    }
+
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -239,6 +269,40 @@ object ResolveDepsTests extends TestSuite {
         assert(!dependsOnOptionalCompileCp.exists(_.last == "logback-core-1.5.18.jar"))
         assert(!dependsOnOptionalRuntimeCp.exists(_.last == "logback-core-1.5.18.jar"))
         assert(!dependsOnOptionalRunCp.exists(_.last == "logback-core-1.5.18.jar"))
+      }
+    }
+
+    test("forceVersion") {
+      UnitTester(TestCase, null).scoped { eval =>
+        def expectedClassPathFileNames(coreVersion: String) = Seq(
+          "lucene-analyzers-common-4.6.1.jar",
+          s"lucene-core-$coreVersion.jar"
+        )
+
+        def resolvedClassPathFileNames(mod: JavaModule): Seq[String] =
+          eval(mod.resolvedMvnDeps)
+            .fold(_.get, _.value).map(_.path).filter(os.isFile).map(_.last)
+
+        val classPathFileNames = resolvedClassPathFileNames(TestCase.forceVersion)
+        assert(classPathFileNames == expectedClassPathFileNames("4.6.0"))
+
+        // version is forced in dependee too
+        val dependeeClassPathFileNames = resolvedClassPathFileNames(TestCase.forceVersion.dependee)
+        assert(dependeeClassPathFileNames == expectedClassPathFileNames("4.6.0"))
+
+        // if dependee depends on the non-forced dependency, version isn't forced for it
+        val dependeeWithNonForcedClassPathFileNames =
+          resolvedClassPathFileNames(TestCase.forceVersion.dependeeWithNonForced)
+        assert(dependeeWithNonForcedClassPathFileNames == expectedClassPathFileNames("4.6.1"))
+
+        // no forced version at all
+        val otherClassPathFileNames = resolvedClassPathFileNames(TestCase.forceVersion.other)
+        assert(otherClassPathFileNames == expectedClassPathFileNames("4.6.1"))
+
+        // if dependee depends on modules forcing and not forcing the version, version isn't forced for it
+        val dependsOnForcedAndNonForcedClassPathFileNames =
+          resolvedClassPathFileNames(TestCase.forceVersion.dependsOnForcedAndNonForced)
+        assert(dependsOnForcedAndNonForcedClassPathFileNames == expectedClassPathFileNames("4.6.1"))
       }
     }
   }
