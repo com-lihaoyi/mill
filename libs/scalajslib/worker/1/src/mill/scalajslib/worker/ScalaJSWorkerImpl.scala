@@ -367,6 +367,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       Phantom(config)
     case config: JsEnvConfig.Selenium =>
       Selenium(config)
+    case config: JsEnvConfig.Playwright =>
+      Playwright(config)
   }
 
   def jsEnvInput(report: Report): Seq[Input] = {
