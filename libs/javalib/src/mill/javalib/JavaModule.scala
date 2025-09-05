@@ -478,7 +478,7 @@ trait JavaModule
   /**
    * The `coursier.Dependency` to use to refer to this module
    */
-  @deprecated("Use coursierDependencyTask instead", "Mill > 1.0.4")
+  @deprecated("Use coursierDependencyTask instead", "Mill 1.1.0")
   def coursierDependency: cs.Dependency =
     coursierDependency0
 
