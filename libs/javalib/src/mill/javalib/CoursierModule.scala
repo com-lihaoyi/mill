@@ -40,7 +40,7 @@ trait CoursierModule extends mill.api.Module {
    * A [[CoursierModule.Resolver]] to resolve dependencies.
    *
    * Unlike [[defaultResolver]], this resolver can resolve Mill modules too
-   * (obtained via [[JavaModule.coursierDependency]]).
+   * (obtained via [[JavaModule.coursierDependencyTask]]).
    *
    * @return `CoursierModule.Resolver` instance
    */
@@ -141,7 +141,7 @@ trait CoursierModule extends mill.api.Module {
    *
    * Unlike [[repositoriesTask]], this includes the Mill internal repositories,
    * which allow to resolve Mill internal modules (usually brought in via
-   * `JavaModule#coursierDependency`).
+   * `JavaModule#coursierDependencyTask`).
    *
    * Beware that this needs to evaluate `JavaModule#coursierProject` of all
    * module dependencies of the current module, which itself evaluates `JavaModule#mvnDeps`

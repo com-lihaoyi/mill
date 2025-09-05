@@ -18,8 +18,8 @@ trait GenIdeaModule extends mill.api.Module with GenIdeaInternalApi {
   private lazy val javaModule = javaModuleRef()
   private[mill] def allMvnDeps = Task {
     Seq(
-      javaModule.coursierDependency,
-      javaModule.coursierDependency.withConfiguration(coursier.core.Configuration.provided)
+      javaModule.coursierDependencyTask(),
+      javaModule.coursierDependencyTask().withConfiguration(coursier.core.Configuration.provided)
     ).map(BoundDep(_, force = false))
   }
 

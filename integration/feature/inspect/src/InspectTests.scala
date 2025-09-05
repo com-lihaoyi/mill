@@ -91,8 +91,8 @@ object InspectTests extends UtestIntegrationTestSuite {
           |                             tree.
           |
           |Inputs:
-          |    core.mandatoryMvnDeps
           |    core.mvnDeps
+          |    core.mandatoryMvnDeps
           |    core.compileMvnDeps
           |    core.runMvnDeps
           |    core.bomMvnDeps
