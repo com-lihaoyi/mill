@@ -219,12 +219,12 @@ Configure the mill build
 
 Start the emulator and run the app
 
-[source,bash]
+[source,console]
 ----
-./mill show app.createAndroidVirtualDevice
-./mill show app.startAndroidEmulator
-./mill show app.androidInstall
-./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
+> ./mill show app.createAndroidVirtualDevice
+> ./mill show app.startAndroidEmulator
+> ./mill show app.androidInstall
+> ./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
 ----
 
 The Android Todo App built with Mill
