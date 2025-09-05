@@ -232,9 +232,9 @@ image:AndroidTodoExample.png[The Todo app built with Mill, showing a list of tas
 
 Run the instrumented tests and watch the app being tested inside the emulator:
 
-[source,bash]
+[source,console]
 ----
-./mill app.androidTest
+> ./mill app.androidTest
 ----
 
 Let's say you want to know how the apk is built. First, you can check the plan of `androidApk`, i.e which
