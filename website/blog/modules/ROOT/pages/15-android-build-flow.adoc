@@ -194,10 +194,10 @@ If you’re curious, the best way to appreciate this is to try it yourself:
 
 Get the `architecture-samples` containing the Todo App.
 
-[source,bash]
+[source,console]
 ----
-git clone git@github.com:android/architecture-samples.git
-cd architecture-samples
+> git clone git@github.com:android/architecture-samples.git
+> cd architecture-samples
 ----
 
 Install mill
