@@ -202,12 +202,12 @@ Get the `architecture-samples` containing the Todo App.
 
 Install mill
 
-[source,bash]
+[source,console]
 ----
-curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4/mill-dist-1.0.4-mill.sh -o mill
-chmod +x mill
-echo "//| mill-version: 1.0.4-22-bcbf85" > build.mill
-./mill version
+> curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4/mill-dist-1.0.4-mill.sh -o mill
+> chmod +x mill
+> echo "//| mill-version: 1.0.4-22-bcbf85" > build.mill
+> ./mill version
 ----
 
 Configure the mill build
