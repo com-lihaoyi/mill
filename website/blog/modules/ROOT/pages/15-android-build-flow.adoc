@@ -49,7 +49,7 @@ Inputs:
 ...
 ----
 
-This post is a walk through of the basic Android build flow in Mill: what it does, why it’s complex, and why Mill makes it easier to reason about.
+This post is a walkthrough of the basic Android build flow in Mill: what it does, why it’s complex, and why Mill makes it easier to reason about.
 
 == The Android build process
 
@@ -79,7 +79,7 @@ Android adds a dozen more steps, each involving different tools and formats:
 - Emulator deployment and test execution (ADB)
 
 
-Each step is order-sensitive: resources must be compiled before classes, manifests merged before packaging, APKs signed before installation. With Gradle this is often hidden in a black box (evidently, as we tried reverse engineering a lot of Gradle's behaviour). Mill instead exposes each phase as a target you can call, inspect, or override.
+Each step is order-sensitive: resources must be compiled before classes, manifests merged before packaging, APKs signed before installation. With Gradle, these steps are usually hidden inside plugin logic. When we explored Gradle builds, we often had to reverse engineer its behavior to understand what was going on. Mill instead exposes each phase as a target you can call, inspect its sources, or override.
 
 === The Mill Android Build Pipeline
 
