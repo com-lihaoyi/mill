@@ -1,0 +1,63 @@
+package build
+import mill.*
+import mill.api.TaskCtx
+
+trait BaseModule extends Module {
+  def generate = Task {
+    val output = Task.dest / "generated.txt"
+    os.write(output, "hello")
+    PathRef(output)
+  }
+}
+
+// This module uses the base implementation unchanged
+// Calling generate here will create:
+// out/moduleA/generate.dest/generated.txt
+object moduleA extends BaseModule
+
+
+// When overriding tasks, never modify the parent task's output.
+// Instead, create new output in your own task's destination folder
+// Here we will generate two files in the output:
+// out/moduleB/generate.super/BaseModule.dest/generated.txt (parent output)
+// out/moduleB/generate.dest/processed.txt (this module's output)
+// Note: We can not over write the original contents of
+// generated.txt, because it is in a different output destination
+object moduleB extends BaseModule {
+  override def generate = Task {
+    val parentResult = super.generate()
+    val parentContent = os.read(parentResult.path)
+    val processed = parentContent
+      .replaceAll("hello", "world")
+      .trim
+
+    writeData(processed, "processed.txt")
+  }
+
+  // Helper function for writing data within a task context
+  // Note: This is a regular function, not a Task, so it can accept
+  // runtime parameters. It uses implicit TaskCtx to access Task.dest
+  private def writeData(data: String, name: String)(implicit ctx: TaskCtx): PathRef = {
+    val outputPath = ctx.dest / name
+    os.write(outputPath, data)
+    PathRef(outputPath)
+  }
+}
+
+// We can also acheive similar results by chaining tasks together.
+object moduleC extends BaseModule {
+  override def generate = Task{
+    processGenerated()
+  }
+
+  def processGenerated = Task {
+    val parentResult = super.generate()
+    val parentContent = os.read(parentResult.path)
+    val processed = parentContent
+      .replaceAll("hello", "world")
+      .trim
+    val outputPath = Task.dest / "processed.txt"
+    os.write(outputPath, processed)
+    PathRef(outputPath)
+  }
+}
