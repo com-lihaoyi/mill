@@ -279,6 +279,7 @@ image:AndroidIDEExplore.png[Exploring the Mill Android build tasks in an IDE, sh
 In addition, due to xref:12-direct-style-build-tool.adoc#_direct_style_builds[Mill's direct style], you can reason what's going on with relative ease.
 
 === Example: tweak the build in your `build.mill`
+
 [source,scala]
 ----
 import mill._
