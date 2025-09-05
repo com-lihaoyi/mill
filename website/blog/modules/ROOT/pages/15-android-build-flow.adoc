@@ -188,7 +188,7 @@ image:AndroidEndlessTunnelExample.png[An Android app built with Mill using nativ
 
 Mill’s Android support is still young, but it already covers the full build pipeline: resource compilation, manifest merging, packaging, signing, running, and even testing on emulators.
 
-What makes this different from other build tools is control: every build step is a visible Mill task, easy to run on its own, inspect, or override. That means you can debug problems faster, adapt the pipeline to your project’s needs, and extend it without fighting opaque built-in or plugin logic.
+What makes this different from Gradle are control and transparency: every build step is a visible Mill task, easy to run on its own, inspect, check its dependencies, or override, without needing any extra/third party plugins. That means you can debug problems faster, adapt the pipeline to your project’s needs, and extend it without fighting opaque built-in or plugin logic.
 
 If you’re curious, the best way to appreciate this is to try it yourself:
 
