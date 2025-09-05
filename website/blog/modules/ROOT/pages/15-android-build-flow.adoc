@@ -28,7 +28,7 @@ For example, you can inspect how Mill builds an Android APK with:
 
 [,console]
 ----
-$ ./mill __.androidApk
+$ ./mill inspect __.androidApk
 [1/1] inspect
 app.androidApk(AndroidAppModule.scala:439)
     Signs the APK using a keystore to generate a final, distributable APK.
