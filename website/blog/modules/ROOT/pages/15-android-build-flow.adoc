@@ -11,7 +11,7 @@ Until recently, Gradle was the only realistic option for Android builds. Today, 
 
 In less than a year, Mill went from minimal Android support to producing installable APKs for projects as complex as:
 
-- xref:mill::android/hilt-sample.adoc[Jetpack compose + Dependency Injection with Hilt]
+- xref:mill::android/hilt-sample.adoc[Jetpack Compose + Dependency Injection with Hilt]
 - xref:mill::android/java.adoc#_using_third_party_native_libraries[Android Native]
 - xref:mill::android/compose-samples.adoc[Jetpack Compose].
 // end::header[]
@@ -24,7 +24,7 @@ image:AndroidPokedexMultimoduleExample.png[A multi-module Android app built with
 
 Because Mill’s Android support is built out of simple, object-oriented modules (AndroidModule, AndroidAppModule, etc.), the entire pipeline is transparent and hackable. If something doesn’t work, you don’t need to wait for a plugin update — you can open the task in your IDE, see the source, and tweak it yourself. This is the same design that let us implement end-to-end Android support in under a year, and it’s what makes Mill attractive if you value control and debuggability in your build.
 
-For instance, you can inspect Mill's android packaging process with:
+For example, you can inspect how Mill builds an Android APK with:
 
 [,console]
 ----
@@ -290,7 +290,7 @@ object app extends AndroidAppModule {
   def androidCompileSdk = 35
 
   // Add extra files into the APK
-  override def androidPackageableExtraFiles = super.androidPackageableExtraFiles()
+  override def androidPackageableExtraFiles = super.androidPackageableExtraFiles() ++
     Seq(
       AndroidPackageableExtraFile(
           PathRef(moduleDir / "assets/about.txt"),
