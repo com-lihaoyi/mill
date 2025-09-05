@@ -15,7 +15,6 @@ trait BaseModule extends Module {
 // out/moduleA/generate.dest/generated.txt
 object moduleA extends BaseModule
 
-
 // When overriding tasks, never modify the parent task's output.
 // Instead, create new output in your own task's destination folder
 // Here we will generate two files in the output:
@@ -46,7 +45,7 @@ object moduleB extends BaseModule {
 
 // We can also acheive similar results by chaining tasks together.
 object moduleC extends BaseModule {
-  override def generate = Task{
+  override def generate = Task {
     processGenerated()
   }
 
