@@ -7,30 +7,49 @@
 _{author}, {revdate}_
 
 
-Until recently, Gradle was the only realistic option for Android builds. Today, Mill - a fast, predictable build tool for Java, Scala, and Kotlin - can build Android applications end-to-end.
+Until recently, Gradle was the only realistic option for Android builds. Today, Mill provides an alternative to Gradle that is easier to use and learn.
 
-In less than a year, Mill went from minimal Android support to producing installable APKs for projects as complex as xref:mill::android/hilt-sample.adoc[the Android Architecture Samples] and https://github.com/vaslabs/Pokedex_Compose_Multi_Module/tree/testing-mill[multi-module apps] with xref:mill::android/java.adoc#_using_third_party_native_libraries[native code] and xref:mill::android/compose-samples.adoc[Jetpack Compose].
+In less than a year, Mill went from minimal Android support to producing installable APKs for projects as complex as:
+
+- xref:mill::android/hilt-sample.adoc[Jetpack compose + Dependency Injection with Hilt]
+- xref:mill::android/java.adoc#_using_third_party_native_libraries[Android Native]
+- xref:mill::android/compose-samples.adoc[Jetpack Compose].
 // end::header[]
-Multi-module Pokedex sample app (https://github.com/NicosNicolaou16/Pokedex_Compose_Multi_Module[original], https://github.com/vaslabs/Pokedex_Compose_Multi_Module/tree/testing-mill[with mill])
+
+- Multi-module Pokedex sample app (https://github.com/NicosNicolaou16/Pokedex_Compose_Multi_Module[original], https://github.com/vaslabs/Pokedex_Compose_Multi_Module/tree/testing-mill[with mill])
 image:AndroidPokedexMultimoduleExample.png[A multi-module Android app built with Mill, showing a list of Pokémon and details for each pokemon.]
 
-Unlike Gradle, where build steps are buried inside plugins and DSL magic, Mill exposes each Android step as a task you can run, override, or extend.
-Want to see the merged manifest? Run
-[,console]
-----
-./mill app.androidMergedManifest
-----
 
-Curious what rules are passed to R8? Run
-[,console]
-----
-./mill app.androidProguard
-----
+=== Why you might prefer this to Gradle
 
 Because Mill’s Android support is built out of simple, object-oriented modules (AndroidModule, AndroidAppModule, etc.), the entire pipeline is transparent and hackable. If something doesn’t work, you don’t need to wait for a plugin update — you can open the task in your IDE, see the source, and tweak it yourself. This is the same design that let us implement end-to-end Android support in under a year, and it’s what makes Mill attractive if you value control and debuggability in your build.
 
-This post is a walk through of the basic Android build flow in Mill: what it does, why it’s complex, and why Mill makes it easier to reason about.
+For instance, you can inspect Mill's android packaging process with:
 
+[,console]
+----
+$ ./mill __.androidApk
+[1/1] inspect
+app.androidApk(AndroidAppModule.scala:439)
+    Signs the APK using a keystore to generate a final, distributable APK.
+
+    The signing step is mandatory to distribute Android applications. It adds a cryptographic
+    signature to the APK, verifying its authenticity. This method uses the `apksigner` tool
+    along with a keystore file to sign the APK.
+
+    If no keystore is available, a new one is generated using the `keytool` utility.
+
+    For more details on the apksigner tool, refer to:
+    [[https://developer.android.com/tools/apksigner apksigner Documentation]]
+
+Inputs:
+    androidSdkModule0.apksignerPath
+    app.androidAlignedUnsignedApk
+    app.androidSignKeyDetails
+...
+----
+
+This post is a walk through of the basic Android build flow in Mill: what it does, why it’s complex, and why Mill makes it easier to reason about.
 
 == The Android build process
 
@@ -208,6 +227,9 @@ Start the emulator and run the app
 ./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
 ----
 
+The Android Todo App built with Mill
+image:AndroidTodoExample.png[The Todo app built with Mill, showing a list of tasks and a button to add new tasks.]
+
 Run the instrumented tests and watch the app being tested inside the emulator:
 
 [source,bash]
@@ -215,8 +237,71 @@ Run the instrumented tests and watch the app being tested inside the emulator:
 ./mill app.androidTest
 ----
 
-The Android Todo App built with Mill
-image:AndroidTodoExample.png[The Todo app built with Mill, showing a list of tasks and a button to add new tasks.]
+Let's say you want to know how the apk is built. First, you can check the plan of `androidApk`, i.e which
+tasks it depends on:
+[,console]
+----
+$ ./mill plan app.androidApk
+[1/1] plan
+androidSdkModule0.sdkPath
+androidSdkModule0.buildToolsVersion
+androidSdkModule0.platformsVersion
+androidSdkModule0.remoteReposInfo
+androidSdkModule0.installAndroidSdkComponents
+androidSdkModule0.buildToolsPath
+androidSdkModule0.apksignerPath
+androidSdkModule0.zipalignPath
+app.mandatoryMvnDeps.super.javalib.JavaModule
+app.kotlinVersion
+----
+
+
+You can use this to visualise the relationships between these tasks and how they feed each other and ultimately the `androidApk` task:
+
+[,console]
+----
+$ ./mill visualizePlan app.androidApk
+[3/3] visualizePlan
+[
+  ".../architecture-samples/out/visualizePlan.dest/out.dot",
+  ".../architecture-samples/out/visualizePlan.dest/out.json",
+  ".../architecture-samples/out/visualizePlan.dest/out.png",
+  ".../architecture-samples/out/visualizePlan.dest/out.svg",
+  ".../architecture-samples/out/visualizePlan.dest/out.txt"
+]
+[3/3] ============================== visualizePlan app.androidApk ============================== 2s
+----
+
+You can also check the code of each task and what it does exactly inside your IDE:
+image:AndroidIDEExplore.png[Exploring the Mill Android build tasks in an IDE, showing the source code for the androidApk task.]
+
+
+In addition, due to xref:12-direct-style-build-tool.adoc#_direct_style_builds[Mill's direct style], you can reason what's going on with relative ease.
+
+=== Example: tweak the build in your `build.mill`
+[source,scala]
+----
+import mill._
+import mill.androidlib._
+
+object app extends AndroidAppModule {
+  def androidApplicationNamespace = "com.example.app"
+  def androidApplicationId = "com.example.app"
+  def androidCompileSdk = 35
+
+  // Add extra files into the APK
+  override def androidPackageableExtraFiles = super.androidPackageableExtraFiles()
+    Seq(
+      AndroidPackageableExtraFile(
+          PathRef(moduleDir / "assets/about.txt"),
+          os.RelPath("assets/about.txt")
+      )
+    )
+
+}
+----
+
+=== Further Exploration
 
 You may also inspect xref:mill::android/android-initial-setup.adoc[the getting started docs] to find out more.
 
