@@ -1263,7 +1263,7 @@ node35 -> node0;
             <div class="cover">
              <div class="doc">
               <p>The repositories used to resolve dependencies</p>
-              <p>Unlike <a href="../javalib/CoursierModule.html#repositoriesTask-0">repositoriesTask</a>, this includes the Mill internal repositories, which allow to resolve Mill internal modules (usually brought in via <code>JavaModule#coursierDependency</code>).</p>
+              <p>Unlike <a href="../javalib/CoursierModule.html#repositoriesTask-0">repositoriesTask</a>, this includes the Mill internal repositories, which allow to resolve Mill internal modules (usually brought in via <code>JavaModule#coursierDependencyTask</code>).</p>
               <p>Beware that this needs to evaluate <code>JavaModule#coursierProject</code> of all module dependencies of the current module, which itself evaluates <code>JavaModule#mvnDeps</code> and related tasks. You shouldn't depend on this task from implementations of <code>mvnDeps</code>, which would introduce cycles between Mill tasks.</p>
              </div>
              <h2 class="h200">Attributes</h2>
@@ -2744,12 +2744,12 @@ node35 -> node0;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="coursierDependency-0" data-f-inherited="JavaModule">
+        <div class="documentableElement" id="coursierDependencyTask-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TestScalaJSModule.html#coursierDependency-0" t="n" class="documentableName ">coursierDependency</a>: <span data-unresolved-link="" t="t">Dependency</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TestScalaJSModule.html#coursierDependencyTask-0" t="n" class="documentableName ">coursierDependencyTask</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Dependency</span>]
            </div>
           </div>
          </div>
@@ -2758,20 +2758,15 @@ node35 -> node0;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>The <code>coursier.Dependency</code> to use to refer to this module</p>
-            </div>
             <div class="cover">
-             <div class="doc">
-              <p>The <code>coursier.Dependency</code> to use to refer to this module</p>
-             </div>
+             <div class="doc"></div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="../javalib/JavaModule.html#coursierDependency-0">JavaModule</a>
+               <a href="../javalib/JavaModule.html#coursierDependencyTask-0">JavaModule</a>
               </dd>
               <dt class="body-small">
                Source
@@ -4726,7 +4721,7 @@ node35 -> node0;
             <div class="cover">
              <div class="doc">
               <p>A <a href="../javalib/CoursierModule$$Resolver.html">CoursierModule.Resolver</a> to resolve dependencies.</p>
-              <p>Unlike <a href="../javalib/CoursierModule.html#defaultResolver-0">defaultResolver</a>, this resolver can resolve Mill modules too (obtained via <a href="../javalib/JavaModule.html#coursierDependency-0">JavaModule.coursierDependency</a>).</p>
+              <p>Unlike <a href="../javalib/CoursierModule.html#defaultResolver-0">defaultResolver</a>, this resolver can resolve Mill modules too (obtained via <a href="../javalib/JavaModule.html#coursierDependencyTask-0">JavaModule.coursierDependencyTask</a>).</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -9546,9 +9541,64 @@ node35 -> node0;
         </div>
        </div>
       </section>
+      <section id="Deprecated-and-Inherited-methods">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Deprecated and Inherited methods</h4>
+        </div>
+        <div class="documentableElement" id="coursierDependency-0" data-f-inherited="JavaModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TestScalaJSModule.html#coursierDependency-0" t="n" class="documentableName deprecated">coursierDependency</a>: <span data-unresolved-link="" t="t">Dependency</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The <code>coursier.Dependency</code> to use to refer to this module</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The <code>coursier.Dependency</code> to use to refer to this module</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               <code>[Since version Mill 1.1.0] </code>Use coursierDependencyTask instead
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../javalib/JavaModule.html#coursierDependency-0">JavaModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/JavaModule.scala" target="_blank">JavaModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
      </div>
     </section>
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Type-members">Type members</a><ul><li><a href="#Inherited-classlikes">Inherited classlikes</a></li></ul></li><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Inherited-methods">Inherited methods</a></li><li><a href="#Inherited-and-Abstract-methods">Inherited and Abstract methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Type-members">Type members</a><ul><li><a href="#Inherited-classlikes">Inherited classlikes</a></li></ul></li><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Inherited-methods">Inherited methods</a></li><li><a href="#Inherited-and-Abstract-methods">Inherited and Abstract methods</a></li><li><a href="#Deprecated-and-Inherited-methods">Deprecated and Inherited methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>

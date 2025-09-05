@@ -385,7 +385,7 @@ node16 -> node12;
             <div class="cover">
              <div class="doc">
               <p>The repositories used to resolve dependencies</p>
-              <p>Unlike <a href="../javalib/CoursierModule.html#repositoriesTask-0">repositoriesTask</a>, this includes the Mill internal repositories, which allow to resolve Mill internal modules (usually brought in via <code>JavaModule#coursierDependency</code>).</p>
+              <p>Unlike <a href="../javalib/CoursierModule.html#repositoriesTask-0">repositoriesTask</a>, this includes the Mill internal repositories, which allow to resolve Mill internal modules (usually brought in via <code>JavaModule#coursierDependencyTask</code>).</p>
               <p>Beware that this needs to evaluate <code>JavaModule#coursierProject</code> of all module dependencies of the current module, which itself evaluates <code>JavaModule#mvnDeps</code> and related tasks. You shouldn't depend on this task from implementations of <code>mvnDeps</code>, which would introduce cycles between Mill tasks.</p>
              </div>
              <h2 class="h200">Attributes</h2>
@@ -1240,7 +1240,7 @@ node16 -> node12;
             <div class="cover">
              <div class="doc">
               <p>A <a href="../javalib/CoursierModule$$Resolver.html">CoursierModule.Resolver</a> to resolve dependencies.</p>
-              <p>Unlike <a href="../javalib/CoursierModule.html#defaultResolver-0">defaultResolver</a>, this resolver can resolve Mill modules too (obtained via <a href="../javalib/JavaModule.html#coursierDependency-0">JavaModule.coursierDependency</a>).</p>
+              <p>Unlike <a href="../javalib/CoursierModule.html#defaultResolver-0">defaultResolver</a>, this resolver can resolve Mill modules too (obtained via <a href="../javalib/JavaModule.html#coursierDependencyTask-0">JavaModule.coursierDependencyTask</a>).</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">

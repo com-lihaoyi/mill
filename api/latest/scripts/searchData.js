@@ -1964,6 +1964,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/javalib/JavaModule.html#compileMvnDeps-0","e":false,"i":"","n":"compileMvnDeps","t":"compileMvnDeps: Simple[Seq[Dep]]","d":"mill.javalib.JavaModule","k":"def","x":""},
 {"l":"mill/javalib/JavaModule.html#compileResources-0","e":false,"i":"","n":"compileResources","t":"compileResources: Simple[Seq[PathRef]]","d":"mill.javalib.JavaModule","k":"def","x":""},
 {"l":"mill/javalib/JavaModule.html#coursierDependency-0","e":false,"i":"","n":"coursierDependency","t":"coursierDependency: Dependency","d":"mill.javalib.JavaModule","k":"def","x":""},
+{"l":"mill/javalib/JavaModule.html#coursierDependencyTask-0","e":false,"i":"","n":"coursierDependencyTask","t":"coursierDependencyTask: Task[Dependency]","d":"mill.javalib.JavaModule","k":"def","x":""},
 {"l":"mill/javalib/JavaModule.html#coursierProject-0","e":false,"i":"","n":"coursierProject","t":"coursierProject: Task[Project]","d":"mill.javalib.JavaModule","k":"def","x":""},
 {"l":"mill/javalib/JavaModule.html#defaultTask-665","e":false,"i":"","n":"defaultTask","t":"defaultTask(): String","d":"mill.javalib.JavaModule","k":"def","x":""},
 {"l":"mill/javalib/JavaModule.html#depManagement-0","e":false,"i":"","n":"depManagement","t":"depManagement: Simple[Seq[Dep]]","d":"mill.javalib.JavaModule","k":"def","x":""},
