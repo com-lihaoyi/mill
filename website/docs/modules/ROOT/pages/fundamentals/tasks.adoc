@@ -52,3 +52,7 @@ include::partial$example/fundamentals/tasks/6-workers.adoc[]
 
 include::partial$example/fundamentals/tasks/3-anonymous-tasks.adoc[]
 
+=== Inheritance and Chaining of Tasks
+
+include::partial$example/fundamentals/tasks/8-inheritance-and-chaining.adoc[]
+

@@ -23,6 +23,9 @@ def printFileData(fileName: String) = Task.Command {
 // anywhere and passed around any way you want, until you finally make use of them
 // within a downstream task or command.
 //
+// Anonymous tasks work well when parameters are known at task definition time. Dynamically
+// generated inputs can not be used with Anonymous Tasks, as this would break caching.
+//
 // While an anonymous task ``foo``'s own output is not cached, if it is used in a
 // downstream task `baz` and the upstream task `bar` hasn't changed,
 // ``baz``'s cached output will be used and ``foo``'s evaluation will be skipped
