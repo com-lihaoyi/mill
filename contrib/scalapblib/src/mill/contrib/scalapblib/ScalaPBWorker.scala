@@ -24,7 +24,8 @@ class ScalaPBWorker {
           val scalaPBCompilerClass = cl.loadClass("scalapb.ScalaPBC")
           val mainMethod = scalaPBCompilerClass.getMethod("main", classOf[Array[java.lang.String]])
           val args = otherArgs ++ generators.map { gen =>
-            val opts = if (scalaPBOptions.isEmpty || !gen.supportsScalaPBOptions) "" else scalaPBOptions + ":"
+            val opts = if (scalaPBOptions.isEmpty || !gen.supportsScalaPBOptions) ""
+            else scalaPBOptions + ":"
             s"${gen.generator}=$opts${generatedDirectory.getCanonicalPath}"
           } ++ roots.map(root => s"--proto_path=${root.getCanonicalPath}") ++ sources.map(
             _.getCanonicalPath
@@ -89,7 +90,14 @@ class ScalaPBWorker {
           Seq(ioFile)
     }
     val roots = scalaPBSources.map(_.toIO).filter(_.isDirectory)
-    compiler.compileScalaPB(roots, sources, scalaPBOptions, dest.toIO, scalaPBCExtraArgs, generators)
+    compiler.compileScalaPB(
+      roots,
+      sources,
+      scalaPBOptions,
+      dest.toIO,
+      scalaPBCExtraArgs,
+      generators
+    )
     mill.api.Result.Success(PathRef(dest))
   }
 }
@@ -115,7 +123,8 @@ case object ScalaGen extends Generator {
 }
 case object JavaGen extends Generator {
   override def generator: String = "--java_out"
-  override def supportsScalaPBOptions: Boolean = false // Java options are specified directly in the proto file
+  override def supportsScalaPBOptions: Boolean =
+    false // Java options are specified directly in the proto file
 }
 
 object ScalaPBWorkerApi extends ExternalModule {

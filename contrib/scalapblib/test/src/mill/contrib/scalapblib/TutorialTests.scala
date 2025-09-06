@@ -108,8 +108,8 @@ object TutorialTests extends TestSuite {
 
   // Helper function to test compilation with different generators
   def testCompilation(
-    module: TutorialBase,
-    expectedFiles: Seq[os.RelPath]
+      module: TutorialBase,
+      expectedFiles: Seq[os.RelPath]
   ): Unit = {
     UnitTester(module, resourcePath).scoped { eval =>
       if (!mill.constants.Util.isWindows) {
@@ -150,7 +150,10 @@ object TutorialTests extends TestSuite {
     test("compileScalaPB") {
       test("scalaGen") - testCompilation(Tutorial, compiledScalaSourcefiles)
       test("javaGen") - testCompilation(TutorialWithJavaGen, compiledJavaSourcefiles)
-      test("scalaAndJavaGen") - testCompilation(TutorialWithScalaAndJavaGen, compiledScalaSourcefiles ++ compiledJavaSourcefiles)
+      test("scalaAndJavaGen") - testCompilation(
+        TutorialWithScalaAndJavaGen,
+        compiledScalaSourcefiles ++ compiledJavaSourcefiles
+      )
 
       test("calledWithSpecificFile") - UnitTester(
         TutorialWithSpecificSources,
