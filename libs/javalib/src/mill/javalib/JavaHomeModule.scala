@@ -7,6 +7,7 @@ import mill.api.{PathRef, Task}
  * Common trait for modules that use either a custom or a globally shared [[JvmWorkerModule]].
  */
 trait JavaHomeModule extends CoursierModule {
+
   def jvmId: T[String] = ""
 
   def jvmIndexVersion: T[String] = mill.javalib.api.Versions.coursierJvmIndexVersion

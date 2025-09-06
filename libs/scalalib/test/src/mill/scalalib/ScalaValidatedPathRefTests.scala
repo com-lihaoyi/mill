@@ -6,6 +6,7 @@ import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
 
+// TODO: Move into Java module or even further up
 object ScalaValidatedPathRefTests extends TestSuite {
 
   object ValidatedTarget extends TestRootModule {

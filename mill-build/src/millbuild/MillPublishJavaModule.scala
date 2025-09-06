@@ -1,21 +1,9 @@
 package millbuild
 
 import build_.package_ as build
-import coursier.MavenRepository
-import mill.PathRef
-import mill.T
 import mill.Task
-import mill.scalalib.Dep
-import mill.scalalib.JavaModule
 import mill.scalalib.PublishModule
-import mill.scalalib.publish.{
-  Developer,
-  License,
-  LocalM2Publisher,
-  PomSettings,
-  PublishInfo,
-  VersionControl
-}
+import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 
 trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 
@@ -26,7 +14,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
   )
   def pomSettings = MillPublishJavaModule.commonPomSettings(artifactName())
   def javacOptions =
-    super.javacOptions() ++ Seq("-source", "11", "-target", "11", "-encoding", "UTF-8")
+    super.javacOptions() ++ Seq("--release", "11", "-encoding", "UTF-8", "-deprecation")
 }
 
 object MillPublishJavaModule {
