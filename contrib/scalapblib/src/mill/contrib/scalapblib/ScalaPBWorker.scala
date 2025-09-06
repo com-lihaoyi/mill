@@ -5,6 +5,7 @@ import java.io.File
 
 import mill.api.PathRef
 import mill.api.{Discover, ExternalModule}
+import upickle.default.ReadWriter
 
 class ScalaPBWorker {
 
@@ -15,16 +16,17 @@ class ScalaPBWorker {
           sources: Seq[File],
           scalaPBOptions: String,
           generatedDirectory: File,
-          otherArgs: Seq[String]
+          otherArgs: Seq[String],
+          generators: Seq[Generator]
       ): Unit = {
         val pbcClasspath = scalaPBClasspath.map(_.path).toVector
         mill.util.Jvm.withClassLoader(pbcClasspath, null) { cl =>
           val scalaPBCompilerClass = cl.loadClass("scalapb.ScalaPBC")
           val mainMethod = scalaPBCompilerClass.getMethod("main", classOf[Array[java.lang.String]])
-          val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
-          val args = otherArgs ++ Seq(
-            s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}"
-          ) ++ roots.map(root => s"--proto_path=${root.getCanonicalPath}") ++ sources.map(
+          val args = otherArgs ++ generators.map { gen =>
+            val opts = if (scalaPBOptions.isEmpty || !gen.supportsScalaPBOptions) "" else scalaPBOptions + ":"
+            s"${gen.generator}=$opts${generatedDirectory.getCanonicalPath}"
+          } ++ roots.map(root => s"--proto_path=${root.getCanonicalPath}") ++ sources.map(
             _.getCanonicalPath
           )
           ctx.log.debug(s"ScalaPBC args: ${args.mkString(" ")}")
@@ -70,7 +72,8 @@ class ScalaPBWorker {
       scalaPBSources: Seq[os.Path],
       scalaPBOptions: String,
       dest: os.Path,
-      scalaPBCExtraArgs: Seq[String]
+      scalaPBCExtraArgs: Seq[String],
+      generators: Seq[Generator]
   )(implicit ctx: mill.api.TaskCtx): mill.api.Result[PathRef] = {
     val compiler = scalaPB(scalaPBClasspath)
     val sources = scalaPBSources.flatMap {
@@ -86,7 +89,7 @@ class ScalaPBWorker {
           Seq(ioFile)
     }
     val roots = scalaPBSources.map(_.toIO).filter(_.isDirectory)
-    compiler.compileScalaPB(roots, sources, scalaPBOptions, dest.toIO, scalaPBCExtraArgs)
+    compiler.compileScalaPB(roots, sources, scalaPBOptions, dest.toIO, scalaPBCExtraArgs, generators)
     mill.api.Result.Success(PathRef(dest))
   }
 }
@@ -97,8 +100,22 @@ trait ScalaPBWorkerApi {
       source: Seq[File],
       scalaPBOptions: String,
       generatedDirectory: File,
-      otherArgs: Seq[String]
+      otherArgs: Seq[String],
+      generators: Seq[Generator]
   ): Unit
+}
+
+sealed trait Generator derives ReadWriter {
+  def generator: String
+  def supportsScalaPBOptions: Boolean
+}
+case object ScalaGen extends Generator {
+  override def generator: String = "--scala_out"
+  override def supportsScalaPBOptions: Boolean = true
+}
+case object JavaGen extends Generator {
+  override def generator: String = "--java_out"
+  override def supportsScalaPBOptions: Boolean = false // Java options are specified directly in the proto file
 }
 
 object ScalaPBWorkerApi extends ExternalModule {
