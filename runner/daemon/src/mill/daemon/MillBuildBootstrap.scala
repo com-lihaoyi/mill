@@ -95,6 +95,7 @@ class MillBuildBootstrap(
         val buildFileApi = new mill.api.internal.BuildFileCls(rootModule)
         val evaluator = makeEvaluator(
           0,
+          output / millFile.subRelativeTo(projectRoot),
           Map.empty,
           Some(yamlHeader),
           Map.empty,
@@ -241,6 +242,7 @@ class MillBuildBootstrap(
               Using.resource(
                 makeEvaluator(
                   depth,
+                  output,
                   nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
                   headerDataOpt,
                   newWorkerCache,
@@ -285,6 +287,7 @@ class MillBuildBootstrap(
 
   private def makeEvaluator(
       depth: Int,
+      outputPath: os.Path,
       codeSignatures: Map[String, Int],
       headerDataOpt: Option[String],
       newWorkerCache: Map[String, (Int, Val)],
@@ -295,7 +298,7 @@ class MillBuildBootstrap(
   ) = {
     MillBuildBootstrap.makeEvaluator(
       projectRoot,
-      output,
+      outputPath,
       keepGoing,
       env,
       logger,
