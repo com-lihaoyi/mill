@@ -1,0 +1,9 @@
+
+= Single-File Java Projects
+:language: Java
+:language-small: java
+:language-ext: java
+
+== Configuring Single-File Projects
+
+include::partial$example/javalib/singlefile/1-config.adoc[]

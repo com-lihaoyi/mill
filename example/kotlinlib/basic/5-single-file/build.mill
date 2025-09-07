@@ -27,16 +27,3 @@ Compiling 1 Kotlin sources to...
 */
 
 //// SNIPPET:END
-
-//// SNIPPET:LAST
-/** See Also: Bar.kt */
-/** Usage
-
-> ./mill -f Bar.kt nativeImage
-
-> out/nativeImage.dest/native-executable
-Hello Graal Native: 24...
-
-*/
-
-//// SNIPPET:END
