@@ -1,10 +1,13 @@
 package mill.api.daemon
 
 import java.net.URLClassLoader
+import scala.annotation.static
 
 /**
  * Convenience wrapper around `java.net.URLClassLoader`. Allows configuration
- * of shared class prefixes, and tracks creation/closing to help detect leaks
+ * of shared class prefixes, and tracks creation/closing to help detect leaks.
+ *
+ * This classloader is parallel capable.
  */
 class MillURLClassLoader(
     classPath: Iterable[java.nio.file.Path],
@@ -17,6 +20,9 @@ class MillURLClassLoader(
       MillURLClassLoader.refinePlatformParent(parent)
     ) {
   import MillURLClassLoader.*
+
+  require(initialized)
+
   addOpenClassloader(label)
 
   override def findClass(name: String): Class[?] =
@@ -47,6 +53,12 @@ class MillURLClassLoader(
 }
 
 object MillURLClassLoader {
+
+  @static private val initialized: Boolean = {
+    // Unused static field here exists for its side-effect:
+    // we statically initialize the classloader as parallel capable
+    java.lang.ClassLoader.registerAsParallelCapable()
+  }
 
   /**
    * Shows a count of what `MillURLClassLoader`s are instantiated and have not yet
