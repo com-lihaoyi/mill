@@ -85,6 +85,9 @@ public class Util {
   }
 
   public static String readBuildHeader(java.nio.file.Path buildFile, String errorFileName) {
+    return readBuildHeader(buildFile, errorFileName, false);
+  }
+  public static String readBuildHeader(java.nio.file.Path buildFile, String errorFileName, boolean allowNonBuild) {
     try {
       java.util.List<String> lines = java.nio.file.Files.readAllLines(buildFile);
       boolean readingBuildHeader = true;
@@ -92,7 +95,7 @@ public class Util {
       for (int i = 0; i < lines.size(); i++) {
         String line = lines.get(i);
         if (!line.startsWith("//|")) readingBuildHeader = false;
-        else if (!buildFile.getFileName().toString().startsWith("build.")) {
+        else if (!allowNonBuild && !buildFile.getFileName().toString().startsWith("build.")) {
           throwBuildHeaderError(
               errorFileName,
               i,

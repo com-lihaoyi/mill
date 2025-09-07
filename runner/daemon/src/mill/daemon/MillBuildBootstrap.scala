@@ -1,19 +1,11 @@
 package mill.daemon
 
-import mill.api.daemon.internal.{
-  BuildFileApi,
-  CompileProblemReporter,
-  EvaluatorApi,
-  MillScalaParser,
-  PathRefApi,
-  RootModuleApi
-}
-import mill.api.{Logger, Result, SystemStreams, Val}
+import mill.api.daemon.internal.{BuildFileApi, CompileProblemReporter, EvaluatorApi, MillScalaParser, PathRefApi, RootModuleApi}
+import mill.api.{BuildCtx, Discover, Logger, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.{millBuild, millRunnerState}
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
-import mill.api.{BuildCtx, PathRef, SelectMode}
 import mill.internal.PrefixLogger
 import mill.meta.{FileImportGraph, MillBuildRootModule}
 import mill.meta.CliImports
@@ -60,7 +52,7 @@ class MillBuildBootstrap(
     selectiveExecution: Boolean,
     offline: Boolean,
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
-    millFile: Option[os.Path]
+    millFileOpt: Option[os.Path]
 ) { outer =>
   import MillBuildBootstrap.*
 
@@ -68,21 +60,67 @@ class MillBuildBootstrap(
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
   def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
-    val runnerState = evaluateRec(0)
+    millFileOpt match{
+      case Some(millFile) =>
+        val rootModule = millFile.ext match{
+          case "java" =>
+            new RootModule()(new RootModule.Info(projectRoot, output, projectRoot), implicitly, implicitly, implicitly) with mill.javalib.JavaModule {
+              import mill.*
+              def allSourceFiles = Task.Sources(millFile)
+              override lazy val millDiscover = Discover[this.type]
+            }
+          case "scala" =>
+            new RootModule()(new RootModule.Info(projectRoot, output, projectRoot), implicitly, implicitly, implicitly) with mill.scalalib.ScalaModule {
+              import mill.*
+              def scalaVersion = mill.util.BuildInfo.scalaVersion
+              def allSourceFiles = Task.Sources(millFile)
+              override lazy val millDiscover = Discover[this.type]
+            }
+//          case "kt" =>
+//            new RootModule()(new RootModule.Info(projectRoot, output, projectRoot), implicitly, implicitly, implicitly) with mill.kotlinlib.KotlinModule {
+//              import mill.*
+//              override lazy val millDiscover = Discover[this.type]
+//            }
+        }
+        val yamlHeader = mill.constants.Util.readBuildHeader(millFile.toNIO, millFile.last, true)
 
-    for ((frame, depth) <- runnerState.frames.zipWithIndex) {
-      os.write.over(
-        recOut(output, depth) / millRunnerState,
-        upickle.write(frame.loggedData, indent = 4),
-        createFolders = true
-      )
+        val buildFileApi = new mill.api.internal.BuildFileCls(rootModule)
+        val evaluator = makeEvaluator(
+          0,
+          RunnerState(Some(rootModule), Nil, None, None),
+          Some(yamlHeader),
+          Map.empty,
+          buildFileApi
+        )
+        val (evaled, evalWatched, moduleWatched) = evaluateWithWatches(
+          buildFileApi,
+          evaluator,
+          tasksAndParams,
+          selectiveExecution,
+          reporter = reporter(evaluator)
+        )
+        Watching.Result(
+          watched = evalWatched ++ moduleWatched,
+          error = evaled.errorOpt,
+          result = prevRunnerState
+        )
+      case None =>
+        val runnerState = evaluateRec(0)
+
+        for ((frame, depth) <- runnerState.frames.zipWithIndex) {
+          os.write.over(
+            recOut(output, depth) / millRunnerState,
+            upickle.write(frame.loggedData, indent = 4),
+            createFolders = true
+          )
+        }
+
+        Watching.Result(
+          watched = runnerState.watched,
+          error = runnerState.errorOpt,
+          result = runnerState
+        )
     }
-
-    Watching.Result(
-      watched = runnerState.watched,
-      error = runnerState.errorOpt,
-      result = runnerState
-    )
   }
 
   def evaluateRec(depth: Int): RunnerState = {
@@ -94,7 +132,7 @@ class MillBuildBootstrap(
 
       val requestedDepth = requestedMetaLevel.filter(_ >= 0).getOrElse(0)
 
-      val currentRootContainsBuildFile0 = rootBuildFileNames.asScala.exists(rootBuildFileName =>
+      val currentRootContainsBuildFile = rootBuildFileNames.asScala.exists(rootBuildFileName =>
         os.exists(currentRoot / rootBuildFileName)
       )
 
@@ -104,10 +142,6 @@ class MillBuildBootstrap(
           // Unfortunately, some tasks also make sense without a `build.mill`, e.g. the `init` command.
           // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
           lazy val state = evaluateRec(depth + 1)
-          val currentRootContainsBuildFile = millFile match {
-            case Some(f) => os.exists(f)
-            case None => currentRootContainsBuildFile0
-          }
           if (currentRootContainsBuildFile) (state, None)
           else {
             val msg =
@@ -125,13 +159,13 @@ class MillBuildBootstrap(
             (res, None)
           }
         } else {
-          val currentRootContainsBuildFile = currentRootContainsBuildFile0
-          val parsedScriptFiles = FileImportGraph.parseBuildFiles(
-            projectRoot,
-            currentRoot / os.up,
-            output,
-            MillScalaParser.current.value
-          )
+          val parsedScriptFiles = FileImportGraph
+            .parseBuildFiles(
+              projectRoot,
+              currentRoot / os.up,
+              output,
+              MillScalaParser.current.value
+            )
 
           val state =
             if (currentRootContainsBuildFile) evaluateRec(depth + 1)
@@ -191,44 +225,9 @@ class MillBuildBootstrap(
 
           rootModuleRes match {
             case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
-            case Result.Success((buildFileApi)) =>
+            case Result.Success(buildFileApi) =>
 
-              Using.resource(makeEvaluator(
-                projectRoot,
-                output,
-                keepGoing,
-                env,
-                logger,
-                ec,
-                allowPositionalCommandArgs,
-                systemExit,
-                streams0,
-                selectiveExecution,
-                offline,
-                newWorkerCache,
-                nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
-                buildFileApi.rootModule,
-                // We want to use the grandparent buildHash, rather than the parent
-                // buildHash, because the parent build changes are instead detected
-                // by analyzing the scriptImportGraph in a more fine-grained manner.
-                nestedState
-                  .frames
-                  .dropRight(1)
-                  .headOption
-                  .map(_.runClasspath)
-                  .getOrElse(millBootClasspathPathRefs)
-                  .map(p => (os.Path(p.javaPath), p.sig))
-                  .hashCode(),
-                nestedState
-                  .frames
-                  .headOption
-                  .flatMap(_.classLoaderOpt)
-                  .map(_.hashCode())
-                  .getOrElse(0),
-                depth,
-                actualBuildFileName = nestedState.buildFile,
-                headerData = headerDataOpt.getOrElse("")
-              )) { evaluator =>
+              Using.resource(makeEvaluator(depth, nestedState, headerDataOpt, newWorkerCache, buildFileApi)) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
                 } else if (depth <= requestedDepth) nestedState
@@ -248,6 +247,45 @@ class MillBuildBootstrap(
 
       res
     }
+  }
+
+  private def makeEvaluator(depth: Int, nestedState: RunnerState, headerDataOpt: Option[String], newWorkerCache: Map[String, (Int, Val)], buildFileApi: BuildFileApi) = {
+    MillBuildBootstrap.makeEvaluator(
+      projectRoot,
+      output,
+      keepGoing,
+      env,
+      logger,
+      ec,
+      allowPositionalCommandArgs,
+      systemExit,
+      streams0,
+      selectiveExecution,
+      offline,
+      newWorkerCache,
+      nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
+      buildFileApi.rootModule,
+      // We want to use the grandparent buildHash, rather than the parent
+      // buildHash, because the parent build changes are instead detected
+      // by analyzing the scriptImportGraph in a more fine-grained manner.
+      nestedState
+        .frames
+        .dropRight(1)
+        .headOption
+        .map(_.runClasspath)
+        .getOrElse(millBootClasspathPathRefs)
+        .map(p => (os.Path(p.javaPath), p.sig))
+        .hashCode(),
+      nestedState
+        .frames
+        .headOption
+        .flatMap(_.classLoaderOpt)
+        .map(_.hashCode())
+        .getOrElse(0),
+      depth,
+      actualBuildFileName = nestedState.buildFile,
+      headerData = headerDataOpt.getOrElse("")
+    )
   }
 
   /**
@@ -364,7 +402,7 @@ class MillBuildBootstrap(
 
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
-    val (evaled, evalWatched, moduleWatches) = evaluateWithWatches(
+    val (evaled, evalWatched, moduleWatched) = evaluateWithWatches(
       buildFileApi,
       evaluator,
       tasksAndParams,
@@ -374,7 +412,7 @@ class MillBuildBootstrap(
     val evalState = RunnerState.Frame(
       evaluator.workerCache.toMap,
       evalWatched,
-      moduleWatches,
+      moduleWatched,
       Map.empty,
       None,
       Nil,

@@ -291,7 +291,7 @@ object MillMain0 {
                                 selectiveExecution = config.watch.value,
                                 offline = config.offline.value,
                                 reporter = reporter,
-                                millFile = config.file
+                                millFileOpt = config.file
                               ).evaluate()
                             }
                           }

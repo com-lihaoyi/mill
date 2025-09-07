@@ -1,6 +1,11 @@
 //| mvnDeps:
 //| - net.sourceforge.argparse4j:argparse4j:0.9.0
 //| - org.thymeleaf:thymeleaf:3.1.1.RELEASE
+import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.Namespace;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 public class Foo {
   public static String generateHtml(String text) {
