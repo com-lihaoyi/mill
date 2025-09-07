@@ -11,7 +11,7 @@ in the JVM ecosystem:
 
 * Mill's rich featureset means
 xref:comparisons/why-mill.adoc#_rich_builtins[less fiddling with plugins],
-since everything needed for development is built in
+supporting xref:javalib/intro.adoc#_single_file_projects[single-file projects] to xref:large/large.adoc[large codebases]
 
 * Mill builds are xref:comparisons/why-mill.adoc#_ide_support[easily explorable in your IDE],
 letting you work on them without constantly googling for help

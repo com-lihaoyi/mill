@@ -1,0 +1,55 @@
+// Mill also allows you to run single-file {language} programs easily from the command-line,
+// even those that contain third-party dependencies or other such configuration. These can be
+// useful as a replacement for Bash scripts, letting you write small scripts or programs
+// in {language} with full access to third-party libraries and other build-tool features.
+//
+// For example, given the single-file program below, it can be run directly using Mill:
+
+//// SNIPPET:FILE
+/** See Also: Foo.scala */
+
+/** Usage
+> ./mill Foo.scala --text "hello world"
+compiling 1 Scala source to...
+<h1>hello world</h1>
+*/
+
+
+//// SNIPPET:END
+
+// The `./mill Foo.{language-ext}` syntax is shorthand for `./mill -f Foo.{language-ext} run`
+// or `./mill --file Foo.{language-ext} run`, which can also be passed explicitly. The
+// explicit `-f`/`--file` also allows you to call other tasks on the single-file project,
+// e.g. bundling it into an assembly:
+
+//// SNIPPET:MORE
+
+/** Usage
+> ./mill -f Foo.scala run --text hello
+<h1>hello</h1>
+*/
+
+/** Usage
+> ./mill -f Foo.scala show assembly # show the output of the assembly task
+".../out/assembly.dest/out.jar"
+
+> java -jar ./out/assembly.dest/out.jar --text hello
+<h1>hello</h1>
+
+> ./out/assembly.dest/out.jar --text hello # mac/linux
+<h1>hello</h1>
+
+*/
+
+//// SNIPPET:END
+
+// Mill Single-File Projects have the full flexibility of the Mill build tool, just configured
+// using the YAML xref:cli/build-header.adoc[build header] syntax rather than a separate
+// `build.mill` file. That means you can configure
+// xref:javalib/module-config.adoc#_compilation_execution_flags[compile flags or runtime flags], create
+// xref:javalib/publishing.adoc#_building_executable_assemblies_with_assemblymodule[Executable Assemblies]
+// or xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Images],
+// etc.
+
+// The other examples below discuss the Mill config for building larger projects beyond
+// the single-file project format discussed above.

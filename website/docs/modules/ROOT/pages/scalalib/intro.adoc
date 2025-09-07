@@ -3,8 +3,13 @@
 :page-aliases: Intro_to_Mill_for_Scala.adoc, Scala_Intro_to_Mill.adoc
 :language: Scala
 :language-small: scala
+:language-ext: scala
 
 include::partial$Intro_Header.adoc[]
+
+== Single-File Projects
+
+include::partial$example/scalalib/basic/5-single-file.adoc[]
 
 == Simple Scala Module
 
@@ -17,7 +22,6 @@ include::partial$example/scalalib/basic/2-custom-build-logic.adoc[]
 == Multi-Module Project
 
 include::partial$example/scalalib/basic/3-multi-module.adoc[]
-
 
 == `sbt`-Compatible Modules
 

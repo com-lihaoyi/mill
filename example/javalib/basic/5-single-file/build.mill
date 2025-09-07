@@ -1,4 +1,5 @@
-//// SNIPPET:BUILD
+//// SNIPPET:FILE
+/** See Also: Foo.java */
 /** Usage
 > ./mill Foo.java --text "hello world"
 compiling 1 Java source to...
@@ -9,6 +10,10 @@ compiling 1 Java source to...
 > ./mill -f Foo.java run --text hello
 <h1>hello</h1>
 */
+
+
+//// SNIPPET:END
+//// SNIPPET:MORE
 
 /** Usage
 > ./mill -f Foo.java show assembly # show the output of the assembly task
@@ -22,3 +27,5 @@ compiling 1 Java source to...
 
 
 */
+
+//// SNIPPET:END
