@@ -22,14 +22,12 @@ public class CodeGenConstants {
   /**
    * The name of the root build file
    */
-  public static final List<String> rootBuildFileNames =
-      List.of("build.mill");
+  public static final List<String> rootBuildFileNames = List.of("build.mill");
 
   /**
    * The name of any sub-folder build files
    */
-  public static final List<String> nestedBuildFileNames =
-      List.of("package.mill");
+  public static final List<String> nestedBuildFileNames = List.of("package.mill");
 
   /**
    * The extensions used by build files
