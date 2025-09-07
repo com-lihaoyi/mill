@@ -9,7 +9,6 @@
 //|   licenses: ["MIT"]
 //|   versionControl: {}
 //|   developers: []
-//  )
 
 object Bar {
   def main(args: Array[String]): Unit = {

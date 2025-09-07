@@ -9,7 +9,6 @@
 //|   licenses: ["MIT"]
 //|   versionControl: {}
 //|   developers: []
-//  )
 public class Bar {
 
   public static void main(String[] args) {
