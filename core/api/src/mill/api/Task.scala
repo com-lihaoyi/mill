@@ -335,7 +335,11 @@ object Task {
 
     override def toString = ctx.segments.render
 
-    def evaluate(ctx: mill.api.TaskCtx): Result[T] = evaluate0(ctx.args, ctx)
+    def evaluate(ctx: mill.api.TaskCtx): Result[T] = {
+      if (this.toString == "compile")
+        mill.constants.DebugLog.println(pprint.apply(ctx.args.map(_.getClass)).toString)
+      evaluate0(ctx.args, ctx)
+    }
 
     def evaluate0: (Seq[Any], mill.api.TaskCtx) => Result[T]
 

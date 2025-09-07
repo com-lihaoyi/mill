@@ -71,10 +71,17 @@ class MillBuildBootstrap(
 
     millFileOpt match {
       case Some(millFile) =>
+        import mill.*
         val rootModule = millFile.ext match {
-          case "java" => new mill.meta.ScriptModule.Java(millFile)
-          case "scala" => new mill.meta.ScriptModule.Scala(millFile)
-          case "kt" => new mill.meta.ScriptModule.Kotlin(millFile)
+          case "java" => new mill.meta.ScriptModule.Java(millFile) {
+              override lazy val millDiscover = Discover[this.type]
+            }
+          case "scala" => new mill.meta.ScriptModule.Scala(millFile) {
+              override lazy val millDiscover = Discover[this.type]
+            }
+          case "kt" => new mill.meta.ScriptModule.Kotlin(millFile) {
+              override lazy val millDiscover = Discover[this.type]
+            }
         }
         val yamlHeader = mill.constants.Util.readBuildHeader(millFile.toNIO, millFile.last, true)
 

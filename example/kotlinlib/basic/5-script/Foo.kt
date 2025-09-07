@@ -1,6 +1,6 @@
 //| mvnDeps:
-//| - com.github.ajalt.clikt:clikt:4.4.0
-//| - org.jetbrains.kotlinx:kotlinx-html:0.11.0
+//| - "com.github.ajalt.clikt:clikt:4.4.0"
+//| - "org.jetbrains.kotlinx:kotlinx-html:0.11.0"
 package foo
 
 import com.github.ajalt.clikt.core.CliktCommand

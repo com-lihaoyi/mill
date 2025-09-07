@@ -1,6 +1,6 @@
 //| mvnDeps:
-//| - com.lihaoyi::scalatags:0.13.1
-//| - com.lihaoyi::mainargs:0.7.6
+//| - "com.lihaoyi::scalatags:0.13.1"
+//| - "com.lihaoyi::mainargs:0.7.6"
 package foo
 import scalatags.Text.all.*
 import mainargs.{main, ParserForMethods}

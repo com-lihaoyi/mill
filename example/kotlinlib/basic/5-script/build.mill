@@ -2,9 +2,8 @@
 /** Usage
 > ./mill -f Foo.kt compile # compile sources into classfiles
 ...
-compiling 1 Kotlin source to...
+Compiling 1 Kotlin sources to...
 */
-
 
 /** Usage
 > ./mill -f Foo.kt run --text hello
@@ -12,18 +11,13 @@ compiling 1 Kotlin source to...
 */
 
 /** Usage
-> ./mill -f Foo.kt show foo.assembly # show the output of the assembly task
-".../out/foo/assembly.dest/out.jar"
+> ./mill -f Foo.kt show assembly # show the output of the assembly task
+".../out/assembly.dest/out.jar"
 
-> java -jar ./out/foo/assembly.dest/out.jar --text hello
+> java -jar ./out/assembly.dest/out.jar --text hello
 <h1>hello</h1>
 
-> ./out/foo/assembly.dest/out.jar --text hello # mac/linux
-<h1>hello</h1>
-
-> cp ./out/foo/assembly.dest/out.jar out.bat # windows
-
-> ./out.bat --text hello # windows
+> ./out/assembly.dest/out.jar --text hello # mac/linux
 <h1>hello</h1>
 
 */
