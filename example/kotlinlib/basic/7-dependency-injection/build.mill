@@ -48,7 +48,7 @@ object dagger extends KspModule {
 
 > ./mill dagger.compile
 
-> ls out/dagger/generatedSourcesWithKsp2Cli.dest/generated/java/com/example/dagger/
+> ls out/dagger/generatedSourcesWithKsp2.dest/generated/java/com/example/dagger/
 DaggerNumberApp.java
 NumberService_Factory.java
 RandomNumberGenerator_Factory.java
@@ -77,7 +77,7 @@ Random number: ...
 }
 ...
 
-> ls out/dagger/test/generatedSourcesWithKsp2Cli.dest/generated/java/com/example/dagger/
+> ls out/dagger/test/generatedSourcesWithKsp2.dest/generated/java/com/example/dagger/
 ConstantNumberGenerator_Factory.java
 DaggerDemoComponent.java
 DaggerTestApp.java
