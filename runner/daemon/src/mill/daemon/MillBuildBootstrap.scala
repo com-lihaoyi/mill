@@ -95,7 +95,7 @@ class MillBuildBootstrap(
         val buildFileApi = new mill.api.internal.BuildFileCls(rootModule)
         val evaluator = makeEvaluator(
           0,
-          output / millFile.subRelativeTo(projectRoot),
+          output / millFile.relativeTo(projectRoot).segments,
           Map.empty,
           Some(yamlHeader),
           Map.empty,
