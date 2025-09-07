@@ -62,9 +62,9 @@ class MillBuildBootstrap(
     millFileOpt0: Option[os.Path]
 ) { outer =>
 
-  val (tasksAndParams, millFileOpt) = (tasksAndParams0, millFileOpt0) match{
+  val (tasksAndParams, millFileOpt) = (tasksAndParams0, millFileOpt0) match {
     case (Seq(head, rest*), None)
-      if head.endsWith(".java") || head.endsWith(".scala")  || head.endsWith(".kt") =>
+        if head.endsWith(".java") || head.endsWith(".scala") || head.endsWith(".kt") =>
       (Seq("run") ++ rest, Some(os.Path(head, projectRoot)))
     case _ => (tasksAndParams0, millFileOpt0)
   }

@@ -11,7 +11,6 @@ compiling 1 Java source to...
 <h1>hello</h1>
 */
 
-
 //// SNIPPET:END
 //// SNIPPET:MORE
 
@@ -25,6 +24,20 @@ compiling 1 Java source to...
 > ./out/assembly.dest/out.jar --text hello # mac/linux
 <h1>hello</h1>
 
+
+*/
+
+//// SNIPPET:END
+
+//// SNIPPET:LAST
+
+/** See Also: Bar.java */
+/** Usage
+
+> ./mill -f Bar.java nativeImage
+
+> out/nativeImage.dest/native-executable
+Hello Graal Native: 24...
 
 */
 

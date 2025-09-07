@@ -14,7 +14,6 @@ compiling 1 Scala source to...
 <h1>hello world</h1>
 */
 
-
 //// SNIPPET:END
 
 // The `./mill Foo.{language-ext}` syntax is shorthand for `./mill -f Foo.{language-ext} run`
@@ -50,6 +49,20 @@ compiling 1 Scala source to...
 // xref:javalib/publishing.adoc#_building_executable_assemblies_with_assemblymodule[Executable Assemblies]
 // or xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Images],
 // etc.
+
+//// SNIPPET:LAST
+
+/** See Also: Bar.scala */
+/** Usage
+
+> ./mill -f Bar.scala nativeImage
+
+> out/nativeImage.dest/native-executable
+Hello Graal Native: 24...
+
+*/
+
+//// SNIPPET:END
 
 // The other examples below discuss the Mill config for building larger projects beyond
 // the single-file project format discussed above.

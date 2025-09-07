@@ -1,7 +1,8 @@
 //| mvnDeps:
 //| - "com.lihaoyi::scalatags:0.13.1"
 //| - "com.lihaoyi::mainargs:0.7.6"
-package foo
+//| jvmId: 24
+//| forkArgs: ["-Xmx4g", "-Dmy.jvm.property=hello"]
 import scalatags.Text.all.*
 import mainargs.{main, ParserForMethods}
 
