@@ -34,6 +34,10 @@ include::partial$example/kotlinlib/module/8-kotlin-compiler-plugins.adoc[]
 
 include::partial$example/kotlinlib/module/9-docjar.adoc[]
 
+== Dependency Injection with Dagger and KSP
+
+include::partial$example/kotlinlib/module/10-dependency-injection.adoc[]
+
 == Specifying the Main Class
 
 include::partial$example/kotlinlib/module/11-main-class.adoc[]

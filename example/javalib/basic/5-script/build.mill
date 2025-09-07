@@ -1,0 +1,29 @@
+//// SNIPPET:BUILD
+/** Usage
+> ./mill -f Foo.java compile # compile sources into classfiles
+...
+compiling 1 Java source to...
+*/
+
+
+/** Usage
+> ./mill -f Foo.java run --text hello
+<h1>hello</h1>
+*/
+
+/** Usage
+> ./mill -f Foo.java show foo.assembly # show the output of the assembly task
+".../out/foo/assembly.dest/out.jar"
+
+> java -jar ./out/foo/assembly.dest/out.jar --text hello
+<h1>hello</h1>
+
+> ./out/foo/assembly.dest/out.jar --text hello # mac/linux
+<h1>hello</h1>
+
+> cp ./out/foo/assembly.dest/out.jar out.bat # windows
+
+> ./out.bat --text hello # windows
+<h1>hello</h1>
+
+*/
