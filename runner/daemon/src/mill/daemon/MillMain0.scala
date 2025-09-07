@@ -290,7 +290,8 @@ object MillMain0 {
                                 streams0 = streams,
                                 selectiveExecution = config.watch.value,
                                 offline = config.offline.value,
-                                reporter = reporter
+                                reporter = reporter,
+                                millFile = config.file
                               ).evaluate()
                             }
                           }

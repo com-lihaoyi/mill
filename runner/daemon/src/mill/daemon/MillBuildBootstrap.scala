@@ -59,7 +59,8 @@ class MillBuildBootstrap(
     streams0: SystemStreams,
     selectiveExecution: Boolean,
     offline: Boolean,
-    reporter: EvaluatorApi => Int => Option[CompileProblemReporter]
+    reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
+    millFile: Option[os.Path]
 ) { outer =>
   import MillBuildBootstrap.*
 
@@ -93,7 +94,7 @@ class MillBuildBootstrap(
 
       val requestedDepth = requestedMetaLevel.filter(_ >= 0).getOrElse(0)
 
-      val currentRootContainsBuildFile = rootBuildFileNames.asScala.exists(rootBuildFileName =>
+      val currentRootContainsBuildFile0 = rootBuildFileNames.asScala.exists(rootBuildFileName =>
         os.exists(currentRoot / rootBuildFileName)
       )
 
@@ -103,6 +104,10 @@ class MillBuildBootstrap(
           // Unfortunately, some tasks also make sense without a `build.mill`, e.g. the `init` command.
           // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
           lazy val state = evaluateRec(depth + 1)
+          val currentRootContainsBuildFile = millFile match {
+            case Some(f) => os.exists(f)
+            case None => currentRootContainsBuildFile0
+          }
           if (currentRootContainsBuildFile) (state, None)
           else {
             val msg =
@@ -120,13 +125,13 @@ class MillBuildBootstrap(
             (res, None)
           }
         } else {
-          val parsedScriptFiles = FileImportGraph
-            .parseBuildFiles(
-              projectRoot,
-              currentRoot / os.up,
-              output,
-              MillScalaParser.current.value
-            )
+          val currentRootContainsBuildFile = currentRootContainsBuildFile0
+          val parsedScriptFiles = FileImportGraph.parseBuildFiles(
+            projectRoot,
+            currentRoot / os.up,
+            output,
+            MillScalaParser.current.value
+          )
 
           val state =
             if (currentRootContainsBuildFile) evaluateRec(depth + 1)
