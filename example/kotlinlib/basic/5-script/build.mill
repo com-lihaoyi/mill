@@ -1,8 +1,8 @@
 //// SNIPPET:BUILD
 /** Usage
-> ./mill -f Foo.kt compile # compile sources into classfiles
-...
+> ./mill Foo.kt --text "hello world"
 Compiling 1 Kotlin sources to...
+<h1>hello world</h1>
 */
 
 /** Usage

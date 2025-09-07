@@ -280,18 +280,18 @@ object MillMain0 {
                                 imports = config.imports,
                                 env = env ++ extraEnv,
                                 ec = ec,
-                                tasksAndParams = tasksAndParams,
+                                tasksAndParams0 = tasksAndParams,
                                 prevRunnerState = prevState.getOrElse(stateCache),
                                 logger = logger,
                                 needBuildFile = needBuildFile(config),
                                 requestedMetaLevel = config.metaLevel,
-                                config.allowPositional.value,
+                                allowPositionalCommandArgs = config.allowPositional.value,
                                 systemExit = systemExit,
                                 streams0 = streams,
                                 selectiveExecution = config.watch.value,
                                 offline = config.offline.value,
                                 reporter = reporter,
-                                millFileOpt = config.file
+                                millFileOpt0 = config.file
                               ).evaluate()
                             }
                           }

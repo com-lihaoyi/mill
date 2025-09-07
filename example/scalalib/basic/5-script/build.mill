@@ -1,9 +1,10 @@
 //// SNIPPET:BUILD
 /** Usage
-> ./mill -f Foo.scala compile # compile sources into classfiles
-...
+> ./mill Foo.scala --text "hello world"
 compiling 1 Scala source to...
+<h1>hello world</h1>
 */
+
 
 /** Usage
 > ./mill -f Foo.scala run --text hello
