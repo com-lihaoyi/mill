@@ -5,8 +5,8 @@ import mill.api.Discover
 import mill.util.MainRootModule
 
 trait ScriptModule extends MainRootModule with mill.javalib.JavaModule
-  with mill.javalib.NativeImageModule
-  with mill.javalib.PublishModule {
+    with mill.javalib.NativeImageModule
+    with mill.javalib.PublishModule {
   def millFile: os.Path
   override def allSourceFiles = Task.Sources(millFile)
   def pomSettings = PomSettings(

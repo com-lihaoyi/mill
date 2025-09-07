@@ -29,16 +29,3 @@ compiling 1 Java source to...
 
 //// SNIPPET:END
 
-//// SNIPPET:LAST
-
-/** See Also: Bar.java */
-/** Usage
-
-> ./mill -f Bar.java nativeImage
-
-> out/nativeImage.dest/native-executable
-Hello Graal Native: 24...
-
-*/
-
-//// SNIPPET:END

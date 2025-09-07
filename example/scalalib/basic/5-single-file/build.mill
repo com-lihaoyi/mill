@@ -42,5 +42,9 @@ compiling 1 Scala source to...
 
 //// SNIPPET:END
 
-// The other examples below discuss the Mill config for building larger projects beyond
-// the single-file project format discussed above.
+// For more details on single-file projects, see
+// xref:{language-small}lib/module-config.adoc#_configuring_single_file_projects[Configuring Single-File Projects]
+// The rest of the examples below discuss the Mill config for building larger projects
+// beyond the single-file project format discussed above, using a dedicated `build.mill`
+// file to provide additional flexibility in setting up your project.
+//

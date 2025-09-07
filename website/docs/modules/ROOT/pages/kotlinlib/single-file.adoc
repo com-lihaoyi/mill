@@ -1,9 +1,0 @@
-
-= Single-File Kotlin Projects
-:language: Kotlin
-:language-small: kotlin
-:language-ext: kt
-
-== Configuring Single-File Projects
-
-include::partial$example/kotlinlib/singlefile/1-config.adoc[]

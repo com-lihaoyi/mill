@@ -1,5 +1,3 @@
-
-
 //// SNIPPET:LAST
 
 /** See Also: Bar.java */
@@ -14,5 +12,13 @@ Hello Graal Native: 24...
 Publishing Artifact(com.lihaoyi,example...,0.0.1) to ivy repo ...
 
 */
+
+// Apart from publishing locally, you can also publish this single-file project to
+// Sonatype Maven Central via:
+//
+// [source,console]
+// ----
+// > ./mill -f Bar.java mill.javalib.SonatypeCentralPublishModule/
+// ----
 
 //// SNIPPET:END

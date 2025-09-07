@@ -1,9 +1,0 @@
-
-= Single-File Scala Projects
-:language: Scala
-:language-small: scala
-:language-ext: scala
-
-== Configuring Single-File Projects
-
-include::partial$example/scalalib/singlefile/1-config.adoc[]
