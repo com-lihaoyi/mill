@@ -29,7 +29,7 @@ public class MillLauncherMain {
       if (Arrays.stream(args).anyMatch(f -> f.equals(token))) needParsedConfig = true;
     }
 
-    boolean runNoServer = false;
+    boolean runNoDaemon = false;
     boolean bspMode = false;
 
     // Only use MillCliConfig and other Scala classes if we detect that a relevant flag
@@ -37,7 +37,7 @@ public class MillLauncherMain {
     if (needParsedConfig) {
       var config = MillCliConfig.parse(args).toOption();
       if (config.exists(c -> c.bsp().value())) bspMode = true;
-      if (config.exists(c -> c.interactive().value() || c.noServer().value() || c.noDaemon().value())) runNoServer = true;
+      if (config.exists(c -> c.interactive().value() || c.noServer().value() || c.noDaemon().value())) runNoDaemon = true;
     }
 
     var outMode = bspMode ? OutFolderMode.BSP : OutFolderMode.REGULAR;
@@ -59,7 +59,7 @@ public class MillLauncherMain {
                   + " make it less responsive.");
     }
 
-    if (runNoServer) {
+    if (runNoDaemon) {
       // start in no-server mode
       System.exit(MillProcessLauncher.launchMillNoDaemon(args, outMode));
     } else {
