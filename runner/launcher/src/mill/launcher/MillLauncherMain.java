@@ -18,14 +18,15 @@ import mill.internal.MillCliConfig;
  * A Scala implementation would result in the JVM loading much more classes almost doubling the start-up times.
  */
 public class MillLauncherMain {
-  static final String bspFlag = "--bsp";
 
   public static void main(String[] args) throws Exception {
-    var needParsedConfig = Arrays.asList(args).contains(bspFlag);
-    if (Arrays.stream(args).anyMatch(f -> f.startsWith("-") && !f.startsWith("--") && f.contains("i"))){
+    var needParsedConfig = false;
+    if (Arrays.stream(args)
+        .anyMatch(f -> f.startsWith("-") && !f.startsWith("--") && f.contains("i"))) {
       needParsedConfig = true;
     }
-    for(String token : Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", bspFlag, "--help")){
+    for (String token :
+        Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", "--bsp", "--help")) {
       if (Arrays.stream(args).anyMatch(f -> f.equals(token))) needParsedConfig = true;
     }
 
@@ -37,7 +38,9 @@ public class MillLauncherMain {
     if (needParsedConfig) {
       var config = MillCliConfig.parse(args).toOption();
       if (config.exists(c -> c.bsp().value())) bspMode = true;
-      if (config.exists(c -> c.interactive().value() || c.noServer().value() || c.noDaemon().value())) runNoDaemon = true;
+      if (config.exists(
+          c -> c.interactive().value() || c.noServer().value() || c.noDaemon().value()))
+        runNoDaemon = true;
     }
 
     var outMode = bspMode ? OutFolderMode.BSP : OutFolderMode.REGULAR;
