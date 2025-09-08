@@ -273,7 +273,7 @@ object MillMain0 {
                             tailManager.withOutErr(logger.streams.out, logger.streams.err) {
                               new MillBuildBootstrap(
                                 projectRoot = BuildCtx.workspaceRoot,
-                                output = out,
+                                output0 = out,
                                 // In BSP server, we want to evaluate as many tasks as possible,
                                 // in order to give as many results as available in BSP responses
                                 keepGoing = bspMode || config.keepGoing.value,
