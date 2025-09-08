@@ -24,7 +24,15 @@ def printFileData(fileName: String) = Task.Command {
 // within a downstream task or command.
 //
 // Anonymous tasks work well when parameters are known at task definition time. Dynamically
-// generated inputs can not be used with Anonymous Tasks, as this would break caching.
+// generated inputs can not be used with Anonymous Tasks, since mill wouldn't be able to build
+// the dependency tree. We need to know the parameters before creating the task, but the tasks
+// need to be created before we can start evaluation, we have a classic hen-or-egg problem.
+// Common strategies around this are:
+// 1. Define the values outside of a task, so Mill knows how to create the anonymous
+// tasks before evaluation starts.
+// 2. Put the value itself into a task, so it can be properly ordered to be evaluated
+// before it's dependencies.
+// 3. Make it not a task but a normal def
 //
 // While an anonymous task ``foo``'s own output is not cached, if it is used in a
 // downstream task `baz` and the upstream task `bar` hasn't changed,
