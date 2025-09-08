@@ -8,12 +8,12 @@ import mill.api.daemon.internal.{
   PathRefApi,
   RootModuleApi
 }
-import mill.api.{Logger, Result, SystemStreams, Val}
+import mill.api.{BuildCtx, Discover, Logger, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.{millBuild, millRunnerState}
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
-import mill.api.{BuildCtx, PathRef, SelectMode}
+import mill.constants.OutFiles
 import mill.internal.PrefixLogger
 import mill.meta.{FileImportGraph, MillBuildRootModule}
 import mill.meta.CliImports
@@ -44,12 +44,12 @@ import scala.collection.mutable.Buffer
  */
 class MillBuildBootstrap(
     projectRoot: os.Path,
-    output: os.Path,
+    output0: os.Path,
     keepGoing: Boolean,
     imports: Seq[String],
     env: Map[String, String],
     ec: Option[ThreadPoolExecutor],
-    tasksAndParams: Seq[String],
+    tasksAndParams0: Seq[String],
     prevRunnerState: RunnerState,
     logger: Logger,
     needBuildFile: Boolean,
@@ -59,10 +59,24 @@ class MillBuildBootstrap(
     streams0: SystemStreams,
     selectiveExecution: Boolean,
     offline: Boolean,
-    reporter: EvaluatorApi => Int => Option[CompileProblemReporter]
+    reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
+    millFileOpt0: Option[os.Path],
+    skipSelectiveExecution: Boolean
 ) { outer =>
+  val (tasksAndParams, millFileOpt) = (tasksAndParams0, millFileOpt0) match {
+    case (Seq(head, rest*), None)
+        if head.endsWith(".java") || head.endsWith(".scala") || head.endsWith(".kt") =>
+      (Seq("run") ++ rest, Some(os.Path(head, projectRoot)))
+    case _ => (tasksAndParams0, millFileOpt0)
+  }
   import MillBuildBootstrap.*
 
+  val output = millFileOpt match {
+    case Some(millFile) => output0 / millFile.relativeTo(projectRoot).segments
+    case None => output0
+  }
+
+  if (skipSelectiveExecution) os.remove(output / OutFiles.millSelectiveExecution)
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
@@ -97,49 +111,71 @@ class MillBuildBootstrap(
         os.exists(currentRoot / rootBuildFileName)
       )
 
-      val (nestedState, headerDataOpt) =
-        if (depth == 0) {
-          // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
-          // Unfortunately, some tasks also make sense without a `build.mill`, e.g. the `init` command.
-          // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
-          lazy val state = evaluateRec(depth + 1)
-          if (currentRootContainsBuildFile) (state, None)
-          else {
-            val msg =
-              s"No build file (${rootBuildFileNames.asScala.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
-            val res =
-              if (needBuildFile) RunnerState(None, Nil, Some(msg), None)
-              else {
-                state match {
-                  case RunnerState(bootstrapModuleOpt, frames, Some(error), None) =>
-                    // Add a potential clue (missing build.mill) to the underlying error message
-                    RunnerState(bootstrapModuleOpt, frames, Some(msg + "\n" + error))
-                  case state => state
-                }
+      val (nestedState, headerDataOpt) = millFileOpt match {
+        case Some(millFile) =>
+          import mill.*
+          implicit val rootModuleInfo: RootModule.Info =
+            new RootModule.Info(projectRoot, output, projectRoot)
+
+          val bootstrapModule = millFile.ext match {
+            case "java" => new mill.meta.ScriptModule.Java(millFile) {
+                override lazy val millDiscover = Discover[this.type]
               }
-            (res, None)
+            case "scala" => new mill.meta.ScriptModule.Scala(millFile) {
+                override lazy val millDiscover = Discover[this.type]
+              }
+            case "kt" => new mill.meta.ScriptModule.Kotlin(millFile) {
+                override lazy val millDiscover = Discover[this.type]
+              }
           }
-        } else {
-          val parsedScriptFiles = FileImportGraph
-            .parseBuildFiles(
-              projectRoot,
-              currentRoot / os.up,
-              output,
-              MillScalaParser.current.value
-            )
+          val yamlHeader = mill.constants.Util.readBuildHeader(millFile.toNIO, millFile.last, true)
 
-          val state =
-            if (currentRootContainsBuildFile) evaluateRec(depth + 1)
+          (RunnerState(Some(bootstrapModule), Nil, None, Some(millFile.last)), Some(yamlHeader))
+        case None =>
+          if (depth == 0) {
+            // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
+            // Unfortunately, some tasks also make sense without a `build.mill`, e.g. the `init` command.
+            // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
+            lazy val state = evaluateRec(depth + 1)
+            if (currentRootContainsBuildFile) (state, None)
             else {
-              val bootstrapModule =
-                new MillBuildRootModule.BootstrapModule()(
-                  using new RootModule.Info(currentRoot, output, projectRoot)
-                )
-              RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
+              val msg =
+                s"No build file (${rootBuildFileNames.asScala.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
+              val res =
+                if (needBuildFile) RunnerState(None, Nil, Some(msg), None)
+                else {
+                  state match {
+                    case RunnerState(bootstrapModuleOpt, frames, Some(error), None) =>
+                      // Add a potential clue (missing build.mill) to the underlying error message
+                      RunnerState(bootstrapModuleOpt, frames, Some(msg + "\n" + error))
+                    case state => state
+                  }
+                }
+              (res, None)
             }
+          } else {
+            val parsedScriptFiles = FileImportGraph
+              .parseBuildFiles(
+                projectRoot,
+                currentRoot / os.up,
+                output,
+                MillScalaParser.current.value
+              )
 
-          (state, Some(parsedScriptFiles.headerData))
-        }
+            val state =
+              if (currentRootContainsBuildFile) evaluateRec(depth + 1)
+              else {
+                val bootstrapModule =
+                  new MillBuildRootModule.BootstrapModule()(
+                    using new RootModule.Info(currentRoot, output, projectRoot)
+                  )
+                RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
+              }
+
+            (state, Some(parsedScriptFiles.headerData))
+          }
+
+      }
 
       val classloaderChanged =
         prevRunnerState.frames.lift(depth + 1).flatMap(_.classLoaderOpt) !=
@@ -186,44 +222,33 @@ class MillBuildBootstrap(
 
           rootModuleRes match {
             case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
-            case Result.Success((buildFileApi)) =>
+            case Result.Success(buildFileApi) =>
 
-              Using.resource(makeEvaluator(
-                projectRoot,
-                output,
-                keepGoing,
-                env,
-                logger,
-                ec,
-                allowPositionalCommandArgs,
-                systemExit,
-                streams0,
-                selectiveExecution,
-                offline,
-                newWorkerCache,
-                nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
-                buildFileApi.rootModule,
-                // We want to use the grandparent buildHash, rather than the parent
-                // buildHash, because the parent build changes are instead detected
-                // by analyzing the scriptImportGraph in a more fine-grained manner.
-                nestedState
-                  .frames
-                  .dropRight(1)
-                  .headOption
-                  .map(_.runClasspath)
-                  .getOrElse(millBootClasspathPathRefs)
-                  .map(p => (os.Path(p.javaPath), p.sig))
-                  .hashCode(),
-                nestedState
-                  .frames
-                  .headOption
-                  .flatMap(_.classLoaderOpt)
-                  .map(_.hashCode())
-                  .getOrElse(0),
-                depth,
-                actualBuildFileName = nestedState.buildFile,
-                headerData = headerDataOpt.getOrElse("")
-              )) { evaluator =>
+              Using.resource(
+                makeEvaluator(
+                  depth,
+                  output,
+                  nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
+                  headerDataOpt,
+                  newWorkerCache,
+                  buildFileApi,
+                  nestedState
+                    .frames
+                    .dropRight(1)
+                    .headOption
+                    .map(_.runClasspath)
+                    .getOrElse(millBootClasspathPathRefs)
+                    .map(p => (os.Path(p.javaPath), p.sig))
+                    .hashCode(),
+                  nestedState
+                    .frames
+                    .headOption
+                    .flatMap(_.classLoaderOpt)
+                    .map(_.hashCode())
+                    .getOrElse(0),
+                  actualBuildFileName = nestedState.buildFile
+                )
+              ) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
                 } else if (depth <= requestedDepth) nestedState
@@ -243,6 +268,43 @@ class MillBuildBootstrap(
 
       res
     }
+  }
+
+  private def makeEvaluator(
+      depth: Int,
+      outputPath: os.Path,
+      codeSignatures: Map[String, Int],
+      headerDataOpt: Option[String],
+      newWorkerCache: Map[String, (Int, Val)],
+      buildFileApi: BuildFileApi,
+      millClassloaderSigHash: Int,
+      millClassloaderIdentityHash: Int,
+      actualBuildFileName: Option[String]
+  ) = {
+    MillBuildBootstrap.makeEvaluator(
+      projectRoot,
+      outputPath,
+      keepGoing,
+      env,
+      logger,
+      ec,
+      allowPositionalCommandArgs,
+      systemExit,
+      streams0,
+      selectiveExecution,
+      offline,
+      newWorkerCache,
+      codeSignatures,
+      buildFileApi.rootModule,
+      // We want to use the grandparent buildHash, rather than the parent
+      // buildHash, because the parent build changes are instead detected
+      // by analyzing the scriptImportGraph in a more fine-grained manner.
+      millClassloaderSigHash,
+      millClassloaderIdentityHash,
+      depth,
+      actualBuildFileName = actualBuildFileName,
+      headerData = headerDataOpt.getOrElse("")
+    )
   }
 
   /**
@@ -359,7 +421,7 @@ class MillBuildBootstrap(
 
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
-    val (evaled, evalWatched, moduleWatches) = evaluateWithWatches(
+    val (evaled, evalWatched, moduleWatched) = evaluateWithWatches(
       buildFileApi,
       evaluator,
       tasksAndParams,
@@ -369,7 +431,7 @@ class MillBuildBootstrap(
     val evalState = RunnerState.Frame(
       evaluator.workerCache.toMap,
       evalWatched,
-      moduleWatches,
+      moduleWatched,
       Map.empty,
       None,
       Nil,

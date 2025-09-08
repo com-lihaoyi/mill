@@ -245,7 +245,7 @@ object MillMain0 {
                   val out = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
                   Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                     def runMillBootstrap(
-                        enterKeyPressed: Boolean,
+                        skipSelectiveExecution: Boolean,
                         prevState: Option[RunnerState],
                         tasksAndParams: Seq[String],
                         streams: SystemStreams,
@@ -265,7 +265,7 @@ object MillMain0 {
                       def proceed(logger: Logger): Watching.Result[RunnerState] = {
                         // Enter key pressed, removing mill-selective-execution.json to
                         // ensure all tasks re-run even though no inputs may have changed
-                        if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
+
                         mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                           mill.api.FilesystemCheckerEnabled.withValue(
                             !config.noFilesystemChecker.value
@@ -273,24 +273,26 @@ object MillMain0 {
                             tailManager.withOutErr(logger.streams.out, logger.streams.err) {
                               new MillBuildBootstrap(
                                 projectRoot = BuildCtx.workspaceRoot,
-                                output = out,
+                                output0 = out,
                                 // In BSP server, we want to evaluate as many tasks as possible,
                                 // in order to give as many results as available in BSP responses
                                 keepGoing = bspMode || config.keepGoing.value,
                                 imports = config.imports,
                                 env = env ++ extraEnv,
                                 ec = ec,
-                                tasksAndParams = tasksAndParams,
+                                tasksAndParams0 = tasksAndParams,
                                 prevRunnerState = prevState.getOrElse(stateCache),
                                 logger = logger,
                                 needBuildFile = needBuildFile(config),
                                 requestedMetaLevel = config.metaLevel,
-                                config.allowPositional.value,
+                                allowPositionalCommandArgs = config.allowPositional.value,
                                 systemExit = systemExit,
                                 streams0 = streams,
                                 selectiveExecution = config.watch.value,
                                 offline = config.offline.value,
-                                reporter = reporter
+                                reporter = reporter,
+                                millFileOpt0 = config.file,
+                                skipSelectiveExecution = skipSelectiveExecution
                               ).evaluate()
                             }
                           }
@@ -320,7 +322,7 @@ object MillMain0 {
 
                     if (config.tabComplete.value) {
                       val bootstrapped = runMillBootstrap(
-                        enterKeyPressed = false,
+                        skipSelectiveExecution = false,
                         Some(stateCache),
                         Seq(
                           "mill.tabcomplete.TabCompleteModule/complete"
@@ -448,11 +450,6 @@ object MillMain0 {
                       ).run()
                       (true, RunnerState(None, Nil, None))
                     } else {
-                      // When starting a --watch, clear the `mill-selective-execution.json`
-                      // file, so that the first run always selects everything and only
-                      // subsequent re-runs are selective depending on what changed.
-                      if (config.watch.value)
-                        os.remove(out / OutFiles.millSelectiveExecution)
                       Watching.watchLoop(
                         ringBell = config.ringBell.value,
                         watch = Option.when(config.watch.value)(Watching.WatchArgs(
@@ -462,16 +459,17 @@ object MillMain0 {
                           daemonDir = daemonDir
                         )),
                         streams = streams,
-                        evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
-                          adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
-                          runMillBootstrap(
-                            enterKeyPressed,
-                            prevState,
-                            config.leftoverArgs.value,
-                            streams,
-                            config.leftoverArgs.value.mkString(" ")
-                          )
-                        }
+                        evaluate =
+                          (skipSelectiveExecution: Boolean, prevState: Option[RunnerState]) => {
+                            adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
+                            runMillBootstrap(
+                              skipSelectiveExecution,
+                              prevState,
+                              config.leftoverArgs.value,
+                              streams,
+                              config.leftoverArgs.value.mkString(" ")
+                            )
+                          }
                       )
                     }
                   }
