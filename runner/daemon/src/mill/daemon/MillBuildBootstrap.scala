@@ -250,7 +250,6 @@ class MillBuildBootstrap(
                 )
               ) { evaluator =>
                 if (depth == requestedDepth) {
-                  mill.constants.DebugLog.println("D1 " + tasksAndParams)
                   processFinalTasks(nestedState, buildFileApi, evaluator)
                 } else if (depth <= requestedDepth) nestedState
                 else {
@@ -588,9 +587,6 @@ object MillBuildBootstrap {
   ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     import buildFileApi._
     evalWatchedValues.clear()
-    mill.constants.DebugLog.println(
-      "evaluateWithWatches evaluator.evaluate" + tasksAndParams + " " + selectiveExecution
-    )
     val evalTaskResult = evaluator.evaluate(
       tasksAndParams,
       SelectMode.Separated,

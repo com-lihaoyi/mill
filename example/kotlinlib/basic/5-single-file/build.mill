@@ -1,9 +1,9 @@
 //// SNIPPET:FILE
 /** See Also: Foo.kt */
 /** Usage
-> ./mill Foo.kt --text "hello world"
+> ./mill Foo.kt --text hello
 Compiling 1 Kotlin sources to...
-<h1>hello world</h1>
+<h1>hello</h1>
 */
 
 //// SNIPPET:END

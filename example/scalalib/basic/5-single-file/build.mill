@@ -9,9 +9,9 @@
 /** See Also: Foo.scala */
 
 /** Usage
-> ./mill Foo.scala --text "hello world"
+> ./mill Foo.scala --text hello
 compiling 1 Scala source to...
-<h1>hello world</h1>
+<h1>hello</h1>
 */
 
 //// SNIPPET:END
