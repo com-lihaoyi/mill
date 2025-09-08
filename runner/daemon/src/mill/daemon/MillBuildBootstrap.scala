@@ -13,6 +13,7 @@ import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.{millBuild, millRunnerState}
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
+import mill.constants.OutFiles
 import mill.internal.PrefixLogger
 import mill.meta.{FileImportGraph, MillBuildRootModule}
 import mill.meta.CliImports
@@ -59,7 +60,8 @@ class MillBuildBootstrap(
     selectiveExecution: Boolean,
     offline: Boolean,
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
-    millFileOpt0: Option[os.Path]
+    millFileOpt0: Option[os.Path],
+    skipSelectiveExecution: Boolean
 ) { outer =>
   val (tasksAndParams, millFileOpt) = (tasksAndParams0, millFileOpt0) match {
     case (Seq(head, rest*), None)
@@ -74,6 +76,7 @@ class MillBuildBootstrap(
     case None => output0
   }
 
+  if (skipSelectiveExecution) os.remove(output / OutFiles.millSelectiveExecution)
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
@@ -111,18 +114,19 @@ class MillBuildBootstrap(
       val (nestedState, headerDataOpt) = millFileOpt match {
         case Some(millFile) =>
           import mill.*
-          implicit val rootModuleInfo: RootModule.Info = new RootModule.Info(projectRoot, output, projectRoot)
+          implicit val rootModuleInfo: RootModule.Info =
+            new RootModule.Info(projectRoot, output, projectRoot)
 
           val bootstrapModule = millFile.ext match {
             case "java" => new mill.meta.ScriptModule.Java(millFile) {
-              override lazy val millDiscover = Discover[this.type]
-            }
+                override lazy val millDiscover = Discover[this.type]
+              }
             case "scala" => new mill.meta.ScriptModule.Scala(millFile) {
-              override lazy val millDiscover = Discover[this.type]
-            }
+                override lazy val millDiscover = Discover[this.type]
+              }
             case "kt" => new mill.meta.ScriptModule.Kotlin(millFile) {
-              override lazy val millDiscover = Discover[this.type]
-            }
+                override lazy val millDiscover = Discover[this.type]
+              }
           }
           val yamlHeader = mill.constants.Util.readBuildHeader(millFile.toNIO, millFile.last, true)
 
@@ -584,7 +588,9 @@ object MillBuildBootstrap {
   ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     import buildFileApi._
     evalWatchedValues.clear()
-    mill.constants.DebugLog.println("evaluateWithWatches evaluator.evaluate" + tasksAndParams)
+    mill.constants.DebugLog.println(
+      "evaluateWithWatches evaluator.evaluate" + tasksAndParams + " " + selectiveExecution
+    )
     val evalTaskResult = evaluator.evaluate(
       tasksAndParams,
       SelectMode.Separated,

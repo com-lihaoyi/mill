@@ -19,13 +19,14 @@ trait JsonFormatters {
       case v => upickle.read(v)(using upickle.macroRW[License])
     }
   )
-  implicit lazy val versionControlFormat: RW[VersionControl] = upickle.readwriter[ujson.Value].bimap(
-    v => upickle.writeJs(v)(using upickle.macroRW[VersionControl]),
-    {
-      case ujson.Str(s) => VersionControl(browsableRepository = Some(s))
-      case v => upickle.read(v)(using upickle.macroRW[VersionControl])
-    }
-  )
+  implicit lazy val versionControlFormat: RW[VersionControl] =
+    upickle.readwriter[ujson.Value].bimap(
+      v => upickle.writeJs(v)(using upickle.macroRW[VersionControl]),
+      {
+        case ujson.Str(s) => VersionControl(browsableRepository = Some(s))
+        case v => upickle.read(v)(using upickle.macroRW[VersionControl])
+      }
+    )
   implicit lazy val pomSettingsFormat: RW[PomSettings] = upickle.macroRW
 }
 object JsonFormatters extends JsonFormatters
