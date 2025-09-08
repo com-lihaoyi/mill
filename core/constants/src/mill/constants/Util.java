@@ -4,6 +4,8 @@ import java.io.Console;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -84,12 +86,12 @@ public class Util {
         + ": " + line + "\n" + msg);
   }
 
-  public static String readBuildHeader(java.nio.file.Path buildFile, String errorFileName) {
+  public static String readBuildHeader(Path buildFile, String errorFileName) {
     return readBuildHeader(buildFile, errorFileName, false);
   }
-  public static String readBuildHeader(java.nio.file.Path buildFile, String errorFileName, boolean allowNonBuild) {
+  public static String readBuildHeader(Path buildFile, String errorFileName, boolean allowNonBuild) {
     try {
-      java.util.List<String> lines = java.nio.file.Files.readAllLines(buildFile);
+      java.util.List<String> lines = Files.readAllLines(buildFile);
       boolean readingBuildHeader = true;
       java.util.List<String> output = new ArrayList<>();
       for (int i = 0; i < lines.size(); i++) {

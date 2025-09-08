@@ -30,12 +30,12 @@ compiling 1 Scala source to...
 
 /** Usage
 > ./mill -f Foo.scala show assembly # show the output of the assembly task
-".../out/assembly.dest/out.jar"
+".../out/Foo.scala/assembly.dest/out.jar"
 
-> java -jar ./out/assembly.dest/out.jar --text hello
+> java -jar ./out/Foo.scala/assembly.dest/out.jar --text hello
 <h1>hello</h1>
 
-> ./out/assembly.dest/out.jar --text hello # mac/linux
+> ./out/Foo.scala/assembly.dest/out.jar --text hello # mac/linux
 <h1>hello</h1>
 
 */
