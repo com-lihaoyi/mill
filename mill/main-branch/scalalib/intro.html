@@ -699,10 +699,85 @@ see <a href="../migrating/migrating.html" class="xref page">Migrating to Mill</a
 </div>
 </div>
 <div class="sect1">
+<h2 id="_single_file_projects"><a class="anchor" href="#_single_file_projects"></a>Single-File Projects</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill also allows you to run single-file Scala programs easily from the command-line,
+even those that contain third-party dependencies or other such configuration. These can be
+useful as a replacement for Bash scripts, letting you write small scripts or programs
+in Scala with full access to third-party libraries and other build-tool features.</p>
+</div>
+<div class="paragraph">
+<p>For example, given the single-file program below, it can be run directly using Mill:</p>
+</div>
+<div class="listingblock">
+<div class="title">Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/5-single-file/Foo.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
+//| - &quot;com.lihaoyi::scalatags:0.13.1&quot;
+//| - &quot;com.lihaoyi::mainargs:0.7.6&quot;
+import scalatags.Text.all.*
+import mainargs.{main, ParserForMethods}
+
+object Foo {
+  def generateHtml(text: String) = {
+    h1(text).toString
+  }
+
+  @main
+  def main(text: String) = {
+    println(generateHtml(text))
+  }
+
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.scala --text hello
+compiling 1 Scala source to...
+&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>./mill Foo.scala</code> syntax is shorthand for <code>./mill -f Foo.scala run</code>
+or <code>./mill --file Foo.scala run</code>, which can also be passed explicitly. The
+explicit <code>-f</code>/<code>--file</code> also allows you to call other tasks on the single-file project,
+e.g. bundling it into an assembly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill -f Foo.scala run --text hello
+&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill -f Foo.scala show assembly # show the output of the assembly task
+&quot;.../out/Foo.scala/assembly.dest/out.jar&quot;
+
+&gt; java -jar ./out/Foo.scala/assembly.dest/out.jar --text hello
+&lt;h1&gt;hello&lt;/h1&gt;
+
+&gt; ./out/Foo.scala/assembly.dest/out.jar --text hello # mac/linux
+&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more details on single-file projects, see
+<a href="module-config.html#_configuring_single_file_projects" class="xref page">Configuring Single-File Projects</a>
+The rest of the examples below discuss the Mill config for building larger projects
+beyond the single-file project format discussed above, using a dedicated <code>build.mill</code>
+file to provide additional flexibility in setting up your project.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_simple_scala_module"><a class="anchor" href="#_simple_scala_module"></a>Simple Scala Module</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-38-cbb9e8/mill-dist-1.0.4-38-cbb9e8-example-scalalib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/1-simple">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-39-baf1b7/mill-dist-1.0.4-39-baf1b7-example-scalalib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -914,7 +989,7 @@ single generated text file containing the line count of all the source files
 in that module</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-38-cbb9e8/mill-dist-1.0.4-38-cbb9e8-example-scalalib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/2-custom-build-logic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-39-baf1b7/mill-dist-1.0.4-39-baf1b7-example-scalalib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/2-custom-build-logic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1066,7 +1141,7 @@ maintainable even as the complexity of your project grows.</p>
 <h2 id="_multi_module_project"><a class="anchor" href="#_multi_module_project"></a>Multi-Module Project</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-38-cbb9e8/mill-dist-1.0.4-38-cbb9e8-example-scalalib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/3-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-39-baf1b7/mill-dist-1.0.4-39-baf1b7-example-scalalib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/3-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1239,7 +1314,7 @@ migrating an existing codebase from <code>sbt</code>, you can use Mill’s <code
 <code>sbt</code> build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-38-cbb9e8/mill-dist-1.0.4-38-cbb9e8-example-scalalib-basic-4-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/4-compat-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-39-baf1b7/mill-dist-1.0.4-39-baf1b7-example-scalalib-basic-4-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/4-compat-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1351,7 +1426,7 @@ and other topics covered in more detail in the Scala section of the Mill docs,
 and you can browse each respective page if you want to learn more.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-38-cbb9e8/mill-dist-1.0.4-38-cbb9e8-example-scalalib-basic-6-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/6-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-39-baf1b7/mill-dist-1.0.4-39-baf1b7-example-scalalib-basic-6-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/6-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, publish.*
