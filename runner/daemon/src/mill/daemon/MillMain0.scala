@@ -22,7 +22,7 @@ import mill.util.BuildInfo
 import mill.api
 import mill.api.daemon.internal.bsp.BspServerResult
 
-import java.io.{InputStream, PipedInputStream, PrintStream, PrintWriter, StringWriter}
+import java.io.{InputStream, PrintStream, PrintWriter, StringWriter}
 import java.lang.reflect.InvocationTargetException
 import java.util.Locale
 import java.util.concurrent.{ThreadPoolExecutor, TimeUnit}
@@ -149,14 +149,6 @@ object MillMain0 {
                    |OS name: "$osName", version: $osVersion, arch: $osArch""".stripMargin
               )
               (true, RunnerState.empty)
-
-            case Result.Success(config)
-                if config.noDaemonEnabled > 0 && streams.in.getClass == classOf[PipedInputStream] =>
-              // because we have stdin as dummy, we assume we were already started in server process
-              streams.err.println(
-                "-i/--interactive/--no-daemon/--bsp must be passed in as the first argument"
-              )
-              (false, RunnerState.empty)
 
             case Result.Success(config) if config.noDaemonEnabled > 1 =>
               streams.err.println(
