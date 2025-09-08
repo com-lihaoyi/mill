@@ -5,12 +5,12 @@ package mill.javalib.publish
  * in the companion object, e.g. [[License.MIT]], [[License.`Apache-2.0`]], etc.
  */
 case class License(
-    id: String,
+    id: String = "",
     name: String,
     url: String,
-    isOsiApproved: Boolean,
-    isFsfLibre: Boolean,
-    distribution: String
+    isOsiApproved: Boolean = false,
+    isFsfLibre: Boolean = false,
+    distribution: String = ""
 )
 
 object License {
