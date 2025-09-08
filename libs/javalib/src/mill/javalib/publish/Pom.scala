@@ -140,10 +140,10 @@ object Pom {
 
   private def renderDeveloper(d: Developer): Elem = {
     <developer>
-      {<id>{d.id}</id>.optional}
+      <id>{d.id}</id>
       <name>{d.name}</name>
-      {<url>{d.url}</url>.optional}
-      {<email>{d.email}</email>.optional}
+      <url>{d.url}</url>
+      <email>{d.email}</email>
       {<organization>{d.organization}</organization>.optional}
       {<organizationUrl>{d.organizationUrl}</organizationUrl>.optional}
     </developer>
