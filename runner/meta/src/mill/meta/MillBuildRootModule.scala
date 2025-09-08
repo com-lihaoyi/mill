@@ -100,7 +100,7 @@ trait MillBuildRootModule()(implicit
 
   /**
    * Additional script files, we generate, since not all Mill source
-   * files (e.g. `.sc` and `.mill`) can be fed to the compiler as-is.
+   * files (`*.mill` can be fed to the compiler as-is.
    *
    * The `wrapped` files aren't supposed to appear under [[generatedSources]] and [[allSources]],
    * since they are derived from [[sources]] and would confuse any further tooling like IDEs.
