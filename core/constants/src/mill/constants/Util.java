@@ -4,9 +4,9 @@ import java.io.Console;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -89,7 +89,9 @@ public class Util {
   public static String readBuildHeader(Path buildFile, String errorFileName) {
     return readBuildHeader(buildFile, errorFileName, false);
   }
-  public static String readBuildHeader(Path buildFile, String errorFileName, boolean allowNonBuild) {
+
+  public static String readBuildHeader(
+      Path buildFile, String errorFileName, boolean allowNonBuild) {
     try {
       java.util.List<String> lines = Files.readAllLines(buildFile);
       boolean readingBuildHeader = true;
