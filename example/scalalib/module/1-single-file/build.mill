@@ -17,7 +17,7 @@
 
 > ./mill -f Bar.scala nativeImage
 
-> out/nativeImage.dest/native-executable
+> out/Bar.scala/nativeImage.dest/native-executable
 Hello Graal Native: 24...
 
 > ./mill -f Bar.scala publishLocal

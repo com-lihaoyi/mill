@@ -4,7 +4,7 @@
 
 > ./mill -f Bar.kt nativeImage
 
-> out/nativeImage.dest/native-executable
+> out/Bar.kt/nativeImage.dest/native-executable
 Hello Graal Native: 24...
 
 > ./mill -f Bar.kt publishLocal

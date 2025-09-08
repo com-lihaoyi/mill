@@ -5,7 +5,7 @@
 
 > ./mill -f Bar.java nativeImage
 
-> out/nativeImage.dest/native-executable
+> out/Bar.java/nativeImage.dest/native-executable
 Hello Graal Native: 24...
 
 > ./mill -f Bar.java publishLocal
