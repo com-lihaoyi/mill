@@ -19,7 +19,7 @@ class JvmCompileBtApiImpl() extends Compiler {
     val incrementalCompilerStatePath = ctx.dest / "inc-state"
 
     val service = CompilationService.loadImplementation(getClass().getClassLoader())
-    val executionConfig = service.makeCompilerExecutionStrategyConfiguration()
+    val strategyConfig = service.makeCompilerExecutionStrategyConfiguration()
     val compilationConfig = service.makeJvmCompilationConfiguration().tap { conf =>
       val incrementalConfig =
         conf.makeClasspathSnapshotBasedIncrementalCompilationConfiguration()
@@ -30,7 +30,7 @@ class JvmCompileBtApiImpl() extends Compiler {
     val projectId = new ProjectId.ProjectUUID(UUID.randomUUID())
     val compilationResult = service.compileJvm(
       projectId,
-      executionConfig,
+      strategyConfig,
       compilationConfig,
       KotlinInterop.toKotlinList(sources.map(_.toIO).toArray),
       KotlinInterop.toKotlinList(args.toArray)
