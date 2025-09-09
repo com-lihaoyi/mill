@@ -13,10 +13,6 @@ Many of the APIs covered here are listed in the API documentation:
 
 
 
-== Configuring Single-File Projects
-
-include::partial$example/kotlinlib/module/1-single-file.adoc[]
-
 
 == Common Configuration Overrides
 
