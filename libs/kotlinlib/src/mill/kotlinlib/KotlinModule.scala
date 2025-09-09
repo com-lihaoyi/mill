@@ -134,27 +134,27 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     val isOldKotlin = Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4")
       .exists(prefix => kv.startsWith(prefix))
 
-    val compilerDep = if (useEmbeddable) {
-      mvn"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kv}"
-    } else {
-      mvn"org.jetbrains.kotlin:kotlin-compiler:${kv}"
-    }
+    val compilerDep =
+      if (useEmbeddable) mvn"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kv}"
+      else mvn"org.jetbrains.kotlin:kotlin-compiler:${kv}"
 
-    val scriptCompilerDeps =
-      if (useEmbeddable) Seq(
-        mvn"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kv}"
-      )
-      else Seq(
-        mvn"org.jetbrains.kotlin:kotlin-scripting-compiler:${kv}",
-        mvn"org.jetbrains.kotlin:kotlin-scripting-compiler-impl:${kv}",
-        mvn"org.jetbrains.kotlin:kotlin-scripting-jvm:$kv"
-      )
-
-    Seq(
-      compilerDep,
+    val btApiDeps = when(kotlincUseBtApi())(
       mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kv",
       mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kv"
-    ) ++ when(!isOldKotlin)(scriptCompilerDeps*)
+    )
+
+    val scriptCompilerDeps: Seq[Dep] = when(!isOldKotlin)(
+      (if (useEmbeddable) Seq(
+         mvn"org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kv}"
+       )
+       else Seq(
+         mvn"org.jetbrains.kotlin:kotlin-scripting-compiler:${kv}",
+         mvn"org.jetbrains.kotlin:kotlin-scripting-compiler-impl:${kv}",
+         mvn"org.jetbrains.kotlin:kotlin-scripting-jvm:$kv"
+       ))*
+    )
+
+    Seq(compilerDep) ++ btApiDeps ++ scriptCompilerDeps
   }
 
   /**
@@ -398,7 +398,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    */
   def kotlincUseBtApi: T[Boolean] = Task {
     Version.parse(kotlinVersion())
-      .isNewerThan(Version.parse("2.0.0"))(Version.IgnoreQualifierOrdering)
+      .isNewerThan(Version.parse("2.0.0"))(using Version.IgnoreQualifierOrdering)
   }
 
   /**
