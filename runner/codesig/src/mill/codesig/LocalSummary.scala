@@ -147,7 +147,7 @@ object LocalSummary {
 
     // Scala 3 `$lzyINIT1` methods seem to do nothing but forward to other methods, but
     // their contents seems very unstable and prone to causing spurious invalidations
-    val isScala3LazyInit = name.endsWith("$lzyINIT1")
+    var isScala3LazyInit = name.endsWith("$lzyINIT1")
     def hash(x: Int): Unit = {
       if (!isScala3LazyInit) insnHash = scala.util.hashing.MurmurHash3.mix(insnHash, x)
     }
@@ -191,8 +191,12 @@ object LocalSummary {
         name: String,
         descriptor: String
     ): Unit = {
-      val isBitmap = name match {
-        case s"bitmap$$$n" => n.forall(_.isDigit)
+      val lazyValBodyStart = (owner, name, descriptor) match {
+        case ("scala/runtime/LazyVals$Evaluating$", "MODULE$", "Lscala/runtime/LazyVals$Evaluating$;") => true
+        case _ => false
+      }
+      val lazyValBodyEnd = (owner, name, descriptor) match {
+        case ("scala/runtime/LazyVals$NullValue$", "MODULE$", "Lscala/runtime/LazyVals$NullValue$;") => true
         case _ => false
       }
       val isLazyValsGet = (owner, name, descriptor) match {
@@ -203,10 +207,10 @@ object LocalSummary {
         case (s"OFFSET$$_m_$n", "J") if n.forall(_.isDigit) => true
         case _ => false
       }
-      if (isBitmap && (opcode == Opcodes.GETSTATIC || opcode == Opcodes.GETFIELD)) {
-        inLazyValCheck = true
-      } else if (isBitmap && (opcode == Opcodes.PUTSTATIC || opcode == Opcodes.PUTFIELD)) {
-        inLazyValCheck = false
+      if (lazyValBodyStart && opcode == Opcodes.GETSTATIC) {
+        isScala3LazyInit = false
+      } else if (lazyValBodyEnd && opcode == Opcodes.GETSTATIC) {
+        isScala3LazyInit = false
       } else if (isLazyValsGet && (opcode == Opcodes.GETSTATIC || opcode == Opcodes.GETFIELD)) {
         inScala3LazyValClinit = true
       } else if (isLazyValsPut && (opcode == Opcodes.PUTSTATIC || opcode == Opcodes.PUTFIELD)) {
@@ -228,18 +232,14 @@ object LocalSummary {
     }
 
     override def visitInsn(opcode: Int): Unit = {
-      if (!inLazyValCheck) {
-        hash(opcode)
-        completeHash()
-      }
+      hash(opcode)
+      completeHash()
     }
 
     override def visitIntInsn(opcode: Int, operand: Int): Unit = {
-      if (!inLazyValCheck) {
-        hash(opcode)
-        hash(operand)
-        completeHash()
-      }
+      hash(opcode)
+      hash(operand)
+      completeHash()
     }
 
     override def visitInvokeDynamicInsn(
@@ -274,7 +274,6 @@ object LocalSummary {
     }
 
     override def visitJumpInsn(opcode: Int, label: Label): Unit = {
-      if (inLazyValCheck) inLazyValCheck = false
       hashlabel(label)
       hash(opcode)
       completeHash()
@@ -384,7 +383,6 @@ object LocalSummary {
     }
 
     override def visitEnd(): Unit = {
-      assert(!inLazyValCheck)
       clsVisitor.classCallGraph.addOne((methodSig, outboundCalls.toSet))
       clsVisitor.classMethodHashes.addOne((
         methodSig,
