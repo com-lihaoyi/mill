@@ -192,11 +192,19 @@ object LocalSummary {
         descriptor: String
     ): Unit = {
       val lazyValBodyStart = (owner, name, descriptor) match {
-        case ("scala/runtime/LazyVals$Evaluating$", "MODULE$", "Lscala/runtime/LazyVals$Evaluating$;") => true
+        case (
+              "scala/runtime/LazyVals$Evaluating$",
+              "MODULE$",
+              "Lscala/runtime/LazyVals$Evaluating$;"
+            ) => true
         case _ => false
       }
       val lazyValBodyEnd = (owner, name, descriptor) match {
-        case ("scala/runtime/LazyVals$NullValue$", "MODULE$", "Lscala/runtime/LazyVals$NullValue$;") => true
+        case (
+              "scala/runtime/LazyVals$NullValue$",
+              "MODULE$",
+              "Lscala/runtime/LazyVals$NullValue$;"
+            ) => true
         case _ => false
       }
       val isLazyValsGet = (owner, name, descriptor) match {
