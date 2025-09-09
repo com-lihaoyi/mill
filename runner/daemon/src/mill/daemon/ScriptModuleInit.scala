@@ -9,26 +9,40 @@ object ScriptModuleInit {
       new RootModule.Info(projectRoot, output, projectRoot)
 
 
+    pprint.log(millFile)
     val yamlHeader = mill.constants.Util.readBuildHeader(millFile.toNIO, millFile.last, true)
-    val testTarget = yamlHeader.linesIterator.collectFirst { case s"//| tests: $target" => target }
-    val testTrait = yamlHeader.linesIterator.collectFirst { case s"//| testTrait: $target" => target }
+    pprint.log(yamlHeader)
+    val testTarget = yamlHeader.linesIterator.collectFirst { case s"tests: $target" => target }
+    val testTrait = yamlHeader.linesIterator.collectFirst { case s"testTrait: $target" => target }
+    pprint.log(testTarget)
+    pprint.log(testTrait)
     val bootstrapModule = testTarget match {
       case None => millFile.ext match {
-        case "java" => new ScriptModule.Java(millFile) with ScriptModule.Publish {
-          override lazy val millDiscover = Discover[this.type]
-        }
-        case "scala" => new ScriptModule.Scala(millFile) with ScriptModule.Publish {
-          override lazy val millDiscover = Discover[this.type]
-        }
-        case "kt" => new ScriptModule.Kotlin(millFile) with ScriptModule.Publish {
-          override lazy val millDiscover = Discover[this.type]
-        }
+        case "java" =>
+          println("A")
+          new ScriptModule.Java(millFile) with ScriptModule.Publish {
+            override lazy val millDiscover = Discover[this.type]
+          }
+        case "scala" =>
+          println("B")
+          new ScriptModule.Scala(millFile) with ScriptModule.Publish {
+            override lazy val millDiscover = Discover[this.type]
+          }
+        case "kt" =>
+          println("C")
+          new ScriptModule.Kotlin(millFile) with ScriptModule.Publish {
+            override lazy val millDiscover = Discover[this.type]
+          }
       }
       case Some(targetName) =>
+        val targetPath = millFile / os.up / targetName
         import mill.javalib.TestModule.*
         millFile.ext match {
           case "java" =>
-            val targetModule = new ScriptModule.Java(millFile / os.up / targetName) with ScriptModule.Publish {
+            println("D")
+
+            val targetYamlHeader = mill.constants.Util.readBuildHeader(targetPath.toNIO, targetPath.last, true)
+            val targetModule = new ScriptModule.Java(targetPath) with ScriptModule.Publish {
               override lazy val millDiscover = Discover[this.type]
             }
             val testModule = testTrait match {
@@ -39,7 +53,9 @@ object ScriptModuleInit {
             testModule
 
           case "scala" =>
-            val targetModule = new ScriptModule.Scala(millFile / os.up / targetName) with ScriptModule.Publish {
+            println("E")
+            val targetYamlHeader = mill.constants.Util.readBuildHeader(targetPath.toNIO, targetPath.last, true)
+            val targetModule = new ScriptModule.Scala(targetPath) with ScriptModule.Publish {
               override lazy val millDiscover = Discover[this.type]
             }
             val testModule = testTrait match {
@@ -57,7 +73,9 @@ object ScriptModuleInit {
             testModule
 
           case "kt" =>
-            val targetModule = new ScriptModule.Kotlin(millFile / os.up / targetName) with ScriptModule.Publish {
+            println("F")
+            val targetYamlHeader = mill.constants.Util.readBuildHeader(targetPath.toNIO, targetPath.last, true)
+            val targetModule = new ScriptModule.Kotlin(targetPath) with ScriptModule.Publish {
               override lazy val millDiscover = Discover[this.type]
             }
             val testModule = testTrait match {
