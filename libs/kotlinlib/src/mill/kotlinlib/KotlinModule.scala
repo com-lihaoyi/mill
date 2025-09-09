@@ -490,6 +490,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     }
     override def kotlinUseEmbeddableCompiler: Task[Boolean] =
       Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+    override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
   }
 
 }
