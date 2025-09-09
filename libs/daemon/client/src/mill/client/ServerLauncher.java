@@ -238,76 +238,72 @@ public abstract class ServerLauncher {
       // See if the server is already running.
       log.accept("Checking if the daemon lock is available: " + locks.daemonLock);
       var startTime = System.nanoTime();
-      return withTimeout(
-          startTime,
-          10 * 1000,
-          "Failed to determine server status",
-          () -> {
+      return withTimeout(startTime, 10 * 1000, "Failed to determine server status", () -> {
+        try {
+          if (locks.daemonLock.probe()) {
+            log.accept("The daemon lock is available, starting the server.");
             try {
-              if (locks.daemonLock.probe()) {
-                log.accept("The daemon lock is available, starting the server.");
-                try {
-                  var launchedServer = initServer.init();
+              var launchedServer = initServer.init();
 
-                  log.accept("The server has started: " + launchedServer);
+              log.accept("The server has started: " + launchedServer);
 
-                  log.accept("Waiting for the server to take the daemon lock: " + locks.daemonLock);
-                  var maybeLaunchFailed =
-                      waitUntilDaemonTakesTheLock(locks.daemonLock, daemonDir, launchedServer);
-                  if (maybeLaunchFailed.isPresent()) {
-                    var outputs = maybeLaunchFailed.get();
-                    log.accept("The server " + launchedServer + " failed to start: " + outputs);
+              log.accept("Waiting for the server to take the daemon lock: " + locks.daemonLock);
+              var maybeLaunchFailed =
+                  waitUntilDaemonTakesTheLock(locks.daemonLock, daemonDir, launchedServer);
+              if (maybeLaunchFailed.isPresent()) {
+                var outputs = maybeLaunchFailed.get();
+                log.accept("The server " + launchedServer + " failed to start: " + outputs);
 
-                    return Optional.of(new ServerLaunchResult.ServerDied(launchedServer, outputs));
-                  } else {
-                    log.accept(
-                        "The server " + launchedServer + " has taken the daemon lock: " + locks.daemonLock);
-                    return Optional.of(new ServerLaunchResult.Success(launchedServer));
-                  }
-                } catch (Exception e) {
-                  throw new RuntimeException(e);
-                }
+                return Optional.of(new ServerLaunchResult.ServerDied(launchedServer, outputs));
               } else {
-                log.accept("The daemon lock is not available, there is already a server running.");
-                var pidFile = daemonDir.resolve(DaemonFiles.processId);
-                log.accept(
-                    "Trying to read the process ID of a running daemon from " + pidFile.toAbsolutePath());
-                try {
-                  // We need to read the contents of the file and then parse them in a loop because of
-                  // a race
-                  // condition where an empty file is created first and only then the process ID is
-                  // written to it,
-                  // and thus we can read an empty string from the file otherwise.
-                  var contents = Files.readString(pidFile);
-                  var pid = Long.parseLong(contents);
-                  log.accept("Read PID: " + pid);
-
-                  var launchedServer =
-                      // PID < 0 is only used in tests.
-                      pid >= 0
-                          ? new LaunchedServer.OsProcess(ProcessHandle.of(pid)
-                              .orElseThrow(
-                                  () -> new IllegalStateException("No process found for PID " + pid)))
-                          : new LaunchedServer() {
-                            @Override
-                            public boolean isAlive() {
-                              throw new RuntimeException("not implemented, this should never happen");
-                            }
-
-                            @Override
-                            public void kill() {
-                              throw new RuntimeException("not implemented, this should never happen");
-                            }
-                          };
-                  return Optional.of(new ServerLaunchResult.AlreadyRunning(launchedServer));
-                } catch (IOException | NumberFormatException e) {
-                  return Optional.empty();
-                }
+                log.accept("The server " + launchedServer + " has taken the daemon lock: "
+                    + locks.daemonLock);
+                return Optional.of(new ServerLaunchResult.Success(launchedServer));
               }
             } catch (Exception e) {
+              throw new RuntimeException(e);
+            }
+          } else {
+            log.accept("The daemon lock is not available, there is already a server running.");
+            var pidFile = daemonDir.resolve(DaemonFiles.processId);
+            log.accept("Trying to read the process ID of a running daemon from "
+                + pidFile.toAbsolutePath());
+            try {
+              // We need to read the contents of the file and then parse them in a loop because of
+              // a race
+              // condition where an empty file is created first and only then the process ID is
+              // written to it,
+              // and thus we can read an empty string from the file otherwise.
+              var contents = Files.readString(pidFile);
+              var pid = Long.parseLong(contents);
+              log.accept("Read PID: " + pid);
+
+              var launchedServer =
+                  // PID < 0 is only used in tests.
+                  pid >= 0
+                      ? new LaunchedServer.OsProcess(ProcessHandle.of(pid)
+                          .orElseThrow(
+                              () -> new IllegalStateException("No process found for PID " + pid)))
+                      : new LaunchedServer() {
+                        @Override
+                        public boolean isAlive() {
+                          throw new RuntimeException("not implemented, this should never happen");
+                        }
+
+                        @Override
+                        public void kill() {
+                          throw new RuntimeException("not implemented, this should never happen");
+                        }
+                      };
+              return Optional.of(new ServerLaunchResult.AlreadyRunning(launchedServer));
+            } catch (IOException | NumberFormatException e) {
               return Optional.empty();
             }
-          });
+          }
+        } catch (Exception e) {
+          return Optional.empty();
+        }
+      });
     }
   }
 
