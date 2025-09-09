@@ -3,7 +3,7 @@ package mill.kotlinlib.worker.impl
 import mill.api.TaskCtx
 import org.jetbrains.kotlin.cli.js.K2JSCompiler
 
-class JsCompileImpl() {
+class JsCompileImpl extends Compiler() {
 
   def compile(
       args: Seq[String],

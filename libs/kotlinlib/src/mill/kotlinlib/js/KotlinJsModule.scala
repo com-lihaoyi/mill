@@ -95,28 +95,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * Compiles all the sources to the IR representation.
    */
   override def compile: T[CompilationResult] = Task {
-    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
-      kotlinWorker =>
-        kotlinJsCompile(
-          outputMode = OutputMode.KlibDir,
-          irClasspath = None,
-          allKotlinSourceFiles = allKotlinSourceFiles(),
-          librariesClasspath = compileClasspath(),
-          callMain = kotlinJsCallMain(),
-          moduleKind = kotlinJsModuleKind(),
-          produceSourceMaps = kotlinJsSourceMap(),
-          sourceMapEmbedSourcesKind = kotlinJsSourceMapEmbedSources(),
-          sourceMapNamesPolicy = kotlinJsSourceMapNamesPolicy(),
-          splitPerModule = kotlinJsSplitPerModule(),
-          esTarget = kotlinJsESTarget(),
-          kotlinVersion = kotlinVersion(),
-          destinationRoot = Task.dest,
-          artifactId = artifactId(),
-          explicitApi = kotlinExplicitApi(),
-          extraKotlinArgs = allKotlincOptions(),
-          worker = kotlinWorker
-        )
-    }
+    // same as super, but kept for bin-compat
+    kotlinCompileTask()()
   }
 
   override def runLocal(args: Task[Args] = Task.Anon(Args())): Command[Unit] =
@@ -217,7 +197,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
           artifactId = artifactId(),
           explicitApi = kotlinExplicitApi(),
           extraKotlinArgs = allKotlincOptions() ++ extraKotlinArgs,
-          worker = kotlinWorker
+          worker = kotlinWorker,
+          useBtApi = kotlincUseBtApi()
         )
     }
   }
@@ -247,7 +228,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
           artifactId = artifactId(),
           explicitApi = kotlinExplicitApi(),
           extraKotlinArgs = allKotlincOptions(),
-          worker = kotlinWorker
+          worker = kotlinWorker,
+          useBtApi = kotlincUseBtApi()
         )
     }
   }
@@ -291,7 +273,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
       artifactId: String,
       explicitApi: Boolean,
       extraKotlinArgs: Seq[String],
-      worker: KotlinWorker
+      worker: KotlinWorker,
+      useBtApi: Boolean
   )(implicit ctx: mill.api.TaskCtx): Result[CompilationResult] = {
     val versionAllowed = kotlinVersion.split("\\.").map(_.toInt) match {
       case Array(1, 8, z) => z >= 20
@@ -416,8 +399,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
       Task.log.info(s"Linking IR to $compileDestination")
     }
     val workerResult = worker.compile(
-      kotlinVersion = kotlinVersion,
       target = KotlinWorkerTarget.Js,
+      useBtApi = useBtApi,
       args = compilerArgs,
       sources = inputFiles
     )
@@ -437,6 +420,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
       case Result.Success(_) => CompilationResult(analysisFile, PathRef(artifactLocation))
       case Result.Failure(reason) => Result.Failure(reason)
     }
+  }
+
+  override def kotlincUseBtApi: Task.Simple[Boolean] = Task {
+    // currently not implemented
+    false
   }
 
   private def binaryKindToOutputMode(binaryKind: Option[BinaryKind]): OutputMode =

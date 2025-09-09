@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.cli.common.ExitCode
 import java.util.UUID
 import scala.util.chaining.scalaUtilChainingOps
 
-class JvmCompileBtApiImpl() {
+class JvmCompileBtApiImpl() extends Compiler {
 
   def compile(
       args: Seq[String],

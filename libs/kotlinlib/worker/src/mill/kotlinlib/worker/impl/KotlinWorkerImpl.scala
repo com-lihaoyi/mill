@@ -7,39 +7,30 @@ package mill.kotlinlib.worker.impl
 
 import mill.api.{Result, Task, TaskCtx}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
-import mill.util.Version
 
 class KotlinWorkerImpl extends KotlinWorker {
 
   def compile(
-      kotlinVersion: String,
       target: KotlinWorkerTarget,
+      useBtApi: Boolean,
       args: Seq[String],
       sources: Seq[os.Path]
   )(implicit
       ctx: TaskCtx
   ): Result[Unit] = {
-    ctx.log.debug(s"Using Kotlin ${kotlinVersion} compiler arguments: " +
+    ctx.log.debug(s"Using Kotlin compiler arguments: " +
       args.map(v => s"'${v}'").mkString(" "))
 
-    val kv = Version.parse(kotlinVersion)
-
-    val (exitCode, exitCodeName) = target match {
-
-      case KotlinWorkerTarget.Jvm
-          if kv.isNewerThan(Version.parse("2.0.0"))(Version.IgnoreQualifierOrdering) =>
-        // Use dedicated class to load classes lazily
-        JvmCompileBtApiImpl().compile(args, sources)
-
-      case KotlinWorkerTarget.Jvm =>
-        // Use dedicated class to load classes lazily
-        JvmCompileImpl().compile(args, sources)
-
-      case KotlinWorkerTarget.Js =>
-        // Use dedicated class to load classes lazily
-        JsCompileImpl().compile(args, sources)
-
+    // Use dedicated class to load implementation classes lazily
+    val compiler = (target = target, useBtApi = useBtApi) match {
+      case (KotlinWorkerTarget.Jvm, true) => JvmCompileBtApiImpl()
+      case (KotlinWorkerTarget.Jvm, false) => JvmCompileImpl()
+      case (target = KotlinWorkerTarget.Js) => JsCompileImpl()
     }
+
+    ctx.log.info(s"Using compiler backend: ${compiler.getClass().getSimpleName()}")
+
+    val (exitCode, exitCodeName) = compiler.compile(args, sources)
 
     if (exitCode != 0) {
       Task.fail(s"Kotlin compiler failed with exit code ${exitCode} ($exitCodeName)")

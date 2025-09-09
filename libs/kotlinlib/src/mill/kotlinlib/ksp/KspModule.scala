@@ -260,8 +260,8 @@ trait KspModule extends KotlinModule { outer =>
 
     KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
       _.compile(
-        kotlinVersion = kotlinVersion(),
         target = KotlinWorkerTarget.Jvm,
+        useBtApi = kotlincUseBtApi(),
         args = compilerArgs,
         sources = sourceFiles
       )

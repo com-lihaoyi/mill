@@ -11,8 +11,8 @@ import mill.api.Result
 trait KotlinWorker {
 
   def compile(
-      kotlinVersion: String,
       target: KotlinWorkerTarget,
+      useBtApi: Boolean,
       args: Seq[String],
       sources: Seq[os.Path]
   )(implicit ctx: TaskCtx): Result[Unit]

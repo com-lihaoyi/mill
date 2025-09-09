@@ -3,7 +3,7 @@ package mill.kotlinlib.worker.impl
 import mill.api.TaskCtx
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 
-class JvmCompileImpl() {
+class JvmCompileImpl() extends Compiler {
 
   def compile(
       args: Seq[String],

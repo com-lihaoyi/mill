@@ -12,11 +12,11 @@ import mill.api.Result
 import mill.api.ModuleRef
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.javalib.api.CompilationResult
-import mill.javalib.api.{JvmWorkerApi => PublicJvmWorkerApi}
+import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
 import mill.javalib.api.internal.JvmWorkerApi
 import mill.api.daemon.internal.{CompileProblemReporter, KotlinModuleApi, internal}
 import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
-import mill.util.Jvm
+import mill.util.{Jvm, Version}
 import mill.*
 
 import java.io.File
@@ -359,8 +359,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
         val workerResult =
           KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
             _.compile(
-              kotlinVersion = kotlinVersion(),
               target = KotlinWorkerTarget.Jvm,
+              useBtApi = kotlincUseBtApi(),
               args = compilerArgs,
               sources = kotlinSourceFiles ++ javaSourceFiles
             )
@@ -391,6 +391,15 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    * Additional Kotlin compiler options to be used by [[compile]].
    */
   def kotlincOptions: T[Seq[String]] = Task { Seq.empty[String] }
+
+  /**
+   * Enable use of new Kotlin Build API (Beta).
+   * Enabled by default for Kotlin 2.x targetting the JVM.
+   */
+  def kotlincUseBtApi: T[Boolean] = Task {
+    Version.parse(kotlinVersion())
+      .isNewerThan(Version.parse("2.0.0"))(Version.IgnoreQualifierOrdering)
+  }
 
   /**
    * Mandatory command-line options to pass to the Kotlin compiler
