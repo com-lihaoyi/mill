@@ -699,102 +699,10 @@ see <a href="../migrating/migrating.html" class="xref page">Migrating to Mill</a
 </div>
 </div>
 <div class="sect1">
-<h2 id="_single_file_projects"><a class="anchor" href="#_single_file_projects"></a>Single-File Projects</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill also allows you to run single-file Java programs easily from the command-line,
-even those that contain third-party dependencies or other such configuration. These can be
-useful as a replacement for Bash scripts, letting you write small scripts or programs
-in Java with full access to third-party libraries and other build-tool features.</p>
-</div>
-<div class="paragraph">
-<p>For example, given the single-file program below, it can be run directly using Mill:</p>
-</div>
-<div class="listingblock">
-<div class="title">Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/javalib/basic/5-single-file/Foo.java">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps:
-//| - &quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;
-//| - &quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
-import net.sourceforge.argparse4j.ArgumentParsers;
-import net.sourceforge.argparse4j.inf.ArgumentParser;
-import net.sourceforge.argparse4j.inf.Namespace;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
-
-public class Foo {
-  public static String generateHtml(String text) {
-    Context context = new Context();
-    context.setVariable(&quot;text&quot;, text);
-    return new TemplateEngine().process(&quot;&lt;h1 th:text=\&quot;${text}\&quot;&gt;&lt;/h1&gt;&quot;, context);
-  }
-
-  public static void main(String[] args) {
-    ArgumentParser parser = ArgumentParsers.newFor(&quot;template&quot;)
-        .build()
-        .defaultHelp(true)
-        .description(&quot;Inserts text into a HTML template&quot;);
-
-    parser.addArgument(&quot;-t&quot;, &quot;--text&quot;).required(true).help(&quot;text to insert&quot;);
-
-    Namespace ns = null;
-    try {
-      ns = parser.parseArgs(args);
-    } catch (Exception e) {
-      System.out.println(e.getMessage());
-      System.exit(1);
-    }
-
-    System.out.println(generateHtml(ns.getString(&quot;text&quot;)));
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.java --text hello
-compiling 1 Java source to...
-&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill -f Foo.java run --text hello
-&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The <code>./mill Foo.java</code> syntax is shorthand for <code>./mill -f Foo.java run</code>
-or <code>./mill --file Foo.java run</code>, which can also be passed explicitly. The
-explicit <code>-f</code>/<code>--file</code> also allows you to call other tasks on the single-file project,
-e.g. bundling it into an assembly:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill -f Foo.java show assembly # show the output of the assembly task
-&quot;.../out/Foo.java/assembly.dest/out.jar&quot;
-
-&gt; java -jar ./out/Foo.java/assembly.dest/out.jar --text hello
-&lt;h1&gt;hello&lt;/h1&gt;
-
-&gt; ./out/Foo.java/assembly.dest/out.jar --text hello # mac/linux
-&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>For more details on single-file projects, see
-<a href="module-config.html#_configuring_single_file_projects" class="xref page">Configuring Single-File Projects</a>
-The rest of the examples below discuss the Mill config for building larger projects
-beyond the single-file project format discussed above, using a dedicated <code>build.mill</code>
-file to provide additional flexibility in setting up your project.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_simple_java_module"><a class="anchor" href="#_simple_java_module"></a>Simple Java Module</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-40-17c6b7/mill-dist-1.0.4-40-17c6b7-example-javalib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/javalib/basic/1-simple">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-41-72db1f/mill-dist-1.0.4-41-72db1f-example-javalib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/javalib/basic/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1006,7 +914,7 @@ single generated text file containing the line count of all the source files
 in that module</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-40-17c6b7/mill-dist-1.0.4-40-17c6b7-example-javalib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/javalib/basic/2-custom-build-logic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-41-72db1f/mill-dist-1.0.4-41-72db1f-example-javalib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/javalib/basic/2-custom-build-logic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1157,7 +1065,7 @@ maintainable even as the complexity of your project grows.</p>
 <h2 id="_multi_module_project"><a class="anchor" href="#_multi_module_project"></a>Multi-Module Project</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-40-17c6b7/mill-dist-1.0.4-40-17c6b7-example-javalib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/javalib/basic/3-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-41-72db1f/mill-dist-1.0.4-41-72db1f-example-javalib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/javalib/basic/3-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1331,7 +1239,7 @@ migrating an existing codebase, you can use Mill’s <code>MavenModule</code> an
 Maven or Gradle build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-40-17c6b7/mill-dist-1.0.4-40-17c6b7-example-javalib-basic-4-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/javalib/basic/4-compat-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-41-72db1f/mill-dist-1.0.4-41-72db1f-example-javalib-basic-4-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/javalib/basic/4-compat-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1407,7 +1315,7 @@ and other topics covered in more detail in the Java section of the Mill docs,
 and you can browse each respective page if you want to learn more.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-40-17c6b7/mill-dist-1.0.4-40-17c6b7-example-javalib-basic-6-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/javalib/basic/6-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-41-72db1f/mill-dist-1.0.4-41-72db1f-example-javalib-basic-6-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/javalib/basic/6-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*, publish.*

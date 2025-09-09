@@ -688,73 +688,6 @@ for <code>ScalaModule</code>.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_configuring_single_file_projects"><a class="anchor" href="#_configuring_single_file_projects"></a>Configuring Single-File Projects</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill Single-File Projects have the full flexibility of the Mill build tool, just configured
-using the YAML <a href="../cli/build-header.html" class="xref page">build header</a> syntax rather than a separate
-<code>build.mill</code> file. That means you can <a href="../fundamentals/configuring-jvm-versions.html" class="xref page">configure the JVM version</a>,
-<a href="../javalib/module-config.html#_compilation_execution_flags" class="xref page">compile flags or runtime flags</a>, create
-<a href="../javalib/publishing.html#_building_executable_assemblies_with_assemblymodule" class="xref page">Executable Assemblies</a>
-or <a href="../javalib/publishing.html#_building_native_image_binaries_with_graal_vm" class="xref page">Graal Native Images</a>,
-<a href="../javalib/publishing.html#_publishing_to_sonatype_maven_central" class="xref page">Publishing to Maven Central</a>
-etc.</p>
-</div>
-<div class="paragraph">
-<p>The example below shows a few of those options configured in the YAML build header
-of a single-file project, and then made of use from the command line:</p>
-</div>
-<div class="listingblock">
-<div class="title">Bar.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/1-single-file/Bar.scala">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| jvmId: &quot;graalvm-community:24&quot;
-//| nativeImageOptions: [&quot;--no-fallback&quot;]
-//| publishVersion: &quot;0.0.1&quot;
-//| artifactName: &quot;example&quot;
-//| pomSettings:
-//|   description: &quot;Example&quot;
-//|   organization: &quot;com.lihaoyi&quot;
-//|   url: &quot;https://github.com/com.lihaoyi/example&quot;
-//|   licenses: [&quot;MIT&quot;]
-//|   versionControl: &quot;https://github.com/com.lihaoyi/example&quot;
-//|   developers: [{&quot;name&quot;: &quot;Li Haoyi&quot;, &quot;email&quot;: &quot;example@example.com&quot;}]
-
-object Bar {
-  def main(args: Array[String]): Unit = {
-    println(&quot;Hello Graal Native: &quot; + System.getProperty(&quot;java.version&quot;))
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill -f Bar.scala nativeImage
-
-&gt; out/Bar.scala/nativeImage.dest/native-executable
-Hello Graal Native: 24...
-
-&gt; ./mill -f Bar.scala publishLocal
-Publishing Artifact(com.lihaoyi,example...,0.0.1) to ivy repo ...</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Apart from publishing locally, you can also publish this single-file project to
-Sonatype Maven Central via:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill -f Bar.scala mill.javalib.SonatypeCentralPublishModule/</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Most configuration <code>def</code>s in Mill can be used to configure single-file projects, and
-most tasks and commands can also be used as well. This gives you a lot of flexibility
-in working with your single-file project until it becomes complex enough to need
-a dedicated <code>build.mill</code> file.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_common_configuration_overrides"><a class="anchor" href="#_common_configuration_overrides"></a>Common Configuration Overrides</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -766,7 +699,7 @@ so its sources will live in the top-level <code>src/</code> folder and its tasks
 called directly via <code>compile</code> or <code>run</code> without needing a <code>foo.</code> module prefix.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-40-17c6b7/mill-dist-1.0.4-40-17c6b7-example-scalalib-module-2-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/2-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-41-72db1f/mill-dist-1.0.4-41-72db1f-example-scalalib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -911,6 +844,577 @@ error: ...Implicit injection of + is deprecated. Convert to String to call +...<
 </div>
 </div>
 <div class="sect1">
+<h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-41-72db1f/mill-dist-1.0.4-41-72db1f-example-scalalib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/4-compilation-execution-flags">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+
+object `package` extends ScalaModule {
+  def scalaVersion = &quot;3.7.1&quot;
+  def scalacOptions = Seq(&quot;-Ydelambdafy:inline&quot;)
+  def forkArgs = Seq(&quot;-Xmx4g&quot;, &quot;-Dmy.jvm.property=hello&quot;)
+  def forkEnv = Map(&quot;MY_ENV_VAR&quot; -&gt; &quot;WORLD&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can pass flags to the Scala compiler via <code>scalacOptions</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
+hello WORLD</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default,
+<code>run</code> runs the compiled code in a subprocess, and you can pass in JVM flags
+via <code>forkArgs</code> or environment-variables via <code>forkEnv</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can also run your code via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.runLocal</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Which runs it in-process within an isolated classloader. This may be faster
+since you avoid the JVM startup overhead, but does not support <code>forkArgs</code> or <code>forkEnv</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you want to pass main-method arguments to <code>run</code> or <code>runLocal</code>, simply pass
+them after the <code>foo.run</code>/<code>foo.runLocal</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run arg1 arg2 arg3
+&gt; mill foo.runLocal arg1 arg2 arg3</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-41-72db1f/mill-dist-1.0.4-41-72db1f-example-scalalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/7-resources">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;3.7.1&quot;
+  def mvnDeps = Seq(
+    mvn&quot;com.lihaoyi::os-lib:0.11.4&quot;
+  )
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.9.1&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
+
+    def otherFiles = Task.Source(&quot;other-files&quot;)
+
+    def forkEnv = super.forkEnv() ++ Map(
+      &quot;OTHER_FILES_DIR&quot; -&gt; otherFiles().path.toString
+    )
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
+... foo.FooTests...simple ...
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This section discusses how tests can depend on resources locally on disk.
+Mill provides two ways to do this: via the JVM classpath resources, and via
+the resource folder which is made available as the environment variable
+<code>MILL_TEST_RESOURCE_DIR</code> available in test suites:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <strong>classpath resources</strong> are useful when you want to fetch individual files,
+and are bundled with the application by the <code>.assembly</code> step when constructing
+an assembly jar for deployment. But they do not allow you to list folders
+or perform other filesystem operations.</p>
+</li>
+<li>
+<p>The <strong>resource folder</strong>, available via <code>MILL_TEST_RESOURCE_DIR</code>, gives you
+access to the folder path of the resources on disk. This is useful in allowing
+you to list and otherwise manipulate the filesystem, which you cannot do with
+<strong>classpath resources</strong>. However, the <code>MILL_TEST_RESOURCE_DIR</code> <em>only</em> exists
+when running tests using Mill, and is <em>not</em> available when executing applications
+packaged for deployment via <code>.assembly</code></p>
+</li>
+<li>
+<p>Apart from <code>resources/</code>, you can provide additional folders to your test suite
+by defining a <code>Task.Source</code> (<code>otherFiles</code> above) and passing it to <code>forkEnv</code>. This
+provide the folder path as an environment variable that the test can make use of</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Example application code demonstrating the techniques above can be seen below:</p>
+</div>
+<div class="listingblock">
+<div class="title">foo/resources/file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/7-resources/foo/resources/file.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Hello World Resource File</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/7-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File A</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/resources/test-file-b.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/7-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File B</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/other-files/other-file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/7-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Other Hello World File</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/7-resources/foo/src/Foo.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
+
+object Foo {
+  // Read `file.txt` from classpath
+  def classpathResourceText = os.read(os.resource / &quot;file.txt&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/src/FooTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/7-resources/foo/test/src/FooTests.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
+import utest.*
+object FooTests extends TestSuite {
+  def tests = Tests {
+    test(&quot;simple&quot;) {
+      // Reference app module's `Foo` class which reads `file.txt` from classpath
+      val appClasspathResourceText = Foo.classpathResourceText
+      assert(appClasspathResourceText == &quot;Hello World Resource File&quot;)
+
+      // Read `test-file-a.txt` from classpath
+      val testClasspathResourceText = os.read(os.resource / &quot;test-file-a.txt&quot;)
+      assert(testClasspathResourceText == &quot;Test Hello World Resource File A&quot;)
+
+      // Use `MILL_TEST_RESOURCE_DIR` to read `test-file-b.txt` from filesystem
+      val testFileResourceDir = os.Path(sys.env(&quot;MILL_TEST_RESOURCE_DIR&quot;))
+      val testFileResourceText = os.read(testFileResourceDir / &quot;test-file-b.txt&quot;)
+      assert(testFileResourceText == &quot;Test Hello World Resource File B&quot;)
+
+      // Use `MILL_TEST_RESOURCE_DIR` to list files available in resource folder
+      assert(
+        os.list(testFileResourceDir).sorted ==
+          Seq(testFileResourceDir / &quot;test-file-a.txt&quot;, testFileResourceDir / &quot;test-file-b.txt&quot;)
+      )
+
+      // Use the `OTHER_FILES_DIR` configured in your build to access the
+      // files in `foo/test/other-files/`.
+      val otherFileText = os.read(os.Path(sys.env(&quot;OTHER_FILES_DIR&quot;)) / &quot;other-file.txt&quot;)
+      assert(otherFileText == &quot;Other Hello World File&quot;)
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Tests by default only have access to their <strong>classpath resources</strong> and
+<strong>resource folder</strong> as mentioned above. They cannot read random project files on disk,
+and require that you pass in any other
+files or folders that they require explicitly (e.g. <code>def otherFiles</code> above).
+This is necessary so that Mill can ensure the necessary files are in place
+before the test begins running, and so <code>-w</code>/<code>--watch</code> knows it needs to re-run
+the tests if those files changed. Thus your tests cannot just read project files
+direct off disk via <code>new FileInputStream(&quot;foo/resources/test-file-a.txt&quot;)</code>.</p>
+</div>
+<div class="paragraph">
+<p>Mill runs test processes in a <a href="../depth/sandboxing.html" class="xref page">sandbox/ folder</a>, rather
+than in your project root folder, to enforce this.
+If you have legacy tests that need to run in the project root folder to work, you
+can configure your test suite with <code>def testSandboxWorkingDir = false</code> to disable
+the sandbox and make the tests run in the project root.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scala_compiler_plugins"><a class="anchor" href="#_scala_compiler_plugins"></a>Scala Compiler Plugins</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-41-72db1f/mill-dist-1.0.4-41-72db1f-example-scalalib-module-8-scala-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/8-scala-compiler-plugins">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+
+object `package` extends ScalaModule {
+  def scalaVersion = &quot;2.13.16&quot;
+
+  def compileMvnDeps = Seq(mvn&quot;com.lihaoyi:::acyclic:0.3.18&quot;)
+  def scalacOptions = Seq(&quot;-P:acyclic:force&quot;)
+  def scalacPluginMvnDeps = Seq(mvn&quot;com.lihaoyi:::acyclic:0.3.18&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can use Scala compiler plugins by setting <code>scalacPluginMvnDeps</code>. The above
+example also adds the plugin to <code>compileMvnDeps</code>, since that plugin’s artifact
+is needed on the compilation classpath (though not at runtime).</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Remember that compiler plugins are published against the full Scala
+version (eg. 2.13.16 instead of just 2.13), so when including them make sure to
+use the  <code>:::</code> syntax shown above in the example.
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill compile
+...
+error: Unwanted cyclic dependency
+error: ...src/Foo.scala...
+error:   def y = Bar.z
+error: ...src/Bar.scala...
+error:   def x = Foo.y</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scaladoc_config"><a class="anchor" href="#_scaladoc_config"></a>Scaladoc Config</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To generate API documentation you can use the <code>docJar</code> task on the module you’d
+like to create the docs for, configured via <code>scaladocOptions</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-41-72db1f/mill-dist-1.0.4-41-72db1f-example-scalalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/9-docjar">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;3.3.6&quot;
+
+  def scalaDocOptions = Seq(&quot;-siteroot&quot;, &quot;mydocs&quot;, &quot;-no-link-warnings&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.docJar
+
+&gt; unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
+...
+...My Awesome Docs for class Foo...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When using Scala 3 you’re also able to use Scaladoc to generate a full static
+site next to your API documention. This can include general documenation for
+your project and even a blog. While you can find the full documenation for this
+in the <a href="https://docs.scala-lang.org/scala3/guides/scaladoc/index.html">Scala 3
+docs</a>, below you’ll find some useful information to help you generate this with
+Mill.</p>
+</div>
+<div class="paragraph">
+<p>By default, Mill will consider the <em>site root</em> as it’s called in
+<a href="https://docs.scala-lang.org/scala3/guides/scaladoc/static-site.html">Scala 3
+docs</a>, to be the value of <code>docResources()</code>. It will look there for your
+<code>_docs/</code> and your <code>_blog/</code> directory if any exist. Given a
+project called <code>bar</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends ScalaModule {
+  def scalaVersion = &quot;3.3.6&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Your project structure for this would look something like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>.
+├── build.mill
+├── bar
+│  ├── docs
+│  │  ├── _blog
+│  │  │  ├── _posts
+│  │  │  │  └── 2022-08-14-hello-world.md
+│  │  │  └── index.md
+│  │  └── _docs
+│  │     ├── getting-started.md
+│  │     ├── index.html
+│  │     └── index.md
+│  └── src
+│     └── example
+│        └── Hello.scala</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After generating your docs with <code>mill example.docJar</code> you’ll find by opening
+your <code>out/app/docJar.dest/javadoc/index.html</code> locally in your browser you’ll
+have a full static site including your API docs, your blog, and your
+documentation.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show bar.docJar
+
+&gt; unzip -p out/bar/docJar.dest/out.jar bar/Bar.html
+...
+...&lt;p&gt;My Awesome Docs for class Bar&lt;/p&gt;...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_specifying_the_main_class"><a class="anchor" href="#_specifying_the_main_class"></a>Specifying the Main Class</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-41-72db1f/mill-dist-1.0.4-41-72db1f-example-scalalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/11-main-class">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+
+object `package` extends ScalaModule {
+  def scalaVersion = &quot;3.7.1&quot;
+  def mainClass = Some(&quot;foo.Qux&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill’s <code>foo.run</code> by default will discover which main class to run from your
+compilation output, but if there is more than one or the main class comes from
+some library you can explicitly specify which one to use.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
+Hello Qux</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>def mainClass</code> also adds the
+main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cross_scala_version_modules"><a class="anchor" href="#_cross_scala_version_modules"></a>Cross-Scala-Version Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-41-72db1f/mill-dist-1.0.4-41-72db1f-example-scalalib-module-14-cross-scala-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/14-cross-scala-version">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+
+val scalaVersions = Seq(&quot;2.12.20&quot;, &quot;2.13.16&quot;)
+
+object foo extends Cross[FooModule](scalaVersions)
+trait FooModule extends CrossScalaModule {
+  def moduleDeps = Seq(bar())
+}
+
+object bar extends Cross[BarModule](scalaVersions)
+trait BarModule extends CrossScalaModule</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is an example of cross-building a module across multiple Scala
+versions. Each module is replaced by a <code>Cross</code> module, which is given a list
+of strings you want the cross-module to be replicated for. You can then
+specify the cross-modules with square brackets when you want to run tasks on
+them.</p>
+</div>
+<div class="paragraph">
+<p><code>CrossScalaModule</code> supports both shared sources within <code>src/</code> as well as
+version specific sources in <code>src-x/</code>, <code>src-x.y/</code>, or <code>src-x.y.z/</code> that
+apply to the cross-module with that version prefix.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __.run
+foo[2.12.20].run
+foo[2.13.16].run
+bar[2.12.20].run
+bar[2.13.16].run
+
+&gt; ./mill foo[2.12.20].run
+Foo.value: Hello World Scala library version 2.12.20...
+Bar.value: bar-value
+Specific code for Scala 2.x
+Specific code for Scala 2.12.x
+
+&gt; ./mill foo[2.13.16].run
+Foo.value: Hello World Scala library version 2.13.16...
+Bar.value: bar-value
+Specific code for Scala 2.x
+Specific code for Scala 2.13.x
+
+&gt; ./mill bar[2.13.16].run
+Bar.value: bar-value</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>CrossScalaModule</code>s can depend on each other using <code>moduleDeps</code>, but require
+the <code>()</code> suffix in <code>moduleDeps</code> to select the appropriate instance of the
+cross-module to depend on. You can also pass the <code>crossScalaVersion</code>
+explicitly to select the right version of the cross-module:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo2 extends Cross[Foo2Module](scalaVersions)
+trait Foo2Module extends CrossScalaModule {
+  def moduleDeps = Seq(bar(crossScalaVersion))
+}
+
+object bar2 extends Cross[Bar2Module](scalaVersions)
+trait Bar2Module extends CrossScalaModule</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_unidoc"><a class="anchor" href="#_unidoc"></a>Unidoc</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-41-72db1f/mill-dist-1.0.4-41-72db1f-example-scalalib-module-15-unidoc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/15-unidoc">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+
+object foo extends ScalaModule, UnidocModule {
+  def scalaVersion = &quot;3.7.1&quot;
+  def moduleDeps = Seq(bar, qux)
+
+  object bar extends ScalaModule {
+    def scalaVersion = &quot;3.7.1&quot;
+  }
+
+  object qux extends ScalaModule {
+    def scalaVersion = &quot;3.7.1&quot;
+    def moduleDeps = Seq(bar)
+  }
+
+  def unidocDocumentTitle = Task { &quot;foo docs&quot; }
+  def unidocVersion = Some(&quot;0.1.0&quot;)
+  def unidocSourceUrl = Some(&quot;https://github.com/lihaoyi/test/blob/master&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates use of <code>mill.scalalib.UnidocModule</code>. This can be
+mixed in to any <code>ScalaModule</code>, and generates a combined Scaladoc for the
+module and all its transitive dependencies. Two tasks are provided:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>.unidocLocal</code>: this generates a site suitable for local browsing. If
+unidocSourceUrl is provided, the scaladoc provides links back to the
+local sources</p>
+</li>
+<li>
+<p><code>.unidocSite</code>: this generates a site suitable for local browsing. If
+unidocSourceUrl is provided, the scaladoc provides links back to the
+sources as browsable from the <code>unidocSourceUrl</code> base (e.g. on Github)</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.unidocLocal
+&quot;.../out/foo/unidocLocal.dest&quot;
+
+&gt; cat out/foo/unidocLocal.dest/foo/Foo.html
+...
+...My Eloquent Scaladoc for Foo...
+
+&gt; cat out/foo/unidocLocal.dest/foo/qux/Qux.html
+...
+...My Excellent Scaladoc for Qux...
+
+&gt; cat out/foo/unidocLocal.dest/foo/bar/Bar.html
+...
+...My Lucid Scaladoc for Bar...
+
+&gt; ./mill show foo.unidocSite</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_generated_sources"><a class="anchor" href="#_generated_sources"></a>Generated Sources</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-41-72db1f/mill-dist-1.0.4-41-72db1f-example-scalalib-module-3-generated-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/3-generated-sources">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;3.7.1&quot;
+
+  def generatedSources = Task {
+    os.write(
+      Task.dest / &quot;Foo.scala&quot;,
+      &quot;&quot;&quot;package foo
+        |object Foo {
+        |  def main(args: Array[String]): Unit = {
+        |    println(&quot;Hello World&quot;)
+        |  }
+        |}
+      &quot;&quot;&quot;.stripMargin
+    )
+    Seq(PathRef(Task.dest))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In Mill, you can override the <code>def generatedSources</code> task to write files to disk that
+will be added to the module’s source folders during compilation. The example above
+generates a simple <code>main</code> method during build time that can be compiled and then
+used at runtime, but you can write arbitrarily code inside <code>generatedSources</code> to
+generated the sources you need.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
+Hello World</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_custom_tasks"><a class="anchor" href="#_custom_tasks"></a>Custom Tasks</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -931,7 +1435,7 @@ count at runtime using <code>sys.props</code> and print it when the program runs
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-40-17c6b7/mill-dist-1.0.4-40-17c6b7-example-scalalib-module-3-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/3-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-41-72db1f/mill-dist-1.0.4-41-72db1f-example-scalalib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/2-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1164,577 +1668,6 @@ particular task all live in one place, avoiding file-name conflicts,
 preventing race conditions when tasks evaluate in parallel, and
 letting Mill automatically invalidate the files when the task’s inputs
 change.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_generated_sources"><a class="anchor" href="#_generated_sources"></a>Generated Sources</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-40-17c6b7/mill-dist-1.0.4-40-17c6b7-example-scalalib-module-4-generated-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/4-generated-sources">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, scalalib.*
-
-object foo extends ScalaModule {
-  def scalaVersion = &quot;3.7.1&quot;
-
-  def generatedSources = Task {
-    os.write(
-      Task.dest / &quot;Foo.scala&quot;,
-      &quot;&quot;&quot;package foo
-        |object Foo {
-        |  def main(args: Array[String]): Unit = {
-        |    println(&quot;Hello World&quot;)
-        |  }
-        |}
-      &quot;&quot;&quot;.stripMargin
-    )
-    Seq(PathRef(Task.dest))
-  }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In Mill, you can override the <code>def generatedSources</code> task to write files to disk that
-will be added to the module’s source folders during compilation. The example above
-generates a simple <code>main</code> method during build time that can be compiled and then
-used at runtime, but you can write arbitrarily code inside <code>generatedSources</code> to
-generated the sources you need.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
-Hello World</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-40-17c6b7/mill-dist-1.0.4-40-17c6b7-example-scalalib-module-5-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/5-compilation-execution-flags">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, scalalib.*
-
-object `package` extends ScalaModule {
-  def scalaVersion = &quot;3.7.1&quot;
-  def scalacOptions = Seq(&quot;-Ydelambdafy:inline&quot;)
-  def forkArgs = Seq(&quot;-Xmx4g&quot;, &quot;-Dmy.jvm.property=hello&quot;)
-  def forkEnv = Map(&quot;MY_ENV_VAR&quot; -&gt; &quot;WORLD&quot;)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can pass flags to the Scala compiler via <code>scalacOptions</code>.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
-hello WORLD</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>By default,
-<code>run</code> runs the compiled code in a subprocess, and you can pass in JVM flags
-via <code>forkArgs</code> or environment-variables via <code>forkEnv</code>.</p>
-</div>
-<div class="paragraph">
-<p>You can also run your code via</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.runLocal</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Which runs it in-process within an isolated classloader. This may be faster
-since you avoid the JVM startup overhead, but does not support <code>forkArgs</code> or <code>forkEnv</code>.</p>
-</div>
-<div class="paragraph">
-<p>If you want to pass main-method arguments to <code>run</code> or <code>runLocal</code>, simply pass
-them after the <code>foo.run</code>/<code>foo.runLocal</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run arg1 arg2 arg3
-&gt; mill foo.runLocal arg1 arg2 arg3</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-40-17c6b7/mill-dist-1.0.4-40-17c6b7-example-scalalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/7-resources">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, scalalib.*
-
-object foo extends ScalaModule {
-  def scalaVersion = &quot;3.7.1&quot;
-  def mvnDeps = Seq(
-    mvn&quot;com.lihaoyi::os-lib:0.11.4&quot;
-  )
-
-  object test extends ScalaTests {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.9.1&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
-
-    def otherFiles = Task.Source(&quot;other-files&quot;)
-
-    def forkEnv = super.forkEnv() ++ Map(
-      &quot;OTHER_FILES_DIR&quot; -&gt; otherFiles().path.toString
-    )
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
-... foo.FooTests...simple ...
-...</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This section discusses how tests can depend on resources locally on disk.
-Mill provides two ways to do this: via the JVM classpath resources, and via
-the resource folder which is made available as the environment variable
-<code>MILL_TEST_RESOURCE_DIR</code> available in test suites:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>The <strong>classpath resources</strong> are useful when you want to fetch individual files,
-and are bundled with the application by the <code>.assembly</code> step when constructing
-an assembly jar for deployment. But they do not allow you to list folders
-or perform other filesystem operations.</p>
-</li>
-<li>
-<p>The <strong>resource folder</strong>, available via <code>MILL_TEST_RESOURCE_DIR</code>, gives you
-access to the folder path of the resources on disk. This is useful in allowing
-you to list and otherwise manipulate the filesystem, which you cannot do with
-<strong>classpath resources</strong>. However, the <code>MILL_TEST_RESOURCE_DIR</code> <em>only</em> exists
-when running tests using Mill, and is <em>not</em> available when executing applications
-packaged for deployment via <code>.assembly</code></p>
-</li>
-<li>
-<p>Apart from <code>resources/</code>, you can provide additional folders to your test suite
-by defining a <code>Task.Source</code> (<code>otherFiles</code> above) and passing it to <code>forkEnv</code>. This
-provide the folder path as an environment variable that the test can make use of</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Example application code demonstrating the techniques above can be seen below:</p>
-</div>
-<div class="listingblock">
-<div class="title">foo/resources/file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/7-resources/foo/resources/file.txt">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Hello World Resource File</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/7-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Test Hello World Resource File A</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/test/resources/test-file-b.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/7-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Test Hello World Resource File B</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/test/other-files/other-file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/7-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Other Hello World File</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/7-resources/foo/src/Foo.scala">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
-
-object Foo {
-  // Read `file.txt` from classpath
-  def classpathResourceText = os.read(os.resource / &quot;file.txt&quot;)
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/test/src/FooTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/7-resources/foo/test/src/FooTests.scala">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
-import utest.*
-object FooTests extends TestSuite {
-  def tests = Tests {
-    test(&quot;simple&quot;) {
-      // Reference app module's `Foo` class which reads `file.txt` from classpath
-      val appClasspathResourceText = Foo.classpathResourceText
-      assert(appClasspathResourceText == &quot;Hello World Resource File&quot;)
-
-      // Read `test-file-a.txt` from classpath
-      val testClasspathResourceText = os.read(os.resource / &quot;test-file-a.txt&quot;)
-      assert(testClasspathResourceText == &quot;Test Hello World Resource File A&quot;)
-
-      // Use `MILL_TEST_RESOURCE_DIR` to read `test-file-b.txt` from filesystem
-      val testFileResourceDir = os.Path(sys.env(&quot;MILL_TEST_RESOURCE_DIR&quot;))
-      val testFileResourceText = os.read(testFileResourceDir / &quot;test-file-b.txt&quot;)
-      assert(testFileResourceText == &quot;Test Hello World Resource File B&quot;)
-
-      // Use `MILL_TEST_RESOURCE_DIR` to list files available in resource folder
-      assert(
-        os.list(testFileResourceDir).sorted ==
-          Seq(testFileResourceDir / &quot;test-file-a.txt&quot;, testFileResourceDir / &quot;test-file-b.txt&quot;)
-      )
-
-      // Use the `OTHER_FILES_DIR` configured in your build to access the
-      // files in `foo/test/other-files/`.
-      val otherFileText = os.read(os.Path(sys.env(&quot;OTHER_FILES_DIR&quot;)) / &quot;other-file.txt&quot;)
-      assert(otherFileText == &quot;Other Hello World File&quot;)
-    }
-  }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Tests by default only have access to their <strong>classpath resources</strong> and
-<strong>resource folder</strong> as mentioned above. They cannot read random project files on disk,
-and require that you pass in any other
-files or folders that they require explicitly (e.g. <code>def otherFiles</code> above).
-This is necessary so that Mill can ensure the necessary files are in place
-before the test begins running, and so <code>-w</code>/<code>--watch</code> knows it needs to re-run
-the tests if those files changed. Thus your tests cannot just read project files
-direct off disk via <code>new FileInputStream(&quot;foo/resources/test-file-a.txt&quot;)</code>.</p>
-</div>
-<div class="paragraph">
-<p>Mill runs test processes in a <a href="../depth/sandboxing.html" class="xref page">sandbox/ folder</a>, rather
-than in your project root folder, to enforce this.
-If you have legacy tests that need to run in the project root folder to work, you
-can configure your test suite with <code>def testSandboxWorkingDir = false</code> to disable
-the sandbox and make the tests run in the project root.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_scala_compiler_plugins"><a class="anchor" href="#_scala_compiler_plugins"></a>Scala Compiler Plugins</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-40-17c6b7/mill-dist-1.0.4-40-17c6b7-example-scalalib-module-8-scala-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/8-scala-compiler-plugins">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, scalalib.*
-
-object `package` extends ScalaModule {
-  def scalaVersion = &quot;2.13.16&quot;
-
-  def compileMvnDeps = Seq(mvn&quot;com.lihaoyi:::acyclic:0.3.18&quot;)
-  def scalacOptions = Seq(&quot;-P:acyclic:force&quot;)
-  def scalacPluginMvnDeps = Seq(mvn&quot;com.lihaoyi:::acyclic:0.3.18&quot;)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can use Scala compiler plugins by setting <code>scalacPluginMvnDeps</code>. The above
-example also adds the plugin to <code>compileMvnDeps</code>, since that plugin’s artifact
-is needed on the compilation classpath (though not at runtime).</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Remember that compiler plugins are published against the full Scala
-version (eg. 2.13.16 instead of just 2.13), so when including them make sure to
-use the  <code>:::</code> syntax shown above in the example.
-</td>
-</tr>
-</tbody></table>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill compile
-...
-error: Unwanted cyclic dependency
-error: ...src/Foo.scala...
-error:   def y = Bar.z
-error: ...src/Bar.scala...
-error:   def x = Foo.y</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_scaladoc_config"><a class="anchor" href="#_scaladoc_config"></a>Scaladoc Config</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>To generate API documentation you can use the <code>docJar</code> task on the module you’d
-like to create the docs for, configured via <code>scaladocOptions</code>:</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-40-17c6b7/mill-dist-1.0.4-40-17c6b7-example-scalalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/9-docjar">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, scalalib.*
-
-object foo extends ScalaModule {
-  def scalaVersion = &quot;3.3.6&quot;
-
-  def scalaDocOptions = Seq(&quot;-siteroot&quot;, &quot;mydocs&quot;, &quot;-no-link-warnings&quot;)
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.docJar
-
-&gt; unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
-...
-...My Awesome Docs for class Foo...</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>When using Scala 3 you’re also able to use Scaladoc to generate a full static
-site next to your API documention. This can include general documenation for
-your project and even a blog. While you can find the full documenation for this
-in the <a href="https://docs.scala-lang.org/scala3/guides/scaladoc/index.html">Scala 3
-docs</a>, below you’ll find some useful information to help you generate this with
-Mill.</p>
-</div>
-<div class="paragraph">
-<p>By default, Mill will consider the <em>site root</em> as it’s called in
-<a href="https://docs.scala-lang.org/scala3/guides/scaladoc/static-site.html">Scala 3
-docs</a>, to be the value of <code>docResources()</code>. It will look there for your
-<code>_docs/</code> and your <code>_blog/</code> directory if any exist. Given a
-project called <code>bar</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends ScalaModule {
-  def scalaVersion = &quot;3.3.6&quot;
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Your project structure for this would look something like this:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>.
-├── build.mill
-├── bar
-│  ├── docs
-│  │  ├── _blog
-│  │  │  ├── _posts
-│  │  │  │  └── 2022-08-14-hello-world.md
-│  │  │  └── index.md
-│  │  └── _docs
-│  │     ├── getting-started.md
-│  │     ├── index.html
-│  │     └── index.md
-│  └── src
-│     └── example
-│        └── Hello.scala</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>After generating your docs with <code>mill example.docJar</code> you’ll find by opening
-your <code>out/app/docJar.dest/javadoc/index.html</code> locally in your browser you’ll
-have a full static site including your API docs, your blog, and your
-documentation.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show bar.docJar
-
-&gt; unzip -p out/bar/docJar.dest/out.jar bar/Bar.html
-...
-...&lt;p&gt;My Awesome Docs for class Bar&lt;/p&gt;...</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_specifying_the_main_class"><a class="anchor" href="#_specifying_the_main_class"></a>Specifying the Main Class</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-40-17c6b7/mill-dist-1.0.4-40-17c6b7-example-scalalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/11-main-class">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, scalalib.*
-
-object `package` extends ScalaModule {
-  def scalaVersion = &quot;3.7.1&quot;
-  def mainClass = Some(&quot;foo.Qux&quot;)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Mill’s <code>foo.run</code> by default will discover which main class to run from your
-compilation output, but if there is more than one or the main class comes from
-some library you can explicitly specify which one to use.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
-Hello Qux</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>def mainClass</code> also adds the
-main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_cross_scala_version_modules"><a class="anchor" href="#_cross_scala_version_modules"></a>Cross-Scala-Version Modules</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-40-17c6b7/mill-dist-1.0.4-40-17c6b7-example-scalalib-module-14-cross-scala-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/14-cross-scala-version">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, scalalib.*
-
-val scalaVersions = Seq(&quot;2.12.20&quot;, &quot;2.13.16&quot;)
-
-object foo extends Cross[FooModule](scalaVersions)
-trait FooModule extends CrossScalaModule {
-  def moduleDeps = Seq(bar())
-}
-
-object bar extends Cross[BarModule](scalaVersions)
-trait BarModule extends CrossScalaModule</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This is an example of cross-building a module across multiple Scala
-versions. Each module is replaced by a <code>Cross</code> module, which is given a list
-of strings you want the cross-module to be replicated for. You can then
-specify the cross-modules with square brackets when you want to run tasks on
-them.</p>
-</div>
-<div class="paragraph">
-<p><code>CrossScalaModule</code> supports both shared sources within <code>src/</code> as well as
-version specific sources in <code>src-x/</code>, <code>src-x.y/</code>, or <code>src-x.y.z/</code> that
-apply to the cross-module with that version prefix.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __.run
-foo[2.12.20].run
-foo[2.13.16].run
-bar[2.12.20].run
-bar[2.13.16].run
-
-&gt; ./mill foo[2.12.20].run
-Foo.value: Hello World Scala library version 2.12.20...
-Bar.value: bar-value
-Specific code for Scala 2.x
-Specific code for Scala 2.12.x
-
-&gt; ./mill foo[2.13.16].run
-Foo.value: Hello World Scala library version 2.13.16...
-Bar.value: bar-value
-Specific code for Scala 2.x
-Specific code for Scala 2.13.x
-
-&gt; ./mill bar[2.13.16].run
-Bar.value: bar-value</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>CrossScalaModule</code>s can depend on each other using <code>moduleDeps</code>, but require
-the <code>()</code> suffix in <code>moduleDeps</code> to select the appropriate instance of the
-cross-module to depend on. You can also pass the <code>crossScalaVersion</code>
-explicitly to select the right version of the cross-module:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo2 extends Cross[Foo2Module](scalaVersions)
-trait Foo2Module extends CrossScalaModule {
-  def moduleDeps = Seq(bar(crossScalaVersion))
-}
-
-object bar2 extends Cross[Bar2Module](scalaVersions)
-trait Bar2Module extends CrossScalaModule</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_unidoc"><a class="anchor" href="#_unidoc"></a>Unidoc</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-40-17c6b7/mill-dist-1.0.4-40-17c6b7-example-scalalib-module-15-unidoc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/module/15-unidoc">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, scalalib.*
-
-object foo extends ScalaModule, UnidocModule {
-  def scalaVersion = &quot;3.7.1&quot;
-  def moduleDeps = Seq(bar, qux)
-
-  object bar extends ScalaModule {
-    def scalaVersion = &quot;3.7.1&quot;
-  }
-
-  object qux extends ScalaModule {
-    def scalaVersion = &quot;3.7.1&quot;
-    def moduleDeps = Seq(bar)
-  }
-
-  def unidocDocumentTitle = Task { &quot;foo docs&quot; }
-  def unidocVersion = Some(&quot;0.1.0&quot;)
-  def unidocSourceUrl = Some(&quot;https://github.com/lihaoyi/test/blob/master&quot;)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This example demonstrates use of <code>mill.scalalib.UnidocModule</code>. This can be
-mixed in to any <code>ScalaModule</code>, and generates a combined Scaladoc for the
-module and all its transitive dependencies. Two tasks are provided:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>.unidocLocal</code>: this generates a site suitable for local browsing. If
-unidocSourceUrl is provided, the scaladoc provides links back to the
-local sources</p>
-</li>
-<li>
-<p><code>.unidocSite</code>: this generates a site suitable for local browsing. If
-unidocSourceUrl is provided, the scaladoc provides links back to the
-sources as browsable from the <code>unidocSourceUrl</code> base (e.g. on Github)</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.unidocLocal
-&quot;.../out/foo/unidocLocal.dest&quot;
-
-&gt; cat out/foo/unidocLocal.dest/foo/Foo.html
-...
-...My Eloquent Scaladoc for Foo...
-
-&gt; cat out/foo/unidocLocal.dest/foo/qux/Qux.html
-...
-...My Excellent Scaladoc for Qux...
-
-&gt; cat out/foo/unidocLocal.dest/foo/bar/Bar.html
-...
-...My Lucid Scaladoc for Bar...
-
-&gt; ./mill show foo.unidocSite</code></pre>
-</div>
 </div>
 </div>
 </div>
