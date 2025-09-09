@@ -320,7 +320,8 @@ private trait GroupExecution {
             counterMsg,
             destCreator,
             getEvaluator().asInstanceOf[Evaluator],
-            terminal
+            terminal,
+            rootModule.getClass.getClassLoader
           ) {
             try {
               task.evaluate(args) match {
@@ -533,7 +534,8 @@ private object GroupExecution {
       counterMsg: String,
       destCreator: DestCreator,
       evaluator: Evaluator,
-      terminal: Task[?]
+      terminal: Task[?],
+      classLoader: ClassLoader
   )(t: => T): T = {
     val isCommand = terminal.isInstanceOf[Task.Command[?]]
     val isInput = terminal.isInstanceOf[Task.Input[?]]
@@ -578,11 +580,18 @@ private object GroupExecution {
             )
 
           Evaluator.withCurrentEvaluator(exposedEvaluator) {
-            if (!exclusive) t
-            else {
-              logger.prompt.reportKey(Seq(counterMsg))
-              logger.prompt.withPromptPaused {
-                t
+            // Ensure the class loader used to load user code
+            // is set as context class loader when running user code.
+            // This is useful if users rely on libraries that look
+            // for resources added by other libraries, by using
+            // using java.util.ServiceLoader for example.
+            mill.api.ClassLoader.withContextClassLoader(classLoader) {
+              if (!exclusive) t
+              else {
+                logger.prompt.reportKey(Seq(counterMsg))
+                logger.prompt.withPromptPaused {
+                  t
+                }
               }
             }
           }

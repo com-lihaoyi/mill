@@ -406,9 +406,6 @@ The below command should pass the environment variable to the `mill` command.
 > COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _
 ----
 
-NOTE: Currently, you may need to `./mill shutdown` before calling Mill with the environment variable to make sure it gets properly propagated to Mill's background daemon.
-There is an https://github.com/com-lihaoyi/mill/issues/5134[open issue] to let Mill  detect these changes automatically.
-
 If you are using bootstrap script, a more permanent solution could be to set the environment variable
 at the top of the bootstrap script, or as a user environment variable.
 

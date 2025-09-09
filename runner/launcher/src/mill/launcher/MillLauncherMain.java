@@ -18,27 +18,32 @@ import mill.internal.MillCliConfig;
  * A Scala implementation would result in the JVM loading much more classes almost doubling the start-up times.
  */
 public class MillLauncherMain {
-  static final String bspFlag = "--bsp";
 
   public static void main(String[] args) throws Exception {
-    boolean runNoServer = false;
-    if (args.length > 0) {
-      String firstArg = args[0];
-      runNoServer =
-          Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", bspFlag, "--help")
-                  .contains(firstArg)
-              || firstArg.startsWith("-i");
+    var needParsedConfig = false;
+    if (Arrays.stream(args)
+        .anyMatch(f -> f.startsWith("-") && !f.startsWith("--") && f.contains("i"))) {
+      needParsedConfig = true;
     }
-    if (!runNoServer) {
-      // WSL2 has the directory /run/WSL/ and WSL1 not.
-      String osVersion = System.getProperty("os.version");
-      if (osVersion != null && (osVersion.contains("icrosoft") || osVersion.contains("WSL"))) {
-        // Server-Mode not supported under WSL1
-        runNoServer = true;
-      }
+    for (String token :
+        Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", "--bsp", "--help")) {
+      if (Arrays.stream(args).anyMatch(f -> f.equals(token))) needParsedConfig = true;
     }
 
-    var outMode = containsBspFlag(args) ? OutFolderMode.BSP : OutFolderMode.REGULAR;
+    boolean runNoDaemon = false;
+    boolean bspMode = false;
+
+    // Only use MillCliConfig and other Scala classes if we detect that a relevant flag
+    // might have been passed, to avoid loading those classes on the common path for performance
+    if (needParsedConfig) {
+      var config = MillCliConfig.parse(args).toOption();
+      if (config.exists(c -> c.bsp().value())) bspMode = true;
+      if (config.exists(
+          c -> c.interactive().value() || c.noServer().value() || c.noDaemon().value()))
+        runNoDaemon = true;
+    }
+
+    var outMode = bspMode ? OutFolderMode.BSP : OutFolderMode.REGULAR;
     exitInTestsAfterBspCheck();
     var outDir = OutFiles.outFor(outMode);
 
@@ -57,7 +62,7 @@ public class MillLauncherMain {
                   + " make it less responsive.");
     }
 
-    if (runNoServer) {
+    if (runNoDaemon) {
       // start in no-server mode
       System.exit(MillProcessLauncher.launchMillNoDaemon(args, outMode));
     } else {
@@ -105,20 +110,6 @@ public class MillLauncherMain {
         System.exit(1);
       }
     }
-  }
-
-  private static boolean containsBspFlag(String[] args) {
-    // First do a simple check because it is faster, as it only uses java stdlib.
-    var simpleCheck = Arrays.asList(args).contains(bspFlag);
-    if (!simpleCheck) return false;
-
-    // If the simple check passed, do a more expensive check which loads more classes, thus
-    // introduces startup
-    // overhead.
-    //
-    // This is done to prevent false positives in the simple check, for example when the user passes
-    // "--bsp" as a flag to `run` task.
-    return MillCliConfig.parse(args).toOption().exists(config -> config.bsp().value());
   }
 
   private static void exitInTestsAfterBspCheck() {
