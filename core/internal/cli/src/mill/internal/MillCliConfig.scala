@@ -128,6 +128,11 @@ case class MillCliConfig(
       doc = """Runs Mill in tab-completion mode"""
     )
     tabComplete: Flag = Flag(),
+    @arg(
+      short = 'f',
+      doc = """Select the build.mill file or Java/Scala/Kotlin script file to run"""
+    )
+    file: Option[os.Path] = None,
 
     // ==================== DEPRECATED CLI FLAGS ====================
     @arg(hidden = true, short = 'h', doc = "Unsupported")

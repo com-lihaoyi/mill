@@ -1,0 +1,29 @@
+//// SNIPPET:FILE
+/** See Also: Foo.kt */
+/** Usage
+> ./mill Foo.kt --text hello
+Compiling 1 Kotlin sources to...
+<h1>hello</h1>
+*/
+
+//// SNIPPET:END
+//// SNIPPET:MORE
+
+/** Usage
+> ./mill -f Foo.kt run --text hello
+<h1>hello</h1>
+*/
+
+/** Usage
+> ./mill -f Foo.kt show assembly # show the output of the assembly task
+".../out/Foo.kt/assembly.dest/out.jar"
+
+> java -jar ./out/Foo.kt/assembly.dest/out.jar --text hello
+<h1>hello</h1>
+
+> ./out/Foo.kt/assembly.dest/out.jar --text hello # mac/linux
+<h1>hello</h1>
+
+*/
+
+//// SNIPPET:END

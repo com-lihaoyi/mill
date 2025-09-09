@@ -12,13 +12,26 @@ Many of the APIs covered here are listed in the Scaladoc:
 * {mill-doc-url}/api/latest/mill/scalalib/ScalaModule.html[mill.scalalib.ScalaModule]
 
 
+== Configuring Single-File Projects
+
+include::partial$example/scalalib/module/1-single-file.adoc[]
+
+
 == Common Configuration Overrides
 
-include::partial$example/scalalib/module/1-common-config.adoc[]
+include::partial$example/scalalib/module/2-common-config.adoc[]
+
+== Custom Tasks
+
+include::partial$example/scalalib/module/3-custom-tasks.adoc[]
+
+== Generated Sources
+
+include::partial$example/scalalib/module/4-generated-sources.adoc[]
 
 == Compilation & Execution Flags
 
-include::partial$example/scalalib/module/4-compilation-execution-flags.adoc[]
+include::partial$example/scalalib/module/5-compilation-execution-flags.adoc[]
 
 == Classpath and Filesystem Resources
 
@@ -44,15 +57,6 @@ include::partial$example/scalalib/module/14-cross-scala-version.adoc[]
 == Unidoc
 
 include::partial$example/scalalib/module/15-unidoc.adoc[]
-
-== Generated Sources
-
-include::partial$example/scalalib/module/3-generated-sources.adoc[]
-
-== Custom Tasks
-
-include::partial$example/scalalib/module/2-custom-tasks.adoc[]
-
 
 
 == Using the Ammonite Repl / Scala console

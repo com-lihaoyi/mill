@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -84,15 +86,20 @@ public class Util {
         + ": " + line + "\n" + msg);
   }
 
-  public static String readBuildHeader(java.nio.file.Path buildFile, String errorFileName) {
+  public static String readBuildHeader(Path buildFile, String errorFileName) {
+    return readBuildHeader(buildFile, errorFileName, false);
+  }
+
+  public static String readBuildHeader(
+      Path buildFile, String errorFileName, boolean allowNonBuild) {
     try {
-      java.util.List<String> lines = java.nio.file.Files.readAllLines(buildFile);
+      java.util.List<String> lines = Files.readAllLines(buildFile);
       boolean readingBuildHeader = true;
       java.util.List<String> output = new ArrayList<>();
       for (int i = 0; i < lines.size(); i++) {
         String line = lines.get(i);
         if (!line.startsWith("//|")) readingBuildHeader = false;
-        else if (!buildFile.getFileName().toString().startsWith("build.")) {
+        else if (!allowNonBuild && !buildFile.getFileName().toString().startsWith("build.")) {
           throwBuildHeaderError(
               errorFileName,
               i,
