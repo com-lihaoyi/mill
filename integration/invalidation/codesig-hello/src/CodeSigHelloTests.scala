@@ -50,9 +50,26 @@ object CodeSigHelloTests extends UtestIntegrationTestSuite {
         "running foo2",
         "running helperFoo2"
       ))
+      mill.constants.DebugLog.println("=" * 100)
 
       val cached3 = eval("foo")
       assert(cached3.out == "")
+
+      // Changing the body of a `lazy val` invalidates the usages
+      modifyFile(
+        workspacePath / "build.mill",
+        _.replace("lazy val lazyValue2 = 0", "lazy val lazyValue3 = 0")
+      )
+      modifyFile(
+        workspacePath / "build.mill",
+        _.replace("lazy val lazyValue = 0", "lazy val lazyValue2 = 0")
+      )
+      modifyFile(
+        workspacePath / "build.mill",
+        _.replace("lazy val lazyValue3 = 0", "lazy val lazyValue = 0")
+      )
+      val cached4 = eval("foo")
+      assert(cached4.out == "")
 
       // Changing the body of a `lazy val` invalidates the usages
       modifyFile(

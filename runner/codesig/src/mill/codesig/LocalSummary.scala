@@ -131,6 +131,7 @@ object LocalSummary {
       descriptor: String,
       access: Int
   )(implicit st: SymbolTable) extends MethodVisitor(Opcodes.ASM9) {
+    if (name == "lazyValue$lzyINIT1") mill.constants.DebugLog.println("\n\nlazyValue$lzyINIT1")
     val outboundCalls: mutable.Set[MethodCall] = collection.mutable.Set.empty[MethodCall]
     val labelIndices: mutable.Map[Label, Int] = collection.mutable.Map.empty[Label, Int]
     val jumpList: mutable.Buffer[Label] = collection.mutable.Buffer.empty[Label]
@@ -147,9 +148,12 @@ object LocalSummary {
 
     // Scala 3 `$lzyINIT1` methods seem to do nothing but forward to other methods, but
     // their contents seems very unstable and prone to causing spurious invalidations
-    var isScala3LazyInit = name.endsWith("$lzyINIT1")
-    def hash(x: Int): Unit = {
-      if (!isScala3LazyInit) insnHash = scala.util.hashing.MurmurHash3.mix(insnHash, x)
+    var isScala3LazyInit = name.contains("$lzyINIT")
+    var endScala3LazyInit = false
+    def hash(x: Int)(implicit l: sourcecode.Line): Unit = {
+      if (!isScala3LazyInit && !endScala3LazyInit) {
+        insnHash = scala.util.hashing.MurmurHash3.mix(insnHash, x)
+      }
     }
 
     def completeHash(): Unit = {
@@ -170,14 +174,6 @@ object LocalSummary {
     def hashlabel(x: Label): Unit = jumpList.append(x)
 
     def discardPreviousInsn(): Unit = insnSigs(insnSigs.size - 1) = 0
-
-    /**
-     * Hack to skip the bitmap loading and comparison of Scala `lazy val`s. These
-     * snippets of code have constants that differ based on the ordering of the
-     * `lazy val` definitions, but this is invisible to the outside world, so we
-     * hack [[MyMethodVisitor]] to try and identify and skip those snippets of bytecode
-     */
-    var inLazyValCheck = false
 
     /**
      * Hack to skip the lazy val setup code that Scala 3 generates in `<clinit>`,
@@ -216,9 +212,9 @@ object LocalSummary {
         case _ => false
       }
       if (lazyValBodyStart && opcode == Opcodes.GETSTATIC) {
-        isScala3LazyInit = false
+        if (!endScala3LazyInit) isScala3LazyInit = false
       } else if (lazyValBodyEnd && opcode == Opcodes.GETSTATIC) {
-        isScala3LazyInit = false
+        endScala3LazyInit = true
       } else if (isLazyValsGet && (opcode == Opcodes.GETSTATIC || opcode == Opcodes.GETFIELD)) {
         inScala3LazyValClinit = true
       } else if (isLazyValsPut && (opcode == Opcodes.PUTSTATIC || opcode == Opcodes.PUTFIELD)) {
