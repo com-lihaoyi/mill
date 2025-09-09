@@ -60,12 +60,11 @@ case class Dependency(
 ) derives RW
 
 case class Developer(
-    id: String = "",
+    id: String,
     name: String,
-    url: String = "",
+    url: String,
     organization: Option[String] = None,
-    organizationUrl: Option[String] = None,
-    @com.lihaoyi.unroll email: String = ""
+    organizationUrl: Option[String] = None
 ) derives RW
 
 case class PomSettings(

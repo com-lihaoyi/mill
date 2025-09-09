@@ -8,8 +8,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   def moduleDeps = Seq(
     build.runner.codesig,
     build.libs.util,
-    build.libs.scalalib,
-    build.libs.kotlinlib
+    build.libs.scalalib
   )
 
   def buildInfoPackageName = "mill.meta"

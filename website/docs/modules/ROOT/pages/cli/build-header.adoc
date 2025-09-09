@@ -138,10 +138,3 @@ Missing environment variables are converted to the empty string.
 == Meta-build Task Overrides
 
 include::partial$example/cli/header/1-tasks.adoc[]
-
-== Single-File Project Build Headers
-
-Build Header configuration is also used for
-xref:javalib/module-config.adoc#_configuring_single_file_projects[Configuring Single-File Projects],
-as a lightweight syntax for embedding configuration values within the single Java, Scala, or Kotlin
-file.

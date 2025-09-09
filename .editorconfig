@@ -18,12 +18,6 @@ indent_size = 2
 ktlint_code_style = intellij_idea
 ktlint_standard_no-wildcard-imports = disabled
 
-[example/kotlinlib/basic/5-single-file/**/*]
-ktlint = disabled
-
-[example/kotlinlib/module/1-single-file/**/*]
-ktlint = disabled
-
 [example/kotlinlib/linting/**/*]
 ktlint = disabled
 

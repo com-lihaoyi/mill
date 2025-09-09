@@ -250,10 +250,9 @@ object `package` extends Module {
           .map {
             case (s"see:$path", txt) =>
               // avoid .stripMargin, as the embedded content may contain the margin symbol
-              val lang = os.FilePath(path).ext
               s"""
 .$path ({mill-example-url}/$examplePath/$path[browse])
-[source,$lang,subs="attributes,verbatim"]
+[source,scala,subs="attributes,verbatim"]
 ----
 $txt
 ----"""
