@@ -69,7 +69,7 @@ public abstract class MillServerLauncher extends ServerLauncher {
         serverInitWaitMillis,
         () -> initServer(daemonDir, locks),
         serverDied -> {
-              System.err.println("Server died during startup:");
+          System.err.println("Server died during startup:");
           System.err.println(serverDied.toString());
           System.exit(1);
         },
