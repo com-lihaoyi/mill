@@ -1,11 +1,7 @@
 package mill.kotlinlib.worker.impl
 
 import mill.api.TaskCtx
-import org.jetbrains.kotlin.buildtools.api.{
-  CompilationResult,
-  CompilationService,
-  ProjectId
-}
+import org.jetbrains.kotlin.buildtools.api.{CompilationResult, CompilationService, ProjectId}
 import org.jetbrains.kotlin.cli.common.ExitCode
 
 import java.util.UUID
