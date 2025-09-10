@@ -43,12 +43,8 @@ public abstract class MillServerLauncher extends ServerLauncher {
    */
   public abstract LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception;
 
-  public abstract void prepareDaemonDir(Path daemonDir) throws Exception;
-
   public Result run(Path daemonDir, String javaHome, Consumer<String> log) throws Exception {
     Files.createDirectories(daemonDir);
-    log.accept("Preparing Mill daemon directory: " + daemonDir.toAbsolutePath());
-    prepareDaemonDir(daemonDir);
 
     var initData = new ClientInitData(
         /* interactive */ Util.hasConsole(),
