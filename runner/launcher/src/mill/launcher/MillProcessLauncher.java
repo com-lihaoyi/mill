@@ -39,7 +39,6 @@ public class MillProcessLauncher {
     boolean interrupted = false;
 
     try {
-      MillProcessLauncher.prepareMillRunFolder(processDir);
       Process p = configureRunMillProcess(builder, processDir);
       return p.waitFor();
 
@@ -75,6 +74,7 @@ public class MillProcessLauncher {
 
     Path sandbox = daemonDir.resolve(DaemonFiles.sandbox);
     Files.createDirectories(sandbox);
+    MillProcessLauncher.prepareMillRunFolder(daemonDir);
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
     if (System.getenv(EnvVars.MILL_EXECUTABLE_PATH) == null)
       builder.environment().put(EnvVars.MILL_EXECUTABLE_PATH, getExecutablePath());
