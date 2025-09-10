@@ -106,8 +106,6 @@ object ClientServerTests extends TestSuite {
         Optional.of(memoryLock),
         forceFailureForTestingMillisDelay
       ) {
-        def prepareDaemonDir(daemonDir: Path) = { /*do nothing*/ }
-
         def initServer(daemonDir: Path, locks: Locks) = {
           nextServerId += 1
           // Use a negative process ID to indicate we're not a real process.

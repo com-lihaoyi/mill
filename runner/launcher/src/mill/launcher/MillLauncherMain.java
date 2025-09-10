@@ -83,10 +83,6 @@ public class MillLauncherMain {
                 return new LaunchedServer.OsProcess(
                     MillProcessLauncher.launchMillDaemon(daemonDir, outMode).toHandle());
               }
-
-              public void prepareDaemonDir(Path daemonDir) throws Exception {
-                MillProcessLauncher.prepareMillRunFolder(daemonDir);
-              }
             };
 
         var daemonDir0 = Paths.get(outDir, OutFiles.millDaemon);
