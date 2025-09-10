@@ -30,7 +30,7 @@ class KotlinWorkerImpl extends KotlinWorker {
       case (target = KotlinWorkerTarget.Js) => JsCompileImpl()
     }
 
-    ctx.log.info(s"Using compiler backend: ${compiler.getClass().getSimpleName()}")
+    ctx.log.debug(s"Using compiler backend: ${compiler.getClass().getSimpleName()}")
 
     val (exitCode, exitCodeName) = compiler.compile(args, sources)
 

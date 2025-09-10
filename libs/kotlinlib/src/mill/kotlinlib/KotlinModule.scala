@@ -334,7 +334,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       }
 
       if (isMixed || isKotlin) {
-        val extra = if(isJava) s"and ${javaSourceFiles.size} Java sources " else ""
+        val extra = if(isJava) s"and reading ${javaSourceFiles.size} Java sources " else ""
         ctx.log.info(
           s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classes} ..."
         )
