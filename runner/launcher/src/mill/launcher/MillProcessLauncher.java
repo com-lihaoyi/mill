@@ -329,6 +329,7 @@ public class MillProcessLauncher {
   static void writeTerminalDims(boolean tputExists, Path daemonDir) throws Exception {
     String str;
 
+    mill.constants.DebugLog.println("tputExists " + tputExists);
     try {
       if (!mill.constants.Util.hasConsole()) str = "0 0";
       else {
@@ -358,7 +359,11 @@ public class MillProcessLauncher {
     // The cause is currently unknown, but this fixes the symptoms at least.
     //
     String oldValue = memoizedTerminalDims.getAndSet(str);
+    mill.constants.DebugLog.println("(oldValue == null) " + (oldValue == null));
+    if (oldValue != null)
+      mill.constants.DebugLog.println("!oldValue.equals(str) " + !oldValue.equals(str));
     if ((oldValue == null) || !oldValue.equals(str)) {
+      mill.constants.DebugLog.println("Files.write " + daemonDir.resolve(DaemonFiles.terminfo));
       Files.write(daemonDir.resolve(DaemonFiles.terminfo), str.getBytes());
     }
   }
@@ -376,6 +381,7 @@ public class MillProcessLauncher {
   public static void prepareMillRunFolder(Path daemonDir) throws Exception {
     // Clear out run-related files from the server folder to make sure we
     // never hit issues where we are reading the files from a previous run
+    mill.constants.DebugLog.println("Files.deleteIfExists " + daemonDir.resolve(DaemonFiles.terminfo));
     Files.deleteIfExists(daemonDir.resolve(DaemonFiles.terminfo));
 
     Path sandbox = daemonDir.resolve(DaemonFiles.sandbox);
