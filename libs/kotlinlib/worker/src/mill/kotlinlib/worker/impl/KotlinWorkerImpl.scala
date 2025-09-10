@@ -21,6 +21,8 @@ class KotlinWorkerImpl extends KotlinWorker {
     ctx.log.debug(s"Using Kotlin compiler arguments: " +
       args.map(v => s"'${v}'").mkString(" "))
 
+    ctx.log.debug(s"Using source files: ${sources.map(v => s"'${v}'").mkString(" ")}")
+
     // Use dedicated class to load implementation classes lazily
     val compiler = (target = target, useBtApi = useBtApi) match {
       case (KotlinWorkerTarget.Jvm, true) => JvmCompileBtApiImpl()
