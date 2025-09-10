@@ -131,6 +131,7 @@ object `package` extends Module {
       def kotlinLanguageVersion = majorVersion(kotlinVersion())
       def kotlinApiVersion = majorVersion(kotlinVersion())
       def kotlinExplicitApi = ArrowMultiplatformModule.this.kotlinExplicitApi
+      def kotlincUseBtApi = false
 
       override def sources: T[Seq[PathRef]] = Task.Sources({
         val sourcesRootPath = moduleDir / "src"
