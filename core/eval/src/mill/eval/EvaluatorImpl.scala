@@ -21,10 +21,10 @@ import mill.resolve.Resolve
  * As well as [[evaluate]] which does all of these phases one after another
  */
 
-final class EvaluatorImpl (
+final class EvaluatorImpl(
     val allowPositionalCommandArgs: Boolean,
     val selectiveExecution: Boolean = false,
-     val execution: Execution
+    val execution: Execution
 ) extends Evaluator {
 
   def workspace = execution.workspace
