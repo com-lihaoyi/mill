@@ -50,9 +50,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
       os.makeDir.all(compileGenSources)
     }
 
-    println("compile() check")
-    val compileSemanticDb = semanticDbWillBeNeeded().apply(Task.dest)
-    Task.log.info(s"compileSemanticDb: $compileSemanticDb")
+    val compileSemanticDb = semanticDbWillBeNeeded.apply().apply(Task.dest)
 
     val jOpts = JavaCompilerOptions {
       val opts =
