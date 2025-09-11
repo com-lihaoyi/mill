@@ -1,10 +1,7 @@
 package mill.integration
 
-import coursier.cache.FileCache
 import mill.testkit.UtestIntegrationTestSuite
 import utest._
-
-import java.io.File
 
 object ThreadLocalsTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
@@ -21,6 +18,5 @@ object ThreadLocalsTests extends UtestIntegrationTestSuite {
       assert(res.err.contains(s"Worker is closing4"))
       assert(res.err.contains(s"Worker is closing5"))
     }
-
   }
 }
