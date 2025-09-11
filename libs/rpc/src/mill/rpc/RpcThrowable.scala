@@ -9,7 +9,7 @@ case class RpcThrowable(
     stacktrace: Vector[RpcStackTraceElement],
     cause: Option[RpcThrowable]
 ) extends RuntimeException(message.orNull, cause.orNull) with NoStackTrace
-    derives upickle.default.ReadWriter {
+    derives upickle.ReadWriter {
   setStackTrace(stacktrace.iterator.map(_.toStackTraceElement).toArray)
 
   override def toString: String = {
@@ -37,7 +37,7 @@ case class RpcStackTraceElement(
     methodName: String,
     fileName: String,
     lineNumber: Int
-) derives upickle.default.ReadWriter {
+) derives upickle.ReadWriter {
   def toStackTraceElement: StackTraceElement =
     StackTraceElement(
       classLoaderName,

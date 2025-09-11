@@ -2,9 +2,9 @@
 
 package build
 import mill.*, kotlinlib.*
-import kotlinlib.ksp.Ksp2Module
+import kotlinlib.ksp.KspModule
 
-object dagger extends Ksp2Module {
+object dagger extends KspModule {
 
   def kotlinVersion = "2.2.0"
 
@@ -24,7 +24,7 @@ object dagger extends Ksp2Module {
     mvn"com.google.dagger:dagger-compiler:2.57"
   )
 
-  object test extends Ksp2Tests, TestModule.Junit5 {
+  object test extends KspTests, TestModule.Junit5 {
 
     def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
@@ -46,14 +46,14 @@ object dagger extends Ksp2Module {
 
 /** Usage
 
-> ./mill show dagger.compile
+> ./mill dagger.compile
 
-> ls out/dagger/generatedSourcesWithKSP.dest/generated/java/com/example/dagger/
+> ls out/dagger/generatedSourcesWithKsp2.dest/generated/java/com/example/dagger/
 DaggerNumberApp.java
 NumberService_Factory.java
 RandomNumberGenerator_Factory.java
 
-> ./mill show dagger.run
+> ./mill dagger.run
 Random number: ...
 
 > ./mill show dagger.test
@@ -77,7 +77,7 @@ Random number: ...
 }
 ...
 
-> ls out/dagger/test/generatedSourcesWithKSP.dest/generated/java/com/example/dagger/
+> ls out/dagger/test/generatedSourcesWithKsp2.dest/generated/java/com/example/dagger/
 ConstantNumberGenerator_Factory.java
 DaggerDemoComponent.java
 DaggerTestApp.java

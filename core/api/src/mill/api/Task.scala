@@ -6,8 +6,8 @@ import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.internal.{NamedTaskApi, TaskApi, TestReporter}
 import mill.api.internal.Applicative.Applyable
 import mill.api.internal.{Applicative, Cacher, NamedParameterOnlyDummy}
-import upickle.default.ReadWriter
-import upickle.default.Writer
+import upickle.ReadWriter
+import upickle.Writer
 
 import scala.annotation.{targetName, unused}
 import scala.language.implicitConversions
@@ -367,9 +367,9 @@ object Task {
 
     val ctx: ModuleCtx = ctx0
 
-    def readWriterOpt: Option[upickle.default.ReadWriter[?]] = None
+    def readWriterOpt: Option[upickle.ReadWriter[?]] = None
 
-    def writerOpt: Option[upickle.default.Writer[?]] = readWriterOpt.orElse(None)
+    def writerOpt: Option[upickle.Writer[?]] = readWriterOpt.orElse(None)
   }
 
   class Computed[+T](
@@ -461,7 +461,7 @@ object Task {
   class Input[T](
       val evaluate0: (Seq[Any], mill.api.TaskCtx) => Result[T],
       val ctx0: mill.api.ModuleCtx,
-      val writer: upickle.default.Writer[?],
+      val writer: upickle.Writer[?],
       val isPrivate: Option[Boolean]
   ) extends Simple[T] {
     val inputs = Nil
@@ -477,7 +477,7 @@ object Task {
   ) extends Input[Seq[PathRef]](
         evaluate0,
         ctx0,
-        upickle.default.readwriter[Seq[PathRef]],
+        upickle.readwriter[Seq[PathRef]],
         isPrivate
       ) {}
 
@@ -488,7 +488,7 @@ object Task {
   ) extends Input[PathRef](
         evaluate0,
         ctx0,
-        upickle.default.readwriter[PathRef],
+        upickle.readwriter[PathRef],
         isPrivate
       ) {}
 
@@ -589,7 +589,7 @@ object Task {
     def inputImpl[T: Type](using
         Quotes
     )(value: Expr[Result[T]])(
-        w: Expr[upickle.default.Writer[T]],
+        w: Expr[upickle.Writer[T]],
         ctx: Expr[mill.api.ModuleCtx]
     ): Expr[Simple[T]] = {
       assertTaskShapeOwner("Task.Input", 0)

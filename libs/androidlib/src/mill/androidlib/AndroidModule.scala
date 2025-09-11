@@ -10,7 +10,6 @@ import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
-import os.Path
 
 import scala.collection.immutable
 import scala.xml.*
@@ -520,7 +519,7 @@ trait AndroidModule extends JavaModule { outer =>
    * @return
    */
   def androidCompiledLibResources: T[PathRef] = Task {
-    val libAndroidResources: Seq[Path] = androidLibraryResources().map(_.path)
+    val libAndroidResources: Seq[os.Path] = androidLibraryResources().map(_.path)
 
     val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
 
@@ -585,6 +584,8 @@ trait AndroidModule extends JavaModule { outer =>
 
     val filesToLink = os.walk(compiledLibResDir).filter(os.isFile(_)) ++
       moduleResDirs.flatMap(os.walk(_).filter(os.isFile(_)))
+    val argFile = Task.dest / "to-link.txt"
+    os.write.over(argFile, filesToLink.map(_.toString()).mkString("\n"))
 
     val javaRClassDir = Task.dest / "generatedSources/java"
     val apkDir = Task.dest / "apk"
@@ -622,8 +623,10 @@ trait AndroidModule extends JavaModule { outer =>
       "--proguard-conditional-keep-rules"
     ) ++ androidAaptOptions() ++ Seq(
       "-o",
-      resApkFile.toString
-    ) ++ filesToLink.flatMap(flat => Seq("-R", flat.toString()))
+      resApkFile.toString,
+      "-R",
+      "@" + argFile.toString
+    )
 
     Task.log.info((aapt2Link ++ linkArgs).mkString(" "))
 
@@ -712,7 +715,7 @@ trait AndroidModule extends JavaModule { outer =>
 
     override def androidNamespace: String = s"${outer.androidNamespace}.test"
 
-    override def moduleDir: Path = outer.moduleDir
+    override def moduleDir: os.Path = outer.moduleDir
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
 

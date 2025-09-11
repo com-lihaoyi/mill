@@ -143,7 +143,7 @@ object PipModule {
       sig: Int
   )
   object InstallArgs {
-    implicit val rw: upickle.default.ReadWriter[InstallArgs] = upickle.default.macroRW
+    implicit val rw: upickle.ReadWriter[InstallArgs] = upickle.macroRW
     def apply(
         args: Seq[String],
         paths: Seq[PathRef]

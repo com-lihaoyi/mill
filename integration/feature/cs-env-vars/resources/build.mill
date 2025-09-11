@@ -1,0 +1,13 @@
+package build
+import mill._, scalalib._
+import java.io.File
+
+object `package` extends ScalaModule {
+  def scalaVersion = "2.13.16"
+  def mvnDeps = Seq(
+    mvn"org.slf4j:slf4j-simple:2.0.9"
+  )
+  def printRunClasspath() = Task.Command {
+    println(runClasspath().map(_.path.toString).mkString(File.pathSeparator))
+  }
+}

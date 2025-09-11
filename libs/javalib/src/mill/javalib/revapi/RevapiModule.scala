@@ -84,7 +84,7 @@ trait RevapiModule extends PublishModule {
     Seq(jar()) ++
       Task.traverse(recursiveModuleDeps)(_.jar)() ++
       millResolver().classpath(
-        Seq(coursierDependency),
+        Seq(coursierDependencyTask()),
         artifactTypes = Some(revapiArtifactTypes())
       )
   }

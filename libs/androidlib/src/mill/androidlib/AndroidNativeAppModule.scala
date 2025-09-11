@@ -69,7 +69,7 @@ trait AndroidNativeAppModule extends AndroidAppModule {
 
       val cmakeArgs = Seq(
         s"${androidSdkModule().cmakeExe().path.toString}",
-        s"-H/${androidNativeSource().path}",
+        s"-S ${androidNativeSource().path}",
         "-DCMAKE_SYSTEM_NAME=Android",
         "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
         s"-DCMAKE_SYSTEM_VERSION=${androidBuildToolsVersion()}",
@@ -83,7 +83,7 @@ trait AndroidNativeAppModule extends AndroidAppModule {
         s"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=${outFile.toString}",
         s"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${outFile.toString}",
         "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
-        s"-B/${outCxx.toString}/${abi}",
+        s"-B ${outCxx.toString}/${abi}",
         "-GNinja"
       ) ++ androidCMakeExtraArgs()
 

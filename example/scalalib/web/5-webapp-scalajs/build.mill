@@ -6,6 +6,7 @@ object `package` extends ScalaModule {
   def scalaVersion = "3.7.1"
   def mvnDeps = Seq(
     mvn"com.lihaoyi::cask:0.9.1",
+    mvn"com.lihaoyi::upickle:4.3.0",
     mvn"com.lihaoyi::scalatags:0.13.1"
   )
 

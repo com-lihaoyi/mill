@@ -211,7 +211,7 @@ trait PublishModule extends JavaModule { outer =>
    * @return
    */
   private def ivy(hasJar: Boolean): Task[String] = Task.Anon {
-    val dep = coursierDependency.withConfiguration(Configuration.runtime)
+    val dep = coursierDependencyTask().withConfiguration(Configuration.runtime)
     val resolution = millResolver().resolution(Seq(BoundDep(dep, force = false)))
 
     val (results, bomDepMgmt) =
@@ -684,9 +684,9 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       (PublishData.withConcretePath(payloadAsMap), meta)
   }
   object PublishData {
-    implicit def jsonify: upickle.default.ReadWriter[PublishData] = {
+    implicit def jsonify: upickle.ReadWriter[PublishData] = {
       import mill.javalib.publish.JsonFormatters.artifactFormat
-      upickle.default.macroRW
+      upickle.macroRW
     }
 
     def apply(meta: Artifact, payload: Map[os.SubPath, PathRef]): PublishData =

@@ -15,6 +15,6 @@ case class CompilationResult(
 )
 
 object CompilationResult {
-  implicit val jsonFormatter: upickle.default.ReadWriter[CompilationResult] =
-    upickle.default.macroRW
+  implicit val jsonFormatter: upickle.ReadWriter[CompilationResult] =
+    upickle.macroRW
 }

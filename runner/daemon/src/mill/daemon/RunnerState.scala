@@ -6,7 +6,7 @@ import mill.api.daemon.internal.{EvaluatorApi, internal, PathRefApi}
 import mill.api.internal.RootModule
 import mill.api.daemon.Watchable
 import mill.api.MillURLClassLoader
-import upickle.default.{ReadWriter, macroRW}
+import upickle.{ReadWriter, macroRW}
 
 /**
  * This contains a list of frames each representing cached data from a single

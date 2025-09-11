@@ -249,7 +249,7 @@ import scala.math.Ordering.Implicits.*
 
     val resultLog: () => Unit = resultPathOpt match {
       case Some(resultPath) =>
-        () => os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
+        () => os.write.over(resultPath, upickle.write((successCounter, failureCounter)))
       case None => () =>
           systemOut.println(s"Test result: ${successCounter + failureCounter} completed${
               if failureCounter > 0 then s", ${failureCounter} failures." else "."
@@ -318,7 +318,7 @@ import scala.math.Ordering.Implicits.*
       val tasks = runner.tasks(taskDefs.toArray)
       val taskResult = executeTasks(tasks, testReporter, events, systemOut)
       if taskResult then successCounter += 1 else failureCounter += 1
-      os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
+      os.write.over(resultPath, upickle.write((successCounter, failureCounter)))
     }
 
     def logClaim[T](testClass: String)(t: => T): T = {

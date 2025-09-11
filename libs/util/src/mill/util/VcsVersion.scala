@@ -21,7 +21,7 @@ object VcsVersion extends ExternalModule with VcsVersion {
   case class Vcs(val name: String)
   def git = Vcs("git")
 
-  implicit val jsonify: upickle.default.ReadWriter[Vcs] = upickle.default.macroRW
+  implicit val jsonify: upickle.ReadWriter[Vcs] = upickle.macroRW
 
   case class State(
       currentRevision: String,
@@ -84,7 +84,7 @@ object VcsVersion extends ExternalModule with VcsVersion {
   }
 
   object State {
-    implicit val jsonify: upickle.default.ReadWriter[State] = upickle.default.macroRW
+    implicit val jsonify: upickle.ReadWriter[State] = upickle.macroRW
   }
 
   lazy val millDiscover = Discover[this.type]

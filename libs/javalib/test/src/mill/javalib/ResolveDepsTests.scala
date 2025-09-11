@@ -10,6 +10,7 @@ import mill.api.{Result}
 import mill.api.{Discover, Task}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
+import mill.util.CoursierConfig
 import mill.util.TokenReaders._
 object ResolveDepsTests extends TestSuite {
   val scala212Version = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
@@ -18,7 +19,8 @@ object ResolveDepsTests extends TestSuite {
 
   def evalDeps(deps: Seq[Dep]): Result[Seq[PathRef]] = Lib.resolveDependencies(
     repos,
-    deps.map(Lib.depToBoundDep(_, scala212Version, ""))
+    deps.map(Lib.depToBoundDep(_, scala212Version, "")),
+    config = CoursierConfig.default()
   )
 
   def assertRoundTrip(deps: Seq[Dep], simplified: Boolean) = {
@@ -30,7 +32,7 @@ object ResolveDepsTests extends TestSuite {
       } else {
         assert(unparsed.isEmpty)
       }
-      assert(upickle.default.read[Dep](upickle.default.write(dep)) == dep)
+      assert(upickle.read[Dep](upickle.write(dep)) == dep)
     }
   }
 
@@ -86,6 +88,36 @@ object ResolveDepsTests extends TestSuite {
         def compileMvnDeps = Nil
         def runMvnDeps = Task { Seq() }
         def bomMvnDeps = Task { Nil }
+      }
+    }
+
+    object forceVersion extends JavaModule {
+      def mvnDeps = Seq(
+        mvn"org.apache.lucene:lucene-analyzers-common:4.6.1",
+        mvn"org.apache.lucene:lucene-core:4.6.0".forceVersion()
+      )
+
+      object dependee extends JavaModule {
+        def moduleDeps = Seq(forceVersion)
+      }
+
+      object dependeeWithNonForced extends JavaModule {
+        def moduleDeps = Seq(forceVersion)
+        def mvnDeps = Seq(
+          mvn"org.apache.lucene:lucene-analyzers-common:4.6.1",
+          mvn"org.apache.lucene:lucene-core:4.6.1"
+        )
+      }
+
+      object other extends JavaModule {
+        def mvnDeps = Seq(
+          mvn"org.apache.lucene:lucene-analyzers-common:4.6.1",
+          mvn"org.apache.lucene:lucene-core:4.6.1"
+        )
+      }
+
+      object dependsOnForcedAndNonForced extends JavaModule {
+        def moduleDeps = Seq(forceVersion, other)
       }
     }
 
@@ -237,6 +269,40 @@ object ResolveDepsTests extends TestSuite {
         assert(!dependsOnOptionalCompileCp.exists(_.last == "logback-core-1.5.18.jar"))
         assert(!dependsOnOptionalRuntimeCp.exists(_.last == "logback-core-1.5.18.jar"))
         assert(!dependsOnOptionalRunCp.exists(_.last == "logback-core-1.5.18.jar"))
+      }
+    }
+
+    test("forceVersion") {
+      UnitTester(TestCase, null).scoped { eval =>
+        def expectedClassPathFileNames(coreVersion: String) = Seq(
+          "lucene-analyzers-common-4.6.1.jar",
+          s"lucene-core-$coreVersion.jar"
+        )
+
+        def resolvedClassPathFileNames(mod: JavaModule): Seq[String] =
+          eval(mod.resolvedMvnDeps)
+            .fold(_.get, _.value).map(_.path).filter(os.isFile).map(_.last)
+
+        val classPathFileNames = resolvedClassPathFileNames(TestCase.forceVersion)
+        assert(classPathFileNames == expectedClassPathFileNames("4.6.0"))
+
+        // version is forced in dependee too
+        val dependeeClassPathFileNames = resolvedClassPathFileNames(TestCase.forceVersion.dependee)
+        assert(dependeeClassPathFileNames == expectedClassPathFileNames("4.6.0"))
+
+        // if dependee depends on the non-forced dependency, version isn't forced for it
+        val dependeeWithNonForcedClassPathFileNames =
+          resolvedClassPathFileNames(TestCase.forceVersion.dependeeWithNonForced)
+        assert(dependeeWithNonForcedClassPathFileNames == expectedClassPathFileNames("4.6.1"))
+
+        // no forced version at all
+        val otherClassPathFileNames = resolvedClassPathFileNames(TestCase.forceVersion.other)
+        assert(otherClassPathFileNames == expectedClassPathFileNames("4.6.1"))
+
+        // if dependee depends on modules forcing and not forcing the version, version isn't forced for it
+        val dependsOnForcedAndNonForcedClassPathFileNames =
+          resolvedClassPathFileNames(TestCase.forceVersion.dependsOnForcedAndNonForced)
+        assert(dependsOnForcedAndNonForcedClassPathFileNames == expectedClassPathFileNames("4.6.1"))
       }
     }
   }

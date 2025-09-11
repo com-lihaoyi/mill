@@ -87,7 +87,9 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
       .filter(os.exists(_))
       .flatMap(os.walk(_, includeTarget = true))
       .filter(os.isFile)
+      // skip formatting single-file projects since Palantir Format messes up the header block
       .filter(_.ext == "java")
+      .filter(!os.read(_).startsWith("//|"))
       .toSeq
 
     if (check) {
