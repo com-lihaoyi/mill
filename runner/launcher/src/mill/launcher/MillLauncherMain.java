@@ -21,8 +21,9 @@ public class MillLauncherMain {
 
   public static void main(String[] args) throws Exception {
     var needParsedConfig = Arrays.stream(args)
-      .anyMatch(f -> f.startsWith("-") && !f.startsWith("--") && f.contains("i"));
-    for (var token: Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", "--bsp", "--help")) {
+        .anyMatch(f -> f.startsWith("-") && !f.startsWith("--") && f.contains("i"));
+    for (var token :
+        Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", "--bsp", "--help")) {
       if (Arrays.stream(args).anyMatch(f -> f.equals(token))) needParsedConfig = true;
     }
 
@@ -41,10 +42,12 @@ public class MillLauncherMain {
 
     // Ensure that if we're running in BSP mode we don't start a daemon.
     //
-    // This is needed because when Metals/Idea closes, they only kill the BSP client and the BSP server lurks around
+    // This is needed because when Metals/Idea closes, they only kill the BSP client and the BSP
+    // server lurks around
     // waiting for the next client to connect.
     //
-    // This is unintuitive from the user's perspective and wastes resources, as most people expect everything related
+    // This is unintuitive from the user's perspective and wastes resources, as most people expect
+    // everything related
     // to the BSP server to be killed when closing the editor.
     if (bspMode) runNoDaemon = true;
 
