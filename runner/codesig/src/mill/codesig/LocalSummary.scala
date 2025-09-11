@@ -150,7 +150,7 @@ object LocalSummary {
     // their contents seems very unstable and prone to causing spurious invalidations
     var isScala3LazyInit = name.contains("$lzyINIT")
     var endScala3LazyInit = false
-    def hash(x: Int)(implicit l: sourcecode.Line): Unit = {
+    def hash(x: Int): Unit = {
       if (!isScala3LazyInit && !endScala3LazyInit) {
         insnHash = scala.util.hashing.MurmurHash3.mix(insnHash, x)
       }
