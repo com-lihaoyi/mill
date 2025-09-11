@@ -39,8 +39,6 @@ object RootModule {
       val topLevelProjectRoot: os.Path,
       val buildOverrides: Map[String, ujson.Value]
   ) {
-    mill.constants.DebugLog.println("buildOverrides " + buildOverrides)
-    mill.constants.DebugLog.println("projectRoot " + projectRoot)
     def this(
               projectRoot: os.Path,
               output: os.Path,
