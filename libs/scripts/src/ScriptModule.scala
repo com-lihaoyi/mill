@@ -1,4 +1,4 @@
-package mill.meta
+package mill.scripts
 import mill.*
 import mill.javalib.publish._
 import mill.api.Discover

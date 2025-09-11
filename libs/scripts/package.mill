@@ -1,0 +1,12 @@
+package build.libs.scripts
+
+// imports
+import millbuild.*
+
+/**
+ * Scala logic for tab-completion in Bash and Zsh, delegated to by the `complete.sh`
+ * script that runs in both shells
+ */
+object `package` extends MillPublishScalaModule {
+  def moduleDeps = Seq(build.libs.scalalib, build.libs.kotlinlib, build.libs.javalib)
+}
