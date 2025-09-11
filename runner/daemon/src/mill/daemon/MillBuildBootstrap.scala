@@ -223,7 +223,6 @@ class MillBuildBootstrap(
                   .getOrElse(0),
                 depth,
                 actualBuildFileName = nestedState.buildFile,
-                headerData = headerDataOpt.getOrElse("")
               )) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
@@ -420,7 +419,8 @@ object MillBuildBootstrap {
     val cl = rootModule.getClass.getClassLoader
     val evalImplCls = cl.loadClass("mill.eval.EvaluatorImpl")
     val execCls = cl.loadClass("mill.exec.Execution")
-    val scriptInitCls = cl.loadClass("mill.scripts.ScriptModuleInit")
+    val classpath = System.getProperty("java.class.path")
+    val scriptInitCls = cl.loadClass("mill.scripts.ScriptModuleInit$")
     lazy val evaluator: EvaluatorApi = evalImplCls.getConstructors.head.newInstance(
       allowPositionalCommandArgs,
       selectiveExecution,
@@ -443,9 +443,8 @@ object MillBuildBootstrap {
         streams0,
         () => evaluator,
         offline,
-        headerData
       ),
-      scriptInitCls.getField("MODULE$").get(null)  
+      scriptInitCls.getField("MODULE$").get(null)
     ).asInstanceOf[EvaluatorApi]
 
     evaluator

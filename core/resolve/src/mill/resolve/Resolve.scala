@@ -306,7 +306,7 @@ private[mill] trait Resolve[T] {
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false,
-      scriptModuleResolver: os.Path => mill.api.ExternalModule
+      scriptModuleResolver: String => mill.api.ExternalModule
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
@@ -314,11 +314,11 @@ private[mill] trait Resolve[T] {
         val selected = selectors.map { case (scopedSel, sel) =>
           (scopedSel, sel) match {
             case (None, Some(s)) if s.last.value == "kt" || s.last.value == "scala" || s.last.value == "java" =>
-              Result.Success(scriptModuleResolver(os.Path(s.render, os.pwd))).map { scriptModule =>
+              Result.Success(scriptModuleResolver(s.render)).map { scriptModule =>
                 resolveNonEmptyAndHandle(
                   args,
                   scriptModule,
-                  sel.getOrElse(Segments()),
+                  Segments(),
                   nullCommandDefaults,
                   allowPositionalCommandArgs,
                   resolveToModuleTasks

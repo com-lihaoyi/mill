@@ -10,7 +10,7 @@ trait ScriptModule extends ExternalModule with mill.javalib.JavaModule
   override def sources = Nil
   def selfSource = Task.Source(millFile)
   override def allSources = sources() ++ Seq(selfSource())
-  
+  def allowNestedExternalModule = true
 }
 object ScriptModule {
   trait Publish extends mill.javalib.PublishModule {

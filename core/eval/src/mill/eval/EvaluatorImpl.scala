@@ -25,7 +25,7 @@ final class EvaluatorImpl private[mill] (
     private[mill] val allowPositionalCommandArgs: Boolean,
     private[mill] val selectiveExecution: Boolean = false,
     private val execution: Execution,
-    scriptModuleResolver: os.Path => ExternalModule
+    scriptModuleResolver: (String, Map[String, String]) => ExternalModule
 ) extends Evaluator {
 
   private[mill] def workspace = execution.workspace
@@ -62,7 +62,7 @@ final class EvaluatorImpl private[mill] (
         selectMode,
         allowPositionalCommandArgs,
         resolveToModuleTasks,
-        scriptModuleResolver = scriptModuleResolver
+        scriptModuleResolver = scriptModuleResolver(_, env)
       )
     }
   }
@@ -79,7 +79,7 @@ final class EvaluatorImpl private[mill] (
         selectMode,
         allowPositionalCommandArgs,
         resolveToModuleTasks,
-        scriptModuleResolver = scriptModuleResolver
+        scriptModuleResolver = scriptModuleResolver(_, env)
       )
     }
   }
@@ -102,7 +102,7 @@ final class EvaluatorImpl private[mill] (
           selectMode,
           allowPositionalCommandArgs,
           resolveToModuleTasks,
-          scriptModuleResolver = scriptModuleResolver
+          scriptModuleResolver = scriptModuleResolver(_, env)
         )
       }
     }
@@ -121,7 +121,7 @@ final class EvaluatorImpl private[mill] (
           selectMode,
           allowPositionalCommandArgs,
           resolveToModuleTasks,
-          scriptModuleResolver = scriptModuleResolver
+          scriptModuleResolver = scriptModuleResolver(_, env)
         )
       }
     }
@@ -283,7 +283,7 @@ final class EvaluatorImpl private[mill] (
             scriptArgs,
             selectMode,
             allowPositionalCommandArgs,
-            scriptModuleResolver = scriptModuleResolver
+            scriptModuleResolver = scriptModuleResolver(_, env)
           )
         }
       }
