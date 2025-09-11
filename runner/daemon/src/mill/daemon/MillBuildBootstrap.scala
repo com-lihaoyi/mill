@@ -98,13 +98,13 @@ class MillBuildBootstrap(
         os.exists(currentRoot / rootBuildFileName)
       )
 
-      val (nestedState, headerDataOpt) =
+      val nestedState =
         if (depth == 0) {
           // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
           // Unfortunately, some tasks also make sense without a `build.mill`, e.g. the `init` command.
           // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
           lazy val state = evaluateRec(depth + 1)
-          if (currentRootContainsBuildFile) (state, None)
+          if (currentRootContainsBuildFile) state
           else {
             val msg =
               s"No build file (${rootBuildFileNames.asScala.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
@@ -118,7 +118,7 @@ class MillBuildBootstrap(
                   case state => state
                 }
               }
-            (res, None)
+            res
           }
         } else {
           val parsedScriptFiles = FileImportGraph
@@ -134,12 +134,17 @@ class MillBuildBootstrap(
             else {
               val bootstrapModule =
                 new MillBuildRootModule.BootstrapModule()(
-                  using new RootModule.Info(currentRoot, output, projectRoot)
+                  using new RootModule.Info(
+                    currentRoot,
+                    output,
+                    projectRoot,
+                    upickle.read[Map[String, ujson.Value]](mill.internal.Util.parseHeaderData(parsedScriptFiles.headerData))
+                  )
                 )
               RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
             }
 
-          (state, Some(parsedScriptFiles.headerData))
+          state
         }
 
       val classloaderChanged =
