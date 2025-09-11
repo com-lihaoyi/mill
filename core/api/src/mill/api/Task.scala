@@ -295,11 +295,11 @@ object Task {
     def withFilter(f: T => Boolean): Task[T] = this
     def zip[V](other: Task[V]): Task[(T, V)] = new Task.Zipped(this, other)
 
-    /** Runs `before` function before the task and then `after` funciton after the task. */
-    def wrap[IntermediateData, TaskResult](
-        before: => IntermediateData
-    )(after: (IntermediateData, T) => TaskResult): Task[TaskResult] =
-      Task.Wrapped(this, () => before, after)
+//    /** Runs `before` function before the task and then `after` funciton after the task. */
+//    def wrap[IntermediateData, TaskResult](
+//        before: => IntermediateData
+//    )(after: (IntermediateData, T) => TaskResult): Task[TaskResult] =
+//      Task.Wrapped(this, () => before, after)
   }
 
   private[api] class Sequence[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]] {
@@ -315,26 +315,36 @@ object Task {
     val inputs: Seq[Task[?]] = List(source)
   }
 
-  private[api] class Wrapped[Input, IntermediateData, TaskResult](
-      source: Task[Input],
-      before: () => IntermediateData,
-      after: (IntermediateData, Input) => TaskResult
-  ) extends Task[TaskResult] {
-
-    def evaluate(ctx: mill.api.TaskCtx): Result[TaskResult] = {
-      println("before()")
-      val intermediateData = before()
-      println(s"intermediateData=$intermediateData")
-      val input = ctx.arg(0).asInstanceOf[Input]
-      println(s"input=$input")
-      println("after()")
-      val result = after(intermediateData, input)
-      println(s"result=$result")
-      result
-    }
-
-    val inputs: Seq[Task[?]] = List(source)
-  }
+//  private[api] class Wrapped[Input, IntermediateData, TaskResult](
+//      source: Task[Input],
+//      before: () => IntermediateData,
+//      after: (IntermediateData, Input) => TaskResult
+//  ) extends Task[TaskResult] {
+//    val inputs: Seq[Task[?]] = source.inputs
+//
+//    def evaluate(ctx: mill.api.TaskCtx): Result[TaskResult] = {
+//      println("before()")
+//      val intermediateData = before()
+//      println(s"intermediateData=$intermediateData")
+////      val input = ctx.arg(0).asInstanceOf[Input]
+//      val input = source.evaluate(ctx)
+//      println(s"input=$input")
+//      println("after()")
+//      val result = after(intermediateData, input)
+//      println(s"result=$result")
+//      result
+//    }
+//
+//    override def sideHash: Int = source.sideHash
+//    override def persistent: Boolean = source.persistent
+//    override private[mill] def isExclusiveCommand = source.isExclusiveCommand
+//
+//    override private[mill] def asSimple = source.asSimple.map { simple => ??? }
+//
+//    override private[mill] def asCommand = source.asCommand.map { command => ??? }
+//
+//    override private[mill] def asWorker = source.asWorker.map { worker => ??? }
+//  }
 
   private[api] class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
     def evaluate(ctx: mill.api.TaskCtx): Result[(T, V)] = (ctx.arg(0), ctx.arg(1))

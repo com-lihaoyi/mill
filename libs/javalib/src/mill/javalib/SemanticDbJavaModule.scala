@@ -12,6 +12,8 @@ import scala.jdk.CollectionConverters.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 
+import java.nio.file.NoSuchFileException
+
 @experimental
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     with WithJvmWorkerModule {
@@ -41,7 +43,12 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
    * Keep the paths in sync with [[JavaModule.bspCompileClassesPath]].
    */
   def compile: Task.Simple[mill.javalib.api.CompilationResult] = Task(persistent = true) {
-    println("compile() start")
+    val compileSemanticDb = bspAnyClientNeedsSemanticDb()
+    compileInternal.apply().apply(compileSemanticDb)
+  }
+
+  private[mill] def compileInternal = Task.Anon { (compileSemanticDb: Boolean) =>
+    println(s"compile(compileSemanticDb=$compileSemanticDb) start")
     // Prepare an empty `compileGeneratedSources` folder for java annotation processors
     // to write generated sources into, that can then be picked up by IDEs like IntelliJ
     val compileGenSources = compileGeneratedSources()
@@ -49,8 +56,6 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
       os.remove.all(compileGenSources)
       os.makeDir.all(compileGenSources)
     }
-
-    val compileSemanticDb = semanticDbWillBeNeeded.apply().apply(Task.dest)
 
     val jOpts = JavaCompilerOptions {
       val opts =
@@ -109,30 +114,6 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
    * Typically these do not need to be compiled again, and are only used by IDEs
    */
   def compileGeneratedSources: T[os.Path]
-
-  /**
-   * Returns true if the semanticdb will be needed by the BSP client or any of the other Mill daemons that are using
-   * the same `out/` directory.
-   */
-  private[mill] def semanticDbWillBeNeeded: Task[os.Path => Boolean] = Task.Anon {
-    (taskDest: os.Path) =>
-      // TODO review: read from the files and document why
-//    MillBackgroundWrapper.readPreviousPid()
-//    val root = os.list(
-//      BuildCtx.workspaceRoot / OutFiles.outFor(OutFolderMode.REGULAR) / "bsp-semanticdb-sessions"
-//    ).exists()
-
-      val forced = SemanticDbJavaModule.forceSemanticDbCompilation(taskDest)
-      val neededByClient = SemanticDbJavaModuleApi.clientNeedsSemanticDb()
-
-      // TODO review: change to debug
-      Task.log.info(s"semanticDbWillBeNeeded: forced=$forced, neededByClient=$neededByClient")
-
-      // TODO review: actually use this
-      val _ = forced || neededByClient
-
-      true
-  }
 
   private[mill] def bspBuildTarget: BspBuildTarget
   def javacOptions: T[Seq[String]]
@@ -215,26 +196,55 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     defaultResolver().classpath(semanticDbJavaPluginMvnDeps())
   }
 
-  def semanticDbDataDetailed: Task[SemanticDbJavaModule.SemanticDbData] = Task.Anon {
-    // TODO review: this is an ugly hack
-    val compileTo = Task.dest / ".." / "compile.Dest"
+  // TODO review: document
+  private lazy val semanticDbSessionsDirWatch =
+    BuildCtx.watch(BuildCtx.bspSemanticDbSesssionsFolder)
 
-    println("set the flag")
-    os.write.over(compileTo / SemanticDbJavaModule.forceSemanticDbCompilationFilename, "")
-    val compilationResult =
-      try compile()
-      finally {
-        println("reset the flag")
-        os.remove(compileTo / SemanticDbJavaModule.forceSemanticDbCompilationFilename)
+  /**
+   * Returns true if the semanticdb will be needed by the BSP client or any of the other Mill daemons that are using
+   * the same `out/` directory.
+   */
+  private[mill] def bspAnyClientNeedsSemanticDb(): Boolean = {
+    val directory = semanticDbSessionsDirWatch
+
+    val bspHasClientsThatNeedSemanticDb = BuildCtx.withFilesystemCheckerDisabled {
+      try {
+        os.list(directory).exists { path =>
+          path.last.toLongOption match {
+            case None =>
+              // malformatted pid
+              false
+            case Some(pid) =>
+              ProcessHandle.of(pid).isPresent
+          }
+        }
+      } catch {
+        case _: NoSuchFileException => false
       }
-    // TODO review: how to do this?
-//    val compileWithSemanticDb = SemanticDbJavaModule.withForcedSemanticDbCompilation(compile)
-//    val compilationResult = compileWithSemanticDb.apply().apply(compileTo)
-    val semanticDbData =
-      compilationResult.semanticDbFiles.getOrElse(throw IllegalStateException(
-        "SemanticDB files were not produced, this is a bug in Mill."
-      ))
-    SemanticDbJavaModule.SemanticDbData(compilationResult, semanticDbData)
+    }
+
+    println(s"bspHasClientsThatNeedSemanticDb=$bspHasClientsThatNeedSemanticDb")
+
+    bspHasClientsThatNeedSemanticDb
+  }
+
+  def semanticDbDataDetailed: Task[SemanticDbJavaModule.SemanticDbData] = {
+    val task =
+      if (bspAnyClientNeedsSemanticDb()) compile.map(Result.Success(_))
+      else compileInternal.map(run => run(true))
+
+    Task.Anon {
+      task().map { compilationResult =>
+        // TODO review: how to do this?
+        //    val compileWithSemanticDb = SemanticDbJavaModule.withForcedSemanticDbCompilation(compile)
+        //    val compilationResult = compileWithSemanticDb.apply().apply(compileTo)
+        val semanticDbData =
+          compilationResult.semanticDbFiles.getOrElse(throw IllegalStateException(
+            "SemanticDB files were not produced, this is a bug in Mill."
+          ))
+        SemanticDbJavaModule.SemanticDbData(compilationResult, semanticDbData)
+      }
+    }
   }
 
   def semanticDbData: T[PathRef] = Task {
@@ -301,32 +311,6 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
     defaultResolver().classpath(Seq(
       Dep.millProjectModule("mill-libs-javalib-scalameta-worker")
     ))
-  }
-
-  private val forceSemanticDbCompilationFilename = "forceSemanticDbCompilation"
-
-  private[mill] def forceSemanticDbCompilation(taskDest: os.Path): Boolean =
-    os.exists(taskDest / forceSemanticDbCompilationFilename)
-
-  private[mill] def withForcedSemanticDbCompilation[T](
-      task: Task[T]
-  ): Task[os.Path => T] = Task.Anon { (taskDest: os.Path) =>
-//    task.wrap {
-//      println("set the flag")
-//      os.write.over(taskDest / forceSemanticDbCompilationFilename, "")
-//    } { (_, result) =>
-//      println("reset the flag")
-//      os.remove(taskDest / forceSemanticDbCompilationFilename)
-//      result
-//    }
-
-    println("set the flag")
-    os.write.over(taskDest / forceSemanticDbCompilationFilename, "")
-    try task()
-    finally {
-      println("reset the flag")
-      os.remove(taskDest / forceSemanticDbCompilationFilename)
-    }
   }
 
   /**

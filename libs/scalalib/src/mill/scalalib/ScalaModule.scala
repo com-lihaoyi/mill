@@ -272,15 +272,15 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   /**
    * Keep the return paths in sync with [[bspCompileClassesPath]].
    */
-  override def compile: T[CompilationResult] = Task(persistent = true) {
+  override private[mill] def compileInternal = Task.Anon { (compileSemanticDb: Boolean) =>
+    println(s"compileScala(compileSemanticDb=$compileSemanticDb) start")
+
     val sv = scalaVersion()
     if (sv == "2.12.4") Task.log.warn(
       """Attention: Zinc is known to not work properly for Scala version 2.12.4.
         |You may want to select another version. Upgrading to a more recent Scala version is recommended.
         |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin
     )
-
-    val compileSemanticDb = semanticDbWillBeNeeded.apply().apply(Task.dest)
 
     val jOpts = JavaCompilerOptions {
       val baseOpts = javacOptions() ++ mandatoryJavacOptions()

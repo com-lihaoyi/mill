@@ -264,6 +264,12 @@ private class MillBuildServer(
             )
             clientWantsSemanticDb = true
             SemanticDbJavaModuleApi.contextSemanticDbVersion.set(Option(version))
+
+            // Inform other BSP clients that we want to use SemanticDB
+            val pid = ProcessHandle.current().pid()
+            val pidFile = BuildCtx.bspSemanticDbSesssionsFolder / pid.toString
+            os.write.over(pidFile, "", createFolders = true)
+            pidFile.toNIO.toFile.deleteOnExit()
           }
           readVersion(d, "javaSemanticdbVersion").foreach { version =>
             SemanticDbJavaModuleApi.contextJavaSemanticDbVersion.set(Option(version))

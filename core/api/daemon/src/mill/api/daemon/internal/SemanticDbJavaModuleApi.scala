@@ -9,15 +9,13 @@ trait SemanticDbJavaModuleApi {
   private[mill] def bspCompiledClassesAndSemanticDbFiles: TaskApi[UnresolvedPathApi[?]]
 }
 object SemanticDbJavaModuleApi {
-  val buildTimeJavaSemanticDbVersion = BuildInfo.semanticDbJavaVersion
-  val buildTimeSemanticDbVersion = BuildInfo.semanticDBVersion
+  val buildTimeJavaSemanticDbVersion: String = BuildInfo.semanticDbJavaVersion
+  val buildTimeSemanticDbVersion: String = BuildInfo.semanticDBVersion
 
   private[mill] val contextSemanticDbVersion: InheritableThreadLocal[Option[String]] =
     new InheritableThreadLocal[Option[String]] {
       protected override def initialValue(): Option[String] = None
     }
-
-  private[mill] def clientNeedsSemanticDb(): Boolean = contextSemanticDbVersion.get().isDefined
 
   private[mill] val contextJavaSemanticDbVersion: InheritableThreadLocal[Option[String]] =
     new InheritableThreadLocal[Option[String]] {

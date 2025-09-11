@@ -568,7 +568,7 @@ object GroupExecution {
           if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
             sys.error(
               s"Reading from ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
-                "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
+                "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input`"
             )
           }
         }
