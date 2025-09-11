@@ -204,29 +204,29 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
    * Returns true if the semanticdb will be needed by the BSP client or any of the other Mill daemons that are using
    * the same `out/` directory.
    */
-  private[mill] def bspAnyClientNeedsSemanticDb(): Boolean = {
-    val directory = semanticDbSessionsDirWatch
+  private[mill] def bspAnyClientNeedsSemanticDb(): Boolean =
+    BuildCtx.withFilesystemCheckerDisabled {
+      val directory = semanticDbSessionsDirWatch
 
-    val bspHasClientsThatNeedSemanticDb = BuildCtx.withFilesystemCheckerDisabled {
-      try {
-        os.list(directory).exists { path =>
-          path.last.toLongOption match {
-            case None =>
-              // malformatted pid
-              false
-            case Some(pid) =>
-              ProcessHandle.of(pid).isPresent
+      val bspHasClientsThatNeedSemanticDb =
+        try {
+          os.list(directory).exists { path =>
+            path.last.toLongOption match {
+              case None =>
+                // malformatted pid
+                false
+              case Some(pid) =>
+                ProcessHandle.of(pid).isPresent
+            }
           }
+        } catch {
+          case _: NoSuchFileException => false
         }
-      } catch {
-        case _: NoSuchFileException => false
-      }
+
+      println(s"bspHasClientsThatNeedSemanticDb=$bspHasClientsThatNeedSemanticDb")
+
+      bspHasClientsThatNeedSemanticDb
     }
-
-    println(s"bspHasClientsThatNeedSemanticDb=$bspHasClientsThatNeedSemanticDb")
-
-    bspHasClientsThatNeedSemanticDb
-  }
 
   def semanticDbDataDetailed: Task[SemanticDbJavaModule.SemanticDbData] = {
     val task =
