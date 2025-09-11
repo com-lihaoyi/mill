@@ -134,11 +134,15 @@ class MillBuildBootstrap(
             else {
               val bootstrapModule =
                 new MillBuildRootModule.BootstrapModule()(
-                  using new RootModule.Info(
+                  using
+                  new RootModule.Info(
                     currentRoot,
                     output,
                     projectRoot,
-                    upickle.read[Map[String, ujson.Value]](mill.internal.Util.parseHeaderData(parsedScriptFiles.headerData))
+                    upickle.read[Map[
+                      String,
+                      ujson.Value
+                    ]](mill.internal.Util.parseHeaderData(parsedScriptFiles.headerData))
                   )
                 )
               RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
@@ -227,7 +231,7 @@ class MillBuildBootstrap(
                   .map(_.hashCode())
                   .getOrElse(0),
                 depth,
-                actualBuildFileName = nestedState.buildFile,
+                actualBuildFileName = nestedState.buildFile
               )) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
@@ -408,7 +412,7 @@ object MillBuildBootstrap {
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
       depth: Int,
-      actualBuildFileName: Option[String] = None,
+      actualBuildFileName: Option[String] = None
   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
@@ -446,7 +450,7 @@ object MillBuildBootstrap {
         (reason: String, exitCode: Int) => systemExit(reason, exitCode),
         streams0,
         () => evaluator,
-        offline,
+        offline
       ),
       scriptInitCls.getField("MODULE$").get(null)
     ).asInstanceOf[EvaluatorApi]

@@ -39,7 +39,6 @@ trait GroupExecution {
   def getEvaluator: () => EvaluatorApi
   def offline: Boolean
 
-
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
 
@@ -106,7 +105,7 @@ trait GroupExecution {
             val jsonData = labelled.ctx.enclosingModule.buildOverrides(single)
 
             import collection.JavaConverters._
-            def rec(x: ujson.Value): ujson.Value = x match{
+            def rec(x: ujson.Value): ujson.Value = x match {
               case ujson.Str(s) => mill.constants.Util.interpolateEnvVars(s, envWithPwd.asJava)
               case ujson.Arr(xs) => ujson.Arr(xs.map(rec))
               case ujson.Obj(kvs) => ujson.Obj.from(kvs.map((k, v) => (k, rec(v))))

@@ -135,7 +135,7 @@ class UnitTester(
       throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
-    offline = offline,
+    offline = offline
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
@@ -147,7 +147,12 @@ class UnitTester(
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
     Evaluator.withCurrentEvaluator(evaluator) {
-      Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated, scriptModuleResolver = _ => ???)
+      Resolve.Tasks.resolve(
+        evaluator.rootModule,
+        args,
+        SelectMode.Separated,
+        scriptModuleResolver = _ => ???
+      )
     } match {
       case Result.Failure(err) => Left(ExecResult.Failure(err))
       case Result.Success(resolved) => apply(resolved)

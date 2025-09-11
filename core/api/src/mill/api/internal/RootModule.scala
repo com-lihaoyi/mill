@@ -40,10 +40,10 @@ object RootModule {
       val buildOverrides: Map[String, ujson.Value]
   ) {
     def this(
-              projectRoot: os.Path,
-              output: os.Path,
-              topLevelProjectRoot: os.Path,
-            ) = this(projectRoot, output, topLevelProjectRoot, Map())
+        projectRoot: os.Path,
+        output: os.Path,
+        topLevelProjectRoot: os.Path
+    ) = this(projectRoot, output, topLevelProjectRoot, Map())
     def this(
         projectRoot0: String,
         output0: String,

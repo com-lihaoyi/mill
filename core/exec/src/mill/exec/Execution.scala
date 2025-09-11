@@ -30,7 +30,7 @@ private[mill] case class Execution(
     systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing,
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
-    offline: Boolean,
+    offline: Boolean
 ) extends GroupExecution with AutoCloseable {
 
   // this (shorter) constructor is used from [[MillBuildBootstrap]] via reflection
@@ -50,7 +50,7 @@ private[mill] case class Execution(
       systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing,
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
-      offline: Boolean,
+      offline: Boolean
   ) = this(
     baseLogger,
     new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
@@ -68,7 +68,7 @@ private[mill] case class Execution(
     systemExit,
     exclusiveSystemStreams,
     getEvaluator,
-    offline,
+    offline
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)

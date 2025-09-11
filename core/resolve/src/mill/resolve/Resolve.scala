@@ -313,7 +313,8 @@ private[mill] trait Resolve[T] {
       val resolved = groups.map { case (selectors, args) =>
         val selected = selectors.map { case (scopedSel, sel) =>
           (scopedSel, sel) match {
-            case (None, Some(s)) if s.last.value == "kt" || s.last.value == "scala" || s.last.value == "java" =>
+            case (None, Some(s))
+                if s.last.value == "kt" || s.last.value == "scala" || s.last.value == "java" =>
               Result.Success(scriptModuleResolver(s.render)).map { scriptModule =>
                 resolveNonEmptyAndHandle(
                   args,
