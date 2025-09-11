@@ -131,7 +131,10 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
       // TODO review: change to debug
       Task.log.info(s"semanticDbWillBeNeeded: forced=$forced, neededByClient=$neededByClient")
 
-      forced || neededByClient
+      // TODO review: actually use this
+      val _ = forced || neededByClient
+
+      true
   }
 
   private[mill] def bspBuildTarget: BspBuildTarget
