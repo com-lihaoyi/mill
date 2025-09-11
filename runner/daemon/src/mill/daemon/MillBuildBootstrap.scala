@@ -443,7 +443,8 @@ object MillBuildBootstrap {
         () => evaluator,
         offline,
         headerData
-      )
+      ),
+      (p: os.Path) => ScriptModuleInit.apply(projectRoot, output, p)
     ).asInstanceOf[EvaluatorApi]
 
     evaluator

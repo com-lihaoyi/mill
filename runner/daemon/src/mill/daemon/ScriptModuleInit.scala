@@ -5,9 +5,6 @@ import mill.meta.ScriptModule
 import mill.api.Discover
 object ScriptModuleInit {
   def apply(projectRoot: os.Path, output: os.Path, millFile: os.Path) = {
-    implicit val rootModuleInfo: RootModule.Info =
-      new RootModule.Info(projectRoot, output, projectRoot)
-
     val yamlHeader = mill.constants.Util.readBuildHeader(millFile.toNIO, millFile.last, true)
     val testTarget = yamlHeader.linesIterator.collectFirst { case s"tests: $target" => target }
     val testTrait = yamlHeader.linesIterator.collectFirst { case s"testTrait: $target" => target }

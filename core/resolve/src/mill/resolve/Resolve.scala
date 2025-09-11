@@ -314,7 +314,16 @@ private[mill] trait Resolve[T] {
         val selected = selectors.map { case (scopedSel, sel) =>
           (scopedSel, sel) match {
             case (None, Some(s)) if s.last.value == "kt" || s.last.value == "scala" || s.last.value == "java" =>
-              val bootstrapModule = scriptModuleResolver(os.Path(s.render, os.pwd))
+              Result.Success(scriptModuleResolver(os.Path(s.render, os.pwd))).map { scriptModule =>
+                resolveNonEmptyAndHandle(
+                  args,
+                  scriptModule,
+                  sel.getOrElse(Segments()),
+                  nullCommandDefaults,
+                  allowPositionalCommandArgs,
+                  resolveToModuleTasks
+                )
+              }
             case _ =>
               resolveRootModule(rootModule, scopedSel).map { rootModuleSels =>
                 resolveNonEmptyAndHandle(

@@ -2,9 +2,9 @@ package mill.meta
 import mill.*
 import mill.javalib.publish._
 import mill.api.Discover
-import mill.util.MainRootModule
+import mill.api.ExternalModule
 
-trait ScriptModule extends MainRootModule with mill.javalib.JavaModule
+trait ScriptModule extends ExternalModule with mill.javalib.JavaModule
     with mill.javalib.NativeImageModule {
   def millFile: os.Path
   override def sources = Nil
