@@ -1,0 +1,40 @@
+// Mill Single-File Projects have the full flexibility of the Mill build tool, just configured
+// using the YAML xref:cli/build-header.adoc[build header] syntax rather than a separate
+// `build.mill` file. That means you can xref:fundamentals/configuring-jvm-versions.adoc[configure the JVM version],
+// xref:javalib/module-config.adoc#_compilation_execution_flags[compile flags or runtime flags], create
+// xref:javalib/publishing.adoc#_building_executable_assemblies_with_assemblymodule[Executable Assemblies]
+// or xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Images],
+// xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[Publishing to Maven Central]
+// etc.
+//
+// The example below shows a few of those options configured in the YAML build header
+// of a single-file project, and then made of use from the command line:
+
+//// SNIPPET:LAST
+
+/** See Also: Bar.scala */
+/** Usage
+
+> ./mill -f Bar.scala nativeImage
+
+> out/Bar.scala/nativeImage.dest/native-executable
+Hello Graal Native: 24...
+
+> ./mill -f Bar.scala publishLocal
+Publishing Artifact(com.lihaoyi,example...,0.0.1) to ivy repo ...
+
+*/
+// Apart from publishing locally, you can also publish this single-file project to
+// Sonatype Maven Central via:
+//
+// [source,console]
+// ----
+// > ./mill -f Bar.scala mill.javalib.SonatypeCentralPublishModule/
+// ----
+
+//// SNIPPET:END
+
+// Most configuration ``def``s in Mill can be used to configure single-file projects, and
+// most tasks and commands can also be used as well. This gives you a lot of flexibility
+// in working with your single-file project until it becomes complex enough to need
+// a dedicated `build.mill` file.

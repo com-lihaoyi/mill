@@ -11,21 +11,36 @@ Many of the APIs covered here are listed in the API documentation:
 
 * {mill-doc-url}/api/latest/mill/javalib/JavaModule.html[mill.javalib.JavaModule]
 
+== Configuring Single-File Projects
+
+include::partial$example/javalib/module/1-single-file.adoc[]
+
+
 == Common Configuration Overrides
 
-include::partial$example/javalib/module/1-common-config.adoc[]
+include::partial$example/javalib/module/2-common-config.adoc[]
 
-[#_compilation_execution_flags]
+
+== Custom Tasks
+
+include::partial$example/javalib/module/3-custom-tasks.adoc[]
+
+
+
+== Generated Sources
+
+include::partial$example/javalib/module/4-generated-sources.adoc[]
+
+
 == Compilation & Execution Flags
 
-include::partial$example/javalib/module/4-compilation-execution-flags.adoc[]
+include::partial$example/javalib/module/5-compilation-execution-flags.adoc[]
 
 
 == Classpath and Filesystem Resources
 
 include::partial$example/javalib/module/7-resources.adoc[]
 
-[#_annotation_processors]
 == Annotation Processors
 
 include::partial$example/javalib/module/8-annotation-processors.adoc[]
@@ -34,21 +49,11 @@ include::partial$example/javalib/module/8-annotation-processors.adoc[]
 
 include::partial$example/javalib/module/9-docjar.adoc[]
 
-[[specifying-main-class]]
 == Specifying the Main Class
 
 include::partial$example/javalib/module/11-main-class.adoc[]
 
 
-== Generated Sources
-
-include::partial$example/javalib/module/3-generated-sources.adoc[]
-
-== Custom Tasks
-
-include::partial$example/javalib/module/2-custom-tasks.adoc[]
-
-[#_native_c_code_with_jni]
 == Native C Code with JNI
 
 include::partial$example/javalib/module/15-jni.adoc[]
