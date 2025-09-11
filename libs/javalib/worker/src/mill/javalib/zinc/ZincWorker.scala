@@ -1,6 +1,5 @@
 package mill.javalib.zinc
 
-import mill.api.JsonFormatters.*
 import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}

@@ -44,7 +44,11 @@ private[playlib] class RouteCompilerWorker {
           dest.toIO
         ) match {
         case null =>
-          Result.Success(CompilationResult(Task.dest / "zinc", PathRef(Task.dest), semanticDbFiles = None))
+          Result.Success(CompilationResult(
+            Task.dest / "zinc",
+            PathRef(Task.dest),
+            semanticDbFiles = None
+          ))
         case err => Result.Failure(err)
       }
     }
