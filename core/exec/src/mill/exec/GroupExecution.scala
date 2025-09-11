@@ -37,7 +37,6 @@ trait GroupExecution {
   def systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
-  def headerData: String
   def offline: Boolean
 
 
@@ -94,11 +93,26 @@ trait GroupExecution {
 
       case labelled: Task.Named[_] =>
 
+        // recursively convert java data structure to ujson.Value
+        val envWithPwd = env ++ Seq(
+          "PWD" -> workspace.toString,
+          "PWD_URI" -> workspace.toURI.toString,
+          "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
+          "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
+        )
+
         labelled.ctx.segments.last.value match {
           case single if labelled.ctx.enclosingModule.buildOverrides.contains(single) =>
             val jsonData = labelled.ctx.enclosingModule.buildOverrides(single)
+            import collection.JavaConverters._
+            def rec(x: ujson.Value): ujson.Value = x match{
+              case ujson.Str(s) => mill.constants.Util.interpolateEnvVars(s, envWithPwd.asJava)
+              case ujson.Arr(xs) => ujson.Arr(xs.map(rec))
+              case ujson.Obj(kvs) => ujson.Obj.from(kvs.map((k, v) => (k, rec(v))))
+              case v => v
+            }
             val (resultData, serializedPaths) = PathRef.withSerializedPaths {
-              upickle.read[Any](jsonData)(
+              upickle.read[Any](rec(jsonData))(
                 using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
               )
             }

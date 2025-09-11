@@ -8,6 +8,11 @@ import millbuild.*
  * script that runs in both shells
  */
 object `package` extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.libs.scalalib, build.libs.kotlinlib, build.libs.javalib)
+  def moduleDeps = Seq(
+    build.libs.scalalib,
+    build.libs.kotlinlib,
+    build.libs.javalib,
+    build.core.internal
+  )
   def mvnDeps = Seq(Deps.snakeyamlEngine)
 }

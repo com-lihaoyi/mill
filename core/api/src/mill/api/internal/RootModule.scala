@@ -2,6 +2,7 @@ package mill.api.internal
 
 import mill.api.daemon.internal.{RootModuleApi, internal}
 import mill.api.Discover
+import ujson.Value
 
 import scala.annotation.compileTimeOnly
 
@@ -26,6 +27,8 @@ abstract class RootModule()(implicit
   // Provided for IDEs to think that one is available and not show errors in
   // build.mill/package.mill even though they can't see the codegen
   def millDiscover: Discover = sys.error("RootModule#millDiscover must be overridden")
+
+  override def buildOverrides: Map[String, ujson.Value] = baseModuleInfo.buildOverrides
 }
 
 @internal
@@ -33,16 +36,24 @@ object RootModule {
   class Info(
       val projectRoot: os.Path,
       val output: os.Path,
-      val topLevelProjectRoot: os.Path
+      val topLevelProjectRoot: os.Path,
+      val buildOverrides: Map[String, ujson.Value]
   ) {
+    def this(
+              projectRoot: os.Path,
+              output: os.Path,
+              topLevelProjectRoot: os.Path,
+            ) = this(projectRoot, output, topLevelProjectRoot, Map())
     def this(
         projectRoot0: String,
         output0: String,
-        topLevelProjectRoot0: String
+        topLevelProjectRoot0: String,
+        @com.lihaoyi.unroll buildOverrides: ujson.Value = Map()
     ) = this(
       os.Path(projectRoot0),
       os.Path(output0),
-      os.Path(topLevelProjectRoot0)
+      os.Path(topLevelProjectRoot0),
+      upickle.read[Map[String, ujson.Value]](buildOverrides)
     )
     implicit val millMiscInfo: Info = this
   }

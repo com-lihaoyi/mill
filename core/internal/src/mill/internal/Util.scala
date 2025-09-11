@@ -58,12 +58,13 @@ private[mill] object Util {
       else "`" + s + "`"
   }
 
-  def parsedHeaderData(headerData: String): Map[String, ujson.Value] = {
+
+  def parseHeaderData(headerData: String): Map[String, ujson.Value] = {
     import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
     val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
 
-    // recursively convert java data structure to ujson.Value
     def rec(x: Any): ujson.Value = {
+      import scala.jdk.CollectionConverters._
       x match {
         case d: java.util.Date => ujson.Str(d.toString)
         case s: String => ujson.Str(s)
@@ -74,11 +75,9 @@ private[mill] object Util {
         case false => ujson.False
         case null => ujson.Null
         case m: java.util.Map[Object, Object] =>
-          import scala.jdk.CollectionConverters._
           val scalaMap = m.asScala
           ujson.Obj.from(scalaMap.map { case (k, v) => (k.toString, rec(v)) })
         case l: java.util.List[Object] =>
-          import scala.jdk.CollectionConverters._
           val scalaList: collection.Seq[Object] = l.asScala
           ujson.Arr.from(scalaList.map(rec))
       }

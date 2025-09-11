@@ -6,39 +6,7 @@ object ScriptModuleInit extends ((String, Map[String, String]) => mill.api.Exter
     val workspace = mill.api.BuildCtx.workspaceRoot
     val millFile = os.Path(millFileString, workspace)
     val headerData = mill.constants.Util.readBuildHeader(millFile.toNIO, millFile.last, true)
-    lazy val parsedHeaderData: Map[String, ujson.Value] = {
-      import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
-      val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
-      // recursively convert java data structure to ujson.Value
-      val envWithPwd = env ++ Seq(
-        "PWD" -> workspace.toString,
-        "PWD_URI" -> workspace.toURI.toString,
-        "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
-        "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
-      )
-
-      def rec(x: Any): ujson.Value = {
-        import scala.jdk.CollectionConverters._
-        x match {
-          case d: java.util.Date => ujson.Str(d.toString)
-          case s: String => ujson.Str(mill.constants.Util.interpolateEnvVars(s, envWithPwd.asJava))
-          case d: Double => ujson.Num(d)
-          case d: Int => ujson.Num(d)
-          case d: Long => ujson.Num(d)
-          case true => ujson.True
-          case false => ujson.False
-          case null => ujson.Null
-          case m: java.util.Map[Object, Object] =>
-            val scalaMap = m.asScala
-            ujson.Obj.from(scalaMap.map { case (k, v) => (k.toString, rec(v)) })
-          case l: java.util.List[Object] =>
-            val scalaList: collection.Seq[Object] = l.asScala
-            ujson.Arr.from(scalaList.map(rec))
-        }
-      }
-
-      rec(loaded).objOpt.getOrElse(Map.empty[String, ujson.Value]).toMap
-    }
+    lazy val parsedHeaderData = upickle.read[Map[String, ujson.Value]](mill.internal.Util.parseHeaderData(headerData))
 
     val testTarget = headerData.linesIterator.collectFirst { case s"tests: $target" => target }
     val testTrait = headerData.linesIterator.collectFirst { case s"testTrait: $target" => target }
