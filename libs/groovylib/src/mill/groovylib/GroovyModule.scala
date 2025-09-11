@@ -26,9 +26,8 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
    */
   def groovyLanguageVersion: T[String] = Task { groovyVersion().split("[.]").take(2).mkString(".") }
 
-  override def bomMvnDeps: T[Seq[Dep]] = super.bomMvnDeps() ++ Seq(
-    mvn"org.apache.groovy:groovy-bom:${groovyVersion()}"
-  )
+  override def bomMvnDeps: T[Seq[Dep]] = super.bomMvnDeps() ++
+    Seq(mvn"org.apache.groovy:groovy-bom:${groovyVersion()}")
 
   /**
    * All individual source files fed into the compiler.
@@ -58,12 +57,15 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
    * Defaults to add the groovy dependency matching the [[groovyVersion]].
    */
   override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
-    super.mandatoryMvnDeps() ++ Seq(
-      mvn"org.apache.groovy:groovy:${groovyVersion()}"
-    )
+    super.mandatoryMvnDeps()
+    ++
+      groovyCompilerMvnDeps()
+//    Seq(
+//      mvn"org.apache.groovy:groovy:${groovyVersion()}"
+//    )
   }
 
-  private def jvmWorkerRef: ModuleRef[JvmWorkerModule] = jvmWorker
+  def jvmWorkerRef: ModuleRef[JvmWorkerModule] = jvmWorker
 
   override def checkGradleModules: T[Boolean] = true
 
@@ -89,7 +91,8 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
   def groovyCompilerMvnDeps: T[Seq[Dep]] = Task {
     val gv = groovyVersion()
 
-    val compilerDep = mvn"org.apache.groovy:groovy:$gv"
+    val compilerDep = mvn"org.apache.groovy:groovy-all:$gv"
+//    val annotationDep = mvn"org.codehaus.groovy:groovy-all-annotations:$gv"
 
     Seq(compilerDep)
   }
@@ -104,9 +107,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
    */
   def groovyCompilerPluginJars: T[Seq[PathRef]] = Task {
     val jars = defaultResolver().classpath(
-      groovycPluginMvnDeps()
-        // Don't resolve transitive jars
-        .map(d => d.exclude("*" -> "*")),
+      allMvnDeps(),
       resolutionParamsMapOpt = None
     )
     jars.toSeq
@@ -122,6 +123,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
   /**
    * The actual Groovy compile task (used by [[compile]] and [[groovycHelp]]).
    */
+  // TODO joint compilation: generate groovy-stubs -> compile java -> compile groovy -> delete stubs (or keep for debugging)
   protected def groovyCompileTask(): Task[CompilationResult] =
     Task.Anon {
       val ctx = Task.ctx()
@@ -152,7 +154,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
           javaHome = javaHome().map(_.path),
           javacOptions = javacOptions(),
           compileProblemReporter = ctx.reporter(hashCode),
-          reportOldProblems = internalReportOldProblems()
+          reportOldProblems = zincReportCachedProblems()
         )
       }
 
@@ -189,18 +191,6 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
       }
     }
 
-  /**
-   * Additional Groovy compiler options to be used by [[compile]].
-   */
-  def groovycOptions: T[Seq[String]] = Task { Seq.empty[String] }
-
-  /**
-   * Aggregation of all the options passed to the Groovy compiler.
-   * In most cases, instead of overriding this target you want to override `groovycOptions` instead.
-   */
-  def allGroovycOptions: T[Seq[String]] = Task {
-    groovycOptions()
-  }
 
   private[groovylib] def internalCompileJavaFiles(
       worker: JvmWorkerApi,
@@ -228,8 +218,6 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
     )
   }
 
-  private[groovylib] def internalReportOldProblems: Task[Boolean] = zincReportCachedProblems
-
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     languageIds = Seq(
@@ -254,16 +242,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
     override def groovyLanguageVersion: T[String] = outer.groovyLanguageVersion()
     override def groovyVersion: T[String] = Task { outer.groovyVersion() }
-    override def groovycPluginMvnDeps: T[Seq[Dep]] =
-      Task { outer.groovycPluginMvnDeps() }
-      // TODO: make Xfriend-path an explicit setting
-    override def groovycOptions: T[Seq[String]] = Task {
-      // FIXME
-      outer.groovycOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
-        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
-    }
+    override def bomMvnDeps: T[Seq[Dep]] = outer.bomMvnDeps()
+    override def mandatoryMvnDeps: Task.Simple[Seq[Dep]] = outer.mandatoryMvnDeps
   }
-
 }
-
-// TODO maybe an StandaloneGroovyTestsModule

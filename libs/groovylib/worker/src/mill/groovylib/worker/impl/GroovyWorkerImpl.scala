@@ -1,5 +1,6 @@
 package mill.groovylib.worker.impl
 
+import groovy.lang.GroovyClassLoader
 import mill.api.Result
 import mill.api.TaskCtx
 import mill.javalib.api.CompilationResult
@@ -22,22 +23,28 @@ class GroovyWorkerImpl extends GroovyWorker {
     val config = new CompilerConfiguration()
     config.setTargetDirectory(outputDir.toIO)
     config.setClasspathList(classpath.map(_.toIO.getAbsolutePath).asJava)
+    // TODO
+//    config.setDisabledGlobalASTTransformations()
+//    config.setJointCompilationOptions()
+//    config.setSourceEncoding()
 
-    val unit = new CompilationUnit(config)
+    // we need to set the classloader for groovy to use the worker classloader
+    val parentCl: ClassLoader = this.getClass.getClassLoader
+    // config in the GroovyClassLoader is needed when the CL itself is compiling classes
+    val gcl = new GroovyClassLoader(parentCl, config)
+    // config for actual compilation
+    val unit = new CompilationUnit(config, null, gcl)
 
-    // Add source files to compile
     sourceFiles.foreach { sourceFile =>
       unit.addSource(sourceFile.toIO)
     }
 
-    return Try {
+    Try {
       unit.compile(Phases.OUTPUT)
-
       CompilationResult(outputDir, mill.api.PathRef(outputDir))
     }.fold(
       exception => Result.Failure(s"Groovy compilation failed: ${exception.getMessage}"),
       result => Result.Success(result)
     )
   }
-
 }
