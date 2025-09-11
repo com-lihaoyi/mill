@@ -11,11 +11,6 @@ Many of the APIs covered here are listed in the API documentation:
 
 * {mill-doc-url}/api/latest/mill/javalib/JavaModule.html[mill.javalib.JavaModule]
 
-== Configuring Single-File Projects
-
-include::partial$example/javalib/module/1-single-file.adoc[]
-
-
 == Common Configuration Overrides
 
 include::partial$example/javalib/module/2-common-config.adoc[]

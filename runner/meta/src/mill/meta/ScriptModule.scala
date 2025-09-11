@@ -5,33 +5,39 @@ import mill.api.Discover
 import mill.util.MainRootModule
 
 trait ScriptModule extends MainRootModule with mill.javalib.JavaModule
-    with mill.javalib.NativeImageModule
-    with mill.javalib.PublishModule {
+    with mill.javalib.NativeImageModule {
   def millFile: os.Path
-  override def allSourceFiles = Task.Sources(millFile)
-  def pomSettings = PomSettings(
-    description = "<description>",
-    organization = "",
-    url = "",
-    licenses = Seq(),
-    versionControl = VersionControl(),
-    developers = Seq()
-  )
-  def publishVersion = Task { "0.0.1" }
+  override def sources = Nil
+  def selfSource = Task.Source(millFile)
+  override def allSources = sources() ++ Seq(selfSource())
+  
 }
 object ScriptModule {
+  trait Publish extends mill.javalib.PublishModule {
+    def pomSettings = PomSettings(
+      description = "<description>",
+      organization = "",
+      url = "",
+      licenses = Seq(),
+      versionControl = VersionControl(),
+      developers = Seq()
+    )
+
+    def publishVersion = Task {
+      "0.0.1"
+    }
+  }
   trait Java(val millFile: os.Path) extends ScriptModule {
     override lazy val millDiscover = Discover[this.type]
-
   }
+
   trait Scala(val millFile: os.Path) extends ScriptModule with mill.scalalib.ScalaModule {
     def scalaVersion = mill.util.BuildInfo.scalaVersion
-    override def allSourceFiles = Task.Sources(millFile)
     override lazy val millDiscover = Discover[this.type]
   }
+
   trait Kotlin(val millFile: os.Path) extends ScriptModule with mill.kotlinlib.KotlinModule {
     def kotlinVersion = "1.9.24"
-    override def allSourceFiles = Task.Sources(millFile)
     override lazy val millDiscover = Discover[this.type]
   }
 }

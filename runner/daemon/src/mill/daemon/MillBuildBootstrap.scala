@@ -15,8 +15,7 @@ import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
 import mill.constants.OutFiles
 import mill.internal.PrefixLogger
-import mill.meta.{FileImportGraph, MillBuildRootModule}
-import mill.meta.CliImports
+import mill.meta.{FileImportGraph, MillBuildRootModule, CliImports, ScriptModule}
 import mill.server.Server
 import mill.util.BuildInfo
 
@@ -113,22 +112,8 @@ class MillBuildBootstrap(
 
       val (nestedState, headerDataOpt) = millFileOpt match {
         case Some(millFile) =>
-          import mill.*
-          implicit val rootModuleInfo: RootModule.Info =
-            new RootModule.Info(projectRoot, output, projectRoot)
-
-          val bootstrapModule = millFile.ext match {
-            case "java" => new mill.meta.ScriptModule.Java(millFile) {
-                override lazy val millDiscover = Discover[this.type]
-              }
-            case "scala" => new mill.meta.ScriptModule.Scala(millFile) {
-                override lazy val millDiscover = Discover[this.type]
-              }
-            case "kt" => new mill.meta.ScriptModule.Kotlin(millFile) {
-                override lazy val millDiscover = Discover[this.type]
-              }
-          }
-          val yamlHeader = mill.constants.Util.readBuildHeader(millFile.toNIO, millFile.last, true)
+          
+          val (bootstrapModule, yamlHeader) = ScriptModuleInit.apply(projectRoot, output, millFile)
 
           (RunnerState(Some(bootstrapModule), Nil, None, Some(millFile.last)), Some(yamlHeader))
         case None =>

@@ -12,10 +12,6 @@ Many of the APIs covered here are listed in the Scaladoc:
 * {mill-doc-url}/api/latest/mill/scalalib/ScalaModule.html[mill.scalalib.ScalaModule]
 
 
-== Configuring Single-File Projects
-
-include::partial$example/scalalib/module/1-single-file.adoc[]
-
 
 == Common Configuration Overrides
 
