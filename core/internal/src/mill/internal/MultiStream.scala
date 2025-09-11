@@ -1,6 +1,6 @@
 package mill.internal
 import java.io.{OutputStream, PrintStream}
-private[mill] class MultiStream(stream1: OutputStream, stream2: OutputStream)
+class MultiStream(stream1: OutputStream, stream2: OutputStream)
     extends PrintStream(new OutputStream {
       def write(b: Int): Unit = {
         stream1.write(b)

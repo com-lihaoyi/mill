@@ -13,7 +13,7 @@ import scala.concurrent.*
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
-private[mill] case class Execution(
+case class Execution(
     baseLogger: Logger,
     profileLogger: JsonArrayLogger.Profile,
     workspace: os.Path,
@@ -95,7 +95,7 @@ private[mill] case class Execution(
     }
   }
 
-  private def execute0(
+  def execute0(
       goals: Seq[Task[?]],
       logger: Logger,
       reporter: Int => Option[
@@ -332,7 +332,7 @@ private[mill] case class Execution(
   }
 }
 
-private[mill] object Execution {
+object Execution {
 
   /**
    * Format a failed count as a string to be used in status messages.
