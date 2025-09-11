@@ -35,6 +35,7 @@ final class EvaluatorImpl private[mill] (
   private[mill] def workerCache = execution.workerCache
   private[mill] def env = execution.env
   private[mill] def effectiveThreadCount = execution.effectiveThreadCount
+  scriptModuleResolver(os.Path(s.render, os.pwd))
   override private[mill] def offline: Boolean = execution.offline
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(

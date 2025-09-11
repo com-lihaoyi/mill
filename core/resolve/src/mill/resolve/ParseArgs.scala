@@ -17,10 +17,7 @@ private[mill] object ParseArgs {
   /** Separator used in [[SelectMode.Separated]] mode to separate a task-args-tuple from the next target. */
   val TaskSeparator = "+"
 
-  def apply(
-      scriptArgs: Seq[String],
-      selectMode: SelectMode
-  ): Result[Seq[TasksWithParams]] = {
+  def apply(scriptArgs: Seq[String], selectMode: SelectMode): Result[Seq[TasksWithParams]] = {
 
     val MaskPattern = ("""\\+\Q""" + TaskSeparator + """\E""").r
 

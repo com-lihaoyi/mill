@@ -300,36 +300,32 @@ private[mill] trait Resolve[T] {
       cache: ResolveCore.Cache
   ): Result[Seq[T]]
 
-  def resolve(
+  private[mill] def resolve(
       rootModule: RootModule0,
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
-      resolveToModuleTasks: Boolean = false
-  ): Result[List[T]] = {
-    resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
-  }
-
-  private[mill] def resolve0(
-      rootModule: RootModule0,
-      scriptArgs: Seq[String],
-      selectMode: SelectMode,
-      allowPositionalCommandArgs: Boolean,
-      resolveToModuleTasks: Boolean
+      resolveToModuleTasks: Boolean = false,
+      scriptModuleResolver: os.Path => mill.api.ExternalModule
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
       val resolved = groups.map { case (selectors, args) =>
         val selected = selectors.map { case (scopedSel, sel) =>
-          resolveRootModule(rootModule, scopedSel).map { rootModuleSels =>
-            resolveNonEmptyAndHandle(
-              args,
-              rootModuleSels,
-              sel.getOrElse(Segments()),
-              nullCommandDefaults,
-              allowPositionalCommandArgs,
-              resolveToModuleTasks
-            )
+          (scopedSel, sel) match {
+            case (None, Some(s)) if s.last.value == "kt" || s.last.value == "scala" || s.last.value == "java" =>
+              val bootstrapModule = scriptModuleResolver(os.Path(s.render, os.pwd))
+            case _ =>
+              resolveRootModule(rootModule, scopedSel).map { rootModuleSels =>
+                resolveNonEmptyAndHandle(
+                  args,
+                  rootModuleSels,
+                  sel.getOrElse(Segments()),
+                  nullCommandDefaults,
+                  allowPositionalCommandArgs,
+                  resolveToModuleTasks
+                )
+              }
           }
         }
 

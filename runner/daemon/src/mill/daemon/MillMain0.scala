@@ -265,14 +265,14 @@ object MillMain0 {
                             tailManager.withOutErr(logger.streams.out, logger.streams.err) {
                               new MillBuildBootstrap(
                                 projectRoot = BuildCtx.workspaceRoot,
-                                output0 = out,
+                                output = out,
                                 // In BSP server, we want to evaluate as many tasks as possible,
                                 // in order to give as many results as available in BSP responses
                                 keepGoing = bspMode || config.keepGoing.value,
                                 imports = config.imports,
                                 env = env ++ extraEnv,
                                 ec = ec,
-                                tasksAndParams0 = tasksAndParams,
+                                tasksAndParams = tasksAndParams,
                                 prevRunnerState = prevState.getOrElse(stateCache),
                                 logger = logger,
                                 needBuildFile = needBuildFile(config),
@@ -283,7 +283,6 @@ object MillMain0 {
                                 selectiveExecution = config.watch.value,
                                 offline = config.offline.value,
                                 reporter = reporter,
-                                millFileOpt0 = config.file,
                                 skipSelectiveExecution = skipSelectiveExecution
                               ).evaluate()
                             }
