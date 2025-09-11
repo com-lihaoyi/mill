@@ -17,6 +17,7 @@ object GroovyWorkerManager extends ExternalModule {
   }
 
   def get(toolsClassLoader: ClassLoader)(implicit ctx: TaskCtx): GroovyWorker = {
+    // TODO why not use ServiceLoader...investigate
     val className =
       classOf[GroovyWorker].getPackage().getName().split("\\.").dropRight(1).mkString(
         "."

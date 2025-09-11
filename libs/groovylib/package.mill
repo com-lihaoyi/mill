@@ -1,6 +1,5 @@
 package build.libs.groovylib
 
-// imports
 import mill.*
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.*
@@ -20,10 +19,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
 
   trait MillGroovyModule extends MillPublishScalaModule {
     override def javacOptions = super.javacOptions() ++ {
-      val release =
-        if (scala.util.Properties.isJavaAtLeast(11)) Seq("-release", "8")
-        else Seq("-source", "1.8", "-target", "1.8")
-      release ++ Seq("-encoding", "UTF-8", "-deprecation")
+      Seq("-release", "8", "-encoding", "UTF-8", "-deprecation")
     }
   }
 
