@@ -192,6 +192,8 @@ object Deps {
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
+  val groovyVersion = "4.0.28"
+  val groovyCompiler = mvn"org.apache.groovy:groovy:$groovyVersion"
 
   /** Used for the `mill init` from a Maven project. */
   object MavenInit {
