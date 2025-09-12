@@ -4,11 +4,6 @@ import mill.main.buildgen.BuildGenUtil.{compactBuildTree, writeBuildObject}
 
 import scala.collection.immutable.{SortedMap, SortedSet}
 
-/**
- * Base trait for build generation with abstract type members instead of generic type parameters.
- * See https://stackoverflow.com/a/1154727/5082913.
- * Abstract type members are preferred in this case for better type variance and flexibility.
- */
 trait BuildGenBase {
   type M
   type D  
@@ -106,9 +101,9 @@ trait BuildGenBase {
 }
 
 object BuildGenBase {
-  trait MavenAndGradle[M_, D_] extends BuildGenBase {
-    type M = M_
-    type D = D_
+  trait MavenAndGradle extends BuildGenBase {
+    type M
+    type D
     type I = Tree[Node[M]]
     override def getModuleTree(input: Tree[Node[M]]): Tree[Node[Option[M]]] =
       // TODO consider filtering out projects without the `java` plugin applied in Gradle too
