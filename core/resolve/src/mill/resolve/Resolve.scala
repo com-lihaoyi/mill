@@ -312,7 +312,7 @@ private[mill] trait Resolve[T] {
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val cache = new ResolveCore.Cache()
-    def handleSingleFileModule(args: Seq[String], fallback: Result[Seq[T]]): Result[Seq[T]] = {
+    def handleSingleFileModule(args: Seq[String], fallback: => Result[Seq[T]]): Result[Seq[T]] = {
       scriptModuleResolver(args.head).map { scriptModule =>
         resolveNonEmptyAndHandle(
           args.tail,
