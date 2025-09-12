@@ -356,7 +356,7 @@ object BuildGenUtil {
   def renderVersionControl(vc: IrVersionControl): String =
     s"VersionControl(${escapeOption(vc.url)}, ${escapeOption(vc.connection)}, ${escapeOption(vc.devConnection)}, ${escapeOption(vc.tag)})"
 
-  // TODO consider renaming to `renderOptionalDef` or `renderIfArgsNonEmpty`?
+  // TODO consider renaming to `renderOptional(Def)` or `render(Def)IfArgsNonEmpty`?
   def optional(construct: String, args: IterableOnce[String]): String =
     optional(construct + "(", args, ",", ")")
 
