@@ -6,7 +6,7 @@ import scala.collection.immutable.{SortedMap, SortedSet}
 
 trait BuildGenBase {
   type M
-  type D  
+  type D
   type I
   type C
   def convertWriteOut(cfg: C, shared: BuildGenUtil.BasicConfig, input: I): Unit = {
