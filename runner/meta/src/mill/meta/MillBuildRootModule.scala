@@ -288,6 +288,7 @@ trait MillBuildRootModule()(implicit
       .internalWorker()
       .compileMixed(
         ZincCompileMixed(
+          compileTo = Task.dest,
           upstreamCompileOutput = upstreamCompileOutput(),
           sources = Seq.from(allSourceFiles().map(_.path)),
           compileClasspath = compileClasspath().map(_.path),

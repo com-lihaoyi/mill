@@ -1,7 +1,8 @@
 package mill.api
 import collection.mutable
 import mill.api.Watchable
-import mill.constants.EnvVars
+import mill.constants.{EnvVars, OutFiles, OutFolderMode}
+
 import scala.util.DynamicVariable
 
 /**
@@ -50,6 +51,7 @@ object BuildCtx {
     }
   }
 
+  /** As [[watchValue]] but watches a file path. */
   def watch(p: os.Path): os.Path = {
     val watchable = Watchable.Path(p.toNIO, false, PathRef(p).sig)
     watchedValues.append(watchable)
@@ -59,4 +61,8 @@ object BuildCtx {
   def watch0(w: Watchable): Unit = watchedValues.append(w)
 
   def evalWatch0(w: Watchable): Unit = evalWatchedValues.append(w)
+
+  // TODO review: doc me
+  private[mill] def bspSemanticDbSesssionsFolder =
+    workspaceRoot / os.SubPath(OutFiles.outFor(OutFolderMode.BSP)) / "semanticdb-sessions"
 }
