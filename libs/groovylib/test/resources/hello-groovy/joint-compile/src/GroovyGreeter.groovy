@@ -1,7 +1,5 @@
 package jointcompile
 
-import jointCompile.JavaPrinter
-
 class GroovyGreeter{
 
     private final String toGreet;

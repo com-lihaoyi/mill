@@ -1,8 +1,5 @@
 package jointcompile;
 
-import jointcompile.GroovyGreeter;
-
-
 public class JavaMain {
 
   public static void main(String[] args) {
