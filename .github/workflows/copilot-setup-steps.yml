@@ -24,3 +24,5 @@ jobs:
 
       - name: Run Mill compile
         run: ./mill __.compile
+
+      - uses: sbt/setup-sbt@v1
