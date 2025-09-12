@@ -742,6 +742,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/api/ExecutionResults.html#","e":false,"i":"","n":"ExecutionResults","t":"ExecutionResults extends ExecutionResultsApi","d":"mill.api","k":"trait","x":""},
 {"l":"mill/api/ExecutionResults.html#results-0","e":false,"i":"","n":"results","t":"results: Seq[ExecResult[Val]]","d":"mill.api.ExecutionResults","k":"def","x":""},
 {"l":"mill/api/ExecutionResults.html#transitiveFailing-0","e":false,"i":"","n":"transitiveFailing","t":"transitiveFailing: Map[Task[_], Failing[Val]]","d":"mill.api.ExecutionResults","k":"def","x":""},
+{"l":"mill/api/ExecutionResults.html#transitivePrefixes-0","e":false,"i":"","n":"transitivePrefixes","t":"transitivePrefixes: Map[Task[_], Seq[String]]","d":"mill.api.ExecutionResults","k":"def","x":""},
 {"l":"mill/api/ExecutionResults.html#transitiveResults-0","e":false,"i":"","n":"transitiveResults","t":"transitiveResults: Map[Task[_], ExecResult[Val]]","d":"mill.api.ExecutionResults","k":"def","x":""},
 {"l":"mill/api/ExecutionResults.html#uncached-0","e":false,"i":"","n":"uncached","t":"uncached: Seq[Task[_]]","d":"mill.api.ExecutionResults","k":"def","x":""},
 {"l":"mill/api/ExecutionResults.html#values-0","e":false,"i":"","n":"values","t":"values: Seq[Val]","d":"mill.api.ExecutionResults","k":"def","x":""},
