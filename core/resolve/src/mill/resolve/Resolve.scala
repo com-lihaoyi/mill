@@ -308,23 +308,24 @@ private[mill] trait Resolve[T] {
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false,
-      scriptModuleResolver: String => Result[mill.api.ExternalModule]
+      scriptModuleResolver: String => Option[Result[mill.api.ExternalModule]]
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val cache = new ResolveCore.Cache()
     def handleSingleFileModule(args: Seq[String], fallback: => Result[Seq[T]]): Result[Seq[T]] = {
-      scriptModuleResolver(args.head).map { scriptModule =>
-        resolveNonEmptyAndHandle(
-          args.tail,
-          scriptModule,
-          Segments(),
-          nullCommandDefaults,
-          allowPositionalCommandArgs,
-          resolveToModuleTasks
-        )
-      }match{
-        case _: Result.Failure => fallback
-        case Result.Success(r) => r
+      scriptModuleResolver(args.head) match{
+        case None => fallback
+        case Some(resolved) =>
+          resolved.flatMap( scriptModule =>
+            resolveNonEmptyAndHandle(
+              args.tail,
+              scriptModule,
+              Segments(),
+              nullCommandDefaults,
+              allowPositionalCommandArgs,
+              resolveToModuleTasks
+            )
+          )
       }
     }
     val resolvedGroups = ParseArgs.separate(scriptArgs).map { group =>
