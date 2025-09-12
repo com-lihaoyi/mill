@@ -17,7 +17,7 @@ private[mill] object ParseArgs {
   /** Separator used in [[SelectMode.Separated]] mode to separate a task-args-tuple from the next target. */
   val TaskSeparator = "+"
 
-  def apply(scriptArgs: Seq[String], selectMode: SelectMode): Result[Seq[TasksWithParams]] = {
+  def apply(scriptArgs: Seq[String], selectMode: SelectMode): Seq[Result[TasksWithParams]] = {
 
     val MaskPattern = ("""\\+\Q""" + TaskSeparator + """\E""").r
 
@@ -42,9 +42,7 @@ private[mill] object ParseArgs {
     val parsed: Seq[Result[TasksWithParams]] =
       parts.map(extractAndValidate(_, selectMode == SelectMode.Multi))
 
-    val res1: Result[Seq[TasksWithParams]] = Result.sequence(parsed)
-
-    res1
+    parsed
   }
 
   private def extractAndValidate(
@@ -116,7 +114,7 @@ private[mill] object ParseArgs {
       case (h, rest) => Segments(h +: rest)
     }
 
-    P(simpleQuery ~ ("/" ~ simpleQuery.?).? ~ End).map {
+    P(simpleQuery ~ (("/" | ":") ~ simpleQuery.?).? ~ End).map {
       case (q, None) => (None, Some(q))
       case (q, Some(q2)) => (Some(q), q2)
     }

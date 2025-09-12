@@ -300,6 +300,19 @@ private[mill] trait Resolve[T] {
       cache: ResolveCore.Cache
   ): Result[Seq[T]]
 
+//  (scopedSel, sel) match {
+//    case (None, Some(s))
+//      if s.last.value == "kt" || s.last.value == "scala" || s.last.value == "java" =>
+//      Result.Success(scriptModuleResolver(s.render)).map { scriptModule =>
+//        resolveNonEmptyAndHandle(
+//          args,
+//          scriptModule,
+//          Segments(),
+//          nullCommandDefaults,
+//          allowPositionalCommandArgs,
+//          resolveToModuleTasks
+//        )
+//      }
   private[mill] def resolve(
       rootModule: RootModule0,
       scriptArgs: Seq[String],
@@ -309,23 +322,11 @@ private[mill] trait Resolve[T] {
       scriptModuleResolver: String => mill.api.ExternalModule
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
-    val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
-      val resolved = groups.map { case (selectors, args) =>
-        val selected = selectors.map { case (scopedSel, sel) =>
-          (scopedSel, sel) match {
-            case (None, Some(s))
-                if s.last.value == "kt" || s.last.value == "scala" || s.last.value == "java" =>
-              Result.Success(scriptModuleResolver(s.render)).map { scriptModule =>
-                resolveNonEmptyAndHandle(
-                  args,
-                  scriptModule,
-                  Segments(),
-                  nullCommandDefaults,
-                  allowPositionalCommandArgs,
-                  resolveToModuleTasks
-                )
-              }
-            case _ =>
+    val resolvedGroups = ParseArgs(scriptArgs, selectMode).map { groups =>
+      val resolved = groups match {
+        case Result.Success((selectors, args)) =>
+          val selected = selectors.map {
+            case (scopedSel, sel) =>
               resolveRootModule(rootModule, scopedSel).map { rootModuleSels =>
                 resolveNonEmptyAndHandle(
                   args,
@@ -335,17 +336,20 @@ private[mill] trait Resolve[T] {
                   allowPositionalCommandArgs,
                   resolveToModuleTasks
                 )
+              } match {
+                case Result.Success(res) => res
+                case _ => ???
               }
-          }
-        }
 
-        Result.sequence(selected.map(_.flatten)).map(_.flatten)
+          }
+          Result.sequence(selected).map(_.flatten)
+        case _ => ???
       }
 
-      Result.sequence(resolved)
+      resolved
     }
 
-    resolvedGroups.map(_.flatten.toList).map(deduplicate)
+    Result.sequence(resolvedGroups).map(_.flatten.toList).map(deduplicate)
   }
 
   private[mill] def resolveNonEmptyAndHandle(
