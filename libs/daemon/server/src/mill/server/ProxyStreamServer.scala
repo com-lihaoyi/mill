@@ -67,12 +67,12 @@ abstract class ProxyStreamServer(args: Server.Args) extends Server(args) { self 
   ): PreHandleConnectionData = {
     val stdout =
       new PrintStream(
-        new ProxyStream.Output(connectionData.serverToClient, ProxyStream.OUT),
+        new ProxyStream.Output(connectionData.serverToClient, ProxyStream.StreamType.OUT),
         true
       )
     val stderr =
       new PrintStream(
-        new ProxyStream.Output(connectionData.serverToClient, ProxyStream.ERR),
+        new ProxyStream.Output(connectionData.serverToClient, ProxyStream.StreamType.ERR),
         true
       )
 
