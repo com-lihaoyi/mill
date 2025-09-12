@@ -372,8 +372,8 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
   @main
   @internal
   case class Config(
-                     shared: BuildGenUtil.MavenAndGradleCommonConfig,
-                     @arg(doc = "name of Gradle project to extract settings for --base-module", short = 'g')
+      shared: BuildGenUtil.MavenAndGradleCommonConfig,
+      @arg(doc = "name of Gradle project to extract settings for --base-module", short = 'g')
       baseProject: Option[String] = None
   )
 

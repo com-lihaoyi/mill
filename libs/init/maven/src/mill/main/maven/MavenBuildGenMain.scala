@@ -293,10 +293,10 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
   @main
   @internal
   case class Config(
-                     shared: BuildGenUtil.MavenAndGradleCommonConfig,
-                     @arg(doc = "use cache for Maven repository system")
+      shared: BuildGenUtil.MavenAndGradleCommonConfig,
+      @arg(doc = "use cache for Maven repository system")
       cacheRepository: Flag = Flag(),
-                     @arg(doc = "process Maven plugin executions and configurations")
+      @arg(doc = "process Maven plugin executions and configurations")
       processPlugins: Flag = Flag()
   ) extends ModelerConfig
 
