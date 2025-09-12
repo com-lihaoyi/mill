@@ -1,7 +1,6 @@
 package mill.scalajslib.worker
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import scala.concurrent.Future
 import java.io.File
 import java.nio.file.Path
 import mill.scalajslib.worker.api.*
@@ -26,6 +25,8 @@ import scala.collection.mutable
 import scala.ref.SoftReference
 import com.armanbilge.sjsimportmap.ImportMappedIRFile
 import mill.constants.InputPumper
+import java.io.PrintWriter
+import java.io.StringWriter
 
 class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
@@ -177,6 +178,33 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       t.printStackTrace()
     }
   }
+  private object queuedLogger {
+    private val queue = java.util.concurrent.LinkedBlockingQueue[String]()
+
+    def awaitFutureWhilePrinting[T](future: Future[T]): T = {
+      while ({
+        val message = queue.poll(10, java.util.concurrent.TimeUnit.MILLISECONDS)
+        if (message == null) {
+          !future.isCompleted
+        } else {
+          System.err.println(message)
+          true
+        }
+      }) ()
+      future.value.get.get
+    }
+
+    val value = new Logger {
+      def log(level: Level, message: => String): Unit = {
+        queue.put(message)
+      }
+      def trace(t: => Throwable): Unit = {
+        val sw = StringWriter()
+        t.printStackTrace(PrintWriter(sw))
+        queue.put(sw.toString)
+      }
+    }
+  }
   def link(
       runClasspath: Seq[Path],
       dest: File,
@@ -256,7 +284,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
               .withSourceMap(PathOutputFile(sourceMapFile))
               .withSourceMapURI(java.net.URI.create(sourceMapFile.getFileName.toString))
           }
-          linker.link(irFiles, moduleInitializers, linkerOutput, logger).map { _ =>
+          linker.link(irFiles, moduleInitializers, linkerOutput, queuedLogger.value).map { _ =>
             Report(
               publicModules = Seq(Report.Module(
                 moduleID = "main",
@@ -273,7 +301,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
             irFiles,
             moduleInitializers,
             linkerOutput,
-            logger
+            queuedLogger.value
           ).map { report =>
             Report(
               publicModules =
@@ -297,7 +325,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         Left(e.getMessage)
     }
 
-    Await.result(resultFuture, Duration.Inf)
+    queuedLogger.awaitFutureWhilePrinting(resultFuture)
   }
 
   def run(config: JsEnvConfig, report: Report): Unit = {
