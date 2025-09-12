@@ -356,11 +356,11 @@ object BuildGenUtil {
   def renderVersionControl(vc: IrVersionControl): String =
     s"VersionControl(${escapeOption(vc.url)}, ${escapeOption(vc.connection)}, ${escapeOption(vc.devConnection)}, ${escapeOption(vc.tag)})"
 
-  // TODO consider renaming to `renderOptional(Def)` or `render(Def)IfArgsNonEmpty`?
-  def optional(construct: String, args: IterableOnce[String]): String =
-    optional(construct + "(", args, ",", ")")
+  // TODO more alternative names: `renderOptional(Def)` or `render(Def)IfArgsNonEmpty`?
+  def renderIfArgsNonEmpty(construct: String, args: IterableOnce[String]): String =
+    renderIfArgsNonEmpty(construct + "(", args, ",", ")")
 
-  def optional(start: String, args: IterableOnce[String], sep: String, end: String): String = {
+  def renderIfArgsNonEmpty(start: String, args: IterableOnce[String], sep: String, end: String): String = {
     val itr = args.iterator
     if (itr.isEmpty) ""
     else itr.mkString(start, sep, end)
@@ -406,25 +406,25 @@ object BuildGenUtil {
     else s"def artifactName = ${escape(name)}"
 
   def renderBomMvnDeps(args: IterableOnce[String]): String =
-    optional("def bomMvnDeps = super.bomMvnDeps() ++ Seq", args)
+    renderIfArgsNonEmpty("def bomMvnDeps = super.bomMvnDeps() ++ Seq", args)
 
   def renderMvnDeps(args: IterableOnce[String]): String =
-    optional("def mvnDeps = Seq", args)
+    renderIfArgsNonEmpty("def mvnDeps = Seq", args)
 
   def renderModuleDeps(args: IterableOnce[String]): String =
-    optional("def moduleDeps = super.moduleDeps ++ Seq", args)
+    renderIfArgsNonEmpty("def moduleDeps = super.moduleDeps ++ Seq", args)
 
   def renderCompileMvnDeps(args: IterableOnce[String]): String =
-    optional("def compileMvnDeps = Seq", args)
+    renderIfArgsNonEmpty("def compileMvnDeps = Seq", args)
 
   def renderCompileModuleDeps(args: IterableOnce[String]): String =
-    optional("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
+    renderIfArgsNonEmpty("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
 
   def renderRunMvnDeps(args: IterableOnce[String]): String =
-    optional("def runMvnDeps = Seq", args)
+    renderIfArgsNonEmpty("def runMvnDeps = Seq", args)
 
   def renderRunModuleDeps(args: IterableOnce[String]): String =
-    optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)
+    renderIfArgsNonEmpty("def runModuleDeps = super.runModuleDeps ++ Seq", args)
 
   def renderJavacOptions(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
     renderSeqTaskDefWithSuper("javacOptions", args, superArgs, "String", escape).getOrElse("")
@@ -455,7 +455,7 @@ object BuildGenUtil {
     ).getOrElse("")
 
   def renderResources(args: IterableOnce[os.SubPath]): String =
-    optional(
+    renderIfArgsNonEmpty(
       """def resources = Task { super.resources() ++ customResources() }
         |def customResources = Task.Sources(""".stripMargin,
       args.iterator.map(sub => escape(sub.toString())),
@@ -491,7 +491,7 @@ object BuildGenUtil {
       args: Seq[(String, String)]
   ): String = {
     val tuples = args.iterator.map { case (k, v) => s"(${escape(k)}, ${escape(v)})" }
-    optional("def publishProperties = super.publishProperties() ++ Map", tuples)
+    renderIfArgsNonEmpty("def publishProperties = super.publishProperties() ++ Map", tuples)
   }
 
   def renderJvmWorker(moduleName: String): String =
