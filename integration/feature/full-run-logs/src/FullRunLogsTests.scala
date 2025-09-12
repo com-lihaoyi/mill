@@ -75,10 +75,31 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "[<digits>/<digits>] compile",
           "[<digits>] [info] compiling <digits> Java source to .../out/compile.dest/classes ...",
           "[<digits>] [error] .../src/foo/Foo.java:<digits>:<digits>: reached end of file while parsing",
-          "[<digits>] compile failed",
+          "[<digits>] compile task failed",
           "[<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
           "<digits> tasks failed",
           "[<digits>] compile javac returned non-zero exit code"
+        )
+      )
+
+      modifyFile(workspacePath / "build.mill", _ + "?")
+
+      val res2 = eval(("--ticker", "true", "--keep-going", "jar"))
+      res2.isSuccess ==> false
+
+      assertGoldenLiteral(
+        normalize(res2.err, workspacePath),
+        List(
+          "============================== jar ==============================",
+          "[build.mill-<digits>/<digits>] compile",
+          "[build.mill-<digits>] [info] compiling <digits> Scala source to .../out/mill-build/compile.dest/classes ...",
+          "[build.mill-<digits>] [error]  <dashes> [E<digits>] .../build.mill:<digits>:<digits>",
+          "[build.mill-<digits>] [error] Illegal start of toplevel definition",
+          "[build.mill-<digits>] [error] one error found",
+          "[build.mill-<digits>] compile task failed",
+          "[<digits>/<digits>, <digits> failed] ============================== jar ==============================",
+          "<digits> tasks failed",
+          "[build.mill-<digits>] compile Compilation failed"
         )
       )
     }

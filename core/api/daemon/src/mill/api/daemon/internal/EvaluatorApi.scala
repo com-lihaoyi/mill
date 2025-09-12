@@ -42,7 +42,7 @@ trait ExecutionResultsApi {
   private[mill] def transitiveResultsApi: Map[TaskApi[?], ExecResult[Val]]
 
   private[mill] def transitiveFailingApi: Map[TaskApi[?], ExecResult.Failing[Val]]
-  private[mill] def transitivePrefixesApi: Map[TaskApi[?], String] = Map()
+  private[mill] def transitivePrefixesApi: Map[TaskApi[?], Seq[String]] = Map()
   def uncached: Seq[TaskApi[?]]
 
   def values: Seq[Val]
@@ -55,7 +55,7 @@ object ExecutionResultsApi {
           case ExecResult.Failure(t) => t
           case ex: ExecResult.Exception => ex.toString
         }
-        val keyPrefix = Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, ""))
+        val keyPrefix = Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, Nil))
         s"$keyPrefix$k $fss"
       }).mkString("\n")
   }
