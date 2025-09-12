@@ -557,15 +557,16 @@ object BuildGenUtil {
   object BasicConfig {
     implicit def parser: mainargs.ParserForClass[BasicConfig] = mainargs.ParserForClass[BasicConfig]
   }
-  // TODO alternative names: `MavenAndGradleConfig`, `MavenAndGradleSharedConfig`
+
+  // TODO other alternative names to consider: `MavenAndGradleConfig`, `MavenAndGradleSharedConfig`
   @mainargs.main
-  case class Config(
+  case class MavenAndGradleCommonConfig(
       basicConfig: BasicConfig,
       @arg(doc = "capture Maven publish properties", short = 'p')
       publishProperties: Flag = Flag()
   )
-
-  object Config {
-    implicit def configParser: mainargs.ParserForClass[Config] = mainargs.ParserForClass[Config]
+  object MavenAndGradleCommonConfig {
+    implicit def configParser: mainargs.ParserForClass[MavenAndGradleCommonConfig] =
+      mainargs.ParserForClass[MavenAndGradleCommonConfig]
   }
 }
