@@ -37,17 +37,16 @@ trait BuildGenBase[M, D, I] {
       shared: BuildGenUtil.BasicConfig
   ): Tree[Node[BuildObject]] = {
     val moduleTree = getModuleTree(input)
-    val moduleOptionTree = moduleTree.map(node => node.copy(value = node.value))
 
     // for resolving moduleDeps
     val moduleNodes =
-      moduleOptionTree.nodes().flatMap(node => node.value.map(m => node.copy(value = m))).toSeq
+      moduleTree.nodes().flatMap(node => node.value.map(m => node.copy(value = m))).toSeq
     val moduleRefMap = getModuleFqnMap(moduleNodes)
 
     val baseInfo =
       shared.baseModule.fold(IrBaseInfo()) { getBaseInfo(input, cfg, _, moduleNodes.size) }
 
-    moduleOptionTree.map(optionalBuild =>
+    moduleTree.map(optionalBuild =>
       optionalBuild.copy(value =
         optionalBuild.value.fold(
           BuildObject(SortedSet("mill._"), SortedMap.empty, Seq("Module"), "", "")
