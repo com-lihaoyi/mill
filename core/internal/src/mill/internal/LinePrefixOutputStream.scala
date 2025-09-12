@@ -10,7 +10,7 @@ import java.io.{ByteArrayOutputStream, FilterOutputStream, OutputStream}
  * @param linePrefix The function to provide the prefix.
  * @param out The underlying output stream.
  */
-private[mill] class LinePrefixOutputStream(
+class LinePrefixOutputStream(
     linePrefix: String,
     out: OutputStream,
     reportPrefix: () => Unit

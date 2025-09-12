@@ -4,7 +4,7 @@ import mill.api.{SystemStreams, Logger}
 
 import java.io.PrintStream
 
-private[mill] class SimpleLogger(
+class SimpleLogger(
     override val unprefixedStreams: SystemStreams,
     override val logKey: Seq[String],
     debugEnabled: Boolean
