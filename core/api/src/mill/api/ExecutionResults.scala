@@ -21,6 +21,10 @@ trait ExecutionResults extends ExecutionResultsApi {
   private[mill] def transitiveResultsApi: Map[TaskApi[?], ExecResult[Val]] =
     transitiveResults.asInstanceOf[Map[TaskApi[?], ExecResult[Val]]]
 
+  def transitivePrefixes: Map[Task[?], String] = Map()
+  private[mill] override def transitivePrefixesApi: Map[TaskApi[?], String] =
+    transitivePrefixes.asInstanceOf[Map[TaskApi[?], String]]
+
   /**
    * The tasks that were executed without being read from cache
    */

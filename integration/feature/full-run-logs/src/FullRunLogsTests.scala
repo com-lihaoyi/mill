@@ -78,7 +78,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "[<digits>] compile failed",
           "[<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
           "<digits> tasks failed",
-          "compile javac returned non-zero exit code"
+          "[<digits>] compile javac returned non-zero exit code"
         )
       )
     }

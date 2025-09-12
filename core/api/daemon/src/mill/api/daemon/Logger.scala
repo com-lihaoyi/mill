@@ -88,6 +88,7 @@ trait Logger extends Logger.Actions {
 }
 
 object Logger {
+  private[mill] def formatPrefix(s: String) = if (s == "") "" else s"[$s] "
   object DummyLogger extends Logger {
     def colored = false
 

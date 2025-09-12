@@ -134,6 +134,7 @@ private[mill] case class Execution(
     baseLogger.withChromeProfile("execution") {
       val uncached = new ConcurrentHashMap[Task[?], Unit]()
       val changedValueHash = new ConcurrentHashMap[Task[?], Unit]()
+      val prefixes = new ConcurrentHashMap[Task[?], String]()
 
       val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
@@ -180,6 +181,7 @@ private[mill] case class Execution(
                   '0'
                 )
 
+                prefixes.put(terminal, countMsg)
                 val keySuffix = s"/${indexToTerminal.size}"
 
                 val contextLogger = new PrefixLogger(
@@ -319,10 +321,12 @@ private[mill] case class Execution(
 
       val results: Map[Task[?], ExecResult[(Val, Int)]] = results0.toMap
 
+      import scala.collection.JavaConverters._
       Execution.Results(
         goals.toIndexedSeq.map(results(_).map(_._1)),
         finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,
-        results.map { case (k, v) => (k, v.map(_._1)) }
+        results.map { case (k, v) => (k, v.map(_._1)) },
+        prefixes.asScala.toMap
       )
     }
   }
@@ -360,6 +364,7 @@ private[mill] object Execution {
   private[Execution] case class Results(
       results: Seq[ExecResult[Val]],
       uncached: Seq[Task[?]],
-      transitiveResults: Map[Task[?], ExecResult[Val]]
+      transitiveResults: Map[Task[?], ExecResult[Val]],
+      override val transitivePrefixes: Map[Task[?], String]
   ) extends mill.api.ExecutionResults
 }
