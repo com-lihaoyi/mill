@@ -300,19 +300,8 @@ private[mill] trait Resolve[T] {
       cache: ResolveCore.Cache
   ): Result[Seq[T]]
 
-//  (scopedSel, sel) match {
-//    case (None, Some(s))
-//      if s.last.value == "kt" || s.last.value == "scala" || s.last.value == "java" =>
-//      Result.Success(scriptModuleResolver(s.render)).map { scriptModule =>
-//        resolveNonEmptyAndHandle(
-//          args,
-//          scriptModule,
-//          Segments(),
-//          nullCommandDefaults,
-//          allowPositionalCommandArgs,
-//          resolveToModuleTasks
-//        )
-//      }
+
+
   private[mill] def resolve(
       rootModule: RootModule0,
       scriptArgs: Seq[String],
@@ -322,28 +311,45 @@ private[mill] trait Resolve[T] {
       scriptModuleResolver: String => mill.api.ExternalModule
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
-    val resolvedGroups = ParseArgs(scriptArgs, selectMode).map { groups =>
-      val resolved = groups match {
+    val cache = new ResolveCore.Cache()
+    def handleSingleFileModule(args: Seq[String]) = {
+      Result.Success(scriptModuleResolver(args.head)).flatMap { scriptModule =>
+        resolveNonEmptyAndHandle(
+          args.tail,
+          scriptModule,
+          Segments(),
+          nullCommandDefaults,
+          allowPositionalCommandArgs,
+          resolveToModuleTasks
+        )
+      }
+    }
+    val resolvedGroups = ParseArgs.separate(scriptArgs).map { group =>
+      val resolved = ParseArgs.extractAndValidate(group, selectMode == SelectMode.Multi) match {
         case Result.Success((selectors, args)) =>
           val selected = selectors.map {
             case (scopedSel, sel) =>
-              resolveRootModule(rootModule, scopedSel).map { rootModuleSels =>
-                resolveNonEmptyAndHandle(
-                  args,
-                  rootModuleSels,
-                  sel.getOrElse(Segments()),
-                  nullCommandDefaults,
-                  allowPositionalCommandArgs,
-                  resolveToModuleTasks
-                )
-              } match {
-                case Result.Success(res) => res
-                case _ => ???
+              resolveRootModule(rootModule, scopedSel) match {
+                case Result.Success(rootModuleSels) =>
+                  resolveNonEmptyAndHandle1(rootModule, sel.getOrElse(Segments()), cache) match{
+                    case notFound: ResolveCore.NotFound => handleSingleFileModule(group)
+                    case res =>
+                      resolveNonEmptyAndHandle2(
+                        rootModule,
+                        args,
+                        sel.getOrElse(Segments()),
+                        nullCommandDefaults,
+                        allowPositionalCommandArgs,
+                        resolveToModuleTasks,
+                        cache,
+                        res
+                      )
+                  }
+                case _ => handleSingleFileModule(group)
               }
-
           }
           Result.sequence(selected).map(_.flatten)
-        case _ => ???
+        case _ => handleSingleFileModule(group)
       }
 
       resolved
@@ -360,38 +366,64 @@ private[mill] trait Resolve[T] {
       allowPositionalCommandArgs: Boolean,
       resolveToModuleTasks: Boolean
   ): Result[Seq[T]] = {
-    val rootResolved = Resolved.Module(Segments(), rootModule.getClass)
     val cache = new ResolveCore.Cache()
-    val resolved =
-      ResolveCore.resolve(
-        rootModule = rootModule,
-        remainingQuery = sel.value.toList,
-        current = rootResolved,
-        querySoFar = Segments(),
-        seenModules = Set.empty,
-        cache = cache
-      ) match {
-        case ResolveCore.Success(value) => Result.Success(value)
-        case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-          val allPossibleNames = rootModule
-            .moduleCtx
-            .discover
-            .classInfo
-            .values
-            .flatMap(_.declaredTasks)
-            .map(_.name)
-            .toSet
+    resolveNonEmptyAndHandle2(
+      rootModule,
+      args,
+      sel,
+      nullCommandDefaults,
+      allowPositionalCommandArgs,
+      resolveToModuleTasks,
+      cache,
+      resolveNonEmptyAndHandle1(rootModule, sel, cache)
+    )
+  }
+  private[mill] def resolveNonEmptyAndHandle1(
+      rootModule: RootModule0,
+      sel: Segments,
+      cache: ResolveCore.Cache
+  ): ResolveCore.Result = {
+    val rootResolved = Resolved.Module(Segments(), rootModule.getClass)
+    ResolveCore.resolve(
+      rootModule = rootModule,
+      remainingQuery = sel.value.toList,
+      current = rootResolved,
+      querySoFar = Segments(),
+      seenModules = Set.empty,
+      cache = cache
+    )
+  }
 
-          Result.Failure(ResolveNotFoundHandler(
-            selector = sel,
-            segments = segments,
-            found = found,
-            next = next,
-            possibleNexts = possibleNexts,
-            allPossibleNames = allPossibleNames
-          ))
-        case ResolveCore.Error(value) => Result.Failure(value)
-      }
+  private[mill] def resolveNonEmptyAndHandle2(rootModule: RootModule0,
+                                              args: Seq[String],
+                                              sel: Segments,
+                                              nullCommandDefaults: Boolean,
+                                              allowPositionalCommandArgs: Boolean,
+                                              resolveToModuleTasks: Boolean,
+                                              cache: ResolveCore.Cache,
+                                              result: ResolveCore.Result): Result[Seq[T]] = {
+    val resolved = result match {
+      case ResolveCore.Success(value) => Result.Success(value)
+      case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
+        val allPossibleNames = rootModule
+          .moduleCtx
+          .discover
+          .classInfo
+          .values
+          .flatMap(_.declaredTasks)
+          .map(_.name)
+          .toSet
+
+        Result.Failure(ResolveNotFoundHandler(
+          selector = sel,
+          segments = segments,
+          found = found,
+          next = next,
+          possibleNexts = possibleNexts,
+          allPossibleNames = allPossibleNames
+        ))
+      case ResolveCore.Error(value) => Result.Failure(value)
+    }
 
     resolved.flatMap { r =>
       val sorted = r.sorted

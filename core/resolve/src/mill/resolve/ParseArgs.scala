@@ -16,11 +16,8 @@ private[mill] object ParseArgs {
 
   /** Separator used in [[SelectMode.Separated]] mode to separate a task-args-tuple from the next target. */
   val TaskSeparator = "+"
-
-  def apply(scriptArgs: Seq[String], selectMode: SelectMode): Seq[Result[TasksWithParams]] = {
-
-    val MaskPattern = ("""\\+\Q""" + TaskSeparator + """\E""").r
-
+  val MaskPattern = ("""\\+\Q""" + TaskSeparator + """\E""").r
+  def separate(scriptArgs: Seq[String]) = {
     /**
      * Partition the arguments in groups using a separator.
      * To also use the separator as argument, masking it with a backslash (`\`) is supported.
@@ -32,20 +29,19 @@ private[mill] object ParseArgs {
         val (next, r2) = r.span(_ != TaskSeparator)
         separated(
           result ++ Seq(next.map {
-            case x @ MaskPattern(_*) => x.drop(1)
+            case x@MaskPattern(_*) => x.drop(1)
             case x => x
           }),
           r2.drop(1)
         )
     }
-    val parts: Seq[Seq[String]] = separated(Seq() /* start value */, scriptArgs)
-    val parsed: Seq[Result[TasksWithParams]] =
-      parts.map(extractAndValidate(_, selectMode == SelectMode.Multi))
-
-    parsed
+    separated(Seq() /* start value */, scriptArgs)
+  }
+  def apply(scriptArgs: Seq[String], selectMode: SelectMode): Seq[Result[TasksWithParams]] = {
+    separate(scriptArgs).map(extractAndValidate(_, selectMode == SelectMode.Multi))
   }
 
-  private def extractAndValidate(
+  def extractAndValidate(
       scriptArgs: Seq[String],
       multiSelect: Boolean
   ): Result[TasksWithParams] = {
