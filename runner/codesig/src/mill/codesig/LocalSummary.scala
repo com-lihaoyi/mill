@@ -131,7 +131,6 @@ object LocalSummary {
       descriptor: String,
       access: Int
   )(implicit st: SymbolTable) extends MethodVisitor(Opcodes.ASM9) {
-    if (name == "lazyValue$lzyINIT1") mill.constants.DebugLog.println("\n\nlazyValue$lzyINIT1")
     val outboundCalls: mutable.Set[MethodCall] = collection.mutable.Set.empty[MethodCall]
     val labelIndices: mutable.Map[Label, Int] = collection.mutable.Map.empty[Label, Int]
     val jumpList: mutable.Buffer[Label] = collection.mutable.Buffer.empty[Label]
