@@ -1,8 +1,7 @@
 package mill.scalajslib.worker
 
-import scala.concurrent.Future
-import java.io.File
-import java.nio.file.Path
+import com.armanbilge.sjsimportmap.ImportMappedIRFile
+import mill.constants.InputPumper
 import mill.scalajslib.worker.api.*
 import mill.scalajslib.worker.jsenv.*
 import org.scalajs.ir.ScalaJSVersions
@@ -21,12 +20,11 @@ import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.testing.adapter.TestAdapter
 import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
 
+import java.io.{File, PrintWriter, StringWriter}
+import java.nio.file.Path
 import scala.collection.mutable
+import scala.concurrent.Future
 import scala.ref.SoftReference
-import com.armanbilge.sjsimportmap.ImportMappedIRFile
-import mill.constants.InputPumper
-import java.io.PrintWriter
-import java.io.StringWriter
 
 class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
