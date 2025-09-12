@@ -360,7 +360,12 @@ object BuildGenUtil {
   def renderIfArgsNonEmpty(construct: String, args: IterableOnce[String]): String =
     renderIfArgsNonEmpty(construct + "(", args, ",", ")")
 
-  def renderIfArgsNonEmpty(start: String, args: IterableOnce[String], sep: String, end: String): String = {
+  def renderIfArgsNonEmpty(
+      start: String,
+      args: IterableOnce[String],
+      sep: String,
+      end: String
+  ): String = {
     val itr = args.iterator
     if (itr.isEmpty) ""
     else itr.mkString(start, sep, end)
