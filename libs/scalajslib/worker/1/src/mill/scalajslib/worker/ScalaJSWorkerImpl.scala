@@ -181,7 +181,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
 
     def awaitFutureWhilePrinting[T](future: Future[T]): T = {
       while ({
-        val message = queue.poll(10, java.util.concurrent.TimeUnit.MILLISECONDS)
+        val message = queue.poll(1, java.util.concurrent.TimeUnit.MILLISECONDS)
         if (message == null) {
           !future.isCompleted
         } else {
