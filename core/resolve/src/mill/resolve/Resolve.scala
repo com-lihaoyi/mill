@@ -325,7 +325,7 @@ private[mill] trait Resolve[T] {
       }
     }
     val resolvedGroups = ParseArgs.separate(scriptArgs).map { group =>
-      val resolved = ParseArgs.extractAndValidate(group, selectMode == SelectMode.Multi) match {
+      ParseArgs.extractAndValidate(group, selectMode == SelectMode.Multi) match {
         case Result.Success((selectors, args)) =>
           val selected = selectors.map {
             case (scopedSel, sel) =>
@@ -351,8 +351,6 @@ private[mill] trait Resolve[T] {
           Result.sequence(selected).map(_.flatten)
         case _ => handleSingleFileModule(group)
       }
-
-      resolved
     }
 
     Result.sequence(resolvedGroups).map(_.flatten.toList).map(deduplicate)
