@@ -82,6 +82,9 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         )
       )
 
+    }
+    test("keepGoingMetaFailure") - integrationTest { tester =>
+      import tester._
       modifyFile(workspacePath / "build.mill", _ + "?")
 
       val res2 = eval(("--ticker", "true", "--keep-going", "jar"))
@@ -92,12 +95,12 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         List(
           "============================== jar ==============================",
           "[build.mill-<digits>/<digits>] compile",
-          "[build.mill-<digits>] [info] compiling <digits> Scala source to .../out/mill-build/compile.dest/classes ...",
+          "[build.mill-<digits>] [info] compiling <digits> Scala sources to .../out/mill-build/compile.dest/classes ...",
           "[build.mill-<digits>] [error]  <dashes> [E<digits>] .../build.mill:<digits>:<digits>",
           "[build.mill-<digits>] [error] Illegal start of toplevel definition",
           "[build.mill-<digits>] [error] one error found",
           "[build.mill-<digits>] compile task failed",
-          "[<digits>/<digits>, <digits> failed] ============================== jar ==============================",
+          "[<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
           "<digits> tasks failed",
           "[build.mill-<digits>] compile Compilation failed"
         )
