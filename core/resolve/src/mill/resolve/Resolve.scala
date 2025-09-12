@@ -308,12 +308,12 @@ private[mill] trait Resolve[T] {
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false,
-      scriptModuleResolver: String => mill.api.ExternalModule
+      scriptModuleResolver: String => Result[mill.api.ExternalModule]
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val cache = new ResolveCore.Cache()
-    def handleSingleFileModule(args: Seq[String]) = {
-      Result.Success(scriptModuleResolver(args.head)).flatMap { scriptModule =>
+    def handleSingleFileModule(args: Seq[String], fallback: Result[Seq[T]]): Result[Seq[T]] = {
+      scriptModuleResolver(args.head).map { scriptModule =>
         resolveNonEmptyAndHandle(
           args.tail,
           scriptModule,
@@ -322,34 +322,37 @@ private[mill] trait Resolve[T] {
           allowPositionalCommandArgs,
           resolveToModuleTasks
         )
+      }match{
+        case _: Result.Failure => fallback
+        case Result.Success(r) => r
       }
     }
     val resolvedGroups = ParseArgs.separate(scriptArgs).map { group =>
       ParseArgs.extractAndValidate(group, selectMode == SelectMode.Multi) match {
+        case f: Result.Failure => handleSingleFileModule(group, f)
         case Result.Success((selectors, args)) =>
-          val selected = selectors.map {
-            case (scopedSel, sel) =>
-              resolveRootModule(rootModule, scopedSel) match {
-                case Result.Success(rootModuleSels) =>
-                  resolveNonEmptyAndHandle1(rootModule, sel.getOrElse(Segments()), cache) match{
-                    case notFound: ResolveCore.NotFound => handleSingleFileModule(group)
-                    case res =>
-                      resolveNonEmptyAndHandle2(
-                        rootModule,
-                        args,
-                        sel.getOrElse(Segments()),
-                        nullCommandDefaults,
-                        allowPositionalCommandArgs,
-                        resolveToModuleTasks,
-                        cache,
-                        res
-                      )
-                  }
-                case _ => handleSingleFileModule(group)
-              }
+          val selected: Seq[Result[Seq[T]]] = selectors.map { case (scopedSel, sel) =>
+            resolveRootModule(rootModule, scopedSel) match {
+              case f: Result.Failure => handleSingleFileModule(group, f)
+              case Result.Success(rootModuleSels) =>
+                val res = resolveNonEmptyAndHandle1(rootModule, sel.getOrElse(Segments()), cache)
+                def notFoundResult = resolveNonEmptyAndHandle2(
+                  rootModule,
+                  args,
+                  sel.getOrElse(Segments()),
+                  nullCommandDefaults,
+                  allowPositionalCommandArgs,
+                  resolveToModuleTasks,
+                  cache,
+                  res
+                )
+                res match{
+                  case notFound: ResolveCore.NotFound => handleSingleFileModule(group, notFoundResult)
+                  case res => notFoundResult
+                }
+            }
           }
           Result.sequence(selected).map(_.flatten)
-        case _ => handleSingleFileModule(group)
       }
     }
 

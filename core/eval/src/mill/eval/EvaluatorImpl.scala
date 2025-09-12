@@ -25,7 +25,7 @@ final class EvaluatorImpl private[mill] (
     private[mill] val allowPositionalCommandArgs: Boolean,
     private[mill] val selectiveExecution: Boolean = false,
     private val execution: Execution,
-    scriptModuleResolver: (String, Map[String, String]) => ExternalModule
+    scriptModuleResolver: (String, Map[String, String]) => Result[mill.api.ExternalModule]
 ) extends Evaluator {
 
   private[mill] def workspace = execution.workspace
