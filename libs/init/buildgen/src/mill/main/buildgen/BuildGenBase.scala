@@ -4,12 +4,15 @@ import mill.main.buildgen.BuildGenUtil.{compactBuildTree, writeBuildObject}
 
 import scala.collection.immutable.{SortedMap, SortedSet}
 
-/*
-TODO Can we just convert all generic type parameters to abstract type members?
- See https://stackoverflow.com/a/1154727/5082913.
- I think abstract type members are preferred in this case.
+/**
+ * Base trait for build generation with abstract type members instead of generic type parameters.
+ * See https://stackoverflow.com/a/1154727/5082913.
+ * Abstract type members are preferred in this case for better type variance and flexibility.
  */
-trait BuildGenBase[M, D, I] {
+trait BuildGenBase {
+  type M
+  type D  
+  type I
   type C
   def convertWriteOut(cfg: C, shared: BuildGenUtil.BasicConfig, input: I): Unit = {
     val output = convert(input, cfg, shared)
@@ -103,7 +106,10 @@ trait BuildGenBase[M, D, I] {
 }
 
 object BuildGenBase {
-  trait MavenAndGradle[M, D] extends BuildGenBase[M, D, Tree[Node[M]]] {
+  trait MavenAndGradle[M_, D_] extends BuildGenBase {
+    type M = M_
+    type D = D_
+    type I = Tree[Node[M]]
     override def getModuleTree(input: Tree[Node[M]]): Tree[Node[Option[M]]] =
       // TODO consider filtering out projects without the `java` plugin applied in Gradle too
       input.map(node => node.copy(value = Some(node.value)))

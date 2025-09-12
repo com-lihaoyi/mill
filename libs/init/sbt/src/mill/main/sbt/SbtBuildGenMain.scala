@@ -51,7 +51,10 @@ import scala.collection.immutable.SortedSet
  */
 @internal
 object SbtBuildGenMain
-    extends BuildGenBase[Project, String, (BuildInfo, Tree[Node[Option[Project]]])] {
+    extends BuildGenBase {
+  type M = Project
+  type D = String
+  type I = (BuildInfo, Tree[Node[Option[Project]]])
   override type C = Config
 
   def main(args: Array[String]): Unit = {
