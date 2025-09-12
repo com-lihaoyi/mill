@@ -20,18 +20,15 @@ import mill.internal.MillCliConfig;
 public class MillLauncherMain {
 
   public static void main(String[] args) throws Exception {
-    var needParsedConfig = false;
-    if (Arrays.stream(args)
-        .anyMatch(f -> f.startsWith("-") && !f.startsWith("--") && f.contains("i"))) {
-      needParsedConfig = true;
-    }
-    for (String token :
+    var needParsedConfig = Arrays.stream(args)
+        .anyMatch(f -> f.startsWith("-") && !f.startsWith("--") && f.contains("i"));
+    for (var token :
         Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", "--bsp", "--help")) {
       if (Arrays.stream(args).anyMatch(f -> f.equals(token))) needParsedConfig = true;
     }
 
-    boolean runNoDaemon = false;
-    boolean bspMode = false;
+    var runNoDaemon = false;
+    var bspMode = false;
 
     // Only use MillCliConfig and other Scala classes if we detect that a relevant flag
     // might have been passed, to avoid loading those classes on the common path for performance
@@ -42,6 +39,17 @@ public class MillLauncherMain {
           c -> c.interactive().value() || c.noServer().value() || c.noDaemon().value()))
         runNoDaemon = true;
     }
+
+    // Ensure that if we're running in BSP mode we don't start a daemon.
+    //
+    // This is needed because when Metals/Idea closes, they only kill the BSP client and the BSP
+    // server lurks around
+    // waiting for the next client to connect.
+    //
+    // This is unintuitive from the user's perspective and wastes resources, as most people expect
+    // everything related
+    // to the BSP server to be killed when closing the editor.
+    if (bspMode) runNoDaemon = true;
 
     var outMode = bspMode ? OutFolderMode.BSP : OutFolderMode.REGULAR;
     exitInTestsAfterBspCheck();

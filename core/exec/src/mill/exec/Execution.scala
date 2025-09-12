@@ -30,7 +30,8 @@ private[mill] case class Execution(
     systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing,
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
-    offline: Boolean
+    offline: Boolean,
+    enableTicker: Boolean
 ) extends GroupExecution with AutoCloseable {
 
   // this (shorter) constructor is used from [[MillBuildBootstrap]] via reflection
@@ -50,7 +51,8 @@ private[mill] case class Execution(
       systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing,
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
-      offline: Boolean
+      offline: Boolean,
+      enableTicker: Boolean
   ) = this(
     baseLogger,
     new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
@@ -68,7 +70,8 @@ private[mill] case class Execution(
     systemExit,
     exclusiveSystemStreams,
     getEvaluator,
-    offline
+    offline,
+    enableTicker
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
@@ -131,6 +134,7 @@ private[mill] case class Execution(
     baseLogger.withChromeProfile("execution") {
       val uncached = new ConcurrentHashMap[Task[?], Unit]()
       val changedValueHash = new ConcurrentHashMap[Task[?], Unit]()
+      val prefixes = new ConcurrentHashMap[Task[?], Seq[String]]()
 
       val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
@@ -187,6 +191,7 @@ private[mill] case class Execution(
                   noPrefix = exclusive
                 )
 
+                if (enableTicker) prefixes.put(terminal, contextLogger.logKey)
                 contextLogger.withPromptLine {
                   logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
 
@@ -316,10 +321,12 @@ private[mill] case class Execution(
 
       val results: Map[Task[?], ExecResult[(Val, Int)]] = results0.toMap
 
+      import scala.collection.JavaConverters._
       Execution.Results(
         goals.toIndexedSeq.map(results(_).map(_._1)),
         finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,
-        results.map { case (k, v) => (k, v.map(_._1)) }
+        results.map { case (k, v) => (k, v.map(_._1)) },
+        prefixes.asScala.toMap
       )
     }
   }
@@ -357,6 +364,7 @@ private[mill] object Execution {
   private[Execution] case class Results(
       results: Seq[ExecResult[Val]],
       uncached: Seq[Task[?]],
-      transitiveResults: Map[Task[?], ExecResult[Val]]
+      transitiveResults: Map[Task[?], ExecResult[Val]],
+      override val transitivePrefixes: Map[Task[?], Seq[String]]
   ) extends mill.api.ExecutionResults
 }

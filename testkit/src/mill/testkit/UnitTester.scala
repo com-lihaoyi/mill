@@ -135,7 +135,8 @@ class UnitTester(
       throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
-    offline = offline
+    offline = offline,
+    enableTicker = false
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
