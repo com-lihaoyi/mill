@@ -206,6 +206,11 @@ object MillMain0 {
                   Option.when(config.bspInstall.value)(defaultJobCount)
                 }
               }
+              val enableTicker = config.ticker
+                .orElse(config.enableTicker)
+                .orElse(Option.when(config.tabComplete.value)(false))
+                .orElse(Option.when(config.disableTicker.value)(false))
+                .getOrElse(true)
 
               val (success, nextStateCache) = {
                 if (config.repl.value) {
@@ -282,7 +287,8 @@ object MillMain0 {
                                 streams0 = streams,
                                 selectiveExecution = config.watch.value,
                                 offline = config.offline.value,
-                                reporter = reporter
+                                reporter = reporter,
+                                enableTicker = enableTicker
                               ).evaluate()
                             }
                           }
@@ -296,10 +302,7 @@ object MillMain0 {
                           Using.resource(getLogger(
                             streams,
                             config,
-                            enableTicker = config.ticker
-                              .orElse(config.enableTicker)
-                              .orElse(Option.when(config.tabComplete.value)(false))
-                              .orElse(Option.when(config.disableTicker.value)(false)),
+                            enableTicker = enableTicker,
                             daemonDir,
                             colored = colored,
                             colors = colors,
@@ -541,7 +544,7 @@ object MillMain0 {
   def getLogger(
       streams: SystemStreams,
       config: MillCliConfig,
-      enableTicker: Option[Boolean],
+      enableTicker: Boolean,
       daemonDir: os.Path,
       colored: Boolean,
       colors: Colors,
@@ -549,7 +552,7 @@ object MillMain0 {
   ): Logger & AutoCloseable = {
     new PromptLogger(
       colored = colored,
-      enableTicker = enableTicker.getOrElse(true),
+      enableTicker = enableTicker,
       infoColor = colors.info,
       warnColor = colors.warn,
       errorColor = colors.error,

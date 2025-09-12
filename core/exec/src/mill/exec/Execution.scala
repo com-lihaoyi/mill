@@ -31,7 +31,8 @@ private[mill] case class Execution(
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
     offline: Boolean,
-    headerData: String
+    headerData: String,
+    enableTicker: Boolean
 ) extends GroupExecution with AutoCloseable {
 
   // this (shorter) constructor is used from [[MillBuildBootstrap]] via reflection
@@ -52,7 +53,8 @@ private[mill] case class Execution(
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
       offline: Boolean,
-      headerData: String
+      headerData: String,
+      enableTicker: Boolean
   ) = this(
     baseLogger,
     new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
@@ -71,7 +73,8 @@ private[mill] case class Execution(
     exclusiveSystemStreams,
     getEvaluator,
     offline,
-    headerData
+    headerData,
+    enableTicker
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
@@ -181,7 +184,6 @@ private[mill] case class Execution(
                   '0'
                 )
 
-
                 val keySuffix = s"/${indexToTerminal.size}"
 
                 val contextLogger = new PrefixLogger(
@@ -192,7 +194,7 @@ private[mill] case class Execution(
                   noPrefix = exclusive
                 )
 
-                prefixes.put(terminal, contextLogger.logKey)
+                if (enableTicker) prefixes.put(terminal, contextLogger.logKey)
                 contextLogger.withPromptLine {
                   logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
 
