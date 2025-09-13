@@ -2,6 +2,7 @@ package mill.scripts
 import mill.*
 import mill.javalib.publish._
 import mill.api.Discover
+import mill.api.Segments
 import mill.api.ExternalModule
 
 trait ScriptModule extends ExternalModule with mill.javalib.JavaModule
@@ -11,6 +12,10 @@ trait ScriptModule extends ExternalModule with mill.javalib.JavaModule
   def selfSource = Task.Source(millFile)
   override def allSources = sources() ++ Seq(selfSource())
   def allowNestedExternalModule = true
+
+  override def moduleSegments: Segments = {
+    Segments.labels(millFile.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*)
+  }
 }
 object ScriptModule {
   trait Publish extends mill.javalib.PublishModule {

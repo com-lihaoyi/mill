@@ -10,12 +10,12 @@ Compiling 1 Kotlin sources to...
 //// SNIPPET:MORE
 
 /** Usage
-> ./mill -f Foo.kt run --text hello
+> ./mill Foo.kt:run --text hello
 <h1>hello</h1>
 */
 
 /** Usage
-> ./mill -f Foo.kt show assembly # show the output of the assembly task
+> ./mill show Foo.kt:assembly # show the output of the assembly task
 ".../out/Foo.kt/assembly.dest/out.jar"
 
 > java -jar ./out/Foo.kt/assembly.dest/out.jar --text hello

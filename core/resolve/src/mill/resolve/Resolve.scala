@@ -313,14 +313,18 @@ private[mill] trait Resolve[T] {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val cache = new ResolveCore.Cache()
     def handleSingleFileModule(args: Seq[String], fallback: => Result[Seq[T]]): Result[Seq[T]] = {
-      scriptModuleResolver(args.head) match{
+      val (file, selector, remaining) = args match{
+        case Seq(s"$prefix:$suffix", rest*) => (prefix, Seq(suffix), rest)
+        case Seq(head, rest*) => (head, Nil, rest)
+      }
+      scriptModuleResolver(file) match{
         case None => fallback
         case Some(resolved) =>
           resolved.flatMap( scriptModule =>
             resolveNonEmptyAndHandle(
-              args.tail,
+              remaining,
               scriptModule,
-              Segments(),
+              Segments.labels(selector*),
               nullCommandDefaults,
               allowPositionalCommandArgs,
               resolveToModuleTasks
@@ -336,9 +340,9 @@ private[mill] trait Resolve[T] {
             resolveRootModule(rootModule, scopedSel) match {
               case f: Result.Failure => handleSingleFileModule(group, f)
               case Result.Success(rootModuleSels) =>
-                val res = resolveNonEmptyAndHandle1(rootModule, sel.getOrElse(Segments()), cache)
+                val res = resolveNonEmptyAndHandle1(rootModuleSels, sel.getOrElse(Segments()), cache)
                 def notFoundResult = resolveNonEmptyAndHandle2(
-                  rootModule,
+                  rootModuleSels,
                   args,
                   sel.getOrElse(Segments()),
                   nullCommandDefaults,
@@ -348,7 +352,7 @@ private[mill] trait Resolve[T] {
                   res
                 )
                 res match{
-                  case notFound: ResolveCore.NotFound => handleSingleFileModule(group, notFoundResult)
+                  case _: ResolveCore.NotFound => handleSingleFileModule(group, notFoundResult)
                   case res => notFoundResult
                 }
             }

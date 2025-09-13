@@ -23,19 +23,9 @@ compiling 1 Scala source to...
 
 //// SNIPPET:MORE
 
-// ./mill foo.bar.run --text hello
-// ./mill foo.bar --text hello
-// ./mill mill.scalafmt.ScalaFmtModule/scalafmt --text hello
-// ./mill mill.scalafmt.ScalaFmtModule/ --text hello
-// ./mill mill.scalafmt/scalafmt --text hello
-// ./mill mill.scalafmt/ --text hello
-//
-// ./mill qux/bar/Foo.scala:run --text hello
-// ./mill bar/Foo.scala:run --text hello
-// ./mill Foo.scala:run --text hello
 
 /** Usage
-> ./mill Foo.scala --text hello
+> ./mill Foo.scala:run --text hello
 <h1>hello</h1>
 */
 
