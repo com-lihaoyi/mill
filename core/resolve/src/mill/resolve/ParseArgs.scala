@@ -18,6 +18,7 @@ private[mill] object ParseArgs {
   val TaskSeparator = "+"
   val MaskPattern = ("""\\+\Q""" + TaskSeparator + """\E""").r
   def separate(scriptArgs: Seq[String]) = {
+
     /**
      * Partition the arguments in groups using a separator.
      * To also use the separator as argument, masking it with a backslash (`\`) is supported.
@@ -29,7 +30,7 @@ private[mill] object ParseArgs {
         val (next, r2) = r.span(_ != TaskSeparator)
         separated(
           result ++ Seq(next.map {
-            case x@MaskPattern(_*) => x.drop(1)
+            case x @ MaskPattern(_*) => x.drop(1)
             case x => x
           }),
           r2.drop(1)

@@ -1,7 +1,8 @@
 package mill.scripts
 import mill.*
 import mill.api.{Result, Discover}
-object ScriptModuleInit extends ((String, Map[String, String]) => Option[Result[mill.api.ExternalModule]]) {
+object ScriptModuleInit
+    extends ((String, Map[String, String]) => Option[Result[mill.api.ExternalModule]]) {
   def apply(millFileString: String, env: Map[String, String]) = {
     val workspace = mill.api.BuildCtx.workspaceRoot
     val millFile = os.Path(millFileString, workspace)
@@ -13,35 +14,36 @@ object ScriptModuleInit extends ((String, Map[String, String]) => Option[Result[
           upickle.read[Map[String, ujson.Value]](mill.internal.Util.parseHeaderData(headerData))
 
         val testTarget = headerData.linesIterator.collectFirst { case s"tests: $target" => target }
-        val testTrait = headerData.linesIterator.collectFirst { case s"testTrait: $target" => target }
+        val testTrait = headerData.linesIterator.collectFirst { case s"testTrait: $target" =>
+          target
+        }
         val bootstrapModule = testTarget match {
           case None => millFile.ext match {
-            case "java" =>
-              new ScriptModule.Java(millFile) with ScriptModule.Publish {
-                override lazy val millDiscover = Discover[this.type]
+              case "java" =>
+                new ScriptModule.Java(millFile) with ScriptModule.Publish {
+                  override lazy val millDiscover = Discover[this.type]
 
-                override def buildOverrides = parsedHeaderData
-              }
-            case "scala" =>
-              new ScriptModule.Scala(millFile) with ScriptModule.Publish {
-                override lazy val millDiscover = Discover[this.type]
+                  override def buildOverrides = parsedHeaderData
+                }
+              case "scala" =>
+                new ScriptModule.Scala(millFile) with ScriptModule.Publish {
+                  override lazy val millDiscover = Discover[this.type]
 
-                override def buildOverrides = parsedHeaderData
-              }
-            case "kt" =>
-              new ScriptModule.Kotlin(millFile) with ScriptModule.Publish {
-                override lazy val millDiscover = Discover[this.type]
+                  override def buildOverrides = parsedHeaderData
+                }
+              case "kt" =>
+                new ScriptModule.Kotlin(millFile) with ScriptModule.Publish {
+                  override lazy val millDiscover = Discover[this.type]
 
-                override def buildOverrides = parsedHeaderData
-              }
-          }
+                  override def buildOverrides = parsedHeaderData
+                }
+            }
           case Some(targetName) =>
             val targetPath = millFile / os.up / targetName
             import mill.javalib.TestModule.*
             millFile.ext match {
               case "java" =>
-                val targetYamlHeader =
-                  mill.constants.Util.readBuildHeader(targetPath.toNIO, targetPath.last, true)
+                mill.constants.Util.readBuildHeader(targetPath.toNIO, targetPath.last, true)
                 val targetModule = new ScriptModule.Java(targetPath) with ScriptModule.Publish {
                   override lazy val millDiscover = Discover[this.type]
 
@@ -70,8 +72,7 @@ object ScriptModuleInit extends ((String, Map[String, String]) => Option[Result[
                 testModule
 
               case "scala" =>
-                val targetYamlHeader =
-                  mill.constants.Util.readBuildHeader(targetPath.toNIO, targetPath.last, true)
+                mill.constants.Util.readBuildHeader(targetPath.toNIO, targetPath.last, true)
                 val targetModule = new ScriptModule.Scala(targetPath) with ScriptModule.Publish {
                   override lazy val millDiscover = Discover[this.type]
 
@@ -142,8 +143,7 @@ object ScriptModuleInit extends ((String, Map[String, String]) => Option[Result[
                 testModule
 
               case "kt" =>
-                val targetYamlHeader =
-                  mill.constants.Util.readBuildHeader(targetPath.toNIO, targetPath.last, true)
+                mill.constants.Util.readBuildHeader(targetPath.toNIO, targetPath.last, true)
                 val targetModule = new ScriptModule.Kotlin(targetPath) with ScriptModule.Publish {
                   override lazy val millDiscover = Discover[this.type]
                 }

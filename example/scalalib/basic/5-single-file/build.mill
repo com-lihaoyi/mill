@@ -23,7 +23,6 @@ compiling 1 Scala source to...
 
 //// SNIPPET:MORE
 
-
 /** Usage
 > ./mill Foo.scala:run --text hello
 <h1>hello</h1>
