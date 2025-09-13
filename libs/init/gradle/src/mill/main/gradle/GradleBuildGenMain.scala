@@ -217,7 +217,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
 
   def getJavacOptions(project: ProjectModel): Seq[String] = {
     val _java = project._java()
-    if (null == _java) Seq.empty
+    if (_java == null) Seq.empty
     else _java.javacOptions().asScala.toSeq
   }
 
@@ -278,7 +278,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
     var sd = IrScopedDeps()
     val hasTest = os.exists(os.Path(project.directory()) / "src/test")
     val _java = project._java()
-    if (null != _java) {
+    if (_java != null) {
       val mvnDep: ExternalDep => String =
         cfg.shared.basicConfig.depsObject.fold(interpMvn(_)) { objName => dep =>
           val depName = s"`${dep.group()}:${dep.name()}`"
