@@ -3,8 +3,14 @@
 :page-aliases: Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc, Java_Intro_to_Mill.adoc
 :language: Java
 :language-small: java
+:language-ext: java
 
 include::partial$Intro_Header.adoc[]
+
+
+== Single-File Projects
+
+include::partial$example/javalib/basic/5-single-file.adoc[]
 
 == Simple Java Module
 

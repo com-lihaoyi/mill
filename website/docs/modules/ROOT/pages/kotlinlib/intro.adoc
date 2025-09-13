@@ -3,6 +3,7 @@
 :page-aliases: Kotlin_Intro_to_Mill.adoc
 :language: Kotlin
 :language-small: kotlin
+:language-ext: kt
 
 include::partial$Intro_Header.adoc[]
 
@@ -10,6 +11,10 @@ NOTE: Mill Kotlin support is currently focused on the JVM, with a lot of APIs
 still under active development. It is expected to continue evolving over time
 as Android and Multiplatform support is fleshed out. Try it out, but please be aware of its
 limitations!
+
+== Single-File Projects
+
+include::partial$example/kotlinlib/basic/5-single-file.adoc[]
 
 == Simple Kotlin Module
 

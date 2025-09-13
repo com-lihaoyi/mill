@@ -21,7 +21,8 @@ object CodeGen {
       supportDest: os.Path,
       millTopLevelProjectRoot: os.Path,
       output: os.Path,
-      parser: MillScalaParser
+      parser: MillScalaParser,
+      headerData: String
   ): Unit = {
     val scriptSources = allScriptCode.keys.toSeq.sorted
     for (scriptPath <- scriptSources) breakable {
@@ -104,7 +105,8 @@ object CodeGen {
           scriptFolderPath = scriptFolderPath,
           segments = segments,
           millTopLevelProjectRoot = millTopLevelProjectRoot,
-          output = output
+          output = output,
+          headerData = headerData
         )
 
         os.write(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
@@ -160,7 +162,8 @@ object CodeGen {
       scriptFolderPath: os.Path,
       segments: Seq[String],
       millTopLevelProjectRoot: os.Path,
-      output: os.Path
+      output: os.Path,
+      headerData: String
   ): String = {
     val header = if (pkg.isBlank()) "" else s"package $pkg"
     val body =
@@ -168,7 +171,8 @@ object CodeGen {
       else rootMiscInfo(
         scriptFolderPath,
         millTopLevelProjectRoot,
-        output
+        output,
+        headerData
       )
 
     s"""|$generatedFileHeader
@@ -321,14 +325,17 @@ object CodeGen {
   def rootMiscInfo(
       scriptFolderPath: os.Path,
       millTopLevelProjectRoot: os.Path,
-      output: os.Path
+      output: os.Path,
+      headerData: String
   ): String = {
+    val headerJson = ujson.Obj.from(mill.internal.Util.parseHeaderData(headerData)).render()
     s"""|@_root_.scala.annotation.nowarn
         |object MillMiscInfo 
         |    extends mill.api.internal.RootModule.Info(
         |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
         |  output0 = ${literalize(output.toString)},
-        |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}
+        |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)},
+        |  headerData = ${literalize(headerJson)}
         |)
         |""".stripMargin
   }

@@ -22,7 +22,8 @@ abstract class ExternalModule(implicit
       millFile0
     ) {
 
-  assert(
+  private[mill] def allowNestedExternalModule = false
+  if (!allowNestedExternalModule) assert(
     !" #".exists(millModuleEnclosing0.value.contains(_)),
     "External modules must be at a top-level static path, not " + millModuleEnclosing0.value
   )

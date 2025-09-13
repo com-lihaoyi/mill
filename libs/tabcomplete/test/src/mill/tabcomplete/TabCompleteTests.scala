@@ -171,6 +171,7 @@ object TabCompleteTests extends TestSuite {
           Set(
             "-b  Ring the bell once if the run completes successfully, twice if it fails.",
             "-w  Watch and re-run the given tasks when when their inputs change.",
+            "-f  <path> Select the build.mill file or Java/Scala/Kotlin script file to run",
             "-k  Continue build, even after build failures.",
             "-D  <k=v> Define (or overwrite) a system property.",
             "-d  Show debug output on STDOUT",
@@ -204,7 +205,6 @@ object TabCompleteTests extends TestSuite {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "--"),
           Set(
-            "--bsp                     Enable BSP server mode.",
             "--debug                   Show debug output on STDOUT",
             "--bell                    Ring the bell once if the run completes successfully, twice if it fails.",
             "--interactive             Run Mill in interactive mode, suitable for opening REPLs and taking user input. Identical to --no-daemon. Must be the first argument.",
@@ -216,6 +216,8 @@ object TabCompleteTests extends TestSuite {
             "--watch                   Watch and re-run the given tasks when when their inputs change.",
             "--no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands.",
             "--help-advanced           Print a internal or advanced command flags not intended for common usage",
+            "--bsp                     Enable BSP server mode.",
+            "--file                    <path> Select the build.mill file or Java/Scala/Kotlin script file to run",
             "--offline                 Try to work offline. This tells modules that support it to work offline and avoid any access to the internet. This is on a best effort basis. There are currently no guarantees that modules don't attempt to fetch remote sources.",
             "--keep-going              Continue build, even after build failures.",
             "--define                  <k=v> Define (or overwrite) a system property.",
