@@ -185,7 +185,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
     )
 
   def mkPomParent(parent: Parent): IrArtifact =
-    if (null == parent) null
+    if (parent == null) null
     else IrArtifact(parent.getGroupId, parent.getArtifactId, parent.getVersion)
 
   def extractPomSettings(model: Model): IrPom = {

@@ -338,7 +338,7 @@ public interface MavenModel extends Serializable {
     }
 
     static Scm from(MavenPomScm scm) {
-      return null == scm
+      return scm == null
           ? null
           : new Impl(
               scm.getUrl().getOrNull(),

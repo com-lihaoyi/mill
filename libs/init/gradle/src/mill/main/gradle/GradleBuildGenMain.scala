@@ -118,7 +118,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       val projects = input.nodes(Tree.Traversal.BreadthFirst).map(_.value).toSeq
       cfg.baseProject
         .flatMap(name => projects.collectFirst { case m if name == m.name => m })
-        .orElse(projects.collectFirst { case m if null != m.maven().pom() => m })
+        .orElse(projects.collectFirst { case m if m != null.maven().pom() => m })
         .orElse(projects.collectFirst { case m if !m.maven().repositories().isEmpty => m })
         .getOrElse(input.node.value)
     }
@@ -127,7 +127,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
     }
     val supertypes =
       Seq("MavenModule") ++
-        Option.when(null != project.maven().pom()) { "PublishModule" }
+        Option.when(project != null.maven().pom()) { "PublishModule" }
 
     val javacOptions = getJavacOptions(project)
     val scalaVersion = None
@@ -204,7 +204,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       baseInfo: IrBaseInfo,
       build: Node[ProjectModel]
   ): Seq[String] =
-    Option.when(null != build.value.maven().pom() && {
+    Option.when(build != null.value.maven().pom() && {
       val baseTrait = baseInfo.moduleTypedef
       baseTrait == null || !baseTrait.moduleSupertypes.contains("PublishModule")
     }) { "PublishModule" }.toSeq ++
@@ -226,13 +226,13 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
 
   def getPomPackaging(project: ProjectModel): String = {
     val pom = project.maven().pom()
-    if (null == pom) null else pom.packaging()
+    if (pom == null) null else pom.packaging()
   }
 
   def getPublishProperties(project: ProjectModel, cfg: BuildGenUtil.Config): Seq[(String, String)] =
     if (cfg.publishProperties.value) {
       val pom = project.maven().pom()
-      if (null == pom) Seq.empty
+      if (pom == null) Seq.empty
       else pom.properties().iterator().asScala
         .map(prop => (prop.key(), prop.value()))
         .toSeq
@@ -250,7 +250,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
 
   def extractPomSettings(project: ProjectModel): IrPom | Null = {
     val pom = project.maven.pom()
-    if (null == pom) null
+    if (pom == null) null
     else {
       IrPom(
         pom.description(),

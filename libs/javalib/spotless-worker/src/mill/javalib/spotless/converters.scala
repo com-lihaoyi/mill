@@ -21,7 +21,7 @@ class ToFormatterStep(charset: Charset, provisioner: Provisioner)
     extends (Step => FormatterStep):
 
   def path(sub: RelPathRef): Option[Path] =
-    Option.when(null != sub && os.exists(sub.ref.path))(sub.ref.path)
+    Option.when(sub != null && os.exists(sub.ref.path))(sub.ref.path)
 
   def read(cof: ContentOrFile): String =
     Option(cof.content)
@@ -174,9 +174,9 @@ class ToFormatterStep(charset: Charset, provisioner: Provisioner)
 def toLintSuppression(suppress: Suppress) = {
   import suppress.*
   val ls = LintSuppression()
-  if (null != path) ls.setPath(path)
-  if (null != step) ls.setStep(step)
-  if (null != shortCode) ls.setShortCode(shortCode)
+  if (path != null) ls.setPath(path)
+  if (step != null) ls.setStep(step)
+  if (shortCode != null) ls.setShortCode(shortCode)
   ls
 }
 

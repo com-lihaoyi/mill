@@ -219,7 +219,7 @@ object BuildGenUtil {
 
       childCompanions.foreach { case entry @ (objectName, childConstants) =>
         val parentConstants = mergedParentCompanions.getOrElse(objectName, null)
-        if (null == parentConstants) mergedParentCompanions += entry
+        if (parentConstants == null) mergedParentCompanions += entry
         else {
           if (childConstants.exists { case (k, v) => v != parentConstants.getOrElse(k, v) })
             boundary.break(null)
@@ -237,7 +237,7 @@ object BuildGenUtil {
       children.iterator.foreach {
         case child @ Tree(Node(_ :+ dir, nested), Seq()) if nested.outer.isEmpty =>
           val mergedCompanions = merge(module.companions, nested.companions)
-          if (null == mergedCompanions) unmerged += child
+          if (mergedCompanions == null) unmerged += child
           else {
             val mergedImports = module.imports ++ nested.imports
             val mergedInner = {
@@ -271,7 +271,7 @@ object BuildGenUtil {
     pprint.Util.literalize(if (value == null) "" else value)
 
   def escapeOption(value: String): String =
-    if (null == value) "None" else s"Some(\"$value\")"
+    if (value == null) "None" else s"Some(\"$value\")"
 
   def renderMvnString(
       group: String,
@@ -291,7 +291,7 @@ object BuildGenUtil {
         }
     }
     val sepVersion =
-      if (null == version) {
+      if (version == null) {
         println(
           s"assuming $group:$artifact is a BOM dependency; if not, please specify version in the generated build file"
         )
@@ -319,7 +319,7 @@ object BuildGenUtil {
     groupArtifactVersion._2.endsWith("-bom")
 
   def isNullOrEmpty(value: String | Null): Boolean =
-    null == value || value.isEmpty
+    value == null || value.isEmpty
 
   val linebreak: String =
     """
