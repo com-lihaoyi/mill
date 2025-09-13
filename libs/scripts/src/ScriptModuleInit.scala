@@ -5,9 +5,7 @@ object ScriptModuleInit extends ((String, Map[String, String]) => Option[Result[
   def apply(millFileString: String, env: Map[String, String]) = {
     val workspace = mill.api.BuildCtx.workspaceRoot
     val millFile = os.Path(millFileString, workspace)
-    mill.constants.DebugLog.println("millFileString " + millFileString)
-    mill.constants.DebugLog.println("millFile " + millFile)
-    mill.constants.DebugLog.println("os.exists(millFile) " + os.exists(millFile))
+
     Option.when(os.exists(millFile)) {
       Result.create {
         val headerData = mill.constants.Util.readBuildHeader(millFile.toNIO, millFile.last, true)
