@@ -464,9 +464,9 @@ object BuildGenUtil {
     )
 
   def renderPomPackaging(packaging: String): String =
-    if (isNullOrEmpty(packaging) || "jar" == packaging) "" // skip default
+    if (isNullOrEmpty(packaging) || packaging == "jar") "" // skip default
     else {
-      val pkg = if ("pom" == packaging) "PackagingType.Pom" else escape(packaging)
+      val pkg = if (packaging == "pom") "PackagingType.Pom" else escape(packaging)
       s"def pomPackagingType = $pkg"
     }
 
