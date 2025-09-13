@@ -164,7 +164,10 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
       .toSeq
       .sorted
 
-  def getPublishProperties(model: Model, cfg: BuildGenUtil.Config): Seq[(String, String)] =
+  def getPublishProperties(
+      model: Model,
+      cfg: BuildGenUtil.MavenAndGradleCommonConfig
+  ): Seq[(String, String)] =
     if (cfg.publishProperties.value) {
       val props = model.getProperties
       props.stringPropertyNames().iterator().asScala
@@ -290,7 +293,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
   @main
   @internal
   case class Config(
-      shared: BuildGenUtil.Config,
+      shared: BuildGenUtil.MavenAndGradleCommonConfig,
       @arg(doc = "use cache for Maven repository system")
       cacheRepository: Flag = Flag(),
       @arg(doc = "process Maven plugin executions and configurations")
