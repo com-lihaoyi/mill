@@ -37,13 +37,9 @@ object RootModule {
       val projectRoot: os.Path,
       val output: os.Path,
       val topLevelProjectRoot: os.Path,
-      val buildOverrides: Map[String, ujson.Value]
+      @com.lihaoyi.unroll val buildOverrides: Map[String, ujson.Value] = Map()
   ) {
-    def this(
-        projectRoot: os.Path,
-        output: os.Path,
-        topLevelProjectRoot: os.Path
-    ) = this(projectRoot, output, topLevelProjectRoot, Map())
+
     def this(
         projectRoot0: String,
         output0: String,
@@ -55,6 +51,13 @@ object RootModule {
       os.Path(topLevelProjectRoot0),
       upickle.read[Map[String, ujson.Value]](headerData)
     )
+
+    def this(
+              projectRoot0: String,
+              output0: String,
+              topLevelProjectRoot0: String
+            ) = this(projectRoot0, output0, topLevelProjectRoot0, "{}")
+    
     implicit val millMiscInfo: Info = this
   }
 
