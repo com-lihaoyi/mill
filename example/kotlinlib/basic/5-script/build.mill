@@ -27,3 +27,23 @@ Compiling 1 Kotlin sources to...
 */
 
 //// SNIPPET:END
+
+
+//// SNIPPET:TEST
+
+
+/** Usage
+> ./mill FooTest.kt
+...
+Test FooTest testSimple finished, ...
+Test FooTest testEscaping finished, ...
+Test FooTest finished, ...
+Test run finished: 0 failed, 0 ignored, 2 total, ...
+
+> ./mill FooTest.kt:testForked # specifying the test task explicitly
+
+*/
+
+
+
+//// SNIPPET:END

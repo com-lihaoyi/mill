@@ -2,8 +2,6 @@
 //| - "com.lihaoyi::utest:0.9.1"
 //| moduleDeps: [Foo.scala]
 //| extends: mill.script.Scala.Utest
-package foo
-
 import utest.*
 
 object FooTests extends TestSuite {

@@ -2,8 +2,6 @@
 //| - "io.kotest:kotest-runner-junit5:5.9.1"
 //| moduleDeps: [Foo.kt]
 //| extends: mill.script.Kotlin.Junit5
-package foo
-
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
