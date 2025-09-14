@@ -7,8 +7,6 @@ import mill.api.ExternalModule
 import mill.javalib.JavaModule
 import mill.javalib.NativeImageModule
 
-
-
 trait SingleFileModule extends ExternalModule, JavaModule, NativeImageModule {
   def millFile: os.Path
   override def sources = Nil
@@ -41,5 +39,4 @@ object SingleFileModule {
       "0.0.1"
     }
   }
-  
 }
