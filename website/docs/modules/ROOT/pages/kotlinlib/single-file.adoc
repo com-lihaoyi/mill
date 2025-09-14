@@ -7,6 +7,6 @@ This page documents the usage of single-file Kotlin projects.
 
 == Configuring Single-File Projects
 
-include::partial$example/kotlinlib/singlefile/1-config.adoc[]
+include::partial$example/kotlinlib/script/1-config.adoc[]
 
 

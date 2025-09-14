@@ -1,11 +1,11 @@
-package mill.singlefile
+package mill.script
 import mill.*
 import mill.api.{Discover, ExternalModule, Result}
 import mill.scalalib.ScalaModule
 import mill.kotlinlib.KotlinModule
-import mill.singlefile.SingleFileModule.parseHeaderData
+import mill.script.ScriptModule.parseHeaderData
 
-object SingleFileModuleInit extends ((String, String => Option[mill.Module]) => Option[Result[mill.api.ExternalModule]]) {
+object ScriptModuleInit extends ((String, String => Option[mill.Module]) => Option[Result[mill.api.ExternalModule]]) {
   def instantiate(className: String, args: AnyRef*): ExternalModule = {
     val cls =
       try Class.forName(className)
@@ -22,9 +22,9 @@ object SingleFileModuleInit extends ((String, String => Option[mill.Module]) => 
                 resolveModuleDep: String => Option[mill.Module]) = {
     val className = extendsConfig.getOrElse{
       millFile.ext match {
-        case "java" => "mill.singlefile.Java"
-        case "scala" => "mill.singlefile.Scala"
-        case "kt" => "mill.singlefile.Kotlin"
+        case "java" => "mill.script.Java"
+        case "scala" => "mill.script.Scala"
+        case "kt" => "mill.script.Kotlin"
       }
     }
 

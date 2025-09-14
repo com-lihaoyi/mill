@@ -1,4 +1,4 @@
-package mill.singlefile
+package mill.script
 import mill.*
 import mill.api.Discover
 import mill.javalib.{JavaModule, TestModule}
@@ -9,12 +9,12 @@ import mill.javalib.PublishModule
 import mill.api.Discover
 import mill.scalalib.ScalaModule
 import mill.kotlinlib.KotlinModule
-trait Java0 extends SingleFileModule
-class Java(val millFile: os.Path, override val moduleDeps: Seq[JavaModule]) extends SingleFileModule {
+trait Java0 extends ScriptModule
+class Java(val millFile: os.Path, override val moduleDeps: Seq[JavaModule]) extends ScriptModule {
   override lazy val millDiscover = Discover[this.type]
 }
 object Java {
-  class Publish(val millFile: os.Path, override val moduleDeps: Seq[JavaModule with PublishModule]) extends SingleFileModule, SingleFileModule.Publish {
+  class Publish(val millFile: os.Path, override val moduleDeps: Seq[JavaModule with PublishModule]) extends ScriptModule, ScriptModule.Publish {
     override lazy val millDiscover = Discover[this.type]
   }
   trait Test0 extends Java0, JavaModule.Tests{
@@ -31,7 +31,7 @@ object Java {
   }
 }
 
-trait Scala0 extends SingleFileModule, ScalaModule {
+trait Scala0 extends ScriptModule, ScalaModule {
   def scalaVersion = mill.util.BuildInfo.scalaVersion
 }
 class Scala(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Scala0 {
@@ -39,7 +39,7 @@ class Scala(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule]) ex
 }
 
 object Scala {
-  class Publish(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule with PublishModule]) extends Scala0, SingleFileModule.Publish {
+  class Publish(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule with PublishModule]) extends Scala0, ScriptModule.Publish {
     override lazy val millDiscover = Discover[this.type]
   }
   trait Test0 extends Scala0, ScalaModule.Tests{
@@ -77,7 +77,7 @@ object Scala {
   }
 }
 
-trait Kotlin0 extends SingleFileModule, KotlinModule {
+trait Kotlin0 extends ScriptModule, KotlinModule {
   def kotlinVersion = "1.9.24"
   override lazy val millDiscover = Discover[this.type]
 }
@@ -86,7 +86,7 @@ class Kotlin(val millFile: os.Path, override val moduleDeps: Seq[KotlinModule]) 
 }
 
 object Kotlin {
-  class Publish(val millFile: os.Path, override val moduleDeps: Seq[KotlinModule with PublishModule]) extends Kotlin0, SingleFileModule.Publish {
+  class Publish(val millFile: os.Path, override val moduleDeps: Seq[KotlinModule with PublishModule]) extends Kotlin0, ScriptModule.Publish {
     override lazy val millDiscover = Discover[this.type]
   }
   trait Test0 extends Kotlin0, KotlinModule.Tests{

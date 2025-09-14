@@ -6,5 +6,5 @@ This page documents the usage of single-file Java projects.
 
 == Configuring Single-File Projects
 
-include::partial$example/javalib/singlefile/1-config.adoc[]
+include::partial$example/javalib/script/1-config.adoc[]
 

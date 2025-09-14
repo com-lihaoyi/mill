@@ -431,7 +431,7 @@ object MillBuildBootstrap {
     val evalImplCls = cl.loadClass("mill.eval.EvaluatorImpl")
     val execCls = cl.loadClass("mill.exec.Execution")
     val classpath = System.getProperty("java.class.path")
-    val scriptInitCls = cl.loadClass("mill.singlefile.SingleFileModuleInit$")
+    val scriptInitCls = cl.loadClass("mill.script.ScriptModuleInit$")
     lazy val evaluator: EvaluatorApi = evalImplCls.getConstructors.head.newInstance(
       allowPositionalCommandArgs,
       selectiveExecution,
