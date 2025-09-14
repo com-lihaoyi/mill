@@ -1,0 +1,12 @@
+= Single-File Kotlin Modules
+:language: Kotlin
+:language-small: kotlin
+
+This page documents the usage of single-file Kotlin "script" modules.
+
+
+== Configuring Single-File Scripts
+
+include::partial$example/kotlinlib/script/1-config.adoc[]
+
+

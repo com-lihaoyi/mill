@@ -1,0 +1,10 @@
+= Single-File Java Modules
+:language: Java
+:language-small: java
+
+This page documents the usage of single-file Java "script" modules.
+
+== Configuring Single-File Scripts
+
+include::partial$example/javalib/script/1-config.adoc[]
+
