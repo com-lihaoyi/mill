@@ -16,7 +16,7 @@ trait MavenModule extends JavaModule { outer =>
   override def resources = Task.Sources("src/main/resources")
 
   trait MavenTests extends JavaTests {
-    override def moduleDir = outer.moduleDir
+    override def moduleDir = outer().moduleDir
 
     /**
      * The name of this module's folder within `src/`: e.g. `src/test/`, `src/integration/`,
@@ -25,7 +25,7 @@ trait MavenModule extends JavaModule { outer =>
     def testModuleName = moduleCtx.segments.last.value
 
     private[mill] override def intellijModulePathJava: Path =
-      (outer.moduleDir / "src" / testModuleName).toNIO
+      (outer().moduleDir / "src" / testModuleName).toNIO
 
     override def sources = Task.Sources(moduleDir / "src" / testModuleName / "java")
     override def resources = Task.Sources(moduleDir / "src" / testModuleName / "resources")

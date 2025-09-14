@@ -1,7 +1,7 @@
 package mill.androidlib
 
 import mill.{T, Task}
-import mill.api.PathRef
+import mill.api.{ModuleRef, PathRef}
 
 trait AndroidLibKotlinModule extends AndroidLibModule with AndroidKotlinModule { outer =>
 
@@ -9,8 +9,8 @@ trait AndroidLibKotlinModule extends AndroidLibModule with AndroidKotlinModule {
   override def sources: T[Seq[PathRef]] = super[AndroidLibModule].sources() ++ kotlinSources()
 
   trait AndroidLibKotlinTests extends AndroidLibTests with KotlinTests {
-    override def outer: AndroidLibKotlinModule = AndroidLibKotlinModule.this
+    override def outer: ModuleRef[AndroidLibKotlinModule] = ModuleRef(AndroidLibKotlinModule.this)
     override def sources: T[Seq[PathRef]] =
-      super[AndroidLibTests].sources() ++ Seq(PathRef(outer.moduleDir / "src/test/kotlin"))
+      super[AndroidLibTests].sources() ++ Seq(PathRef(outer().moduleDir / "src/test/kotlin"))
   }
 }

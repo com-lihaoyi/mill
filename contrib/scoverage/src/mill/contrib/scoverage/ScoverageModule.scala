@@ -2,7 +2,7 @@ package mill.contrib.scoverage
 
 import coursier.Repository
 import mill._
-import mill.api.{PathRef}
+import mill.api.{PathRef, ModuleRef}
 import mill.api.BuildCtx
 import mill.api.{Result}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
@@ -195,7 +195,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   }
 
   trait ScoverageTests extends ScalaTests {
-    override def outer: ScoverageModule = ScoverageModule.this
+    override def outer: ModuleRef[ScoverageModule] = ModuleRef(ScoverageModule.this)
     /**
      * Alter classpath from upstream modules by replacing in-place outer module
      * classes folder by the outer.scoverage classes folder and adding the

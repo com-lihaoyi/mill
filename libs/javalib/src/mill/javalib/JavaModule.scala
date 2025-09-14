@@ -69,7 +69,7 @@ trait JavaModule
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
   trait JavaTests extends JavaModule.Tests {
-    def outer = JavaModule.this
+    def outer = ModuleRef(JavaModule.this)
   }
 
   def defaultTask(): String = "run"
@@ -1469,30 +1469,30 @@ trait JavaModule
 
 object JavaModule {
   trait Tests extends JavaModule with TestModule {
-    private[mill] def outer: JavaModule
+    private[mill] def outer: ModuleRef[JavaModule]
     // Run some consistence checks
     hierarchyChecks()
 
     override def resources = super[JavaModule].resources
 
-    override def moduleDeps: Seq[JavaModule] = Seq(outer)
+    override def moduleDeps: Seq[JavaModule] = Seq(outer())
 
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-      outer.repositoriesTask()
+      outer().repositoriesTask()
     }
 
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
-      outer.resolutionCustomizer
+      outer().resolutionCustomizer
 
     override def javacOptions: T[Seq[String]] = Task {
-      outer.javacOptions()
+      outer().javacOptions()
     }
 
-    override def jvmWorker: ModuleRef[JvmWorkerModule] = outer.jvmWorker
+    override def jvmWorker: ModuleRef[JvmWorkerModule] = outer().jvmWorker
 
-    def jvmId = outer.jvmId
+    def jvmId = outer().jvmId
 
-    def jvmIndexVersion = outer.jvmIndexVersion
+    def jvmIndexVersion = outer().jvmIndexVersion
 
     /**
      * Optional custom Java Home for the JvmWorker to use
@@ -1500,24 +1500,24 @@ object JavaModule {
      * If this value is None, then the JvmWorker uses the same Java used to run
      * the current mill instance.
      */
-    def javaHome = outer.javaHome
+    def javaHome = outer().javaHome
 
-    override def skipIdea: Boolean = outer.skipIdea
+    override def skipIdea: Boolean = outer().skipIdea
 
     override def runUseArgsFile: T[Boolean] = Task {
-      outer.runUseArgsFile()
+      outer().runUseArgsFile()
     }
 
-    override def sourcesFolders = outer.sourcesFolders
+    override def sourcesFolders = outer().sourcesFolders
 
     override def bomMvnDeps = Task[Seq[Dep]] {
       super.bomMvnDeps() ++
-        outer.bomMvnDeps()
+        outer().bomMvnDeps()
     }
 
     override def depManagement = Task[Seq[Dep]] {
       super.depManagement() ++
-        outer.depManagement()
+        outer().depManagement()
     }
 
     /**

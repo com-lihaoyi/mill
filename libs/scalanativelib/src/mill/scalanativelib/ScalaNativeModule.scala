@@ -3,7 +3,7 @@ package scalanativelib
 
 import mainargs.Flag
 import mill.{api as _, *}
-import mill.api.{CrossVersion, Result, TaskCtx}
+import mill.api.{ModuleRef, CrossVersion, Result, TaskCtx}
 import mill.api.daemon.internal.bsp.ScalaBuildTarget
 import mill.javalib.api.JvmWorkerUtil
 import mill.api.daemon.internal.{ScalaNativeModuleApi, ScalaPlatform, internal}
@@ -29,10 +29,10 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
 
   trait ScalaNativeTests extends ScalaTests with TestScalaNativeModule {
-    override def outer: ScalaNativeModule = ScalaNativeModule.this
-    override def scalaNativeVersion = outer.scalaNativeVersion()
-    override def releaseMode: T[ReleaseMode] = Task { outer.releaseMode() }
-    override def logLevel: T[NativeLogLevel] = outer.logLevel()
+    override def outer: ModuleRef[ScalaNativeModule] = ModuleRef(ScalaNativeModule.this)
+    override def scalaNativeVersion = outer().scalaNativeVersion()
+    override def releaseMode: T[ReleaseMode] = Task { outer().releaseMode() }
+    override def logLevel: T[NativeLogLevel] = outer().logLevel()
   }
 
   def scalaNativeBinaryVersion =

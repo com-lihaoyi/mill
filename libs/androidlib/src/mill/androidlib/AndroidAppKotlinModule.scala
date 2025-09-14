@@ -34,15 +34,15 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
 
   trait AndroidAppKotlinInstrumentedTests extends AndroidAppInstrumentedTests,
         AndroidAppKotlinModule {
-    override def outer: AndroidAppKotlinModule = AndroidAppKotlinModule.this
+    override def outer: ModuleRef[AndroidAppKotlinModule] = ModuleRef(AndroidAppKotlinModule.this)
 
-    override final def kotlinVersion: T[String] = outer.kotlinVersion
-    override final def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
-    override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer.resolutionParams())
+    override final def kotlinVersion: T[String] = outer().kotlinVersion
+    override final def androidSdkModule: ModuleRef[AndroidSdkModule] = outer().androidSdkModule
+    override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer().resolutionParams())
 
     private def kotlinSources = Task.Sources("src/androidTest/kotlin")
 
-    override def kotlincPluginMvnDeps: T[Seq[Dep]] = outer.kotlincPluginMvnDeps()
+    override def kotlincPluginMvnDeps: T[Seq[Dep]] = outer().kotlincPluginMvnDeps()
 
     override def sources: T[Seq[PathRef]] =
       super[AndroidAppInstrumentedTests].sources() ++ kotlinSources()

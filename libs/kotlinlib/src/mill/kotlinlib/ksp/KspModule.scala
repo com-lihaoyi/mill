@@ -496,11 +496,11 @@ trait KspModule extends KotlinModule { outer =>
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
   trait KspTests extends KspModule with KotlinTests {
-    override def outer: KspModule = KspModule.this
-    override def kspModuleMode: KspModuleMode = outer.kspModuleMode
-    override def kspVersion: T[String] = outer.kspVersion()
-    override def kspLanguageVersion: T[String] = outer.kspLanguageVersion()
-    override def kspApiVersion: T[String] = outer.kspApiVersion()
-    override def kspJvmTarget: T[String] = outer.kspJvmTarget()
+    override def outer: ModuleRef[KspModule] = ModuleRef(KspModule.this)
+    override def kspModuleMode: KspModuleMode = outer().kspModuleMode
+    override def kspVersion: T[String] = outer().kspVersion()
+    override def kspLanguageVersion: T[String] = outer().kspLanguageVersion()
+    override def kspApiVersion: T[String] = outer().kspApiVersion()
+    override def kspJvmTarget: T[String] = outer().kspJvmTarget()
   }
 }

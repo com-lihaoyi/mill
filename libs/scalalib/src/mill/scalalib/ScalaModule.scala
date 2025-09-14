@@ -26,7 +26,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     with ScalaModuleApi { outer =>
 
   trait ScalaTests extends ScalaModule.Tests {
-    def outer = ScalaModule.this
+    def outer = ModuleRef(ScalaModule.this)
   }
 
   private[mill] override lazy val bspExt = {
@@ -663,17 +663,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
 object ScalaModule {
   trait Tests extends JavaModule.Tests with ScalaModule {
-    private[mill] def outer: ScalaModule
-    
-    override def scalaOrganization: T[String] = outer.scalaOrganization()
+    private[mill] def outer: ModuleRef[ScalaModule]
 
-    override def scalaVersion: T[String] = outer.scalaVersion()
+    override def scalaOrganization: T[String] = outer().scalaOrganization()
 
-    override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
+    override def scalaVersion: T[String] = outer().scalaVersion()
 
-    override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
+    override def scalacPluginMvnDeps: T[Seq[Dep]] = outer().scalacPluginMvnDeps()
 
-    override def scalacOptions: T[Seq[String]] = outer.scalacOptions()
+    override def scalacPluginClasspath: T[Seq[PathRef]] = outer().scalacPluginClasspath()
+
+    override def scalacOptions: T[Seq[String]] = outer().scalacOptions()
 
     override def mandatoryScalacOptions: T[Seq[String]] =
       Task {
