@@ -15,12 +15,12 @@ object `package` extends MillStableScalaModule {
     build.libs.scalanativelib,
     build.libs.javascriptlib,
     build.libs.pythonlib,
-    build.libs.util
+    build.libs.util,
+    build.libs.script
   )
 
   def runModuleDeps = Seq(
     build.libs.init,
-    build.libs.tabcomplete,
-    build.libs.script
+    build.libs.tabcomplete
   )
 }

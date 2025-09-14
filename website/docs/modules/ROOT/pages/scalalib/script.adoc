@@ -9,3 +9,8 @@ This page documents the usage of single-file Scala "script" modules.
 == Configuring Single-File Scripts
 
 include::partial$example/scalalib/script/1-config.adoc[]
+
+
+== Custom Script Module Classes
+
+include::partial$example/scalalib/script/2-custom-class.adoc[]

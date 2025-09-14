@@ -7,98 +7,100 @@ import mill.scalalib.ScalaModule
 import mill.javalib.PublishModule
 import mill.api.Discover
 
-trait Java0 extends ScriptModule
-class Java(val millFile: os.Path, override val moduleDeps: Seq[JavaModule]) extends ScriptModule {
+
+class Java(val millScriptFile: os.Path, override val moduleDeps: Seq[JavaModule]) extends Java.Base {
   override lazy val millDiscover = Discover[this.type]
 }
 object Java {
-  class Publish(val millFile: os.Path, override val moduleDeps: Seq[JavaModule with PublishModule]) extends ScriptModule, ScriptModule.Publish {
+  trait Base extends ScriptModule
+  class Publish(val millScriptFile: os.Path, override val moduleDeps: Seq[JavaModule with PublishModule]) extends Java.Base, ScriptModule.Publish {
     override lazy val millDiscover = Discover[this.type]
   }
-  trait Test0 extends Java0, JavaModule.Tests{
+  trait Test0 extends Java.Base, JavaModule.Tests{
     def outer = moduleDeps.head
   }
-  class TestNg(val millFile: os.Path, override val moduleDeps: Seq[JavaModule]) extends Test0, TestModule.TestNg {
+  class TestNg(val millScriptFile: os.Path, override val moduleDeps: Seq[JavaModule]) extends Test0, TestModule.TestNg {
     override lazy val millDiscover = Discover[this.type]
   }
-  class Junit4(val millFile: os.Path, override val moduleDeps: Seq[JavaModule]) extends Test0, TestModule.Junit4 {
+  class Junit4(val millScriptFile: os.Path, override val moduleDeps: Seq[JavaModule]) extends Test0, TestModule.Junit4 {
     override lazy val millDiscover = Discover[this.type]
   }
-  class Junit5(val millFile: os.Path, override val moduleDeps: Seq[JavaModule]) extends Test0, TestModule.Junit5 {
+  class Junit5(val millScriptFile: os.Path, override val moduleDeps: Seq[JavaModule]) extends Test0, TestModule.Junit5 {
     override lazy val millDiscover = Discover[this.type]
   }
 }
 
-trait Scala0 extends ScriptModule, ScalaModule {
-  def scalaVersion = mill.util.BuildInfo.scalaVersion
-}
-class Scala(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Scala0 {
+
+class Scala(val millScriptFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Scala.Base {
   override lazy val millDiscover = Discover[this.type]
 }
 
 object Scala {
-  class Publish(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule with PublishModule]) extends Scala0, ScriptModule.Publish {
+  trait Base extends ScriptModule, ScalaModule {
+    def scalaVersion = mill.util.BuildInfo.scalaVersion
+  }
+  class Publish(val millScriptFile: os.Path, override val moduleDeps: Seq[ScalaModule with PublishModule]) extends Scala.Base, ScriptModule.Publish {
     override lazy val millDiscover = Discover[this.type]
   }
-  trait Test0 extends Scala0, ScalaModule.Tests{
+  trait Test0 extends Base, ScalaModule.Tests{
     def outer = moduleDeps.head.asInstanceOf[ScalaModule]
   }
-  class TestNg(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.TestNg {
+  class TestNg(val millScriptFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.TestNg {
     override lazy val millDiscover = Discover[this.type]
   }
-  class Junit4(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.Junit4 {
+  class Junit4(val millScriptFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.Junit4 {
     override lazy val millDiscover = Discover[this.type]
   }
-  class Junit5(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.Junit5 {
+  class Junit5(val millScriptFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.Junit5 {
     override lazy val millDiscover = Discover[this.type]
   }
-  class ScalaTest(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.ScalaTest {
+  class ScalaTest(val millScriptFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.ScalaTest {
     override lazy val millDiscover = Discover[this.type]
   }
-  class Specs2(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.Specs2 {
+  class Specs2(val millScriptFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.Specs2 {
     override lazy val millDiscover = Discover[this.type]
   }
-  class Utest(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.Utest {
+  class Utest(val millScriptFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.Utest {
     override lazy val millDiscover = Discover[this.type]
   }
-  class Munit(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.Munit {
+  class Munit(val millScriptFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.Munit {
     override lazy val millDiscover = Discover[this.type]
   }
-  class Weaver(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.Weaver {
+  class Weaver(val millScriptFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.Weaver {
     override lazy val millDiscover = Discover[this.type]
   }
-  class ZioTest(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.ZioTest {
+  class ZioTest(val millScriptFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.ZioTest {
     override lazy val millDiscover = Discover[this.type]
   }
-  class ScalaCheck(val millFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.ScalaCheck {
+  class ScalaCheck(val millScriptFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.ScalaCheck {
     override lazy val millDiscover = Discover[this.type]
   }
 }
 
-trait Kotlin0 extends ScriptModule, KotlinModule {
-  def kotlinVersion = "1.9.24"
-  override lazy val millDiscover = Discover[this.type]
-}
-class Kotlin(val millFile: os.Path, override val moduleDeps: Seq[KotlinModule]) extends Kotlin0 {
+
+class Kotlin(val millScriptFile: os.Path, override val moduleDeps: Seq[KotlinModule]) extends Kotlin.Base {
   override lazy val millDiscover = Discover[this.type]
 }
 
 object Kotlin {
-  class Publish(val millFile: os.Path, override val moduleDeps: Seq[KotlinModule with PublishModule]) extends Kotlin0, ScriptModule.Publish {
+  trait Base extends ScriptModule, KotlinModule {
+    def kotlinVersion = "1.9.24"
+  }
+  class Publish(val millScriptFile: os.Path, override val moduleDeps: Seq[KotlinModule with PublishModule]) extends Kotlin.Base, ScriptModule.Publish {
     override lazy val millDiscover = Discover[this.type]
   }
-  trait Test0 extends Kotlin0, KotlinModule.Tests{
+  trait Test0 extends Kotlin.Base, KotlinModule.Tests{
     def outer = moduleDeps.head.asInstanceOf[KotlinModule]
   }
-  class TestNg(val millFile: os.Path, override val moduleDeps: Seq[KotlinModule]) extends Test0, TestModule.TestNg {
+  class TestNg(val millScriptFile: os.Path, override val moduleDeps: Seq[KotlinModule]) extends Test0, TestModule.TestNg {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class Junit4(val millFile: os.Path, override val moduleDeps: Seq[KotlinModule]) extends Test0, TestModule.Junit4 {
+  class Junit4(val millScriptFile: os.Path, override val moduleDeps: Seq[KotlinModule]) extends Test0, TestModule.Junit4 {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class Junit5(val millFile: os.Path, override val moduleDeps: Seq[KotlinModule]) extends Test0, TestModule.Junit5 {
+  class Junit5(val millScriptFile: os.Path, override val moduleDeps: Seq[KotlinModule]) extends Test0, TestModule.Junit5 {
     override lazy val millDiscover = Discover[this.type]
   }
 }

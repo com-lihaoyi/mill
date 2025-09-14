@@ -8,21 +8,21 @@ import mill.javalib.JavaModule
 import mill.javalib.NativeImageModule
 
 trait ScriptModule extends ExternalModule, JavaModule, NativeImageModule {
-  def millFile: os.Path
+  def millScriptFile: os.Path
   override def sources = Nil
-  def selfSource = Task.Source(millFile)
+  def selfSource = Task.Source(millScriptFile)
   override def allSources = sources() ++ Seq(selfSource())
   def allowNestedExternalModule = true
 
   override def moduleSegments: Segments = {
-    Segments.labels(millFile.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*)
+    Segments.labels(millScriptFile.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*)
   }
-  override def buildOverrides = ScriptModule.parseHeaderData(millFile)
+  override def buildOverrides = ScriptModule.parseHeaderData(millScriptFile)
 }
 
 object ScriptModule {
-  def parseHeaderData(millFile: os.Path) = {
-    val headerData = mill.constants.Util.readBuildHeader(millFile.toNIO, millFile.last, true)
+  def parseHeaderData(millScriptFile: os.Path) = {
+    val headerData = mill.constants.Util.readBuildHeader(millScriptFile.toNIO, millScriptFile.last, true)
     upickle.read[Map[String, ujson.Value]](mill.internal.Util.parseHeaderData(headerData))
   }
   trait Publish extends mill.javalib.PublishModule {
