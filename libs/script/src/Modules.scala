@@ -4,11 +4,9 @@ import mill.api.Discover
 import mill.javalib.{JavaModule, TestModule}
 import mill.kotlinlib.KotlinModule
 import mill.scalalib.ScalaModule
-import mill.javalib.TestModule
 import mill.javalib.PublishModule
 import mill.api.Discover
-import mill.scalalib.ScalaModule
-import mill.kotlinlib.KotlinModule
+
 trait Java0 extends ScriptModule
 class Java(val millFile: os.Path, override val moduleDeps: Seq[JavaModule]) extends ScriptModule {
   override lazy val millDiscover = Discover[this.type]
