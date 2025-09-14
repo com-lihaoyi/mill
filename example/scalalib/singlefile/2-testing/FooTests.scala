@@ -1,7 +1,7 @@
 //| mvnDeps:
 //| - "com.lihaoyi::utest:0.9.1"
-//| tests: Foo.scala
-//| testTrait: Utest
+//| moduleDeps: [Foo.scala]
+//| extends: mill.singlefile.Scala.Utest
 package foo
 
 import utest.*
