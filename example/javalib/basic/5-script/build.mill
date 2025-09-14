@@ -33,7 +33,7 @@ compiling 1 Java source to...
 
 //// SNIPPET:TEST
 
-
+/** See Also: FooTest.java */
 
 /** Usage
 > ./mill FooTest.java

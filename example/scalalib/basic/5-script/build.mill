@@ -50,7 +50,7 @@ compiling 1 Scala source to...
 // class via `extends` as shown below:
 
 //// SNIPPET:TEST
-
+/** See Also: FooTests.scala */
 
 /** Usage
 > ./mill FooTests.scala

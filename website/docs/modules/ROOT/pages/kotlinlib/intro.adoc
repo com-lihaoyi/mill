@@ -14,7 +14,7 @@ limitations!
 
 == Single-File Projects
 
-include::partial$example/kotlinlib/basic/5-single-file.adoc[]
+include::partial$example/kotlinlib/basic/5-script.adoc[]
 
 == Simple Kotlin Module
 

@@ -10,7 +10,7 @@ include::partial$Intro_Header.adoc[]
 
 == Single-File Projects
 
-include::partial$example/javalib/basic/5-single-file.adoc[]
+include::partial$example/javalib/basic/5-script.adoc[]
 
 == Simple Java Module
 

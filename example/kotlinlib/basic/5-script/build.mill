@@ -31,6 +31,7 @@ Compiling 1 Kotlin sources to...
 
 //// SNIPPET:TEST
 
+/** See Also: FooTest.kt */
 
 /** Usage
 > ./mill FooTest.kt
