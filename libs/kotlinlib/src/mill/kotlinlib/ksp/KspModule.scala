@@ -254,12 +254,17 @@ trait KspModule extends KotlinModule { outer =>
       compileCp.iterator.mkString(File.pathSeparator)
     )
 
-    val compilerArgs: Seq[String] = classpath ++ kspCompilerArgs ++ sourceFiles.map(_.toString)
+    val compilerArgs: Seq[String] = classpath ++ kspCompilerArgs
 
     Task.log.info(s"KSP arguments: ${compilerArgs.mkString(" ")}")
 
     KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
-      _.compile(KotlinWorkerTarget.Jvm, compilerArgs)
+      _.compile(
+        target = KotlinWorkerTarget.Jvm,
+        useBtApi = kotlincUseBtApi(),
+        args = compilerArgs,
+        sources = sourceFiles
+      )
     }
 
     GeneratedKspSources(PathRef(java), PathRef(kotlin), PathRef(resources), PathRef(classes))

@@ -39,15 +39,9 @@ object `package` extends MillStableScalaModule with BuildInfo {
     )
   )
 
-  trait MillKotlinModule extends MillPublishScalaModule {
-    override def javacOptions = super.javacOptions() ++ {
-      val release =
-        if (scala.util.Properties.isJavaAtLeast(11)) Seq("-release", "8")
-        else Seq("-source", "1.8", "-target", "1.8")
-      release ++ Seq("-encoding", "UTF-8", "-deprecation")
-    }
-  }
+  trait MillKotlinModule extends MillPublishScalaModule
 
+  // shared between kotlinlib and kotlinlib.worker
   object api extends MillKotlinModule {
     def moduleDeps = Seq(build.libs.javalib.testrunner)
 
@@ -64,7 +58,8 @@ object `package` extends MillStableScalaModule with BuildInfo {
     override def compileMvnDeps: T[Seq[Dep]] =
       super.mandatoryMvnDeps() ++ Seq(
         Deps.osLib,
-        Deps.kotlinCompiler
+        Deps.kotlinCompiler,
+        Deps.kotlinBuildToolsApi
       )
   }
 
