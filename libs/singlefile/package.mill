@@ -1,4 +1,4 @@
-package build.libs.scripts
+package build.libs.singlefile
 
 // imports
 import millbuild.*

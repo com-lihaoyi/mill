@@ -25,14 +25,8 @@ import scala.util.Using
 trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     with ScalaModuleApi { outer =>
 
-  trait ScalaTests extends JavaTests with ScalaModule {
-    override def scalaOrganization: T[String] = outer.scalaOrganization()
-    override def scalaVersion: T[String] = outer.scalaVersion()
-    override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
-    override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
-    override def scalacOptions: T[Seq[String]] = outer.scalacOptions()
-    override def mandatoryScalacOptions: T[Seq[String]] =
-      Task { super.mandatoryScalacOptions() }
+  trait ScalaTests extends ScalaModule.Tests {
+    def outer = ScalaModule.this
   }
 
   private[mill] override lazy val bspExt = {
@@ -665,4 +659,26 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     // This is the same as `super.semanticDbData()`, but we can't call it directly
     // because then it generates a forwarder which breaks binary compatibility.
     Task { semanticDbDataDetailed().semanticDbFiles }
+}
+
+object ScalaModule {
+  trait Tests extends JavaModule.Tests with ScalaModule {
+    private[mill] def outer: ScalaModule
+    
+    override def scalaOrganization: T[String] = outer.scalaOrganization()
+
+    override def scalaVersion: T[String] = outer.scalaVersion()
+
+    override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
+
+    override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
+
+    override def scalacOptions: T[Seq[String]] = outer.scalacOptions()
+
+    override def mandatoryScalacOptions: T[Seq[String]] =
+      Task {
+        super.mandatoryScalacOptions()
+      }
+  }
+
 }

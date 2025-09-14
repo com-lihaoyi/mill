@@ -81,6 +81,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
   }
 
   trait AndroidKotlinTestModule extends KotlinTests, AndroidTestModule {
+    override def outer: AndroidKotlinModule = AndroidKotlinModule.this
     override def kotlinVersion: T[String] = outer.kotlinVersion
 
     private def kotlinSources = Task.Sources("src/test/kotlin")

@@ -22,6 +22,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
   def scalaJSVersion: T[String]
 
   trait ScalaJSTests extends ScalaTests with TestScalaJSModule {
+    override def outer: ScalaJSModule = ScalaJSModule.this
     override def scalaJSVersion = outer.scalaJSVersion()
     override def moduleKind: T[ModuleKind] = outer.moduleKind()
     override def moduleSplitStyle: T[ModuleSplitStyle] = outer.moduleSplitStyle()

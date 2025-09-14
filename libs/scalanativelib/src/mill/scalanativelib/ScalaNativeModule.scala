@@ -29,6 +29,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
 
   trait ScalaNativeTests extends ScalaTests with TestScalaNativeModule {
+    override def outer: ScalaNativeModule = ScalaNativeModule.this
     override def scalaNativeVersion = outer.scalaNativeVersion()
     override def releaseMode: T[ReleaseMode] = Task { outer.releaseMode() }
     override def logLevel: T[NativeLogLevel] = outer.logLevel()

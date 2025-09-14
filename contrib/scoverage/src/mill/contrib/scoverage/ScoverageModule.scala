@@ -195,7 +195,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   }
 
   trait ScoverageTests extends ScalaTests {
-
+    override def outer: ScoverageModule = ScoverageModule.this
     /**
      * Alter classpath from upstream modules by replacing in-place outer module
      * classes folder by the outer.scoverage classes folder and adding the

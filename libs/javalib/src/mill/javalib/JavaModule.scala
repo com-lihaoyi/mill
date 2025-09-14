@@ -68,74 +68,8 @@ trait JavaModule
     () => genIdeaInternalExt()
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
-  trait JavaTests extends JavaModule with TestModule {
-    // Run some consistence checks
-    hierarchyChecks()
-
-    override def resources = super[JavaModule].resources
-    override def moduleDeps: Seq[JavaModule] = Seq(outer)
-    override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-      outer.repositoriesTask()
-    }
-
-    override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
-      outer.resolutionCustomizer
-
-    override def javacOptions: T[Seq[String]] = Task { outer.javacOptions() }
-    override def jvmWorker: ModuleRef[JvmWorkerModule] = outer.jvmWorker
-
-    def jvmId = outer.jvmId
-
-    def jvmIndexVersion = outer.jvmIndexVersion
-
-    /**
-     * Optional custom Java Home for the JvmWorker to use
-     *
-     * If this value is None, then the JvmWorker uses the same Java used to run
-     * the current mill instance.
-     */
-    def javaHome = outer.javaHome
-
-    override def skipIdea: Boolean = outer.skipIdea
-    override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
-    override def sourcesFolders = outer.sourcesFolders
-
-    override def bomMvnDeps = Task[Seq[Dep]] {
-      super.bomMvnDeps() ++
-        outer.bomMvnDeps()
-    }
-    override def depManagement = Task[Seq[Dep]] {
-      super.depManagement() ++
-        outer.depManagement()
-    }
-
-    /**
-     * JavaModule and its derivatives define inner test modules.
-     * To avoid unexpected misbehavior due to the use of the wrong inner test trait
-     * we apply some hierarchy consistency checks.
-     * If, for some reason, those are too restrictive to you, you can override this method.
-     * @throws MillException
-     */
-    protected def hierarchyChecks(): Unit = {
-      val outerInnerSets = Seq(
-        ("mill.scalajslib.ScalaJSModule", "ScalaJSTests"),
-        ("mill.scalanativelib.ScalaNativeModule", "ScalaNativeTests"),
-        ("mill.scalalib.SbtModule", "SbtTests"),
-        ("mill.scalalib.MavenModule", "MavenTests")
-      )
-      for {
-        (mod, testModShort) <- outerInnerSets
-        testMod = s"${mod}$$${testModShort}"
-      }
-        try {
-          if (Class.forName(mod).isInstance(outer) && !Class.forName(testMod).isInstance(this))
-            throw new MillException(
-              s"$outer is a `${mod}`. $this needs to extend `${testModShort}`."
-            )
-        } catch {
-          case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
-        }
-    }
+  trait JavaTests extends JavaModule.Tests {
+    def outer = JavaModule.this
   }
 
   def defaultTask(): String = "run"
@@ -1534,6 +1468,87 @@ trait JavaModule
 }
 
 object JavaModule {
+  trait Tests extends JavaModule with TestModule {
+    private[mill] def outer: JavaModule
+    // Run some consistence checks
+    hierarchyChecks()
+
+    override def resources = super[JavaModule].resources
+
+    override def moduleDeps: Seq[JavaModule] = Seq(outer)
+
+    override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+      outer.repositoriesTask()
+    }
+
+    override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
+      outer.resolutionCustomizer
+
+    override def javacOptions: T[Seq[String]] = Task {
+      outer.javacOptions()
+    }
+
+    override def jvmWorker: ModuleRef[JvmWorkerModule] = outer.jvmWorker
+
+    def jvmId = outer.jvmId
+
+    def jvmIndexVersion = outer.jvmIndexVersion
+
+    /**
+     * Optional custom Java Home for the JvmWorker to use
+     *
+     * If this value is None, then the JvmWorker uses the same Java used to run
+     * the current mill instance.
+     */
+    def javaHome = outer.javaHome
+
+    override def skipIdea: Boolean = outer.skipIdea
+
+    override def runUseArgsFile: T[Boolean] = Task {
+      outer.runUseArgsFile()
+    }
+
+    override def sourcesFolders = outer.sourcesFolders
+
+    override def bomMvnDeps = Task[Seq[Dep]] {
+      super.bomMvnDeps() ++
+        outer.bomMvnDeps()
+    }
+
+    override def depManagement = Task[Seq[Dep]] {
+      super.depManagement() ++
+        outer.depManagement()
+    }
+
+    /**
+     * JavaModule and its derivatives define inner test modules.
+     * To avoid unexpected misbehavior due to the use of the wrong inner test trait
+     * we apply some hierarchy consistency checks.
+     * If, for some reason, those are too restrictive to you, you can override this method.
+     *
+     * @throws MillException
+     */
+    protected def hierarchyChecks(): Unit = {
+      val outerInnerSets = Seq(
+        ("mill.scalajslib.ScalaJSModule", "ScalaJSTests"),
+        ("mill.scalanativelib.ScalaNativeModule", "ScalaNativeTests"),
+        ("mill.scalalib.SbtModule", "SbtTests"),
+        ("mill.scalalib.MavenModule", "MavenTests")
+      )
+      for {
+        (mod, testModShort) <- outerInnerSets
+        testMod = s"${mod}$$${testModShort}"
+      }
+        try {
+          if (Class.forName(mod).isInstance(outer) && !Class.forName(testMod).isInstance(this))
+            throw new MillException(
+              s"$outer is a `${mod}`. $this needs to extend `${testModShort}`."
+            )
+        } catch {
+          case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
+        }
+    }
+  }
 
   /**
    * An in-memory [[coursier.Repository]] that exposes the passed projects

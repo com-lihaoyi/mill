@@ -454,27 +454,41 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   /**
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
-  trait KotlinTests extends JavaTests with KotlinModule {
-
-    override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
-    override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
-    override def kotlinExplicitApi: T[Boolean] = false
-    override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
-    override def kotlincPluginMvnDeps: T[Seq[Dep]] =
-      Task { outer.kotlincPluginMvnDeps() }
-      // TODO: make Xfriend-path an explicit setting
-    override def kotlincOptions: T[Seq[String]] = Task {
-      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
-        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
-    }
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
-      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+  trait KotlinTests extends KotlinModule.Tests{
+    def outer = KotlinModule.this
   }
 
 }
 
 object KotlinModule {
+  trait Tests extends JavaModule.Tests with KotlinModule {
+    def outer: KotlinModule
+    override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
 
+    override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
+
+    override def kotlinExplicitApi: T[Boolean] = false
+
+    override def kotlinVersion: T[String] = Task {
+      outer.kotlinVersion()
+    }
+
+    override def kotlincPluginMvnDeps: T[Seq[Dep]] =
+      Task {
+        outer.kotlincPluginMvnDeps()
+      }
+
+    // TODO: make Xfriend-path an explicit setting
+    override def kotlincOptions: T[Seq[String]] = Task {
+      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
+        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+    }
+
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
+      Task.Anon {
+        outer.kotlinUseEmbeddableCompiler()
+      }
+  }
   private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
     params.addVariantAttributes(
       "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
