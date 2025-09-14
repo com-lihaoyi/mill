@@ -202,11 +202,11 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
      * scoverage runtime dependency.
      */
     override def runClasspath: T[Seq[PathRef]] = Task {
-      val outerClassesPath = outer.compile().classes
-      val outerScoverageClassesPath = outer.scoverage.compile().classes
+      val outerClassesPath = outer().compile().classes
+      val outerScoverageClassesPath = outer().scoverage.compile().classes
       (super.runClasspath().map { path =>
         if (outerClassesPath == path) outerScoverageClassesPath else path
-      } ++ defaultResolver().classpath(outer.scoverageRuntimeDeps())).distinct
+      } ++ defaultResolver().classpath(outer().scoverageRuntimeDeps())).distinct
     }
   }
 }

@@ -9,8 +9,4 @@ public class Bar {
     context.setVariable("text", text);
     return new TemplateEngine().process("<h1 th:text=\"${text}\"></h1>", context);
   }
-
-  public static void main(String[] args) {
-    System.out.println("Bar.value: " + generateHtml(args[0]));
-  }
 }
