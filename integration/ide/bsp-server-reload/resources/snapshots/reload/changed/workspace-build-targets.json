@@ -36,7 +36,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "<java-version>"
+          "javaVersion": "17.0.14"
         }
       }
     },
@@ -83,7 +83,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "<java-version>"
+          "javaVersion": "17.0.14"
         }
       }
     },
@@ -145,7 +145,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "<java-version>"
+          "javaVersion": "17.0.14"
         }
       }
     }
