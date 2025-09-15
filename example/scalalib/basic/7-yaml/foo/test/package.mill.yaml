@@ -1,0 +1,4 @@
+extends: mill.script.Scala.UTest
+moduleDeps: ["foo"]
+mvnDeps:
+- "com.lihaoyi::utest:0.9.1"
