@@ -2,7 +2,17 @@ package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
 import mill.api.internal.{Reflect, Resolved, RootModule0}
-import mill.api.{DefaultTaskModule, Discover, ExternalModule, Module, Result, Segments, SelectMode, SimpleTaskTokenReader, Task}
+import mill.api.{
+  DefaultTaskModule,
+  Discover,
+  ExternalModule,
+  Module,
+  Result,
+  Segments,
+  SelectMode,
+  SimpleTaskTokenReader,
+  Task
+}
 import mill.resolve.ResolveCore.makeResultException
 
 private[mill] object Resolve {
@@ -307,7 +317,11 @@ private[mill] trait Resolve[T] {
         case Seq(head, rest*) => (head, None, rest)
       }
 
-      def handleResolved(resolved: Result[ExternalModule], segments: Seq[String], remaining: Seq[String]) = {
+      def handleResolved(
+          resolved: Result[ExternalModule],
+          segments: Seq[String],
+          remaining: Seq[String]
+      ) = {
         resolved.flatMap(scriptModule =>
           resolveNonEmptyAndHandle(
             remaining,
@@ -328,8 +342,7 @@ private[mill] trait Resolve[T] {
               case Some(resolved) => handleResolved(resolved, Seq(first), remaining)
               case None => fallback
             }
-          }
-          else fallback
+          } else fallback
       }
     }
     val resolvedGroups = ParseArgs.separate(scriptArgs).map { group =>

@@ -14,7 +14,7 @@ class Java(val scriptConf: ScriptModule.Config0[JavaModule])
 object Java {
   trait Base extends ScriptModule
   class Publish(val scriptConf: ScriptModule.Config0[JavaModule with PublishModule])
-    extends Java.Base, ScriptModule.Publish {
+      extends Java.Base, ScriptModule.Publish {
     override lazy val millDiscover = Discover[this.type]
   }
   trait Test0 extends Java.Base, JavaModule.Tests {
@@ -44,7 +44,7 @@ object Scala {
     def scalaVersion = mill.util.BuildInfo.scalaVersion
   }
   class Publish(val scriptConf: ScriptModule.Config0[JavaModule with PublishModule])
-    extends Scala.Base, ScriptModule.Publish {
+      extends Scala.Base, ScriptModule.Publish {
     override lazy val millDiscover = Discover[this.type]
   }
   trait Test0 extends Base, ScalaModule.Tests {
@@ -71,11 +71,11 @@ object Scala {
     override lazy val millDiscover = Discover[this.type]
   }
   class Utest(val scriptConf: ScriptModule.Config0[ScalaModule])
-    extends Test0, TestModule.Utest {
+      extends Test0, TestModule.Utest {
     override lazy val millDiscover = Discover[this.type]
   }
-  class Munit(val scriptConf: ScriptModule.Config0[ScalaModule]) 
-    extends Test0, TestModule.Munit {
+  class Munit(val scriptConf: ScriptModule.Config0[ScalaModule])
+      extends Test0, TestModule.Munit {
     override lazy val millDiscover = Discover[this.type]
   }
   class Weaver(val scriptConf: ScriptModule.Config0[ScalaModule])
@@ -102,7 +102,7 @@ object Kotlin {
     def kotlinVersion = "1.9.24"
   }
   class Publish(val scriptConf: ScriptModule.Config0[JavaModule with PublishModule])
-    extends Kotlin.Base, ScriptModule.Publish {
+      extends Kotlin.Base, ScriptModule.Publish {
     override lazy val millDiscover = Discover[this.type]
   }
   trait Test0 extends Kotlin.Base, KotlinModule.Tests {

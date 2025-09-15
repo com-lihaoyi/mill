@@ -33,7 +33,10 @@ private object ScriptModuleInit
 
     instantiate(
       className,
-      ScriptModule.Config0(millFile, moduleDeps.map(resolveModuleDep(_).get.asInstanceOf[JavaModule]))
+      ScriptModule.Config0(
+        millFile,
+        moduleDeps.map(resolveModuleDep(_).get.asInstanceOf[JavaModule])
+      )
     )
   }
 
