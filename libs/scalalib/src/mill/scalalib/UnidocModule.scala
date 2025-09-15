@@ -26,7 +26,7 @@ trait UnidocModule extends ScalaModule {
    *
    * By default, all transitive module dependencies are included.
    */
-  def unidocModuleDeps: Seq[JavaModule] = transitiveModuleDeps
+  def unidocModuleDeps: Seq[JavaModule] = transitiveModuleCompileModuleDeps
 
   def unidocSourceFiles: T[Seq[PathRef]] = Task {
     if (JvmWorkerUtil.isScala3(scalaVersion())) {
