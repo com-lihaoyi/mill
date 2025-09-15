@@ -127,7 +127,8 @@ object Watching {
       doWatch(notifiablesChanged = () => watchedPathsSeq.exists(p => !haveNotChanged(p)))
 
     def doWatchFsNotify() = {
-      Using.resource(os.write.outputStream(watchArgs.daemonDir / "fsNotifyWatchLog")) { watchLog =>
+      val watchLogFile = watchArgs.daemonDir / "fsNotifyWatchLog"
+      Using.resource(os.write.outputStream(watchLogFile)) { watchLog =>
         def writeToWatchLog(s: String): Unit = {
           try {
             watchLog.write(s.getBytes(java.nio.charset.StandardCharsets.UTF_8))
@@ -195,15 +196,29 @@ object Watching {
               changedPaths.exists(p =>
                 watchedPathsSet.exists(watchedPath => p.startsWith(watchedPath))
               )
-            writeToWatchLog(
-              s"[changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
-            )
+
+            // Do not log if the only thing that changed was the watch log file itself.
+            //
+            // See https://github.com/com-lihaoyi/mill/issues/5843
+            if (hasWatchedPath || changedPaths.exists(_ != watchLogFile)) {
+              writeToWatchLog(
+                s"[changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
+              )
+            }
+
             if (hasWatchedPath) {
               pathChangesDetected = true
             }
           },
-          logger = (eventType, data) =>
-            writeToWatchLog(s"[watch:event] $eventType: ${pprint.apply(data).plainText}")
+          logger = (eventType, data) => {
+            val _ = eventType
+            val _ = data
+            // Uncommenting this causes indefinite loop as writing to watch log triggers an event, which then
+            // gets written to the watch log, which then triggers an event, and so on.
+            //
+            // https://github.com/com-lihaoyi/mill/issues/5843
+//            writeToWatchLog(s"[watch:event] $eventType: ${pprint.apply(data).plainText}")
+          }
         )) { _ =>
           // If already stale, re-evaluate instantly.
           //
