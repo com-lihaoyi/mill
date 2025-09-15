@@ -18,7 +18,9 @@ trait UnidocModule extends ScalaModule {
   def unidocVersion: T[Option[String]] = None
 
   def unidocCompileClasspath: T[Seq[PathRef]] = Task {
-    Seq(compile().classes) ++ Task.traverse(transitiveModuleCompileModuleDeps)(_.compileClasspath)().flatten
+    Seq(
+      compile().classes
+    ) ++ Task.traverse(transitiveModuleCompileModuleDeps)(_.compileClasspath)().flatten
   }
 
   /**
