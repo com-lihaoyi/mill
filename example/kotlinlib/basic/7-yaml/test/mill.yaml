@@ -1,4 +1,5 @@
-extends: mill.script.Kotlin.Junit4
-moduleDeps: ["foo"]
+extends: mill.script.Kotlin.Junit5
+moduleDeps: ["."]
 mvnDeps:
-- "com.google.guava:guava:33.3.0-jre"
+- "io.kotest:kotest-runner-junit5:5.9.1"
+- "com.novocode:junit-interface:0.11"

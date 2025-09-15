@@ -2,16 +2,7 @@ package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
 import mill.api.internal.{Reflect, Resolved, RootModule0}
-import mill.api.{
-  DefaultTaskModule,
-  Discover,
-  Module,
-  Segments,
-  SelectMode,
-  SimpleTaskTokenReader,
-  Task
-}
-import mill.api.Result
+import mill.api.{DefaultTaskModule, Discover, ExternalModule, Module, Result, Segments, SelectMode, SimpleTaskTokenReader, Task}
 import mill.resolve.ResolveCore.makeResultException
 
 private[mill] object Resolve {
@@ -311,23 +302,34 @@ private[mill] trait Resolve[T] {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val cache = new ResolveCore.Cache()
     def handleScriptModule(args: Seq[String], fallback: => Result[Seq[T]]): Result[Seq[T]] = {
-      val (file, selector, remaining) = args match {
-        case Seq(s"$prefix:$suffix", rest*) => (prefix, Seq(suffix), rest)
-        case Seq(head, rest*) => (head, Nil, rest)
+      val (first, selector, remaining) = args match {
+        case Seq(s"$prefix:$suffix", rest*) => (prefix, Some(suffix), rest)
+        case Seq(head, rest*) => (head, None, rest)
       }
-      scriptModuleResolver(file) match {
-        case None => fallback
-        case Some(resolved) =>
-          resolved.flatMap(scriptModule =>
-            resolveNonEmptyAndHandle(
-              remaining,
-              scriptModule,
-              Segments.labels(selector*),
-              nullCommandDefaults,
-              allowPositionalCommandArgs,
-              resolveToModuleTasks
-            )
+
+      def handleResolved(resolved: Result[ExternalModule], segments: Seq[String], remaining: Seq[String]) = {
+        resolved.flatMap(scriptModule =>
+          resolveNonEmptyAndHandle(
+            remaining,
+            scriptModule,
+            Segments.labels(segments*),
+            nullCommandDefaults,
+            allowPositionalCommandArgs,
+            resolveToModuleTasks
           )
+        )
+      }
+
+      scriptModuleResolver(first) match {
+        case Some(resolved) => handleResolved(resolved, selector.toSeq, remaining)
+        case None =>
+          if (selector.isEmpty) { // if the `:selector` is empty, try treating the `first` as a selector
+            scriptModuleResolver(".") match {
+              case Some(resolved) => handleResolved(resolved, Seq(first), remaining)
+              case None => fallback
+            }
+          }
+          else fallback
       }
     }
     val resolvedGroups = ParseArgs.separate(scriptArgs).map { group =>
