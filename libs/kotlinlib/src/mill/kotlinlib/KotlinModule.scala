@@ -476,7 +476,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   /**
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
-  trait KotlinTests extends KotlinModule.Tests{
+  trait KotlinTests extends KotlinModule.Tests {
     def outerRef = ModuleRef(KotlinModule.this)
   }
 

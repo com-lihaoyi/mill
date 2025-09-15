@@ -25,7 +25,10 @@ final class EvaluatorImpl private[mill] (
     private[mill] val allowPositionalCommandArgs: Boolean,
     private[mill] val selectiveExecution: Boolean = false,
     private val execution: Execution,
-    scriptModuleResolver: (String, String => Option[mill.Module]) => Option[Result[mill.api.ExternalModule]]
+    scriptModuleResolver: (
+        String,
+        String => Option[mill.Module]
+    ) => Option[Result[mill.api.ExternalModule]]
 ) extends Evaluator {
 
   private[mill] def workspace = execution.workspace
@@ -50,8 +53,9 @@ final class EvaluatorImpl private[mill] (
       .toOption
       .toSeq
       .flatten
-      .collectFirst{case Left(m) => m}
+      .collectFirst { case Left(m) => m }
   }
+
   /**
    * Takes query selector tokens and resolves them to a list of [[Segments]]
    * representing concrete tasks or modules that match that selector
@@ -69,7 +73,7 @@ final class EvaluatorImpl private[mill] (
         selectMode,
         allowPositionalCommandArgs,
         resolveToModuleTasks,
-        scriptModuleResolver= scriptModuleResolver(_, resolveSingleModule)
+        scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule)
       )
     }
   }
@@ -86,7 +90,7 @@ final class EvaluatorImpl private[mill] (
         selectMode,
         allowPositionalCommandArgs,
         resolveToModuleTasks,
-        scriptModuleResolver= scriptModuleResolver(_, resolveSingleModule)
+        scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule)
       )
     }
   }
@@ -109,7 +113,7 @@ final class EvaluatorImpl private[mill] (
           selectMode,
           allowPositionalCommandArgs,
           resolveToModuleTasks,
-          scriptModuleResolver= scriptModuleResolver(_, resolveSingleModule)
+          scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule)
         )
       }
     }
@@ -128,7 +132,7 @@ final class EvaluatorImpl private[mill] (
           selectMode,
           allowPositionalCommandArgs,
           resolveToModuleTasks,
-          scriptModuleResolver= scriptModuleResolver(_, resolveSingleModule)
+          scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule)
         )
       }
     }
@@ -290,7 +294,7 @@ final class EvaluatorImpl private[mill] (
             scriptArgs,
             selectMode,
             allowPositionalCommandArgs,
-            scriptModuleResolver= scriptModuleResolver(_, resolveSingleModule)
+            scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule)
           )
         }
       }

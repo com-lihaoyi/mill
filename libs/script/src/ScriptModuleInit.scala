@@ -5,22 +5,26 @@ import mill.scalalib.ScalaModule
 import mill.kotlinlib.KotlinModule
 import mill.script.ScriptModule.parseHeaderData
 
-object ScriptModuleInit extends ((String, String => Option[mill.Module]) => Option[Result[mill.api.ExternalModule]]) {
+object ScriptModuleInit
+    extends ((String, String => Option[mill.Module]) => Option[Result[mill.api.ExternalModule]]) {
   def instantiate(className: String, args: AnyRef*): ExternalModule = {
     val cls =
       try Class.forName(className)
-      catch{case e: Throwable =>
-        // Hack to try and pick up classes nested within package objects
-        Class.forName(className.reverse.replaceFirst("\\.", "\\$").reverse)
+      catch {
+        case e: Throwable =>
+          // Hack to try and pick up classes nested within package objects
+          Class.forName(className.reverse.replaceFirst("\\.", "\\$").reverse)
       }
 
-    cls.getDeclaredConstructors.head.newInstance(args *).asInstanceOf[ExternalModule]
+    cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ExternalModule]
   }
-  def moduleFor(millFile: os.Path,
-                extendsConfig: Option[String],
-                moduleDeps: Seq[String],
-                resolveModuleDep: String => Option[mill.Module]) = {
-    val className = extendsConfig.getOrElse{
+  def moduleFor(
+      millFile: os.Path,
+      extendsConfig: Option[String],
+      moduleDeps: Seq[String],
+      resolveModuleDep: String => Option[mill.Module]
+  ) = {
+    val className = extendsConfig.getOrElse {
       millFile.ext match {
         case "java" => "mill.script.Java"
         case "scala" => "mill.script.Scala"

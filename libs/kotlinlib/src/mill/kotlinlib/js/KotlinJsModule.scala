@@ -536,7 +536,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
         this.testForked(args*)()
       }
 
-    override protected[js] def kotlinJsFriendModule: Option[KotlinJsModule] = Some(KotlinJsModule.this)
+    override protected[js] def kotlinJsFriendModule: Option[KotlinJsModule] =
+      Some(KotlinJsModule.this)
 
     override protected def testTask(
         args: Task[Seq[String]],

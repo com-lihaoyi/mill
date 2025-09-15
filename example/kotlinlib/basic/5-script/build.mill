@@ -28,7 +28,6 @@ Compiling 1 Kotlin sources to...
 
 //// SNIPPET:END
 
-
 //// SNIPPET:TEST
 
 /** See Also: FooTest.kt */
@@ -44,7 +43,5 @@ Test run finished: 0 failed, 0 ignored, 2 total, ...
 > ./mill FooTest.kt:testForked # specifying the test task explicitly
 
 */
-
-
 
 //// SNIPPET:END

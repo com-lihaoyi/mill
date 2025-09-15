@@ -2,7 +2,7 @@ package millbuild
 import mill.*, javalib.*
 
 class LineCountJavaModule(val millScriptFile: os.Path, override val moduleDeps: Seq[JavaModule])
-  extends mill.script.Java.Base {
+    extends mill.script.Java.Base {
 
   /** Total number of lines in module source files */
   def lineCount = Task {

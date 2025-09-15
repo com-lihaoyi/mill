@@ -890,7 +890,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
   trait AndroidAppTests extends AndroidTestModule, AndroidAppModule {
     override def outerRef: ModuleRef[AndroidAppModule] = ModuleRef(AndroidAppModule.this)
     override def androidApplicationId: String = s"${outerRef().androidApplicationId}.test"
-    override def androidApplicationNamespace: String = s"${outerRef().androidApplicationNamespace}.test"
+    override def androidApplicationNamespace: String =
+      s"${outerRef().androidApplicationNamespace}.test"
   }
 
   trait AndroidAppInstrumentedTests extends AndroidTestModule, AndroidAppModule {
@@ -900,12 +901,14 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def resolutionParams: Task[ResolutionParams] = Task.Anon(outerRef().resolutionParams())
 
     override def androidApplicationId: String = s"${outerRef().androidApplicationId}.test"
-    override def androidApplicationNamespace: String = s"${outerRef().androidApplicationNamespace}.test"
+    override def androidApplicationNamespace: String =
+      s"${outerRef().androidApplicationNamespace}.test"
 
     override def androidReleaseKeyAlias: T[Option[String]] = outerRef().androidReleaseKeyAlias()
     override def androidReleaseKeyName: Option[String] = outerRef().androidReleaseKeyName
     override def androidReleaseKeyPass: T[Option[String]] = outerRef().androidReleaseKeyPass()
-    override def androidReleaseKeyStorePass: T[Option[String]] = outerRef().androidReleaseKeyStorePass()
+    override def androidReleaseKeyStorePass: T[Option[String]] =
+      outerRef().androidReleaseKeyStorePass()
     override def androidReleaseKeyPath: T[Seq[PathRef]] = outerRef().androidReleaseKeyPath()
 
     override def androidEmulatorPort: String = outerRef().androidEmulatorPort

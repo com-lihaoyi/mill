@@ -23,7 +23,6 @@ compiling 1 Scala source to...
 
 //// SNIPPET:MORE
 
-
 /** Usage
 > ./mill Foo.scala:run --text hello
 <h1>hello</h1>
@@ -40,8 +39,6 @@ compiling 1 Scala source to...
 <h1>hello</h1>
 
 */
-
-
 
 //// SNIPPET:END
 
@@ -61,9 +58,6 @@ compiling 1 Scala source to...
 > ./mill FooTests.scala:testForked # specifying the test task explicitly
 
 */
-
-
-
 
 //// SNIPPET:END
 

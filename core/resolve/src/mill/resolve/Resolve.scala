@@ -300,8 +300,6 @@ private[mill] trait Resolve[T] {
       cache: ResolveCore.Cache
   ): Result[Seq[T]]
 
-
-
   private[mill] def resolve(
       rootModule: RootModule0,
       scriptArgs: Seq[String],
@@ -313,14 +311,14 @@ private[mill] trait Resolve[T] {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val cache = new ResolveCore.Cache()
     def handleScriptModule(args: Seq[String], fallback: => Result[Seq[T]]): Result[Seq[T]] = {
-      val (file, selector, remaining) = args match{
+      val (file, selector, remaining) = args match {
         case Seq(s"$prefix:$suffix", rest*) => (prefix, Seq(suffix), rest)
         case Seq(head, rest*) => (head, Nil, rest)
       }
-      scriptModuleResolver(file) match{
+      scriptModuleResolver(file) match {
         case None => fallback
         case Some(resolved) =>
-          resolved.flatMap( scriptModule =>
+          resolved.flatMap(scriptModule =>
             resolveNonEmptyAndHandle(
               remaining,
               scriptModule,
@@ -340,7 +338,8 @@ private[mill] trait Resolve[T] {
             resolveRootModule(rootModule, scopedSel) match {
               case f: Result.Failure => handleScriptModule(group, f)
               case Result.Success(rootModuleSels) =>
-                val res = resolveNonEmptyAndHandle1(rootModuleSels, sel.getOrElse(Segments()), cache)
+                val res =
+                  resolveNonEmptyAndHandle1(rootModuleSels, sel.getOrElse(Segments()), cache)
                 def notFoundResult = resolveNonEmptyAndHandle2(
                   rootModuleSels,
                   args,
@@ -351,7 +350,7 @@ private[mill] trait Resolve[T] {
                   cache,
                   res
                 )
-                res match{
+                res match {
                   case _: ResolveCore.NotFound => handleScriptModule(group, notFoundResult)
                   case res => notFoundResult
                 }
@@ -400,14 +399,16 @@ private[mill] trait Resolve[T] {
     )
   }
 
-  private[mill] def resolveNonEmptyAndHandle2(rootModule: RootModule0,
-                                              args: Seq[String],
-                                              sel: Segments,
-                                              nullCommandDefaults: Boolean,
-                                              allowPositionalCommandArgs: Boolean,
-                                              resolveToModuleTasks: Boolean,
-                                              cache: ResolveCore.Cache,
-                                              result: ResolveCore.Result): Result[Seq[T]] = {
+  private[mill] def resolveNonEmptyAndHandle2(
+      rootModule: RootModule0,
+      args: Seq[String],
+      sel: Segments,
+      nullCommandDefaults: Boolean,
+      allowPositionalCommandArgs: Boolean,
+      resolveToModuleTasks: Boolean,
+      cache: ResolveCore.Cache,
+      result: ResolveCore.Result
+  ): Result[Seq[T]] = {
     val resolved = result match {
       case ResolveCore.Success(value) => Result.Success(value)
       case ResolveCore.NotFound(segments, found, next, possibleNexts) =>

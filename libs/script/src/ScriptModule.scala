@@ -22,7 +22,8 @@ trait ScriptModule extends ExternalModule, JavaModule, NativeImageModule {
 
 object ScriptModule {
   def parseHeaderData(millScriptFile: os.Path) = {
-    val headerData = mill.constants.Util.readBuildHeader(millScriptFile.toNIO, millScriptFile.last, true)
+    val headerData =
+      mill.constants.Util.readBuildHeader(millScriptFile.toNIO, millScriptFile.last, true)
     upickle.read[Map[String, ujson.Value]](mill.internal.Util.parseHeaderData(headerData))
   }
   trait Publish extends mill.javalib.PublishModule {

@@ -53,11 +53,11 @@ object RootModule {
     )
 
     def this(
-              projectRoot0: String,
-              output0: String,
-              topLevelProjectRoot0: String
-            ) = this(projectRoot0, output0, topLevelProjectRoot0, "{}")
-    
+        projectRoot0: String,
+        output0: String,
+        topLevelProjectRoot0: String
+    ) = this(projectRoot0, output0, topLevelProjectRoot0, "{}")
+
     implicit val millMiscInfo: Info = this
   }
 

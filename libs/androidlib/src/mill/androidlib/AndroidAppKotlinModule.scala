@@ -34,7 +34,8 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
 
   trait AndroidAppKotlinInstrumentedTests extends AndroidAppInstrumentedTests,
         AndroidAppKotlinModule {
-    override def outerRef: ModuleRef[AndroidAppKotlinModule] = ModuleRef(AndroidAppKotlinModule.this)
+    override def outerRef: ModuleRef[AndroidAppKotlinModule] =
+      ModuleRef(AndroidAppKotlinModule.this)
 
     override final def kotlinVersion: T[String] = outerRef().kotlinVersion
     override final def androidSdkModule: ModuleRef[AndroidSdkModule] = outerRef().androidSdkModule
