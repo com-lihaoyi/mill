@@ -118,7 +118,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       val projects = input.nodes(Tree.Traversal.BreadthFirst).map(_.value).toSeq
       cfg.baseProject
         .flatMap(name => projects.collectFirst { case m if name == m.name => m })
-        .orElse(projects.collectFirst { case m if m != null.maven().pom() => m })
+        .orElse(projects.collectFirst { case m if m.maven().pom() != null => m })
         .orElse(projects.collectFirst { case m if !m.maven().repositories().isEmpty => m })
         .getOrElse(input.node.value)
     }
@@ -127,7 +127,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
     }
     val supertypes =
       Seq("MavenModule") ++
-        Option.when(project != null.maven().pom()) { "PublishModule" }
+        Option.when(project.maven().pom() != null) { "PublishModule" }
 
     val javacOptions = getJavacOptions(project)
     val scalaVersion = None
@@ -204,7 +204,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       baseInfo: IrBaseInfo,
       build: Node[ProjectModel]
   ): Seq[String] =
-    Option.when(build != null.value.maven().pom() && {
+    Option.when(build.value.maven().pom() != null && {
       val baseTrait = baseInfo.moduleTypedef
       baseTrait == null || !baseTrait.moduleSupertypes.contains("PublishModule")
     }) { "PublishModule" }.toSeq ++
