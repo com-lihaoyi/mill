@@ -1,6 +1,6 @@
 package mill.script
 import mill.*
-import mill.api.{Discover, ModuleRef}
+import mill.api.ModuleRef
 import mill.javalib.{JavaModule, TestModule}
 import mill.kotlinlib.KotlinModule
 import mill.scalalib.ScalaModule

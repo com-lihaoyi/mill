@@ -1,8 +1,6 @@
 package mill.script
 import mill.*
-import mill.api.{Discover, ExternalModule, Result}
-import mill.scalalib.ScalaModule
-import mill.kotlinlib.KotlinModule
+import mill.api.{ExternalModule, Result}
 import mill.script.ScriptModule.parseHeaderData
 
 object ScriptModuleInit
@@ -11,7 +9,7 @@ object ScriptModuleInit
     val cls =
       try Class.forName(className)
       catch {
-        case e: Throwable =>
+        case _: Throwable =>
           // Hack to try and pick up classes nested within package objects
           Class.forName(className.reverse.replaceFirst("\\.", "\\$").reverse)
       }

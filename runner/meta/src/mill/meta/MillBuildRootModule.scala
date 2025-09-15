@@ -119,8 +119,7 @@ trait MillBuildRootModule()(implicit
         support,
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.output,
-        MillScalaParser.current.value,
-        parsed.headerData
+        MillScalaParser.current.value
       )
       (wrapped = Seq(PathRef(wrapped)), support = Seq(PathRef(support)))
     }

@@ -2,7 +2,6 @@ package mill.api.internal
 
 import mill.api.daemon.internal.{RootModuleApi, internal}
 import mill.api.Discover
-import ujson.Value
 
 import scala.annotation.compileTimeOnly
 
