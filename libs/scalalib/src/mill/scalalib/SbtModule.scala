@@ -11,7 +11,7 @@ trait SbtModule extends ScalaModule with MavenModule {
   override def sources = Task.Sources("src/main/scala", "src/main/java")
 
   trait SbtTests extends ScalaTests with MavenTests {
-    def outer = ModuleRef(SbtModule.this)
+    def outerRef = ModuleRef(SbtModule.this)
     override def sources = Task.Sources(
       moduleDir / "src" / testModuleName / "java",
       moduleDir / "src" / testModuleName / "scala"

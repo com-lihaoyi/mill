@@ -30,7 +30,7 @@ trait TraitOuter extends Module {
     def helperTraitInner = {
       println("running helperTraitInner"); 300 + valueTraitOuter + valueTraitInner
     }
-    def inner = Task { println("running inner"); foo() + outer() + helperTraitInner }
+    def inner = Task { println("running inner"); foo() + outerRef() + helperTraitInner }
   }
 }
 

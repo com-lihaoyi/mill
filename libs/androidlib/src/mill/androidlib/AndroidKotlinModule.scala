@@ -81,14 +81,14 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
   }
 
   trait AndroidKotlinTestModule extends KotlinTests, AndroidTestModule {
-    override def outer: ModuleRef[AndroidKotlinModule] = ModuleRef(AndroidKotlinModule.this)
-    override def kotlinVersion: T[String] = outer().kotlinVersion
+    override def outerRef: ModuleRef[AndroidKotlinModule] = ModuleRef(AndroidKotlinModule.this)
+    override def kotlinVersion: T[String] = outerRef().kotlinVersion
 
     private def kotlinSources = Task.Sources("src/test/kotlin")
 
     override def sources: T[Seq[PathRef]] =
       super.sources() ++ kotlinSources()
 
-    override def kotlincPluginMvnDeps: T[Seq[Dep]] = outer().kotlincPluginMvnDeps()
+    override def kotlincPluginMvnDeps: T[Seq[Dep]] = outerRef().kotlincPluginMvnDeps()
   }
 }

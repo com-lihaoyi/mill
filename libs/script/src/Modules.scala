@@ -17,7 +17,7 @@ object Java {
     override lazy val millDiscover = Discover[this.type]
   }
   trait Test0 extends Java.Base, JavaModule.Tests{
-    def outer = ModuleRef(moduleDeps.head)
+    def outerRef = ModuleRef(moduleDeps.head)
   }
   class TestNg(val millScriptFile: os.Path, override val moduleDeps: Seq[JavaModule]) extends Test0, TestModule.TestNg {
     override lazy val millDiscover = Discover[this.type]
@@ -43,7 +43,7 @@ object Scala {
     override lazy val millDiscover = Discover[this.type]
   }
   trait Test0 extends Base, ScalaModule.Tests{
-    def outer = ModuleRef(moduleDeps.head.asInstanceOf[ScalaModule])
+    def outerRef = ModuleRef(moduleDeps.head.asInstanceOf[ScalaModule])
   }
   class TestNg(val millScriptFile: os.Path, override val moduleDeps: Seq[ScalaModule]) extends Test0, TestModule.TestNg {
     override lazy val millDiscover = Discover[this.type]
@@ -90,7 +90,7 @@ object Kotlin {
     override lazy val millDiscover = Discover[this.type]
   }
   trait Test0 extends Kotlin.Base, KotlinModule.Tests{
-    def outer = ModuleRef(moduleDeps.head.asInstanceOf[KotlinModule])
+    def outerRef = ModuleRef(moduleDeps.head.asInstanceOf[KotlinModule])
   }
   class TestNg(val millScriptFile: os.Path, override val moduleDeps: Seq[KotlinModule]) extends Test0, TestModule.TestNg {
     override lazy val millDiscover = Discover[this.type]

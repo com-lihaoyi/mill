@@ -69,7 +69,7 @@ trait JavaModule
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
   trait JavaTests extends JavaModule.Tests {
-    def outer = ModuleRef(JavaModule.this)
+    def outerRef = ModuleRef(JavaModule.this)
   }
 
   def defaultTask(): String = "run"
@@ -1469,30 +1469,30 @@ trait JavaModule
 
 object JavaModule {
   trait Tests extends JavaModule with TestModule {
-    private[mill] def outer: ModuleRef[JavaModule]
+    private[mill] def outerRef: ModuleRef[JavaModule]
     // Run some consistence checks
     hierarchyChecks()
 
     override def resources = super[JavaModule].resources
 
-    override def moduleDeps: Seq[JavaModule] = Seq(outer())
+    override def moduleDeps: Seq[JavaModule] = Seq(outerRef())
 
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-      outer().repositoriesTask()
+      outerRef().repositoriesTask()
     }
 
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
-      outer().resolutionCustomizer
+      outerRef().resolutionCustomizer
 
     override def javacOptions: T[Seq[String]] = Task {
-      outer().javacOptions()
+      outerRef().javacOptions()
     }
 
-    override def jvmWorker: ModuleRef[JvmWorkerModule] = outer().jvmWorker
+    override def jvmWorker: ModuleRef[JvmWorkerModule] = outerRef().jvmWorker
 
-    def jvmId = outer().jvmId
+    def jvmId = outerRef().jvmId
 
-    def jvmIndexVersion = outer().jvmIndexVersion
+    def jvmIndexVersion = outerRef().jvmIndexVersion
 
     /**
      * Optional custom Java Home for the JvmWorker to use
@@ -1500,24 +1500,24 @@ object JavaModule {
      * If this value is None, then the JvmWorker uses the same Java used to run
      * the current mill instance.
      */
-    def javaHome = outer().javaHome
+    def javaHome = outerRef().javaHome
 
-    override def skipIdea: Boolean = outer().skipIdea
+    override def skipIdea: Boolean = outerRef().skipIdea
 
     override def runUseArgsFile: T[Boolean] = Task {
-      outer().runUseArgsFile()
+      outerRef().runUseArgsFile()
     }
 
-    override def sourcesFolders = outer().sourcesFolders
+    override def sourcesFolders = outerRef().sourcesFolders
 
     override def bomMvnDeps = Task[Seq[Dep]] {
       super.bomMvnDeps() ++
-        outer().bomMvnDeps()
+        outerRef().bomMvnDeps()
     }
 
     override def depManagement = Task[Seq[Dep]] {
       super.depManagement() ++
-        outer().depManagement()
+        outerRef().depManagement()
     }
 
     /**
@@ -1540,9 +1540,9 @@ object JavaModule {
         testMod = s"${mod}$$${testModShort}"
       }
         try {
-          if (Class.forName(mod).isInstance(outer) && !Class.forName(testMod).isInstance(this))
+          if (Class.forName(mod).isInstance(outerRef()) && !Class.forName(testMod).isInstance(this))
             throw new MillException(
-              s"$outer is a `${mod}`. $this needs to extend `${testModShort}`."
+              s"${outerRef()} is a `${mod}`. $this needs to extend `${testModShort}`."
             )
         } catch {
           case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule

@@ -888,27 +888,27 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   trait AndroidAppTests extends AndroidTestModule, AndroidAppModule {
-    override def outer: ModuleRef[AndroidAppModule] = ModuleRef(AndroidAppModule.this)
-    override def androidApplicationId: String = s"${outer().androidApplicationId}.test"
-    override def androidApplicationNamespace: String = s"${outer().androidApplicationNamespace}.test"
+    override def outerRef: ModuleRef[AndroidAppModule] = ModuleRef(AndroidAppModule.this)
+    override def androidApplicationId: String = s"${outerRef().androidApplicationId}.test"
+    override def androidApplicationNamespace: String = s"${outerRef().androidApplicationNamespace}.test"
   }
 
   trait AndroidAppInstrumentedTests extends AndroidTestModule, AndroidAppModule {
-    override def outer: ModuleRef[AndroidAppModule] = ModuleRef(AndroidAppModule.this)
+    override def outerRef: ModuleRef[AndroidAppModule] = ModuleRef(AndroidAppModule.this)
     override def androidIsDebug: T[Boolean] = Task { true }
 
-    override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer().resolutionParams())
+    override def resolutionParams: Task[ResolutionParams] = Task.Anon(outerRef().resolutionParams())
 
-    override def androidApplicationId: String = s"${outer().androidApplicationId}.test"
-    override def androidApplicationNamespace: String = s"${outer().androidApplicationNamespace}.test"
+    override def androidApplicationId: String = s"${outerRef().androidApplicationId}.test"
+    override def androidApplicationNamespace: String = s"${outerRef().androidApplicationNamespace}.test"
 
-    override def androidReleaseKeyAlias: T[Option[String]] = outer().androidReleaseKeyAlias()
-    override def androidReleaseKeyName: Option[String] = outer().androidReleaseKeyName
-    override def androidReleaseKeyPass: T[Option[String]] = outer().androidReleaseKeyPass()
-    override def androidReleaseKeyStorePass: T[Option[String]] = outer().androidReleaseKeyStorePass()
-    override def androidReleaseKeyPath: T[Seq[PathRef]] = outer().androidReleaseKeyPath()
+    override def androidReleaseKeyAlias: T[Option[String]] = outerRef().androidReleaseKeyAlias()
+    override def androidReleaseKeyName: Option[String] = outerRef().androidReleaseKeyName
+    override def androidReleaseKeyPass: T[Option[String]] = outerRef().androidReleaseKeyPass()
+    override def androidReleaseKeyStorePass: T[Option[String]] = outerRef().androidReleaseKeyStorePass()
+    override def androidReleaseKeyPath: T[Seq[PathRef]] = outerRef().androidReleaseKeyPath()
 
-    override def androidEmulatorPort: String = outer().androidEmulatorPort
+    override def androidEmulatorPort: String = outerRef().androidEmulatorPort
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/androidTest/java")
 
@@ -919,7 +919,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }
 
     private def androidInstrumentedTestsBaseManifest: Task[Elem] = Task.Anon {
-      val label = s"Tests for ${outer().androidApplicationId}"
+      val label = s"Tests for ${outerRef().androidApplicationId}"
       val instrumentationName = testFramework()
 
       <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -962,7 +962,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }
 
     override def androidMergeableManifests: Task[Seq[PathRef]] = Task {
-      Seq(outer().androidDebugManifestLocation()).filter(pr =>
+      Seq(outerRef().androidDebugManifestLocation()).filter(pr =>
         os.exists(pr.path)
       ) ++ androidxTestManifests()
     }
@@ -984,14 +984,14 @@ trait AndroidAppModule extends AndroidModule { outer =>
         "--property",
         s"version_code=${androidVersionCode()}",
         "--property",
-        s"target_package=${outer().androidApplicationId}",
+        s"target_package=${outerRef().androidApplicationId}",
         "--property",
         s"version_name=${androidVersionName()}"
       ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", m.path.toString))
     }
 
-    override def androidVirtualDeviceIdentifier: String = outer().androidVirtualDeviceIdentifier
-    override def androidEmulatorArchitecture: String = outer().androidEmulatorArchitecture
+    override def androidVirtualDeviceIdentifier: String = outerRef().androidVirtualDeviceIdentifier
+    override def androidEmulatorArchitecture: String = outerRef().androidEmulatorArchitecture
 
     /**
      * Re/Installs the app apk and then the test apk on the [[runningEmulator]]
@@ -999,7 +999,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
      */
     def androidTestInstall(): Command[String] = Task.Command {
 
-      val emulator = outer().androidInstallTask()
+      val emulator = outerRef().androidInstallTask()
 
       os.call(
         (

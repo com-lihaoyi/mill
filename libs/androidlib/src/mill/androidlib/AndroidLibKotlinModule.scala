@@ -9,8 +9,8 @@ trait AndroidLibKotlinModule extends AndroidLibModule with AndroidKotlinModule {
   override def sources: T[Seq[PathRef]] = super[AndroidLibModule].sources() ++ kotlinSources()
 
   trait AndroidLibKotlinTests extends AndroidLibTests with KotlinTests {
-    override def outer: ModuleRef[AndroidLibKotlinModule] = ModuleRef(AndroidLibKotlinModule.this)
+    override def outerRef: ModuleRef[AndroidLibKotlinModule] = ModuleRef(AndroidLibKotlinModule.this)
     override def sources: T[Seq[PathRef]] =
-      super[AndroidLibTests].sources() ++ Seq(PathRef(outer().moduleDir / "src/test/kotlin"))
+      super[AndroidLibTests].sources() ++ Seq(PathRef(outerRef().moduleDir / "src/test/kotlin"))
   }
 }

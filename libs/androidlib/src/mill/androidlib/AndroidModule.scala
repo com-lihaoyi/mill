@@ -700,20 +700,20 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   trait AndroidTestModule extends JavaTests, AndroidModule {
-    override def outer: ModuleRef[AndroidModule] = ModuleRef(AndroidModule.this)
-    override def androidCompileSdk: T[Int] = outer().androidCompileSdk()
+    override def outerRef: ModuleRef[AndroidModule] = ModuleRef(AndroidModule.this)
+    override def androidCompileSdk: T[Int] = outerRef().androidCompileSdk()
 
-    override def androidMinSdk: T[Int] = outer().androidMinSdk()
+    override def androidMinSdk: T[Int] = outerRef().androidMinSdk()
 
-    override def androidTargetSdk: T[Int] = outer().androidTargetSdk()
+    override def androidTargetSdk: T[Int] = outerRef().androidTargetSdk()
 
-    override def androidSdkModule: ModuleRef[AndroidSdkModule] = outer().androidSdkModule
+    override def androidSdkModule: ModuleRef[AndroidSdkModule] = outerRef().androidSdkModule
 
-    override def androidManifest: T[PathRef] = outer().androidManifest()
+    override def androidManifest: T[PathRef] = outerRef().androidManifest()
 
-    override def androidNamespace: String = s"${outer().androidNamespace}.test"
+    override def androidNamespace: String = s"${outerRef().androidNamespace}.test"
 
-    override def moduleDir: os.Path = outer().moduleDir
+    override def moduleDir: os.Path = outerRef().moduleDir
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
 

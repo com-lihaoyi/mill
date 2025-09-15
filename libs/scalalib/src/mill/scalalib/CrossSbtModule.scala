@@ -14,7 +14,7 @@ trait CrossSbtModule extends SbtModule with CrossModuleBase { outer =>
   override def sources: T[Seq[PathRef]] = Task { super.sources() ++ versionSources() }
 
   trait CrossSbtTests extends SbtTests {
-    override def moduleDir = outer().moduleDir
+    override def moduleDir = outerRef().moduleDir
 
     def versionSourcesPaths = scalaVersionDirectoryNames.map(s => os.sub / "src/test" / s"scala-$s")
     def versionSources = Task.Sources(versionSourcesPaths*)

@@ -477,29 +477,29 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
   trait KotlinTests extends KotlinModule.Tests{
-    def outer = ModuleRef(KotlinModule.this)
+    def outerRef = ModuleRef(KotlinModule.this)
   }
 
 }
 
 object KotlinModule {
   trait Tests extends JavaModule.Tests with KotlinModule {
-    def outer: ModuleRef[KotlinModule]
+    def outerRef: ModuleRef[KotlinModule]
 
-    override def kotlinLanguageVersion: T[String] = outer().kotlinLanguageVersion()
-    override def kotlinApiVersion: T[String] = outer().kotlinApiVersion()
+    override def kotlinLanguageVersion: T[String] = outerRef().kotlinLanguageVersion()
+    override def kotlinApiVersion: T[String] = outerRef().kotlinApiVersion()
     override def kotlinExplicitApi: T[Boolean] = false
-    override def kotlinVersion: T[String] = Task { outer().kotlinVersion() }
+    override def kotlinVersion: T[String] = Task { outerRef().kotlinVersion() }
     override def kotlincPluginMvnDeps: T[Seq[Dep]] =
-      Task { outer().kotlincPluginMvnDeps() }
+      Task { outerRef().kotlincPluginMvnDeps() }
       // TODO: make Xfriend-path an explicit setting
     override def kotlincOptions: T[Seq[String]] = Task {
-      outer().kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
-        Seq(s"-Xfriend-paths=${outer().compile().classes.path.toString()}")
+      outerRef().kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
+        Seq(s"-Xfriend-paths=${outerRef().compile().classes.path.toString()}")
     }
     override def kotlinUseEmbeddableCompiler: Task[Boolean] =
-      Task.Anon { outer().kotlinUseEmbeddableCompiler() }
-    override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer().kotlincUseBtApi() }
+      Task.Anon { outerRef().kotlinUseEmbeddableCompiler() }
+    override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outerRef().kotlincUseBtApi() }
   }
   private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
     params.addVariantAttributes(

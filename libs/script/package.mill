@@ -12,7 +12,8 @@ object `package` extends MillPublishScalaModule {
     build.libs.scalalib,
     build.libs.kotlinlib,
     build.libs.javalib,
-    build.core.internal
   )
   def mvnDeps = Seq(Deps.snakeyamlEngine)
+  def runModuleDeps = Seq(build.core.internal)
+  def compileModuleDeps = Seq(build.core.internal)
 }
