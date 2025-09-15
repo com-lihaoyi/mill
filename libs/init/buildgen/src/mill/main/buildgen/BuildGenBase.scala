@@ -103,7 +103,6 @@ object BuildGenBase {
   trait MavenAndGradle extends BuildGenBase {
     type I = Tree[Node[M]]
     override def getModuleTree(input: Tree[Node[M]]): Tree[Node[Option[M]]] =
-      // TODO consider filtering out projects without the `java` plugin applied in Gradle too
       input.map(node => node.copy(value = Some(node.value)))
     override def extraImports: Seq[String] = Seq()
   }
