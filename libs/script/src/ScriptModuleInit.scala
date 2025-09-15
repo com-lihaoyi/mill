@@ -1,9 +1,10 @@
 package mill.script
 import mill.*
 import mill.api.{ExternalModule, Result}
+import mill.javalib.JavaModule
 import mill.script.ScriptModule.parseHeaderData
 
-object ScriptModuleInit
+private object ScriptModuleInit
     extends ((String, String => Option[mill.Module]) => Option[Result[mill.api.ExternalModule]]) {
   def instantiate(className: String, args: AnyRef*): ExternalModule = {
     val cls =
@@ -30,7 +31,10 @@ object ScriptModuleInit
       }
     }
 
-    instantiate(className, millFile, moduleDeps.map(resolveModuleDep(_).get))
+    instantiate(
+      className,
+      ScriptModule.Config0(millFile, moduleDeps.map(resolveModuleDep(_).get.asInstanceOf[JavaModule]))
+    )
   }
 
   def apply(millFileString: String, resolveModuleDep: String => Option[mill.Module]) = {

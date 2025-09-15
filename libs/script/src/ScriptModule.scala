@@ -8,20 +8,23 @@ import mill.javalib.JavaModule
 import mill.javalib.NativeImageModule
 
 trait ScriptModule extends ExternalModule, JavaModule, NativeImageModule {
-  def millScriptFile: os.Path
+  def scriptConf: ScriptModule.Config
+  override def moduleDeps = scriptConf.moduleDeps
   override def sources = Nil
-  def selfSource = Task.Source(millScriptFile)
-  override def allSources = sources() ++ Seq(selfSource())
-  def allowNestedExternalModule = true
+  def scriptSource = Task.Source(scriptConf.millScriptFile)
+  override def allSources = sources() ++ Seq(scriptSource())
+  private[mill] def allowNestedExternalModule = true
 
   override def moduleSegments: Segments = {
-    Segments.labels(millScriptFile.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*)
+    Segments.labels(scriptConf.millScriptFile.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*)
   }
-  override def buildOverrides = ScriptModule.parseHeaderData(millScriptFile)
+  override def buildOverrides = ScriptModule.parseHeaderData(scriptConf.millScriptFile)
 }
 
 object ScriptModule {
-  def parseHeaderData(millScriptFile: os.Path) = {
+  type Config = Config0[JavaModule]
+  case class Config0[+M <: JavaModule](millScriptFile: os.Path, moduleDeps: Seq[M])
+  private[mill] def parseHeaderData(millScriptFile: os.Path) = {
     val headerData =
       mill.constants.Util.readBuildHeader(millScriptFile.toNIO, millScriptFile.last, true)
     upickle.read[Map[String, ujson.Value]](mill.internal.Util.parseHeaderData(headerData))
