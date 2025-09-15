@@ -87,8 +87,6 @@ object app
     mvn"com.google.dagger:hilt-android:2.56",
     mvn"androidx.hilt:hilt-navigation-compose:1.2.0",
     mvn"com.google.accompanist:accompanist-swiperefresh:0.36.0",
-    mvn"androidx.customview:customview-poolingcontainer:1.0.0",
-    mvn"androidx.tracing:tracing:1.2.0",
 
     // versions are resolved with compose-bom
     mvn"androidx.compose.foundation:foundation",
