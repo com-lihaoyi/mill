@@ -8,7 +8,7 @@ import millbuild.*
 object `package` extends MillPublishScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.libs.javalib, build.libs.javalib.testrunner, api)
-  def localTestExtraModules =
+  def localTestExtraModules: Seq[MillJavaModule] =
     super.localTestExtraModules ++ Seq(worker)
 
   def buildInfoPackageName = "mill.groovylib"

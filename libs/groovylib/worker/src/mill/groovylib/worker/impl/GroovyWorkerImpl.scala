@@ -6,11 +6,47 @@ import mill.api.TaskCtx
 import mill.javalib.api.CompilationResult
 import mill.groovylib.worker.api.GroovyWorker
 import org.codehaus.groovy.control.{CompilationUnit, CompilerConfiguration, Phases}
+import org.codehaus.groovy.tools.javac.JavaStubCompilationUnit
+import os.Path
 
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
 class GroovyWorkerImpl extends GroovyWorker {
+
+  override def compileGroovyStubs(
+      sourceFiles: Seq[Path],
+      classpath: Seq[Path],
+      outputDir: Path
+  )(implicit ctx: TaskCtx): Result[CompilationResult] = {
+    val config = new CompilerConfiguration()
+    config.setTargetDirectory(outputDir.toIO)
+    config.setClasspathList(classpath.map(_.toIO.getAbsolutePath).asJava)
+    config.setJointCompilationOptions(Map(
+      "stubDir" -> outputDir.toIO,
+      "keepStubs" -> false
+    ).asJava)
+
+    // we need to set the classloader for groovy to use the worker classloader
+    val parentCl: ClassLoader = this.getClass.getClassLoader
+    // config in the GroovyClassLoader is needed when the CL itself is compiling classes
+    val gcl = new GroovyClassLoader(parentCl, config)
+    // config for actual compilation
+    val stubUnit = JavaStubCompilationUnit(config, gcl)
+
+    sourceFiles.foreach { sourceFile =>
+      stubUnit.addSource(sourceFile.toIO)
+    }
+
+    Try {
+      stubUnit.compile(Phases.CONVERSION)
+      CompilationResult(outputDir, mill.api.PathRef(outputDir))
+    }.fold(
+      exception => Result.Failure(s"Groovy stub generation failed: ${exception.getMessage}"),
+      result => Result.Success(result)
+    )
+
+  }
 
   def compile(
       sourceFiles: Seq[os.Path],
@@ -20,12 +56,13 @@ class GroovyWorkerImpl extends GroovyWorker {
       ctx: TaskCtx
   ): Result[CompilationResult] = {
 
+    val extendedClasspath = classpath :+ outputDir
+
     val config = new CompilerConfiguration()
     config.setTargetDirectory(outputDir.toIO)
-    config.setClasspathList(classpath.map(_.toIO.getAbsolutePath).asJava)
+    config.setClasspathList(extendedClasspath.map(_.toIO.getAbsolutePath).asJava)
     // TODO
 //    config.setDisabledGlobalASTTransformations()
-//    config.setJointCompilationOptions()
 //    config.setSourceEncoding()
 
     // we need to set the classloader for groovy to use the worker classloader
@@ -41,10 +78,19 @@ class GroovyWorkerImpl extends GroovyWorker {
 
     Try {
       unit.compile(Phases.OUTPUT)
+      removeAllJavaFiles(outputDir)
       CompilationResult(outputDir, mill.api.PathRef(outputDir))
     }.fold(
       exception => Result.Failure(s"Groovy compilation failed: ${exception.getMessage}"),
       result => Result.Success(result)
     )
+  }
+
+  private def removeAllJavaFiles(outputDir: os.Path): Unit = {
+    if (os.exists(outputDir)) {
+      os.walk(outputDir)
+        .filter(_.ext == "java")
+        .foreach(os.remove)
+    }
   }
 }

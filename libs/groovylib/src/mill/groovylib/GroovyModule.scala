@@ -12,7 +12,9 @@ import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 import mill.javalib.api.internal.{JavaCompilerOptions, JvmWorkerApi, ZincCompileJava}
 
 /**
- * Core configuration required to compile a single Groovy module
+ * Core configuration required to compile a single Groovy module.
+ *
+ * Resolves
  */
 trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
@@ -33,7 +35,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
    * All individual source files fed into the compiler.
    */
   override def allSourceFiles: T[Seq[PathRef]] = Task {
-    Lib.findSourceFiles(allSources(), Seq("groovy", "java")).map(PathRef(_))
+    allGroovySourceFiles() ++ allJavaSourceFiles()
   }
 
   /**
@@ -41,7 +43,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
    * Subset of [[allSourceFiles]].
    */
   private def allJavaSourceFiles: T[Seq[PathRef]] = Task {
-    allSourceFiles().filter(_.path.ext.toLowerCase() == "java")
+    Lib.findSourceFiles(allSources(), Seq("java")).map(PathRef(_))
   }
 
   /**
@@ -49,20 +51,15 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
    * Subset of [[allSourceFiles]].
    */
   private def allGroovySourceFiles: T[Seq[PathRef]] = Task {
-    allSourceFiles().filter(path => Seq("groovy").contains(path.path.ext.toLowerCase()))
+    Lib.findSourceFiles(allSources(), Seq("groovy")).map(PathRef(_))
   }
 
   /**
    * The dependencies of this module.
-   * Defaults to add the groovy dependency matching the [[groovyVersion]].
+   * Defaults to add the Groovy dependency matching the [[groovyVersion]].
    */
   override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
-    super.mandatoryMvnDeps()
-    ++
-      groovyCompilerMvnDeps()
-//    Seq(
-//      mvn"org.apache.groovy:groovy:${groovyVersion()}"
-//    )
+    super.mandatoryMvnDeps() ++ groovyCompilerMvnDeps()
   }
 
   def jvmWorkerRef: ModuleRef[JvmWorkerModule] = jvmWorker
@@ -86,31 +83,11 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
   /**
    * The Ivy/Coursier dependencies resembling the Groovy compiler.
    *
-   * Default is derived from [[groovyCompilerVersion]].
+   * Default is derived from [[groovyVersion]].
    */
   def groovyCompilerMvnDeps: T[Seq[Dep]] = Task {
     val gv = groovyVersion()
-
-    val compilerDep = mvn"org.apache.groovy:groovy-all:$gv"
-//    val annotationDep = mvn"org.codehaus.groovy:groovy-all-annotations:$gv"
-
-    Seq(compilerDep)
-  }
-
-  /**
-   * Compiler Plugin dependencies.
-   */
-  def groovyCompilerPluginMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
-
-  /**
-   * The resolved plugin jars
-   */
-  def groovyCompilerPluginJars: T[Seq[PathRef]] = Task {
-    val jars = defaultResolver().classpath(
-      allMvnDeps(),
-      resolutionParamsMapOpt = None
-    )
-    jars.toSeq
+    Seq(mvn"org.apache.groovy:groovy:$gv")
   }
 
   /**
@@ -121,9 +98,8 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
   }
 
   /**
-   * The actual Groovy compile task (used by [[compile]] and [[groovycHelp]]).
+   * The actual Groovy compile task (used by [[compile]]).
    */
-  // TODO joint compilation: generate groovy-stubs -> compile java -> compile groovy -> delete stubs (or keep for debugging)
   protected def groovyCompileTask(): Task[CompilationResult] =
     Task.Anon {
       val ctx = Task.ctx()
@@ -143,9 +119,9 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
       def compileJava: Result[CompilationResult] = {
         ctx.log.info(
-          s"Compiling ${javaSourceFiles.size} Java sources to ${classes} ..."
+          s"Compiling ${javaSourceFiles.size} Java sources to $classes ..."
         )
-        // The compile step is lazy, but its dependencies are not!
+        // The compiler step is lazy, but its dependencies are not!
         internalCompileJavaFiles(
           worker = jvmWorkerRef().internalWorker(),
           upstreamCompileOutput = updateCompileOutput,
@@ -158,39 +134,42 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
         )
       }
 
+      if (isMixed) {
+        ctx.log.info("Compiling Groovy stubs for mixed compilation")
+
+        val workerStubResult =
+          GroovyWorkerManager.groovyWorker().withValue(groovyCompilerClasspath()) {
+            _.compileGroovyStubs(groovySourceFiles, compileCp, classes)
+          }
+        workerStubResult match {
+          case Result.Success(_) => compileJava
+          case Result.Failure(reason) => Result.Failure(reason)
+        }
+      }
+
       if (isMixed || isGroovy) {
         ctx.log.info(
-          s"Compiling ${groovySourceFiles.size} Groovy sources to ${classes} ..."
+          s"Compiling ${groovySourceFiles.size} Groovy sources to $classes ..."
         )
 
-        val compileCp = compileClasspath().map(_.path).filter(os.exists)
-
-        val workerResult =
+        val workerGroovyResult =
           GroovyWorkerManager.groovyWorker().withValue(groovyCompilerClasspath()) {
             _.compile(groovySourceFiles, compileCp, classes)
           }
 
+        // TODO figure out if there is a better way to do this
         val analysisFile = dest / "groovy.analysis.dummy" // needed for mills CompilationResult
         os.write(target = analysisFile, data = "", createFolders = true)
 
-        workerResult match {
+        workerGroovyResult match {
           case Result.Success(_) =>
-            val cr = CompilationResult(analysisFile, PathRef(classes))
-            if (!isJava) {
-              // pure Groovy project
-              cr
-            } else {
-              // also run Java compiler and use it's returned result
-              compileJava
-            }
+            CompilationResult(analysisFile, PathRef(classes))
           case Result.Failure(reason) => Result.Failure(reason)
         }
       } else {
-        // it's Java only
         compileJava
       }
     }
-
 
   private[groovylib] def internalCompileJavaFiles(
       worker: JvmWorkerApi,
@@ -236,7 +215,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
   }
 
   /**
-   * A test sub-module linked to its parent module best suited for unit-tests.
+   * A test submodule linked to its parent module best suited for unit-tests.
    */
   trait GroovyTests extends JavaTests with GroovyModule {
 
