@@ -90,10 +90,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
    */
   def groovyCompilerMvnDeps: T[Seq[Dep]] = Task {
     val gv = groovyVersion()
-
     val compilerDep = mvn"org.apache.groovy:groovy-all:$gv"
-//    val annotationDep = mvn"org.codehaus.groovy:groovy-all-annotations:$gv"
-
     Seq(compilerDep)
   }
 
@@ -157,15 +154,26 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
           reportOldProblems = zincReportCachedProblems()
         )
       }
+      
+      if(isMixed){
+        ctx.log.info("Compiling Groovy stubs for mixed compilation")
 
-      if (isMixed || isGroovy) {
+        val workerStubResult =
+          GroovyWorkerManager.groovyWorker().withValue(groovyCompilerClasspath()) {
+            _.compileGroovyStubs(groovySourceFiles, compileCp, classes)
+          }
+        workerStubResult match {
+          case Result.Success(_) => compileJava
+          case Result.Failure(reason) => Result.Failure(reason)
+        }
+      }
+      
+      if(isMixed || isGroovy){
         ctx.log.info(
           s"Compiling ${groovySourceFiles.size} Groovy sources to ${classes} ..."
         )
-
-        val compileCp = compileClasspath().map(_.path).filter(os.exists)
-
-        val workerResult =
+        
+        val workerGroovyResult =
           GroovyWorkerManager.groovyWorker().withValue(groovyCompilerClasspath()) {
             _.compile(groovySourceFiles, compileCp, classes)
           }
@@ -173,20 +181,12 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
         val analysisFile = dest / "groovy.analysis.dummy" // needed for mills CompilationResult
         os.write(target = analysisFile, data = "", createFolders = true)
 
-        workerResult match {
+        workerGroovyResult match {
           case Result.Success(_) =>
-            val cr = CompilationResult(analysisFile, PathRef(classes))
-            if (!isJava) {
-              // pure Groovy project
-              cr
-            } else {
-              // also run Java compiler and use it's returned result
-              compileJava
-            }
+            CompilationResult(analysisFile, PathRef(classes))
           case Result.Failure(reason) => Result.Failure(reason)
         }
-      } else {
-        // it's Java only
+      }else {
         compileJava
       }
     }
