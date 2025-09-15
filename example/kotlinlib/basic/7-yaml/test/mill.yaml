@@ -2,4 +2,4 @@ extends: mill.script.Kotlin.Junit5
 moduleDeps: ["."]
 mvnDeps:
 - "io.kotest:kotest-runner-junit5:5.9.1"
-- "com.novocode:junit-interface:0.11"
+- "com.github.sbt.junit:jupiter-interface:0.11.2"
