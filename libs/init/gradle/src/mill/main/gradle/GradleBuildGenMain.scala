@@ -42,7 +42,9 @@ import scala.jdk.CollectionConverters.*
  *  - non-Java sources
  */
 @internal
-object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep] {
+object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
+  override type M = ProjectModel
+  override type D = Dep
   override type C = Config
 
   def main(args: Array[String]): Unit = {
