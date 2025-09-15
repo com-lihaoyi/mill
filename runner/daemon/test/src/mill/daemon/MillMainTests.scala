@@ -98,8 +98,10 @@ object MillMainTests extends TestSuite {
         val file1 = (dir / ".mill-version").tap { os.write(_, "1") }
         val file2 =
           (dir / ".config" / "mill-version").tap { os.write(_, "2", createFolders = true) }
-        val file3 = (dir / "build.mill").tap { os.write(_, "//|    mill-version:    3") }
+        val file3 = (dir / "build.mill").tap { os.write(_, "//| mill-version: 3") }
         // Added content spaces to test parsing
+        val file4 = (dir / "build.mill.scala").tap { os.write(_, "//| mill-version:    4") }
+        val file5 = (dir / "build.sc").tap { os.write(_, "//|     mill-version: 5") }
         test(".mill-version") {
           val read = MillMain0.readBestMillVersion(dir)
           assert(read == Some(file1, "1"))
@@ -114,6 +116,21 @@ object MillMainTests extends TestSuite {
           os.remove(file2)
           val read = MillMain0.readBestMillVersion(dir)
           assert(read == Some(file3, "3"))
+        }
+        test("build.mill.scala") {
+          os.remove(file1)
+          os.remove(file2)
+          os.remove(file3)
+          val read = MillMain0.readBestMillVersion(dir)
+          assert(read == Some(file4, "4"))
+        }
+        test("build.sc") {
+          os.remove(file1)
+          os.remove(file2)
+          os.remove(file3)
+          os.remove(file4)
+          val read = MillMain0.readBestMillVersion(dir)
+          assert(read == Some(file5, "5"))
         }
       }
     }
