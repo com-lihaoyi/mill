@@ -27,7 +27,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "21.0.8"
+        "javaVersion": "<java-version>"
       }
     },
     {
@@ -59,7 +59,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "21.0.8"
+        "javaVersion": "<java-version>"
       }
     },
     {
@@ -98,7 +98,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "<java-version>"
         }
       }
     },
@@ -138,7 +138,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "<java-version>"
         }
       }
     },
@@ -178,7 +178,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "<java-version>"
         }
       }
     },
@@ -218,7 +218,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "<java-version>"
         }
       }
     },
@@ -258,7 +258,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "<java-version>"
         }
       }
     },
@@ -285,7 +285,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "21.0.8"
+        "javaVersion": "<java-version>"
       }
     },
     {
@@ -314,7 +314,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "21.0.8"
+        "javaVersion": "<java-version>"
       }
     },
     {
@@ -341,7 +341,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "21.0.8"
+        "javaVersion": "<java-version>"
       }
     },
     {
@@ -380,7 +380,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "<java-version>"
         }
       }
     },
@@ -423,7 +423,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "<java-version>"
         }
       }
     },
@@ -450,7 +450,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "21.0.8"
+        "javaVersion": "<java-version>"
       }
     },
     {
@@ -496,7 +496,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "<java-version>"
         }
       }
     },
@@ -543,7 +543,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "<java-version>"
         }
       }
     },
@@ -601,7 +601,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "<java-version>"
         }
       }
     }

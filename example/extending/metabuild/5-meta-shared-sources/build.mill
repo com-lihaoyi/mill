@@ -21,7 +21,7 @@ object `package` extends ScalaModule {
 /** Usage
 
 > ./mill run
-scalaVersion: 2.13.16
+scalaVersion: 2.13.10
 
 */
 

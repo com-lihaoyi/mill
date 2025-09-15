@@ -18,9 +18,9 @@ package build
 import mill.*, scalalib.*
 
 object `package` extends ScalaModule {
-  def scalaVersion = "2.13.16"
-  def compileMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.18")
-  def scalacPluginMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.18")
+  def scalaVersion = "2.13.11"
+  def compileMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.15")
+  def scalacPluginMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.15")
   def scalacOptions = Seq("-P:acyclic:force")
 }
 
