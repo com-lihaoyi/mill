@@ -137,10 +137,6 @@ trait AndroidR8AppModule extends AndroidAppModule {
       androidReleaseSettings()
   }
 
-  def androidR8ExtraRules: T[Seq[String]] = Task {
-    Seq.empty[String]
-  }
-
   /**
    * Prepares the R8 cli command to build this android app!
    * @return
@@ -164,7 +160,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
     destDir / "res"
 
     // Instruct R8 to print seeds and usage.
-    val extraRules = androidR8ExtraRules() ++ Seq(
+    val extraRules = Seq(
       s"-printseeds $seedsOut",
       s"-printusage $usageOut"
     )
@@ -241,10 +237,8 @@ trait AndroidR8AppModule extends AndroidAppModule {
         "--pg-conf",
         androidProguard().path.toString,
         "--pg-conf",
-        extraRulesFile.toString,
-        "--pg-conf",
-        commonProguardFile().path.toString
-      )
+        extraRulesFile.toString
+      ) ++ androidCommonProguardFiles().flatMap(pgf => Seq("--pg-conf", pgf.path.toString))
 
     r8ArgsBuilder ++= pgArgs
 
