@@ -120,7 +120,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
       val projects = input.nodes(Tree.Traversal.BreadthFirst).map(_.value).toSeq
       cfg.baseProject
         .flatMap(name => projects.collectFirst { case m if name == m.name => m })
-        .orElse(projects.collectFirst { case m if null != m.maven().pom() => m })
+        .orElse(projects.collectFirst { case m if m.maven().pom() != null => m })
         .orElse(projects.collectFirst { case m if !m.maven().repositories().isEmpty => m })
         .getOrElse(input.node.value)
     }
@@ -129,7 +129,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
     }
     val supertypes =
       Seq("MavenModule") ++
-        Option.when(null != project.maven().pom()) { "PublishModule" }
+        Option.when(project.maven().pom() != null) { "PublishModule" }
 
     val javacOptions = getJavacOptions(project)
     val scalaVersion = None
@@ -206,7 +206,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
       baseInfo: IrBaseInfo,
       build: Node[ProjectModel]
   ): Seq[String] =
-    Option.when(null != build.value.maven().pom() && {
+    Option.when(build.value.maven().pom() != null && {
       val baseTrait = baseInfo.moduleTypedef
       baseTrait == null || !baseTrait.moduleSupertypes.contains("PublishModule")
     }) { "PublishModule" }.toSeq ++
@@ -219,7 +219,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
 
   def getJavacOptions(project: ProjectModel): Seq[String] = {
     val _java = project._java()
-    if (null == _java) Seq.empty
+    if (_java == null) Seq.empty
     else _java.javacOptions().asScala.toSeq
   }
 
@@ -228,7 +228,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
 
   def getPomPackaging(project: ProjectModel): String = {
     val pom = project.maven().pom()
-    if (null == pom) null else pom.packaging()
+    if (pom == null) null else pom.packaging()
   }
 
   def getPublishProperties(
@@ -237,7 +237,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
   ): Seq[(String, String)] =
     if (cfg.publishProperties.value) {
       val pom = project.maven().pom()
-      if (null == pom) Seq.empty
+      if (pom == null) Seq.empty
       else pom.properties().iterator().asScala
         .map(prop => (prop.key(), prop.value()))
         .toSeq
@@ -255,7 +255,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
 
   def extractPomSettings(project: ProjectModel): IrPom | Null = {
     val pom = project.maven.pom()
-    if (null == pom) null
+    if (pom == null) null
     else {
       IrPom(
         pom.description(),
@@ -283,7 +283,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
     var sd = IrScopedDeps()
     val hasTest = os.exists(os.Path(project.directory()) / "src/test")
     val _java = project._java()
-    if (null != _java) {
+    if (_java != null) {
       val mvnDep: ExternalDep => String =
         cfg.shared.basicConfig.depsObject.fold(interpMvn(_)) { objName => dep =>
           val depName = s"`${dep.group()}:${dep.name()}`"
