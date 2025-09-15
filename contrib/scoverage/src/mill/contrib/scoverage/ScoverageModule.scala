@@ -195,18 +195,18 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   }
 
   trait ScoverageTests extends ScalaTests {
-    override def outerRef: ModuleRef[ScoverageModule] = ModuleRef(ScoverageModule.this)
+
     /**
      * Alter classpath from upstream modules by replacing in-place outer module
      * classes folder by the outer.scoverage classes folder and adding the
      * scoverage runtime dependency.
      */
     override def runClasspath: T[Seq[PathRef]] = Task {
-      val outerClassesPath = outerRef().compile().classes
-      val outerScoverageClassesPath = outerRef().scoverage.compile().classes
+      val outerClassesPath = outer.compile().classes
+      val outerScoverageClassesPath = outer.scoverage.compile().classes
       (super.runClasspath().map { path =>
         if (outerClassesPath == path) outerScoverageClassesPath else path
-      } ++ defaultResolver().classpath(outerRef().scoverageRuntimeDeps())).distinct
+      } ++ defaultResolver().classpath(outer.scoverageRuntimeDeps())).distinct
     }
   }
 }
