@@ -229,7 +229,10 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
     if (null == pom) null else pom.packaging()
   }
 
-  def getPublishProperties(project: ProjectModel, cfg: BuildGenUtil.Config): Seq[(String, String)] =
+  def getPublishProperties(
+      project: ProjectModel,
+      cfg: BuildGenUtil.MavenAndGradleCommonConfig
+  ): Seq[(String, String)] =
     if (cfg.publishProperties.value) {
       val pom = project.maven().pom()
       if (null == pom) Seq.empty
@@ -369,7 +372,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
   @main
   @internal
   case class Config(
-      shared: BuildGenUtil.Config,
+      shared: BuildGenUtil.MavenAndGradleCommonConfig,
       @arg(doc = "name of Gradle project to extract settings for --base-module", short = 'g')
       baseProject: Option[String] = None
   )
