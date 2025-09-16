@@ -602,19 +602,21 @@ object TestModule {
 
   /**
    * TestModule that uses Spock Test Framework to run tests.
-   * You can override the [[spockTestVersion]] task or provide the Spock-dependency yourself.
+   * You can override the [[spockVersion]] task or provide the Spock dependency yourself.
    */
   trait Spock extends TestModule.Junit5 {
 
-    /** The Spock Test version to use, or the empty string, if you want to provide the Spock Test-dependency yourself. */
+    /** The Spock Test version to use, or the empty string, if you want to provide the Spock test dependency yourself. */
     def spockVersion: T[String] = Task {
       ""
     }
 
-    /** The Groovy version to use, or the empty string, if you want to provide the Groovy Test-dependency yourself. */
+    /** The Groovy version to use, or the empty string, if you want to provide the Groovy test dependency yourself. */
     def groovyVersion: T[String] = Task {
       ""
     }
+
+    // TODO currently bomMvnDeps not in JavaModuleBase so we cannot pull in the Spock-BOM
 
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
       super.mandatoryMvnDeps() ++
@@ -623,13 +625,6 @@ object TestModule {
           .flatMap(v =>
             Seq(
               mvn"org.spockframework:spock-core:${v.trim()}"
-            )
-          ) ++
-        Seq(groovyVersion())
-          .filter(!_.isBlank())
-          .flatMap(v =>
-            Seq(
-              mvn"org.apache.groovy:groovy:${v.trim()}"
             )
           )
     }

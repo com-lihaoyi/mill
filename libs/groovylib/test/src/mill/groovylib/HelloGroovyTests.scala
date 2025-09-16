@@ -62,19 +62,15 @@ object HelloGroovyTests extends TestSuite {
         override def mainClass = Some("hellostatic.HelloStatic")
       }
 
-      object spock extends GroovyTests with TestModule.Junit5 {
+      object spock extends GroovyTests with TestModule.Spock {
         override def junitPlatformVersion = "1.13.4"
-        def spockVersion: T[String] = "2.3-groovy-4.0"
+        override def spockVersion = "2.3-groovy-4.0"
         override def groovyVersion = "4.0.28"
 
         def bomMvnDeps = Seq(
           mvn"org.junit:junit-bom:5.13.4",
-          mvn"org.apache.groovy:groovy-bom:${groovyVersion()}",
+//          mvn"org.apache.groovy:groovy-bom:${groovyVersion()}",
           mvn"org.spockframework:spock-bom:${spockVersion()}"
-        )
-
-        def mvnDeps = Seq(
-          mvn"org.spockframework:spock-core"
         )
       }
     }
@@ -95,6 +91,56 @@ object HelloGroovyTests extends TestSuite {
     def m = HelloGroovy.main
     def mixed = HelloGroovy.`groovy-tests`
     def joint = HelloGroovy.`joint-compile`
+
+    test("running a Groovy script") {
+      testEval().scoped { eval =>
+        val Right(_) = eval.apply(m.script.run()): @unchecked
+      }
+    }
+
+    test("running a Groovy script") {
+      testEval().scoped { eval =>
+        val Right(_) = eval.apply(m.script.run()): @unchecked
+      }
+    }
+
+    test("compile & run Groovy module") {
+      testEval().scoped { eval =>
+        val Right(result) = eval.apply(m.compile): @unchecked
+
+        assert(
+          os.walk(result.value.classes.path).exists(_.last == "Hello.class")
+        )
+
+        val Right(_) = eval.apply(m.run()): @unchecked
+      }
+    }
+
+    test("compile & run Groovy JUnit5 test") {
+      testEval().scoped { eval =>
+
+        val Right(result) = eval.apply(m.test.compile): @unchecked
+
+        assert(
+          os.walk(result.value.classes.path).exists(_.last == "HelloTest.class")
+        )
+
+        val Right(discovered) = eval.apply(m.test.discoveredTestClasses): @unchecked
+        assert(discovered.value == Seq("hello.tests.HelloTest"))
+
+        val Right(_) = eval.apply(m.test.testForked()): @unchecked
+      }
+    }
+
+    test("compile & run a statically compiled Groovy") {
+      testEval().scoped { eval =>
+        val Right(result) = eval.apply(m.staticcompile.compile): @unchecked
+        assert(
+          os.walk(result.value.classes.path).exists(_.last == "HelloStatic.class")
+        )
+        val Right(_) = eval.apply(m.staticcompile.run()): @unchecked
+      }
+    }
 
 
     test("compile & test module (only test uses Groovy)") {
