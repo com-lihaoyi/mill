@@ -215,9 +215,9 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
     (dep.group(), dep.name(), dep.version())
 
   def getJavacOptions(project: ProjectModel): Seq[String] = {
-    val _java = project._java()
-    if (_java == null) Seq.empty
-    else _java.javacOptions().asScala.toSeq
+    val javaModel = project.javaModel()
+    if (javaModel == null) Seq.empty
+    else javaModel.javacOptions().asScala.toSeq
   }
 
   def getRepositories(project: ProjectModel): Seq[String] =
@@ -278,8 +278,8 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
   ): IrScopedDeps = {
     var sd = IrScopedDeps()
     val hasTest = os.exists(os.Path(project.directory()) / "src/test")
-    val _java = project._java()
-    if (_java != null) {
+    val javaModel = project.javaModel()
+    if (javaModel != null) {
       val mvnDep: ExternalDep => String =
         cfg.shared.basicConfig.depsObject.fold(interpMvn(_)) { objName => dep =>
           val depName = s"`${dep.group()}:${dep.name()}`"
@@ -303,7 +303,8 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
           }
         }
       }
-      _java.configs().forEach { config =>
+
+      javaModel.configs().forEach { config =>
         import JavaPlugin.*
 
         val conf = config.name()

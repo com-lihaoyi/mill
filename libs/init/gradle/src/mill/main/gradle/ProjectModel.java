@@ -24,7 +24,7 @@ public interface ProjectModel extends Serializable {
 
   MavenModel maven();
 
-  JavaModel _java();
+  JavaModel javaModel();
 
   class Impl implements ProjectModel {
 
@@ -34,7 +34,7 @@ public interface ProjectModel extends Serializable {
     private final File directory;
     private final String path;
     private final MavenModel maven;
-    private final JavaModel _java;
+    private final JavaModel javaModel;
 
     public Impl(
         String group,
@@ -43,14 +43,14 @@ public interface ProjectModel extends Serializable {
         File directory,
         String path,
         MavenModel maven,
-        JavaModel _java) {
+        JavaModel javaModel) {
       this.group = group;
       this.name = name;
       this.version = version;
       this.directory = directory;
       this.path = path;
       this.maven = maven;
-      this._java = _java;
+      this.javaModel = javaModel;
     }
 
     @Override
@@ -84,8 +84,8 @@ public interface ProjectModel extends Serializable {
     }
 
     @Override
-    public JavaModel _java() {
-      return _java;
+    public JavaModel javaModel() {
+      return javaModel;
     }
   }
 
