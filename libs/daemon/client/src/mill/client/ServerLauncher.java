@@ -142,6 +142,8 @@ public abstract class ServerLauncher {
     try (var ignored = locks.launcherLock.lock()) {
       return retryWithTimeout(serverInitWaitMillis, "server launch failed", () -> {
         try {
+          log.accept("launchOrConnectToServer try");
+
           var result =
               ensureServerIsRunning(locks, daemonDir, initServer, serverInitWaitMillis / 3, log);
           if (result instanceof ServerLaunchResult.Success
