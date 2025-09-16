@@ -77,7 +77,7 @@ case class IrLicense(
     distribution: String = "repo"
 )
 
-// TODO reuse the members in `IrTrait`?
+// TODO reuse the members in `IrBaseInfo`?
 case class IrModuleBuild(
     scopedDeps: IrScopedDeps,
     testModule: String,
