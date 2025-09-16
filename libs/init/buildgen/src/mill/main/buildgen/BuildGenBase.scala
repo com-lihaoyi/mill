@@ -32,7 +32,7 @@ trait BuildGenBase {
   def getModuleFqnMap(moduleNodes: Seq[Node[Module]]): ModuleFqnMap
 
   def convert(
-               input: Input,
+      input: Input,
       cfg: C,
       shared: BuildGenUtil.BasicConfig
   ): Tree[Node[BuildObject]] = {
@@ -86,7 +86,7 @@ trait BuildGenBase {
   def getSupertypes(cfg: C, baseInfo: Option[IrBaseInfo], build: Node[Module]): Seq[String]
 
   def getBaseInfo(
-                   input: Input,
+      input: Input,
       cfg: C,
       baseModule: String,
       packagesSize: Int
