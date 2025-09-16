@@ -10,6 +10,7 @@ import mill.*
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 import mill.javalib.api.internal.{JavaCompilerOptions, JvmWorkerApi, ZincCompileJava}
+import mill.util.Version
 
 /**
  * Core configuration required to compile a single Groovy module.
@@ -28,8 +29,18 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
    */
   def groovyLanguageVersion: T[String] = Task { groovyVersion().split("[.]").take(2).mkString(".") }
 
+  private def isGroovyBomAvailable: T[Boolean] = Task {
+    if (groovyVersion().isBlank) {
+      false
+    } else {
+      Version.isAtLeast(groovyVersion(), "4.0.26")(using Version.IgnoreQualifierOrdering)
+    }
+  }
+
   override def bomMvnDeps: T[Seq[Dep]] = super.bomMvnDeps() ++
-    Seq(mvn"org.apache.groovy:groovy-bom:${groovyVersion()}")
+    Seq(groovyVersion())
+      .filter(_.nonEmpty && isGroovyBomAvailable())
+      .map(v => mvn"org.apache.groovy:groovy-bom:$v")
 
   /**
    * All individual source files fed into the compiler.

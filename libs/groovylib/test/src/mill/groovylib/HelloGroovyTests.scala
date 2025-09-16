@@ -2,7 +2,7 @@ package mill
 package groovylib
 
 import mill.javalib.{JavaModule, TestModule}
-import mill.api.{Task}
+import mill.api.Task
 import mill.api.Discover
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
@@ -11,6 +11,7 @@ object HelloGroovyTests extends TestSuite {
 
   val groovy4Version = "4.0.28"
   val junit5Version = sys.props.getOrElse("TEST_JUNIT5_VERSION", "5.13.4")
+  val spockGroovy4Version = "2.3-groovy-4.0"
 
   object HelloGroovy extends TestRootModule {
 
@@ -25,12 +26,8 @@ object HelloGroovyTests extends TestSuite {
           HelloGroovy.`groovy-tests`
         )
 
-        override def groovyVersion = groovy4Version
-        override def depManagement = Seq(
-          mvn"org.junit.jupiter:junit-jupiter-engine:$junit5Version"
-        )
-        override def jupiterVersion = junit5Version
-        override def junitPlatformVersion = "1.13.4"
+        override def groovyVersion: T[String] = groovy4Version
+        override def jupiterVersion: T[String] = junit5Version
       }
 
     }
@@ -40,38 +37,53 @@ object HelloGroovyTests extends TestSuite {
       override def mainClass = Some("jointcompile.JavaMain")
     }
 
+    object deps extends Module {
+
+      object groovyBom extends GroovyModule {
+        override def groovyVersion: T[String] = groovy4Version
+      }
+
+      object groovyNoBom extends GroovyModule {
+        // Groovy-BOM available starting with 4.0.26
+        override def groovyVersion: T[String] = "4.0.25"
+      }
+
+      object `spockBom` extends GroovyModule with TestModule.Spock {
+        override def spockVersion: T[String] = spockGroovy4Version
+        override def groovyVersion: T[String] = groovy4Version
+      }
+
+      object `spockNoBom` extends GroovyModule with TestModule.Spock {
+        // Groovy-BOM available starting with 2.3
+        override def spockVersion: T[String] = "2.2-groovy-4.0"
+        override def groovyVersion: T[String] = groovy4Version
+      }
+
+    }
+
     trait Test extends GroovyModule {
 
       override def mainClass = Some("hello.Hello")
 
       object test extends GroovyTests with TestModule.Junit5 {
-        override def depManagement = Seq(
-          mvn"org.junit.jupiter:junit-jupiter-engine:5.13.4"
-        )
-        override def jupiterVersion = "5.13.4"
+        override def jupiterVersion: T[String] = junit5Version
         override def junitPlatformVersion = "1.13.4"
       }
 
       object script extends GroovyModule {
-        override def groovyVersion = "4.0.28"
+        override def groovyVersion: T[String] = groovy4Version
         override def mainClass = Some("HelloScript")
       }
 
       object staticcompile extends GroovyModule {
-        override def groovyVersion = "4.0.28"
+        override def groovyVersion: T[String] = groovy4Version
         override def mainClass = Some("hellostatic.HelloStatic")
       }
 
       object spock extends GroovyTests with TestModule.Spock {
-        override def junitPlatformVersion = "1.13.4"
-        override def spockVersion = "2.3-groovy-4.0"
-        override def groovyVersion = "4.0.28"
-
-        def bomMvnDeps = Seq(
-          mvn"org.junit:junit-bom:5.13.4",
-//          mvn"org.apache.groovy:groovy-bom:${groovyVersion()}",
-          mvn"org.spockframework:spock-bom:${spockVersion()}"
-        )
+        override def jupiterVersion: T[String] = junit5Version
+        override def spockVersion: T[String] = spockGroovy4Version
+        override def groovyVersion: T[String] = groovy4Version
       }
     }
     object main extends Test {
@@ -91,6 +103,7 @@ object HelloGroovyTests extends TestSuite {
     def m = HelloGroovy.main
     def mixed = HelloGroovy.`groovy-tests`
     def joint = HelloGroovy.`joint-compile`
+    def deps = HelloGroovy.deps
 
     test("running a Groovy script") {
       testEval().scoped { eval =>
@@ -183,5 +196,57 @@ object HelloGroovyTests extends TestSuite {
       }
     }
 
+    test("dependency management") {
+
+      test("groovy") {
+
+        val groovyBom = mvn"org.apache.groovy:groovy-bom:$groovy4Version"
+
+        test("groovy bom is added when version is at least 4.0.26") {
+          testEval().scoped { eval =>
+            val Right(result) = eval.apply(deps.groovyBom.bomMvnDeps): @unchecked
+
+            assert(
+              result.value.contains(groovyBom)
+            )
+          }
+        }
+
+        test("groovy bom is NOT added when version is below 4.0.26") {
+          testEval().scoped { eval =>
+            val Right(result) = eval.apply(deps.groovyNoBom.bomMvnDeps): @unchecked
+
+            assert(
+              !result.value.contains(groovyBom)
+            )
+          }
+        }
+      }
+
+      test("spock") {
+
+        val spockBom = mvn"org.spockframework:spock-bom:$spockGroovy4Version"
+
+        test("spock bom is added when version is at least 2.3") {
+          testEval().scoped { eval =>
+            val Right(result) = eval.apply(deps.spockBom.bomMvnDeps): @unchecked
+
+            assert(
+              result.value.contains(spockBom)
+            )
+          }
+        }
+
+        test("spock bom is NOT added when version is below 2.3") {
+          testEval().scoped { eval =>
+            val Right(result) = eval.apply(deps.spockNoBom.bomMvnDeps): @unchecked
+
+            assert(
+              !result.value.contains(spockBom)
+            )
+          }
+        }
+      }
+    }
   }
 }
