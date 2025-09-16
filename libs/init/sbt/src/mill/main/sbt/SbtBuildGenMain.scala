@@ -271,7 +271,7 @@ object SbtBuildGenMain extends BuildGenBase {
   override def getModuleFqnMap(moduleNodes: Seq[Node[Project]]): Map[String, String] =
     buildModuleFqnMap(moduleNodes)(_.projectRefProject)
 
-  override def extractIrBuild(
+  override def extractIrModuleBuild(
       cfg: Config,
       // baseInfo: IrBaseInfo,
       build: Node[Project],

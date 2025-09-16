@@ -54,7 +54,7 @@ trait BuildGenBase {
           println(s"converting module $name")
 
           val build = optionalBuild.copy(value = moduleModel)
-          val inner = extractIrBuild(cfg, build, moduleRefMap)
+          val inner = extractIrModuleBuild(cfg, build, moduleRefMap)
 
           val isNested = optionalBuild.dirs.nonEmpty
           BuildObject(
@@ -69,7 +69,7 @@ trait BuildGenBase {
                 SortedMap((name, SortedMap(inner.scopedDeps.namedMvnDeps.toSeq*)))
               ),
             supertypes = getSupertypes(cfg, baseInfo, build),
-            inner = BuildGenUtil.renderIrBuild(inner, baseInfo),
+            inner = BuildGenUtil.renderIrModuleBuild(inner, baseInfo),
             outer =
               if (isNested || baseInfo.isEmpty) ""
               else BuildGenUtil.renderIrBaseInfo(baseInfo.get)
@@ -92,9 +92,9 @@ trait BuildGenBase {
 
   def getArtifactId(moduleModel: M): String
 
-  def extractIrBuild(
+  def extractIrModuleBuild(
       cfg: C,
-      // baseInfo: IrBaseInfo, // `baseInfo` is no longer needed as we compare the `IrBuild` with `IrBaseInfo` in common code now.
+      // baseInfo: IrBaseInfo, // `baseInfo` is no longer needed as we compare the `IrModuleBuild` with `IrBaseInfo` in common code now.
       build: Node[M],
       moduleFqnMap: ModuleFqnMap
   ): IrModuleBuild

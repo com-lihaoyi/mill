@@ -96,7 +96,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle {
       : Map[(String, String, String), String] =
     buildModuleFqnMap(moduleNodes)(getProjectGav)
 
-  override def extractIrBuild(
+  override def extractIrModuleBuild(
       cfg: Config,
       // baseInfo: IrBaseInfo,
       build: Node[Model],

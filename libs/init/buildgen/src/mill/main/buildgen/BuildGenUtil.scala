@@ -49,7 +49,7 @@ object BuildGenUtil {
   /**
    * @param baseInfo to compare with [[build]] and render the values only if they are different.
    */
-  def renderIrBuild(build: IrModuleBuild, baseInfo: Option[IrBaseInfo]): String = {
+  def renderIrModuleBuild(build: IrModuleBuild, baseInfo: Option[IrBaseInfo]): String = {
     import build.*
     val testModuleTypedef =
       if (!hasTest) ""

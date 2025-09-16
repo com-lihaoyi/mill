@@ -158,7 +158,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
       : ModuleFqnMap =
     buildModuleFqnMap(moduleNodes)(_.path())
 
-  override def extractIrBuild(
+  override def extractIrModuleBuild(
       cfg: Config,
       // baseInfo: IrBaseInfo,
       build: Node[ProjectModel],
