@@ -95,7 +95,7 @@ public class MillLauncherMain {
         // start in client-server mode
         var optsArgs = new java.util.ArrayList<>(MillProcessLauncher.millOpts(outMode));
         Collections.addAll(optsArgs, args);
-        var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"));
         Consumer<String> log = (s) -> logs.add(formatter.format(Instant.now()) + " " + s);
         MillServerLauncher launcher =
             new MillServerLauncher(
