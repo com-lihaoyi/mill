@@ -13,8 +13,8 @@ import mill.javalib.api.internal.{JavaCompilerOptions, JvmWorkerApi, ZincCompile
 
 /**
  * Core configuration required to compile a single Groovy module.
- * 
- * Resolves 
+ *
+ * Resolves
  */
 trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
@@ -133,8 +133,8 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
           reportOldProblems = zincReportCachedProblems()
         )
       }
-      
-      if(isMixed){
+
+      if (isMixed) {
         ctx.log.info("Compiling Groovy stubs for mixed compilation")
 
         val workerStubResult =
@@ -146,12 +146,12 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
           case Result.Failure(reason) => Result.Failure(reason)
         }
       }
-      
-      if(isMixed || isGroovy){
+
+      if (isMixed || isGroovy) {
         ctx.log.info(
           s"Compiling ${groovySourceFiles.size} Groovy sources to $classes ..."
         )
-        
+
         val workerGroovyResult =
           GroovyWorkerManager.groovyWorker().withValue(groovyCompilerClasspath()) {
             _.compile(groovySourceFiles, compileCp, classes)
@@ -166,11 +166,10 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
             CompilationResult(analysisFile, PathRef(classes))
           case Result.Failure(reason) => Result.Failure(reason)
         }
-      }else {
+      } else {
         compileJava
       }
     }
-
 
   private[groovylib] def internalCompileJavaFiles(
       worker: JvmWorkerApi,

@@ -2,7 +2,7 @@ package mill
 package groovylib
 
 import mill.javalib.{JavaModule, TestModule}
-import mill.api.{ Task}
+import mill.api.{Task}
 import mill.api.Discover
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
@@ -22,7 +22,7 @@ object HelloGroovyTests extends TestSuite {
       object `test` extends GroovyMavenTests with TestModule.Junit5 {
 
         override def moduleDeps: Seq[JavaModule] = Seq(
-          HelloGroovy.`groovy-tests`, 
+          HelloGroovy.`groovy-tests`
         )
 
         override def groovyVersion = groovy4Version
@@ -141,7 +141,6 @@ object HelloGroovyTests extends TestSuite {
         val Right(_) = eval.apply(m.staticcompile.run()): @unchecked
       }
     }
-
 
     test("compile & test module (only test uses Groovy)") {
       testEval().scoped { eval =>

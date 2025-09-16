@@ -14,9 +14,11 @@ import scala.util.Try
 
 class GroovyWorkerImpl extends GroovyWorker {
 
-
-  override def compileGroovyStubs(sourceFiles: Seq[Path], classpath: Seq[Path], outputDir: Path)
-                                 (implicit ctx: TaskCtx): Result[CompilationResult] = {
+  override def compileGroovyStubs(
+      sourceFiles: Seq[Path],
+      classpath: Seq[Path],
+      outputDir: Path
+  )(implicit ctx: TaskCtx): Result[CompilationResult] = {
     val config = new CompilerConfiguration()
     config.setTargetDirectory(outputDir.toIO)
     config.setClasspathList(classpath.map(_.toIO.getAbsolutePath).asJava)
@@ -83,7 +85,6 @@ class GroovyWorkerImpl extends GroovyWorker {
       result => Result.Success(result)
     )
   }
-
 
   private def removeAllJavaFiles(outputDir: os.Path): Unit = {
     if (os.exists(outputDir)) {

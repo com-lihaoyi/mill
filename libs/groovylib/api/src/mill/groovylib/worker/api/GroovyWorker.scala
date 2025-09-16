@@ -17,15 +17,21 @@ trait GroovyWorker {
   /**
    * In a mixed setup this will compile the Groovy sources to Java stubs.
    */
-  def compileGroovyStubs(sourceFiles: Seq[os.Path], classpath: Seq[os.Path], outputDir: os.Path)
-                        (implicit ctx: TaskCtx)
-  : Result[CompilationResult]
+  def compileGroovyStubs(
+      sourceFiles: Seq[os.Path],
+      classpath: Seq[os.Path],
+      outputDir: os.Path
+  )(implicit
+      ctx: TaskCtx
+  )
+      : Result[CompilationResult]
 
   /**
    * Compiles the Groovy sources. In a mixed setup this method assumes that the Java stubs
    * are already present in the outputDir.
    */
-  def compile(sourceFiles: Seq[os.Path], classpath: Seq[os.Path], outputDir: os.Path)
-             (implicit ctx: TaskCtx)
-  : Result[CompilationResult]
+  def compile(sourceFiles: Seq[os.Path], classpath: Seq[os.Path], outputDir: os.Path)(implicit
+      ctx: TaskCtx
+  )
+      : Result[CompilationResult]
 }
