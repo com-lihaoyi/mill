@@ -79,7 +79,7 @@ public class MillLauncherMain {
         // start in client-server mode
         var optsArgs = new java.util.ArrayList<>(MillProcessLauncher.millOpts(outMode));
         Collections.addAll(optsArgs, args);
-
+        Consumer<String> log = (s) -> logs.add(java.time.Instant.now() + " " + s);
         MillServerLauncher launcher =
             new MillServerLauncher(
                 new MillServerLauncher.Streams(System.in, System.out, System.err),
@@ -88,14 +88,17 @@ public class MillLauncherMain {
                 Optional.empty(),
                 -1) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
-                return new LaunchedServer.OsProcess(
+                log.accept("initServer START");
+                var res = new LaunchedServer.OsProcess(
                     MillProcessLauncher.launchMillDaemon(daemonDir, outMode).toHandle());
+                log.accept("initServer END");
+                return res;
               }
             };
 
         var daemonDir0 = Paths.get(outDir, OutFiles.millDaemon);
         String javaHome = MillProcessLauncher.javaHome(outMode);
-        Consumer<String> log = (s) -> logs.add(java.time.Instant.now() + " " + s);
+
         var exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;
         if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
           exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;
