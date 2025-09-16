@@ -33,7 +33,7 @@ object JavaHomeTests extends TestSuite {
   def tests: Tests = Tests {
 
     test("javaHome") {
-      test("compile11") {
+      test("jvm11") {
         UnitTester(HelloJavaJavaHome11Override, resourcePath).scoped { eval =>
 
           val Right(result) = eval.apply(HelloJavaJavaHome11Override.core.compile): @unchecked
@@ -47,9 +47,27 @@ object JavaHomeTests extends TestSuite {
             // We are overriding to java 11 which corresponds to class file version 55
             os.read.bytes(coreClassFile.get, 4, 4).toSeq == Seq[Byte](0, 0, 0, 55)
           )
+
+          val path = eval.evaluator.workspace / "java.version"
+          val Right(_) =
+            eval.apply(HelloJavaJavaHome11Override.core.run(Task.Anon(Args(path)))): @unchecked
+
+          assert(
+            os.read(path).startsWith("11.")
+          )
+
+          val Left(ExecResult.Failure(_)) =
+            eval.apply(HelloJavaJavaHome11Override.core.test.testForked()): @unchecked
+
+          //        assert(
+          //          v1._2(0).fullyQualifiedName == "hello.MyCoreTests.java11Test",
+          //          v1._2(0).status == "Success",
+          //          v1._2(1).fullyQualifiedName == "hello.MyCoreTests.java17Test",
+          //          v1._2(1).status == "Failure"
+          //        )
         }
       }
-      test("compile17") {
+      test("jvm17") {
         UnitTester(HelloJavaJavaHome17Override, resourcePath).scoped { eval =>
 
           val Right(result) = eval.apply(HelloJavaJavaHome17Override.core.compile): @unchecked
@@ -63,22 +81,6 @@ object JavaHomeTests extends TestSuite {
             // We are overriding to java 17 which corresponds to class file version 67
             os.read.bytes(coreClassFile.get, 4, 4).toSeq == Seq[Byte](0, 0, 0, 61)
           )
-        }
-      }
-      test("run11") {
-        UnitTester(HelloJavaJavaHome11Override, resourcePath).scoped { eval =>
-
-          val path = eval.evaluator.workspace / "java.version"
-          val Right(_) =
-            eval.apply(HelloJavaJavaHome11Override.core.run(Task.Anon(Args(path)))): @unchecked
-
-          assert(
-            os.read(path).startsWith("11.")
-          )
-        }
-      }
-      test("run17") {
-        UnitTester(HelloJavaJavaHome17Override, resourcePath).scoped { eval =>
 
           val path = eval.evaluator.workspace / "java.version"
           val Right(_) =
@@ -87,24 +89,6 @@ object JavaHomeTests extends TestSuite {
           assert(
             os.read(path).startsWith("17.")
           )
-        }
-      }
-      test("test11") {
-        UnitTester(HelloJavaJavaHome11Override, resourcePath).scoped { eval =>
-
-          val Left(ExecResult.Failure(_)) =
-            eval.apply(HelloJavaJavaHome11Override.core.test.testForked()): @unchecked
-
-          //        assert(
-          //          v1._2(0).fullyQualifiedName == "hello.MyCoreTests.java11Test",
-          //          v1._2(0).status == "Success",
-          //          v1._2(1).fullyQualifiedName == "hello.MyCoreTests.java17Test",
-          //          v1._2(1).status == "Failure"
-          //        )
-        }
-      }
-      test("test17") {
-        UnitTester(HelloJavaJavaHome17Override, resourcePath).scoped { eval =>
 
           val Left(ExecResult.Failure(_)) =
             eval.apply(HelloJavaJavaHome17Override.core.test.testForked()): @unchecked
