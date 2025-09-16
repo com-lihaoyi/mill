@@ -101,7 +101,7 @@ case class IrModuleBuild(
 )
 
 object IrModuleBuild {
-  // TODO not used
+  // This function is not used currently but temporarily kept for possible use cases. Remove if it's ensured that it's not going to be used.
   def empty(dirs: Seq[String]) = IrModuleBuild(
     IrScopedDeps(),
     null,
