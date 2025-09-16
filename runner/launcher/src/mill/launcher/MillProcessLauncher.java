@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -39,7 +40,7 @@ public class MillProcessLauncher {
     boolean interrupted = false;
 
     try {
-      Process p = configureRunMillProcess(builder, processDir);
+      Process p = configureRunMillProcess(builder, processDir, (s) -> {});
       return p.waitFor();
 
     } catch (InterruptedException e) {
@@ -56,41 +57,66 @@ public class MillProcessLauncher {
     }
   }
 
-  static Process launchMillDaemon(Path daemonDir, OutFolderMode outMode) throws Exception {
+  static Process launchMillDaemon(Path daemonDir, OutFolderMode outMode, Consumer<String> log)
+      throws Exception {
+    log.accept("launchMillDaemon A");
     List<String> l = new ArrayList<>(millLaunchJvmCommand(outMode));
+    log.accept("launchMillDaemon B");
     l.add("mill.daemon.MillDaemonMain");
+    log.accept("launchMillDaemon C");
     l.add(daemonDir.toFile().getCanonicalPath());
+    log.accept("launchMillDaemon D");
     l.add(outMode.asString());
-
+    log.accept("launchMillDaemon E");
     ProcessBuilder builder = new ProcessBuilder()
         .command(l)
         .redirectOutput(daemonDir.resolve(DaemonFiles.stdout).toFile())
         .redirectError(daemonDir.resolve(DaemonFiles.stderr).toFile());
-
-    return configureRunMillProcess(builder, daemonDir);
+    log.accept("launchMillDaemon F");
+    return configureRunMillProcess(builder, daemonDir, log);
   }
 
-  static Process configureRunMillProcess(ProcessBuilder builder, Path daemonDir) throws Exception {
-
+  static Process configureRunMillProcess(
+      ProcessBuilder builder, Path daemonDir, Consumer<String> log) throws Exception {
+    log.accept("configureRunMillProcess A");
     Path sandbox = daemonDir.resolve(DaemonFiles.sandbox);
+    log.accept("configureRunMillProcess B");
+
     Files.createDirectories(sandbox);
+    log.accept("configureRunMillProcess C");
+
     MillProcessLauncher.prepareMillRunFolder(daemonDir);
+    log.accept("configureRunMillProcess D");
+
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
-    if (System.getenv(EnvVars.MILL_EXECUTABLE_PATH) == null)
+    log.accept("configureRunMillProcess E");
+
+    if (System.getenv(EnvVars.MILL_EXECUTABLE_PATH) == null) {
       builder.environment().put(EnvVars.MILL_EXECUTABLE_PATH, getExecutablePath());
+    }
+    log.accept("configureRunMillProcess F");
 
     String jdkJavaOptions = System.getenv("JDK_JAVA_OPTIONS");
+    log.accept("configureRunMillProcess G");
+
     if (jdkJavaOptions == null) jdkJavaOptions = "";
     String javaOpts = System.getenv("JAVA_OPTS");
     if (javaOpts == null) javaOpts = "";
+    log.accept("configureRunMillProcess H");
 
     String opts = (jdkJavaOptions + " " + javaOpts).trim();
     if (!opts.isEmpty()) {
       builder.environment().put("JDK_JAVA_OPTIONS", opts);
     }
 
+    log.accept("configureRunMillProcess I");
+
     builder.directory(sandbox.toFile());
-    return builder.start();
+    log.accept("configureRunMillProcess J");
+
+    var res = builder.start();
+    log.accept("configureRunMillProcess K");
+    return res;
   }
 
   static List<String> loadMillConfig(OutFolderMode outMode, String key) throws Exception {

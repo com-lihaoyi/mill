@@ -89,8 +89,9 @@ public class MillLauncherMain {
                 -1) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
                 log.accept("initServer START");
-                var res = new LaunchedServer.OsProcess(
-                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode).toHandle());
+                var launched = MillProcessLauncher.launchMillDaemon(daemonDir, outMode, log);
+                log.accept("initServer launched");
+                var res = new LaunchedServer.OsProcess(launched.toHandle());
                 log.accept("initServer END");
                 return res;
               }
