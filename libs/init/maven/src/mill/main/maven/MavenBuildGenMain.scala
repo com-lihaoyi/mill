@@ -77,7 +77,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle {
     val publishVersion = model.getVersion
     val publishProperties = getPublishProperties(model, cfg.shared)
 
-    val typedef = IrTrait(
+    IrBaseInfo(
       cfg.shared.basicConfig.jvmId,
       baseModule,
       getModuleSupertypes,
@@ -89,8 +89,6 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle {
       publishProperties,
       repositories
     )
-
-    IrBaseInfo(typedef)
   }
 
   override type ModuleFqnMap = Map[(String, String, String), String]
@@ -145,7 +143,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle {
 
   def getMillSourcePath(model: Model): Path = os.Path(model.getProjectDirectory)
 
-  override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] =
+  override def getSupertypes(cfg: Config, baseInfo: Option[IrBaseInfo], build: Node[Model]): Seq[String] =
     cfg.shared.basicConfig.baseModule.fold(getModuleSupertypes)(Seq(_))
 
   def processResources(

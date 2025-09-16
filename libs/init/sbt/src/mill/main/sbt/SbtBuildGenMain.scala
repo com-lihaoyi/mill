@@ -249,7 +249,7 @@ object SbtBuildGenMain extends BuildGenBase {
     val pomSettings = extractPomSettings(buildPublicationInfo)
     val publishVersion = getPublishVersion(buildInfo)
 
-    val typedef = IrTrait(
+    IrBaseInfo(
       cfg.shared.jvmId, // There doesn't seem to be a Java version setting in `sbt` though. See https://stackoverflow.com/a/76456295/5082913.
       baseModule,
       sbtSupertypes,
@@ -261,8 +261,6 @@ object SbtBuildGenMain extends BuildGenBase {
       Seq.empty, // not available in `sbt` as it seems
       repositories
     )
-
-    IrBaseInfo(typedef)
   }
 
   /**
@@ -315,7 +313,7 @@ object SbtBuildGenMain extends BuildGenBase {
 
   def getMillSourcePath(project: Project): Path = os.Path(project.projectDirectory)
 
-  override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Project]): Seq[String] =
+  override def getSupertypes(cfg: Config, baseInfo: Option[IrBaseInfo], build: Node[Project]): Seq[String] =
     getModuleSupertypes(cfg)
 
   def getJavacOptions(buildInfo: BuildInfo): Seq[String] =

@@ -36,7 +36,7 @@ object BuildObject {
 @mill.api.experimental
 case class Node[T](dirs: Seq[String], value: T)
 
-case class IrTrait(
+case class IrBaseInfo(
     jvmId: Option[String],
     baseModule: String,
     moduleSupertypes: Seq[String],
@@ -141,21 +141,6 @@ case class IrScopedDeps(
     testModuleDeps: SortedSet[String] = SortedSet(),
     testCompileMvnDeps: SortedSet[String] = SortedSet(),
     testCompileModuleDeps: SortedSet[String] = SortedSet()
-)
-
-// TODO remove `IrBaseInfo` and just use `IrTrait` directly?
-case class IrBaseInfo(
-    /*
-    javacOptions: Seq[String] = Nil,
-    scalaVersion: Option[String] = None,
-    scalacOptions: Option[Seq[String]] = None,
-    repositories: Seq[String] = Nil,
-    noPom: Boolean = true,
-    publishVersion: String = "",
-    publishProperties: Seq[(String, String)] = Nil,
-     */
-    // TODO consider renaming directly to `trait` or `baseTrait`?
-    moduleTypedef: IrTrait | Null = null
 )
 
 sealed class IrDependencyType

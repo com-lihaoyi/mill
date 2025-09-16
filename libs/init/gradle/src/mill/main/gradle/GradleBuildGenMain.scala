@@ -139,7 +139,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
     val publishVersion = getPublishVersion(project)
     val publishProperties = getPublishProperties(project, cfg.shared)
 
-    val typedef = IrTrait(
+    IrBaseInfo(
       cfg.shared.basicConfig.jvmId,
       baseModule,
       supertypes,
@@ -151,8 +151,6 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
       publishProperties,
       repos
     )
-
-    IrBaseInfo(typedef)
   }
 
   override type ModuleFqnMap = Map[String, String]
@@ -203,13 +201,13 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
 
   override def getSupertypes(
       cfg: Config,
-      baseInfo: IrBaseInfo,
+      baseInfo: Option[IrBaseInfo],
       build: Node[ProjectModel]
   ): Seq[String] =
-    Option.when(build.value.maven().pom() != null && {
-      val baseTrait = baseInfo.moduleTypedef
-      baseTrait == null || !baseTrait.moduleSupertypes.contains("PublishModule")
-    }) { "PublishModule" }.toSeq ++
+    Option.when(build.value.maven().pom() != null &&
+      baseInfo.forall(!_.moduleSupertypes.contains("PublishModule"))) {
+      "PublishModule"
+    }.toSeq ++
       Option.when(build.dirs.nonEmpty || os.exists(getMillSourcePath(build.value) / "src")) {
         getModuleSupertypes(cfg)
       }.toSeq.flatten

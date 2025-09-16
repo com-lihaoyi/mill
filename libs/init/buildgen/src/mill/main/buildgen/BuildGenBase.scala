@@ -41,8 +41,9 @@ trait BuildGenBase {
       moduleTree.nodes().flatMap(node => node.value.map(m => node.copy(value = m))).toSeq
     val moduleRefMap = getModuleFqnMap(moduleNodes)
 
-    val baseInfo =
-      shared.baseModule.fold(IrBaseInfo()) { getBaseInfo(input, cfg, _, moduleNodes.size) }
+    val baseInfo = shared.baseModule.map {
+      getBaseInfo(input, cfg, _, moduleNodes.size)
+    }
 
     moduleTree.map(optionalBuild =>
       optionalBuild.copy(value =
@@ -70,8 +71,8 @@ trait BuildGenBase {
             supertypes = getSupertypes(cfg, baseInfo, build),
             inner = BuildGenUtil.renderIrBuild(inner, baseInfo),
             outer =
-              if (isNested || baseInfo.moduleTypedef == null) ""
-              else BuildGenUtil.renderIrTrait(baseInfo.moduleTypedef)
+              if (isNested || baseInfo.isEmpty) ""
+              else BuildGenUtil.renderIrBaseInfo(baseInfo.get)
           )
         })
       )
@@ -80,7 +81,7 @@ trait BuildGenBase {
 
   def extraImports: Seq[String]
 
-  def getSupertypes(cfg: C, baseInfo: IrBaseInfo, build: Node[M]): Seq[String]
+  def getSupertypes(cfg: C, baseInfo: Option[IrBaseInfo], build: Node[M]): Seq[String]
 
   def getBaseInfo(
       input: I,

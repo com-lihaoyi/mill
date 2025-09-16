@@ -14,7 +14,7 @@ import scala.util.boundary
 @internal
 object BuildGenUtil {
 
-  def renderIrTrait(value: IrTrait): String = {
+  def renderIrBaseInfo(value: IrBaseInfo): String = {
     import value.*
 
     s"""trait $baseModule ${renderExtends(moduleSupertypes)} {
@@ -49,8 +49,7 @@ object BuildGenUtil {
   /**
    * @param baseInfo to compare with [[build]] and render the values only if they are different.
    */
-  def renderIrBuild(build: IrModuleBuild, baseInfo: IrBaseInfo): String = {
-    val baseTrait = baseInfo.moduleTypedef
+  def renderIrBuild(build: IrModuleBuild, baseInfo: Option[IrBaseInfo]): String = {
     import build.*
     val testModuleTypedef =
       if (!hasTest) ""
@@ -84,20 +83,14 @@ object BuildGenUtil {
        |
        |${renderJavacOptions(
         javacOptions,
-        if (baseTrait != null) baseTrait.javacOptions else Seq.empty
+      baseInfo.fold(Seq.empty)(_.javacOptions)
       )}
        |
-       |${renderScalaVersion(scalaVersion, if (baseTrait != null) baseTrait.scalaVersion else None)}
+       |${renderScalaVersion(scalaVersion, baseInfo.flatMap(_.scalaVersion))}
        |
-       |${renderScalacOptions(
-        scalacOptions,
-        if (baseTrait != null) baseTrait.scalacOptions else None
-      )}
+       |${renderScalacOptions(scalacOptions, baseInfo.flatMap(_.scalacOptions))}
        |
-       |${renderRepositories(
-        repositories,
-        if (baseTrait != null) baseTrait.repositories else Seq.empty
-      )}
+       |${renderRepositories(repositories, baseInfo.fold(Seq.empty)(_.repositories))}
        |
        |${renderBomMvnDeps(scopedDeps.mainBomMvnDeps)}
        |
@@ -114,15 +107,12 @@ object BuildGenUtil {
        |${renderRunModuleDeps(scopedDeps.mainRunModuleDeps)}
        |
        |${
-        if (pomSettings != (if (baseTrait != null) baseTrait.pomSettings else null))
+      if (pomSettings != baseInfo.map(_.pomSettings).orNull)
           renderPomSettings(renderIrPom(pomSettings))
         else ""
       }
        |
-       |${renderPublishVersion(
-        publishVersion,
-        if (baseTrait != null) baseTrait.publishVersion else null
-      )}
+       |${renderPublishVersion(publishVersion, baseInfo.map(_.publishVersion).orNull)}
        |
        |${renderPomPackaging(packaging)}
        |
