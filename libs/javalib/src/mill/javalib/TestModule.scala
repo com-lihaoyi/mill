@@ -12,7 +12,14 @@ import mill.javalib.bsp.BspModule
 import mill.util.{Jvm, Version}
 import mill.api.JsonFormatters.given
 import mill.constants.EnvVars
-import mill.javalib.testrunner.{DiscoverTestsMain, Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
+import mill.javalib.testrunner.{
+  DiscoverTestsMain,
+  Framework,
+  TestArgs,
+  TestResult,
+  TestRunner,
+  TestRunnerUtils
+}
 
 import java.nio.file.Path
 
@@ -354,7 +361,7 @@ object TestModule {
    * In case the [[jupiterVersion]] is set (and it is > 5.12), it pulls in JUnit-BOM in [[bomMvnDeps]]. If this is
    * true, then there is no need to specify the [[junitPlatformVersion]] anymore, because this is managed by the
    * BOM.
-   * 
+   *
    * See: https://junit.org/junit5/
    */
   trait Junit5 extends TestModule {
@@ -364,11 +371,11 @@ object TestModule {
 
     /** The JUnit Jupiter version to use, or empty, if you want to provide the dependencies yourself. */
     def jupiterVersion: T[String] = Task { "" }
-    
+
     private def isJupiterBomAvailable: T[Boolean] = Task {
-      if(jupiterVersion().isBlank){
+      if (jupiterVersion().isBlank) {
         false
-      }else{
+      } else {
         Version.isAtLeast(jupiterVersion(), "5.12.0")(using Version.IgnoreQualifierOrdering)
       }
     }
@@ -385,7 +392,7 @@ object TestModule {
             )
           )
     }
-    
+
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
       super.mandatoryMvnDeps() ++
         Seq(mvn"${mill.javalib.api.Versions.jupiterInterface}") ++
@@ -625,7 +632,7 @@ object TestModule {
   /**
    * TestModule that uses Spock Test Framework to run tests.
    * You can override the [[spockVersion]] task or provide the Spock dependency yourself.
-   * 
+   *
    * In case the version is set, it pulls in Spock-BOM in [[bomMvnDeps]] and Spock-Core in [[mvnDeps]]
    */
   trait Spock extends TestModule.Junit5 {

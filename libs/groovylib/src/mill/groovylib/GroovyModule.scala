@@ -36,7 +36,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
       Version.isAtLeast(groovyVersion(), "4.0.26")(using Version.IgnoreQualifierOrdering)
     }
   }
-  
+
   override def bomMvnDeps: T[Seq[Dep]] = super.bomMvnDeps() ++
     Seq(groovyVersion())
       .filter(_.nonEmpty && isGroovyBomAvailable())

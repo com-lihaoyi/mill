@@ -49,13 +49,13 @@ object JUnit5Tests extends TestSuite {
         assert(qualifiedNames.forall(_.fullyQualifiedName == "qux.QuxTests"))
       }
     }
-    test("dependency management"){
+    test("dependency management") {
       def testEval() = UnitTester(module, testModuleSourcesPath)
       val junitBom = mvn"org.junit:junit-bom:$junitVersion"
       val jupiter = mvn"org.junit.jupiter:junit-jupiter-api:$junitVersion"
       val junitPlatformLauncher = mvn"org.junit.platform:junit-platform-launcher"
 
-      test("jupiter added when version is set"){
+      test("jupiter added when version is set") {
         testEval().scoped { eval =>
           val Right(resultDeps) = eval.apply(module.deps.junitBom.mandatoryMvnDeps): @unchecked
           assert(
