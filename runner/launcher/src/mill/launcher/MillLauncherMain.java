@@ -1,5 +1,6 @@
 package mill.launcher;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -8,6 +9,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import mill.client.*;
 import mill.client.lock.Locks;
+import mill.constants.BuildInfo;
 import mill.constants.EnvVars;
 import mill.constants.OutFiles;
 import mill.constants.OutFolderMode;
@@ -70,9 +72,20 @@ public class MillLauncherMain {
                   + " make it less responsive.");
     }
 
+    String[] runnerClasspath = MillProcessLauncher.cachedComputedValue0(
+        outMode,
+        "resolve-runner",
+        BuildInfo.millVersion,
+        () -> CoursierClient.resolveMillDaemon(),
+        arr -> {
+          for (String s : arr) {
+            if (!Files.exists(Paths.get(s))) return false;
+          }
+          return true;
+        });
     if (runNoDaemon) {
       // start in no-server mode
-      System.exit(MillProcessLauncher.launchMillNoDaemon(args, outMode));
+      System.exit(MillProcessLauncher.launchMillNoDaemon(args, outMode, runnerClasspath));
     } else {
       var logs = new java.util.ArrayList<String>();
       try {
@@ -89,7 +102,8 @@ public class MillLauncherMain {
                 -1) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
                 log.accept("initServer START");
-                var launched = MillProcessLauncher.launchMillDaemon(daemonDir, outMode, log);
+                var launched =
+                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode, log, runnerClasspath);
                 log.accept("initServer launched");
                 var res = new LaunchedServer.OsProcess(launched.toHandle());
                 log.accept("initServer END");
