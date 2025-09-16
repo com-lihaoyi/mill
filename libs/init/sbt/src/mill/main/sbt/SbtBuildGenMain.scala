@@ -223,14 +223,14 @@ object SbtBuildGenMain extends BuildGenBase {
     )
 
   override def getModuleTree(
-                              input: (BuildExport, Tree[Node[Option[Project]]])
+      input: (BuildExport, Tree[Node[Option[Project]]])
   ): Tree[Node[Option[Project]]] =
     input._2
 
   private def sbtSupertypes = Seq("SbtModule", "PublishModule") // always publish
 
   override def getBaseInfo(
-                            input: (BuildExport, Tree[Node[Option[Project]]]),
+      input: (BuildExport, Tree[Node[Option[Project]]]),
       cfg: Config,
       baseModule: String,
       packagesSize: Int
@@ -311,10 +311,10 @@ object SbtBuildGenMain extends BuildGenBase {
   def getMillSourcePath(project: Project): Path = os.Path(project.projectDirectory)
 
   override def getSupertypes(
-                              cfg: Config,
-                              baseInfo: Option[IrBaseInfo],
-                              build: Node[Project]
-                            ): Seq[String] =
+      cfg: Config,
+      baseInfo: Option[IrBaseInfo],
+      build: Node[Project]
+  ): Seq[String] =
     getModuleSupertypes(cfg)
 
   def getJavacOptions(buildInfo: BuildInfo): Seq[String] =
