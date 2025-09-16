@@ -147,7 +147,9 @@ public abstract class ServerLauncher {
           if (result instanceof ServerLaunchResult.Success
               || result instanceof ServerLaunchResult.AlreadyRunning) {
             log.accept("Reading server port: " + daemonDir.toAbsolutePath());
-            var port = Integer.parseInt(Files.readString(daemonDir.resolve(DaemonFiles.socketPort)));
+            var port =
+              Integer.parseInt(Files.readString(daemonDir.resolve(DaemonFiles.socketPort)));
+
             var launched = new Launched();
             launched.port = port;
             log.accept("Read server port, connecting: " + port);
@@ -269,6 +271,7 @@ public abstract class ServerLauncher {
                     };
             return Optional.of(new ServerLaunchResult.AlreadyRunning(launchedServer));
           } catch (IOException | NumberFormatException e) {
+            log.accept("Read PID exception: " + e);
             return Optional.empty();
           }
         }
