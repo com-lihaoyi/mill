@@ -139,7 +139,7 @@ object SbtBuildGenMain extends BuildGenBase {
     }
 
     val buildExportPickled = os.read(workspace / "target" / "mill-init-build-export.json")
-    // TODO This is mainly for debugging purposes. Comment out or uncomment this line as needed.
+    // This line is mainly for debugging purposes. Comment out or uncomment this line as needed.
     // println("sbt build export retrieved: " + buildExportPickled)
     import upickle.*
     val buildExport = read[BuildExport](buildExportPickled)
