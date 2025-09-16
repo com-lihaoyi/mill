@@ -104,7 +104,7 @@ object BuildGenUtil {
        |${renderRunModuleDeps(scopedDeps.mainRunModuleDeps)}
        |
        |${
-      if (pomSettings != baseInfo.map(_.pomSettings).orNull)
+        if (pomSettings != baseInfo.map(_.pomSettings).orNull)
           renderPomSettings(renderIrPom(pomSettings))
         else ""
       }
