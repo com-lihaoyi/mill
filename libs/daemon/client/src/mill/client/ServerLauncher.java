@@ -135,7 +135,7 @@ public abstract class ServerLauncher {
       throws Exception {
     log.accept("Acquiring the launcher lock: " + locks.launcherLock);
     try (var ignored = locks.launcherLock.lock()) {
-      return withTimeout(serverInitWaitMillis, "server launch failed", () -> {
+      return retryWithTimeout(serverInitWaitMillis, "server launch failed", () -> {
         try {
           var result =
               ensureServerIsRunning(locks, daemonDir, initServer, serverInitWaitMillis / 3, log);
@@ -167,7 +167,7 @@ public abstract class ServerLauncher {
     }
   }
 
-  public static <A> A withTimeout(
+  public static <A> A retryWithTimeout(
       long timeoutMillis, String errorMessage, Supplier<Optional<A>> supplier) throws Exception {
     var startTimeMonotonicNanos = System.nanoTime();
     var current = Optional.<A>empty();
@@ -204,7 +204,7 @@ public abstract class ServerLauncher {
 
     // See if the server is already running.
     log.accept("Checking if the daemon lock is available: " + locks.daemonLock);
-    return withTimeout(timeoutMillis, "Failed to determine server status", () -> {
+    return retryWithTimeout(timeoutMillis, "Failed to determine server status", () -> {
       try {
         if (locks.daemonLock.probe()) {
           log.accept("The daemon lock is available, starting the server.");
