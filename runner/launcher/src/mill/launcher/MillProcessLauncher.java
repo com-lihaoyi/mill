@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -41,9 +40,8 @@ public class MillProcessLauncher {
     boolean interrupted = false;
 
     try {
-      Process p = configureRunMillProcess(builder, processDir, (s) -> {});
+      Process p = configureRunMillProcess(builder, processDir);
       return p.waitFor();
-
     } catch (InterruptedException e) {
       interrupted = true;
       throw e;
@@ -58,8 +56,7 @@ public class MillProcessLauncher {
     }
   }
 
-  static Process launchMillDaemon(
-      Path daemonDir, OutFolderMode outMode, Consumer<String> log, String[] runnerClasspath)
+  static Process launchMillDaemon(Path daemonDir, OutFolderMode outMode, String[] runnerClasspath)
       throws Exception {
     List<String> l = new ArrayList<>(millLaunchJvmCommand(outMode, runnerClasspath));
     l.add("mill.daemon.MillDaemonMain");
@@ -69,25 +66,19 @@ public class MillProcessLauncher {
         .command(l)
         .redirectOutput(daemonDir.resolve(DaemonFiles.stdout).toFile())
         .redirectError(daemonDir.resolve(DaemonFiles.stderr).toFile());
-    return configureRunMillProcess(builder, daemonDir, log);
+    return configureRunMillProcess(builder, daemonDir);
   }
 
-  static Process configureRunMillProcess(
-      ProcessBuilder builder, Path daemonDir, Consumer<String> log) throws Exception {
+  static Process configureRunMillProcess(ProcessBuilder builder, Path daemonDir) throws Exception {
     Path sandbox = daemonDir.resolve(DaemonFiles.sandbox);
-
     Files.createDirectories(sandbox);
-
     MillProcessLauncher.prepareMillRunFolder(daemonDir);
-
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
-
     if (System.getenv(EnvVars.MILL_EXECUTABLE_PATH) == null) {
       builder.environment().put(EnvVars.MILL_EXECUTABLE_PATH, getExecutablePath());
     }
 
     String jdkJavaOptions = System.getenv("JDK_JAVA_OPTIONS");
-
     if (jdkJavaOptions == null) jdkJavaOptions = "";
     String javaOpts = System.getenv("JAVA_OPTS");
     if (javaOpts == null) javaOpts = "";
@@ -98,7 +89,6 @@ public class MillProcessLauncher {
     }
 
     builder.directory(sandbox.toFile());
-
     return builder.start();
   }
 

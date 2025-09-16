@@ -3,6 +3,8 @@ package mill.launcher;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
@@ -83,6 +85,7 @@ public class MillLauncherMain {
           }
           return true;
         });
+
     if (runNoDaemon) {
       // start in no-server mode
       System.exit(MillProcessLauncher.launchMillNoDaemon(args, outMode, runnerClasspath));
@@ -92,7 +95,8 @@ public class MillLauncherMain {
         // start in client-server mode
         var optsArgs = new java.util.ArrayList<>(MillProcessLauncher.millOpts(outMode));
         Collections.addAll(optsArgs, args);
-        Consumer<String> log = (s) -> logs.add(java.time.Instant.now() + " " + s);
+        var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        Consumer<String> log = (s) -> logs.add(formatter.format(Instant.now()) + " " + s);
         MillServerLauncher launcher =
             new MillServerLauncher(
                 new MillServerLauncher.Streams(System.in, System.out, System.err),
@@ -101,13 +105,9 @@ public class MillLauncherMain {
                 Optional.empty(),
                 -1) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
-                log.accept("initServer START");
                 var launched =
-                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode, log, runnerClasspath);
-                log.accept("initServer launched");
-                var res = new LaunchedServer.OsProcess(launched.toHandle());
-                log.accept("initServer END");
-                return res;
+                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode, runnerClasspath);
+                return new LaunchedServer.OsProcess(launched.toHandle());
               }
             };
 

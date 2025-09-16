@@ -142,7 +142,7 @@ public abstract class ServerLauncher {
     try (var ignored = locks.launcherLock.lock()) {
       return retryWithTimeout(serverInitWaitMillis, "server launch failed", () -> {
         try {
-          log.accept("launchOrConnectToServer try");
+          log.accept("launchOrConnectToServer attempt");
 
           var result =
               ensureServerIsRunning(locks, daemonDir, initServer, serverInitWaitMillis / 3, log);
@@ -154,8 +154,9 @@ public abstract class ServerLauncher {
 
             var launched = new Launched();
             launched.port = port;
-            log.accept("Read server port, connecting: " + port);
+            log.accept("Read server port");
             if (openSocket) {
+              log.accept("Connecting: " + port);
               var connected = new Socket(InetAddress.getLoopbackAddress(), port);
               launched.socket = connected;
             }
