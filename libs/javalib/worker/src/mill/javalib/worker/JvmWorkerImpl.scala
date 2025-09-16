@@ -225,60 +225,49 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       }
 
       fileAndDebugLog(log, s"Checking if $mainClass is already running for $key")
-      val result = Timed(ServerLauncher.ensureServerIsRunning(
-        locks,
-        daemonDir.toNIO,
-        () => {
-          fileAndDebugLog(log, s"Starting JVM subprocess for $mainClass for $key")
-          val process = Timed(Jvm.spawnProcess(
-            mainClass = mainClass,
-            mainArgs = Seq(daemonDir.toString, jobs.toString),
-            javaHome = key.javaHome,
-            jvmArgs = key.runtimeOptions.options,
-            classPath = classPath
-          ))
-          fileAndDebugLog(
-            log,
-            s"Starting JVM subprocess for $mainClass for $key took ${process.durationPretty}"
-          )
-          LaunchedServer.OsProcess(process.result.wrapped.toHandle)
-        },
-        fileAndDebugLog(log, _)
-      ))
+      fileAndDebugLog(log, "Acquiring the launcher lock: " + locks.launcherLock)
+
+      val launched = Using.resource(locks.launcherLock.lock()) { _ =>
+        Timed(ServerLauncher.launchOrConnectToServer(
+          locks,
+          daemonDir.toNIO,
+          "",
+          10 * 1000,
+          () => {
+            fileAndDebugLog(log, s"Starting JVM subprocess for $mainClass for $key")
+            val process = Timed(Jvm.spawnProcess(
+              mainClass = mainClass,
+              mainArgs = Seq(daemonDir.toString, jobs.toString),
+              javaHome = key.javaHome,
+              jvmArgs = key.runtimeOptions.options,
+              classPath = classPath
+            ))
+            fileAndDebugLog(
+              log,
+              s"Starting JVM subprocess for $mainClass for $key took ${process.durationPretty}"
+            )
+            LaunchedServer.OsProcess(process.result.wrapped.toHandle)
+          },
+          processDied =>
+            throw IllegalStateException(
+              s"""Failed to launch '$mainClass' for:
+                 |  javaHome = ${key.javaHome}
+                 |  runtimeOptions = ${key.runtimeOptions.options.mkString(",")}
+                 |  daemonDir = $daemonDir
+                 |
+                 |Failure:
+                 |$processDied
+                 |""".stripMargin
+            ),
+          fileAndDebugLog(log, _)
+        ))
+      }
       fileAndDebugLog(
         log,
-        s"Ensuring that server is running for $key took ${result.durationPretty}"
+        s"Ensuring that server is running for $key took ${launched.durationPretty}"
       )
 
-      def onSuccess(launched: LaunchedServer) = {
-        val serverInitWaitMillis = 5.seconds.toMillis
-        val startTime = System.nanoTime()
-        fileAndDebugLog(log, s"Reading server port: $daemonDir")
-        val port =
-          Timed(ServerLauncher.readServerPort(daemonDir.toNIO, startTime, serverInitWaitMillis))
-        fileAndDebugLog(
-          log,
-          s"Reading server port for $daemonDir took ${port.durationPretty}."
-        )
-        fileAndDebugLog(log, s"Started $mainClass for $key on port ${port.result}")
-        SubprocessCacheValue(port.result, daemonDir, launched)
-      }
-
-      result.result.fold(
-        success => onSuccess(success.server),
-        alreadyRunning => onSuccess(alreadyRunning.server),
-        processDied =>
-          throw IllegalStateException(
-            s"""Failed to launch '$mainClass' for:
-               |  javaHome = ${key.javaHome}
-               |  runtimeOptions = ${key.runtimeOptions.options.mkString(",")}
-               |  daemonDir = $daemonDir
-               |
-               |Failure:
-               |$processDied
-               |""".stripMargin
-          )
-      )
+      SubprocessCacheValue(launched.result.port, daemonDir, launched.result.launchedServer)
     }
 
     override def teardown(key: SubprocessCacheKey, value: SubprocessCacheValue): Unit = {
@@ -348,10 +337,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
         SubprocessCacheInitialize(compilerBridge.workspace, log, requestId)
       ) { case SubprocessCacheValue(port, daemonDir, _) =>
         Using.Manager { use =>
-          val startTimeNanos = System.nanoTime()
           fileAndDebugLog(log, s"Connecting to $daemonDir on port $port")
           val socket = use(ServerLauncher.connectToServer(
-            startTimeNanos,
             5.seconds.toMillis,
             port,
             s"From '${getClass.getName}'. Daemon directory: $daemonDir"

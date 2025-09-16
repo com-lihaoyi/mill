@@ -62,7 +62,7 @@ public abstract class MillServerLauncher extends ServerLauncher {
     }
     log.accept("launchOrConnectToServer: " + locks);
 
-    try (var connection = launchOrConnectToServer(
+    try (var launched = launchOrConnectToServer(
         locks,
         daemonDir,
         "From MillServerLauncher",
@@ -74,11 +74,11 @@ public abstract class MillServerLauncher extends ServerLauncher {
           System.exit(1);
         },
         log)) {
-      log.accept("runWithConnection: " + connection);
+      log.accept("runWithConnection: " + launched);
       var result = runWithConnection(
-          "MillServerLauncher[" + connection.getLocalSocketAddress() + " -> "
-              + connection.getRemoteSocketAddress() + "]",
-          connection,
+          "MillServerLauncher[" + launched.socket.getLocalSocketAddress() + " -> "
+              + launched.socket.getRemoteSocketAddress() + "]",
+        launched.socket,
           streams,
           false,
           rawServerStdin -> {
