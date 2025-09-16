@@ -118,10 +118,6 @@ public abstract class ServerLauncher {
         socket.close();
       } catch (Exception e) {
       }
-      try {
-        launchedServer.kill();
-      } catch (Exception e) {
-      }
     }
   }
   /**
@@ -395,6 +391,10 @@ public abstract class ServerLauncher {
     }
 
     public int exitCode() {
+      if (runnable.exitCode == null) {
+        throw new RuntimeException("Exit code not set on server exit");
+      }
+
       return runnable.exitCode;
     }
   }
