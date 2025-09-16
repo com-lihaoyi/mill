@@ -129,6 +129,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/androidlib/AndroidLintReportFormat$.html#valueToFormat-fffffaf6","e":false,"i":"","n":"valueToFormat","t":"valueToFormat(v: Value): Format","d":"mill.androidlib.AndroidLintReportFormat","k":"def","x":""},
 {"l":"mill/androidlib/AndroidModule.html#","e":false,"i":"","n":"AndroidModule","t":"AndroidModule extends JavaModule","d":"mill.androidlib","k":"trait","x":""},
 {"l":"mill/androidlib/AndroidModule.html#androidAaptOptions-0","e":false,"i":"","n":"androidAaptOptions","t":"androidAaptOptions: Simple[Seq[String]]","d":"mill.androidlib.AndroidModule","k":"def","x":""},
+{"l":"mill/androidlib/AndroidModule.html#androidCommonProguardFiles-0","e":false,"i":"","n":"androidCommonProguardFiles","t":"androidCommonProguardFiles: Simple[Seq[PathRef]]","d":"mill.androidlib.AndroidModule","k":"def","x":""},
 {"l":"mill/androidlib/AndroidModule.html#androidCompileSdk-0","e":false,"i":"","n":"androidCompileSdk","t":"androidCompileSdk: Simple[Int]","d":"mill.androidlib.AndroidModule","k":"def","x":""},
 {"l":"mill/androidlib/AndroidModule.html#androidCompiledLibResources-0","e":false,"i":"","n":"androidCompiledLibResources","t":"androidCompiledLibResources: Simple[PathRef]","d":"mill.androidlib.AndroidModule","k":"def","x":""},
 {"l":"mill/androidlib/AndroidModule.html#androidCompiledModuleResources-0","e":false,"i":"","n":"androidCompiledModuleResources","t":"androidCompiledModuleResources: Simple[Seq[PathRef]]","d":"mill.androidlib.AndroidModule","k":"def","x":""},

@@ -694,13 +694,12 @@ official <a href="https://github.com/android/compose-samples">compose samples</a
 <h2 id="_android_mill_setup_for_building_jetlagged_and_jetnews"><a class="anchor" href="#_android_mill_setup_for_building_jetlagged_and_jetnews"></a>Android Mill Setup for building JetLagged and JetNews</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-56-8b558e/mill-dist-1.0.4-56-8b558e-example-thirdparty-android-compose-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/thirdparty/android-compose-samples">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-57-329b38/mill-dist-1.0.4-57-329b38-example-thirdparty-android-compose-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/thirdparty/android-compose-samples">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, androidlib.*, kotlinlib.*
 
 object Versions {
   val kotlinVersion = &quot;2.1.20&quot;
-  val kotlinLanguageVersion = &quot;1.9&quot;
 
   val androidCompileSdk = 33
   val androidMinSdk = 21
@@ -720,13 +719,7 @@ object JetLagged extends mill.api.Module {
   object app extends AndroidAppKotlinModule, AndroidR8AppModule {
     def kotlinVersion = Versions.kotlinVersion
 
-    def kotlinLanguageVersion = Versions.kotlinLanguageVersion
-
     def androidIsDebug = true
-
-    // FIXME: ideally R8 should compile without erroring, but the app seems to be working
-    // without some reportedly missing classes.
-    override def androidR8Args = Seq(&quot;--map-diagnostics&quot;, &quot;error&quot;, &quot;warning&quot;)
 
     override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(
@@ -768,15 +761,8 @@ object JetLagged extends mill.api.Module {
       mvn&quot;androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0&quot;,
       mvn&quot;androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0&quot;,
       mvn&quot;androidx.navigation:navigation-compose:2.9.0&quot;,
-      mvn&quot;androidx.emoji2:emoji2:1.5.0&quot;,
-      mvn&quot;androidx.emoji2:emoji2-views:1.5.0&quot;,
-      mvn&quot;androidx.emoji2:emoji2-bundled:1.5.0&quot;,
       mvn&quot;androidx.window:window:1.4.0&quot;,
-      mvn&quot;androidx.window.extensions.core:core:1.0.0&quot;,
       mvn&quot;androidx.constraintlayout:constraintlayout-compose:1.1.1&quot;,
-      mvn&quot;io.coil-kt:coil-compose:2.7.0&quot;,
-      mvn&quot;androidx.customview:customview-poolingcontainer:1.0.0&quot;,
-      mvn&quot;androidx.tracing:tracing:1.2.0&quot;,
       mvn&quot;org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1&quot;,
 
       // version is resolved from compose-bom
@@ -786,7 +772,6 @@ object JetLagged extends mill.api.Module {
       mvn&quot;androidx.compose.ui:ui-util&quot;,
       mvn&quot;androidx.compose.material3:material3&quot;,
       mvn&quot;androidx.compose.animation:animation&quot;,
-      mvn&quot;androidx.compose.animation:animation-tooling-internal&quot;,
       mvn&quot;androidx.compose.material:material-icons-extended&quot;,
       mvn&quot;androidx.compose.material:material&quot;,
       mvn&quot;androidx.compose.material3:material3-window-size-class&quot;,
@@ -824,10 +809,6 @@ object JetLagged extends mill.api.Module {
         true
       }
 
-      // FIXME: ideally R8 should compile without erroring, but the app seems to be working
-      // without some reportedly missing classes.
-      override def androidR8Args = Seq(&quot;--map-diagnostics&quot;, &quot;error&quot;, &quot;warning&quot;)
-
       def mvnDeps = super.mvnDeps() ++ Seq(
         mvn&quot;junit:junit:4.13.2&quot;,
         mvn&quot;androidx.test:core:1.6.1&quot;,
@@ -847,13 +828,7 @@ object JetNews extends mill.api.Module {
   object app extends AndroidAppKotlinModule, AndroidR8AppModule {
     def kotlinVersion = Versions.kotlinVersion
 
-    def kotlinLanguageVersion = Versions.kotlinLanguageVersion
-
     def androidIsDebug = true
-
-    // FIXME: ideally R8 should compile without erroring, but the app seems to be working
-    // without some reportedly missing classes.
-    override def androidR8Args = Seq(&quot;--map-diagnostics&quot;, &quot;error&quot;, &quot;warning&quot;)
 
     override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(
@@ -894,15 +869,8 @@ object JetNews extends mill.api.Module {
       mvn&quot;androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0&quot;,
       mvn&quot;androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0&quot;,
       mvn&quot;androidx.navigation:navigation-compose:2.9.0&quot;,
-      mvn&quot;androidx.emoji2:emoji2:1.5.0&quot;,
-      mvn&quot;androidx.emoji2:emoji2-views:1.5.0&quot;,
-      mvn&quot;androidx.emoji2:emoji2-bundled:1.5.0&quot;,
       mvn&quot;androidx.window:window:1.4.0&quot;,
-      mvn&quot;androidx.window.extensions.core:core:1.0.0&quot;,
       mvn&quot;androidx.constraintlayout:constraintlayout-compose:1.1.1&quot;,
-      mvn&quot;io.coil-kt:coil-compose:2.7.0&quot;,
-      mvn&quot;androidx.customview:customview-poolingcontainer:1.0.0&quot;,
-      mvn&quot;androidx.tracing:tracing:1.2.0&quot;,
       mvn&quot;org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1&quot;,
       mvn&quot;androidx.glance:glance-appwidget:1.2.0-alpha01&quot;,
       mvn&quot;androidx.glance:glance-material3:1.2.0-alpha01&quot;,
@@ -951,10 +919,6 @@ object JetNews extends mill.api.Module {
       override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
         true
       }
-
-      // FIXME: ideally R8 should compile without erroring, but the app seems to be working
-      // without some reportedly missing classes.
-      override def androidR8Args = Seq(&quot;--map-diagnostics&quot;, &quot;error&quot;, &quot;warning&quot;)
 
       def mvnDeps = super.mvnDeps() ++ Seq(
         mvn&quot;junit:junit:4.13.2&quot;,
