@@ -39,7 +39,6 @@ import scala.jdk.CollectionConverters.*
 @internal
 object MavenBuildGenMain extends BuildGenBase.MavenAndGradle {
   override type M = Model
-  override type D = Dependency
   override type C = Config
 
   def main(args: Array[String]): Unit = {

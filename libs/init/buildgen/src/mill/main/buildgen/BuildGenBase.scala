@@ -6,7 +6,6 @@ import scala.collection.immutable.{SortedMap, SortedSet}
 
 trait BuildGenBase {
   type M
-  type D
   type I
   type C
 

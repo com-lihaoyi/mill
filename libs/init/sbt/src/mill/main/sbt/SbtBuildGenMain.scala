@@ -52,7 +52,6 @@ import scala.collection.immutable.SortedSet
 @internal
 object SbtBuildGenMain extends BuildGenBase {
   override type M = Project
-  override type D = String
   override type I = (BuildExport, Tree[Node[Option[Project]]])
   override type C = Config
 
