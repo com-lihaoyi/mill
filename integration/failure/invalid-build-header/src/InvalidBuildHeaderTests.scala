@@ -5,7 +5,8 @@ import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
 object InvalidBuildHeaderTests extends UtestIntegrationTestSuite {
-  override def cleanupProcessIdFile = false // process never launches due to yaml header syntax error
+  override def cleanupProcessIdFile =
+    false // process never launches due to yaml header syntax error
   val tests: Tests = Tests {
     test - integrationTest { tester =>
       import tester._

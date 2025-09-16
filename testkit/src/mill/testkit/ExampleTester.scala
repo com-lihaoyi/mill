@@ -77,7 +77,7 @@ class ExampleTester(
     bashExecutable: String = ExampleTester.defaultBashExecutable(),
     val baseWorkspacePath: os.Path,
     val propagateJavaHome: Boolean = true,
-    val cleanupProcessIdFile: Boolean = true,
+    val cleanupProcessIdFile: Boolean = true
 ) extends IntegrationTesterBase {
 
   def processCommandBlock(commandBlock: String): Unit = {
