@@ -112,8 +112,14 @@ public abstract class ServerLauncher {
 
     @Override
     public void close() throws Exception {
-      socket.close();
-      launchedServer.kill();
+      // Swallow exceptions if the close fails, because sometimes if things didn't
+      // properly initialize the close logic will blow up and we don't care
+      try{
+        socket.close();
+      }catch(Exception e){}
+      try{
+        launchedServer.kill();
+      }catch(Exception e){}
     }
   }
   /**
