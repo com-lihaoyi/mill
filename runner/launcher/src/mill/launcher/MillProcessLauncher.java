@@ -19,13 +19,14 @@ import mill.constants.*;
 
 public class MillProcessLauncher {
 
-  static int launchMillNoDaemon(String[] args, OutFolderMode outMode) throws Exception {
+  static int launchMillNoDaemon(String[] args, OutFolderMode outMode, String[] runnerClasspath)
+      throws Exception {
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
     final Path processDir =
         Paths.get(".").resolve(outFor(outMode)).resolve(millNoDaemon).resolve(sig);
 
     final List<String> l = new ArrayList<>();
-    l.addAll(millLaunchJvmCommand(outMode));
+    l.addAll(millLaunchJvmCommand(outMode, runnerClasspath));
     Map<String, String> propsMap = ClientUtil.getUserSetProperties();
     for (String key : propsMap.keySet()) l.add("-D" + key + "=" + propsMap.get(key));
     l.add("mill.daemon.MillNoDaemonMain");
@@ -56,8 +57,9 @@ public class MillProcessLauncher {
     }
   }
 
-  static Process launchMillDaemon(Path daemonDir, OutFolderMode outMode) throws Exception {
-    List<String> l = new ArrayList<>(millLaunchJvmCommand(outMode));
+  static Process launchMillDaemon(Path daemonDir, OutFolderMode outMode, String[] runnerClasspath)
+      throws Exception {
+    List<String> l = new ArrayList<>(millLaunchJvmCommand(outMode, runnerClasspath));
     l.add("mill.daemon.MillDaemonMain");
     l.add(daemonDir.toFile().getCanonicalPath());
     l.add(outMode.asString());
@@ -212,7 +214,8 @@ public class MillProcessLauncher {
     }
   }
 
-  static List<String> millLaunchJvmCommand(OutFolderMode outMode) throws Exception {
+  static List<String> millLaunchJvmCommand(OutFolderMode outMode, String[] runnerClasspath)
+      throws Exception {
     final List<String> vmOptions = new ArrayList<>();
 
     // Java executable
@@ -234,17 +237,7 @@ public class MillProcessLauncher {
 
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
-    String[] runnerClasspath = cachedComputedValue0(
-        outMode,
-        "resolve-runner",
-        BuildInfo.millVersion,
-        () -> CoursierClient.resolveMillDaemon(),
-        arr -> {
-          for (String s : arr) {
-            if (!Files.exists(Paths.get(s))) return false;
-          }
-          return true;
-        });
+
     vmOptions.add(String.join(File.pathSeparator, runnerClasspath));
 
     return vmOptions;

@@ -35,6 +35,7 @@ trait IntegrationTestSuite {
    */
   protected def propagateJavaHome: Boolean = true
 
+  protected def cleanupProcessIdFile: Boolean = true
   def debugLog: Boolean = false
 
   /**
@@ -53,7 +54,8 @@ trait IntegrationTestSuite {
         millExecutable,
         debugLog,
         baseWorkspacePath = os.pwd,
-        propagateJavaHome = propagateJavaHome
+        propagateJavaHome = propagateJavaHome,
+        cleanupProcessIdFile = cleanupProcessIdFile
       )
       try block(tester)
       finally tester.close()

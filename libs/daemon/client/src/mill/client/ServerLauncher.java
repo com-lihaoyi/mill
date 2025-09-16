@@ -142,23 +142,21 @@ public abstract class ServerLauncher {
     try (var ignored = locks.launcherLock.lock()) {
       return retryWithTimeout(serverInitWaitMillis, "server launch failed", () -> {
         try {
+          log.accept("launchOrConnectToServer attempt");
+
           var result =
               ensureServerIsRunning(locks, daemonDir, initServer, serverInitWaitMillis / 3, log);
           if (result instanceof ServerLaunchResult.Success
               || result instanceof ServerLaunchResult.AlreadyRunning) {
             log.accept("Reading server port: " + daemonDir.toAbsolutePath());
-            var port = retryWithTimeout(serverInitWaitMillis / 10, "Reading server port", () -> {
-              try {
-                return Optional.of(
-                    Integer.parseInt(Files.readString(daemonDir.resolve(DaemonFiles.socketPort))));
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            });
+            var port =
+                Integer.parseInt(Files.readString(daemonDir.resolve(DaemonFiles.socketPort)));
+
             var launched = new Launched();
             launched.port = port;
-            log.accept("Read server port, connecting: " + port);
+            log.accept("Read server port");
             if (openSocket) {
+              log.accept("Connecting: " + port);
               var connected = new Socket(InetAddress.getLoopbackAddress(), port);
               launched.socket = connected;
             }
@@ -276,6 +274,7 @@ public abstract class ServerLauncher {
                     };
             return Optional.of(new ServerLaunchResult.AlreadyRunning(launchedServer));
           } catch (IOException | NumberFormatException e) {
+            log.accept("Read PID exception: " + e);
             return Optional.empty();
           }
         }
