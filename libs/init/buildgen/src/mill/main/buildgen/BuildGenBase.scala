@@ -9,6 +9,7 @@ trait BuildGenBase {
   type D
   type I
   type C
+
   def convertWriteOut(cfg: C, shared: BuildGenUtil.BasicConfig, input: I): Unit = {
     val output = convert(input, cfg, shared)
     writeBuildObject(

@@ -53,7 +53,7 @@ import scala.collection.immutable.SortedSet
 object SbtBuildGenMain extends BuildGenBase {
   override type M = Project
   override type D = String
-  override type I = (BuildInfo, Tree[Node[Option[Project]]])
+  override type I = (BuildExport, Tree[Node[Option[Project]]])
   override type C = Config
 
   def main(args: Array[String]): Unit = {
@@ -156,7 +156,7 @@ object SbtBuildGenMain extends BuildGenBase {
 
     val projectNodeTree = projectNodes.foldLeft(Tree(Node(Seq.empty, None)))(merge)
 
-    convertWriteOut(cfg, cfg.shared, (buildExport.defaultBuildInfo, projectNodeTree))
+    convertWriteOut(cfg, cfg.shared, (buildExport, projectNodeTree))
 
     println("converted sbt build to Mill")
 
@@ -224,23 +224,21 @@ object SbtBuildGenMain extends BuildGenBase {
     )
 
   override def getModuleTree(
-      input: (BuildInfo, Tree[Node[Option[Project]]])
+                              input: (BuildExport, Tree[Node[Option[Project]]])
   ): Tree[Node[Option[Project]]] =
     input._2
 
   private def sbtSupertypes = Seq("SbtModule", "PublishModule") // always publish
 
   override def getBaseInfo(
-      input: (BuildInfo, Tree[Node[Option[Project]]]),
+                            input: (BuildExport, Tree[Node[Option[Project]]]),
       cfg: Config,
       baseModule: String,
       packagesSize: Int
   ): IrBaseInfo = {
-    val buildInfo = cfg.baseProject.fold(input._1)(name =>
-      // TODO This can simplified if `buildExport.projects` is passed here.
-      input._2.nodes().collectFirst(Function.unlift(_.value.flatMap(project =>
-        Option.when(project.name == name)(project)
-      ))).get.buildInfo
+    val buildExport = input._1
+    val buildInfo = cfg.baseProject.fold(buildExport.defaultBuildInfo)(name =>
+      buildExport.projects.find(_.name == name).get.buildInfo
     )
 
     import buildInfo.*
