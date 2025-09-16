@@ -2,7 +2,7 @@ package build
 import mill.*, scalalib.*
 
 object `package` extends ScalaModule {
-  def scalaVersion = "2.12.20"
+  def scalaVersion = "2.12.15"
   def mvnDeps = Seq(
     mvn"org.apache.spark::spark-core:3.5.6",
     mvn"org.apache.spark::spark-sql:3.5.6"
@@ -13,7 +13,7 @@ object `package` extends ScalaModule {
   def prependShellScript = ""
 
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
     def testFramework = "utest.runner.Framework"
 
     def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")

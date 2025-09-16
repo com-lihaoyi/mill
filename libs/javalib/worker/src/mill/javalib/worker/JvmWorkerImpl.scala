@@ -18,7 +18,6 @@ import java.io.*
 import java.nio.file.FileSystemException
 import java.security.MessageDigest
 import java.time.LocalDateTime
-import scala.concurrent.duration.*
 import scala.util.Using
 
 @internal
@@ -225,9 +224,12 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       }
 
       fileAndDebugLog(log, s"Checking if $mainClass is already running for $key")
-      val result = Timed(ServerLauncher.ensureServerIsRunning(
+      fileAndDebugLog(log, "Acquiring the launcher lock: " + locks.launcherLock)
+
+      val launched = Timed(ServerLauncher.launchOrConnectToServer(
         locks,
         daemonDir.toNIO,
+        10 * 1000,
         () => {
           fileAndDebugLog(log, s"Starting JVM subprocess for $mainClass for $key")
           val process = Timed(Jvm.spawnProcess(
@@ -243,30 +245,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
           )
           LaunchedServer.OsProcess(process.result.wrapped.toHandle)
         },
-        fileAndDebugLog(log, _)
-      ))
-      fileAndDebugLog(
-        log,
-        s"Ensuring that server is running for $key took ${result.durationPretty}"
-      )
-
-      def onSuccess(launched: LaunchedServer) = {
-        val serverInitWaitMillis = 5.seconds.toMillis
-        val startTime = System.nanoTime()
-        fileAndDebugLog(log, s"Reading server port: $daemonDir")
-        val port =
-          Timed(ServerLauncher.readServerPort(daemonDir.toNIO, startTime, serverInitWaitMillis))
-        fileAndDebugLog(
-          log,
-          s"Reading server port for $daemonDir took ${port.durationPretty}."
-        )
-        fileAndDebugLog(log, s"Started $mainClass for $key on port ${port.result}")
-        SubprocessCacheValue(port.result, daemonDir, launched)
-      }
-
-      result.result.fold(
-        success => onSuccess(success.server),
-        alreadyRunning => onSuccess(alreadyRunning.server),
         processDied =>
           throw IllegalStateException(
             s"""Failed to launch '$mainClass' for:
@@ -277,8 +255,17 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
                |Failure:
                |$processDied
                |""".stripMargin
-          )
+          ),
+        fileAndDebugLog(log, _),
+        false // openSocket
+      ))
+
+      fileAndDebugLog(
+        log,
+        s"Ensuring that server is running for $key took ${launched.durationPretty}"
       )
+
+      SubprocessCacheValue(launched.result.port, daemonDir, launched.result.launchedServer)
     }
 
     override def teardown(key: SubprocessCacheKey, value: SubprocessCacheValue): Unit = {
@@ -348,14 +335,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
         SubprocessCacheInitialize(compilerBridge.workspace, log, requestId)
       ) { case SubprocessCacheValue(port, daemonDir, _) =>
         Using.Manager { use =>
-          val startTimeNanos = System.nanoTime()
           fileAndDebugLog(log, s"Connecting to $daemonDir on port $port")
-          val socket = use(ServerLauncher.connectToServer(
-            startTimeNanos,
-            5.seconds.toMillis,
-            port,
-            s"From '${getClass.getName}'. Daemon directory: $daemonDir"
-          ))
+          val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), port)
           val debugName =
             s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}"
           ServerLauncher.runWithConnection(

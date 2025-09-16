@@ -194,6 +194,8 @@ object Deps {
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
+  val kotlinBuildToolsApi = mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinVersion"
+  val kotlinBuildToolsImpl = mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kotlinVersion"
 
   /** Used for the `mill init` from a Maven project. */
   object MavenInit {

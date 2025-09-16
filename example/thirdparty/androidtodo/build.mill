@@ -77,7 +77,6 @@ object app
     mvn"androidx.room:room-ktx:2.7.1",
     mvn"androidx.activity:activity-compose:1.10.0",
     mvn"androidx.navigation:navigation-compose:2.8.5",
-    mvn"androidx.emoji2:emoji2:1.3.0",
     mvn"androidx.lifecycle:lifecycle-common:2.8.7",
     mvn"androidx.lifecycle:lifecycle-process:2.8.7",
     mvn"androidx.lifecycle:lifecycle-runtime-compose:2.8.7",
@@ -87,8 +86,6 @@ object app
     mvn"com.google.dagger:hilt-android:2.56",
     mvn"androidx.hilt:hilt-navigation-compose:1.2.0",
     mvn"com.google.accompanist:accompanist-swiperefresh:0.36.0",
-    mvn"androidx.customview:customview-poolingcontainer:1.0.0",
-    mvn"androidx.tracing:tracing:1.2.0",
 
     // versions are resolved with compose-bom
     mvn"androidx.compose.foundation:foundation",

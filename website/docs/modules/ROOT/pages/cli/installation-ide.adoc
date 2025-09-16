@@ -71,28 +71,6 @@ folder with one of the Mill example projects. There are a wide range of example 
 from hello-world to multi-module libraries to client-server web applications, and you can
 pick one most similar to what you are doing so you can hit the ground running.
 
-=== JVM Version
-
-Mill uses Java `{default-mill-jvm-version}` by default, regardless of what is installed as your
-system `java`. You can set a Java version in the xref:cli/build-header.adoc[build.mill header] via
-a `mill-java-version` key if you wish to customize it:
-
-``` scala
-//| mill-jvm-version: temurin:24.0.1
-```
-
-The Mill JVM version is used for both evaluating the `build.mill` file as well as any
-``JavaModule``s, ``ScalaModule``s, or ``KotlinModule``s you define. You can also specify a
-xref:fundamentals/configuring-jvm-versions.adoc[per-module JVM version] if you need
-finer-grained control. Mill supports every JVM version from `11` onward.
-
-If you wish to use your system `java` installation, you can set `mill-jvm-version: system`.
-Note that this is not recommended as it means your codebase may use different JVM versions
-on different developer, CI, and production machines, potentially resulting in hard-to-debug
-crashes and errors.
-
-
-
 === Mill Native and JVM Executables
 
 The default Mill launcher configured above is a
