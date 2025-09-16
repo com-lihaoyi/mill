@@ -227,40 +227,39 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       fileAndDebugLog(log, s"Checking if $mainClass is already running for $key")
       fileAndDebugLog(log, "Acquiring the launcher lock: " + locks.launcherLock)
 
-      val launched = Using.resource(locks.launcherLock.lock()) { _ =>
-        Timed(ServerLauncher.launchOrConnectToServer(
-          locks,
-          daemonDir.toNIO,
-          10 * 1000,
-          () => {
-            fileAndDebugLog(log, s"Starting JVM subprocess for $mainClass for $key")
-            val process = Timed(Jvm.spawnProcess(
-              mainClass = mainClass,
-              mainArgs = Seq(daemonDir.toString, jobs.toString),
-              javaHome = key.javaHome,
-              jvmArgs = key.runtimeOptions.options,
-              classPath = classPath
-            ))
-            fileAndDebugLog(
-              log,
-              s"Starting JVM subprocess for $mainClass for $key took ${process.durationPretty}"
-            )
-            LaunchedServer.OsProcess(process.result.wrapped.toHandle)
-          },
-          processDied =>
-            throw IllegalStateException(
-              s"""Failed to launch '$mainClass' for:
-                 |  javaHome = ${key.javaHome}
-                 |  runtimeOptions = ${key.runtimeOptions.options.mkString(",")}
-                 |  daemonDir = $daemonDir
-                 |
-                 |Failure:
-                 |$processDied
-                 |""".stripMargin
-            ),
-          fileAndDebugLog(log, _)
-        ))
-      }
+      val launched = Timed(ServerLauncher.launchOrConnectToServer(
+        locks,
+        daemonDir.toNIO,
+        10 * 1000,
+        () => {
+          fileAndDebugLog(log, s"Starting JVM subprocess for $mainClass for $key")
+          val process = Timed(Jvm.spawnProcess(
+            mainClass = mainClass,
+            mainArgs = Seq(daemonDir.toString, jobs.toString),
+            javaHome = key.javaHome,
+            jvmArgs = key.runtimeOptions.options,
+            classPath = classPath
+          ))
+          fileAndDebugLog(
+            log,
+            s"Starting JVM subprocess for $mainClass for $key took ${process.durationPretty}"
+          )
+          LaunchedServer.OsProcess(process.result.wrapped.toHandle)
+        },
+        processDied =>
+          throw IllegalStateException(
+            s"""Failed to launch '$mainClass' for:
+               |  javaHome = ${key.javaHome}
+               |  runtimeOptions = ${key.runtimeOptions.options.mkString(",")}
+               |  daemonDir = $daemonDir
+               |
+               |Failure:
+               |$processDied
+               |""".stripMargin
+          ),
+        fileAndDebugLog(log, _)
+      ))
+
       fileAndDebugLog(
         log,
         s"Ensuring that server is running for $key took ${launched.durationPretty}"
