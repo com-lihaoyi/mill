@@ -5,11 +5,12 @@ import mill.main.buildgen.BuildGenUtil.{compactBuildTree, writeBuildObject}
 import scala.collection.immutable.{SortedMap, SortedSet}
 
 trait BuildGenBase {
-  type M
-  type I
+  type Module
+  type Input
+  // not renamed to `Config` as it would otherwise conflict with the concrete nested `Config` classes inside
   type C
 
-  def convertWriteOut(cfg: C, shared: BuildGenUtil.BasicConfig, input: I): Unit = {
+  def convertWriteOut(cfg: C, shared: BuildGenUtil.BasicConfig, input: Input): Unit = {
     val output = convert(input, cfg, shared)
     writeBuildObject(
       if (shared.merge.value) compactBuildTree(output) else output,
@@ -17,7 +18,7 @@ trait BuildGenBase {
     )
   }
 
-  def getModuleTree(input: I): Tree[Node[Option[M]]]
+  def getModuleTree(input: Input): Tree[Node[Option[Module]]]
 
   /**
    * A [[Map]] mapping from a key retrieved from the original build tool
@@ -27,10 +28,11 @@ trait BuildGenBase {
    * If there is no need for such a map, override it with [[Unit]].
    */
   type ModuleFqnMap
-  def getModuleFqnMap(moduleNodes: Seq[Node[M]]): ModuleFqnMap
+
+  def getModuleFqnMap(moduleNodes: Seq[Node[Module]]): ModuleFqnMap
 
   def convert(
-      input: I,
+               input: Input,
       cfg: C,
       shared: BuildGenUtil.BasicConfig
   ): Tree[Node[BuildObject]] = {
@@ -81,29 +83,30 @@ trait BuildGenBase {
 
   def extraImports: Seq[String]
 
-  def getSupertypes(cfg: C, baseInfo: Option[IrBaseInfo], build: Node[M]): Seq[String]
+  def getSupertypes(cfg: C, baseInfo: Option[IrBaseInfo], build: Node[Module]): Seq[String]
 
   def getBaseInfo(
-      input: I,
+                   input: Input,
       cfg: C,
       baseModule: String,
       packagesSize: Int
   ): IrBaseInfo
 
-  def getArtifactId(moduleModel: M): String
+  def getArtifactId(moduleModel: Module): String
 
   def extractIrModuleBuild(
       cfg: C,
       // baseInfo: IrBaseInfo, // `baseInfo` is no longer needed as we compare the `IrModuleBuild` with `IrBaseInfo` in common code now.
-      build: Node[M],
+      build: Node[Module],
       moduleFqnMap: ModuleFqnMap
   ): IrModuleBuild
 }
 
 object BuildGenBase {
   trait MavenAndGradle extends BuildGenBase {
-    type I = Tree[Node[M]]
-    override def getModuleTree(input: Tree[Node[M]]): Tree[Node[Option[M]]] =
+    type Input = Tree[Node[Module]]
+
+    override def getModuleTree(input: Tree[Node[Module]]): Tree[Node[Option[Module]]] =
       input.map(node => node.copy(value = Some(node.value)))
     override def extraImports: Seq[String] = Seq()
   }
