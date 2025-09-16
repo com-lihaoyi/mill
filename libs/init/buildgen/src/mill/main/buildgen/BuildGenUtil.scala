@@ -81,10 +81,7 @@ object BuildGenUtil {
 
     s"""${renderArtifactName(projectName, dirs)}
        |
-       |${renderJavacOptions(
-        javacOptions,
-      baseInfo.fold(Seq.empty)(_.javacOptions)
-      )}
+       |${renderJavacOptions(javacOptions, baseInfo.fold(Seq.empty)(_.javacOptions))}
        |
        |${renderScalaVersion(scalaVersion, baseInfo.flatMap(_.scalaVersion))}
        |
