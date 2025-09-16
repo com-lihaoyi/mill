@@ -148,7 +148,7 @@ public abstract class ServerLauncher {
               || result instanceof ServerLaunchResult.AlreadyRunning) {
             log.accept("Reading server port: " + daemonDir.toAbsolutePath());
             var port =
-              Integer.parseInt(Files.readString(daemonDir.resolve(DaemonFiles.socketPort)));
+                Integer.parseInt(Files.readString(daemonDir.resolve(DaemonFiles.socketPort)));
 
             var launched = new Launched();
             launched.port = port;
