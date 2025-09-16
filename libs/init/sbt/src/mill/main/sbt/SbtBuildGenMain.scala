@@ -311,7 +311,11 @@ object SbtBuildGenMain extends BuildGenBase {
 
   def getMillSourcePath(project: Project): Path = os.Path(project.projectDirectory)
 
-  override def getSupertypes(cfg: Config, baseInfo: Option[IrBaseInfo], build: Node[Project]): Seq[String] =
+  override def getSupertypes(
+                              cfg: Config,
+                              baseInfo: Option[IrBaseInfo],
+                              build: Node[Project]
+                            ): Seq[String] =
     getModuleSupertypes(cfg)
 
   def getJavacOptions(buildInfo: BuildInfo): Seq[String] =
