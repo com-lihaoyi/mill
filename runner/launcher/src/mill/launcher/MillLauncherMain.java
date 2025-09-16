@@ -95,7 +95,7 @@ public class MillLauncherMain {
 
         var daemonDir0 = Paths.get(outDir, OutFiles.millDaemon);
         String javaHome = MillProcessLauncher.javaHome(outMode);
-        Consumer<String> log = logs::add;
+        Consumer<String> log = (s) -> logs.add(java.time.Instant.now() + " " + s);
         var exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;
         if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
           exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;
