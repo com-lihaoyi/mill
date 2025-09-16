@@ -13,7 +13,7 @@ import scala.annotation.targetName
  *
  * @see https://central.sonatype.org/pages/ossrh-eol/
  */
-@deprecated("Use `mill.javalib.SonatypeCentralPublisher` instead", "1.0.0")
+@deprecated("Use `mill.javalib.SonatypeCentralPublisher` instead", "Mill 1.0.0")
 class SonatypePublisher(
     uri: String,
     snapshotUri: String,

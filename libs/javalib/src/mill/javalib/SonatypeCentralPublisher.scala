@@ -56,7 +56,7 @@ class SonatypeCentralPublisher(
     new SyncSonatypeClient(credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)
 
   // binary compatibility forwarder
-  @deprecated("Use `publish` where `fileMapping: Map[os.SubPath, os.Path]` instead.", "1.0.1")
+  @deprecated("Use `publish` where `fileMapping: Map[os.SubPath, os.Path]` instead.", "Mill 1.0.1")
   def publish(
       fileMapping: Seq[(os.Path, String)],
       artifact: Artifact,
