@@ -391,7 +391,7 @@ public abstract class ServerLauncher {
     }
 
     public int exitCode() {
-      if (runnable.exitCode == null) {
+      if (!runnable.exitCodeSet) {
         throw new RuntimeException("Exit code not set on server exit");
       }
 

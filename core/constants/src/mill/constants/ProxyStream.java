@@ -126,7 +126,8 @@ public class ProxyStream {
     private final OutputStream destOut;
     private final OutputStream destErr;
     private final Object synchronizer;
-    public volatile Integer exitCode = null;
+    public volatile int exitCode = 255;
+    public volatile boolean exitCodeSet = false;
 
     public Pumper(
         InputStream src, OutputStream destOut, OutputStream destErr, Object synchronizer) {
@@ -161,6 +162,7 @@ public class ProxyStream {
           if (header == -1) break;
           else if (header == END) {
             exitCode = src.read();
+            exitCodeSet = true;
             break;
           } else if (header == HEARTBEAT) continue;
           else {
