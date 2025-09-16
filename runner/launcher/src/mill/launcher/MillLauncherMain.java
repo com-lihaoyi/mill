@@ -107,9 +107,9 @@ public class MillLauncherMain {
                 Optional.empty(),
                 -1) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
-                var launched =
-                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode, runnerClasspath);
-                return new LaunchedServer.OsProcess(launched.toHandle());
+                return new LaunchedServer.OsProcess(
+                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode, runnerClasspath)
+                        .toHandle());
               }
             };
 
