@@ -130,6 +130,9 @@ object JsEnvConfig {
 
     sealed trait Capabilities
 
+    /**
+     * Default launch options for Chrome, directly derived from the scala-js-env-playwright implementation: https://github.com/ThijsBroersen/scala-js-env-playwright/blob/main/src/main/scala/jsenv/playwright/PlaywrightJSEnv.scala
+     */
     val defaultChromeLaunchOptions = List(
       "--disable-extensions",
       "--disable-web-security",
@@ -167,6 +170,9 @@ object JsEnvConfig {
     object ChromeOptions:
       implicit def rw: RW[ChromeOptions] = macroRW
 
+    /**
+     * Default Firefox user prefs, directly derived from the scala-js-env-playwright implementation: https://github.com/ThijsBroersen/scala-js-env-playwright/blob/main/src/main/scala/jsenv/playwright/PlaywrightJSEnv.scala
+     */
     val defaultFirefoxUserPrefs: Map[String, String | Double | Boolean] =
       Map(
         "security.mixed_content.block_active_content" -> false,
@@ -217,6 +223,9 @@ object JsEnvConfig {
         )
       given rw: RW[FirefoxOptions] = macroRW
 
+    /**
+     * Default launch options for Webkit, directly derived from the scala-js-env-playwright implementation: https://github.com/ThijsBroersen/scala-js-env-playwright/blob/main/src/main/scala/jsenv/playwright/PlaywrightJSEnv.scala
+     */
     val defaultWebkitLaunchOptions = List(
       "--disable-extensions",
       "--disable-web-security",
