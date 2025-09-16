@@ -1,6 +1,5 @@
 package mill.client;
 
-
 public abstract class ServerLaunchResult {
   /// The server process was not running, so it was started and is now running.
   public static class Success extends ServerLaunchResult {
@@ -20,7 +19,6 @@ public abstract class ServerLaunchResult {
     public AlreadyRunning(LaunchedServer server) {
       this.server = server;
     }
-
   }
 
   /// We tried to start the server, the process has started but has died unexpectedly.

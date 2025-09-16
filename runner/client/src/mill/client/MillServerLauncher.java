@@ -65,7 +65,6 @@ public abstract class MillServerLauncher extends ServerLauncher {
     try (var launched = launchOrConnectToServer(
         locks,
         daemonDir,
-        "From MillServerLauncher",
         serverInitWaitMillis,
         () -> initServer(daemonDir, locks),
         serverDied -> {
@@ -78,7 +77,7 @@ public abstract class MillServerLauncher extends ServerLauncher {
       var result = runWithConnection(
           "MillServerLauncher[" + launched.socket.getLocalSocketAddress() + " -> "
               + launched.socket.getRemoteSocketAddress() + "]",
-        launched.socket,
+          launched.socket,
           streams,
           false,
           rawServerStdin -> {

@@ -12,13 +12,13 @@ import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
 import mill.util.{CachedFactoryWithInitData, HexFormat, Jvm, RequestId, RequestIdFactory, Timed}
+import os.Path
 import sbt.internal.util.ConsoleOut
 
 import java.io.*
 import java.nio.file.FileSystemException
 import java.security.MessageDigest
 import java.time.LocalDateTime
-import scala.concurrent.duration.*
 import scala.util.Using
 
 @internal
@@ -231,7 +231,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
         Timed(ServerLauncher.launchOrConnectToServer(
           locks,
           daemonDir.toNIO,
-          "",
           10 * 1000,
           () => {
             fileAndDebugLog(log, s"Starting JVM subprocess for $mainClass for $key")
@@ -338,11 +337,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       ) { case SubprocessCacheValue(port, daemonDir, _) =>
         Using.Manager { use =>
           fileAndDebugLog(log, s"Connecting to $daemonDir on port $port")
-          val socket = use(ServerLauncher.connectToServer(
-            5.seconds.toMillis,
-            port,
-            s"From '${getClass.getName}'. Daemon directory: $daemonDir"
-          ))
+          val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), port)
           val debugName =
             s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}"
           ServerLauncher.runWithConnection(

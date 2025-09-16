@@ -105,7 +105,7 @@ public abstract class ServerLauncher {
     return result;
   }
 
-  public static class Launched implements AutoCloseable{
+  public static class Launched implements AutoCloseable {
     public int port;
     public Socket socket;
     public LaunchedServer launchedServer;
@@ -128,7 +128,6 @@ public abstract class ServerLauncher {
   public static Launched launchOrConnectToServer(
       Locks locks,
       Path daemonDir,
-      String debugName,
       int serverInitWaitMillis,
       InitServer initServer,
       Consumer<ServerLaunchResult.ServerDied> onFailure,
@@ -136,79 +135,40 @@ public abstract class ServerLauncher {
       throws Exception {
     log.accept("Acquiring the launcher lock: " + locks.launcherLock);
     try (var ignored = locks.launcherLock.lock()) {
-      return withTimeout(
-        serverInitWaitMillis,
-        "server launch failed",
-        () -> {
-          try {
-            var result = ensureServerIsRunning(locks, daemonDir, initServer, 10 * 1000, log);
-            if (result instanceof ServerLaunchResult.Success || result instanceof ServerLaunchResult.AlreadyRunning) {
-              log.accept("Reading server port: " + daemonDir.toAbsolutePath());
-              var port = readServerPort(daemonDir, serverInitWaitMillis);
-              log.accept("Read server port, connecting: " + port);
-              var connected = connectToServer(
-                serverInitWaitMillis,
-                port,
-                debugName + ". Daemon directory: " + daemonDir.toAbsolutePath());
-              var launched = new Launched();
-              launched.port = port;
-              launched.socket = connected;
-              if (result instanceof ServerLaunchResult.Success) {
-                launched.launchedServer = ((ServerLaunchResult.Success)result).server;
-              } else if (result instanceof ServerLaunchResult.AlreadyRunning) {
-                launched.launchedServer = ((ServerLaunchResult.AlreadyRunning)result).server;
-              }
-              return Optional.of(launched);
-            } else {
-              var processDied = (ServerLaunchResult.ServerDied) result;
-              onFailure.accept(processDied);
-              throw new IllegalStateException(processDied.toString());
+      return withTimeout(serverInitWaitMillis, "server launch failed", () -> {
+        try {
+          var result =
+              ensureServerIsRunning(locks, daemonDir, initServer, serverInitWaitMillis / 3, log);
+          if (result instanceof ServerLaunchResult.Success
+              || result instanceof ServerLaunchResult.AlreadyRunning) {
+            log.accept("Reading server port: " + daemonDir.toAbsolutePath());
+            var port =
+                Integer.parseInt(Files.readString(daemonDir.resolve(DaemonFiles.socketPort)));
+            log.accept("Read server port, connecting: " + port);
+            var connected = new Socket(InetAddress.getLoopbackAddress(), port);
+            var launched = new Launched();
+            launched.port = port;
+            launched.socket = connected;
+            if (result instanceof ServerLaunchResult.Success) {
+              launched.launchedServer = ((ServerLaunchResult.Success) result).server;
+            } else if (result instanceof ServerLaunchResult.AlreadyRunning) {
+              launched.launchedServer = ((ServerLaunchResult.AlreadyRunning) result).server;
             }
-          } catch (Exception e) {
-            throw new RuntimeException(e);
+            return Optional.of(launched);
+          } else {
+            var processDied = (ServerLaunchResult.ServerDied) result;
+            onFailure.accept(processDied);
+            throw new IllegalStateException(processDied.toString());
           }
+        } catch (Exception e) {
+          throw new RuntimeException(e);
         }
-      );
+      });
     }
   }
 
-  public static Integer readServerPort(Path daemonDir, long serverInitWaitMillis) throws Exception {
-    var portFile = daemonDir.resolve(DaemonFiles.socketPort);
-    return withTimeout(
-        serverInitWaitMillis,
-        "Failed to read server port from " + portFile.toAbsolutePath(),
-        () -> {
-          try {
-            return Optional.of(Integer.parseInt(Files.readString(portFile)));
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        });
-  }
-
-  /// Connects to the Mill server at the given port.
-  ///
-  /// @return a socket that should then be used with [#runWithConnection]
-  public static Socket connectToServer(long serverInitWaitMillis, int port, String errorMessage)
-      throws Exception {
-    return withTimeout(
-        serverInitWaitMillis,
-        "Failed to connect to server within " + serverInitWaitMillis + "ms on port " + port + ". "
-            + errorMessage,
-        () -> {
-          try {
-            return Optional.of(new Socket(InetAddress.getLoopbackAddress(), port));
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        });
-  }
-
   public static <A> A withTimeout(
-      long timeoutMillis,
-      String errorMessage,
-      Supplier<Optional<A>> supplier)
-      throws Exception {
+      long timeoutMillis, String errorMessage, Supplier<Optional<A>> supplier) throws Exception {
     var startTimeMonotonicNanos = System.nanoTime();
     var current = Optional.<A>empty();
     Throwable throwable = null;
@@ -238,7 +198,8 @@ public abstract class ServerLauncher {
   /// @param daemonDir  the directory where the server will write its port
   /// @param initServer the function to use to start the server
   public static ServerLaunchResult ensureServerIsRunning(
-      Locks locks, Path daemonDir, InitServer initServer, long timeoutMillis, Consumer<String> log) throws Exception {
+      Locks locks, Path daemonDir, InitServer initServer, long timeoutMillis, Consumer<String> log)
+      throws Exception {
     Files.createDirectories(daemonDir);
 
     // See if the server is already running.
@@ -271,8 +232,8 @@ public abstract class ServerLauncher {
         } else {
           log.accept("The daemon lock is not available, there is already a server running.");
           var pidFile = daemonDir.resolve(DaemonFiles.processId);
-          log.accept("Trying to read the process ID of a running daemon from "
-              + pidFile.toAbsolutePath());
+          log.accept(
+              "Trying to read the process ID of a running daemon from " + pidFile.toAbsolutePath());
           try {
             // We need to read the contents of the file and then parse them in a loop because of
             // a race
@@ -309,7 +270,6 @@ public abstract class ServerLauncher {
         return Optional.empty();
       }
     });
-
   }
 
   /// Busy-spins until the server process is running and has taken the `daemonLock`, returning an
