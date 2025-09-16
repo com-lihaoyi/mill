@@ -72,7 +72,8 @@ public abstract class MillServerLauncher extends ServerLauncher {
           System.err.println(serverDied.toString());
           System.exit(1);
         },
-        log)) {
+        log,
+        true /*openSocket*/)) {
       log.accept("runWithConnection: " + launched);
       var result = runWithConnection(
           "MillServerLauncher[" + launched.socket.getLocalSocketAddress() + " -> "

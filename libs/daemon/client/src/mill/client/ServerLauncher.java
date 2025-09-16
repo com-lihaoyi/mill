@@ -135,7 +135,8 @@ public abstract class ServerLauncher {
       int serverInitWaitMillis,
       InitServer initServer,
       Consumer<ServerLaunchResult.ServerDied> onFailure,
-      Consumer<String> log)
+      Consumer<String> log,
+      boolean openSocket)
       throws Exception {
     log.accept("Acquiring the launcher lock: " + locks.launcherLock);
     try (var ignored = locks.launcherLock.lock()) {
@@ -148,11 +149,13 @@ public abstract class ServerLauncher {
             log.accept("Reading server port: " + daemonDir.toAbsolutePath());
             var port =
                 Integer.parseInt(Files.readString(daemonDir.resolve(DaemonFiles.socketPort)));
-            log.accept("Read server port, connecting: " + port);
-            var connected = new Socket(InetAddress.getLoopbackAddress(), port);
             var launched = new Launched();
             launched.port = port;
-            launched.socket = connected;
+            log.accept("Read server port, connecting: " + port);
+            if (openSocket) {
+              var connected = new Socket(InetAddress.getLoopbackAddress(), port);
+              launched.socket = connected;
+            }
             if (result instanceof ServerLaunchResult.Success) {
               launched.launchedServer = ((ServerLaunchResult.Success) result).server;
             } else if (result instanceof ServerLaunchResult.AlreadyRunning) {

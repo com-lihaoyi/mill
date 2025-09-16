@@ -229,7 +229,7 @@ abstract class Server(args: Server.Args) {
               case Some(sock) =>
                 val socketInfo = Server.SocketInfo(sock)
                 serverLog(s"handling run for $socketInfo")
-                val t = new Thread(
+                new Thread(
                   () =>
                     try {
                       connectionTracker.increment()
@@ -253,9 +253,7 @@ abstract class Server(args: Server.Args) {
                       sock.close()
                     },
                   s"HandleRunThread-$socketInfo"
-                )
-                t.setDaemon(true)
-                t.start()
+                ).start()
               case None =>
             }
           }
@@ -382,7 +380,6 @@ abstract class Server(args: Server.Args) {
           },
         connectionHandlerThreadName(clientSocket)
       )
-      t.setDaemon(true)
       t.start()
 
       // We cannot simply use Lock#await here, because the filesystem doesn't

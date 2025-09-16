@@ -12,7 +12,6 @@ import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
 import mill.util.{CachedFactoryWithInitData, HexFormat, Jvm, RequestId, RequestIdFactory, Timed}
-import os.Path
 import sbt.internal.util.ConsoleOut
 
 import java.io.*
@@ -257,7 +256,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
                |$processDied
                |""".stripMargin
           ),
-        fileAndDebugLog(log, _)
+        fileAndDebugLog(log, _),
+        false // openSocket
       ))
 
       fileAndDebugLog(
