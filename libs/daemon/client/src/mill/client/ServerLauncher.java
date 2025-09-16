@@ -114,12 +114,14 @@ public abstract class ServerLauncher {
     public void close() throws Exception {
       // Swallow exceptions if the close fails, because sometimes if things didn't
       // properly initialize the close logic will blow up and we don't care
-      try{
+      try {
         socket.close();
-      }catch(Exception e){}
-      try{
+      } catch (Exception e) {
+      }
+      try {
         launchedServer.kill();
-      }catch(Exception e){}
+      } catch (Exception e) {
+      }
     }
   }
   /**
