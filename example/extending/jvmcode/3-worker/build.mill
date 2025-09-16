@@ -1,5 +1,3 @@
-//| mill-jvm-version: 17
-
 // Althought running JVM bytecode via a one-off isolated classloader has less overhead
 // than running it in a subprocess, the fact that the classloader needs to be created
 // each time adds overhead: newly-created classloaders contain code that is not yet

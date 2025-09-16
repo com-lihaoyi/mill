@@ -11,7 +11,7 @@ object foo extends ScalaModule {
   )
 
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -110,8 +110,8 @@ error: Missing argument: --text <str>
 /** Usage
 > ./mill foo.test
 ...
-+ foo.FooTests...simple ...  "<h1>hello</h1>"
-+ foo.FooTests...escaping ...  "<h1>&lt;hello&gt;</h1>"
++ foo.FooTests...simple ...  <h1>hello</h1>
++ foo.FooTests...escaping ...  <h1>&lt;hello&gt;</h1>
 */
 /** Usage
 > ./mill foo.assembly # bundle classfiles and libraries into a jar for deployment
