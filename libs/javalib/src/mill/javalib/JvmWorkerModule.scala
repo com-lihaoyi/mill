@@ -132,7 +132,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     } else ZincCompilerBridgeProvider.AcquireResult.Compiled(bridgeJar)
   }
 
-  @deprecated("This is an internal API that has been accidentally exposed.", "1.0.2")
+  @deprecated("This is an internal API that has been accidentally exposed.", "Mill 1.0.2")
   def scalaCompilerBridgeJar(
       scalaVersion: String,
       scalaOrganization: String,
