@@ -165,7 +165,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
       moduleFqnMap: ModuleFqnMap
   ): IrModuleBuild = {
     val project = build.value
-    val scopedDeps = extractScopedDeps(project, moduleFqnMap, cfg)
+    val scopedDeps = extractConfigurationDeps(project, moduleFqnMap, cfg)
     val version = getPublishVersion(project)
     IrModuleBuild(
       scopedDeps = scopedDeps,
@@ -272,8 +272,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
     }
   }
 
-  // TODO consider renaming to `extractConfigurationDeps` as Gradle calls them configurations instead of scopes
-  def extractScopedDeps(
+  def extractConfigurationDeps(
       project: ProjectModel,
       getModuleFqn: PartialFunction[String, String],
       cfg: Config
