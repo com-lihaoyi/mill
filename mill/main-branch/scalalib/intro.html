@@ -702,7 +702,7 @@ see <a href="../migrating/migrating.html" class="xref page">Migrating to Mill</a
 <h2 id="_simple_scala_module"><a class="anchor" href="#_simple_scala_module"></a>Simple Scala Module</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-54-7caa36/mill-dist-1.0.4-54-7caa36-example-scalalib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/1-simple">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-55-305528/mill-dist-1.0.4-55-305528-example-scalalib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -715,7 +715,7 @@ object foo extends ScalaModule {
   )
 
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.9.1&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.9&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
@@ -834,8 +834,8 @@ error: Missing argument: --text &lt;str&gt;</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
 ...
-+ foo.FooTests...simple ...  &quot;&lt;h1&gt;hello&lt;/h1&gt;&quot;
-+ foo.FooTests...escaping ...  &quot;&lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;&quot;</code></pre>
++ foo.FooTests...simple ...  &lt;h1&gt;hello&lt;/h1&gt;
++ foo.FooTests...escaping ...  &lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -914,7 +914,7 @@ single generated text file containing the line count of all the source files
 in that module</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-54-7caa36/mill-dist-1.0.4-54-7caa36-example-scalalib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/2-custom-build-logic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-55-305528/mill-dist-1.0.4-55-305528-example-scalalib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/2-custom-build-logic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1066,7 +1066,7 @@ maintainable even as the complexity of your project grows.</p>
 <h2 id="_multi_module_project"><a class="anchor" href="#_multi_module_project"></a>Multi-Module Project</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-54-7caa36/mill-dist-1.0.4-54-7caa36-example-scalalib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/3-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-55-305528/mill-dist-1.0.4-55-305528-example-scalalib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/3-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1074,7 +1074,7 @@ import mill.*, scalalib.*
 trait MyModule extends ScalaModule {
   def scalaVersion = &quot;3.7.1&quot;
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.9.1&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.9&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }
@@ -1239,7 +1239,7 @@ migrating an existing codebase from <code>sbt</code>, you can use Mill’s <code
 <code>sbt</code> build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-54-7caa36/mill-dist-1.0.4-54-7caa36-example-scalalib-basic-4-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/4-compat-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-55-305528/mill-dist-1.0.4-55-305528-example-scalalib-basic-4-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/4-compat-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1247,19 +1247,19 @@ import mill.*, scalalib.*
 object foo extends SbtModule {
   def scalaVersion = &quot;3.7.1&quot;
   object test extends SbtTests {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.9.1&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.9&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
   object integration extends SbtTests {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.9.1&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.9&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }
 
-object bar extends Cross[BarModule](&quot;2.12.20&quot;, &quot;2.13.16&quot;)
+object bar extends Cross[BarModule](&quot;2.12.17&quot;, &quot;2.13.16&quot;)
 trait BarModule extends CrossSbtModule {
   object test extends CrossSbtTests {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.9.1&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.9&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
@@ -1332,8 +1332,8 @@ compiling 1 Scala source...
 &gt; ./mill bar[2.13.16].run
 Bar.value: Hello World Scala library version 2.13.16...
 
-&gt; ./mill bar[2.12.20].run
-Bar.value: Hello World Scala library version 2.12.20...</code></pre>
+&gt; ./mill bar[2.12.17].run
+Bar.value: Hello World Scala library version 2.12.17...</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1351,7 +1351,7 @@ and other topics covered in more detail in the Scala section of the Mill docs,
 and you can browse each respective page if you want to learn more.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-54-7caa36/mill-dist-1.0.4-54-7caa36-example-scalalib-basic-6-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/6-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-55-305528/mill-dist-1.0.4-55-305528-example-scalalib-basic-6-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/scalalib/basic/6-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, publish.*
@@ -1372,12 +1372,12 @@ trait MyModule extends PublishModule {
 trait MyScalaModule extends MyModule, CrossScalaModule {
   def mvnDeps = Seq(mvn&quot;com.lihaoyi::scalatags:0.13.1&quot;)
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.9.1&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.9&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }
 
-val scalaVersions = Seq(&quot;2.13.16&quot;, &quot;3.3.6&quot;)
+val scalaVersions = Seq(&quot;2.13.16&quot;, &quot;3.3.3&quot;)
 
 object foo extends Cross[FooModule](scalaVersions)
 trait FooModule extends MyScalaModule {
@@ -1453,12 +1453,12 @@ repetitive module structure in a typical project</p>
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __.run
 bar[2.13.16].run
 bar[2.13.16].test.run
-bar[3.3.6].run
-bar[3.3.6].test.run
+bar[3.3.3].run
+bar[3.3.3].test.run
 foo[2.13.16].run
 foo[2.13.16].test.run
-foo[3.3.6].run
-foo[3.3.6].test.run
+foo[3.3.3].run
+foo[3.3.3].test.run
 qux.run
 
 &gt; ./mill foo[2.13.16].run
@@ -1467,8 +1467,8 @@ Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
 Bar.value: &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
 Qux.value: 31337
 
-&gt; ./mill bar[3.3.6].test
-+ bar.BarTests.test ... &quot;&lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;&quot;
+&gt; ./mill bar[3.3.3].test
++ bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
 
 &gt; ./mill qux.run
 Qux.value: 31337
@@ -1476,10 +1476,10 @@ Qux.value: 31337
 &gt; ./mill __.compile
 
 &gt; ./mill __.test
-+ bar.BarTests.test ... &quot;&lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;&quot;
-+ bar.BarTests.test ... &quot;&lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;&quot;
-+ foo.FooTests.test ... &quot;&lt;h1&gt;hello&lt;/h1&gt;&quot;
-+ foo.FooTests.test ... &quot;&lt;h1&gt;hello&lt;/h1&gt;&quot;
++ bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 2.x&lt;/p&gt;
++ bar.BarTests.test ... &lt;p&gt;world Specific code for Scala 3.x&lt;/p&gt;
++ foo.FooTests.test ... &lt;h1&gt;hello&lt;/h1&gt;
++ foo.FooTests.test ... &lt;h1&gt;hello&lt;/h1&gt;
 
 &gt; ./mill __.publishLocal
 Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...

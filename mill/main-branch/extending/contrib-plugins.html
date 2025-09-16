@@ -706,7 +706,7 @@ To facilitate this, Mill will automatically replace the <code>$MILL_VERSION</cod
 <h2 id="_importing_contrib_modules"><a class="anchor" href="#_importing_contrib_modules"></a>Importing Contrib Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-54-7caa36/mill-dist-1.0.4-54-7caa36-example-extending-imports-3-contrib-dep.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/extending/imports/3-contrib-dep">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-55-305528/mill-dist-1.0.4-55-305528-example-extending-imports-3-contrib-dep.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/extending/imports/3-contrib-dep">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION&quot;]
 
@@ -715,7 +715,7 @@ import mill.*, scalalib.*
 import mill.contrib.buildinfo.BuildInfo
 
 object foo extends ScalaModule, BuildInfo {
-  def scalaVersion = &quot;2.13.16&quot;
+  def scalaVersion = &quot;2.13.10&quot;
   def buildInfoPackageName = &quot;foo&quot;
   def buildInfoMembers = Seq(
     BuildInfo.Value(&quot;scalaVersion&quot;, scalaVersion())
@@ -732,7 +732,7 @@ repo, published under <code>mill-contrib-*</code>.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 ...
-foo.BuildInfo.scalaVersion: 2.13.16</code></pre>
+foo.BuildInfo.scalaVersion: 2.13.10</code></pre>
 </div>
 </div>
 <div class="paragraph">

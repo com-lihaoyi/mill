@@ -696,7 +696,7 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-54-7caa36/mill-dist-1.0.4-mill.sh -o mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-55-305528/mill-dist-1.0.4-mill.sh -o mill
 &gt; chmod +x mill
 &gt; ./mill version
 1.0.4</code></pre>
@@ -705,7 +705,7 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-54-7caa36/mill-dist-1.0.4-mill.bat -o mill.bat
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-55-305528/mill-dist-1.0.4-mill.bat -o mill.bat
 &gt; ./mill version
 1.0.4</code></pre>
 </div>
@@ -758,31 +758,6 @@ update your bootstrap scripts which ensures the script version and Mill version 
 folder with one of the Mill example projects. There are a wide range of example projects,
 from hello-world to multi-module libraries to client-server web applications, and you can
 pick one most similar to what you are doing so you can hit the ground running.</p>
-</div>
-<div class="sect2">
-<h3 id="_jvm_version"><a class="anchor" href="#_jvm_version"></a>JVM Version</h3>
-<div class="paragraph">
-<p>Mill uses Java <code>{default-mill-jvm-version}</code> by default, regardless of what is installed as your
-system <code>java</code>. You can set a Java version in the <a href="build-header.html" class="xref page">build.mill header</a> via
-a <code>mill-java-version</code> key if you wish to customize it:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: temurin:24.0.1</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The Mill JVM version is used for both evaluating the <code>build.mill</code> file as well as any
-<code>JavaModule</code>s, <code>ScalaModule</code>s, or <code>KotlinModule</code>s you define. You can also specify a
-<a href="../fundamentals/configuring-jvm-versions.html" class="xref page">per-module JVM version</a> if you need
-finer-grained control. Mill supports every JVM version from <code>11</code> onward.</p>
-</div>
-<div class="paragraph">
-<p>If you wish to use your system <code>java</code> installation, you can set <code>mill-jvm-version: system</code>.
-Note that this is not recommended as it means your codebase may use different JVM versions
-on different developer, CI, and production machines, potentially resulting in hard-to-debug
-crashes and errors.</p>
-</div>
 </div>
 <div class="sect2">
 <h3 id="_mill_native_and_jvm_executables"><a class="anchor" href="#_mill_native_and_jvm_executables"></a>Mill Native and JVM Executables</h3>

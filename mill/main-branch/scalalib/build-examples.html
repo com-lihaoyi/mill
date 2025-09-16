@@ -679,7 +679,7 @@ demonstrating how Mill can be used to build code outside of tiny example codebas
 <div class="sect2">
 <h3 id="_acyclic"><a class="anchor" href="#_acyclic"></a>Acyclic</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-54-7caa36/mill-dist-1.0.4-54-7caa36-example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/thirdparty/acyclic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-55-305528/mill-dist-1.0.4-55-305528-example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/thirdparty/acyclic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, publish.*
@@ -708,8 +708,9 @@ object Deps {
 }
 
 val crosses =
-  Range.inclusive(8, 20).map(&quot;2.12.&quot; + _) ++
-    Range.inclusive(0, 16).map(&quot;2.13.&quot; + _)
+  Seq(&quot;2.11.12&quot;) ++
+    Range.inclusive(8, 17).map(&quot;2.12.&quot; + _) ++
+    Range.inclusive(0, 10).map(&quot;2.13.&quot; + _)
 
 object acyclic extends Cross[AcyclicModule](crosses)
 trait AcyclicModule extends CrossScalaModule, PublishModule {
@@ -745,11 +746,33 @@ to 2.13.10, and has a dependency on the <code>org.scala-lang:scala-compiler</cod
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill acyclic[2.12.20].compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve acyclic[_].compile
+acyclic[2.11.12].compile
+acyclic[2.12.10].compile
+acyclic[2.12.11].compile
+acyclic[2.12.12].compile
+acyclic[2.12.13].compile
+acyclic[2.12.14].compile
+acyclic[2.12.15].compile
+acyclic[2.12.16].compile
+acyclic[2.12.8].compile
+acyclic[2.12.9].compile
+acyclic[2.13.0].compile
+acyclic[2.13.1].compile
+acyclic[2.13.2].compile
+acyclic[2.13.3].compile
+acyclic[2.13.4].compile
+acyclic[2.13.5].compile
+acyclic[2.13.6].compile
+acyclic[2.13.7].compile
+acyclic[2.13.8].compile
+acyclic[2.13.9].compile
+
+&gt; ./mill acyclic[2.12.17].compile
 compiling 6 Scala sources...
 ...
 
-&gt; ./mill acyclic[2.13.16].test.testLocal # acyclic tests need testLocal due to classloader assumptions
+&gt; ./mill acyclic[2.13.10].test.testLocal # acyclic tests need testLocal due to classloader assumptions
 -------------------------------- Running Tests --------------------------------
 ...</code></pre>
 </div>
@@ -758,20 +781,16 @@ compiling 6 Scala sources...
 <div class="sect2">
 <h3 id="_fansi"><a class="anchor" href="#_fansi"></a>Fansi</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-54-7caa36/mill-dist-1.0.4-54-7caa36-example-thirdparty-fansi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/thirdparty/fansi">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4-55-305528/mill-dist-1.0.4-55-305528-example-thirdparty-fansi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/thirdparty/fansi">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._, scalajslib._, scalanativelib._, publish._
-import mill.util.VcsVersion
-import mill.javalib.api.JvmWorkerUtil.isScala3
+import mill.*, scalalib.*, scalajslib.*, scalanativelib.*, publish.*
 
-val dottyCommunityBuildVersion = sys.props.get(&quot;dottyVersion&quot;)
+val dottyCommunityBuildVersion = sys.props.get(&quot;dottyVersion&quot;).toList
 
-val scalaVersions = Seq(&quot;2.12.20&quot;, &quot;2.13.16&quot;, &quot;3.3.6&quot;) ++ dottyCommunityBuildVersion
+val scalaVersions = Seq(&quot;2.12.17&quot;, &quot;2.13.16&quot;, &quot;2.11.12&quot;, &quot;3.1.3&quot;) ++ dottyCommunityBuildVersion
 
-trait FansiModule extends PublishModule with CrossScalaModule with PlatformScalaModule {
-  def artifactName = &quot;fansi&quot;
-
+trait FansiModule extends PublishModule, CrossScalaModule, PlatformScalaModule {
   def publishVersion = &quot;1.3.3.7&quot;
 
   def pomSettings = PomSettings(
@@ -780,34 +799,32 @@ trait FansiModule extends PublishModule with CrossScalaModule with PlatformScala
     url = &quot;https://github.com/com-lihaoyi/Fansi&quot;,
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github(owner = &quot;com-lihaoyi&quot;, repo = &quot;fansi&quot;),
-    developers = Seq(
-      Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;)
-    )
+    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
   )
 
-  def mvnDeps = Seq(mvn&quot;com.lihaoyi::sourcecode::0.4.0&quot;)
-}
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::sourcecode::0.3.0&quot;)
 
-trait FansiTestModule extends ScalaModule with TestModule.Utest {
-  def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest::0.8.3&quot;)
+  trait FansiTests extends ScalaTests, TestModule.Utest {
+    def utestVersion = &quot;0.8.5&quot;
+  }
 }
 
 object fansi extends Module {
   object jvm extends Cross[JvmFansiModule](scalaVersions)
-  trait JvmFansiModule extends FansiModule with ScalaModule {
-    object test extends ScalaTests with FansiTestModule
+  trait JvmFansiModule extends FansiModule, ScalaModule {
+    object test extends FansiTests, ScalaTests
   }
 
   object js extends Cross[JsFansiModule](scalaVersions)
-  trait JsFansiModule extends FansiModule with ScalaJSModule {
-    def scalaJSVersion = &quot;1.19.0&quot;
-    object test extends ScalaJSTests with FansiTestModule
+  trait JsFansiModule extends FansiModule, ScalaJSModule {
+    def scalaJSVersion = &quot;1.16.0&quot;
+    object test extends FansiTests, ScalaJSTests
   }
 
   object native extends Cross[NativeFansiModule](scalaVersions)
-  trait NativeFansiModule extends FansiModule with ScalaNativeModule {
-    def scalaNativeVersion = &quot;0.5.8&quot;
-    object test extends ScalaNativeTests with FansiTestModule
+  trait NativeFansiModule extends FansiModule, ScalaNativeModule {
+    def scalaNativeVersion = &quot;0.4.5&quot;
+    object test extends FansiTests, ScalaNativeTests
   }
 }</code></pre>
 </div>
@@ -826,26 +843,31 @@ want to compile, test, or publish</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __.compile
-fansi.js[2.12.20].compile
-fansi.js[2.12.20].test.compile
+fansi.js[2.11.12].test.compile
+fansi.js[2.12.17].compile
+fansi.js[2.12.17].test.compile
 fansi.js[2.13.16].compile
 fansi.js[2.13.16].test.compile
-fansi.js[3.3.6].compile
-fansi.js[3.3.6].test.compile
-fansi.jvm[2.12.20].compile
-fansi.jvm[2.12.20].test.compile
+fansi.js[3.1.3].compile
+fansi.js[3.1.3].test.compile
+fansi.jvm[2.11.12].compile
+fansi.jvm[2.11.12].test.compile
+fansi.jvm[2.12.17].compile
+fansi.jvm[2.12.17].test.compile
 fansi.jvm[2.13.16].compile
 fansi.jvm[2.13.16].test.compile
-fansi.jvm[3.3.6].compile
-fansi.jvm[3.3.6].test.compile
-fansi.native[2.12.20].compile
-fansi.native[2.12.20].test.compile
+fansi.jvm[3.1.3].compile
+fansi.jvm[3.1.3].test.compile
+fansi.native[2.11.12].compile
+fansi.native[2.11.12].test.compile
+fansi.native[2.12.17].compile
+fansi.native[2.12.17].test.compile
 fansi.native[2.13.16].compile
 fansi.native[2.13.16].test.compile
-fansi.native[3.3.6].compile
-fansi.native[3.3.6].test.compile
+fansi.native[3.1.3].compile
+fansi.native[3.1.3].test.compile
 
-&gt; ./mill fansi.jvm[2.12.20].compile
+&gt; ./mill fansi.jvm[2.12.17].compile
 compiling 1 Scala source...
 ...
 
@@ -854,8 +876,8 @@ Starting process: node
 -------------------------------- Running Tests --------------------------------
 ...
 
-&gt; ./mill fansi.native[3.3.6].publishLocal
-Publishing Artifact(com.lihaoyi,fansi_native0.5_3,1.3.3.7) to ivy repo...
+&gt; ./mill fansi.native[3.1.3].publishLocal
+Publishing Artifact(com.lihaoyi,fansi_native0.4_3,1.3.3.7) to ivy repo...
 ...</code></pre>
 </div>
 </div>
