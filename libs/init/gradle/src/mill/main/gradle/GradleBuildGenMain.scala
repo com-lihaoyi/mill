@@ -165,11 +165,11 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
       // baseInfo: IrBaseInfo,
       build: Node[ProjectModel],
       moduleFqnMap: ModuleFqnMap
-  ): IrBuild = {
+  ): IrModuleBuild = {
     val project = build.value
     val scopedDeps = extractScopedDeps(project, moduleFqnMap, cfg)
     val version = getPublishVersion(project)
-    IrBuild(
+    IrModuleBuild(
       scopedDeps = scopedDeps,
       testModule = cfg.shared.basicConfig.testModule,
       testModuleMainType = "MavenTests",

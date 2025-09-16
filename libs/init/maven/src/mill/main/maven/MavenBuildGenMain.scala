@@ -103,11 +103,11 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle {
       // baseInfo: IrBaseInfo,
       build: Node[Model],
       moduleFqnMap: Map[(String, String, String), String]
-  ): IrBuild = {
+  ): IrModuleBuild = {
     val model = build.value
     val scopedDeps = extractScopedDeps(model, moduleFqnMap, cfg)
     val version = model.getVersion
-    IrBuild(
+    IrModuleBuild(
       scopedDeps = scopedDeps,
       testModule = cfg.shared.basicConfig.testModule,
       testModuleMainType = "MavenTests",

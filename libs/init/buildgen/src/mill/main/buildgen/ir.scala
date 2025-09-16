@@ -77,9 +77,8 @@ case class IrLicense(
     distribution: String = "repo"
 )
 
-// TODO Consider renaming to `IrModule(Build)` to disambiguate? `sbt`, for example, uses `ThisBuild` and `buildSettings` to refer to the whole build.
 // TODO reuse the members in `IrTrait`?
-case class IrBuild(
+case class IrModuleBuild(
     scopedDeps: IrScopedDeps,
     testModule: String,
     testModuleMainType: String,
@@ -101,9 +100,9 @@ case class IrBuild(
     testForkDir: Option[String]
 )
 
-object IrBuild {
+object IrModuleBuild {
   // TODO not used
-  def empty(dirs: Seq[String]) = IrBuild(
+  def empty(dirs: Seq[String]) = IrModuleBuild(
     IrScopedDeps(),
     null,
     null,

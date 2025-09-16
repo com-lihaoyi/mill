@@ -96,7 +96,7 @@ trait BuildGenBase {
       // baseInfo: IrBaseInfo, // `baseInfo` is no longer needed as we compare the `IrBuild` with `IrBaseInfo`/`IrTrait` in common code now.
       build: Node[M],
       moduleFqnMap: ModuleFqnMap
-  ): IrBuild
+  ): IrModuleBuild
 }
 
 object BuildGenBase {

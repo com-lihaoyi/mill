@@ -278,12 +278,12 @@ object SbtBuildGenMain extends BuildGenBase {
       // baseInfo: IrBaseInfo,
       build: Node[Project],
       moduleFqnMap: ModuleFqnMap
-  ): IrBuild = {
+  ): IrModuleBuild = {
     val project = build.value
     val buildInfo = project.buildInfo
     val configurationDeps = extractConfigurationDeps(project, moduleFqnMap, cfg)
     val version = getPublishVersion(buildInfo)
-    IrBuild(
+    IrModuleBuild(
       scopedDeps = configurationDeps,
       testModule = cfg.shared.testModule,
       testModuleMainType = "SbtTests",
