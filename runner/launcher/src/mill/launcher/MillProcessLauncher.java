@@ -42,6 +42,7 @@ public class MillProcessLauncher {
     try {
       Process p = configureRunMillProcess(builder, processDir);
       return p.waitFor();
+
     } catch (InterruptedException e) {
       interrupted = true;
       throw e;
@@ -62,10 +63,12 @@ public class MillProcessLauncher {
     l.add("mill.daemon.MillDaemonMain");
     l.add(daemonDir.toFile().getCanonicalPath());
     l.add(outMode.asString());
+
     ProcessBuilder builder = new ProcessBuilder()
         .command(l)
         .redirectOutput(daemonDir.resolve(DaemonFiles.stdout).toFile())
         .redirectError(daemonDir.resolve(DaemonFiles.stderr).toFile());
+
     return configureRunMillProcess(builder, daemonDir);
   }
 
@@ -74,9 +77,8 @@ public class MillProcessLauncher {
     Files.createDirectories(sandbox);
     MillProcessLauncher.prepareMillRunFolder(daemonDir);
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
-    if (System.getenv(EnvVars.MILL_EXECUTABLE_PATH) == null) {
+    if (System.getenv(EnvVars.MILL_EXECUTABLE_PATH) == null)
       builder.environment().put(EnvVars.MILL_EXECUTABLE_PATH, getExecutablePath());
-    }
 
     String jdkJavaOptions = System.getenv("JDK_JAVA_OPTIONS");
     if (jdkJavaOptions == null) jdkJavaOptions = "";
