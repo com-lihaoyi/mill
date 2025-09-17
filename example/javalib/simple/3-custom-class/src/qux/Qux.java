@@ -1,4 +1,4 @@
-//| extends: millbuild.LineCountJavaModule
+package qux;
 
 public class Qux {
   public static String getLineCount() {

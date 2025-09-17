@@ -7,14 +7,14 @@
 
 //// SNIPPET:USAGE
 /** See Also: mill-build/src/LineCountScalaModule.scala */
-/** See Also: Qux.scala */
+/** See Also: mill.yaml */
 /** Usage
 
-> ./mill Qux.scala:run
+> ./mill run
 ...
 Line Count: 17
 
-> ./mill show Qux.scala:lineCount
+> ./mill show lineCount
 17
 */
 

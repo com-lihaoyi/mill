@@ -1,4 +1,4 @@
-//| extends: millbuild.LineCountScalaModule
+package qux
 
 object Qux {
 

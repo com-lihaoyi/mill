@@ -1,4 +1,4 @@
-//| extends: millbuild.LineCountKotlinModule
+package qux;
 
 import java.io.IOException
 
