@@ -38,7 +38,7 @@ object SimpleModule {
       if (os.exists(millScriptFile / "mill.yaml")) os.read(millScriptFile / "mill.yaml")
       else mill.constants.Util.readBuildHeader(millScriptFile.toNIO, millScriptFile.last, true)
     }
-    upickle.read[Map[String, ujson.Value]](mill.internal.Util.parseHeaderData(headerData))
+    upickle.read[Map[String, ujson.Value]](mill.internal.Util.parsedHeaderData(headerData))
   }
   trait Publish extends mill.javalib.PublishModule {
     def pomSettings = PomSettings(
