@@ -5,7 +5,7 @@ import mill.*, scalalib.*
 import mill.contrib.buildinfo.BuildInfo
 
 object foo extends ScalaModule, BuildInfo {
-  def scalaVersion = "2.13.16"
+  def scalaVersion = "2.13.10"
   def buildInfoPackageName = "foo"
   def buildInfoMembers = Seq(
     BuildInfo.Value("scalaVersion", scalaVersion())
@@ -20,7 +20,7 @@ object foo extends ScalaModule, BuildInfo {
 
 > ./mill foo.run
 ...
-foo.BuildInfo.scalaVersion: 2.13.16
+foo.BuildInfo.scalaVersion: 2.13.10
 
 */
 

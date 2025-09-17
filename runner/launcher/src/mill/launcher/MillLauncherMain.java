@@ -1,13 +1,18 @@
 package mill.launcher;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Consumer;
 import mill.client.*;
 import mill.client.lock.Locks;
+import mill.constants.BuildInfo;
 import mill.constants.EnvVars;
 import mill.constants.OutFiles;
 import mill.constants.OutFolderMode;
@@ -70,16 +75,30 @@ public class MillLauncherMain {
                   + " make it less responsive.");
     }
 
+    String[] runnerClasspath = MillProcessLauncher.cachedComputedValue0(
+        outMode,
+        "resolve-runner",
+        BuildInfo.millVersion,
+        () -> CoursierClient.resolveMillDaemon(),
+        arr -> {
+          for (String s : arr) {
+            if (!Files.exists(Paths.get(s))) return false;
+          }
+          return true;
+        });
+
     if (runNoDaemon) {
       // start in no-server mode
-      System.exit(MillProcessLauncher.launchMillNoDaemon(args, outMode));
+      System.exit(MillProcessLauncher.launchMillNoDaemon(args, outMode, runnerClasspath));
     } else {
       var logs = new java.util.ArrayList<String>();
       try {
         // start in client-server mode
         var optsArgs = new java.util.ArrayList<>(MillProcessLauncher.millOpts(outMode));
         Collections.addAll(optsArgs, args);
-
+        var formatter =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"));
+        Consumer<String> log = (s) -> logs.add(formatter.format(Instant.now()) + " " + s);
         MillServerLauncher launcher =
             new MillServerLauncher(
                 new MillServerLauncher.Streams(System.in, System.out, System.err),
@@ -89,13 +108,14 @@ public class MillLauncherMain {
                 -1) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
                 return new LaunchedServer.OsProcess(
-                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode).toHandle());
+                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode, runnerClasspath)
+                        .toHandle());
               }
             };
 
         var daemonDir0 = Paths.get(outDir, OutFiles.millDaemon);
         String javaHome = MillProcessLauncher.javaHome(outMode);
-        Consumer<String> log = logs::add;
+
         var exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;
         if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
           exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;

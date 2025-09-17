@@ -395,11 +395,11 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
   /**
    * Enable use of new Kotlin Build API (Beta).
-   * Enabled by default for Kotlin 2.x targetting the JVM.
+   * Enabled by default for Kotlin 2.1+ for JVM.
    */
   def kotlincUseBtApi: T[Boolean] = Task {
     Version.parse(kotlinVersion())
-      .isNewerThan(Version.parse("2.0.0"))(using Version.IgnoreQualifierOrdering)
+      .isNewerThan(Version.parse("2.1.0"))(using Version.IgnoreQualifierOrdering)
   }
 
   /**

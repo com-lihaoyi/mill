@@ -13,6 +13,39 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#1-0-5]
+=== 1.0.5
+:version: 1.0.5
+:milestone-name: 1.0.5
+:milestone: 125
+:prev-version: 1.0.4
+_2025-09-16_
+
+- Stability improvements to Mill launcher-daemon interactions ({link-pr}/5865[#5865], {link-pr}/5872[#5872])
+- Use Kotlin build-tools-api to compile Kotlin 2.1+ code ({link-pr}/5785[#5785], {link-pr}/5859[#5859])
+- Include compile classpath in unidoc module ({link-pr}/5858[#5858])
+- Disable certain `fsNotifyWatchLog` logging to prevent infinite logging loops ({link-pr}/5856[#5856])
+- Fix Scala.js link logs in server-client mode ({link-pr}/5845[#5845])
+- Show log prefix in failure summary to make it easier to grep for relevant failure logs ({link-pr}/5842[#5842])
+- Make `--bsp` turn on `--no-daemon` mode automatically ({link-pr}/5840[#5840])
+- Fix handling of threadlocals in `Worker#close` calls ({link-pr}/5834[#5834])
+- Fix prompt when server restarts due to version change ({link-pr}/5832[#5832])
+- Retry mill daemon start rather than PID file reading to try and stablize server start ({link-pr}/5829[#5829])
+- Update lazy val bytecode signature heuristics to work with Scala 3 lazy vals ({link-pr}/5828[#5828])
+- Pre-parse Mill CLI config in launcher to allow `-i`/`--no-daemon` flags to be passed anywhere rather than only as the first argument ({link-pr}/5823[#5823])
+- KSP 2 support ({link-pr}/5727[#5727], {link-pr}/5768[#5768], {link-pr}/5795[#5795])
+- Fix forced versions handling of transitive dependencies ({link-pr}/5813[#5813])
+- Read coursier env vars and Java properties via input tasks ({link-pr}/5793[#5793])
+- Register `MillURLClassLoader` as parallel capable ({link-pr}/5791[#5791], {link-pr}/5811[#5811])
+- Let `MillURLClassLoader` find classes not found in shared classloader
+- Make Mill work with `mill-build/src/` folder even if `mill-build/build.mill` does not exist ({link-pr}/5783[#5783])
+- Android: Bugfixes for Windows support ({link-pr}/5775[#5775])
+- Rework Android SDK installation ({link-pr}/5766[#5766])
+- Android: package jnis provided by dependencies ({link-pr}/5760[#5760])
+- Implement support for building Scala 3.8 modules ({link-pr}/5751[#5751])
+
+
+
 [#1-0-4]
 === 1.0.4
 :version: 1.0.4

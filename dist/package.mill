@@ -221,6 +221,7 @@ object `package` extends MillJavaModule with DistModule {
         val ignoreErrorsOnCI = Task.dest / exampleStr / "ignoreErrorsOnCI"
         if (os.exists(ignoreErrorsOnCI)) os.remove(ignoreErrorsOnCI)
         val buildMill = Task.dest / exampleStr / "build.mill"
+        os.write.over(buildMill, s"//| mill-version: ${build.millVersion()}\n" + os.read(buildMill))
         os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
         os.copy(bootstrapLauncherBat().path, Task.dest / exampleStr / "mill.bat")
         val zip = Task.dest / s"$exampleStr.zip"

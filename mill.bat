@@ -46,6 +46,16 @@ SET MILL_BUILD_SCRIPT=
 
 if exist "build.mill" (
   set MILL_BUILD_SCRIPT=build.mill
+) else (
+    if exist "build.mill.scala" (
+      set MILL_BUILD_SCRIPT=build.mill.scala
+    ) else (
+        if exist "build.sc" (
+          set MILL_BUILD_SCRIPT=build.sc
+        ) else (
+            rem no-op
+        )
+    )
 )
 
 if [!MILL_VERSION!]==[] (

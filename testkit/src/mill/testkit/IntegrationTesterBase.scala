@@ -6,17 +6,13 @@ import mill.util.Retry
 trait IntegrationTesterBase {
   def workspaceSourcePath: os.Path
   def daemonMode: Boolean
+  def cleanupProcessIdFile: Boolean
 
   def propagateJavaHome: Boolean
 
-  def millTestSuiteEnv: Map[String, String] = {
-    val javaHomeBin = sys.props("java.home") + "/bin"
-    if (!propagateJavaHome) Map.empty
-    else Map(
-      "JAVA_HOME" -> sys.props("java.home"),
-      "PATH" -> s"$javaHomeBin${System.getProperty("path.separator")}${sys.env("PATH")}"
-    )
-  }
+  def millTestSuiteEnv: Map[String, String] = (
+    Option.when(propagateJavaHome)("JAVA_HOME" -> sys.props("java.home"))
+  ).toMap
 
   /**
    * The working directory of the integration test suite, which is the root of the
@@ -80,7 +76,7 @@ trait IntegrationTesterBase {
   def removeProcessIdFile(): Unit = {
     if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) {
       val outDir = os.Path(out, workspacePath)
-      if (os.exists(outDir)) {
+      if (os.exists(outDir) && cleanupProcessIdFile) {
         if (daemonMode) {
           val serverPath = outDir / millDaemon
           os.remove(serverPath / processId)
