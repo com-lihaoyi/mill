@@ -1,4 +1,4 @@
-//| extends: mill.script.Scala.Publish
+//| extends: mill.simple.Scala.Publish
 //| jvmId: "graalvm-community:24"
 //| nativeImageOptions: ["--no-fallback"]
 //| publishVersion: "0.0.1"

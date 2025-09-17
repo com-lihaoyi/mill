@@ -1,4 +1,4 @@
-//| extends: mill.script.Java.Publish
+//| extends: mill.simple.Java.Publish
 //| jvmId: "graalvm-community:24"
 //| nativeImageOptions: ["--no-fallback"]
 //| publishVersion: "0.0.1"

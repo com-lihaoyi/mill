@@ -1,8 +1,8 @@
 package millbuild
 import mill.*, javalib.*, kotlinlib.*
 
-class LineCountKotlinModule(val scriptConf: mill.script.ScriptModule.Config)
-    extends mill.script.Kotlin.Base {
+class LineCountKotlinModule(val scriptConf: mill.simple.SimpleModule.Config)
+    extends mill.simple.Kotlin.Base {
 
   /** Total number of lines in module source files */
   def lineCount = Task {

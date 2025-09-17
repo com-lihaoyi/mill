@@ -1,10 +1,10 @@
-package mill.script
+package mill.simple
 import mill.*
 import mill.api.{ExternalModule, Result}
 import mill.javalib.JavaModule
-import mill.script.ScriptModule.parseHeaderData
+import mill.simple.SimpleModule.parseHeaderData
 
-private object ScriptModuleInit
+private object SimpleModuleInit
     extends ((String, String => Option[mill.Module]) => Option[Result[mill.api.ExternalModule]]) {
   def instantiate(className: String, args: AnyRef*): ExternalModule = {
     val cls =
@@ -25,15 +25,15 @@ private object ScriptModuleInit
   ) = {
     val className = extendsConfig.getOrElse {
       millFile.ext match {
-        case "java" => "mill.script.Java"
-        case "scala" => "mill.script.Scala"
-        case "kt" => "mill.script.Kotlin"
+        case "java" => "mill.simple.Java"
+        case "scala" => "mill.simple.Scala"
+        case "kt" => "mill.simple.Kotlin"
       }
     }
 
     instantiate(
       className,
-      ScriptModule.Config0(
+      SimpleModule.Config0(
         millFile,
         moduleDeps.map(resolveModuleDep(_).get.asInstanceOf[JavaModule])
       )
@@ -44,7 +44,7 @@ private object ScriptModuleInit
     val workspace = mill.api.BuildCtx.workspaceRoot
     val millFile = os.Path(millFileString, workspace)
 
-    Option.when(os.isFile(millFile)) {
+    Option.when(os.isFile(millFile) || os.exists(millFile / "mill.yaml")) {
       Result.create {
         val parsedHeaderData = parseHeaderData(millFile)
         val moduleDeps = parsedHeaderData.get("moduleDeps").map(_.arr.map(_.str)).getOrElse(Nil)

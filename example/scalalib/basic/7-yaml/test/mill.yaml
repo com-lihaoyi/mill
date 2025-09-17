@@ -1,4 +1,4 @@
-extends: mill.script.Scala.Utest
+extends: mill.simple.Scala.Utest
 moduleDeps: ["."]
 mvnDeps:
 - "com.lihaoyi::utest:0.9.1"

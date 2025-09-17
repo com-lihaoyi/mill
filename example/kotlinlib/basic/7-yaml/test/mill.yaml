@@ -1,4 +1,4 @@
-extends: mill.script.Kotlin.Junit5
+extends: mill.simple.Kotlin.Junit5
 moduleDeps: ["."]
 mvnDeps:
 - "io.kotest:kotest-runner-junit5:5.9.1"

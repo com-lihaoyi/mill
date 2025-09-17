@@ -1,4 +1,4 @@
-package mill.script
+package mill.simple
 import mill.*
 import mill.javalib.publish.*
 
@@ -7,8 +7,8 @@ import mill.api.ExternalModule
 import mill.javalib.JavaModule
 import mill.javalib.NativeImageModule
 
-trait ScriptModule extends ExternalModule, JavaModule, NativeImageModule {
-  def scriptConf: ScriptModule.Config
+trait SimpleModule extends ExternalModule, JavaModule, NativeImageModule {
+  def scriptConf: SimpleModule.Config
   override def moduleDeps = scriptConf.moduleDeps
   override def moduleDir = if (os.isDir(scriptConf.millScriptFile)) scriptConf.millScriptFile
   else scriptConf.millScriptFile / os.up
@@ -27,10 +27,10 @@ trait ScriptModule extends ExternalModule, JavaModule, NativeImageModule {
       scriptConf.millScriptFile.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*
     )
   }
-  override def buildOverrides = ScriptModule.parseHeaderData(scriptConf.millScriptFile)
+  override def buildOverrides = SimpleModule.parseHeaderData(scriptConf.millScriptFile)
 }
 
-object ScriptModule {
+object SimpleModule {
   type Config = Config0[JavaModule]
   case class Config0[+M <: JavaModule](millScriptFile: os.Path, moduleDeps: Seq[M])
   private[mill] def parseHeaderData(millScriptFile: os.Path) = {

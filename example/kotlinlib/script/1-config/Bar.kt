@@ -1,4 +1,4 @@
-//| extends: mill.script.Kotlin.Publish
+//| extends: mill.simple.Kotlin.Publish
 //| jvmId: "graalvm-community:24"
 //| nativeImageOptions: ["--no-fallback"]
 //| publishVersion: "0.0.1"

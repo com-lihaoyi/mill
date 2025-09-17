@@ -21,8 +21,8 @@ Line Count: 17
 //// SNIPPET:END
 // Your custom `LineCount{language}Module` must be a `class` take two parameters
 // `val millScriptFile: os.Path`, and `override val moduleDeps: Seq[JavaModule]` that will be
-// populated by Mill, and inherit from `mill.script.{language}.Base` or some other subclass of
-// `mill.script.ScriptModule`. This can then be used via `//| extends: LineCount{language}Module`
+// populated by Mill, and inherit from `mill.simple.{language}.Base` or some other subclass of
+// `mill.simple.SimpleModule`. This can then be used via `//| extends: LineCount{language}Module`
 // in the header of your script file.
 //
 // Custom script module classes allows you to customize the semantics of your Java, Scala, or Kotlin
