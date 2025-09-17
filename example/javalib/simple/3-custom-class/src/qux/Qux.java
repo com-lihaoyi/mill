@@ -4,7 +4,7 @@ public class Qux {
   public static String getLineCount() {
     try {
       return new String(
-        Qux.class.getClassLoader().getResourceAsStream("line-count.txt").readAllBytes());
+          Qux.class.getClassLoader().getResourceAsStream("line-count.txt").readAllBytes());
     } catch (java.io.IOException e) {
       return null;
     }

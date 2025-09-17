@@ -1,4 +1,4 @@
-package qux;
+package qux
 
 import java.io.IOException
 
