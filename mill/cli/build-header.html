@@ -618,7 +618,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.4</span>
+    <span class="version">1.0.5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -628,10 +628,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.4</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.0.4-28-f16413/index.html">dev-1.0.4-28-f16413</a>
+          <a href="../index.html">1.0.5</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -704,8 +701,10 @@ package build
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><a href="installation-ide.html" class="xref page">mill-version</a>: this must be unquoted in the first line
-of the build header, and specifies the version of Mill used in this project.</p>
+<p><a href="installation-ide.html" class="xref page">mill-version</a>: if provided, this must be unquoted in
+the first line of the build header, and specifies the version of Mill used in this
+project. If not provided, Mill will launch using the version of your <code>./mill</code> or
+<code>./mill.bat</code> bootstrap script.</p>
 </li>
 <li>
 <p><a href="#_mill_opts">mill-opts</a>: flags to pass to Mill by default, useful for flags that you want
@@ -857,7 +856,7 @@ you can also override other tasks such as <code>scalacOptions</code> which in th
 is used to turn on fatal warnings for unused private methods:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4/mill-dist-1.0.4-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.4/example/cli/header/1-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.5/mill-dist-1.0.5-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.5/example/cli/header/1-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| scalacOptions: [&quot;-Wunused:privates&quot;, &quot;-Xfatal-warnings&quot;]
 

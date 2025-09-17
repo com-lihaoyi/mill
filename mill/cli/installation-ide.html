@@ -618,7 +618,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.4</span>
+    <span class="version">1.0.5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -628,10 +628,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.4</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.0.4-28-f16413/index.html">dev-1.0.4-28-f16413</a>
+          <a href="../index.html">1.0.5</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -695,20 +692,18 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4/mill-dist-1.0.4-mill.sh -o mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.5/mill-dist-1.0.5-mill.sh -o mill
 &gt; chmod +x mill
-&gt; echo &quot;//| mill-version: 1.0.4&quot; &gt; build.mill
 &gt; ./mill version
-1.0.4</code></pre>
+1.0.5</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4/mill-dist-1.0.4-mill.bat -o mill.bat
-&gt; echo &quot;//| mill-version: 1.0.4&quot; &gt; build.mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.5/mill-dist-1.0.5-mill.bat -o mill.bat
 &gt; ./mill version
-1.0.4</code></pre>
+1.0.5</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -747,6 +742,11 @@ being incompatible with the version expected by your build.
 In-project bootstrap scripts are also useful for running Mill in CI/CD, ensuring
 that your build server like Jenkins or Github Actions has the correct version of Mill
 present to build, compile or test your code.</p>
+</div>
+<div class="paragraph">
+<p>You can also configure a <code>//| mill-version</code> in your <a href="build-header.html" class="xref page">build header</a>
+if you want to try a different version, but the best practice when upgrading is to just
+update your bootstrap scripts which ensures the script version and Mill version are compatible.</p>
 </div>
 <div class="paragraph">
 <p>If you are starting a new project using a Mill bootstrap script, you can use the
@@ -1217,19 +1217,6 @@ The below command should pass the environment variable to the <code>mill</code> 
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _</code></pre>
 </div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Currently, you may need to <code>./mill shutdown</code> before calling Mill with the environment variable to make sure it gets properly propagated to Mill’s background daemon.
-There is an <a href="https://github.com/com-lihaoyi/mill/issues/5134">open issue</a> to let Mill  detect these changes automatically.
-</td>
-</tr>
-</tbody></table>
 </div>
 <div class="paragraph">
 <p>If you are using bootstrap script, a more permanent solution could be to set the environment variable
