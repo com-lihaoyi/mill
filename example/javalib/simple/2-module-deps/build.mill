@@ -1,0 +1,15 @@
+//// SNIPPET:BUILD
+
+/** See Also: foo/mill.yaml */
+/** See Also: bar/mill.yaml */
+/** See Also: bar/test/mill.yaml */
+/** Usage
+
+> ./mill bar/test
+Test bar.BarTests.simple finished...
+Test bar.BarTests.escaping finished...
+
+> ./mill foo:run --text hello
+<h1>hello</h1>
+
+*/

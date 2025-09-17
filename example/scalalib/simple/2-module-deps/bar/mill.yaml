@@ -1,0 +1,2 @@
+extends: mill.simple.Scala
+mvnDeps: ["com.lihaoyi::scalatags:0.13.1"]

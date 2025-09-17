@@ -1,0 +1,4 @@
+extends: mill.simple.Java.Junit4
+moduleDeps: ["bar"]
+mvnDeps:
+- "com.google.guava:guava:33.3.0-jre"
