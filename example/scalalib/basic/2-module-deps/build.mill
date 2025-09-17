@@ -1,8 +1,9 @@
-//// SNIPPET:BUILD
-
 /** See Also: foo/mill.yaml */
 /** See Also: bar/mill.yaml */
 /** See Also: bar/test/mill.yaml */
+
+//// SNIPPET:BUILD
+
 /** Usage
 
 > ./mill bar/test

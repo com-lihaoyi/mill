@@ -1,3 +1,4 @@
 extends: mill.simple.Kotlin
 moduleDeps: ["bar"]
-mvnDeps: ["com.github.ajalt.clikt:clikt:4.4.0"]
+mvnDeps:
+- "com.github.ajalt.clikt:clikt:4.4.0"

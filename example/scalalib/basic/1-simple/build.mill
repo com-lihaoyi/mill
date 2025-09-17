@@ -1,3 +1,6 @@
+/** See Also: mill.yaml */
+/** See Also: test/mill.yaml */
+
 //// SNIPPET:USAGE
 /** Usage
 > ./mill run --text hello
