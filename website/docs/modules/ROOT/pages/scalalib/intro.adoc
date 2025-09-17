@@ -17,7 +17,7 @@ include::partial$example/scalalib/basic/2-module-deps.adoc[]
 
 == Programmatic Configuration
 
-include::partial$example/scalalib/basic/3-code.adoc[]
+include::partial$example/scalalib/basic/3-programmatic.adoc[]
 
 == Custom Build Logic
 
