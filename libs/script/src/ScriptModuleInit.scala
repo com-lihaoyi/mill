@@ -44,7 +44,7 @@ private object ScriptModuleInit
     val workspace = mill.api.BuildCtx.workspaceRoot
     val millFile = os.Path(millFileString, workspace)
 
-    Option.when(os.exists(millFile)) {
+    Option.when(os.isFile(millFile)) {
       Result.create {
         val parsedHeaderData = parseHeaderData(millFile)
         val moduleDeps = parsedHeaderData.get("moduleDeps").map(_.arr.map(_.str)).getOrElse(Nil)
