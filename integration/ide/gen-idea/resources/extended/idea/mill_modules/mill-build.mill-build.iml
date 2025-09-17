@@ -111,7 +111,6 @@
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-core_3-0.5.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-requests_3-0.5.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-upickle_3-0.5.0.jar" level="project"/>
-        <orderEntry type="library" scope="PROVIDED" name="sourcecode_3-0.4.3-M5.jar" level="project"/>
         <orderEntry type="library" name="sourcecode_3-0.4.4.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="specification-level_3-1.8.5.jar" level="project"/>
         <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>
