@@ -8,20 +8,20 @@ full `build.mill` or `package.mill` build files, which makes them ideal for smal
 projects which do not need additional flexibility.
 
 
+== Configuring Simple Modules
 
-== Single-File Projects
+include::partial$example/kotlinlib/simple/1-config.adoc[]
 
-include::partial$example/kotlinlib/simple/2-script.adoc[]
+== Simple Module Dependencies
 
-
-== Configuring Single-File Scripts
-
-include::partial$example/kotlinlib/simple/3-config.adoc[]
+include::partial$example/kotlinlib/simple/2-module-deps.adoc[]
 
 == Custom Script Module Classes
 
-include::partial$example/kotlinlib/simple/4-custom-class.adoc[]
+include::partial$example/kotlinlib/simple/3-custom-class.adoc[]
 
-== Depending on normal modules from simple modules
+== Single-File Scripts
 
-include::partial$example/kotlinlib/simple/5-module-deps.adoc[]
+include::partial$example/kotlinlib/simple/4-script.adoc[]
+
+

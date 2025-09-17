@@ -8,20 +8,20 @@ full `build.mill` or `package.mill` build files, which makes them ideal for smal
 projects which do not need additional flexibility.
 
 
-== Single-File Projects
+== Configuring Simple Modules
 
-include::partial$example/javalib/simple/2-script.adoc[]
+include::partial$example/javalib/simple/1-config.adoc[]
 
+== Simple Module Dependencies
 
-== Configuring Single-File Scripts
-
-include::partial$example/javalib/simple/3-config.adoc[]
-
+include::partial$example/javalib/simple/2-module-deps.adoc[]
 
 == Custom Script Module Classes
 
-include::partial$example/javalib/simple/4-custom-class.adoc[]
+include::partial$example/javalib/simple/3-custom-class.adoc[]
 
-== Depending on normal modules from simple modules
+== Single-File Scripts
 
-include::partial$example/javalib/simple/5-module-deps.adoc[]
+include::partial$example/javalib/simple/4-script.adoc[]
+
+
