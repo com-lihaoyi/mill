@@ -12,16 +12,17 @@ projects which do not need additional flexibility.
 
 include::partial$example/javalib/simple/1-config.adoc[]
 
-== Simple Module Dependencies
-
-include::partial$example/javalib/simple/2-module-deps.adoc[]
-
 == Custom Script Module Classes
 
 include::partial$example/javalib/simple/3-custom-class.adoc[]
 
+== Depending on Programmatic Modules from Simple Modules
+
+include::partial$example/javalib/simple/4-mixed-module-deps.adoc[]
+
+
 == Single-File Scripts
 
-include::partial$example/javalib/simple/4-script.adoc[]
+include::partial$example/javalib/simple/5-script.adoc[]
 
 

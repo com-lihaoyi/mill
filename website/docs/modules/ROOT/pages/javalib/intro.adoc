@@ -11,20 +11,26 @@ include::partial$Intro_Header.adoc[]
 
 include::partial$example/javalib/basic/1-simple.adoc[]
 
-[#_custom_build_logic]
+== Multiple Java Modules
+
+include::partial$example/javalib/basic/2-module-deps.adoc[]
+
+== Programmatic Configuration
+
+include::partial$example/javalib/basic/3-code.adoc[]
+
 == Custom Build Logic
 
-include::partial$example/javalib/basic/2-custom-build-logic.adoc[]
+include::partial$example/javalib/basic/4-custom-build-logic.adoc[]
 
 == Multi-Module Project
 
-include::partial$example/javalib/basic/3-multi-module.adoc[]
+include::partial$example/javalib/basic/5-multi-module.adoc[]
 
 == Maven-Compatible Modules
 
-include::partial$example/javalib/basic/4-compat-modules.adoc[]
-
+include::partial$example/javalib/basic/6-compat-modules.adoc[]
 
 == Realistic Java Example Project
 
-include::partial$example/javalib/basic/6-realistic.adoc[]
+include::partial$example/javalib/basic/7-realistic.adoc[]

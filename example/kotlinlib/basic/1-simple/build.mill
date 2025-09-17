@@ -1,121 +1,13 @@
-//// SNIPPET:BUILD
-
-package build
-import mill.*, kotlinlib.*
-
-object foo extends KotlinModule {
-  def kotlinVersion = "1.9.24"
-
-  def mvnDeps = Seq(
-    mvn"com.github.ajalt.clikt:clikt:4.4.0",
-    mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
-  )
-
-  object test extends KotlinTests, TestModule.Junit5 {
-    def mvnDeps = Seq(
-      mvn"io.kotest:kotest-runner-junit5:5.9.1"
-    )
-  }
-}
-
-// This is a basic Mill build for a single `KotlinModule`, with two
-// third-party dependencies and a test suite using the JUnit framework.
-//// SNIPPET:TREE
-// ----
-// build.mill
-// foo/
-//     src/
-//         foo/Foo.kt
-//     resources/
-//         ...
-//     test/
-//         src/
-//             foo/FooTest.kt
-// out/foo/
-//     compile.json
-//     compile.dest/
-//     ...
-//     test/
-//         compile.json
-//         compile.dest/
-//         ...
-// ----
-//
-// NOTE: The default Mill source folder layout `foo/src/` differs from that of Maven/Gradle's
-// `foo/src/main/kotlin`. If you wish to use the Maven source folder layout, e.g. for migrating
-// an existing codebase, you should use
-// xref:#_maven_compatible_modules[Maven-Compatible Modules]
-//
-//// SNIPPET:DEPENDENCIES
-//
-// This example project uses two third-party dependencies - Clikt for CLI
-// argument parsing, Apache Commons Text for HTML escaping - and uses them to wrap a
-// given input string in HTML templates with proper escaping.
-//
-// Typical usage of a `KotlinModule` is shown below
-
+//// SNIPPET:USAGE
 /** Usage
-
-> ./mill resolve foo._ # List what tasks are available to run
-foo.assembly
-...
-foo.compile
-...
-foo.run
-...
-*/
-/** Usage
-> ./mill inspect foo.compile # Show documentation and inputs of a task
-foo.compile(KotlinModule...)
-    Compiles all the sources to JVM class files.
-    Compiles the current module to generate compiled classfiles/bytecode.
-Inputs:
-    foo.allJavaSourceFiles
-    foo.allKotlinSourceFiles
-    foo.compileClasspath
-    foo.upstreamCompileOutput
-    foo.javacOptions
-    foo.zincReportCachedProblems
-    foo.allKotlincOptions
-    foo.kotlinCompilerClasspath
-...
-*/
-/** Usage
-> ./mill foo.compile # compile sources into classfiles
-...
-Compiling 1 Kotlin sources to...
-*/
-/** Usage
-> ./mill foo.run # run the main method, if any
-error: Error: missing option --text
-...
-*/
-/** Usage
-> ./mill foo.run --text hello
+> ./mill run --text hello
 <h1>hello</h1>
 */
 /** Usage
-> ./mill foo.test
-...
+> ./mill test
 Test foo.FooTest testSimple finished, ...
 Test foo.FooTest testEscaping finished, ...
 Test foo.FooTest finished, ...
 Test run finished: 0 failed, 0 ignored, 2 total, ...
 */
-/** Usage
-> ./mill foo.assembly # bundle classfiles and libraries into a jar for deployment
-
-> ./mill show foo.assembly # show the output of the assembly task
-".../out/foo/assembly.dest/out.jar"
-
-> java -jar ./out/foo/assembly.dest/out.jar --text hello
-<h1>hello</h1>
-
-> ./out/foo/assembly.dest/out.jar --text hello # mac/linux
-<h1>hello</h1>
-
-> cp ./out/foo/assembly.dest/out.jar out.bat # windows
-
-> ./out.bat --text hello # windows
-<h1>hello</h1>
-*/
+//// SNIPPET:END
