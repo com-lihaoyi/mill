@@ -7,11 +7,6 @@
 
 include::partial$Intro_Header.adoc[]
 
-
-== Single-File Projects
-
-include::partial$example/javalib/basic/5-script.adoc[]
-
 == Simple Java Module
 
 include::partial$example/javalib/basic/1-simple.adoc[]

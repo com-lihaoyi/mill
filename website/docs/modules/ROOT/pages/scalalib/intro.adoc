@@ -7,10 +7,6 @@
 
 include::partial$Intro_Header.adoc[]
 
-== Single-File Projects
-
-include::partial$example/scalalib/basic/5-script.adoc[]
-
 == Simple Scala Module
 
 include::partial$example/scalalib/basic/1-simple.adoc[]

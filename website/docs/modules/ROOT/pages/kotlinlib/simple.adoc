@@ -1,0 +1,27 @@
+= Simple Kotlin Modules
+:language: Kotlin
+:language-small: kotlin
+
+This page documents the usage of simple config-based Kotlin modules defined by a
+`mill.yaml` file. These are less flexible but easier to get started with than the
+full `build.mill` or `package.mill` build files, which makes them ideal for small
+projects which do not need additional flexibility.
+
+
+
+== Single-File Projects
+
+include::partial$example/kotlinlib/simple/2-script.adoc[]
+
+
+== Configuring Single-File Scripts
+
+include::partial$example/kotlinlib/simple/3-config.adoc[]
+
+== Custom Script Module Classes
+
+include::partial$example/kotlinlib/simple/4-custom-class.adoc[]
+
+== Depending on normal modules from simple modules
+
+include::partial$example/kotlinlib/simple/5-module-deps.adoc[]

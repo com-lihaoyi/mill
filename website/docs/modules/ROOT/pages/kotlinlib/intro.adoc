@@ -12,10 +12,6 @@ still under active development. It is expected to continue evolving over time
 as Android and Multiplatform support is fleshed out. Try it out, but please be aware of its
 limitations!
 
-== Single-File Projects
-
-include::partial$example/kotlinlib/basic/5-script.adoc[]
-
 == Simple Kotlin Module
 
 include::partial$example/kotlinlib/basic/1-simple.adoc[]

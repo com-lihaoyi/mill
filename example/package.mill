@@ -31,7 +31,7 @@ object `package` extends Module {
     object testing extends Cross[ExampleCrossModuleJava](build.listCross)
     object linting extends Cross[ExampleCrossModuleJava](build.listCross)
     object publishing extends Cross[ExampleCrossModuleJava](build.listCross)
-    object script extends Cross[ExampleCrossModuleJava](build.listCross)
+    object simple extends Cross[ExampleCrossModuleJava](build.listCross)
     object web extends Cross[ExampleCrossModule](build.listCross)
   }
   object kotlinlib extends Module {
@@ -41,7 +41,7 @@ object `package` extends Module {
     object testing extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object linting extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object publishing extends Cross[ExampleCrossModuleKotlin](build.listCross)
-    object script extends Cross[ExampleCrossModuleKotlin](build.listCross)
+    object simple extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object web extends Cross[ExampleCrossModuleKotlin](build.listCross)
   }
   object scalalib extends Module {
@@ -51,7 +51,7 @@ object `package` extends Module {
     object testing extends Cross[ExampleCrossModule](build.listCross)
     object linting extends Cross[ExampleCrossModule](build.listCross)
     object publishing extends Cross[ExampleCrossModule](build.listCross)
-    object script extends Cross[ExampleCrossModule](build.listCross)
+    object simple extends Cross[ExampleCrossModule](build.listCross)
     object web extends Cross[ExampleCrossModule](build.listCross)
     object native extends Cross[ExampleCrossModule](build.listCross)
     object spark extends Cross[ExampleCrossModule](build.listCross)
@@ -141,7 +141,7 @@ object `package` extends Module {
       case "module" => Some(scalalib.module)
       case "web" => Some(scalalib.web)
       case "publishing" => Some(scalalib.publishing)
-      case "script" => Some(scalalib.script)
+      case "simple" => Some(scalalib.simple)
       case _ => None
     }
     val upstreamOpt = upstreamCross(this.moduleSegments.parts.dropRight(1).last)
