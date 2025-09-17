@@ -204,9 +204,9 @@ Install mill
 
 [source,console]
 ----
-> curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.4/mill-dist-1.0.4-mill.sh -o mill
+> curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.5/mill-dist-1.0.5-mill.sh -o mill
 > chmod +x mill
-> echo "//| mill-version: 1.0.4-22-bcbf85" > build.mill
+> echo "//| mill-version: 1.0.5" > build.mill
 > ./mill version
 ----
 
