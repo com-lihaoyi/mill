@@ -172,7 +172,7 @@ digraph G {
 }
 ....
 
-The diagram above still doesn’t tell the whole story! It shows a typical build flow for an everyday Android app, but there are more features to consider:
+The diagram above still doesn’t tell the whole story! It shows a typical build flow for a basic Android app, but there are more features to consider:
 
 - Hilt/Dagger code generation (annotation processing)
 - Jetpack Compose code generation (Kotlin compiler plugin)
