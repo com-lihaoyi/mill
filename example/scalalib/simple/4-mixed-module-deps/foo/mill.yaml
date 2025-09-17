@@ -1,0 +1,3 @@
+extends: mill.simple.Scala
+moduleDeps: ["bar"]
+mvnDeps: ["com.lihaoyi::mainargs:0.7.6"]

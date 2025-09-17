@@ -1,6 +1,3 @@
-//| moduleDeps: ["bar"]
-//| mvnDeps: ["com.lihaoyi::mainargs:0.7.6"]
-
 package foo
 import mainargs.{main, ParserForMethods, arg}
 object Foo {

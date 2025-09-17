@@ -6,11 +6,10 @@ object bar extends JavaModule {
   def mvnDeps = Seq(mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE")
 }
 
-/** See Also: Foo.java */
-/** See Also: bar/src/bar/Bar.java */
+/** See Also: foo/mill.yaml */
 /** Usage
 
-> ./mill Foo.java --text hello
+> ./mill foo:run --text hello
 <h1>hello</h1>
 
 */

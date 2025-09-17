@@ -9,11 +9,11 @@ object bar extends KotlinModule {
   )
 }
 
-/** See Also: Foo.kt */
+/** See Also: foo/mill.yaml */
 /** See Also: bar/src/bar/Bar.kt */
 /** Usage
 
-> ./mill Foo.kt --text hello
+> ./mill foo:run --text hello
 <h1>hello</h1>
 
 */

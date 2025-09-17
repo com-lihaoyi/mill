@@ -7,11 +7,11 @@ object bar extends ScalaModule {
   def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.13.1")
 }
 
-/** See Also: Foo.scala */
+/** See Also: foo/mill.yaml */
 /** See Also: bar/src/Bar.scala */
 /** Usage
 
-> ./mill Foo.scala --text hello
+> ./mill foo:run --text hello
 <h1>hello</h1>
 
 */

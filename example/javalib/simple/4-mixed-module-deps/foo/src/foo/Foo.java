@@ -1,5 +1,3 @@
-//| moduleDeps: ["bar"]
-//| mvnDeps: ["net.sourceforge.argparse4j:argparse4j:0.9.0"]
 package foo;
 
 import net.sourceforge.argparse4j.ArgumentParsers;
