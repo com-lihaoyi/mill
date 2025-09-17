@@ -1022,6 +1022,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/javalib/api/JvmWorkerUtil$.html#versionRanges-ffb","e":false,"i":"","n":"versionRanges","t":"versionRanges(version: String, allVersions: Seq[String]): Seq[String]","d":"mill.javalib.api.JvmWorkerUtil","k":"def","x":""},
 {"l":"mill/javalib/api/Versions$.html#","e":false,"i":"","n":"Versions","t":"Versions","d":"mill.javalib.api","k":"object","x":""},
 {"l":"mill/javalib/api/Versions$.html#ammonite-0","e":false,"i":"","n":"ammonite","t":"ammonite: String","d":"mill.javalib.api.Versions","k":"val","x":""},
+{"l":"mill/javalib/api/Versions$.html#comLihaoyiSourcecodeVersion-0","e":false,"i":"","n":"comLihaoyiSourcecodeVersion","t":"comLihaoyiSourcecodeVersion: String","d":"mill.javalib.api.Versions","k":"val","x":""},
 {"l":"mill/javalib/api/Versions$.html#coursierJvmIndexVersion-0","e":false,"i":"","n":"coursierJvmIndexVersion","t":"coursierJvmIndexVersion: String","d":"mill.javalib.api.Versions","k":"val","x":""},
 {"l":"mill/javalib/api/Versions$.html#errorProneVersion-0","e":false,"i":"","n":"errorProneVersion","t":"errorProneVersion: String","d":"mill.javalib.api.Versions","k":"val","x":""},
 {"l":"mill/javalib/api/Versions$.html#jupiterInterface-0","e":false,"i":"","n":"jupiterInterface","t":"jupiterInterface: String","d":"mill.javalib.api.Versions","k":"val","x":""},
