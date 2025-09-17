@@ -22,7 +22,7 @@ image:AndroidPokedexMultimoduleExample.png[A multi-module Android app built with
 
 === Why you might prefer this to Gradle
 
-Because Mill’s Android support is built out of simple, object-oriented modules (AndroidModule, AndroidAppModule, etc.), the entire pipeline is transparent and hackable. If something doesn’t work, you don’t need to wait for a plugin update — you can open the task in your IDE, see the source, and tweak it yourself. This is the same design that let us implement end-to-end Android support in under a year, and it’s what makes Mill attractive if you value control and debuggability in your build.
+Because Mill’s Android support is built out of simple, object-oriented modules (AndroidModule, AndroidAppModule, etc.), the entire pipeline is transparent and hackable. If something doesn’t work, you don’t need to wait for a plugin update, you can open the task in your IDE, see the source, and tweak it yourself. This is the same design that let us implement end-to-end Android support in under a year, and it’s what makes Mill attractive if you value control and debuggability in your build.
 
 For example, you can inspect how Mill builds an Android APK with:
 
@@ -214,7 +214,7 @@ Configure the mill build
 
 [source,console]
 ----
-> curl https://raw.githubusercontent.com/com-lihaoyi/mill/186ede23a7e8f2b8f4da80877ed5f316cece9477/example/thirdparty/androidtodo/build.mill >> build.mill
+> curl https://raw.githubusercontent.com/com-lihaoyi/mill/bef0194f3eecb4c7938f07e0cfcdf8d741a04468/example/thirdparty/androidtodo/build.mill >> build.mill
 ----
 
 Start the emulator and run the app
@@ -236,6 +236,8 @@ Run the instrumented tests and watch the app being tested inside the emulator:
 ----
 > ./mill app.androidTest
 ----
+
+image:androidtodo_test.gif[Android Test running inside an emulator, showing the Todo app being tested automatically.]
 
 Let's say you want to know how the apk is built. First, you can check the plan of `androidApk`, i.e which
 tasks it depends on:
