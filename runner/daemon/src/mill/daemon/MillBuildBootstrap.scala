@@ -143,7 +143,7 @@ class MillBuildBootstrap(
                     upickle.read[Map[
                       String,
                       ujson.Value
-                    ]](mill.internal.Util.parseHeaderData(parsedScriptFiles.headerData))
+                    ]](mill.internal.Util.parsedHeaderData(parsedScriptFiles.headerData))
                   )
                 )
               RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
