@@ -55,14 +55,17 @@ object ExecutionContexts {
     def execute(runnable: Runnable): Unit = {
       // By default, any child task inherits the pwd and system streams from the
       // context which submitted it
-      lazy val submitterPwd = os.pwd
-      lazy val submitterStreams = new mill.api.SystemStreams(System.out, System.err, System.in)
+      val submitterPwd = os.dynamicPwdFunction.value
+      val submitterChecker = os.checker.value
+      val submitterStreams = new mill.api.SystemStreams(Console.out, Console.err, System.in)
       executor.execute(new PriorityRunnable(
         0,
         () =>
-          os.dynamicPwdFunction.withValue(() => submitterPwd) {
-            mill.api.SystemStreamsUtils.withStreams(submitterStreams) {
-              runnable.run()
+          os.checker.withValue(submitterChecker) {
+            os.dynamicPwdFunction.withValue(() => submitterPwd()) {
+              mill.api.SystemStreamsUtils.withStreams(submitterStreams) {
+                runnable.run()
+              }
             }
           }
       ))

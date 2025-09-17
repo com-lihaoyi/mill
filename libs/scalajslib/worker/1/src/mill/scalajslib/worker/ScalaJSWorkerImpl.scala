@@ -169,12 +169,16 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       (linker, irFileCacheCache)
     }
   }
-  private val logger = new Logger {
+  def createLogger() = new Logger {
+    // Console.err needs to be stored at instantiation time so it saves the right threadlocal
+    // value so can be used by the Scala.js toolchain's threads without losing logs
+    val err = Console.err
+
     def log(level: Level, message: => String): Unit = {
-      System.err.println(message)
+      err.println(message)
     }
     def trace(t: => Throwable): Unit = {
-      t.printStackTrace()
+      t.printStackTrace(err)
     }
   }
   def link(
@@ -222,6 +226,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       case _ =>
         testInitializer
     }
+    val logger = createLogger()
 
     val resultFuture = (for {
       (irContainers, _) <- irContainersAndPathsFuture
@@ -303,6 +308,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   def run(config: JsEnvConfig, report: Report): Unit = {
     val env = jsEnv(config)
     val input = jsEnvInput(report)
+    val logger = createLogger()
     val runConfig0 = RunConfig().withLogger(logger)
     val runConfig =
       if (mill.api.SystemStreams.isOriginal()) runConfig0
@@ -336,6 +342,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   ): (() => Unit, sbt.testing.Framework) = {
     val env = jsEnv(config)
     val input = jsEnvInput(report)
+    val logger = createLogger()
     val tconfig = TestAdapter.Config().withLogger(logger)
 
     val adapter = new TestAdapter(env, input, tconfig)

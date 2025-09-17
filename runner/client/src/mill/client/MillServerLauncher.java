@@ -43,12 +43,8 @@ public abstract class MillServerLauncher extends ServerLauncher {
    */
   public abstract LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception;
 
-  public abstract void prepareDaemonDir(Path daemonDir) throws Exception;
-
   public Result run(Path daemonDir, String javaHome, Consumer<String> log) throws Exception {
     Files.createDirectories(daemonDir);
-    log.accept("Preparing Mill daemon directory: " + daemonDir.toAbsolutePath());
-    prepareDaemonDir(daemonDir);
 
     var initData = new ClientInitData(
         /* interactive */ Util.hasConsole(),
@@ -66,10 +62,9 @@ public abstract class MillServerLauncher extends ServerLauncher {
     }
     log.accept("launchOrConnectToServer: " + locks);
 
-    try (var connection = launchOrConnectToServer(
+    try (var launched = launchOrConnectToServer(
         locks,
         daemonDir,
-        "From MillServerLauncher",
         serverInitWaitMillis,
         () -> initServer(daemonDir, locks),
         serverDied -> {
@@ -77,12 +72,13 @@ public abstract class MillServerLauncher extends ServerLauncher {
           System.err.println(serverDied.toString());
           System.exit(1);
         },
-        log)) {
-      log.accept("runWithConnection: " + connection);
+        log,
+        true /*openSocket*/)) {
+      log.accept("runWithConnection: " + launched);
       var result = runWithConnection(
-          "MillServerLauncher[" + connection.getLocalSocketAddress() + " -> "
-              + connection.getRemoteSocketAddress() + "]",
-          connection,
+          "MillServerLauncher[" + launched.socket.getLocalSocketAddress() + " -> "
+              + launched.socket.getRemoteSocketAddress() + "]",
+          launched.socket,
           streams,
           false,
           rawServerStdin -> {

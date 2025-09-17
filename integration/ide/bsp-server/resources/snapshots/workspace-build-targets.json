@@ -27,7 +27,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "21.0.8"
+        "javaVersion": "17.0.16"
       }
     },
     {
@@ -59,7 +59,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "21.0.8"
+        "javaVersion": "17.0.16"
       }
     },
     {
@@ -98,7 +98,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -138,7 +138,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -178,7 +178,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -218,7 +218,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -258,7 +258,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -285,7 +285,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "21.0.8"
+        "javaVersion": "17.0.16"
       }
     },
     {
@@ -314,7 +314,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "21.0.8"
+        "javaVersion": "17.0.16"
       }
     },
     {
@@ -341,7 +341,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "21.0.8"
+        "javaVersion": "17.0.16"
       }
     },
     {
@@ -380,7 +380,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -423,7 +423,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -450,7 +450,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "21.0.8"
+        "javaVersion": "17.0.16"
       }
     },
     {
@@ -496,7 +496,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -543,7 +543,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -601,7 +601,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "21.0.8"
+          "javaVersion": "17.0.16"
         }
       }
     }
