@@ -514,7 +514,7 @@ object KotlinModule {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  trait Base extends SimpleModule, KotlinModule {
+  trait Base extends JavaModule.Base, KotlinModule {
     def kotlinVersion = "1.9.24"
   }
 

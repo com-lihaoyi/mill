@@ -687,7 +687,7 @@ object ScalaModule {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  trait Base extends SimpleModule, ScalaModule {
+  trait Base extends JavaModule.Base, ScalaModule {
     def scalaVersion = mill.util.BuildInfo.scalaVersion
   }
 
