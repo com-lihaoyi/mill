@@ -302,6 +302,10 @@ trait AndroidModule extends JavaModule { outer =>
     transformedAndroidDeps(Task.Anon(resolvedMvnDeps()))()
   }
 
+  def androidResolvedCompileMvnDeps: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(compileMvnDeps())
+  }
+
   protected def transformedAndroidDeps(resolvedDeps: Task[Seq[PathRef]]): Task[Seq[PathRef]] =
     Task.Anon {
       val transformedAarFilesToJar: Seq[PathRef] =
