@@ -1,6 +1,7 @@
 package mill.javalib
 
 import mill.*
+import mill.javalib.internal
 import mill.javalib.publish.{Artifact, PublishInfo}
 import mill.util.Jvm
 import os.Path

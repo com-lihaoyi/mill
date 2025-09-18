@@ -4,6 +4,7 @@ import com.lihaoyi.unroll
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
 import mill.*
 import javalib.*
+import mill.javalib.internal
 import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
 import mill.api.DefaultTaskModule

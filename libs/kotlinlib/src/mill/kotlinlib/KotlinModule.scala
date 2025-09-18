@@ -10,12 +10,13 @@ import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.api.Result
 import mill.api.ModuleRef
+import mill.api.Discover
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
 import mill.javalib.api.internal.JvmWorkerApi
 import mill.api.daemon.internal.{CompileProblemReporter, KotlinModuleApi, internal}
-import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
+import mill.javalib.{JavaModule, JvmWorkerModule, Lib, SimpleModule}
 import mill.util.{Jvm, Version}
 import mill.*
 
@@ -508,4 +509,36 @@ object KotlinModule {
     )
   }
 
+  class Simple(val simpleConf: SimpleModule.Config0[JavaModule])
+    extends KotlinModule.Base {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  trait Base extends SimpleModule, KotlinModule {
+    def kotlinVersion = "1.9.24"
+  }
+
+  class Publish(val simpleConf: SimpleModule.Config0[JavaModule with PublishModule])
+    extends KotlinModule.Base, SimpleModule.Publish {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  trait Test0 extends KotlinModule.Base, KotlinModule.Tests {
+    def outerRef = ModuleRef(simpleConf.moduleDeps.head.asInstanceOf[KotlinModule])
+  }
+
+  class TestNg(val simpleConf: SimpleModule.Config0[KotlinModule])
+    extends Test0, TestModule.TestNg {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  class Junit4(val simpleConf: SimpleModule.Config0[KotlinModule])
+    extends Test0, TestModule.Junit4 {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  class Junit5(val simpleConf: SimpleModule.Config0[KotlinModule])
+    extends Test0, TestModule.Junit5 {
+    override lazy val millDiscover = Discover[this.type]
+  }
 }
