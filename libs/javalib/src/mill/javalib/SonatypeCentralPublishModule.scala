@@ -170,10 +170,11 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
 
     def publishSnapshot(publishData: PublishData): Unit = {
       val uri = sonatypeCentralSnapshotUri
-      val artifacts = mill.javalib.MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
-        publishData.meta,
-        publishData.payloadAsMap
-      )
+      val artifacts =
+        mill.javalib.MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
+          publishData.meta,
+          publishData.payloadAsMap
+        )
 
       log.info(
         s"Detected a 'SNAPSHOT' version for ${publishData.meta}, publishing to Sonatype Central Snapshots at '$uri'"

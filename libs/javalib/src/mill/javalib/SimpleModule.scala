@@ -1,7 +1,7 @@
 package mill.javalib
 import mill.api.{ExternalModule, Task}
 import mill.api.daemon.Segments
-import mill.javalib.{JavaModule, NativeImageModule}
+import mill.javalib.JavaModule
 
 trait SimpleModule extends ExternalModule, JavaModule {
   def simpleConf: SimpleModule.Config
