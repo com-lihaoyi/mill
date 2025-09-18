@@ -1,9 +1,7 @@
 package mill.simple
 import mill.*
 import mill.api.{ExternalModule, Result}
-import mill.javalib.JavaModule
-import mill.javalib.SimpleModule.parseHeaderData
-import mill.javalib.SimpleModule
+import mill.simple.SimpleModule.parseHeaderData
 
 private object SimpleModuleInit
     extends ((String, String => Option[mill.Module]) => Option[Result[mill.api.ExternalModule]]) {

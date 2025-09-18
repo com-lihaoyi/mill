@@ -16,7 +16,8 @@ import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
 import mill.javalib.api.internal.JvmWorkerApi
 import mill.api.daemon.internal.{CompileProblemReporter, KotlinModuleApi, internal}
-import mill.javalib.{JavaModule, JvmWorkerModule, Lib, SimpleModule}
+import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
+import mill.simple.SimpleModule
 import mill.util.{Jvm, Version}
 import mill.*
 
@@ -518,8 +519,8 @@ object KotlinModule {
     def kotlinVersion = "1.9.24"
   }
 
-  class Publish(val simpleConf: SimpleModule.Config)
-      extends KotlinModule.Base, SimpleModule.Publish {
+  class Publish(simpleConf: SimpleModule.Config)
+      extends JavaModule.Publish(simpleConf), KotlinModule.Base {
     override lazy val millDiscover = Discover[this.type]
   }
 

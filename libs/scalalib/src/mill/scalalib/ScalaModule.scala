@@ -5,7 +5,7 @@ import mill.util.JarManifest
 import mill.api.{BuildCtx, DummyInputStream, ModuleRef, PathRef, Result, Task, Discover}
 import mill.util.BuildInfo
 import mill.util.Jvm
-import mill.javalib.SimpleModule
+import mill.simple.SimpleModule
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
@@ -691,8 +691,8 @@ object ScalaModule {
     def scalaVersion = mill.util.BuildInfo.scalaVersion
   }
 
-  class Publish(val simpleConf: SimpleModule.Config)
-      extends ScalaModule.Base, SimpleModule.Publish {
+  class Publish(simpleConf: SimpleModule.Config)
+      extends JavaModule.Publish(simpleConf), ScalaModule.Base {
     override lazy val millDiscover = Discover[this.type]
   }
 

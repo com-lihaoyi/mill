@@ -18,6 +18,7 @@ import mill.api.daemon.internal.bsp.{
 }
 import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.javalib.*
+import mill.simple.SimpleModule
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
 import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
 import mill.javalib.api.CompilationResult
@@ -1604,7 +1605,7 @@ object JavaModule {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  trait Base extends SimpleModule with JavaModule with NativeImageModule{
+  trait Base extends SimpleModule with JavaModule with NativeImageModule {
     override def moduleDeps = simpleConf.moduleDeps.map(_.asInstanceOf[JavaModule])
 
     override def sources =
@@ -1621,8 +1622,17 @@ object JavaModule {
   }
 
   class Publish(val simpleConf: SimpleModule.Config)
-      extends JavaModule.Base, SimpleModule.Publish {
+      extends JavaModule.Base, PublishModule {
     override lazy val millDiscover = Discover[this.type]
+
+    def pomSettings = Task {
+      ???
+    }
+
+    def publishVersion = Task {
+      ???
+    }
+
   }
 
   trait Test0 extends JavaModule.Base, JavaModule.Tests {

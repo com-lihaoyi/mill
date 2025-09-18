@@ -1,5 +1,5 @@
-package mill.javalib
-import mill.api.{ExternalModule, Task}
+package mill.simple
+import mill.api.ExternalModule
 import mill.api.daemon.Segments
 
 trait SimpleModule extends ExternalModule {
@@ -8,7 +8,6 @@ trait SimpleModule extends ExternalModule {
   override def moduleDir =
     if (os.isDir(simpleConf.simpleModulePath)) simpleConf.simpleModulePath
     else simpleConf.simpleModulePath / os.up
-
 
   private[mill] def allowNestedExternalModule = true
 
@@ -29,10 +28,5 @@ object SimpleModule {
       else mill.constants.Util.readBuildHeader(millSimplePath.toNIO, millSimplePath.last, true)
     }
     upickle.read[Map[String, ujson.Value]](mill.internal.Util.parsedHeaderData(headerData))
-  }
-  trait Publish extends mill.javalib.PublishModule {
-    def pomSettings = Task { ??? }
-
-    def publishVersion = Task { ??? }
   }
 }
