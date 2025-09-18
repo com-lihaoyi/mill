@@ -509,7 +509,7 @@ object KotlinModule {
     )
   }
 
-  class Simple(val simpleConf: SimpleModule.Config0[JavaModule])
+  class Simple(val simpleConf: SimpleModule.Config)
       extends KotlinModule.Base {
     override lazy val millDiscover = Discover[this.type]
   }
@@ -518,7 +518,7 @@ object KotlinModule {
     def kotlinVersion = "1.9.24"
   }
 
-  class Publish(val simpleConf: SimpleModule.Config0[JavaModule with PublishModule])
+  class Publish(val simpleConf: SimpleModule.Config)
       extends KotlinModule.Base, SimpleModule.Publish {
     override lazy val millDiscover = Discover[this.type]
   }
@@ -527,17 +527,17 @@ object KotlinModule {
     def outerRef = ModuleRef(simpleConf.moduleDeps.head.asInstanceOf[KotlinModule])
   }
 
-  class TestNg(val simpleConf: SimpleModule.Config0[KotlinModule])
+  class TestNg(val simpleConf: SimpleModule.Config)
       extends Test0, TestModule.TestNg {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class Junit4(val simpleConf: SimpleModule.Config0[KotlinModule])
+  class Junit4(val simpleConf: SimpleModule.Config)
       extends Test0, TestModule.Junit4 {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class Junit5(val simpleConf: SimpleModule.Config0[KotlinModule])
+  class Junit5(val simpleConf: SimpleModule.Config)
       extends Test0, TestModule.Junit5 {
     override lazy val millDiscover = Discover[this.type]
   }

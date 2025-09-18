@@ -32,13 +32,7 @@ private object SimpleModuleInit
       }
     }
 
-    instantiate(
-      className,
-      SimpleModule.Config0(
-        millFile,
-        moduleDeps.map(resolveModuleDep(_).get.asInstanceOf[JavaModule])
-      )
-    )
+    instantiate(className, SimpleModule.Config(millFile, moduleDeps.map(resolveModuleDep(_).get)))
   }
 
   def apply(millFileString: String, resolveModuleDep: String => Option[mill.Module]) = {

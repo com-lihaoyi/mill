@@ -1599,33 +1599,47 @@ object JavaModule {
   private lazy val removeInternalVersionRegex =
     (":" + Regex.quote(JavaModule.internalVersion) + "(\\w*$|\\n)").r
 
-  class Simple(val simpleConf: SimpleModule.Config0[JavaModule])
+  class Simple(val simpleConf: SimpleModule.Config)
       extends JavaModule.Base {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  trait Base extends SimpleModule with NativeImageModule
+  trait Base extends SimpleModule with JavaModule with NativeImageModule{
+    override def moduleDeps = simpleConf.moduleDeps.map(_.asInstanceOf[JavaModule])
 
-  class Publish(val simpleConf: SimpleModule.Config0[JavaModule with PublishModule])
+    override def sources =
+      if (os.isDir(simpleConf.simpleModulePath)) super.sources else Task.Sources()
+
+    def scriptSource = Task.Source(simpleConf.simpleModulePath)
+
+    override def allSources = {
+      if (os.isDir(simpleConf.simpleModulePath)) super.allSources
+      else Task {
+        sources() ++ Seq(scriptSource())
+      }
+    }
+  }
+
+  class Publish(val simpleConf: SimpleModule.Config)
       extends JavaModule.Base, SimpleModule.Publish {
     override lazy val millDiscover = Discover[this.type]
   }
 
   trait Test0 extends JavaModule.Base, JavaModule.Tests {
-    def outerRef = ModuleRef(simpleConf.moduleDeps.head)
+    def outerRef = ModuleRef(simpleConf.moduleDeps.head.asInstanceOf[JavaModule])
   }
 
-  class TestNg(val simpleConf: SimpleModule.Config0[JavaModule]) extends Test0,
+  class TestNg(val simpleConf: SimpleModule.Config) extends Test0,
         TestModule.TestNg {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class Junit4(val simpleConf: SimpleModule.Config0[JavaModule]) extends Test0,
+  class Junit4(val simpleConf: SimpleModule.Config) extends Test0,
         TestModule.Junit4 {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class Junit5(val simpleConf: SimpleModule.Config0[JavaModule]) extends Test0,
+  class Junit5(val simpleConf: SimpleModule.Config) extends Test0,
         TestModule.Junit5 {
     override lazy val millDiscover = Discover[this.type]
   }
