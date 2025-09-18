@@ -182,12 +182,6 @@ trait AndroidR8AppModule extends AndroidAppModule {
     val allClassFilesFile = Task.dest / "all-classes.txt"
     os.write.over(allClassFilesFile, allClassFiles.mkString("\n"))
 
-    val compiledMvnDepsFile = Task.dest / "compiled-mvndeps.txt"
-    os.write.over(
-      compiledMvnDepsFile,
-      androidResolvedCompileMvnDeps().map(_.path.toString()).mkString("\n")
-    )
-
     val r8ArgsBuilder = Seq.newBuilder[String]
 
     r8ArgsBuilder += androidSdkModule().r8Exe().path.toString
@@ -248,10 +242,18 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
     r8ArgsBuilder ++= pgArgs
 
-    r8ArgsBuilder ++= Seq(
-      "--classpath",
-      "@" + compiledMvnDepsFile.toString
-    )
+    val resolvedCompileMvnDeps = androidResolvedCompileMvnDeps()
+    if (!resolvedCompileMvnDeps.isEmpty) {
+      val compiledMvnDepsFile = Task.dest / "compiled-mvndeps.txt"
+      os.write.over(
+        compiledMvnDepsFile,
+        androidResolvedCompileMvnDeps().map(_.path.toString()).mkString("\n")
+      )
+      r8ArgsBuilder ++= Seq(
+        "--classpath",
+        "@" + compiledMvnDepsFile.toString
+      )
+    }
 
     r8ArgsBuilder ++= androidR8Args()
 
