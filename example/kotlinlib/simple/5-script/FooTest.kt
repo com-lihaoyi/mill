@@ -1,7 +1,7 @@
 //| mvnDeps:
 //| - "io.kotest:kotest-runner-junit5:5.9.1"
 //| moduleDeps: [Foo.kt]
-//| extends: mill.simple.Kotlin.Junit5
+//| extends: mill.kotlinlib.KotlinModule.Junit5
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 

@@ -1,4 +1,4 @@
-extends: mill.simple.Kotlin
+extends: mill.kotlinlib.KotlinModule.Simple
 moduleDeps: ["bar"]
 mvnDeps:
 - "com.github.ajalt.clikt:clikt:4.4.0"

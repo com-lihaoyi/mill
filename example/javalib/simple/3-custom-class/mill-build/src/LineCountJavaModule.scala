@@ -1,8 +1,8 @@
 package millbuild
 import mill.*, javalib.*
 
-class LineCountJavaModule(val scriptConf: mill.simple.SimpleModule.Config)
-    extends mill.simple.Java.Base {
+class LineCountJavaModule(scriptConf: mill.javalib.SimpleModule.Config)
+    extends mill.javalib.JavaModule.Simple(scriptConf) {
 
   /** Total number of lines in module source files */
   def lineCount = Task {
@@ -15,5 +15,5 @@ class LineCountJavaModule(val scriptConf: mill.simple.SimpleModule.Config)
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  lazy val millDiscover = mill.api.Discover[this.type]
+  override lazy val millDiscover = mill.api.Discover[this.type]
 }
