@@ -8,14 +8,14 @@ import mill.javalib.JavaModule
 import mill.javalib.NativeImageModule
 
 trait SimpleModule extends ExternalModule, JavaModule, NativeImageModule {
-  def scriptConf: SimpleModule.Config
-  override def moduleDeps = scriptConf.moduleDeps
-  override def moduleDir = if (os.isDir(scriptConf.millScriptFile)) scriptConf.millScriptFile
-  else scriptConf.millScriptFile / os.up
-  override def sources = if (os.isDir(scriptConf.millScriptFile)) super.sources else Task.Sources()
-  def scriptSource = Task.Source(scriptConf.millScriptFile)
+  def simpleConf: SimpleModule.Config
+  override def moduleDeps = simpleConf.moduleDeps
+  override def moduleDir = if (os.isDir(simpleConf.simpleModulePath)) simpleConf.simpleModulePath
+  else simpleConf.simpleModulePath / os.up
+  override def sources = if (os.isDir(simpleConf.simpleModulePath)) super.sources else Task.Sources()
+  def scriptSource = Task.Source(simpleConf.simpleModulePath)
   override def allSources = {
-    if (os.isDir(scriptConf.millScriptFile)) super.allSources
+    if (os.isDir(simpleConf.simpleModulePath)) super.allSources
     else Task {
       sources() ++ Seq(scriptSource())
     }
@@ -24,34 +24,25 @@ trait SimpleModule extends ExternalModule, JavaModule, NativeImageModule {
 
   override def moduleSegments: Segments = {
     Segments.labels(
-      scriptConf.millScriptFile.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*
+      simpleConf.simpleModulePath.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*
     )
   }
-  override def buildOverrides = SimpleModule.parseHeaderData(scriptConf.millScriptFile)
+  override def buildOverrides: Map[String, ujson.Value] = SimpleModule.parseHeaderData(simpleConf.simpleModulePath)
 }
 
 object SimpleModule {
   type Config = Config0[JavaModule]
-  case class Config0[+M <: JavaModule](millScriptFile: os.Path, moduleDeps: Seq[M])
-  private[mill] def parseHeaderData(millScriptFile: os.Path) = {
+  case class Config0[+M <: JavaModule](simpleModulePath: os.Path, moduleDeps: Seq[M])
+  private[mill] def parseHeaderData(millSimplePath: os.Path) = {
     val headerData = mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      if (os.exists(millScriptFile / "mill.yaml")) os.read(millScriptFile / "mill.yaml")
-      else mill.constants.Util.readBuildHeader(millScriptFile.toNIO, millScriptFile.last, true)
+      if (os.exists(millSimplePath / "mill.yaml")) os.read(millSimplePath / "mill.yaml")
+      else mill.constants.Util.readBuildHeader(millSimplePath.toNIO, millSimplePath.last, true)
     }
     upickle.read[Map[String, ujson.Value]](mill.internal.Util.parsedHeaderData(headerData))
   }
   trait Publish extends mill.javalib.PublishModule {
-    def pomSettings = PomSettings(
-      description = "<description>",
-      organization = "",
-      url = "",
-      licenses = Seq(),
-      versionControl = VersionControl(),
-      developers = Seq()
-    )
+    def pomSettings = Task{ ??? }
 
-    def publishVersion = Task {
-      "0.0.1"
-    }
+    def publishVersion = Task { ??? }
   }
 }
