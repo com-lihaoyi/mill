@@ -1,7 +1,7 @@
 package millbuild
 import mill.*, javalib.*, scalalib.*
 
-class LineCountScalaModule(scriptConf: mill.javalib.SimpleModule.Config)
+class LineCountScalaModule(scriptConf: mill.simple.SimpleModule.Config)
     extends mill.scalalib.ScalaModule.Simple(scriptConf) {
 
   /** Total number of lines in module source files */

@@ -1,7 +1,7 @@
 package millbuild
 import mill.*, javalib.*, kotlinlib.*
 
-class LineCountKotlinModule(scriptConf: mill.javalib.SimpleModule.Config)
+class LineCountKotlinModule(scriptConf: mill.simple.SimpleModule.Config)
     extends mill.kotlinlib.KotlinModule.Simple(scriptConf) {
 
   /** Total number of lines in module source files */
