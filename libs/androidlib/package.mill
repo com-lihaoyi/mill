@@ -10,7 +10,7 @@ import millbuild.*
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version when androidlib is stable and released.
 object `package` extends MillPublishScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(build.libs.javalib, build.libs.kotlinlib)
+  def moduleDeps = Seq(build.libs.javalib, build.libs.kotlinlib, `databinding-api`)
   def localTestExtraModules = super.localTestExtraModules ++ Seq(build.libs.kotlinlib.worker)
 
   def buildInfoPackageName = "mill.androidlib"
@@ -77,6 +77,25 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     override def mvnDeps = Seq(
       Deps.mainargs
     ) ++ Deps.keytoolDeps
+  }
+
+  object databinding extends MillAndroidModule {
+    override def compileModuleDeps = Seq(`databinding-api`)
+
+    override def compileMvnDeps = Seq(
+      Deps.androidDataBindingCompiler,
+      Deps.androidDataBindingCompilerCommon,
+      Deps.osLib,
+    )
+
+    override def mvnDeps = Seq(
+      mvn"com.squareup:javapoet:1.13.0",
+      mvn"javax.xml.bind:jaxb-api:2.3.1",
+    )
+
+  }
+
+  object `databinding-api` extends MillAndroidModule {
   }
 
 }
