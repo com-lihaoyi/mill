@@ -1604,7 +1604,7 @@ object JavaModule {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  trait Base extends SimpleModule
+  trait Base extends SimpleModule with NativeImageModule
 
   class Publish(val simpleConf: SimpleModule.Config0[JavaModule with PublishModule])
       extends JavaModule.Base, SimpleModule.Publish {

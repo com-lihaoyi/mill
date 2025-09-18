@@ -3,20 +3,25 @@ import mill.api.{ExternalModule, Task}
 import mill.api.daemon.Segments
 import mill.javalib.{JavaModule, NativeImageModule}
 
-trait SimpleModule extends ExternalModule, JavaModule, NativeImageModule {
+trait SimpleModule extends ExternalModule, JavaModule {
   def simpleConf: SimpleModule.Config
   override def moduleDeps = simpleConf.moduleDeps
-  override def moduleDir = if (os.isDir(simpleConf.simpleModulePath)) simpleConf.simpleModulePath
-  else simpleConf.simpleModulePath / os.up
+  override def moduleDir =
+    if (os.isDir(simpleConf.simpleModulePath)) simpleConf.simpleModulePath
+    else simpleConf.simpleModulePath / os.up
+
   override def sources =
     if (os.isDir(simpleConf.simpleModulePath)) super.sources else Task.Sources()
+
   def scriptSource = Task.Source(simpleConf.simpleModulePath)
+
   override def allSources = {
     if (os.isDir(simpleConf.simpleModulePath)) super.allSources
     else Task {
       sources() ++ Seq(scriptSource())
     }
   }
+
   private[mill] def allowNestedExternalModule = true
 
   override def moduleSegments: Segments = {

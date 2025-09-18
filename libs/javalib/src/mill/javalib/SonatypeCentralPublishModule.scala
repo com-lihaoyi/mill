@@ -4,7 +4,6 @@ import com.lihaoyi.unroll
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
 import mill.*
 import javalib.*
-import mill.javalib.internal
 import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
 import mill.api.DefaultTaskModule
@@ -38,7 +37,7 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport {
     // noinspection ScalaDeprecation
     sonatypeCentralGpgArgs() match {
       case `sentinel` =>
-        internal.PublishModule.makeGpgArgs(
+        mill.javalib.internal.PublishModule.makeGpgArgs(
           Task.env,
           maybeKeyId = Some(keyId),
           providedGpgArgs = GpgArgs.UserProvided(Seq.empty)
@@ -68,12 +67,12 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport {
     val publishData = publishArtifactsPayload(sources = sources, docs = docs)()
     val publishingType = getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
 
-    val maybeKeyId = internal.PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
+    val maybeKeyId = mill.javalib.internal.PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
 
     def makeGpgArgs() =
       sonatypeCentralGpgArgsForKey()(maybeKeyId.getOrElse(throw new IllegalArgumentException(
         s"Publishing to Sonatype Central requires a PGP key. Please set the " +
-          s"'${internal.PublishModule.EnvVarPgpSecretBase64}' and '${internal.PublishModule.EnvVarPgpPassphrase}' " +
+          s"'${mill.javalib.internal.PublishModule.EnvVarPgpSecretBase64}' and '${mill.javalib.internal.PublishModule.EnvVarPgpPassphrase}' " +
           s"(if needed) environment variables."
       )))
 
@@ -129,7 +128,7 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val credentials = getSonatypeCredentials(username, password)()
-    def makeGpgArgs() = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
+    def makeGpgArgs() = mill.javalib.internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
       Task.env,
       GpgArgs.fromUserProvided(gpgArgs)
     )
@@ -165,13 +164,13 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
       taskDest: os.Path,
       log: Logger,
       env: Map[String, String],
-      worker: internal.MavenWorkerSupport.Api
+      worker: mill.javalib.internal.MavenWorkerSupport.Api
   ): Unit = {
     val dryRun = env.get("MILL_TESTS_PUBLISH_DRY_RUN").contains("1")
 
     def publishSnapshot(publishData: PublishData): Unit = {
       val uri = sonatypeCentralSnapshotUri
-      val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
+      val artifacts = mill.javalib.MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
         publishData.meta,
         publishData.payloadAsMap
       )

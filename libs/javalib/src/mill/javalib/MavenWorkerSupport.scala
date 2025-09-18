@@ -1,7 +1,6 @@
 package mill.javalib
 
 import mill.*
-import mill.javalib.internal
 import mill.javalib.publish.{Artifact, PublishInfo}
 import mill.util.Jvm
 import os.Path
@@ -22,9 +21,9 @@ private[mill] trait MavenWorkerSupport extends CoursierModule with OfflineSuppor
     Jvm.createClassLoader(classPath = classPath, parent = getClass.getClassLoader)
   }
 
-  private[mill] def mavenWorker: Task.Worker[internal.MavenWorkerSupport.Api] = Task.Worker {
+  private[mill] def mavenWorker: Task.Worker[mill.javalib.internal.MavenWorkerSupport.Api] = Task.Worker {
     mavenWorkerClassloader().loadClass("mill.javalib.maven.worker.impl.WorkerImpl")
-      .getConstructor().newInstance().asInstanceOf[internal.MavenWorkerSupport.Api]
+      .getConstructor().newInstance().asInstanceOf[mill.javalib.internal.MavenWorkerSupport.Api]
   }
 }
 object MavenWorkerSupport {
