@@ -3,14 +3,13 @@ import mill.api.{ExternalModule, Task}
 import mill.api.daemon.Segments
 import mill.javalib.{JavaModule, NativeImageModule}
 
-
-
 trait SimpleModule extends ExternalModule, JavaModule, NativeImageModule {
   def simpleConf: SimpleModule.Config
   override def moduleDeps = simpleConf.moduleDeps
   override def moduleDir = if (os.isDir(simpleConf.simpleModulePath)) simpleConf.simpleModulePath
   else simpleConf.simpleModulePath / os.up
-  override def sources = if (os.isDir(simpleConf.simpleModulePath)) super.sources else Task.Sources()
+  override def sources =
+    if (os.isDir(simpleConf.simpleModulePath)) super.sources else Task.Sources()
   def scriptSource = Task.Source(simpleConf.simpleModulePath)
   override def allSources = {
     if (os.isDir(simpleConf.simpleModulePath)) super.allSources
@@ -25,7 +24,8 @@ trait SimpleModule extends ExternalModule, JavaModule, NativeImageModule {
       simpleConf.simpleModulePath.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*
     )
   }
-  override def buildOverrides: Map[String, ujson.Value] = SimpleModule.parseHeaderData(simpleConf.simpleModulePath)
+  override def buildOverrides: Map[String, ujson.Value] =
+    SimpleModule.parseHeaderData(simpleConf.simpleModulePath)
 }
 
 object SimpleModule {
@@ -39,7 +39,7 @@ object SimpleModule {
     upickle.read[Map[String, ujson.Value]](mill.internal.Util.parsedHeaderData(headerData))
   }
   trait Publish extends mill.javalib.PublishModule {
-    def pomSettings = Task{ ??? }
+    def pomSettings = Task { ??? }
 
     def publishVersion = Task { ??? }
   }

@@ -9,7 +9,13 @@ import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
 import mill.api.{MillException, Result, Discover}
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
-import mill.api.daemon.internal.bsp.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, JvmBuildTarget}
+import mill.api.daemon.internal.bsp.{
+  BspBuildTarget,
+  BspJavaModuleApi,
+  BspModuleApi,
+  BspUri,
+  JvmBuildTarget
+}
 import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
@@ -1594,14 +1600,14 @@ object JavaModule {
     (":" + Regex.quote(JavaModule.internalVersion) + "(\\w*$|\\n)").r
 
   class Simple(val simpleConf: SimpleModule.Config0[JavaModule])
-    extends JavaModule.Base {
+      extends JavaModule.Base {
     override lazy val millDiscover = Discover[this.type]
   }
 
   trait Base extends SimpleModule
 
   class Publish(val simpleConf: SimpleModule.Config0[JavaModule with PublishModule])
-    extends JavaModule.Base, SimpleModule.Publish {
+      extends JavaModule.Base, SimpleModule.Publish {
     override lazy val millDiscover = Discover[this.type]
   }
 
@@ -1610,17 +1616,17 @@ object JavaModule {
   }
 
   class TestNg(val simpleConf: SimpleModule.Config0[JavaModule]) extends Test0,
-    TestModule.TestNg {
+        TestModule.TestNg {
     override lazy val millDiscover = Discover[this.type]
   }
 
   class Junit4(val simpleConf: SimpleModule.Config0[JavaModule]) extends Test0,
-    TestModule.Junit4 {
+        TestModule.Junit4 {
     override lazy val millDiscover = Discover[this.type]
   }
 
   class Junit5(val simpleConf: SimpleModule.Config0[JavaModule]) extends Test0,
-    TestModule.Junit5 {
+        TestModule.Junit5 {
     override lazy val millDiscover = Discover[this.type]
   }
 }

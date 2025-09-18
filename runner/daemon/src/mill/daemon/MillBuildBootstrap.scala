@@ -149,7 +149,6 @@ class MillBuildBootstrap(
               RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
             }
 
-
           state
         }
 
