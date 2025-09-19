@@ -6,9 +6,10 @@ import mill.api.daemon.internal.CompileProblemReporter
 object JvmWorkerApi {
   type Ctx = mill.api.TaskCtx.Dest & mill.api.TaskCtx.Log & mill.api.TaskCtx.Env
 }
+@deprecated("Public API of JvmWorkerApi is deprecated.", "1.0.5")
 trait JvmWorkerApi {
 
-  /** Compile a Java-only project */
+  @deprecated("Public API of JvmWorkerApi is deprecated.", "1.0.5")
   def compileJava(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
@@ -18,9 +19,10 @@ trait JvmWorkerApi {
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
-  )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult]
+  )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult] =
+    throw UnsupportedOperationException("Public API of JvmWorkerApi is deprecated.")
 
-  /** Compile a mixed Scala/Java or Scala-only project */
+  @deprecated("Public API of JvmWorkerApi is deprecated.", "1.0.5")
   def compileMixed(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
@@ -36,9 +38,10 @@ trait JvmWorkerApi {
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String]
-  )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult]
+  )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult] =
+    throw UnsupportedOperationException("Public API of JvmWorkerApi is deprecated.")
 
-  /** Compiles a Scaladoc jar. */
+  @deprecated("Public API of JvmWorkerApi is deprecated.", "1.0.5")
   def docJar(
       scalaVersion: String,
       scalaOrganization: String,
@@ -46,5 +49,6 @@ trait JvmWorkerApi {
       scalacPluginClasspath: Seq[PathRef],
       javaHome: Option[os.Path],
       args: Seq[String]
-  )(using ctx: JvmWorkerApi.Ctx): Boolean
+  )(using ctx: JvmWorkerApi.Ctx): Boolean =
+    throw UnsupportedOperationException("Public API of JvmWorkerApi is deprecated.")
 }
