@@ -327,4 +327,14 @@ object CoursierModule {
     def bind(t: coursier.core.Dependency, bind: Dep => BoundDep): BoundDep =
       BoundDep(t, force = false)
   }
+
+  object KnownRepositories {
+
+    /**
+     * Repository containing nightly builds of Scala language  and compiler projects.
+     * See announcement: https://www.scala-lang.org/news/new-scala-nightlies-repo.html
+     */
+    val ScalaLangNightlies = "https://repo.scala-lang.org/artifactory/maven-nightlies"
+  }
+
 }
