@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>The Mill Build Engineering Blog :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/blog/index.html" />
-    <link rel="next" href="14-bash-zsh-completion.html" />
+    <link rel="next" href="15-android-build-flow.html" />
     <meta name="generator" content="Antora 3.1.12" />
     <link rel="stylesheet" href="../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -135,10 +135,14 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="14-bash-zsh-completion.html">Writing Your Own Simple Tab-Completions for Bash and Zsh</a>
+    <a class="nav-link" href="15-android-build-flow.html">How does Mill build Android apps?</a>
   </li>
 
   <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="14-bash-zsh-completion.html">Writing Your Own Simple Tab-Completions for Bash and Zsh</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="13-mill-build-tool-v1-0-0.html">Mill Build Tool v1.0.0 Release Highlights</a>
   </li>
 
@@ -252,6 +256,36 @@
 technical topics related to JVM platform tooling and language-agnostic build tooling,
 some specific to the Mill build tool but mostly applicable to anyone working on
 build tooling for large codebases in JVM and non-JVM languages.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_does_mill_build_android_apps"><a class="anchor" href="#_how_does_mill_build_android_apps"></a><a href="15-android-build-flow.html" class="xref page">How does Mill build Android apps?</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Vasilis Nicolaou, 17 September 2025</em></p>
+</div>
+<div class="paragraph">
+<p>Until recently, Gradle was the only realistic option for Android builds. Today, Mill provides an alternative to Gradle that is easier to use and learn.</p>
+</div>
+<div class="paragraph">
+<p>In less than a year, Mill went from minimal Android support to producing installable APKs for projects as complex as:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../mill/android/hilt-sample.html" class="xref page">Jetpack Compose + Dependency Injection with Hilt</a></p>
+</li>
+<li>
+<p><a href="../mill/android/java.html#_using_third_party_native_libraries" class="xref page">Android Native</a></p>
+</li>
+<li>
+<p><a href="../mill/android/compose-samples.html" class="xref page">Jetpack Compose</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><a href="15-android-build-flow.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -604,7 +638,7 @@ faster in the presence of parallelism</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="next"><a href="14-bash-zsh-completion.html">Writing Your Own Simple Tab-Completions for Bash and Zsh</a></span>
+  <span class="next"><a href="15-android-build-flow.html">How does Mill build Android apps?</a></span>
 </nav>
 </article>
   </div>
