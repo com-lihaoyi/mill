@@ -37,7 +37,8 @@ import scala.jdk.CollectionConverters.*
  *  - build profiles
  */
 @internal
-object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] {
+object MavenBuildGenMain extends BuildGenBase.MavenAndGradle {
+  override type Module = Model
   override type C = Config
 
   def main(args: Array[String]): Unit = {
@@ -75,7 +76,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
     val publishVersion = model.getVersion
     val publishProperties = getPublishProperties(model, cfg.shared)
 
-    val typedef = IrTrait(
+    IrBaseInfo(
       cfg.shared.basicConfig.jvmId,
       baseModule,
       getModuleSupertypes,
@@ -87,8 +88,6 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
       publishProperties,
       repositories
     )
-
-    IrBaseInfo(typedef)
   }
 
   override type ModuleFqnMap = Map[(String, String, String), String]
@@ -96,16 +95,16 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
       : Map[(String, String, String), String] =
     buildModuleFqnMap(moduleNodes)(getProjectGav)
 
-  override def extractIrBuild(
+  override def extractIrModuleBuild(
       cfg: Config,
       // baseInfo: IrBaseInfo,
       build: Node[Model],
       moduleFqnMap: Map[(String, String, String), String]
-  ): IrBuild = {
+  ): IrModuleBuild = {
     val model = build.value
     val scopedDeps = extractScopedDeps(model, moduleFqnMap, cfg)
     val version = model.getVersion
-    IrBuild(
+    IrModuleBuild(
       scopedDeps = scopedDeps,
       testModule = cfg.shared.basicConfig.testModule,
       testModuleMainType = "MavenTests",
@@ -143,7 +142,11 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
 
   def getMillSourcePath(model: Model): Path = os.Path(model.getProjectDirectory)
 
-  override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] =
+  override def getSupertypes(
+      cfg: Config,
+      baseInfo: Option[IrBaseInfo],
+      build: Node[Model]
+  ): Seq[String] =
     cfg.shared.basicConfig.baseModule.fold(getModuleSupertypes)(Seq(_))
 
   def processResources(
@@ -164,7 +167,10 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
       .toSeq
       .sorted
 
-  def getPublishProperties(model: Model, cfg: BuildGenUtil.Config): Seq[(String, String)] =
+  def getPublishProperties(
+      model: Model,
+      cfg: BuildGenUtil.MavenAndGradleCommonConfig
+  ): Seq[(String, String)] =
     if (cfg.publishProperties.value) {
       val props = model.getProperties
       props.stringPropertyNames().iterator().asScala
@@ -185,7 +191,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
     )
 
   def mkPomParent(parent: Parent): IrArtifact =
-    if (null == parent) null
+    if (parent == null) null
     else IrArtifact(parent.getGroupId, parent.getArtifactId, parent.getVersion)
 
   def extractPomSettings(model: Model): IrPom = {
@@ -290,7 +296,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
   @main
   @internal
   case class Config(
-      shared: BuildGenUtil.Config,
+      shared: BuildGenUtil.MavenAndGradleCommonConfig,
       @arg(doc = "use cache for Maven repository system")
       cacheRepository: Flag = Flag(),
       @arg(doc = "process Maven plugin executions and configurations")
