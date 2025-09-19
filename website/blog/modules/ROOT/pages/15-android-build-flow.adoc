@@ -179,7 +179,7 @@ The diagram above still doesn’t tell the whole story! It shows a typical build
 - Instrumented tests (separate APK, own resources, manifests, dependencies)
 - Native code (NDK builds, CMake integration)
 
-We cover a lot of these architecture styles in various Android examples, based on xref:mill::android/java.adoc[Java], xref:mill::android/kotlin.adoc[Kotlin] and third party integration examples covering xref:mill::android/compose-samples.adoc[Android Compose], xref:mill::android/android-native-example.adoc[Android Native] and xref:mill::android/hilt-sample.adoc[Dependency Injection with Hilt].
+We cover a lot of these architecture styles in various Android examples, based on xref:mill::android/java.adoc[Java], xref:mill::android/kotlin.adoc[Kotlin] and third party integration examples covering xref:mill::android/compose-samples.adoc[Android Compose] and xref:mill::android/hilt-sample.adoc[Dependency Injection with Hilt].
 
 Endless tunnel sample app
 image:AndroidEndlessTunnelExample.png[An Android app built with Mill using native code, showing a 3D tunnel effect.]
