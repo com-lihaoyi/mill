@@ -7,7 +7,7 @@ import mill.internal.SpanningForest
 import java.util.concurrent.ConcurrentHashMap
 import scala.jdk.CollectionConverters.EnumerationHasAsScala
 
-private object ExecutionLogs {
+object ExecutionLogs {
   def logDependencyTree(
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
       indexToTerminal: Array[Task[?]],

@@ -14,9 +14,9 @@ import mill.api.{
 import mill.api.Result
 import mill.resolve.ResolveCore.makeResultException
 
-private[mill] object Resolve {
+object Resolve {
   object Segments extends Resolve[Segments] {
-    private[mill] def handleResolved(
+    def handleResolved(
         rootModule: RootModule0,
         resolved: Seq[Resolved],
         args: Seq[String],
@@ -29,11 +29,11 @@ private[mill] object Resolve {
       Result.Success(resolved.map(_.segments))
     }
 
-    private[mill] override def deduplicate(items: List[Segments]): List[Segments] = items.distinct
+    override def deduplicate(items: List[Segments]): List[Segments] = items.distinct
   }
 
   object Raw extends Resolve[Resolved] {
-    private[mill] def handleResolved(
+    def handleResolved(
         rootModule: RootModule0,
         resolved: Seq[Resolved],
         args: Seq[String],
@@ -46,11 +46,11 @@ private[mill] object Resolve {
       Result.Success(resolved)
     }
 
-    private[mill] override def deduplicate(items: List[Resolved]): List[Resolved] = items.distinct
+    override def deduplicate(items: List[Resolved]): List[Resolved] = items.distinct
   }
 
   object Inspect extends Resolve[Either[Module, Task.Named[Any]]] {
-    private[mill] def handleResolved(
+    def handleResolved(
         rootModule: RootModule0,
         resolved: Seq[Resolved],
         args: Seq[String],
@@ -145,7 +145,7 @@ private[mill] object Resolve {
         }
 
     }
-    private[mill] def handleResolved(
+    def handleResolved(
         rootModule: RootModule0,
         resolved: Seq[Resolved],
         args: Seq[String],
@@ -173,7 +173,7 @@ private[mill] object Resolve {
       )
     }
 
-    private[mill] override def deduplicate(items: List[Task.Named[Any]]): List[Task.Named[Any]] =
+    override def deduplicate(items: List[Task.Named[Any]]): List[Task.Named[Any]] =
       items.distinctBy(_.ctx.segments)
   }
 
@@ -288,8 +288,8 @@ private[mill] object Resolve {
   }
 }
 
-private[mill] trait Resolve[T] {
-  private[mill] def handleResolved(
+trait Resolve[T] {
+  def handleResolved(
       rootModule: RootModule0,
       resolved: Seq[Resolved],
       args: Seq[String],
@@ -310,7 +310,7 @@ private[mill] trait Resolve[T] {
     resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
 
-  private[mill] def resolve0(
+  def resolve0(
       rootModule: RootModule0,
       scriptArgs: Seq[String],
       selectMode: SelectMode,
@@ -342,7 +342,7 @@ private[mill] trait Resolve[T] {
     resolvedGroups.map(_.flatten.toList).map(deduplicate)
   }
 
-  private[mill] def resolveNonEmptyAndHandle(
+  def resolveNonEmptyAndHandle(
       args: Seq[String],
       rootModule: RootModule0,
       sel: Segments,
@@ -398,9 +398,9 @@ private[mill] trait Resolve[T] {
     }
   }
 
-  private[mill] def deduplicate(items: List[T]): List[T] = items
+  def deduplicate(items: List[T]): List[T] = items
 
-  private[mill] def resolveRootModule(
+  def resolveRootModule(
       rootModule: RootModule0,
       scopedSel: Option[Segments]
   ): Result[RootModule0] = {

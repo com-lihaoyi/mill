@@ -5,7 +5,7 @@ import mill.api.BuildCtx
 import java.io.{OutputStream, PrintStream}
 import java.nio.file.{Files, StandardOpenOption}
 
-private[mill] class FileLogger(
+class FileLogger(
     file: os.Path,
     append: Boolean = false
 ) extends Logger with AutoCloseable {
