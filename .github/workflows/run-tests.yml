@@ -29,7 +29,7 @@
 # We run full CI on push builds to main and on all pull requests
 #
 # To maximize bug-catching changes while keeping CI times reasonable, we run
-# tests scattered between Java 11/17/24, across linux/mac/windows, intel/arm
+# tests scattered between Java 11/17/25, across linux/mac/windows, intel/arm
 
 
 name: Run Tests
@@ -99,7 +99,7 @@ jobs:
 
           - os: macos-13
             millargs: "'example.thirdparty[{jimfs,commons-io}].native.daemon'"
-            java-version: 24
+            java-version: 25
     steps:
       - uses: actions/checkout@v5
         with: { fetch-depth: 1 }
@@ -159,11 +159,11 @@ jobs:
             millargs: "'example.thirdparty[androidtodo].packaged.daemon'"
             setup-android: true
 
-          - java-version: 24
+          - java-version: 25
             millargs: "'example.migrating.scalalib.__.local.daemon'"
             install-sbt: true
 
-          - java-version: 24
+          - java-version: 25
             millargs: "'example.{pythonlib,javascriptlib}.__.local.daemon'"
 
           - java-version: 17
@@ -179,7 +179,7 @@ jobs:
 
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
-          - java-version: 24
+          - java-version: 25
             millargs: "'integration.invalidation.__.packaged.nodaemon'"
 
           - java-version: 17
@@ -201,7 +201,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - java-version: 24
+          - java-version: 25
             millargs: "'integration.invalidation.__.packaged.daemon'"
 
           - java-version: 11
