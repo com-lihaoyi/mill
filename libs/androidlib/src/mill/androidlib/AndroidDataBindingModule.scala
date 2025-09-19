@@ -3,7 +3,7 @@ package mill.androidlib
 import mill.androidlib.databinding.{
   AndroidDataBinding,
   ProcessResourcesArgs,
-  GenerateBaseClassesArgs
+  GenerateBindingSourcesArgs
 }
 import mill.api.Task
 import mill.api.Task.Worker
@@ -105,7 +105,7 @@ trait AndroidDataBindingModule extends AndroidKotlinModule {
     os.makeDir.all(logDir)
     os.makeDir.all(outputDir)
     os.makeDir.all(classInfoDir)
-    val args = GenerateBaseClassesArgs(
+    val args = GenerateBindingSourcesArgs(
       applicationPackageName = androidNamespace,
       layoutInfoDir = (processedLayoutXmls().path / "layout_info").toString,
       classInfoDir = classInfoDir.toString,
@@ -115,7 +115,7 @@ trait AndroidDataBindingModule extends AndroidKotlinModule {
       enableDataBinding = enableDataBinding()
     )
 
-    androidDatabindingModule().generateBaseClasses(args)
+    androidDatabindingModule().generateBindingSources(args)
 
     PathRef(Task.dest)
   }

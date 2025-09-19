@@ -24,7 +24,7 @@ class AndroidDataBindingImpl extends AndroidDataBinding {
 
   }
 
-  def generateBaseClasses(args: GenerateBaseClassesArgs): Unit = {
+  def generateBindingSources(args: GenerateBindingSourcesArgs): Unit = {
     val args0 = new LayoutInfoInput.Args(
       Seq.empty[File].toList.asJava,
       Seq.empty[File].toList.asJava,

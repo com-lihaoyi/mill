@@ -1,6 +1,6 @@
 package mill.androidlib.databinding
 
-case class GenerateBaseClassesArgs(
+case class GenerateBindingSourcesArgs(
     applicationPackageName: String,
     layoutInfoDir: String,
     dependencyClassInfoDirs: Seq[String] = Seq.empty[String],
