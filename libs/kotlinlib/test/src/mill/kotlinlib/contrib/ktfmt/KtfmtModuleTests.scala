@@ -25,37 +25,45 @@ object KtfmtModuleTests extends TestSuite {
     }
 
     test("ktfmt - kotlin style") {
-      assert(
-        checkState(
-          afterFormat(before, style = "kotlin"),
-          after / "style/kotlin"
+      if (!scala.util.Properties.isJavaAtLeast(17)) "Ktfmt requires Java 17"
+      else
+        assert(
+          checkState(
+            afterFormat(before, style = "kotlin"),
+            after / "style/kotlin"
+          )
         )
-      )
     }
 
     test("ktfmt - google style") {
-      assert(
-        checkState(
-          afterFormat(before, style = "google"),
-          after / "style/google"
+      if (!scala.util.Properties.isJavaAtLeast(17)) "Ktfmt requires Java 17"
+      else
+        assert(
+          checkState(
+            afterFormat(before, style = "google"),
+            after / "style/google"
+          )
         )
-      )
     }
 
     test("ktfmt - meta style") {
-      assert(
-        checkState(
-          afterFormat(before, style = "meta"),
-          after / "style/meta"
+      if (!scala.util.Properties.isJavaAtLeast(17)) "Ktfmt requires Java 17"
+      else
+        assert(
+          checkState(
+            afterFormat(before, style = "meta"),
+            after / "style/meta"
+          )
         )
-      )
     }
 
     test("ktfmt - dry-run") {
-      checkState(
-        afterFormat(before, format = true),
-        before
-      )
+      if (!scala.util.Properties.isJavaAtLeast(17)) "Ktfmt requires Java 17"
+      else
+        checkState(
+          afterFormat(before, format = true),
+          before
+        )
     }
 
     test("ktfmt - don't remove unused imports") {
