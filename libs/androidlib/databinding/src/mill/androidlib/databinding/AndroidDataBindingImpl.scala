@@ -1,11 +1,13 @@
 package mill.androidlib.databinding
 
-
-import android.databinding.tool.LayoutXmlProcessor
+import android.databinding.tool.store.LayoutInfoInput
+import android.databinding.tool.{BaseDataBinder, DataBindingBuilder, LayoutXmlProcessor}
 import android.databinding.tool.writer.JavaFileWriter
 
-import java.io.File
+import scala.jdk.CollectionConverters.*
+import kotlin.jvm.functions.Function2
 
+import java.io.File
 
 class AndroidDataBindingImpl extends AndroidDataBinding {
 
@@ -16,19 +18,46 @@ class AndroidDataBindingImpl extends AndroidDataBinding {
       os.Path(args.resInputDir).toIO,
       os.Path(args.resOutputDir).toIO
     )
-    processor.processResources(input, false, true)
+    processor.processResources(input, args.enableViewBinding, args.enableDataBinding)
 
     processor.writeLayoutInfoFiles(os.Path(args.layoutInfoOutputDir).toIO)
 
   }
 
   def generateBaseClasses(args: GenerateBaseClassesArgs): Unit = {
+    val args0 = new LayoutInfoInput.Args(
+      Seq.empty[File].toList.asJava,
+      Seq.empty[File].toList.asJava,
+      new File(args.layoutInfoDir),
+      args.dependencyClassInfoDirs.map(new File(_)).toList.asJava,
+      new File(args.classInfoDir),
+      new File(args.logFolder),
+      args.applicationPackageName,
+      false,
+      null,
+      args.useAndroidX,
+      args.enableViewBinding,
+      args.enableDataBinding
+    )
+
+    os.makeDir.all(os.Path(args.outputDir))
+    val fileWriter = new DataBindingBuilder().createJavaFileWriter(os.Path(args.outputDir).toIO)
+
+    new BaseDataBinder(
+      new LayoutInfoInput(args0),
+      null.asInstanceOf[Function2[String, String, String]]
+    ).generateAll(fileWriter)
 
   }
 
-  private def createXmlProcessor(args: ProcessResourcesArgs): LayoutXmlProcessor  = {
+  private def createXmlProcessor(args: ProcessResourcesArgs): LayoutXmlProcessor = {
     val fileWriter = ExecFileWriter(os.Path(args.layoutInfoOutputDir))
-    LayoutXmlProcessor(args.applicationPackageName, fileWriter, OriginalFileLookup, args.useAndroidX)
+    LayoutXmlProcessor(
+      args.applicationPackageName,
+      fileWriter,
+      OriginalFileLookup,
+      args.useAndroidX
+    )
   }
 
   private object OriginalFileLookup extends LayoutXmlProcessor.OriginalFileLookup {

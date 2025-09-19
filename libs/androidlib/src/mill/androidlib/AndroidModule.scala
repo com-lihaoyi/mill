@@ -272,6 +272,10 @@ trait AndroidModule extends JavaModule { outer =>
    */
   def androidResources: T[Seq[PathRef]] = Task.Sources("src/main/res")
 
+  def processedAndroidResources: T[Seq[PathRef]] = Task {
+    ???
+  }
+
   /**
    * Constructs the run classpath by extracting JARs from AAR files where
    * applicable using [[androidResolvedRunMvnDeps]]
@@ -561,8 +565,12 @@ trait AndroidModule extends JavaModule { outer =>
    */
   def androidCompiledModuleResources: T[Seq[PathRef]] = Task {
 
-    val moduleResources: Seq[os.Path] =
-      androidResources().map(_.path).filter(os.exists)
+    val moduleResources: Seq[os.Path] = {
+      if (enableDataBinding() || enableViewBinding()) {
+        processedAndroidResources().map(_.path)
+      } else
+        androidResources().map(_.path).filter(os.exists)
+    }
 
     val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
 
@@ -710,6 +718,14 @@ trait AndroidModule extends JavaModule { outer =>
   /** Optional baseline profile for ART rewriting */
   def baselineProfile: T[Option[PathRef]] = Task {
     None
+  }
+
+  def enableViewBinding: T[Boolean] = Task {
+    false
+  }
+
+  def enableDataBinding: T[Boolean] = Task {
+    false
   }
 
   trait AndroidTestModule extends JavaTests, AndroidModule {

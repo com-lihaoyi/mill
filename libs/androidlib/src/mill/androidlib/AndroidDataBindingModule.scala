@@ -1,6 +1,10 @@
 package mill.androidlib
 
-import mill.androidlib.databinding.{AndroidDataBinding, ProcessResourcesArgs}
+import mill.androidlib.databinding.{
+  AndroidDataBinding,
+  ProcessResourcesArgs,
+  GenerateBaseClassesArgs
+}
 import mill.api.Task
 import mill.api.Task.Worker
 import mill.javalib.Dep
@@ -8,7 +12,7 @@ import mill.kotlinlib.*
 import mill.*
 import mill.util.Jvm
 
-trait AndroidViewBindingModule extends AndroidKotlinModule {
+trait AndroidDataBindingModule extends AndroidKotlinModule {
 
   def androidDataBindingCompilerDeps: T[Seq[Dep]] = Task {
     Seq(
@@ -21,7 +25,7 @@ trait AndroidViewBindingModule extends AndroidKotlinModule {
     Jvm.createClassLoader(
       classPath = defaultResolver().classpath(
         androidDataBindingCompilerDeps() ++ Seq(
-          Dep.millProjectModule("mill-libs-androidlib-databinding"),
+          Dep.millProjectModule("mill-libs-androidlib-databinding")
         )
       ).map(_.path),
       parent = getClass.getClassLoader
@@ -34,7 +38,7 @@ trait AndroidViewBindingModule extends AndroidKotlinModule {
     ).getConstructor().newInstance().asInstanceOf[AndroidDataBinding]
   }
 
-  def generatedDatabindingSources = Task {
+  def processedLayoutXmls: T[PathRef] = Task {
     val resOutputDir = Task.dest / "resources"
     val layoutInfoOutputDir = Task.dest / "layout_info"
 
@@ -44,10 +48,29 @@ trait AndroidViewBindingModule extends AndroidKotlinModule {
       resInputDir = androidResources().head.path.toString,
       resOutputDir = resOutputDir.toString,
       layoutInfoOutputDir = layoutInfoOutputDir.toString,
+      enableViewBinding = enableViewBinding(),
+      enableDataBinding = enableDataBinding()
     )
 
     androidDatabindingModule().processResources(args)
 
     PathRef(Task.dest)
   }
+
+  def generatedBindingClasses: T[PathRef] = Task {
+    val args = GenerateBaseClassesArgs(
+      applicationPackageName = androidNamespace,
+      layoutInfoDir = (processedLayoutXmls().path / "layout_info").toString,
+      classInfoDir = (Task.dest / "class_info").toString,
+      outputDir = (Task.dest / "generated").toString,
+      logFolder = (Task.dest / "logs").toString,
+      enableViewBinding = enableViewBinding(),
+      enableDataBinding = enableDataBinding()
+    )
+
+    androidDatabindingModule().generateBaseClasses(args)
+
+    PathRef(Task.dest)
+  }
+
 }

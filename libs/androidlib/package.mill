@@ -86,16 +86,16 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       Deps.androidDataBindingCompiler,
       Deps.androidDataBindingCompilerCommon,
       Deps.osLib,
+      mvn"org.jetbrains.kotlin:kotlin-stdlib:1.9.10"
     )
 
     override def mvnDeps = Seq(
       mvn"com.squareup:javapoet:1.13.0",
-      mvn"javax.xml.bind:jaxb-api:2.3.1",
+      mvn"javax.xml.bind:jaxb-api:2.3.1"
     )
 
   }
 
-  object `databinding-api` extends MillAndroidModule {
-  }
+  object `databinding-api` extends MillAndroidModule {}
 
 }
