@@ -7,7 +7,7 @@ import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
-import mill.api.{MillException, Result}
+import mill.api.{MillException, Result, Discover}
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
 import mill.api.daemon.internal.bsp.{
   BspBuildTarget,
@@ -18,6 +18,7 @@ import mill.api.daemon.internal.bsp.{
 }
 import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.javalib.*
+import mill.simple.SimpleModule
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
 import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
 import mill.javalib.api.CompilationResult
@@ -68,75 +69,8 @@ trait JavaModule
     () => genIdeaInternalExt()
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
-
-  trait JavaTests extends JavaModule with TestModule {
-    // Run some consistence checks
-    hierarchyChecks()
-
-    override def resources = super[JavaModule].resources
-    override def moduleDeps: Seq[JavaModule] = Seq(outer)
-    override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-      outer.repositoriesTask()
-    }
-
-    override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
-      outer.resolutionCustomizer
-
-    override def javacOptions: T[Seq[String]] = Task { outer.javacOptions() }
-    override def jvmWorker: ModuleRef[JvmWorkerModule] = outer.jvmWorker
-
-    def jvmId = outer.jvmId
-
-    def jvmIndexVersion = outer.jvmIndexVersion
-
-    /**
-     * Optional custom Java Home for the JvmWorker to use
-     *
-     * If this value is None, then the JvmWorker uses the same Java used to run
-     * the current mill instance.
-     */
-    def javaHome = outer.javaHome
-
-    override def skipIdea: Boolean = outer.skipIdea
-    override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
-    override def sourcesFolders = outer.sourcesFolders
-
-    override def bomMvnDeps = Task[Seq[Dep]] {
-      super.bomMvnDeps() ++
-        outer.bomMvnDeps()
-    }
-    override def depManagement = Task[Seq[Dep]] {
-      super.depManagement() ++
-        outer.depManagement()
-    }
-
-    /**
-     * JavaModule and its derivatives define inner test modules.
-     * To avoid unexpected misbehavior due to the use of the wrong inner test trait
-     * we apply some hierarchy consistency checks.
-     * If, for some reason, those are too restrictive to you, you can override this method.
-     * @throws MillException
-     */
-    protected def hierarchyChecks(): Unit = {
-      val outerInnerSets = Seq(
-        ("mill.scalajslib.ScalaJSModule", "ScalaJSTests"),
-        ("mill.scalanativelib.ScalaNativeModule", "ScalaNativeTests"),
-        ("mill.scalalib.SbtModule", "SbtTests"),
-        ("mill.scalalib.MavenModule", "MavenTests")
-      )
-      for {
-        (mod, testModShort) <- outerInnerSets
-        testMod = s"${mod}$$${testModShort}"
-      }
-        try {
-          if (Class.forName(mod).isInstance(outer) && !Class.forName(testMod).isInstance(this))
-            throw new MillException(
-              s"$outer is a `${mod}`. $this needs to extend `${testModShort}`."
-            )
-        } catch {
-          case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
-        }
-    }
+  trait JavaTests extends JavaModule.Tests {
+    def outerRef = ModuleRef(JavaModule.this)
   }
 
   def defaultTask(): String = "run"
@@ -1535,6 +1469,87 @@ trait JavaModule
 }
 
 object JavaModule {
+  trait Tests extends JavaModule with TestModule {
+    private[mill] def outerRef: ModuleRef[JavaModule]
+    // Run some consistence checks
+    hierarchyChecks()
+
+    override def resources = super[JavaModule].resources
+
+    override def moduleDeps: Seq[JavaModule] = Seq(outerRef())
+
+    override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+      outerRef().repositoriesTask()
+    }
+
+    override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
+      outerRef().resolutionCustomizer
+
+    override def javacOptions: T[Seq[String]] = Task {
+      outerRef().javacOptions()
+    }
+
+    override def jvmWorker: ModuleRef[JvmWorkerModule] = outerRef().jvmWorker
+
+    def jvmId = outerRef().jvmId
+
+    def jvmIndexVersion = outerRef().jvmIndexVersion
+
+    /**
+     * Optional custom Java Home for the JvmWorker to use
+     *
+     * If this value is None, then the JvmWorker uses the same Java used to run
+     * the current mill instance.
+     */
+    def javaHome = outerRef().javaHome
+
+    override def skipIdea: Boolean = outerRef().skipIdea
+
+    override def runUseArgsFile: T[Boolean] = Task {
+      outerRef().runUseArgsFile()
+    }
+
+    override def sourcesFolders = outerRef().sourcesFolders
+
+    override def bomMvnDeps = Task[Seq[Dep]] {
+      super.bomMvnDeps() ++
+        outerRef().bomMvnDeps()
+    }
+
+    override def depManagement = Task[Seq[Dep]] {
+      super.depManagement() ++
+        outerRef().depManagement()
+    }
+
+    /**
+     * JavaModule and its derivatives define inner test modules.
+     * To avoid unexpected misbehavior due to the use of the wrong inner test trait
+     * we apply some hierarchy consistency checks.
+     * If, for some reason, those are too restrictive to you, you can override this method.
+     *
+     * @throws MillException
+     */
+    protected def hierarchyChecks(): Unit = {
+      val outerInnerSets = Seq(
+        ("mill.scalajslib.ScalaJSModule", "ScalaJSTests"),
+        ("mill.scalanativelib.ScalaNativeModule", "ScalaNativeTests"),
+        ("mill.scalalib.SbtModule", "SbtTests"),
+        ("mill.scalalib.MavenModule", "MavenTests")
+      )
+      for {
+        (mod, testModShort) <- outerInnerSets
+        testMod = s"${mod}$$${testModShort}"
+      }
+        try {
+          if (Class.forName(mod).isInstance(outerRef()) && !Class.forName(testMod).isInstance(this))
+            throw new MillException(
+              s"${outerRef()} is a `${mod}`. $this needs to extend `${testModShort}`."
+            )
+        } catch {
+          case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
+        }
+    }
+  }
 
   /**
    * An in-memory [[coursier.Repository]] that exposes the passed projects
@@ -1585,6 +1600,59 @@ object JavaModule {
   private lazy val removeInternalVersionRegex =
     (":" + Regex.quote(JavaModule.internalVersion) + "(\\w*$|\\n)").r
 
+  class Simple(val simpleConf: SimpleModule.Config)
+      extends JavaModule.Base {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  trait Base extends SimpleModule with JavaModule with NativeImageModule {
+    override def moduleDeps = simpleConf.moduleDeps.map(_.asInstanceOf[JavaModule])
+
+    override def sources =
+      if (os.isDir(simpleConf.simpleModulePath)) super.sources else Task.Sources()
+
+    def scriptSource = Task.Source(simpleConf.simpleModulePath)
+
+    override def allSources = {
+      if (os.isDir(simpleConf.simpleModulePath)) super.allSources
+      else Task {
+        sources() ++ Seq(scriptSource())
+      }
+    }
+  }
+
+  class Publish(val simpleConf: SimpleModule.Config)
+      extends JavaModule.Base, PublishModule {
+    override lazy val millDiscover = Discover[this.type]
+
+    def pomSettings = Task {
+      ???
+    }
+
+    def publishVersion = Task {
+      ???
+    }
+
+  }
+
+  trait Test0 extends JavaModule.Base, JavaModule.Tests {
+    def outerRef = ModuleRef(simpleConf.moduleDeps.head.asInstanceOf[JavaModule])
+  }
+
+  class TestNg(val simpleConf: SimpleModule.Config) extends Test0,
+        TestModule.TestNg {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  class Junit4(val simpleConf: SimpleModule.Config) extends Test0,
+        TestModule.Junit4 {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  class Junit5(val simpleConf: SimpleModule.Config) extends Test0,
+        TestModule.Junit5 {
+    override lazy val millDiscover = Discover[this.type]
+  }
 }
 
 /**

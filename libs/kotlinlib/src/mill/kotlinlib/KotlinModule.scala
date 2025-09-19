@@ -10,12 +10,14 @@ import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.api.Result
 import mill.api.ModuleRef
+import mill.api.Discover
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
 import mill.javalib.api.internal.JvmWorkerApi
 import mill.api.daemon.internal.{CompileProblemReporter, KotlinModuleApi, internal}
 import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
+import mill.simple.SimpleModule
 import mill.util.{Jvm, Version}
 import mill.*
 
@@ -476,28 +478,31 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   /**
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
-  trait KotlinTests extends JavaTests with KotlinModule {
-
-    override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
-    override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
-    override def kotlinExplicitApi: T[Boolean] = false
-    override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
-    override def kotlincPluginMvnDeps: T[Seq[Dep]] =
-      Task { outer.kotlincPluginMvnDeps() }
-      // TODO: make Xfriend-path an explicit setting
-    override def kotlincOptions: T[Seq[String]] = Task {
-      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
-        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
-    }
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
-      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
-    override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
+  trait KotlinTests extends KotlinModule.Tests {
+    def outerRef = ModuleRef(KotlinModule.this)
   }
 
 }
 
 object KotlinModule {
+  trait Tests extends JavaModule.Tests with KotlinModule {
+    def outerRef: ModuleRef[KotlinModule]
 
+    override def kotlinLanguageVersion: T[String] = outerRef().kotlinLanguageVersion()
+    override def kotlinApiVersion: T[String] = outerRef().kotlinApiVersion()
+    override def kotlinExplicitApi: T[Boolean] = false
+    override def kotlinVersion: T[String] = Task { outerRef().kotlinVersion() }
+    override def kotlincPluginMvnDeps: T[Seq[Dep]] =
+      Task { outerRef().kotlincPluginMvnDeps() }
+      // TODO: make Xfriend-path an explicit setting
+    override def kotlincOptions: T[Seq[String]] = Task {
+      outerRef().kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
+        Seq(s"-Xfriend-paths=${outerRef().compile().classes.path.toString()}")
+    }
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
+      Task.Anon { outerRef().kotlinUseEmbeddableCompiler() }
+    override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outerRef().kotlincUseBtApi() }
+  }
   private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
     params.addVariantAttributes(
       "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
@@ -505,4 +510,36 @@ object KotlinModule {
     )
   }
 
+  class Simple(val simpleConf: SimpleModule.Config)
+      extends KotlinModule.Base {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  trait Base extends JavaModule.Base, KotlinModule {
+    def kotlinVersion = "1.9.24"
+  }
+
+  class Publish(simpleConf: SimpleModule.Config)
+      extends JavaModule.Publish(simpleConf), KotlinModule.Base {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  trait Test0 extends KotlinModule.Base, KotlinModule.Tests {
+    def outerRef = ModuleRef(simpleConf.moduleDeps.head.asInstanceOf[KotlinModule])
+  }
+
+  class TestNg(val simpleConf: SimpleModule.Config)
+      extends Test0, TestModule.TestNg {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  class Junit4(val simpleConf: SimpleModule.Config)
+      extends Test0, TestModule.Junit4 {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  class Junit5(val simpleConf: SimpleModule.Config)
+      extends Test0, TestModule.Junit5 {
+    override lazy val millDiscover = Discover[this.type]
+  }
 }

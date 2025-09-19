@@ -1,0 +1,68 @@
+// Mill also allows you to run single-file {language} programs (often referred to as _scripts_)
+// easily from the command-line,
+// even those that contain third-party dependencies or other such configuration. These can be
+// useful as a replacement for Bash scripts, letting you write small scripts or programs
+// in {language} with full access to third-party libraries and other build-tool features.
+//
+// For example, given the {language} program below, it can be run directly using Mill:
+
+//// SNIPPET:FILE
+/** See Also: Foo.scala */
+
+/** Usage
+> ./mill Foo.scala --text hello
+compiling 1 Scala source to...
+<h1>hello</h1>
+*/
+
+//// SNIPPET:END
+
+// The `./mill Foo.{language-ext}` syntax is shorthand for `./mill Foo.{language-ext}:run`.
+// You can also call other tasks on your script modules, such as `Foo.{langauge-ext}:assembly`
+// below:
+
+//// SNIPPET:MORE
+
+/** Usage
+> ./mill Foo.scala:run --text hello
+<h1>hello</h1>
+*/
+
+/** Usage
+> ./mill show Foo.scala:assembly # show the output of the assembly task
+".../out/Foo.scala/assembly.dest/out.jar"
+
+> java -jar ./out/Foo.scala/assembly.dest/out.jar --text hello
+<h1>hello</h1>
+
+> ./out/Foo.scala/assembly.dest/out.jar --text hello # mac/linux
+<h1>hello</h1>
+
+*/
+
+//// SNIPPET:END
+
+// Script files can have test suites, usually written in a separate test script. The test script
+// specifies what script it tests via `moduleDeps`, and needs to inherit from a test script
+// class via `extends` as shown below:
+
+//// SNIPPET:TEST
+/** See Also: FooTests.scala */
+
+/** Usage
+> ./mill FooTests.scala
+...
++ FooTests...simple ...  "<h1>hello</h1>"
++ FooTests...escaping ...  "<h1>&lt;hello&gt;</h1>"
+
+> ./mill FooTests.scala:testForked # specifying the test task explicitly
+
+*/
+
+//// SNIPPET:END
+
+// For more details on Mill script files, see
+// xref:{language-small}lib/module-config.adoc#_configuring_single_file_projects[Configuring Single-File Projects]
+// The rest of the examples below discuss the Mill config for building larger projects
+// beyond the single-file project format discussed above, using a dedicated `build.mill`
+// file to provide additional flexibility in setting up your project.

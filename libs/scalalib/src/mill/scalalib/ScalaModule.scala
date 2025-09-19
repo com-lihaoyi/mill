@@ -2,9 +2,10 @@ package mill
 package scalalib
 
 import mill.util.JarManifest
-import mill.api.{BuildCtx, DummyInputStream, ModuleRef, PathRef, Result, Task}
+import mill.api.{BuildCtx, DummyInputStream, ModuleRef, PathRef, Result, Task, Discover}
 import mill.util.BuildInfo
 import mill.util.Jvm
+import mill.simple.SimpleModule
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
@@ -25,14 +26,8 @@ import scala.util.Using
 trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     with ScalaModuleApi { outer =>
 
-  trait ScalaTests extends JavaTests with ScalaModule {
-    override def scalaOrganization: T[String] = outer.scalaOrganization()
-    override def scalaVersion: T[String] = outer.scalaVersion()
-    override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
-    override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
-    override def scalacOptions: T[Seq[String]] = outer.scalacOptions()
-    override def mandatoryScalacOptions: T[Seq[String]] =
-      Task { super.mandatoryScalacOptions() }
+  trait ScalaTests extends ScalaModule.Tests {
+    def outerRef = ModuleRef(ScalaModule.this)
   }
 
   private[mill] override lazy val bspExt = {
@@ -665,4 +660,93 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     // This is the same as `super.semanticDbData()`, but we can't call it directly
     // because then it generates a forwarder which breaks binary compatibility.
     Task { semanticDbDataDetailed().semanticDbFiles }
+}
+
+object ScalaModule {
+  trait Tests extends JavaModule.Tests with ScalaModule {
+    private[mill] def outerRef: ModuleRef[ScalaModule]
+
+    override def scalaOrganization: T[String] = outerRef().scalaOrganization()
+
+    override def scalaVersion: T[String] = outerRef().scalaVersion()
+
+    override def scalacPluginMvnDeps: T[Seq[Dep]] = outerRef().scalacPluginMvnDeps()
+
+    override def scalacPluginClasspath: T[Seq[PathRef]] = outerRef().scalacPluginClasspath()
+
+    override def scalacOptions: T[Seq[String]] = outerRef().scalacOptions()
+
+    override def mandatoryScalacOptions: T[Seq[String]] =
+      Task {
+        super.mandatoryScalacOptions()
+      }
+  }
+
+  class Simple(val simpleConf: SimpleModule.Config)
+      extends ScalaModule.Base {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  trait Base extends JavaModule.Base, ScalaModule {
+    def scalaVersion = mill.util.BuildInfo.scalaVersion
+  }
+
+  class Publish(simpleConf: SimpleModule.Config)
+      extends JavaModule.Publish(simpleConf), ScalaModule.Base {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  trait Test0 extends Base, ScalaModule.Tests {
+    def outerRef = ModuleRef(simpleConf.moduleDeps.head.asInstanceOf[ScalaModule])
+  }
+
+  class TestNg(val simpleConf: SimpleModule.Config)
+      extends Test0, TestModule.TestNg {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  class Junit4(val simpleConf: SimpleModule.Config)
+      extends Test0, TestModule.Junit4 {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  class Junit5(val simpleConf: SimpleModule.Config)
+      extends Test0, TestModule.Junit5 {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  class ScalaTest(val simpleConf: SimpleModule.Config)
+      extends Test0, TestModule.ScalaTest {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  class Specs2(val simpleConf: SimpleModule.Config)
+      extends Test0, TestModule.Specs2 {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  class Utest(val simpleConf: SimpleModule.Config)
+      extends Test0, TestModule.Utest {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  class Munit(val simpleConf: SimpleModule.Config)
+      extends Test0, TestModule.Munit {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  class Weaver(val simpleConf: SimpleModule.Config)
+      extends Test0, TestModule.Weaver {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  class ZioTest(val simpleConf: SimpleModule.Config)
+      extends Test0, TestModule.ZioTest {
+    override lazy val millDiscover = Discover[this.type]
+  }
+
+  class ScalaCheck(val simpleConf: SimpleModule.Config)
+      extends Test0, TestModule.ScalaCheck {
+    override lazy val millDiscover = Discover[this.type]
+  }
 }
