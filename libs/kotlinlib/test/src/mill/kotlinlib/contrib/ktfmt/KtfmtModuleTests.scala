@@ -81,13 +81,14 @@ object KtfmtModuleTests extends TestSuite {
     }
 
     test("formatAll") {
-
-      assert(
-        checkState(
-          afterFormatAll(before),
-          after / "style/kotlin"
+      if (!scala.util.Properties.isJavaAtLeast(17)) "Ktfmt requires Java 17"
+      else
+        assert(
+          checkState(
+            afterFormatAll(before),
+            after / "style/kotlin"
+          )
         )
-      )
     }
   }
 
