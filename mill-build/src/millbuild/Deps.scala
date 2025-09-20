@@ -185,7 +185,7 @@ object Deps {
   val gson = mvn"com.google.code.gson:gson:2.10.1"
   val fansi = mvn"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams =
-    mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.1".withDottyCompat(scalaVersion)
+    mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.15.0".withDottyCompat(scalaVersion)
   val requests = mvn"com.lihaoyi::requests:0.9.0"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.18"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"
