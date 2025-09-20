@@ -242,7 +242,7 @@ object Deps {
     val kotlinxHtmlJvm = mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
     val koverCli = mvn"org.jetbrains.kotlinx:kover-cli:$koverVersion"
     val koverJvmAgent = mvn"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
-    val ktfmt = mvn"com.facebook:ktfmt:0.53"
+    val ktfmt = mvn"com.facebook:ktfmt:0.58"
     val ktlint = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
     val palantirFormat = mvn"com.palantir.javaformat:palantir-java-format:2.74.0"
     val proguard = mvn"com.guardsquare:proguard-base:7.7.0"
