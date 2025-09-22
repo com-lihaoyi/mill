@@ -9,7 +9,7 @@ import kotlin.jvm.functions.Function2
 
 import java.io.File
 
-class AndroidDataBindingImpl extends AndroidDataBinding {
+class AndroidDataBindingImpl extends AndroidDataBindingWorker {
 
   override def processResources(args: ProcessResourcesArgs): Unit = {
     val processor = createXmlProcessor(args)
