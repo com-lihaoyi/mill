@@ -110,6 +110,10 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     case false => super.generatedSources()
   }
 
+  /**
+   * If data binding or view binding is enabled, aapt2 needs the processed resources
+   * https://android.googlesource.com/platform/frameworks/data-binding/+/85dd11e6e0da7a35ca0c154beaf02b7f7217bd2f/exec/src/main/java/android/databinding/cli/ProcessXmlOptions.java#39
+   */
   override def androidCompiledModuleResources: T[Seq[PathRef]] = isBindingEnabled match {
     case true => Task {
         val moduleResources = Seq(processedLayoutXmls().path / "resources")

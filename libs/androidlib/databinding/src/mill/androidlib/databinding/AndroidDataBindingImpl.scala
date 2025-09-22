@@ -9,8 +9,16 @@ import kotlin.jvm.functions.Function2
 
 import java.io.File
 
+/**
+ * DataBinding implementation
+ * https://android.googlesource.com/platform/frameworks/data-binding/+/85dd11e6e0da7a35ca0c154beaf02b7f7217bd2f/exec/src/main/java/android/databinding/AndroidDataBinding.kt
+ */
+
 class AndroidDataBindingImpl extends AndroidDataBindingWorker {
 
+  /**
+   * Process Android resources to generate layout info files
+   */
   override def processResources(args: ProcessResourcesArgs): Unit = {
     val processor = createXmlProcessor(args)
     val input = LayoutXmlProcessor.ResourceInput(
@@ -24,6 +32,9 @@ class AndroidDataBindingImpl extends AndroidDataBindingWorker {
 
   }
 
+  /**
+   * Generate binding sources from layout info files
+   */
   def generateBindingSources(args: GenerateBindingSourcesArgs): Unit = {
     val args0 = new LayoutInfoInput.Args(
       Seq.empty[File].toList.asJava,
@@ -43,9 +54,11 @@ class AndroidDataBindingImpl extends AndroidDataBindingWorker {
     os.makeDir.all(os.Path(args.outputDir))
     val fileWriter = new DataBindingBuilder().createJavaFileWriter(os.Path(args.outputDir).toIO)
 
+    val getRPackage: Function2[String, String, String] = null
+
     new BaseDataBinder(
       new LayoutInfoInput(args0),
-      null.asInstanceOf[Function2[String, String, String]]
+      getRPackage
     ).generateAll(fileWriter)
 
   }
