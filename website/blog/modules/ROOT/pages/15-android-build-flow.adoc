@@ -1,4 +1,4 @@
-= How does Mill build Android apps?
+= Mill as an Alternative Android Build Tool
 
 // tag::header[]
 :author: Vasilis Nicolaou
