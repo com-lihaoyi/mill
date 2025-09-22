@@ -1,0 +1,13 @@
+= Android Native Example
+:page-aliases: android_native_example.adoc
+
+This page provides an example of using Mill to build an Android application
+that utilizes Android Native for based on the official example of
+https://github.com/android/ndk-samples/tree/main/endless-tunnel[Endless Tunnel].
+
+== Android Mill Setup for building Endless Tunnel with Android Native
+
+include::partial$example/thirdparty/android-endless-tunnel.adoc[]
+
+This example demonstrates how to build an Android app that uses Hilt for dependency injection,
+translating the original Gradle configuration to Mill.

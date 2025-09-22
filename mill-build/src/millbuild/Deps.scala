@@ -185,7 +185,7 @@ object Deps {
   val gson = mvn"com.google.code.gson:gson:2.10.1"
   val fansi = mvn"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams =
-    mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.1".withDottyCompat(scalaVersion)
+    mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.15.0".withDottyCompat(scalaVersion)
   val requests = mvn"com.lihaoyi::requests:0.9.0"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.18"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"
@@ -223,7 +223,7 @@ object Deps {
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
   val sbt = mvn"org.scala-sbt:sbt:1.10.10"
-  val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:2.9"
+  val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:2.10"
   val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.2.0"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
   // subsequent releases require Java 17+
@@ -246,9 +246,9 @@ object Deps {
     val kotlinxHtmlJvm = mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
     val koverCli = mvn"org.jetbrains.kotlinx:kover-cli:$koverVersion"
     val koverJvmAgent = mvn"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
-    val ktfmt = mvn"com.facebook:ktfmt:0.53"
+    val ktfmt = mvn"com.facebook:ktfmt:0.58"
     val ktlint = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
-    val palantirFormat = mvn"com.palantir.javaformat:palantir-java-format:2.51.0"
+    val palantirFormat = mvn"com.palantir.javaformat:palantir-java-format:2.74.0"
     val proguard = mvn"com.guardsquare:proguard-base:7.7.0"
     val revApi = mvn"org.revapi:revapi-standalone:0.12.0"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
