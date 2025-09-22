@@ -19,7 +19,8 @@ import mill.constants.*;
 
 public class MillProcessLauncher {
 
-  static int launchMillNoDaemon(String[] args, OutFolderMode outMode, String[] runnerClasspath, String mainClass)
+  static int launchMillNoDaemon(
+      String[] args, OutFolderMode outMode, String[] runnerClasspath, String mainClass)
       throws Exception {
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
     final Path processDir =
