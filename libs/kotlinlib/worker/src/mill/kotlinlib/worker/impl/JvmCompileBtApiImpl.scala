@@ -42,7 +42,7 @@ class JvmCompileBtApiImpl() extends Compiler {
       compilationConfig,
 //      KotlinInterop.toKotlinList(sources.map(_.toIO).toArray),
 //      KotlinInterop.toKotlinList(args.toArray)
-      KotlinInterop.toKotlinList(Array()),
+      KotlinInterop.toKotlinList(Array[java.io.File]()),
       KotlinInterop.toKotlinList(allArgsWithSources.toArray)
     )
 
