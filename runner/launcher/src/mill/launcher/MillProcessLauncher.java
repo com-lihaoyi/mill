@@ -19,7 +19,7 @@ import mill.constants.*;
 
 public class MillProcessLauncher {
 
-  static int launchMillNoDaemon(String[] args, OutFolderMode outMode, String[] runnerClasspath)
+  static int launchMillNoDaemon(String[] args, OutFolderMode outMode, String[] runnerClasspath, String mainClass)
       throws Exception {
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
     final Path processDir =
@@ -29,7 +29,7 @@ public class MillProcessLauncher {
     l.addAll(millLaunchJvmCommand(outMode, runnerClasspath));
     Map<String, String> propsMap = ClientUtil.getUserSetProperties();
     for (String key : propsMap.keySet()) l.add("-D" + key + "=" + propsMap.get(key));
-    l.add("mill.daemon.MillNoDaemonMain");
+    l.add(mainClass);
     l.add(processDir.toAbsolutePath().toString());
     l.add(outMode.asString());
     l.addAll(millOpts(outMode));
