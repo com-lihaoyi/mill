@@ -18,7 +18,7 @@ object Settings {
   )
   val docTags: Seq[String] = Seq(
     "0.11.13",
-    "0.12.14",
+    "0.12.16",
     "1.0.5"
   )
   val mimaBaseVersions: Seq[String] = Seq("1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5")
