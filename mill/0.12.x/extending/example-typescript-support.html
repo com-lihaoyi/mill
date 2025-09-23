@@ -610,7 +610,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">0.12.16</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -626,7 +626,7 @@
           <a href="../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
         </li>
         <li class="version is-current">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">0.12.16</a>
         </li>
         <li class="version">
           <a href="../../0.11.x/index.html">0.11.13</a>
@@ -692,7 +692,7 @@ tool and package repository</p>
 library necessary for accessing Node.js APIs:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-extending-typescript-1-hello-typescript.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/1-hello-typescript">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-extending-typescript-1-hello-typescript.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/extending/typescript/1-hello-typescript">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -825,7 +825,7 @@ Again we return a <code>PathRef</code> to the <code>Task.dest</code> folder we o
 the <code>.ts</code> files in out <code>src/</code> folder:</p>
 </div>
 <div class="listingblock">
-<div class="title">src/hello.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/1-hello-typescript/src/hello.ts">browse</a>)</div>
+<div class="title">src/hello.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/extending/typescript/1-hello-typescript/src/hello.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User {
     firstName: string
@@ -987,7 +987,7 @@ we wrote above, and turn it into a re-usable <code>TypeScriptModule</code>.</p>
 <code>trait TypeScriptModule extends Module</code> wrapper:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-extending-typescript-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/2-typescript-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-extending-typescript-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/extending/typescript/2-typescript-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1031,7 +1031,7 @@ object qux extends TypeScriptModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/2-typescript-modules/foo/src/foo.ts">browse</a>)</div>
+<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/extending/typescript/2-typescript-modules/foo/src/foo.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User { firstName: string }
 
@@ -1041,7 +1041,7 @@ console.log(&quot;Hello &quot; + user.firstName + &quot; Foo&quot;)</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/2-typescript-modules/foo/bar/src/bar.ts">browse</a>)</div>
+<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/extending/typescript/2-typescript-modules/foo/bar/src/bar.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User { firstName: string }
 
@@ -1051,7 +1051,7 @@ console.log(&quot;Hello &quot; + user.firstName + &quot; Bar&quot;)</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/2-typescript-modules/qux/src/qux.ts">browse</a>)</div>
+<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/extending/typescript/2-typescript-modules/qux/src/qux.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User { firstName: string }
 
@@ -1085,11 +1085,6 @@ but they are each independent and do not depend on one another.</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 522.6,-363 522.6,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-116 504.16,-116 504.16,-8 14.44,-8"></polygon>
-<text text-anchor="middle" x="259.3" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 510.6,-351 510.6,-124 8,-124"></polygon>
@@ -1099,6 +1094,11 @@ but they are each independent and do not depend on one another.</p>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 502.6,-318 502.6,-210 16,-210"></polygon>
 <text text-anchor="middle" x="259.3" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-116 504.16,-116 504.16,-8 14.44,-8"></polygon>
+<text text-anchor="middle" x="259.3" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">
@@ -1334,7 +1334,7 @@ use in <code>compile</code>, and <code>compiledJavascript</code> for use in <cod
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-extending-typescript-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/3-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-extending-typescript-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/extending/typescript/3-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1419,7 +1419,7 @@ object qux extends TypeScriptModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/3-module-deps/foo/src/foo.ts">browse</a>)</div>
+<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/extending/typescript/3-module-deps/foo/src/foo.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User {
     firstName: string
@@ -1431,14 +1431,14 @@ export {User}</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/3-module-deps/foo/bar/src/bar.ts">browse</a>)</div>
+<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/extending/typescript/3-module-deps/foo/bar/src/bar.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">const defaultRole = &quot;Professor&quot;
 export {defaultRole}</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/3-module-deps/qux/src/qux.ts">browse</a>)</div>
+<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/extending/typescript/3-module-deps/qux/src/qux.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import {User} from &quot;foo/foo.js&quot;
 import {defaultRole} from &quot;foo/bar/bar.js&quot;
@@ -1471,6 +1471,11 @@ ultimately <code>qux.run</code>):</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 670.01,-363 670.01,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="139.53,-8 139.53,-116 658.01,-116 658.01,-8 139.53,-8"></polygon>
+<text text-anchor="middle" x="398.77" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 537.02,-351 537.02,-124 8,-124"></polygon>
@@ -1480,11 +1485,6 @@ ultimately <code>qux.run</code>):</p>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 529.02,-318 529.02,-210 16,-210"></polygon>
 <text text-anchor="middle" x="272.51" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="139.53,-8 139.53,-116 658.01,-116 658.01,-8 139.53,-8"></polygon>
-<text text-anchor="middle" x="398.77" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">
@@ -1730,7 +1730,7 @@ into a <code>def prepareRun</code> task.</p>
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-extending-typescript-4-npm-deps-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/4-npm-deps-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-extending-typescript-4-npm-deps-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/extending/typescript/4-npm-deps-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1853,6 +1853,11 @@ additional <code>npmDeps</code> tasks upstream and the <code>bundle</code> tasks
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 701.13,-363 701.13,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="145.37,-8 145.37,-116 689.13,-116 689.13,-8 145.37,-8"></polygon>
+<text text-anchor="middle" x="417.25" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 558.42,-351 558.42,-124 8,-124"></polygon>
@@ -1862,11 +1867,6 @@ additional <code>npmDeps</code> tasks upstream and the <code>bundle</code> tasks
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 550.42,-318 550.42,-210 16,-210"></polygon>
 <text text-anchor="middle" x="283.21" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="145.37,-8 145.37,-116 689.13,-116 689.13,-8 145.37,-8"></polygon>
-<text text-anchor="middle" x="417.25" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">

@@ -610,7 +610,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">0.12.16</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -626,7 +626,7 @@
           <a href="../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
         </li>
         <li class="version is-current">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">0.12.16</a>
         </li>
         <li class="version">
           <a href="../../0.11.x/index.html">0.11.13</a>
@@ -679,7 +679,7 @@ property. This is available within any task, and gives you access to the
 each task is lazily initialized when <code>Task.dest</code> is referenced and used:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-depth-sandbox-1-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/1-task">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-depth-sandbox-1-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/depth/sandbox/1-task">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -777,7 +777,7 @@ following build with two modules <code>foo</code> and <code>bar</code>, and thei
 <code>foo.test</code> and <code>bar.test</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/2-test">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/depth/sandbox/2-test">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -799,7 +799,7 @@ logic in their corresponding non-test module, but also do some basic filesystem
 operations at the same time, writing out a <code>generated.html</code> file and then reading it:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/2-test/foo/src/foo/Foo.java">browse</a>)</div>
+<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/depth/sandbox/2-test/foo/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -811,7 +811,7 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/2-test/foo/test/src/foo/FooTests.java">browse</a>)</div>
+<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/depth/sandbox/2-test/foo/test/src/foo/FooTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -832,7 +832,7 @@ public class FooTests {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/src/bar/Bar.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/2-test/bar/src/bar/Bar.java">browse</a>)</div>
+<div class="title">bar/src/bar/Bar.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/depth/sandbox/2-test/bar/src/bar/Bar.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package bar;
 
@@ -844,7 +844,7 @@ public class Bar {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/test/src/bar/BarTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/2-test/bar/test/src/bar/BarTests.java">browse</a>)</div>
+<div class="title">bar/test/src/bar/BarTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/depth/sandbox/2-test/bar/test/src/bar/BarTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package bar;
 
@@ -950,7 +950,7 @@ code auto-formatters, auto-fixers, auto-updaters. etc.</p>
 <p><code>Task.workspace</code> can be used in tasks:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-depth-sandbox-3-breaking.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/3-breaking">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-depth-sandbox-3-breaking.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/depth/sandbox/3-breaking">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -975,7 +975,7 @@ workspace root via the <code>MILL_WORKSPACE_ROOT</code> environment variable</p>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/3-breaking/foo/src/foo/Foo.java">browse</a>)</div>
+<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/depth/sandbox/3-breaking/foo/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -987,7 +987,7 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/3-breaking/foo/test/src/foo/FooTests.java">browse</a>)</div>
+<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/depth/sandbox/3-breaking/foo/test/src/foo/FooTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
