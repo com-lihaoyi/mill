@@ -1,0 +1,59 @@
+//// SNIPPET:ALL
+// Mill's default folder layout of `foo/src/` and `foo/test/src` differs from that
+// of Maven or Gradle's `foo/src/main/groovy/` and `foo/src/test/groovy/`. If you are
+// migrating an existing codebase, you can use Mill's `GroovyMavenModule` and
+// `GroovyMavenTests` as shown below to preserve filesystem compatibility with an existing
+// Maven or Gradle build:
+
+package build
+import mill.*, groovylib.*
+
+object foo extends GroovyMavenModule {
+
+  def groovyVersion = "5.0.1"
+
+  object test extends GroovyMavenTests with TestModule.Junit5 {
+  }
+  object integration extends GroovyMavenTests with TestModule.Junit5 {
+  }
+}
+
+// `GroovyMavenModule` is a variant of `GroovyModule`
+// that uses the more verbose folder layout of Maven, `sbt`, and other tools:
+//
+// - `foo/src/main/java`
+// - `foo/src/main/groovy`
+// - `foo/src/test/java`
+// - `foo/src/test/groovy`
+// - `foo/src/integration/java`
+// - `foo/src/integration/groovy`
+//
+// Rather than Mill's
+//
+// - `foo/src`
+// - `foo/test/src`
+//
+// This is especially useful if you are migrating from Maven to Mill (or vice
+// versa), during which a particular module may be built using both Maven and
+// Mill at the same time
+
+/** Usage
+
+> ./mill foo.compile
+Compiling 1 Groovy source...
+
+> ./mill foo.test.compile
+Compiling 1 Groovy source...
+
+> ./mill foo.test.testForked
+...foo.FooTests hello ...
+
+> ./mill foo.test
+...foo.FooTests hello ...
+
+> ./mill foo.integration
+...foo.FooIntegrationTests hello ...
+
+*/
+
+// For more details on migrating from other build tools, see xref:migrating/migrating.adoc[]

@@ -1,0 +1,124 @@
+//// SNIPPET:BUILD
+
+package build
+import mill.*, groovylib.*
+
+object foo extends GroovyModule {
+  def groovyVersion = "5.0.1"
+
+  def mvnDeps = Seq(
+    mvn"org.apache.groovy:groovy-cli-commons", // BOM already loaded by module
+    mvn"org.apache.groovy:groovy-xml" // BOM already loaded by module
+  )
+  
+  def mainClass = Some("foo.Foo")
+
+  object test extends GroovyTests with TestModule.Junit5 {
+    def jupiterVersion = "5.13.4"
+
+    def mvnDeps = Seq(
+      mvn"org.apache.groovy:groovy-test" // BOM already loaded by module
+    )
+  }
+}
+
+// This is a basic Mill build for a single `GroovyModule`, with one
+// third-party dependency and a test suite using the JUnit framework.
+//// SNIPPET:TREE
+// ----
+// build.mill
+// foo/
+//     src/
+//         foo/Foo.groovy
+//     resources/
+//         ...
+//     test/
+//         src/
+//             foo/FooTest.groovy
+// out/foo/
+//     compile.json
+//     compile.dest/
+//     ...
+//     test/
+//         compile.json
+//         compile.dest/
+//         ...
+// ----
+//
+// NOTE: The default Mill source folder layout `foo/src/` differs from that of Maven/Gradle's
+// `foo/src/main/groovy`. If you wish to use the Maven source folder layout, e.g. for migrating
+// an existing codebase, you should use
+// xref:#_maven_compatible_modules[Maven-Compatible Modules]
+//
+//// SNIPPET:DEPENDENCIES
+//
+// This example project uses two third-party dependencies 
+// - Groovy-Cli-Commons for CLI argument parsing
+// - Groovy-Xml for HTML templating and escaping
+// and uses them to wrap a given input string in HTML templates with proper escaping.
+//
+// Typical usage of a `GroovyModule` is shown below
+
+/** Usage
+
+> ./mill resolve foo._ # List what tasks are available to run
+foo.assembly
+...
+foo.compile
+...
+foo.run
+...
+*/
+/** Usage
+> ./mill inspect foo.compile # Show documentation and inputs of a task
+foo.compile(GroovyModule...)
+    Compiles all the sources to JVM class files.
+    Compiles the current module to generate compiled classfiles/bytecode.
+Inputs:
+    foo.allJavaSourceFiles
+    foo.allGroovySourceFiles
+    foo.compileClasspath
+    foo.upstreamCompileOutput
+    foo.javacOptions
+    foo.zincReportCachedProblems
+...
+*/
+/** Usage
+> ./mill foo.compile # compile sources into classfiles
+...
+Compiling 1 Groovy sources to...
+*/
+/** Usage
+> ./mill foo.run # run the main method, if any
+error: Error: missing option --text
+...
+*/
+/** Usage
+> ./mill foo.run --text hello
+<h1>hello</h1>
+*/
+/** Usage
+> ./mill foo.test
+...
+Test foo.FooTest testSimple finished, ...
+Test foo.FooTest testEscaping finished, ...
+Test foo.FooTest finished, ...
+Test run finished: 0 failed, 0 ignored, 2 total, ...
+*/
+/** Usage
+> ./mill foo.assembly # bundle classfiles and libraries into a jar for deployment
+
+> ./mill show foo.assembly # show the output of the assembly task
+".../out/foo/assembly.dest/out.jar"
+
+> java -jar ./out/foo/assembly.dest/out.jar --text hello
+<h1>hello</h1>
+
+> ./out/foo/assembly.dest/out.jar --text hello # mac/linux
+<h1>hello</h1>
+
+> cp ./out/foo/assembly.dest/out.jar out.bat # windows
+
+> ./out.bat --text hello # windows
+<h1>hello</h1>
+*/

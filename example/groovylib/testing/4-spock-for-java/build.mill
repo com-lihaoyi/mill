@@ -1,0 +1,23 @@
+//// SNIPPET:BUILD5
+package build
+import mill.*, groovylib.*
+
+object `package` extends JavaMavenModuleWithGroovyTests {
+
+  object test extends GroovyMavenTests with TestModule.Spock {
+    def spockVersion = "2.3-groovy-4.0"
+    def groovyVersion = "4.0.28"
+    def jupiterVersion = "5.13.4"
+  }
+}
+
+// `JavaMavenModuleWithGroovyTests` is a variant of `JavaModule` which also
+// includes `MavenModule` and has a special `test` trait for Groovy tests:
+//
+// - `foo/src/main/java`
+// - `foo/src/test/groovy`
+//
+// This is usefull for Java projects which use Groovy only for testing.
+// For non Maven-layout projects, this convenience trait is not necessary
+// because you can just use `GroovyModule` for your test object instead.
+
