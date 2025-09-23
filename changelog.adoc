@@ -13,6 +13,19 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#0-12-16]
+=== 0.12.16 - 2025-09-23
+:version: 0.12.16
+:milestone-name: 0.12.16
+:milestone: 128
+:prev-version: 0.12.15
+
+* Added support for Scala 3.8 ({link-pr}/5797[#5797])
+
+* Added support for Java 25 and updated asm-tree to 9.8  ({link-pr}/5891[#5891])
+
+
+
 [#0-12-15]
 === 0.12.15 - 2025-08-01
 :version: 0.12.15
@@ -35,7 +48,6 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 * Fix `./mill init` example download in 0.12.x ({link-pr}/5333[#5333])
 
 
-
 [#0-12-14]
 === 0.12.14 - 2025-05-20
 :version: 0.12.14
@@ -50,6 +62,7 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 * Add an opt-in `--notify-watch true` flag to make `--watch` use linux-inotify/mac-fsevents
   instead of polling, which should greatly reduce baseline CPU usage when `--watch` is active
   but no builds are being run ({link-pr}/5073[#5073])
+
 
 [#0-12-13]
 === 0.12.13 - 2025-05-18
