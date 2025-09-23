@@ -1,8 +1,8 @@
-= How the Mill's Zero-Step CLI Tool Installation Works
+= Zero-Step Installation of Mill's CLI Tool
 
 // tag::header[]
 :author: Li Haoyi
-:revdate: 15 August 2025
+:revdate: 23 September 2025
 
 _{author}, {revdate}_
 
@@ -10,17 +10,16 @@ Getting the software onto you want installed onto your machine is a constant poi
 friction, whether you're on OS-X finding
 https://github.com/orgs/Homebrew/discussions/1177[Homebrew being terribly slow] or on Ubuntu finding
 https://www.reddit.com/r/Ubuntu/comments/1j3ldpm/why_are_all_my_apt_programs_so_outdated/[the versions available are all outdated].
-Often you need to manually install some set of transitive dependencies on your machine, which
-you will inevitably forget about and need to re-discover when setting things up on your
-co-workers' machines or in CI.
+You find yourself fighting different package managers to try and make sure you install the same
+versions in different environment, and endlessly fighting version drift to keep things consistent.
 
-The Mill build tool does something interesting here: unlike most CLI tools out there, it
-requires no installation at all! Mill uses a `./mill` or `./mill.bat` bootstrap script that
-can run on a clean system with nothing previously installed. For example, you can checkout
-the `https://github.com/com-lihaoyi/mill` repo on a bare Linux, Mac, or Windows machine and
-build it via `./mill __.compile` without any prior setup. This greatly simplifies building
-your project across diverse Dev and CI environments, removing the tedious setup and allowing
-your co-workers and CI-workers to get straight to work on a project without any fuss:
+The Mill build tool does something interesting here: unlike most CLI tools, it
+requires no installation at all! You can checkout any codebase built with Mill on a bare Linux,
+Mac, or Windows machine and build it without any prior setup using it's `./mill` bootstrap
+script. This greatly simplifies building your project across diverse Dev and CI environments,
+allowing your co-workers and CI-workers to get straight to work on a project without any
+fussing with installs. For example, the `./mill __.compile` below is all that is needed
+to compile all modules in a Mill project
 
 ```console
 > curl -L https://github.com/com-lihaoyi/cask/archive/refs/heads/master.zip -o cask.zip
@@ -28,8 +27,6 @@ your co-workers and CI-workers to get straight to work on a project without any 
 > unzip cask.zip && cd cask-master
 
 > ./mill __.compile
-...
-============================== __.compile ============================== 123s
 ```
 
 This blog post explores how Mill's zero-install workflow works: the limitations of prior
@@ -60,19 +57,17 @@ as is manually downloading binaries to put on your `PATH`. But all of these have
 the installation must happen _before_ you can begin working on your project. Even with just 1 step,
 this gives a lot of room for things to go wrong. For example
 
-1. Things falling out of sync. The installation commands on MacOS using `brew` will be different
+1. **Things falling out of sync**: the installation commands on MacOS using `brew` will be different
    from Amazon-Linux using `yum` or Ubuntu using `apt`, so it's terribly easy to end up with
    subtly different sets of packages on each. This results in frustrating "only works on my machine"
    mis-behaviors, and tedious busy-work trying to keep the various environments in sync.
 
-2. The number of steps growing: while a 1-step install may seem fine, a large codebase
+2. **The number of steps growing**: while a 1-step install may seem fine, a large codebase
    may have many packages and tools requiring 1-step installs, resulting in an installation
-   process with dozens of steps that can be tedious (if run manually) and fragile (if scripted)
+   process with dozens of steps that can be tedious if run manually and fragile if scripted
 
-While 1-step installation is a good goal to strive towards, in practice it always gets messy:
-multiple tools each with their own 1-step add up to many steps, and the steps themselves may
-differ between environments. So while this is an acceptable situation that we have lived with
-for decades, it begs the question of whether we can do better.
+While 1-step installation is better than multi-step installation, some may still
+ask: could we do better?
 
 == Maven & Gradle Bootstrap Scripts
 
@@ -103,8 +98,8 @@ same version.
 
 Furthermore, as tools like Gradle or Maven automatically resolve the application-level
 dependencies required by the project they are building, the user does not need to install
-those manually: any `build` or `install` or `test` command results in all necessary
-dependencies being downloaded and cached as necessary.
+those manually. Any `build` or `install` or `test` command results in all necessary
+dependencies being automatically downloaded and cached as necessary.
 
 However, one limitation of the Maven and Gradle approach to bootstrap scripts is that they rely
 on `java` being pre-installed to begin the bootstrapping process. Without `java`, they cannot
@@ -124,9 +119,9 @@ of Java!) before you begin. Thus although these bootstrap scripts mitigate
 the problem - differing Java versions tend to be more forgiving than differing Maven/Gradle
 versions - they haven't completely solved it.
 
-That dependency on needing `java` installed to run the bootstrap script seems odd. It's
-there because we don't want to put non-trivial bootstrapping logic into `.sh` or `.bat` scripts,
-and as JVM build tools writing our bootstrapping logic in Java running on the JVM makes sense.
+Why do these bootstrap scripts have require `java` to be installed? It's
+because they don't want to put non-trivial bootstrapping logic into `.sh` or `.bat` scripts,
+and as JVM build tools writing their bootstrapping logic in Java running on the JVM makes sense.
 But that doesn't seem like a hard requirement, and it should be possible to make a bootstrapping
 binary that can run without `java` or any other runtime pre-installed. That is the approach
 that Mill takes.
@@ -202,8 +197,8 @@ architecture, and executes it to begin the Mill bootstrapping process.
 
 == Bootstrapping a Full JVM Environment
 
-Once we execute our native binary, we then have an opportunity to run real JVM code (as opposed
-to sketchy shell scripts) to proceed with bootstrapping. When someone runs
+Once we execute our native image binary, we then have an opportunity to run real JVM code (as
+opposed to sketchy shell scripts) to proceed with bootstrapping. When someone runs
 `./mill __.compile` to compile all modules in a repository, and the native image bootstrap
 launcher has been downloaded as described above, we can then use it to:
 
@@ -217,8 +212,8 @@ launcher has been downloaded as described above, we can then use it to:
 Once we have the Mill daemon process running, further steps are necessary to bootstrap the Mill
 build dependencies and user code dependencies
 
-1. Resolve any `.jar` files necessary for Mill's own logic,
-   or any plugins that the user may have set up in their build
+1. Resolve any `.jar` files necessary for Mill's own logic, or any plugins that the user
+   may have set up in their build, and load them into a classloader to invoke the build
 
 2. Resolve any `.jar` files necessary for user modules to compile and run, and resolving any
    other JVM that the user modules may be configured to user
@@ -237,12 +232,46 @@ handles this using https://github.com/coursier/coursier[Coursier], which is a de
 resolution library that can run both compiled in the native image bootstrap launcher as well
 as on the JVM in the Mill daemon process.
 
-Although this may seem like a lot of steps, all of them are completely automatic: files
-are downloaded when needed, in parallel where possible, and cached for future use.
+The final bootstrapping process of `./mill __.compile` looks something like this, with the
+solid lines indicating local steps in the bootstrapping process, and the dashed lines
+indicating downloads from Maven Central:
+
+```graphviz
+digraph G {
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  subgraph cluster0{
+    color=white
+
+    "./mill" -> "native image binary" -> "mill daemon jars" -> "mill daemon" -> "build jars" -> "build classloader" -> "user module dependency jars"
+    "native image binary" -> "mill daemon JVM" -> "mill daemon"
+    "build classloader" -> "user module JVM"
+
+    "user module JVM" -> "__.compile"
+    "user module dependency jars" -> "__.compile"
+    "user module sources" -> "__.compile"
+  }
+
+  "Maven Central" [style=dashed]
+  "Maven Central" -> "native image binary" [style=dashed arrowhead=empty weight=0]
+  "Maven Central" -> "mill daemon jars" [style=dashed arrowhead=empty weight=0]
+  "Maven Central" -> "mill daemon JVM" [style=dashed arrowhead=empty weight=0]
+  "Maven Central" -> "build jars" [style=dashed arrowhead=empty weight=0]
+  "Maven Central" -> "user module dependency jars" [style=dashed arrowhead=empty weight=0]
+  "Maven Central" -> "user module JVM" [style=dashed arrowhead=empty weight=0]
+ }
+```
+
+Although this may seem like a lot of steps, all of them are completely automatic: jars and
+JVMs are downloaded when needed, in parallel where possible, and cached for future use.
 Different versions of libraries and packages are assigned different caches on disk and can
 co-exist on the same machine. Even different versions of the JVM can be downloaded and used
 at the same time without issue, e.g. if different user modules need to compile and run with
-different Java versions. And once cached, running `./mill` feels just as fast as running any
+different Java versions. This is unlike packages installed via `brew` or `apt` or `yum` where
+typically only a single version of a package can be "installed" or "active" globally on a
+machine at any one point in time.
+
+
+And once cached, running `./mill` feels just as fast as running any
 pre-installed binary or executable.
 
 Despite this complexity, Mill's zero-install bootstrap process means that the user never needs
@@ -258,19 +287,25 @@ process for the Mill project: starting from a `.sh` script (or `.bat` on windows
 to bootstrap a native binary, using the native binary to bootstrap a JVM, and using the JVM
 to bootstrap the user-defined dependencies they need to build their project.
 
-For the purposes of this article, we simplified and skimmed over a lot of things:
-
-- The intricacies of writing equivalent `.sh` and `.bat` scripts
-- Graal native image not working on windows-aarch64, meaning we still need `java` installed
-  on such systems
-- Using a different package repository instead of Maven Central
-- Strategies for dealing with non-Maven-Central dependencies in a similar way
-
 One thing worth mentioning is that zero-step installation is really the only thing
 that scales as a project grows. While multiple 1-step installs can add up and become a long and
 tedious installation process, multiple zero-step installs will always remain zero-step.
 
-Although the technical details of this approach are interesting, hopefully you've come away
-from this article with an appreciation for how Mill builds upon prior art to come up with its
-zero-step install process, so next time the opportunity arises you can implement something
-similar in your own projects.
+For the purposes of this article, we simplified and skimmed over a lot of things:
+
+- The intricacies of writing equivalent `.sh` and `.bat` scripts
+- https://github.com/oracle/graal/issues/9215[Graal native image not working on windows-aarch64],
+  meaning we still need `java` on such systems
+- Using a different package repository instead of Maven Central
+- Strategies for dealing with non-Maven-Central dependencies in a similar way
+- Explicitly pinning the JVM version to ensure consistency regardless of what may be installed locally
+
+Nevertheless, we have discussed most of the important points, and the details will
+differ from project to project. Although this article covers bootstrapping Java and JVM
+applications, the same principles could apply to bootstrap any non-trivial project and its
+dependencies: starting from a shell script, bootstrapping a native binary, which then
+bootstraps the messy dependencies that are required for any real-world project.
+
+Hopefully you've come away from this article with an appreciation for how Mill builds upon
+prior art to come up with its zero-step install process, so next time the opportunity
+arises you can implement something similar in your own projects.
