@@ -10,11 +10,17 @@ import utest.*
 object HelloGroovyTests extends TestSuite {
 
   val groovy4Version = "4.0.28"
+  val groovy5Version = "5.0.1"
+  val groovyVersions = Seq(groovy4Version, groovy5Version)
   val junit5Version = sys.props.getOrElse("TEST_JUNIT5_VERSION", "5.13.4")
   val spockGroovy4Version = "2.3-groovy-4.0"
 
   object HelloGroovy extends TestRootModule {
 
+    trait GroovyVersionCross extends GroovyModule with Cross.Module[String]{
+      override def groovyVersion: Task.Simple[String] = crossValue
+    }
+    
     lazy val millDiscover = Discover[this.type]
 
     // needed for a special test where only the tests are written in Groovy while appcode remains Java
@@ -32,11 +38,22 @@ object HelloGroovyTests extends TestSuite {
 
     }
 
-    object `joint-compile` extends GroovyModule {
+    /**
+     * Currently Spock does not support Groovy 5, so that's why it's currently
+     * pulled out of the cross compilation.
+     */
+    object spock extends GroovyModule {
       override def groovyVersion: T[String] = groovy4Version
-      override def mainClass = Some("jointcompile.JavaMain")
+      
+      object tests extends GroovyTests with TestModule.Spock {
+        override def jupiterVersion: T[String] = junit5Version
+        override def spockVersion: T[String] = spockGroovy4Version
+      }
     }
 
+    /**
+     * Test to verify BOM-resolution only done starting with the minimal version
+     */
     object deps extends Module {
 
       object groovyBom extends GroovyModule {
@@ -61,34 +78,31 @@ object HelloGroovyTests extends TestSuite {
 
     }
 
-    trait Test extends GroovyModule {
+    trait Test extends GroovyVersionCross {
 
       override def mainClass = Some("hello.Hello")
+
+      object script extends GroovyModule {
+        override def groovyVersion: T[String] = crossValue
+        override def mainClass = Some("HelloScript")
+      }
+
+      object staticcompile extends GroovyModule {
+        override def groovyVersion: T[String] = crossValue
+        override def mainClass = Some("hellostatic.HelloStatic")
+      }
+
+      object `joint-compile` extends GroovyModule {
+        override def groovyVersion: T[String] = crossValue
+        override def mainClass = Some("jointcompile.JavaMain")
+      }
 
       object test extends GroovyTests with TestModule.Junit5 {
         override def jupiterVersion: T[String] = junit5Version
         override def junitPlatformVersion = "1.13.4"
       }
-
-      object script extends GroovyModule {
-        override def groovyVersion: T[String] = groovy4Version
-        override def mainClass = Some("HelloScript")
-      }
-
-      object staticcompile extends GroovyModule {
-        override def groovyVersion: T[String] = groovy4Version
-        override def mainClass = Some("hellostatic.HelloStatic")
-      }
-
-      object spock extends GroovyTests with TestModule.Spock {
-        override def jupiterVersion: T[String] = junit5Version
-        override def spockVersion: T[String] = spockGroovy4Version
-        override def groovyVersion: T[String] = groovy4Version
-      }
     }
-    object main extends Test {
-      override def groovyVersion: T[String] = groovy4Version
-    }
+    object main extends Cross[Test](groovyVersions) 
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-groovy"
@@ -100,58 +114,84 @@ object HelloGroovyTests extends TestSuite {
 
   def tests: Tests = Tests {
 
-    def m = HelloGroovy.main
+    def main = HelloGroovy.main
+    def spock = HelloGroovy.spock
     def mixed = HelloGroovy.`groovy-tests`
-    def joint = HelloGroovy.`joint-compile`
     def deps = HelloGroovy.deps
 
     test("running a Groovy script") {
       testEval().scoped { eval =>
-        val Right(_) = eval.apply(m.script.run()): @unchecked
+        main.crossModules.foreach(m => {
+          val Right(_) = eval.apply(m.script.run()): @unchecked  
+        })
       }
     }
 
     test("running a Groovy script") {
       testEval().scoped { eval =>
-        val Right(_) = eval.apply(m.script.run()): @unchecked
+        main.crossModules.foreach(m => {
+          val Right(_) = eval.apply(m.script.run()): @unchecked
+        })
       }
     }
 
     test("compile & run Groovy module") {
       testEval().scoped { eval =>
-        val Right(result) = eval.apply(m.compile): @unchecked
+        main.crossModules.foreach(m => {
+          val Right(result) = eval.apply(m.compile): @unchecked
 
-        assert(
-          os.walk(result.value.classes.path).exists(_.last == "Hello.class")
-        )
+          assert(
+            os.walk(result.value.classes.path).exists(_.last == "Hello.class")
+          )
 
-        val Right(_) = eval.apply(m.run()): @unchecked
+          val Right(_) = eval.apply(m.run()): @unchecked
+        })
       }
     }
 
     test("compile & run Groovy JUnit5 test") {
       testEval().scoped { eval =>
+        main.crossModules.foreach(m => {
+          val Right(result) = eval.apply(m.test.compile): @unchecked
 
-        val Right(result) = eval.apply(m.test.compile): @unchecked
+          assert(
+            os.walk(result.value.classes.path).exists(_.last == "HelloTest.class")
+          )
 
-        assert(
-          os.walk(result.value.classes.path).exists(_.last == "HelloTest.class")
-        )
+          val Right(discovered) = eval.apply(m.test.discoveredTestClasses): @unchecked
+          assert(discovered.value == Seq("hello.tests.HelloTest"))
 
-        val Right(discovered) = eval.apply(m.test.discoveredTestClasses): @unchecked
-        assert(discovered.value == Seq("hello.tests.HelloTest"))
-
-        val Right(_) = eval.apply(m.test.testForked()): @unchecked
+          val Right(_) = eval.apply(m.test.testForked()): @unchecked
+        })
       }
     }
 
     test("compile & run a statically compiled Groovy") {
       testEval().scoped { eval =>
-        val Right(result) = eval.apply(m.staticcompile.compile): @unchecked
-        assert(
-          os.walk(result.value.classes.path).exists(_.last == "HelloStatic.class")
-        )
-        val Right(_) = eval.apply(m.staticcompile.run()): @unchecked
+        main.crossModules.foreach(m => {
+          val Right(result) = eval.apply(m.staticcompile.compile): @unchecked
+          assert(
+            os.walk(result.value.classes.path).exists(_.last == "HelloStatic.class")
+          )
+          val Right(_) = eval.apply(m.staticcompile.run()): @unchecked
+        })
+      }
+    }
+
+    test("compile joint (groovy <-> java cycle) & run") {
+      testEval().scoped { eval =>
+        main.crossModules.foreach(m => {
+          val Right(result) = eval.apply(m.`joint-compile`.compile): @unchecked
+
+          assert(
+            os.walk(result.value.classes.path).exists(_.last == "JavaPrinter.class")
+          )
+          assert(
+            os.walk(result.value.classes.path).exists(_.last == "GroovyGreeter.class")
+          )
+
+          val Right(_) = eval.apply(m.`joint-compile`.run()): @unchecked
+        })
       }
     }
 
@@ -168,31 +208,15 @@ object HelloGroovyTests extends TestSuite {
 
     test("compile & run Spock test") {
       testEval().scoped { eval =>
-
-        val Right(result1) = eval.apply(m.spock.compile): @unchecked
+        val Right(result1) = eval.apply(spock.tests.compile): @unchecked
         assert(
           os.walk(result1.value.classes.path).exists(_.last == "SpockTest.class")
         )
 
-        val Right(discovered) = eval.apply(m.spock.discoveredTestClasses): @unchecked
+        val Right(discovered) = eval.apply(spock.tests.discoveredTestClasses): @unchecked
         assert(discovered.value == Seq("hello.spock.SpockTest"))
 
-        val Right(_) = eval.apply(m.spock.testForked()): @unchecked
-      }
-    }
-
-    test("compile joint (groovy <-> java cycle) & run") {
-      testEval().scoped { eval =>
-        val Right(result) = eval.apply(joint.compile): @unchecked
-
-        assert(
-          os.walk(result.value.classes.path).exists(_.last == "JavaPrinter.class")
-        )
-        assert(
-          os.walk(result.value.classes.path).exists(_.last == "GroovyGreeter.class")
-        )
-
-        val Right(_) = eval.apply(joint.run()): @unchecked
+        val Right(_) = eval.apply(spock.tests.testForked()): @unchecked
       }
     }
 
