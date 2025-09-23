@@ -18,19 +18,35 @@ object BspServerTestUtil {
 
   private[mill] def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
 
-  trait DummyBuildClient extends b.BuildClient {
+  trait TestBuildClient extends b.BuildClient {
+    // Whether to check the validity of some messages
+    protected def enableAsserts: Boolean = true
+    private var gotInvalidMessages0 = false
+    def gotInvalidMessages: Boolean = gotInvalidMessages0
+
+    protected def doAssert(condition: Boolean): Unit = {
+      if (enableAsserts) {
+        if (!condition)
+          gotInvalidMessages0 = true
+        assert(condition)
+      }
+    }
+
+    def onBuildTaskProgress(params: b.TaskProgressParams): Unit = {
+      doAssert(params.getProgress <= params.getTotal)
+    }
+  }
+
+  trait DummyBuildClient extends TestBuildClient {
     def onBuildLogMessage(params: b.LogMessageParams): Unit = ()
     def onBuildPublishDiagnostics(params: b.PublishDiagnosticsParams): Unit = ()
     def onBuildShowMessage(params: b.ShowMessageParams): Unit = ()
     def onBuildTargetDidChange(params: b.DidChangeBuildTarget): Unit = ()
     def onBuildTaskFinish(params: b.TaskFinishParams): Unit = ()
-    def onBuildTaskProgress(params: b.TaskProgressParams): Unit = ()
     def onBuildTaskStart(params: b.TaskStartParams): Unit = ()
     def onRunPrintStderr(params: b.PrintParams): Unit = ()
     def onRunPrintStdout(params: b.PrintParams): Unit = ()
   }
-
-  object DummyBuildClient extends DummyBuildClient
 
   val gson: Gson = new GsonBuilder().setPrettyPrinting().create()
   def compareWithGsonSnapshot[T: ClassTag](
@@ -71,6 +87,7 @@ object BspServerTestUtil {
           .replaceAll("\\d+ msec", "* msec")
           .replaceAll("\\d+ Scala (sources?) to .*\\.\\.\\.", "* Scala $1 to * ...")
           .replaceAll("\\[error\\] [a-zA-Z0-9-_/.]+:2:3:", "[error] *:2:3:")
+          .replaceAll("Evaluating [0-9]+ tasks", "Evaluating * tasks")
       )
 
     utest.assertGoldenFile(
@@ -100,34 +117,21 @@ object BspServerTestUtil {
       workspacePath: os.Path,
       millTestSuiteEnv: Map[String, String],
       bspLog: Option[(Array[Byte], Int) => Unit] = None,
-      client: b.BuildClient = DummyBuildClient,
-      millExecutableNoBspFile: Option[os.Path] = None
+      client: TestBuildClient = new DummyBuildClient {}
   )(f: (MillBuildServer, b.InitializeBuildResult) => T): T = {
 
     val outputOnErrorOnly = System.getenv("CI") != null
 
-    val bspCommand = millExecutableNoBspFile match {
-      case None =>
-        val bspMetadataFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
-        assert(os.exists(bspMetadataFile))
-        val contents = os.read(bspMetadataFile)
-        assert(
-          !contents.contains("--debug"),
-          contents.contains(s""""bspVersion":"$bsp4jVersion"""")
-        )
-        val contentsJson = ujson.read(contents)
-        contentsJson("argv").arr.map(_.str)
-      case Some(millExecutableNoBspFile0) =>
-        Seq(
-          millExecutableNoBspFile0.toString,
-          "--bsp",
-          "--ticker",
-          "false",
-          "--color",
-          "false",
-          "--jobs",
-          "1"
-        )
+    val bspCommand = {
+      val bspMetadataFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
+      assert(os.exists(bspMetadataFile))
+      val contents = os.read(bspMetadataFile)
+      assert(
+        !contents.contains("--debug"),
+        contents.contains(s""""bspVersion":"$bsp4jVersion"""")
+      )
+      val contentsJson = ujson.read(contents)
+      contentsJson("argv").arr.map(_.str)
     }
 
     val stderr = new ByteArrayOutputStream
@@ -192,6 +196,10 @@ object BspServerTestUtil {
           buildServer.onBuildExit()
         }
       success = true
+      assert(
+        !client.gotInvalidMessages,
+        "Test build client got invalid messages from Mill, see assertions above"
+      )
       value
     } finally {
       try {
@@ -226,7 +234,6 @@ object BspServerTestUtil {
       millWorkspace.toURI.toASCIIString -> "file:///mill-workspace/",
       javaHome.toURI.toASCIIString.stripSuffix("/") -> "file:///java-home",
       os.home.toURI.toASCIIString.stripSuffix("/") -> "file:///user-home",
-      ("\"" + javaVersion + "\"") -> "\"<java-version>\"",
       workspacePath.toString -> "/workspace",
       coursierCache.toString -> "/coursier-cache",
       millWorkspace.toString -> "/mill-workspace",

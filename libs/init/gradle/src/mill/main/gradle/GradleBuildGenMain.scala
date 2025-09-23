@@ -5,7 +5,7 @@ import mill.api.daemon.internal.internal
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.gradle.JavaModel.{Dep, ExternalDep}
-import mill.util.Jvm
+import mill.util.{CoursierConfig, Jvm}
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.tooling.GradleConnector
 import os.Path
@@ -59,7 +59,10 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
     val args =
       cfg.shared.basicConfig.jvmId.map { id =>
         println(s"resolving Java home for jvmId $id")
-        val home = Jvm.resolveJavaHome(id).get
+        val home = Jvm.resolveJavaHome(
+          id,
+          config = CoursierConfig.default()
+        ).get
         s"-Dorg.gradle.java.home=$home"
       } ++ Seq("--init-script", writeGradleInitScript.toString())
 

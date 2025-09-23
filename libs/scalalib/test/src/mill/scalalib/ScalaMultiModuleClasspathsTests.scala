@@ -1,11 +1,12 @@
 package mill.scalalib
 
-import mill._
-import mill.testkit.{TestRootModule, UnitTester}
-import utest._
+import mill.*
 import mill.api.Discover
-import mill.util.TokenReaders._
-import HelloWorldTests._
+import mill.scalalib.HelloWorldTests.*
+import mill.testkit.{TestRootModule, UnitTester}
+import mill.util.TokenReaders.*
+import utest.*
+
 object ScalaMultiModuleClasspathsTests extends TestSuite {
 
   object MultiModuleClasspaths extends TestRootModule {

@@ -39,17 +39,21 @@ object MultiModuleTests extends TestSuite {
       UnitTester(MultiModule, sourcePath).scoped { evaluator =>
         val task = if (optimize) MultiModule.client.fullLinkJS else MultiModule.client.fastLinkJS
         val Right(result) = evaluator(task): @unchecked
+        val paths = ExecutionPaths.resolve(evaluator.outPath, task)
+        val log = os.read(paths.log)
 
         val runOutput = ScalaJsUtils.runJS(result.value.dest.path / "main.js")
         assert(
+          log.contains("Linker: Compute reachability:"),
+          log.contains("Write result:"),
           result.evalCount > 0,
           runOutput == "Hello from Scala.js, result is: 3\n"
         )
       }
     }
 
-    test("fastOpt") - checkOpt(optimize = false)
-    test("fullOpt") - checkOpt(optimize = true)
+    test("fastLinkJS") - checkOpt(optimize = false)
+    test("fullLinkJS") - checkOpt(optimize = true)
 
     test("test") {
       UnitTester(MultiModule, sourcePath).scoped { evaluator =>
@@ -73,10 +77,8 @@ object MultiModuleTests extends TestSuite {
         val log = os.read(paths.log)
         assert(
           result.evalCount > 0,
-          log.contains("node")
-          // TODO: re-enable somehow
-          // In Scala.js 1.x, the stdout is no longer sent to the log, so this check doesn't work
-          // log.contains("Hello from Scala.js, result is: 3")
+          log.contains("node"),
+          log.contains("Hello from Scala.js, result is: 3")
         )
       }
     }

@@ -45,6 +45,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     ))
   }
 
+  /** Whether Zinc debug logging is enabled. */
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
   def worker: Worker[JvmWorkerApi] = internalWorker
@@ -62,10 +63,10 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
         .asInstanceOf[JvmWorkerFactoryApi]
 
     val ctx = Task.ctx()
-    val zincCompilerBridge = ZincCompilerBridgeProvider[Unit](
+    val zincCompilerBridge = ZincCompilerBridgeProvider(
       workspace = ctx.dest,
       logInfo = ctx.log.info,
-      acquire = (scalaVersion, scalaOrganization, _) =>
+      acquire = (scalaVersion, scalaOrganization) =>
         scalaCompilerBridgeJarV2(
           scalaVersion = scalaVersion,
           scalaOrganization = scalaOrganization,
@@ -76,7 +77,6 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       zincCompilerBridge,
       classPath = classpath().map(_.path),
       jobs = jobs,
-      compileToJar = false,
       zincLogDebug = zincLogDebug(),
       close0 = () => cl.close()
     )
@@ -132,7 +132,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     } else ZincCompilerBridgeProvider.AcquireResult.Compiled(bridgeJar)
   }
 
-  @deprecated("This is an internal API that has been accidentally exposed.", "1.0.2")
+  @deprecated("This is an internal API that has been accidentally exposed.", "Mill 1.0.2")
   def scalaCompilerBridgeJar(
       scalaVersion: String,
       scalaOrganization: String,

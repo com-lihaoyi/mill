@@ -1,6 +1,6 @@
 package mill.rpc
 
-import upickle.default.{Reader, Writer}
+import upickle.{Reader, Writer}
 
 /** Protocol messages that are sent from server to the client. */
 enum MillRpcServerToClient[+Data] derives Reader, Writer {

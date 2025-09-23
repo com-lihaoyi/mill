@@ -14,7 +14,7 @@ trait CompileProblemReporter {
   def fileVisited(file: java.nio.file.Path): Unit
   def printSummary(): Unit
   def finish(): Unit
-  def notifyProgress(percentage: Long, total: Long): Unit
+  def notifyProgress(progress: Long, total: Long): Unit
 
   def maxErrors: Int = CompileProblemReporter.defaultMaxErrors
 }

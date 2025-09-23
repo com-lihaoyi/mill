@@ -124,7 +124,7 @@ private object TabCompleteModule extends ExternalModule {
       // user can read it even if there's only one output
       //
       // https://stackoverflow.com/a/10130007/871202
-      case Seq((prefix, suffix)) if suffix.nonEmpty => Seq(prefix, prefix + ",  " + suffix)
+      case Seq((prefix, suffix)) if suffix.nonEmpty => Seq(prefix, prefix + ": " + suffix)
       case _ =>
         for ((prefix, suffix) <- outputs) yield {
           if (suffix.isEmpty) prefix
@@ -158,7 +158,7 @@ private object TabCompleteModule extends ExternalModule {
 
           for (name <- nameField(arg) if !arg.doc.contains("Unsupported")) yield {
             val suffix =
-              val docLine = firstLine(arg.doc.getOrElse(""))
+              val docLine = oneLine(arg.doc.getOrElse(""))
               s"$typeStringPrefix$docLine"
             (s"$prefix$name" -> suffix)
           }
@@ -188,10 +188,19 @@ private object TabCompleteModule extends ExternalModule {
     res.out.lines().map((_, ""))
   }
 
-  def firstLine(s: String) = s match {
-    case "" => ""
-    case txt => txt.trim.linesIterator.next
-  }
+  def oneLine(txt: String) =
+    if (txt == "") ""
+    else {
+      txt
+        // People often forget trailing periods when there's a paragraph break (double newline), so
+        // mangle the text to add one if necessary so it looks good when combined onto a single line
+        .replaceAll("([a-zA-Z0-9_-])\n\n", "$1.\n\n")
+        .linesIterator
+        .map(_.trim)
+        // Drop empty lines, so if there are multiple paragraphs they get combined into one
+        .filter(_.nonEmpty)
+        .mkString(" ")
+    }
 
   def getDocs(resolved: Resolved) = {
     val allDocs: Iterable[String] = resolved match {
@@ -201,7 +210,7 @@ private object TabCompleteModule extends ExternalModule {
         mill.util.Inspect.scaladocForTask(resolved.segments, resolved.cls)
     }
 
-    firstLine(allDocs.mkString("\n"))
+    oneLine(allDocs.mkString("\n"))
   }
 
   def completeTasks(ev: Evaluator, index: Int, args: Seq[String]) = {

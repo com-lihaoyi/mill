@@ -68,6 +68,7 @@ trait JavaModule
     () => genIdeaInternalExt()
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
+
   trait JavaTests extends JavaModule with TestModule {
     // Run some consistence checks
     hierarchyChecks()
@@ -478,9 +479,11 @@ trait JavaModule
   /**
    * The `coursier.Dependency` to use to refer to this module
    */
+  @deprecated("Use coursierDependencyTask instead", "Mill 1.1.0")
   def coursierDependency: cs.Dependency =
-    // this is a simple def, and not a Task, as this is simple enough and needed in places
-    // where eval'ing a Task would be impractical or not allowed
+    coursierDependency0
+
+  private def coursierDependency0: cs.Dependency =
     cs.Dependency(
       cs.Module(
         JavaModule.internalOrg,
@@ -489,6 +492,15 @@ trait JavaModule
       ),
       JavaModule.internalVersion
     ).withConfiguration(cs.Configuration.compile)
+
+  def coursierDependencyTask: Task[cs.Dependency] = Task.Anon {
+    val bindDependency0 = bindDependency()
+    val forceVersions = mvnDeps().filter(_.force).map(bindDependency0(_).dep).map { dep =>
+      DependencyManagement.Key.from(dep) ->
+        DependencyManagement.Values.from(Configuration.empty, dep)
+    }
+    coursierDependency0.addOverrides(cs.Overrides(forceVersions.toMap))
+  }
 
   /**
    * The `coursier.Project` corresponding to this `JavaModule`.
@@ -502,151 +514,159 @@ trait JavaModule
     coursierProject0()
   }
 
-  private[mill] def coursierProject0: Task[cs.Project] = Task.Anon {
+  private[mill] def coursierProject0: Task[cs.Project] = {
 
-    // Tells coursier that if something depends on a given scope of ours, we should also
-    // pull other scopes of our own dependencies.
-    //
-    // E.g. scopes(runtime) contains compile, so depending on us as a runtime dependency
-    // will not only pull our runtime dependencies, but also our compile ones.
-    //
-    // This is the default scope mapping used in coursier for Maven dependencies, but for
-    // one scope: provided. By default in Maven, depending on a dependency as provided
-    // doesn't pull anything. Here, by explicitly adding provided to the values,
-    // we make coursier pull our own provided dependencies.
-    //
-    // Note that this is kind of a hack: by default, pulling a dependency in scope A
-    // pulls its scope A dependencies. But this is withheld for provided, unless it's
-    // added back explicitly like we do here.
-    val scopes = Map(
-      cs.Configuration.compile -> Seq.empty,
-      cs.Configuration.runtime -> Seq(cs.Configuration.compile),
-      cs.Configuration.default -> Seq(cs.Configuration.runtime),
-      cs.Configuration.test -> Seq(cs.Configuration.runtime),
-      // hack, so that depending on `coursierDependency.withConfiguration(Configuration.provided)`
-      // pulls our provided dependencies (rather than nothing)
-      cs.Configuration.provided -> Seq(cs.Configuration.provided)
-    )
+    val moduleDepsChecked0 = Task.sequence(moduleDepsChecked.map(_.coursierDependencyTask))
+    val compileModuleDepsChecked0 =
+      Task.sequence(compileModuleDepsChecked.map(_.coursierDependencyTask))
+    val runModuleDepsChecked0 = Task.sequence(runModuleDepsChecked.map(_.coursierDependencyTask))
 
-    val internalDependencies =
-      bomModuleDepsChecked.map { modDep =>
-        val dep = coursier.core.Dependency(
-          coursier.core.Module(
-            coursier.core.Organization("mill-internal"),
-            coursier.core.ModuleName(modDep.moduleSegments.parts.mkString("-")),
-            Map.empty
-          ),
-          "0+mill-internal"
-        )
-        (coursier.core.Configuration.`import`, dep)
-      } ++
-        moduleDepsChecked.flatMap { modDep =>
-          // Standard dependencies
-          // We pull their compile scope when our compile scope is asked,
-          // and pull their runtime scope when our runtime scope is asked.
-          Seq(
-            (
-              cs.Configuration.compile,
-              modDep.coursierDependency.withConfiguration(cs.Configuration.compile)
+    Task.Anon {
+
+      // Tells coursier that if something depends on a given scope of ours, we should also
+      // pull other scopes of our own dependencies.
+      //
+      // E.g. scopes(runtime) contains compile, so depending on us as a runtime dependency
+      // will not only pull our runtime dependencies, but also our compile ones.
+      //
+      // This is the default scope mapping used in coursier for Maven dependencies, but for
+      // one scope: provided. By default in Maven, depending on a dependency as provided
+      // doesn't pull anything. Here, by explicitly adding provided to the values,
+      // we make coursier pull our own provided dependencies.
+      //
+      // Note that this is kind of a hack: by default, pulling a dependency in scope A
+      // pulls its scope A dependencies. But this is withheld for provided, unless it's
+      // added back explicitly like we do here.
+      val scopes = Map(
+        cs.Configuration.compile -> Seq.empty,
+        cs.Configuration.runtime -> Seq(cs.Configuration.compile),
+        cs.Configuration.default -> Seq(cs.Configuration.runtime),
+        cs.Configuration.test -> Seq(cs.Configuration.runtime),
+        // hack, so that depending on `coursierDependencyTask.withConfiguration(Configuration.provided)`
+        // pulls our provided dependencies (rather than nothing)
+        cs.Configuration.provided -> Seq(cs.Configuration.provided)
+      )
+
+      val internalDependencies =
+        bomModuleDepsChecked.map { modDep =>
+          val dep = coursier.core.Dependency(
+            coursier.core.Module(
+              coursier.core.Organization("mill-internal"),
+              coursier.core.ModuleName(modDep.moduleSegments.parts.mkString("-")),
+              Map.empty
             ),
+            "0+mill-internal"
+          )
+          (coursier.core.Configuration.`import`, dep)
+        } ++
+          moduleDepsChecked0().flatMap { modDep =>
+            // Standard dependencies
+            // We pull their compile scope when our compile scope is asked,
+            // and pull their runtime scope when our runtime scope is asked.
+            Seq(
+              (
+                cs.Configuration.compile,
+                modDep.withConfiguration(cs.Configuration.compile)
+              ),
+              (
+                cs.Configuration.runtime,
+                modDep.withConfiguration(cs.Configuration.runtime)
+              )
+            )
+          } ++
+          compileModuleDepsChecked0().map { modDep =>
+            // Compile-only (aka provided) dependencies
+            // We pull their compile scope when our provided scope is asked (see scopes above)
+            (
+              cs.Configuration.provided,
+              modDep.withConfiguration(cs.Configuration.compile)
+            )
+          } ++
+          runModuleDepsChecked0().map { modDep =>
+            // Runtime dependencies
+            // We pull their runtime scope when our runtime scope is pulled
             (
               cs.Configuration.runtime,
-              modDep.coursierDependency.withConfiguration(cs.Configuration.runtime)
+              modDep.withConfiguration(cs.Configuration.runtime)
             )
-          )
+          }
+
+      val dependencies =
+        (mandatoryMvnDeps() ++ mvnDeps()).map(bindDependency()).map(_.dep).iterator.toSeq.flatMap {
+          dep =>
+            // Standard dependencies, like above
+            // We pull their compile scope when our compile scope is asked,
+            // and pull their runtime scope when our runtime scope is asked.
+            if (dep.isVariantAttributesBased)
+              Seq(
+                (cs.Configuration.compile, dep),
+                (cs.Configuration.runtime, dep)
+              )
+            else
+              Seq(
+                (cs.Configuration.compile, dep.withConfiguration(cs.Configuration.compile)),
+                (cs.Configuration.runtime, dep.withConfiguration(cs.Configuration.runtime))
+              )
         } ++
-        compileModuleDepsChecked.map { modDep =>
-          // Compile-only (aka provided) dependencies
-          // We pull their compile scope when our provided scope is asked (see scopes above)
-          (
-            cs.Configuration.provided,
-            modDep.coursierDependency.withConfiguration(cs.Configuration.compile)
-          )
-        } ++
-        runModuleDepsChecked.map { modDep =>
-          // Runtime dependencies
-          // We pull their runtime scope when our runtime scope is pulled
-          (
-            cs.Configuration.runtime,
-            modDep.coursierDependency.withConfiguration(cs.Configuration.runtime)
-          )
+          compileMvnDeps().map(bindDependency()).map(_.dep).map { dep =>
+            // Compile-only (aka provided) dependencies, like above
+            // We pull their compile scope when our provided scope is asked (see scopes above)
+            if (dep.isVariantAttributesBased)
+              (cs.Configuration.provided, dep)
+            else
+              (cs.Configuration.provided, dep.withConfiguration(cs.Configuration.compile))
+          } ++
+          runMvnDeps().map(bindDependency()).map(_.dep).map { dep =>
+            // Runtime dependencies, like above
+            // We pull their runtime scope when our runtime scope is pulled
+            if (dep.isVariantAttributesBased)
+              (
+                cs.Configuration.runtime,
+                dep
+              )
+            else
+              (
+                cs.Configuration.runtime,
+                dep.withConfiguration(cs.Configuration.runtime)
+              )
+          } ++
+          allBomDeps().map { bomDep =>
+            // BOM dependencies
+            // Maven has a special scope for those: "import"
+            val dep =
+              cs.Dependency(bomDep.module, bomDep.version).withConfiguration(bomDep.config)
+            (cs.Configuration.`import`, dep)
+          }
+
+      val depMgmt =
+        processedDependencyManagement(
+          depManagement().iterator.toSeq.map(bindDependency()).map(_.dep)
+        ).map {
+          case (key, values) =>
+            val config0 =
+              if (values.config.isEmpty) cs.Configuration.compile
+              else values.config
+            (config0, values.fakeDependency(key))
         }
 
-    val dependencies =
-      (mandatoryMvnDeps() ++ mvnDeps()).map(bindDependency()).map(_.dep).iterator.toSeq.flatMap {
-        dep =>
-          // Standard dependencies, like above
-          // We pull their compile scope when our compile scope is asked,
-          // and pull their runtime scope when our runtime scope is asked.
-          if (dep.isVariantAttributesBased)
-            Seq(
-              (cs.Configuration.compile, dep),
-              (cs.Configuration.runtime, dep)
-            )
-          else
-            Seq(
-              (cs.Configuration.compile, dep.withConfiguration(cs.Configuration.compile)),
-              (cs.Configuration.runtime, dep.withConfiguration(cs.Configuration.runtime))
-            )
-      } ++
-        compileMvnDeps().map(bindDependency()).map(_.dep).map { dep =>
-          // Compile-only (aka provided) dependencies, like above
-          // We pull their compile scope when our provided scope is asked (see scopes above)
-          if (dep.isVariantAttributesBased)
-            (cs.Configuration.provided, dep)
-          else
-            (cs.Configuration.provided, dep.withConfiguration(cs.Configuration.compile))
-        } ++
-        runMvnDeps().map(bindDependency()).map(_.dep).map { dep =>
-          // Runtime dependencies, like above
-          // We pull their runtime scope when our runtime scope is pulled
-          if (dep.isVariantAttributesBased)
-            (
-              cs.Configuration.runtime,
-              dep
-            )
-          else
-            (
-              cs.Configuration.runtime,
-              dep.withConfiguration(cs.Configuration.runtime)
-            )
-        } ++
-        allBomDeps().map { bomDep =>
-          // BOM dependencies
-          // Maven has a special scope for those: "import"
-          val dep =
-            cs.Dependency(bomDep.module, bomDep.version).withConfiguration(bomDep.config)
-          (cs.Configuration.`import`, dep)
-        }
-
-    val depMgmt =
-      processedDependencyManagement(
-        depManagement().iterator.toSeq.map(bindDependency()).map(_.dep)
-      ).map {
-        case (key, values) =>
-          val config0 =
-            if (values.config.isEmpty) cs.Configuration.compile
-            else values.config
-          (config0, values.fakeDependency(key))
-      }
-
-    cs.Project(
-      module = coursierDependency.module,
-      version = coursierDependency.version,
-      dependencies = internalDependencies ++ dependencies,
-      configurations = scopes,
-      parent = None,
-      dependencyManagement = depMgmt,
-      properties = Nil,
-      profiles = Nil,
-      versions = None,
-      snapshotVersioning = None,
-      packagingOpt = None,
-      relocated = false,
-      actualVersionOpt = None,
-      publications = Nil,
-      info = coursier.core.Info.empty
-    )
+      cs.Project(
+        module = coursierDependencyTask().module,
+        version = coursierDependencyTask().version,
+        dependencies = internalDependencies ++ dependencies,
+        configurations = scopes,
+        parent = None,
+        dependencyManagement = depMgmt,
+        properties = Nil,
+        profiles = Nil,
+        versions = None,
+        snapshotVersioning = None,
+        packagingOpt = None,
+        relocated = false,
+        actualVersionOpt = None,
+        publications = Nil,
+        info = coursier.core.Info.empty
+      )
+    }
   }
 
   /**
@@ -675,8 +695,8 @@ trait JavaModule
     //
     // Dependencies, both external ones (like mvnDeps, bomMvnDeps, etc.) and internal ones
     // (like moduleDeps) are put in coursier.Project#dependencies. The coursier.Dependency
-    // used to represent each module is built by JavaModule#coursierDependency. So we put
-    // JavaModule#coursierDependency in the dependencies field of other modules'
+    // used to represent each module is built by JavaModule#coursierDependencyTask. So we put
+    // JavaModule#coursierDependencyTask in the dependencies field of other modules'
     // JavaModule#coursierProject to represent links between them.
     //
     // coursier.Project#dependencies accepts (coursier.Configuration, coursier.Dependency) tuples.
@@ -730,13 +750,21 @@ trait JavaModule
   }
 
   /**
-   * The transitive version of `compileClasspath`
+   * The transitive version of [[compileClasspath]]
    */
   def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
-    Task.traverse(transitiveModuleCompileModuleDeps)(m =>
-      Task.Anon { m.localCompileClasspath() ++ Seq(m.compile().classes) }
-    )().flatten
+    transitiveCompileClasspathTask(CompileFor.Regular)()
   }
+
+  /**
+   * The transitive version of [[compileClasspathTask]]
+   */
+  private[mill] def transitiveCompileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]] =
+    Task.Anon {
+      Task.traverse(transitiveModuleCompileModuleDeps)(m =>
+        Task.Anon { m.localCompileClasspath() ++ Seq(m.compileFor(compileFor)().classes) }
+      )().flatten
+    }
 
   /**
    * Same as [[transitiveCompileClasspath]], but with all dependencies on [[compile]]
@@ -965,14 +993,20 @@ trait JavaModule
     }
 
   /**
+   * [[compileClasspathTask]] for regular compilations.
+   *
+   * Keep return value in sync with [[bspCompileClasspath]].
+   */
+  def compileClasspath: T[Seq[PathRef]] = Task { compileClasspathTask(CompileFor.Regular)() }
+
+  /**
    * All classfiles and resources from upstream modules and dependencies
    * necessary to compile this module.
-   *
-   * Keep in sync with [[bspCompileClasspath]]
    */
-  override def compileClasspath: T[Seq[PathRef]] = Task {
-    resolvedMvnDeps() ++ transitiveCompileClasspath() ++ localCompileClasspath()
-  }
+  override private[mill] def compileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]] =
+    Task.Anon {
+      resolvedMvnDeps() ++ transitiveCompileClasspathTask(compileFor)() ++ localCompileClasspath()
+    }
 
   /**
    * Same as [[compileClasspath]], but does not trigger compilation targets, if possible.
@@ -1007,10 +1041,10 @@ trait JavaModule
     millResolver().classpath(
       Seq(
         BoundDep(
-          coursierDependency.withConfiguration(cs.Configuration.provided),
+          coursierDependencyTask().withConfiguration(cs.Configuration.provided),
           force = false
         ),
-        BoundDep(coursierDependency, force = false)
+        BoundDep(coursierDependencyTask(), force = false)
       ),
       artifactTypes = Some(artifactTypes()),
       resolutionParamsMapOpt =
@@ -1047,7 +1081,7 @@ trait JavaModule
     millResolver().classpath(
       Seq(
         BoundDep(
-          coursierDependency.withConfiguration(cs.Configuration.runtime),
+          coursierDependencyTask().withConfiguration(cs.Configuration.runtime),
           force = false
         )
       ),
@@ -1067,10 +1101,6 @@ trait JavaModule
     )
   }
 
-  /**
-   * All classfiles and resources from upstream modules and dependencies
-   * necessary to run this module's code after compilation
-   */
   override def runClasspath: T[Seq[PathRef]] = Task {
     super.runClasspath() ++
       resolvedRunMvnDeps().toSeq ++
@@ -1217,23 +1247,23 @@ trait JavaModule
       whatDependsOn: List[JavaOrScalaModule]
   ): Task[String] =
     Task.Anon {
-      val dependencies =
-        (additionalDeps() ++ Seq(BoundDep(coursierDependency, force = false))).iterator.to(Seq)
+      val dependencies = additionalDeps() ++ Seq(BoundDep(coursierDependencyTask(), force = false))
       val resolution: Resolution = Lib.resolveDependenciesMetadataSafe(
         allRepositories(),
-        dependencies,
+        dependencies.iterator.to(Seq),
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
         resolutionParams = resolutionParams(),
-        checkGradleModules = checkGradleModules()
+        checkGradleModules = checkGradleModules(),
+        config = coursierConfigModule().coursierConfig()
       ).get
 
       val roots = whatDependsOn match {
         case List() =>
           val mandatoryModules =
             mandatoryMvnDeps().map(bindDependency()).iterator.map(_.dep.module).toSet
-          val (mandatory, main) = resolution.dependenciesOf0(coursierDependency).toTry.get
+          val (mandatory, main) = resolution.dependenciesOf0(coursierDependencyTask()).toTry.get
             .partition(dep => mandatoryModules.contains(dep.module))
           additionalDeps().iterator.toSeq.map(_.dep) ++ main ++ mandatory
         case _ =>
@@ -1295,8 +1325,8 @@ trait JavaModule
             args.inverse.value,
             Task.Anon {
               Seq(
-                coursierDependency.withConfiguration(cs.Configuration.provided),
-                coursierDependency.withConfiguration(cs.Configuration.runtime)
+                coursierDependencyTask().withConfiguration(cs.Configuration.provided),
+                coursierDependencyTask().withConfiguration(cs.Configuration.runtime)
               ).map(BoundDep(_, force = false))
             },
             modules
@@ -1306,7 +1336,7 @@ trait JavaModule
             args.inverse.value,
             Task.Anon {
               Seq(BoundDep(
-                coursierDependency.withConfiguration(cs.Configuration.provided),
+                coursierDependencyTask().withConfiguration(cs.Configuration.provided),
                 force = false
               ))
             },
@@ -1317,7 +1347,7 @@ trait JavaModule
             args.inverse.value,
             Task.Anon {
               Seq(BoundDep(
-                coursierDependency.withConfiguration(cs.Configuration.runtime),
+                coursierDependencyTask().withConfiguration(cs.Configuration.runtime),
                 force = false
               ))
             },
@@ -1373,8 +1403,8 @@ trait JavaModule
         Task.Anon {
           millResolver().classpath(
             Seq(
-              coursierDependency.withConfiguration(cs.Configuration.provided),
-              coursierDependency
+              coursierDependencyTask().withConfiguration(cs.Configuration.provided),
+              coursierDependencyTask()
             ),
             sources = true,
             resolutionParamsMapOpt =
@@ -1385,7 +1415,7 @@ trait JavaModule
         },
         Task.Anon {
           millResolver().classpath(
-            Seq(coursierDependency.withConfiguration(cs.Configuration.runtime)),
+            Seq(coursierDependencyTask().withConfiguration(cs.Configuration.runtime)),
             sources = true
           )
         }

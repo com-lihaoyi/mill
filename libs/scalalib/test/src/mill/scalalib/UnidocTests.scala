@@ -8,6 +8,7 @@ import mill.testkit.TestRootModule
 import scala.util.Properties
 
 object UnidocTests extends TestSuite {
+
   trait UnidocTestRootModule(scalaVersion: String) extends TestRootModule { self =>
     object foo extends ScalaModule {
       def scalaVersion = self.scalaVersion

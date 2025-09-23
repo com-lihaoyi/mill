@@ -1,10 +1,13 @@
 package mill.api.daemon
 
 import java.net.URLClassLoader
+import scala.annotation.static
 
 /**
  * Convenience wrapper around `java.net.URLClassLoader`. Allows configuration
- * of shared class prefixes, and tracks creation/closing to help detect leaks
+ * of shared class prefixes, and tracks creation/closing to help detect leaks.
+ *
+ * This classloader is parallel capable.
  */
 class MillURLClassLoader(
     classPath: Iterable[java.nio.file.Path],
@@ -17,10 +20,25 @@ class MillURLClassLoader(
       MillURLClassLoader.refinePlatformParent(parent)
     ) {
   import MillURLClassLoader.*
+
+  require(initialized)
+
   addOpenClassloader(label)
 
   override def findClass(name: String): Class[?] =
-    if (sharedPrefixes.exists(name.startsWith)) sharedLoader.loadClass(name)
+    if (sharedPrefixes.exists(name.startsWith))
+      try {
+        sharedLoader.loadClass(name)
+      } catch {
+        case _: ClassNotFoundException =>
+          // this fixes the case, when different projects share the same class namespace
+          // like `scala.meta` which is not part of scala-library.
+          // See issue https://github.com/com-lihaoyi/mill/issues/5759 (Scalameta in task does not work)
+          // If this turns our to be too permissive, we could also track
+          // the packages we successfully loaded from the shared classloader,
+          // and don't allow classes in the same package (split-packages) to come from different classloaders.
+          super.findClass(name)
+      }
     else super.findClass(name)
 
   override def close() = {
@@ -35,6 +53,12 @@ class MillURLClassLoader(
 }
 
 object MillURLClassLoader {
+
+  @static private val initialized: Boolean = {
+    // Unused static field here exists for its side-effect:
+    // we statically initialize the classloader as parallel capable
+    java.lang.ClassLoader.registerAsParallelCapable()
+  }
 
   /**
    * Shows a count of what `MillURLClassLoader`s are instantiated and have not yet

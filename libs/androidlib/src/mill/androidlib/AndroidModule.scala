@@ -10,7 +10,6 @@ import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
-import os.Path
 
 import scala.collection.immutable
 import scala.xml.*
@@ -173,6 +172,19 @@ trait AndroidModule extends JavaModule { outer =>
     rules
   }
 
+  /**
+   * Common Proguard Rules used by AGP
+   *
+   * Source: https://android.googlesource.com/platform/tools/base/+/refs/heads/studio-master-dev/build-system/gradle-core/src/main/resources/com/android/build/gradle/proguard-common.txt
+   */
+  def androidCommonProguardFiles: T[Seq[PathRef]] = Task {
+    val resource = "proguard-common.txt"
+    val resourceUrl = getClass.getResourceAsStream(s"/$resource")
+    val dest = Task.dest / resource
+    os.write(dest, resourceUrl)
+    Seq(PathRef(dest))
+  }
+
   def androidProguard: T[PathRef] = Task {
     val globalProguardFile = Task.dest / "global-proguard.pro"
     os.write(globalProguardFile, "")
@@ -288,6 +300,10 @@ trait AndroidModule extends JavaModule { outer =>
    */
   def androidResolvedMvnDeps: T[Seq[PathRef]] = Task {
     transformedAndroidDeps(Task.Anon(resolvedMvnDeps()))()
+  }
+
+  def androidResolvedCompileMvnDeps: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(compileMvnDeps())
   }
 
   protected def transformedAndroidDeps(resolvedDeps: Task[Seq[PathRef]]): Task[Seq[PathRef]] =
@@ -519,9 +535,9 @@ trait AndroidModule extends JavaModule { outer =>
    * @return
    */
   def androidCompiledLibResources: T[PathRef] = Task {
-    val libAndroidResources: Seq[Path] = androidLibraryResources().map(_.path)
+    val libAndroidResources: Seq[os.Path] = androidLibraryResources().map(_.path)
 
-    val aapt2Compile = Seq(androidSdkModule().aapt2Path().path.toString(), "compile")
+    val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
 
     for (libResDir <- libAndroidResources) {
       val segmentsSeq = libResDir.segments.toSeq
@@ -552,7 +568,7 @@ trait AndroidModule extends JavaModule { outer =>
     val moduleResources: Seq[os.Path] =
       androidResources().map(_.path).filter(os.exists)
 
-    val aapt2Compile = Seq(androidSdkModule().aapt2Path().path.toString(), "compile")
+    val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
 
     for (libResDir <- moduleResources) {
       val segmentsSeq = libResDir.segments.toSeq
@@ -584,6 +600,8 @@ trait AndroidModule extends JavaModule { outer =>
 
     val filesToLink = os.walk(compiledLibResDir).filter(os.isFile(_)) ++
       moduleResDirs.flatMap(os.walk(_).filter(os.isFile(_)))
+    val argFile = Task.dest / "to-link.txt"
+    os.write.over(argFile, filesToLink.map(_.toString()).mkString("\n"))
 
     val javaRClassDir = Task.dest / "generatedSources/java"
     val apkDir = Task.dest / "apk"
@@ -597,7 +615,7 @@ trait AndroidModule extends JavaModule { outer =>
 
     val mainDexRulesProFile = proguard / "main-dex-rules.pro"
 
-    val aapt2Link = Seq(androidSdkModule().aapt2Path().path.toString(), "link")
+    val aapt2Link = Seq(androidSdkModule().aapt2Exe().path.toString(), "link")
 
     val linkArgs = Seq(
       "-I",
@@ -621,8 +639,10 @@ trait AndroidModule extends JavaModule { outer =>
       "--proguard-conditional-keep-rules"
     ) ++ androidAaptOptions() ++ Seq(
       "-o",
-      resApkFile.toString
-    ) ++ filesToLink.flatMap(flat => Seq("-R", flat.toString()))
+      resApkFile.toString,
+      "-R",
+      "@" + argFile.toString
+    )
 
     Task.log.info((aapt2Link ++ linkArgs).mkString(" "))
 
@@ -710,7 +730,7 @@ trait AndroidModule extends JavaModule { outer =>
 
     override def androidNamespace: String = s"${outer.androidNamespace}.test"
 
-    override def moduleDir: Path = outer.moduleDir
+    override def moduleDir: os.Path = outer.moduleDir
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
 

@@ -59,7 +59,8 @@ class MillBuildBootstrap(
     streams0: SystemStreams,
     selectiveExecution: Boolean,
     offline: Boolean,
-    reporter: EvaluatorApi => Int => Option[CompileProblemReporter]
+    reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
+    enableTicker: Boolean
 ) { outer =>
   import MillBuildBootstrap.*
 
@@ -72,7 +73,7 @@ class MillBuildBootstrap(
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
       os.write.over(
         recOut(output, depth) / millRunnerState,
-        upickle.default.write(frame.loggedData, indent = 4),
+        upickle.write(frame.loggedData, indent = 4),
         createFolders = true
       )
     }
@@ -93,17 +94,17 @@ class MillBuildBootstrap(
 
       val requestedDepth = requestedMetaLevel.filter(_ >= 0).getOrElse(0)
 
+      val currentRootContainsBuildFile = rootBuildFileNames.asScala.exists(rootBuildFileName =>
+        os.exists(currentRoot / rootBuildFileName)
+      )
+
       val (nestedState, headerDataOpt) =
         if (depth == 0) {
           // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
           // Unfortunately, some tasks also make sense without a `build.mill`, e.g. the `init` command.
           // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
           lazy val state = evaluateRec(depth + 1)
-          if (
-            rootBuildFileNames.asScala.exists(rootBuildFileName =>
-              os.exists(currentRoot / rootBuildFileName)
-            )
-          ) (state, None)
+          if (currentRootContainsBuildFile) (state, None)
           else {
             val msg =
               s"No build file (${rootBuildFileNames.asScala.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
@@ -129,7 +130,7 @@ class MillBuildBootstrap(
             )
 
           val state =
-            if (os.exists(currentRoot)) evaluateRec(depth + 1)
+            if (currentRootContainsBuildFile) evaluateRec(depth + 1)
             else {
               val bootstrapModule =
                 new MillBuildRootModule.BootstrapModule()(
@@ -222,7 +223,8 @@ class MillBuildBootstrap(
                   .getOrElse(0),
                 depth,
                 actualBuildFileName = nestedState.buildFile,
-                headerData = headerDataOpt.getOrElse("")
+                headerData = headerDataOpt.getOrElse(""),
+                enableTicker = enableTicker
               )) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
@@ -404,7 +406,8 @@ object MillBuildBootstrap {
       millClassloaderIdentityHash: Int,
       depth: Int,
       actualBuildFileName: Option[String] = None,
-      headerData: String
+      headerData: String,
+      enableTicker: Boolean
   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
@@ -441,7 +444,8 @@ object MillBuildBootstrap {
         streams0,
         () => evaluator,
         offline,
-        headerData
+        headerData,
+        enableTicker
       )
     ).asInstanceOf[EvaluatorApi]
 
@@ -525,15 +529,12 @@ object MillBuildBootstrap {
   ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     import buildFileApi._
     evalWatchedValues.clear()
-    val evalTaskResult =
-      mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader) {
-        evaluator.evaluate(
-          tasksAndParams,
-          SelectMode.Separated,
-          reporter = reporter,
-          selectiveExecution = selectiveExecution
-        )
-      }
+    val evalTaskResult = evaluator.evaluate(
+      tasksAndParams,
+      SelectMode.Separated,
+      reporter = reporter,
+      selectiveExecution = selectiveExecution
+    )
 
     evalTaskResult match {
       case Result.Failure(msg) => (Result.Failure(msg), Nil, moduleWatchedValues)

@@ -27,7 +27,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "<java-version>"
+        "javaVersion": "17.0.16"
       }
     },
     {
@@ -59,7 +59,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "<java-version>"
+        "javaVersion": "17.0.16"
       }
     },
     {
@@ -98,7 +98,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "<java-version>"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -138,7 +138,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "<java-version>"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -178,7 +178,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "<java-version>"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -218,7 +218,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "<java-version>"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -258,7 +258,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "<java-version>"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -285,7 +285,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "<java-version>"
+        "javaVersion": "17.0.16"
       }
     },
     {
@@ -314,7 +314,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "<java-version>"
+        "javaVersion": "17.0.16"
       }
     },
     {
@@ -341,7 +341,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "<java-version>"
+        "javaVersion": "17.0.16"
       }
     },
     {
@@ -380,7 +380,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "<java-version>"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -423,7 +423,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "<java-version>"
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -450,7 +450,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "<java-version>"
+        "javaVersion": "17.0.16"
       }
     },
     {
@@ -496,7 +496,54 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "<java-version>"
+          "javaVersion": "17.0.16"
+        }
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///workspace/mill-build/mill-build"
+      },
+      "displayName": "mill-build/mill-build/",
+      "baseDirectory": "file:///workspace/mill-build/mill-build",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java",
+        "scala"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "scala",
+      "data": {
+        "scalaOrganization": "org.scala-lang",
+        "scalaVersion": "<scala3-version>",
+        "scalaBinaryVersion": "3",
+        "platform": 1,
+        "jars": [
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/<scala3-version>/scala3-compiler_3-<scala3-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/<scala3-version>/scala3-interfaces-<scala3-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/<scala3-version>/tasty-core_3-<scala3-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/<scala-asm-version>/scala-asm-<scala-asm-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/<compiler-interface-version>/compiler-interface-<compiler-interface-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline-reader/<jline-reader-version>/jline-reader-<jline-reader-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline-terminal/<jline-terminal-version>/jline-terminal-<jline-terminal-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/<jline-terminal-jni-version>/jline-terminal-jni-<jline-terminal-jni-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/<util-interface-version>/util-interface-<util-interface-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline-native/<jline-native-version>/jline-native-<jline-native-version>.jar"
+        ],
+        "jvmBuildTarget": {
+          "javaHome": "java-home",
+          "javaVersion": "17.0.16"
         }
       }
     },
@@ -516,6 +563,46 @@
         "canTest": false,
         "canRun": false,
         "canDebug": false
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///workspace/sourcesNeedCompile"
+      },
+      "displayName": "sourcesNeedCompile",
+      "baseDirectory": "file:///workspace/sourcesNeedCompile",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java",
+        "scala"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "scala",
+      "data": {
+        "scalaOrganization": "org.scala-lang",
+        "scalaVersion": "<scala-version>",
+        "scalaBinaryVersion": "2.13",
+        "platform": 1,
+        "jars": [
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/<scala-version>/scala-compiler-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<scala-version>/scala-reflect-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/<java-diff-utils-version>/java-diff-utils-<java-diff-utils-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline/<jline-version>/jline-<jline-version>-jdk8.jar"
+        ],
+        "jvmBuildTarget": {
+          "javaHome": "java-home",
+          "javaVersion": "17.0.16"
+        }
       }
     }
   ]

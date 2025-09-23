@@ -3,7 +3,7 @@ package mill.codesig
 import mill.codesig.JvmModel.*
 import mill.internal.{SpanningForest, Tarjans}
 import ujson.Obj
-import upickle.default.{Writer, writer}
+import upickle.{Writer, writer}
 
 import scala.collection.immutable.SortedMap
 
@@ -271,7 +271,7 @@ object CallGraphAnalysis {
    */
   sealed trait Node
 
-  implicit def nodeRw: Writer[Node] = upickle.default.stringKeyW(
+  implicit def nodeRw: Writer[Node] = upickle.stringKeyW(
     writer[String].comap[Node](_.toString)
   )
 

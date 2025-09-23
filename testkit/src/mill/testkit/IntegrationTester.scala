@@ -26,7 +26,8 @@ class IntegrationTester(
     val millExecutable: os.Path,
     override val debugLog: Boolean = false,
     val baseWorkspacePath: os.Path = os.pwd,
-    val propagateJavaHome: Boolean = true
+    val propagateJavaHome: Boolean = true,
+    val cleanupProcessIdFile: Boolean = true
 ) extends IntegrationTester.Impl {
   initWorkspace()
 }
@@ -205,7 +206,7 @@ object IntegrationTester {
        * Returns the `.json` metadata file contents parsed into a [[Evaluator.Cached]]
        * object, containing both the value as JSON and the associated metadata (e.g. hashes)
        */
-      def cached: Cached = upickle.default.read[Cached](text)
+      def cached: Cached = upickle.read[Cached](text)
 
       /**
        * Returns the value as JSON
@@ -215,7 +216,7 @@ object IntegrationTester {
       /**
        * Returns the value parsed from JSON into a value of type [[T]]
        */
-      def value[T: upickle.default.Reader]: T = upickle.default.read[T](cached.value)
+      def value[T: upickle.Reader]: T = upickle.read[T](cached.value)
     }
 
     /**

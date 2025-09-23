@@ -207,7 +207,7 @@ trait MillBuildRootModule()(implicit
         ),
         prevTransitiveCallGraphHashesOpt = () =>
           Option.when(os.exists(Task.dest / "previous/transitiveCallGraphHashes0.json"))(
-            upickle.default.read[Map[String, Int]](
+            upickle.read[Map[String, Int]](
               os.read.stream(Task.dest / "previous/transitiveCallGraphHashes0.json")
             )
           )
@@ -242,7 +242,7 @@ trait MillBuildRootModule()(implicit
   }
 
   def compileMvnDeps = Seq(
-    mvn"com.lihaoyi::sourcecode:0.4.3-M5"
+    mvn"com.lihaoyi::sourcecode:${Versions.comLihaoyiSourcecodeVersion}"
   )
 
   override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(

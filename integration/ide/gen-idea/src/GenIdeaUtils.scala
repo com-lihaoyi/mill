@@ -7,6 +7,11 @@ import scala.util.Try
 
 object GenIdeaUtils {
 
+  private lazy val coursierVersion = sys.props.getOrElse(
+    "mill.integration.coursier-version",
+    sys.error("Java property mill.integration.coursier-version not set")
+  )
+
   /**
    * The resource content will be loaded from the classpath and matched against the file.
    * It may contain the `<!-- IGNORE -->` String, to simulate wildcard-matches.
@@ -65,6 +70,7 @@ object GenIdeaUtils {
       .replace("//$USER_HOME$/AppData/Local/Coursier/cache/", "//$USER_HOME$/COURSIER_CACHE/")
       .replace("//$USER_HOME$/.cache/coursier/", "//$USER_HOME$/COURSIER_CACHE/")
       .replace("//$USER_HOME$/Library/Caches/Coursier/", "//$USER_HOME$/COURSIER_CACHE/")
+      .replace(coursierVersion, "COURSIER_VERSION") // this might match too many sub-strings
   }
 
   val ignoreString = "<!-- IGNORE -->"

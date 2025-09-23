@@ -6,7 +6,7 @@ import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
-import mill.constants.{DaemonFiles, OutFiles}
+import mill.constants.{DaemonFiles, OutFiles, OutFolderMode}
 import mill.api.BuildCtx
 import mill.internal.{
   Colors,
@@ -22,7 +22,7 @@ import mill.util.BuildInfo
 import mill.api
 import mill.api.daemon.internal.bsp.BspServerResult
 
-import java.io.{InputStream, PipedInputStream, PrintStream, PrintWriter, StringWriter}
+import java.io.{InputStream, PrintStream, PrintWriter, StringWriter}
 import java.lang.reflect.InvocationTargetException
 import java.util.Locale
 import java.util.concurrent.{ThreadPoolExecutor, TimeUnit}
@@ -70,12 +70,13 @@ object MillMain0 {
     if (bspMode) {
       // In BSP mode, don't let anything other than the BSP server write to stdout and read from stdin
 
+      val outDir = BuildCtx.workspaceRoot / os.RelPath(OutFiles.outFor(OutFolderMode.BSP))
       val outFileStream = os.write.outputStream(
-        BuildCtx.workspaceRoot / OutFiles.out / "mill-bsp/out.log",
+        outDir / "mill-bsp/out.log",
         createFolders = true
       )
       val errFileStream = os.write.outputStream(
-        BuildCtx.workspaceRoot / OutFiles.out / "mill-bsp/err.log",
+        outDir / "mill-bsp/err.log",
         createFolders = true
       )
 
@@ -149,14 +150,6 @@ object MillMain0 {
               )
               (true, RunnerState.empty)
 
-            case Result.Success(config)
-                if config.noDaemonEnabled > 0 && streams.in.getClass == classOf[PipedInputStream] =>
-              // because we have stdin as dummy, we assume we were already started in server process
-              streams.err.println(
-                "-i/--interactive/--no-daemon/--bsp must be passed in as the first argument"
-              )
-              (false, RunnerState.empty)
-
             case Result.Success(config) if config.noDaemonEnabled > 1 =>
               streams.err.println(
                 "Only one of -i/--interactive, --no-daemon or --bsp may be given"
@@ -181,6 +174,7 @@ object MillMain0 {
 
               // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
               val bspMode = config.bsp.value && config.leftoverArgs.value.isEmpty
+              val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR
               val bspInstallModeJobCountOpt = {
                 def defaultJobCount =
                   maybeThreadCount.toOption.getOrElse(BSP.defaultJobCount)
@@ -212,6 +206,11 @@ object MillMain0 {
                   Option.when(config.bspInstall.value)(defaultJobCount)
                 }
               }
+              val enableTicker = config.ticker
+                .orElse(config.enableTicker)
+                .orElse(Option.when(config.tabComplete.value)(false))
+                .orElse(Option.when(config.disableTicker.value)(false))
+                .getOrElse(true)
 
               val (success, nextStateCache) = {
                 if (config.repl.value) {
@@ -240,7 +239,7 @@ object MillMain0 {
                     if (threadCount == 1) None
                     else Some(mill.exec.ExecutionContexts.createExecutor(threadCount))
 
-                  val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
+                  val out = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
                   Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                     def runMillBootstrap(
                         enterKeyPressed: Boolean,
@@ -288,7 +287,8 @@ object MillMain0 {
                                 streams0 = streams,
                                 selectiveExecution = config.watch.value,
                                 offline = config.offline.value,
-                                reporter = reporter
+                                reporter = reporter,
+                                enableTicker = enableTicker
                               ).evaluate()
                             }
                           }
@@ -302,10 +302,7 @@ object MillMain0 {
                           Using.resource(getLogger(
                             streams,
                             config,
-                            enableTicker = config.ticker
-                              .orElse(config.enableTicker)
-                              .orElse(Option.when(config.tabComplete.value)(false))
-                              .orElse(Option.when(config.disableTicker.value)(false)),
+                            enableTicker = enableTicker,
                             daemonDir,
                             colored = colored,
                             colors = colors,
@@ -503,7 +500,8 @@ object MillMain0 {
     bspLogger.info("Trying to load BSP server...")
 
     val wsRoot = BuildCtx.workspaceRoot
-    val logDir = wsRoot / OutFiles.out / "mill-bsp"
+    val outFolder = wsRoot / os.RelPath(OutFiles.outFor(OutFolderMode.BSP))
+    val logDir = outFolder / "mill-bsp"
     os.makeDir.all(logDir)
 
     val bspServerHandleRes =
@@ -514,7 +512,7 @@ object MillMain0 {
         true,
         outLock,
         bspLogger,
-        wsRoot / OutFiles.out
+        outFolder
       ).get
 
     bspLogger.info("BSP server started")
@@ -546,7 +544,7 @@ object MillMain0 {
   def getLogger(
       streams: SystemStreams,
       config: MillCliConfig,
-      enableTicker: Option[Boolean],
+      enableTicker: Boolean,
       daemonDir: os.Path,
       colored: Boolean,
       colors: Colors,
@@ -554,7 +552,7 @@ object MillMain0 {
   ): Logger & AutoCloseable = {
     new PromptLogger(
       colored = colored,
-      enableTicker = enableTicker.getOrElse(true),
+      enableTicker = enableTicker,
       infoColor = colors.info,
       warnColor = colors.warn,
       errorColor = colors.error,

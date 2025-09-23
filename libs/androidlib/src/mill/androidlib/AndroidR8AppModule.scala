@@ -2,7 +2,6 @@ package mill.androidlib
 
 import mill.*
 import mill.api.{PathRef, Task}
-import mill.api.BuildCtx
 
 @mill.api.experimental
 trait AndroidR8AppModule extends AndroidAppModule {
@@ -60,19 +59,15 @@ trait AndroidR8AppModule extends AndroidAppModule {
       .flatMap(_.proguardRules)
   }
 
+  /**
+   * The ProGuard/R8 rules configuration files for the Android project.
+   * @return
+   */
+  def androidProjectProguardFiles: T[Seq[PathRef]] = Task.Sources()
+
   /** ProGuard/R8 rules configuration files for release target (user-provided and generated) */
-  def androidProguardConfigs: Task[Seq[PathRef]] = Task {
-    val proguardFilesFromBuildSettings = androidBuildSettings().proguardFiles
-    val androidProguardPath = androidSdkModule().androidProguardPath().path
-    val defaultProguardFile = proguardFilesFromBuildSettings.defaultProguardFile.map {
-      pf => androidProguardPath / pf
-    }
-    val userProguardFiles = proguardFilesFromBuildSettings.localFiles
-    BuildCtx.withFilesystemCheckerDisabled {
-      (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(
-        _
-      )) ++ androidLibraryProguardConfigs()
-    }
+  def androidProguardConfigs: T[Seq[PathRef]] = Task {
+    androidDefaultProguardFiles() ++ androidProjectProguardFiles() ++ androidLibraryProguardConfigs()
   }
 
   /** Concatenates all rules into one file */
@@ -94,18 +89,31 @@ trait AndroidR8AppModule extends AndroidAppModule {
    * The default release settings with the following settings:
    * - minifyEnabled=true
    * - shrinkEnabled=true
-   * - proguardFiles=proguard-android-optimize.txt
-   *
    * @return
    */
   def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
     AndroidBuildTypeSettings(
       isMinifyEnabled = true,
-      isShrinkEnabled = true,
-      proguardFiles = ProguardFiles(
-        defaultProguardFile = Some("proguard-android-optimize.txt")
-      )
+      isShrinkEnabled = true
     )
+  }
+
+  /**
+   * File names that are provided by the Android SDK in `androidSdkModule().androidProguardPath().path`
+   * @return
+   */
+  def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+    Seq.empty[String]
+  }
+
+  private def androidDefaultProguardFiles: Task[Seq[PathRef]] = Task.Anon {
+    val dest = Task.dest
+    androidDefaultProguardFileNames().map { fileName =>
+      androidSdkModule().androidProguardPath() / fileName
+    }.filter(os.exists).foreach { proguardFile =>
+      os.copy(proguardFile, dest / proguardFile.last)
+    }
+    os.walk(dest).filter(os.isFile).map(PathRef(_))
   }
 
   def androidR8Args: T[Seq[String]] = Task {
@@ -140,7 +148,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
     val outputPath = destDir
 
-    Task.log.debug("outptuPath: " + outputPath)
+    Task.log.debug("outputPath: " + outputPath)
 
     // Define diagnostic output file paths
     val mappingOut = destDir / "mapping.txt"
@@ -151,12 +159,14 @@ trait AndroidR8AppModule extends AndroidAppModule {
     val baselineOutOpt = destDir / "baseline-profile-rewritten.txt"
     destDir / "res"
 
-    // Create an extra ProGuard config file that instructs R8 to print seeds and usage.
+    // Instruct R8 to print seeds and usage.
+    val extraRules = Seq(
+      s"-printseeds $seedsOut",
+      s"-printusage $usageOut"
+    )
+    // Create an extra ProGuard config file
     val extraRulesFile = destDir / "extra-rules.pro"
-    val extraRulesContent =
-      s"""-printseeds ${seedsOut.toString}
-         |-printusage ${usageOut.toString}
-         |""".stripMargin.trim
+    val extraRulesContent = extraRules.mkString("\n")
     os.write.over(extraRulesFile, extraRulesContent)
 
     val classpathClassFiles: Seq[PathRef] = androidPackagedClassfiles()
@@ -169,6 +179,8 @@ trait AndroidR8AppModule extends AndroidAppModule {
       classpathClassFiles ++ appCompiledFiles ++ androidPackagedDeps()
 
     val allClassFiles = allClassFilesPathRefs.map(_.path.toString)
+    val allClassFilesFile = Task.dest / "all-classes.txt"
+    os.write.over(allClassFilesFile, allClassFiles.mkString("\n"))
 
     val r8ArgsBuilder = Seq.newBuilder[String]
 
@@ -218,14 +230,34 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
     r8ArgsBuilder ++= libArgs
 
-    // ProGuard configuration files: add our extra rules file and all provided config files.
-    val pgArgs = Seq("--pg-conf", androidProguard().path.toString)
+    // ProGuard configuration files: add our extra rules file,
+    // all provided config files and the common rules.
+    val pgArgs =
+      Seq(
+        "--pg-conf",
+        androidProguard().path.toString,
+        "--pg-conf",
+        extraRulesFile.toString
+      ) ++ androidCommonProguardFiles().flatMap(pgf => Seq("--pg-conf", pgf.path.toString))
 
     r8ArgsBuilder ++= pgArgs
 
+    val resolvedCompileMvnDeps = androidResolvedCompileMvnDeps()
+    if (!resolvedCompileMvnDeps.isEmpty) {
+      val compiledMvnDepsFile = Task.dest / "compiled-mvndeps.txt"
+      os.write.over(
+        compiledMvnDepsFile,
+        androidResolvedCompileMvnDeps().map(_.path.toString()).mkString("\n")
+      )
+      r8ArgsBuilder ++= Seq(
+        "--classpath",
+        "@" + compiledMvnDepsFile.toString
+      )
+    }
+
     r8ArgsBuilder ++= androidR8Args()
 
-    r8ArgsBuilder ++= allClassFiles
+    r8ArgsBuilder += "@" + allClassFilesFile.toString
 
     val r8Args = r8ArgsBuilder.result()
 

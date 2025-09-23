@@ -241,8 +241,8 @@ trait PublishModule extends PythonModule {
 }
 
 object PublishModule {
-  private implicit lazy val licenseFormat: upickle.default.ReadWriter[License] =
-    upickle.default.macroRW
+  private implicit lazy val licenseFormat: upickle.ReadWriter[License] =
+    upickle.macroRW
 
   /**
    * Static metadata about a project.
@@ -261,7 +261,7 @@ object PublishModule {
       urls: Map[String, String] = Map()
   )
   object PublishMeta {
-    implicit val rw: upickle.default.ReadWriter[PublishMeta] = upickle.default.macroRW
+    implicit val rw: upickle.ReadWriter[PublishMeta] = upickle.macroRW
   }
 
   case class Developer(
@@ -269,7 +269,7 @@ object PublishModule {
       email: String
   )
   object Developer {
-    implicit val rw: upickle.default.ReadWriter[Developer] = upickle.default.macroRW
+    implicit val rw: upickle.ReadWriter[Developer] = upickle.macroRW
   }
 
 }

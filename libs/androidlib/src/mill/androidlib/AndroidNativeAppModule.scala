@@ -68,22 +68,22 @@ trait AndroidNativeAppModule extends AndroidAppModule {
       os.makeDir.all(outCxx)
 
       val cmakeArgs = Seq(
-        s"${androidSdkModule().cmakePath().path.toString}",
-        s"-H/${androidNativeSource().path}",
+        s"${androidSdkModule().cmakeExe().path.toString}",
+        s"-S ${androidNativeSource().path}",
         "-DCMAKE_SYSTEM_NAME=Android",
         "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
         s"-DCMAKE_SYSTEM_VERSION=${androidBuildToolsVersion()}",
         s"-DANDROID_PLATFORM=android-${androidBuildToolsVersion()}",
         s"-DANDROID_ABI=${abi}",
         s"-DCMAKE_ANDROID_ARCH_ABI=${abi}",
-        s"-DANDROID_NDK=${androidSdkModule().ndkPath().path.toString}",
-        s"-DCMAKE_ANDROID_NDK=${androidSdkModule().ndkPath().path.toString}",
+        s"-DANDROID_NDK=${androidSdkModule().ndkPath().toString}",
+        s"-DCMAKE_ANDROID_NDK=${androidSdkModule().ndkPath().toString}",
         s"-DCMAKE_TOOLCHAIN_FILE=${androidSdkModule().cmakeToolchainFilePath().path.toString}",
-        s"-DCMAKE_MAKE_PROGRAM=${androidSdkModule().ninjaPath().path.toString}",
+        s"-DCMAKE_MAKE_PROGRAM=${androidSdkModule().ninjaExe().path.toString}",
         s"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=${outFile.toString}",
         s"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${outFile.toString}",
         "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
-        s"-B/${outCxx.toString}/${abi}",
+        s"-B ${outCxx.toString}/${abi}",
         "-GNinja"
       ) ++ androidCMakeExtraArgs()
 
@@ -92,7 +92,7 @@ trait AndroidNativeAppModule extends AndroidAppModule {
       os.proc(cmakeArgs).call()
 
       val ninjaArgs = Seq(
-        s"${androidSdkModule().ninjaPath().path.toString}",
+        s"${androidSdkModule().ninjaExe().path.toString}",
         "-C",
         s"${outCxx.toString}/${abi}",
         s"${androidNativeLibName()}.so"

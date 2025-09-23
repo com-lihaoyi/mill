@@ -40,7 +40,7 @@ object MavenWorkerSupport {
   }
 
   object RemoteM2Publisher {
-    @deprecated("This should have been an internal API.", "1.0.1")
+    @deprecated("This should have been an internal API.", "Mill 1.0.1")
     def asM2Artifacts(
         pom: os.Path,
         artifact: Artifact,

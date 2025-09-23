@@ -1,0 +1,16 @@
+package build.core.internal.cli
+
+import mill._
+import millbuild.*
+
+/**
+ * This package contains internal helpers and utilities for CLI commands. Not intended for use by user-land code.
+ */
+object `package` extends MillPublishScalaModule {
+  def moduleDeps = Seq(build.libs.util)
+
+  def mvnDeps = Seq(
+    Deps.millModuledefs,
+    Deps.mainargs
+  )
+}

@@ -20,8 +20,8 @@ case class ExternalSummary(
  */
 object ExternalSummary {
 
-  implicit def rw(implicit st: SymbolTable): upickle.default.ReadWriter[ExternalSummary] =
-    upickle.default.macroRW
+  implicit def rw(implicit st: SymbolTable): upickle.ReadWriter[ExternalSummary] =
+    upickle.macroRW
 
   def apply(
       localSummary: LocalSummary,

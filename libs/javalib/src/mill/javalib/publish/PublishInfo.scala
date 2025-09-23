@@ -31,7 +31,7 @@ case class PublishInfo(
 }
 
 object PublishInfo {
-  implicit def jsonify: upickle.default.ReadWriter[PublishInfo] = upickle.default.macroRW
+  implicit def jsonify: upickle.ReadWriter[PublishInfo] = upickle.macroRW
 
   /**
    * See https://ant.apache.org/ivy/history/latest-milestone/ivyfile/artifact.html for Ivy XML descriptions.

@@ -11,7 +11,7 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/app/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/app/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -28,7 +28,7 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/app/test/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/app/test/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -45,7 +45,7 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/delayed/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/delayed/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -62,7 +62,7 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/diag/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/diag/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -79,7 +79,7 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/diag/many/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/diag/many/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -96,7 +96,7 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/errored/compilation-error/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/errored/compilation-error/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -113,7 +113,7 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/errored/exception/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/errored/exception/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -130,7 +130,7 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/hello-java/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/hello-java/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -147,7 +147,7 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/hello-java/test/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/hello-java/test/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -164,7 +164,7 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/hello-kotlin/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/hello-kotlin/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -181,7 +181,7 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/hello-scala/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/hello-scala/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -198,7 +198,7 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/hello-scala/test/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/hello-scala/test/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -215,7 +215,7 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/lib/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/lib/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -237,12 +237,39 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/mill-build/generatedScriptSources.dest/support",
+          "uri": "file:///workspace/out/mill-bsp-out/mill-build/generatedScriptSources.dest/support",
           "kind": 2,
           "generated": true
         },
         {
-          "uri": "file:///workspace/out/mill-build/compileGeneratedSources.dest",
+          "uri": "file:///workspace/out/mill-bsp-out/mill-build/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/mill-build/mill-build"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/mill-build/build.mill",
+          "kind": 1,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/mill-build/mill-build/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/out/mill-bsp-out/mill-build/mill-build/generatedScriptSources.dest/support",
+          "kind": 2,
+          "generated": true
+        },
+        {
+          "uri": "file:///workspace/out/mill-bsp-out/mill-build/mill-build/compileGeneratedSources.dest",
           "kind": 2,
           "generated": true
         }
@@ -257,6 +284,23 @@
           "uri": "file:///workspace/src",
           "kind": 2,
           "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/sourcesNeedCompile"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/sourcesNeedCompile/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/out/mill-bsp-out/sourcesNeedCompile/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
         }
       ]
     }

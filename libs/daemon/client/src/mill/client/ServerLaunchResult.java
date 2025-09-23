@@ -1,13 +1,6 @@
 package mill.client;
 
-import java.util.function.Function;
-
 public abstract class ServerLaunchResult {
-  public abstract <R> R fold(
-      Function<Success, R> onSuccess,
-      Function<AlreadyRunning, R> onAlreadyRunning,
-      Function<ServerDied, R> onProcessDied);
-
   /// The server process was not running, so it was started and is now running.
   public static class Success extends ServerLaunchResult {
     /// The server process.
@@ -15,14 +8,6 @@ public abstract class ServerLaunchResult {
 
     public Success(LaunchedServer server) {
       this.server = server;
-    }
-
-    @Override
-    public <R> R fold(
-        Function<Success, R> onSuccess,
-        Function<AlreadyRunning, R> onAlreadyRunning,
-        Function<ServerDied, R> onProcessDied) {
-      return onSuccess.apply(this);
     }
   }
 
@@ -33,14 +18,6 @@ public abstract class ServerLaunchResult {
 
     public AlreadyRunning(LaunchedServer server) {
       this.server = server;
-    }
-
-    @Override
-    public <R> R fold(
-        Function<Success, R> onSuccess,
-        Function<AlreadyRunning, R> onAlreadyRunning,
-        Function<ServerDied, R> onProcessDied) {
-      return onAlreadyRunning.apply(this);
     }
   }
 
@@ -60,14 +37,6 @@ public abstract class ServerLaunchResult {
     @Override
     public String toString() {
       return "ProcessDied{" + "server=" + server + ", outputs=" + outputs + '}';
-    }
-
-    @Override
-    public <R> R fold(
-        Function<Success, R> onSuccess,
-        Function<AlreadyRunning, R> onAlreadyRunning,
-        Function<ServerDied, R> onProcessDied) {
-      return onProcessDied.apply(this);
     }
   }
 }

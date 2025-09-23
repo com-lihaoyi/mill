@@ -17,8 +17,10 @@ trait UnidocModule extends ScalaModule {
   /** Passed as `-doc-version` to scaladoc. */
   def unidocVersion: T[Option[String]] = None
 
-  def unidocCompileClasspath = Task {
-    Seq(compile().classes) ++ Task.traverse(moduleDeps)(_.compileClasspath)().flatten
+  def unidocCompileClasspath: T[Seq[PathRef]] = Task {
+    Seq(
+      compile().classes
+    ) ++ Task.traverse(transitiveModuleCompileModuleDeps)(_.compileClasspath)().flatten
   }
 
   /**
@@ -28,7 +30,7 @@ trait UnidocModule extends ScalaModule {
    */
   def unidocModuleDeps: Seq[JavaModule] = transitiveModuleDeps
 
-  def unidocSourceFiles = Task {
+  def unidocSourceFiles: T[Seq[PathRef]] = Task {
     if (JvmWorkerUtil.isScala3(scalaVersion())) {
       // On Scala 3 scaladoc only accepts .tasty files and .jar files
       Task.traverse(unidocModuleDeps)(_.compile)().map(_.classes)
@@ -49,7 +51,7 @@ trait UnidocModule extends ScalaModule {
   /**
    * @param local whether to use 'file://' as the `-doc-source-url`/`-source-links`.
    */
-  def unidocCommon(local: Boolean) = Task.Anon {
+  def unidocCommon(local: Boolean): Task[PathRef] = Task.Anon {
     val scalaVersion0 = scalaVersion()
     val onScala3 = JvmWorkerUtil.isScala3(scalaVersion0)
 
@@ -117,19 +119,26 @@ trait UnidocModule extends ScalaModule {
     }
   }
 
-  def unidocLocal = Task {
+  def unidocLocal: T[PathRef] = Task {
     unidocCommon(true)()
-    PathRef(Task.dest)
   }
 
-  def unidocSite = Task {
-    unidocCommon(false)()
+  def unidocSite: T[PathRef] = Task {
+    val raw = unidocCommon(false)().path
+    val dest = if (!raw.startsWith(Task.dest)) {
+      // dest is outside, so we copy it, as we want to modify it
+      os.copy.over(raw, Task.dest)
+      Task.dest
+    } else {
+      raw
+    }
+    val replacePrefix = s"file://${BuildCtx.workspaceRoot}"
     for {
       sourceUrl <- unidocSourceUrl()
-      p <- os.walk(Task.dest) if p.ext == "scala"
+      p <- os.walk(dest) if p.ext == "scala"
     } {
-      os.write(p, os.read(p).replace(s"file://${BuildCtx.workspaceRoot}", sourceUrl))
+      os.write(p, os.read(p).replace(replacePrefix, sourceUrl))
     }
-    PathRef(Task.dest)
+    PathRef(dest)
   }
 }

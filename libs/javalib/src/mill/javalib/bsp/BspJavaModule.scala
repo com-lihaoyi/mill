@@ -18,8 +18,9 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
       searched: String
   ): Task[Seq[T]] =
     Task.Anon {
-      val src = jm.allSourceFiles()
-      val found = src.map(jm.sanitizeUri).contains(searched)
+      val srcFiles = jm.allSourceFiles().map(_.path)
+      val baseSrc = jm.allSources().map(_.path).filter(os.isFile)
+      val found = (srcFiles ++ baseSrc).map(jm.sanitizeUri).contains(searched)
       if (found) Seq(id) else Seq()
     }
 
@@ -53,8 +54,8 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
     (
       resolvedDepsSources = jm.millResolver().classpath(
         Seq(
-          jm.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-          jm.coursierDependency
+          jm.coursierDependencyTask().withConfiguration(coursier.core.Configuration.provided),
+          jm.coursierDependencyTask()
         ),
         sources = true
       ).map(_.path.toNIO),
@@ -72,8 +73,8 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
       jm.millResolver()
         .resolution(
           Seq(
-            jm.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-            jm.coursierDependency
+            jm.coursierDependencyTask().withConfiguration(coursier.core.Configuration.provided),
+            jm.coursierDependencyTask()
           )
         )
         .orderedDependencies

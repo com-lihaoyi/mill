@@ -190,36 +190,12 @@ object `package` extends MillJavaModule with DistModule {
     }
   }
 
-  def millBootstrap = Task.Source(BuildCtx.workspaceRoot / "mill")
-  def millBootstrapBat = Task.Source(BuildCtx.workspaceRoot / "mill.bat")
-
-  def prepareBootstrapLauncher(
-      bootstrap: os.Path,
-      dest: os.Path,
-      buildVersion: String,
-      fileName: String
-  ) = {
-    val outputPath = dest / fileName
-    val millBootstrapGrepPrefix = "(\n *DEFAULT_MILL_VERSION=)"
-
-    os.write(
-      outputPath,
-      os.read(bootstrap)
-        .replaceAll(
-          millBootstrapGrepPrefix + "[^\\n]+",
-          "$1" + buildVersion
-        )
-    )
-
-    if (!scala.util.Properties.isWin) os.perms.set(outputPath, "rwxrwxrwx")
-
-    PathRef(outputPath)
-  }
   def bootstrapLauncher = Task {
-    prepareBootstrapLauncher(millBootstrap().path, Task.dest, build.millVersion(), "mill")
+    build.dist.scripts.millSh.compile0()
   }
+
   def bootstrapLauncherBat = Task {
-    prepareBootstrapLauncher(millBootstrapBat().path, Task.dest, build.millVersion(), "mill.bat")
+    build.dist.scripts.millBat.compile0()
   }
 
   def examplePaths: Task[Seq[os.Path]] = Task.Input {

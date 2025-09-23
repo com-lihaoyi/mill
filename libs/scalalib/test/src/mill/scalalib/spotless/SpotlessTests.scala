@@ -252,5 +252,5 @@ private def updateFormats(cwd: os.Path)(f: Seq[Format] => Seq[Format]) =
   val file = cwd / ".spotless-formats.json"
   os.write.over(
     file,
-    upickle.default.write(f(upickle.default.read[Seq[Format]](file.toNIO)))
+    upickle.write(f(upickle.read[Seq[Format]](file.toNIO)))
   )

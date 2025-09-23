@@ -1,7 +1,7 @@
 package mill.javalib.spotless
 
 import mainargs.Flag
-import mill.constants.OutFiles.out
+import mill.constants.OutFiles.{out, bspOut}
 import mill.api.*
 import mill.api.internal.RootModule0
 import mill.javalib.{CoursierModule, Dep, OfflineSupportModule}
@@ -65,7 +65,7 @@ trait SpotlessModule extends CoursierModule, OfflineSupportModule {
       import Format.*
       RelPathRef.withDynamicRoot(moduleDir) {
         val file = moduleDir / ".spotless-formats.json"
-        if os.exists(file) then upickle.default.read[Seq[Format]](file.toNIO)
+        if os.exists(file) then upickle.read[Seq[Format]](file.toNIO)
         else Seq(defaultJava, defaultKotlin, defaultScala)
       }
     }
@@ -77,7 +77,7 @@ trait SpotlessModule extends CoursierModule, OfflineSupportModule {
    * @see [[https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String) Path matcher pattern]]
    */
   def spotlessExcludes: Task[Seq[String]] = this match
-    case _: RootModule0 => Task { Seq(s"glob:$out") }
+    case _: RootModule0 => Task { Seq(s"glob:$out", s"glob:$bspOut") }
     case _ => Task { Seq.empty[String] }
 
   private def spotlessWorkerClasspath = Task {
