@@ -28,10 +28,19 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
 
   private def isBindingEnabled: Boolean = enableViewBinding || enableDataBinding
 
+  def dataBindingCompilerVersion: T[String] = Task {
+    isBindingEnabled match {
+      case true => throw new Exception(
+          "dataBindingCompilerVersion must be overridden when view or data binding is enabled."
+        )
+      case false => ""
+    }
+  }
+
   def androidDataBindingCompilerDeps: T[Seq[Dep]] = Task {
     Seq(
-      mvn"androidx.databinding:databinding-compiler:8.13.0",
-      mvn"androidx.databinding:databinding-compiler-common:8.13.0"
+      mvn"androidx.databinding:databinding-compiler:${dataBindingCompilerVersion()}",
+      mvn"androidx.databinding:databinding-compiler-common:${dataBindingCompilerVersion()}"
     )
   }
 
@@ -62,7 +71,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
       .asInstanceOf[AndroidDataBindingWorker]
   }
 
-  def processedLayoutXmls: T[PathRef] = Task {
+  def androidProcessedLayoutXmls: T[PathRef] = Task {
 
     val resOutputDir = Task.dest / "resources"
     val layoutInfoOutputDir = Task.dest / "layout_info"
@@ -83,7 +92,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     PathRef(Task.dest)
   }
 
-  def generatedBindingSources: T[PathRef] = Task {
+  def generatedAndroidBindingSources: T[PathRef] = Task {
     val logDir = Task.dest / "logs"
     val outputDir = Task.dest / "generated"
     val classInfoDir = Task.dest / "class_info"
@@ -92,7 +101,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     os.makeDir.all(classInfoDir)
     val args = GenerateBindingSourcesArgs(
       applicationPackageName = androidNamespace,
-      layoutInfoDir = (processedLayoutXmls().path / "layout_info").toString,
+      layoutInfoDir = (androidProcessedLayoutXmls().path / "layout_info").toString,
       classInfoDir = classInfoDir.toString,
       outputDir = outputDir.toString,
       logFolder = logDir.toString,
@@ -106,7 +115,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
   }
 
   override def generatedSources: T[Seq[PathRef]] = isBindingEnabled match {
-    case true => super.generatedSources() :+ generatedBindingSources()
+    case true => super.generatedSources() :+ generatedAndroidBindingSources()
     case false => super.generatedSources()
   }
 
@@ -116,7 +125,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
    */
   override def androidCompiledModuleResources: T[Seq[PathRef]] = isBindingEnabled match {
     case true => Task {
-        val moduleResources = Seq(processedLayoutXmls().path / "resources")
+        val moduleResources = Seq(androidProcessedLayoutXmls().path / "resources")
 
         val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
 

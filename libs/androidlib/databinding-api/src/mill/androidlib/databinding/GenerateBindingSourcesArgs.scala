@@ -3,11 +3,11 @@ package mill.androidlib.databinding
 case class GenerateBindingSourcesArgs(
     applicationPackageName: String,
     layoutInfoDir: String,
-    dependencyClassInfoDirs: Seq[String] = Seq.empty[String],
     classInfoDir: String,
     outputDir: String,
     logFolder: String,
     enableViewBinding: Boolean,
     enableDataBinding: Boolean,
-    useAndroidX: Boolean = true
+    useAndroidX: Boolean = true,
+    dependencyClassInfoDirs: Seq[String] = Seq.empty[String]
 )
