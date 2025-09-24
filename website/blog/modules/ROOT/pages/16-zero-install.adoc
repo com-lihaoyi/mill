@@ -107,7 +107,7 @@ dependencies required by the project they are building, the user does not need t
 those manually. Any `build` or `install` or `test` command results in all necessary
 dependencies being automatically downloaded and cached as necessary. More recently, the
 https://maven.apache.org/[Maven build tool] has adopted a similar convention with
-https://maven.apache.org/tools/wrapper/[./mvnw] scripts.
+https://maven.apache.org/tools/wrapper/[./mvnw] scripts serving the same purpose.
 
 However, one limitation of the Maven and Gradle approach to bootstrap scripts is that they rely
 on `java` being pre-installed to begin the bootstrapping process. Without `java`, they cannot
@@ -135,7 +135,7 @@ But that doesn't seem like a hard requirement, and it should be possible to make
 binary that can run without `java` or any other runtime pre-installed. That is the approach
 that Mill takes.
 
-== Mill's Zero-Install Bootstrap Scripts
+== Mill's Zero-Setup Bootstrap Scripts
 
 Mill's xref:mill::cli/installation-ide.adoc#_bootstrap_scripts[./mill bootstrap scripts] are
 similar to `./mvnw` or `./gradle`, but differ in that
@@ -153,8 +153,8 @@ These `.exe` files are JVM executables, but compiled to native platform-specific
 the xref:7-graal-native-executables.adoc[Graal Native Image compiler]. Apart from the benefits
 of reduced startup time and memory usage, native image binaries also can run on bare environments
 without a `java` runtime pre-installed. This lets us write our non-trivial bootstrapping logic
-in Java, run it on the JVM, without needing a `java` installation present on the machine we run
-it on.
+in Java, run it on the JVM, without needing a system-wide `java` distribution pre-installed
+on the machine we run it on.
 
 As native image binaries are OS/CPU-specific, we need some logic to pick the right binary for the
 machine the bootstrap script it running on, and that logic needs to run in the `.sh` or `.bat`
@@ -199,13 +199,13 @@ exec "${DOWNLOAD_FILE}" "$@"
 
 The snippets above are somewhat simplified - the
 https://github.com/com-lihaoyi/mill/blob/1.0.5/dist/scripts/src/mill.sh[actual bootstrap script]
-contains a lot more logic to handle backwards compatibility, version configuration,
-https://github.com/com-lihaoyi/mill/blob/1.0.5/dist/scripts/src/mill.bat[Windows support],
-and other necessary details. But at a high level, they illustrate what Mill's bootstrap script
-does: it picks the downloads the native binary of the configured version, operating system, and
-CPU architecture, and executes it to begin the Mill bootstrapping process. This lets it bootstrap
-from _shell/bat script_ to _native image binary_ without any prior installation of `java` or
-other system-wide dependencies, and from there we can bootstrap the rest of the way.
+contains a lot more logic to handle backwards compatibility, version configuration, Windows
+support, and other necessary details. But at a high level, they illustrate what Mill's
+bootstrap script does: it picks the downloads the native binary of the configured version,
+operating system, and CPU architecture, and executes it to begin the Mill bootstrapping process.
+This lets it bootstrap from _shell/bat script_ to _native image binary_ without any prior
+installation of `java` or other system-wide dependencies, and from there we can bootstrap the
+rest of the way.
 
 == Bootstrapping a Full JVM Environment
 
@@ -337,5 +337,5 @@ multiple zero-step installs will always remain zero-step even if added together,
 of how large and messy the project gets.
 
 Hopefully you've come away from this article with an appreciation for how Mill builds upon
-prior art to come up with its zero-step install process, so next time the opportunity
+prior art to come up with its zero-step setup process, so next time the opportunity
 arises you can implement something similar in your own projects.
