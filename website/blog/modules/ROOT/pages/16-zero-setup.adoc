@@ -1,5 +1,4 @@
 = Zero-Setup All-in-One Java Tooling via Mill Bootstrap Scripts
-
 // tag::header[]
 :author: Li Haoyi
 :revdate: 24 September 2025
@@ -17,17 +16,19 @@ The Mill build tool does something interesting here: it requires no system-wide 
 at all to build your Java projects! You can checkout any codebase built with Mill on a bare
 Linux/Mac/Windows machine, build it without any prior setup using it's `./mill` bootstrap
 script, and Mill will automatically download and cache itself, any JVMs, and any third-party
-libraries and tools necessary. For example, the `./mill __.compile` below is all that is needed
+libraries and tools necessary. For example, the `+./mill __.compile+` below is all that is needed
+libraries and tools necessary. For example, the `+./mill __.compile+` below is all that is needed
 to compile all modules in a newly-checked-out Mill project on a clean machine, greatly
 simplifying building your project on diverse dev and CI environments:
 
-```console
+[,console]
+----
 > curl -L https://github.com/com-lihaoyi/cask/archive/refs/heads/master.zip -o cask.zip
 
 > unzip cask.zip && cd cask-master
 
 > ./mill __.compile
-```
+----
 
 This blog post explores how Mill's zero-install workflow works: the status quo,
 the interesting innovations that Mill builds upon, and Mill's unique ideas
@@ -41,9 +42,10 @@ working with Java, Scala, or Kotlin projects.
 Perhaps the most common way software is installed is via package managers like `apt`, `yum`, or
 `brew`. For example, the incantation to install `git` in an Amazon-Linux machine is:
 
-```console
+[,console]
+----
 > sudo yum install git
-```
+----
 
 Depending on how nicely the software you are installing is packaged, this may or may not require
 additional commands to install transitive dependencies. For example, when setting up a codebase
@@ -98,9 +100,10 @@ commit to the repository root. The bootstrap script embeds the version of Gradle
 want to use, and ensures to download and cache that specific version when it is invoked. That means
 you can checkout a project's code and run:
 
-```console
+[,console]
+----
 > ./gradlew build
-```
+----
 
 And be sure you are using the same version of Gradle that everyone else is also using
 to build that project. This can be very handy: you now no longer need to worry about installing
@@ -119,13 +122,14 @@ However, one limitation of the Maven and Gradle approach to bootstrap scripts is
 on `java` being pre-installed to begin the bootstrapping process. Without `java`, they cannot
 run at all, as shown below:
 
-```console
+[,console]
+----
 > curl -L https://github.com/netty/netty/archive/refs/heads/4.2.zip -o netty.zip
 > unzip netty.zip
 > ./mvnw clean install
 /usr/bin/which: no javac in (/home/ec2-user/.local/bin:/home/ec2-user/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin)
 Error: JAVA_HOME is not defined correctly.
-```
+----
 
 So even with the `./gradlew` or `./mvnw` bootstrap scripts, working with Gradle or Maven still
 ends up being a 1-step installation process: you need to install `java` (and the right version
@@ -148,12 +152,12 @@ similar to `./mvnw` or `./gradle`, but differ in that
 by default they do not require `java` pre-installed in order to run. Instead, `./mill` downloads
 a native platform-specific binary that then performs the bootstrapping process:
 
-```
+----
 mill-dist-native-linux-aarch64-1.0.5.exe
 mill-dist-native-linux-amd64-1.0.5.exe
 mill-dist-native-mac-aarch64-1.0.5.exe
 mill-dist-native-mac-amd64-1.0.5.exe
-```
+----
 
 These `.exe` files are JVM executables, but compiled to native platform-specific binaries using
 the xref:7-graal-native-executables.adoc[Graal Native Image compiler]. Apart from the benefits
@@ -167,7 +171,8 @@ machine the bootstrap script it running on, and that logic needs to run in the `
 bootstrap script because we need it to run _before_ the native image binary has been downloaded.
 The `.sh` version of this implemented using `uname` is as follows:
 
-```bash
+[,bash]
+----
 ARTIFACT_SUFFIX=""
 set_artifact_suffix(){
   if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" = "Linux" ]; then
@@ -187,22 +192,24 @@ set_artifact_suffix(){
      exit 1
   fi
 }
-```
+----
 
 The bootstrap script can then assemble this into a download URL to `curl` down the relevant file
 from the Maven Central package repository:
 
-```bash
+[,bash]
+----
 DOWNLOAD_URL="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.${DOWNLOAD_EXT}"
 curl -f -L -o "${DOWNLOAD_FILE}" "${DOWNLOAD_URL}"
-```
+----
 
 We can then execute the downloaded file, taking any command line arguments given to the bootstrap
 script and forwarding them to the native binary:
 
-```bash
+[,bash]
+----
 exec "${DOWNLOAD_FILE}" "$@"
-```
+----
 
 The snippets above are somewhat simplified - the
 https://github.com/com-lihaoyi/mill/blob/1.0.5/dist/scripts/src/mill.sh[actual bootstrap script]
@@ -218,7 +225,7 @@ rest of the way.
 
 Once we execute our native image binary, we then have an opportunity to run real JVM code (as
 opposed to sketchy shell scripts) to proceed with bootstrapping. When someone runs
-`./mill __.compile` to compile all modules in a repository, and the native image bootstrap
+`+./mill __.compile+` to compile all modules in a repository, and the native image bootstrap
 launcher has been downloaded as described above, we can then use it to:
 
 1. **Download the JVM that Mill needs to run**, as Graal Native Images have limitations around
@@ -258,11 +265,12 @@ scripts, so Mill handles that using https://github.com/coursier/coursier[Coursie
 a common JVM dependency resolution library also used by https://bazel.build/[Bazel] and
 https://www.scala-sbt.org/[SBT].
 
-The final bootstrapping process of `./mill __.compile` looks something like this, with the
+The final bootstrapping process of `+./mill __.compile+` looks something like this, with the
 solid lines indicating local steps in the bootstrapping process, and the dashed lines
 indicating downloads from package repositories:
 
-```graphviz
+[graphviz]
+....
 digraph G {
   node [shape=box width=0 height=0 style=filled fillcolor=white]
   subgraph cluster0{
@@ -287,7 +295,7 @@ digraph G {
   "JVM Vendor" -> "user code JVM" [style=dashed arrowhead=empty weight=0]
   {"Maven Central"; "JVM Vendor"; "./mill"; rank=same}
 }
-```
+....
 
 Although this may seem like a lot of steps, all of them are completely automatic, and generally
 invisible to the user:
@@ -308,7 +316,7 @@ and program installation often involves manual work to set up and maintain, Mill
 of dependencies in this bootstrap process is largely hands-off and automated.
 
 Despite the complexity described above, Mill's zero-install bootstrap process means that the user
-never needs to deal with any of it. They can immediately start using `./mill __.compile` or
+never needs to deal with any of it. They can immediately start using `+./mill __.compile+` or
 or any other command on a clean system, and the only indication noticeable
 difference would be the first command taking longer than normal and logging indicating that
 these downloads are happening. And once caches are warm, running `./mill` feels just as fast
@@ -347,7 +355,7 @@ For the purposes of this article, we simplified and skimmed over a lot of things
 - xref:mill::cli/build-header.adoc#_mill_jvm_version[Explicitly pinning the JVM version]
   to ensure consistency regardless of what may be installed locally
 
-- Use of `./mill __.prepareOffline`, to force Mill to download dependencies up-front so they
+- Use of `+./mill __.prepareOffline+`, to force Mill to download dependencies up-front so they
   can be used later without further downloads (e.g. in an internet-restricted environment)
 
 Although this article covers bootstrapping Java and JVM
