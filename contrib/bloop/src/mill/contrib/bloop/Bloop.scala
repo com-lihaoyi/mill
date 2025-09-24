@@ -1,7 +1,7 @@
 package mill.contrib.bloop
 
+import mill.api.BuildCtx
 import mill.eval.Evaluator
-import mill.api.WorkspaceRoot
 
 /**
  * Usage : `mill mill.contrib.bloop.Bloop/install`
