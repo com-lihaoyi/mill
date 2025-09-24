@@ -110,7 +110,7 @@ object myModule extends JavaModule {
     )
   }
 
-  def ivyDeps = Seq(ivy"com.example:mymodule:1.0.0-SNAPSHOT")
+  def ivyDeps = Seq(mvn"com.example:mymodule:1.0.0-SNAPSHOT")
 }
 ----
 

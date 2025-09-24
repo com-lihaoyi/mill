@@ -16,13 +16,13 @@ For more details about coursier, refer to the {link-coursier-doc}[coursier docum
 Mill dependencies have the simple form:
 
 ----
-ivy"{organization}:{name}:{version}"
+mvn"{organization}:{name}:{version}"
 ----
 
 Additional attributes are also supported:
 
 ----
-ivy"{organization}:{name}:{version}[;{attribute}={value}]*"
+mvn"{organization}:{name}:{version}[;{attribute}={value}]*"
 ----
 
 When working in other Java and Scala projects, you will find some synonyms, which typically all mean the same.
@@ -36,7 +36,7 @@ When a different form is used, e.g. some double-colons are used between the part
 [source,scala]
 ----
 def ivyDeps = Agg(
-  ivy"org.slf4j:slf4j-api:1.7.25"
+  mvn"org.slf4j:slf4j-api:1.7.25"
 )
 ----
 
@@ -58,7 +58,7 @@ There is no special test scope in Mill.
 object main extends JavaModule {
   object test extends JavaModuleTests {
     def ivyDeps = Agg(
-      ivy"org.qos.logback:logback-classic:1.2.3"
+      mvn"org.qos.logback:logback-classic:1.2.3"
     )
   }
 }
@@ -72,7 +72,7 @@ If you want to use a dependency only at compile time, you can declare it with th
 [source,scala]
 ----
 def compileIvyDeps = Agg(
-  ivy"org.slf4j:slf4j-api:1.7.25"
+  mvn"org.slf4j:slf4j-api:1.7.25"
 )
 ----
 
@@ -89,7 +89,7 @@ If you want to declare dependencies to be used at runtime (but not at compile ti
 [source,scala]
 ----
 def runIvyDeps = Agg(
-  ivy"ch.qos.logback:logback-classic:1.2.0"
+  mvn"ch.qos.logback:logback-classic:1.2.0"
 )
 ----
 
@@ -162,7 +162,7 @@ Use the special name `*` to match all ``organization``s or ``name``s.
 [source,scala]
 ----
 def deps = Agg(
-  ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12")
+  mvn"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12")
 )
 ----
 
@@ -174,14 +174,14 @@ There is also a short notation available:
 [source,scala]
 ----
 def deps = Agg(
-  ivy"com.lihaoyi::pprint:0.5.3;exclude=com.lihaoyi:fansi_2.12"
+  mvn"com.lihaoyi::pprint:0.5.3;exclude=com.lihaoyi:fansi_2.12"
 )
 ----
 
 .Example: Exclude all `com.lihaoyi` libraries from transitive dependency set of `pprint`.
 [source,scala]
 ----
-val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
+val deps = Agg(mvn"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
 ----
 
 Note: You can chain multiple exclusions with `exclude`, `excludeOrg`, and `excludeName`.
@@ -190,7 +190,7 @@ Note: You can chain multiple exclusions with `exclude`, `excludeOrg`, and `exclu
 [source,scala]
 ----
 val deps = Agg(
-  ivy"com.lihaoyi::pprint:0.5.3"
+  mvn"com.lihaoyi::pprint:0.5.3"
     .excludeName("fansi_2.12")
     .excludeName("sourcecode")
 )
@@ -200,11 +200,11 @@ val deps = Agg(
 
 You can use the `forceVersion` method to ensure the used version of a dependency is what you have declared.
 
-* You declare a dependency `val deps = Agg(ivy"com.lihaoyi::fansi:0.2.14")`
-* There is another dependency, `val deps = Agg(ivy"com.lihaoyi::PPrint:0.8.1")`
+* You declare a dependency `val deps = Agg(mvn"com.lihaoyi::fansi:0.2.14")`
+* There is another dependency, `val deps = Agg(mvn"com.lihaoyi::PPrint:0.8.1")`
 * PPrint 0.8.1 uses fansi 0.4.0, so it is a transitive dependency
 * `mill show myModule.resolvedIvyDeps | grep "fansi"` should show fansi 0.4.0
-* If you want to force to the older version (to prevent it being evicted, and replaced by 0.4.0) then you can use `val deps = Agg(ivy"com.lihaoyi::fansi:0.2.14".forceVersion())`
+* If you want to force to the older version (to prevent it being evicted, and replaced by 0.4.0) then you can use `val deps = Agg(mvn"com.lihaoyi::fansi:0.2.14".forceVersion())`
 * `mill show myModule.resolvedIvyDeps | grep "fansi"` should show fansi 0.2.14
 
 == Dependency management

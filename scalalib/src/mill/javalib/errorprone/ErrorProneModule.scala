@@ -23,7 +23,7 @@ trait ErrorProneModule extends JavaModule {
    */
   def errorProneDeps: T[Agg[Dep]] = Task {
     Agg(
-      ivy"com.google.errorprone:error_prone_core:${errorProneVersion()}"
+      mvn"com.google.errorprone:error_prone_core:${errorProneVersion()}"
     )
   }
 

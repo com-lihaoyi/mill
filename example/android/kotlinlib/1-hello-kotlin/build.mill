@@ -39,7 +39,7 @@ object app extends AndroidAppKotlinModule {
 
   object test extends AndroidAppKotlinTests with TestModule.Junit4 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"junit:junit:4.13.2"
+      mvn"junit:junit:4.13.2"
     )
   }
 
@@ -52,16 +52,16 @@ object app extends AndroidAppKotlinModule {
      * resolution resolves conflicts between androidJvm and jvm platform types
      */
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"androidx.test.ext:junit:1.2.1".exclude((
+      mvn"androidx.test.ext:junit:1.2.1".exclude((
         "org.jetbrains.kotlinx",
         "kotlinx-coroutines-core-jvm"
       )),
-      ivy"androidx.test:runner:1.6.2",
-      ivy"androidx.test.espresso:espresso-core:3.5.1".exclude((
+      mvn"androidx.test:runner:1.6.2",
+      mvn"androidx.test.espresso:espresso-core:3.5.1".exclude((
         "org.jetbrains.kotlinx",
         "kotlinx-coroutines-core-jvm"
       )),
-      ivy"junit:junit:4.13.2"
+      mvn"junit:junit:4.13.2"
     )
   }
 }

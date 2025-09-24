@@ -4,30 +4,30 @@ import mill._, javalib._
 object `package` extends RootModule with MicronautModule {
   def micronautVersion = "4.4.3"
   def runIvyDeps = Agg(
-    ivy"ch.qos.logback:logback-classic:1.5.3",
-    ivy"com.h2database:h2:2.2.224"
+    mvn"ch.qos.logback:logback-classic:1.5.3",
+    mvn"com.h2database:h2:2.2.224"
   )
 
   def ivyDeps = Agg(
-    ivy"io.micronaut:micronaut-http-server-netty:$micronautVersion",
-    ivy"io.micronaut.serde:micronaut-serde-jackson:2.9.0",
-    ivy"io.micronaut.data:micronaut-data-jdbc:4.7.0",
-    ivy"io.micronaut.sql:micronaut-jdbc-hikari:5.6.0",
-    ivy"io.micronaut.validation:micronaut-validation:4.5.0",
-    ivy"io.micronaut.views:micronaut-views-htmx:5.2.0",
-    ivy"io.micronaut.views:micronaut-views-thymeleaf:5.2.0",
-    ivy"org.webjars.npm:todomvc-common:1.0.5",
-    ivy"org.webjars.npm:todomvc-app-css:2.4.1",
-    ivy"org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10"
+    mvn"io.micronaut:micronaut-http-server-netty:$micronautVersion",
+    mvn"io.micronaut.serde:micronaut-serde-jackson:2.9.0",
+    mvn"io.micronaut.data:micronaut-data-jdbc:4.7.0",
+    mvn"io.micronaut.sql:micronaut-jdbc-hikari:5.6.0",
+    mvn"io.micronaut.validation:micronaut-validation:4.5.0",
+    mvn"io.micronaut.views:micronaut-views-htmx:5.2.0",
+    mvn"io.micronaut.views:micronaut-views-thymeleaf:5.2.0",
+    mvn"org.webjars.npm:todomvc-common:1.0.5",
+    mvn"org.webjars.npm:todomvc-app-css:2.4.1",
+    mvn"org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10"
   )
 
   object test extends MavenTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"com.h2database:h2:2.2.224",
-      ivy"io.micronaut:micronaut-http-client:$micronautVersion",
-      ivy"io.micronaut.test:micronaut-test-junit5:4.4.0",
-      ivy"org.junit.jupiter:junit-jupiter-api:5.8.1",
-      ivy"org.junit.jupiter:junit-jupiter-engine:5.8.1"
+      mvn"com.h2database:h2:2.2.224",
+      mvn"io.micronaut:micronaut-http-client:$micronautVersion",
+      mvn"io.micronaut.test:micronaut-test-junit5:4.4.0",
+      mvn"org.junit.jupiter:junit-jupiter-api:5.8.1",
+      mvn"org.junit.jupiter:junit-jupiter-engine:5.8.1"
     )
   }
 }
@@ -38,11 +38,11 @@ trait MicronautModule extends MavenModule {
   def processors = Task {
     defaultResolver().classpath(
       Agg(
-        ivy"io.micronaut.data:micronaut-data-processor:4.7.0",
-        ivy"io.micronaut:micronaut-http-validation:$micronautVersion",
-        ivy"io.micronaut.serde:micronaut-serde-processor:2.9.0",
-        ivy"io.micronaut.validation:micronaut-validation-processor:4.5.0",
-        ivy"io.micronaut:micronaut-inject-java:$micronautVersion"
+        mvn"io.micronaut.data:micronaut-data-processor:4.7.0",
+        mvn"io.micronaut:micronaut-http-validation:$micronautVersion",
+        mvn"io.micronaut.serde:micronaut-serde-processor:2.9.0",
+        mvn"io.micronaut.validation:micronaut-validation-processor:4.5.0",
+        mvn"io.micronaut:micronaut-inject-java:$micronautVersion"
       )
     )
   }

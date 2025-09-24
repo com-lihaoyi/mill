@@ -9,7 +9,7 @@ object `package` extends RootModule with MavenModule {
   object test extends MavenTests with TestModule.Junit5 {
 
     def ivyDeps = super.ivyDeps() ++
-      Agg(ivy"org.junit.jupiter:junit-jupiter:5.10.3")
+      Agg(mvn"org.junit.jupiter:junit-jupiter:5.10.3")
 
     def testSandboxWorkingDir = false
     def testEnableWorkStealing = false

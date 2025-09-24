@@ -39,15 +39,15 @@ object ResolveDepsTests extends TestSuite {
         // as we do here. We do it anyway, to check that pulling the "pom" artifact
         // type brings that dependency POM file in the class path. We need a dependency
         // that has a "pom" packaging for that.
-        ivy"org.apache.hadoop:hadoop-yarn-server:3.4.0"
+        mvn"org.apache.hadoop:hadoop-yarn-server:3.4.0"
       )
       def artifactTypes = super.artifactTypes() + coursier.Type("pom")
     }
 
     object scope extends JavaModule {
       def ivyDeps = Agg(
-        ivy"androidx.compose.animation:animation-core:1.1.1",
-        ivy"androidx.compose.ui:ui:1.1.1"
+        mvn"androidx.compose.animation:animation-core:1.1.1",
+        mvn"androidx.compose.ui:ui:1.1.1"
       )
       def repositoriesTask = Task.Anon {
         super.repositoriesTask() :+ coursier.Repositories.google
@@ -74,13 +74,13 @@ object ResolveDepsTests extends TestSuite {
 
   val tests = Tests {
     test("resolveValidDeps") {
-      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3")
+      val deps = Agg(mvn"com.lihaoyi::pprint:0.5.3")
       val Success(paths) = evalDeps(deps)
       assert(paths.nonEmpty)
     }
 
     test("resolveValidDepsWithClassifier") {
-      val deps = Agg(ivy"org.lwjgl:lwjgl:3.1.1;classifier=natives-macos")
+      val deps = Agg(mvn"org.lwjgl:lwjgl:3.1.1;classifier=natives-macos")
       assertRoundTrip(deps, simplified = true)
       val Success(paths) = evalDeps(deps)
       assert(paths.nonEmpty)
@@ -88,7 +88,7 @@ object ResolveDepsTests extends TestSuite {
     }
 
     test("resolveTransitiveRuntimeDeps") {
-      val deps = Agg(ivy"org.mockito:mockito-core:2.7.22")
+      val deps = Agg(mvn"org.mockito:mockito-core:2.7.22")
       assertRoundTrip(deps, simplified = true)
       val Success(paths) = evalDeps(deps)
       assert(paths.nonEmpty)
@@ -97,14 +97,14 @@ object ResolveDepsTests extends TestSuite {
     }
 
     test("excludeTransitiveDeps") {
-      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12"))
+      val deps = Agg(mvn"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12"))
       assertRoundTrip(deps, simplified = true)
       val Success(paths) = evalDeps(deps)
       assert(!paths.exists(_.path.toString.contains("fansi_2.12")))
     }
 
     test("excludeTransitiveDepsByOrg") {
-      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
+      val deps = Agg(mvn"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
       assertRoundTrip(deps, simplified = true)
       val Success(paths) = evalDeps(deps)
       assert(!paths.exists(path =>
@@ -113,28 +113,28 @@ object ResolveDepsTests extends TestSuite {
     }
 
     test("excludeTransitiveDepsByName") {
-      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeName("fansi_2.12"))
+      val deps = Agg(mvn"com.lihaoyi::pprint:0.5.3".excludeName("fansi_2.12"))
       assertRoundTrip(deps, simplified = true)
       val Success(paths) = evalDeps(deps)
       assert(!paths.exists(_.path.toString.contains("fansi_2.12")))
     }
 
     test("errOnInvalidOrgDeps") {
-      val deps = Agg(ivy"xxx.yyy.invalid::pprint:0.5.3")
+      val deps = Agg(mvn"xxx.yyy.invalid::pprint:0.5.3")
       assertRoundTrip(deps, simplified = true)
       val Failure(errMsg, _) = evalDeps(deps)
       assert(errMsg.contains("xxx.yyy.invalid"))
     }
 
     test("errOnInvalidVersionDeps") {
-      val deps = Agg(ivy"com.lihaoyi::pprint:invalid.version.num")
+      val deps = Agg(mvn"com.lihaoyi::pprint:invalid.version.num")
       assertRoundTrip(deps, simplified = true)
       val Failure(errMsg, _) = evalDeps(deps)
       assert(errMsg.contains("invalid.version.num"))
     }
 
     test("errOnPartialSuccess") {
-      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3", ivy"fake::fake:fake")
+      val deps = Agg(mvn"com.lihaoyi::pprint:0.5.3", mvn"fake::fake:fake")
       assertRoundTrip(deps, simplified = true)
       val Failure(errMsg, _) = evalDeps(deps)
       assert(errMsg.contains("fake"))

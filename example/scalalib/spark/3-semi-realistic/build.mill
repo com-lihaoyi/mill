@@ -4,8 +4,8 @@ import mill._, scalalib._
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.12.15"
   def ivyDeps = Agg(
-    ivy"org.apache.spark::spark-core:3.5.4",
-    ivy"org.apache.spark::spark-sql:3.5.4"
+    mvn"org.apache.spark::spark-core:3.5.4",
+    mvn"org.apache.spark::spark-sql:3.5.4"
   )
 
   def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
@@ -13,7 +13,7 @@ object `package` extends RootModule with ScalaModule {
   def prependShellScript = ""
 
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
+    def ivyDeps = Agg(mvn"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
 
     def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")

@@ -340,10 +340,10 @@ object foo extends ScalaModule with ExplicitDepsModule {
 > mill foo.checkExplicitDeps
 [37/37] main.checkExplicitDeps
 Found undeclared dependencies: (add these to ivyDeps)
-    ivy"org.typelevel::cats-kernel:2.7.0",
+    mvn"org.typelevel::cats-kernel:2.7.0",
 
 Found unimported dependencies: (remove these from ivyDeps)
-    ivy"org.typelevel::cats-effect:3.3.6",
+    mvn"org.typelevel::cats-effect:3.3.6",
 
 1 tasks failed
 main.checkExplicitDeps Found 1 undeclared dependencies, 1 unimported dependencies
@@ -707,7 +707,7 @@ import com.github.lolgab.mill.mima._
 object main extends ScalaModule with Mima {
 
   def mimaPreviousArtifacts = Agg(
-    ivy"my_group_id::main:my_previous_version"
+    mvn"my_group_id::main:my_previous_version"
   )
 
   // other settings ...

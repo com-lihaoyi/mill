@@ -128,18 +128,18 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
           if (isDotty(scalaVersion0)) "dotty-sbt-bridge"
           else "scala3-sbt-bridge"
         val version = scalaVersion
-        (ivy"$org:$name:$version", name, version)
+        (mvn"$org:$name:$version", name, version)
       } else if (ZincWorkerUtil.millCompilerBridgeScalaVersions.contains(scalaVersion0)) {
         val org = "com.lihaoyi"
         val name = s"mill-scala-compiler-bridge_$scalaVersion"
         val version = Versions.millCompilerBridgeVersion
-        (ivy"$org:$name:$version", name, version)
+        (mvn"$org:$name:$version", name, version)
       } else {
         val org = "org.scala-sbt"
         val name = "compiler-bridge"
         val version = Versions.zinc
         (
-          ivy"$org:${name}_${scalaBinaryVersion0}:$version",
+          mvn"$org:${name}_${scalaBinaryVersion0}:$version",
           s"${name}_$scalaBinaryVersion0",
           version
         )
@@ -182,18 +182,18 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
           if (isDotty(scalaVersion0)) "dotty-sbt-bridge"
           else "scala3-sbt-bridge"
         val version = scalaVersion
-        (ivy"$org:$name:$version", name, version)
+        (mvn"$org:$name:$version", name, version)
       } else if (ZincWorkerUtil.millCompilerBridgeScalaVersions.contains(scalaVersion0)) {
         val org = "com.lihaoyi"
         val name = s"mill-scala-compiler-bridge_$scalaVersion"
         val version = Versions.millCompilerBridgeVersion
-        (ivy"$org:$name:$version", name, version)
+        (mvn"$org:$name:$version", name, version)
       } else {
         val org = "org.scala-sbt"
         val name = "compiler-bridge"
         val version = Versions.zinc
         (
-          ivy"$org:${name}_${scalaBinaryVersion0}:$version",
+          mvn"$org:${name}_${scalaBinaryVersion0}:$version",
           s"${name}_$scalaBinaryVersion0",
           version
         )
@@ -223,7 +223,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
   ): Result[Agg[PathRef]] = {
     resolveDependencies(
       repositories = repositories,
-      deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
+      deps = Seq(mvn"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
       // We need to override it with the scalaVersion and scalaOrganization of the module
       mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
@@ -236,7 +236,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       resolver: Resolver
   )(implicit ctx: Ctx.Log): Agg[PathRef] = {
     resolver.classpath(
-      deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
+      deps = Seq(mvn"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
       // We need to override it with the scalaVersion and scalaOrganization of the module
       mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))

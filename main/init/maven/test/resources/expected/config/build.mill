@@ -7,12 +7,12 @@ import mill.javalib.publish._
 
 object Deps {
 
-  val `javax.servlet.jsp:jsp-api` = ivy"javax.servlet.jsp:jsp-api:2.2"
-  val `javax.servlet:servlet-api` = ivy"javax.servlet:servlet-api:2.5"
-  val `junit:junit-dep` = ivy"junit:junit-dep:4.10"
-  val `org.hamcrest:hamcrest-core` = ivy"org.hamcrest:hamcrest-core:1.2.1"
-  val `org.hamcrest:hamcrest-library` = ivy"org.hamcrest:hamcrest-library:1.2.1"
-  val `org.mockito:mockito-core` = ivy"org.mockito:mockito-core:1.8.5"
+  val `javax.servlet.jsp:jsp-api` = mvn"javax.servlet.jsp:jsp-api:2.2"
+  val `javax.servlet:servlet-api` = mvn"javax.servlet:servlet-api:2.5"
+  val `junit:junit-dep` = mvn"junit:junit-dep:4.10"
+  val `org.hamcrest:hamcrest-core` = mvn"org.hamcrest:hamcrest-core:1.2.1"
+  val `org.hamcrest:hamcrest-library` = mvn"org.hamcrest:hamcrest-library:1.2.1"
+  val `org.mockito:mockito-core` = mvn"org.mockito:mockito-core:1.8.5"
 }
 
 object `package` extends RootModule with MyModule {

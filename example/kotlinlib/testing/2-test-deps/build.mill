@@ -11,8 +11,8 @@ object qux extends KotlinModule {
   object test extends KotlinTests with TestModule.Junit5 {
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"com.google.guava:guava:33.3.0-jre"
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"com.google.guava:guava:33.3.0-jre"
     )
   }
 }
@@ -23,8 +23,8 @@ object baz extends KotlinModule {
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"com.google.guava:guava:33.3.0-jre"
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"com.google.guava:guava:33.3.0-jre"
     )
   }
 }

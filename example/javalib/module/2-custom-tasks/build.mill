@@ -3,7 +3,7 @@ package build
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
-  def ivyDeps = Agg(ivy"net.sourceforge.argparse4j:argparse4j:0.9.0")
+  def ivyDeps = Agg(mvn"net.sourceforge.argparse4j:argparse4j:0.9.0")
 
   def generatedSources: T[Seq[PathRef]] = Task {
     val prettyIvyDeps = for (ivyDep <- ivyDeps()) yield {

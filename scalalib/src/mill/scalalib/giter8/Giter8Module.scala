@@ -24,7 +24,7 @@ trait Giter8Module extends CoursierModule {
             val bv = JvmWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
             if (bv == "3") "2.13" else bv
           }
-          Loose.Agg(ivy"org.foundweekends.giter8:giter8_${scalaBinVersion}:0.14.0"
+          Loose.Agg(mvn"org.foundweekends.giter8:giter8_${scalaBinVersion}:0.14.0"
             .bindDep("", "", ""))
         }
       } catch {

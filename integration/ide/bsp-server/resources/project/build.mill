@@ -44,10 +44,10 @@ object `hello-sourcegen` extends scalalib.DeferredGeneratedSourcesModule {
 object lib extends scalalib.JavaModule {
   import scalalib._
   def compileIvyDeps = Agg(
-    ivy"junit:junit:4.13.2"
+    mvn"junit:junit:4.13.2"
   )
   def ivyDeps = Agg(
-    ivy"org.slf4j:slf4j-api:2.0.16"
+    mvn"org.slf4j:slf4j-api:2.0.16"
   )
 }
 
@@ -55,9 +55,9 @@ object app extends scalalib.JavaModule {
   import scalalib._
   def moduleDeps = Seq(lib)
   def ivyDeps = Agg(
-    ivy"ch.qos.logback:logback-core:1.5.15"
+    mvn"ch.qos.logback:logback-core:1.5.15"
   )
   def runIvyDeps = Agg(
-    ivy"com.mysql:mysql-connector-j:9.1.0"
+    mvn"com.mysql:mysql-connector-j:9.1.0"
   )
 }

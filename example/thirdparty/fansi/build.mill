@@ -17,10 +17,10 @@ trait FansiModule extends PublishModule with CrossScalaModule with PlatformScala
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
-  def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode::0.3.0")
+  def ivyDeps = Agg(mvn"com.lihaoyi::sourcecode::0.3.0")
 
   trait FansiTests extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.5")
+    def ivyDeps = Agg(mvn"com.lihaoyi::utest::0.8.5")
   }
 }
 

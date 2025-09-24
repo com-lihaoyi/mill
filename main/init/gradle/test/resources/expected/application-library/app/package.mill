@@ -6,14 +6,14 @@ import mill.javalib.publish._
 
 object `package` extends RootModule with MavenModule {
 
-  def ivyDeps = super.ivyDeps() ++ Agg(ivy"org.apache.commons:commons-text")
+  def ivyDeps = super.ivyDeps() ++ Agg(mvn"org.apache.commons:commons-text")
 
   def moduleDeps = super.moduleDeps ++ Agg(build.utilities)
 
   object test extends MavenTests with TestModule.Junit5 {
 
     def ivyDeps = super.ivyDeps() ++
-      Agg(ivy"org.junit.jupiter:junit-jupiter:5.10.3")
+      Agg(mvn"org.junit.jupiter:junit-jupiter:5.10.3")
 
     def testSandboxWorkingDir = false
     def testEnableWorkStealing = false

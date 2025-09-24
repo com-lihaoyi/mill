@@ -31,7 +31,7 @@ trait ScalaMetalsSupport extends ScalaModule {
     } else {
       Result.Success(
         superRes ++ Agg(
-          ivy"org.scalameta:::semanticdb-scalac:${semDbVersion}"
+          mvn"org.scalameta:::semanticdb-scalac:${semDbVersion}"
         )
       )
     }

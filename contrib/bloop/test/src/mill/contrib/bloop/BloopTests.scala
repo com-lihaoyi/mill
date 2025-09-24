@@ -32,18 +32,18 @@ object BloopTests extends TestSuite {
       override def mainClass = Some("foo.bar.Main")
 
       override def ivyDeps = Agg(
-        ivy"ch.epfl.scala::bloop-config:$bloopVersion"
+        mvn"ch.epfl.scala::bloop-config:$bloopVersion"
       )
       override def scalacOptions = Seq(
         "-language:higherKinds"
       )
 
       override def compileIvyDeps = Agg(
-        ivy"org.reactivestreams:reactive-streams:1.0.3"
+        mvn"org.reactivestreams:reactive-streams:1.0.3"
       )
 
       override def runIvyDeps = Agg(
-        ivy"org.postgresql:postgresql:42.3.3"
+        mvn"org.postgresql:postgresql:42.3.3"
       )
 
       def someGeneratedSource = Task(deferredGeneratedSourceRoots = Seq(os.SubPath("scala"))) {

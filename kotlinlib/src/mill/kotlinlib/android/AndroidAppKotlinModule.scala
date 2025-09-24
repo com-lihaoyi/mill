@@ -44,7 +44,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
         Result.Failure("Compose can be used only with Kotlin version 2 or newer.")
       } else {
         Result.Success(deps ++ Seq(
-          ivy"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
+          mvn"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
         ))
       }
     } else Result.Success(deps)
@@ -111,7 +111,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     def composePreviewRenderer: T[Agg[PathRef]] = Task {
       defaultResolver().classpath(
         Agg(
-          ivy"com.android.tools.compose:compose-preview-renderer:$composePreviewRendererVersion"
+          mvn"com.android.tools.compose:compose-preview-renderer:$composePreviewRendererVersion"
         )
       )
     }
@@ -119,7 +119,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     final def layoutLibRenderer: T[Agg[PathRef]] = Task {
       defaultResolver().classpath(
         Agg(
-          ivy"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
+          mvn"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
         )
       )
     }
@@ -127,7 +127,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     final def layoutLibRuntime: T[Agg[PathRef]] = Task {
       defaultResolver().classpath(
         Agg(
-          ivy"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
+          mvn"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
         )
       )
     }
@@ -135,7 +135,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     final def layoutLibFrameworkRes: T[Agg[PathRef]] = Task {
       defaultResolver().classpath(
         Agg(
-          ivy"com.android.tools.layoutlib:layoutlib-resources:$layoutLibVersion"
+          mvn"com.android.tools.layoutlib:layoutlib-resources:$layoutLibVersion"
         )
       )
     }
@@ -171,10 +171,10 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
     override def mandatoryIvyDeps: T[Agg[Dep]] = super.mandatoryIvyDeps() ++
       Agg(
-        ivy"androidx.compose.ui:ui:$uiToolingVersion",
-        ivy"androidx.compose.ui:ui-tooling:$uiToolingVersion",
-        ivy"androidx.compose.ui:ui-test-manifest:$uiToolingVersion",
-        ivy"androidx.compose.ui:ui-tooling-preview-android:$uiToolingVersion"
+        mvn"androidx.compose.ui:ui:$uiToolingVersion",
+        mvn"androidx.compose.ui:ui-tooling:$uiToolingVersion",
+        mvn"androidx.compose.ui:ui-test-manifest:$uiToolingVersion",
+        mvn"androidx.compose.ui:ui-tooling-preview-android:$uiToolingVersion"
       )
 
     /** The location to store the generated preview summary */
@@ -310,7 +310,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     def androidPreviewScreenshotTestEngineClasspath: T[Agg[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          ivy"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha08"
+          mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha08"
         )
       )
     }

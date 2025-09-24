@@ -14,14 +14,14 @@ object ExclusionsTests extends TestSuite {
       def scalaNativeVersion = "0.4.3"
       def scalaVersion = "2.13.10"
       override def ivyDeps = super.ivyDeps() ++ Agg(
-        ivy"com.github.scopt:scopt_native0.4_3:4.0.1"
+        mvn"com.github.scopt:scopt_native0.4_3:4.0.1"
       )
     }
     object scala3 extends ScalaNativeModule {
       def scalaNativeVersion = "0.4.3"
       def scalaVersion = "3.1.1"
       override def ivyDeps = super.ivyDeps() ++ Agg(
-        ivy"com.github.scopt:scopt_native0.4_2.13:4.0.1"
+        mvn"com.github.scopt:scopt_native0.4_2.13:4.0.1"
       )
     }
     override lazy val millDiscover: Discover = Discover[this.type]

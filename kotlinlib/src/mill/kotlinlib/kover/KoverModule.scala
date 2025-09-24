@@ -89,7 +89,7 @@ trait KoverModule extends KotlinModule { outer =>
   trait KoverTests extends TestModule {
 
     private def koverAgentDep: T[Agg[Dep]] = Task {
-      Agg(ivy"org.jetbrains.kotlinx:kover-jvm-agent:${koverVersion()}")
+      Agg(mvn"org.jetbrains.kotlinx:kover-jvm-agent:${koverVersion()}")
     }
 
     /** The Kover Agent is used at test-runtime. */

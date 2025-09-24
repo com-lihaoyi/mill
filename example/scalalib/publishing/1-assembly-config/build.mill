@@ -9,7 +9,7 @@ import mill.scalalib.Assembly._
 object foo extends ScalaModule {
   def moduleDeps = Seq(bar)
   def scalaVersion = "2.13.8"
-  def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.10.7")
+  def ivyDeps = Agg(mvn"com.lihaoyi::os-lib:0.10.7")
   def assemblyRules = Seq(
     // all application.conf files will be concatenated into single file
     Rule.Append("application.conf"),

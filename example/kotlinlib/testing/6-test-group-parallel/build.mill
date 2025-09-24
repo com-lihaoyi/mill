@@ -9,9 +9,9 @@ object foo extends KotlinModule {
   object test extends KotlinTests {
     def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     def ivyDeps = Agg(
-      ivy"com.github.sbt.junit:jupiter-interface:0.11.4",
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
+      mvn"com.github.sbt.junit:jupiter-interface:0.11.4",
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
     def testForkGrouping =

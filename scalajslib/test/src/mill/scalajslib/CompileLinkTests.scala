@@ -47,14 +47,14 @@ object CompileLinkTests extends TestSuite {
         override def sources = Task.Sources { this.millSourcePath / "src/utest" }
         val utestVersion = if (JvmWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
         override def ivyDeps = Agg(
-          ivy"com.lihaoyi::utest::$utestVersion"
+          mvn"com.lihaoyi::utest::$utestVersion"
         )
       }
 
       object `test-scalatest` extends ScalaJSTests with TestModule.ScalaTest {
         override def sources = Task.Sources { this.millSourcePath / "src/scalatest" }
         override def ivyDeps = Agg(
-          ivy"org.scalatest::scalatest::3.1.2"
+          mvn"org.scalatest::scalatest::3.1.2"
         )
       }
 

@@ -42,11 +42,11 @@ trait TwirlModule extends mill.Module { twirlModule =>
   def twirlIvyDeps: T[Agg[Dep]] = Task {
     Agg(
       if (twirlVersion().startsWith("1."))
-        ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}"
-      else ivy"org.playframework.twirl::twirl-compiler:${twirlVersion()}"
+        mvn"com.typesafe.play::twirl-compiler:${twirlVersion()}"
+      else mvn"org.playframework.twirl::twirl-compiler:${twirlVersion()}"
     ) ++
       Agg(
-        ivy"org.scala-lang.modules::scala-parser-combinators:${scalaParserCombinatorsVersion()}"
+        mvn"org.scala-lang.modules::scala-parser-combinators:${scalaParserCombinatorsVersion()}"
       )
   }
 

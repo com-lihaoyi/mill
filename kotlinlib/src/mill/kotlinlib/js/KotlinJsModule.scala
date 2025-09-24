@@ -67,7 +67,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
   override def mandatoryIvyDeps: T[Agg[Dep]] = Task {
     Agg(
-      ivy"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}"
+      mvn"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}"
     )
   }
 
@@ -682,7 +682,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
    */
   trait KotlinTestPackageTests extends KotlinJsTests {
     override def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
+      mvn"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
     )
   }
 
@@ -696,12 +696,12 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     override def kotlincPluginIvyDeps: T[Seq[Dep]] =
       super.kotlincPluginIvyDeps() ++ Seq(
-        ivy"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
+        mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
       )
 
     override def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-framework-engine-js:${kotestVersion()}",
-      ivy"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
+      mvn"io.kotest:kotest-framework-engine-js:${kotestVersion()}",
+      mvn"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
     )
   }
 

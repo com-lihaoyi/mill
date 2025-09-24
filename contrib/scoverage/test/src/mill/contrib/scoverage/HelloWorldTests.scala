@@ -45,7 +45,7 @@ trait HelloWorldTests extends utest.TestSuite {
       )
 
       object test extends ScoverageTests with TestModule.ScalaTest {
-        override def ivyDeps = Agg(ivy"org.scalatest::scalatest:${testScalatestVersion}")
+        override def ivyDeps = Agg(mvn"org.scalatest::scalatest:${testScalatestVersion}")
       }
     }
   }
@@ -56,7 +56,7 @@ trait HelloWorldTests extends utest.TestSuite {
       def scoverageVersion = testScoverageVersion
 
       object test extends SbtTests with ScoverageTests with TestModule.ScalaTest {
-        override def ivyDeps = Agg(ivy"org.scalatest::scalatest:${testScalatestVersion}")
+        override def ivyDeps = Agg(mvn"org.scalatest::scalatest:${testScalatestVersion}")
       }
     }
   }
@@ -88,7 +88,7 @@ trait HelloWorldTests extends utest.TestSuite {
 
             val expected = if (isScala3) Agg.empty
             else Agg(
-              ivy"org.scoverage::scalac-scoverage-runtime:${testScoverageVersion}"
+              mvn"org.scoverage::scalac-scoverage-runtime:${testScoverageVersion}"
             )
 
             assert(
@@ -104,14 +104,14 @@ trait HelloWorldTests extends utest.TestSuite {
               case (true, true) => Agg.empty
               case (true, false) =>
                 Agg(
-                  ivy"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}",
-                  ivy"org.scoverage::scalac-scoverage-domain:${testScoverageVersion}",
-                  ivy"org.scoverage::scalac-scoverage-serializer:${testScoverageVersion}",
-                  ivy"org.scoverage::scalac-scoverage-reporter:${testScoverageVersion}"
+                  mvn"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}",
+                  mvn"org.scoverage::scalac-scoverage-domain:${testScoverageVersion}",
+                  mvn"org.scoverage::scalac-scoverage-serializer:${testScoverageVersion}",
+                  mvn"org.scoverage::scalac-scoverage-reporter:${testScoverageVersion}"
                 )
               case (false, _) =>
                 Agg(
-                  ivy"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}"
+                  mvn"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}"
                 )
             }
             assert(

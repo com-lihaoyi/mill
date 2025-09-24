@@ -5,18 +5,18 @@ import mill._, scalalib._
 trait MyModule extends ScalaModule {
   def scalaVersion = "2.13.11"
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
+    def ivyDeps = Agg(mvn"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
   }
 }
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
+  def ivyDeps = Agg(mvn"com.lihaoyi::mainargs:0.4.0")
 }
 
 object bar extends MyModule {
-  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
+  def ivyDeps = Agg(mvn"com.lihaoyi::scalatags:0.8.2")
 }
 //// SNIPPET:END
 

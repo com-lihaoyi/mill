@@ -7,10 +7,10 @@ import mill.javalib.publish._
 
 object Deps {
 
-  val `org.apache.commons:commons-text` = ivy"org.apache.commons:commons-text"
+  val `org.apache.commons:commons-text` = mvn"org.apache.commons:commons-text"
 
   val `org.junit.jupiter:junit-jupiter` =
-    ivy"org.junit.jupiter:junit-jupiter:5.10.3"
+    mvn"org.junit.jupiter:junit-jupiter:5.10.3"
 }
 
 object `package` extends RootModule {

@@ -73,7 +73,7 @@ trait RevapiModule extends PublishModule {
   def revapiOldFiles: T[Agg[PathRef]] = Task {
     val Artifact(group, id, version) = artifactMetadata()
     defaultResolver().classpath(
-      Seq(ivy"$group:$id:$version"),
+      Seq(mvn"$group:$id:$version"),
       artifactTypes = Some(revapiArtifactTypes())
     )
   }
@@ -103,7 +103,7 @@ trait RevapiModule extends PublishModule {
   /** Classpath containing the Revapi [[revapiCliVersion CLI]] */
   def revapiClasspath: T[Agg[PathRef]] = Task {
     defaultResolver().classpath(
-      Agg(ivy"org.revapi:revapi-standalone:${revapiCliVersion()}")
+      Agg(mvn"org.revapi:revapi-standalone:${revapiCliVersion()}")
     )
   }
 

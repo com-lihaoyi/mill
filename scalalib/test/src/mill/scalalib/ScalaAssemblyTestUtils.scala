@@ -6,7 +6,7 @@ import mill.testkit.TestBaseModule
 
 trait ScalaAssemblyTestUtils {
 
-  val akkaHttpDeps = Agg(ivy"com.typesafe.akka::akka-http:10.0.13")
+  val akkaHttpDeps = Agg(mvn"com.typesafe.akka::akka-http:10.0.13")
 
   object HelloWorldAkkaHttpAppend extends TestBaseModule {
     object core extends HelloWorldModuleWithMain {

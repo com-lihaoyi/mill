@@ -58,7 +58,7 @@ trait SemanticDbJavaModule extends CoursierModule {
       Result.Success(Agg.empty[Dep])
     } else {
       Result.Success(Agg(
-        ivy"org.scalameta:semanticdb-scalac_${sv}:${semDbVersion}"
+        mvn"org.scalameta:semanticdb-scalac_${sv}:${semDbVersion}"
       ))
     }
   }
@@ -75,7 +75,7 @@ trait SemanticDbJavaModule extends CoursierModule {
       Result.Failure(msg)
     } else {
       Result.Success(Agg(
-        ivy"com.sourcegraph:semanticdb-javac:${sv}"
+        mvn"com.sourcegraph:semanticdb-javac:${sv}"
       ))
     }
   }

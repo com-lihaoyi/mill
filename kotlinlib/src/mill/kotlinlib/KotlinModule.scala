@@ -228,7 +228,7 @@ trait KotlinModule extends JavaModule { outer =>
   private def dokkaCliClasspath: T[Agg[PathRef]] = Task {
     defaultResolver().classpath(
       Agg(
-        ivy"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
+        mvn"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
       )
     )
   }

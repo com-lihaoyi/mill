@@ -6,7 +6,7 @@ object `package` extends RootModule with KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  def ivyDeps = Agg(ivy"com.github.ajalt.clikt:clikt-jvm:4.4.0")
+  def ivyDeps = Agg(mvn"com.github.ajalt.clikt:clikt-jvm:4.4.0")
 
   def generatedSources: T[Seq[PathRef]] = Task {
     val prettyIvyDeps = for (ivyDep <- ivyDeps()) yield {

@@ -8,13 +8,13 @@ object `package` extends RootModule with KotlinModule {
   def mainClass = Some("com.example.HelloSpringBootKt")
 
   def ivyDeps = Agg(
-    ivy"org.springframework.boot:spring-boot-starter-web:2.5.6",
-    ivy"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
+    mvn"org.springframework.boot:spring-boot-starter-web:2.5.6",
+    mvn"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
+      mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }
 }

@@ -16,9 +16,9 @@ object `package` extends RootModule with KotlinModule {
   def mainClass = Some("webapp.WebApp")
 
   def ivyDeps = Agg(
-    ivy"io.ktor:ktor-server-core-jvm:$ktorVersion",
-    ivy"io.ktor:ktor-server-netty-jvm:$ktorVersion",
-    ivy"io.ktor:ktor-server-html-builder-jvm:$ktorVersion"
+    mvn"io.ktor:ktor-server-core-jvm:$ktorVersion",
+    mvn"io.ktor:ktor-server-netty-jvm:$ktorVersion",
+    mvn"io.ktor:ktor-server-html-builder-jvm:$ktorVersion"
   )
 
   def resources = Task {
@@ -33,8 +33,8 @@ object `package` extends RootModule with KotlinModule {
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"io.ktor:ktor-server-test-host-jvm:$ktorVersion"
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"io.ktor:ktor-server-test-host-jvm:$ktorVersion"
     )
   }
 
@@ -44,7 +44,7 @@ object `package` extends RootModule with KotlinModule {
     override def splitPerModule = false
 
     def ivyDeps = Agg(
-      ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion"
+      mvn"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion"
     )
   }
 }

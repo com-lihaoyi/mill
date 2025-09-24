@@ -79,10 +79,10 @@ The following compile dependencies will automatically be added to your build:
 [source,scala]
 ----
 Agg(
-  ivy"com.typesafe.play::play:${playVersion()}",
-  ivy"com.typesafe.play::play-guice:${playVersion()}",
-  ivy"com.typesafe.play::play-server:${playVersion()}",
-  ivy"com.typesafe.play::play-logback:${playVersion()}"
+  mvn"com.typesafe.play::play:${playVersion()}",
+  mvn"com.typesafe.play::play-guice:${playVersion()}",
+  mvn"com.typesafe.play::play-server:${playVersion()}",
+  mvn"com.typesafe.play::play-logback:${playVersion()}"
 )
 ----
 
@@ -91,17 +91,17 @@ added (the actual version depends on the version of Play you are pulling `2.6.x`
 
 [source,scala]
 ----
-ivy"org.scalatestplus.play::scalatestplus-play::5.1.0"
+mvn"org.scalatestplus.play::scalatestplus-play::5.1.0"
 ----
 
 In order to have a working `start` command the following runtime dependency is also added:
 
 ----
-ivy"com.typesafe.play::play-akka-http-server:${playVersion()}"
+mvn"com.typesafe.play::play-akka-http-server:${playVersion()}"
 ----
 or
 ----
-ivy"com.typesafe.play::play-pekko-http-server:${playVersion()}"
+mvn"com.typesafe.play::play-pekko-http-server:${playVersion()}"
 ----
 depending on the play version
 

@@ -3,7 +3,7 @@ import mill._, javalib._
 import java.io.File
 
 object foo extends JavaModule {
-  def compileIvyDeps = Agg(ivy"org.projectlombok:lombok:1.18.34")
+  def compileIvyDeps = Agg(mvn"org.projectlombok:lombok:1.18.34")
 
   object test extends JavaTests with TestModule.Junit4
 }
@@ -34,10 +34,10 @@ Test foo.HelloWorldTest.testSimple finished...
 // those to `-processorpath` to `javacOptions` explicitly:
 
 object bar extends JavaModule {
-  def compileIvyDeps = Agg(ivy"org.projectlombok:lombok:1.18.34")
+  def compileIvyDeps = Agg(mvn"org.projectlombok:lombok:1.18.34")
 
   def processors = Task {
-    defaultResolver().classpath(Agg(ivy"org.projectlombok:lombok:1.18.34"))
+    defaultResolver().classpath(Agg(mvn"org.projectlombok:lombok:1.18.34"))
   }
 
   def javacOptions = Seq(
