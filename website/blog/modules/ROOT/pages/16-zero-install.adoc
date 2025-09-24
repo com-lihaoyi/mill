@@ -1,4 +1,4 @@
-= Zero-Step All-in-One Java Project Setup via Mill Bootstrap Scripts
+= Zero-Setup All-in-One Java Tooling via Mill Bootstrap Scripts
 
 // tag::header[]
 :author: Li Haoyi
