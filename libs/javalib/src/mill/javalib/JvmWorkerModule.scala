@@ -48,6 +48,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   /** Whether Zinc debug logging is enabled. */
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
+  @deprecated("Public API of JvmWorkerApi is deprecated.", "1.0.5")
   def worker: Worker[JvmWorkerApi] = internalWorker
 
   private[mill] def internalWorker: Worker[InternalJvmWorkerApi] = Task.Worker {

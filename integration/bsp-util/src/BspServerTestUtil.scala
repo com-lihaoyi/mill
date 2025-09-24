@@ -11,6 +11,7 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors, ThreadFactory}
+import scala.annotation.unused
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
 
@@ -226,7 +227,7 @@ object BspServerTestUtil {
       workspacePath: os.Path,
       coursierCache: os.Path = os.Path(CacheDefaults.location),
       javaHome: os.Path = os.Path(sys.props("java.home")),
-      javaVersion: String = sys.props("java.version")
+      @unused javaVersion: String = sys.props("java.version")
   ): Seq[(String, String)] =
     Seq(
       workspacePath.toURI.toASCIIString.stripSuffix("/") -> "file:///workspace",
