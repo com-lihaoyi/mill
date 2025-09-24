@@ -2,6 +2,7 @@ package mill.androidlib.databinding
 
 import mill.api.{Discover, ExternalModule}
 
+@mill.api.experimental
 trait AndroidDataBindingWorkerModule extends mill.Module {
 
   def processResources(
@@ -20,6 +21,7 @@ trait AndroidDataBindingWorkerModule extends mill.Module {
 
 }
 
+@mill.api.experimental
 object AndroidDataBindingWorkerModule extends ExternalModule, AndroidDataBindingWorkerModule {
   override protected def millDiscover: Discover = Discover[this.type]
 }
