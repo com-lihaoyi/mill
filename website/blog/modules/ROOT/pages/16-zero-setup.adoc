@@ -1,4 +1,4 @@
-= Zero-Setup All-in-One Java Tooling via Mill Bootstrap Scripts
+= Zero-Setup Java Build Tooling via Mill Bootstrap Scripts
 // tag::header[]
 :author: Li Haoyi
 :revdate: 24 September 2025
