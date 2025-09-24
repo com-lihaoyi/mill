@@ -33,8 +33,7 @@ object MillNoDaemonMain {
       exit = msg => {
         System.err.println(msg)
         System.exit(0)
-      },
-      log = System.err.println
+      }
     )
 
     val outLock = MillMain0.doubleLock(out)
