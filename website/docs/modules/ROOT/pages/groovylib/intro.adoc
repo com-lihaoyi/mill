@@ -1,0 +1,19 @@
+
+= Building Groovy with Mill
+:page-aliases: Groovy_Intro_to_Mill.adoc
+:language: Groovy
+:language-small: groovy
+
+include::partial$Intro_Header.adoc[]
+
+NOTE: Mill Groovy support is currently still under active development.
+It is expected to continue evolving over time.
+
+== Simple Groovy Module
+
+include::partial$example/groovylib/basic/1-simple.adoc[]
+
+== Maven-Compatible Modules
+
+include::partial$example/groovylib/basic/2-compat-modules.adoc[]
+
