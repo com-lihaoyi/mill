@@ -118,7 +118,6 @@ jobs:
       - uses: ./.github/actions/post-build-selective
         with:
           millargs: ${{ matrix.millargs }}
-          coursierarchive: "/tmp"
           shell: bash
 
   linux:
@@ -224,9 +223,6 @@ jobs:
       os: windows-latest
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
-      # Provide a shorter coursier archive folder to avoid hitting path-length bugs when
-      # running the graal native image binary on windows
-      coursierarchive: "C:/coursier-arc"
       shell: powershell
 
   itest:
