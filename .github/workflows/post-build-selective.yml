@@ -33,6 +33,9 @@ on:
         default: false
         type: boolean
 
+env:
+  COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
+
 jobs:
   run:
     runs-on: ${{ inputs.os }}
@@ -67,5 +70,4 @@ jobs:
 
         with:
           millargs: ${{ inputs.millargs }}
-          coursierarchive: ${{ inputs.coursierarchive }}
           shell: ${{ inputs.shell }}
