@@ -17,7 +17,7 @@ The Mill build tool does something interesting here: it requires no system-wide 
 at all to build your Java projects! You can checkout any codebase built with Mill on a bare
 Linux/Mac/Windows machine, build it without any prior setup using it's `./mill` bootstrap
 script, and Mill will automatically download and cache itself, any JVMs, and any third-party
-libraries necessary. For example, the `./mill __.compile` below is all that is needed
+libraries and tools necessary. For example, the `./mill __.compile` below is all that is needed
 to compile all modules in a newly-checked-out Mill project on a clean machine, greatly
 simplifying building your project on diverse dev and CI environments:
 
@@ -29,10 +29,10 @@ simplifying building your project on diverse dev and CI environments:
 > ./mill __.compile
 ```
 
-This blog post explores how Mill's zero-install workflow works: the limitations of prior
-approaches, the interesting innovations that Mill builds upon, and Mill's unique ideas that
-let it achieve ultimate simplicity with its zero-step setup workflow even for
-traditionally heavyweight JVM dev environments.
+This blog post explores how Mill's zero-install workflow works: the status quo,
+the interesting innovations that Mill builds upon, and Mill's unique ideas
+that let it achieve this zero-setup usage to greatly simplify getting started
+working with Java, Scala, or Kotlin projects.
 
 // end::header[]
 
