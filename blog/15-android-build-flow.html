@@ -287,8 +287,9 @@
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_why_you_might_prefer_this_to_gradle"><a class="anchor" href="#_why_you_might_prefer_this_to_gradle"></a>Why you might prefer this to Gradle</h3>
+<div class="sect1">
+<h2 id="_why_you_might_prefer_this_to_gradle"><a class="anchor" href="#_why_you_might_prefer_this_to_gradle"></a>Why you might prefer this to Gradle</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Because Mill&rsquo;s Android support is built out of simple, object-oriented modules (AndroidModule, AndroidAppModule, etc.), the entire pipeline is transparent and hackable. If something doesn&rsquo;t work, you don&rsquo;t need to wait for a plugin update, you can open the task in your IDE, see the source, and tweak it yourself. This is the same design that let us implement end-to-end Android support in under a year, and it&rsquo;s what makes Mill attractive if you value control and debuggability in your build.</p>
 </div>
@@ -320,6 +321,7 @@ Inputs:
 </div>
 <div class="paragraph">
 <p>This post is a walkthrough of the basic Android build flow in Mill: what it does, why it&rsquo;s complex, and why Mill makes it easier to reason about.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -412,8 +414,11 @@ Inputs:
 <div class="paragraph">
 <p>Each step is order-sensitive: resources must be compiled before classes, manifests merged before packaging, APKs signed before installation. With Gradle, these steps are usually hidden inside plugin logic. When we explored Gradle builds, we often had to reverse engineer its behavior to understand what was going on. Mill instead exposes each phase as a target you can call, inspect its sources, or override.</p>
 </div>
-<div class="sect2">
-<h3 id="_the_mill_android_build_pipeline"><a class="anchor" href="#_the_mill_android_build_pipeline"></a>The Mill Android Build Pipeline</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_mill_android_build_pipeline"><a class="anchor" href="#_the_mill_android_build_pipeline"></a>The Mill Android Build Pipeline</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <center>
 <svg width="470px" height="519px" viewBox="0.00 0.00 469.64 519.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -974,7 +979,6 @@ Inputs:
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_try_it_out"><a class="anchor" href="#_try_it_out"></a>Try it out</h2>
 <div class="sectionbody">
@@ -1042,7 +1046,7 @@ Inputs:
 <p><span class="image"><img src="_images/androidtodo_test.gif" alt="Android Test running inside an emulator" width="showing the Todo app being tested automatically." /></span></p>
 </div>
 <div class="paragraph">
-<p>Let’s say you want to know how the apk is built. First, you can check the plan of <code>androidApk</code>, i.e which
+<p>Let’s say you want to know how the apk is built. First, you can check the plan of <code>androidApk</code>, i.e. which
 tasks it depends on:</p>
 </div>
 <div class="listingblock">
