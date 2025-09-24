@@ -308,8 +308,8 @@ and program installation often involves manual work to set up and maintain, Mill
 of dependencies in this bootstrap process is largely hands-off and automated.
 
 Despite the complexity described above, Mill's zero-install bootstrap process means that the user
-never needs to deal with any of it. They can immediately start using `./mill \__.compile` or
-`./mill __.test` or any other command on a clean system, and the only indication noticeable
+never needs to deal with any of it. They can immediately start using `./mill __.compile` or
+or any other command on a clean system, and the only indication noticeable
 difference would be the first command taking longer than normal and logging indicating that
 these downloads are happening. And once caches are warm, running `./mill` feels just as fast
 as running any pre-installed binary or executable.
