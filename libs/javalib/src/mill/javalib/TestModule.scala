@@ -633,7 +633,7 @@ object TestModule {
    * TestModule that uses Spock Test Framework to run tests.
    * You can override the [[spockVersion]] task or provide the Spock dependency yourself.
    *
-   * In case the version is set, it pulls in Spock-BOM in [[bomMvnDeps]] (only for 2.3 onwards) 
+   * In case the version is set, it pulls in Spock-BOM in [[bomMvnDeps]] (only for 2.3 onwards)
    * and Spock-Core in [[mvnDeps]]
    */
   trait Spock extends TestModule.Junit5 {

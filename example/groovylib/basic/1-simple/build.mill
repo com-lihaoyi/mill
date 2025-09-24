@@ -10,7 +10,7 @@ object foo extends GroovyModule {
     mvn"org.apache.groovy:groovy-cli-commons", // BOM already loaded by module
     mvn"org.apache.groovy:groovy-xml" // BOM already loaded by module
   )
-  
+
   def mainClass = Some("foo.Foo")
 
   object test extends GroovyTests with TestModule.Junit5 {
@@ -52,7 +52,7 @@ object foo extends GroovyModule {
 //
 //// SNIPPET:DEPENDENCIES
 //
-// This example project uses two third-party dependencies 
+// This example project uses two third-party dependencies
 // - Groovy-Cli-Commons for CLI argument parsing
 // - Groovy-Xml for HTML templating and escaping
 // and uses them to wrap a given input string in HTML templates with proper escaping.

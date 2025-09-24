@@ -20,4 +20,3 @@ object `package` extends JavaMavenModuleWithGroovyTests {
 // This is usefull for Java projects which use Groovy only for testing.
 // For non Maven-layout projects, this convenience trait is not necessary
 // because you can just use `GroovyModule` for your test object instead.
-

@@ -11,5 +11,3 @@ object `package` extends GroovyModule {
     def jupiterVersion = "5.13.4"
   }
 }
-
-

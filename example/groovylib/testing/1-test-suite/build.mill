@@ -29,4 +29,3 @@ object bar extends GroovyModule {
     )
   }
 }
-

@@ -17,10 +17,10 @@ object HelloGroovyTests extends TestSuite {
 
   object HelloGroovy extends TestRootModule {
 
-    trait GroovyVersionCross extends GroovyModule with Cross.Module[String]{
+    trait GroovyVersionCross extends GroovyModule with Cross.Module[String] {
       override def groovyVersion: Task.Simple[String] = crossValue
     }
-    
+
     lazy val millDiscover = Discover[this.type]
 
     // needed for a special test where only the tests are written in Groovy while appcode remains Java
@@ -44,7 +44,7 @@ object HelloGroovyTests extends TestSuite {
      */
     object spock extends GroovyModule {
       override def groovyVersion: T[String] = groovy4Version
-      
+
       object tests extends GroovyTests with TestModule.Spock {
         override def jupiterVersion: T[String] = junit5Version
         override def spockVersion: T[String] = spockGroovy4Version
@@ -102,7 +102,7 @@ object HelloGroovyTests extends TestSuite {
         override def junitPlatformVersion = "1.13.4"
       }
     }
-    object main extends Cross[Test](groovyVersions) 
+    object main extends Cross[Test](groovyVersions)
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-groovy"
@@ -122,7 +122,7 @@ object HelloGroovyTests extends TestSuite {
     test("running a Groovy script") {
       testEval().scoped { eval =>
         main.crossModules.foreach(m => {
-          val Right(_) = eval.apply(m.script.run()): @unchecked  
+          val Right(_) = eval.apply(m.script.run()): @unchecked
         })
       }
     }
