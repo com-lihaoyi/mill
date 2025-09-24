@@ -18,7 +18,7 @@ class GroovyWorkerImpl extends GroovyWorker {
       sourceFiles: Seq[Path],
       classpath: Seq[Path],
       outputDir: Path,
-      config: GroovyCompilerConfiguration,
+      config: GroovyCompilerConfiguration
   )(implicit ctx: TaskCtx): Result[CompilationResult] = {
     val compilerConfig = new CompilerConfiguration()
     compilerConfig.setTargetDirectory(outputDir.toIO)
@@ -27,7 +27,9 @@ class GroovyWorkerImpl extends GroovyWorker {
       "stubDir" -> outputDir.toIO,
       "keepStubs" -> false
     ).asJava)
-    compilerConfig.setDisabledGlobalASTTransformations(config.disabledGlobalAstTransformations.asJava)
+    compilerConfig.setDisabledGlobalASTTransformations(
+      config.disabledGlobalAstTransformations.asJava
+    )
     compilerConfig.setPreviewFeatures(config.enablePreview)
     config.targetBytecode.foreach(compilerConfig.setTargetBytecode)
 
@@ -56,7 +58,7 @@ class GroovyWorkerImpl extends GroovyWorker {
       sourceFiles: Seq[os.Path],
       classpath: Seq[os.Path],
       outputDir: os.Path,
-      config: GroovyCompilerConfiguration,
+      config: GroovyCompilerConfiguration
   )(implicit
       ctx: TaskCtx
   ): Result[CompilationResult] = {
@@ -66,7 +68,9 @@ class GroovyWorkerImpl extends GroovyWorker {
     val compilerConfig = new CompilerConfiguration()
     compilerConfig.setTargetDirectory(outputDir.toIO)
     compilerConfig.setClasspathList(extendedClasspath.map(_.toIO.getAbsolutePath).asJava)
-    compilerConfig.setDisabledGlobalASTTransformations(config.disabledGlobalAstTransformations.asJava)
+    compilerConfig.setDisabledGlobalASTTransformations(
+      config.disabledGlobalAstTransformations.asJava
+    )
     compilerConfig.setPreviewFeatures(config.enablePreview)
     config.targetBytecode.foreach(compilerConfig.setTargetBytecode)
 

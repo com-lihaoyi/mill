@@ -72,7 +72,6 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
    */
   def disabledGlobalAstTransformations: T[Set[String]] = Set.empty
 
-
   /**
    * All individual Java source files fed into the compiler.
    * Subset of [[allSourceFiles]].
@@ -155,7 +154,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
       val config = GroovyCompilerConfiguration(
         enablePreview = enablePreview(),
         targetBytecode = targetBytecode(),
-        disabledGlobalAstTransformations = disabledGlobalAstTransformations(),
+        disabledGlobalAstTransformations = disabledGlobalAstTransformations()
       )
 
       def compileJava: Result[CompilationResult] = {
