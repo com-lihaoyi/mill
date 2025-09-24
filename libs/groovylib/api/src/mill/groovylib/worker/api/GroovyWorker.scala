@@ -1,7 +1,6 @@
 package mill.groovylib.worker.api
 
-import mill.api.TaskCtx
-import mill.api.Result
+import mill.api.{Result, TaskCtx}
 import mill.javalib.api.CompilationResult
 
 /**
@@ -20,7 +19,8 @@ trait GroovyWorker {
   def compileGroovyStubs(
       sourceFiles: Seq[os.Path],
       classpath: Seq[os.Path],
-      outputDir: os.Path
+      outputDir: os.Path,
+      config: GroovyCompilerConfiguration
   )(implicit
       ctx: TaskCtx
   )
@@ -30,7 +30,12 @@ trait GroovyWorker {
    * Compiles the Groovy sources. In a mixed setup this method assumes that the Java stubs
    * are already present in the outputDir.
    */
-  def compile(sourceFiles: Seq[os.Path], classpath: Seq[os.Path], outputDir: os.Path)(implicit
+  def compile(
+      sourceFiles: Seq[os.Path],
+      classpath: Seq[os.Path],
+      outputDir: os.Path,
+      config: GroovyCompilerConfiguration
+  )(implicit
       ctx: TaskCtx
   )
       : Result[CompilationResult]

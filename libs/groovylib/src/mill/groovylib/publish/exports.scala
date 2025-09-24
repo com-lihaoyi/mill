@@ -26,7 +26,7 @@ export mill.javalib.publish.PackagingType
 
 export mill.javalib.publish.SonatypeHelpers
 export mill.javalib.publish.SonatypeHttpApi
-export mill.javalib.publish.SonatypePublisher
+export mill.javalib.SonatypeCentralPublisher
 
 export mill.javalib.publish.VersionControl
 

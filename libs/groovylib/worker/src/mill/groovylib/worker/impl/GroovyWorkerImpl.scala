@@ -4,7 +4,7 @@ import groovy.lang.GroovyClassLoader
 import mill.api.Result
 import mill.api.TaskCtx
 import mill.javalib.api.CompilationResult
-import mill.groovylib.worker.api.GroovyWorker
+import mill.groovylib.worker.api.{GroovyCompilerConfiguration, GroovyWorker}
 import org.codehaus.groovy.control.{CompilationUnit, CompilerConfiguration, Phases}
 import org.codehaus.groovy.tools.javac.JavaStubCompilationUnit
 import os.Path
@@ -17,22 +17,26 @@ class GroovyWorkerImpl extends GroovyWorker {
   override def compileGroovyStubs(
       sourceFiles: Seq[Path],
       classpath: Seq[Path],
-      outputDir: Path
+      outputDir: Path,
+      config: GroovyCompilerConfiguration,
   )(implicit ctx: TaskCtx): Result[CompilationResult] = {
-    val config = new CompilerConfiguration()
-    config.setTargetDirectory(outputDir.toIO)
-    config.setClasspathList(classpath.map(_.toIO.getAbsolutePath).asJava)
-    config.setJointCompilationOptions(Map(
+    val compilerConfig = new CompilerConfiguration()
+    compilerConfig.setTargetDirectory(outputDir.toIO)
+    compilerConfig.setClasspathList(classpath.map(_.toIO.getAbsolutePath).asJava)
+    compilerConfig.setJointCompilationOptions(Map(
       "stubDir" -> outputDir.toIO,
       "keepStubs" -> false
     ).asJava)
+    compilerConfig.setDisabledGlobalASTTransformations(config.disabledGlobalAstTransformations.asJava)
+    compilerConfig.setPreviewFeatures(config.enablePreview)
+    config.targetBytecode.foreach(compilerConfig.setTargetBytecode)
 
     // we need to set the classloader for groovy to use the worker classloader
     val parentCl: ClassLoader = this.getClass.getClassLoader
-    // config in the GroovyClassLoader is needed when the CL itself is compiling classes
-    val gcl = new GroovyClassLoader(parentCl, config)
-    // config for actual compilation
-    val stubUnit = JavaStubCompilationUnit(config, gcl)
+    // compilerConfig in the GroovyClassLoader is needed when the CL itself is compiling classes
+    val gcl = new GroovyClassLoader(parentCl, compilerConfig)
+    // compilerConfig for actual compilation
+    val stubUnit = JavaStubCompilationUnit(compilerConfig, gcl)
 
     sourceFiles.foreach { sourceFile =>
       stubUnit.addSource(sourceFile.toIO)
@@ -51,26 +55,28 @@ class GroovyWorkerImpl extends GroovyWorker {
   def compile(
       sourceFiles: Seq[os.Path],
       classpath: Seq[os.Path],
-      outputDir: os.Path
+      outputDir: os.Path,
+      config: GroovyCompilerConfiguration,
   )(implicit
       ctx: TaskCtx
   ): Result[CompilationResult] = {
 
     val extendedClasspath = classpath :+ outputDir
 
-    val config = new CompilerConfiguration()
-    config.setTargetDirectory(outputDir.toIO)
-    config.setClasspathList(extendedClasspath.map(_.toIO.getAbsolutePath).asJava)
-    // TODO
-//    config.setDisabledGlobalASTTransformations()
-//    config.setSourceEncoding()
+    val compilerConfig = new CompilerConfiguration()
+    compilerConfig.setTargetDirectory(outputDir.toIO)
+    compilerConfig.setClasspathList(extendedClasspath.map(_.toIO.getAbsolutePath).asJava)
+    compilerConfig.setDisabledGlobalASTTransformations(config.disabledGlobalAstTransformations.asJava)
+    compilerConfig.setPreviewFeatures(config.enablePreview)
+    config.targetBytecode.foreach(compilerConfig.setTargetBytecode)
 
     // we need to set the classloader for groovy to use the worker classloader
     val parentCl: ClassLoader = this.getClass.getClassLoader
-    // config in the GroovyClassLoader is needed when the CL itself is compiling classes
-    val gcl = new GroovyClassLoader(parentCl, config)
-    // config for actual compilation
-    val unit = new CompilationUnit(config, null, gcl)
+    // compilerConfig in the GroovyClassLoader is needed when the CL itself is compiling classes
+    val gcl = new GroovyClassLoader(parentCl, compilerConfig)
+
+    // compilerConfig for actual compilation
+    val unit = new CompilationUnit(compilerConfig, null, gcl)
 
     sourceFiles.foreach { sourceFile =>
       unit.addSource(sourceFile.toIO)

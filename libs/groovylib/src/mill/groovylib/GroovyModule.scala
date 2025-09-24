@@ -9,6 +9,7 @@ import mill.javalib.{Dep, JavaModule, JvmWorkerModule, Lib}
 import mill.*
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
+import mill.groovylib.worker.api.GroovyCompilerConfiguration
 import mill.javalib.api.internal.{JavaCompilerOptions, JvmWorkerApi, ZincCompileJava}
 import mill.util.Version
 
@@ -48,6 +49,29 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
   override def allSourceFiles: T[Seq[PathRef]] = Task {
     allGroovySourceFiles() ++ allJavaSourceFiles()
   }
+
+  /**
+   * Specifiy the bytecode version for the Groovy compiler.
+   * {{{
+   *   def targetBytecode = Some("17")
+   * }}}
+   */
+  def targetBytecode: T[Option[String]] = None
+
+  /**
+   * Specify if the Groovy compiler should enable preview features.
+   */
+  def enablePreview: T[Boolean] = false
+
+  /**
+   * Specify which global AST transformations should be disabled. Be aware that transformations
+   * like [[groovy.transform.Immutable]] are so-called "local" transformations and will not be
+   * affected.
+   *
+   * see [[https://docs.groovy-lang.org/latest/html/api/org/codehaus/groovy/control/CompilerConfiguration.html#setDisabledGlobalASTTransformations(java.util.Set) Groovy-Docs]]
+   */
+  def disabledGlobalAstTransformations: T[Set[String]] = Set.empty
+
 
   /**
    * All individual Java source files fed into the compiler.
@@ -92,7 +116,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
   }
 
   /**
-   * The Ivy/Coursier dependencies resembling the Groovy compiler.
+   * The Coursier dependencies resembling the Groovy compiler.
    *
    * Default is derived from [[groovyVersion]].
    */
@@ -128,6 +152,12 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
       val compileCp = compileClasspath().map(_.path).filter(os.exists)
       val updateCompileOutput = upstreamCompileOutput()
 
+      val config = GroovyCompilerConfiguration(
+        enablePreview = enablePreview(),
+        targetBytecode = targetBytecode(),
+        disabledGlobalAstTransformations = disabledGlobalAstTransformations(),
+      )
+
       def compileJava: Result[CompilationResult] = {
         ctx.log.info(
           s"Compiling ${javaSourceFiles.size} Java sources to $classes ..."
@@ -150,7 +180,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
         val workerStubResult =
           GroovyWorkerManager.groovyWorker().withValue(groovyCompilerClasspath()) {
-            _.compileGroovyStubs(groovySourceFiles, compileCp, classes)
+            _.compileGroovyStubs(groovySourceFiles, compileCp, classes, config)
           }
         workerStubResult match {
           case Result.Success(_) => compileJava
@@ -165,7 +195,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
         val workerGroovyResult =
           GroovyWorkerManager.groovyWorker().withValue(groovyCompilerClasspath()) {
-            _.compile(groovySourceFiles, compileCp, classes)
+            _.compile(groovySourceFiles, compileCp, classes, config)
           }
 
         // TODO figure out if there is a better way to do this
