@@ -14,7 +14,7 @@ object BuildCtx {
    */
   def workspaceRoot: os.Path = workspaceRoot0
 
-  private val workspaceRoot0 = sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_, os.pwd))
-
+  private val workspaceRoot0 =
+    sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_, os.pwd))
 
 }

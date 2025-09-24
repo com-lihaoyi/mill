@@ -1,6 +1,6 @@
 package mill.define
 
-import mill.api.{BuildCtx, PathRef, WorkspaceRoot}
+import mill.api.{BuildCtx, PathRef}
 import mill.util.Watchable
 
 import scala.collection.mutable

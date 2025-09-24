@@ -6,7 +6,7 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.api.{BuildCtx, MillException, SystemStreams, WorkspaceRoot, internal}
+import mill.api.{BuildCtx, MillException, SystemStreams, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
 import mill.main.client.{OutFiles, ServerFiles, Util}
