@@ -88,7 +88,7 @@ strive towards. But it's worth asking: could we do better?
 One interesting innovation on the installation process is the use of a _bootstrap script_. These
 were popularized by the https://gradle.org/[Gradle build tool] as a
 https://docs.gradle.org/current/userguide/gradle_wrapper.html[./gradlew] bootstrap script you
-commit to the repository root. The bootstrap script hard-codes the version of the build tool you
+commit to the repository root. The bootstrap script embeds the version of Gradle you
 want to use, and ensures to download and cache that specific version when it is invoked. That means
 you can checkout a project's code and run:
 
