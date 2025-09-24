@@ -10,10 +10,6 @@ on:
         required: true
         type: string
 
-      coursierarchive:
-        default: "/tmp"
-        required: false
-        type: string
       java-version:
         required: true
         type: string
@@ -67,5 +63,4 @@ jobs:
 
         with:
           millargs: ${{ inputs.millargs }}
-          coursierarchive: ${{ inputs.coursierarchive }}
           shell: ${{ inputs.shell }}

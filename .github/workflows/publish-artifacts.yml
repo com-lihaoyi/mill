@@ -27,27 +27,22 @@ jobs:
       matrix:
         include:
         - os: ubuntu-latest
-          coursierarchive: "/tmp"
           publishartifacts: __.publishArtifacts
           uploadgithub: true
 
         - os: ubuntu-24.04-arm
-          coursierarchive: "/tmp"
           publishartifacts: dist.native.publishArtifacts
           uploadgithub: false
 
         - os: macos-13
-          coursierarchive: "/tmp"
           publishartifacts: dist.native.publishArtifacts
           uploadgithub: false
 
         - os: macos-latest
-          coursierarchive: "/tmp"
           publishartifacts: dist.native.publishArtifacts
           uploadgithub: false
 
         - os: windows-latest
-          coursierarchive: C:/coursier-arc
           publishartifacts: dist.native.publishArtifacts
           uploadgithub: false
 
@@ -62,7 +57,6 @@ jobs:
       LANG: "en_US.UTF-8"
       LC_MESSAGES: "en_US.UTF-8"
       LC_ALL: "en_US.UTF-8"
-      COURSIER_ARCHIVE_CACHE: ${{ matrix.coursierarchive }}
       REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
     steps:
       - uses: actions/setup-java@v5
