@@ -354,6 +354,10 @@ Although this article covers bootstrapping Java and JVM
 applications, the same principles could apply to bootstrap any non-trivial project and its
 dependencies: starting from a shell script, bootstrapping a native binary, which then
 bootstraps the messy dependencies that are required for any real-world project.
+With Mill, we take advantage of this to try and simplify Java development: codebases built
+using Mill can be built via `./mill` out of the box, providing everything you need for
+development without any prior setup. We hope that this will make it easier to people to
+contribute to such projects, whether in a proprietary setting or open-source.
 
 Zero-step installation workflows are really the only thing that scales as a project grows.
 While multiple 1-step installs can add up and become a long N-step installation process,
