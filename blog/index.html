@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>The Mill Build Engineering Blog :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/blog/index.html" />
-    <link rel="next" href="15-android-build-flow.html" />
+    <link rel="next" href="16-zero-setup.html" />
     <meta name="generator" content="Antora 3.1.12" />
     <link rel="stylesheet" href="../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -135,10 +135,14 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="15-android-build-flow.html">Mill as an Alternative Android Build Tool</a>
+    <a class="nav-link" href="16-zero-setup.html">Zero-Setup All-in-One Java Tooling via Mill Bootstrap Scripts</a>
   </li>
 
   <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="15-android-build-flow.html">Mill as an Alternative Android Build Tool</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="14-bash-zsh-completion.html">Writing Your Own Simple Tab-Completions for Bash and Zsh</a>
   </li>
 
@@ -259,6 +263,49 @@
 technical topics related to JVM platform tooling and language-agnostic build tooling,
 some specific to the Mill build tool but mostly applicable to anyone working on
 build tooling for large codebases in JVM and non-JVM languages.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_zero_setup_all_in_one_java_tooling_via_mill_bootstrap_scripts"><a class="anchor" href="#_zero_setup_all_in_one_java_tooling_via_mill_bootstrap_scripts"></a><a href="16-zero-setup.html" class="xref page">Zero-Setup All-in-One Java Tooling via Mill Bootstrap Scripts</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, 24 September 2025</em></p>
+</div>
+<div class="paragraph">
+<p>Getting the software you need installed onto your machine is a common point of
+friction, whether you’re on OS-X finding
+<a href="https://github.com/orgs/Homebrew/discussions/1177">Homebrew being terribly slow</a> or on Ubuntu finding
+<a href="https://www.reddit.com/r/Ubuntu/comments/1j3ldpm/why_are_all_my_apt_programs_so_outdated/">the versions available are all outdated</a>.
+Setting up Java projects in particular often involves a multi-step process to install <code>mvn</code>,
+<code>sdkman</code>, <code>jenv</code>, and the <code>java</code> version you need.</p>
+</div>
+<div class="paragraph">
+<p>The Mill build tool does something interesting here: it requires no system-wide installation
+at all to build your Java projects! You can checkout any codebase built with Mill on a bare
+Linux/Mac/Windows machine, build it without any prior setup using it’s <code>./mill</code> bootstrap
+script, and Mill will automatically download and cache itself, any JVMs, and any third-party
+libraries and tools necessary. For example, the <code>./mill __.compile</code> below is all that is needed
+to compile all modules in a newly-checked-out Mill project on a clean machine, greatly
+simplifying building your project on diverse dev and CI environments:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://github.com/com-lihaoyi/cask/archive/refs/heads/master.zip -o cask.zip
+
+&gt; unzip cask.zip &amp;&amp; cd cask-master
+
+&gt; ./mill __.compile</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This blog post explores how Mill’s zero-install workflow works: the status quo,
+the interesting innovations that Mill builds upon, and Mill’s unique ideas
+that let it achieve this zero-setup usage to greatly simplify getting started
+working with Java, Scala, or Kotlin projects.</p>
+</div>
+<div class="paragraph">
+<p><a href="16-zero-setup.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -641,7 +688,7 @@ faster in the presence of parallelism</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="next"><a href="15-android-build-flow.html">Mill as an Alternative Android Build Tool</a></span>
+  <span class="next"><a href="16-zero-setup.html">Zero-Setup All-in-One Java Tooling via Mill Bootstrap Scripts</a></span>
 </nav>
 </article>
   </div>

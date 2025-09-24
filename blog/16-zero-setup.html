@@ -1,0 +1,934 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Zero-Setup All-in-One Java Tooling via Mill Bootstrap Scripts :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/blog/16-zero-setup.html" />
+    <link rel="prev" href="index.html" />
+    <link rel="next" href="15-android-build-flow.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style></head><body class="article">
+  
+<header class="header">
+  
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="blog" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html"><em>The Mill Build Engineering Blog</em></a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="16-zero-setup.html">Zero-Setup All-in-One Java Tooling via Mill Bootstrap Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="15-android-build-flow.html">Mill as an Alternative Android Build Tool</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="14-bash-zsh-completion.html">Writing Your Own Simple Tab-Completions for Bash and Zsh</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="13-mill-build-tool-v1-0-0.html">Mill Build Tool v1.0.0 Release Highlights</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="12-direct-style-build-tool.html">Mill as a Direct Style Build Tool</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="11-jvm-test-parallelism.html">Strategies for Efficiently Parallelizing JVM Test Suites</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="10-bytecode-callgraph-analysis.html">Invalidating build caches using JVM bytecode callgraph analysis</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="9-mill-faster-assembly-jars.html">Fast Incremental JVM Assembly Jar Creation with Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="8-what-is-a-build-tool.html">What does a Build Tool do?</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="7-graal-native-executables.html">How to Compile Java into Native Binaries with Mill and Graal</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="6-garbage-collector-perf.html">Understanding JVM Garbage Collector Performance</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="5-executable-jars.html">How JVM Executable Assembly Jars Work</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="4-flaky-tests.html">How To Manage Flaky Tests in your CI Workflows</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="3-selective-testing.html">Faster CI with Selective Testing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="1-java-compile.html">How Fast Does Java Compile?</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">The Mill Build Engineering Blog</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+    <li class="component">
+      <div class="title"><a href="../mill/index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mill/main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../mill/index.html">1.0.5</a>
+        </li>
+        <li class="version">
+          <a href="../mill/dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.12.x/index.html">0.12.16</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <div class="title"><a href="index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/16-zero-setup.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Zero-Setup All-in-One Java Tooling via Mill Bootstrap Scripts</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, 24 September 2025</em></p>
+</div>
+<div class="paragraph">
+<p>Getting the software you need installed onto your machine is a common point of
+friction, whether you’re on OS-X finding
+<a href="https://github.com/orgs/Homebrew/discussions/1177">Homebrew being terribly slow</a> or on Ubuntu finding
+<a href="https://www.reddit.com/r/Ubuntu/comments/1j3ldpm/why_are_all_my_apt_programs_so_outdated/">the versions available are all outdated</a>.
+Setting up Java projects in particular often involves a multi-step process to install <code>mvn</code>,
+<code>sdkman</code>, <code>jenv</code>, and the <code>java</code> version you need.</p>
+</div>
+<div class="paragraph">
+<p>The Mill build tool does something interesting here: it requires no system-wide installation
+at all to build your Java projects! You can checkout any codebase built with Mill on a bare
+Linux/Mac/Windows machine, build it without any prior setup using it’s <code>./mill</code> bootstrap
+script, and Mill will automatically download and cache itself, any JVMs, and any third-party
+libraries and tools necessary. For example, the <code>./mill __.compile</code> below is all that is needed
+to compile all modules in a newly-checked-out Mill project on a clean machine, greatly
+simplifying building your project on diverse dev and CI environments:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://github.com/com-lihaoyi/cask/archive/refs/heads/master.zip -o cask.zip
+
+&gt; unzip cask.zip &amp;&amp; cd cask-master
+
+&gt; ./mill __.compile</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This blog post explores how Mill’s zero-install workflow works: the status quo,
+the interesting innovations that Mill builds upon, and Mill’s unique ideas
+that let it achieve this zero-setup usage to greatly simplify getting started
+working with Java, Scala, or Kotlin projects.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_1_step_and_multi_step_installation"><a class="anchor" href="#_1_step_and_multi_step_installation"></a>1-Step and Multi-Step Installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Perhaps the most common way software is installed is via package managers like <code>apt</code>, <code>yum</code>, or
+<code>brew</code>. For example, the incantation to install <code>git</code> in an Amazon-Linux machine is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sudo yum install git</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Depending on how nicely the software you are installing is packaged, this may or may not require
+additional commands to install transitive dependencies. For example, when setting up a codebase
+for development, you may need to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>apt install</code> the Python version you want to use</p>
+</li>
+<li>
+<p><code>pip install</code> the libraries you want to use</p>
+</li>
+<li>
+<p>Also <code>apt install</code> any native dependencies your python code needs to run.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In the JVM ecosystem, it is common to need to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>apt install openjdk-17-jdk</code> and then</p>
+</li>
+<li>
+<p><code>apt install mvn</code></p>
+</li>
+<li>
+<p>It’s also common to install <a href="https://sdkman.io/">SdkMan</a> or <a href="https://github.com/jenv/jenv">JEnv</a>
+to help manage your JVM, e.g.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>curl -s &quot;https://get.sdkman.io&quot; | bash</code>, <code>sdk install java 17-tem</code></p>
+</li>
+<li>
+<p><code>sudo apt install jenv</code>, <code>jenv local 17</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Such multi-step workflows are common when building a software project, as the codebase and
+its dependencies are never as nicely packaged as distributed binaries like <code>git</code>. Using a
+language-specific package manager or build tool can help, but since the build tool itself
+needs to be installed it remains a multi-step workflow getting everything set up and ready to use.</p>
+</div>
+<div class="paragraph">
+<p>There are other ways to install things apart from package managers: <code>curl &lt;url&gt; | bash</code> is common,
+as is manually downloading binaries to put on your <code>PATH</code>. But all of these have a similar problem:
+the installation must be done <em>manually</em> and happen <em>before</em> you can begin working on your project.
+This gives a lot of room for things to go wrong, for example:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Things falling out of sync</strong>: the installation commands on MacOS using <code>brew</code> will be different
+from Amazon-Linux using <code>yum</code> or Ubuntu using <code>apt</code>, so it’s terribly easy to end up with
+subtly different sets of packages on each. This results in tedious busy-work trying to keep the
+various environments in sync.</p>
+</li>
+<li>
+<p><strong>Steps done manually and not reproduced</strong>: it is always tempting to <code>apt install</code> or
+<code>pip install</code> something locally to get things working, but that leaves you open
+for your code failing on CI workers due to missing installs, or failing on your co-workers'
+laptops which are missing some manual steps.</p>
+</li>
+<li>
+<p><strong>The number of steps growing</strong>: while a 1-step install may seem fine, a large codebase
+may have many packages and tools requiring 1-step installs, resulting in an installation
+process with dozens of steps that can be tedious if run manually and fragile if scripted</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Multi-step setup workflows are the norm, an 1-step setup workflows are something people often
+strive towards. But it’s worth asking: could we do better?</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_maven_gradle_bootstrap_scripts"><a class="anchor" href="#_maven_gradle_bootstrap_scripts"></a>Maven &amp; Gradle Bootstrap Scripts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>One interesting innovation on the installation process is the use of a <em>bootstrap script</em>. These
+were popularized by the <a href="https://gradle.org/">Gradle build tool</a> as a
+<a href="https://docs.gradle.org/current/userguide/gradle_wrapper.html">./gradlew</a> bootstrap script you
+commit to the repository root. The bootstrap script embeds the version of Gradle you
+want to use, and ensures to download and cache that specific version when it is invoked. That means
+you can checkout a project’s code and run:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./gradlew build</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And be sure you are using the same version of Gradle that everyone else is also using
+to build that project. This can be very handy: you now no longer need to worry about installing
+the &quot;right version&quot; of Gradle on your colleagues' laptops, on CI, etc. The bootstrap
+script ensures that anyone working on the project - human or otherwise - will be using the
+same version.</p>
+</div>
+<div class="paragraph">
+<p>Furthermore, as tools like Gradle automatically resolve the application-level
+dependencies required by the project they are building, the user does not need to install
+those manually. Any <code>build</code> or <code>install</code> or <code>test</code> command results in all necessary
+dependencies being automatically downloaded and cached as necessary. More recently, the
+<a href="https://maven.apache.org/">Maven build tool</a> has adopted a similar convention with
+<a href="https://maven.apache.org/tools/wrapper/">./mvnw</a> scripts serving the same purpose.</p>
+</div>
+<div class="paragraph">
+<p>However, one limitation of the Maven and Gradle approach to bootstrap scripts is that they rely
+on <code>java</code> being pre-installed to begin the bootstrapping process. Without <code>java</code>, they cannot
+run at all, as shown below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://github.com/netty/netty/archive/refs/heads/4.2.zip -o netty.zip
+&gt; unzip netty.zip
+&gt; ./mvnw clean install
+/usr/bin/which: no javac in (/home/ec2-user/.local/bin:/home/ec2-user/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin)
+Error: JAVA_HOME is not defined correctly.</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>So even with the <code>./gradlew</code> or <code>./mvnw</code> bootstrap scripts, working with Gradle or Maven still
+ends up being a 1-step installation process: you need to install <code>java</code> (and the right version
+of Java!) before you begin, possibly using SdkMan or Jenv, each of which themselves need to
+be installed first. Thus although these bootstrap scripts mitigate
+the problem - differing Java versions tend to be more forgiving than differing Maven/Gradle
+versions - they haven’t completely solved it.</p>
+</div>
+<div class="paragraph">
+<p>Why do these bootstrap scripts have require <code>java</code> to be installed? It’s
+because they don’t want to put non-trivial bootstrapping logic into <code>.sh</code> or <code>.bat</code> scripts,
+and as JVM build tools writing their bootstrapping logic in Java running on the JVM makes sense.
+But that doesn’t seem like a hard requirement, and it should be possible to make a bootstrapping
+binary that can run without <code>java</code> or any other runtime pre-installed. That is the approach
+that Mill takes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mills_zero_setup_bootstrap_scripts"><a class="anchor" href="#_mills_zero_setup_bootstrap_scripts"></a>Mill’s Zero-Setup Bootstrap Scripts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill’s <a href="../mill/cli/installation-ide.html#_bootstrap_scripts" class="xref page">./mill bootstrap scripts</a> are
+similar to <code>./mvnw</code> or <code>./gradle</code>, but differ in that
+by default they do not require <code>java</code> pre-installed in order to run. Instead, <code>./mill</code> downloads
+a native platform-specific binary that then performs the bootstrapping process:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">mill-dist-native-linux-aarch64-1.0.5.exe
+mill-dist-native-linux-amd64-1.0.5.exe
+mill-dist-native-mac-aarch64-1.0.5.exe
+mill-dist-native-mac-amd64-1.0.5.exe</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These <code>.exe</code> files are JVM executables, but compiled to native platform-specific binaries using
+the <a href="7-graal-native-executables.html" class="xref page">Graal Native Image compiler</a>. Apart from the benefits
+of reduced startup time and memory usage, the key property we care about is that native image
+binaries also can run on bare environments without a <code>java</code> runtime pre-installed. This lets
+us write our non-trivial bootstrapping logic in Java and run it without needing a
+system-wide <code>java</code> distribution pre-installed on the machine.</p>
+</div>
+<div class="paragraph">
+<p>As native image binaries are OS/CPU-specific, we need some logic to pick the right binary for the
+machine the bootstrap script it running on, and that logic needs to run in the <code>.sh</code> or <code>.bat</code>
+bootstrap script because we need it to run <em>before</em> the native image binary has been downloaded.
+The <code>.sh</code> version of this implemented using <code>uname</code> is as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">ARTIFACT_SUFFIX=&quot;&quot;
+set_artifact_suffix(){
+  if [ &quot;$(expr substr $(uname -s) 1 5 2&gt;/dev/null)&quot; = &quot;Linux&quot; ]; then
+    if [ &quot;$(uname -m)&quot; = &quot;aarch64&quot; ]; then
+      ARTIFACT_SUFFIX=&quot;-native-linux-aarch64&quot;
+    else
+      ARTIFACT_SUFFIX=&quot;-native-linux-amd64&quot;
+    fi
+  elif [ &quot;$(uname)&quot; = &quot;Darwin&quot; ]; then
+    if [ &quot;$(uname -m)&quot; = &quot;arm64&quot; ]; then
+      ARTIFACT_SUFFIX=&quot;-native-mac-aarch64&quot;
+    else
+      ARTIFACT_SUFFIX=&quot;-native-mac-amd64&quot;
+    fi
+  else
+     echo &quot;This native mill launcher supports only Linux and macOS.&quot; 1&gt;&amp;2
+     exit 1
+  fi
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The bootstrap script can then assemble this into a download URL to <code>curl</code> down the relevant file
+from the Maven Central package repository:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">DOWNLOAD_URL=&quot;https://repo1.maven.org/maven2/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.${DOWNLOAD_EXT}&quot;
+curl -f -L -o &quot;${DOWNLOAD_FILE}&quot; &quot;${DOWNLOAD_URL}&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can then execute the downloaded file, taking any command line arguments given to the bootstrap
+script and forwarding them to the native binary:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">exec &quot;${DOWNLOAD_FILE}&quot; &quot;$@&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The snippets above are somewhat simplified - the
+<a href="https://github.com/com-lihaoyi/mill/blob/1.0.5/dist/scripts/src/mill.sh">actual bootstrap script</a>
+contains a lot more logic to handle backwards compatibility, version configuration, Windows
+support, and other necessary details. But at a high level, they illustrate what Mill’s
+bootstrap script does: it picks the downloads the native binary of the configured version,
+operating system, and CPU architecture, and executes it to begin the Mill bootstrapping process.
+This lets it bootstrap from <em>shell/bat script</em> to <em>native image binary</em> without any prior
+installation of <code>java</code> or other system-wide dependencies, and from there we can bootstrap the
+rest of the way.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bootstrapping_a_full_jvm_environment"><a class="anchor" href="#_bootstrapping_a_full_jvm_environment"></a>Bootstrapping a Full JVM Environment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Once we execute our native image binary, we then have an opportunity to run real JVM code (as
+opposed to sketchy shell scripts) to proceed with bootstrapping. When someone runs
+<code>./mill __.compile</code> to compile all modules in a repository, and the native image bootstrap
+launcher has been downloaded as described above, we can then use it to:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Download the JVM that Mill needs to run</strong>, as Graal Native Images have limitations around
+classloading that make it unsuitable for the Mill daemon process</p>
+</li>
+<li>
+<p><strong>Download the <code>.jar</code> files that make up the Mill daemon process</strong>, since Mill is implemented
+as a mixed Java/Scala codebase which compiles to <code>.class</code> files and is distributed as <code>.jar</code>s</p>
+</li>
+<li>
+<p><strong>Start the Mill daemon process, which runs those <code>.jar</code> files on the downloaded JVM</strong></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Once we have the Mill daemon process running, further steps are necessary to bootstrap the Mill
+build dependencies and user code dependencies</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Resolve any <code>.jar</code> files necessary for Mill’s build logic, and any user-configured plugins</strong>,
+and load them into a classloader to invoke the build</p>
+</li>
+<li>
+<p><strong>Resolve any <code>.jar</code> files or JVM necessary for user modules to compile and run</strong></p>
+</li>
+<li>
+<p>Finally, <strong>compiling the user code using any <code>.jar</code> files and any custom JVM that they require</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The various <code>.jar</code> files are typically downloaded from
+<a href="https://central.sonatype.com/">Maven Central</a>, which is the standard package repository for JVM libraries.
+The JVMs themselves come from the various provider download URLs that we reference via
+the <a href="https://github.com/coursier/jvm-index">Coursier JVM Index</a>. Apart from libraries and JVMs,
+all tools necessary for your Java/Scala/Kotlin development are also bootstrapped the
+same way - <a href="../mill/javalib/linting.html#_linting_with_checkstyle" class="xref page">Checkstyle</a>,
+<a href="../mill/javalib/linting.html#_linting_with_errorprone" class="xref page">ErrorProne</a>,
+<a href="../mill/scalalib/linting.html#_autoformatting_with_scalafmt" class="xref page">ScalaFmt</a>,
+<a href="../mill/kotlinlib/linting.html#_linting_with_ktlint" class="xref page">KtLint</a>, etc. - so you can use them
+without needing prior system-wide setup or installation.</p>
+</div>
+<div class="paragraph">
+<p>Note that we only do these steps once the native image bootstrap launcher has been downloaded
+as they require non-trivial logic: resolving JVM versions to download URLs, resolving <code>.jar</code>
+files from <a href="https://maven.apache.org/repositories/artifacts.html">group-artifact-version coordinates</a>,
+adjudicating version conflicts, etc. This is too complicated to implement in <code>.sh</code> and <code>.bat</code>
+scripts, so Mill handles that using <a href="https://github.com/coursier/coursier">Coursier</a> which is
+a common JVM dependency resolution library also used by <a href="https://bazel.build/">Bazel</a> and
+<a href="https://www.scala-sbt.org/">SBT</a>.</p>
+</div>
+<div class="paragraph">
+<p>The final bootstrapping process of <code>./mill __.compile</code> looks something like this, with the
+solid lines indicating local steps in the bootstrapping process, and the dashed lines
+indicating downloads from package repositories:</p>
+</div>
+<div class="paragraph">
+<center>
+<svg width="455px" height="474px" viewBox="0.00 0.00 455.00 474.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 470.4)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-470.4 451,-470.4 451,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster0</title>
+<polygon fill="none" stroke="white" points="8,-8 8,-413.6 439,-413.6 439,-8 8,-8"></polygon>
+</g>
+<!-- ./mill -->
+<g id="node1" class="node">
+<title>./mill</title>
+<polygon fill="white" stroke="black" points="245.95,-466.3 200.05,-466.3 200.05,-441.7 245.95,-441.7 245.95,-466.3"></polygon>
+<text text-anchor="middle" x="223" y="-449.8" font-family="Times,serif" font-size="14.00">./mill</text>
+</g>
+<!-- native image launcher binary -->
+<g id="node2" class="node">
+<title>native image launcher binary</title>
+<polygon fill="white" stroke="black" points="312.38,-405.5 133.62,-405.5 133.62,-380.9 312.38,-380.9 312.38,-405.5"></polygon>
+<text text-anchor="middle" x="223" y="-389" font-family="Times,serif" font-size="14.00">native image launcher binary</text>
+</g>
+<!-- ./mill&#45;&gt;native image launcher binary -->
+<g id="edge1" class="edge">
+<title>./mill-&gt;native image launcher binary</title>
+<path fill="none" stroke="black" d="M223,-441.66C223,-434.26 223,-424.36 223,-415.52"></path>
+<polygon fill="black" stroke="black" points="226.5,-415.5 223,-405.5 219.5,-415.5 226.5,-415.5"></polygon>
+</g>
+<!-- daemon jars -->
+<g id="node3" class="node">
+<title>daemon jars</title>
+<polygon fill="white" stroke="black" points="277.03,-344.7 192.97,-344.7 192.97,-320.1 277.03,-320.1 277.03,-344.7"></polygon>
+<text text-anchor="middle" x="235" y="-328.2" font-family="Times,serif" font-size="14.00">daemon jars</text>
+</g>
+<!-- native image launcher binary&#45;&gt;daemon jars -->
+<g id="edge2" class="edge">
+<title>native image launcher binary-&gt;daemon jars</title>
+<path fill="none" stroke="black" d="M225.31,-380.86C226.82,-373.46 228.84,-363.56 230.65,-354.72"></path>
+<polygon fill="black" stroke="black" points="234.12,-355.2 232.69,-344.7 227.26,-353.8 234.12,-355.2"></polygon>
+</g>
+<!-- daemon JVM -->
+<g id="node8" class="node">
+<title>daemon JVM</title>
+<polygon fill="white" stroke="black" points="174.82,-344.7 83.18,-344.7 83.18,-320.1 174.82,-320.1 174.82,-344.7"></polygon>
+<text text-anchor="middle" x="129" y="-328.2" font-family="Times,serif" font-size="14.00">daemon JVM</text>
+</g>
+<!-- native image launcher binary&#45;&gt;daemon JVM -->
+<g id="edge7" class="edge">
+<title>native image launcher binary-&gt;daemon JVM</title>
+<path fill="none" stroke="black" d="M204.88,-380.86C190.96,-372.16 171.53,-360.01 155.82,-350.18"></path>
+<polygon fill="black" stroke="black" points="157.4,-347.04 147.07,-344.7 153.69,-352.97 157.4,-347.04"></polygon>
+</g>
+<!-- daemon process -->
+<g id="node4" class="node">
+<title>daemon process</title>
+<polygon fill="white" stroke="black" points="268.8,-283.9 163.2,-283.9 163.2,-259.3 268.8,-259.3 268.8,-283.9"></polygon>
+<text text-anchor="middle" x="216" y="-267.4" font-family="Times,serif" font-size="14.00">daemon process</text>
+</g>
+<!-- daemon jars&#45;&gt;daemon process -->
+<g id="edge3" class="edge">
+<title>daemon jars-&gt;daemon process</title>
+<path fill="none" stroke="black" d="M231.34,-320.06C228.92,-312.58 225.68,-302.55 222.8,-293.63"></path>
+<polygon fill="black" stroke="black" points="226.06,-292.34 219.65,-283.9 219.4,-294.49 226.06,-292.34"></polygon>
+</g>
+<!-- build jars -->
+<g id="node5" class="node">
+<title>build jars</title>
+<polygon fill="white" stroke="black" points="250.49,-223.1 181.51,-223.1 181.51,-198.5 250.49,-198.5 250.49,-223.1"></polygon>
+<text text-anchor="middle" x="216" y="-206.6" font-family="Times,serif" font-size="14.00">build jars</text>
+</g>
+<!-- daemon process&#45;&gt;build jars -->
+<g id="edge4" class="edge">
+<title>daemon process-&gt;build jars</title>
+<path fill="none" stroke="black" d="M216,-259.26C216,-251.86 216,-241.96 216,-233.12"></path>
+<polygon fill="black" stroke="black" points="219.5,-233.1 216,-223.1 212.5,-233.1 219.5,-233.1"></polygon>
+</g>
+<!-- build classloader -->
+<g id="node6" class="node">
+<title>build classloader</title>
+<polygon fill="white" stroke="black" points="271.47,-162.3 160.53,-162.3 160.53,-137.7 271.47,-137.7 271.47,-162.3"></polygon>
+<text text-anchor="middle" x="216" y="-145.8" font-family="Times,serif" font-size="14.00">build classloader</text>
+</g>
+<!-- build jars&#45;&gt;build classloader -->
+<g id="edge5" class="edge">
+<title>build jars-&gt;build classloader</title>
+<path fill="none" stroke="black" d="M216,-198.46C216,-191.06 216,-181.16 216,-172.32"></path>
+<polygon fill="black" stroke="black" points="219.5,-172.3 216,-162.3 212.5,-172.3 219.5,-172.3"></polygon>
+</g>
+<!-- user code dependency jars -->
+<g id="node7" class="node">
+<title>user code dependency jars</title>
+<polygon fill="white" stroke="black" points="430.82,-101.5 267.18,-101.5 267.18,-76.9 430.82,-76.9 430.82,-101.5"></polygon>
+<text text-anchor="middle" x="349" y="-85" font-family="Times,serif" font-size="14.00">user code dependency jars</text>
+</g>
+<!-- build classloader&#45;&gt;user code dependency jars -->
+<g id="edge6" class="edge">
+<title>build classloader-&gt;user code dependency jars</title>
+<path fill="none" stroke="black" d="M241.64,-137.66C262.25,-128.55 291.4,-115.66 314.13,-105.62"></path>
+<polygon fill="black" stroke="black" points="315.7,-108.75 323.43,-101.5 312.87,-102.34 315.7,-108.75"></polygon>
+</g>
+<!-- user code JVM -->
+<g id="node9" class="node">
+<title>user code JVM</title>
+<polygon fill="white" stroke="black" points="249.25,-101.5 148.75,-101.5 148.75,-76.9 249.25,-76.9 249.25,-101.5"></polygon>
+<text text-anchor="middle" x="199" y="-85" font-family="Times,serif" font-size="14.00">user code JVM</text>
+</g>
+<!-- build classloader&#45;&gt;user code JVM -->
+<g id="edge9" class="edge">
+<title>build classloader-&gt;user code JVM</title>
+<path fill="none" stroke="black" d="M212.72,-137.66C210.56,-130.18 207.66,-120.15 205.08,-111.23"></path>
+<polygon fill="black" stroke="black" points="208.41,-110.14 202.27,-101.5 201.68,-112.08 208.41,-110.14"></polygon>
+</g>
+<!-- __.compile -->
+<g id="node10" class="node">
+<title>__.compile</title>
+<polygon fill="white" stroke="black" points="238.1,-40.7 159.9,-40.7 159.9,-16.1 238.1,-16.1 238.1,-40.7"></polygon>
+<text text-anchor="middle" x="199" y="-24.2" font-family="Times,serif" font-size="14.00">__.compile</text>
+</g>
+<!-- user code dependency jars&#45;&gt;__.compile -->
+<g id="edge11" class="edge">
+<title>user code dependency jars-&gt;__.compile</title>
+<path fill="none" stroke="black" d="M320.08,-76.86C296.53,-67.63 263.07,-54.52 237.3,-44.41"></path>
+<polygon fill="black" stroke="black" points="238.42,-41.09 227.83,-40.7 235.87,-47.61 238.42,-41.09"></polygon>
+</g>
+<!-- daemon JVM&#45;&gt;daemon process -->
+<g id="edge8" class="edge">
+<title>daemon JVM-&gt;daemon process</title>
+<path fill="none" stroke="black" d="M145.77,-320.06C158.53,-311.44 176.3,-299.43 190.77,-289.65"></path>
+<polygon fill="black" stroke="black" points="192.95,-292.4 199.28,-283.9 189.03,-286.6 192.95,-292.4"></polygon>
+</g>
+<!-- user code JVM&#45;&gt;__.compile -->
+<g id="edge10" class="edge">
+<title>user code JVM-&gt;__.compile</title>
+<path fill="none" stroke="black" d="M199,-76.86C199,-69.46 199,-59.56 199,-50.72"></path>
+<polygon fill="black" stroke="black" points="202.5,-50.7 199,-40.7 195.5,-50.7 202.5,-50.7"></polygon>
+</g>
+<!-- user code sources -->
+<g id="node11" class="node">
+<title>user code sources</title>
+<polygon fill="white" stroke="black" points="130.23,-101.5 15.77,-101.5 15.77,-76.9 130.23,-76.9 130.23,-101.5"></polygon>
+<text text-anchor="middle" x="73" y="-85" font-family="Times,serif" font-size="14.00">user code sources</text>
+</g>
+<!-- user code sources&#45;&gt;__.compile -->
+<g id="edge12" class="edge">
+<title>user code sources-&gt;__.compile</title>
+<path fill="none" stroke="black" d="M97.29,-76.86C116.73,-67.79 144.19,-54.98 165.68,-44.95"></path>
+<polygon fill="black" stroke="black" points="167.2,-48.1 174.78,-40.7 164.24,-41.76 167.2,-48.1"></polygon>
+</g>
+<!-- JVM Vendor -->
+<g id="node12" class="node">
+<title>JVM Vendor</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="166.98,-466.3 77.02,-466.3 77.02,-441.7 166.98,-441.7 166.98,-466.3"></polygon>
+<text text-anchor="middle" x="122" y="-449.8" font-family="Times,serif" font-size="14.00">JVM Vendor</text>
+</g>
+<!-- JVM Vendor&#45;&gt;daemon JVM -->
+<g id="edge15" class="edge">
+<title>JVM Vendor-&gt;daemon JVM</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M122.33,-441.49C122.77,-427.23 123.65,-402.21 125,-380.8 125.53,-372.41 126.27,-363.21 126.97,-355.15"></path>
+<polygon fill="none" stroke="black" points="130.46,-355.35 127.87,-345.08 123.49,-354.72 130.46,-355.35"></polygon>
+</g>
+<!-- JVM Vendor&#45;&gt;user code JVM -->
+<g id="edge18" class="edge">
+<title>JVM Vendor-&gt;user code JVM</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M113.24,-441.58C96.94,-418.98 64.44,-366.65 74,-320 91.69,-233.63 102.75,-210.73 152,-137.6 159.14,-127 168.84,-116.74 177.58,-108.49"></path>
+<polygon fill="none" stroke="black" points="180.19,-110.85 185.24,-101.53 175.48,-105.67 180.19,-110.85"></polygon>
+</g>
+<!-- Maven Central -->
+<g id="node13" class="node">
+<title>Maven Central</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="376.58,-466.3 277.42,-466.3 277.42,-441.7 376.58,-441.7 376.58,-466.3"></polygon>
+<text text-anchor="middle" x="327" y="-449.8" font-family="Times,serif" font-size="14.00">Maven Central</text>
+</g>
+<!-- Maven Central&#45;&gt;native image launcher binary -->
+<g id="edge13" class="edge">
+<title>Maven Central-&gt;native image launcher binary</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M306.95,-441.66C291.27,-432.8 269.25,-420.35 251.7,-410.43"></path>
+<polygon fill="none" stroke="black" points="253.42,-407.38 242.99,-405.5 249.97,-413.47 253.42,-407.38"></polygon>
+</g>
+<!-- Maven Central&#45;&gt;daemon jars -->
+<g id="edge14" class="edge">
+<title>Maven Central-&gt;daemon jars</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M329.14,-441.7C331.36,-426.54 333.04,-399.38 321,-380.8 311.79,-366.58 296.77,-356.26 281.84,-348.95"></path>
+<polygon fill="none" stroke="black" points="283.16,-345.71 272.61,-344.78 280.28,-352.09 283.16,-345.71"></polygon>
+</g>
+<!-- Maven Central&#45;&gt;build jars -->
+<g id="edge16" class="edge">
+<title>Maven Central-&gt;build jars</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M331.65,-441.65C336.89,-427.35 344.04,-402.07 339,-380.8 325.07,-321.96 316.56,-305.77 278,-259.2 268.36,-247.56 255.35,-237.06 243.73,-228.92"></path>
+<polygon fill="none" stroke="black" points="245.45,-225.86 235.2,-223.18 241.54,-231.67 245.45,-225.86"></polygon>
+</g>
+<!-- Maven Central&#45;&gt;user code dependency jars -->
+<g id="edge17" class="edge">
+<title>Maven Central-&gt;user code dependency jars</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M337.2,-441.52C343.07,-434.11 349.89,-423.96 353,-413.6 357.19,-399.64 353.1,-395.38 353,-380.8 352.31,-280.14 350.26,-159.88 349.4,-111.7"></path>
+<polygon fill="none" stroke="black" points="352.89,-111.49 349.21,-101.55 345.9,-111.62 352.89,-111.49"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>Although this may seem like a lot of steps, all of them are completely automatic, and generally
+invisible to the user:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Jars and JVMs are downloaded when needed, in parallel where possible, and cached for future use.</p>
+</li>
+<li>
+<p>Different versions of libraries and packages are assigned different caches on disk and can
+co-exist on the same machine.</p>
+</li>
+<li>
+<p>Even different versions of the JVM can be downloaded and used
+at the same time without issue, e.g. if different user modules need to compile and run with
+different library or JVM versions.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This is unlike packages installed via <code>brew</code> or <code>apt</code> or <code>yum</code>, where installation often
+has to be done manually, and typically only a single version of a package can be &quot;installed&quot;
+or &quot;active&quot; globally on a system at any one point in time. While traditional package management
+and program installation often involves manual work to set up and maintain, Mill’s handling
+of dependencies in this bootstrap process is largely hands-off and automated.</p>
+</div>
+<div class="paragraph">
+<p>Despite the complexity described above, Mill’s zero-install bootstrap process means that the user
+never needs to deal with any of it. They can immediately start using <code>./mill __.compile</code> or
+or any other command on a clean system, and the only indication noticeable
+difference would be the first command taking longer than normal and logging indicating that
+these downloads are happening. And once caches are warm, running <code>./mill</code> feels just as fast
+as running any pre-installed binary or executable.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conclusion"><a class="anchor" href="#_conclusion"></a>Conclusion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this article, we discussed how the Mill build tool implements its zero-step setup
+process. This removes the zoo of manual installs that a Java developer would traditionally
+need to setup and maintain (<code>mvn</code>, <code>jenv</code>, <code>sdkman</code>, <code>java</code>, etc.), and replaces it with a single
+<code>./mill</code> script that automatically bootstraps all necessary tools and runtimes for the user,
+letting them begin their work on a codebase without any prior setup.</p>
+</div>
+<div class="paragraph">
+<p>This is done by carefully arranging the bootstrapping
+process for the Mill project: starting from a <code>.sh</code> script (or <code>.bat</code> on windows), using it
+to bootstrap a native binary, using the native binary to bootstrap a JVM, and using the JVM
+to bootstrap the user-defined dependencies they need to build their project. Although both
+the Mill build tool itself and user projects built with Mill both may have large transitive
+dependency trees, the bootstrapping process is arranged in a way that it can all be handled
+entirely automatically.</p>
+</div>
+<div class="paragraph">
+<p>For the purposes of this article, we simplified and skimmed over a lot of things:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The intricacies of writing equivalent <code>.sh</code> and <code>.bat</code> scripts to start bootstrapping</p>
+</li>
+<li>
+<p><a href="https://github.com/oracle/graal/issues/9215">Graal native image not working on windows-aarch64</a>,
+meaning such systems still need <code>java</code> pre-installed</p>
+</li>
+<li>
+<p><a href="../mill/javalib/dependencies.html#_repository_config" class="xref page">Using a different package repository</a>
+instead of the default Maven Central</p>
+</li>
+<li>
+<p><a href="../mill/fundamentals/bundled-libraries.html#_requests_scala" class="xref page">Downloading and
+caching external non-Maven-Central resources</a> as part of your build</p>
+</li>
+<li>
+<p><a href="../mill/cli/build-header.html#_mill_jvm_version" class="xref page">Explicitly pinning the JVM version</a>
+to ensure consistency regardless of what may be installed locally</p>
+</li>
+<li>
+<p>Use of <code>./mill __.prepareOffline</code>, to force Mill to download dependencies up-front so they
+can be used later without further downloads (e.g. in an internet-restricted environment)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Although this article covers bootstrapping Java and JVM
+applications, the same principles could apply to bootstrap any non-trivial project and its
+dependencies: starting from a shell script, bootstrapping a native binary, which then
+bootstraps the messy dependencies that are required for any real-world project.
+With Mill, we take advantage of this to try and simplify Java development: codebases built
+using Mill can be built via <code>./mill</code> out of the box, providing everything you need for
+development without any prior setup. We hope that this will make it easier to people to
+contribute to such projects, whether in a proprietary setting or open-source.</p>
+</div>
+<div class="paragraph">
+<p>Zero-step installation workflows are really the only thing that scales as a project grows.
+While multiple 1-step installs can add up and become a long N-step installation process,
+multiple zero-step installs will always remain zero-step even if added together, regardless
+of how large and messy the project gets. Hopefully you’ve come away from this article
+with an appreciation for how Mill builds upon prior art to come up with its zero-step setup
+process, so next time the opportunity arises you can implement something similar in your
+own projects.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="index.html"><em>The Mill Build Engineering Blog</em></a></span>
+  <span class="next"><a href="15-android-build-flow.html">Mill as an Alternative Android Build Tool</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
+<script src="../_/js/vendor/lunr.js"></script>
+<script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>
