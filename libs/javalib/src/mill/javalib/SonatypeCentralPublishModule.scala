@@ -60,10 +60,11 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport {
       username: String = defaultCredentials,
       password: String = defaultCredentials,
       @unroll sources: Boolean = true,
-      @unroll docs: Boolean = true
+      @unroll docs: Boolean = true,
+      @unroll force: Boolean = false
   ): Task.Command[Unit] = Task.Command {
     val artifact = artifactMetadata()
-    val credentials = getSonatypeCredentials(username, password)()
+    val credentials = getSonatypeCredentials(username, password, force)()
     val publishData = publishArtifactsPayload(sources = sources, docs = docs)()
     val publishingType = getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
 
@@ -92,6 +93,17 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport {
       worker = mavenWorker()
     )
   }
+
+  // bin-compat shim
+  def publishSonatypeCentral(
+      username: String,
+      password: String
+  ): Task.Command[Unit] =
+    publishSonatypeCentral(
+      username,
+      password,
+      force = false
+    )
 }
 
 /**
@@ -122,12 +134,13 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
       connectTimeout: Int = defaultConnectTimeout,
       awaitTimeout: Int = defaultAwaitTimeout,
       bundleName: String = "",
-      @unroll snapshotUri: String = PublishModule.sonatypeCentralSnapshotUri
+      @unroll snapshotUri: String = PublishModule.sonatypeCentralSnapshotUri,
+      @unroll force: Boolean = false
   ): Command[Unit] = Task.Command {
     val artifacts = Task.sequence(publishArtifacts.value)()
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
-    val credentials = getSonatypeCredentials(username, password)()
+    val credentials = getSonatypeCredentials(username, password, force)()
     def makeGpgArgs() = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
       Task.env,
       GpgArgs.fromUserProvided(gpgArgs)
@@ -280,8 +293,17 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
 
   private def getSonatypeCredentials(
       usernameParameterValue: String,
-      passwordParameterValue: String
+      passwordParameterValue: String,
+      force: Boolean
   ): Task[SonatypeCredentials] = Task.Anon {
+    val isCI = Task.env.get("CI").nonEmpty
+    if (!force && isCI && (usernameParameterValue.nonEmpty || passwordParameterValue.nonEmpty))
+      sys.error(
+        "--username and --password options forbidden on CI. " +
+          "Their use might leak secrets. " +
+          s"Pass those values via environment variables instead ($USERNAME_ENV_VARIABLE_NAME and $PASSWORD_ENV_VARIABLE_NAME), or pass --force alongside them. " +
+          "You might want to check the output of this job for a leak of those secrets or parts of them."
+      )
     val username =
       getSonatypeCredential(usernameParameterValue, "username", USERNAME_ENV_VARIABLE_NAME)()
     val password =
