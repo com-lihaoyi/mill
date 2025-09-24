@@ -1,12 +1,9 @@
 package mill.scalalib
 
 import mill._
-import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
+import mill.scalalib.HelloWorldTests._
+import mill.testkit.TestBaseModule
 
-import java.util.jar.JarFile
-import scala.util.Using
-import HelloWorldTests._
 trait ScalaAssemblyTestUtils {
 
   val akkaHttpDeps = Agg(ivy"com.typesafe.akka::akka-http:10.0.13")

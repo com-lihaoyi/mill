@@ -6,7 +6,7 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
+import mill.api.{BuildCtx, MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
 import mill.main.client.{OutFiles, ServerFiles, Util}
@@ -44,7 +44,7 @@ object MillMain {
       if (args.headOption == Option("--bsp")) {
         // In BSP mode, we use System.in/out for protocol communication
         // and all Mill output (stdout and stderr) goes to a dedicated file
-        val stderrFile = WorkspaceRoot.workspaceRoot / ".bsp/mill-bsp.stderr"
+        val stderrFile = BuildCtx.workspaceRoot / ".bsp/mill-bsp.stderr"
         os.makeDir.all(stderrFile / os.up)
         val errFile =
           new PrintStream(Files.newOutputStream(stderrFile.toNIO, StandardOpenOption.APPEND))
@@ -167,7 +167,7 @@ object MillMain {
             val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
 
             if (!config.silent.value) {
-              checkMillVersionFromFile(WorkspaceRoot.workspaceRoot, streams.err)
+              checkMillVersionFromFile(BuildCtx.workspaceRoot, streams.err)
             }
 
             // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
@@ -215,7 +215,7 @@ object MillMain {
                     .map(_ => Seq(bspCmd))
                     .getOrElse(config.leftoverArgs.value.toList)
 
-                val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
+                val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
 
                 var repeatForBsp = true
                 var loopRes: (Boolean, RunnerState) = (false, RunnerState.empty)
@@ -267,7 +267,7 @@ object MillMain {
                             SystemStreams.withStreams(logger.systemStreams) {
                               tailManager.withOutErr(logger.outputStream, logger.errorStream) {
                                 new MillBuildBootstrap(
-                                  projectRoot = WorkspaceRoot.workspaceRoot,
+                                  projectRoot = BuildCtx.workspaceRoot,
                                   output = out,
                                   home = config.home,
                                   keepGoing = config.keepGoing.value,

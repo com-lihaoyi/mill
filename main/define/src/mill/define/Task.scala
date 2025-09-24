@@ -815,6 +815,7 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx]
    * project directory in classic cli scenarios, but might not in other
    * use cases like BSP or LSP server usage).
    */
+  @deprecated("Use mill.api.BuildCtx.workspaceRoot instead", "Mill 0.12.17")
   def workspace(implicit ctx: mill.api.Ctx): os.Path = ctx.workspace
 
   /**

@@ -4,7 +4,7 @@ import java.util.jar.JarFile
 import mill._
 import mill.define.Discover
 import mill.eval.EvaluatorPaths
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
 import mill.testrunner.TestResult
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}

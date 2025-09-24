@@ -1,12 +1,11 @@
 package mill.scalalib
 
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
-import mill._
-import scalalib._
+import mill.*
 import define.{ExternalModule, Task}
 import mill.main.Tasks
 import mill.define.TaskModule
-import mill.api.{Logger, Result, WorkspaceRoot, experimental}
+import mill.api.{BuildCtx, Logger, Result, experimental}
 import mill.scalalib.PublishModule.PublishData
 import mill.scalalib.SonatypeCentralPublishModule.{
   defaultAwaitTimeout,
@@ -178,7 +177,7 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule with 
         connectTimeout = connectTimeout,
         readTimeout = readTimeout,
         log = log,
-        workspace = WorkspaceRoot.workspaceRoot,
+        workspace = BuildCtx.workspaceRoot,
         env = env,
         awaitTimeout = awaitTimeout
       )

@@ -8,6 +8,6 @@ import mill.api.WorkspaceRoot
  */
 object Bloop extends BloopImpl(
       () => Evaluator.allBootstrapEvaluators.value.value,
-      WorkspaceRoot.workspaceRoot,
+      BuildCtx.workspaceRoot,
       addMillSources = None
     )

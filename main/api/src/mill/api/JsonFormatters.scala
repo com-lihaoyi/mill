@@ -10,7 +10,7 @@ object JsonFormatters extends JsonFormatters {
   private object PathTokensReader0 extends mainargs.TokensReader.Simple[os.Path] {
     def shortName = "path"
     def read(strs: Seq[String]): Either[String, Path] =
-      Right(os.Path(strs.last, WorkspaceRoot.workspaceRoot))
+      Right(os.Path(strs.last, BuildCtx.workspaceRoot))
   }
 }
 

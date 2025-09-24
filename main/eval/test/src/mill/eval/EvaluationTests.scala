@@ -5,9 +5,7 @@ import mill.define.{TargetImpl, Task}
 import mill.util.{TestGraphs, TestUtil}
 import mill.testkit.{UnitTester, TestBaseModule}
 import mill.api.Strict.Agg
-import os.SubPath
 import utest._
-import utest.framework.TestPath
 
 object EvaluationTestsThreads1 extends EvaluationTests(threadCount = Some(1))
 object EvaluationTestsThreads4 extends EvaluationTests(threadCount = Some(3))

@@ -1,6 +1,6 @@
 package mill.define
 
-import mill.api.{PathRef, WorkspaceRoot}
+import mill.api.{BuildCtx, PathRef, WorkspaceRoot}
 import mill.util.Watchable
 
 import scala.collection.mutable
@@ -79,7 +79,7 @@ trait BaseModule0 extends Module {
 abstract class ExternalModule(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line
-) extends BaseModule(WorkspaceRoot.workspaceRoot, external0 = true, foreign0 = None)(
+) extends BaseModule(BuildCtx.workspaceRoot, external0 = true, foreign0 = None)(
       implicitly,
       implicitly,
       implicitly,

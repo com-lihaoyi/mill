@@ -65,6 +65,7 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
   }
 
   // bin-compat shim
+  @deprecated("Use the other overload instead", "Mill 0.12.17")
   def publishLocal(
       jar: os.Path,
       sourcesJar: os.Path,
