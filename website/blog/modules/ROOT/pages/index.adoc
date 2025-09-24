@@ -6,7 +6,7 @@ technical topics related to JVM platform tooling and language-agnostic build too
 some specific to the Mill build tool but mostly applicable to anyone working on
 build tooling for large codebases in JVM and non-JVM languages.
 
-:blog-post: 16-zero-install.adoc
+:blog-post: 16-zero-setup.adoc
 include::partial$blog-post-header-section.adoc[]
 
 :blog-post: 15-android-build-flow.adoc
