@@ -80,8 +80,8 @@ this gives a lot of room for things to go wrong. For example
    may have many packages and tools requiring 1-step installs, resulting in an installation
    process with dozens of steps that can be tedious if run manually and fragile if scripted
 
-While 1-step installation is better than multi-step installation, some may still
-ask: could we do better?
+Multi-step setup workflows are the norm, an 1-step setup workflows are something people often
+strive towards. But it's worth asking: could we do better?
 
 == Maven & Gradle Bootstrap Scripts
 
