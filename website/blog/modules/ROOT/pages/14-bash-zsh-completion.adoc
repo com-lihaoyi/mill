@@ -230,7 +230,7 @@ $ foo app<TAB>
 $ foo apple
 ----
 
-However in this scenario the descriptions are entirely ignored by Bash. Because Bash
+However, in this scenario the descriptions are entirely ignored by Bash. Because Bash
 does not have a concept of tab-complete descriptions, in Bash we only pass the `trimmed`
 word-completions to `COMPREPLY` and discard the `raw` lines containing the descriptions.
 
@@ -238,7 +238,7 @@ word-completions to `COMPREPLY` and discard the `raw` lines containing the descr
 
 To make Bash show completion "descriptions", we can take advantage of the fact
 that the completions are generated dynamically every time we call
-`_generate_foo_completions`, and Bash and Zsh only inserts text
+`+_generate_foo_completions+`, and Bash and Zsh only inserts text
 that is a common prefix to all completion options
 
 [,console]
@@ -257,7 +257,7 @@ The code below implements this: if there is only one completion we trim off the 
 following the `:` off as normal, but if there's more than one completion we leave the
 description intact for the user to see
 
-[source,bash]
+[,bash]
 ----
 _complete_foo_bash() {
   local IFS=$'\n'
@@ -335,7 +335,7 @@ is a complete word, and if so adding a second "dummy" completion: this makes
 the tab-completion ambiguous, which cases Bash and Zsh to print out the completions
 and descriptions for the user to see.
 
-Doing this in `_complete_foo_bash` looks like the following:
+Doing this in `+_complete_foo_bash+` looks like the following:
 
 [,bash]
 ----

@@ -1,5 +1,4 @@
 = Mill as a Direct Style Build Tool
-
 // tag::header[]
 :author: Li Haoyi
 :revdate: 10 May 2025
