@@ -1,4 +1,4 @@
-= Zero-Step Java Project Setup via Mill Bootstrap Scripts
+= Zero-Step All-in-One Java Project Setup via Mill Bootstrap Scripts
 
 // tag::header[]
 :author: Li Haoyi
@@ -293,16 +293,20 @@ and program installation often involves manual work to set up and maintain, Mill
 of dependencies in this bootstrap process is largely hands-off and automated.
 
 Despite the complexity described above, Mill's zero-install bootstrap process means that the user
-never needs to deal with any of it. The common Java setup workflow of manually installing
-`mvn`/`sdkman`/`jenv`/`java`/etc. is replaced by a zero-install `./mill` script you can just run
-`./mill __.compile` and begin work. And once caches are warm, running `./mill` feels just as
+never needs to deal with any of it. And once caches are warm, running `./mill` feels just as
 fast as running any pre-installed binary or executable.
 
 
 == Conclusion
 
 In this article, we discussed how the Mill build tool implements its zero-step setup
-process. This is done by carefully arranging the bootstrapping
+process. The common Java setup workflow of manually installing `mvn`/`sdkman`/`jenv`/`java`/etc.
+is replaced by a zero-install `./mill` script you can just run `./mill __.compile` and begin work.
+This removes the zoo of manual installs that a Java developer would traditionally need to setup
+and maintain, and replaces it with a single `./mill` script that automatically handles
+bootstrapping all necessary tools and runtimes for the user.
+
+This is done by carefully arranging the bootstrapping
 process for the Mill project: starting from a `.sh` script (or `.bat` on windows), using it
 to bootstrap a native binary, using the native binary to bootstrap a JVM, and using the JVM
 to bootstrap the user-defined dependencies they need to build their project. Although both
