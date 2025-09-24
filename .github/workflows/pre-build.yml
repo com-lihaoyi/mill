@@ -20,6 +20,14 @@ on:
         required: true
         type: string
 
+      coursierarchive:
+        default: "/tmp"
+        required: false
+        type: string
+
+env:
+  COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
+
 jobs:
   run:
     runs-on: ${{ inputs.os }}

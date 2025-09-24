@@ -10,6 +10,10 @@ on:
         required: true
         type: string
 
+      coursierarchive:
+        default: "/tmp"
+        required: false
+        type: string
       java-version:
         required: true
         type: string
@@ -28,6 +32,9 @@ on:
       install-xvfb:
         default: false
         type: boolean
+
+env:
+  COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
 
 jobs:
   run:

@@ -71,6 +71,7 @@ jobs:
     with:
       os: windows-latest
       shell: powershell
+      coursierarchive: "C:/coursier-arc"
 
   test-docs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
@@ -224,10 +225,9 @@ jobs:
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
       shell: powershell
-    env:
       # Provide a shorter coursier archive folder to avoid hitting path-length bugs when
       # running the graal native image binary on windows
-      COURSIER_ARCHIVE_CACHE: "C:/coursier-arc"
+      coursierarchive: "C:/coursier-arc"
 
   itest:
     needs: build-linux
