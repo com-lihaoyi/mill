@@ -119,8 +119,6 @@ jobs:
         with:
           millargs: ${{ matrix.millargs }}
           shell: bash
-        env:
-          COURSIER_ARCHIVE_CACHE: "/tmp"
 
   linux:
     needs: build-linux
