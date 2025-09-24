@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
-import mill.*
+import mill._
 import define.{ExternalModule, Task}
 import mill.main.Tasks
 import mill.define.TaskModule
