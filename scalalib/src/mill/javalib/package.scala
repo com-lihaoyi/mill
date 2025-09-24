@@ -1,13 +1,19 @@
 package mill
 
+import scala.annotation.nowarn
+
 package object javalib extends mill.scalalib.JsonFormatters {
   implicit class DepSyntax(ctx: StringContext) {
+    @deprecated("Use mvn \"<dep>\" instead.", "Mill 0.12.17")
     def ivy(args: Any*): Dep = Dep.parse {
       (
         ctx.parts.take(args.length).zip(args).flatMap { case (p, a) => Seq(p, a) } ++
           ctx.parts.drop(args.length)
       ).mkString
     }
+
+    // Forward-compatibility with Mill 1.0
+    def mvn(args: Any*): Dep = ivy(args: _*): @nowarn("cat=deprecation")
   }
 
   val Assembly = mill.scalalib.Assembly
