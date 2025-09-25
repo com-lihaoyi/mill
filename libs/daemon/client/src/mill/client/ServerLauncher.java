@@ -37,32 +37,21 @@ import mill.constants.ProxyStream;
 ///   - Wait for `ProxyStream.END` packet or `clientSocket.close()`,
 ///     indicating server has finished execution and all data has been received
 public abstract class ServerLauncher {
-  public static class RunWithConnectionResult<A> {
-    public final A result;
-
-    public final int exitCode;
-
-    public RunWithConnectionResult(A result, int exitCode) {
-      this.result = result;
-      this.exitCode = exitCode;
-    }
-  }
 
   /// Run a client logic with a connection established to a Mill server (via [#connectToServer]).
   ///
   /// @param connection     the socket connected to the server
   /// @param streams        streams to use for the client logic
-  /// @param closeConnectionAfterClientLogic whether to close the connection after running the
-  // client logic
+  /// @param closeConnectionAfterClientLogic whether to close the connection after running the client logic
   /// @param runClientLogic the client logic to run
   /// @return the exit code that the server sent back
-  public static <A> RunWithConnectionResult<A> runWithConnection(
-      String debugName,
+  public static int runWithConnection(
       Socket connection,
       Streams streams,
       boolean closeConnectionAfterClientLogic,
       Consumer<OutputStream> sendInitData,
-      RunClientLogic<A> runClientLogic)
+      Runnable runClientLogic,
+      String debugName)
       throws Exception {
     // According to
     // https://pzemtsov.github.io/2015/01/19/on-the-benefits-of-stream-buffering-in-Java.html it
@@ -76,21 +65,19 @@ public abstract class ServerLauncher {
     socketOutputStream.flush();
     var pumperThread =
         startStreamPumpers(socketInputStream, socketOutputStream, streams, debugName);
-    var result = runClientLogic.run();
+    runClientLogic.run();
     if (closeConnectionAfterClientLogic) socketInputStream.close();
     pumperThread.join();
-    return new RunWithConnectionResult<>(result, pumperThread.exitCode());
+    return pumperThread.exitCode();
   }
 
   /// Run a client logic with a connection established to a Mill server (via [#connectToServer]).
   ///
   /// @param connection     the socket connected to the server
-  /// @param closeConnectionAfterClientLogic whether to close the connection after running the
-  // client logic
+  /// @param closeConnectionAfterClientLogic whether to close the connection after running the client logic
   /// @param runClientLogic the client logic to run
   /// @return the exit code that the server sent back
   public static <A> A runWithConnection(
-      String debugName,
       Socket connection,
       boolean closeConnectionAfterClientLogic,
       Consumer<OutputStream> sendInitData,
@@ -353,24 +340,9 @@ public abstract class ServerLauncher {
     LaunchedServer init() throws Exception;
   }
 
-  public interface RunClientLogic<A> {
-    /// Runs the client logic.
-    A run() throws Exception;
-  }
-
   public interface RunClientLogicWithStreams<A> {
     /// Runs the client logic.
     A run(BufferedInputStream inStream, BufferedOutputStream outStream) throws Exception;
-  }
-
-  public static class Result {
-    public final int exitCode;
-    public final Path daemonDir;
-
-    public Result(int exitCode, Path daemonDir) {
-      this.exitCode = exitCode;
-      this.daemonDir = daemonDir;
-    }
   }
 
   public static class Streams {

@@ -117,9 +117,9 @@ public class MillLauncherMain {
         String javaHome = MillProcessLauncher.javaHome(outMode);
 
         MillProcessLauncher.prepareMillRunFolder(daemonDir);
-        var exitCode = launcher.run(daemonDir, javaHome, log).exitCode;
+        var exitCode = launcher.run(daemonDir, javaHome, log);
         if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
-          exitCode = launcher.run(daemonDir, javaHome, log).exitCode;
+          exitCode = launcher.run(daemonDir, javaHome, log);
         }
         System.exit(exitCode);
       } catch (Exception e) {
