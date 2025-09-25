@@ -92,14 +92,14 @@ public abstract class MillServerLauncher extends ServerLauncher {
             log.accept("running client logic");
             forceTestFailure(daemonDir, log);
           },
-        "MillServerLauncher[" + launched.socket.getLocalSocketAddress() + " -> "
-          + launched.socket.getRemoteSocketAddress() + "]");
+          "MillServerLauncher[" + launched.socket.getLocalSocketAddress() + " -> "
+              + launched.socket.getRemoteSocketAddress() + "]");
       log.accept("runWithConnection exit code: " + result);
       return result;
     }
   }
 
-  private void forceTestFailure(Path daemonDir, Consumer<String> log)  {
+  private void forceTestFailure(Path daemonDir, Consumer<String> log) {
     if (forceFailureForTestingMillisDelay > 0) {
       log.accept(
           "Force failure for testing in " + forceFailureForTestingMillisDelay + "ms: " + daemonDir);

@@ -42,7 +42,8 @@ public abstract class ServerLauncher {
   ///
   /// @param connection     the socket connected to the server
   /// @param streams        streams to use for the client logic
-  /// @param closeConnectionAfterClientLogic whether to close the connection after running the client logic
+  /// @param closeConnectionAfterClientLogic whether to close the connection after running the
+  // client logic
   /// @param runClientLogic the client logic to run
   /// @return the exit code that the server sent back
   public static int runWithConnection(
@@ -74,7 +75,8 @@ public abstract class ServerLauncher {
   /// Run a client logic with a connection established to a Mill server (via [#connectToServer]).
   ///
   /// @param connection     the socket connected to the server
-  /// @param closeConnectionAfterClientLogic whether to close the connection after running the client logic
+  /// @param closeConnectionAfterClientLogic whether to close the connection after running the
+  // client logic
   /// @param runClientLogic the client logic to run
   /// @return the exit code that the server sent back
   public static <A> A runWithConnection(
@@ -253,7 +255,6 @@ public abstract class ServerLauncher {
                       public boolean isAlive() {
                         throw new RuntimeException("not implemented, this should never happen");
                       }
-
                     };
             return Optional.of(new ServerLaunchResult.AlreadyRunning(launchedServer));
           } catch (IOException | NumberFormatException e) {

@@ -20,7 +20,6 @@ public abstract class LaunchedServer {
     public boolean isAlive() {
       return process.isAlive();
     }
-
   }
 
   /// Code running in the same process.
@@ -42,6 +41,5 @@ public abstract class LaunchedServer {
     public boolean isAlive() {
       return thread.isAlive();
     }
-
   }
 }
