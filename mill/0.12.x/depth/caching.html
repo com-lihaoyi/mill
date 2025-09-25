@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Caching in Mill :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/depth/caching.html" />
-    <link rel="prev" href="execution-model.html" />
-    <link rel="next" href="parallelism.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/depth/caching.html">
+    <link rel="prev" href="execution-model.html">
+    <link rel="next" href="parallelism.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -623,7 +622,7 @@
           <a href="../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.16</a>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -675,7 +674,7 @@ the overall workflow remains fast even for large projects.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This section will discuss the caching that Mill performs in each phase of
-<a href="execution-model.html" class="xref page">Mill’s Evaluation Model</a>:</p>
+<a href="execution-model.html" class="xref page">Mill&#8217;s Evaluation Model</a>:</p>
 </div>
 <div class="sect2">
 <h3 id="_compilation"><a class="anchor" href="#_compilation"></a>Compilation</h3>
@@ -734,7 +733,7 @@ input <code>Task</code>s have their value change.</p>
 </li>
 <li>
 <p><a href="../fundamentals/tasks.html#_persistent_tasks" class="xref page">Persistent Tasks</a>s preserve the <code>Task.dest</code>
-folder on disk between runs, allowing for finer-grained caching than Mill’s default task-by-task
+folder on disk between runs, allowing for finer-grained caching than Mill&#8217;s default task-by-task
 caching and invalidation</p>
 </li>
 <li>
@@ -754,9 +753,9 @@ at a method-level granularity via callgraph reachability analysis. See
 <div class="ulist">
 <ul>
 <li>
-<p>Mill’s bootstrapping process essentially involves running the four phases above, but
+<p>Mill&#8217;s bootstrapping process essentially involves running the four phases above, but
 for the meta-build rather than the primary build. All the caching techniques described
-above apply the same for Mill’s bootstrap builds as they do for the primary build.</p>
+above apply the same for Mill&#8217;s bootstrap builds as they do for the primary build.</p>
 </li>
 </ul>
 </div>
@@ -767,19 +766,19 @@ above apply the same for Mill’s bootstrap builds as they do for the primary bu
 <h2 id="_debugging_mill_caching_issues"><a class="anchor" href="#_debugging_mill_caching_issues"></a>Debugging Mill Caching Issues</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To dig into how Mill’s execution caching, you can look at the following files:</p>
+<p>To dig into how Mill&#8217;s execution caching, you can look at the following files:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
 <p><a href="../fundamentals/out-dir.html#_mill_profile_json" class="xref page">mill-profile.json</a>: this file
-is generated during every Mill evaluation, and contains a <code>&quot;cached&quot;: boolean</code> flag
+is generated during every Mill evaluation, and contains a <code>"cached": boolean</code> flag
 for each task indicating whether or not that task was cached.</p>
 </li>
 <li>
 <p><a href="../fundamentals/out-dir.html#_mill_invalidation_tree_json" class="xref page">mill-invalidation-tree.json</a>:
 this file groups together the un-cached files in a tree structure according to their
-task dependencies. It is useful to find the &quot;root&quot; uncached tasks, which are the cause
+task dependencies. It is useful to find the "root" uncached tasks, which are the cause
 of downstream tasks having their caches invalidated.</p>
 </li>
 <li>
@@ -788,7 +787,7 @@ this file contains information about tasks whose caches were invalidated due to
 <em>code changes in the <code>build.mill</code> or <code>package.mill</code> files</em>, and again shows a tree
 of invalidated method signatures organized into a tree using their call graph dependenceis.
 This is most useful to figure out why a code change in your <code>.mill</code> files ended up
-changing some task’s code signature, causing it to miss the cache and be re-computed</p>
+changing some task&#8217;s code signature, causing it to miss the cache and be re-computed</p>
 </li>
 </ul>
 </div>
@@ -828,7 +827,7 @@ and limits filesystem operations to the <code>Task.dest</code> folder, this is n
 </div>
 <div class="paragraph">
 <p>One thing to note is for code that runs during <strong>Resolution</strong>: any reading of
-external mutable state needs to be wrapped in an <code>interp.watchValue{...​}</code>
+external mutable state needs to be wrapped in an <code>interp.watchValue{&#8230;&#8203;}</code>
 wrapper. This ensures that Mill knows where these external reads are, so that
 it can check if their value changed and if so re-instantiate <code>RootModule</code> with
 the new value.</p>
@@ -844,9 +843,9 @@ the new value.</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

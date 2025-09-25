@@ -1,16 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/tasks/1-task-graph.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/tasks/1-task-graph.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -41,10 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -63,9 +62,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -362,7 +361,7 @@
           <a href="../../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../../../0.12.x/index.html">0.12.16</a>
@@ -391,7 +390,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -406,25 +405,25 @@
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-def mainClass: T[Option[String]] = Some(&quot;foo.Foo&quot;)
+def mainClass: T[Option[String]] = Some("foo.Foo")
 
-def sources = T.source(millSourcePath / &quot;src&quot;)
-def resources = T.source(millSourcePath / &quot;resources&quot;)
+def sources = T.source(millSourcePath / "src")
+def resources = T.source(millSourcePath / "resources")
 
 def compile = T {
   val allSources = os.walk(sources().path)
-  os.proc(&quot;javac&quot;, allSources, &quot;-d&quot;, T.dest).call()
+  os.proc("javac", allSources, "-d", T.dest).call()
   PathRef(T.dest)
 }
 
 def assembly = T {
   for(p &lt;- Seq(compile(), resources())) os.copy(p.path, T.dest, mergeFolders = true)
 
-  val mainFlags = mainClass().toSeq.flatMap(Seq(&quot;-e&quot;, _))
-  os.proc(&quot;jar&quot;, &quot;-c&quot;, mainFlags, &quot;-f&quot;, T.dest / s&quot;assembly.jar&quot;, &quot;.&quot;)
+  val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
+  os.proc("jar", "-c", mainFlags, "-f", T.dest / s"assembly.jar", ".")
     .call(cwd = T.dest)
 
-  PathRef(T.dest / s&quot;assembly.jar&quot;)
+  PathRef(T.dest / s"assembly.jar")
 }</code></pre>
 </div>
 </div>
@@ -434,63 +433,64 @@ and the arrows representing the <em>data-flow</em> between them:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="280px" height="119px"
+ viewBox="0.00 0.00 280.41 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 276.41,-114.8 276.41,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 276.41,-114.8 276.41,4 -4,4"/>
 <!-- sources -->
 <g id="node1" class="node">
 <title>sources</title>
-<polygon fill="white" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"></polygon>
+<polygon fill="white" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"/>
 <text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
 </g>
 <!-- compile -->
 <g id="node2" class="node">
 <title>compile</title>
-<polygon fill="white" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"></polygon>
+<polygon fill="white" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"/>
 <text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
 <!-- sources&#45;&gt;compile -->
 <g id="edge1" class="edge">
-<title>sources-&gt;compile</title>
-<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"></path>
-<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"></polygon>
+<title>sources&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"/>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"/>
 </g>
 <!-- assembly -->
 <g id="node3" class="node">
 <title>assembly</title>
-<polygon fill="white" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"></polygon>
+<polygon fill="white" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"/>
 <text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
 </g>
 <!-- compile&#45;&gt;assembly -->
 <g id="edge2" class="edge">
-<title>compile-&gt;assembly</title>
-<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"></path>
-<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"></polygon>
+<title>compile&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"/>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"/>
 </g>
 <!-- resources -->
 <g id="node4" class="node">
 <title>resources</title>
-<polygon fill="white" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"></polygon>
+<polygon fill="white" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"/>
 <text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- resources&#45;&gt;assembly -->
 <g id="edge3" class="edge">
-<title>resources-&gt;assembly</title>
-<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"></path>
-<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"></polygon>
+<title>resources&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"/>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"/>
 </g>
 <!-- mainClass -->
 <g id="node5" class="node">
 <title>mainClass</title>
-<polygon fill="white" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"></polygon>
+<polygon fill="white" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"/>
 <text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
 </g>
 <!-- mainClass&#45;&gt;assembly -->
 <g id="edge4" class="edge">
-<title>mainClass-&gt;assembly</title>
-<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"></path>
-<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"></polygon>
+<title>mainClass&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"/>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"/>
 </g>
 </g>
 </svg>
@@ -498,15 +498,15 @@ and the arrows representing the <em>data-flow</em> between them:</p>
 </center>
 </div>
 <div class="paragraph">
-<p>This example does not use any of Mill’s builtin support for building Java or
-Scala projects, and instead builds a pipeline &quot;from scratch&quot; using Mill
+<p>This example does not use any of Mill&#8217;s builtin support for building Java or
+Scala projects, and instead builds a pipeline "from scratch" using Mill
 tasks and <code>javac</code>/<code>jar</code>/<code>java</code> subprocesses. We define <code>T.source</code> folders,
-plain <code>T{...​}</code> targets that depend on them, and a <code>T.command</code>.</p>
+plain <code>T{&#8230;&#8203;}</code> targets that depend on them, and a <code>T.command</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show assembly
-&quot;.../out/assembly.dest/assembly.jar&quot;
+".../out/assembly.dest/assembly.jar"
 
 &gt; java -jar out/assembly.dest/assembly.jar i am cow
 Foo.value: 31337
@@ -535,63 +535,64 @@ necessary, depending on what input sources changed:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="280px" height="119px"
+ viewBox="0.00 0.00 280.41 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 276.41,-114.8 276.41,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 276.41,-114.8 276.41,4 -4,4"/>
 <!-- sources -->
 <g id="node1" class="node">
 <title>sources</title>
-<polygon fill="lightpink" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"></polygon>
+<polygon fill="lightpink" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"/>
 <text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
 </g>
 <!-- compile -->
 <g id="node2" class="node">
 <title>compile</title>
-<polygon fill="lightpink" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"></polygon>
+<polygon fill="lightpink" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"/>
 <text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
 <!-- sources&#45;&gt;compile -->
 <g id="edge1" class="edge">
-<title>sources-&gt;compile</title>
-<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"></path>
-<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"></polygon>
+<title>sources&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"/>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"/>
 </g>
 <!-- assembly -->
 <g id="node3" class="node">
 <title>assembly</title>
-<polygon fill="lightpink" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"></polygon>
+<polygon fill="lightpink" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"/>
 <text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
 </g>
 <!-- compile&#45;&gt;assembly -->
 <g id="edge2" class="edge">
-<title>compile-&gt;assembly</title>
-<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"></path>
-<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"></polygon>
+<title>compile&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"/>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"/>
 </g>
 <!-- resources -->
 <g id="node4" class="node">
 <title>resources</title>
-<polygon fill="lightgreen" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"></polygon>
+<polygon fill="lightgreen" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"/>
 <text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- resources&#45;&gt;assembly -->
 <g id="edge3" class="edge">
-<title>resources-&gt;assembly</title>
-<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"></path>
-<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"></polygon>
+<title>resources&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"/>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"/>
 </g>
 <!-- mainClass -->
 <g id="node5" class="node">
 <title>mainClass</title>
-<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"></polygon>
+<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"/>
 <text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
 </g>
 <!-- mainClass&#45;&gt;assembly -->
 <g id="edge4" class="edge">
-<title>mainClass-&gt;assembly</title>
-<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"></path>
-<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"></polygon>
+<title>mainClass&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"/>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"/>
 </g>
 </g>
 </svg>
@@ -608,63 +609,64 @@ and use the cached output of <code>compile</code> (green)</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="280px" height="119px"
+ viewBox="0.00 0.00 280.41 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 276.41,-114.8 276.41,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 276.41,-114.8 276.41,4 -4,4"/>
 <!-- sources -->
 <g id="node1" class="node">
 <title>sources</title>
-<polygon fill="lightgreen" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"></polygon>
+<polygon fill="lightgreen" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"/>
 <text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
 </g>
 <!-- compile -->
 <g id="node2" class="node">
 <title>compile</title>
-<polygon fill="lightgreen" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"></polygon>
+<polygon fill="lightgreen" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"/>
 <text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
 <!-- sources&#45;&gt;compile -->
 <g id="edge1" class="edge">
-<title>sources-&gt;compile</title>
-<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"></path>
-<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"></polygon>
+<title>sources&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"/>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"/>
 </g>
 <!-- assembly -->
 <g id="node3" class="node">
 <title>assembly</title>
-<polygon fill="lightpink" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"></polygon>
+<polygon fill="lightpink" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"/>
 <text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
 </g>
 <!-- compile&#45;&gt;assembly -->
 <g id="edge2" class="edge">
-<title>compile-&gt;assembly</title>
-<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"></path>
-<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"></polygon>
+<title>compile&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"/>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"/>
 </g>
 <!-- resources -->
 <g id="node4" class="node">
 <title>resources</title>
-<polygon fill="lightpink" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"></polygon>
+<polygon fill="lightpink" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"/>
 <text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- resources&#45;&gt;assembly -->
 <g id="edge3" class="edge">
-<title>resources-&gt;assembly</title>
-<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"></path>
-<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"></polygon>
+<title>resources&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"/>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"/>
 </g>
 <!-- mainClass -->
 <g id="node5" class="node">
 <title>mainClass</title>
-<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"></polygon>
+<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"/>
 <text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
 </g>
 <!-- mainClass&#45;&gt;assembly -->
 <g id="edge4" class="edge">
-<title>mainClass-&gt;assembly</title>
-<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"></path>
-<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"></polygon>
+<title>mainClass&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"/>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"/>
 </g>
 </g>
 </svg>
@@ -676,9 +678,9 @@ and use the cached output of <code>compile</code> (green)</p>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async="async" src="../../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../../search-index.js"></script>
+  </body>
+</html>

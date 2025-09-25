@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Version file :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/contrib/versionfile.html" />
-    <link rel="prev" href="twirllib.html" />
-    <link rel="next" href="../extending/thirdparty-plugins.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/contrib/versionfile.html">
+    <link rel="prev" href="twirllib.html">
+    <link rel="next" href="../extending/thirdparty-plugins.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -631,7 +630,7 @@
           <a href="../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.16</a>
@@ -660,7 +659,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -687,7 +686,7 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-versiofile:$MILL_VERSION&quot;]
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.lihaoyi::mill-contrib-versiofile:$MILL_VERSION"]
 package build
 
 import mill.contrib.versionfile.VersionFileModule
@@ -696,7 +695,7 @@ object versionFile extends VersionFileModule</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The module will read and write to the file <code>version</code> located at the module’s <code>millSourcePath</code>.
+<p>The module will read and write to the file <code>version</code> located at the module&#8217;s <code>millSourcePath</code>.
 In the example above, that would be <code>/versionFile/version</code> relative to the <code>build.mill</code> file.</p>
 </div>
 <div class="paragraph">
@@ -731,7 +730,7 @@ $ mill versionFile.setNextVersion --bump minor # Will now set the version to 0.2
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION&quot;]
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION"]
 
 import mill.contrib.versionfile.VersionFileModule
 
@@ -757,7 +756,7 @@ at the root of the project, you can override <code>millSourcePath</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION&quot;]
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION"]
 
 import mill.contrib.versionfile.VersionFileModule
 
@@ -804,7 +803,7 @@ then overwrites the previous content in the version file with this new version.<
 <div class="sect2">
 <h3 id="_parameters"><a class="anchor" href="#_parameters"></a>Parameters</h3>
 <div class="sect3">
-<h4 id="_bump_major_minor_patch"><a class="anchor" href="#_bump_major_minor_patch"></a>&ndash;bump (major | minor | patch)</h4>
+<h4 id="_bump_major_minor_patch"><a class="anchor" href="#_bump_major_minor_patch"></a>–bump (major | minor | patch)</h4>
 <div class="paragraph">
 <p>Sets what segment of the version to bump.</p>
 </div>
@@ -847,7 +846,7 @@ then overwrites the previous content in the version file with this new version.<
 <div class="sect2">
 <h3 id="_parameters_2"><a class="anchor" href="#_parameters_2"></a>Parameters</h3>
 <div class="sect3">
-<h4 id="_version_x_y_z_snapshot"><a class="anchor" href="#_version_x_y_z_snapshot"></a>&ndash;version x.y.z[-SNAPSHOT]</h4>
+<h4 id="_version_x_y_z_snapshot"><a class="anchor" href="#_version_x_y_z_snapshot"></a>–version x.y.z[-SNAPSHOT]</h4>
 <div class="paragraph">
 <p>The version to write to the version file.</p>
 </div>
@@ -928,7 +927,7 @@ $ mill mill.contrib.versionfile/exec --procs versionFile.push</code></pre>
 <div class="sect2">
 <h3 id="_custom_operations"><a class="anchor" href="#_custom_operations"></a>Custom operations</h3>
 <div class="paragraph">
-<p>It’s possible to override the tasks above, or add your own tasks, to adapt the module
+<p>It&#8217;s possible to override the tasks above, or add your own tasks, to adapt the module
 to work with other version control systems than git.</p>
 </div>
 </div>
@@ -943,9 +942,9 @@ to work with other version control systems than git.</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>

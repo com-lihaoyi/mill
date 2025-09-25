@@ -1,16 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/tasks/4-inputs.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/tasks/4-inputs.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -41,10 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -63,9 +62,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -362,7 +361,7 @@
           <a href="../../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../../../0.12.x/index.html">0.12.16</a>
@@ -391,7 +390,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -404,7 +403,7 @@
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
 def myInput = T.input {
-  os.proc(&quot;git&quot;, &quot;rev-parse&quot;, &quot;HEAD&quot;).call(cwd = T.workspace)
+  os.proc("git", "rev-parse", "HEAD").call(cwd = T.workspace)
     .out
     .text()
     .trim()
@@ -426,8 +425,8 @@ even if the external <code>git</code> status changes:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusTask = T {
-  &quot;version-&quot; +
-    os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
+  "version-" +
+    os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
       .call(cwd = T.workspace)
       .out
       .text()
@@ -438,15 +437,15 @@ even if the external <code>git</code> status changes:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git init .
-&gt; git commit --no-gpg-sign --allow-empty -m &quot;Initial-Commit&quot;
+&gt; git commit --no-gpg-sign --allow-empty -m "Initial-Commit"
 
 &gt; ./mill show gitStatusTask
-&quot;version-...-Initial-Commit&quot;
+"version-...-Initial-Commit"
 
-&gt; git commit --no-gpg-sign --allow-empty -m &quot;Second-Commit&quot;
+&gt; git commit --no-gpg-sign --allow-empty -m "Second-Commit"
 
 &gt; ./mill show gitStatusTask # Mill didn't pick up the git change!
-&quot;version-...-Initial-Commit&quot;</code></pre>
+"version-...-Initial-Commit"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -461,13 +460,13 @@ not know to re-evaluate when your <code>git log</code> <em>does</em> change. Thi
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusInput = T.input {
-  os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
+  os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
     .call(cwd = T.workspace)
     .out
     .text()
     .trim()
 }
-def gitStatusTask2 = T { &quot;version-&quot; + gitStatusInput() }</code></pre>
+def gitStatusTask2 = T { "version-" + gitStatusInput() }</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -476,21 +475,21 @@ the output of <code>gitStatusInput</code> changes will <code>gitStatusTask2</cod
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git commit --no-gpg-sign --allow-empty -m &quot;Initial-Commit&quot;
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git commit --no-gpg-sign --allow-empty -m "Initial-Commit"
 
 &gt; ./mill show gitStatusTask2
-&quot;version-...-Initial-Commit&quot;
+"version-...-Initial-Commit"
 
-&gt; git commit --no-gpg-sign --allow-empty -m &quot;Second-Commit&quot;
+&gt; git commit --no-gpg-sign --allow-empty -m "Second-Commit"
 
 &gt; ./mill show gitStatusTask2 # Mill picked up git change
-&quot;version-...-Second-Commit&quot;</code></pre>
+"version-...-Second-Commit"</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Note that because <code>T.input</code>s re-evaluate every time, you should ensure that the
 code you put in <code>T.input</code> runs quickly. Ideally it should just be a simple check
-&quot;did anything change?&quot; and any heavy-lifting should be delegated to downstream
+"did anything change?" and any heavy-lifting should be delegated to downstream
 tasks where it can be cached if possible.</p>
 </div>
 <div class="sect2">
@@ -507,23 +506,23 @@ should be done downstream in a <a href="#_cached_tasks">cached task</a>:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myPropertyInput = T.input {
-  sys.props(&quot;my-property&quot;)
+  sys.props("my-property")
 }
 def myPropertyTask = T {
-  &quot;Hello Prop &quot; + myPropertyInput()
+  "Hello Prop " + myPropertyInput()
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show myPropertyTask
-&quot;Hello Prop null&quot;
+"Hello Prop null"
 
 &gt; ./mill -Dmy-property=world show myPropertyTask # Task is correctly invalidated when prop is added
-&quot;Hello Prop world&quot;
+"Hello Prop world"
 
 &gt; ./mill show myPropertyTask # Task is correctly invalidated when prop is removed
-&quot;Hello Prop null&quot;</code></pre>
+"Hello Prop null"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -543,24 +542,24 @@ due to JVM limitations:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myEnvInput = T.input {
-  T.env.getOrElse(&quot;MY_ENV&quot;, null)
+  T.env.getOrElse("MY_ENV", null)
 }
 
 def myEnvTask = T {
-  &quot;Hello Env &quot; + myEnvInput()
+  "Hello Env " + myEnvInput()
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show myEnvTask
-&quot;Hello Env null&quot;</code></pre>
+"Hello Env null"</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&gt; ./mill show myEnvTask # Task is correctly invalidated when env is removed
-&quot;Hello Env null&quot;</code></pre>
+"Hello Env null"</code></pre>
 </div>
 </div>
 </div>
@@ -569,9 +568,9 @@ def myEnvTask = T {
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async="async" src="../../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../../search-index.js"></script>
+  </body>
+</html>

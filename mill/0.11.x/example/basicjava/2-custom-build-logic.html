@@ -1,16 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/basicjava/2-custom-build-logic.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/basicjava/2-custom-build-logic.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -41,10 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -63,9 +62,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -362,7 +361,7 @@
           <a href="../../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../../../0.12.x/index.html">0.12.16</a>
@@ -391,7 +390,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -411,7 +410,7 @@ object foo extends RootModule with JavaModule {
 
   /** Generate resources using lineCount of sources */
   override def resources = T{
-    os.write(T.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
+    os.write(T.dest / "line-count.txt", "" + lineCount())
     Seq(PathRef(T.dest))
   }
 }</code></pre>
@@ -425,68 +424,69 @@ up <code>lineCount</code>:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="483px" height="76px" viewBox="0.00 0.00 483.15 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="483px" height="76px"
+ viewBox="0.00 0.00 483.15 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 479.15,-71.8 479.15,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 479.15,-71.8 479.15,4 -4,4"/>
 <!-- allSourceFiles -->
 <g id="node1" class="node">
 <title>allSourceFiles</title>
-<polygon fill="white" stroke="white" points="96.14,-67.7 -0.05,-67.7 -0.05,-43.1 96.14,-43.1 96.14,-67.7"></polygon>
+<polygon fill="white" stroke="white" points="96.14,-67.7 -0.05,-67.7 -0.05,-43.1 96.14,-43.1 96.14,-67.7"/>
 <text text-anchor="middle" x="48.05" y="-51.2" font-family="Times,serif" font-size="14.00">allSourceFiles</text>
 </g>
 <!-- lineCount -->
 <g id="node2" class="node">
 <title>lineCount</title>
-<polygon fill="white" stroke="black" points="203.43,-67.7 131.98,-67.7 131.98,-43.1 203.43,-43.1 203.43,-67.7"></polygon>
+<polygon fill="white" stroke="black" points="203.43,-67.7 131.98,-67.7 131.98,-43.1 203.43,-43.1 203.43,-67.7"/>
 <text text-anchor="middle" x="167.7" y="-51.2" font-family="Times,serif" font-size="14.00">lineCount</text>
 </g>
 <!-- allSourceFiles&#45;&gt;lineCount -->
 <g id="edge1" class="edge">
-<title>allSourceFiles-&gt;lineCount</title>
-<path fill="none" stroke="black" d="M96.22,-55.4C104.58,-55.4 113.27,-55.4 121.58,-55.4"></path>
-<polygon fill="black" stroke="black" points="121.83,-58.9 131.83,-55.4 121.83,-51.9 121.83,-58.9"></polygon>
+<title>allSourceFiles&#45;&gt;lineCount</title>
+<path fill="none" stroke="black" d="M96.22,-55.4C104.58,-55.4 113.27,-55.4 121.58,-55.4"/>
+<polygon fill="black" stroke="black" points="121.83,-58.9 131.83,-55.4 121.83,-51.9 121.83,-58.9"/>
 </g>
 <!-- resources -->
 <g id="node3" class="node">
 <title>resources</title>
-<polygon fill="white" stroke="black" points="325.01,-67.7 256.3,-67.7 256.3,-43.1 325.01,-43.1 325.01,-67.7"></polygon>
+<polygon fill="white" stroke="black" points="325.01,-67.7 256.3,-67.7 256.3,-43.1 325.01,-43.1 325.01,-67.7"/>
 <text text-anchor="middle" x="290.65" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- lineCount&#45;&gt;resources -->
 <g id="edge2" class="edge">
-<title>lineCount-&gt;resources</title>
-<path fill="none" stroke="black" d="M203.36,-55.4C216.6,-55.4 231.87,-55.4 245.85,-55.4"></path>
-<polygon fill="black" stroke="black" points="246.24,-58.9 256.24,-55.4 246.24,-51.9 246.24,-58.9"></polygon>
+<title>lineCount&#45;&gt;resources</title>
+<path fill="none" stroke="black" d="M203.36,-55.4C216.6,-55.4 231.87,-55.4 245.85,-55.4"/>
+<polygon fill="black" stroke="black" points="246.24,-58.9 256.24,-55.4 246.24,-51.9 246.24,-58.9"/>
 </g>
 <!-- ... -->
 <g id="node4" class="node">
 <title>...</title>
-<polygon fill="white" stroke="white" points="404.74,-45.7 377.73,-45.7 377.73,-21.1 404.74,-21.1 404.74,-45.7"></polygon>
+<polygon fill="white" stroke="white" points="404.74,-45.7 377.73,-45.7 377.73,-21.1 404.74,-21.1 404.74,-45.7"/>
 <text text-anchor="middle" x="391.24" y="-29.2" font-family="Times,serif" font-size="14.00">...</text>
 </g>
 <!-- resources&#45;&gt;... -->
 <g id="edge3" class="edge">
-<title>resources-&gt;...</title>
-<path fill="none" stroke="black" d="M325.03,-47.95C339.03,-44.83 354.94,-41.28 367.55,-38.46"></path>
-<polygon fill="black" stroke="black" points="368.64,-41.81 377.64,-36.21 367.12,-34.97 368.64,-41.81"></polygon>
+<title>resources&#45;&gt;...</title>
+<path fill="none" stroke="black" d="M325.03,-47.95C339.03,-44.83 354.94,-41.28 367.55,-38.46"/>
+<polygon fill="black" stroke="black" points="368.64,-41.81 377.64,-36.21 367.12,-34.97 368.64,-41.81"/>
 </g>
 <!-- run -->
 <g id="node5" class="node">
 <title>run</title>
-<polygon fill="white" stroke="white" points="474.98,-45.7 440.66,-45.7 440.66,-21.1 474.98,-21.1 474.98,-45.7"></polygon>
+<polygon fill="white" stroke="white" points="474.98,-45.7 440.66,-45.7 440.66,-21.1 474.98,-21.1 474.98,-45.7"/>
 <text text-anchor="middle" x="457.82" y="-29.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- ...&#45;&gt;run -->
 <g id="edge4" class="edge">
-<title>...-&gt;run</title>
-<path fill="none" stroke="black" d="M404.69,-33.4C411.88,-33.4 421.22,-33.4 430,-33.4"></path>
-<polygon fill="black" stroke="black" points="430.25,-36.9 440.25,-33.4 430.25,-29.9 430.25,-36.9"></polygon>
+<title>...&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M404.69,-33.4C411.88,-33.4 421.22,-33.4 430,-33.4"/>
+<polygon fill="black" stroke="black" points="430.25,-36.9 440.25,-33.4 430.25,-29.9 430.25,-36.9"/>
 </g>
 <!-- resources.super -->
 <g id="node6" class="node">
 <title>resources.super</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="341.83,-24.7 239.48,-24.7 239.48,-0.1 341.83,-0.1 341.83,-24.7"></polygon>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="341.83,-24.7 239.48,-24.7 239.48,-0.1 341.83,-0.1 341.83,-24.7"/>
 <text text-anchor="middle" x="290.65" y="-8.2" font-family="Times,serif" font-size="14.00">resources.super</text>
 </g>
 <!-- resources.super&#45;&gt;... -->
@@ -528,7 +528,7 @@ most real-world projects.</p>
 <p>This customization is done in a principled fashion familiar to most
 programmers - object-orienting overrides - rather than ad-hoc
 monkey-patching or mutation common in other build tools. You never have
-&quot;spooky action at a distance&quot; affecting your build / graph definition, and
+"spooky action at a distance" affecting your build / graph definition, and
 your IDE can always help you find the final override of any particular build
 target as well as where any overriden implementations may be defined.</p>
 </div>
@@ -547,9 +547,9 @@ maintainable even as the complexity of your project grows.</p>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async="async" src="../../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../../search-index.js"></script>
+  </body>
+</html>

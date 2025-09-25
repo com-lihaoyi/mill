@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Writing Mill Plugins :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/extending/writing-plugins.html" />
-    <link rel="prev" href="running-jvm-code.html" />
-    <link rel="next" href="meta-build.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/extending/writing-plugins.html">
+    <link rel="prev" href="running-jvm-code.html">
+    <link rel="next" href="meta-build.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -623,7 +622,7 @@
           <a href="../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.16</a>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -664,7 +663,7 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>This example demonstrates how to write and test Mill plugin, and publish it to
-Sonatype’s Maven Central so it can be used by other developers over the internet
+Sonatype&#8217;s Maven Central so it can be used by other developers over the internet
 via <a href="import-ivy-plugins.html" class="xref page">import $ivy</a>.</p>
 </div>
 </div>
@@ -680,41 +679,41 @@ import mill._, scalalib._, publish._
 import mill.main.BuildInfo.millVersion
 
 object myplugin extends ScalaModule with PublishModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
-  def platformSuffix = &quot;_mill&quot; + mill.main.BuildInfo.millBinPlatform
+  def platformSuffix = "_mill" + mill.main.BuildInfo.millBinPlatform
 
   // Depend on `mill-dist` so we can compile against Mill APIs
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi:mill-dist:$millVersion&quot;)
+  def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
 
   // Testing Config, with necessary setup for unit/integration/example tests
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::mill-testkit:$millVersion&quot;)
-    def forkEnv = Map(&quot;MILL_EXECUTABLE_PATH&quot; -&gt; millExecutable.assembly().path.toString)
+    def ivyDeps = Agg(ivy"com.lihaoyi::mill-testkit:$millVersion")
+    def forkEnv = Map("MILL_EXECUTABLE_PATH" -&gt; millExecutable.assembly().path.toString)
 
     // Create a Mill executable configured for testing our plugin
     object millExecutable extends JavaModule {
-      def ivyDeps = Agg(ivy&quot;com.lihaoyi:mill-dist:$millVersion&quot;)
-      def mainClass = Some(&quot;mill.runner.client.MillClientMain&quot;)
+      def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
+      def mainClass = Some("mill.runner.client.MillClientMain")
       def resources = Task {
-        val p = Task.dest / &quot;mill/local-test-overrides&quot; / s&quot;com.lihaoyi-${myplugin.artifactId()}&quot;
-        os.write(p, myplugin.localClasspath().map(_.path).mkString(&quot;\n&quot;), createFolders = true)
+        val p = Task.dest / "mill/local-test-overrides" / s"com.lihaoyi-${myplugin.artifactId()}"
+        os.write(p, myplugin.localClasspath().map(_.path).mkString("\n"), createFolders = true)
         Seq(PathRef(Task.dest))
       }
     }
   }
 
   // Publishing Config
-  def publishVersion = &quot;0.0.1&quot;
+  def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
-    description = &quot;Line Count Mill Plugin&quot;,
-    organization = &quot;com.lihaoyi&quot;,
-    url = &quot;https://github.com/lihaoyi/myplugin&quot;,
+    description = "Line Count Mill Plugin",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/myplugin",
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;myplugin&quot;),
-    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+    versionControl = VersionControl.github("lihaoyi", "myplugin"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 }</code></pre>
 </div>
@@ -762,7 +761,7 @@ way that plugins interact with your project is by providing <code>trait</code>s 
 your modules to inherit from.</p>
 </div>
 <div class="paragraph">
-<p>Like any other <code>trait</code>, a Mill plugin’s traits modules allow you to:</p>
+<p>Like any other <code>trait</code>, a Mill plugin&#8217;s traits modules allow you to:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -804,7 +803,7 @@ trait LineCountJavaModule extends mill.javalib.JavaModule {
 
   /** Generate resources using lineCount of sources */
   override def resources = Task {
-    os.write(Task.dest / lineCountResourceFileName(), &quot;&quot; + lineCount())
+    os.write(Task.dest / lineCountResourceFileName(), "" + lineCount())
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 }</code></pre>
@@ -860,29 +859,29 @@ import utest._
 
 object UnitTests extends TestSuite {
   def tests: Tests = Tests {
-    test(&quot;unit&quot;) {
+    test("unit") {
       object build extends TestBaseModule with LineCountJavaModule {
-        def lineCountResourceFileName = &quot;line-count.txt&quot;
+        def lineCountResourceFileName = "line-count.txt"
       }
 
-      val resourceFolder = os.Path(sys.env(&quot;MILL_TEST_RESOURCE_DIR&quot;))
-      UnitTester(build, resourceFolder / &quot;unit-test-project&quot;).scoped { eval =&gt;
+      val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
+      UnitTester(build, resourceFolder / "unit-test-project").scoped { eval =&gt;
         // Evaluating tasks by direct reference
         val Right(result) = eval(build.resources)
         assert(
           result.value.exists(pathref =&gt;
-            os.exists(pathref.path / &quot;line-count.txt&quot;) &amp;&amp;
-              os.read(pathref.path / &quot;line-count.txt&quot;) == &quot;18&quot;
+            os.exists(pathref.path / "line-count.txt") &amp;&amp;
+              os.read(pathref.path / "line-count.txt") == "18"
           )
         )
 
         // Evaluating tasks by passing in their Mill selector
-        val Right(result2) = eval(&quot;resources&quot;)
+        val Right(result2) = eval("resources")
         val Seq(pathrefs: Seq[mill.api.PathRef]) = result2.value
         assert(
           pathrefs.exists(pathref =&gt;
-            os.exists(pathref.path / &quot;line-count.txt&quot;) &amp;&amp;
-              os.read(pathref.path / &quot;line-count.txt&quot;) == &quot;18&quot;
+            os.exists(pathref.path / "line-count.txt") &amp;&amp;
+              os.read(pathref.path / "line-count.txt") == "18"
           )
         )
       }
@@ -900,7 +899,7 @@ public class Foo {
   public static String getLineCount() {
     try {
       return new String(
-          Foo.class.getClassLoader().getResourceAsStream(&quot;line-count.txt&quot;).readAllBytes());
+          Foo.class.getClassLoader().getResourceAsStream("line-count.txt").readAllBytes());
     } catch (java.io.IOException e) {
       return null;
     }
@@ -909,7 +908,7 @@ public class Foo {
   static String lineCount = getLineCount();
 
   public static void main(String[] args) throws Exception {
-    System.out.println(&quot;Line Count: &quot; + lineCount);
+    System.out.println("Line Count: " + lineCount);
   }
 }</code></pre>
 </div>
@@ -928,7 +927,7 @@ but that should not be a concern for most Mill plugins.</p>
 <p>Integration tests are one step up from Unit tests: they are significantly slower to run due
 to running Mill in a subprocess, but are able to exercise the end-to-end lifecycle of a Mill
 command. Unlike unit tests which define a <code>TestRootModule</code> in-memory as part of the test code,
-Mill’s integration tests rely on a <code>build.mill</code> that is processed and compiled as part of the
+Mill&#8217;s integration tests rely on a <code>build.mill</code> that is processed and compiled as part of the
 test initialization, and can only perform assertions on the four things that are returned from
 any subprocess:</p>
 </div>
@@ -945,7 +944,7 @@ any subprocess:</p>
 </li>
 <li>
 <p>Any files that are generated on disk. In particular, files generated by tasks
-can be fetched via the <code>tester.out(&quot;...​&quot;).*</code> APIs to be read as JSON strings (via <code>.text</code>),
+can be fetched via the <code>tester.out("&#8230;&#8203;").*</code> APIs to be read as JSON strings (via <code>.text</code>),
 parsed <code>ujson.Value</code> ASTs (<code>.json</code>), or parsed into a typed Scala value (<code>.value[T]</code>)</p>
 </li>
 </ol>
@@ -959,36 +958,36 @@ import utest._
 
 object IntegrationTests extends TestSuite {
 
-  println(&quot;initializing myplugin.IntegrationTest&quot;)
+  println("initializing myplugin.IntegrationTest")
   def tests: Tests = Tests {
-    println(&quot;initializing myplugin.IntegrationTest.tests&quot;)
+    println("initializing myplugin.IntegrationTest.tests")
 
-    test(&quot;integration&quot;) {
-      pprint.log(sys.env(&quot;MILL_EXECUTABLE_PATH&quot;))
-      val resourceFolder = os.Path(sys.env(&quot;MILL_TEST_RESOURCE_DIR&quot;))
+    test("integration") {
+      pprint.log(sys.env("MILL_EXECUTABLE_PATH"))
+      val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
       val tester = new IntegrationTester(
         clientServerMode = true,
-        workspaceSourcePath = resourceFolder / &quot;integration-test-project&quot;,
-        millExecutable = os.Path(sys.env(&quot;MILL_EXECUTABLE_PATH&quot;))
+        workspaceSourcePath = resourceFolder / "integration-test-project",
+        millExecutable = os.Path(sys.env("MILL_EXECUTABLE_PATH"))
       )
 
-      val res1 = tester.eval(&quot;run&quot;)
+      val res1 = tester.eval("run")
       assert(res1.isSuccess)
-      assert(res1.err.contains(&quot;compiling 1 Java source&quot;)) // compiling the `build.mill`
-      assert(res1.out.contains(&quot;Line Count: 18&quot;))
-      assert(tester.out(&quot;lineCount&quot;).value[Int] == 18)
+      assert(res1.err.contains("compiling 1 Java source")) // compiling the `build.mill`
+      assert(res1.out.contains("Line Count: 18"))
+      assert(tester.out("lineCount").value[Int] == 18)
 
-      val res2 = tester.eval(&quot;run&quot;) // No need to recompile when nothing changed
-      assert(!res2.err.contains(&quot;compiling 1 Java source&quot;))
-      assert(res2.out.contains(&quot;Line Count: 18&quot;))
-      assert(tester.out(&quot;lineCount&quot;).value[Int] == 18)
+      val res2 = tester.eval("run") // No need to recompile when nothing changed
+      assert(!res2.err.contains("compiling 1 Java source"))
+      assert(res2.out.contains("Line Count: 18"))
+      assert(tester.out("lineCount").value[Int] == 18)
 
-      tester.modifyFile(tester.workspacePath / &quot;src/foo/Foo.java&quot;, _ + &quot;\n&quot;)
+      tester.modifyFile(tester.workspacePath / "src/foo/Foo.java", _ + "\n")
 
-      val res3 = tester.eval(&quot;run&quot;) // Additional newline forces recompile and increases line count
-      assert(res3.err.contains(&quot;compiling 1 Java source&quot;))
-      assert(res3.out.contains(&quot;Line Count: 19&quot;))
-      assert(tester.out(&quot;lineCount&quot;).value[Int] == 19)
+      val res3 = tester.eval("run") // Additional newline forces recompile and increases line count
+      assert(res3.err.contains("compiling 1 Java source"))
+      assert(res3.out.contains("Line Count: 19"))
+      assert(tester.out("lineCount").value[Int] == 19)
     }
   }
 }</code></pre>
@@ -1003,7 +1002,7 @@ public class Foo {
   public static String getLineCount() {
     try {
       return new String(
-          Foo.class.getClassLoader().getResourceAsStream(&quot;line-count.txt&quot;).readAllBytes());
+          Foo.class.getClassLoader().getResourceAsStream("line-count.txt").readAllBytes());
     } catch (java.io.IOException e) {
       return null;
     }
@@ -1012,7 +1011,7 @@ public class Foo {
   static String lineCount = getLineCount();
 
   public static void main(String[] args) throws Exception {
-    System.out.println(&quot;Line Count: &quot; + lineCount);
+    System.out.println("Line Count: " + lineCount);
   }
 }</code></pre>
 </div>
@@ -1025,7 +1024,7 @@ import $ivy.`com.lihaoyi::myplugin::0.0.1`
 import mill._, myplugin._
 
 object `package` extends RootModule with LineCountJavaModule {
-  def lineCountResourceFileName = &quot;line-count.txt&quot;
+  def lineCountResourceFileName = "line-count.txt"
 }</code></pre>
 </div>
 </div>
@@ -1058,12 +1057,12 @@ import utest._
 object ExampleTests extends TestSuite {
 
   def tests: Tests = Tests {
-    test(&quot;example&quot;) {
-      val resourceFolder = os.Path(sys.env(&quot;MILL_TEST_RESOURCE_DIR&quot;))
+    test("example") {
+      val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
       ExampleTester.run(
         clientServerMode = true,
-        workspaceSourcePath = resourceFolder / &quot;example-test-project&quot;,
-        millExecutable = os.Path(sys.env(&quot;MILL_EXECUTABLE_PATH&quot;))
+        workspaceSourcePath = resourceFolder / "example-test-project",
+        millExecutable = os.Path(sys.env("MILL_EXECUTABLE_PATH"))
       )
     }
   }
@@ -1079,7 +1078,7 @@ public class Foo {
   public static String getLineCount() {
     try {
       return new String(
-          Foo.class.getClassLoader().getResourceAsStream(&quot;line-count.txt&quot;).readAllBytes());
+          Foo.class.getClassLoader().getResourceAsStream("line-count.txt").readAllBytes());
     } catch (java.io.IOException e) {
       return null;
     }
@@ -1088,7 +1087,7 @@ public class Foo {
   static String lineCount = getLineCount();
 
   public static void main(String[] args) throws Exception {
-    System.out.println(&quot;Line Count: &quot; + lineCount);
+    System.out.println("Line Count: " + lineCount);
   }
 }</code></pre>
 </div>
@@ -1101,7 +1100,7 @@ import $ivy.`com.lihaoyi::myplugin::0.0.1`
 import mill._, myplugin._
 
 object `package` extends RootModule with LineCountJavaModule {
-  def lineCountResourceFileName = &quot;line-count.txt&quot;
+  def lineCountResourceFileName = "line-count.txt"
 }
 
 /** Usage
@@ -1110,7 +1109,7 @@ object `package` extends RootModule with LineCountJavaModule {
 Line Count: 18
 ...
 
-&gt; printf &quot;\n&quot; &gt;&gt; src/foo/Foo.java
+&gt; printf "\n" &gt;&gt; src/foo/Foo.java
 
 &gt; ./mill run
 Line Count: 19
@@ -1134,11 +1133,11 @@ Line Count: 19
 <p>If the command is expected to fail, the following lines should be prefixed by `error: `</p>
 </li>
 <li>
-<p>Expected output lines can contain <code>...​</code> wildcards to match against parts of the output
+<p>Expected output lines can contain <code>&#8230;&#8203;</code> wildcards to match against parts of the output
 which are unstable or unnecessary for someone reading through the <code>build.mill</code>.</p>
 </li>
 <li>
-<p>A <code>...​</code> wildcard on its own line can be used to match against any number of additional
+<p>A <code>&#8230;&#8203;</code> wildcard on its own line can be used to match against any number of additional
 lines of output</p>
 </li>
 </ul>
@@ -1146,9 +1145,9 @@ lines of output</p>
 <div class="paragraph">
 <p>The line-matching for example tests is intentionally fuzzy: it does not assert that the
 ordering of the lines printed by the command matches the ordering given, as long as every
-line printed is given and every line given is printed. <code>...​</code> wildcards intentionally add
+line printed is given and every line given is printed. <code>&#8230;&#8203;</code> wildcards intentionally add
 additional fuzziness to the matching. The point of example tests is not to match
-character-for-character exactly what the output must be, but to match on the &quot;important&quot;
+character-for-character exactly what the output must be, but to match on the "important"
 parts of the output while simultaneously emphasizing these important parts to someone who
 may be reading the <code>build.mill</code></p>
 </div>
@@ -1175,7 +1174,7 @@ Publishing Artifact(com.lihaoyi,myplugin_mill0.11_2.13,0.0.2) to ivy repo...</co
 </div>
 <div class="paragraph">
 <p>Mill plugins are JVM libraries like any other library written in Java or Scala. Thus they
-are published the same way: by extending <code>PublishModule</code> and defining the module’s <code>publishVersion</code>
+are published the same way: by extending <code>PublishModule</code> and defining the module&#8217;s <code>publishVersion</code>
 and <code>pomSettings</code>. Once done, you can publish the plugin locally via <code>publishLocal</code>,
 or to Maven Central via <code>mill.scalalib.PublishModule/</code> for other developers to
 use. For more details on publishing Mill projects, see the documentation for
@@ -1192,9 +1191,9 @@ use. For more details on publishing Mill projects, see the documentation for
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

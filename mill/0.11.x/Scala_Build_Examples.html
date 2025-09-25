@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Scala Build Examples :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/scalalib/build-examples.html" />
-    <link rel="prev" href="Scala_Builtin_Commands.html" />
-    <link rel="next" href="Scala_Module_Config.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/scalalib/build-examples.html">
+    <link rel="prev" href="Scala_Builtin_Commands.html">
+    <link rel="next" href="Scala_Module_Config.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -364,7 +363,7 @@
           <a href="../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.16</a>
@@ -393,7 +392,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -461,37 +460,37 @@ options.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
 
   // You can have arbitrary numbers of third-party dependencies
   def ivyDeps = Agg(
-    ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;,
-    ivy&quot;com.lihaoyi::os-lib:0.9.1&quot;,
+    ivy"com.lihaoyi::scalatags:0.8.2",
+    ivy"com.lihaoyi::os-lib:0.9.1",
   )
 
   // Choose a main class to use for `.run` if there are multiple present
-  def mainClass: T[Option[String]] = Some(&quot;foo.Foo2&quot;)
+  def mainClass: T[Option[String]] = Some("foo.Foo2")
 
   // Add (or replace) source folders for the module to use
   def sources = T.sources{
-    super.sources() ++ Seq(PathRef(millSourcePath / &quot;custom-src&quot;))
+    super.sources() ++ Seq(PathRef(millSourcePath / "custom-src"))
   }
 
   // Add (or replace) resource folders for the module to use
   def resources = T.sources{
-    super.resources() ++ Seq(PathRef(millSourcePath / &quot;custom-resources&quot;))
+    super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
   }
 
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = T {
-    for(name &lt;- Seq(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)) os.write(
-      T.dest / s&quot;Foo$name.scala&quot;,
-      s&quot;&quot;&quot;
+    for(name &lt;- Seq("A", "B", "C")) os.write(
+      T.dest / s"Foo$name.scala",
+      s"""
 package foo
 object Foo$name {
-  val value = &quot;hello $name&quot;
+  val value = "hello $name"
 }
-      &quot;&quot;&quot;.stripMargin
+      """.stripMargin
     )
 
     Seq(PathRef(T.dest))
@@ -499,14 +498,14 @@ object Foo$name {
 
   // Pass additional JVM flags when `.run` is called or in the executable
   // generated by `.assembly`
-  def forkArgs: T[Seq[String]] = Seq(&quot;-Dmy.custom.property=my-prop-value&quot;)
+  def forkArgs: T[Seq[String]] = Seq("-Dmy.custom.property=my-prop-value")
 
   // Pass additional environmental variables when `.run` is called. Note that
   // this does not apply to running externally via `.assembly
-  def forkEnv: T[Map[String, String]] = Map(&quot;MY_CUSTOM_ENV&quot; -&gt; &quot;my-env-value&quot;)
+  def forkEnv: T[Map[String, String]] = Map("MY_CUSTOM_ENV" -&gt; "my-env-value")
 
   // Additional Scala compiler options, e.g. to turn warnings into errors
-  def scalacOptions: T[Seq[String]] = Seq(&quot;-deprecation&quot;, &quot;-Xfatal-warnings&quot;)
+  def scalacOptions: T[Seq[String]] = Seq("-deprecation", "-Xfatal-warnings")
 }</code></pre>
 </div>
 </div>
@@ -525,7 +524,7 @@ be <code>foo/bar/qux</code>. This can also be overriden if necessary</p>
 <li>
 <p><code>T.dest</code> refers to the destination folder for a task in the <code>out/</code>
 folder. This is unique to each task, and can act as both a scratch space
-for temporary computations as well as a place to put &quot;output&quot; files,
+for temporary computations as well as a place to put "output" files,
 without worrying about filesystem conflicts with other tasks</p>
 </li>
 <li>
@@ -550,7 +549,7 @@ my.custom.property: my-prop-value
 MY_CUSTOM_ENV: my-env-value
 
 &gt; mill show assembly
-&quot;.../out/assembly.dest/out.jar&quot;
+".../out/assembly.dest/out.jar"
 
 &gt; ./out/assembly.dest/out.jar # mac/linux
 Foo2.value: &lt;h1&gt;hello2&lt;/h1&gt;
@@ -565,10 +564,10 @@ my.custom.property: my-prop-value</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sed -i 's/Foo2 {/Foo2 { println(this + &quot;hello&quot;)/g' custom-src/Foo2.scala
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sed -i 's/Foo2 {/Foo2 { println(this + "hello")/g' custom-src/Foo2.scala
 
 &gt; mill compile # demonstrate -deprecation/-Xfatal-warnings flags
-error: object Foo2 { println(this + &quot;hello&quot;)
+error: object Foo2 { println(this + "hello")
 error:                       ^
 error: ...Implicit injection of + is deprecated. Convert to String to call +...</code></pre>
 </div>
@@ -601,26 +600,26 @@ count at runtime using <code>sys.props</code> and print it when the program runs
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
+  def scalaVersion = "2.13.8"
+  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
 
   def generatedSources: T[Seq[PathRef]] = T {
     val prettyIvyDeps = for(ivyDep &lt;- ivyDeps()) yield {
       val org = ivyDep.dep.module.organization.value
       val name = ivyDep.dep.module.name.value
       val version = ivyDep.dep.version
-      s&quot;&quot;&quot;(&quot;$org&quot;, &quot;$name&quot;, &quot;$version&quot;)&quot;&quot;&quot;
+      s"""("$org", "$name", "$version")"""
     }
     os.write(
-      T.dest / s&quot;MyDeps.scala&quot;,
-      s&quot;&quot;&quot;
+      T.dest / s"MyDeps.scala",
+      s"""
 package foo
 object MyDeps {
   val value = List(
-    ${prettyIvyDeps.mkString(&quot;,\n&quot;)}
+    ${prettyIvyDeps.mkString(",\n")}
   )
 }
-      &quot;&quot;&quot;.stripMargin
+      """.stripMargin
     )
 
     Seq(PathRef(T.dest))
@@ -629,19 +628,19 @@ object MyDeps {
   def lineCount: T[Int] = T {
     sources()
       .flatMap(pathRef =&gt; os.walk(pathRef.path))
-      .filter(_.ext == &quot;scala&quot;)
+      .filter(_.ext == "scala")
       .map(os.read.lines(_).size)
       .sum
   }
 
-  def forkArgs: T[Seq[String]] = Seq(s&quot;-Dmy.line.count=${lineCount()}&quot;)
+  def forkArgs: T[Seq[String]] = Seq(s"-Dmy.line.count=${lineCount()}")
 
   def printLineCount() = T.command { println(lineCount()) }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill lets you define new cached Targets using the <code>T {...​}</code> syntax,
+<p>Mill lets you define new cached Targets using the <code>T {&#8230;&#8203;}</code> syntax,
 depending on existing Targets e.g. <code>foo.sources</code> via the <code>foo.sources()</code>
 syntax to extract their current value, as shown in <code>lineCount</code> above. The
 return-type of a Target has to be JSON-serializable (using
@@ -678,7 +677,7 @@ my.line.count: 14
 download files using <code>requests.get</code>, shell-out to Webpack
 to compile some Javascript, generate sources to feed into a compiler, or
 create some custom jar/zip assembly with the files you want , all of these
-can simply be custom targets with your code running in the <code>T {...​}</code> block.</p>
+can simply be custom targets with your code running in the <code>T {&#8230;&#8203;}</code> block.</p>
 </div>
 <div class="paragraph">
 <p>You can create arbitrarily long chains of dependent targets, and Mill will
@@ -688,7 +687,7 @@ to store files you want to return: all files a task creates should live
 within <code>T.dest</code>, and any files you want to modify should be copied into
 <code>T.dest</code> before being modified. That ensures that the files belonging to a
 particular target all live in one place, avoiding file-name conflicts and
-letting Mill automatically invalidate the files when the target’s inputs
+letting Mill automatically invalidate the files when the target&#8217;s inputs
 change.</p>
 </div>
 </div>
@@ -702,29 +701,29 @@ change.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
 
   def sources = T{
     os.write(
-      T.dest / &quot;Foo.scala&quot;,
-      &quot;&quot;&quot;package foo
+      T.dest / "Foo.scala",
+      """package foo
 object Foo {
   def main(args: Array[String]): Unit = {
-    println(&quot;Hello World&quot;)
+    println("Hello World")
   }
 }
-      &quot;&quot;&quot;.stripMargin
+      """.stripMargin
     )
     Seq(PathRef(T.dest))
   }
 
   def compile = T {
-    println(&quot;Compiling...&quot;)
+    println("Compiling...")
     super.compile()
   }
 
   def run(args: Task[Args] = T.task(Args())) = T.command {
-    println(&quot;Running...&quot; + args().value.mkString(&quot; &quot;))
+    println("Running..." + args().value.mkString(" "))
     super.run(args)()
   }
 }</code></pre>
@@ -735,7 +734,7 @@ object Foo {
 want to refer to the originally defined task. The above example shows how to
 override <code>compile</code> and <code>run</code> to add additional logging messages, and we
 override <code>sources</code> which was <code>T.sources</code> for the <code>src/</code> folder with a plain
-<code>T{...​}</code> target that generates the  necessary source files on-the-fly.</p>
+<code>T{&#8230;&#8203;}</code> target that generates the  necessary source files on-the-fly.</p>
 </div>
 <div class="paragraph">
 <p>Note that this example <strong>replaces</strong> your <code>src/</code> folder with the generated
@@ -746,19 +745,19 @@ include the original source folder:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo2 extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
 
   def generatedSources = T{
-    os.write(T.dest / &quot;Foo.scala&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
+    os.write(T.dest / "Foo.scala", """...""")
     Seq(PathRef(T.dest))
   }
 }
 
 object foo3 extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
 
   def sources = T{
-    os.write(T.dest / &quot;Foo.scala&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
+    os.write(T.dest / "Foo.scala", """...""")
     super.sources() ++ Seq(PathRef(T.dest))
   }
 }</code></pre>
@@ -786,10 +785,10 @@ Hello World</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
   def ivyDeps = Agg(
-    ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;,
-    ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;
+    ivy"com.lihaoyi::scalatags:0.8.2",
+    ivy"com.lihaoyi::mainargs:0.4.0"
   )
 }
 
@@ -855,17 +854,17 @@ Qux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def testFramework = "utest.runner.Framework"
   }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This build defines a single module with a test suite, configured to use
-&quot;uTest&quot; as the testing framework. Test suites are themselves <code>ScalaModule</code>s,
+"uTest" as the testing framework. Test suites are themselves <code>ScalaModule</code>s,
 nested within the enclosing module,
 and have all the normal tasks like
 <code>foo.test.compile</code> available to run, but with an additional <code>.test</code> task
@@ -923,10 +922,10 @@ compiling 1 ... source...
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
   }
 }</code></pre>
 </div>
@@ -967,13 +966,13 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object qux extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
   }
   object integration extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
   }
 }</code></pre>
 </div>
@@ -1008,17 +1007,17 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
 
 object foo extends ScalaModule with PublishModule {
-  def scalaVersion = &quot;2.13.8&quot;
-  def publishVersion = &quot;0.0.1&quot;
+  def scalaVersion = "2.13.8"
+  def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
-    description = &quot;Hello&quot;,
-    organization = &quot;com.lihaoyi&quot;,
-    url = &quot;https://github.com/lihaoyi/example&quot;,
+    description = "Hello",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/example",
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
+    versionControl = VersionControl.github("lihaoyi", "example"),
     developers = Seq(
-      Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;)
+      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
     )
   )
 }</code></pre>
@@ -1048,7 +1047,7 @@ which may not be correct if you have a newer Sonatype account (when created afte
 <div class="sect2">
 <h3 id="_staging_releases"><a class="anchor" href="#_staging_releases"></a>Staging Releases</h3>
 <div class="paragraph">
-<p>Once you’ve mixed in <code>PublishModule</code>, you can publish your libraries to maven
+<p>Once you&#8217;ve mixed in <code>PublishModule</code>, you can publish your libraries to maven
 central via:</p>
 </div>
 <div class="listingblock">
@@ -1066,7 +1065,7 @@ staging/release automatically:</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -1086,7 +1085,7 @@ due to security risks.</p>
 </div>
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1098,7 +1097,7 @@ due to security risks.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>If you want to publish/release multiple modules, you can use the <code><em></em></code> or <code>_</code>
+<p>If you want to publish/release multiple modules, you can use the <code><em></code> or <code>_</em></code>
 wildcard syntax:</p>
 </div>
 <div class="listingblock">
@@ -1126,17 +1125,17 @@ nexus at <code>example.company.com</code>, you can pass in the <code>--sonatypeU
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
 <div class="paragraph">
 <p>Since Feb. 2021 any new Sonatype accounts have been created on
-<code>s01.oss.sonatype.org</code>, so you’ll want to ensure you set the relevant URIs to match.</p>
+<code>s01.oss.sonatype.org</code>, so you&#8217;ll want to ensure you set the relevant URIs to match.</p>
 </div>
 <div class="paragraph">
-<p>The symptom of using the &quot;wrong&quot; URL for publishling is typically a 403 error code, in response to the publish request.</p>
+<p>The symptom of using the "wrong" URL for publishling is typically a 403 error code, in response to the publish request.</p>
 </div>
 <div class="paragraph">
 <p>See <a href="https://central.sonatype.org/publish/publish-guide/#releasing-to-central" class="bare">https://central.sonatype.org/publish/publish-guide/#releasing-to-central</a></p>
@@ -1156,7 +1155,7 @@ nexus at <code>example.company.com</code>, you can pass in the <code>--sonatypeU
 </div>
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 </div>
 <div class="sect2">
@@ -1187,7 +1186,7 @@ maven path under <code>sonatypeUri</code> instead of staging path.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
-val scalaVersions = Seq(&quot;2.12.17&quot;, &quot;2.13.8&quot;)
+val scalaVersions = Seq("2.12.17", "2.13.8")
 
 object foo extends Cross[FooModule](scalaVersions)
 trait FooModule extends CrossScalaModule{
@@ -1262,19 +1261,19 @@ trait Bar2Module extends CrossScalaModule</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends SbtModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
   object test extends SbtTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def testFramework = "utest.runner.Framework"
   }
 }
 
 
-object bar extends Cross[BarModule](&quot;2.12.17&quot;, &quot;2.13.8&quot;)
+object bar extends Cross[BarModule]("2.12.17", "2.13.8")
 trait BarModule extends CrossSbtModule {
   object test extends CrossSbtTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def testFramework = "utest.runner.Framework"
   }
 }</code></pre>
 </div>
@@ -1300,7 +1299,7 @@ that use the more verbose folder layout of SBT, Maven, and other tools:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Rather than Mill’s</p>
+<p>Rather than Mill&#8217;s</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1355,27 +1354,27 @@ Bar.value: Hello World Scala library version 2.12.17...</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
 
 trait MyModule extends PublishModule {
-  def publishVersion = &quot;0.0.1&quot;
+  def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
-    description = &quot;Hello&quot;,
-    organization = &quot;com.lihaoyi&quot;,
-    url = &quot;https://github.com/lihaoyi/example&quot;,
+    description = "Hello",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/example",
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
-    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+    versionControl = VersionControl.github("lihaoyi", "example"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 }
 
 trait MyScalaModule extends MyModule with CrossScalaModule {
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;)
+  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.12.0")
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def testFramework = "utest.runner.Framework"
   }
 }
 
-val scalaVersions = Seq(&quot;2.13.8&quot;, &quot;3.3.3&quot;)
+val scalaVersions = Seq("2.13.8", "3.3.3")
 
 object foo extends Cross[FooModule](scalaVersions)
 trait FooModule extends MyScalaModule {
@@ -1383,13 +1382,13 @@ trait FooModule extends MyScalaModule {
 
   def generatedSources = T {
     os.write(
-      T.dest / &quot;Version.scala&quot;,
-      s&quot;&quot;&quot;
+      T.dest / "Version.scala",
+      s"""
 package foo
 object Version{
-  def value = &quot;${publishVersion()}&quot;
+  def value = "${publishVersion()}"
 }
-      &quot;&quot;&quot;.stripMargin
+      """.stripMargin
     )
     Seq(PathRef(T.dest))
   }
@@ -1487,7 +1486,7 @@ Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
 
 &gt; mill show foo[2.13.8].assembly # mac/linux
-&quot;.../out/foo/2.13.8/assembly.dest/out.jar&quot;
+".../out/foo/2.13.8/assembly.dest/out.jar"
 
 &gt; ./out/foo/2.13.8/assembly.dest/out.jar # mac/linux
 foo version 0.0.1
@@ -1513,37 +1512,37 @@ demonstrating how Mill can be used to build code outside of tiny example codebas
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
 
 object Deps {
-  def acyclic = ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;
-  def scalaCompiler(scalaVersion: String) = ivy&quot;org.scala-lang:scala-compiler:$scalaVersion&quot;
-  val utest = ivy&quot;com.lihaoyi::utest:0.8.4&quot;
+  def acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
+  def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:$scalaVersion"
+  val utest = ivy"com.lihaoyi::utest:0.8.4"
 }
 
 val crosses =
-  Seq(&quot;2.11.12&quot;) ++
-  Range.inclusive(8, 17).map(&quot;2.12.&quot; + _) ++
-  Range.inclusive(0, 10).map(&quot;2.13.&quot; + _)
+  Seq("2.11.12") ++
+  Range.inclusive(8, 17).map("2.12." + _) ++
+  Range.inclusive(0, 10).map("2.13." + _)
 
 object acyclic extends Cross[AcyclicModule](crosses)
 trait AcyclicModule extends CrossScalaModule with PublishModule {
   def crossFullScalaVersion = true
-  def artifactName = &quot;acyclic&quot;
-  def publishVersion = &quot;1.3.3.7&quot;
+  def artifactName = "acyclic"
+  def publishVersion = "1.3.3.7"
 
   def pomSettings = PomSettings(
     description = artifactName(),
-    organization = &quot;com.lihaoyi&quot;,
-    url = &quot;https://github.com/com-lihaoyi/acyclic&quot;,
+    organization = "com.lihaoyi",
+    url = "https://github.com/com-lihaoyi/acyclic",
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(owner = &quot;com-lihaoyi&quot;, repo = &quot;acyclic&quot;),
+    versionControl = VersionControl.github(owner = "com-lihaoyi", repo = "acyclic"),
     developers = Seq(
-      Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;)
+      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
     )
   )
 
   def compileIvyDeps = Agg(Deps.scalaCompiler(crossScalaVersion))
 
   object test extends ScalaTests with TestModule.Utest {
-    def sources = T.sources(millSourcePath / &quot;src&quot;, millSourcePath / &quot;resources&quot;)
+    def sources = T.sources(millSourcePath / "src", millSourcePath / "resources")
     def ivyDeps = Agg(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
   }
 }</code></pre>
@@ -1598,28 +1597,28 @@ compiling 6 Scala sources...
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, scalajslib._, scalanativelib._, publish._
 
-val dottyCommunityBuildVersion = sys.props.get(&quot;dottyVersion&quot;).toList
+val dottyCommunityBuildVersion = sys.props.get("dottyVersion").toList
 
-val scalaVersions = Seq(&quot;2.12.17&quot;, &quot;2.13.8&quot;, &quot;2.11.12&quot;, &quot;3.1.3&quot;) ++ dottyCommunityBuildVersion
+val scalaVersions = Seq("2.12.17", "2.13.8", "2.11.12", "3.1.3") ++ dottyCommunityBuildVersion
 
 trait FansiModule extends PublishModule with CrossScalaModule with PlatformScalaModule {
-  def publishVersion = &quot;1.3.3.7&quot;
+  def publishVersion = "1.3.3.7"
 
   def pomSettings = PomSettings(
     description = artifactName(),
-    organization = &quot;com.lihaoyi&quot;,
-    url = &quot;https://github.com/com-lihaoyi/Fansi&quot;,
+    organization = "com.lihaoyi",
+    url = "https://github.com/com-lihaoyi/Fansi",
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(owner = &quot;com-lihaoyi&quot;, repo = &quot;fansi&quot;),
+    versionControl = VersionControl.github(owner = "com-lihaoyi", repo = "fansi"),
     developers = Seq(
-      Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;)
+      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
     )
   )
 
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::sourcecode::0.3.0&quot;)
+  def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode::0.3.0")
 
   trait FansiTests extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.4&quot;)
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
   }
 }
 
@@ -1631,13 +1630,13 @@ object fansi extends Module {
 
   object js extends Cross[JsFansiModule](scalaVersions)
   trait JsFansiModule extends FansiModule with ScalaJSModule {
-    def scalaJSVersion = &quot;1.16.0&quot;
+    def scalaJSVersion = "1.16.0"
     object test extends FansiTests with ScalaJSTests
   }
 
   object native extends Cross[NativeFansiModule](scalaVersions)
   trait NativeFansiModule extends FansiModule with ScalaNativeModule {
-    def scalaNativeVersion = &quot;0.4.5&quot;
+    def scalaNativeVersion = "0.4.5"
     object test extends FansiTests with ScalaNativeTests
   }
 }</code></pre>
@@ -1733,9 +1732,9 @@ used in many build tools down resolve and download third party dependencies</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>

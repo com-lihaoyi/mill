@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Introduction to Mill for Scala :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/scalalib/intro.html" />
-    <link rel="prev" href="Java_Case_Study_Netty.html" />
-    <link rel="next" href="Scala_Installation_IDE_Support.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/scalalib/intro.html">
+    <link rel="prev" href="Java_Case_Study_Netty.html">
+    <link rel="next" href="Scala_Installation_IDE_Support.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -364,7 +363,7 @@
           <a href="../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.16</a>
@@ -393,7 +392,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -408,138 +407,139 @@ gtag('config', 'AW-16649289906');
 </script>
 <div class="paragraph">
 <center>
-<svg width="755px" height="248px" viewBox="0.00 0.00 755.33 248.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
+<svg width="755px" height="205px"
+ viewBox="0.00 0.00 755.33 205.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 201.0)">
 <title>G</title>
-<g id="clust1" class="cluster">
-<title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 482.15,-232 482.15,-124 8,-124"></polygon>
-<text text-anchor="middle" x="245.07" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="251.97,-8 251.97,-116 739.33,-116 739.33,-8 251.97,-8"></polygon>
-<text text-anchor="middle" x="495.65" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="246.52,-8 246.52,-116 739.33,-116 739.33,-8 246.52,-8"/>
+<text text-anchor="middle" x="492.92" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-189 482.15,-189 482.15,-124 8,-124"/>
+<text text-anchor="middle" x="245.07" y="-172.4" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">
 <title>foo.sources</title>
-<polygon fill="white" stroke="black" points="96.21,-156.3 15.93,-156.3 15.93,-131.7 96.21,-131.7 96.21,-156.3"></polygon>
+<polygon fill="white" stroke="black" points="96.21,-156.3 15.93,-156.3 15.93,-131.7 96.21,-131.7 96.21,-156.3"/>
 <text text-anchor="middle" x="56.07" y="-139.8" font-family="Times,serif" font-size="14.00">foo.sources</text>
 </g>
 <!-- foo.compile -->
 <g id="node2" class="node">
 <title>foo.compile</title>
-<polygon fill="white" stroke="black" points="215.53,-156.3 132.01,-156.3 132.01,-131.7 215.53,-131.7 215.53,-156.3"></polygon>
+<polygon fill="white" stroke="black" points="215.53,-156.3 132.01,-156.3 132.01,-131.7 215.53,-131.7 215.53,-156.3"/>
 <text text-anchor="middle" x="173.77" y="-139.8" font-family="Times,serif" font-size="14.00">foo.compile</text>
 </g>
 <!-- foo.sources&#45;&gt;foo.compile -->
 <g id="edge1" class="edge">
-<title>foo.sources-&gt;foo.compile</title>
-<path fill="none" stroke="black" d="M96.24,-144C104.53,-144 113.4,-144 122.05,-144"></path>
-<polygon fill="black" stroke="black" points="122.06,-147.5 132.06,-144 122.06,-140.5 122.06,-147.5"></polygon>
+<title>foo.sources&#45;&gt;foo.compile</title>
+<path fill="none" stroke="black" d="M96.24,-144C104.53,-144 113.4,-144 122.05,-144"/>
+<polygon fill="black" stroke="black" points="122.06,-147.5 132.06,-144 122.06,-140.5 122.06,-147.5"/>
 </g>
 <!-- foo.classPath -->
 <g id="node3" class="node">
 <title>foo.classPath</title>
-<polygon fill="white" stroke="black" points="344.9,-156.3 254.39,-156.3 254.39,-131.7 344.9,-131.7 344.9,-156.3"></polygon>
-<text text-anchor="middle" x="299.64" y="-139.8" font-family="Times,serif" font-size="14.00">foo.classPath</text>
+<polygon fill="white" stroke="black" points="344.9,-83.3 254.39,-83.3 254.39,-58.7 344.9,-58.7 344.9,-83.3"/>
+<text text-anchor="middle" x="299.64" y="-66.8" font-family="Times,serif" font-size="14.00">foo.classPath</text>
 </g>
 <!-- foo.compile&#45;&gt;foo.classPath -->
 <g id="edge2" class="edge">
-<title>foo.compile-&gt;foo.classPath</title>
-<path fill="none" stroke="black" d="M215.67,-144C224.78,-144 234.58,-144 244.14,-144"></path>
-<polygon fill="black" stroke="black" points="244.37,-147.5 254.37,-144 244.37,-140.5 244.37,-147.5"></polygon>
+<title>foo.compile&#45;&gt;foo.classPath</title>
+<path fill="none" stroke="black" d="M195.78,-131.62C215.8,-119.82 246.15,-101.94 268.7,-88.65"/>
+<polygon fill="black" stroke="black" points="270.69,-91.54 277.53,-83.44 267.14,-85.51 270.69,-91.54"/>
 </g>
 <!-- foo.assembly -->
 <g id="node4" class="node">
 <title>foo.assembly</title>
-<polygon fill="white" stroke="black" points="474.28,-189.3 383.76,-189.3 383.76,-164.7 474.28,-164.7 474.28,-189.3"></polygon>
-<text text-anchor="middle" x="429.02" y="-172.8" font-family="Times,serif" font-size="14.00">foo.assembly</text>
+<polygon fill="white" stroke="black" points="474.28,-156.3 383.76,-156.3 383.76,-131.7 474.28,-131.7 474.28,-156.3"/>
+<text text-anchor="middle" x="429.02" y="-139.8" font-family="Times,serif" font-size="14.00">foo.assembly</text>
 </g>
 <!-- foo.classPath&#45;&gt;foo.assembly -->
 <g id="edge3" class="edge">
-<title>foo.classPath-&gt;foo.assembly</title>
-<path fill="none" stroke="black" d="M344.84,-155.45C354.12,-157.85 364.01,-160.42 373.61,-162.9"></path>
-<polygon fill="black" stroke="black" points="372.92,-166.34 383.47,-165.46 374.67,-159.56 372.92,-166.34"></polygon>
+<title>foo.classPath&#45;&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M321.4,-83.48C338.17,-93.5 362.44,-107.86 383.89,-120 387.84,-122.24 392,-124.55 396.14,-126.83"/>
+<polygon fill="black" stroke="black" points="394.58,-129.97 405.03,-131.69 397.94,-123.82 394.58,-129.97"/>
 </g>
 <!-- bar.compile -->
 <g id="node6" class="node">
 <title>bar.compile</title>
-<polygon fill="white" stroke="black" points="470.5,-83.3 387.54,-83.3 387.54,-58.7 470.5,-58.7 470.5,-83.3"></polygon>
-<text text-anchor="middle" x="429.02" y="-66.8" font-family="Times,serif" font-size="14.00">bar.compile</text>
+<polygon fill="white" stroke="black" points="470.5,-52.3 387.54,-52.3 387.54,-27.7 470.5,-27.7 470.5,-52.3"/>
+<text text-anchor="middle" x="429.02" y="-35.8" font-family="Times,serif" font-size="14.00">bar.compile</text>
 </g>
 <!-- foo.classPath&#45;&gt;bar.compile -->
 <g id="edge5" class="edge">
-<title>foo.classPath-&gt;bar.compile</title>
-<path fill="none" stroke="black" d="M325.85,-131.66C333.03,-128.02 340.82,-123.95 347.89,-120 365.62,-110.1 385.07,-98.23 400.36,-88.65"></path>
-<polygon fill="black" stroke="black" points="402.24,-91.6 408.84,-83.31 398.51,-85.68 402.24,-91.6"></polygon>
+<title>foo.classPath&#45;&gt;bar.compile</title>
+<path fill="none" stroke="black" d="M344.84,-60.24C355.51,-57.65 366.99,-54.85 377.91,-52.19"/>
+<polygon fill="black" stroke="black" points="378.86,-55.57 387.75,-49.8 377.2,-48.77 378.86,-55.57"/>
 </g>
 <!-- bar.classPath -->
 <g id="node7" class="node">
 <title>bar.classPath</title>
-<polygon fill="white" stroke="black" points="602.97,-83.3 513.03,-83.3 513.03,-58.7 602.97,-58.7 602.97,-83.3"></polygon>
+<polygon fill="white" stroke="black" points="602.97,-83.3 513.03,-83.3 513.03,-58.7 602.97,-58.7 602.97,-83.3"/>
 <text text-anchor="middle" x="558" y="-66.8" font-family="Times,serif" font-size="14.00">bar.classPath</text>
 </g>
 <!-- foo.classPath&#45;&gt;bar.classPath -->
 <g id="edge6" class="edge">
-<title>foo.classPath-&gt;bar.classPath</title>
-<path fill="none" stroke="black" d="M343.84,-131.7C387.94,-119.14 456.45,-99.63 503.85,-86.14"></path>
-<polygon fill="black" stroke="black" points="504.97,-89.46 513.63,-83.35 503.05,-82.72 504.97,-89.46"></polygon>
+<title>foo.classPath&#45;&gt;bar.classPath</title>
+<path fill="none" stroke="black" d="M345.01,-71C388.84,-71 455.96,-71 502.9,-71"/>
+<polygon fill="black" stroke="black" points="503.18,-74.5 513.18,-71 503.18,-67.5 503.18,-74.5"/>
 </g>
 <!-- foo.mainClass -->
 <g id="node5" class="node">
 <title>foo.mainClass</title>
-<polygon fill="white" stroke="black" points="348.13,-199.3 251.16,-199.3 251.16,-174.7 348.13,-174.7 348.13,-199.3"></polygon>
-<text text-anchor="middle" x="299.64" y="-182.8" font-family="Times,serif" font-size="14.00">foo.mainClass</text>
+<polygon fill="white" stroke="black" points="348.13,-156.3 251.16,-156.3 251.16,-131.7 348.13,-131.7 348.13,-156.3"/>
+<text text-anchor="middle" x="299.64" y="-139.8" font-family="Times,serif" font-size="14.00">foo.mainClass</text>
 </g>
 <!-- foo.mainClass&#45;&gt;foo.assembly -->
 <g id="edge4" class="edge">
-<title>foo.mainClass-&gt;foo.assembly</title>
-<path fill="none" stroke="black" d="M348.07,-183.28C356.32,-182.63 364.96,-181.95 373.38,-181.29"></path>
-<polygon fill="black" stroke="black" points="373.81,-184.77 383.5,-180.49 373.26,-177.79 373.81,-184.77"></polygon>
+<title>foo.mainClass&#45;&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M348.07,-144C356.32,-144 364.96,-144 373.38,-144"/>
+<polygon fill="black" stroke="black" points="373.5,-147.5 383.5,-144 373.5,-140.5 373.5,-147.5"/>
 </g>
 <!-- bar.compile&#45;&gt;bar.classPath -->
 <g id="edge8" class="edge">
-<title>bar.compile-&gt;bar.classPath</title>
-<path fill="none" stroke="black" d="M470.55,-71C480.78,-71 491.93,-71 502.71,-71"></path>
-<polygon fill="black" stroke="black" points="502.9,-74.5 512.9,-71 502.9,-67.5 502.9,-74.5"></polygon>
+<title>bar.compile&#45;&gt;bar.classPath</title>
+<path fill="none" stroke="black" d="M470.55,-49.89C480.88,-52.42 492.16,-55.17 503.05,-57.83"/>
+<polygon fill="black" stroke="black" points="502.36,-61.26 512.9,-60.23 504.02,-54.46 502.36,-61.26"/>
 </g>
 <!-- bar.assembly -->
 <g id="node9" class="node">
 <title>bar.assembly</title>
-<polygon fill="white" stroke="black" points="731.56,-61.3 641.61,-61.3 641.61,-36.7 731.56,-36.7 731.56,-61.3"></polygon>
+<polygon fill="white" stroke="black" points="731.56,-61.3 641.61,-61.3 641.61,-36.7 731.56,-36.7 731.56,-61.3"/>
 <text text-anchor="middle" x="686.59" y="-44.8" font-family="Times,serif" font-size="14.00">bar.assembly</text>
 </g>
 <!-- bar.classPath&#45;&gt;bar.assembly -->
 <g id="edge9" class="edge">
-<title>bar.classPath-&gt;bar.assembly</title>
-<path fill="none" stroke="black" d="M602.92,-63.37C612.25,-61.75 622.2,-60.02 631.84,-58.34"></path>
-<polygon fill="black" stroke="black" points="632.49,-61.78 641.75,-56.62 631.29,-54.88 632.49,-61.78"></polygon>
+<title>bar.classPath&#45;&gt;bar.assembly</title>
+<path fill="none" stroke="black" d="M602.92,-63.37C612.25,-61.75 622.2,-60.02 631.84,-58.34"/>
+<polygon fill="black" stroke="black" points="632.49,-61.78 641.75,-56.62 631.29,-54.88 632.49,-61.78"/>
 </g>
 <!-- bar.sources -->
 <g id="node8" class="node">
 <title>bar.sources</title>
-<polygon fill="white" stroke="black" points="339.5,-83.3 259.79,-83.3 259.79,-58.7 339.5,-58.7 339.5,-83.3"></polygon>
-<text text-anchor="middle" x="299.64" y="-66.8" font-family="Times,serif" font-size="14.00">bar.sources</text>
+<polygon fill="white" stroke="black" points="339.5,-40.3 259.79,-40.3 259.79,-15.7 339.5,-15.7 339.5,-40.3"/>
+<text text-anchor="middle" x="299.64" y="-23.8" font-family="Times,serif" font-size="14.00">bar.sources</text>
 </g>
 <!-- bar.sources&#45;&gt;bar.compile -->
 <g id="edge7" class="edge">
-<title>bar.sources-&gt;bar.compile</title>
-<path fill="none" stroke="black" d="M339.55,-71C351.44,-71 364.7,-71 377.25,-71"></path>
-<polygon fill="black" stroke="black" points="377.59,-74.5 387.59,-71 377.59,-67.5 377.59,-74.5"></polygon>
+<title>bar.sources&#45;&gt;bar.compile</title>
+<path fill="none" stroke="black" d="M339.55,-31.67C351.56,-32.8 364.96,-34.06 377.63,-35.25"/>
+<polygon fill="black" stroke="black" points="377.3,-38.74 387.59,-36.19 377.96,-31.77 377.3,-38.74"/>
 </g>
 <!-- bar.mainClass -->
 <g id="node10" class="node">
 <title>bar.mainClass</title>
-<polygon fill="white" stroke="black" points="605.7,-40.3 510.3,-40.3 510.3,-15.7 605.7,-15.7 605.7,-40.3"></polygon>
+<polygon fill="white" stroke="black" points="605.7,-40.3 510.3,-40.3 510.3,-15.7 605.7,-15.7 605.7,-40.3"/>
 <text text-anchor="middle" x="558" y="-23.8" font-family="Times,serif" font-size="14.00">bar.mainClass</text>
 </g>
 <!-- bar.mainClass&#45;&gt;bar.assembly -->
 <g id="edge10" class="edge">
-<title>bar.mainClass-&gt;bar.assembly</title>
-<path fill="none" stroke="black" d="M605.78,-35.76C614.18,-37.15 623,-38.62 631.59,-40.04"></path>
-<polygon fill="black" stroke="black" points="631.09,-43.51 641.52,-41.69 632.23,-36.6 631.09,-43.51"></polygon>
+<title>bar.mainClass&#45;&gt;bar.assembly</title>
+<path fill="none" stroke="black" d="M605.78,-35.76C614.18,-37.15 623,-38.62 631.59,-40.04"/>
+<polygon fill="black" stroke="black" points="631.09,-43.51 641.52,-41.69 632.23,-36.6 631.09,-43.51"/>
 </g>
 </g>
 </svg>
@@ -549,13 +549,13 @@ gtag('config', 'AW-16649289906');
 <div class="paragraph">
 <p><a href="https://github.com/com-lihaoyi/mill">Mill</a> is a fast JVM build tool that supports Scala, speeding
 up common development workflows by 5-10x <a href="Java_Case_Study_Netty.html" class="xref page">compared to Maven</a> or SBT.
-Mill aims to make your JVM project’s build process performant, maintainable, and flexible
+Mill aims to make your JVM project&#8217;s build process performant, maintainable, and flexible
 even as it grows from a small project to a large codebase or monorepo with hundreds of modules:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Performance</strong>: Mill’s <a href="Tasks.html" class="xref page">build graph</a> automatically
+<p><strong>Performance</strong>: Mill&#8217;s <a href="Tasks.html" class="xref page">build graph</a> automatically
 <a href="The_Mill_Evaluation_Model.html#_caching_at_each_layer_of_the_evaluation_model" class="xref page">caches</a>
 and <a href="#_parallel_task_execution">parallelizes</a> build
 tasks, minimizing the amount of work that needs to be done and keeping your workflows
@@ -566,13 +566,13 @@ fast and responsive.</p>
 to trace the data-flow, and its IDE support
 (via <a href="Scala_Installation_IDE_Support.html#_intellij" class="xref page">IntelliJ</a> or
 <a href="Scala_Installation_IDE_Support.html#_vscode" class="xref page">VSCode</a>)
-lets you &quot;<strong>jump-to-definition</strong>&quot; around your build
+lets you "<strong>jump-to-definition</strong>" around your build
 as easily as any application codebase.</p>
 </li>
 <li>
 <p><strong>Flexibility</strong>: Mill custom logic is written in <a href="#_custom_build_logic">custom build logic</a>
 in type-checked code, rather than
-error-prone shell scripts, verbose AntRun XML, or complicated external plugins. Mill’s
+error-prone shell scripts, verbose AntRun XML, or complicated external plugins. Mill&#8217;s
 custom tasks and modules allow anything from
 <a href="Tasks.html#primitive-tasks" class="xref page">adding simple pipelines</a>, up to
 <a href="Modules.html#_use_case_diy_java_modules" class="xref page">adding entire language toolchains</a>,
@@ -607,18 +607,18 @@ with each other.</p>
 <p><strong>Mill is much more performant</strong>: SBT has enough overhead that even a dozen
 subprojects is enough to slow it down, while Mill can handle hundreds of modules without issue.
 Custom tasks in SBT re-execute every time, whereas in Mill they are cached automatically.
-Mill’s watch-for-changes-and-re-run implementation has much lower latency than SBT’s. The
-list of ways Mill improves upon SBT’s performance is long, and at the command line you
+Mill&#8217;s watch-for-changes-and-re-run implementation has much lower latency than SBT&#8217;s. The
+list of ways Mill improves upon SBT&#8217;s performance is long, and at the command line you
 can really feel it</p>
 </li>
 <li>
 <p><strong>Mill builds are much easier to understand</strong>: Your Mill build is made of bog-standard
-<code>object</code>s and <code>def</code>s, rather than SBT’s
-<a href="https://eed3si9n.com/4th-dimension-with-sbt-013/">four-dimensional task matrix</a>. Your IDE’s
-&quot;<strong>jump-to-definition</strong>&quot; in Mill actually brings you to the implementation of a task, rather
+<code>object</code>s and <code>def</code>s, rather than SBT&#8217;s
+<a href="https://eed3si9n.com/4th-dimension-with-sbt-013/">four-dimensional task matrix</a>. Your IDE&#8217;s
+"<strong>jump-to-definition</strong>" in Mill actually brings you to the implementation of a task, rather
 than an SBT <code>taskKey</code> declaration. Customizing things is as simple as writing or overriding
 `def`s. The net effect is that despite both tools' build files being written in Scala,
-Mill’s build files are much easier to understand and maintain.</p>
+Mill&#8217;s build files are much easier to understand and maintain.</p>
 </li>
 </ul>
 </div>
@@ -629,7 +629,7 @@ out the following blog posts:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://www.lihaoyi.com/post/SowhatswrongwithSBT.html">So, what’s wrong with SBT?</a></p>
+<p><a href="https://www.lihaoyi.com/post/SowhatswrongwithSBT.html">So, what&#8217;s wrong with SBT?</a></p>
 </li>
 <li>
 <p><a href="https://www.lihaoyi.com/post/MillBetterScalaBuilds.html">Mill: Better Scala Builds</a></p>
@@ -637,7 +637,7 @@ out the following blog posts:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>If you’re interested in the fundamental ideas behind Mill, rather than the user-facing
+<p>If you&#8217;re interested in the fundamental ideas behind Mill, rather than the user-facing
 benefits discussed above, the following presentation
 and companion blog post is a good introduction into what the Mill build tool is
 all about:</p>
@@ -648,7 +648,7 @@ all about:</p>
 <p><a href="https://www.youtube.com/watch?v=UsXgCeU-ovI&amp;list=PLLMLOC3WM2r6ZFhFfVH74W-sl8LfWtOEc&amp;index=15">Video: A Deep Dive into the Mill Build Tool</a></p>
 </li>
 <li>
-<p><a href="https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html">Blog Post: What’s So Special About The Mill Scala Build Tool?</a></p>
+<p><a href="https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html">Blog Post: What&#8217;s So Special About The Mill Scala Build Tool?</a></p>
 </li>
 </ul>
 </div>
@@ -680,15 +680,15 @@ using Mill and its supporting libraries to the fullest:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
-  def scalaVersion = &quot;2.13.11&quot;
+  def scalaVersion = "2.13.11"
   def ivyDeps = Agg(
-    ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;,
-    ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
+    ivy"com.lihaoyi::scalatags:0.12.0",
+    ivy"com.lihaoyi::mainargs:0.6.2"
   )
 
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def testFramework = "utest.runner.Framework"
   }
 }</code></pre>
 </div>
@@ -709,7 +709,7 @@ care of any further dependencies that need to be downloaded.</p>
 </div>
 <div class="paragraph">
 <p>The source code for this module lives in the <code>src/</code> folder.
-Output for this module (compiled files, resolved dependency lists, ...​)
+Output for this module (compiled files, resolved dependency lists, &#8230;&#8203;)
 lives in <code>out/</code>.</p>
 </div>
 <div class="paragraph">
@@ -764,7 +764,7 @@ error: Missing argument: --text &lt;str&gt;
 &gt; ./mill assembly # bundle classfiles and libraries into a jar for deployment
 
 &gt; ./mill show assembly # show the output of the assembly task
-&quot;.../out/assembly.dest/out.jar&quot;
+".../out/assembly.dest/out.jar"
 
 &gt; java -jar ./out/assembly.dest/out.jar --text hello
 &lt;h1&gt;hello&lt;/h1&gt;
@@ -801,7 +801,7 @@ $ mill -i repl       # start an Ammonite Scala REPL within your project</code></
 <div class="paragraph">
 <p>You can run <code>mill resolve __</code> to see a full list of the different tasks that
 are available, <code>mill resolve _</code> to see the tasks within <code>foo</code>,
-<code>mill inspect compile</code> to inspect a task’s doc-comment documentation or what
+<code>mill inspect compile</code> to inspect a task&#8217;s doc-comment documentation or what
 it depends on, or <code>mill show foo.scalaVersion</code> to show the output of any task.</p>
 </div>
 <div class="paragraph">
@@ -828,7 +828,7 @@ in that module</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends RootModule with ScalaModule {
-  def scalaVersion = &quot;2.13.11&quot;
+  def scalaVersion = "2.13.11"
 
   /** Total number of lines in module's source files */
   def lineCount = T{
@@ -837,7 +837,7 @@ object foo extends RootModule with ScalaModule {
 
   /** Generate resources using lineCount of sources */
   override def resources = T{
-    os.write(T.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
+    os.write(T.dest / "line-count.txt", "" + lineCount())
     Seq(PathRef(T.dest))
   }
 }</code></pre>
@@ -851,68 +851,69 @@ up <code>lineCount</code>:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="483px" height="76px" viewBox="0.00 0.00 483.15 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="483px" height="76px"
+ viewBox="0.00 0.00 483.15 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 479.15,-71.8 479.15,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 479.15,-71.8 479.15,4 -4,4"/>
 <!-- allSourceFiles -->
 <g id="node1" class="node">
 <title>allSourceFiles</title>
-<polygon fill="white" stroke="white" points="96.14,-67.7 -0.05,-67.7 -0.05,-43.1 96.14,-43.1 96.14,-67.7"></polygon>
+<polygon fill="white" stroke="white" points="96.14,-67.7 -0.05,-67.7 -0.05,-43.1 96.14,-43.1 96.14,-67.7"/>
 <text text-anchor="middle" x="48.05" y="-51.2" font-family="Times,serif" font-size="14.00">allSourceFiles</text>
 </g>
 <!-- lineCount -->
 <g id="node2" class="node">
 <title>lineCount</title>
-<polygon fill="white" stroke="black" points="203.43,-67.7 131.98,-67.7 131.98,-43.1 203.43,-43.1 203.43,-67.7"></polygon>
+<polygon fill="white" stroke="black" points="203.43,-67.7 131.98,-67.7 131.98,-43.1 203.43,-43.1 203.43,-67.7"/>
 <text text-anchor="middle" x="167.7" y="-51.2" font-family="Times,serif" font-size="14.00">lineCount</text>
 </g>
 <!-- allSourceFiles&#45;&gt;lineCount -->
 <g id="edge1" class="edge">
-<title>allSourceFiles-&gt;lineCount</title>
-<path fill="none" stroke="black" d="M96.22,-55.4C104.58,-55.4 113.27,-55.4 121.58,-55.4"></path>
-<polygon fill="black" stroke="black" points="121.83,-58.9 131.83,-55.4 121.83,-51.9 121.83,-58.9"></polygon>
+<title>allSourceFiles&#45;&gt;lineCount</title>
+<path fill="none" stroke="black" d="M96.22,-55.4C104.58,-55.4 113.27,-55.4 121.58,-55.4"/>
+<polygon fill="black" stroke="black" points="121.83,-58.9 131.83,-55.4 121.83,-51.9 121.83,-58.9"/>
 </g>
 <!-- resources -->
 <g id="node3" class="node">
 <title>resources</title>
-<polygon fill="white" stroke="black" points="325.01,-67.7 256.3,-67.7 256.3,-43.1 325.01,-43.1 325.01,-67.7"></polygon>
+<polygon fill="white" stroke="black" points="325.01,-67.7 256.3,-67.7 256.3,-43.1 325.01,-43.1 325.01,-67.7"/>
 <text text-anchor="middle" x="290.65" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- lineCount&#45;&gt;resources -->
 <g id="edge2" class="edge">
-<title>lineCount-&gt;resources</title>
-<path fill="none" stroke="black" d="M203.36,-55.4C216.6,-55.4 231.87,-55.4 245.85,-55.4"></path>
-<polygon fill="black" stroke="black" points="246.24,-58.9 256.24,-55.4 246.24,-51.9 246.24,-58.9"></polygon>
+<title>lineCount&#45;&gt;resources</title>
+<path fill="none" stroke="black" d="M203.36,-55.4C216.6,-55.4 231.87,-55.4 245.85,-55.4"/>
+<polygon fill="black" stroke="black" points="246.24,-58.9 256.24,-55.4 246.24,-51.9 246.24,-58.9"/>
 </g>
 <!-- ... -->
 <g id="node4" class="node">
 <title>...</title>
-<polygon fill="white" stroke="white" points="404.74,-45.7 377.73,-45.7 377.73,-21.1 404.74,-21.1 404.74,-45.7"></polygon>
+<polygon fill="white" stroke="white" points="404.74,-45.7 377.73,-45.7 377.73,-21.1 404.74,-21.1 404.74,-45.7"/>
 <text text-anchor="middle" x="391.24" y="-29.2" font-family="Times,serif" font-size="14.00">...</text>
 </g>
 <!-- resources&#45;&gt;... -->
 <g id="edge3" class="edge">
-<title>resources-&gt;...</title>
-<path fill="none" stroke="black" d="M325.03,-47.95C339.03,-44.83 354.94,-41.28 367.55,-38.46"></path>
-<polygon fill="black" stroke="black" points="368.64,-41.81 377.64,-36.21 367.12,-34.97 368.64,-41.81"></polygon>
+<title>resources&#45;&gt;...</title>
+<path fill="none" stroke="black" d="M325.03,-47.95C339.03,-44.83 354.94,-41.28 367.55,-38.46"/>
+<polygon fill="black" stroke="black" points="368.64,-41.81 377.64,-36.21 367.12,-34.97 368.64,-41.81"/>
 </g>
 <!-- run -->
 <g id="node5" class="node">
 <title>run</title>
-<polygon fill="white" stroke="white" points="474.98,-45.7 440.66,-45.7 440.66,-21.1 474.98,-21.1 474.98,-45.7"></polygon>
+<polygon fill="white" stroke="white" points="474.98,-45.7 440.66,-45.7 440.66,-21.1 474.98,-21.1 474.98,-45.7"/>
 <text text-anchor="middle" x="457.82" y="-29.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- ...&#45;&gt;run -->
 <g id="edge4" class="edge">
-<title>...-&gt;run</title>
-<path fill="none" stroke="black" d="M404.69,-33.4C411.88,-33.4 421.22,-33.4 430,-33.4"></path>
-<polygon fill="black" stroke="black" points="430.25,-36.9 440.25,-33.4 430.25,-29.9 430.25,-36.9"></polygon>
+<title>...&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M404.69,-33.4C411.88,-33.4 421.22,-33.4 430,-33.4"/>
+<polygon fill="black" stroke="black" points="430.25,-36.9 440.25,-33.4 430.25,-29.9 430.25,-36.9"/>
 </g>
 <!-- resources.super -->
 <g id="node6" class="node">
 <title>resources.super</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="341.83,-24.7 239.48,-24.7 239.48,-0.1 341.83,-0.1 341.83,-24.7"></polygon>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="341.83,-24.7 239.48,-24.7 239.48,-0.1 341.83,-0.1 341.83,-24.7"/>
 <text text-anchor="middle" x="290.65" y="-8.2" font-family="Times,serif" font-size="14.00">resources.super</text>
 </g>
 <!-- resources.super&#45;&gt;... -->
@@ -954,7 +955,7 @@ most real-world projects.</p>
 <p>This customization is done in a principled fashion familiar to most
 programmers - object-orienting overrides - rather than ad-hoc
 monkey-patching or mutation common in other build tools. You never have
-&quot;spooky action at a distance&quot; affecting your build / graph definition, and
+"spooky action at a distance" affecting your build / graph definition, and
 your IDE can always help you find the final override of any particular build
 target as well as where any overriden implementations may be defined.</p>
 </div>
@@ -979,26 +980,26 @@ maintainable even as the complexity of your project grows.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
-  def scalaVersion = &quot;2.13.11&quot;
+  def scalaVersion = "2.13.11"
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def testFramework = "utest.runner.Framework"
   }
 }
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
+  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
 }
 
 object bar extends MyModule {
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;)
+  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This example contains a simple Mill build with two modules, <code>foo</code> and <code>bar</code>.
-We don’t mark either module as top-level using <code>extends RootModule</code>, so
+We don&#8217;t mark either module as top-level using <code>extends RootModule</code>, so
 running tasks needs to use the module name as the prefix e.g. <code>foo.run</code> or
 <code>bar.run</code>. You can define multiple modules the same way you define a single
 module, using <code>def moduleDeps</code> to define the relationship between them.</p>
@@ -1061,7 +1062,7 @@ Bar.value: &lt;h1&gt;world&lt;/h1&gt;
 </div>
 </div>
 <div class="paragraph">
-<p>Mill’s evaluator will ensure that the modules are compiled in the right
+<p>Mill&#8217;s evaluator will ensure that the modules are compiled in the right
 order, and recompiled as necessary when source code in each module changes.</p>
 </div>
 <div class="paragraph">
@@ -1074,8 +1075,8 @@ targets.</p>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 1. Wildcards and brace-expansion</caption>
 <colgroup>
-<col style="width: 50%;" />
-<col style="width: 50%;" />
+<col style="width: 50%;">
+<col style="width: 50%;">
 </colgroup>
 <tbody>
 <tr>
@@ -1130,7 +1131,7 @@ preceding it with a backslash (<code>\</code>).</p>
 <h2 id="_watch_and_re_evaluate"><a class="anchor" href="#_watch_and_re_evaluate"></a>Watch and Re-evaluate</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can use the <code>--watch</code> flag to make Mill watch a task’s inputs,
+<p>You can use the <code>--watch</code> flag to make Mill watch a task&#8217;s inputs,
 re-evaluating the task as necessary when the inputs
 change:</p>
 </div>
@@ -1143,8 +1144,8 @@ $ mill -w foo.run</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill’s <code>--watch</code> flag watches both the files you are building using Mill, as
-well as Mill’s own <code>build.sc</code> file and anything it imports, so any changes to
+<p>Mill&#8217;s <code>--watch</code> flag watches both the files you are building using Mill, as
+well as Mill&#8217;s own <code>build.sc</code> file and anything it imports, so any changes to
 your <code>build.sc</code> will automatically get picked up.</p>
 </div>
 <div class="paragraph">
@@ -1186,18 +1187,18 @@ To disable parallel execution use <code>--jobs 1</code>. This is currently the d
 </div>
 <div class="paragraph">
 <p><code>mill -j</code> generates an output file in <code>out/mill-chrome-profile.json</code> that can be
-loaded into the Chrome browser’s <code>chrome://tracing</code> page for visualization.
-This can make it much easier to analyze your parallel runs to find out what’s
+loaded into the Chrome browser&#8217;s <code>chrome://tracing</code> page for visualization.
+This can make it much easier to analyze your parallel runs to find out what&#8217;s
 taking the most time:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/ChromeTracing.png" alt="ChromeTracing.png" />
+<img src="_images/ChromeTracing.png" alt="ChromeTracing.png">
 </div>
 </div>
 <div class="paragraph">
 <p>Please note that the maximal possible parallelism depends on your project.
-Tasks that depend on each other can’t be processed in parallel.</p>
+Tasks that depend on each other can&#8217;t be processed in parallel.</p>
 </div>
 </div>
 </div>
@@ -1271,9 +1272,9 @@ usage: mill [options] [[target [target-options]] [+ [target ...]]]
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>

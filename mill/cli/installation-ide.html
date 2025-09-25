@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Installation &amp; IDE Setup :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/cli/installation-ide.html" />
-    <link rel="prev" href="../comparisons/sbt.html" />
-    <link rel="next" href="flags.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/cli/installation-ide.html">
+    <link rel="prev" href="../comparisons/sbt.html">
+    <link rel="next" href="flags.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -631,7 +630,7 @@
           <a href="../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.16</a>
@@ -660,7 +659,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -711,24 +710,24 @@ bootstrap script, included. You can also download the bootstrap script manually:
 </div>
 <div class="admonitionblock caution">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-caution" title="Caution"></i>
 </td>
 <td class="content">
 <div class="paragraph">
-<p><strong>Don’t use PowerShell 5.1 to install Mill!</strong>
-<br />
-PowerShell 5.1 is known to produce <code>UTF-16LE</code> encoded <code>.mill-version</code> files, which can’t be read by Mill.
+<p><strong>Don&#8217;t use PowerShell 5.1 to install Mill!</strong>
+<br>
+PowerShell 5.1 is known to produce <code>UTF-16LE</code> encoded <code>.mill-version</code> files, which can&#8217;t be read by Mill.
 You should update to Powershell 7 or newer.</p>
 </div>
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>Downloading a <code>mill</code> bootstrap script to the root of your project repository makes it easier for
-new contributors to build your project, as they don’t have to install Mill before they can start.
+new contributors to build your project, as they don&#8217;t have to install Mill before they can start.
 Anyone who wants to work with the project can simply use the <code>./mill</code> script directly.</p>
 </div>
 <div class="listingblock">
@@ -768,10 +767,10 @@ Mill native executables are supported on the following OS/CPU combinations:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;" />
-<col style="width: 25%;" />
-<col style="width: 25%;" />
-<col style="width: 25%;" />
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
 </colgroup>
 <tbody>
 <tr>
@@ -797,7 +796,7 @@ Mill native executables are supported on the following OS/CPU combinations:</p>
 <div class="paragraph">
 <p>Notably, Mill native executables <em>do not</em> support Windows-ARM, due to limitations in the
 upstream Graal Native Image tooling (see <a href="https://github.com/oracle/graal/issues/9215">oracle/graal#9215</a>).
-If you are on a platform not supported by Mill’s native executables, Mill uses the
+If you are on a platform not supported by Mill&#8217;s native executables, Mill uses the
 JVM-based launcher instead. You can also opt-in to the JVM launcher on other platforms
 by adding a a <code>-jvm</code> suffix on the Mill version:</p>
 </div>
@@ -807,7 +806,7 @@ by adding a a <code>-jvm</code> suffix on the Mill version:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill’s JVM launcher imposes some Java startup overhead (~100ms) over the native launcher
+<p>Mill&#8217;s JVM launcher imposes some Java startup overhead (~100ms) over the native launcher
 when running Mill from the command line, and requires a JVM installed globally (version 11 or above)
 in order to run.</p>
 </div>
@@ -832,7 +831,7 @@ to select at the command line:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/TabCompleteCommand.png" alt="TabCompleteCommand" />
+<img src="../_images/basic/TabCompleteCommand.png" alt="TabCompleteCommand">
 </div>
 </div>
 <div class="paragraph">
@@ -841,11 +840,11 @@ that Mill takes:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/TabCompleteFlag.png" alt="TabCompleteFlag" />
+<img src="../_images/basic/TabCompleteFlag.png" alt="TabCompleteFlag">
 </div>
 </div>
 <div class="paragraph">
-<p>Mill’s command-line autocomplete also applies to custom <a href="../fundamentals/tasks.html#_commands" class="xref page">user-define commands</a>,
+<p>Mill&#8217;s command-line autocomplete also applies to custom <a href="../fundamentals/tasks.html#_commands" class="xref page">user-define commands</a>,
 such as <code>customCommand</code> below:</p>
 </div>
 <div class="listingblock">
@@ -855,9 +854,9 @@ import mill._, javalib._
 import mainargs.arg
 object foo extends JavaModule {
   def customCommand(
-    @arg(doc = &quot;string parameter to customCommand that controls this and that...&quot;)
+    @arg(doc = "string parameter to customCommand that controls this and that...")
     str: String,
-    @arg(doc = &quot;integer parameter to customCommand&quot;)
+    @arg(doc = "integer parameter to customCommand")
     int: Int) = Task.Command{
     // do stuff
   }
@@ -866,7 +865,7 @@ object foo extends JavaModule {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/TabCompleteCustomCommand.png" alt="TabCompleteCustomCommand" />
+<img src="../_images/basic/TabCompleteCustomCommand.png" alt="TabCompleteCustomCommand">
 </div>
 </div>
 <div class="paragraph">
@@ -887,7 +886,7 @@ assuming you want to register the script yourself (e.g. by placing it in a relev
 <h2 id="_github_syntax_highlighting"><a class="anchor" href="#_github_syntax_highlighting"></a>Github Syntax Highlighting</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Github doesn’t yet have built-in support for syntax highlighting <code>.mill</code> files appropriately
+<p>Github doesn&#8217;t yet have built-in support for syntax highlighting <code>.mill</code> files appropriately
 (see <a href="https://github.com/github-linguist/linguist/pull/7028">github-linguist/linguist#7028</a>)
 but you can set this up in your own projects by creating a <code>.gitattributes</code> file in the root
 of your Github repository</p>
@@ -928,7 +927,7 @@ choice which build system configuration to use for the import, which case select
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/IntellijSelectBsp.png" alt="IntellijSelectBsp" />
+<img src="../_images/basic/IntellijSelectBsp.png" alt="IntellijSelectBsp">
 </div>
 </div>
 <div class="paragraph">
@@ -937,12 +936,12 @@ as well as the code in the <code>build.mill</code>:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/IntellijApp.png" alt="IntellijApp" />
+<img src="../_images/basic/IntellijApp.png" alt="IntellijApp">
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/IntellijBuild.png" alt="IntellijBuild" />
+<img src="../_images/basic/IntellijBuild.png" alt="IntellijBuild">
 </div>
 </div>
 <div class="paragraph">
@@ -951,16 +950,16 @@ it by adding <code>*.mill</code> to the <code>Scala</code> file type:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/IntellijFileTypeConfig.png" alt="IntellijFileTypeConfig" />
+<img src="../_images/basic/IntellijFileTypeConfig.png" alt="IntellijFileTypeConfig">
 </div>
 </div>
 <div class="paragraph">
 <p>If you make changes to your Mill <code>build.mill</code>, you can ask Intellij to load
-those updates by opening the &quot;BSP&quot; tab and clicking the &quot;Refresh&quot; button</p>
+those updates by opening the "BSP" tab and clicking the "Refresh" button</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/IntellijRefresh.png" alt="IntellijRefresh" />
+<img src="../_images/basic/IntellijRefresh.png" alt="IntellijRefresh">
 </div>
 </div>
 <div class="sect3">
@@ -986,7 +985,7 @@ are using a less-common editor that does not have this support builtin.</p>
 <p>When running Mill in BSP mode, default output directory is
 <code>out/mill-bsp-out</code> under the project workspace. This ensures BSP mode is not blocked by regular
 Mill operations, however this also means that we need to compile the sources twice, which incurs
-extra CPU and memory usage. If you’d rather reuse regular <code>out/</code> directory, set
+extra CPU and memory usage. If you&#8217;d rather reuse regular <code>out/</code> directory, set
 the <code>MILL_NO_SEPARATE_BSP_OUTPUT_DIR</code> environment variable to <code>1</code> when running Mill in BSP mode.</p>
 </div>
 </div>
@@ -1043,7 +1042,7 @@ even if you are using it to build a Java project.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -1051,7 +1050,7 @@ even if you are using it to build a Java project.</p>
 Mill in VSCode only supports Java and Scala. Kotlin users are advised to use the free  IntelliJ IDEA Community Edition
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>Once you have the language server installed, you can ask VSCode to open any folder
@@ -1061,21 +1060,21 @@ as well as the code in the <code>build.mill</code>:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/VSCodeApp.png" alt="VSCodeApp" />
+<img src="../_images/basic/VSCodeApp.png" alt="VSCodeApp">
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/VSCodeBuild.png" alt="VSCodeBuild" />
+<img src="../_images/basic/VSCodeBuild.png" alt="VSCodeBuild">
 </div>
 </div>
 <div class="paragraph">
 <p>If you make changes to your Mill <code>build.mill</code>, you can ask VSCode to load
-those updates by opening the &quot;BSP&quot; tab and clicking the &quot;Refresh&quot; button</p>
+those updates by opening the "BSP" tab and clicking the "Refresh" button</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/VSCodeRefresh.png" alt="VSCodeRefresh" />
+<img src="../_images/basic/VSCodeRefresh.png" alt="VSCodeRefresh">
 </div>
 </div>
 </div>
@@ -1091,7 +1090,7 @@ installed in your IDE which enables the support for Java projects.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -1101,12 +1100,12 @@ use either VSCode (supporting Scala) or IntelliJ IDEA (supporting both Scala
 and Kotlin).
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>Since Mill build files are written in Scala and there is no Eclipse plug-in
 providing support for Scala, Mill itself or the Build Server Protocol (BSP)
-actively maintained, this won’t provide assistance in <code>build.mill</code> files.</p>
+actively maintained, this won&#8217;t provide assistance in <code>build.mill</code> files.</p>
 </div>
 <div class="paragraph">
 <p>To generate Eclipse project files, run:</p>
@@ -1131,18 +1130,18 @@ many Eclipse projects were generated and their respective location.</p>
 </div>
 <div class="admonitionblock caution">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-caution" title="Caution"></i>
 </td>
 <td class="content">
-Be aware that, contrary to IntelliJ IDEA, in Eclipse there won’t be
+Be aware that, contrary to IntelliJ IDEA, in Eclipse there won&#8217;t be
 only one project for your whole Mill project, but multiple ones depending on
 your project structure. There might be dependencies between the generated
 Eclipse projects.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>After the files are generated, you can import the project(s) into an existing
@@ -1150,7 +1149,7 @@ Eclipse workspace in your IDE.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/EclipseImportProjects.png" alt="EclipseImportProjects" />
+<img src="../_images/basic/EclipseImportProjects.png" alt="EclipseImportProjects">
 </div>
 </div>
 <div class="paragraph">
@@ -1159,7 +1158,7 @@ folder or only a subset.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/EclipseSelectProjects.png" alt="EclipseSelectProjects" />
+<img src="../_images/basic/EclipseSelectProjects.png" alt="EclipseSelectProjects">
 </div>
 </div>
 <div class="paragraph">
@@ -1177,8 +1176,8 @@ inside the Eclipse workspace by selecting them and hitting <code>F5</code>.</p>
 <div class="sect2">
 <h3 id="_debugging_ide_issues"><a class="anchor" href="#_debugging_ide_issues"></a>Debugging IDE issues</h3>
 <div class="paragraph">
-<p>Mill’s BSP IDE integration writes to log files under
-<code>out/mill-bsp/</code>, where you can find various information about what’s
+<p>Mill&#8217;s BSP IDE integration writes to log files under
+<code>out/mill-bsp/</code>, where you can find various information about what&#8217;s
 going on. It contains regular Mill output accompanied by additional BSP
 client-server communication details. This can be useful to look at if your
 IDE fails to import your Mill project</p>
@@ -1206,7 +1205,7 @@ Resolution failed for 1 modules:
 </div>
 <div class="paragraph">
 <p>It is expected that basic commands (e.g. clean) will not work, as Mill saying it is
-unable to resolve it’s own, fundamental, dependencies from the default Maven Central
+unable to resolve it&#8217;s own, fundamental, dependencies from the default Maven Central
 JVM package repository. Under such circumstances, you
 will normally have access to some proxy, or other corporate repository which resolves
 maven artifacts.</p>
@@ -1271,7 +1270,7 @@ automatically open a pull request to update your Mill version (in
 </div>
 <div class="admonitionblock tip">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-tip" title="Tip"></i>
 </td>
@@ -1281,7 +1280,7 @@ Scala Steward can also
 and keep them up-to-date.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 </div>
 <div class="sect2">
@@ -1334,7 +1333,7 @@ will download it for you to try it out in your project.</p>
 <div class="sectionbody">
 <div class="admonitionblock caution">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-caution" title="Caution"></i>
 </td>
@@ -1345,11 +1344,11 @@ but the officially supported way to use Mill is via the bootstrap script above, 
 maintainers may be unable to help you if you have issues with some alternate installation method.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="admonitionblock caution">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-caution" title="Caution"></i>
 </td>
@@ -1361,7 +1360,7 @@ the <code>MILL_VERSION</code> environment variable or need support for <code>.mi
 a <a href="#_bootstrap_scripts">bootstrap script</a> instead.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="sect2">
 <h3 id="_os_x"><a class="anchor" href="#_os_x"></a>OS X</h3>
@@ -1411,7 +1410,7 @@ a <a href="#_bootstrap_scripts">bootstrap script</a> instead.
 <a href="https://github.com/com-lihaoyi/mill/releases/download/{version}/{version}-assembly">Github releases</a>, and save it as <code>mill.bat</code>.</p>
 </div>
 <div class="paragraph">
-<p>If you’re using <a href="https://scoop.sh">Scoop</a> you can install Mill via</p>
+<p>If you&#8217;re using <a href="https://scoop.sh">Scoop</a> you can install Mill via</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1422,7 +1421,7 @@ a <a href="#_bootstrap_scripts">bootstrap script</a> instead.
 <div class="sect2">
 <h3 id="_wsl_msys2_cycgin_git_bash"><a class="anchor" href="#_wsl_msys2_cycgin_git_bash"></a>WSL / MSYS2 / Cycgin / Git-Bash</h3>
 <div class="paragraph">
-<p>Mill also works on &quot;sh&quot; environments on Windows (e.g.,
+<p>Mill also works on "sh" environments on Windows (e.g.,
 <a href="https://www.msys2.org">MSYS2</a>,
 <a href="https://www.cygwin.com">Cygwin</a>,
 <a href="https://gitforwindows.org">Git-Bash</a>,
@@ -1441,7 +1440,7 @@ section. Note that:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sed -i '0,/-cp &quot;\$0&quot;/{s/-cp &quot;\$0&quot;/-cp `cygpath -w &quot;\$0&quot;`/}; 0,/-cp &quot;\$0&quot;/{s/-cp &quot;\$0&quot;/-cp `cygpath -w &quot;\$0&quot;`/}' /usr/local/bin/mill</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill</code></pre>
 </div>
 </div>
 </div>
@@ -1449,7 +1448,7 @@ section. Note that:</p>
 <h3 id="_docker"><a class="anchor" href="#_docker"></a>Docker</h3>
 <div class="paragraph">
 <p>You can download and run
-a <a href="https://hub.docker.com/r/nightscape/scala-mill/">&quot;Docker image containing OpenJDK, Scala and Mill&quot;</a> using</p>
+a <a href="https://hub.docker.com/r/nightscape/scala-mill/">"Docker image containing OpenJDK, Scala and Mill"</a> using</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1461,12 +1460,12 @@ a <a href="https://hub.docker.com/r/nightscape/scala-mill/">&quot;Docker image c
 <div class="sect2">
 <h3 id="_manual"><a class="anchor" href="#_manual"></a>Manual</h3>
 <div class="paragraph">
-<p>To get started, download Mill and install it into your HOME &quot;.local/bin&quot; via the following
+<p>To get started, download Mill and install it into your HOME ".local/bin" via the following
 <code>curl</code>/<code>chmod</code> command:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sh -c &quot;curl -L https://github.com/com-lihaoyi/mill/releases/download/{version}/{version} &gt; ~/.local/bin/mill &amp;&amp; chmod +x ~/.local/bin/mill&quot;</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sh -c "curl -L https://github.com/com-lihaoyi/mill/releases/download/{version}/{version} &gt; ~/.local/bin/mill &amp;&amp; chmod +x ~/.local/bin/mill"</code></pre>
 </div>
 </div>
 </div>
@@ -1505,9 +1504,9 @@ There are various issues, especially with interactive mode.</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>

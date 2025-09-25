@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Android Initial Setup :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/android/android-initial-setup.html" />
-    <link rel="prev" href="../kotlinlib/web-examples.html" />
-    <link rel="next" href="ide.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/android/android-initial-setup.html">
+    <link rel="prev" href="../kotlinlib/web-examples.html">
+    <link rel="next" href="ide.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -631,7 +630,7 @@
           <a href="../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.16</a>
@@ -660,7 +659,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -679,7 +678,7 @@
 <h2 id="_1_install_mill"><a class="anchor" href="#_1_install_mill"></a>1. Install Mill</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Don’t have Mill installed yet?
+<p>Don&#8217;t have Mill installed yet?
 You can follow the steps as described in <a href="../cli/installation-ide.html" class="xref page">Installation &amp; IDE Setup</a></p>
 </div>
 </div>
@@ -699,7 +698,7 @@ To use a different version, override <code>cmdlineToolsVersion</code> in your <c
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -711,14 +710,14 @@ You can also configure Mill to automatically accept the licenses by overriding <
 </div>
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object androidSdkModule0 extends AndroidSdkModule {
-  override def cmdlineToolsVersion = &quot;17.0&quot;
+  override def cmdlineToolsVersion = "17.0"
   // Or
-  override def cmdlineToolsVersion = &quot;latest&quot;
+  override def cmdlineToolsVersion = "latest"
 
   // Automatically accept licenses
   override def autoAcceptLicenses = true
@@ -727,7 +726,7 @@ You can also configure Mill to automatically accept the licenses by overriding <
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -738,7 +737,7 @@ If any issues occur with the automatic installation, you can manually install th
 </div>
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 </div>
 </div>
@@ -777,7 +776,7 @@ If any issues occur with the automatic installation, you can manually install th
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/android/AndroidStudio.png" alt="AndroidStudio.png" />
+<img src="../_images/android/AndroidStudio.png" alt="AndroidStudio.png">
 </div>
 </div>
 </div>
@@ -791,15 +790,15 @@ If any issues occur with the automatic installation, you can manually install th
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">override def androidIsDebug = Task { false }
-def androidReleaseKeyName: Option[String] = Some(&quot;releaseKey.jks&quot;)
-def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
-def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
-def androidReleaseKeyStorePass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }</code></pre>
+def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Make sure to replace the values with your actual keystore information.
-If you don’t have a keystore yet, you can create one using the <code>keytool</code> command:</p>
+If you don&#8217;t have a keystore yet, you can create one using the <code>keytool</code> command:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -820,9 +819,9 @@ If you don’t have a keystore yet, you can create one using the <code>keytool</
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>

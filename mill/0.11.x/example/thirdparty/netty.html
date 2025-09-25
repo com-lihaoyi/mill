@@ -1,16 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/thirdparty/netty.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/thirdparty/netty.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -41,10 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -63,9 +62,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -362,7 +361,7 @@
           <a href="../../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../../../0.12.x/index.html">0.12.16</a>
@@ -391,7 +390,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -415,60 +414,60 @@ import $ivy.`ant:ant-optional:1.5.3-1`</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def isOSX = System.getProperty(&quot;os.name&quot;).toLowerCase.contains(&quot;mac&quot;)
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def isOSX = System.getProperty("os.name").toLowerCase.contains("mac")
 
 trait NettyBaseModule extends MavenModule{
-  def javacOptions = Seq(&quot;-source&quot;, &quot;1.8&quot;, &quot;-target&quot;, &quot;1.8&quot;)
+  def javacOptions = Seq("-source", "1.8", "-target", "1.8")
 }
 trait NettyBaseTestSuiteModule extends NettyBaseModule with TestModule.Junit5{
 
-  def testFramework = &quot;com.github.sbt.junit.jupiter.api.JupiterFramework&quot;
+  def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
   def ivyDeps = Agg(
-    ivy&quot;com.github.sbt.junit:jupiter-interface:0.11.2&quot;,
-    ivy&quot;org.hamcrest:hamcrest-library:1.3&quot;,
-    ivy&quot;org.assertj:assertj-core:3.18.0&quot;,
-    ivy&quot;org.junit.jupiter:junit-jupiter-api:5.9.0&quot;,
-    ivy&quot;org.junit.jupiter:junit-jupiter-params:5.9.0&quot;,
-    ivy&quot;org.mockito:mockito-core:2.18.3&quot;,
-    ivy&quot;org.reflections:reflections:0.10.2&quot;,
-    ivy&quot;com.google.code.gson:gson:2.8.9&quot;,
-    ivy&quot;com.google.guava:guava:28.2-jre&quot;,
-    ivy&quot;org.jctools:jctools-core:4.0.5&quot;,
-    ivy&quot;io.netty:netty-tcnative-classes:2.0.65.Final&quot;,
-    ivy&quot;io.netty:netty-tcnative-boringssl-static:2.0.65.Final&quot;,
-    ivy&quot;com.barchart.udt:barchart-udt-bundle:2.3.0&quot;,
-    ivy&quot;com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0&quot;,
-    ivy&quot;com.aayushatharva.brotli4j:native-linux-aarch64:1.16.0&quot;,
-    ivy&quot;com.aayushatharva.brotli4j:native-linux-riscv64:1.16.0&quot;,
-    ivy&quot;com.aayushatharva.brotli4j:native-osx-x86_64:1.16.0&quot;,
-    ivy&quot;com.aayushatharva.brotli4j:native-osx-aarch64:1.16.0&quot;,
-    ivy&quot;com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0&quot;,
-    ivy&quot;org.jboss.marshalling:jboss-marshalling:2.0.5.Final&quot;,
-    ivy&quot;com.aayushatharva.brotli4j:brotli4j:1.16.0&quot;,
-    ivy&quot;org.apache.commons:commons-compress:1.26.0&quot;,
-    ivy&quot;com.jcraft:jzlib:1.1.3&quot;,
-    ivy&quot;net.jpountz.lz4:lz4:1.3.0&quot;,
-    ivy&quot;com.ning:compress-lzf:1.0.3&quot;,
-    ivy&quot;com.github.jponge:lzma-java:1.3&quot;,
-    ivy&quot;com.github.luben:zstd-jni:1.5.5-11&quot;,
-    ivy&quot;ch.qos.logback:logback-classic:1.1.7&quot;,
-    ivy&quot;org.eclipse.jetty.npn:npn-api:1.1.1.v20141010&quot;,
-    ivy&quot;org.bouncycastle:bcpkix-jdk15on:1.69&quot;,
-    ivy&quot;org.bouncycastle:bctls-jdk15on:1.69&quot;,
+    ivy"com.github.sbt.junit:jupiter-interface:0.11.2",
+    ivy"org.hamcrest:hamcrest-library:1.3",
+    ivy"org.assertj:assertj-core:3.18.0",
+    ivy"org.junit.jupiter:junit-jupiter-api:5.9.0",
+    ivy"org.junit.jupiter:junit-jupiter-params:5.9.0",
+    ivy"org.mockito:mockito-core:2.18.3",
+    ivy"org.reflections:reflections:0.10.2",
+    ivy"com.google.code.gson:gson:2.8.9",
+    ivy"com.google.guava:guava:28.2-jre",
+    ivy"org.jctools:jctools-core:4.0.5",
+    ivy"io.netty:netty-tcnative-classes:2.0.65.Final",
+    ivy"io.netty:netty-tcnative-boringssl-static:2.0.65.Final",
+    ivy"com.barchart.udt:barchart-udt-bundle:2.3.0",
+    ivy"com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
+    ivy"com.aayushatharva.brotli4j:native-linux-aarch64:1.16.0",
+    ivy"com.aayushatharva.brotli4j:native-linux-riscv64:1.16.0",
+    ivy"com.aayushatharva.brotli4j:native-osx-x86_64:1.16.0",
+    ivy"com.aayushatharva.brotli4j:native-osx-aarch64:1.16.0",
+    ivy"com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0",
+    ivy"org.jboss.marshalling:jboss-marshalling:2.0.5.Final",
+    ivy"com.aayushatharva.brotli4j:brotli4j:1.16.0",
+    ivy"org.apache.commons:commons-compress:1.26.0",
+    ivy"com.jcraft:jzlib:1.1.3",
+    ivy"net.jpountz.lz4:lz4:1.3.0",
+    ivy"com.ning:compress-lzf:1.0.3",
+    ivy"com.github.jponge:lzma-java:1.3",
+    ivy"com.github.luben:zstd-jni:1.5.5-11",
+    ivy"ch.qos.logback:logback-classic:1.1.7",
+    ivy"org.eclipse.jetty.npn:npn-api:1.1.1.v20141010",
+    ivy"org.bouncycastle:bcpkix-jdk15on:1.69",
+    ivy"org.bouncycastle:bctls-jdk15on:1.69",
   )
 
   def forkArgs = Seq(
-    &quot;-DnativeImage.handlerMetadataGroupId=io.netty&quot;,
-    &quot;-Dio.netty.bootstrap.extensions=serviceload&quot;,
-    &quot;-XX:+AllowRedefinitionToAddDeleteMethods&quot;,
-    &quot;--add-exports&quot;, &quot;java.base/sun.security.x509=ALL-UNNAMED&quot;,
-    &quot;-enableassertions&quot;
+    "-DnativeImage.handlerMetadataGroupId=io.netty",
+    "-Dio.netty.bootstrap.extensions=serviceload",
+    "-XX:+AllowRedefinitionToAddDeleteMethods",
+    "--add-exports", "java.base/sun.security.x509=ALL-UNNAMED",
+    "-enableassertions"
   )
 
   def compile = T{
     // Hack to satisfy fragile tests that look for /test-classes/ in the file paths
     val sup = super.compile()
-    val testClasses = T.dest / &quot;test-classes&quot;
+    val testClasses = T.dest / "test-classes"
     if (os.exists(sup.classes.path)) os.copy(sup.classes.path, testClasses, createFolders = true)
     sup.copy(classes = PathRef(testClasses))
   }
@@ -485,7 +484,7 @@ trait NettyModule extends NettyBaseModule{
     def ivyDeps = super.ivyDeps() ++ testIvyDeps()
     def forkWorkingDir = NettyModule.this.millSourcePath
     def forkArgs = super.forkArgs() ++ Seq(
-      &quot;-Dnativeimage.handlerMetadataArtifactId=netty-&quot; + NettyModule.this.millModuleSegments.parts.last,
+      "-Dnativeimage.handlerMetadataArtifactId=netty-" + NettyModule.this.millModuleSegments.parts.last,
     )
 
   }
@@ -493,45 +492,45 @@ trait NettyModule extends NettyBaseModule{
 
 trait NettyJniModule extends NettyModule {
   def jniLibraryName: T[String]
-  def cSources = T.source(millSourcePath / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;)
+  def cSources = T.source(millSourcePath / "src" / "main" / "c")
   def resources = T{
-    os.copy(clang().path, T.dest / &quot;META-INF&quot; / &quot;native&quot; / jniLibraryName(), createFolders = true)
+    os.copy(clang().path, T.dest / "META-INF" / "native" / jniLibraryName(), createFolders = true)
     Seq(PathRef(T.dest))
   }
   def clang = T{
     val Seq(sourceJar) = defaultResolver()
       .resolveDeps(
-        Agg(ivy&quot;io.netty:netty-jni-util:0.0.9.Final&quot;).map(bindDependency()),
+        Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency()),
         sources = true
       )
       .toSeq
 
-    os.makeDir.all(T.dest  / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;)
-    os.proc(&quot;jar&quot;, &quot;xf&quot;, sourceJar.path).call(cwd = T.dest  / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;)
+    os.makeDir.all(T.dest  / "src" / "main" / "c")
+    os.proc("jar", "xf", sourceJar.path).call(cwd = T.dest  / "src" / "main" / "c")
 
     os.proc(
-      &quot;clang&quot;,
+      "clang",
       // CFLAGS
-      &quot;-O3&quot;, &quot;-Werror&quot;, &quot;-fno-omit-frame-pointer&quot;,
-      &quot;-Wunused-variable&quot;, &quot;-fvisibility=hidden&quot;,
-      &quot;-I&quot; + (T.dest / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;),
-      &quot;-I&quot; + `transport-native-unix-common`.cHeaders().path,
-      &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/&quot;,
-      &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/darwin&quot;,
-      &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/linux&quot;,
+      "-O3", "-Werror", "-fno-omit-frame-pointer",
+      "-Wunused-variable", "-fvisibility=hidden",
+      "-I" + (T.dest / "src" / "main" / "c"),
+      "-I" + `transport-native-unix-common`.cHeaders().path,
+      "-I" + sys.props("java.home") + "/include/",
+      "-I" + sys.props("java.home") + "/include/darwin",
+      "-I" + sys.props("java.home") + "/include/linux",
       // LD_FLAGS
-      &quot;-Wl,-weak_library,&quot; + (`transport-native-unix-common`.make()._1.path / &quot;libnetty-unix-common.a&quot;),
-      &quot;-Wl,-platform_version,macos,10.9,10.9&quot;,
-      &quot;-Wl,-single_module&quot;,
-      &quot;-Wl,-undefined&quot;,
-      &quot;-Wl,dynamic_lookup&quot;,
-      &quot;-fno-common&quot;,
-      &quot;-DPIC&quot;,
+      "-Wl,-weak_library," + (`transport-native-unix-common`.make()._1.path / "libnetty-unix-common.a"),
+      "-Wl,-platform_version,macos,10.9,10.9",
+      "-Wl,-single_module",
+      "-Wl,-undefined",
+      "-Wl,dynamic_lookup",
+      "-fno-common",
+      "-DPIC",
       // sources
       os.list(cSources().path)
-    ).call(cwd = T.dest, env = Map(&quot;MACOSX_DEPLOYMENT_TARGET&quot; -&gt; &quot;10.9&quot;))
+    ).call(cwd = T.dest, env = Map("MACOSX_DEPLOYMENT_TARGET" -&gt; "10.9"))
 
-    PathRef(T.dest / &quot;a.out&quot;)
+    PathRef(T.dest / "a.out")
   }
 }
 
@@ -546,24 +545,24 @@ object bom extends NettyModule{
 
 object buffer extends NettyModule{
   def moduleDeps = Seq(common)
-  def testIvyDeps = Agg(ivy&quot;org.jctools:jctools-core:4.0.5&quot;)
+  def testIvyDeps = Agg(ivy"org.jctools:jctools-core:4.0.5")
 }
 
 object codec extends NettyModule {
   def moduleDeps = Seq(common, buffer, transport)
   def testModuleDeps = Seq(transport.test)
   def ivyDeps = Agg(
-    ivy&quot;com.google.protobuf:protobuf-java:2.6.1&quot;,
+    ivy"com.google.protobuf:protobuf-java:2.6.1",
   )
   def compileIvyDeps = Agg(
-    ivy&quot;org.jboss.marshalling:jboss-marshalling:2.0.5.Final&quot;,
-    ivy&quot;com.aayushatharva.brotli4j:brotli4j:1.16.0&quot;,
-    ivy&quot;com.jcraft:jzlib:1.1.3&quot;,
-    ivy&quot;net.jpountz.lz4:lz4:1.3.0&quot;,
-    ivy&quot;com.ning:compress-lzf:1.0.3&quot;,
-    ivy&quot;com.github.jponge:lzma-java:1.3&quot;,
-    ivy&quot;com.github.luben:zstd-jni:1.5.5-11&quot;,
-    ivy&quot;com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-5&quot;,
+    ivy"org.jboss.marshalling:jboss-marshalling:2.0.5.Final",
+    ivy"com.aayushatharva.brotli4j:brotli4j:1.16.0",
+    ivy"com.jcraft:jzlib:1.1.3",
+    ivy"net.jpountz.lz4:lz4:1.3.0",
+    ivy"com.ning:compress-lzf:1.0.3",
+    ivy"com.github.jponge:lzma-java:1.3",
+    ivy"com.github.luben:zstd-jni:1.5.5-11",
+    ivy"com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-5",
   )
 }
 
@@ -581,11 +580,11 @@ object `codec-http` extends NettyModule{
   def moduleDeps = Seq(common, buffer, transport, codec, handler)
   def testModuleDeps = Seq(transport.test)
   def compileIvyDeps = Agg(
-    ivy&quot;com.jcraft:jzlib:1.1.3&quot;,
-    ivy&quot;com.aayushatharva.brotli4j:brotli4j:1.16.0&quot;,
+    ivy"com.jcraft:jzlib:1.1.3",
+    ivy"com.aayushatharva.brotli4j:brotli4j:1.16.0",
   )
   def testIvyDeps = Agg(
-    ivy&quot;com.aayushatharva.brotli4j:brotli4j:1.16.0&quot;,
+    ivy"com.aayushatharva.brotli4j:brotli4j:1.16.0",
   )
 }
 
@@ -593,7 +592,7 @@ object `codec-http2` extends NettyModule{
   def moduleDeps = Seq(common, buffer, transport, codec, handler, `codec-http`)
   def testModuleDeps = Seq(transport.test)
   def compileIvyDeps = Agg(
-    ivy&quot;com.aayushatharva.brotli4j:brotli4j:1.16.0&quot;,
+    ivy"com.aayushatharva.brotli4j:brotli4j:1.16.0",
   )
 }
 
@@ -631,43 +630,43 @@ object `codec-xml` extends NettyModule{
   def moduleDeps = Seq(buffer, transport, codec)
   def testModuleDeps = Seq(transport.test)
   def ivyDeps = Agg(
-    ivy&quot;com.fasterxml:aalto-xml:1.0.0&quot;
+    ivy"com.fasterxml:aalto-xml:1.0.0"
   )
 }
 
 object common extends NettyModule{
   def compileIvyDeps = Agg(
-    ivy&quot;org.jctools:jctools-core:4.0.5&quot;,
-    ivy&quot;org.graalvm.nativeimage:svm:19.3.6&quot;,
-    ivy&quot;org.jetbrains:annotations-java5:23.0.0&quot;,
-    ivy&quot;io.projectreactor.tools:blockhound:1.0.6.RELEASE&quot;,
-    ivy&quot;commons-logging:commons-logging:1.2&quot;,
-    ivy&quot;org.apache.logging.log4j:log4j-api:2.17.2&quot;,
-    ivy&quot;org.apache.logging.log4j:log4j-1.2-api:2.17.2&quot;,
-    ivy&quot;org.slf4j:slf4j-api:1.7.30&quot;,
+    ivy"org.jctools:jctools-core:4.0.5",
+    ivy"org.graalvm.nativeimage:svm:19.3.6",
+    ivy"org.jetbrains:annotations-java5:23.0.0",
+    ivy"io.projectreactor.tools:blockhound:1.0.6.RELEASE",
+    ivy"commons-logging:commons-logging:1.2",
+    ivy"org.apache.logging.log4j:log4j-api:2.17.2",
+    ivy"org.apache.logging.log4j:log4j-1.2-api:2.17.2",
+    ivy"org.slf4j:slf4j-api:1.7.30",
   )
   def testIvyDeps = Agg(
-    ivy&quot;org.jetbrains:annotations-java5:23.0.0&quot;,
-    ivy&quot;commons-logging:commons-logging:1.2&quot;,
-    ivy&quot;org.apache.logging.log4j:log4j-api:2.17.2&quot;,
-    ivy&quot;org.apache.logging.log4j:log4j-core:2.17.2&quot;,
-    ivy&quot;org.apache.logging.log4j:log4j-1.2-api:2.17.2&quot;,
-    ivy&quot;org.jctools:jctools-core:4.0.5&quot;,
+    ivy"org.jetbrains:annotations-java5:23.0.0",
+    ivy"commons-logging:commons-logging:1.2",
+    ivy"org.apache.logging.log4j:log4j-api:2.17.2",
+    ivy"org.apache.logging.log4j:log4j-core:2.17.2",
+    ivy"org.apache.logging.log4j:log4j-1.2-api:2.17.2",
+    ivy"org.jctools:jctools-core:4.0.5",
   )
 
-  def script = T.source(millSourcePath / &quot;src&quot; / &quot;main&quot; / &quot;script&quot;)
+  def script = T.source(millSourcePath / "src" / "main" / "script")
   def generatedSources0 = T{
     val shell = new groovy.lang.GroovyShell()
 
     val context = new java.util.HashMap[String, Object]
-    context.put(&quot;collection.template.dir&quot;, &quot;common/src/main/templates&quot;)
-    context.put(&quot;collection.template.test.dir&quot;, &quot;common/src/test/templates&quot;)
-    context.put(&quot;collection.src.dir&quot;, (T.dest / &quot;src&quot;).toString)
-    context.put(&quot;collection.testsrc.dir&quot;, (T.dest / &quot;testsrc&quot;).toString)
-    shell.setProperty(&quot;properties&quot;, context)
-    shell.setProperty(&quot;ant&quot;, new groovy.ant.AntBuilder())
-    shell.evaluate((script().path / &quot;codegen.groovy&quot;).toIO)
-    (PathRef(T.dest / &quot;src&quot;), PathRef(T.dest / &quot;testsrc&quot;))
+    context.put("collection.template.dir", "common/src/main/templates")
+    context.put("collection.template.test.dir", "common/src/test/templates")
+    context.put("collection.src.dir", (T.dest / "src").toString)
+    context.put("collection.testsrc.dir", (T.dest / "testsrc").toString)
+    shell.setProperty("properties", context)
+    shell.setProperty("ant", new groovy.ant.AntBuilder())
+    shell.evaluate((script().path / "codegen.groovy").toIO)
+    (PathRef(T.dest / "src"), PathRef(T.dest / "testsrc"))
   }
 
   def generatedSources = T{ Seq(generatedSources0()._1)}
@@ -679,9 +678,9 @@ object `dev-tools` extends NettyModule{
 
 object example extends NettyModule{
   def ivyDeps = Agg(
-    ivy&quot;org.bouncycastle:bcpkix-jdk15on:1.69&quot;,
-    ivy&quot;org.bouncycastle:bctls-jdk15on:1.69&quot;,
-    ivy&quot;com.sun.activation:javax.activation:1.2.0&quot;
+    ivy"org.bouncycastle:bcpkix-jdk15on:1.69",
+    ivy"org.bouncycastle:bctls-jdk15on:1.69",
+    ivy"com.sun.activation:javax.activation:1.2.0"
 
   )
   def moduleDeps = Seq(
@@ -700,19 +699,19 @@ object handler extends NettyModule{
   def moduleDeps = Seq(common, resolver, buffer, transport, `transport-native-unix-common`, codec)
   def testModuleDeps = Seq(transport.test)
   def compileIvyDeps = Agg(
-    ivy&quot;org.bouncycastle:bcpkix-jdk15on:1.69&quot;,
-    ivy&quot;org.bouncycastle:bctls-jdk15on:1.69&quot;,
-    ivy&quot;org.conscrypt:conscrypt-openjdk-uber:2.5.2&quot;,
-    ivy&quot;io.netty:netty-tcnative-classes:2.0.65.Final&quot;,
-    ivy&quot;org.eclipse.jetty.alpn:alpn-api:1.1.2.v20150522&quot;,
-    ivy&quot;org.eclipse.jetty.npn:npn-api:1.1.1.v20141010&quot;,
+    ivy"org.bouncycastle:bcpkix-jdk15on:1.69",
+    ivy"org.bouncycastle:bctls-jdk15on:1.69",
+    ivy"org.conscrypt:conscrypt-openjdk-uber:2.5.2",
+    ivy"io.netty:netty-tcnative-classes:2.0.65.Final",
+    ivy"org.eclipse.jetty.alpn:alpn-api:1.1.2.v20150522",
+    ivy"org.eclipse.jetty.npn:npn-api:1.1.1.v20141010",
   )
 
   def testIvyDeps = Agg(
-    ivy&quot;org.bouncycastle:bcpkix-jdk15on:1.69&quot;,
-    ivy&quot;org.bouncycastle:bctls-jdk15on:1.69&quot;,
-    ivy&quot;software.amazon.cryptools:AmazonCorrettoCryptoProvider:1.1.0;classifier=linux-x86_64&quot;,
-    ivy&quot;org.conscrypt:conscrypt-openjdk-uber:2.5.2&quot;,
+    ivy"org.bouncycastle:bcpkix-jdk15on:1.69",
+    ivy"org.bouncycastle:bctls-jdk15on:1.69",
+    ivy"software.amazon.cryptools:AmazonCorrettoCryptoProvider:1.1.0;classifier=linux-x86_64",
+    ivy"org.conscrypt:conscrypt-openjdk-uber:2.5.2",
 
   )
 }
@@ -725,8 +724,8 @@ object `handler-proxy` extends NettyModule{
 object `handler-ssl-ocsp` extends NettyModule{
   def moduleDeps = Seq(`codec-http`, transport, `resolver-dns`)
   def ivyDeps = Agg(
-    ivy&quot;org.bouncycastle:bcpkix-jdk15on:1.69&quot;,
-    ivy&quot;org.bouncycastle:bctls-jdk15on:1.69&quot;,
+    ivy"org.bouncycastle:bcpkix-jdk15on:1.69",
+    ivy"org.bouncycastle:bctls-jdk15on:1.69",
   )
 }
 
@@ -738,11 +737,11 @@ object microbench extends NettyModule{
   )
 
   def ivyDeps = Agg(
-    ivy&quot;org.junit.jupiter:junit-jupiter-api:5.9.0&quot;,
-    ivy&quot;org.jctools:jctools-core:4.0.5&quot;,
-    ivy&quot;org.openjdk.jmh:jmh-core:1.36&quot;,
-    ivy&quot;org.openjdk.jmh:jmh-generator-annprocess:1.36&quot;,
-    ivy&quot;org.agrona:Agrona:0.5.1&quot;
+    ivy"org.junit.jupiter:junit-jupiter-api:5.9.0",
+    ivy"org.jctools:jctools-core:4.0.5",
+    ivy"org.openjdk.jmh:jmh-core:1.36",
+    ivy"org.openjdk.jmh:jmh-generator-annprocess:1.36",
+    ivy"org.agrona:Agrona:0.5.1"
   )
 }
 
@@ -754,7 +753,7 @@ object `resolver-dns` extends NettyModule{
   def moduleDeps = Seq(common, buffer, resolver, transport, codec, `codec-dns`, handler)
   def testModuleDeps = Seq(transport.test)
   def testIvyDeps = Agg(
-    ivy&quot;org.apache.directory.server:apacheds-protocol-dns:1.5.7&quot;
+    ivy"org.apache.directory.server:apacheds-protocol-dns:1.5.7"
   )
 }
 
@@ -764,11 +763,11 @@ object `resolver-dns-classes-macos` extends NettyModule{
 
 
 object `resolver-dns-native-macos` extends NettyJniModule {
-  def jniLibraryName = &quot;libnetty_resolver_dns_native_macos_aarch_64.jnilib&quot;
+  def jniLibraryName = "libnetty_resolver_dns_native_macos_aarch_64.jnilib"
   def moduleDeps = Seq(resolver)
   def testModuleDeps = Seq(`resolver-dns`, `resolver-dns-classes-macos`)
   def testIvyDeps = Agg(
-    ivy&quot;org.apache.directory.server:apacheds-protocol-dns:1.5.7&quot;
+    ivy"org.apache.directory.server:apacheds-protocol-dns:1.5.7"
   )
 
 
@@ -777,8 +776,8 @@ object `resolver-dns-native-macos` extends NettyJniModule {
 object testsuite extends NettyTestSuiteModule{
   def moduleDeps = Seq(common, resolver, transport, `transport-sctp`, handler, `codec-http`, `transport-udt`)
   def ivyDeps = super.ivyDeps() ++ Agg(
-    ivy&quot;org.slf4j:slf4j-api:1.7.30&quot;,
-    ivy&quot;org.tukaani:xz:1.5&quot;,
+    ivy"org.slf4j:slf4j-api:1.7.30",
+    ivy"org.tukaani:xz:1.5",
   )
 }
 
@@ -791,10 +790,10 @@ object `testsuite-autobahn` extends NettyTestSuiteModule{
 <p>override def test(args: String*) = {
    val server = os.proc(assembly().path).spawn()
    os.proc(
-     &quot;docker&quot;, &quot;run&quot;, &quot;-it&quot;, &quot;--rm&quot;,
-     &quot;-p&quot;, &quot;9000:9000&quot;,
-     &quot;--name&quot;, &quot;fuzzingserver&quot;,
-     &quot;crossbario/autobahn-testsuite&quot;
+     "docker", "run", "-it", "--rm",
+     "-p", "9000:9000",
+     "--name", "fuzzingserver",
+     "crossbario/autobahn-testsuite"
    ).call()
    server.destroy()
  }</p>
@@ -808,55 +807,55 @@ object `testsuite-http2` extends NettyTestSuiteModule{
   def moduleDeps = Seq(common, buffer, transport, handler, `codec-http`, `codec-http2`)
   def h2Spec = T{
 
-    val isOSX = sys.props(&quot;os.name&quot;).toLowerCase.contains(&quot;mac&quot;)
-    val binaryName = if (isOSX) &quot;h2spec_darwin_amd64.tar.gz&quot; else &quot;h2spec_linux_amd64.tar.gz&quot;
-    val url = s&quot;https://github.com/summerwind/h2spec/releases/download/v2.6.0/$binaryName&quot;
-    os.write(T.dest / &quot;h2spec.tar.gz&quot;, requests.get(url))
+    val isOSX = sys.props("os.name").toLowerCase.contains("mac")
+    val binaryName = if (isOSX) "h2spec_darwin_amd64.tar.gz" else "h2spec_linux_amd64.tar.gz"
+    val url = s"https://github.com/summerwind/h2spec/releases/download/v2.6.0/$binaryName"
+    os.write(T.dest / "h2spec.tar.gz", requests.get(url))
 
-    os.proc(&quot;tar&quot;, &quot;xzf&quot;, T.dest / &quot;h2spec.tar.gz&quot;).call(cwd = T.dest)
-    PathRef(T.dest / &quot;h2spec&quot;)
+    os.proc("tar", "xzf", T.dest / "h2spec.tar.gz").call(cwd = T.dest)
+    PathRef(T.dest / "h2spec")
   }
   override def test(args: String*) = T.command{
     val server = os.proc(assembly().path).spawn(stdout = os.Inherit)
     try {
       Thread.sleep(1000) // let the server start up
 
-      os.proc(h2Spec().path, &quot;-p9000&quot;, &quot;--junit-report&quot;, T.dest / &quot;report.xml&quot;)
+      os.proc(h2Spec().path, "-p9000", "--junit-report", T.dest / "report.xml")
         .call(stdout = os.Inherit, check = false)
 
       // Use the Scala XML library to parse and fish out the data we want from the report
-      val xmlFile = scala.xml.XML.loadFile((T.dest / &quot;report.xml&quot;).toIO)
-      val testCasesWithErrors = (xmlFile \\ &quot;testcase&quot;).filter { testcase =&gt;
-        (testcase \\ &quot;error&quot;).nonEmpty
+      val xmlFile = scala.xml.XML.loadFile((T.dest / "report.xml").toIO)
+      val testCasesWithErrors = (xmlFile \\ "testcase").filter { testcase =&gt;
+        (testcase \\ "error").nonEmpty
       }
 
       // Extract the package and classname
       val errorDetails = testCasesWithErrors.map { testcase =&gt;
-        val pkg = (testcase \ &quot;@package&quot;).text
-        val classname = (testcase \ &quot;@classname&quot;).text
+        val pkg = (testcase \ "@package").text
+        val classname = (testcase \ "@classname").text
         (pkg, classname)
       }
 
       // Check results
       val expectedFailures = Set(
-        (&quot;http2/3.5&quot;, &quot;Sends invalid connection preface&quot;),
-        (&quot;http2/5.1&quot;, &quot;half closed (remote): Sends a HEADERS frame&quot;),
-        (&quot;http2/5.1&quot;, &quot;closed: Sends a HEADERS frame&quot;),
-        (&quot;http2/5.1.1&quot;, &quot;Sends stream identifier that is numerically smaller than previous&quot;),
-        (&quot;http2/8.1.2.3&quot;, &quot;Sends a HEADERS frame that omits \&quot;:method\&quot; pseudo-header field&quot;),
-        (&quot;http2/8.1.2.3&quot;, &quot;Sends a HEADERS frame that omits \&quot;:scheme\&quot; pseudo-header field&quot;),
-        (&quot;http2/8.1.2.3&quot;, &quot;Sends a HEADERS frame that omits \&quot;:path\&quot; pseudo-header field&quot;),
+        ("http2/3.5", "Sends invalid connection preface"),
+        ("http2/5.1", "half closed (remote): Sends a HEADERS frame"),
+        ("http2/5.1", "closed: Sends a HEADERS frame"),
+        ("http2/5.1.1", "Sends stream identifier that is numerically smaller than previous"),
+        ("http2/8.1.2.3", "Sends a HEADERS frame that omits \":method\" pseudo-header field"),
+        ("http2/8.1.2.3", "Sends a HEADERS frame that omits \":scheme\" pseudo-header field"),
+        ("http2/8.1.2.3", "Sends a HEADERS frame that omits \":path\" pseudo-header field"),
       )
       assert(errorDetails.toSet.subsetOf(expectedFailures))
     } finally server.destroyForcibly()
-    (&quot;&quot;, Seq.empty[testrunner.TestResult])
+    ("", Seq.empty[testrunner.TestResult])
   }
 }
 
 object `testsuite-native` extends NettyTestSuiteModule{
   def moduleDeps = Seq(`transport-native-kqueue`, `resolver-dns-native-macos`, `resolver-dns-classes-macos`, `transport-native-epoll`)
   def testModuleDeps = Seq(`resolver-dns-classes-macos`)
-  override def sources = T.sources( millSourcePath / &quot;src&quot; / &quot;test&quot; / &quot;java&quot; )
+  override def sources = T.sources( millSourcePath / "src" / "test" / "java" )
 }
 
 object `testsuite-native-image` extends NettyTestSuiteModule{
@@ -882,20 +881,20 @@ object `testsuite-osgi` extends NettyTestSuiteModule{
     transport, `transport-sctp`, `transport-udt`
   )
 
-  override def sources = T.sources( millSourcePath / &quot;src&quot; / &quot;test&quot; / &quot;java&quot; )
+  override def sources = T.sources( millSourcePath / "src" / "test" / "java" )
 
   def ivyDeps = super.ivyDeps() ++ Agg(
-    ivy&quot;org.apache.felix:org.apache.felix.configadmin:1.9.14&quot;,
-    ivy&quot;org.ops4j.pax.exam:pax-exam-junit4:4.13.0&quot;,
-    ivy&quot;org.ops4j.pax.exam:pax-exam-container-native:4.13.0&quot;,
-    ivy&quot;org.ops4j.pax.exam:pax-exam-link-assembly:4.13.0&quot;,
-    ivy&quot;org.apache.felix:org.apache.felix.framework:6.0.2&quot;,
+    ivy"org.apache.felix:org.apache.felix.configadmin:1.9.14",
+    ivy"org.ops4j.pax.exam:pax-exam-junit4:4.13.0",
+    ivy"org.ops4j.pax.exam:pax-exam-container-native:4.13.0",
+    ivy"org.ops4j.pax.exam:pax-exam-link-assembly:4.13.0",
+    ivy"org.apache.felix:org.apache.felix.framework:6.0.2",
   )
 }
 
 object `testsuite-shading` extends NettyTestSuiteModule{
   def moduleDeps = Seq(common)
-  override def sources = T.sources( millSourcePath / &quot;src&quot; / &quot;test&quot; / &quot;java&quot; )
+  override def sources = T.sources( millSourcePath / "src" / "test" / "java" )
 }
 
 object transport extends NettyModule{
@@ -905,7 +904,7 @@ object transport extends NettyModule{
 object `transport-blockhound-tests` extends NettyTestSuiteModule{
   def moduleDeps = Seq(transport, handler, `resolver-dns`)
   def ivyDeps = super.ivyDeps() ++ Agg(
-    ivy&quot;io.projectreactor.tools:blockhound:1.0.6.RELEASE&quot;
+    ivy"io.projectreactor.tools:blockhound:1.0.6.RELEASE"
   )
 }
 
@@ -918,12 +917,12 @@ object `transport-classes-kqueue` extends NettyModule{
 }
 
 object `transport-native-epoll` extends NettyJniModule{
-  def jniLibraryName = &quot;libnetty_transport_native_epoll_aarch_64.jnilib&quot;
+  def jniLibraryName = "libnetty_transport_native_epoll_aarch_64.jnilib"
   def moduleDeps = Seq(common, buffer, transport, `transport-native-unix-common`, `transport-classes-epoll`)
   def testModuleDeps = Seq(testsuite, `transport-native-unix-common-tests`)
 
   def testIvyDeps = Agg(
-    ivy&quot;io.github.artsok:rerunner-jupiter:2.1.6&quot;
+    ivy"io.github.artsok:rerunner-jupiter:2.1.6"
   )
 
   // Stub this out on OS-X
@@ -931,7 +930,7 @@ object `transport-native-epoll` extends NettyJniModule{
 }
 
 object `transport-native-kqueue` extends NettyJniModule{
-  def jniLibraryName = &quot;libnetty_transport_native_kqueue_aarch_64.jnilib&quot;
+  def jniLibraryName = "libnetty_transport_native_kqueue_aarch_64.jnilib"
   def moduleDeps = Seq(common, buffer, transport, `transport-native-unix-common`, `transport-classes-kqueue`)
   def testModuleDeps = Seq(testsuite, `transport-native-unix-common-tests`)
 
@@ -941,12 +940,12 @@ object `transport-native-kqueue` extends NettyJniModule{
 
 object `transport-native-unix-common` extends NettyModule{
   def moduleDeps = Seq(common, buffer, transport)
-  def ivyDeps = Agg(ivy&quot;org.junit.jupiter:junit-jupiter-api:5.9.0&quot;)
+  def ivyDeps = Agg(ivy"org.junit.jupiter:junit-jupiter-api:5.9.0")
 
-  def makefile = T.source(millSourcePath / &quot;Makefile&quot;)
-  def cSources = T.source(millSourcePath / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;)
+  def makefile = T.source(millSourcePath / "Makefile")
+  def cSources = T.source(millSourcePath / "src" / "main" / "c")
   def cHeaders = T{
-    for(p &lt;- os.walk(cSources().path) if p.ext == &quot;h&quot;){
+    for(p &lt;- os.walk(cSources().path) if p.ext == "h"){
       os.copy(p, T.dest / p.relativeTo(cSources().path), createFolders = true)
     }
     PathRef(T.dest)
@@ -954,42 +953,42 @@ object `transport-native-unix-common` extends NettyModule{
 
   def make = T{
     val Seq(sourceJar) = resolveDeps(
-      deps = T.task(Agg(ivy&quot;io.netty:netty-jni-util:0.0.9.Final&quot;).map(bindDependency())),
+      deps = T.task(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
       sources = true
     )().toSeq
 
-    os.copy(makefile().path, T.dest / &quot;Makefile&quot;)
-    os.copy(cSources().path, T.dest / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;, createFolders = true)
-    os.proc(&quot;jar&quot;, &quot;xf&quot;, sourceJar.path).call(cwd = T.dest  / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;)
+    os.copy(makefile().path, T.dest / "Makefile")
+    os.copy(cSources().path, T.dest / "src" / "main" / "c", createFolders = true)
+    os.proc("jar", "xf", sourceJar.path).call(cwd = T.dest  / "src" / "main" / "c")
 
-    os.proc(&quot;make&quot;).call(
+    os.proc("make").call(
       cwd = T.dest,
       env = Map(
-        &quot;CC&quot; -&gt; &quot;clang&quot;,
-        &quot;AR&quot; -&gt; &quot;ar&quot;,
-        &quot;JNI_PLATFORM&quot; -&gt; &quot;darwin&quot;,
-        &quot;LIB_DIR&quot; -&gt; &quot;lib-out&quot;,
-        &quot;OBJ_DIR&quot; -&gt; &quot;obj-out&quot;,
-        &quot;MACOSX_DEPLOYMENT_TARGET&quot; -&gt; &quot;10.9&quot;,
-        &quot;CFLAGS&quot; -&gt; Seq(
-          &quot;-O3&quot;,
-          &quot;-Werror&quot;,
-          &quot;-Wno-attributes&quot;,
-          &quot;-fPIC&quot;,
-          &quot;-fno-omit-frame-pointer&quot;,
-          &quot;-Wunused-variable&quot;,
-          &quot;-fvisibility=hidden&quot;,
-          &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/&quot;,
-          &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/darwin&quot;,
-          &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/linux&quot;,
-        ).mkString(&quot; &quot;),
-        &quot;LD_FLAGS&quot; -&gt; &quot;-Wl,--no-as-needed -lrt -Wl,-platform_version,macos,10.9,10.9&quot;,
-        &quot;LIB_NAME&quot; -&gt; &quot;libnetty-unix-common&quot;
+        "CC" -&gt; "clang",
+        "AR" -&gt; "ar",
+        "JNI_PLATFORM" -&gt; "darwin",
+        "LIB_DIR" -&gt; "lib-out",
+        "OBJ_DIR" -&gt; "obj-out",
+        "MACOSX_DEPLOYMENT_TARGET" -&gt; "10.9",
+        "CFLAGS" -&gt; Seq(
+          "-O3",
+          "-Werror",
+          "-Wno-attributes",
+          "-fPIC",
+          "-fno-omit-frame-pointer",
+          "-Wunused-variable",
+          "-fvisibility=hidden",
+          "-I" + sys.props("java.home") + "/include/",
+          "-I" + sys.props("java.home") + "/include/darwin",
+          "-I" + sys.props("java.home") + "/include/linux",
+        ).mkString(" "),
+        "LD_FLAGS" -&gt; "-Wl,--no-as-needed -lrt -Wl,-platform_version,macos,10.9,10.9",
+        "LIB_NAME" -&gt; "libnetty-unix-common"
       )
     )
 
 
-    (PathRef(T.dest / &quot;lib-out&quot;), PathRef(T.dest / &quot;obj-out&quot;))
+    (PathRef(T.dest / "lib-out"), PathRef(T.dest / "obj-out"))
   }
 }
 object `transport-native-unix-common-tests` extends NettyTestSuiteModule{
@@ -999,7 +998,7 @@ object `transport-native-unix-common-tests` extends NettyTestSuiteModule{
 object `transport-rxtx` extends NettyModule{
   def moduleDeps = Seq(buffer, transport)
   def ivyDeps = Agg(
-    ivy&quot;org.rxtx:rxtx:2.1.7&quot;
+    ivy"org.rxtx:rxtx:2.1.7"
   )
 }
 
@@ -1011,9 +1010,9 @@ object `transport-sctp` extends NettyModule{
 object `transport-udt` extends NettyModule{
   def moduleDeps = Seq(common, buffer, transport)
   def ivyDeps = Agg(
-    ivy&quot;com.barchart.udt:barchart-udt-bundle:2.3.0&quot;,
-    ivy&quot;com.google.caliper:caliper:0.5-rc1&quot;,
-    ivy&quot;com.yammer.metrics:metrics-core:2.2.0&quot;
+    ivy"com.barchart.udt:barchart-udt-bundle:2.3.0",
+    ivy"com.google.caliper:caliper:0.5-rc1",
+    ivy"com.yammer.metrics:metrics-core:2.2.0"
   )
 }</code></pre>
 </div>
@@ -1043,9 +1042,9 @@ take over an hour)</p>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async="async" src="../../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../../search-index.js"></script>
+  </body>
+</html>

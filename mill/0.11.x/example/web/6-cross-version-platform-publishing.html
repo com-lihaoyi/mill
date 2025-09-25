@@ -1,16 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/web/6-cross-version-platform-publishing.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/web/6-cross-version-platform-publishing.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -41,10 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -63,9 +62,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -362,7 +361,7 @@
           <a href="../../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../../../0.12.x/index.html">0.12.16</a>
@@ -391,7 +390,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -403,30 +402,30 @@
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, scalajslib._, publish._
 
-object foo extends Cross[FooModule](&quot;2.13.14&quot;, &quot;3.3.3&quot;)
+object foo extends Cross[FooModule]("2.13.14", "3.3.3")
 trait FooModule extends Cross.Module[String] {
   trait Shared extends CrossScalaModule with CrossValue with PlatformScalaModule with PublishModule {
-    def publishVersion = &quot;0.0.1&quot;
+    def publishVersion = "0.0.1"
 
     def pomSettings = PomSettings(
-      description = &quot;Hello&quot;,
-      organization = &quot;com.lihaoyi&quot;,
-      url = &quot;https://github.com/lihaoyi/example&quot;,
+      description = "Hello",
+      organization = "com.lihaoyi",
+      url = "https://github.com/lihaoyi/example",
       licenses = Seq(License.MIT),
-      versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
-      developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+      versionControl = VersionControl.github("lihaoyi", "example"),
+      developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
     )
 
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags::0.12.0&quot;)
+    def ivyDeps = Agg(ivy"com.lihaoyi::scalatags::0.12.0")
   }
 
   trait FooTestModule extends TestModule {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.4&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
+    def testFramework = "utest.runner.Framework"
   }
 
   trait SharedJS extends Shared with ScalaJSModule {
-    def scalaJSVersion = &quot;1.16.0&quot;
+    def scalaJSVersion = "1.16.0"
   }
 
   object bar extends Module {
@@ -441,7 +440,7 @@ trait FooModule extends Cross.Module[String] {
   object qux extends Module {
     object jvm extends Shared {
       def moduleDeps = Seq(bar.jvm)
-      def ivyDeps = super.ivyDeps() ++ Agg(ivy&quot;com.lihaoyi::upickle::3.0.0&quot;)
+      def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.lihaoyi::upickle::3.0.0")
 
       object test extends ScalaTests with FooTestModule
     }
@@ -464,26 +463,26 @@ well as Scala-JVM/JS.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo[2.13.14].bar.jvm.sources
 [
-  &quot;.../foo/bar/src&quot;,
-  &quot;.../foo/bar/src-jvm&quot;,
-  &quot;.../foo/bar/src-2.13.14&quot;,
-  &quot;.../foo/bar/src-2.13.14-jvm&quot;,
-  &quot;.../foo/bar/src-2.13&quot;,
-  &quot;.../foo/bar/src-2.13-jvm&quot;,
-  &quot;.../foo/bar/src-2&quot;,
-  &quot;.../foo/bar/src-2-jvm&quot;
+  ".../foo/bar/src",
+  ".../foo/bar/src-jvm",
+  ".../foo/bar/src-2.13.14",
+  ".../foo/bar/src-2.13.14-jvm",
+  ".../foo/bar/src-2.13",
+  ".../foo/bar/src-2.13-jvm",
+  ".../foo/bar/src-2",
+  ".../foo/bar/src-2-jvm"
 ]
 
 &gt; ./mill show foo[3.3.3].qux.js.sources
 [
-  &quot;.../foo/qux/src&quot;,
-  &quot;.../foo/qux/src-js&quot;,
-  &quot;.../foo/qux/src-3.3.3&quot;,
-  &quot;.../foo/qux/src-3.3.3-js&quot;,
-  &quot;.../foo/qux/src-3.3&quot;,
-  &quot;.../foo/qux/src-3.3-js&quot;,
-  &quot;.../foo/qux/src-3&quot;,
-  &quot;.../foo/qux/src-3-js&quot;
+  ".../foo/qux/src",
+  ".../foo/qux/src-js",
+  ".../foo/qux/src-3.3.3",
+  ".../foo/qux/src-3.3.3-js",
+  ".../foo/qux/src-3.3",
+  ".../foo/qux/src-3.3-js",
+  ".../foo/qux/src-3",
+  ".../foo/qux/src-3-js"
 ]
 
 &gt; ./mill foo[2.13.14].qux.jvm.run
@@ -516,9 +515,9 @@ Publishing Artifact(com.lihaoyi,foo-qux_3,0.0.1) to ivy repo...</code></pre>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async="async" src="../../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../../search-index.js"></script>
+  </body>
+</html>

@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Migrating From Gradle to Mill :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.x/migrating/gradle.html" />
-    <link rel="prev" href="maven.html" />
-    <link rel="next" href="sbt.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.x/migrating/gradle.html">
+    <link rel="prev" href="maven.html">
+    <link rel="next" href="sbt.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -623,7 +622,7 @@
           <a href="../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.16</a>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -692,7 +691,7 @@ writing Mill build file to fluency-fluentd-ext/package.mill
 writing Mill build file to fluency-fluentd/package.mill
 writing Mill build file to fluency-treasuredata/package.mill
 writing Mill build file to build.mill
-init completed, run &quot;mill resolve _&quot; to list available tasks
+init completed, run "mill resolve _" to list available tasks
 
 &gt; ./mill __.compile
 compiling 9 Java sources to ...fluency-aws-s3...
@@ -723,7 +722,7 @@ Test org.komamitsu.fluency.recordformat.MessagePackRecordFormatterTest finished,
 &gt; ./mill init --base-module MockitoModule --jvm-id 17   # init ignores custom dependency configurations
 converting Gradle build
 ignoring errorprone dependency (com.google.errorprone,error_prone_core,2.23.0)
-init completed, run &quot;mill resolve _&quot; to list available tasks
+init completed, run "mill resolve _" to list available tasks
 
 &gt; ./mill __.compile   # compilation error can be by fixed by using the Mill plugin for ErrorProne
 error: ...Unexpected javac output: error: plug-in not found: ErrorProne</code></pre>
@@ -809,7 +808,7 @@ error: ...Unexpected javac output: error: plug-in not found: ErrorProne</code></
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -817,7 +816,7 @@ error: ...Unexpected javac output: error: plug-in not found: ErrorProne</code></
 If not specified, a project will be selected arbitrarily.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 </li>
 <li>
@@ -866,7 +865,7 @@ If not specified, a project will be selected arbitrarily.
 </div>
 <div class="admonitionblock tip">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-tip" title="Tip"></i>
 </td>
@@ -874,7 +873,7 @@ If not specified, a project will be selected arbitrarily.
 You can run <code>mill init</code> multiple times. It is recommended to run it first without any options.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 </div>
 </div>
@@ -913,7 +912,7 @@ You can run <code>mill init</code> multiple times. It is recommended to run it f
 </div>
 <div class="admonitionblock tip">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-tip" title="Tip"></i>
 </td>
@@ -940,7 +939,7 @@ or <a href="../extending/thirdparty-plugins.html" class="xref page">third party<
 </div>
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 </div>
 </div>
@@ -979,9 +978,9 @@ test module; specify the dependencies again, in <code>ivyDeps</code> or <code>ru
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

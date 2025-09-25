@@ -1,16 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/cross/7-inner-cross-module.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/cross/7-inner-cross-module.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -41,10 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -63,9 +62,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -362,7 +361,7 @@
           <a href="../../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../../../0.12.x/index.html">0.12.16</a>
@@ -391,7 +390,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -406,146 +405,147 @@
 trait MyModule extends Module{
   def crossValue: String
   def name: T[String]
-  def param = T { name() + &quot; Param Value: &quot; + crossValue }
+  def param = T { name() + " Param Value: " + crossValue }
 }
 
-object foo extends Cross[FooModule](&quot;a&quot;, &quot;b&quot;)
+object foo extends Cross[FooModule]("a", "b")
 trait FooModule extends Cross.Module[String] {
   object bar extends MyModule with CrossValue{
-    def name = &quot;Bar&quot;
+    def name = "Bar"
   }
   object qux extends MyModule with CrossValue{
-    def name = &quot;Qux&quot;
+    def name = "Qux"
   }
 }
 
-def baz = T { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre>
+def baz = T { s"hello ${foo("a").bar.param()}" }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <center>
-<svg width="450px" height="276px" viewBox="0.00 0.00 450.44 276.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="450px" height="276px"
+ viewBox="0.00 0.00 450.44 276.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 272.0)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-272 446.44,-272 446.44,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-272 446.44,-272 446.44,4 -4,4"/>
 <!-- root&#45;module -->
 <g id="node1" class="node">
-<title>root-module</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="309.4,-267.9 223.99,-267.9 223.99,-243.3 309.4,-243.3 309.4,-267.9"></polygon>
-<text text-anchor="middle" x="266.7" y="-251.4" font-family="Times,serif" font-size="14.00">root-module</text>
+<title>root&#45;module</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="309.4,-267.9 223.99,-267.9 223.99,-243.3 309.4,-243.3 309.4,-267.9"/>
+<text text-anchor="middle" x="266.7" y="-251.4" font-family="Times,serif" font-size="14.00">root&#45;module</text>
 </g>
 <!-- foo -->
 <g id="node2" class="node">
 <title>foo</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="283.86,-207.1 249.53,-207.1 249.53,-182.5 283.86,-182.5 283.86,-207.1"></polygon>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="283.86,-207.1 249.53,-207.1 249.53,-182.5 283.86,-182.5 283.86,-207.1"/>
 <text text-anchor="middle" x="266.7" y="-190.6" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
 <!-- root&#45;module&#45;&gt;foo -->
 <g id="edge1" class="edge">
-<title>root-module-&gt;foo</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M266.7,-243.26C266.7,-235.86 266.7,-225.96 266.7,-217.12"></path>
-<polygon fill="black" stroke="black" points="270.2,-217.1 266.7,-207.1 263.2,-217.1 270.2,-217.1"></polygon>
+<title>root&#45;module&#45;&gt;foo</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M266.7,-243.26C266.7,-235.86 266.7,-225.96 266.7,-217.12"/>
+<polygon fill="black" stroke="black" points="270.2,-217.1 266.7,-207.1 263.2,-217.1 270.2,-217.1"/>
 </g>
 <!-- foo[a] -->
 <g id="node3" class="node">
 <title>foo[a]</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="245.89,-146.3 195.5,-146.3 195.5,-121.7 245.89,-121.7 245.89,-146.3"></polygon>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="245.89,-146.3 195.5,-146.3 195.5,-121.7 245.89,-121.7 245.89,-146.3"/>
 <text text-anchor="middle" x="220.7" y="-129.8" font-family="Times,serif" font-size="14.00">foo[a]</text>
 </g>
 <!-- foo&#45;&gt;foo[a] -->
 <g id="edge2" class="edge">
-<title>foo-&gt;foo[a]</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M257.83,-182.46C251.59,-174.49 243.09,-163.63 235.8,-154.3"></path>
-<polygon fill="black" stroke="black" points="238.46,-152.02 229.54,-146.3 232.94,-156.34 238.46,-152.02"></polygon>
+<title>foo&#45;&gt;foo[a]</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M257.83,-182.46C251.59,-174.49 243.09,-163.63 235.8,-154.3"/>
+<polygon fill="black" stroke="black" points="238.46,-152.02 229.54,-146.3 232.94,-156.34 238.46,-152.02"/>
 </g>
 <!-- foo[b] -->
 <g id="node4" class="node">
 <title>foo[b]</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="338.18,-146.3 287.21,-146.3 287.21,-121.7 338.18,-121.7 338.18,-146.3"></polygon>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="338.18,-146.3 287.21,-146.3 287.21,-121.7 338.18,-121.7 338.18,-146.3"/>
 <text text-anchor="middle" x="312.7" y="-129.8" font-family="Times,serif" font-size="14.00">foo[b]</text>
 </g>
 <!-- foo&#45;&gt;foo[b] -->
 <g id="edge3" class="edge">
-<title>foo-&gt;foo[b]</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M275.56,-182.46C281.8,-174.49 290.3,-163.63 297.59,-154.3"></path>
-<polygon fill="black" stroke="black" points="300.45,-156.34 303.85,-146.3 294.94,-152.02 300.45,-156.34"></polygon>
+<title>foo&#45;&gt;foo[b]</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M275.56,-182.46C281.8,-174.49 290.3,-163.63 297.59,-154.3"/>
+<polygon fill="black" stroke="black" points="300.45,-156.34 303.85,-146.3 294.94,-152.02 300.45,-156.34"/>
 </g>
 <!-- foo[a].bar -->
 <g id="node5" class="node">
 <title>foo[a].bar</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="165.27,-85.5 94.12,-85.5 94.12,-60.9 165.27,-60.9 165.27,-85.5"></polygon>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="165.27,-85.5 94.12,-85.5 94.12,-60.9 165.27,-60.9 165.27,-85.5"/>
 <text text-anchor="middle" x="129.7" y="-69" font-family="Times,serif" font-size="14.00">foo[a].bar</text>
 </g>
 <!-- foo[a]&#45;&gt;foo[a].bar -->
 <g id="edge4" class="edge">
-<title>foo[a]-&gt;foo[a].bar</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M203.15,-121.66C189.68,-112.96 170.87,-100.81 155.66,-90.98"></path>
-<polygon fill="black" stroke="black" points="157.49,-87.99 147.19,-85.5 153.69,-93.87 157.49,-87.99"></polygon>
+<title>foo[a]&#45;&gt;foo[a].bar</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M203.15,-121.66C189.68,-112.96 170.87,-100.81 155.66,-90.98"/>
+<polygon fill="black" stroke="black" points="157.49,-87.99 147.19,-85.5 153.69,-93.87 157.49,-87.99"/>
 </g>
 <!-- foo[a].qux -->
 <g id="node6" class="node">
 <title>foo[a].qux</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="257.89,-85.5 183.5,-85.5 183.5,-60.9 257.89,-60.9 257.89,-85.5"></polygon>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="257.89,-85.5 183.5,-85.5 183.5,-60.9 257.89,-60.9 257.89,-85.5"/>
 <text text-anchor="middle" x="220.7" y="-69" font-family="Times,serif" font-size="14.00">foo[a].qux</text>
 </g>
 <!-- foo[a]&#45;&gt;foo[a].qux -->
 <g id="edge5" class="edge">
-<title>foo[a]-&gt;foo[a].qux</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M220.7,-121.66C220.7,-114.26 220.7,-104.36 220.7,-95.52"></path>
-<polygon fill="black" stroke="black" points="224.2,-95.5 220.7,-85.5 217.2,-95.5 224.2,-95.5"></polygon>
+<title>foo[a]&#45;&gt;foo[a].qux</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M220.7,-121.66C220.7,-114.26 220.7,-104.36 220.7,-95.52"/>
+<polygon fill="black" stroke="black" points="224.2,-95.5 220.7,-85.5 217.2,-95.5 224.2,-95.5"/>
 </g>
 <!-- foo[b].bar -->
 <g id="node7" class="node">
 <title>foo[b].bar</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="349.05,-85.5 276.34,-85.5 276.34,-60.9 349.05,-60.9 349.05,-85.5"></polygon>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="349.05,-85.5 276.34,-85.5 276.34,-60.9 349.05,-60.9 349.05,-85.5"/>
 <text text-anchor="middle" x="312.7" y="-69" font-family="Times,serif" font-size="14.00">foo[b].bar</text>
 </g>
 <!-- foo[b]&#45;&gt;foo[b].bar -->
 <g id="edge6" class="edge">
-<title>foo[b]-&gt;foo[b].bar</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M312.7,-121.66C312.7,-114.26 312.7,-104.36 312.7,-95.52"></path>
-<polygon fill="black" stroke="black" points="316.2,-95.5 312.7,-85.5 309.2,-95.5 316.2,-95.5"></polygon>
+<title>foo[b]&#45;&gt;foo[b].bar</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M312.7,-121.66C312.7,-114.26 312.7,-104.36 312.7,-95.52"/>
+<polygon fill="black" stroke="black" points="316.2,-95.5 312.7,-85.5 309.2,-95.5 316.2,-95.5"/>
 </g>
 <!-- foo[b].qux -->
 <g id="node8" class="node">
 <title>foo[b].qux</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="442.68,-85.5 366.71,-85.5 366.71,-60.9 442.68,-60.9 442.68,-85.5"></polygon>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="442.68,-85.5 366.71,-85.5 366.71,-60.9 442.68,-60.9 442.68,-85.5"/>
 <text text-anchor="middle" x="404.7" y="-69" font-family="Times,serif" font-size="14.00">foo[b].qux</text>
 </g>
 <!-- foo[b]&#45;&gt;foo[b].qux -->
 <g id="edge7" class="edge">
-<title>foo[b]-&gt;foo[b].qux</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M330.43,-121.66C344.05,-112.96 363.07,-100.81 378.45,-90.98"></path>
-<polygon fill="black" stroke="black" points="380.47,-93.84 387.01,-85.5 376.7,-87.94 380.47,-93.84"></polygon>
+<title>foo[b]&#45;&gt;foo[b].qux</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M330.43,-121.66C344.05,-112.96 363.07,-100.81 378.45,-90.98"/>
+<polygon fill="black" stroke="black" points="380.47,-93.84 387.01,-85.5 376.7,-87.94 380.47,-93.84"/>
 </g>
 <!-- foo[a].bar.name -->
 <g id="node9" class="node">
 <title>foo[a].bar.name</title>
-<polygon fill="white" stroke="black" points="105.59,-24.7 -0.2,-24.7 -0.2,-0.1 105.59,-0.1 105.59,-24.7"></polygon>
+<polygon fill="white" stroke="black" points="105.59,-24.7 -0.2,-24.7 -0.2,-0.1 105.59,-0.1 105.59,-24.7"/>
 <text text-anchor="middle" x="52.7" y="-8.2" font-family="Times,serif" font-size="14.00">foo[a].bar.name</text>
 </g>
 <!-- foo[a].bar&#45;&gt;foo[a].bar.name -->
 <g id="edge8" class="edge">
-<title>foo[a].bar-&gt;foo[a].bar.name</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M114.85,-60.86C103.77,-52.4 88.43,-40.69 75.76,-31.01"></path>
-<polygon fill="black" stroke="black" points="77.57,-27.99 67.5,-24.7 73.32,-33.55 77.57,-27.99"></polygon>
+<title>foo[a].bar&#45;&gt;foo[a].bar.name</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M114.85,-60.86C103.77,-52.4 88.43,-40.69 75.76,-31.01"/>
+<polygon fill="black" stroke="black" points="77.57,-27.99 67.5,-24.7 73.32,-33.55 77.57,-27.99"/>
 </g>
 <!-- foo[a].bar.param -->
 <g id="node10" class="node">
 <title>foo[a].bar.param</title>
-<polygon fill="white" stroke="black" points="233.75,-24.7 123.64,-24.7 123.64,-0.1 233.75,-0.1 233.75,-24.7"></polygon>
+<polygon fill="white" stroke="black" points="233.75,-24.7 123.64,-24.7 123.64,-0.1 233.75,-0.1 233.75,-24.7"/>
 <text text-anchor="middle" x="178.7" y="-8.2" font-family="Times,serif" font-size="14.00">foo[a].bar.param</text>
 </g>
 <!-- foo[a].bar&#45;&gt;foo[a].bar.param -->
 <g id="edge9" class="edge">
-<title>foo[a].bar-&gt;foo[a].bar.param</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M139.14,-60.86C145.85,-52.81 155.03,-41.8 162.85,-32.42"></path>
-<polygon fill="black" stroke="black" points="165.56,-34.63 169.28,-24.7 160.19,-30.14 165.56,-34.63"></polygon>
+<title>foo[a].bar&#45;&gt;foo[a].bar.param</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M139.14,-60.86C145.85,-52.81 155.03,-41.8 162.85,-32.42"/>
+<polygon fill="black" stroke="black" points="165.56,-34.63 169.28,-24.7 160.19,-30.14 165.56,-34.63"/>
 </g>
 <!-- ... -->
 <g id="node11" class="node">
 <title>...</title>
-<polygon fill="white" stroke="white" points="326.2,-24.7 299.19,-24.7 299.19,-0.1 326.2,-0.1 326.2,-24.7"></polygon>
+<polygon fill="white" stroke="white" points="326.2,-24.7 299.19,-24.7 299.19,-0.1 326.2,-0.1 326.2,-24.7"/>
 <text text-anchor="middle" x="312.7" y="-8.2" font-family="Times,serif" font-size="14.00">...</text>
 </g>
 <!-- foo[a].qux&#45;&gt;... -->
@@ -553,9 +553,9 @@ def baz = T { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre
 <!-- foo[b].qux&#45;&gt;... -->
 <!-- foo[a].bar.name&#45;&gt;foo[a].bar.param -->
 <g id="edge13" class="edge">
-<title>foo[a].bar.name-&gt;foo[a].bar.param</title>
-<path fill="none" stroke="black" d="M105.85,-12.4C108.33,-12.4 110.81,-12.4 113.29,-12.4"></path>
-<polygon fill="black" stroke="black" points="113.49,-15.9 123.49,-12.4 113.49,-8.9 113.49,-15.9"></polygon>
+<title>foo[a].bar.name&#45;&gt;foo[a].bar.param</title>
+<path fill="none" stroke="black" d="M105.85,-12.4C108.33,-12.4 110.81,-12.4 113.29,-12.4"/>
+<polygon fill="black" stroke="black" points="113.49,-15.9 123.49,-12.4 113.49,-8.9 113.49,-15.9"/>
 </g>
 </g>
 </svg>
@@ -578,13 +578,13 @@ modules that take multiple inputs.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[a].bar.param
-&quot;Bar Param Value: a&quot;
+"Bar Param Value: a"
 
 &gt; mill show foo[b].qux.param
-&quot;Qux Param Value: b&quot;
+"Qux Param Value: b"
 
 &gt; mill show baz
-&quot;hello Bar Param Value: a&quot;</code></pre>
+"hello Bar Param Value: a"</code></pre>
 </div>
 </div>
 </article>
@@ -592,9 +592,9 @@ modules that take multiple inputs.</p>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async="async" src="../../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../../search-index.js"></script>
+  </body>
+</html>

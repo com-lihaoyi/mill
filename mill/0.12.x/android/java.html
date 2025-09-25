@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Android Java Projects :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/android/java.html" />
-    <link rel="prev" href="../javascriptlib/publishing.html" />
-    <link rel="next" href="kotlin.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/android/java.html">
+    <link rel="prev" href="../javascriptlib/publishing.html">
+    <link rel="next" href="kotlin.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -623,7 +622,7 @@
           <a href="../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.16</a>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -718,7 +717,7 @@ import mill.javalib.android.AndroidTestModule</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object androidSdkModule0 extends AndroidSdkModule {
-  def buildToolsVersion = &quot;35.0.0&quot;
+  def buildToolsVersion = "35.0.0"
 }</code></pre>
 </div>
 </div>
@@ -733,17 +732,17 @@ import mill.javalib.android.AndroidTestModule</code></pre>
   def androidCompileSdk = 35
 
   // Configuration for ReleaseKey
-  def androidReleaseKeyName: T[Option[String]] = Task { Some(&quot;releaseKey.jks&quot;) }
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
+  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
-  override def androidVirtualDeviceIdentifier: String = &quot;java-test&quot;
+  override def androidVirtualDeviceIdentifier: String = "java-test"
 
   object test extends AndroidAppTests with TestModule.Junit4 {
-    def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
+    def testFramework = "com.novocode.junit.JUnitFramework"
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;junit:junit:4.13.2&quot;
+      ivy"junit:junit:4.13.2"
     )
   }
 
@@ -751,23 +750,23 @@ import mill.javalib.android.AndroidTestModule</code></pre>
 
     def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
-    override def instrumentationPackage = &quot;com.helloworld.app&quot;
+    override def instrumentationPackage = "com.helloworld.app"
 
     /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
      * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
      * resolution resolves conflicts between androidJvm and jvm platform types
      */
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;androidx.test.ext:junit:1.2.1&quot;.exclude((
-        &quot;org.jetbrains.kotlinx&quot;,
-        &quot;kotlinx-coroutines-core-jvm&quot;
+      ivy"androidx.test.ext:junit:1.2.1".exclude((
+        "org.jetbrains.kotlinx",
+        "kotlinx-coroutines-core-jvm"
       )),
-      ivy&quot;androidx.test:runner:1.6.2&quot;,
-      ivy&quot;androidx.test.espresso:espresso-core:3.5.1&quot;.exclude((
-        &quot;org.jetbrains.kotlinx&quot;,
-        &quot;kotlinx-coroutines-core-jvm&quot;
+      ivy"androidx.test:runner:1.6.2",
+      ivy"androidx.test.espresso:espresso-core:3.5.1".exclude((
+        "org.jetbrains.kotlinx",
+        "kotlinx-coroutines-core-jvm"
       )),
-      ivy&quot;junit:junit:4.13.2&quot;
+      ivy"junit:junit:4.13.2"
     )
   }
 
@@ -777,7 +776,7 @@ import mill.javalib.android.AndroidTestModule</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show app.androidApk
-&quot;.../out/app/androidApk.dest/app.apk&quot;</code></pre>
+".../out/app/androidApk.dest/app.apk"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -786,7 +785,7 @@ code, generates Android resources, converts Java bytecode to DEX format, package
 into an APK, optimizes the APK using <code>zipalign</code>, and finally signs it.</p>
 </div>
 <div class="paragraph">
-<p>This Mill build configuration is designed to build a simple &quot;Hello World&quot; Android application.
+<p>This Mill build configuration is designed to build a simple "Hello World" Android application.
 By extending <code>AndroidAppModule</code>, we leverage its predefined Android build tasks, ensuring that
 all necessary steps (resource generation, APK creation, and signing) are executed automatically.</p>
 </div>
@@ -818,7 +817,7 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 ...compiling 1 Java source...
 
 &gt; cat out/app/test/test.dest/out.json
-[&quot;&quot;,[{&quot;fullyQualifiedName&quot;:&quot;com.helloworld.ExampleUnitTest.textSize_isCorrect&quot;,&quot;selector&quot;:&quot;com.helloworld.ExampleUnitTest.textSize_isCorrect&quot;,&quot;duration&quot;:...,&quot;status&quot;:&quot;Success&quot;}]]</code></pre>
+["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.textSize_isCorrect","selector":"com.helloworld.ExampleUnitTest.textSize_isCorrect","duration":...,"status":"Success"}]]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -837,13 +836,13 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 &gt; ./mill show app.it
 ...
 [
-  &quot;&quot;,
+  "",
   [
     {
-      &quot;fullyQualifiedName&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
-      &quot;selector&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
-      &quot;duration&quot;: ...,
-      &quot;status&quot;: &quot;Success&quot;
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "duration": ...,
+      "status": "Success"
     }
   ]
 ]
@@ -852,11 +851,11 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 &gt; cat out/app/it/testTask.dest/test-report.xml
 ...
 &lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;testsuites tests=&quot;1&quot; failures=&quot;0&quot; errors=&quot;0&quot; skipped=&quot;0&quot; time=&quot;...&quot;&gt;
-        &lt;testsuite name=&quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot; tests=&quot;1&quot; failures=&quot;0&quot; errors=&quot;0&quot; skipped=&quot;0&quot; time=&quot;0.0&quot; timestamp=&quot;...&quot;&gt;
+&lt;testsuites tests="1" failures="0" errors="0" skipped="0" time="..."&gt;
+        &lt;testsuite name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" tests="1" failures="0" errors="0" skipped="0" time="0.0" timestamp="..."&gt;
         &lt;properties&gt;
       &lt;/properties&gt;
-        &lt;testcase classname=&quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot; name=&quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot; time=&quot;...&quot;&gt;
+        &lt;testcase classname="com.helloworld.app.ExampleInstrumentedTest.useAppContext" name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" time="..."&gt;
         &lt;/testcase&gt;
       &lt;/testsuite&gt;
       &lt;/testsuites&gt;
@@ -877,7 +876,7 @@ destroyAndroidVirtualDevice command destroys the AVD.
 The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.</p>
 </div>
 <div class="paragraph">
-<p>This example demonstrates how to create a basic &quot;Hello World&quot; Android application
+<p>This example demonstrates how to create a basic "Hello World" Android application
 using the Mill build tool. It outlines the minimum setup required to compile Java code,
 package it into an APK, and run the app on an Android device.</p>
 </div>
@@ -914,7 +913,7 @@ everything from compiling the code to generating a signed APK for distribution.<
 <p><strong>Compiling Java code</strong>: The module compiles your Java code into <code>.class</code> files, which is the first step in creating an Android app.</p>
 </li>
 <li>
-<p><strong>Packaging into JAR</strong>: It then packages the compiled <code>.class</code> files into a JAR file, which is necessary before converting to Android’s format.</p>
+<p><strong>Packaging into JAR</strong>: It then packages the compiled <code>.class</code> files into a JAR file, which is necessary before converting to Android&#8217;s format.</p>
 </li>
 <li>
 <p><strong>Converting to DEX format</strong>: The JAR file is converted into DEX format, which is the executable format for Android applications.</p>
@@ -931,7 +930,7 @@ everything from compiling the code to generating a signed APK for distribution.<
 </ol>
 </div>
 <div class="paragraph">
-<p>After creating Simple Android Application now let’s focus on how to create Android App Bundle Using Mill Build Tool</p>
+<p>After creating Simple Android Application now let&#8217;s focus on how to create Android App Bundle Using Mill Build Tool</p>
 </div>
 </div>
 </div>
@@ -955,24 +954,24 @@ import mill._
 import mill.javalib.android.{AndroidSdkModule, AndroidAppBundle}
 
 object androidSdkModule0 extends AndroidSdkModule {
-  def buildToolsVersion = &quot;35.0.0&quot;
+  def buildToolsVersion = "35.0.0"
 }
 
 object bundle extends AndroidAppBundle {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   def androidCompileSdk = 35
 
-  def androidReleaseKeyName: T[Option[String]] = Task { Some(&quot;releaseKey.jks&quot;) }
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
+  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bundle.androidBundle
-&quot;.../out/bundle/androidBundle.dest/signedBundle.aab&quot;</code></pre>
+".../out/bundle/androidBundle.dest/signedBundle.aab"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -980,7 +979,7 @@ object bundle extends AndroidAppBundle {
 and then building Android Bundle Zip then Creation of Android App Bundle and finally signs it.</p>
 </div>
 <div class="paragraph">
-<p>This Mill build configuration is designed to build a simple &quot;Hello World&quot; Android App Bundle.
+<p>This Mill build configuration is designed to build a simple "Hello World" Android App Bundle.
 By extending <code>AndroidAppBundle</code>, we leverage its predefined Android App Bundle build tasks,
 ensuring that all necessary steps (generation, creation, and signing) are executed automatically.</p>
 </div>
@@ -1050,9 +1049,9 @@ This zip follows the Android App Bundle format, as outlined in the official docu
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

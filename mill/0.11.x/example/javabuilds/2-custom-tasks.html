@@ -1,16 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/javabuilds/2-custom-tasks.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/javabuilds/2-custom-tasks.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -41,10 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -63,9 +62,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -362,7 +361,7 @@
           <a href="../../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../../../0.12.x/index.html">0.12.16</a>
@@ -391,7 +390,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -404,25 +403,25 @@
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 
 object foo extends RootModule with JavaModule {
-  def ivyDeps = Agg(ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;)
+  def ivyDeps = Agg(ivy"net.sourceforge.argparse4j:argparse4j:0.9.0")
 
   def generatedSources: T[Seq[PathRef]] = T {
     val prettyIvyDeps = for(ivyDep &lt;- ivyDeps()) yield {
       val org = ivyDep.dep.module.organization.value
       val name = ivyDep.dep.module.name.value
       val version = ivyDep.dep.version
-      s&quot;&quot;&quot; &quot;$org:$name:$version&quot; &quot;&quot;&quot;
+      s""" "$org:$name:$version" """
     }
-    val ivyDepsString = prettyIvyDeps.mkString(&quot; + \&quot;\\n\&quot; + \n&quot;)
+    val ivyDepsString = prettyIvyDeps.mkString(" + \"\\n\" + \n")
     os.write(
-      T.dest / s&quot;MyDeps.java&quot;,
-      s&quot;&quot;&quot;
+      T.dest / s"MyDeps.java",
+      s"""
 package foo;
 public class MyDeps {
   public static String value =
     $ivyDepsString;
 }
-      &quot;&quot;&quot;.stripMargin
+      """.stripMargin
     )
 
     Seq(PathRef(T.dest))
@@ -431,19 +430,19 @@ public class MyDeps {
   def lineCount: T[Int] = T {
     sources()
       .flatMap(pathRef =&gt; os.walk(pathRef.path))
-      .filter(_.ext == &quot;java&quot;)
+      .filter(_.ext == "java")
       .map(os.read.lines(_).size)
       .sum
   }
 
-  def forkArgs: T[Seq[String]] = Seq(s&quot;-Dmy.line.count=${lineCount()}&quot;)
+  def forkArgs: T[Seq[String]] = Seq(s"-Dmy.line.count=${lineCount()}")
 
   def printLineCount() = T.command { println(lineCount()) }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill lets you define new cached Targets using the <code>T {...​}</code> syntax,
+<p>Mill lets you define new cached Targets using the <code>T {&#8230;&#8203;}</code> syntax,
 depending on existing Targets e.g. <code>foo.sources</code> via the <code>foo.sources()</code>
 syntax to extract their current value, as shown in <code>lineCount</code> above. The
 return-type of a Target has to be JSON-serializable (using
@@ -480,7 +479,7 @@ my.line.count: 24
 download files using <code>requests.get</code>, shell-out to Webpack
 to compile some Javascript, generate sources to feed into a compiler, or
 create some custom jar/zip assembly with the files you want , all of these
-can simply be custom targets with your code running in the <code>T {...​}</code> block.</p>
+can simply be custom targets with your code running in the <code>T {&#8230;&#8203;}</code> block.</p>
 </div>
 <div class="paragraph">
 <p>You can create arbitrarily long chains of dependent targets, and Mill will
@@ -490,7 +489,7 @@ to store files you want to return: all files a task creates should live
 within <code>T.dest</code>, and any files you want to modify should be copied into
 <code>T.dest</code> before being modified. That ensures that the files belonging to a
 particular target all live in one place, avoiding file-name conflicts and
-letting Mill automatically invalidate the files when the target’s inputs
+letting Mill automatically invalidate the files when the target&#8217;s inputs
 change.</p>
 </div>
 </article>
@@ -498,9 +497,9 @@ change.</p>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async="async" src="../../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../../search-index.js"></script>
+  </body>
+</html>

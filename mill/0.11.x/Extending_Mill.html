@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Extending Mill :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/Extending_Mill.html" />
-    <link rel="prev" href="Target_Query_Syntax.html" />
-    <link rel="next" href="The_Mill_Evaluation_Model.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/Extending_Mill.html">
+    <link rel="prev" href="Target_Query_Syntax.html">
+    <link rel="next" href="The_Mill_Evaluation_Model.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -364,7 +363,7 @@
           <a href="../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.16</a>
@@ -393,7 +392,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -423,10 +422,10 @@ import $file.scalaversion, scalaversion.myScalaVersion
 object foo extends RootModule with ScalaModule {
   def scalaVersion = myScalaVersion
 
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::os-lib:0.9.1&quot;)
-  def htmlSnippet = T{ div(h1(&quot;hello&quot;), p(&quot;world&quot;)).toString }
+  def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
+  def htmlSnippet = T{ div(h1("hello"), p("world")).toString }
   def resources = T.sources{
-    os.write(T.dest / &quot;snippet.txt&quot;, htmlSnippet())
+    os.write(T.dest / "snippet.txt", htmlSnippet())
     super.resources() ++ Seq(PathRef(T.dest))
   }
 }</code></pre>
@@ -435,7 +434,7 @@ object foo extends RootModule with ScalaModule {
 <div class="listingblock">
 <div class="title">scalaversion.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.11.13/example/misc/3-import-file-ivy/scalaversion.sc">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myScalaVersion = &quot;2.13.8&quot;</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myScalaVersion = "2.13.8"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -470,7 +469,7 @@ compiling 1 Scala source...
 generated snippet.txt resource: &lt;div&gt;&lt;h1&gt;hello&lt;/h1&gt;&lt;p&gt;world&lt;/p&gt;&lt;/div&gt;
 
 &gt; mill show assembly
-&quot;.../out/assembly.dest/out.jar&quot;
+".../out/assembly.dest/out.jar"
 
 &gt; ./out/assembly.dest/out.jar # mac/linux
 generated snippet.txt resource: &lt;div&gt;&lt;h1&gt;hello&lt;/h1&gt;&lt;p&gt;world&lt;/p&gt;&lt;/div&gt;</code></pre>
@@ -483,7 +482,7 @@ generated snippet.txt resource: &lt;div&gt;&lt;h1&gt;hello&lt;/h1&gt;&lt;p&gt;wo
 <div class="sectionbody">
 <div class="paragraph">
 <p>The meta-build manages the compilation of the <code>build.sc</code>.
-If you don’t configure it explicitly, a built-in synthetic meta-build is used.</p>
+If you don&#8217;t configure it explicitly, a built-in synthetic meta-build is used.</p>
 </div>
 <div class="paragraph">
 <p>To customize it, you need to explicitly enable it with <code>import $meta._</code>.
@@ -549,23 +548,23 @@ import scalatags.Text.all._
 
 object foo extends RootModule with ScalaModule {
   def scalaVersion = millbuild.ScalaVersion.myScalaVersion
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::os-lib:0.9.1&quot;)
+  def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
 
-  def htmlSnippet = T{ h1(&quot;hello&quot;).toString }
+  def htmlSnippet = T{ h1("hello").toString }
   def resources = T.sources{
-    os.write(T.dest / &quot;snippet.txt&quot;, htmlSnippet())
+    os.write(T.dest / "snippet.txt", htmlSnippet())
     super.resources() ++ Seq(PathRef(T.dest))
   }
 
   def forkArgs = Seq(
-    s&quot;-Dmill.scalatags.version=${millbuild.DepVersions.scalatagsVersion}&quot;
+    s"-Dmill.scalatags.version=${millbuild.DepVersions.scalatagsVersion}"
   )
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This example illustrates usage of the <code>mill-build/</code> folder. Mill’s <code>build.sc</code>
-file and it’s <code>import $file</code> and <code>$ivy</code> are a shorthand syntax for defining
+<p>This example illustrates usage of the <code>mill-build/</code> folder. Mill&#8217;s <code>build.sc</code>
+file and it&#8217;s <code>import $file</code> and <code>$ivy</code> are a shorthand syntax for defining
 a Mill <code>ScalaModule</code>, with sources and <code>ivyDeps</code> and so on, which is
 compiled and executed to perform your build. This module lives in
 <code>mill-build/</code>, and can be enabled via the <code>import $meta._</code> statement above.</p>
@@ -576,18 +575,18 @@ compiled and executed to perform your build. This module lives in
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object millbuild extends MillBuildRootModule{
-  val scalatagsVersion = &quot;0.12.0&quot;
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:$scalatagsVersion&quot;)
+  val scalatagsVersion = "0.12.0"
+  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:$scalatagsVersion")
 
   def generatedSources = T {
     os.write(
-      T.dest / &quot;DepVersions.scala&quot;,
-      s&quot;&quot;&quot;
+      T.dest / "DepVersions.scala",
+      s"""
 package millbuild
 object DepVersions{
-  def scalatagsVersion = &quot;$scalatagsVersion&quot;
+  def scalatagsVersion = "$scalatagsVersion"
 }
-      &quot;&quot;&quot;.stripMargin
+      """.stripMargin
     )
     super.generatedSources() ++ Seq(PathRef(T.dest))
   }
@@ -599,7 +598,7 @@ object DepVersions{
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
 object ScalaVersion{
-  def myScalaVersion = &quot;2.13.10&quot;
+  def myScalaVersion = "2.13.10"
 }</code></pre>
 </div>
 </div>
@@ -639,7 +638,7 @@ Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
 scalatagsVersion: 0.12.0
 
 &gt; mill show assembly
-&quot;.../out/assembly.dest/out.jar&quot;
+".../out/assembly.dest/out.jar"
 
 &gt; ./out/assembly.dest/out.jar # mac/linux
 Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
@@ -654,12 +653,12 @@ cli option.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill --meta-level 1 show sources
 [
-.../build.sc&quot;,
-.../mill-build/src&quot;
+.../build.sc",
+.../mill-build/src"
 ]
 
 &gt; mill --meta-level 2 show sources
-.../mill-build/build.sc&quot;</code></pre>
+.../mill-build/build.sc"</code></pre>
 </div>
 </div>
 </div>
@@ -674,9 +673,9 @@ cli option.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
   def moduleDeps = Seq(bar)
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
+  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
 
   def barWorkingDir = T{ T.dest }
   def sources = T{
@@ -686,8 +685,8 @@ object foo extends ScalaModule {
 }
 
 object bar extends ScalaModule{
-  def scalaVersion = &quot;2.13.8&quot;
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::os-lib:0.9.1&quot;)
+  def scalaVersion = "2.13.8"
+  def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.9.1")
 }</code></pre>
 </div>
 </div>
@@ -708,7 +707,7 @@ Foo.value: HELLO</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This example does a trivial string-replace of &quot;hello&quot; with &quot;HELLO&quot;, but is
+<p>This example does a trivial string-replace of "hello" with "HELLO", but is
 enough to demonstrate how you can use Mill <code>ScalaModule</code>s to implement your
 own arbitrarily complex transformations. This is useful for build logic that
 may not fit nicely inside a <code>build.sc</code> file, whether due to the sheer lines
@@ -728,10 +727,10 @@ import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 import mill.contrib.buildinfo.BuildInfo
 
 object foo extends ScalaModule with BuildInfo {
-  def scalaVersion = &quot;2.13.10&quot;
-  def buildInfoPackageName = &quot;foo&quot;
+  def scalaVersion = "2.13.10"
+  def buildInfoPackageName = "foo"
   def buildInfoMembers = Seq(
-    BuildInfo.Value(&quot;scalaVersion&quot;, scalaVersion()),
+    BuildInfo.Value("scalaVersion", scalaVersion()),
   )
 }</code></pre>
 </div>
@@ -794,9 +793,9 @@ tasks and outputs, you do so with your own evaluator command.</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>

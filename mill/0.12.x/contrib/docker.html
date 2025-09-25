@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Docker :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/contrib/docker.html" />
-    <link rel="prev" href="codeartifact.html" />
-    <link rel="next" href="flyway.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/contrib/docker.html">
+    <link rel="prev" href="codeartifact.html">
+    <link rel="next" href="flyway.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -623,7 +622,7 @@
           <a href="../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.16</a>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -706,37 +705,37 @@ $ docker run foo</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object docker extends DockerConfig {
   // Override tags to set the output image name
-  def tags = List(&quot;aws_account_id.dkr.ecr.region.amazonaws.com/hello-repository&quot;)
+  def tags = List("aws_account_id.dkr.ecr.region.amazonaws.com/hello-repository")
 
-  def baseImage = &quot;openjdk:11&quot;
+  def baseImage = "openjdk:11"
 
   // Configure whether the docker build should check the remote registry for a new version of the base image before building.
   // By default this is true if the base image is using a latest tag
   def pullBaseImage = true
   // Add container metadata via the LABEL instruction
-  def labels = Map(&quot;version&quot; -&gt; &quot;1.0&quot;)
+  def labels = Map("version" -&gt; "1.0")
   // TCP ports the container will listen to
   def exposedPorts = Seq(8080, 443)
   // UDP ports the container will listen to
   def exposedUdpPorts = Seq(80)
   // The names of mount points, these will be translated to VOLUME instructions
-  def volumes = Seq(&quot;/v1&quot;, &quot;/v2&quot;)
+  def volumes = Seq("/v1", "/v2")
   // Environment variables to be set in the container (ENV instructions)
-  def envVars = Map(&quot;foo&quot; -&gt; &quot;bar&quot;, &quot;foobar&quot; -&gt; &quot;barfoo&quot;)
+  def envVars = Map("foo" -&gt; "bar", "foobar" -&gt; "barfoo")
   // JVM runtime options such as heap size settings
-  def jvmOptions = Seq(&quot;-Xmx1024M&quot;, &quot;-XX:+HeapDumpOnOutOfMemoryError&quot;)
+  def jvmOptions = Seq("-Xmx1024M", "-XX:+HeapDumpOnOutOfMemoryError")
   // Add RUN instructions
   def run = Seq(
-    &quot;/bin/bash -c 'echo Hello World!'&quot;,
-    &quot;useradd -ms /bin/bash new-user&quot;
+    "/bin/bash -c 'echo Hello World!'",
+    "useradd -ms /bin/bash new-user"
   )
   // User to use when running the image
-  def user = &quot;new-user&quot;
+  def user = "new-user"
   // Optionally override the docker executable to use something else
-  def executable = &quot;podman&quot;
+  def executable = "podman"
   // If the executable is docker (which is also the default), you can optionally also pass a platform parameter
   // docker buildx is then used to build multi-platform images
-  def platform = &quot;linux/arm64&quot;
+  def platform = "linux/arm64"
 }</code></pre>
 </div>
 </div>
@@ -754,9 +753,9 @@ $ docker run foo</code></pre>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

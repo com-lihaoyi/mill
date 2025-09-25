@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Linting Android Projects :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/android/android-linting.html" />
-    <link rel="prev" href="kotlin.html" />
-    <link rel="next" href="../comparisons/why-mill.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/android/android-linting.html">
+    <link rel="prev" href="kotlin.html">
+    <link rel="next" href="../comparisons/why-mill.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -623,7 +622,7 @@
           <a href="../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.16</a>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -697,7 +696,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object androidSdkModule0 extends AndroidSdkModule {
-  def buildToolsVersion = &quot;35.0.0&quot;
+  def buildToolsVersion = "35.0.0"
 }</code></pre>
 </div>
 </div>
@@ -711,10 +710,10 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
   def androidCompileSdk = 35
 
   // Set path to the custom `lint.xml` config file. It is usually at the root of the project
-  def androidLintConfigPath = Task { Some(PathRef(millSourcePath / &quot;lint.xml&quot;)) }
+  def androidLintConfigPath = Task { Some(PathRef(millSourcePath / "lint.xml")) }
 
   // Set path to the custom `baseline.xml` file. It is usually at the root of the project
-  def androidLintBaselinePath = Task { Some(PathRef(millSourcePath / &quot;lint-baseline.xml&quot;)) }
+  def androidLintBaselinePath = Task { Some(PathRef(millSourcePath / "lint-baseline.xml")) }
 
   // Set the linting report to be generated as both text and html files
   def androidLintReportFormat =
@@ -728,14 +727,14 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 <div class="listingblock">
 <div class="title">app/src/main/AndroidManifest.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/android/javalib/3-linting/app/src/main/AndroidManifest.xml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;manifest xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot; package=&quot;com.helloworld.app&quot; android:versionCode=&quot;1&quot; android:versionName=&quot;1.0&quot;&gt;
-    &lt;uses-sdk android:minSdkVersion=&quot;9&quot; android:targetSdkVersion=&quot;35&quot;/&gt;
-    &lt;application android:label=&quot;@string/app_name&quot; android:theme=&quot;@android:style/Theme.Light.NoTitleBar&quot; android:debuggable=&quot;true&quot;&gt;
-        &lt;activity android:name=&quot;.MainActivity&quot;
-                android:exported=&quot;true&quot;&gt;
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.helloworld.app" android:versionCode="1" android:versionName="1.0"&gt;
+    &lt;uses-sdk android:minSdkVersion="9" android:targetSdkVersion="35"/&gt;
+    &lt;application android:label="@string/app_name" android:theme="@android:style/Theme.Light.NoTitleBar" android:debuggable="true"&gt;
+        &lt;activity android:name=".MainActivity"
+                android:exported="true"&gt;
             &lt;intent-filter&gt;
-                &lt;action android:name=&quot;android.intent.action.MAIN&quot;/&gt;
-                &lt;category android:name=&quot;android.intent.category.LAUNCHER&quot;/&gt;
+                &lt;action android:name="android.intent.action.MAIN"/&gt;
+                &lt;category android:name="android.intent.category.LAUNCHER"/&gt;
             &lt;/intent-filter&gt;
         &lt;/activity&gt;
     &lt;/application&gt;
@@ -749,8 +748,8 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 <div class="title">app/src/main/res/values/colors.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/android/javalib/3-linting/app/src/main/res/values/colors.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;resources&gt;
-    &lt;color name=&quot;white&quot;&gt;#FFFFFF&lt;/color&gt;
-    &lt;color name=&quot;text_green&quot;&gt;#34A853&lt;/color&gt;
+    &lt;color name="white"&gt;#FFFFFF&lt;/color&gt;
+    &lt;color name="text_green"&gt;#34A853&lt;/color&gt;
 &lt;/resources&gt;</code></pre>
 </div>
 </div>
@@ -758,8 +757,8 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 <div class="title">app/src/main/res/values/strings.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/android/javalib/3-linting/app/src/main/res/values/strings.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;resources&gt;
-    &lt;string name=&quot;app_name&quot;&gt;HelloWorldApp&lt;/string&gt;
-    &lt;string name=&quot;hello_world&quot;&gt;Hello, World Java!&lt;/string&gt;
+    &lt;string name="app_name"&gt;HelloWorldApp&lt;/string&gt;
+    &lt;string name="hello_world"&gt;Hello, World Java!&lt;/string&gt;
 &lt;/resources&gt;</code></pre>
 </div>
 </div>
@@ -810,9 +809,9 @@ public class MainActivity extends Activity {
 <div class="listingblock">
 <div class="title">app/lint.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/android/javalib/3-linting/app/lint.xml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;?xml version="1.0" encoding="utf-8"?&gt;
 &lt;lint&gt;
-    &lt;issue id=&quot;MissingApplicationIcon&quot; severity=&quot;ignore&quot; /&gt;
+    &lt;issue id="MissingApplicationIcon" severity="ignore" /&gt;
 &lt;/lint&gt;</code></pre>
 </div>
 </div>
@@ -836,7 +835,7 @@ src
 &gt; cat out/app/androidLintRun.dest/report.txt # Display content of the linting report
 AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one [HardcodedDebugMode]
 
-&gt; sed -i.bak 's/ android:debuggable=&quot;true&quot;//g' app/src/main/AndroidManifest.xml # Fix the HardcodedDebugMode warning issue from `AndroidManifest.xml`
+&gt; sed -i.bak 's/ android:debuggable="true"//g' app/src/main/AndroidManifest.xml # Fix the HardcodedDebugMode warning issue from `AndroidManifest.xml`
 
 &gt; ./mill app.androidLintRun # Rerun it for new changes to reflect
 
@@ -856,39 +855,39 @@ and lastly suppressing linting issue in both XML and Java files. Some output of 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sed -i.bak 's/severity=&quot;ignore&quot;/severity=&quot;warning&quot;/g' app/lint.xml # Set `MissingApplicationIcon` severity level to warning
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sed -i.bak 's/severity="ignore"/severity="warning"/g' app/lint.xml # Set `MissingApplicationIcon` severity level to warning
 
 &gt; ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 &gt; cat out/app/androidLintRun.dest/report.txt # Output the changes in the report
 AndroidManifest.xml:3: Warning: Should explicitly set android:icon, there is no default [MissingApplicationIcon]
 
-&gt; sed -i.bak 's/severity=&quot;warning&quot;/severity=&quot;ignore&quot;/g' app/lint.xml # Revert the severity level of `MissingApplicationIcon`
+&gt; sed -i.bak 's/severity="warning"/severity="ignore"/g' app/lint.xml # Revert the severity level of `MissingApplicationIcon`
 
-&gt; sed -i '$s|.*|&lt;!-- Unused resource --&gt;\n&lt;string name=&quot;unused_string&quot;&gt;This string is unused&lt;/string&gt;\n&lt;/resources&gt;|' app/src/main/res/values/strings.xml # Add UnusedResources issue
+&gt; sed -i '$s|.*|&lt;!-- Unused resource --&gt;\n&lt;string name="unused_string"&gt;This string is unused&lt;/string&gt;\n&lt;/resources&gt;|' app/src/main/res/values/strings.xml # Add UnusedResources issue
 
 &gt; ./mill app.androidLintRun # Rerun it for the linting tool to detect the UnusedResources
 
 &gt; cat out/app/androidLintRun.dest/report.txt # Output the changes in the report
 res/values/strings.xml:5: Warning: The resource R.string.unused_string appears to be unused [UnusedResources]
 
-&gt; sed -i 's|&lt;resources|&lt;resources xmlns:tools=&quot;http://schemas.android.com/tools&quot; tools:ignore=&quot;UnusedResources&quot;|' app/src/main/res/values/strings.xml # Suppress linting check for UnusedResources issue
+&gt; sed -i 's|&lt;resources|&lt;resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedResources"|' app/src/main/res/values/strings.xml # Suppress linting check for UnusedResources issue
 
 &gt; ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 &gt; cat out/app/androidLintRun.dest/report.txt # Output the report content
 0 errors, 0 warnings
 
-&gt; sed -i.bak '/&lt;lint&gt;/a \    &lt;issue id=&quot;SyntheticAccessor&quot; severity=&quot;error&quot; /&gt;' app/lint.xml # Enable SyntheticAccessor issue cause it's disabled by default
+&gt; sed -i.bak '/&lt;lint&gt;/a \    &lt;issue id="SyntheticAccessor" severity="error" /&gt;' app/lint.xml # Enable SyntheticAccessor issue cause it's disabled by default
 
 &gt; cat app/lint.xml
-&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
 &lt;lint&gt;
-    &lt;issue id=&quot;SyntheticAccessor&quot; severity=&quot;error&quot; /&gt;
-    &lt;issue id=&quot;MissingApplicationIcon&quot; severity=&quot;ignore&quot; /&gt;
+    &lt;issue id="SyntheticAccessor" severity="error" /&gt;
+    &lt;issue id="MissingApplicationIcon" severity="ignore" /&gt;
 &lt;/lint&gt;
 
-&gt; sed -i.bak '$a\\nclass SyntheticAccessorViolation {\n  private String privateField = &quot;access me, if you dare&quot;;\n\n  static class Inner {\n      static void usePrivateField(SyntheticAccessorViolation instance) {\n          System.out.println(instance.privateField);\n      }\n  }\n}' app/src/main/java/com/helloworld/app/MainActivity.java # Add SyntheticAccessor issue to code
+&gt; sed -i.bak '$a\\nclass SyntheticAccessorViolation {\n  private String privateField = "access me, if you dare";\n\n  static class Inner {\n      static void usePrivateField(SyntheticAccessorViolation instance) {\n          System.out.println(instance.privateField);\n      }\n  }\n}' app/src/main/java/com/helloworld/app/MainActivity.java # Add SyntheticAccessor issue to code
 
 &gt; ./mill app.androidLintRun # Rerun it for new changes to reflect
 
@@ -897,7 +896,7 @@ java/com/helloworld/app/MainActivity.java:46: Error: Access to private field pri
 
 &gt; sed -i.bak -e '/import android.annotation.SuppressLint;/d' -e '/class SyntheticAccessorViolation {/,/^}/d' app/src/main/java/com/helloworld/app/MainActivity.java # Add SuppressLint import
 
-&gt; sed -i.bak '/class SyntheticAccessorViolation {/i @SuppressLint(&quot;SyntheticAccessor&quot;)' app/src/main/java/com/helloworld/app/MainActivity.java # Add the SuppressLint annotation
+&gt; sed -i.bak '/class SyntheticAccessorViolation {/i @SuppressLint("SyntheticAccessor")' app/src/main/java/com/helloworld/app/MainActivity.java # Add the SuppressLint annotation
 
 &gt; ./mill app.androidLintRun # Rerun it for new changes to reflect
 
@@ -923,9 +922,9 @@ java/com/helloworld/app/MainActivity.java:46: Error: Access to private field pri
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

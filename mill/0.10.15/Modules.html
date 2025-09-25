@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Modules :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/modules.html" />
-    <link rel="prev" href="Task_Context_API.html" />
-    <link rel="next" href="Cross_Builds.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/modules.html">
+    <link rel="prev" href="Task_Context_API.html">
+    <link rel="next" href="Cross_Builds.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -305,7 +304,7 @@
           <a href="../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.16</a>
@@ -334,7 +333,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -346,7 +345,7 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill modules are <code>object</code>s extending <code>mill.Module</code>, and let you group related
-tasks together to keep things neat and organized. Mill’s comes with built in
+tasks together to keep things neat and organized. Mill&#8217;s comes with built in
 modules such as <code>mill.scalalib.ScalaModule</code> and <code>mill.scalalib.CrossSbtModule</code>,
 but you can use modules for other purposes as well.</p>
 </div>
@@ -363,9 +362,9 @@ for the following build:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Module {
-  def bar = T { &quot;hello&quot; }
+  def bar = T { "hello" }
   object baz extends mill.Module {
-    def qux = T { &quot;world&quot; }
+    def qux = T { "world" }
   }
 }</code></pre>
 </div>
@@ -384,8 +383,8 @@ Scala <code>trait</code>s. For example, you can define your own <code>FooModule<
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait FooModule extends mill.Module {
-  def bar = T { &quot;hello&quot; }
-  def baz = T { &quot;world&quot; }
+  def bar = T { "hello" }
+  def baz = T { "world" }
 }</code></pre>
 </div>
 </div>
@@ -397,7 +396,7 @@ along with any other customizations such as <code>qux</code>:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo1 extends FooModule
 object foo2 extends FooModule {
-  def qux = T { &quot;I am Cow&quot; }
+  def qux = T { "I am Cow" }
 }</code></pre>
 </div>
 </div>
@@ -426,7 +425,7 @@ object foo2 extends FooModule {
 <div class="paragraph">
 <p>The built-in <code>mill.scalalib</code> package uses this to define
 <code>mill.scalalib.ScalaModule</code>, <code>mill.scalalib.SbtModule</code> and
-<code>mill.scalalib.TestScalaModule</code>, all of which contain a set of &quot;standard&quot;
+<code>mill.scalalib.TestScalaModule</code>, all of which contain a set of "standard"
 operations such as <code>compile</code>, <code>jar</code> or <code>assembly</code> that you may expect from a
 typical Scala module.</p>
 </div>
@@ -443,13 +442,13 @@ and not `class`es, except in the case of
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait BaseModule extends Module {
-  def foo = T { Seq(&quot;base&quot;) }
-  def cmd(i: Int) = T.command { Seq(&quot;base&quot; + i) }
+  def foo = T { Seq("base") }
+  def cmd(i: Int) = T.command { Seq("base" + i) }
 }
 
 object canOverrideSuper with BaseModule {
-  def foo = T { super.foo() ++ Seq(&quot;object&quot;) }
-  def cmd(i: Int) = T.command { super.cmd(i)() ++ Seq(&quot;object&quot; + i) }
+  def foo = T { super.foo() ++ Seq("object") }
+  def cmd(i: Int) = T.command { super.cmd(i)() ++ Seq("object" + i) }
 }</code></pre>
 </div>
 </div>
@@ -470,9 +469,9 @@ expects its input files to be on disk. Re-visiting our examples above:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Module {
-  def bar = T { &quot;hello&quot; }
+  def bar = T { "hello" }
   object baz extends mill.Module {
-    def qux = T { &quot;world&quot; }
+    def qux = T { "world" }
   }
 }</code></pre>
 </div>
@@ -490,8 +489,8 @@ be the same.</p>
 </div>
 <div class="paragraph">
 <p>E.g. for <code>mill.scalalib.ScalaModule</code>, the Scala source code is assumed by
-default to be in <code>millSourcePath / &quot;src&quot;</code> while resources are automatically assumed to
-be in <code>millSourcePath / &quot;resources&quot;</code>.</p>
+default to be in <code>millSourcePath / "src"</code> while resources are automatically assumed to
+be in <code>millSourcePath / "resources"</code>.</p>
 </div>
 <div class="paragraph">
 <p>You can override <code>millSourcePath</code>:</p>
@@ -500,21 +499,21 @@ be in <code>millSourcePath / &quot;resources&quot;</code>.</p>
 <div class="title"><code>build.sc</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends mill.Module {
-  def millSourcePath = super.millSourcePath / &quot;lols&quot;
-  def bar = T { &quot;hello&quot; }
+  def millSourcePath = super.millSourcePath / "lols"
+  def bar = T { "hello" }
   object baz extends mill.Module {
-    def qux = T { &quot;world&quot; }
+    def qux = T { "world" }
   }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>And any overrides propagate down to the module’s children: in the above example,
+<p>And any overrides propagate down to the module&#8217;s children: in the above example,
 module <code>foo</code> would have its <code>millSourcePath</code> be <code>./foo/lols</code> while module`foo.baz`
 would have its <code>millSourcePath</code> be <code>./foo/lols/baz</code>.</p>
 </div>
 <div class="paragraph">
-<p>Note that <code>millSourcePath</code> is generally only used for a module’s input source files.
+<p>Note that <code>millSourcePath</code> is generally only used for a module&#8217;s input source files.
 Output is always in the <code>out/</code> folder and cannot be changed, e.g. even with the
 overridden <code>millSourcePath</code> the output paths are still the default <code>./out/foo/bar</code> and
 <code>./out/foo/baz/qux</code> folders.</p>
@@ -567,7 +566,7 @@ needing to define your own <code>T.command</code> in your <code>build.sc</code> 
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill can load other mill projects from external (or sub) folders,
-using Ammonite’s <code>$file</code> magic import, allowing to depend on foreign modules.
+using Ammonite&#8217;s <code>$file</code> magic import, allowing to depend on foreign modules.
 This allows, for instance, to depend on other projects' sources, or split
 your build logic into smaller files.</p>
 </div>
@@ -615,9 +614,9 @@ def someFoo = T {
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>

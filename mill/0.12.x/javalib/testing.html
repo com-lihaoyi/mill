@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Testing Java Projects :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/javalib/testing.html" />
-    <link rel="prev" href="dependencies.html" />
-    <link rel="next" href="linting.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/javalib/testing.html">
+    <link rel="prev" href="dependencies.html">
+    <link rel="next" href="linting.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -623,7 +622,7 @@
           <a href="../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.16</a>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -678,10 +677,10 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   object test extends JavaTests {
-    def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
+    def testFramework = "com.novocode.junit.JUnitFramework"
     def ivyDeps = Agg(
-      ivy&quot;com.novocode:junit-interface:0.11&quot;,
-      ivy&quot;org.mockito:mockito-core:4.6.1&quot;
+      ivy"com.novocode:junit-interface:0.11",
+      ivy"org.mockito:mockito-core:4.6.1"
     )
   }
 }</code></pre>
@@ -698,7 +697,7 @@ public class Foo {
   }
 
   public String hello() {
-    return &quot;Hello World&quot;;
+    return "Hello World";
   }
 }</code></pre>
 </div>
@@ -718,24 +717,24 @@ public class FooTests {
   @Test
   public void hello() {
     String result = new Foo().hello();
-    assertTrue(result.startsWith(&quot;Hello&quot;));
+    assertTrue(result.startsWith("Hello"));
   }
 
   @Test
   public void world() {
     String result = new Foo().hello();
-    assertTrue(result.endsWith(&quot;World&quot;));
+    assertTrue(result.endsWith("World"));
   }
 
   @Test
   public void testMockito() {
     Foo mockFoo = mock(Foo.class);
 
-    when(mockFoo.hello()).thenReturn(&quot;Hello Mockito World&quot;);
+    when(mockFoo.hello()).thenReturn("Hello Mockito World");
 
     String result = mockFoo.hello();
 
-    assertTrue(result.equals(&quot;Hello Mockito World&quot;));
+    assertTrue(result.equals("Hello Mockito World"));
     verify(mockFoo).hello();
   }
 }</code></pre>
@@ -743,7 +742,7 @@ public class FooTests {
 </div>
 <div class="paragraph">
 <p>This build defines a single module with a test suite, configured to use
-&quot;JUnit&quot; as the testing framework, along with Mockito. Test suites are themselves
+"JUnit" as the testing framework, along with Mockito. Test suites are themselves
 <code>JavaModule</code>s, nested within the enclosing module,
 and have all the normal tasks like
 <code>foo.test.compile</code> available to run, but with an additional <code>.test</code> task
@@ -814,7 +813,7 @@ details on how to use each one from the command line.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
   object test extends JavaTests with TestModule.Junit4 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;org.mockito:mockito-core:4.6.1&quot;
+      ivy"org.mockito:mockito-core:4.6.1"
     )
   }
 }</code></pre>
@@ -828,7 +827,7 @@ details on how to use each one from the command line.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>You can also select multiple test suites in one command using Mill’s
+<p>You can also select multiple test suites in one command using Mill&#8217;s
 <a href="../cli/query-syntax.html" class="xref page">Task Query Syntax</a></p>
 </div>
 <div class="listingblock">
@@ -881,7 +880,7 @@ enabled, so that once you edit a file on disk the selected tests get re-run.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -895,7 +894,7 @@ paths can be provided to test via <code>forkEnv</code>. See
 for more details.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>If you want to pass any arguments to the test framework, you can pass them after
@@ -918,7 +917,7 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 <div class="sectionbody">
 <div class="admonitionblock important">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-important" title="Important"></i>
 </td>
@@ -928,7 +927,7 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 </div>
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>You might be used to test-scoped dependencies from other build tools like
@@ -948,13 +947,13 @@ object qux extends JavaModule {
 
   object test extends JavaTests with TestModule.Junit4 {
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
-    def ivyDeps = super.ivyDeps() ++ Agg(ivy&quot;com.google.guava:guava:33.3.0-jre&quot;)
+    def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.google.guava:guava:33.3.0-jre")
   }
 }
 
 object baz extends JavaModule {
   object test extends JavaTests with TestModule.Junit4 {
-    def ivyDeps = super.ivyDeps() ++ Agg(ivy&quot;com.google.guava:guava:33.3.0-jre&quot;)
+    def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.google.guava:guava:33.3.0-jre")
   }
 }</code></pre>
 </div>
@@ -965,7 +964,7 @@ object baz extends JavaModule {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/VisualizeTestDeps.svg" alt="VisualizeTestDeps.svg" />
+<img src="../_images/basic/VisualizeTestDeps.svg" alt="VisualizeTestDeps.svg">
 </div>
 </div>
 <div class="paragraph">
@@ -1034,7 +1033,7 @@ object qux extends JavaModule {
 <p>Test parallelism is an opt-in that enables parallel test execution, automatically
 distributing your test classes across multiple JVM subprocesses, while minimizing the
 overhead of JVM creation by re-using the subprocesses where possible.
-Test parallelism should be able to reduce testing times for most project’s test suites</p>
+Test parallelism should be able to reduce testing times for most project&#8217;s test suites</p>
 </div>
 <div class="paragraph">
 <p>Test parallelism can be enabled by overriding <code>def testParallelism</code>, as demonstrated below.
@@ -1048,10 +1047,10 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   object test extends JavaTests {
-    def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
+    def testFramework = "com.novocode.junit.JUnitFramework"
     def ivyDeps = Agg(
-      ivy&quot;com.novocode:junit-interface:0.11&quot;,
-      ivy&quot;org.mockito:mockito-core:4.6.1&quot;
+      ivy"com.novocode:junit-interface:0.11",
+      ivy"org.mockito:mockito-core:4.6.1"
     )
     def testParallelism = true
   }
@@ -1094,10 +1093,10 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   object test extends JavaTests {
-    def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
+    def testFramework = "com.novocode.junit.JUnitFramework"
     def ivyDeps = Agg(
-      ivy&quot;com.novocode:junit-interface:0.11&quot;,
-      ivy&quot;org.mockito:mockito-core:4.6.1&quot;
+      ivy"com.novocode:junit-interface:0.11",
+      ivy"org.mockito:mockito-core:4.6.1"
     )
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
   }
@@ -1117,11 +1116,11 @@ public class HelloTests {
 
   @Test
   public void hello() throws Exception {
-    System.out.println(&quot;Testing Hello&quot;);
+    System.out.println("Testing Hello");
     String result = new Foo().hello();
-    assertTrue(result.startsWith(&quot;Hello&quot;));
+    assertTrue(result.startsWith("Hello"));
     Thread.sleep(1000);
-    System.out.println(&quot;Testing Hello Completed&quot;);
+    System.out.println("Testing Hello Completed");
   }
 }</code></pre>
 </div>
@@ -1138,11 +1137,11 @@ import org.junit.Test;
 public class WorldTests {
   @Test
   public void world() throws Exception {
-    System.out.println(&quot;Testing World&quot;);
+    System.out.println("Testing World");
     String result = new Foo().hello();
-    assertTrue(result.endsWith(&quot;World&quot;));
+    assertTrue(result.endsWith("World"));
     Thread.sleep(1000);
-    System.out.println(&quot;Testing World Completed&quot;);
+    System.out.println("Testing World Completed");
   }
 }</code></pre>
 </div>
@@ -1215,13 +1214,13 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   object test extends JavaTests {
-    def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
+    def testFramework = "com.novocode.junit.JUnitFramework"
     def ivyDeps = Agg(
-      ivy&quot;com.novocode:junit-interface:0.11&quot;,
-      ivy&quot;org.mockito:mockito-core:4.6.1&quot;
+      ivy"com.novocode:junit-interface:0.11",
+      ivy"org.mockito:mockito-core:4.6.1"
     )
     def testForkGrouping =
-      discoveredTestClasses().groupMapReduce(_.contains(&quot;GroupX&quot;))(Seq(_))(_ ++ _).toSeq.sortBy(
+      discoveredTestClasses().groupMapReduce(_.contains("GroupX"))(Seq(_))(_ ++ _).toSeq.sortBy(
         data =&gt; !data._1
       ).map(_._2)
     def testParallelism = true
@@ -1274,9 +1273,9 @@ your pipeline to render the generated <code>test-report.xml</code> files nicely 
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

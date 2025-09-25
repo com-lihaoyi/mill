@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Linting Java Projects :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/javalib/linting.html" />
-    <link rel="prev" href="testing.html" />
-    <link rel="next" href="publishing.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/javalib/linting.html">
+    <link rel="prev" href="testing.html">
+    <link rel="next" href="publishing.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -631,7 +630,7 @@
           <a href="../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.16</a>
@@ -660,7 +659,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -680,7 +679,7 @@ codebases using the Mill build tool</p>
 <h2 id="_linting_with_errorprone"><a class="anchor" href="#_linting_with_errorprone"></a>Linting with ErrorProne</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="https://errorprone.info/index">Error Prone</a> augments the Java compiler’s type
+<p><a href="https://errorprone.info/index">Error Prone</a> augments the Java compiler&#8217;s type
 checker and detect common mistakes at compile time.
 Mill supports ErrorProne via the <code>ErrorProneModule</code>.
 Mix the <code>ErrorProneModule</code> trait into your <code>JavaModule</code> and it will
@@ -694,7 +693,7 @@ automatically run with every compilation.</p>
 import mill.*, javalib.*, errorprone.*
 
 object `package` extends JavaModule, ErrorProneModule {
-  def errorProneOptions = Seq(&quot;-XepAllErrorsAsWarnings&quot;)
+  def errorProneOptions = Seq("-XepAllErrorsAsWarnings")
 }</code></pre>
 </div>
 </div>
@@ -726,7 +725,7 @@ the <code>error-prone</code> compiler plugin automatically detects various kind 
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show errorProneOptions
 [
-  &quot;-XepAllErrorsAsWarnings&quot;
+  "-XepAllErrorsAsWarnings"
 ]
 
 &gt; ./mill compile
@@ -751,7 +750,7 @@ Find the list of versions and changlog at <a href="https://github.com/google/err
 <dt class="hdlist1"><code>def errorProneOptions: T[Seq[String]]</code></dt>
 <dd>
 <p> Options directly given to the <code>error-prone</code> processor.
-Those are documented as &quot;flags&quot; at <a href="https://errorprone.info/docs/flags" class="bare">https://errorprone.info/docs/flags</a></p>
+Those are documented as "flags" at <a href="https://errorprone.info/docs/flags" class="bare">https://errorprone.info/docs/flags</a></p>
 </dd>
 </dl>
 </div>
@@ -772,7 +771,7 @@ Those are documented as &quot;flags&quot; at <a href="https://errorprone.info/do
 import mill.*, javalib.*, checkstyle.*
 
 object `package` extends CheckstyleModule {
-  def checkstyleVersion = &quot;9.3&quot;
+  def checkstyleVersion = "9.3"
 }</code></pre>
 </div>
 </div>
@@ -878,7 +877,7 @@ object foo extends Module {
   trait MyModule extends JavaModule, CheckstyleModule {
 
     override def checkstyleConfig = Task {
-      api.PathRef(mill.api.BuildCtx.workspaceRoot / &quot;checkstyle-config.xml&quot;)
+      api.PathRef(mill.api.BuildCtx.workspaceRoot / "checkstyle-config.xml")
     }
   }
 }</code></pre>
@@ -945,8 +944,8 @@ object foo extends JavaModule, CheckstyleXsltModule {
     override def checkstyleXsltReports = Task {
       Set(
         CheckstyleXsltReport(
-          PathRef(moduleDir / &quot;checkstyle-no-frames.xml&quot;),
-          PathRef(Task.dest / &quot;checkstyle-no-frames.html&quot;),
+          PathRef(moduleDir / "checkstyle-no-frames.xml"),
+          PathRef(Task.dest / "checkstyle-no-frames.html"),
         )
       )
   }
@@ -992,26 +991,26 @@ import mill._, javalib._
 import mill.javalib.pmd.PmdModule
 
 object `package` extends JavaModule, PmdModule {
-  def pmdVersion = &quot;7.15.0&quot;
+  def pmdVersion = "7.15.0"
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Here’s an example of a simple PMD ruleset file and a single Java source file.</p>
+<p>Here&#8217;s an example of a simple PMD ruleset file and a single Java source file.</p>
 </div>
 <div class="listingblock">
 <div class="title">pmd-ruleset.xml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.5/example/javalib/linting/6-pmd/pmd-ruleset.xml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;ruleset name=&quot;Example ruleset&quot;
-         xmlns=&quot;http://pmd.sourceforge.net/ruleset/2.0.0&quot;
-         xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
-         xsi:schemaLocation=&quot;http://pmd.sourceforge.net/ruleset/2.0.0
-         https://pmd.sourceforge.io/ruleset_2_0_0.xsd&quot;&gt;
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;ruleset name="Example ruleset"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0
+         https://pmd.sourceforge.io/ruleset_2_0_0.xsd"&gt;
     &lt;description&gt;
         Example PMD ruleset for Mill integration (Updated for PMD 7.15.0)
     &lt;/description&gt;
-    &lt;rule ref=&quot;category/java/errorprone.xml/EmptyCatchBlock&quot;/&gt;
+    &lt;rule ref="category/java/errorprone.xml/EmptyCatchBlock"/&gt;
 &lt;/ruleset&gt;</code></pre>
 </div>
 </div>
@@ -1033,7 +1032,7 @@ public class EmptyCatchBlock {
 </div>
 <div class="admonitionblock caution">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-caution" title="Caution"></i>
 </td>
@@ -1041,7 +1040,7 @@ public class EmptyCatchBlock {
 Be careful, rule formats can differ between major PMD versions.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>You can either run the <code>pmd</code> command on selected modules
@@ -1052,7 +1051,7 @@ or use the external module <code>mill.javalib.pmd/</code>.</p>
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill pmd -s true -v false <i class="conum" data-value="1"></i><b>(1)</b>
 Running PMD ...
 Writing PMD output to .../out/pmd.dest/pmd-output.text ...
-...src/foo/EmptyCatchBlock.java:7: EmptyCatchBlock: Avoid empty catch blocks...
+...src/foo/EmptyCatchBlock.java:7:	EmptyCatchBlock:	Avoid empty catch blocks...
 PMD found 1 violation(s)
 
 &gt; ./mill mill.javalib.pmd/ <i class="conum" data-value="2"></i><b>(2)</b>
@@ -1064,7 +1063,7 @@ error: mill.javalib.pmd.PmdModule.pmd PMD found 1 violation(s)</code></pre>
 </div>
 <div class="colist arabic">
 <table>
-<tbody><tr>
+<tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
 <td><code>-s</code> shows the results on the console, <code>-v</code> does not fail the build</td>
 </tr>
@@ -1072,7 +1071,7 @@ error: mill.javalib.pmd.PmdModule.pmd PMD found 1 violation(s)</code></pre>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
 <td>Use the external <code>mill.javalib.pmd</code> module with default configuration</td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>The <code>pmd</code> command accepts several options to customize its behavior. Mill supports:</p>
@@ -1095,20 +1094,20 @@ error: mill.javalib.pmd.PmdModule.pmd PMD found 1 violation(s)</code></pre>
 <a href="https://pmd.github.io/pmd/pmd_userdocs_cli_reference.html" class="bare">https://pmd.github.io/pmd/pmd_userdocs_cli_reference.html</a>.</p>
 </div>
 <div class="paragraph">
-<p>Here’s an example of producing HTML report:</p>
+<p>Here&#8217;s an example of producing HTML report:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill pmd -f &quot;html&quot; -s true -v false
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill pmd -f "html" -s true -v false
 Writing PMD output to .../out/pmd.dest/pmd-output.html ...
 ...&lt;html&gt;&lt;head&gt;&lt;title&gt;PMD&lt;/title&gt;&lt;/head&gt;&lt;body&gt;...
-...&lt;center&gt;&lt;h3&gt;PMD report&lt;/h3&gt;&lt;/center&gt;&lt;center&gt;&lt;h3&gt;Problems found&lt;/h3&gt;&lt;/center&gt;&lt;table align=&quot;center&quot; cellspacing=&quot;0&quot; cellpadding=&quot;3&quot;&gt;&lt;tr&gt;...
+...&lt;center&gt;&lt;h3&gt;PMD report&lt;/h3&gt;&lt;/center&gt;&lt;center&gt;&lt;h3&gt;Problems found&lt;/h3&gt;&lt;/center&gt;&lt;table align="center" cellspacing="0" cellpadding="3"&gt;&lt;tr&gt;...
 ...&lt;th&gt;#&lt;/th&gt;&lt;th&gt;File&lt;/th&gt;&lt;th&gt;Line&lt;/th&gt;&lt;th&gt;Problem&lt;/th&gt;&lt;/tr&gt;...
-...&lt;tr bgcolor=&quot;lightgrey&quot;&gt;...
-...&lt;td align=&quot;center&quot;&gt;1&lt;/td&gt;...
-...&lt;td width=&quot;*%&quot;&gt;...src/foo/EmptyCatchBlock.java&lt;/td&gt;...
-...&lt;td align=&quot;center&quot; width=&quot;5%&quot;&gt;7&lt;/td&gt;...
-...&lt;td width=&quot;*&quot;&gt;&lt;a href=&quot;https://docs.pmd-code.org/pmd-doc-7.15.0/pmd_rules_java_errorprone.html#emptycatchblock&quot;&gt;Avoid empty catch blocks&lt;/a&gt;&lt;/td&gt;...
+...&lt;tr bgcolor="lightgrey"&gt;...
+...&lt;td align="center"&gt;1&lt;/td&gt;...
+...&lt;td width="*%"&gt;...src/foo/EmptyCatchBlock.java&lt;/td&gt;...
+...&lt;td align="center" width="5%"&gt;7&lt;/td&gt;...
+...&lt;td width="*"&gt;&lt;a href="https://docs.pmd-code.org/pmd-doc-7.15.0/pmd_rules_java_errorprone.html#emptycatchblock"&gt;Avoid empty catch blocks&lt;/a&gt;&lt;/td&gt;...
 ...&lt;/tr&gt;...
 ...&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;...
 ...PMD found 1 violation(s)...</code></pre>
@@ -1140,7 +1139,7 @@ object `package` extends PalantirFormatModule</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">public class A {
 
     public static void main(String[] args) {
-    System.out.println(&quot;hello&quot;); // indentation should be fixed
+    System.out.println("hello"); // indentation should be fixed
     }
 }</code></pre>
 </div>
@@ -1179,7 +1178,7 @@ error: ...palantirformat aborted due to format error(s) (or invalid plugin setti
 <p>If entering the long fully-qualified module name
 <code>mill.javalib.palantirformat/</code> is tedious, you can add
 an <a href="../fundamentals/modules.html#_aliasing_external_modules" class="xref page">External Module Alias</a>
-to give it a shorter name that’s easier to type</p>
+to give it a shorter name that&#8217;s easier to type</p>
 </div>
 </div>
 </div>
@@ -1188,7 +1187,7 @@ to give it a shorter name that’s easier to type</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>If your project has file groups each requiring different formatting,
-you may want to give Mill’s <a href="https://github.com/diffplug/spotless">Spotless</a> plugin a try.
+you may want to give Mill&#8217;s <a href="https://github.com/diffplug/spotless">Spotless</a> plugin a try.
 It supports formatting all files with a single command
 as opposed to using a different plugin/command for each group.</p>
 </div>
@@ -1219,7 +1218,7 @@ public class A {
  * Some javadoc.
  */
 public static void main(String[] args) {
-System.out.println(&quot;A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.&quot;);
+System.out.println("A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.");
 UsedB.someMethod();
 UsedA.someMethod();
 }
@@ -1243,36 +1242,36 @@ UsedA.someMethod();
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">[
   {
-    &quot;includes&quot;: [
-      &quot;glob:build.mill&quot;
+    "includes": [
+      "glob:build.mill"
     ],
-    &quot;steps&quot;: [
+    "steps": [
       {
-        &quot;$type&quot;: &quot;ScalaFmt&quot;
+        "$type": "ScalaFmt"
       }
     ]
   },
   {
-    &quot;includes&quot;: [
-      &quot;glob:resources/app.properties&quot;
+    "includes": [
+      "glob:resources/app.properties"
     ],
-    &quot;steps&quot;: [
+    "steps": [
       {
-        &quot;$type&quot;: &quot;TrimTrailingWhitespace&quot;
+        "$type": "TrimTrailingWhitespace"
       }
     ]
   },
   {
-    &quot;includes&quot;: [
-      &quot;glob:**.java&quot;
+    "includes": [
+      "glob:**.java"
     ],
-    &quot;steps&quot;: [
+    "steps": [
       {
-        &quot;$type&quot;: &quot;PalantirJavaFormat&quot;
+        "$type": "PalantirJavaFormat"
       },
       {
-        &quot;$type&quot;: &quot;LicenseHeader&quot;,
-        &quot;delimiter&quot;: &quot;(package|import|public|class|module) &quot;
+        "$type": "LicenseHeader",
+        "delimiter": "(package|import|public|class|module) "
       }
     ]
   }
@@ -1282,7 +1281,7 @@ UsedA.someMethod();
 <div class="listingblock">
 <div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.5/example/javalib/linting/4-spotless/.scalafmt.conf">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">version = &quot;3.8.1&quot;
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">version = "3.8.1"
 
 runner.dialect = scala3</code></pre>
 </div>
@@ -1305,7 +1304,7 @@ runner.dialect = scala3</code></pre>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -1314,11 +1313,11 @@ Most fields have default values and can be omitted in the JSON file.
 An example is the <code>LicenseHeader.header</code> field that references the <code>LICENSE</code> file.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -1327,7 +1326,7 @@ as <code>.mill</code> files use Scala 3 syntax, we need the <code>.scalafmt.conf
 configure ScalaFmt to use Scala 3 compatible formatting
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>Next, we run the inherited <code>spotless</code> command to check/apply the format specifications.</p>
@@ -1366,7 +1365,7 @@ format completed
 </div>
 <div class="admonitionblock tip">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-tip" title="Tip"></i>
 </td>
@@ -1375,7 +1374,7 @@ For a multi-module project, it is sufficient to extend <code>SpotlessModule</cod
 build root module and define a format specification for each use-case.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>You can also run <code>spotless</code> <a href="../fundamentals/modules.html#_external_modules" class="xref page">globally</a>
@@ -1422,7 +1421,7 @@ public class A {
  * Some javadoc.
  */
 public static void main(String[] args) {
-System.out.println(&quot;A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.&quot;);
+System.out.println("A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.");
 UsedB.someMethod();
 UsedA.someMethod();
 }
@@ -1434,7 +1433,7 @@ UsedA.someMethod();
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -1443,13 +1442,13 @@ Since no <code>.spotless-formats.json</code> file is present, a default list of 
 The default is meant for use cases where some basic formatting is sufficient.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init . -b main
 &gt; git add .gitignore build.mill src/A.java
-&gt; git commit -a -m &quot;1&quot;</code></pre>
+&gt; git commit -a -m "1"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1457,7 +1456,7 @@ The default is meant for use cases where some basic formatting is sufficient.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo &quot; module hello {}&quot; &gt; src/module-info.java  # content has leading space at start
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo " module hello {}" &gt; src/module-info.java  # content has leading space at start
 
 &gt; ./mill spotless --check
 format errors in build.mill
@@ -1496,7 +1495,7 @@ formatted 1 files</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git add src/module-info.java        # stage and
-&gt; git commit -a -m &quot;2&quot;                # commit changes
+&gt; git commit -a -m "2"                # commit changes
 
 &gt; ./mill ratchet --check HEAD^ HEAD   # format changes between last 2 commits
 ratchet found changes in 1 files
@@ -1505,7 +1504,7 @@ ratchet found changes in 1 files
 </div>
 <div class="admonitionblock caution">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-caution" title="Caution"></i>
 </td>
@@ -1514,7 +1513,7 @@ CI actions may require additional
 <a href="https://github.com/diffplug/spotless/tree/main/plugin-gradle#using-ratchetfrom-on-ci-systems">setup</a>.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>The <code>ratchet</code> command is also available globally.</p>
@@ -1571,9 +1570,9 @@ the mill-mima documentation for more details:</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>

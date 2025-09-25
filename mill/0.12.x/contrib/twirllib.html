@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Twirl :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/contrib/twirllib.html" />
-    <link rel="prev" href="testng.html" />
-    <link rel="next" href="versionfile.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/contrib/twirllib.html">
+    <link rel="prev" href="testng.html">
+    <link rel="next" href="versionfile.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -623,7 +622,7 @@
           <a href="../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.16</a>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -711,7 +710,7 @@ app/
 <p>(it will be automatically run whenever you compile your module)</p>
 </div>
 <div class="paragraph">
-<p>This task will compile <code><strong>.scala.html</strong></code> templates (and others, like <code>.scala.txt</code>) into the <code>out/app/compileTwirl/dest</code>
+<p>This task will compile <code><strong>.scala.html</code> templates (and others, like <code></strong>.scala.txt</code>) into the <code>out/app/compileTwirl/dest</code>
 directory. This directory must be added to the generated sources of the module to be compiled and made accessible from the rest of the code:</p>
 </div>
 <div class="listingblock">
@@ -723,7 +722,7 @@ import mill.scalalib._
 import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
-  def twirlVersion = &quot;1.5.1&quot;
+  def twirlVersion = "1.5.1"
   def generatedSources = Task { Seq(compileTwirl().classes) }
 }</code></pre>
 </div>
@@ -748,17 +747,17 @@ object app extends ScalaModule with TwirlModule {
 <div class="sect2">
 <h3 id="_def_twirlimports_tseqstring"><a class="anchor" href="#_def_twirlimports_tseqstring"></a>def twirlImports: T[Seq[String]]</h3>
 <div class="paragraph">
-<p>The imports that will be added by the twirl compiler to the top of all templates, defaults to <a href="https://github.com/playframework/twirl/blob/1.5.0/compiler/src/main/scala/play/twirl/compiler/TwirlCompiler.scala#L166-L173">twirl’s default imports</a>:</p>
+<p>The imports that will be added by the twirl compiler to the top of all templates, defaults to <a href="https://github.com/playframework/twirl/blob/1.5.0/compiler/src/main/scala/play/twirl/compiler/TwirlCompiler.scala#L166-L173">twirl&#8217;s default imports</a>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Seq(
-  &quot;_root_.play.twirl.api.TwirlFeatureImports._&quot;,
-  &quot;_root_.play.twirl.api.TwirlHelperImports._&quot;,
-  &quot;_root_.play.twirl.api.Html&quot;,
-  &quot;_root_.play.twirl.api.JavaScript&quot;,
-  &quot;_root_.play.twirl.api.Txt&quot;,
-  &quot;_root_.play.twirl.api.Xml&quot;
+  "_root_.play.twirl.api.TwirlFeatureImports._",
+  "_root_.play.twirl.api.TwirlHelperImports._",
+  "_root_.play.twirl.api.Html",
+  "_root_.play.twirl.api.JavaScript",
+  "_root_.play.twirl.api.Txt",
+  "_root_.play.twirl.api.Xml"
 )</code></pre>
 </div>
 </div>
@@ -774,9 +773,9 @@ import mill.scalalib._
 import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
-  def twirlVersion = &quot;1.5.1&quot;
-  def twirlScalaVersion = &quot;2.13.8&quot;
-  override def twirlImports = super.twirlImports() ++ Seq(&quot;my.additional.stuff._&quot;, &quot;my.other.stuff._&quot;)
+  def twirlVersion = "1.5.1"
+  def twirlScalaVersion = "2.13.8"
+  override def twirlImports = super.twirlImports() ++ Seq("my.additional.stuff._", "my.other.stuff._")
   def generatedSources = Task { Seq(compileTwirl().classes) }
 }
 
@@ -797,7 +796,7 @@ object app extends ScalaModule with TwirlModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 object app extends ScalaModule with TwirlModule {
   // ...
-  override def twirlImports = Seq(&quot;my.stuff._&quot;)
+  override def twirlImports = Seq("my.stuff._")
 }
 
 // out.template.scala
@@ -808,7 +807,7 @@ object app extends ScalaModule with TwirlModule {
 <div class="sect2">
 <h3 id="_def_twirlformats_mapstring_string"><a class="anchor" href="#_def_twirlformats_mapstring_string"></a>def twirlFormats: Map[String, String]</h3>
 <div class="paragraph">
-<p>A mapping of file extensions to class names that will be compiled by twirl, e.g. <code>Map(&quot;html&quot; -&gt; &quot;play.twirl.api.HtmlFormat&quot;)</code>.
+<p>A mapping of file extensions to class names that will be compiled by twirl, e.g. <code>Map("html" -&gt; "play.twirl.api.HtmlFormat")</code>.
 By default <code>html</code>, <code>xml</code>, <code>js</code>, and <code>txt</code> files will be compiled using the corresponding <a href="https://github.com/playframework/twirl/blob/1.5.0/api/shared/src/main/scala/play/twirl/api/Formats.scala">twirl format</a>.</p>
 </div>
 <div class="paragraph">
@@ -823,8 +822,8 @@ import mill.scalalib._
 import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
-  def twirlVersion = &quot;1.5.1&quot;
-  override def twirlFormats = super.twirlFormats() + Map(&quot;svg&quot; -&gt; &quot;play.twirl.api.HtmlFormat&quot;)
+  def twirlVersion = "1.5.1"
+  override def twirlFormats = super.twirlFormats() + Map("svg" -&gt; "play.twirl.api.HtmlFormat")
   def generatedSources = Task { Seq(compileTwirl().classes) }
 }</code></pre>
 </div>
@@ -833,7 +832,7 @@ object app extends ScalaModule with TwirlModule {
 <div class="sect2">
 <h3 id="_def_twirlconstructorannotations_seqstring_nil"><a class="anchor" href="#_def_twirlconstructorannotations_seqstring_nil"></a>def twirlConstructorAnnotations: Seq[String] = Nil</h3>
 <div class="paragraph">
-<p>Annotations added to the generated classes' constructors (note it only applies to templates with <code>@this(...​)</code> constructors).</p>
+<p>Annotations added to the generated classes' constructors (note it only applies to templates with <code>@this(&#8230;&#8203;)</code> constructors).</p>
 </div>
 </div>
 <div class="sect2">
@@ -854,7 +853,7 @@ object app extends ScalaModule with TwirlModule {
 <h2 id="_example"><a class="anchor" href="#_example"></a>Example</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>There’s an <a href="https://github.com/lihaoyi/cask/tree/master/example/twirl">example project</a></p>
+<p>There&#8217;s an <a href="https://github.com/lihaoyi/cask/tree/master/example/twirl">example project</a></p>
 </div>
 </div>
 </div>
@@ -867,9 +866,9 @@ object app extends ScalaModule with TwirlModule {
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

@@ -1,16 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Untitled :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/cross/10-static-blog.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/cross/10-static-blog.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -41,10 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -63,9 +62,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -362,7 +361,7 @@
           <a href="../../../index.html">1.0.5</a>
         </li>
         <li class="version">
-          <a href="../../../dev-1.0.5-15-2cc69d/index.html">dev-1.0.5-15-2cc69d</a>
+          <a href="../../../dev-1.0.5-25-001228/index.html">dev-1.0.5-25-001228</a>
         </li>
         <li class="version">
           <a href="../../../0.12.x/index.html">0.12.16</a>
@@ -391,7 +390,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -417,19 +416,19 @@ import org.commonmark.renderer.html.HtmlRenderer</code></pre>
 <p>Next, we use <code>os.list</code> and <code>interp.watchValue</code> on the <code>post/</code> folder to
 build a <code>Cross[PostModule]</code> whose entries depend no the markdown files we
 find in that folder. Each post has a <code>source</code> pointing at the markdown file,
-and a <code>render</code> target that parses the file’s markdown and generates a HTML
+and a <code>render</code> target that parses the file&#8217;s markdown and generates a HTML
 output file</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-def mdNameToHtml(s: String) = s.toLowerCase.replace(&quot;.md&quot;, &quot;.html&quot;)
+def mdNameToHtml(s: String) = s.toLowerCase.replace(".md", ".html")
 def mdNameToTitle(s: String) =
-  s.split('-').drop(1).mkString(&quot; &quot;).stripSuffix(&quot;.md&quot;)
+  s.split('-').drop(1).mkString(" ").stripSuffix(".md")
 
 val posts = interp.watchValue {
-  os.list(millSourcePath / &quot;post&quot;).map(_.last).sorted
+  os.list(millSourcePath / "post").map(_.last).sorted
 }
 
 object post extends Cross[PostModule](posts)
@@ -438,10 +437,10 @@ trait PostModule extends Cross.Module[String]{
   def render = T{
     val doc = Parser.builder().build().parse(os.read(source().path))
     val title = mdNameToTitle(crossValue)
-    val rendered = doctype(&quot;html&quot;)(
+    val rendered = doctype("html")(
       html(
         body(
-          h1(a(&quot;Blog&quot;, href := &quot;../index.html&quot;), &quot; / &quot;, title),
+          h1(a("Blog", href := "../index.html"), " / ", title),
           raw(HtmlRenderer.builder().build().render(doc))
         )
       )
@@ -457,7 +456,7 @@ trait PostModule extends Cross.Module[String]{
 <p>The last page we need to generate is the index page, listing out the various
 blog posts and providing links so we can navigate into them. To do this, we
 need to wrap the <code>posts</code> value in a <code>T.input</code>, as it can change depending on
-what <code>os.list</code> finds on disk. After that, it’s straightforward to render the
+what <code>os.list</code> finds on disk. After that, it&#8217;s straightforward to render the
 <code>index.html</code> file we want:</p>
 </div>
 <div class="listingblock">
@@ -465,29 +464,29 @@ what <code>os.list</code> finds on disk. After that, it’s straightforward to r
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def postsInput = T.input{ posts }
 
 def renderIndexEntry(mdName: String) = {
-  h2(a(mdNameToTitle(mdName), href := (&quot;post/&quot; + mdNameToHtml(mdName))))
+  h2(a(mdNameToTitle(mdName), href := ("post/" + mdNameToHtml(mdName))))
 }
 
 def index = T{
-  val rendered = doctype(&quot;html&quot;)(
-    html(body(h1(&quot;Blog&quot;), postsInput().map(renderIndexEntry)))
+  val rendered = doctype("html")(
+    html(body(h1("Blog"), postsInput().map(renderIndexEntry)))
   )
-  os.write(T.dest / &quot;index.html&quot;, rendered)
-  PathRef(T.dest / &quot;index.html&quot;)
+  os.write(T.dest / "index.html", rendered)
+  PathRef(T.dest / "index.html")
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Lastly we copy the individual post HTML files and the <code>index.html</code> file
-into a single target’s <code>.dest</code> folder, and return it:</p>
+into a single target&#8217;s <code>.dest</code> folder, and return it:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def dist = T {
   for (post &lt;- T.traverse(post.crossModules)(_.render)()) {
-    os.copy(post.path, T.dest / &quot;post&quot; / post.path.last, createFolders = true)
+    os.copy(post.path, T.dest / "post" / post.path.last, createFolders = true)
   }
-  os.copy(index().path, T.dest / &quot;index.html&quot;)
+  os.copy(index().path, T.dest / "index.html")
   PathRef(T.dest)
 }</code></pre>
 </div>
@@ -501,9 +500,9 @@ into a single target’s <code>.dest</code> folder, and return it:</p>
 
 &gt; cat out/dist.dest/index.html                    # root index page
 ...
-...&lt;a href=&quot;post/1-my-first-post.html&quot;&gt;My First Post&lt;/a&gt;...
-...&lt;a href=&quot;post/2-my-second-post.html&quot;&gt;My Second Post&lt;/a&gt;...
-...&lt;a href=&quot;post/3-my-third-post.html&quot;&gt;My Third Post&lt;/a&gt;...
+...&lt;a href="post/1-my-first-post.html"&gt;My First Post&lt;/a&gt;...
+...&lt;a href="post/2-my-second-post.html"&gt;My Second Post&lt;/a&gt;...
+...&lt;a href="post/3-my-third-post.html"&gt;My Third Post&lt;/a&gt;...
 
 &gt; cat out/dist.dest/post/1-my-first-post.html     # blog post page
 ...
@@ -512,12 +511,12 @@ into a single target’s <code>.dest</code> folder, and return it:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../../_images/BlogIndex.png" alt="BlogIndex.png" />
+<img src="../../_images/BlogIndex.png" alt="BlogIndex.png">
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../../_images/BlogPost.png" alt="BlogPost.png" />
+<img src="../../_images/BlogPost.png" alt="BlogPost.png">
 </div>
 </div>
 <div class="paragraph">
@@ -533,8 +532,8 @@ enough posts that the build is becoming noticeably slow.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show &quot;post[1-My-First-Post.md].render&quot;
-&quot;.../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html&quot;
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show "post[1-My-First-Post.md].render"
+".../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html"
 
 &gt; cat out/post/1-My-First-Post.md/render.dest/1-my-first-post.html
 ...
@@ -547,102 +546,103 @@ Mill target graph. For this simple example, the graph is as follows</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="309px" height="171px" viewBox="0.00 0.00 309.47 171.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="309px" height="171px"
+ viewBox="0.00 0.00 309.47 171.20" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 167.2)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-167.2 305.47,-167.2 305.47,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-167.2 305.47,-167.2 305.47,4 -4,4"/>
 <!-- 1 &#45; Foo.md -->
 <g id="node1" class="node">
-<title>1 - Foo.md</title>
-<polygon fill="none" stroke="black" points="77.75,-163.1 0.08,-163.1 0.08,-138.5 77.75,-138.5 77.75,-163.1"></polygon>
-<text text-anchor="middle" x="38.92" y="-146.6" font-family="Times,serif" font-size="14.00">1 - Foo.md</text>
+<title>1 &#45; Foo.md</title>
+<polygon fill="none" stroke="black" points="77.75,-163.1 0.08,-163.1 0.08,-138.5 77.75,-138.5 77.75,-163.1"/>
+<text text-anchor="middle" x="38.92" y="-146.6" font-family="Times,serif" font-size="14.00">1 &#45; Foo.md</text>
 </g>
 <!-- post[1]\nrender -->
 <g id="node2" class="node">
 <title>post[1]\nrender</title>
-<polygon fill="none" stroke="black" points="77.57,-102.2 22.26,-102.2 22.26,-61 77.57,-61 77.57,-102.2"></polygon>
+<polygon fill="none" stroke="black" points="77.57,-102.2 22.26,-102.2 22.26,-61 77.57,-61 77.57,-102.2"/>
 <text text-anchor="middle" x="49.92" y="-85.8" font-family="Times,serif" font-size="14.00">post[1]</text>
 <text text-anchor="middle" x="49.92" y="-69" font-family="Times,serif" font-size="14.00">render</text>
 </g>
 <!-- 1 &#45; Foo.md&#45;&gt;post[1]\nrender -->
 <g id="edge1" class="edge">
-<title>1 - Foo.md-&gt;post[1]\nrender</title>
-<path fill="none" stroke="black" d="M40.78,-138.4C41.96,-131.22 43.54,-121.59 45.05,-112.35"></path>
-<polygon fill="black" stroke="black" points="48.54,-112.67 46.7,-102.23 41.63,-111.54 48.54,-112.67"></polygon>
+<title>1 &#45; Foo.md&#45;&gt;post[1]\nrender</title>
+<path fill="none" stroke="black" d="M40.78,-138.4C41.96,-131.22 43.54,-121.59 45.05,-112.35"/>
+<polygon fill="black" stroke="black" points="48.54,-112.67 46.7,-102.23 41.63,-111.54 48.54,-112.67"/>
 </g>
 <!-- dist -->
 <g id="node7" class="node">
 <title>dist</title>
-<polygon fill="none" stroke="black" points="190.14,-24.7 153.69,-24.7 153.69,-0.1 190.14,-0.1 190.14,-24.7"></polygon>
+<polygon fill="none" stroke="black" points="190.14,-24.7 153.69,-24.7 153.69,-0.1 190.14,-0.1 190.14,-24.7"/>
 <text text-anchor="middle" x="171.92" y="-8.2" font-family="Times,serif" font-size="14.00">dist</text>
 </g>
 <!-- post[1]\nrender&#45;&gt;dist -->
 <g id="edge4" class="edge">
-<title>post[1]\nrender-&gt;dist</title>
-<path fill="none" stroke="black" d="M77.6,-65.35C97.75,-54.25 124.9,-39.3 144.89,-28.29"></path>
-<polygon fill="black" stroke="black" points="146.73,-31.27 153.8,-23.38 143.35,-25.14 146.73,-31.27"></polygon>
+<title>post[1]\nrender&#45;&gt;dist</title>
+<path fill="none" stroke="black" d="M77.6,-65.35C97.75,-54.25 124.9,-39.3 144.89,-28.29"/>
+<polygon fill="black" stroke="black" points="146.73,-31.27 153.8,-23.38 143.35,-25.14 146.73,-31.27"/>
 </g>
 <!-- 2 &#45; Foo.md -->
 <g id="node3" class="node">
-<title>2 - Foo.md</title>
-<polygon fill="none" stroke="black" points="173.75,-163.1 96.08,-163.1 96.08,-138.5 173.75,-138.5 173.75,-163.1"></polygon>
-<text text-anchor="middle" x="134.92" y="-146.6" font-family="Times,serif" font-size="14.00">2 - Foo.md</text>
+<title>2 &#45; Foo.md</title>
+<polygon fill="none" stroke="black" points="173.75,-163.1 96.08,-163.1 96.08,-138.5 173.75,-138.5 173.75,-163.1"/>
+<text text-anchor="middle" x="134.92" y="-146.6" font-family="Times,serif" font-size="14.00">2 &#45; Foo.md</text>
 </g>
 <!-- post[2]\nrender -->
 <g id="node4" class="node">
 <title>post[2]\nrender</title>
-<polygon fill="none" stroke="black" points="162.57,-102.2 107.26,-102.2 107.26,-61 162.57,-61 162.57,-102.2"></polygon>
+<polygon fill="none" stroke="black" points="162.57,-102.2 107.26,-102.2 107.26,-61 162.57,-61 162.57,-102.2"/>
 <text text-anchor="middle" x="134.92" y="-85.8" font-family="Times,serif" font-size="14.00">post[2]</text>
 <text text-anchor="middle" x="134.92" y="-69" font-family="Times,serif" font-size="14.00">render</text>
 </g>
 <!-- 2 &#45; Foo.md&#45;&gt;post[2]\nrender -->
 <g id="edge2" class="edge">
-<title>2 - Foo.md-&gt;post[2]\nrender</title>
-<path fill="none" stroke="black" d="M134.92,-138.4C134.92,-131.22 134.92,-121.59 134.92,-112.35"></path>
-<polygon fill="black" stroke="black" points="138.42,-112.23 134.92,-102.23 131.42,-112.23 138.42,-112.23"></polygon>
+<title>2 &#45; Foo.md&#45;&gt;post[2]\nrender</title>
+<path fill="none" stroke="black" d="M134.92,-138.4C134.92,-131.22 134.92,-121.59 134.92,-112.35"/>
+<polygon fill="black" stroke="black" points="138.42,-112.23 134.92,-102.23 131.42,-112.23 138.42,-112.23"/>
 </g>
 <!-- post[2]\nrender&#45;&gt;dist -->
 <g id="edge5" class="edge">
-<title>post[2]\nrender-&gt;dist</title>
-<path fill="none" stroke="black" d="M145.82,-60.8C150.46,-52.36 155.88,-42.52 160.58,-33.99"></path>
-<polygon fill="black" stroke="black" points="163.73,-35.52 165.49,-25.08 157.6,-32.15 163.73,-35.52"></polygon>
+<title>post[2]\nrender&#45;&gt;dist</title>
+<path fill="none" stroke="black" d="M145.82,-60.8C150.46,-52.36 155.88,-42.52 160.58,-33.99"/>
+<polygon fill="black" stroke="black" points="163.73,-35.52 165.49,-25.08 157.6,-32.15 163.73,-35.52"/>
 </g>
 <!-- 3 &#45; Foo.md -->
 <g id="node5" class="node">
-<title>3 - Foo.md</title>
-<polygon fill="none" stroke="black" points="269.75,-163.1 192.08,-163.1 192.08,-138.5 269.75,-138.5 269.75,-163.1"></polygon>
-<text text-anchor="middle" x="230.92" y="-146.6" font-family="Times,serif" font-size="14.00">3 - Foo.md</text>
+<title>3 &#45; Foo.md</title>
+<polygon fill="none" stroke="black" points="269.75,-163.1 192.08,-163.1 192.08,-138.5 269.75,-138.5 269.75,-163.1"/>
+<text text-anchor="middle" x="230.92" y="-146.6" font-family="Times,serif" font-size="14.00">3 &#45; Foo.md</text>
 </g>
 <!-- post[3]\nrender -->
 <g id="node6" class="node">
 <title>post[3]\nrender</title>
-<polygon fill="none" stroke="black" points="236.57,-102.2 181.26,-102.2 181.26,-61 236.57,-61 236.57,-102.2"></polygon>
+<polygon fill="none" stroke="black" points="236.57,-102.2 181.26,-102.2 181.26,-61 236.57,-61 236.57,-102.2"/>
 <text text-anchor="middle" x="208.92" y="-85.8" font-family="Times,serif" font-size="14.00">post[3]</text>
 <text text-anchor="middle" x="208.92" y="-69" font-family="Times,serif" font-size="14.00">render</text>
 </g>
 <!-- 3 &#45; Foo.md&#45;&gt;post[3]\nrender -->
 <g id="edge3" class="edge">
-<title>3 - Foo.md-&gt;post[3]\nrender</title>
-<path fill="none" stroke="black" d="M227.18,-138.4C224.78,-131.06 221.54,-121.17 218.46,-111.75"></path>
-<polygon fill="black" stroke="black" points="221.78,-110.65 215.34,-102.23 215.13,-112.83 221.78,-110.65"></polygon>
+<title>3 &#45; Foo.md&#45;&gt;post[3]\nrender</title>
+<path fill="none" stroke="black" d="M227.18,-138.4C224.78,-131.06 221.54,-121.17 218.46,-111.75"/>
+<polygon fill="black" stroke="black" points="221.78,-110.65 215.34,-102.23 215.13,-112.83 221.78,-110.65"/>
 </g>
 <!-- post[3]\nrender&#45;&gt;dist -->
 <g id="edge6" class="edge">
-<title>post[3]\nrender-&gt;dist</title>
-<path fill="none" stroke="black" d="M198.02,-60.8C193.37,-52.36 187.95,-42.52 183.26,-33.99"></path>
-<polygon fill="black" stroke="black" points="186.24,-32.15 178.35,-25.08 180.1,-35.52 186.24,-32.15"></polygon>
+<title>post[3]\nrender&#45;&gt;dist</title>
+<path fill="none" stroke="black" d="M198.02,-60.8C193.37,-52.36 187.95,-42.52 183.26,-33.99"/>
+<polygon fill="black" stroke="black" points="186.24,-32.15 178.35,-25.08 180.1,-35.52 186.24,-32.15"/>
 </g>
 <!-- index -->
 <g id="node8" class="node">
 <title>index</title>
-<polygon fill="none" stroke="black" points="301.52,-93.9 254.31,-93.9 254.31,-69.3 301.52,-69.3 301.52,-93.9"></polygon>
+<polygon fill="none" stroke="black" points="301.52,-93.9 254.31,-93.9 254.31,-69.3 301.52,-69.3 301.52,-93.9"/>
 <text text-anchor="middle" x="277.92" y="-77.4" font-family="Times,serif" font-size="14.00">index</text>
 </g>
 <!-- index&#45;&gt;dist -->
 <g id="edge7" class="edge">
-<title>index-&gt;dist</title>
-<path fill="none" stroke="black" d="M259.94,-69.2C243.11,-58.53 217.76,-42.46 198.58,-30.3"></path>
-<polygon fill="black" stroke="black" points="200.31,-27.25 189.99,-24.86 196.56,-33.17 200.31,-27.25"></polygon>
+<title>index&#45;&gt;dist</title>
+<path fill="none" stroke="black" d="M259.94,-69.2C243.11,-58.53 217.76,-42.46 198.58,-30.3"/>
+<polygon fill="black" stroke="black" points="200.31,-27.25 189.99,-24.86 196.56,-33.17 200.31,-27.25"/>
 </g>
 </g>
 </svg>
@@ -665,9 +665,9 @@ some extensions and fun exercises to further familiarize yourself with Mill</p>
 </main>
 </div>
 <script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
-<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../../_/js/vendor/highlight.js"></script>
 <script src="../../../../_/js/vendor/lunr.js"></script>
 <script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
-<script async="async" src="../../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../../search-index.js"></script>
+  </body>
+</html>
