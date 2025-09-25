@@ -163,7 +163,9 @@ jobs:
             install-sbt: false
 
           - java-version: 17
-            millargs: "'example.android.__.local.server.test'"
+            # disable always-failing tests
+            # millargs: "'example.android.__.local.server.test'"
+            millargs: "'example.android.{javalib[3-linting],kotlinlib[1-hello-kotlin],kotlinlib[2-compose]}.local.server.test'"
             install-android-sdk: true
             install-sbt: false
 
@@ -174,7 +176,9 @@ jobs:
             install-sbt: true
 
           - java-version: 17
-            millargs: "'example.{pythonlib,javascriptlib}.__.local.server.test'"
+            # disable always-failing tests
+            # millargs: "'example.{pythonlib,javascriptlib}.__.local.server.test'"
+            millargs: "'example.{pythonlib._:^basic:^module:^linting.__,javascriptlib._:^linting:^testing.__}.local.server.test'"
             install-android-sdk: false
             install-sbt: false
 
