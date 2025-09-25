@@ -34,7 +34,7 @@ def lol = Task {
 def writeCompletionMarker(name: String) = {
 
   Range(0, 10)
-    .map(i => mill.api.WorkspaceRoot.workspaceRoot / "out" / s"$name$i")
+    .map(i => mill.api.BuildCtx.workspaceRoot / "out" / s"$name$i")
     .find(!os.exists(_))
     .foreach(os.write(_, ""))
 }

@@ -19,8 +19,8 @@ import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.11"
-  def compileIvyDeps = Agg(ivy"com.lihaoyi:::acyclic:0.3.15")
-  def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi:::acyclic:0.3.15")
+  def compileIvyDeps = Agg(mvn"com.lihaoyi:::acyclic:0.3.15")
+  def scalacPluginIvyDeps = Agg(mvn"com.lihaoyi:::acyclic:0.3.15")
   def scalacOptions = Seq("-P:acyclic:force")
 }
 

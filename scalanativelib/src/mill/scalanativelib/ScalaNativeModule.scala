@@ -51,8 +51,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       case version =>
         Result.Success(
           Agg(
-            ivy"org.scala-native::tools:$version",
-            ivy"org.scala-native::test-runner:$version"
+            mvn"org.scala-native::tools:$version",
+            mvn"org.scala-native::test-runner:$version"
           )
         )
 
@@ -66,14 +66,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
         else s"${scalaVersion()}+${scalaNativeVersion()}"
 
       if (JvmWorkerUtil.isScala3(scalaVersion()))
-        Agg(ivy"org.scala-native::scala3lib::$version")
-      else Agg(ivy"org.scala-native::scalalib::$version")
+        Agg(mvn"org.scala-native::scala3lib::$version")
+      else Agg(mvn"org.scala-native::scalalib::$version")
     }
 
     Agg(
-      ivy"org.scala-native::nativelib::${scalaNativeVersion()}",
-      ivy"org.scala-native::javalib::${scalaNativeVersion()}",
-      ivy"org.scala-native::auxlib::${scalaNativeVersion()}"
+      mvn"org.scala-native::nativelib::${scalaNativeVersion()}",
+      mvn"org.scala-native::javalib::${scalaNativeVersion()}",
+      mvn"org.scala-native::auxlib::${scalaNativeVersion()}"
     ) ++ scalaVersionSpecific
   }
 
@@ -100,7 +100,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   override def scalacPluginIvyDeps: T[Agg[Dep]] = Task {
     super.scalacPluginIvyDeps() ++ Agg(
-      ivy"org.scala-native:::nscplugin:${scalaNativeVersion()}"
+      mvn"org.scala-native:::nscplugin:${scalaNativeVersion()}"
     )
   }
 
@@ -413,7 +413,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
     res
   }
   override def ivyDeps = super.ivyDeps() ++ Agg(
-    ivy"org.scala-native::test-interface::${scalaNativeVersion()}"
+    mvn"org.scala-native::test-interface::${scalaNativeVersion()}"
   )
   override def mainClass: T[Option[String]] = Some("scala.scalanative.testinterface.TestMain")
 }

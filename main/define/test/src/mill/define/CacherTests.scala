@@ -2,7 +2,7 @@ package mill.define
 
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import mill.{T, Task}
+import mill.{Task}
 import mill.api.Result.Success
 import utest._
 import utest.framework.TestPath

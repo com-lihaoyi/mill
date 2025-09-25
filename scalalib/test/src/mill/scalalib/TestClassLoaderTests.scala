@@ -14,7 +14,7 @@ object TestClassLoaderTests extends TestSuite {
     object test extends ScalaTests with TestModule.Utest {
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
-          ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
+          mvn"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
         )
       }
     }

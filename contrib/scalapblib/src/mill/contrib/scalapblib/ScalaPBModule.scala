@@ -15,9 +15,9 @@ trait ScalaPBModule extends ScalaModule {
 
   override def ivyDeps = Task {
     super.ivyDeps() ++
-      Agg(ivy"com.thesamet.scalapb::scalapb-runtime::${scalaPBVersion()}") ++
+      Agg(mvn"com.thesamet.scalapb::scalapb-runtime::${scalaPBVersion()}") ++
       (if (!scalaPBGrpc()) Agg()
-       else Agg(ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
+       else Agg(mvn"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
   }
 
   def scalaPBVersion: T[String]
@@ -77,7 +77,7 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBClasspath: T[Loose.Agg[PathRef]] = Task {
     val scalaPBScalaVersion = "2.13.1"
     defaultResolver().classpath(
-      Seq(ivy"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
+      Seq(mvn"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
         .map(Lib.depToBoundDep(_, scalaPBScalaVersion)),
       resolutionParamsMapOpt = Some(_.withScalaVersion(scalaPBScalaVersion))
     )

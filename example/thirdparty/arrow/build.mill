@@ -31,52 +31,52 @@ object libraries {
 
   // libraries
   val coroutinesCoreJvm =
-    ivy"org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:${versions.coroutines}"
+    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:${versions.coroutines}"
   val coroutinesCoreJs =
-    ivy"org.jetbrains.kotlinx:kotlinx-coroutines-core-js:${versions.coroutines}"
+    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-core-js:${versions.coroutines}"
   val coroutinesTestJvm =
-    ivy"org.jetbrains.kotlinx:kotlinx-coroutines-test-jvm:${versions.coroutines}"
+    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test-jvm:${versions.coroutines}"
   val coroutinesTestJs =
-    ivy"org.jetbrains.kotlinx:kotlinx-coroutines-test-js:${versions.coroutines}"
-  val kotestAssertionsCoreJvm = ivy"io.kotest:kotest-assertions-core-jvm:${versions.kotest}"
-  val kotestAssertionsCoreJs = ivy"io.kotest:kotest-assertions-core-js:${versions.kotest}"
-  val kotestPropertyJvm = ivy"io.kotest:kotest-property-jvm:${versions.kotest}"
-  val kotestPropertyJs = ivy"io.kotest:kotest-property-js:${versions.kotest}"
-  val kotlinReflect = ivy"org.jetbrains.kotlin:kotlin-reflect:${versions.kotlin}"
-  val kotlinStdlib = ivy"org.jetbrains.kotlin:kotlin-stdlib:${versions.kotlin}"
-  val kotlinTestJunit5 = ivy"org.jetbrains.kotlin:kotlin-test-junit5:${versions.kotlin}"
-  val kotlinTestJs = ivy"org.jetbrains.kotlin:kotlin-test-js:${versions.kotlin}"
+    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test-js:${versions.coroutines}"
+  val kotestAssertionsCoreJvm = mvn"io.kotest:kotest-assertions-core-jvm:${versions.kotest}"
+  val kotestAssertionsCoreJs = mvn"io.kotest:kotest-assertions-core-js:${versions.kotest}"
+  val kotestPropertyJvm = mvn"io.kotest:kotest-property-jvm:${versions.kotest}"
+  val kotestPropertyJs = mvn"io.kotest:kotest-property-js:${versions.kotest}"
+  val kotlinReflect = mvn"org.jetbrains.kotlin:kotlin-reflect:${versions.kotlin}"
+  val kotlinStdlib = mvn"org.jetbrains.kotlin:kotlin-stdlib:${versions.kotlin}"
+  val kotlinTestJunit5 = mvn"org.jetbrains.kotlin:kotlin-test-junit5:${versions.kotlin}"
+  val kotlinTestJs = mvn"org.jetbrains.kotlin:kotlin-test-js:${versions.kotlin}"
   val kotlinxSerializationCoreJvm =
-    ivy"org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:${versions.kotlinxSerialization}"
+    mvn"org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:${versions.kotlinxSerialization}"
   val kotlinxSerializationCoreJs =
-    ivy"org.jetbrains.kotlinx:kotlinx-serialization-core-js:${versions.kotlinxSerialization}"
+    mvn"org.jetbrains.kotlinx:kotlinx-serialization-core-js:${versions.kotlinxSerialization}"
   val kotlinxSerializationJson =
-    ivy"org.jetbrains.kotlinx:kotlinx-serialization-json:${versions.kotlinxSerialization}"
+    mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:${versions.kotlinxSerialization}"
   val kotlinxSerializationJsonJs =
-    ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:${versions.kotlinxSerialization}"
+    mvn"org.jetbrains.kotlinx:kotlinx-serialization-json-js:${versions.kotlinxSerialization}"
   val squareupOkhttpMockWebServer =
-    ivy"com.squareup.okhttp3:mockwebserver:${versions.mockWebServer}"
-  val squareupRetrofitLib = ivy"com.squareup.retrofit2:retrofit:${versions.retrofit}"
+    mvn"com.squareup.okhttp3:mockwebserver:${versions.mockWebServer}"
+  val squareupRetrofitLib = mvn"com.squareup.retrofit2:retrofit:${versions.retrofit}"
   val squareupRetrofitConverterGson =
-    ivy"com.squareup.retrofit2:converter-gson:${versions.retrofit}"
+    mvn"com.squareup.retrofit2:converter-gson:${versions.retrofit}"
   val squareupRetrofitConverterMoshi =
-    ivy"com.squareup.retrofit2:converter-moshi:${versions.retrofit}"
+    mvn"com.squareup.retrofit2:converter-moshi:${versions.retrofit}"
   val squareupRetrofitConverterKotlinxSerialization =
-    ivy"com.squareup.retrofit2:converter-kotlinx-serialization:${versions.retrofit}"
-  val squareupMoshiKotlin = ivy"com.squareup.moshi:moshi-kotlin:${versions.moshi}"
-  val ksp = ivy"com.google.devtools.ksp:symbol-processing-api:${versions.kspVersion}"
+    mvn"com.squareup.retrofit2:converter-kotlinx-serialization:${versions.retrofit}"
+  val squareupMoshiKotlin = mvn"com.squareup.moshi:moshi-kotlin:${versions.moshi}"
+  val ksp = mvn"com.google.devtools.ksp:symbol-processing-api:${versions.kspVersion}"
   val kspGradlePlugin =
-    ivy"com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:${versions.kspVersion}"
-  val classgraph = ivy"io.github.classgraph:classgraph:${versions.classgraph}"
-  val composeRuntime = ivy"androidx.compose.runtime:runtime:${versions.compose}"
-  val kotlinCompileTesting = ivy"dev.zacsweers.kctfork:core:${versions.kotlinCompileTesting}"
-  val kotlinCompileTestingKsp = ivy"dev.zacsweers.kctfork:ksp:${versions.kotlinCompileTesting}"
-  val cache4kJs = ivy"io.github.reactivecircus.cache4k:cache4k-js:${versions.cache4k}"
-  val cache4kJvm = ivy"io.github.reactivecircus.cache4k:cache4k-jvm:${versions.cache4k}"
+    mvn"com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:${versions.kspVersion}"
+  val classgraph = mvn"io.github.classgraph:classgraph:${versions.classgraph}"
+  val composeRuntime = mvn"androidx.compose.runtime:runtime:${versions.compose}"
+  val kotlinCompileTesting = mvn"dev.zacsweers.kctfork:core:${versions.kotlinCompileTesting}"
+  val kotlinCompileTestingKsp = mvn"dev.zacsweers.kctfork:ksp:${versions.kotlinCompileTesting}"
+  val cache4kJs = mvn"io.github.reactivecircus.cache4k:cache4k-js:${versions.cache4k}"
+  val cache4kJvm = mvn"io.github.reactivecircus.cache4k:cache4k-jvm:${versions.cache4k}"
 
   // plugins
   val kotlinxSerializationPlugin =
-    ivy"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${versions.kotlin}"
+    mvn"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${versions.kotlin}"
 }
 
 object `package` extends RootModule {

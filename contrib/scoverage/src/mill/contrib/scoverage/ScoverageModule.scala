@@ -30,7 +30,7 @@ import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
  *   def scoverageVersion = "2.1.1"
  *
  *   object test extends ScoverageTests {
- *     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.2.19")
+ *     def ivyDeps = Agg(mvn"org.scalatest::scalatest:3.2.19")
  *     def testFrameworks = Seq("org.scalatest.tools.Framework")
  *   }
  * }
@@ -63,7 +63,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     if (isScala3()) {
       Agg.empty
     } else {
-      Agg(ivy"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}")
+      Agg(mvn"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}")
     }
   }
 
@@ -73,10 +73,10 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       Agg.empty
     } else {
       Agg(
-        ivy"org.scoverage:::scalac-scoverage-plugin:${sv}",
-        ivy"org.scoverage::scalac-scoverage-domain:${sv}",
-        ivy"org.scoverage::scalac-scoverage-serializer:${sv}",
-        ivy"org.scoverage::scalac-scoverage-reporter:${sv}"
+        mvn"org.scoverage:::scalac-scoverage-plugin:${sv}",
+        mvn"org.scoverage::scalac-scoverage-domain:${sv}",
+        mvn"org.scoverage::scalac-scoverage-serializer:${sv}",
+        mvn"org.scoverage::scalac-scoverage-reporter:${sv}"
       )
     }
   }
@@ -104,9 +104,9 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     val scalaBinVersion = JvmWorkerUtil.scalaBinaryVersion(millScalaVersion)
     // In Scoverage 2.x, the reporting API is no longer bundled in the plugin jar
     Agg(
-      ivy"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
-      ivy"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
-      ivy"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
+      mvn"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
+      mvn"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
+      mvn"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
     )
   }
 

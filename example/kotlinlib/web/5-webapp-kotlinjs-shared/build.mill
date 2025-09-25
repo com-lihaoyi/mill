@@ -24,12 +24,12 @@ object `package` extends RootModule with AppKotlinModule {
   def moduleDeps = Seq(shared.jvm)
 
   def ivyDeps = Agg(
-    ivy"io.ktor:ktor-server-core-jvm:$ktorVersion",
-    ivy"io.ktor:ktor-server-netty-jvm:$ktorVersion",
-    ivy"io.ktor:ktor-server-html-builder-jvm:$ktorVersion",
-    ivy"io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion",
-    ivy"io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion",
-    ivy"ch.qos.logback:logback-classic:1.5.8"
+    mvn"io.ktor:ktor-server-core-jvm:$ktorVersion",
+    mvn"io.ktor:ktor-server-netty-jvm:$ktorVersion",
+    mvn"io.ktor:ktor-server-html-builder-jvm:$ktorVersion",
+    mvn"io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion",
+    mvn"io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion",
+    mvn"ch.qos.logback:logback-classic:1.5.8"
   )
 
   def resources = Task {
@@ -42,8 +42,8 @@ object `package` extends RootModule with AppKotlinModule {
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"io.ktor:ktor-server-test-host-jvm:$ktorVersion"
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"io.ktor:ktor-server-test-host-jvm:$ktorVersion"
     )
   }
 
@@ -53,7 +53,7 @@ object `package` extends RootModule with AppKotlinModule {
       def processors = Task {
         defaultResolver().classpath(
           Agg(
-            ivy"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}"
+            mvn"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}"
           )
         )
       }
@@ -65,14 +65,14 @@ object `package` extends RootModule with AppKotlinModule {
 
     object jvm extends SharedModule {
       def ivyDeps = super.ivyDeps() ++ Agg(
-        ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinHtmlVersion",
-        ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion"
+        mvn"org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinHtmlVersion",
+        mvn"org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion"
       )
     }
     object js extends SharedModule with AppKotlinJsModule {
       def ivyDeps = super.ivyDeps() ++ Agg(
-        ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
-        ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion"
+        mvn"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
+        mvn"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion"
       )
     }
   }
@@ -81,8 +81,8 @@ object `package` extends RootModule with AppKotlinModule {
     def splitPerModule = false
     def moduleDeps = Seq(shared.js)
     def ivyDeps = Agg(
-      ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
-      ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion"
+      mvn"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
+      mvn"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion"
     )
   }
 }

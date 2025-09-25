@@ -6,7 +6,7 @@ object `package` extends RootModule with ScalaNativeModule {
   def scalaNativeVersion = "0.5.5"
 
   object test extends ScalaNativeTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.5")
+    def ivyDeps = Agg(mvn"com.lihaoyi::utest::0.8.5")
     def testFramework = "utest.runner.Framework"
   }
 

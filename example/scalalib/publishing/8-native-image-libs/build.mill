@@ -9,8 +9,8 @@ object foo extends ScalaModule with NativeImageModule {
   def nativeImageOptions = Seq("--no-fallback", "-Os")
 
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::scalatags:0.13.1",
-    ivy"com.lihaoyi::mainargs:0.6.2"
+    mvn"com.lihaoyi::scalatags:0.13.1",
+    mvn"com.lihaoyi::mainargs:0.6.2"
   )
 
   def zincWorker = ModuleRef(ZincWorkerGraalvm)

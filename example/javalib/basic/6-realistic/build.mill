@@ -14,7 +14,7 @@ trait MyModule extends JavaModule with PublishModule {
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
-  def ivyDeps = Agg(ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE")
+  def ivyDeps = Agg(mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE")
 
   object test extends JavaTests with TestModule.Junit4
 }

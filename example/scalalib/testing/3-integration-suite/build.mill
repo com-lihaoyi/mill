@@ -10,10 +10,10 @@ object qux extends ScalaModule {
   def scalaVersion = "2.13.8"
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
+    def ivyDeps = Agg(mvn"com.lihaoyi::utest:0.8.5")
   }
   object integration extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
+    def ivyDeps = Agg(mvn"com.lihaoyi::utest:0.8.5")
   }
 }
 //// SNIPPET:END

@@ -257,7 +257,7 @@ object TestModule {
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
     override def ivyDeps: T[Agg[Dep]] = Task {
       super.ivyDeps() ++ Agg(
-        ivy"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
+        mvn"com.lihaoyi:mill-contrib-testng:${mill.api.BuildInfo.millVersion}"
       )
     }
   }
@@ -269,7 +269,7 @@ object TestModule {
   trait Junit4 extends TestModule {
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
     override def ivyDeps: T[Agg[Dep]] = Task {
-      super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.sbtTestInterface}")
+      super.ivyDeps() ++ Agg(mvn"${mill.scalalib.api.Versions.sbtTestInterface}")
     }
   }
 
@@ -280,7 +280,7 @@ object TestModule {
   trait Junit5 extends TestModule {
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     override def ivyDeps: T[Agg[Dep]] = Task {
-      super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
+      super.ivyDeps() ++ Agg(mvn"${mill.scalalib.api.Versions.jupiterInterface}")
     }
 
     /**

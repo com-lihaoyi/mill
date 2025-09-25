@@ -484,7 +484,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         coursierDependency.withConfiguration(coursier.core.Configuration.runtime),
         force = false
       )) ++
-        Agg(ivy"com.lihaoyi:::ammonite:${ammVersion}").map(bind)
+        Agg(mvn"com.lihaoyi:::ammonite:${ammVersion}").map(bind)
     }
   }
 

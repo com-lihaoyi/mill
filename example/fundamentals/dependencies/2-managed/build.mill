@@ -6,11 +6,11 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   def depManagement = Agg(
-    ivy"com.google.protobuf:protobuf-java:4.28.3",
-    ivy"io.grpc:grpc-protobuf:1.67.1"
+    mvn"com.google.protobuf:protobuf-java:4.28.3",
+    mvn"io.grpc:grpc-protobuf:1.67.1"
   )
   def ivyDeps = Agg(
-    ivy"io.grpc:grpc-protobuf"
+    mvn"io.grpc:grpc-protobuf"
   )
 }
 
@@ -25,11 +25,11 @@ object foo extends JavaModule {
 
 object bar extends JavaModule {
   def depManagement = Agg(
-    ivy"io.grpc:grpc-protobuf:1.67.1"
+    mvn"io.grpc:grpc-protobuf:1.67.1"
       .exclude(("com.google.protobuf", "protobuf-java"))
   )
   def ivyDeps = Agg(
-    ivy"io.grpc:grpc-protobuf"
+    mvn"io.grpc:grpc-protobuf"
   )
 }
 
@@ -42,11 +42,11 @@ object bar extends JavaModule {
 
 object baz extends JavaModule {
   def depManagement = Agg(
-    ivy"io.grpc:grpc-protobuf"
+    mvn"io.grpc:grpc-protobuf"
       .exclude(("com.google.protobuf", "protobuf-java"))
   )
   def ivyDeps = Agg(
-    ivy"io.grpc:grpc-protobuf:1.67.1"
+    mvn"io.grpc:grpc-protobuf:1.67.1"
   )
 }
 
@@ -58,11 +58,11 @@ object baz extends JavaModule {
 object myBom extends BomModule {
   // Importing external BOMs from our BOM module with bomIvyDeps
   def bomIvyDeps = Agg(
-    ivy"com.google.protobuf:protobuf-bom:4.28.1"
+    mvn"com.google.protobuf:protobuf-bom:4.28.1"
   )
   // Managing versions directly from our BOM module with depManagement
   def depManagement = Agg(
-    ivy"io.grpc:grpc-protobuf:1.67.1"
+    mvn"io.grpc:grpc-protobuf:1.67.1"
   )
 }
 
@@ -72,7 +72,7 @@ object bomUser extends JavaModule {
     myBom
   )
   def ivyDeps = Agg(
-    ivy"io.grpc:grpc-protobuf"
+    mvn"io.grpc:grpc-protobuf"
   )
 }
 
@@ -81,10 +81,10 @@ object bomUser extends JavaModule {
 
 object myPublishedBom extends BomModule with MyPublishModule {
   def bomIvyDeps = Agg(
-    ivy"com.google.protobuf:protobuf-bom:4.28.1"
+    mvn"com.google.protobuf:protobuf-bom:4.28.1"
   )
   def depManagement = Agg(
-    ivy"io.grpc:grpc-protobuf:1.67.1"
+    mvn"io.grpc:grpc-protobuf:1.67.1"
   )
 }
 
@@ -95,7 +95,7 @@ object publishedBomUser extends JavaModule with MyPublishModule {
     myPublishedBom
   )
   def ivyDeps = Agg(
-    ivy"io.grpc:grpc-protobuf"
+    mvn"io.grpc:grpc-protobuf"
   )
 }
 

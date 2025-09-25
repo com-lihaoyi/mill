@@ -7,7 +7,7 @@ object `package` extends RootModule with KotlinModule {
   def kotlinVersion = "1.9.24"
 
   def ivyDeps = Agg(
-    ivy"com.fasterxml.jackson.core:jackson-databind:2.13.4"
+    mvn"com.fasterxml.jackson.core:jackson-databind:2.13.4"
   )
 }
 

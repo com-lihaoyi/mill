@@ -6,8 +6,8 @@ object foo extends JavaModule {
   object test extends JavaTests {
     def testFramework = "com.novocode.junit.JUnitFramework"
     def ivyDeps = Agg(
-      ivy"com.novocode:junit-interface:0.11",
-      ivy"org.mockito:mockito-core:4.6.1"
+      mvn"com.novocode:junit-interface:0.11",
+      mvn"org.mockito:mockito-core:4.6.1"
     )
     def testParallelism = true
   }

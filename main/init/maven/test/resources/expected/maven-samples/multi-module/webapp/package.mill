@@ -12,7 +12,7 @@ object `package` extends RootModule with PublishModule with MavenModule {
   def moduleDeps = super.moduleDeps ++ Agg(build.`multi-module`.server)
 
   def compileIvyDeps = super.compileIvyDeps() ++
-    Agg(ivy"javax.servlet.jsp:jsp-api:2.2", ivy"javax.servlet:servlet-api:2.5")
+    Agg(mvn"javax.servlet.jsp:jsp-api:2.2", mvn"javax.servlet:servlet-api:2.5")
 
   def pomSettings = PomSettings(
     "Webapp.",

@@ -45,7 +45,7 @@ object NodeJSConfigTests extends TestSuite {
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
         override def sources = Task.Sources { this.millSourcePath / "src/utest" }
         override def ivyDeps = Agg(
-          ivy"com.lihaoyi::utest::$utestVersion"
+          mvn"com.lihaoyi::utest::$utestVersion"
         )
         override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
       }

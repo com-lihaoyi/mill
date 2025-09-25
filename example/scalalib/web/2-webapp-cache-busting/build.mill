@@ -5,9 +5,9 @@ import java.util.Arrays
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::cask:0.9.1",
-    ivy"com.lihaoyi::scalatags:0.13.1",
-    ivy"com.lihaoyi::os-lib:0.10.7"
+    mvn"com.lihaoyi::cask:0.9.1",
+    mvn"com.lihaoyi::scalatags:0.13.1",
+    mvn"com.lihaoyi::os-lib:0.10.7"
   )
 
   def resources = Task {
@@ -28,8 +28,8 @@ object `package` extends RootModule with ScalaModule {
   object test extends ScalaTests {
     def testFramework = "utest.runner.Framework"
     def ivyDeps = Agg(
-      ivy"com.lihaoyi::utest::0.8.5",
-      ivy"com.lihaoyi::requests::0.6.9"
+      mvn"com.lihaoyi::utest::0.8.5",
+      mvn"com.lihaoyi::requests::0.6.9"
     )
   }
 

@@ -11,7 +11,7 @@ object ScalaScalacheckTests extends TestSuite {
     object foo extends ScalaModule {
       def scalaVersion = scala212Version
       object test extends ScalaTests {
-        override def ivyDeps = Agg(ivy"org.scalacheck::scalacheck:1.13.5")
+        override def ivyDeps = Agg(mvn"org.scalacheck::scalacheck:1.13.5")
         override def testFramework = "org.scalacheck.ScalaCheckFramework"
       }
     }

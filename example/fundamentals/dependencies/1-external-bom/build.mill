@@ -6,10 +6,10 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   def bomIvyDeps = Agg(
-    ivy"com.google.cloud:libraries-bom:26.50.0"
+    mvn"com.google.cloud:libraries-bom:26.50.0"
   )
   def ivyDeps = Agg(
-    ivy"io.grpc:grpc-protobuf"
+    mvn"io.grpc:grpc-protobuf"
   )
 }
 

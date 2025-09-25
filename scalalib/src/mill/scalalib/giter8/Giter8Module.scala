@@ -1,12 +1,12 @@
 package mill.scalalib.giter8
 
 import mill.Task
-import mill.define.{Command, Discover, ExternalModule}
-import mill.util.Jvm
-import mill.scalalib.api.ZincWorkerUtil
-import mill.scalalib._
-import mill.main.BuildInfo
 import mill.api.Loose
+import mill.define.{Command, Discover, ExternalModule}
+import mill.main.BuildInfo
+import mill.scalalib._
+import mill.scalalib.api.JvmWorkerUtil
+import mill.util.Jvm
 
 object Giter8Module extends ExternalModule with Giter8Module {
   lazy val millDiscover: Discover = Discover[this.type]
@@ -21,10 +21,10 @@ trait Giter8Module extends CoursierModule {
       try {
         defaultResolver().classpath {
           val scalaBinVersion = {
-            val bv = ZincWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
+            val bv = JvmWorkerUtil.scalaBinaryVersion(BuildInfo.scalaVersion)
             if (bv == "3") "2.13" else bv
           }
-          Loose.Agg(ivy"org.foundweekends.giter8:giter8_${scalaBinVersion}:0.14.0"
+          Loose.Agg(mvn"org.foundweekends.giter8:giter8_${scalaBinVersion}:0.14.0"
             .bindDep("", "", ""))
         }
       } catch {

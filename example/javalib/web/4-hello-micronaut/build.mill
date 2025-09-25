@@ -4,17 +4,17 @@ import mill._, javalib._
 object `package` extends RootModule with MicronautModule {
   def micronautVersion = "4.5.3"
   def ivyDeps = Agg(
-    ivy"io.micronaut:micronaut-http-server-netty:$micronautVersion",
-    ivy"io.micronaut.serde:micronaut-serde-jackson:2.10.1",
-    ivy"ch.qos.logback:logback-classic:1.5.3"
+    mvn"io.micronaut:micronaut-http-server-netty:$micronautVersion",
+    mvn"io.micronaut.serde:micronaut-serde-jackson:2.10.1",
+    mvn"ch.qos.logback:logback-classic:1.5.3"
   )
 
   object test extends MavenTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.micronaut:micronaut-http-client:$micronautVersion",
-      ivy"io.micronaut.test:micronaut-test-junit5:4.4.0",
-      ivy"org.junit.jupiter:junit-jupiter-api:5.8.1",
-      ivy"org.junit.jupiter:junit-jupiter-engine:5.8.1"
+      mvn"io.micronaut:micronaut-http-client:$micronautVersion",
+      mvn"io.micronaut.test:micronaut-test-junit5:4.4.0",
+      mvn"org.junit.jupiter:junit-jupiter-api:5.8.1",
+      mvn"org.junit.jupiter:junit-jupiter-engine:5.8.1"
     )
   }
 }
@@ -25,11 +25,11 @@ trait MicronautModule extends MavenModule {
   def processors = Task {
     defaultResolver().classpath(
       Agg(
-        ivy"io.micronaut.data:micronaut-data-processor:4.7.0",
-        ivy"io.micronaut:micronaut-http-validation:$micronautVersion",
-        ivy"io.micronaut.serde:micronaut-serde-processor:2.9.0",
-        ivy"io.micronaut.validation:micronaut-validation-processor:4.5.0",
-        ivy"io.micronaut:micronaut-inject-java:$micronautVersion"
+        mvn"io.micronaut.data:micronaut-data-processor:4.7.0",
+        mvn"io.micronaut:micronaut-http-validation:$micronautVersion",
+        mvn"io.micronaut.serde:micronaut-serde-processor:2.9.0",
+        mvn"io.micronaut.validation:micronaut-validation-processor:4.5.0",
+        mvn"io.micronaut:micronaut-inject-java:$micronautVersion"
       )
     )
   }

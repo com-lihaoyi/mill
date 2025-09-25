@@ -20,7 +20,7 @@ object HelloJavaTests extends TestSuite {
       object test extends JavaTests with TestModule.Junit4
       object testJunit5 extends JavaTests with TestModule.Junit5 {
         override def ivyDeps: T[Agg[Dep]] = Task {
-          super.ivyDeps() ++ Agg(ivy"org.junit.jupiter:junit-jupiter-params:5.7.0")
+          super.ivyDeps() ++ Agg(mvn"org.junit.jupiter:junit-jupiter-params:5.7.0")
         }
       }
     }

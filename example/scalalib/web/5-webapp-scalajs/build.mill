@@ -5,8 +5,8 @@ object `package` extends RootModule with ScalaModule {
 
   def scalaVersion = "2.13.14"
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::cask:0.9.1",
-    ivy"com.lihaoyi::scalatags:0.13.1"
+    mvn"com.lihaoyi::cask:0.9.1",
+    mvn"com.lihaoyi::scalatags:0.13.1"
   )
 
   def resources = Task {
@@ -23,15 +23,15 @@ object `package` extends RootModule with ScalaModule {
     def testFramework = "utest.runner.Framework"
 
     def ivyDeps = Agg(
-      ivy"com.lihaoyi::utest::0.8.5",
-      ivy"com.lihaoyi::requests::0.6.9"
+      mvn"com.lihaoyi::utest::0.8.5",
+      mvn"com.lihaoyi::requests::0.6.9"
     )
   }
 
   object client extends ScalaJSModule {
     def scalaVersion = "2.13.14"
     def scalaJSVersion = "1.16.0"
-    def ivyDeps = Agg(ivy"org.scala-js::scalajs-dom::2.2.0")
+    def ivyDeps = Agg(mvn"org.scala-js::scalajs-dom::2.2.0")
   }
 }
 

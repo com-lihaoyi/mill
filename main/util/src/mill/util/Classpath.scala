@@ -1,6 +1,6 @@
 package mill.util
 
-import mill.api.WorkspaceRoot
+import mill.api.BuildCtx
 
 import java.io.File
 import java.net.URL
@@ -54,7 +54,7 @@ object Classpath {
     } else {
       if (seenClassLoaders.contains(ClassLoader.getSystemClassLoader)) {
         for (p <- System.getProperty("java.class.path").split(File.pathSeparatorChar)) {
-          val f = os.Path(p, WorkspaceRoot.workspaceRoot)
+          val f = os.Path(p, BuildCtx.workspaceRoot)
           if (os.exists(f)) files.append(f)
         }
       }

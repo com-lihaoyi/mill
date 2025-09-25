@@ -8,15 +8,15 @@ trait HelloIdeaModule extends scalalib.ScalaModule {
   def scalaVersion = "2.12.5"
   object test extends ScalaTests with TestModule.Utest {
     override def compileIvyDeps: T[Agg[Dep]] = Agg(
-      ivy"org.slf4j:jcl-over-slf4j:1.7.25"
+      mvn"org.slf4j:jcl-over-slf4j:1.7.25"
     )
     override def ivyDeps: T[Agg[Dep]] = Agg(
-      ivy"org.slf4j:slf4j-api:1.7.25",
-      ivy"ch.qos.logback:logback-core:1.2.3"
+      mvn"org.slf4j:slf4j-api:1.7.25",
+      mvn"ch.qos.logback:logback-core:1.2.3"
     )
     override def runIvyDeps: T[Agg[Dep]] = Agg(
-      ivy"ch.qos.logback:logback-core:1.2.3",
-      ivy"ch.qos.logback:logback-classic:1.2.3"
+      mvn"ch.qos.logback:logback-core:1.2.3",
+      mvn"ch.qos.logback:logback-classic:1.2.3"
     )
   }
 }
@@ -61,7 +61,7 @@ object HelloIdeaJs extends ScalaJSModule {
   override def scalaJSVersion = "1.16.0"
   object test extends ScalaJSTests with TestModule.Utest {
     override def ivyDeps: T[Agg[Dep]] = Agg(
-      ivy"com.lihaoyi::utest::0.8.5"
+      mvn"com.lihaoyi::utest::0.8.5"
     )
   }
 }

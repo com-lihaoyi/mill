@@ -20,7 +20,7 @@ object foo extends ScalaModule with FlywayModule {
 
   //region flyway
   def flywayUrl = "jdbc:postgresql:myDb" // required
-  def flywayDriverDeps = Agg(ivy"org.postgresql:postgresql:42.2.5") // required
+  def flywayDriverDeps = Agg(mvn"org.postgresql:postgresql:42.2.5") // required
   def flywayUser = "postgres" // optional
   // def flywayPassword = "" // optional
   //endregion

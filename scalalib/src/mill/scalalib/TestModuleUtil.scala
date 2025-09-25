@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.api.{Ctx, PathRef, Result}
+import mill.api.{Ctx, Logger, PathRef, Result}
 import mill.main.client.EnvVars
 import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import mill.util.Jvm
@@ -12,7 +12,6 @@ import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDateTime, ZoneId}
 import scala.xml.Elem
 import scala.collection.mutable
-import mill.api.Logger
 import java.util.concurrent.Executors
 
 private final class TestModuleUtil(

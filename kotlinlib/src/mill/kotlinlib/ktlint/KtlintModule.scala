@@ -32,7 +32,7 @@ trait KtlintModule extends JavaModule {
    */
   def ktlintClasspath: T[Loose.Agg[PathRef]] = Task {
     defaultResolver().classpath(
-      Agg(ivy"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
+      Agg(mvn"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
     )
   }
 

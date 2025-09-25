@@ -21,7 +21,7 @@ object MultiModuleTests extends TestSuite {
       override def mainClass = Some("Main")
       object test extends ScalaJSTests with TestModule.Utest {
         override def ivyDeps =
-          Agg(ivy"com.lihaoyi::utest::${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}")
+          Agg(mvn"com.lihaoyi::utest::${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}")
       }
     }
 
