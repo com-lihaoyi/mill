@@ -48,12 +48,9 @@ public class MillLauncherMain {
     // Ensure that if we're running in BSP mode we don't start a daemon.
     //
     // This is needed because when Metals/Idea closes, they only kill the BSP client and the BSP
-    // server lurks around
-    // waiting for the next client to connect.
-    //
+    // server lurks around waiting for the next client to connect.
     // This is unintuitive from the user's perspective and wastes resources, as most people expect
-    // everything related
-    // to the BSP server to be killed when closing the editor.
+    // everything related to the BSP server to be killed when closing the editor.
     if (bspMode) runNoDaemon = true;
 
     var outMode = bspMode ? OutFolderMode.BSP : OutFolderMode.REGULAR;
