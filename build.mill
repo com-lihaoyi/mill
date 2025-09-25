@@ -113,15 +113,15 @@ object Deps {
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.15"
-  val ammoniteVersion = "3.0.1"
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.18"
+  val ammoniteVersion = "3.0.2"
   val asmTree = ivy"org.ow2.asm:asm-tree:9.8"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
-  val classgraph = ivy"io.github.classgraph:classgraph:4.8.179"
-  val coursierVersion = "2.1.25-M13"
+  val classgraph = ivy"io.github.classgraph:classgraph:4.8.181"
+  val coursierVersion = "2.1.25-M18"
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion"
-  val coursierInterface = ivy"io.get-coursier:interface:1.0.29-M1"
+  val coursierInterface = ivy"io.get-coursier:interface:1.0.29-M2"
   val coursierJvm = ivy"io.get-coursier::coursier-jvm:$coursierVersion"
   val coursierJvmIndexVersion = "0.0.4-111-eb6e08"
 
@@ -149,7 +149,7 @@ object Deps {
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
-  val commonsIo = ivy"commons-io:commons-io:2.18.0"
+  val commonsIo = ivy"commons-io:commons-io:2.20.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.3"
   val osLibVersion = "0.11.5-M8"
   val osLib = ivy"com.lihaoyi::os-lib:${osLibVersion}"
@@ -178,7 +178,7 @@ object Deps {
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.12.4"
-  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.3"
+  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.11.1"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.2"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
@@ -187,10 +187,10 @@ object Deps {
   val zinc = ivy"org.scala-sbt::zinc:1.10.7"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
-  val fansi = ivy"com.lihaoyi::fansi:0.5.0"
-  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
+  val fansi = ivy"com.lihaoyi::fansi:0.5.1"
+  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.15.0"
   val requests = ivy"com.lihaoyi::requests:0.9.0"
-  val logback = ivy"ch.qos.logback:logback-classic:1.5.16"
+  val logback = ivy"ch.qos.logback:logback-classic:1.5.18"
   // We can't update to a newer client because it bumps up `upickle` version and it starts failing
   // with `[2451]   upickle.core.AbortException: expected string got sequence at index 59` in a
   // bunch of locations :(
