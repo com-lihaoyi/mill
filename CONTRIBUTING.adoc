@@ -8,10 +8,10 @@ We have essential contributor information in the xref:readme.adoc[Project README
 
 Here are some direct links:
 
-* xref:readme.adoc#intellij-setup[IntelliJ Setup] - IntelliJ IDEA works great for Mill development; other IDEs may work as well
-* xref:readme.adoc#project-layout[Project Layout] - The source code repository structure from a high level view
-* xref:readme.adoc#manual-automated-testing[Manual and Automated Testing] - How we test Mill
-* xref:readme.adoc#project-maintenance[Project Maintenance] - Details about authoring pull request and commit messages
+* xref:developer.adoc#intellij-setup[IntelliJ Setup] - IntelliJ IDEA works great for Mill development; other IDEs may work as well
+* xref:developer.adoc#project-layout[Project Layout] - The source code repository structure from a high level view
+* xref:developer.adoc#manual-automated-testing[Manual and Automated Testing] - How we test Mill
+* xref:developer.adoc#project-maintenance[Project Maintenance] - Details about authoring pull request and commit messages
 * https://mill-build.org/mill/Intro_to_Mill.html[Mill Documentation] - Documentation for users and developers
 * {link-github}/discussions[Discussion Forum on GitHub] - A place to ask question and discuss all kind of questions around Mill
 * {link-github}/issues[Issue Tracker on GitHub] - Our issue tracker for bugs and features
