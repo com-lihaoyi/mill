@@ -3,8 +3,6 @@ package mill.client;
 public abstract class LaunchedServer {
   public abstract boolean isAlive();
 
-  public abstract void kill();
-
   /// An operating system process was launched.
   public static class OsProcess extends LaunchedServer {
     public final ProcessHandle process;
@@ -23,12 +21,6 @@ public abstract class LaunchedServer {
       return process.isAlive();
     }
 
-    @Override
-    public void kill() {
-      if (!process.destroy())
-        throw new IllegalStateException(
-            "Asked " + process + " to terminate, but the termination request failed.");
-    }
   }
 
   /// Code running in the same process.
@@ -51,9 +43,5 @@ public abstract class LaunchedServer {
       return thread.isAlive();
     }
 
-    @Override
-    public void kill() {
-      _kill.run();
-    }
   }
 }

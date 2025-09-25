@@ -254,10 +254,6 @@ public abstract class ServerLauncher {
                         throw new RuntimeException("not implemented, this should never happen");
                       }
 
-                      @Override
-                      public void kill() {
-                        throw new RuntimeException("not implemented, this should never happen");
-                      }
                     };
             return Optional.of(new ServerLaunchResult.AlreadyRunning(launchedServer));
           } catch (IOException | NumberFormatException e) {
