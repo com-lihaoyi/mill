@@ -26,6 +26,8 @@ public class MillProcessLauncher {
     final Path processDir =
         Paths.get(".").resolve(outFor(outMode)).resolve(millNoDaemon).resolve(sig);
 
+    MillProcessLauncher.prepareMillRunFolder(processDir);
+
     final List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand(outMode, runnerClasspath));
     Map<String, String> propsMap = ClientUtil.getUserSetProperties();
@@ -77,7 +79,7 @@ public class MillProcessLauncher {
 
     Path sandbox = daemonDir.resolve(DaemonFiles.sandbox);
     Files.createDirectories(sandbox);
-    MillProcessLauncher.prepareMillRunFolder(daemonDir);
+
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
     if (System.getenv(EnvVars.MILL_EXECUTABLE_PATH) == null)
       builder.environment().put(EnvVars.MILL_EXECUTABLE_PATH, getExecutablePath());
