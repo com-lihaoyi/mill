@@ -116,12 +116,13 @@ public class MillLauncherMain {
               }
             };
 
-        var daemonDir0 = Paths.get(outDir, OutFiles.millDaemon);
+        var daemonDir = Paths.get(outDir, OutFiles.millDaemon);
         String javaHome = MillProcessLauncher.javaHome(outMode);
 
-        var exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;
+        MillProcessLauncher.prepareMillRunFolder(daemonDir);
+        var exitCode = launcher.run(daemonDir, javaHome, log).exitCode;
         if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
-          exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;
+          exitCode = launcher.run(daemonDir, javaHome, log).exitCode;
         }
         System.exit(exitCode);
       } catch (Exception e) {
