@@ -1,10 +1,31 @@
-
 = Building Groovy with Mill
 :page-aliases: Groovy_Intro_to_Mill.adoc
 :language: Groovy
 :language-small: groovy
 
-include::partial$Intro_Header.adoc[]
+// START-COPY-AND-PASTE
+// Instead of this include
+// include::partial$Intro_Header.adoc[]
+// We copy the text here, as we currently have no publishing page
+
+This page contains a quick introduction to getting start with using Mill to build
+a simple {language} program. It walks through a series of Mill builds of increasing
+complexity to show you the key features and usage of the Mill build tool.
+The other pages of this section of the docs go into more depth into individual Mill features.
+These aren't intended to be read comprehensively top-to-bottom, but
+rather looked up when you have a particular interest e.g. in
+xref:{language-small}lib/testing.adoc[testing],
+xref:javalib/publishing.adoc[publishing], and so on.
+
+The API reference for Mill's {language} toolchain can be found at:
+
+* {mill-doc-url}/api/latest/mill/{language-small}lib.html[mill.{language-small}lib]
+
+If you aren't sure why you would use Mill, see xref:comparisons/why-mill.adoc[] for
+a discussion on the motivations of the project. If you are migrating an existing project,
+see xref:migrating/migrating.adoc[Migrating to Mill].
+
+// END-COPY-AND-PASTE
 
 NOTE: Mill Groovy support is currently still under active development.
 It is expected to continue evolving over time.

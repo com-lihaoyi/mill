@@ -2,7 +2,6 @@
 :page-aliases: Testing_Groovy_Projects.adoc
 
 
-
 This page will discuss common topics around working with test suites using the Mill build tool
 
 == Defining Unit Test Suites
@@ -19,7 +18,7 @@ include::partial$example/groovylib/testing/3-spock.adoc[]
 
 == Using Spock in Java projects with Maven layout
 
-include::partial$example/groovylib/testing/4-java-spock.adoc[]
+include::partial$example/groovylib/testing/4-spock-for-java.adoc[]
 
 == Github Actions Test Reports
 
