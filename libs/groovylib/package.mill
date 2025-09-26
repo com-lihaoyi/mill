@@ -14,7 +14,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   override def testMvnDeps: T[Seq[Dep]] = super.testMvnDeps() ++ Seq(
     Deps.asmTree
   )
-  
+
   def buildInfoPackageName = "mill.groovylib"
   def buildInfoObjectName = "Versions"
   def buildInfoMembers = Seq(
