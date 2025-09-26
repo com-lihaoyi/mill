@@ -20,8 +20,7 @@ object JetLagged extends mill.api.Module {
 
     override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(
-        isMinifyEnabled = false,
-        isShrinkEnabled = false
+        isMinifyEnabled = false
       )
     }
 
@@ -129,8 +128,7 @@ object JetNews extends mill.api.Module {
 
     override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(
-        isMinifyEnabled = false,
-        isShrinkEnabled = false
+        isMinifyEnabled = false
       )
     }
     def androidProjectProguardFiles = Task.Sources(
