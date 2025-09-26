@@ -43,7 +43,7 @@ public abstract class MillServerLauncher extends ServerLauncher {
    */
   public abstract LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception;
 
-  public Result run(Path daemonDir, String javaHome, Consumer<String> log) throws Exception {
+  public int run(Path daemonDir, String javaHome, Consumer<String> log) throws Exception {
     Files.createDirectories(daemonDir);
 
     var initData = new ClientInitData(
@@ -76,8 +76,6 @@ public abstract class MillServerLauncher extends ServerLauncher {
         true /*openSocket*/)) {
       log.accept("runWithConnection: " + launched);
       var result = runWithConnection(
-          "MillServerLauncher[" + launched.socket.getLocalSocketAddress() + " -> "
-              + launched.socket.getRemoteSocketAddress() + "]",
           launched.socket,
           streams,
           false,
@@ -93,19 +91,24 @@ public abstract class MillServerLauncher extends ServerLauncher {
           () -> {
             log.accept("running client logic");
             forceTestFailure(daemonDir, log);
-            return 0;
-          });
-      log.accept("runWithConnection exit code: " + result.exitCode);
-      return new Result(result.exitCode, daemonDir);
+          },
+          "MillServerLauncher[" + launched.socket.getLocalSocketAddress() + " -> "
+              + launched.socket.getRemoteSocketAddress() + "]");
+      log.accept("runWithConnection exit code: " + result);
+      return result;
     }
   }
 
-  private void forceTestFailure(Path daemonDir, Consumer<String> log) throws Exception {
+  private void forceTestFailure(Path daemonDir, Consumer<String> log) {
     if (forceFailureForTestingMillisDelay > 0) {
       log.accept(
           "Force failure for testing in " + forceFailureForTestingMillisDelay + "ms: " + daemonDir);
-      Thread.sleep(forceFailureForTestingMillisDelay);
-      throw new Exception("Force failure for testing: " + daemonDir);
+      try {
+        Thread.sleep(forceFailureForTestingMillisDelay);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      throw new RuntimeException("Force failure for testing: " + daemonDir);
     } else {
       log.accept("No force failure for testing: " + daemonDir);
     }

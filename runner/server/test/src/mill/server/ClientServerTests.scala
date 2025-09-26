@@ -99,6 +99,7 @@ object ClientServerTests extends TestSuite {
       val in = new ByteArrayInputStream(s"hello$ENDL".getBytes())
       val out = new ByteArrayOutputStream()
       val err = new ByteArrayOutputStream()
+      val daemonDir = outDir / "server-0"
       val result = new MillServerLauncher(
         ServerLauncher.Streams(in, out, err),
         env.asJava,
@@ -121,14 +122,14 @@ object ClientServerTests extends TestSuite {
           LaunchedServer.NewThread(t, () => { /* do nothing */ })
         }
       }.run(
-        (outDir / "server-0").relativeTo(os.pwd).toNIO,
+        daemonDir.relativeTo(os.pwd).toNIO,
         "",
         msg => println(s"MillServerLauncher: $msg")
       )
 
       ClientResult(
-        result.exitCode,
-        os.Path(result.daemonDir, os.pwd),
+        result,
+        daemonDir,
         outDir,
         out.toString,
         err.toString

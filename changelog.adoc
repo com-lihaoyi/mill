@@ -576,6 +576,21 @@ def namedTupleTask = Task {
 ----
 
 
+
+[#0-12-16]
+=== 0.12.16 - 2025-09-23
+:version: 0.12.16
+:milestone-name: 0.12.16
+:milestone: 128
+:prev-version: 0.12.15
+
+_Changes since {prev-version}:_
+
+* Added support for Scala 3.8 ({link-pr}/5797[#5797])
+
+* Added support for Java 25 and updated asm-tree to 9.8  ({link-pr}/5891[#5891])
+
+
 [#0-12-15]
 === 0.12.15
 :version: 0.12.15
