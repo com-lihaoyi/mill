@@ -41,7 +41,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
   def androidDataBindingCompilerVersion: T[String] = Task {
     isBindingEnabled match {
       case true => throw new Exception(
-          "dataBindingCompilerVersion must be overridden when view or data binding is enabled."
+          "androidDataBindingCompilerVersion must be set (e.g. \"8.13.0\") when view or data binding is enabled."
         )
       case false => ""
     }
@@ -60,7 +60,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
   def androidDataBindingCompilerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       Seq(
-        Dep.millProjectModule("mill-libs-androidlib-databinding")
+        Dep.millProjectModule("mill-libs-androidlib-databinding-impl")
       ) ++ androidDataBindingCompilerDeps()
     )
   }
