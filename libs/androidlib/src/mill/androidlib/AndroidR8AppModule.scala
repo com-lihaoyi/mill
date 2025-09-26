@@ -161,12 +161,14 @@ trait AndroidR8AppModule extends AndroidAppModule {
     destDir / "res"
 
     // Extra ProGuard rules
-    val extraRules = generatedMinifyKeepRules() ++
+    val extraRules =
       Seq(
         // Instruct R8 to print seeds and usage.
         s"-printseeds $seedsOut",
         s"-printusage $usageOut"
-      )
+      ) ++
+        (if (androidBuildSettings().isMinifyEnabled) then generatedMinifyKeepRules()
+         else Seq())
     // Create an extra ProGuard config file
     val extraRulesFile = destDir / "extra-rules.pro"
     val extraRulesContent = extraRules.mkString("\n")
