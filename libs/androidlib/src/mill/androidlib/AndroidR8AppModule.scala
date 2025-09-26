@@ -2,6 +2,7 @@ package mill.androidlib
 
 import mill.*
 import mill.api.{PathRef, Task}
+import scala.xml.*
 
 @mill.api.experimental
 trait AndroidR8AppModule extends AndroidAppModule {
@@ -159,11 +160,13 @@ trait AndroidR8AppModule extends AndroidAppModule {
     val baselineOutOpt = destDir / "baseline-profile-rewritten.txt"
     destDir / "res"
 
-    // Instruct R8 to print seeds and usage.
-    val extraRules = Seq(
-      s"-printseeds $seedsOut",
-      s"-printusage $usageOut"
-    )
+    // Extra ProGuard rules
+    val extraRules = generatedMinifyKeepRules() ++
+      Seq(
+        // Instruct R8 to print seeds and usage.
+        s"-printseeds $seedsOut",
+        s"-printusage $usageOut"
+      )
     // Create an extra ProGuard config file
     val extraRulesFile = destDir / "extra-rules.pro"
     val extraRulesContent = extraRules.mkString("\n")
@@ -262,6 +265,77 @@ trait AndroidR8AppModule extends AndroidAppModule {
     val r8Args = r8ArgsBuilder.result()
 
     (PathRef(outputPath), r8Args, allClassFilesPathRefs)
+  }
+
+
+  /**
+   * Generates ProGuard/R8 keep rules to keep classes that are referenced in the AndroidManifest.xml
+   * and in the layout XML files (for custom views).
+   * https://android.googlesource.com/platform/tools/base/+/studio-master-dev/build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/GenerateLibraryProguardRulesTask.kt
+   */
+  def generatedMinifyKeepRules: T[Seq[String]] = Task {
+    val keepClasses = extractKeepClassesFromManifest() ++ extractKeepClassesFromResources()
+    keepClasses.map(c => s"-keep class $c { *; }")
+  }
+
+  private def combinePackageAndClassName(packageName: String, className: String): String = {
+    className match {
+      case c if c.startsWith(".") => packageName + c
+      case c if !c.contains(".") => packageName + "." + c
+      case c => c
+    }
+  }
+
+  def extractKeepClassesFromManifest: T[Seq[String]] = Task {
+    val manifestPath: os.Path = androidMergedManifest().path
+    val manifest = XML.loadFile(manifestPath.toIO)
+    val packageName: String = (manifest \ "@package").text
+
+    val androidNS = "http://schemas.android.com/apk/res/android"
+
+    def collectClasses(label: String): Seq[String] = {
+      (manifest \\ label).flatMap { node =>
+        val className = node.attribute(androidNS, "name").map(_.text)
+        className.map(c => combinePackageAndClassName(packageName, c))
+      }
+    }
+
+    val nodes = Seq(
+      "application",
+      "activity",
+      "service",
+      "receiver",
+      "provider",
+      "instrumentation"
+    )
+    nodes.flatMap(collectClasses).distinct
+  }
+
+  def extractKeepClassesFromResources: T[Seq[String]] = Task {
+    val resDirs: Seq[os.Path] = androidResources().map(_.path)
+
+    val layoutXmls: Seq[os.Path] = resDirs.flatMap { resDir =>
+      if (os.exists(resDir) && os.isDir(resDir)) {
+        os.list(resDir)
+          .filter(p => os.isDir(p) && p.last.startsWith("layout"))
+          .flatMap(layoutDir =>
+            os.list(layoutDir)
+              .filter(f => os.isFile(f) && f.ext == "xml")
+          )
+      } else Seq.empty[os.Path]
+    }
+
+    def collectClasses(node: Node): Seq[String] = {
+      val tag = node.label
+      val curr = if (tag.contains(".")) Seq(tag)
+      else Seq.empty[String]
+      curr ++ node.child.flatMap(collectClasses)
+    }
+
+    layoutXmls.flatMap { xmlFile =>
+      val xml = XML.loadFile(xmlFile.toIO)
+      collectClasses(xml)
+    }
   }
 
 }
