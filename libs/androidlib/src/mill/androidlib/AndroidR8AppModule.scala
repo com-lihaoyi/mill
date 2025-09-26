@@ -267,7 +267,8 @@ trait AndroidR8AppModule extends AndroidAppModule {
   /**
    * Generates ProGuard/R8 keep rules to keep classes that are referenced in the AndroidManifest.xml
    * and in the layout XML files (for custom views).
-   * https://android.googlesource.com/platform/tools/base/+/studio-master-dev/build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/GenerateLibraryProguardRulesTask.kt
+   *
+   * [[https://android.googlesource.com/platform/tools/base/+/refs/tags/studio-2025.1.3/sdk-common/src/main/java/com/android/ide/common/symbols/SymbolUtils.kt#235]]
    */
   def generatedMinifyKeepRules: T[Seq[String]] = Task {
     val keepClasses = extractKeepClassesFromManifest() ++ extractKeepClassesFromResources()
@@ -282,6 +283,13 @@ trait AndroidR8AppModule extends AndroidAppModule {
     }
   }
 
+
+  /**
+   * Extracts the classes to keep from the Manifest file.
+   *
+   * See `mManifestData.mKeepClasses` in
+   * [[https://android.googlesource.com/platform/tools/base/+/refs/tags/studio-2025.1.3/sdk-common/src/main/java/com/android/ide/common/xml/AndroidManifestParser.java]]
+   */
   def extractKeepClassesFromManifest: T[Seq[String]] = Task {
     val manifestPath: os.Path = androidMergedManifest().path
     val manifest = XML.loadFile(manifestPath.toIO)
