@@ -105,8 +105,9 @@ object HelloGroovyTests extends TestSuite {
       }
 
       object compileroptions extends GroovyModule {
+        def javaVersion = "11"
         override def groovyVersion: T[String] = crossValue
-        override def targetBytecode: Task.Simple[Option[String]] = Some("11")
+        override def targetBytecode: Task.Simple[Option[String]] = Some(javaVersion)
         override def enablePreview: Task.Simple[Boolean] = true
         override def mainClass = Some("compileroptions.HelloCompilerOptions")
       }
@@ -220,6 +221,7 @@ object HelloGroovyTests extends TestSuite {
         val classReader = new ClassReader(new FileInputStream(classFilePath.toIO))
         val buffer = classReader.b
 
+        // see https://en.wikipedia.org/wiki/Java_class_file#General_layout
         // Class file format: magic(4) + minor(2) + major(2) + ...
         val minor = ((buffer(4) & 0xff) << 8) | (buffer(5) & 0xff)
         val major = ((buffer(6) & 0xff) << 8) | (buffer(7) & 0xff)
@@ -240,7 +242,7 @@ object HelloGroovyTests extends TestSuite {
 
           val bytecodeVersion = getBytecodeVersion(compiledClassFile.get)
 
-          assert(bytecodeVersion.major == 55)
+          assert(bytecodeVersion.javaVersion == m.compileroptions.javaVersion)
           assert(bytecodeVersion.is11PreviewEnabled)
 
           val Right(_) = eval.apply(m.compileroptions.run()): @unchecked
