@@ -267,7 +267,6 @@ trait AndroidR8AppModule extends AndroidAppModule {
     (PathRef(outputPath), r8Args, allClassFilesPathRefs)
   }
 
-
   /**
    * Generates ProGuard/R8 keep rules to keep classes that are referenced in the AndroidManifest.xml
    * and in the layout XML files (for custom views).
