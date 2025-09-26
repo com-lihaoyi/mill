@@ -174,24 +174,17 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
         )
       }
 
-      if (isMixed) {
+      def compileGroovyStubs(): Result[CompilationResult] = {
         ctx.log.info("Compiling Groovy stubs for mixed compilation")
-
-        val workerStubResult =
-          GroovyWorkerManager.groovyWorker().withValue(groovyCompilerClasspath()) {
-            _.compileGroovyStubs(groovySourceFiles, compileCp, classes, config)
-          }
-        workerStubResult match {
-          case Result.Success(_) => compileJava
-          case Result.Failure(reason) => Result.Failure(reason)
+        GroovyWorkerManager.groovyWorker().withValue(groovyCompilerClasspath()) {
+          _.compileGroovyStubs(groovySourceFiles, compileCp, classes, config)
         }
       }
 
-      if (isMixed || isGroovy) {
+      def compileGroovy(): Result[CompilationResult] = {
         ctx.log.info(
           s"Compiling ${groovySourceFiles.size} Groovy sources to $classes ..."
         )
-
         val workerGroovyResult =
           GroovyWorkerManager.groovyWorker().withValue(groovyCompilerClasspath()) {
             _.compile(groovySourceFiles, compileCp, classes, config)
@@ -206,6 +199,17 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
             CompilationResult(analysisFile, PathRef(classes))
           case Result.Failure(reason) => Result.Failure(reason)
         }
+      }
+
+      val firstAndSecondStage = if (isMixed) {
+        // only compile Java if Stubs are successfully generated
+        compileGroovyStubs().flatMap(_ => compileJava)
+      }else{
+        Result.Success
+      }
+
+      if (isMixed || isGroovy) {
+        firstAndSecondStage.flatMap(_ => compileGroovy())
       } else {
         compileJava
       }

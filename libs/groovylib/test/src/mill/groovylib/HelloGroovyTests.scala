@@ -7,6 +7,8 @@ import mill.api.Discover
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
+import java.io.FileInputStream
+
 object HelloGroovyTests extends TestSuite {
 
   val groovy4Version = "4.0.28"
@@ -101,6 +103,13 @@ object HelloGroovyTests extends TestSuite {
         override def jupiterVersion: T[String] = junit5Version
         override def junitPlatformVersion = "1.13.4"
       }
+      
+      object compileroptions extends GroovyModule {
+        override def groovyVersion: T[String] = crossValue
+        override def targetBytecode: Task.Simple[Option[String]] = Some("11")
+        override def enablePreview: Task.Simple[Boolean] = true
+        override def mainClass = Some("compileroptions.HelloCompilerOptions")
+      }
     }
     object main extends Cross[Test](groovyVersions)
   }
@@ -191,6 +200,49 @@ object HelloGroovyTests extends TestSuite {
           )
 
           val Right(_) = eval.apply(m.`joint-compile`.run()): @unchecked
+        })
+      }
+    }
+
+    test("compiles to Java 11 with Preview enabled") {
+      import org.objectweb.asm.ClassReader
+
+      case class BytecodeVersion(major: Int, minor: Int) {
+        def javaVersion: String = major match {
+          case 55 => "11"
+          case _ => "Irrelevant"
+        }
+
+        def is11PreviewEnabled: Boolean = minor == 65535 // 0xFFFF
+      }
+
+      def getBytecodeVersion(classFilePath: os.Path): BytecodeVersion = {
+        val classReader = new ClassReader(new FileInputStream(classFilePath.toIO))
+        val buffer = classReader.b
+
+        // Class file format: magic(4) + minor(2) + major(2) + ...
+        val minor = ((buffer(4) & 0xFF) << 8) | (buffer(5) & 0xFF)
+        val major = ((buffer(6) & 0xFF) << 8) | (buffer(7) & 0xFF)
+
+        BytecodeVersion(major, minor)
+      }
+
+      testEval().scoped { eval =>
+        main.crossModules.foreach(m => {
+          val Right(result) = eval.apply(m.compileroptions.compile): @unchecked
+
+          val compiledClassFile = os.walk(result.value.classes.path).find(_.last == "HelloCompilerOptions.class")
+          
+          assert(
+            compiledClassFile.isDefined
+          )
+
+          val bytecodeVersion = getBytecodeVersion(compiledClassFile.get)
+
+          assert(bytecodeVersion.major == 55)
+          assert(bytecodeVersion.is11PreviewEnabled)
+          
+          val Right(_) = eval.apply(m.compileroptions.run()): @unchecked
         })
       }
     }
