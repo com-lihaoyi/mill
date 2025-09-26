@@ -283,7 +283,6 @@ trait AndroidR8AppModule extends AndroidAppModule {
     }
   }
 
-
   /**
    * Extracts the classes to keep from the Manifest file.
    *
