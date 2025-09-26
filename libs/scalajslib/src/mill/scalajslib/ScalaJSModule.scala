@@ -68,6 +68,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
         mvn"${ScalaJSBuildInfo.scalajsEnvPhantomJs}"
       case _: JsEnvConfig.Selenium =>
         mvn"${ScalaJSBuildInfo.scalajsEnvSelenium}"
+      case _: JsEnvConfig.Playwright =>
+        mvn"${ScalaJSBuildInfo.scalajsEnvPlaywright}"
     }
 
     Seq(dep)
