@@ -166,7 +166,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
         s"-printseeds $seedsOut",
         s"-printusage $usageOut"
       ) ++
-        (if (androidBuildSettings().isMinifyEnabled) then generatedMinifyKeepRules()
+        (if (androidBuildSettings().isMinifyEnabled) then androidGeneratedMinifyKeepRules()
          else Seq())
     // Create an extra ProGuard config file
     val extraRulesFile = destDir / "extra-rules.pro"
@@ -270,7 +270,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
    *
    * [[https://android.googlesource.com/platform/tools/base/+/refs/tags/studio-2025.1.3/sdk-common/src/main/java/com/android/ide/common/symbols/SymbolUtils.kt#235]]
    */
-  def generatedMinifyKeepRules: T[Seq[String]] = Task {
+  def androidGeneratedMinifyKeepRules: T[Seq[String]] = Task {
     val keepClasses = extractKeepClassesFromManifest() ++ extractKeepClassesFromResources()
     keepClasses.map(c => s"-keep class $c { *; }")
   }
@@ -290,7 +290,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
    * See `mManifestData.mKeepClasses` in
    * [[https://android.googlesource.com/platform/tools/base/+/refs/tags/studio-2025.1.3/sdk-common/src/main/java/com/android/ide/common/xml/AndroidManifestParser.java]]
    */
-  def extractKeepClassesFromManifest: T[Seq[String]] = Task {
+  private def extractKeepClassesFromManifest: T[Seq[String]] = Task {
     val manifestPath: os.Path = androidMergedManifest().path
     val manifest = XML.loadFile(manifestPath.toIO)
     val packageName: String = (manifest \ "@package").text
@@ -315,7 +315,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
     nodes.flatMap(collectClasses).distinct
   }
 
-  def extractKeepClassesFromResources: T[Seq[String]] = Task {
+  private def extractKeepClassesFromResources: T[Seq[String]] = Task {
     val resDirs: Seq[os.Path] = androidResources().map(_.path)
 
     val layoutXmls: Seq[os.Path] = resDirs.flatMap { resDir =>
