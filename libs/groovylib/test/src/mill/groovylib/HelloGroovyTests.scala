@@ -103,7 +103,7 @@ object HelloGroovyTests extends TestSuite {
         override def jupiterVersion: T[String] = junit5Version
         override def junitPlatformVersion = "1.13.4"
       }
-      
+
       object compileroptions extends GroovyModule {
         override def groovyVersion: T[String] = crossValue
         override def targetBytecode: Task.Simple[Option[String]] = Some("11")
@@ -221,8 +221,8 @@ object HelloGroovyTests extends TestSuite {
         val buffer = classReader.b
 
         // Class file format: magic(4) + minor(2) + major(2) + ...
-        val minor = ((buffer(4) & 0xFF) << 8) | (buffer(5) & 0xFF)
-        val major = ((buffer(6) & 0xFF) << 8) | (buffer(7) & 0xFF)
+        val minor = ((buffer(4) & 0xff) << 8) | (buffer(5) & 0xff)
+        val major = ((buffer(6) & 0xff) << 8) | (buffer(7) & 0xff)
 
         BytecodeVersion(major, minor)
       }
@@ -231,8 +231,9 @@ object HelloGroovyTests extends TestSuite {
         main.crossModules.foreach(m => {
           val Right(result) = eval.apply(m.compileroptions.compile): @unchecked
 
-          val compiledClassFile = os.walk(result.value.classes.path).find(_.last == "HelloCompilerOptions.class")
-          
+          val compiledClassFile =
+            os.walk(result.value.classes.path).find(_.last == "HelloCompilerOptions.class")
+
           assert(
             compiledClassFile.isDefined
           )
@@ -241,7 +242,7 @@ object HelloGroovyTests extends TestSuite {
 
           assert(bytecodeVersion.major == 55)
           assert(bytecodeVersion.is11PreviewEnabled)
-          
+
           val Right(_) = eval.apply(m.compileroptions.run()): @unchecked
         })
       }

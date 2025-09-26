@@ -204,7 +204,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
       val firstAndSecondStage = if (isMixed) {
         // only compile Java if Stubs are successfully generated
         compileGroovyStubs().flatMap(_ => compileJava)
-      }else{
+      } else {
         Result.Success
       }
 
