@@ -1,5 +1,4 @@
 = Mill as an Alternative Android Build Tool
-
 // tag::header[]
 :author: Vasilis Nicolaou
 :revdate: 17 September 2025
@@ -20,7 +19,7 @@ In less than a year, Mill went from minimal Android support to producing install
 image:AndroidPokedexMultimoduleExample.png[A multi-module Android app built with Mill, showing a list of Pokémon and details for each pokemon.]
 
 
-=== Why you might prefer this to Gradle
+== Why you might prefer this to Gradle
 
 Because Mill’s Android support is built out of simple, object-oriented modules (AndroidModule, AndroidAppModule, etc.), the entire pipeline is transparent and hackable. If something doesn’t work, you don’t need to wait for a plugin update, you can open the task in your IDE, see the source, and tweak it yourself. This is the same design that let us implement end-to-end Android support in under a year, and it’s what makes Mill attractive if you value control and debuggability in your build.
 
@@ -81,7 +80,7 @@ Android adds a dozen more steps, each involving different tools and formats:
 
 Each step is order-sensitive: resources must be compiled before classes, manifests merged before packaging, APKs signed before installation. With Gradle, these steps are usually hidden inside plugin logic. When we explored Gradle builds, we often had to reverse engineer its behavior to understand what was going on. Mill instead exposes each phase as a target you can call, inspect its sources, or override.
 
-=== The Mill Android Build Pipeline
+== The Mill Android Build Pipeline
 
 .Standard Android build pipeline (without Hilt)
 [graphviz]
@@ -239,7 +238,7 @@ Run the instrumented tests and watch the app being tested inside the emulator:
 
 image:androidtodo_test.gif[Android Test running inside an emulator, showing the Todo app being tested automatically.]
 
-Let's say you want to know how the apk is built. First, you can check the plan of `androidApk`, i.e which
+Let's say you want to know how the apk is built. First, you can check the plan of `androidApk`, i.e. which
 tasks it depends on:
 [,console]
 ----
@@ -282,7 +281,7 @@ In addition, due to xref:12-direct-style-build-tool.adoc#_direct_style_builds[Mi
 
 === Example: tweak the build in your `build.mill`
 
-[source,scala]
+[,scala]
 ----
 import mill._
 import mill.androidlib._
