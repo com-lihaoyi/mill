@@ -94,8 +94,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
    */
   def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
     AndroidBuildTypeSettings(
-      isMinifyEnabled = true,
-      isShrinkEnabled = true
+      isMinifyEnabled = true
     )
   }
 
@@ -210,11 +209,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
     }
 
     if (!androidBuildSettings().isMinifyEnabled) {
-      r8ArgsBuilder += "--no-minification"
-    }
-
-    if (!androidBuildSettings().isShrinkEnabled) {
-      r8ArgsBuilder += "--no-tree-shaking"
+      r8ArgsBuilder ++= Seq("--no-minification", "--no-tree-shaking")
     }
 
     r8ArgsBuilder ++= Seq(
@@ -281,8 +276,8 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
   private def combinePackageAndClassName(packageName: String, className: String): String = {
     className match {
-      case c if c.startsWith(".") => packageName + c
-      case c if !c.contains(".") => packageName + "." + c
+      case c if c.startsWith(".") => s"$packageName$c"
+      case c if !c.contains(".") => s"$packageName.$c"
       case c => c
     }
   }
