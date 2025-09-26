@@ -1,19 +1,17 @@
 package mill.androidlib.databinding
 
 import android.databinding.tool.store.LayoutInfoInput
-import android.databinding.tool.{BaseDataBinder, DataBindingBuilder, LayoutXmlProcessor}
 import android.databinding.tool.writer.JavaFileWriter
-
-import scala.jdk.CollectionConverters.*
-import kotlin.jvm.functions.Function2
+import android.databinding.tool.{BaseDataBinder, DataBindingBuilder, LayoutXmlProcessor}
 
 import java.io.File
+import java.util.Collections
+import scala.jdk.CollectionConverters.*
 
 /**
  * DataBinding implementation
  * https://android.googlesource.com/platform/frameworks/data-binding/+/85dd11e6e0da7a35ca0c154beaf02b7f7217bd2f/exec/src/main/java/android/databinding/AndroidDataBinding.kt
  */
-
 class AndroidDataBindingImpl extends AndroidDataBindingWorker {
 
   /**
@@ -36,28 +34,28 @@ class AndroidDataBindingImpl extends AndroidDataBindingWorker {
    * Generate binding sources from layout info files
    */
   def generateBindingSources(args: GenerateBindingSourcesArgs): Unit = {
-    val args0 = new LayoutInfoInput.Args(
-      Seq.empty[File].toList.asJava,
-      Seq.empty[File].toList.asJava,
-      new File(args.layoutInfoDir),
-      args.dependencyClassInfoDirs.map(new File(_)).toList.asJava,
-      new File(args.classInfoDir),
-      new File(args.logFolder),
-      args.applicationPackageName,
-      false,
-      null,
-      args.useAndroidX,
-      args.enableViewBinding,
-      args.enableDataBinding
+    val layoutInfoInputArgs = new LayoutInfoInput.Args(
+      /* outOfDate */ Collections.emptyList(),
+      /* removed */ Collections.emptyList(),
+      /* infoFolder */ new File(args.layoutInfoDir),
+      /* dependencyClassesFolders */ args.dependencyClassInfoDirs.map(new File(_)).toList.asJava,
+      /* artifactFolder */ new File(args.classInfoDir),
+      /* logFolder */ new File(args.logFolder),
+      /* packageName */ args.applicationPackageName,
+      /* incremental */ false,
+      /* v1ArtifactsFolder */ null,
+      /* useAndroidX */ args.useAndroidX,
+      /* enableViewBinding */ args.enableViewBinding,
+      /* enableDataBinding */ args.enableDataBinding
     )
 
     os.makeDir.all(os.Path(args.outputDir))
     val fileWriter = new DataBindingBuilder().createJavaFileWriter(os.Path(args.outputDir).toIO)
 
-    val getRPackage: Function2[String, String, String] = null
+    val getRPackage: kotlin.jvm.functions.Function2[String, String, String] = null
 
     new BaseDataBinder(
-      new LayoutInfoInput(args0),
+      new LayoutInfoInput(layoutInfoInputArgs),
       getRPackage
     ).generateAll(fileWriter)
 
