@@ -1,7 +1,9 @@
 package mill.contrib.artifactory
 
+import java.net.URI
 import mill.api.Logger
 import mill.javalib.publish.Artifact
+import mill.util.CoursierConfig
 
 class ArtifactoryPublisher(
     releaseUri: String,
@@ -11,8 +13,23 @@ class ArtifactoryPublisher(
     connectTimeout: Int,
     log: Logger
 ) {
-  private val api =
-    new ArtifactoryHttpApi(credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)
+
+  private def prepareCreds(credentials: String, repoUri: String): String = {
+    if (credentials.isEmpty) {
+      val hostname = new URI(repoUri).getHost
+      val coursierCreds = CoursierConfig.default().credentials.map(_.get).flatten
+      coursierCreds.find(cred =>
+        cred.host == hostname && cred.usernameOpt.isDefined && cred.passwordOpt.isDefined
+      ) match {
+        case Some(cred) => s"${cred.usernameOpt.get}:${cred.passwordOpt.get.value}"
+        case None => throw RuntimeException(
+            "Consider either using ARTIFACTORY_USERNAME/ARTIFACTORY_PASSWORD environment variables or passing `credentials` argument or setup credential files"
+          )
+      }
+    } else {
+      credentials
+    }
+  }
 
   def publish(fileMapping: Map[os.SubPath, os.Path], artifact: Artifact): Unit = {
     publishAll(fileMapping -> artifact)
@@ -46,6 +63,11 @@ class ArtifactoryPublisher(
       payloads: Map[os.SubPath, Array[Byte]],
       artifacts: Seq[Artifact]
   ): Unit = {
+    val api = new ArtifactoryHttpApi(
+      credentials = prepareCreds(credentials, repoUri),
+      readTimeout = readTimeout,
+      connectTimeout = connectTimeout
+    )
     val publishResults = payloads.iterator.map {
       case (fileName, data) =>
         log.info(s"Uploading $fileName")
