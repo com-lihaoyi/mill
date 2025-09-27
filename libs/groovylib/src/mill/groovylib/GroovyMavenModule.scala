@@ -7,6 +7,7 @@ import mill.javalib.MavenModule
  * A [[GroovyModule]] with a Maven compatible directory layout:
  * `src/main/groovy`, `src/main/resources`, etc.
  */
+@mill.api.experimental
 trait GroovyMavenModule extends GroovyModule with MavenModule {
   private def sources0 = Task.Sources("src/main/groovy")
   override def sources = super.sources() ++ sources0()

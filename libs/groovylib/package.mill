@@ -5,7 +5,7 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.*
 import millbuild.*
 
-object `package` extends MillPublishScalaModule with BuildInfo {
+object `package` extends MillStableScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.libs.util, build.libs.javalib, build.libs.javalib.testrunner, api)
   def localTestExtraModules: Seq[MillJavaModule] =
@@ -21,13 +21,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     BuildInfo.Value("groovyVersion", Deps.groovyVersion, "Version of Groovy")
   )
 
-  trait MillGroovyModule extends MillPublishScalaModule {
-    override def javacOptions = super.javacOptions() ++ {
-      Seq("-release", "8", "-encoding", "UTF-8", "-deprecation")
-    }
-  }
-
-  object api extends MillGroovyModule {
+  object api extends MillStableScalaModule {
     def moduleDeps = Seq(build.libs.javalib.testrunner)
 
     override def compileMvnDeps: T[Seq[Dep]] = Seq(
@@ -35,7 +29,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     )
   }
 
-  object worker extends MillGroovyModule {
+  object worker extends MillPublishScalaModule {
     override def compileModuleDeps = Seq(api)
 
     def mandatoryMvnDeps = Seq.empty[Dep]

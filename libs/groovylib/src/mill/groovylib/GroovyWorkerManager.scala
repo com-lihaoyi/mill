@@ -5,6 +5,7 @@ import mill.api.{Discover, ExternalModule, TaskCtx}
 import mill.groovylib.worker.api.GroovyWorker
 import mill.util.ClassLoaderCachedFactory
 
+@mill.api.experimental
 class GroovyWorkerManager()(implicit ctx: TaskCtx)
     extends ClassLoaderCachedFactory[GroovyWorker](ctx.jobs) {
 
