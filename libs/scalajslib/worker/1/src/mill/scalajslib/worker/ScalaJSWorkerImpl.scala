@@ -4,7 +4,7 @@ import com.armanbilge.sjsimportmap.ImportMappedIRFile
 import mill.constants.InputPumper
 import mill.scalajslib.worker.api.*
 import mill.scalajslib.worker.jsenv.*
-import mill.util.CachedFactoryWithInitData
+import mill.util.CachedFactory
 import org.scalajs.ir.ScalaJSVersions
 import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.linker.{PathIRContainer, PathOutputDirectory, PathOutputFile, StandardImpl}
@@ -399,9 +399,9 @@ private def createLinker(input: LinkerInput): (Linker, IRFileCache.Cache) = {
 }
 
 private class LinkerCache(jobs: Int)
-    extends CachedFactoryWithInitData[LinkerInput, Unit, (Linker, IRFileCache.Cache)] {
+    extends CachedFactory[LinkerInput, (Linker, IRFileCache.Cache)] {
   def maxCacheSize: Int = jobs
-  def setup(key: LinkerInput, initData: Unit): (Linker, IRFileCache.Cache) = createLinker(key)
+  def setup(key: LinkerInput): (Linker, IRFileCache.Cache) = createLinker(key)
   def teardown(key: LinkerInput, value: (Linker, IRFileCache.Cache)): Unit = {
     value._2.free()
   }
