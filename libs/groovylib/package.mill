@@ -21,7 +21,12 @@ object `package` extends MillStableScalaModule with BuildInfo {
     BuildInfo.Value("groovyVersion", Deps.groovyVersion, "Version of Groovy")
   )
 
-  object api extends MillStableScalaModule {
+  // this module wasn't released in these versions
+  def mimaPreviousVersions: T[Seq[String]] = super.mimaPreviousVersions().filterNot(
+    Seq("1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5").contains
+  )
+
+  object api extends MillPublishScalaModule {
     def moduleDeps = Seq(build.libs.javalib.testrunner)
 
     override def compileMvnDeps: T[Seq[Dep]] = Seq(

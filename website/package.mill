@@ -25,7 +25,6 @@ object `package` extends mill.Module {
     def scalaVersion = Deps.scalaVersion
     def moduleDeps = build.moduleInternal.modules.collect {
       case m: MillStableScalaModule => m
-      case m @ (build.libs.kotlinlib) => m
     }
     def unidocSourceUrl = Task {
       val sha = "main" // VcsVersion.vcsState().currentRevision
