@@ -11,6 +11,7 @@ import mill.javalib.api.CompilationResult
  * 2. compile Java sources (done externally)
  * 3. compile Groovy sources
  */
+@mill.api.experimental
 trait GroovyWorker {
 
   /**

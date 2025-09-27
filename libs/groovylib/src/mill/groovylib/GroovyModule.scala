@@ -18,6 +18,7 @@ import mill.util.Version
  *
  * Resolves
  */
+@mill.api.experimental
 trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
   /**
