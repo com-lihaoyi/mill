@@ -1,173 +1,40 @@
 package mill.scalajslib.worker
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-import java.io.File
-import java.nio.file.Path
+import com.armanbilge.sjsimportmap.ImportMappedIRFile
+import mill.constants.InputPumper
 import mill.scalajslib.worker.api.*
 import mill.scalajslib.worker.jsenv.*
+import mill.util.CachedFactoryWithInitData
 import org.scalajs.ir.ScalaJSVersions
+import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.linker.{PathIRContainer, PathOutputDirectory, PathOutputFile, StandardImpl}
 import org.scalajs.linker.interface.{
   ESFeatures as ScalaJSESFeatures,
   ESVersion as ScalaJSESVersion,
   ModuleKind as ScalaJSModuleKind,
-  OutputPatterns as ScalaJSOutputPatterns,
   ModuleSplitStyle as _,
+  OutputPatterns as ScalaJSOutputPatterns,
   Report as _,
   *
 }
 import org.scalajs.logging.{Level, Logger}
-import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.testing.adapter.TestAdapter
 import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
 
-import scala.collection.mutable
-import scala.ref.SoftReference
-import com.armanbilge.sjsimportmap.ImportMappedIRFile
-import mill.constants.InputPumper
+import java.io.File
+import java.nio.file.Path
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
-class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
-  private case class LinkerInput(
-      isFullLinkJS: Boolean,
-      optimizer: Boolean,
-      sourceMap: Boolean,
-      moduleKind: ModuleKind,
-      esFeatures: ESFeatures,
-      moduleSplitStyle: ModuleSplitStyle,
-      outputPatterns: OutputPatterns,
-      minify: Boolean,
-      dest: File,
-      experimentalUseWebAssembly: Boolean
-  )
-  private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {
-    case s"1.$n.$_" if n.toIntOption.exists(_ < number) => false
-    case _ => true
-  }
-  private object ScalaJSLinker {
-    private val irFileCache = StandardImpl.irFileCache()
-    private val cache = mutable.Map.empty[LinkerInput, SoftReference[(Linker, IRFileCache.Cache)]]
-    def reuseOrCreate(input: LinkerInput): (Linker, IRFileCache.Cache) = cache.get(input) match {
-      case Some(SoftReference((linker, irFileCacheCache))) => (linker, irFileCacheCache)
-      case _ =>
-        val newResult = createLinker(input)
-        cache.update(input, SoftReference(newResult))
-        newResult
-    }
-    private def createLinker(input: LinkerInput): (Linker, IRFileCache.Cache) = {
-      val semantics = input.isFullLinkJS match {
-        case true => Semantics.Defaults.optimized
-        case false => Semantics.Defaults
-      }
-      val scalaJSModuleKind = input.moduleKind match {
-        case ModuleKind.NoModule => ScalaJSModuleKind.NoModule
-        case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
-        case ModuleKind.ESModule => ScalaJSModuleKind.ESModule
-      }
-      @scala.annotation.nowarn("cat=deprecation")
-      def withESVersion_1_5_minus(esFeatures: ScalaJSESFeatures): ScalaJSESFeatures = {
-        val useECMAScript2015: Boolean = input.esFeatures.esVersion match {
-          case ESVersion.ES5_1 => false
-          case ESVersion.ES2015 => true
-          case v => throw new Exception(
-              s"ESVersion $v is not supported with Scala.js < 1.6. Either update Scala.js or use one of ESVersion.ES5_1 or ESVersion.ES2015"
-            )
-        }
-        esFeatures.withUseECMAScript2015(useECMAScript2015)
-      }
-      def withESVersion_1_6_plus(esFeatures: ScalaJSESFeatures): ScalaJSESFeatures = {
-        val scalaJSESVersion: ScalaJSESVersion = input.esFeatures.esVersion match {
-          case ESVersion.ES5_1 => ScalaJSESVersion.ES5_1
-          case ESVersion.ES2015 => ScalaJSESVersion.ES2015
-          case ESVersion.ES2016 => ScalaJSESVersion.ES2016
-          case ESVersion.ES2017 => ScalaJSESVersion.ES2017
-          case ESVersion.ES2018 => ScalaJSESVersion.ES2018
-          case ESVersion.ES2019 => ScalaJSESVersion.ES2019
-          case ESVersion.ES2020 => ScalaJSESVersion.ES2020
-          case ESVersion.ES2021 => ScalaJSESVersion.ES2021
-        }
-        esFeatures.withESVersion(scalaJSESVersion)
-      }
-      var scalaJSESFeatures: ScalaJSESFeatures = ScalaJSESFeatures.Defaults
-        .withAllowBigIntsForLongs(input.esFeatures.allowBigIntsForLongs)
+// Global instance.
+private val irFileCache = StandardImpl.irFileCache()
 
-      if (minorIsGreaterThanOrEqual(4)) {
-        scalaJSESFeatures = scalaJSESFeatures
-          .withAvoidClasses(input.esFeatures.avoidClasses)
-          .withAvoidLetsAndConsts(input.esFeatures.avoidLetsAndConsts)
-      }
-      scalaJSESFeatures =
-        if (minorIsGreaterThanOrEqual(6)) withESVersion_1_6_plus(scalaJSESFeatures)
-        else withESVersion_1_5_minus(scalaJSESFeatures)
-
-      val useClosure = input.isFullLinkJS && input.moduleKind != ModuleKind.ESModule
-      val partialConfig = StandardConfig()
-        .withOptimizer(input.optimizer)
-        .withClosureCompilerIfAvailable(useClosure)
-        .withSemantics(semantics)
-        .withModuleKind(scalaJSModuleKind)
-        .withESFeatures(scalaJSESFeatures)
-        .withSourceMap(input.sourceMap)
-
-      def withModuleSplitStyle_1_3_plus(config: StandardConfig): StandardConfig = {
-        config.withModuleSplitStyle(
-          input.moduleSplitStyle match {
-            case ModuleSplitStyle.FewestModules => ScalaJSModuleSplitStyle.FewestModules()
-            case ModuleSplitStyle.SmallestModules => ScalaJSModuleSplitStyle.SmallestModules()
-            case v @ ModuleSplitStyle.SmallModulesFor(packages*) =>
-              if (minorIsGreaterThanOrEqual(10))
-                ScalaJSModuleSplitStyle.SmallModulesFor(packages.toList)
-              else throw new Exception(
-                s"ModuleSplitStyle $v is not supported with Scala.js < 1.10. Either update Scala.js or use one of ModuleSplitStyle.SmallestModules or ModuleSplitStyle.FewestModules"
-              )
-          }
-        )
-      }
-
-      def withModuleSplitStyle_1_2_minus(config: StandardConfig): StandardConfig = {
-        input.moduleSplitStyle match {
-          case ModuleSplitStyle.FewestModules =>
-          case v => throw new Exception(
-              s"ModuleSplitStyle $v is not supported with Scala.js < 1.2. Either update Scala.js or use ModuleSplitStyle.FewestModules"
-            )
-        }
-        config
-      }
-
-      val withModuleSplitStyle =
-        if (minorIsGreaterThanOrEqual(3)) withModuleSplitStyle_1_3_plus(partialConfig)
-        else withModuleSplitStyle_1_2_minus(partialConfig)
-
-      val withOutputPatterns =
-        if (minorIsGreaterThanOrEqual(3))
-          withModuleSplitStyle
-            .withOutputPatterns(
-              ScalaJSOutputPatterns.Defaults
-                .withJSFile(input.outputPatterns.jsFile)
-                .withJSFileURI(input.outputPatterns.jsFileURI)
-                .withModuleName(input.outputPatterns.moduleName)
-                .withSourceMapFile(input.outputPatterns.sourceMapFile)
-                .withSourceMapURI(input.outputPatterns.sourceMapURI)
-            )
-        else withModuleSplitStyle
-
-      val withMinify =
-        if (minorIsGreaterThanOrEqual(16))
-          withOutputPatterns.withMinify(input.minify && input.isFullLinkJS)
-        else withOutputPatterns
-
-      val withWasm =
-        (minorIsGreaterThanOrEqual(17), input.experimentalUseWebAssembly) match {
-          case (_, false) => withMinify
-          case (true, true) => withMinify.withExperimentalUseWebAssembly(true)
-          case (false, true) =>
-            throw new Exception("Emitting wasm is not supported with Scala.js < 1.17")
-        }
-
-      val linker = StandardImpl.clearableLinker(withWasm)
-      val irFileCacheCache = irFileCache.newCache
-      (linker, irFileCacheCache)
-    }
+class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
+  val fastLinkJSCache = new LinkerCache(jobs = jobs)
+  val fullLinkJSCache = new LinkerCache(jobs = 1)
+  def getOrCreateLinker(input: LinkerInput): (Linker, IRFileCache.Cache) = {
+    val cache = if input.isFullLinkJS then fullLinkJSCache else fastLinkJSCache
+    cache.setup(input, ())
   }
   def createLogger() = new Logger {
     // Console.err needs to be stored at instantiation time so it saves the right threadlocal
@@ -202,7 +69,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     // the new mode is not supported and in tests we always use legacy = false
     val useLegacy = forceOutJs || !minorIsGreaterThanOrEqual(3)
     import scala.concurrent.ExecutionContext.Implicits.global
-    val (linker, irFileCacheCache) = ScalaJSLinker.reuseOrCreate(LinkerInput(
+    val (linker, irFileCacheCache) = getOrCreateLinker(LinkerInput(
       isFullLinkJS = isFullLinkJS,
       optimizer = optimizer,
       sourceMap = sourceMap,
@@ -389,5 +256,152 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       case ModuleKind.CommonJSModule => Input.CommonJSModule(path)
     }
     Seq(input)
+  }
+
+  def close(): Unit = {
+    fastLinkJSCache.close()
+    fullLinkJSCache.close()
+  }
+}
+
+private case class LinkerInput(
+    isFullLinkJS: Boolean,
+    optimizer: Boolean,
+    sourceMap: Boolean,
+    moduleKind: ModuleKind,
+    esFeatures: ESFeatures,
+    moduleSplitStyle: ModuleSplitStyle,
+    outputPatterns: OutputPatterns,
+    minify: Boolean,
+    dest: File,
+    experimentalUseWebAssembly: Boolean
+)
+
+private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {
+  case s"1.$n.$_" if n.toIntOption.exists(_ < number) => false
+  case _ => true
+}
+
+private def createLinker(input: LinkerInput): (Linker, IRFileCache.Cache) = {
+  val semantics = input.isFullLinkJS match {
+    case true => Semantics.Defaults.optimized
+    case false => Semantics.Defaults
+  }
+  val scalaJSModuleKind = input.moduleKind match {
+    case ModuleKind.NoModule => ScalaJSModuleKind.NoModule
+    case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
+    case ModuleKind.ESModule => ScalaJSModuleKind.ESModule
+  }
+  @scala.annotation.nowarn("cat=deprecation")
+  def withESVersion_1_5_minus(esFeatures: ScalaJSESFeatures): ScalaJSESFeatures = {
+    val useECMAScript2015: Boolean = input.esFeatures.esVersion match {
+      case ESVersion.ES5_1 => false
+      case ESVersion.ES2015 => true
+      case v => throw new Exception(
+          s"ESVersion $v is not supported with Scala.js < 1.6. Either update Scala.js or use one of ESVersion.ES5_1 or ESVersion.ES2015"
+        )
+    }
+    esFeatures.withUseECMAScript2015(useECMAScript2015)
+  }
+  def withESVersion_1_6_plus(esFeatures: ScalaJSESFeatures): ScalaJSESFeatures = {
+    val scalaJSESVersion: ScalaJSESVersion = input.esFeatures.esVersion match {
+      case ESVersion.ES5_1 => ScalaJSESVersion.ES5_1
+      case ESVersion.ES2015 => ScalaJSESVersion.ES2015
+      case ESVersion.ES2016 => ScalaJSESVersion.ES2016
+      case ESVersion.ES2017 => ScalaJSESVersion.ES2017
+      case ESVersion.ES2018 => ScalaJSESVersion.ES2018
+      case ESVersion.ES2019 => ScalaJSESVersion.ES2019
+      case ESVersion.ES2020 => ScalaJSESVersion.ES2020
+      case ESVersion.ES2021 => ScalaJSESVersion.ES2021
+    }
+    esFeatures.withESVersion(scalaJSESVersion)
+  }
+  var scalaJSESFeatures: ScalaJSESFeatures = ScalaJSESFeatures.Defaults
+    .withAllowBigIntsForLongs(input.esFeatures.allowBigIntsForLongs)
+
+  if (minorIsGreaterThanOrEqual(4)) {
+    scalaJSESFeatures = scalaJSESFeatures
+      .withAvoidClasses(input.esFeatures.avoidClasses)
+      .withAvoidLetsAndConsts(input.esFeatures.avoidLetsAndConsts)
+  }
+  scalaJSESFeatures =
+    if (minorIsGreaterThanOrEqual(6)) withESVersion_1_6_plus(scalaJSESFeatures)
+    else withESVersion_1_5_minus(scalaJSESFeatures)
+
+  val useClosure = input.isFullLinkJS && input.moduleKind != ModuleKind.ESModule
+  val partialConfig = StandardConfig()
+    .withOptimizer(input.optimizer)
+    .withClosureCompilerIfAvailable(useClosure)
+    .withSemantics(semantics)
+    .withModuleKind(scalaJSModuleKind)
+    .withESFeatures(scalaJSESFeatures)
+    .withSourceMap(input.sourceMap)
+
+  def withModuleSplitStyle_1_3_plus(config: StandardConfig): StandardConfig = {
+    config.withModuleSplitStyle(
+      input.moduleSplitStyle match {
+        case ModuleSplitStyle.FewestModules => ScalaJSModuleSplitStyle.FewestModules()
+        case ModuleSplitStyle.SmallestModules => ScalaJSModuleSplitStyle.SmallestModules()
+        case v @ ModuleSplitStyle.SmallModulesFor(packages*) =>
+          if (minorIsGreaterThanOrEqual(10))
+            ScalaJSModuleSplitStyle.SmallModulesFor(packages.toList)
+          else throw new Exception(
+            s"ModuleSplitStyle $v is not supported with Scala.js < 1.10. Either update Scala.js or use one of ModuleSplitStyle.SmallestModules or ModuleSplitStyle.FewestModules"
+          )
+      }
+    )
+  }
+
+  def withModuleSplitStyle_1_2_minus(config: StandardConfig): StandardConfig = {
+    input.moduleSplitStyle match {
+      case ModuleSplitStyle.FewestModules =>
+      case v => throw new Exception(
+          s"ModuleSplitStyle $v is not supported with Scala.js < 1.2. Either update Scala.js or use ModuleSplitStyle.FewestModules"
+        )
+    }
+    config
+  }
+
+  val withModuleSplitStyle =
+    if (minorIsGreaterThanOrEqual(3)) withModuleSplitStyle_1_3_plus(partialConfig)
+    else withModuleSplitStyle_1_2_minus(partialConfig)
+
+  val withOutputPatterns =
+    if (minorIsGreaterThanOrEqual(3))
+      withModuleSplitStyle
+        .withOutputPatterns(
+          ScalaJSOutputPatterns.Defaults
+            .withJSFile(input.outputPatterns.jsFile)
+            .withJSFileURI(input.outputPatterns.jsFileURI)
+            .withModuleName(input.outputPatterns.moduleName)
+            .withSourceMapFile(input.outputPatterns.sourceMapFile)
+            .withSourceMapURI(input.outputPatterns.sourceMapURI)
+        )
+    else withModuleSplitStyle
+
+  val withMinify =
+    if (minorIsGreaterThanOrEqual(16))
+      withOutputPatterns.withMinify(input.minify && input.isFullLinkJS)
+    else withOutputPatterns
+
+  val withWasm =
+    (minorIsGreaterThanOrEqual(17), input.experimentalUseWebAssembly) match {
+      case (_, false) => withMinify
+      case (true, true) => withMinify.withExperimentalUseWebAssembly(true)
+      case (false, true) =>
+        throw new Exception("Emitting wasm is not supported with Scala.js < 1.17")
+    }
+
+  val linker = StandardImpl.clearableLinker(withWasm)
+  val irFileCacheCache = irFileCache.newCache
+  (linker, irFileCacheCache)
+}
+
+private class LinkerCache(jobs: Int)
+    extends CachedFactoryWithInitData[LinkerInput, Unit, (Linker, IRFileCache.Cache)] {
+  def maxCacheSize: Int = jobs
+  def setup(key: LinkerInput, initData: Unit): (Linker, IRFileCache.Cache) = createLinker(key)
+  def teardown(key: LinkerInput, value: (Linker, IRFileCache.Cache)): Unit = {
+    value._2.free()
   }
 }
