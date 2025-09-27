@@ -265,7 +265,7 @@ trait GroupExecution {
     }
   }
 
-  private def executeGroup(
+  def executeGroup(
       group: Seq[Task[?]],
       results: Map[Task[?], ExecResult[(Val, Int)]],
       inputsHash: Int,
@@ -374,7 +374,7 @@ trait GroupExecution {
   // classloader/class is the same or different doesn't matter.
   def workerCacheHash(inputHash: Int): Int = inputHash + classLoaderIdentityHash
 
-  private def handleTaskResult(
+  def handleTaskResult(
       v: Val,
       hashCode: Int,
       metaPath: os.Path,
@@ -434,7 +434,7 @@ trait GroupExecution {
         (multiLogger, Some(fileLogger))
     }
 
-  private def loadCachedJson(
+  def loadCachedJson(
       logger: Logger,
       inputsHash: Int,
       labelled: Task.Named[?],
@@ -469,7 +469,7 @@ trait GroupExecution {
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
     if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.##
   }
-  private def loadUpToDateWorker(
+  def loadUpToDateWorker(
       logger: Logger,
       inputsHash: Int,
       labelled: Task.Named[?],

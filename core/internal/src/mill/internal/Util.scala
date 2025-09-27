@@ -2,7 +2,7 @@ package mill.internal
 
 import scala.reflect.NameTransformer.encode
 
-private[mill] object Util {
+object Util {
 
   val alphaKeywords: Set[String] = Set(
     "abstract",
