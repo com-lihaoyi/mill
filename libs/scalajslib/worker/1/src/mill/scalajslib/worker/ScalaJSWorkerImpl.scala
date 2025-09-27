@@ -32,9 +32,9 @@ private val irFileCache = StandardImpl.irFileCache()
 class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
   val fastLinkJSCache = new LinkerCache(jobs = jobs)
   val fullLinkJSCache = new LinkerCache(jobs = 1)
-  def getOrCreateLinker(input: LinkerInput): (Linker, IRFileCache.Cache) = {
+  def withLinker[T](input: LinkerInput)(block: (Linker, IRFileCache.Cache) => T): T = {
     val cache = if input.isFullLinkJS then fullLinkJSCache else fastLinkJSCache
-    cache.setup(input, ())
+    cache.withValue(input, ())((linker, cache) => block(linker, cache))
   }
   def createLogger() = new Logger {
     // Console.err needs to be stored at instantiation time so it saves the right threadlocal
@@ -69,7 +69,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
     // the new mode is not supported and in tests we always use legacy = false
     val useLegacy = forceOutJs || !minorIsGreaterThanOrEqual(3)
     import scala.concurrent.ExecutionContext.Implicits.global
-    val (linker, irFileCacheCache) = getOrCreateLinker(LinkerInput(
+    withLinker(LinkerInput(
       isFullLinkJS = isFullLinkJS,
       optimizer = optimizer,
       sourceMap = sourceMap,
@@ -80,96 +80,97 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
       minify = minify,
       dest = dest,
       experimentalUseWebAssembly = experimentalUseWebAssembly
-    ))
-    val irContainersAndPathsFuture = PathIRContainer.fromClasspath(runClasspath)
-    val testInitializer =
-      if (testBridgeInit)
-        ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName) :: Nil
-      else Nil
-    val moduleInitializers = main match {
-      case Right(main) =>
-        ModuleInitializer.mainMethodWithArgs(main, "main") ::
+    ))((linker, irFileCacheCache) => {
+      val irContainersAndPathsFuture = PathIRContainer.fromClasspath(runClasspath)
+      val testInitializer =
+        if (testBridgeInit)
+          ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName) :: Nil
+        else Nil
+      val moduleInitializers = main match {
+        case Right(main) =>
+          ModuleInitializer.mainMethodWithArgs(main, "main") ::
+            testInitializer
+        case _ =>
           testInitializer
-      case _ =>
-        testInitializer
-    }
-    val logger = createLogger()
-
-    val resultFuture = (for {
-      (irContainers, _) <- irContainersAndPathsFuture
-      irFiles0 <- irFileCacheCache.cached(irContainers)
-      irFiles = if (importMap.isEmpty) {
-        irFiles0
-      } else {
-        if (!minorIsGreaterThanOrEqual(16)) {
-          throw new Exception("scalaJSImportMap is not supported with Scala.js < 1.16.")
-        }
-        val remapFunction = (rawImport: String) => {
-          importMap
-            .collectFirst {
-              case ESModuleImportMapping.Prefix(prefix, replacement)
-                  if rawImport.startsWith(prefix) =>
-                s"$replacement${rawImport.stripPrefix(prefix)}"
-            }
-            .getOrElse(rawImport)
-        }
-        irFiles0.map { ImportMappedIRFile.fromIRFile(_)(remapFunction) }
       }
-      report <-
-        if (useLegacy) {
-          val jsFileName = "out.js"
-          val jsFile = new File(dest, jsFileName).toPath()
-          var linkerOutput = LinkerOutput(PathOutputFile(jsFile))
-            .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
-          val sourceMapNameOpt = Option.when(sourceMap)(s"${jsFile.getFileName}.map")
-          sourceMapNameOpt.foreach { sourceMapName =>
-            val sourceMapFile = jsFile.resolveSibling(sourceMapName)
-            linkerOutput = linkerOutput
-              .withSourceMap(PathOutputFile(sourceMapFile))
-              .withSourceMapURI(java.net.URI.create(sourceMapFile.getFileName.toString))
-          }
-          linker.link(irFiles, moduleInitializers, linkerOutput, logger).map { _ =>
-            Report(
-              publicModules = Seq(Report.Module(
-                moduleID = "main",
-                jsFileName = jsFileName,
-                sourceMapName = sourceMapNameOpt,
-                moduleKind = moduleKind
-              )),
-              dest = dest
-            )
-          }
-        } else {
-          val linkerOutput = PathOutputDirectory(dest.toPath())
-          linker.link(
-            irFiles,
-            moduleInitializers,
-            linkerOutput,
-            logger
-          ).map { report =>
-            Report(
-              publicModules =
-                report.publicModules.map(module =>
-                  Report.Module(
-                    moduleID = module.moduleID,
-                    jsFileName = module.jsFileName,
-                    sourceMapName = module.sourceMapName,
-                    // currently moduleKind is always the input moduleKind
-                    moduleKind = moduleKind
-                  )
-                ),
-              dest = dest
-            )
-          }
-        }
-    } yield {
-      Right(report)
-    }).recover {
-      case e: org.scalajs.linker.interface.LinkingException =>
-        Left(e.getMessage)
-    }
+      val logger = createLogger()
 
-    Await.result(resultFuture, Duration.Inf)
+      val resultFuture = (for {
+        (irContainers, _) <- irContainersAndPathsFuture
+        irFiles0 <- irFileCacheCache.cached(irContainers)
+        irFiles = if (importMap.isEmpty) {
+          irFiles0
+        } else {
+          if (!minorIsGreaterThanOrEqual(16)) {
+            throw new Exception("scalaJSImportMap is not supported with Scala.js < 1.16.")
+          }
+          val remapFunction = (rawImport: String) => {
+            importMap
+              .collectFirst {
+                case ESModuleImportMapping.Prefix(prefix, replacement)
+                    if rawImport.startsWith(prefix) =>
+                  s"$replacement${rawImport.stripPrefix(prefix)}"
+              }
+              .getOrElse(rawImport)
+          }
+          irFiles0.map { ImportMappedIRFile.fromIRFile(_)(remapFunction) }
+        }
+        report <-
+          if (useLegacy) {
+            val jsFileName = "out.js"
+            val jsFile = new File(dest, jsFileName).toPath()
+            var linkerOutput = LinkerOutput(PathOutputFile(jsFile))
+              .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
+            val sourceMapNameOpt = Option.when(sourceMap)(s"${jsFile.getFileName}.map")
+            sourceMapNameOpt.foreach { sourceMapName =>
+              val sourceMapFile = jsFile.resolveSibling(sourceMapName)
+              linkerOutput = linkerOutput
+                .withSourceMap(PathOutputFile(sourceMapFile))
+                .withSourceMapURI(java.net.URI.create(sourceMapFile.getFileName.toString))
+            }
+            linker.link(irFiles, moduleInitializers, linkerOutput, logger).map { _ =>
+              Report(
+                publicModules = Seq(Report.Module(
+                  moduleID = "main",
+                  jsFileName = jsFileName,
+                  sourceMapName = sourceMapNameOpt,
+                  moduleKind = moduleKind
+                )),
+                dest = dest
+              )
+            }
+          } else {
+            val linkerOutput = PathOutputDirectory(dest.toPath())
+            linker.link(
+              irFiles,
+              moduleInitializers,
+              linkerOutput,
+              logger
+            ).map { report =>
+              Report(
+                publicModules =
+                  report.publicModules.map(module =>
+                    Report.Module(
+                      moduleID = module.moduleID,
+                      jsFileName = module.jsFileName,
+                      sourceMapName = module.sourceMapName,
+                      // currently moduleKind is always the input moduleKind
+                      moduleKind = moduleKind
+                    )
+                  ),
+                dest = dest
+              )
+            }
+          }
+      } yield {
+        Right(report)
+      }).recover {
+        case e: org.scalajs.linker.interface.LinkingException =>
+          Left(e.getMessage)
+      }
+
+      Await.result(resultFuture, Duration.Inf)
+    })
   }
 
   def run(config: JsEnvConfig, report: Report): Unit = {
