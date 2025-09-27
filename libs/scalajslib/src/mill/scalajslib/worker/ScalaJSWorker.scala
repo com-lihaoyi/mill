@@ -24,8 +24,8 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
     )
     val bridge = cl
       .loadClass("mill.scalajslib.worker.ScalaJSWorkerImpl")
-      .getDeclaredConstructor()
-      .newInstance()
+      .getDeclaredConstructor(classOf[Int])
+      .newInstance(jobs)
       .asInstanceOf[workerApi.ScalaJSWorkerApi]
 
     (cl, bridge)
@@ -35,7 +35,9 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
       key: Seq[PathRef],
       value: (URLClassLoader, workerApi.ScalaJSWorkerApi)
   ): Unit = {
-    value._1.close()
+    val (classloader, workerApi) = value
+    workerApi.close()
+    classloader.close()
   }
 
   override def maxCacheSize: Int = jobs
