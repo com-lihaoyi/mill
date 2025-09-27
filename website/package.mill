@@ -11,6 +11,10 @@ import mill.api.BuildCtx
 
 /** Generates the mill documentation with Antora. */
 object `package` extends mill.Module {
+
+  /**
+   * API documentation generated with ScalaDoc.
+   */
   object apidocs extends UnidocModule {
     def unidocDocumentTitle = Task { "Mill" }
 
@@ -25,7 +29,6 @@ object `package` extends mill.Module {
     def scalaVersion = Deps.scalaVersion
     def moduleDeps = build.moduleInternal.modules.collect {
       case m: MillStableScalaModule => m
-      case m: JavaModule if m eq build.libs.kotlinlib => m
     }
     def unidocSourceUrl = Task {
       val sha = "main" // VcsVersion.vcsState().currentRevision
