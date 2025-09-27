@@ -22,6 +22,8 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBVersion: T[String]
 
+  def scalaPBGenerators: T[Seq[Generator]] = Seq[Generator](ScalaGen)
+
   def scalaPBFlatPackage: T[Boolean] = Task { false }
 
   def scalaPBJavaConversions: T[Boolean] = Task { false }
@@ -141,7 +143,8 @@ trait ScalaPBModule extends ScalaModule {
         scalaPBSources().map(_.path),
         scalaPBOptions(),
         Task.dest,
-        scalaPBCompileOptions()
+        scalaPBCompileOptions(),
+        scalaPBGenerators()
       )
   }
 }
