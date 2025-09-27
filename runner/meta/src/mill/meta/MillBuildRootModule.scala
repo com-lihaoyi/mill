@@ -254,7 +254,11 @@ trait MillBuildRootModule()(implicit
     super.scalacOptions() ++
       // This warning comes up for package names with dashes in them like "package build.`foo-bar`",
       // but Mill generally handles these fine, so no need to warn the user
-      Seq("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent")
+      Seq(
+        "-deprecation",
+        "-Wconf:msg=will be encoded on the classpath:silent",
+        "-Ymagic-offset-header:SOURCE_CODE_START"
+      )
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
@@ -304,60 +308,11 @@ trait MillBuildRootModule()(implicit
         javaRuntimeOptions = jOpts.runtime,
         reporter = Task.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems()
-      ).map {
-        res =>
-          // Perform the line-number updating in a copy of the classfiles, because
-          // mangling the original class files messes up zinc incremental compilation
-          val transformedClasses = Task.dest / "transformed-classes"
-          os.remove.all(transformedClasses)
-          os.copy(res.classes.path, transformedClasses)
-
-          MillBuildRootModule.updateLineNumbers(
-            transformedClasses,
-            generatedScriptSources().wrapped.head.path
-          )
-
-          res.copy(classes = PathRef(transformedClasses))
-      }
+      )
   }
 }
 
 object MillBuildRootModule {
-
-  private def updateLineNumbers(classesDir: os.Path, generatedScriptSourcesPath: os.Path) = {
-    for (p <- os.walk(classesDir) if p.ext == "class") {
-      val rel = p.subRelativeTo(classesDir)
-      // Hack to reverse engineer the `.mill` name from the `.class` file name
-      val sourceNamePrefixOpt0 = rel.last match {
-        case s"${pre}_$_.class" => Some(pre)
-        case s"${pre}$$$_.class" => Some(pre)
-        case s"${pre}.class" => Some(pre)
-        case _ => None
-      }
-
-      val sourceNamePrefixOpt = sourceNamePrefixOpt0 match {
-        case Some("package") if (rel / os.up) == os.rel / "build_" => Some("build")
-        case p => p
-      }
-
-      for (prefix <- sourceNamePrefixOpt) {
-        val sourceFile = generatedScriptSourcesPath / rel / os.up / s"$prefix.mill"
-        if (os.exists(sourceFile)) {
-
-          val lineNumberOffset =
-            os.read.lines(sourceFile).indexOf("//SOURCECODE_ORIGINAL_CODE_START_MARKER") + 1
-          os.write.over(
-            p,
-            os
-              .read
-              .stream(p)
-              .readBytesThrough(stream => AsmPositionUpdater.postProcess(-lineNumberOffset, stream))
-          )
-        }
-      }
-    }
-  }
-
   class BootstrapModule()(implicit
       rootModuleInfo: RootModule.Info
   ) extends MainRootModule() with MillBuildRootModule() {

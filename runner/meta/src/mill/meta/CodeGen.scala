@@ -84,9 +84,7 @@ object CodeGen {
 
       val scriptCode = allScriptCode(scriptPath)
 
-      val markerComment =
-        s"""//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
-           |//SOURCECODE_ORIGINAL_CODE_START_MARKER""".stripMargin
+      val markerComment = s"///SOURCE_CODE_START:$scriptPath"
 
       val siblingScripts = scriptSources
         .filter(_ != scriptPath)

@@ -394,13 +394,12 @@ class ZincWorker(
 
     def mkNewReporter(mapper: (xsbti.Position => xsbti.Position) | Null) = reporter match {
       case None =>
-        new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter
-          with TransformingReporter(ctx.logPromptColored, mapper) {}
+        new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter {}
+
       case Some(forwarder) =>
         new ManagedLoggedReporter(maxErrors, logger)
           with ForwardingReporter(forwarder)
-          with RecordingReporter
-          with TransformingReporter(ctx.logPromptColored, mapper) {}
+          with RecordingReporter {}
     }
     val analysisMap0 = upstreamCompileOutput.map(c => c.classes.path -> c.analysisFile).toMap
 
@@ -455,8 +454,8 @@ class ZincWorker(
         scalacOptions
     }
 
-    val (originalSourcesMap, posMapperOpt) = PositionMapper.create(virtualSources)
-    val newReporter = mkNewReporter(posMapperOpt.orNull)
+//    val (originalSourcesMap, posMapperOpt) = PositionMapper.create(virtualSources)
+    val newReporter = mkNewReporter(null)
 
     val inputs = incrementalCompiler.inputs(
       classpath = classpath,
@@ -524,8 +523,8 @@ class ZincWorker(
       for (rep <- reporter) {
         for (f <- sources) {
           rep.fileVisited(f.toNIO)
-          for (f0 <- originalSourcesMap.get(f))
-            rep.fileVisited(f0.toNIO)
+//          for (f0 <- originalSourcesMap.get(f))
+//            rep.fileVisited(f0.toNIO)
         }
         rep.finish()
       }
