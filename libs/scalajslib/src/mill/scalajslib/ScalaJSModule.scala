@@ -114,26 +114,27 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     linkTask(isFullLinkJS = true, forceOutJs = false)()
   }
 
-  private def linkTask(isFullLinkJS: Boolean, forceOutJs: Boolean): Task[Report] = Task.Anon {
-    linkJs(
-      worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
-      toolsClasspath = scalaJSToolsClasspath(),
-      runClasspath = runClasspath(),
-      mainClass = Result.fromEither(finalMainClassOpt()),
-      forceOutJs = forceOutJs,
-      testBridgeInit = false,
-      isFullLinkJS = isFullLinkJS,
-      optimizer = scalaJSOptimizer(),
-      sourceMap = scalaJSSourceMap(),
-      moduleKind = moduleKind(),
-      esFeatures = esFeatures(),
-      moduleSplitStyle = moduleSplitStyle(),
-      outputPatterns = scalaJSOutputPatterns(),
-      minify = scalaJSMinify(),
-      importMap = scalaJSImportMap(),
-      experimentalUseWebAssembly = scalaJSExperimentalUseWebAssembly()
-    )
-  }
+  private def linkTask(isFullLinkJS: Boolean, forceOutJs: Boolean): Task[Report] =
+    Task.Anon {
+      linkJs(
+        worker = ScalaJSWorkerExternalModule.scalaJSWorker(isFullLinkJS = isFullLinkJS)(),
+        toolsClasspath = scalaJSToolsClasspath(),
+        runClasspath = runClasspath(),
+        mainClass = Result.fromEither(finalMainClassOpt()),
+        forceOutJs = forceOutJs,
+        testBridgeInit = false,
+        isFullLinkJS = isFullLinkJS,
+        optimizer = scalaJSOptimizer(),
+        sourceMap = scalaJSSourceMap(),
+        moduleKind = moduleKind(),
+        esFeatures = esFeatures(),
+        moduleSplitStyle = moduleSplitStyle(),
+        outputPatterns = scalaJSOutputPatterns(),
+        minify = scalaJSMinify(),
+        importMap = scalaJSImportMap(),
+        experimentalUseWebAssembly = scalaJSExperimentalUseWebAssembly()
+      )
+    }
 
   override def runLocal(args: Task[Args] = Task.Anon(Args())): Command[Unit] =
     Task.Command { run(args)() }
@@ -145,7 +146,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     finalMainClassOpt() match {
       case Left(err) => Task.fail(err)
       case Right(_) =>
-        ScalaJSWorkerExternalModule.scalaJSWorker().run(
+        ScalaJSWorkerExternalModule.scalaJSWorker(isFullLinkJS = false)().run(
           scalaJSToolsClasspath(),
           jsEnvConfig(),
           fastLinkJS()
@@ -365,7 +366,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
 
   def fastLinkJSTest: T[Report] = Task(persistent = true) {
     linkJs(
-      worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
+      worker = ScalaJSWorkerExternalModule.scalaJSWorker(isFullLinkJS = false)(),
       toolsClasspath = scalaJSToolsClasspath(),
       runClasspath = scalaJSTestDeps() ++ runClasspath(),
       mainClass = Result.Failure("No main class specified or found"),
@@ -392,12 +393,13 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       globSelectors: Task[Seq[String]]
   ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
 
-    val (close, framework) = ScalaJSWorkerExternalModule.scalaJSWorker().getFramework(
-      scalaJSToolsClasspath(),
-      jsEnvConfig(),
-      testFramework(),
-      fastLinkJSTest()
-    )
+    val (close, framework) =
+      ScalaJSWorkerExternalModule.scalaJSWorker(isFullLinkJS = false)().getFramework(
+        scalaJSToolsClasspath(),
+        jsEnvConfig(),
+        testFramework(),
+        fastLinkJSTest()
+      )
 
     val (doneMsg, results) = TestRunner.runTestFramework(
       _ => framework,

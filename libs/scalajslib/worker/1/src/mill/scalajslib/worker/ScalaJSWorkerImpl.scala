@@ -31,7 +31,7 @@ private val irFileCache = StandardImpl.irFileCache()
 
 class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
   val fastLinkJSCache = new LinkerCache(jobs = jobs)
-  val fullLinkJSCache = new LinkerCache(jobs = 1)
+  val cache = new LinkerCache(maxCacheSize = jobs)
   def withLinker[T](input: LinkerInput)(block: (Linker, IRFileCache.Cache) => T): T = {
     val cache = if input.isFullLinkJS then fullLinkJSCache else fastLinkJSCache
     cache.withValue(input, ())((linker, cache) => block(linker, cache))
@@ -261,7 +261,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
 
   def close(): Unit = {
     fastLinkJSCache.close()
-    fullLinkJSCache.close()
+    cache.close()
   }
 }
 
@@ -398,9 +398,8 @@ private def createLinker(input: LinkerInput): (Linker, IRFileCache.Cache) = {
   (linker, irFileCacheCache)
 }
 
-private class LinkerCache(jobs: Int)
+private class LinkerCache(val maxCacheSize: Int)
     extends CachedFactory[LinkerInput, (Linker, IRFileCache.Cache)] {
-  def maxCacheSize: Int = jobs
   def setup(key: LinkerInput): (Linker, IRFileCache.Cache) = createLinker(key)
   def teardown(key: LinkerInput, value: (Linker, IRFileCache.Cache)): Unit = {
     value._2.free()

@@ -234,7 +234,12 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
 @internal
 private[scalajslib] object ScalaJSWorkerExternalModule extends mill.api.ExternalModule {
 
-  def scalaJSWorker: Worker[ScalaJSWorker] =
-    Task.Worker { new ScalaJSWorker(Task.ctx().jobs) }
+  def scalaJSWorker(isFullLinkJS: Boolean): Task[ScalaJSWorker] =
+    if isFullLinkJS then scalaJSFullLinkJSWorker else scalaJSFastLinkJSWorker
+
+  def scalaJSFastLinkJSWorker: Worker[ScalaJSWorker] =
+    Task.Worker { new ScalaJSWorker(jobs = Task.ctx().jobs) }
+  def scalaJSFullLinkJSWorker: Worker[ScalaJSWorker] =
+    Task.Worker { new ScalaJSWorker(jobs = 1) }
   lazy val millDiscover = Discover[this.type]
 }
