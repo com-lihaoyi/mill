@@ -132,6 +132,29 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
     groovyCompileTask()()
   }
 
+  def compileGroovyStubs: T[Result[Unit]] = Task(persistent = true){
+    val groovySourceFiles = allGroovySourceFiles().map(_.path)
+    val stubDir = compileGeneratedGroovyStubs()
+    Task.ctx().log.info(s"Generating Java stubs for ${groovySourceFiles.size} Groovy sources to $stubDir ...")
+
+    val compileCp = compileClasspath().map(_.path).filter(os.exists)
+    val config = GroovyCompilerConfiguration(
+      enablePreview = groovyCompileEnablePreview(),
+      targetBytecode = groovyCompileTargetBytecode(),
+      disabledGlobalAstTransformations = disabledGlobalAstTransformations()
+    )
+
+    GroovyWorkerManager.groovyWorker().withValue(groovyCompilerClasspath()) {
+      _.compileGroovyStubs(groovySourceFiles, compileCp, stubDir, config)
+    }
+  }
+
+  /**
+   * Path to Java stub sources as part of the `compile` step. Stubs are generated
+   * by the Groovy compiler and later used by the Java compiler.
+   */
+  def compileGeneratedGroovyStubs: T[os.Path] = Task(persistent = true) { Task.dest }
+
   /**
    * The actual Groovy compile task (used by [[compile]]).
    */
@@ -147,10 +170,20 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
       val isGroovy = groovySourceFiles.nonEmpty
       val isJava = javaSourceFiles.nonEmpty
-      val isMixed = isGroovy && isJava
-
       val compileCp = compileClasspath().map(_.path).filter(os.exists)
       val updateCompileOutput = upstreamCompileOutput()
+
+      sealed trait CompilationStrategy
+      case object JavaOnly extends CompilationStrategy
+      case object GroovyOnly extends CompilationStrategy
+      case object Mixed extends CompilationStrategy
+
+      val strategy: CompilationStrategy = (isJava, isGroovy) match {
+        case (true, false) => JavaOnly
+        case (false, true) => GroovyOnly
+        case (true, true) => Mixed
+        case (false, false) => JavaOnly // fallback, though this shouldn't happen
+      }
 
       val config = GroovyCompilerConfiguration(
         enablePreview = groovyCompileEnablePreview(),
@@ -167,19 +200,12 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
           worker = jvmWorkerRef().internalWorker(),
           upstreamCompileOutput = updateCompileOutput,
           javaSourceFiles = javaSourceFiles,
-          compileCp = compileCp,
+          compileCp = compileCp :+ compileGeneratedGroovyStubs(),
           javaHome = javaHome().map(_.path),
           javacOptions = javacOptions(),
           compileProblemReporter = ctx.reporter(hashCode),
           reportOldProblems = zincReportCachedProblems()
         )
-      }
-
-      def compileGroovyStubs(): Result[CompilationResult] = {
-        ctx.log.info("Compiling Groovy stubs for mixed compilation")
-        GroovyWorkerManager.groovyWorker().withValue(groovyCompilerClasspath()) {
-          _.compileGroovyStubs(groovySourceFiles, compileCp, classes, config)
-        }
       }
 
       def compileGroovy(): Result[CompilationResult] = {
@@ -192,7 +218,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
           }
 
         // TODO figure out if there is a better way to do this
-        val analysisFile = dest / "groovy.analysis.dummy" // needed for mills CompilationResult
+        val analysisFile = dest / "groovy.analysis.dummy" // needed for Mills CompilationResult
         os.write(target = analysisFile, data = "", createFolders = true)
 
         workerGroovyResult match {
@@ -202,18 +228,19 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
         }
       }
 
-      val firstAndSecondStage = if (isMixed) {
-        // only compile Java if Stubs are successfully generated
-        compileGroovyStubs().flatMap(_ => compileJava)
-      } else {
-        Result.Success
+      strategy match {
+        case JavaOnly =>
+          compileJava
+
+        case GroovyOnly =>
+          compileGroovy()
+
+        case Mixed =>
+          compileGroovyStubs()
+            .flatMap(_ => compileJava)
+            .flatMap(_ => compileGroovy())
       }
 
-      if (isMixed || isGroovy) {
-        firstAndSecondStage.flatMap(_ => compileGroovy())
-      } else {
-        compileJava
-      }
     }
 
   private[groovylib] def internalCompileJavaFiles(
