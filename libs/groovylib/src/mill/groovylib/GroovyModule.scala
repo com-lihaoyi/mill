@@ -132,10 +132,12 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
     groovyCompileTask()()
   }
 
-  def compileGroovyStubs: T[Result[Unit]] = Task(persistent = true){
+  def compileGroovyStubs: T[Result[Unit]] = Task(persistent = true) {
     val groovySourceFiles = allGroovySourceFiles().map(_.path)
     val stubDir = compileGeneratedGroovyStubs()
-    Task.ctx().log.info(s"Generating Java stubs for ${groovySourceFiles.size} Groovy sources to $stubDir ...")
+    Task.ctx().log.info(
+      s"Generating Java stubs for ${groovySourceFiles.size} Groovy sources to $stubDir ..."
+    )
 
     val compileCp = compileClasspath().map(_.path).filter(os.exists)
     val config = GroovyCompilerConfiguration(

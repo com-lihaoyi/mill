@@ -1,7 +1,7 @@
 package mill.groovylib.worker.impl
 
 import groovy.lang.GroovyClassLoader
-import mill.api.{PathRef, Result, TaskCtx}
+import mill.api.{Result, TaskCtx}
 import mill.javalib.api.CompilationResult
 import mill.groovylib.worker.api.{GroovyCompilerConfiguration, GroovyWorker}
 import org.codehaus.groovy.control.{CompilationUnit, CompilerConfiguration, Phases}
