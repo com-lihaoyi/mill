@@ -1,8 +1,7 @@
 package mill.groovylib.worker.impl
 
 import groovy.lang.GroovyClassLoader
-import mill.api.Result
-import mill.api.TaskCtx
+import mill.api.{PathRef, Result, TaskCtx}
 import mill.javalib.api.CompilationResult
 import mill.groovylib.worker.api.{GroovyCompilerConfiguration, GroovyWorker}
 import org.codehaus.groovy.control.{CompilationUnit, CompilerConfiguration, Phases}
@@ -19,13 +18,13 @@ class GroovyWorkerImpl extends GroovyWorker {
       classpath: Seq[Path],
       outputDir: Path,
       config: GroovyCompilerConfiguration
-  )(implicit ctx: TaskCtx): Result[CompilationResult] = {
+  )(implicit ctx: TaskCtx): Result[Unit] = {
     val compilerConfig = new CompilerConfiguration()
     compilerConfig.setTargetDirectory(outputDir.toIO)
     compilerConfig.setClasspathList(classpath.map(_.toIO.getAbsolutePath).asJava)
     compilerConfig.setJointCompilationOptions(Map(
       "stubDir" -> outputDir.toIO,
-      "keepStubs" -> false
+      "keepStubs" -> true
     ).asJava)
     compilerConfig.setDisabledGlobalASTTransformations(
       config.disabledGlobalAstTransformations.asJava
@@ -46,10 +45,9 @@ class GroovyWorkerImpl extends GroovyWorker {
 
     Try {
       stubUnit.compile(Phases.CONVERSION)
-      CompilationResult(outputDir, mill.api.PathRef(outputDir))
     }.fold(
       exception => Result.Failure(s"Groovy stub generation failed: ${exception.getMessage}"),
-      result => Result.Success(result)
+      result => Result.Success(())
     )
 
   }
@@ -88,19 +86,10 @@ class GroovyWorkerImpl extends GroovyWorker {
 
     Try {
       unit.compile(Phases.OUTPUT)
-      removeAllJavaFiles(outputDir)
       CompilationResult(outputDir, mill.api.PathRef(outputDir))
     }.fold(
       exception => Result.Failure(s"Groovy compilation failed: ${exception.getMessage}"),
       result => Result.Success(result)
     )
-  }
-
-  private def removeAllJavaFiles(outputDir: os.Path): Unit = {
-    if (os.exists(outputDir)) {
-      os.walk(outputDir)
-        .filter(_.ext == "java")
-        .foreach(os.remove)
-    }
   }
 }
