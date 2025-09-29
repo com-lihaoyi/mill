@@ -31,7 +31,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
    */
   def groovyLanguageVersion: T[String] = Task { groovyVersion().split("[.]").take(2).mkString(".") }
 
-  private def isGroovyBomAvailable: T[Boolean] = Task {
+  private def useGroovyBom: T[Boolean] = Task {
     if (groovyVersion().isBlank) {
       false
     } else {
@@ -41,7 +41,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
   override def bomMvnDeps: T[Seq[Dep]] = super.bomMvnDeps() ++
     Seq(groovyVersion())
-      .filter(_.nonEmpty && isGroovyBomAvailable())
+      .filter(_.nonEmpty && useGroovyBom())
       .map(v => mvn"org.apache.groovy:groovy-bom:$v")
 
   /**
@@ -54,15 +54,15 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
   /**
    * Specifiy the bytecode version for the Groovy compiler.
    * {{{
-   *   def targetBytecode = Some("17")
+   *   def groovyCompileTargetBytecode = Some("17")
    * }}}
    */
-  def targetBytecode: T[Option[String]] = None
+  def groovyCompileTargetBytecode: T[Option[String]] = None
 
   /**
    * Specify if the Groovy compiler should enable preview features.
    */
-  def enablePreview: T[Boolean] = false
+  def groovyCompileEnablePreview: T[Boolean] = false
 
   /**
    * Specify which global AST transformations should be disabled. Be aware that transformations
@@ -153,8 +153,8 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
       val updateCompileOutput = upstreamCompileOutput()
 
       val config = GroovyCompilerConfiguration(
-        enablePreview = enablePreview(),
-        targetBytecode = targetBytecode(),
+        enablePreview = groovyCompileEnablePreview(),
+        targetBytecode = groovyCompileTargetBytecode(),
         disabledGlobalAstTransformations = disabledGlobalAstTransformations()
       )
 
