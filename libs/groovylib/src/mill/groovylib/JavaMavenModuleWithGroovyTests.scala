@@ -5,13 +5,13 @@ import mill.javalib.{JavaModule, MavenModule}
 
 /**
  * Convenience trait for projects using Java for production and Groovy for tests in a Maven setup.
- * 
+ *
  * Since [[GroovyModule.GroovyTests]] is only available as a child-trait, it is necessary to have
- * the main module as a [[GroovyModule]], which would implicitly add Groovy dependencies to the 
+ * the main module as a [[GroovyModule]], which would implicitly add Groovy dependencies to the
  * module.
  * This trait explicitly uses Java with a Maven layout for the main module and enables `src/test/groovy`
  * as a source folder for Groovy tests.
- * 
+ *
  * {{{
  *     object `package` extends JavaMavenModuleWithGroovyTests {
  *
@@ -21,7 +21,7 @@ import mill.javalib.{JavaModule, MavenModule}
  *       }
  *     }
  * }}}
- * 
+ *
  * Note: for non-Maven layouts this is not necessary, since the test module can just be a [[GroovyModule]].
  */
 @mill.api.experimental

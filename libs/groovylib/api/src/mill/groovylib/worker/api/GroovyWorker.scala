@@ -1,6 +1,6 @@
 package mill.groovylib.worker.api
 
-import mill.api.{PathRef, Result, TaskCtx}
+import mill.api.{Result, TaskCtx}
 import mill.javalib.api.CompilationResult
 
 /**
@@ -25,7 +25,7 @@ trait GroovyWorker {
   )(implicit
       ctx: TaskCtx
   )
-  : Result[Unit]
+      : Result[Unit]
 
   /**
    * Compiles the Groovy sources. In a mixed setup this method assumes that the Java stubs
