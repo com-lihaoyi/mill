@@ -107,8 +107,8 @@ object HelloGroovyTests extends TestSuite {
       object compileroptions extends GroovyModule {
         def javaVersion = "11"
         override def groovyVersion: T[String] = crossValue
-        override def targetBytecode: Task.Simple[Option[String]] = Some(javaVersion)
-        override def enablePreview: Task.Simple[Boolean] = true
+        override def groovyCompileTargetBytecode: Task.Simple[Option[String]] = Some(javaVersion)
+        override def groovyCompileEnablePreview: Task.Simple[Boolean] = true
         override def mainClass = Some("compileroptions.HelloCompilerOptions")
       }
     }

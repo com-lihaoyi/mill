@@ -372,7 +372,7 @@ object TestModule {
     /** The JUnit Jupiter version to use, or empty, if you want to provide the dependencies yourself. */
     def jupiterVersion: T[String] = Task { "" }
 
-    private def isJupiterBomAvailable: T[Boolean] = Task {
+    private def useJupiterBom: T[Boolean] = Task {
       if (jupiterVersion().isBlank) {
         false
       } else {
@@ -385,7 +385,7 @@ object TestModule {
     override def bomMvnDeps: T[Seq[Dep]] = Task {
       super.bomMvnDeps() ++
         Seq(jupiterVersion())
-          .filter(!_.isBlank() && isJupiterBomAvailable())
+          .filter(!_.isBlank() && useJupiterBom())
           .flatMap(v =>
             Seq(
               mvn"org.junit:junit-bom:${v.trim()}"
@@ -399,7 +399,7 @@ object TestModule {
         Seq(junitPlatformVersion()).flatMap(v => {
           if (!v.isBlank) {
             Some(mvn"org.junit.platform:junit-platform-launcher:${v.trim()}")
-          } else if (isJupiterBomAvailable()) {
+          } else if (useJupiterBom()) {
             Some(mvn"org.junit.platform:junit-platform-launcher")
           } else {
             None
