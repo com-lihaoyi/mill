@@ -49,7 +49,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
     def scalajsWorkerVersion = crossValue
     def moduleDir: os.Path = super.moduleDir / scalajsWorkerVersion
     def compileModuleDeps =
-      Seq(build.libs.scalajslib.api, build.core.constants, build.core.api.daemon)
+      Seq(build.libs.scalajslib.api, build.libs.util, build.core.constants, build.core.api.daemon)
     def mandatoryMvnDeps = Seq.empty[Dep]
     def mvnDeps = Seq(Deps.scalafmtDynamic)
     def compileMvnDeps = super.mandatoryMvnDeps() ++ Seq(
