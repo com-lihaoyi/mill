@@ -16,8 +16,7 @@ import java.io.File
 import javax.inject.Inject
 import scala.jdk.CollectionConverters.*
 
-class GradleBuildModelBuilder(ctx: GradleBuildContext, workspace: os.Path)
-    extends ToolingModelBuilder {
+class GradleBuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends ToolingModelBuilder {
 
   def canBuild(modelName: String) = classOf[GradleBuildModel].getName == modelName
 
@@ -61,8 +60,8 @@ class GradleBuildModelBuilder(ctx: GradleBuildContext, workspace: os.Path)
     def javacOptionsForTask(compileTaskName: String) = getTasks.findByName(compileTaskName) match {
       case task: JavaCompile =>
         ctx.releaseVersion(task.getOptions).fold(
-          // When not set explicitly, "-source" and "-target" default to the language version of
-          // the Java toolchain. If no toolchain is configured, it defaults to the system JDK.
+          // When not configured explicitly, "-source" and "-target" default to the
+          // `languageVersion` of the Java toolchain.
           Option(task.getSourceCompatibility).fold(Nil)(Seq("-source", _)) ++
             Option(task.getTargetCompatibility).fold(Nil)(Seq("-target", _))
         )(n => Seq("--release", n.toString)) ++
@@ -85,12 +84,15 @@ class GradleBuildModelBuilder(ctx: GradleBuildContext, workspace: os.Path)
         case repositories => Some(CoursierModuleConfig(repositories = repositories))
       }
     }
+    val errorProneDeps = mvnDeps("errorprone")
     val (errorProneModuleConfig, javacOptions) = findErrorProneModuleConfigJavacOptions(
       javacOptionsForTask("compileJava"),
-      mvnDeps("errorprone")
+      errorProneDeps
     )
-    val javaHomeModuleConfig = Option(getExtensions.findByType(classOf[JavaPluginExtension]))
-      .flatMap(ext => findJavaHomeModuleConfig(ctx.javaVersion(ext), javacOptions))
+    val javaPluginExtension = Option(getExtensions.findByType(classOf[JavaPluginExtension]))
+    val javaHomeModuleConfig = javaPluginExtension.flatMap(ext =>
+      findJavaHomeModuleConfig(ctx.javaVersion(ext), javacOptions)
+    )
     val mavenPublication = Option(getExtensions.findByType(classOf[PublishingExtension]))
       .flatMap(ext => ext.getPublications.withType(classOf[MavenPublication]).asScala.headOption)
     val javaModuleConfig = Option.when(getPluginManager.hasPlugin("java")) {
@@ -111,9 +113,7 @@ class GradleBuildModelBuilder(ctx: GradleBuildContext, workspace: os.Path)
       PublishModuleConfig(
         pomPackagingType = overridePomPackagingType(pub.getPom.getPackaging),
         pomSettings = toPomSettings(pub.getPom, pub.getGroupId),
-        publishVersion = getVersion.toString,
-        publishProperties =
-          Option(pub.getPom.getProperties.getOrNull()).fold(Map())(_.asScala.toMap)
+        publishVersion = getVersion.toString
       )
     }
     val configs = Seq(
@@ -124,9 +124,13 @@ class GradleBuildModelBuilder(ctx: GradleBuildContext, workspace: os.Path)
       coursierModuleConfig
     ).flatten
 
-    val testModule = {
+    val testModule = if (os.exists(moduleDir / "src/test")) {
       val mvnDeps0 = mvnDeps("testImplementation")
       findTestModuleMixin(mvnDeps0).map { mixin =>
+        val (testErrorProneModuleConfig, testJavacOptions) = findErrorProneModuleConfigJavacOptions(
+          javacOptionsForTask("compileTestJava"),
+          errorProneDeps
+        )
         val testJavaModuleConfig = JavaModuleConfig(
           mvnDeps = mvnDeps0,
           compileMvnDeps = mvnDeps("testCompileOnly"),
@@ -134,7 +138,8 @@ class GradleBuildModelBuilder(ctx: GradleBuildContext, workspace: os.Path)
           bomMvnDeps = bomMvnDeps("testImplementation"),
           moduleDeps = moduleDeps("testImplementation"),
           compileModuleDeps = moduleDeps("testCompileOnly"),
-          runModuleDeps = moduleDeps("testRuntimeOnly")
+          runModuleDeps = moduleDeps("testRuntimeOnly"),
+          javacOptions = ModuleConfig.inheritedOptions(testJavacOptions, javacOptions)
         )
         val testSupertypes = "MavenTests" +:
           (if (errorProneModuleConfig.isEmpty) Nil else Seq("ErrorProneModule"))
@@ -147,7 +152,7 @@ class GradleBuildModelBuilder(ctx: GradleBuildContext, workspace: os.Path)
           testSandboxWorkingDir = false
         )
       }
-    }
+    } else None
 
     if (configs.isEmpty && testModule.isEmpty) ModuleRepr(segments)
     else {

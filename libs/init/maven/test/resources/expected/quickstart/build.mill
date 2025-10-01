@@ -1,6 +1,5 @@
 //| mill-version: SNAPSHOT
-//| mill-jvm-version: zulu:21
-//| mill-jvm-opts: ["-Xmx2048m", "-Xms1024m", "-XX:MaxPermSize=512m", "-Djava.awt.headless=true"]
+//| mill-jvm-opts: []
 package build
 
 import mill.javalib._
@@ -26,25 +25,14 @@ object `package` extends MavenModule with PublishModule with ErrorProneModule {
 
   def publishVersion = "1.0-SNAPSHOT"
 
-  def publishProperties = super.publishProperties() ++ Map(
-    ("maven.compiler.release", "17"),
-    ("project.build.sourceEncoding", "UTF-8")
-  )
-
-  def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
-    Seq("-XDcompilePolicy=simple")
-
   def jvmId = "zulu:11"
 
-  object test extends MavenTests with TestModule.Junit5 {
+  object test extends MavenTests with ErrorProneModule with TestModule.Junit5 {
 
     def mvnDeps = super.mvnDeps() ++
       Seq(Deps.junitJupiterApi, Deps.junitJupiterParams)
 
     def forkWorkingDir = moduleDir
-
-    def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
-      Seq("-XDcompilePolicy=simple")
 
     def testParallelism = false
 

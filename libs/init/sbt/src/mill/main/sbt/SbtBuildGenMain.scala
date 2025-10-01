@@ -18,7 +18,7 @@ object SbtBuildGenMain {
     println("converting sbt build")
 
     val args0 = summon[ParserForClass[SbtBuildGenArgs]].constructOrExit(args.toSeq)
-    import args0.{getClass as _, *}
+    import args0.*
 
     val cmd = sbtCmd.getOrElse(
       Either.cond(
@@ -36,7 +36,7 @@ object SbtBuildGenMain {
       )
     )
     val exportScriptJar = Using.resource(
-      getClass.getResourceAsStream(exportscriptAssemblyResource)
+      SbtBuildGenMain.getClass.getResourceAsStream(exportscriptAssemblyResource)
     )(os.temp(_, suffix = ".jar"))
     val exportDir = os.temp.dir()
     // run task with "+" prefix to export data per project per cross Scala version
@@ -85,8 +85,8 @@ object SbtBuildGenMain {
         )
       }
     def normalizePlatformDeps(crossPlatformModules: Seq[ModuleRepr]) = {
-      // Replicate %%% syntax by "platforming" dependencies for the JVM cross module.
-      // Otherwise, such a dependency will manifest as 2 entries in the Deps object.
+      // Replicate %%% syntax by "platforming" dependencies for the JVM cross module to prevent
+      // a dependency to manifest as 2 entries in the Deps object.
       val (jvmModules, nonJvmModules) = crossPlatformModules.partition(_.segments.last == "jvm")
       val platformedMvnDeps = nonJvmModules.iterator
         .flatMap(module =>
@@ -149,14 +149,13 @@ object SbtBuildGenMain {
     }.toSeq
 
     val sbtJvmOpts = {
-      def lines(file: os.Path) = if (os.isFile(file))
-        os.read.lines.stream(file).map(_.trim).filter(_.nonEmpty).toSeq
+      val file = os.pwd / ".jvmopts"
+      if (os.isFile(file)) os.read.lines.stream(file)
+        .map(_.trim)
+        .filter(s => s.nonEmpty && !s.startsWith("#"))
+        .flatMap(_.split("\\s+"))
+        .toSeq
       else Nil
-      val jvmOpts = lines(os.pwd / ".jvmopts")
-        .flatMap(s => if (s.startsWith("#")) Nil else s.split(" "))
-      val sbtOptsJ = lines(os.pwd / ".sbtopts")
-        .flatMap(s => if (s.startsWith("-J")) s.substring(2).split(" ") else Nil)
-      jvmOpts ++ sbtOptsJ
     }
 
     var build = BuildRepr.fill(packages).copy(millJvmOpts = sbtJvmOpts)

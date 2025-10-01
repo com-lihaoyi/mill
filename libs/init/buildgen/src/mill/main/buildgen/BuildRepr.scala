@@ -1,17 +1,15 @@
 package mill.main.buildgen
 
-import mill.main.buildgen.BuildInfo.millJvmVersion
 import mill.util.BuildInfo.millVersion
 
 /**
- * A build represented as a [[Tree]] of packages where each package corresponds to a build file
- * containing a [[Tree]] of modules.
+ * A representation for a Mill build defined as a tree of packages where each package represents a
+ * build file that contains a tree of modules.
  */
 case class BuildRepr(
     packages: Tree[Tree[ModuleRepr]],
     metaBuild: Option[MetaBuildRepr] = None,
     millVersion: String = millVersion,
-    millJvmVersion: String = millJvmVersion,
     millJvmOpts: Seq[String] = Nil
 ) {
 

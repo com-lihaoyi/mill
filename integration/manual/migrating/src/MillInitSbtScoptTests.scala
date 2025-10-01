@@ -4,21 +4,17 @@ import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
 
 object MillInitSbtScoptTests extends GitRepoIntegrationTestSuite {
-
-  // sbt 1.5.2
-  // cross Scala versions 2.11.12 2.12.16 2.13.8 3.1.3
-  // sbt-crossproject 1.0.0
-  // single cross-platform/version root module
-
   def tests = Tests {
     test - integrationTestGitRepo(
+      // sbt 1.5.2
       "https://github.com/scopt/scopt.git",
-      "v4.1.0"
+      "v4.1.0",
+      linkMillExecutable = true
     ) { tester =>
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("__.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("__.publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 

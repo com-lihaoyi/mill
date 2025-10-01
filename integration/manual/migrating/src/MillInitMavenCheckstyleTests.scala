@@ -4,24 +4,17 @@ import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
 
 object MillInitMavenCheckstyleTests extends GitRepoIntegrationTestSuite {
-
-  // maven 3.9.6
-  // .mvn/jvm.config
-  // errorprone
-  // Junit5
-  // single module
-
   def tests = Tests {
     test - integrationTestGitRepo(
+      // has .mvn/jvm.config
       "https://github.com/checkstyle/checkstyle.git",
-      "checkstyle-11.0.0"
+      "checkstyle-11.0.0",
+      linkMillExecutable = true
     ) { tester =>
       import tester.*
 
-      os.write(workspacePath / ".mill-jvm-version", "17")
-
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
       // missing generated sources
       eval("compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false

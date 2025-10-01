@@ -1,7 +1,5 @@
 package mill.main.buildgen
 
-import scala.collection.mutable
-
 object BuildConventions {
 
   def findJavaHomeModuleConfig(
@@ -17,7 +15,7 @@ object BuildConventions {
       .map { version =>
         // Mill requires Java 11+
         val version0 = 11.max(version)
-        // use a provider that supports all Java versions
+        // use a distribution that provides all Java versions
         JavaHomeModuleConfig(jvmId = s"zulu:$version0")
       }
   }
@@ -27,21 +25,21 @@ object BuildConventions {
       errorProneMvnDeps: Seq[ModuleConfig.MvnDep] = Nil
   ): (Option[ErrorProneModuleConfig], Seq[String]) = {
     javacOptions.find(_.startsWith("-Xplugin:ErrorProne")).map { epOption =>
-      val epOptions = epOption.split("_").toSeq.tail
+      val epOptions = epOption.split("\\s+").toSeq.tail
       val epDep = errorProneMvnDeps.find(dep =>
         dep.organization == "com.google.errorprone" && dep.name == "error_prone_core"
       )
-      val (epJavacOptions, javacOptions0) =
-        javacOptions.diff(Seq(epOption)).partition(_.startsWith("-XD"))
-      (
-        Some(ErrorProneModuleConfig(
-          errorProneVersion = epDep.flatMap(_.version).orNull,
-          errorProneOptions = epOptions,
-          errorProneJavacEnableOptions = epJavacOptions,
-          errorProneDeps = errorProneMvnDeps.diff(epDep.toSeq)
-        )),
-        javacOptions0
-      )
+      val (epJavacOptions, javacOptions0) = javacOptions
+        // skip options added by ErrorProneModule
+        .filter(s => s != epOption && s != "-XDcompilePolicy=simple")
+        .partition(_.startsWith("-XD"))
+      val epModuleConfig = Some(ErrorProneModuleConfig(
+        errorProneVersion = epDep.flatMap(_.version).orNull,
+        errorProneOptions = epOptions,
+        errorProneJavacEnableOptions = epJavacOptions,
+        errorProneDeps = errorProneMvnDeps.diff(epDep.toSeq)
+      ))
+      (epModuleConfig, javacOptions0)
     }.getOrElse((None, javacOptions))
   }
 

@@ -27,11 +27,6 @@ object `package` extends MavenSamplesBaseModule {
     Seq()
   )
 
-  def publishProperties = super.publishProperties() ++ Map(
-    ("project.build.sourceEncoding", "utf-8"),
-    ("project.reporting.outputEncoding", "utf-8")
-  )
-
   def jvmId = "zulu:11"
 
   object test extends MavenTests with TestModule.Junit4 {

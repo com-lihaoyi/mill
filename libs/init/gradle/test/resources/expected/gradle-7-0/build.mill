@@ -1,5 +1,4 @@
 //| mill-version: SNAPSHOT
-//| mill-jvm-version: zulu:21
 //| mill-jvm-opts: []
 package build
 

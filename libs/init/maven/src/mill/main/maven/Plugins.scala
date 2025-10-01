@@ -1,37 +1,29 @@
 package mill.main.maven
 
-import mill.main.buildgen.ModuleConfig.MvnDep
+import mill.main.buildgen.ModuleConfig
 import org.apache.maven.artifact.versioning.VersionRange
 import org.apache.maven.model.{ConfigurationContainer, Model, Plugin}
 import org.codehaus.plexus.util.xml.Xpp3Dom
 
 import scala.jdk.CollectionConverters.*
 
-object Plugins {
+class Plugins(model: Model) {
 
-  def javacOptions(model: Model): Seq[String] =
-    mavenCompilerPlugin(model).flatMap(dom).fold(Nil) { dom =>
-      def opts(name: String) = domValue(dom, name).fold(Nil)(Seq(s"-$name", _))
-      val opts0 =
-        domValue(dom, "release").fold(opts("source") ++ opts("target"))(Seq("--release", _))
-      opts0 ++ opts("encoding") ++ domValues(dom, "compilerArgs")
-    }
-
-  def javacAnnotationProcessorMvnDeps(model: Model): Seq[MvnDep] =
-    mavenCompilerPlugin(model).flatMap(dom).fold(Nil)(
-      domChildren(_, "annotationProcessorPaths", "path")
+  def javacAnnotationProcessorMvnDeps: Seq[ModuleConfig.MvnDep] =
+    mavenCompilerPlugin.flatMap(configDom).fold(Nil)(
+      children(_, "annotationProcessorPaths", "path")
         .flatMap(dom =>
           for {
-            groupId <- domValue(dom, "groupId")
-            artifactId <- domValue(dom, "artifactId")
-            version = domValue(dom, "version")
-            exclusions = domChildren(dom, "exclusions").flatMap(dom =>
+            groupId <- value(dom, "groupId")
+            artifactId <- value(dom, "artifactId")
+            version = value(dom, "version")
+            exclusions = children(dom, "exclusions").flatMap(dom =>
               for {
-                groupId <- domValue(dom, "groupId")
-                artifactId <- domValue(dom, "artifactId")
+                groupId <- value(dom, "groupId")
+                artifactId <- value(dom, "artifactId")
               } yield (groupId, artifactId)
             )
-          } yield MvnDep(
+          } yield ModuleConfig.MvnDep(
             organization = groupId,
             name = artifactId,
             version = version,
@@ -40,75 +32,88 @@ object Plugins {
         )
     )
 
-  def skipDeploy(model: Model): Boolean =
-    mavenDeployPlugin(model).flatMap(dom).flatMap(domValue(_, "skip")).fold(false)(_.toBoolean)
+  def javacOptions: Seq[String] =
+    mavenCompilerPlugin.flatMap(configDom).fold(Nil) { dom =>
+      def opts(name: String) = value(dom, name).fold(Nil)(Seq(s"-$name", _))
+      val opts0 = value(dom, "release").filter(_.nonEmpty).fold(
+        opts("source") ++ opts("target")
+      )(Seq("--release", _))
+      opts0 ++ opts("encoding") ++ values(dom, "compilerArgs")
+    }
 
-  /**
-   * @see [[https://maven.apache.org/enforcer/enforcer-rules/requireJavaVersion.html]]
-   */
-  def javaVersion(model: Model): Option[Int] = {
-    mavenEnforcerPlugin(model).flatMap(
-      _.getExecutions.iterator.asScala
-        .filter(_.getGoals.contains("enforce"))
-        .flatMap(dom)
-        .flatMap(domValue(_, "rules", "requireJavaVersion", "version"))
-        .map(VersionRange.createFromVersionSpec)
-        .flatMap(v =>
-          Option(v.getRecommendedVersion).orElse(
-            v.getRestrictions.asScala.headOption.flatMap(r =>
-              Option(r.getUpperBound).orElse(Option(r.getLowerBound))
-            )
-          )
-        )
-        .maxOption
-        .map(_.getMajorVersion)
-    )
-  }
+  def javaVersion: Option[Int] =
+    mavenCompilerPlugin
+      .flatMap(configDom)
+      .flatMap(value(_, "jdkToolchain", "version"))
+      .orElse(mavenToolchainsPlugin
+        .flatMap(configDom)
+        .flatMap(value(_, "toolchains", "jdk", "version")))
+      .orElse(mavenEnforcerPlugin
+        .flatMap(_.getExecutions.iterator.asScala.find(_.getGoals.contains("enforce")))
+        .flatMap(configDom)
+        .flatMap(value(_, "rules", "requireJavaVersion", "version")))
+      .flatMap { spec =>
+        val range = VersionRange.createFromVersionSpec(spec)
+        Option(range.getRecommendedVersion)
+          .orElse(range.getRestrictions.asScala.headOption.flatMap(r => Option(r.getLowerBound)))
+          .map(v => if (v.getMajorVersion == 1) v.getMinorVersion else v.getMajorVersion)
+      }
+
+  def skipDeploy: Boolean =
+    mavenDeployPlugin.flatMap(configDom).flatMap(value(_, "skip")).fold(false)(_.toBoolean)
 
   /**
    * @see [[https://maven.apache.org/plugins/maven-compiler-plugin/index.html]]
    */
-  def mavenCompilerPlugin(model: Model): Option[Plugin] =
-    findPlugin(model, "org.apache.maven.plugins", "maven-compiler-plugin")
+  def mavenCompilerPlugin: Option[Plugin] =
+    findPlugin("org.apache.maven.plugins", "maven-compiler-plugin")
 
   /**
    * @see [[https://maven.apache.org/plugins/maven-deploy-plugin/index.html]]
    */
-  def mavenDeployPlugin(model: Model): Option[Plugin] =
-    findPlugin(model, "org.apache.maven.plugins", "maven-deploy-plugin")
+  def mavenDeployPlugin: Option[Plugin] =
+    findPlugin("org.apache.maven.plugins", "maven-deploy-plugin")
 
   /**
    * @see [[https://maven.apache.org/enforcer/maven-enforcer-plugin/index.html]]
    */
-  def mavenEnforcerPlugin(model: Model): Option[Plugin] =
-    findPlugin(model, "org.apache.maven.plugins", "maven-enforcer-plugin")
+  def mavenEnforcerPlugin: Option[Plugin] =
+    findPlugin("org.apache.maven.plugins", "maven-enforcer-plugin")
 
-  def findPlugin(model: Model, groupId: String, artifactId: String): Option[Plugin] =
+  /**
+   * @see [[https://maven.apache.org/plugins/maven-toolchains-plugin/index.html]]
+   */
+  def mavenToolchainsPlugin: Option[Plugin] =
+    findPlugin("org.apache.maven.plugins", "maven-toolchains-plugin")
+
+  def findPlugin(groupId: String, artifactId: String): Option[Plugin] =
     model.getBuild.getPlugins.iterator.asScala
       .find(p => p.getGroupId == groupId && p.getArtifactId == artifactId)
 
-  def dom(cc: ConfigurationContainer): Option[Xpp3Dom] = cc.getConfiguration match {
+  def configDom(cc: ConfigurationContainer): Option[Xpp3Dom] = cc.getConfiguration match {
     case dom: Xpp3Dom => Some(dom)
     case _ => None
   }
 
-  def domChildren(dom: Xpp3Dom, names: String*): Seq[Xpp3Dom] =
+  def children(dom: Xpp3Dom, names: String*): Seq[Xpp3Dom] =
     if (dom == null) Nil
     else if (names.isEmpty) dom.getChildren.toSeq
-    else dom.getChildren(names.head).toSeq.flatMap(domChildren(_, names.tail*))
+    else dom.getChildren(names.head).toSeq.flatMap(children(_, names.tail*))
 
-  def domChild(dom: Xpp3Dom, names: String*): Option[Xpp3Dom] =
-    if (dom == null) None
-    else if (names.isEmpty) Some(dom)
-    else domChild(dom.getChild(names.head), names.tail*)
-
-  def domValue(dom: Xpp3Dom, names: String*): Option[String] =
+  def value(dom: Xpp3Dom, names: String*): Option[String] =
     if (null == dom) None
-    else if (names.isEmpty) Option(dom.getValue)
-    else domValue(dom.getChild(names.head), names.tail*)
+    else if (names.isEmpty) value0(dom)
+    else value(dom.getChild(names.head), names.tail*)
 
-  def domValues(dom: Xpp3Dom, names: String*): Seq[String] =
+  def values(dom: Xpp3Dom, names: String*): Seq[String] =
     if (dom == null) Nil
-    else if (names.isEmpty) dom.getChildren.iterator.flatMap(dom => Option(dom.getValue)).toSeq
-    else dom.getChildren(names.head).toSeq.flatMap(domValues(_, names.tail*))
+    else if (names.isEmpty) dom.getChildren.iterator.flatMap(value0).toSeq
+    else dom.getChildren(names.head).toSeq.flatMap(values(_, names.tail*))
+
+  def value0(dom: Xpp3Dom): Option[String] = dom.getValue match {
+    case null | "" => None
+    // this could happen for a BOM module that references a property defined in the root POM
+    case s"$${$prop}" => Option(model.getProperties.getProperty(prop))
+    case value => Some(value)
+  }
 }

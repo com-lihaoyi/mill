@@ -4,12 +4,8 @@ import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
 
 object MillInitGradleMicroconfigTests extends GitRepoIntegrationTestSuite {
-
-  // Gradle 8.10.1
-  // uses spring-boot-dependencies BOM
-  // Junit5
-
   def tests = Tests {
+    // Gradle 8.10.1
     test - integrationTestGitRepo(
       "https://github.com/microconfig/microconfig.git",
       "v4.9.5",
@@ -17,13 +13,14 @@ object MillInitGradleMicroconfigTests extends GitRepoIntegrationTestSuite {
     ) { tester =>
       import tester.*
 
-      eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval(
+        ("init", "--gradle-jvm-id", "11"),
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      ).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("_.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("_.publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-
-      // Gradle resolves versions for Junit5 dependencies using transitive BOM?
-      eval("__.test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
+      eval("__.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("__.test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
     }
   }
 }

@@ -3,17 +3,13 @@ package mill.main.buildgen
 import mill.internal.Util.backtickWrap
 
 case class MetaBuildRepr(
-    packageName: String,
-    depsObjectName: String,
-    baseTraits: Seq[MetaBuildRepr.BaseTrait]
+    packageName: String = "millbuild",
+    depsObjectName: String = "Deps",
+    baseTraits: Seq[MetaBuildRepr.BaseTrait] = Nil
 )
 object MetaBuildRepr {
 
-  def of(
-      packages: Tree[Tree[ModuleRepr]],
-      packageName: String = "millbuild",
-      depsObjectName: String = "Deps"
-  ) = {
+  def of(packages: Tree[Tree[ModuleRepr]]) = {
     var packages0 = packages
     val baseTraits = if (packages0.root.children.isEmpty && packages0.children.isEmpty) Nil
     else {
@@ -25,7 +21,7 @@ object MetaBuildRepr {
         packages0 = packages0.map: pkg =>
           pkg.map: module =>
             if (module.configs.isEmpty) module else base.inherited(module)
-      // If the first base trait has no publish settings, we attempt to generate one that does.
+      // TODO Define new tasks in PublishModule, for PomSettings fields, to improve sharing.
       val publishTrait =
         if (baseTrait.exists(_.configs.exists(_.isInstanceOf[PublishModuleConfig]))) None
         else BaseTrait.abstracted(
@@ -41,7 +37,7 @@ object MetaBuildRepr {
             else module
       baseTrait.toSeq ++ publishTrait.toSeq
     }
-    (packages0, MetaBuildRepr(packageName, depsObjectName, baseTraits))
+    (packages0, MetaBuildRepr(baseTraits = baseTraits))
   }
 
   case class BaseTrait(

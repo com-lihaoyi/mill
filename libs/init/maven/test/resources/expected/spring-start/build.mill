@@ -1,5 +1,4 @@
 //| mill-version: SNAPSHOT
-//| mill-jvm-version: zulu:21
 //| mill-jvm-opts: []
 package build
 
@@ -27,9 +26,6 @@ object `package` extends MavenModule with PublishModule {
   )
 
   def publishVersion = "0.0.1-SNAPSHOT"
-
-  def publishProperties = super.publishProperties() ++
-    Map(("java.version", "17"))
 
   def jvmId = "zulu:17"
 

@@ -17,15 +17,10 @@ object `package` extends MavenSamplesBaseModule {
 
   def pomSettings = PomSettings(
     "Logic.",
-    "com.example.maven-samples",
-    "http://www.example.com/server",
+    "",
+    "",
     Seq(),
-    VersionControl(
-      Some("http://github.com/gabrielf/maven-samples/server"),
-      Some("scm:git:git@github.com:gabrielf/maven-samples.git/server"),
-      Some("scm:git:git@github.com:gabrielf/maven-samples.git/server"),
-      Some("HEAD")
-    ),
+    VersionControl(None, None, None, None),
     Seq()
   )
 

@@ -5,7 +5,7 @@ import mill.javalib.publish.*
 import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
 
-object MillInitGradleImportTests extends GitRepoIntegrationTestSuite {
+object MillInitImportGradleTests extends GitRepoIntegrationTestSuite {
   def tests = Tests {
     test("FastCSV") - integrationTestGitRepo(
       "https://github.com/osiegmar/FastCSV.git",
@@ -13,18 +13,19 @@ object MillInitGradleImportTests extends GitRepoIntegrationTestSuite {
     ) { tester =>
       import tester.*
 
-      // JDK 17 is for release but JDK 24 is required for javadoc
       val initRes = eval(("init", "--gradle-jvm-id", "24"))
       assert(initRes.isSuccess)
 
-      val moduleDeps = eval("__.showModuleDeps").out.stripMargin
+      val showModuleDeps = eval("__.showModuleDeps").out.linesIterator.toSeq
       assertGoldenLiteral(
-        moduleDeps,
-        """Module dependencies of example:
-          lib
-        Module dependencies of lib:
-        Module dependencies of lib.test:
-          lib"""
+        showModuleDeps,
+        List(
+          "Module dependencies of example:",
+          "  lib",
+          "Module dependencies of lib:",
+          "Module dependencies of lib.test:",
+          "  lib"
+        )
       )
 
       val repositories = showNamedRepositories(tester)
@@ -38,50 +39,72 @@ object MillInitGradleImportTests extends GitRepoIntegrationTestSuite {
       )
 
       val jvmId = showNamedJvmId(tester)
-      assertGoldenLiteral(jvmId, Map("example.jvmId" -> "", "lib.jvmId" -> ""))
+      assertGoldenLiteral(jvmId, Map("example.jvmId" -> "zulu:24", "lib.jvmId" -> "zulu:17"))
 
-      val mandatoryMvnDeps = showNamedMandatoryMvnDeps(tester)
-      assertGoldenLiteral(
-        mandatoryMvnDeps,
-        Map(
-          "example.mandatoryMvnDeps" -> List(),
-          "lib.mandatoryMvnDeps" -> List(),
-          "lib.test.mandatoryMvnDeps" -> List(
-            "com.github.sbt.junit:jupiter-interface:0.13.3",
-            "org.junit.jupiter:junit-jupiter:5.13.1",
-            "org.junit.platform:junit-platform-launcher:"
-          )
-        )
-      )
       val mvnDeps = showNamedMvnDeps(tester)
       assertGoldenLiteral(
         mvnDeps,
         Map(
           "example.mvnDeps" -> List("ch.randelshofer:fastdoubleparser:2.0.1"),
           "lib.mvnDeps" -> List(),
-          "lib.test.mvnDeps" -> List("org.assertj:assertj-core:3.27.3")
+          "lib.test.mvnDeps" -> List(
+            "org.junit.jupiter:junit-jupiter:5.13.1",
+            "org.assertj:assertj-core:3.27.3"
+          )
+        )
+      )
+      val compileMvnDeps = showNamedCompileMvnDeps(tester)
+      assertGoldenLiteral(
+        compileMvnDeps,
+        Map(
+          "example.compileMvnDeps" -> List(),
+          "lib.compileMvnDeps" -> List(),
+          "lib.test.compileMvnDeps" -> List()
+        )
+      )
+      val runMvnDeps = showNamedRunMvnDeps(tester)
+      assertGoldenLiteral(
+        runMvnDeps,
+        Map(
+          "example.runMvnDeps" -> List(),
+          "lib.runMvnDeps" -> List(),
+          "lib.test.runMvnDeps" -> List("org.junit.platform:junit-platform-launcher:")
+        )
+      )
+      val bomMvnDeps = showNamedBomMvnDeps(tester)
+      assertGoldenLiteral(
+        bomMvnDeps,
+        Map(
+          "example.bomMvnDeps" -> List(),
+          "lib.bomMvnDeps" -> List(),
+          "lib.test.bomMvnDeps" -> List()
         )
       )
       val javacOptions = showNamedJavacOptions(tester)
       assertGoldenLiteral(
         javacOptions,
         Map(
-          "example.javacOptions" -> List("-source", "17", "-target", "17"),
-          "lib.javacOptions" -> List("--release", "17", "-Xlint:all"),
+          "example.javacOptions" -> List("-source", "24", "-target", "24"),
+          "lib.javacOptions" -> List("--release", "17", "-Xlint:all", "-Werror"),
           "lib.test.javacOptions" -> List(
             "--release",
             "17",
             "-Xlint:all",
+            "-Werror",
             "-source",
+            "24",
             "-target",
-            "17",
+            "24",
             "-parameters"
           )
         )
       )
 
       val pomParentProject = showNamedPomParentProject(tester)
-      assertGoldenLiteral(pomParentProject, Map("lib.pomParentProject" -> None))
+      assertGoldenLiteral(
+        pomParentProject,
+        Map("lib.pomParentProject" -> None)
+      )
       val pomSettings = showNamedPomSettings(tester)
       assertGoldenLiteral(
         pomSettings,
@@ -150,22 +173,17 @@ object MillInitGradleImportTests extends GitRepoIntegrationTestSuite {
             "-Xep:NullAway:ERROR",
             "-XepOpt:NullAway:AnnotatedPackages=de.siegmar.fastcsv"
           ),
-          "lib.test.errorProneOptions" -> List("-XepCompilingTestOnlyCode", "-Xep:NullAway:OFF")
+          "lib.test.errorProneOptions" -> List(
+            "-Xep:NullAway:ERROR",
+            "-XepOpt:NullAway:AnnotatedPackages=de.siegmar.fastcsv"
+          )
         )
       )
 
       val libCompileRes = tester.eval("lib.compile")
       assert(
-        libCompileRes.isSuccess,
-        libCompileRes.err.contains("compiling 45 Java sources")
-      )
-      val exampleCompileRes = tester.eval("example.compile")
-      // unlike Gradle, Mill does not autoconfigure javac --module-path"
-      assert(
-        !exampleCompileRes.isSuccess,
-        exampleCompileRes.err.contains(
-          "example/src/main/java/module-info.java:3:24: module not found: de.siegmar.fastcsv"
-        )
+        !libCompileRes.isSuccess,
+        libCompileRes.err.contains("warnings found and -Werror specified")
       )
     }
 
@@ -178,218 +196,220 @@ object MillInitGradleImportTests extends GitRepoIntegrationTestSuite {
       val initRes = eval(("init", "--gradle-jvm-id", "17"))
       assert(initRes.isSuccess)
 
-      val moduleDeps = eval("__.showModuleDeps").out.stripMargin
+      val showModuleDeps = eval("__.showModuleDeps").out.linesIterator.toSeq
       assertGoldenLiteral(
-        moduleDeps,
-        """Module dependencies of framework-api:
-        Module dependencies of framework-bom:
-        Module dependencies of framework-docs:
-          spring-aspects
-          spring-context
-          spring-context-support
-          spring-core-test
-          spring-jdbc
-          spring-jms
-          spring-test
-          spring-web
-          spring-webflux
-          spring-webmvc
-          spring-websocket
-        Module dependencies of framework-platform:
-        Module dependencies of integration-tests:
-        Module dependencies of integration-tests.test:
-          integration-tests
-          spring-aop
-          spring-beans
-          spring-context
-          spring-core
-          spring-core-test
-          spring-tx
-          spring-expression
-          spring-jdbc
-          spring-orm
-          spring-test
-          spring-web
-        Module dependencies of :
-        Module dependencies of spring-aop:
-          spring-beans
-          spring-core
-        Module dependencies of spring-aop.test:
-          spring-aop
-          spring-core-test
-          spring-beans
-          spring-core
-        Module dependencies of spring-aspects:
-        Module dependencies of spring-aspects.test:
-          spring-aspects
-          spring-core
-          spring-test
-          spring-context
-          spring-context-support
-          spring-tx
-        Module dependencies of spring-beans:
-          spring-core
-        Module dependencies of spring-beans.test:
-          spring-beans
-          spring-core-test
-          spring-core
-        Module dependencies of spring-context:
-          spring-aop
-          spring-beans
-          spring-core
-          spring-expression
-        Module dependencies of spring-context.test:
-          spring-context
-          spring-core-test
-          spring-aop
-          spring-beans
-          spring-core
-        Module dependencies of spring-context-indexer:
-        Module dependencies of spring-context-indexer.test:
-          spring-context-indexer
-          spring-context
-        Module dependencies of spring-context-support:
-          spring-beans
-          spring-context
-          spring-core
-        Module dependencies of spring-context-support.test:
-          spring-context-support
-          spring-context
-          spring-beans
-          spring-core
-          spring-tx
-        Module dependencies of spring-core:
-          spring-jcl
-        Module dependencies of spring-core.test:
-          spring-core
-        Module dependencies of spring-core-test:
-          spring-core
-        Module dependencies of spring-core-test.test:
-          spring-core-test
-        Module dependencies of spring-expression:
-          spring-core
-        Module dependencies of spring-expression.test:
-          spring-expression
-          spring-core
-        Module dependencies of spring-instrument:
-        Module dependencies of spring-jcl:
-        Module dependencies of spring-jdbc:
-          spring-beans
-          spring-core
-          spring-tx
-        Module dependencies of spring-jdbc.test:
-          spring-jdbc
-          spring-beans
-          spring-core
-        Module dependencies of spring-jms:
-          spring-beans
-          spring-core
-          spring-messaging
-          spring-tx
-        Module dependencies of spring-jms.test:
-          spring-jms
-          spring-beans
-          spring-tx
-        Module dependencies of spring-messaging:
-          spring-beans
-          spring-core
-        Module dependencies of spring-messaging.test:
-          spring-messaging
-          spring-core-test
-          spring-core
-          spring-context (runtime)
-        Module dependencies of spring-orm:
-          spring-beans
-          spring-core
-          spring-jdbc
-          spring-tx
-        Module dependencies of spring-orm.test:
-          spring-orm
-          spring-core-test
-          spring-beans
-          spring-context
-          spring-core
-          spring-web
-        Module dependencies of spring-oxm:
-          spring-beans
-          spring-core
-        Module dependencies of spring-oxm.test:
-          spring-oxm
-          spring-context
-          spring-core
-        Module dependencies of spring-r2dbc:
-          spring-beans
-          spring-core
-          spring-tx
-        Module dependencies of spring-r2dbc.test:
-          spring-r2dbc
-          spring-beans
-          spring-context
-          spring-core
-        Module dependencies of spring-test:
-          spring-core
-        Module dependencies of spring-test.test:
-          spring-test
-          spring-context-support
-          spring-core-test
-          spring-oxm
-          spring-beans
-          spring-context
-          spring-core
-          spring-tx
-          spring-web
-        Module dependencies of spring-tx:
-          spring-beans
-          spring-core
-        Module dependencies of spring-tx.test:
-          spring-tx
-          spring-core-test
-          spring-beans
-          spring-context
-          spring-core
-        Module dependencies of spring-web:
-          spring-beans
-          spring-core
-        Module dependencies of spring-web.test:
-          spring-web
-          spring-core-test
-          spring-beans
-          spring-context
-          spring-core
-        Module dependencies of spring-webflux:
-          spring-beans
-          spring-core
-          spring-web
-        Module dependencies of spring-webflux.test:
-          spring-webflux
-          spring-beans
-          spring-core
-          spring-web
-        Module dependencies of spring-webmvc:
-          spring-aop
-          spring-beans
-          spring-context
-          spring-core
-          spring-expression
-          spring-web
-        Module dependencies of spring-webmvc.test:
-          spring-webmvc
-          spring-beans
-          spring-context
-          spring-core
-          spring-web
-        Module dependencies of spring-websocket:
-          spring-context
-          spring-core
-          spring-web
-        Module dependencies of spring-websocket.test:
-          spring-websocket
-          spring-core
-          spring-web"""
+        showModuleDeps,
+        List(
+          "Module dependencies of framework-api:",
+          "Module dependencies of framework-bom:",
+          "Module dependencies of framework-docs:",
+          "  spring-aspects",
+          "  spring-context",
+          "  spring-context-support",
+          "  spring-core-test",
+          "  spring-jdbc",
+          "  spring-jms",
+          "  spring-test",
+          "  spring-web",
+          "  spring-webflux",
+          "  spring-webmvc",
+          "  spring-websocket",
+          "Module dependencies of framework-platform:",
+          "Module dependencies of integration-tests:",
+          "Module dependencies of integration-tests.test:",
+          "  integration-tests",
+          "  spring-aop",
+          "  spring-beans",
+          "  spring-context",
+          "  spring-core",
+          "  spring-core-test",
+          "  spring-tx",
+          "  spring-expression",
+          "  spring-jdbc",
+          "  spring-orm",
+          "  spring-test",
+          "  spring-web",
+          "Module dependencies of :",
+          "Module dependencies of spring-aop:",
+          "  spring-beans",
+          "  spring-core",
+          "Module dependencies of spring-aop.test:",
+          "  spring-aop",
+          "  spring-core-test",
+          "  spring-beans",
+          "  spring-core",
+          "Module dependencies of spring-aspects:",
+          "Module dependencies of spring-aspects.test:",
+          "  spring-aspects",
+          "  spring-core",
+          "  spring-test",
+          "  spring-context",
+          "  spring-context-support",
+          "  spring-tx",
+          "Module dependencies of spring-beans:",
+          "  spring-core",
+          "Module dependencies of spring-beans.test:",
+          "  spring-beans",
+          "  spring-core-test",
+          "  spring-core",
+          "Module dependencies of spring-context:",
+          "  spring-aop",
+          "  spring-beans",
+          "  spring-core",
+          "  spring-expression",
+          "Module dependencies of spring-context.test:",
+          "  spring-context",
+          "  spring-core-test",
+          "  spring-aop",
+          "  spring-beans",
+          "  spring-core",
+          "Module dependencies of spring-context-indexer:",
+          "Module dependencies of spring-context-indexer.test:",
+          "  spring-context-indexer",
+          "  spring-context",
+          "Module dependencies of spring-context-support:",
+          "  spring-beans",
+          "  spring-context",
+          "  spring-core",
+          "Module dependencies of spring-context-support.test:",
+          "  spring-context-support",
+          "  spring-context",
+          "  spring-beans",
+          "  spring-core",
+          "  spring-tx",
+          "Module dependencies of spring-core:",
+          "  spring-jcl",
+          "Module dependencies of spring-core.test:",
+          "  spring-core",
+          "Module dependencies of spring-core-test:",
+          "  spring-core",
+          "Module dependencies of spring-core-test.test:",
+          "  spring-core-test",
+          "Module dependencies of spring-expression:",
+          "  spring-core",
+          "Module dependencies of spring-expression.test:",
+          "  spring-expression",
+          "  spring-core",
+          "Module dependencies of spring-instrument:",
+          "Module dependencies of spring-jcl:",
+          "Module dependencies of spring-jdbc:",
+          "  spring-beans",
+          "  spring-core",
+          "  spring-tx",
+          "Module dependencies of spring-jdbc.test:",
+          "  spring-jdbc",
+          "  spring-beans",
+          "  spring-core",
+          "Module dependencies of spring-jms:",
+          "  spring-beans",
+          "  spring-core",
+          "  spring-messaging",
+          "  spring-tx",
+          "Module dependencies of spring-jms.test:",
+          "  spring-jms",
+          "  spring-beans",
+          "  spring-tx",
+          "Module dependencies of spring-messaging:",
+          "  spring-beans",
+          "  spring-core",
+          "Module dependencies of spring-messaging.test:",
+          "  spring-messaging",
+          "  spring-core-test",
+          "  spring-core",
+          "  spring-context (runtime)",
+          "Module dependencies of spring-orm:",
+          "  spring-beans",
+          "  spring-core",
+          "  spring-jdbc",
+          "  spring-tx",
+          "Module dependencies of spring-orm.test:",
+          "  spring-orm",
+          "  spring-core-test",
+          "  spring-beans",
+          "  spring-context",
+          "  spring-core",
+          "  spring-web",
+          "Module dependencies of spring-oxm:",
+          "  spring-beans",
+          "  spring-core",
+          "Module dependencies of spring-oxm.test:",
+          "  spring-oxm",
+          "  spring-context",
+          "  spring-core",
+          "Module dependencies of spring-r2dbc:",
+          "  spring-beans",
+          "  spring-core",
+          "  spring-tx",
+          "Module dependencies of spring-r2dbc.test:",
+          "  spring-r2dbc",
+          "  spring-beans",
+          "  spring-context",
+          "  spring-core",
+          "Module dependencies of spring-test:",
+          "  spring-core",
+          "Module dependencies of spring-test.test:",
+          "  spring-test",
+          "  spring-context-support",
+          "  spring-core-test",
+          "  spring-oxm",
+          "  spring-beans",
+          "  spring-context",
+          "  spring-core",
+          "  spring-tx",
+          "  spring-web",
+          "Module dependencies of spring-tx:",
+          "  spring-beans",
+          "  spring-core",
+          "Module dependencies of spring-tx.test:",
+          "  spring-tx",
+          "  spring-core-test",
+          "  spring-beans",
+          "  spring-context",
+          "  spring-core",
+          "Module dependencies of spring-web:",
+          "  spring-beans",
+          "  spring-core",
+          "Module dependencies of spring-web.test:",
+          "  spring-web",
+          "  spring-core-test",
+          "  spring-beans",
+          "  spring-context",
+          "  spring-core",
+          "Module dependencies of spring-webflux:",
+          "  spring-beans",
+          "  spring-core",
+          "  spring-web",
+          "Module dependencies of spring-webflux.test:",
+          "  spring-webflux",
+          "  spring-beans",
+          "  spring-core",
+          "  spring-web",
+          "Module dependencies of spring-webmvc:",
+          "  spring-aop",
+          "  spring-beans",
+          "  spring-context",
+          "  spring-core",
+          "  spring-expression",
+          "  spring-web",
+          "Module dependencies of spring-webmvc.test:",
+          "  spring-webmvc",
+          "  spring-beans",
+          "  spring-context",
+          "  spring-core",
+          "  spring-web",
+          "Module dependencies of spring-websocket:",
+          "  spring-context",
+          "  spring-core",
+          "  spring-web",
+          "Module dependencies of spring-websocket.test:",
+          "  spring-websocket",
+          "  spring-core",
+          "  spring-web"
+        )
       )
 
       // subsequent checks are limited to a module and its test module to reduce the literal sizes
-      val selectorPrefix = "spring-core."
+      val selectorPrefix = "spring-core.__."
 
       val repositories = showNamedRepositories(tester, selectorPrefix)
       assertGoldenLiteral(
@@ -403,28 +423,17 @@ object MillInitGradleImportTests extends GitRepoIntegrationTestSuite {
       val jvmId = showNamedJvmId(tester, selectorPrefix)
       assertGoldenLiteral(
         jvmId,
-        Map("spring-core.jvmId" -> "17", "spring-core-test.jvmId" -> "17")
+        Map("spring-core.jvmId" -> "zulu:17")
       )
 
-      val mandatoryMvnDeps = showNamedMandatoryMvnDeps(tester, selectorPrefix)
-      assertGoldenLiteral(
-        mandatoryMvnDeps,
-        Map(
-          "spring-core.mandatoryMvnDeps" -> List(),
-          "spring-core.test.mandatoryMvnDeps" -> List(
-            "com.github.sbt.junit:jupiter-interface:0.13.3",
-            "org.junit.jupiter:junit-jupiter:",
-            "org.junit.platform:junit-platform-suite:",
-            "org.junit.platform:junit-platform-launcher:"
-          )
-        )
-      )
       val mvnDeps = showNamedMvnDeps(tester, selectorPrefix)
       assertGoldenLiteral(
         mvnDeps,
         Map(
           "spring-core.mvnDeps" -> List(),
           "spring-core.test.mvnDeps" -> List(
+            "org.junit.jupiter:junit-jupiter:",
+            "org.junit.platform:junit-platform-suite:",
             "org.mockito:mockito-core:",
             "org.mockito:mockito-junit-jupiter:",
             "io.mockk:mockk:",
@@ -498,7 +507,8 @@ object MillInitGradleImportTests extends GitRepoIntegrationTestSuite {
             "-Xlint:fallthrough",
             "-Xlint:rawtypes",
             "-Xlint:deprecation",
-            "-Xlint:unchecked"
+            "-Xlint:unchecked",
+            "-Werror"
           ),
           "spring-core.test.javacOptions" -> List(
             "-source",
@@ -526,6 +536,7 @@ object MillInitGradleImportTests extends GitRepoIntegrationTestSuite {
             "-Xlint:rawtypes",
             "-Xlint:deprecation",
             "-Xlint:unchecked",
+            "-Werror",
             "-Xlint:-varargs",
             "-Xlint:-fallthrough",
             "-Xlint:-rawtypes",
@@ -613,7 +624,7 @@ object MillInitGradleImportTests extends GitRepoIntegrationTestSuite {
           ),
           "spring-core.test.errorProneOptions" -> List(
             "-XepDisableAllChecks",
-            "-XepCompilingTestOnlyCode",
+            "-Xep:NullAway:ERROR",
             "-XepOpt:NullAway:CustomContractAnnotations=org.springframework.lang.Contract",
             "-XepOpt:NullAway:AnnotatedPackages=org.springframework",
             "-XepOpt:NullAway:UnannotatedSubPackages=org.springframework.instrument,org.springframework.context.index,org.springframework.asm,org.springframework.cglib,org.springframework.objenesis,org.springframework.javapoet,org.springframework.aot.nativex.substitution,org.springframework.aot.nativex.feature"
@@ -621,15 +632,10 @@ object MillInitGradleImportTests extends GitRepoIntegrationTestSuite {
         )
       )
 
-      val depManagement = showNamed[Seq[String]](tester, "framework-platform.__.depManagement")
-      // `java-platform` plugin not supported (should be imported as BomModule)
-      assertGoldenLiteral(depManagement, Map("framework-platform.depManagement" -> List()))
-
-      val compileRes = eval("spring-core.compile")
-      // bomModuleDeps not supported (depends on framework-platform)
+      val springCoreCompileRes = eval("spring-core.compile")
       assert(
-        !compileRes.isSuccess,
-        compileRes.err.contains("spring-core.resolvedMvnDeps java.lang.RuntimeException")
+        !springCoreCompileRes.isSuccess,
+        springCoreCompileRes.err.contains("spring-core.resolvedMvnDeps java.lang.RuntimeException")
       )
     }
   }

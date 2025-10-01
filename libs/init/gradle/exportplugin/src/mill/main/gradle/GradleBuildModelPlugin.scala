@@ -9,7 +9,7 @@ class GradleBuildModelPlugin @Inject (builderRegistry: ToolingModelBuilderRegist
     extends Plugin[Project] {
 
   def apply(target: Project) = builderRegistry.register(GradleBuildModelBuilder(
-    ctx = GradleBuildContext(target.getGradle),
+    ctx = GradleBuildCtx(target.getGradle),
     workspace = os.Path(target.getRootProject.getRootDir)
   ))
 }

@@ -3,7 +3,7 @@ package mill.main.gradle
 import mainargs.ParserForClass
 import mill.main.buildgen.*
 import mill.main.gradle.BuildInfo.exportpluginAssemblyResource
-import mill.util.Jvm
+import mill.util.{CoursierConfig, Jvm}
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import pprint.Util.literalize
@@ -38,12 +38,12 @@ object GradleBuildGenMain {
           conn
         case conn => conn
       }
-      try {
-        Using.resource(connector.forProjectDirectory(os.pwd.toIO).connect()) { connection =>
-          val gradleJavaHome = Jvm.resolveJavaHome(gradleJvmId).get
-          val exportPluginJar = Using.resource(
-            GradleBuildGenMain.getClass.getResourceAsStream(exportpluginAssemblyResource)
-          )(os.temp(_, suffix = ".jar"))
+      val gradleJavaHome =
+        Jvm.resolveJavaHome(id = gradleJvmId, config = CoursierConfig.default()).get
+      val exportPluginJar = Using.resource(
+        GradleBuildGenMain.getClass.getResourceAsStream(exportpluginAssemblyResource)
+      )(os.temp(_, suffix = ".jar"))
+      try Using.resource(connector.forProjectDirectory(os.pwd.toIO).connect()) { connection =>
           val initScript = os.temp(
             s"""initscript {
                |    dependencies {
@@ -57,8 +57,6 @@ object GradleBuildGenMain {
             suffix = ".gradle"
           )
           val modelBuilder = connection.model(classOf[GradleBuildModel])
-            // If not specified, Java home used by Mill is used to run the Gradle daemon, causing
-            // a failure for legacy Gradle versions.
             .setJavaHome(gradleJavaHome.toIO)
             .addArguments("--init-script", initScript.toString)
             .setStandardOutput(System.out)
@@ -66,12 +64,11 @@ object GradleBuildGenMain {
 
           upickle.default.read[Seq[ModuleRepr]](model.getModulesJson).map(Tree(_))
         }
-      } finally connector.disconnect()
+      finally connector.disconnect()
     }
 
     val gradleJvmArgs = Option(gradleWrapperProperties.getProperty("org.gradle.jvmargs"))
-      .flatMap(s => Option(s.trim).filter(_.nonEmpty))
-      .fold(Nil)(_.split("\\s").toSeq)
+      .fold(Nil)(_.trim.split("\\s+").toSeq)
 
     var build = BuildRepr.fill(packages).copy(millJvmOpts = gradleJvmArgs)
     if (merge.value) build = build.merged
@@ -86,9 +83,9 @@ case class GradleBuildGenArgs(
     merge: mainargs.Flag,
     @mainargs.arg(doc = "disable generating meta-build files")
     noMeta: mainargs.Flag,
-    @mainargs.arg(doc = "JDK to use to run Gradle")
-    // While it is possible to infer the required JDK from the Gradle version, we default to the
-    // system JDK since it may be used to set the Java toolchain language version.
+    @mainargs.arg(doc = "JDK to use to run the Gradle daemon")
+    // We use the system JDK, instead of the one used by Mill, since it may be used to configure
+    // the Java toolchain for the build.
     gradleJvmId: String = "system"
 )
 object GradleBuildGenArgs {

@@ -20,11 +20,11 @@ class Modeler(
 ) {
 
   /** Returns the [[ModelBuildingResult]] for `pomDir / "pom.xml"`. */
-  def read(pomDir: os.Path): ModelBuildingResult =
-    read((pomDir / "pom.xml").toIO)
+  def build(pomDir: os.Path): ModelBuildingResult =
+    build((pomDir / "pom.xml").toIO)
 
   /** Returns the [[ModelBuildingResult]] for `pomFile`. */
-  def read(pomFile: File): ModelBuildingResult = {
+  def build(pomFile: File): ModelBuildingResult = {
     val request = new DefaultModelBuildingRequest()
     request.setPomFile(pomFile)
     request.setModelResolver(resolver.newCopy())

@@ -4,68 +4,36 @@ import mill.main.buildgen.BuildGenChecker
 import utest.*
 
 object MavenBuildGenTests extends TestSuite {
-
-  def tests: Tests = Tests {
+  def tests = Tests {
     val checker = BuildGenChecker()
-    val noArgs = Array.empty[String]
-    val args = Array("--merge", "--no-meta")
-
     test("maven-samples") {
-      val projectRoot = os.sub / "maven-samples"
-      assert(
-        checker.check(
-          generate = MavenBuildGenMain.main(noArgs),
-          sourceRel = projectRoot,
-          expectedRel = os.sub / "expected/maven-samples"
-        )
-      )
-      test("with-args") {
-        assert(
-          checker.check(
-            generate = MavenBuildGenMain.main(args),
-            sourceRel = projectRoot,
-            expectedRel = os.sub / "expected-with-args/maven-samples"
-          )
-        )
-      }
+      assert(checker.check(
+        generate = MavenBuildGenMain.main(Array.empty),
+        sourceRel = os.sub / "maven-samples",
+        expectedRel = os.sub / "expected/maven-samples"
+      ))
     }
     test("quickstart") {
-      val projectRoot = os.sub / "quickstart"
-      assert(
-        checker.check(
-          generate = MavenBuildGenMain.main(noArgs),
-          sourceRel = projectRoot,
-          expectedRel = os.sub / "expected/quickstart"
-        )
-      )
-      test("with-args") {
-        assert(
-          checker.check(
-            generate = MavenBuildGenMain.main(args),
-            sourceRel = projectRoot,
-            expectedRel = os.sub / "expected-with-args/quickstart"
-          )
-        )
-      }
+      assert(checker.check(
+        generate = MavenBuildGenMain.main(Array.empty),
+        sourceRel = os.sub / "quickstart",
+        expectedRel = os.sub / "expected/quickstart"
+      ))
     }
     test("spring-start") {
-      // throws ModelBuildingException that is ignored
-      val projectRoot = os.sub / "spring-start"
-      assert(
-        checker.check(
-          generate = MavenBuildGenMain.main(noArgs),
-          sourceRel = projectRoot,
-          expectedRel = os.sub / "expected/spring-start"
-        )
-      )
-      test("with-args") {
-        assert(
-          checker.check(
-            generate = MavenBuildGenMain.main(args),
-            sourceRel = projectRoot,
-            expectedRel = os.sub / "expected-with-args/spring-start"
-          )
-        )
+      assert(checker.check(
+        generate = MavenBuildGenMain.main(Array.empty),
+        sourceRel = os.sub / "spring-start",
+        expectedRel = os.sub / "expected/spring-start"
+      ))
+    }
+    test("with-args") {
+      test("quickstart") {
+        assert(checker.check(
+          generate = MavenBuildGenMain.main(Array("--merge", "--no-meta", "--publish-properties")),
+          sourceRel = os.sub / "quickstart",
+          expectedRel = os.sub / "expected/with-args/quickstart"
+        ))
       }
     }
   }

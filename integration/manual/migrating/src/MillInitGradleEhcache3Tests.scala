@@ -4,34 +4,23 @@ import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
 
 object MillInitGradleEhcache3Tests extends GitRepoIntegrationTestSuite {
-
-  // Gradle 7.2
-  // custom dependency configurations
-  // dependencies with version constraints
-  // custom layout
-  // custom repository
-  // bom dependencies
-  // modules with pom packaging
-  // Junit4
-
   def tests = Tests {
     test - integrationTestGitRepo(
+      // Gradle 7.2
       "https://github.com/ehcache/ehcache3.git",
       "v3.10.8",
       linkMillExecutable = true
     ) { tester =>
       import tester.*
 
-      // Gradle 7.2 fails on JDK 17
       eval(
-        ("init", "--gradle-jvm-id", "16"),
+        ("init", "--gradle-jvm-id", "11"),
         stdout = os.Inherit,
         stderr = os.Inherit
       ).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
-      // missing -proc:none in javacOptions
-      // Gradle command: ./gradlew --no-daemon -Dorg.gradle.debug=true :ehcache-api:compileJava
+      // Gradle autoconfigures javac option -proc:none when -processorpath is not provided
       eval("ehcache-api.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
     }
   }

@@ -4,21 +4,19 @@ import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
 
 object MillInitSbtLilaTests extends GitRepoIntegrationTestSuite {
-
-  // sbt 1.11.3
-  // Scala version 3.7.2
-
   def tests = Tests {
     test - integrationTestGitRepo(
+      // sbt 1.11.3
       "https://github.com/lichess-org/lila.git",
-      "master"
+      "master",
+      linkMillExecutable = true
     ) { tester =>
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
       // non-standard layout
-      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
+      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
     }
   }
 }

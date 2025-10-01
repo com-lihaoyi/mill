@@ -9,7 +9,7 @@ sealed trait ModuleConfig
 object ModuleConfig {
 
   /**
-   * Computes the shared configurations for a pair of configuration lists.
+   * Returns the shared configurations for a pair of configuration lists.
    */
   def abstracted(self: Seq[ModuleConfig], that: Seq[ModuleConfig]): Seq[ModuleConfig] =
     self.flatMap {
@@ -84,7 +84,7 @@ object ModuleConfig {
     }
 
   /**
-   * Computes the overriding configurations for `self` when extending `base`.
+   * Returns the overriding configurations for `self` when extending `base`.
    */
   def inherited(self: Seq[ModuleConfig], base: Seq[ModuleConfig]): Seq[ModuleConfig] =
     self.map {
@@ -158,10 +158,6 @@ object ModuleConfig {
         }.getOrElse(self)
     }
 
-  def abstractedOptions(self: Seq[String], base: Seq[String]): Seq[String] = {
-    groupedOptions(self).intersect(groupedOptions(base)).flatten
-  }
-
   def groupedOptions(options: Seq[String]): Seq[Seq[String]] = {
     val b = Seq.newBuilder[Seq[String]]
     var rem = options
@@ -171,6 +167,10 @@ object ModuleConfig {
       rem = rem.drop(option.length)
     }
     b.result()
+  }
+
+  def abstractedOptions(self: Seq[String], that: Seq[String]): Seq[String] = {
+    groupedOptions(self).intersect(groupedOptions(that)).flatten
   }
 
   def inheritedOptions(self: Seq[String], base: Seq[String]): Seq[String] = {
@@ -249,7 +249,7 @@ object ModuleConfig {
       classifier: Option[String] = None,
       `type`: Option[String] = None,
       excludes: Seq[(String, String)] = Nil,
-      cross: CrossVersion = CrossVersion.Constant("", false)
+      cross: CrossVersion = CrossVersion.Constant("", platformed = false)
   )
   object MvnDep {
     implicit val rw: ReadWriter[MvnDep] = macroRW

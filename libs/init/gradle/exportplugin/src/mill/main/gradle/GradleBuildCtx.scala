@@ -10,20 +10,20 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 
 import scala.math.Ordered.orderingToOrdered
 
-trait GradleBuildContext {
+/**
+ * Gradle-version agnostic build API.
+ */
+trait GradleBuildCtx {
   def javaVersion(ext: JavaPluginExtension): Option[Int]
   def releaseVersion(opts: CompileOptions): Option[Int]
   def project(dep: ProjectDependency): Project
 }
-object GradleBuildContext {
+object GradleBuildCtx {
 
-  def apply(gradle: Gradle): GradleBuildContext = Impl(gradle)
+  def apply(gradle: Gradle): GradleBuildCtx = Impl(gradle)
 
-  private class Impl(gradle: Gradle) extends GradleBuildContext {
+  private class Impl(gradle: Gradle) extends GradleBuildCtx {
     val gradleVersion = {
-      // We replicate the parsing in `org.gradle.util.internal.VersionNumber`.
-      // The class is not used here since it was moved, from `org.gradle.util`, in Gradle 7.1.
-      // https://github.com/gradle/gradle/commit/a96d4e2ad8cda157233bc6da4b84dc191e9796cf
       val regex = "^(\\d+)[.](\\d+)?.*$".r
       gradle.getGradleVersion match {
         case regex(major, minor) => (major.toInt, Option(minor).fold(0)(_.toInt))
@@ -31,6 +31,7 @@ object GradleBuildContext {
     }
 
     def javaVersion(ext: JavaPluginExtension) =
+      // When not explicitly configured, the toolchain defaults to the JVM used to run the daemon.
       if ((6, 7) <= gradleVersion) Option(ext.getToolchain)
         .flatMap(tc => Option(tc.getLanguageVersion.getOrNull()))
         .map(_.asInt())

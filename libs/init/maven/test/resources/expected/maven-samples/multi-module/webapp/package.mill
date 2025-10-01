@@ -24,15 +24,10 @@ object `package` extends MavenSamplesBaseModule {
 
   def pomSettings = PomSettings(
     "Webapp.",
-    "com.example.maven-samples",
-    "http://www.example.com/webapp",
+    "",
+    "",
     Seq(),
-    VersionControl(
-      Some("http://github.com/gabrielf/maven-samples/webapp"),
-      Some("scm:git:git@github.com:gabrielf/maven-samples.git/webapp"),
-      Some("scm:git:git@github.com:gabrielf/maven-samples.git/webapp"),
-      Some("HEAD")
-    ),
+    VersionControl(None, None, None, None),
     Seq()
   )
 

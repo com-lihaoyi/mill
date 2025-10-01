@@ -68,21 +68,10 @@ object `package` extends MillPublishScalaModule {
     PathRef(Task.dest)
   }
 
-  object buildgen extends MillPublishScalaModule with BuildInfo {
+  object buildgen extends MillPublishScalaModule {
     def moduleDeps =
       Seq(api(Deps.scalaVersion), build.libs.init, build.core.internal, build.libs.util)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
-    def buildInfoPackageName = "mill.main.buildgen"
-    def buildInfoMembers = Task {
-      Seq(
-        BuildInfo.Value(
-          "millJvmVersion",
-          BuildCtx.withFilesystemCheckerDisabled {
-            os.read(Task.ctx().workspace / ".mill-jvm-version").trim
-          }
-        )
-      )
-    }
 
     object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
     trait ApiModule extends MillPublishCrossScalaModule {

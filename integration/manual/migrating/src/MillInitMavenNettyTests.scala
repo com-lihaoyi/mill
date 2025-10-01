@@ -4,28 +4,20 @@ import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
 
 object MillInitMavenNettyTests extends GitRepoIntegrationTestSuite {
-
-  // maven 3.9.10
-  // dynamic classifiers/properties
-
   def tests = Tests {
     test - integrationTestGitRepo(
+      // has modules that skip publish
       "https://github.com/netty/netty.git",
-      "netty-4.2.4.Final"
+      "netty-4.2.6.Final",
+      linkMillExecutable = true
     ) { tester =>
       import tester.*
 
-      eval(
-        ("init", "--publish-properties"),
-        stdout = os.Inherit,
-        stderr = os.Inherit
-      ).isSuccess ==> true
-      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("common.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
-      // The project defines dependencies for junit-jupiter-* but junit-platform-launcher is
-      // auto-added by Maven. In Mill, a legacy version of junit-platform-launcher gets added, as a
-      // transitive dependency of com.github.sbt.junit:junit-interface, resulting in a conflict.
+      // mismatch between junit-jupiter-api and junit-platform-launcher (from sbt jupiter-interface)
       eval("common.test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
     }
   }

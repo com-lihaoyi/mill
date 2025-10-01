@@ -5,21 +5,21 @@ import utest.*
 
 object MillInitGradleSpotbugsTests extends GitRepoIntegrationTestSuite {
 
-  // gradle 9.0.0
-  // custom dependency configurations
-  // dependencies with version constraints
-  // custom layout
-  // Junit5
-
   def tests = Tests {
     test - integrationTestGitRepo(
+      // Gradle 9.0.0
       "https://github.com/spotbugs/spotbugs.git",
-      "4.9.4"
+      "4.9.4",
+      linkMillExecutable = true
     ) { tester =>
       import tester.*
 
-      eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "__.compile"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval(
+        ("init", "--gradle-jvm-id", "17"),
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      ).isSuccess ==> true
+      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval(
         "spotbugs-annotations.compile",
         stdout = os.Inherit,
@@ -31,7 +31,7 @@ object MillInitGradleSpotbugsTests extends GitRepoIntegrationTestSuite {
         stderr = os.Inherit
       ).isSuccess ==> true
 
-      // custom source directory not supported
+      // custom source folders not supported
       eval("spotbugs-tests.test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
     }
   }

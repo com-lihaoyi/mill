@@ -1,6 +1,5 @@
 //| mill-version: SNAPSHOT
-//| mill-jvm-version: zulu:21
-//| mill-jvm-opts: ["-XX:MaxMetaspaceSize=512m"]
+//| mill-jvm-opts: []
 package build
 
 import mill._

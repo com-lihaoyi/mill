@@ -59,8 +59,49 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
   def renderBuildHeader = {
     import build.*
     s"""//| mill-version: $millVersion
-       |//| mill-jvm-version: $millJvmVersion
        |//| mill-jvm-opts: [${millJvmOpts.iterator.map(literalize(_)).mkString(", ")}]""".stripMargin
+  }
+
+  def renderMetaBuildRoot = {
+    s"""package $rootModuleAlias
+       |
+       |import mill.meta.MillBuildRootModule
+       |
+       |object `package` extends MillBuildRootModule
+       |""".stripMargin
+  }
+
+  def renderBaseTrait(packageName: String, baseTrait: MetaBuildRepr.BaseTrait) = {
+    import baseTrait.*
+    s"""package $packageName
+       |
+       |${renderImports(baseTrait)}
+       |
+       |trait $name ${renderExtendsClause(supertypes ++ mixins)} {
+       |
+       |  ${renderModuleConfigs(configs, crossConfigs)}
+       |}""".stripMargin
+  }
+
+  def renderImports(baseTrait: MetaBuildRepr.BaseTrait): String = {
+    val wildcards = mutable.SortedSet.empty[String]
+    import baseTrait.*
+    configs.foreach(addImports(wildcards, _))
+
+    renderLines(wildcards.iterator.map(s => s"import $s._"))
+  }
+
+  def renderDepsObject(packageName: String, name: String) = {
+    s"""package $packageName
+       |
+       |import mill.javalib._
+       |
+       |object $name {
+       |
+       |${renderLines(refsByMvnDep.toSeq.sortBy(_._2).iterator.map((dep, ref) =>
+        s"val ${backtickWrap(ref)} = ${renderMvnDep0(dep)}"
+      ))}
+       |}""".stripMargin
   }
 
   def renderPackage(pkg: Tree[ModuleRepr]) = {
@@ -720,47 +761,5 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
              }
               |  case _ => Nil
               |})""".stripMargin)
-  }
-
-  def renderMetaBuildRoot = {
-    s"""package $rootModuleAlias
-       |
-       |import mill.meta.MillBuildRootModule
-       |
-       |object `package` extends MillBuildRootModule
-       |""".stripMargin
-  }
-
-  def renderBaseTrait(packageName: String, baseTrait: MetaBuildRepr.BaseTrait) = {
-    import baseTrait.*
-    s"""package $packageName
-       |
-       |${renderImports(baseTrait)}
-       |
-       |trait $name ${renderExtendsClause(supertypes ++ mixins)} {
-       |
-       |  ${renderModuleConfigs(configs, crossConfigs)}
-       |}""".stripMargin
-  }
-
-  def renderImports(baseTrait: MetaBuildRepr.BaseTrait): String = {
-    val wildcards = mutable.SortedSet.empty[String]
-    import baseTrait.*
-    configs.foreach(addImports(wildcards, _))
-
-    renderLines(wildcards.iterator.map(s => s"import $s._"))
-  }
-
-  def renderDepsObject(packageName: String, name: String) = {
-    s"""package $packageName
-       |
-       |import mill.javalib._
-       |
-       |object $name {
-       |
-       |${renderLines(refsByMvnDep.toSeq.sortBy(_._2).iterator.map((dep, ref) =>
-        s"val ${backtickWrap(ref)} = ${renderMvnDep0(dep)}"
-      ))}
-       |}""".stripMargin
   }
 }

@@ -1,5 +1,4 @@
 //| mill-version: SNAPSHOT
-//| mill-jvm-version: zulu:21
 //| mill-jvm-opts: ["-Xms2g", "-Xmx2g"]
 package build
 

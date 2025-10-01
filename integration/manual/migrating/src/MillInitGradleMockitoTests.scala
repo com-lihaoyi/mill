@@ -4,21 +4,23 @@ import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
 
 object MillInitGradleMockitoTests extends GitRepoIntegrationTestSuite {
-
-  // gradle 8.14.2
-  // contains BOM module
-
   def tests = Tests {
     test - integrationTestGitRepo(
+      // Gradle 8.14.2, BOM module
       "https://github.com/mockito/mockito.git",
-      "v5.19.0"
+      "v5.19.0",
+      linkMillExecutable = true
     ) { tester =>
       import tester.*
 
-      eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "__.compile"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval(
+        ("init", "--gradle-jvm-id", "17"),
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      ).isSuccess ==> true
+      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
-      // unlike Gradle, Mill does not autoconfigure javac --module-path"
+      // ErrorProne requires JDK 17+ but module jvmId is 11
       eval("mockito-core.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
     }
   }

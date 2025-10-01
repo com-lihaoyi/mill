@@ -4,22 +4,17 @@ import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
 
 object MillInitSbtScryptoTests extends GitRepoIntegrationTestSuite {
-
-  // sbt 1.10.7
-  // cross Scala versions 2.11.12 2.12.20 2.13.16 3.3.5
-  // sbt-crossproject 1.3.2
-  // root is a cross-platform/version module
-  // js module cross Scala versions 2.13.16 3.3.5
-
   def tests = Tests {
     test - integrationTestGitRepo(
+      // sbt 1.10.7
       "https://github.com/input-output-hk/scrypto.git",
-      "v3.1.0"
+      "v3.1.0",
+      linkMillExecutable = true
     ) { tester =>
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("jvm[_].compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("jvm[_].test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("jvm[_].publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true

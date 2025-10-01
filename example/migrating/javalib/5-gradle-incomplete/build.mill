@@ -4,14 +4,12 @@
 
 > git init .
 > git remote add -f origin https://github.com/mockito/mockito.git
-> git checkout v5.19.0 # multi-module Java project that requires Java 11
+> git checkout v5.19.0 # multi-module Java project
 
-> echo "17" > .mill-jvm-version # Gradle version in use requires Java 17
-
-> ./mill init # imported modules are not fully functional
+> ./mill init --gradle-jvm-id 17  # imported modules are not fully functional
 converting Gradle build
 init completed, run "mill resolve _" to list available tasks
 
-> ./mill mockito-core.compile   # requires manual tweaking to support Java modules
-error: ...module not found: net.bytebuddy
+> ./mill mockito-core.compile   # module jvmId needs tweaking
+error: java.lang.UnsupportedClassVersionError: com/google/errorprone/ErrorProneJavacPlugin has been compiled by a more recent version...
 */

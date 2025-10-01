@@ -31,9 +31,6 @@ trait `9.0.0BaseModule` extends MavenModule with PublishModule {
 
   def publishVersion = "unspecified"
 
-  def publishProperties = super.publishProperties() ++
-    Map(("myProp", "value"), ("prop.with.dots", "anotherValue"))
-
   def jvmId = "zulu:21"
 
 }

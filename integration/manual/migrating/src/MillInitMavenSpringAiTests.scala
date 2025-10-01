@@ -4,39 +4,24 @@ import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
 
 object MillInitMavenSpringAiTests extends GitRepoIntegrationTestSuite {
-
-  // maven 3.8.6
-  // custom repositories
-  // contains BOM module
-  // transitive test framework dependency
-
   def tests = Tests {
     test - integrationTestGitRepo(
+      // has BOM module
       "https://github.com/spring-projects/spring-ai.git",
-      "v1.0.1"
+      "v1.0.3",
+      linkMillExecutable = true
     ) { tester =>
       import tester.*
 
-      os.write(workspacePath / ".mill-jvm-version", "17")
-
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("__.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(
-        "spring-ai-model.publishLocal",
-        stdout = os.Inherit,
-        stderr = os.Inherit
-      ).isSuccess ==> true
+      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
-      // malformed HTML
+      // Maven resolves dep versions from BOM defined in dependencyManagement?
       eval(
-        "spring-ai-commons.publishLocal",
+        "spring-ai-commons.compile",
         stdout = os.Inherit,
         stderr = os.Inherit
       ).isSuccess ==> false
-
-      // no test module because Junit5 dependency is transitive via spring-boot-starter-test
-      eval("spring-ai-model.test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
     }
   }
 }
