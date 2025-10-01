@@ -13,6 +13,22 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#1-0-6]
+=== 1.0.6
+:version: 1.0.6
+:milestone-name: 1.0.6
+:milestone: 126
+:prev-version: 1.0.5
+_2025-10-01_
+
+* Support Playwright testing for Scala-JS ({link-pr}/5777[#5777])
+* Clean Linker caches when ScalaJSWorker is closed ({link-pr}/5933[#5933])
+* Fix prompt resizing when connecting to existing daemon ({link-pr}/5924[#5924])
+* Bump Scala version to 3.7.3 ({link-pr}/5897[#5897])
+* Make `--bsp` Mill process launch from `MillBspMain` class {link-pr}/5896[#5896])
+
+_Changes since {prev-version}:_
+
 [#1-0-5]
 === 1.0.5
 :version: 1.0.5
