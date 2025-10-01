@@ -1,0 +1,55 @@
+//| mill-version: SNAPSHOT
+//| mill-jvm-version: zulu:21
+//| mill-jvm-opts: ["-Xmx2048m", "-Xms1024m", "-XX:MaxPermSize=512m", "-Djava.awt.headless=true"]
+package build
+
+import mill.javalib._
+import mill.javalib.errorprone._
+import mill.javalib.publish._
+
+object `package` extends MavenModule with PublishModule with ErrorProneModule {
+
+  def javacOptions = super.javacOptions() ++
+    Seq("-source", "8", "-target", "8", "--should-stop=ifError=FLOW")
+
+  def artifactName = "maven-3-9-11"
+
+  def pomSettings = PomSettings(
+    "",
+    "com.mycompany.app",
+    "http://www.example.com",
+    Seq(),
+    VersionControl(None, None, None, None),
+    Seq()
+  )
+
+  def publishVersion = "1.0-SNAPSHOT"
+
+  def publishProperties = super.publishProperties() ++ Map(
+    ("maven.compiler.release", "17"),
+    ("project.build.sourceEncoding", "UTF-8")
+  )
+
+  def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
+    Seq("-XDcompilePolicy=simple")
+
+  def jvmId = "zulu:11"
+
+  object test extends MavenTests with TestModule.Junit5 {
+
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"org.junit.jupiter:junit-jupiter-api:5.11.0",
+      mvn"org.junit.jupiter:junit-jupiter-params:5.11.0"
+    )
+
+    def forkWorkingDir = moduleDir
+
+    def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
+      Seq("-XDcompilePolicy=simple")
+
+    def testParallelism = false
+
+    def testSandboxWorkingDir = false
+  }
+
+}

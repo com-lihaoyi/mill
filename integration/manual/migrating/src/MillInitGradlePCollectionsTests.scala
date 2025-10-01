@@ -8,18 +8,22 @@ object MillInitGradlePCollectionsTests extends GitRepoIntegrationTestSuite {
   // gradle 8.14.3
   // single module
   // Junit5
-  def gitRepoUrl = "https://github.com/hrldcpr/pcollections.git"
-  def gitRepoBranch = "v5.0.0"
 
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/hrldcpr/pcollections.git",
+      "v5.0.0"
+    ) { tester =>
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval(("resolve", "__.compile"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
-      // https://github.com/com-lihaoyi/mill/issues/5782
-      eval("compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
+      // typos in class names
+      eval("javadocGenerated", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
+      // junit-platform-launcher version is autoconfigured by Gradle
+      eval("test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
     }
   }
 }

@@ -1,0 +1,367 @@
+//| mill-version: SNAPSHOT
+//| mill-jvm-version: zulu:21
+//| mill-jvm-opts: []
+package build
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import mill.scalajslib._
+import mill.scalalib._
+import mill.scalanativelib._
+
+object `package` extends Module {
+
+  object dummy extends Module {
+
+    object js
+        extends ScalaJSModule
+        with PublishModule
+        with SbtPlatformModule
+        with SbtModule {
+
+      def scalaJSVersion = "1.16.0"
+
+      def scalaVersion = "2.13.14"
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "dummy"
+
+      def pomSettings = PomSettings(
+        "dummy",
+        "dummy",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+      object test
+          extends ScalaJSTests
+          with SbtPlatformTests
+          with SbtTests
+          with TestModule.Utest {
+
+        def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::utest::0.9.1")
+
+        def testParallelism = false
+
+        def testSandboxWorkingDir = false
+      }
+
+    }
+    object jvm extends PublishModule with SbtPlatformModule with SbtModule {
+
+      def scalaVersion = "2.13.14"
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "dummy"
+
+      def pomSettings = PomSettings(
+        "dummy",
+        "dummy",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+      object test extends SbtPlatformTests with SbtTests with TestModule.Utest {
+
+        def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::utest::0.9.1")
+
+        def testParallelism = false
+
+        def testSandboxWorkingDir = false
+      }
+
+    }
+    object native
+        extends ScalaNativeModule
+        with PublishModule
+        with SbtPlatformModule
+        with SbtModule {
+
+      def scalaNativeVersion = "0.5.4"
+
+      def scalaVersion = "2.13.14"
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "dummy"
+
+      def pomSettings = PomSettings(
+        "dummy",
+        "dummy",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+      object test
+          extends ScalaNativeTests
+          with SbtPlatformTests
+          with SbtTests
+          with TestModule.Utest {
+
+        def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::utest::0.9.1")
+
+        def testParallelism = false
+
+        def testSandboxWorkingDir = false
+      }
+
+    }
+  }
+  object full extends Module {
+
+    object js
+        extends ScalaJSModule
+        with PublishModule
+        with SbtPlatformModule
+        with SbtModule {
+
+      def scalaJSVersion = "1.16.0"
+
+      def scalaVersion = "2.13.14"
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def moduleDeps = super.moduleDeps ++ Seq(build.pure.js)
+
+      def artifactName = "full"
+
+      def pomSettings = PomSettings(
+        "full",
+        "full",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+      def sourcesRootFolders = super.sourcesRootFolders ++
+        Seq(os.sub / "shared")
+
+      object test
+          extends ScalaJSTests
+          with SbtPlatformTests
+          with SbtTests
+          with TestModule.Utest {
+
+        def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::utest::0.9.1")
+
+        def moduleDeps = super.moduleDeps ++ Seq(build.pure.js.test)
+
+        def testParallelism = false
+
+        def testSandboxWorkingDir = false
+      }
+
+    }
+    object jvm extends PublishModule with SbtPlatformModule with SbtModule {
+
+      def scalaVersion = "2.13.14"
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def moduleDeps = super.moduleDeps ++ Seq(build.pure.jvm)
+
+      def artifactName = "full"
+
+      def pomSettings = PomSettings(
+        "full",
+        "full",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+      def sourcesRootFolders = super.sourcesRootFolders ++
+        Seq(os.sub / "shared")
+
+      object test extends SbtPlatformTests with SbtTests with TestModule.Utest {
+
+        def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::utest::0.9.1")
+
+        def moduleDeps = super.moduleDeps ++ Seq(build.pure.jvm.test)
+
+        def testParallelism = false
+
+        def testSandboxWorkingDir = false
+      }
+
+    }
+    object native
+        extends ScalaNativeModule
+        with PublishModule
+        with SbtPlatformModule
+        with SbtModule {
+
+      def scalaNativeVersion = "0.5.4"
+
+      def scalaVersion = "2.13.14"
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def moduleDeps = super.moduleDeps ++ Seq(build.pure.native)
+
+      def artifactName = "full"
+
+      def pomSettings = PomSettings(
+        "full",
+        "full",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+      def sourcesRootFolders = super.sourcesRootFolders ++
+        Seq(os.sub / "shared")
+
+      object test
+          extends ScalaNativeTests
+          with SbtPlatformTests
+          with SbtTests
+          with TestModule.Utest {
+
+        def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::utest::0.9.1")
+
+        def moduleDeps = super.moduleDeps ++ Seq(build.pure.native.test)
+
+        def testParallelism = false
+
+        def testSandboxWorkingDir = false
+      }
+
+    }
+  }
+  object pure extends Module {
+
+    object js
+        extends ScalaJSModule
+        with PublishModule
+        with SbtPlatformModule
+        with SbtModule {
+
+      def scalaJSVersion = "1.16.0"
+
+      def scalaVersion = "2.13.14"
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "pure"
+
+      def pomSettings = PomSettings(
+        "pure",
+        "pure",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+      object test
+          extends ScalaJSTests
+          with SbtPlatformTests
+          with SbtTests
+          with TestModule.Utest {
+
+        def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::utest::0.9.1")
+
+        def testParallelism = false
+
+        def testSandboxWorkingDir = false
+      }
+
+    }
+    object jvm extends PublishModule with SbtPlatformModule with SbtModule {
+
+      def scalaVersion = "2.13.14"
+
+      def mvnDeps = super.mvnDeps() ++
+        Seq(mvn"com.lihaoyi::upickle::4.3.0", mvn"com.lihaoyi::os-lib:0.11.5")
+
+      def artifactName = "pure"
+
+      def pomSettings = PomSettings(
+        "pure",
+        "pure",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+      object test extends SbtPlatformTests with SbtTests with TestModule.Utest {
+
+        def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::utest::0.9.1")
+
+        def testParallelism = false
+
+        def testSandboxWorkingDir = false
+      }
+
+    }
+    object native
+        extends ScalaNativeModule
+        with PublishModule
+        with SbtPlatformModule
+        with SbtModule {
+
+      def scalaNativeVersion = "0.5.4"
+
+      def scalaVersion = "2.13.14"
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "pure"
+
+      def pomSettings = PomSettings(
+        "pure",
+        "pure",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+      object test
+          extends ScalaNativeTests
+          with SbtPlatformTests
+          with SbtTests
+          with TestModule.Utest {
+
+        def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::utest::0.9.1")
+
+        def testParallelism = false
+
+        def testSandboxWorkingDir = false
+      }
+
+    }
+  }
+}

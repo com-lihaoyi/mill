@@ -4,11 +4,11 @@ import os.Path
 
 trait GitRepoIntegrationTestSuite extends UtestIntegrationTestSuite {
 
-  def gitRepoUrl: String
-  def gitRepoBranch: String
-  def gitRepoDepth: Int = 1
-
-  override def integrationTest[T](block: IntegrationTester => T): T = {
+  def integrationTestGitRepo[T](
+      url: String,
+      branch: String,
+      linkMillExecutable: Boolean = false
+  )(block: IntegrationTester => T): T = {
     val tester = new IntegrationTester(
       daemonMode,
       workspaceSourcePath,
@@ -18,13 +18,17 @@ trait GitRepoIntegrationTestSuite extends UtestIntegrationTestSuite {
       propagateJavaHome = propagateJavaHome
     ) {
       override val workspacePath: Path = {
-        // To preserve the repo dir name, create a directory and clone into it.
         val cwd = os.temp.dir(dir = baseWorkspacePath, deleteOnExit = false)
-        os.proc("git", "clone", gitRepoUrl, "--depth", gitRepoDepth, "--branch", gitRepoBranch)
+        // Clone into a new directory to preserve repo dir name.
+        os.proc("git", "clone", url, "--depth", 1, "--branch", branch)
           .call(cwd = cwd)
         os.list(cwd).head
       }
-      override def initWorkspace(): Unit = ()
+      override def initWorkspace(): Unit = {}
+    }
+    if (linkMillExecutable) {
+      val link = tester.workspacePath / "mill"
+      if (!os.exists(link)) os.symlink(link, tester.millExecutable)
     }
     try block(tester)
     finally tester.close()

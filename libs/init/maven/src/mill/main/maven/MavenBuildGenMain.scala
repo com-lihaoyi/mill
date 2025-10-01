@@ -2,81 +2,63 @@ package mill.main.maven
 
 import mainargs.{Flag, ParserForClass, arg, main}
 import mill.main.buildgen.*
+import mill.main.buildgen.BuildConventions.*
 import org.apache.maven.model.*
 
 import scala.jdk.CollectionConverters.*
 
 /**
- * Converts a Maven build to Mill by selecting module configurations from POM files.
- * @see [[https://maven.apache.org/download.cgi Maven JDK compatibility]]
+ * Converts a Maven build by generating module configurations from POM files.
  * @see [[MavenBuildGenArgs Command line arguments]]
  */
 object MavenBuildGenMain {
 
   def main(args: Array[String]): Unit = {
-    val args0 = ParserForClass[MavenBuildGenArgs].constructOrExit(args.toSeq)
+    val args0 = summon[ParserForClass[MavenBuildGenArgs]].constructOrExit(args.toSeq)
     println("converting Maven build")
     import args0.*
 
     val modeler = Modeler()
-    val segmentsModels = Tree.from(os.sub): sub =>
-      val model = modeler.read(os.pwd / sub)
+    val segmentsResults = Tree.from(os.sub) { sub =>
+      val result = modeler.read(os.pwd / sub)
       (
-        (sub.segments, model),
-        model.getModules.iterator.asScala.map(s => sub / os.SubPath(s)).toSeq
+        (sub.segments, result),
+        result.getEffectiveModel.getModules.iterator.asScala.map(s => sub / os.SubPath(s)).toSeq
       )
-    val segmentsByGav = segmentsModels.iterator.map((segments, model) =>
+    }
+    val segmentsByGav = segmentsResults.iterator.map { (segments, result) =>
+      val model = result.getEffectiveModel
       ((model.getGroupId, model.getArtifactId, model.getVersion), segments)
-    ).toMap
-    def gav(dep: Dependency) = (dep.getGroupId, dep.getArtifactId, dep.getVersion)
+    }.toMap
 
-    val packages = segmentsModels.iterator.map: (segments, model) =>
-      def mvnDeps(scopes: String*) = model.getDependencies.iterator.asScala.collect:
-        case dep if scopes.contains(dep.getScope) && !segmentsByGav.contains(gav(dep)) =>
-          toMvnDep(dep)
-      .filterNot(JavaModuleConfig.isBomMvnDep).toSeq
-      def bomMvnDeps(scopes: String*) = model.getDependencies.iterator.asScala.collect:
-        case dep if scopes.contains(dep.getScope) && !segmentsByGav.contains(gav(dep)) =>
-          toMvnDep(dep)
-      .filter(JavaModuleConfig.isBomMvnDep).toSeq
-      def moduleDeps(scopes: String*) = model.getDependencies.iterator.asScala
-        .collect:
-          case dep if scopes.contains(dep.getScope) => gav(dep)
-        .collect(segmentsByGav)
-        .map(JavaModuleConfig.ModuleDep(_))
-        .toSeq
+    val packages = segmentsResults.iterator.map { (segments, result) =>
+      val model = result.getEffectiveModel
+      val rawModel = result.getRawModel
 
-      val moduleDir = os.pwd / segments
-      val testModule0 = if (os.exists(moduleDir / "src/test")) {
-        // "provided" scope is for both compilation and testing
-        val testDeps = mvnDeps("test", "provided")
-        TestModuleRepr.mixinAndMandatoryMvnDeps(testDeps).map: (mixin, mandatoryMvnDeps) =>
-          TestModuleRepr(
-            name = testModule,
-            supertypes = Seq("MavenTests"),
-            mixins = Seq(mixin),
-            configs = Seq(
-              JavaModuleConfig(
-                mandatoryMvnDeps = mandatoryMvnDeps,
-                mvnDeps = testDeps.diff(mandatoryMvnDeps),
-                bomMvnDeps = bomMvnDeps("test"),
-                moduleDeps = moduleDeps("test", "provided")
-              ),
-              RunModuleConfig(
-                // Retained from https://github.com/com-lihaoyi/mill/commit/5e650f6b78d903f34e122a9f97c6b223c6251d8f
-                forkWorkingDir = "moduleDir"
-              )
-            ),
-            // Retained from https://github.com/com-lihaoyi/mill/commit/ba5960983895565f230166464e66524f0a1a5fd8
-            testParallelism = false,
-            testSandboxWorkingDir = false
-          )
-      } else None
+      def isBom(dep: Dependency) = isBomDep(dep.getGroupId, dep.getArtifactId)
+      def dependencies(scopes: Seq[String]) = model.getDependencies.iterator.asScala
+        .filter(dep => scopes.contains(dep.getScope))
+      def mvnDeps(scopes: String*) = dependencies(scopes).collect {
+        case dep if !segmentsByGav.contains(toGav(dep)) && !isBom(dep) => toMvnDep(dep)
+      }.toSeq
+      def bomMvnDeps(scopes: String*) = dependencies(scopes).collect {
+        case dep if !segmentsByGav.contains(toGav(dep)) && isBom(dep) => toMvnDep(dep)
+      }.toSeq
+      def moduleDeps(scopes: String*) = dependencies(scopes)
+        .map(toGav).collect(segmentsByGav).map(ModuleConfig.ModuleDep(_)).toSeq
 
-      val (javacOptions, errorProneModuleConfig) = ErrorProneModuleConfig.javacOptionsAndConfig(
+      val coursierModuleConfig = model.getRepositories.iterator.asScala.collect {
+        case repo if repo.getId != "central" => repo.getUrl
+      }.toSeq match {
+        case Nil => None
+        case repositories => Some(CoursierModuleConfig(repositories))
+      }
+      val (errorProneModuleConfig, javacOptions) = findErrorProneModuleConfigJavacOptions(
         Plugins.javacOptions(model),
-        Plugins.annotationProcessorMvnDeps(model) // TODO Filter known error-prone specific deps
+        // TODO Filter known error-prone deps
+        Plugins.javacAnnotationProcessorMvnDeps(model)
       )
+      val javaHomeModuleConfig = findJavaHomeModuleConfig(Plugins.javaVersion(model), javacOptions)
       val javaModuleConfig = JavaModuleConfig(
         mvnDeps = mvnDeps("compile"),
         compileMvnDeps = mvnDeps("provided"),
@@ -85,76 +67,99 @@ object MavenBuildGenMain {
         moduleDeps = moduleDeps("compile"),
         compileModuleDeps = moduleDeps("provided"),
         runModuleDeps = moduleDeps("runtime"),
-        javacOptions = javacOptions.diff(JavaModuleConfig.unsupportedJavacOptions)
+        javacOptions = javacOptions,
+        artifactName = overrideArtifactName(model.getArtifactId, segments)
       )
       val publishModuleConfig = Option.when(!Plugins.skipDeploy(model)):
         PublishModuleConfig(
-          pomPackagingType = Option(model.getPackaging).filter(_ != "jar").orNull,
+          pomPackagingType = overridePomPackagingType(model.getPackaging),
           pomParentProject = toPomParentProject(model.getParent),
           pomSettings = toPomSettings(model),
           publishVersion = model.getVersion,
-          artifactMetadata = toArtifactMetadata(model),
-          publishProperties =
-            if (publishProperties.value) model.getProperties.asScala.toMap else Map()
+          publishProperties = rawModel.getProperties.asScala.toMap
         )
-      val javaHomeModuleConfig = Plugins.jvmId(model).map(JavaHomeModuleConfig(_))
-      val coursierModuleConfig =
-        model.getRepositories.iterator.asScala.collect:
-          case repo if repo.getId != "central" => repo.getUrl
-        .toSeq match {
-          case Nil => None
-          case repositories => Some(CoursierModuleConfig(repositories))
+      val configs = javaModuleConfig +: Seq(
+        publishModuleConfig,
+        errorProneModuleConfig,
+        javaHomeModuleConfig,
+        coursierModuleConfig
+      ).flatten
+
+      val testModule = {
+        // "provided" scope is for both compilation and testing
+        val mvnDeps0 = mvnDeps("test", "provided")
+        findTestModuleMixin(mvnDeps0).map { mixin =>
+          val testConfigs = Seq(
+            JavaModuleConfig(
+              mvnDeps = mvnDeps0,
+              bomMvnDeps = bomMvnDeps("test"),
+              moduleDeps = moduleDeps("test", "provided")
+            ),
+            RunModuleConfig(
+              forkWorkingDir = "moduleDir"
+            )
+          ) ++ errorProneModuleConfig
+          TestModuleRepr(
+            supertypes = Seq("MavenTests"),
+            mixins = Seq(mixin),
+            configs = testConfigs,
+            testParallelism = false,
+            testSandboxWorkingDir = false
+          )
         }
+      }
 
-      ModuleRepr(
+      val supertypes = Seq("MavenModule") ++
+        (if (publishModuleConfig.isEmpty) Nil else Seq("PublishModule")) ++
+        (if (errorProneModuleConfig.isEmpty) Nil else Seq("ErrorProneModule"))
+      val module = ModuleRepr(
         segments = segments,
-        supertypes = Seq("MavenModule") ++
-          (if (publishModuleConfig.isEmpty) Nil else Seq("PublishModule")) ++
-          (if (errorProneModuleConfig.isEmpty) Nil else Seq("ErrorProneModule")),
-        configs = javaModuleConfig +: Seq(
-          publishModuleConfig,
-          javaHomeModuleConfig,
-          coursierModuleConfig,
-          errorProneModuleConfig
-        ).flatten,
-        testModule = testModule0
+        supertypes = supertypes,
+        configs = configs,
+        testModule = testModule
       )
-    .map(Tree(_)).toSeq
+      Tree(module)
+    }.toSeq
 
-    var build = BuildRepr.fill(packages)
-    if (merge.value) build = BuildRepr.merged(build)
+    val mavenJvmOpts = {
+      val file = os.pwd / ".mvn/jvm.config"
+      if (os.isFile(file))
+        os.read.lines.stream(file).map(_.trim).filter(_.nonEmpty).flatMap(_.split(" ")).toSeq
+      else Nil
+    }
 
-    val writer = if (noMetaBuild.value) BuildWriter(build)
-    else
-      val (build0, metaBuild) = MetaBuildRepr.of(build)
-      BuildWriter(build0, Some(metaBuild))
-    writer.writeFiles()
+    var build = BuildRepr.fill(packages).copy(millJvmOpts = mavenJvmOpts)
+    if (merge.value) build = build.merged
+    if (!noMeta.value) build = build.withMetaBuild
+    BuildWriter(build).writeFiles()
   }
+
+  def toGav(dep: Dependency) = (dep.getGroupId, dep.getArtifactId, dep.getVersion)
 
   def toMvnDep(dep: Dependency) = {
     import dep.*
-    JavaModuleConfig.mvnDep(
-      getGroupId,
-      getArtifactId,
-      getVersion,
-      // prevent interpolation in dynamic values such as ${os.detected.name}
-      Option(getClassifier).map(_.replace("$", "$$")),
-      Option(getType),
-      getExclusions.asScala.map(x => (x.getGroupId, x.getArtifactId))
+    ModuleConfig.MvnDep(
+      organization = getGroupId,
+      name = getArtifactId,
+      version = Option(getVersion),
+      // prevent evaluation of dynamic values, such as ${os.detected.name}, in generated build
+      classifier = Option(getClassifier).map(_.replace("$", "$$")),
+      `type` = Option(getType),
+      excludes = getExclusions.asScala.map(x => (x.getGroupId, x.getArtifactId)).toSeq
     )
   }
 
   def toPomParentProject(parent: Parent) = {
     Option.when(parent != null):
       import parent.*
-      PublishModuleConfig.Artifact(getGroupId, getArtifactId, getVersion)
+      ModuleConfig.Artifact(getGroupId, getArtifactId, getVersion)
   }
 
   def toPomSettings(model: Model) = {
     import model.*
-    PublishModuleConfig.PomSettings(
+    ModuleConfig.PomSettings(
       description = getDescription,
-      organization = Option(getOrganization).fold(null)(_.getName),
+      organization = getGroupId,
       url = getUrl,
       licenses = getLicenses.iterator.asScala.map(toLicense).toSeq,
       versionControl = toVersionControl(getScm),
@@ -164,7 +169,7 @@ object MavenBuildGenMain {
 
   def toLicense(license: License) = {
     import license.*
-    PublishModuleConfig.License(
+    ModuleConfig.License(
       name = getName,
       url = getUrl,
       distribution = getDistribution
@@ -172,10 +177,10 @@ object MavenBuildGenMain {
   }
 
   def toVersionControl(scm: Scm) = {
-    if (scm == null) PublishModuleConfig.VersionControl()
+    if (scm == null) ModuleConfig.VersionControl()
     else
       import scm.*
-      PublishModuleConfig.VersionControl(
+      ModuleConfig.VersionControl(
         browsableRepository = Option(getUrl),
         connection = Option(getConnection),
         developerConnection = Option(getDeveloperConnection),
@@ -185,7 +190,7 @@ object MavenBuildGenMain {
 
   def toDeveloper(developer: Developer) = {
     import developer.*
-    PublishModuleConfig.Developer(
+    ModuleConfig.Developer(
       id = getId,
       name = getName,
       url = getUrl,
@@ -193,21 +198,15 @@ object MavenBuildGenMain {
       organizationUrl = Option(getOrganizationUrl)
     )
   }
-
-  def toArtifactMetadata(model: Model) = {
-    import model.*
-    PublishModuleConfig.Artifact(getGroupId, getArtifactId, getVersion)
-  }
 }
 
 @mainargs.main
 case class MavenBuildGenArgs(
-    @mainargs.arg(doc = "name of generated test module")
-    testModule: String = "test",
     @mainargs.arg(doc = "merge generated build files")
     merge: mainargs.Flag,
-    @mainargs.arg(doc = "copy properties for publish")
-    publishProperties: mainargs.Flag,
-    @mainargs.arg(doc = "disables generating meta-build")
-    noMetaBuild: mainargs.Flag
+    @mainargs.arg(doc = "disable generating meta-build files")
+    noMeta: mainargs.Flag
 )
+object MavenBuildGenArgs {
+  given ParserForClass[MavenBuildGenArgs] = ParserForClass.apply
+}

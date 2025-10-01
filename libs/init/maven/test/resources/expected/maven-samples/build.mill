@@ -1,5 +1,6 @@
 //| mill-version: SNAPSHOT
-//| mill-jvm-version: 11
+//| mill-jvm-version: zulu:21
+//| mill-jvm-opts: []
 package build
 
 import mill.javalib._
@@ -8,18 +9,17 @@ import millbuild._
 
 object `package` extends MavenSamplesBaseModule {
 
+  def artifactName = "parent"
+
   def pomPackagingType = "pom"
 
   def pomSettings = PomSettings(
     "Just a pom that makes it easy to build both projects at the same time.",
-    "",
+    "com.example.maven-samples",
     "",
     Seq(),
     VersionControl(None, None, None, None),
     Seq()
   )
-
-  def artifactMetadata =
-    Artifact("com.example.maven-samples", "parent", "1.0-SNAPSHOT")
 
 }

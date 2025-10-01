@@ -14,6 +14,8 @@ object `package` extends MavenSamplesBaseModule {
   def javacOptions = super.javacOptions() ++
     Seq("-source", "1.6", "-target", "1.6")
 
+  def artifactName = "webapp"
+
   def pomPackagingType = "war"
 
   def pomParentProject = Some(
@@ -22,7 +24,7 @@ object `package` extends MavenSamplesBaseModule {
 
   def pomSettings = PomSettings(
     "Webapp.",
-    "",
+    "com.example.maven-samples",
     "http://www.example.com/webapp",
     Seq(),
     VersionControl(
@@ -34,7 +36,6 @@ object `package` extends MavenSamplesBaseModule {
     Seq()
   )
 
-  def artifactMetadata =
-    Artifact("com.example.maven-samples", "webapp", "1.0-SNAPSHOT")
+  def jvmId = "zulu:11"
 
 }

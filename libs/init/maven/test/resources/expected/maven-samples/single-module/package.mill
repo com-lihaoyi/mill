@@ -11,9 +11,11 @@ object `package` extends MavenSamplesBaseModule {
   def javacOptions = super.javacOptions() ++
     Seq("-source", "1.6", "-target", "1.6")
 
+  def artifactName = "single-module-project"
+
   def pomSettings = PomSettings(
     "Sample single module Maven project with a working, deployable site.",
-    "",
+    "com.example.maven-samples",
     "http://www.example.com",
     Seq(),
     VersionControl(
@@ -25,18 +27,21 @@ object `package` extends MavenSamplesBaseModule {
     Seq()
   )
 
-  def artifactMetadata = Artifact(
-    "com.example.maven-samples",
-    "single-module-project",
-    "1.0-SNAPSHOT"
+  def publishProperties = super.publishProperties() ++ Map(
+    ("project.build.sourceEncoding", "utf-8"),
+    ("project.reporting.outputEncoding", "utf-8")
   )
+
+  def jvmId = "zulu:11"
 
   object test extends MavenTests with TestModule.Junit4 {
 
-    def mandatoryMvnDeps = super.mandatoryMvnDeps() ++ Seq(Deps.junitDep)
-
-    def mvnDeps = super.mvnDeps() ++
-      Seq(Deps.hamcrestCore, Deps.hamcrestLibrary, Deps.mockitoCore)
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      Deps.junitDep,
+      Deps.hamcrestCore,
+      Deps.hamcrestLibrary,
+      Deps.mockitoCore
+    )
 
     def forkWorkingDir = moduleDir
 

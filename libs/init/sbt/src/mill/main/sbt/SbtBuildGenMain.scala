@@ -1,14 +1,15 @@
 package mill.main.sbt
 
+import mainargs.ParserForClass
 import mill.constants.Util.isWindows
 import mill.main.buildgen.*
+import mill.main.sbt.BuildInfo.exportscriptAssemblyResource
 import pprint.Util.literalize
 
 import scala.util.Using
 
 /**
- * Converts an SBT build to Mill by selecting module configurations using a custom script.
- * @see [[https://docs.scala-lang.org/overviews/jdk-compatibility/overview.html#tooling-compatibility-table SBT JDK compatibility]]
+ * Converts an SBT build by generating module configurations using a custom "apply" script.
  * @see [[SbtBuildGenArgs Command line arguments]]
  */
 object SbtBuildGenMain {
@@ -16,15 +17,15 @@ object SbtBuildGenMain {
   def main(args: Array[String]): Unit = {
     println("converting sbt build")
 
-    val args0 = mainargs.ParserForClass[SbtBuildGenArgs].constructOrExit(args.toSeq)
+    val args0 = summon[ParserForClass[SbtBuildGenArgs]].constructOrExit(args.toSeq)
     import args0.{getClass as _, *}
 
-    val cmd = sbtCmd.getOrElse:
+    val cmd = sbtCmd.getOrElse(
       Either.cond(
         !isWindows,
-        Seq("sbt", ".sbtx").collectFirst:
+        Seq("sbt", ".sbtx").collectFirst {
           case exe if os.exists(os.pwd / exe) => s"./$exe"
-        .toLeft("sbt"),
+        }.toLeft("sbt"),
         "sbt.bat"
       ).flatten.fold(
         cmd =>
@@ -33,38 +34,32 @@ object SbtBuildGenMain {
           else cmd,
         identity
       )
-    val jar =
-      Using.resource(getClass.getResourceAsStream(BuildInfo.exportscriptAssemblyResource))(
-        os.temp(_, suffix = ".jar")
-      )
-    val exportDir = os.temp.dir()
-    // Run export with "+" to generate a file per project and cross Scala version.
-    // https://github.com/JetBrains/sbt-structure/#sideloading
-    val script = Seq(
-      s"set SettingKey[(File, String)](\"millInitExportArgs\") in Global := (file(${literalize(exportDir.toString())}), ${literalize(testModule)})",
-      s"apply -cp ${literalize(jar.toString())} mill.main.sbt.ExportSbtBuildScript",
-      s"+millInitExportBuild"
     )
-    os.proc(cmd, script).call(stdout = os.Inherit, stderr = os.Inherit)
+    val exportScriptJar = Using.resource(
+      getClass.getResourceAsStream(exportscriptAssemblyResource)
+    )(os.temp(_, suffix = ".jar"))
+    val exportDir = os.temp.dir()
+    // run task with "+" prefix to export data per project per cross Scala version
+    val exportScript = Seq(
+      s"set SettingKey[File](\"millInitExportArgs\") in Global := file(${literalize(exportDir.toString())})",
+      s"apply -cp ${literalize(exportScriptJar.toString())} mill.main.sbt.ExportSbtBuildScript",
+      s"+millInitExportSbtModules"
+    )
+    os.proc(cmd, exportScript).call(stdout = os.Inherit, stderr = os.Inherit)
 
     // ((moduleDir, isCrossPlatform), ModuleRepr)
     type SbtModuleRepr = ((Seq[String], Boolean), ModuleRepr)
-    // SBT can generate duplicate files for modules. For example, if a project "foo" defines 3
-    // cross Scala versions and another module "bar" specifies 2 of those cross Scala versions,
-    // a duplicate file is generated for module "bar".
     val sbtModules = os.list.stream(exportDir)
       .map(path => upickle.default.read[SbtModuleRepr](path.toNIO))
-      .toSeq.distinct
-    if (sbtModules.isEmpty) {
-      sys.error(s"no modules found using $cmd")
-    }
+      .toSeq
+    if (sbtModules.isEmpty) sys.error(s"no modules found using $cmd")
 
     def toModule(crossVersionModules: Seq[ModuleRepr]): ModuleRepr =
-      if (crossVersionModules.tail.isEmpty) crossVersionModules.head // not cross version
-      else
-        // compute the base config for cross versions
-        val module = crossVersionModules.iterator.reduce: (m1, m2) =>
+      if (crossVersionModules.tail.isEmpty) crossVersionModules.head // not cross module
+      else {
+        val module = crossVersionModules.iterator.reduce((m1, m2) =>
           m1.copy(
+            supertypes = m1.supertypes.intersect(m2.supertypes),
             configs = ModuleConfig.abstracted(m1.configs, m2.configs),
             crossConfigs = m1.crossConfigs ++ m2.crossConfigs,
             testModule = (m1.testModule, m2.testModule) match
@@ -73,95 +68,113 @@ object SbtBuildGenMain {
                   configs = ModuleConfig.abstracted(m1.configs, m2.configs),
                   crossConfigs = m1.crossConfigs ++ m2.crossConfigs
                 ))
-              case (m1, m2) => m1.orElse(m2)
+              case _ => None
           )
-        // inherit the base config for cross versions
+        )
         module.copy(
-          crossConfigs = module.crossConfigs.map: (k, v) =>
+          crossConfigs = module.crossConfigs.map((k, v) =>
             (k, ModuleConfig.inherited(v, module.configs))
-          .sortBy(_._1),
-          testModule = module.testModule.map(module =>
-            module.copy(
-              crossConfigs = module.crossConfigs.map: (k, v) =>
-                (k, ModuleConfig.inherited(v, module.configs))
-              .sortBy(_._1)
+          ).sortBy(_._1),
+          testModule = module.testModule.map(testModule =>
+            testModule.copy(crossConfigs =
+              testModule.crossConfigs.map((k, v) =>
+                (k, ModuleConfig.inherited(v, testModule.configs))
+              ).sortBy(_._1)
             )
           )
         )
-    end toModule
-    val packages = sbtModules.groupMap(_._1)(_._2).iterator.map:
+      }
+    def normalizePlatformDeps(crossPlatformModules: Seq[ModuleRepr]) = {
+      // Replicate %%% syntax by "platforming" dependencies for the JVM cross module.
+      // Otherwise, such a dependency will manifest as 2 entries in the Deps object.
+      val (jvmModules, nonJvmModules) = crossPlatformModules.partition(_.segments.last == "jvm")
+      val platformedMvnDeps = nonJvmModules.iterator
+        .flatMap(module =>
+          module.configs.iterator ++ module.crossConfigs.iterator.flatMap(_._2) ++
+            module.testModule.iterator.flatMap(testModule =>
+              testModule.configs.iterator ++ testModule.crossConfigs.iterator.flatMap(_._2)
+            )
+        )
+        .flatMap {
+          case c: JavaModuleConfig => c.mvnDeps ++ c.compileMvnDeps ++ c.runMvnDeps
+          case c: ScalaModuleConfig => c.scalacPluginMvnDeps
+          case _ => Nil
+        }
+        .filter(_.cross.platformed)
+        .toSet
+      def updateDep(dep: ModuleConfig.MvnDep) = {
+        val dep0 = if (dep.cross.platformed) dep
+        else dep.copy(cross = dep.cross match {
+          case v: ModuleConfig.CrossVersion.Constant => v.copy(platformed = true)
+          case v: ModuleConfig.CrossVersion.Binary => v.copy(platformed = true)
+          case v: ModuleConfig.CrossVersion.Full => v.copy(platformed = true)
+        })
+        if (platformedMvnDeps.contains(dep0)) dep0 else dep
+      }
+      def updateConfig(config: ModuleConfig) = config match {
+        case c: JavaModuleConfig => c.copy(
+            mvnDeps = c.mvnDeps.map(updateDep),
+            compileMvnDeps = c.compileMvnDeps.map(updateDep),
+            runMvnDeps = c.runMvnDeps.map(updateDep)
+          )
+        case c: ScalaModuleConfig => c.copy(
+            scalacPluginMvnDeps = c.scalacPluginMvnDeps.map(updateDep)
+          )
+        case c => c
+      }
+      jvmModules.map(module =>
+        module.copy(
+          configs = module.configs.map(updateConfig),
+          crossConfigs = module.crossConfigs.map((k, v) => (k, v.map(updateConfig))),
+          testModule = module.testModule.map(testModule =>
+            testModule.copy(
+              configs = testModule.configs.map(updateConfig),
+              crossConfigs = testModule.crossConfigs.map((k, v) => (k, v.map(updateConfig)))
+            )
+          )
+        )
+      ) ++ nonJvmModules
+    }
+
+    val packages = sbtModules.groupMap(_._1)(_._2).iterator.map {
       case ((_, false), crossVersionModules) => Tree(toModule(crossVersionModules))
       case ((moduleDir, _), crossPlatformModules) => Tree(
-          ModuleRepr(moduleDir),
-          crossPlatformModules.groupBy(_.segments).iterator.map: (_, crossVersionModules) =>
-            Tree(toModule(crossVersionModules))
-          .toSeq
+          root = ModuleRepr(moduleDir),
+          children = normalizePlatformDeps(
+            crossPlatformModules
+              .groupBy(_.segments).iterator
+              .map((_, crossVersionModules) => toModule(crossVersionModules)).toSeq
+          ).sortBy(os.sub / _.segments).map(Tree(_))
         )
-    .toSeq
+    }.toSeq
 
-    var build = BuildRepr.fill(packages)
-    if (merge.value) build = BuildRepr.merged(build)
-
-    val writer = {
-      val renderCrossValueInTask = "scalaVersion()"
-      if (noMetaBuild.value) BuildWriter(build, renderCrossValueInTask = renderCrossValueInTask)
-      else
-        val (build0, metaBuild) = MetaBuildRepr.of(build)
-        BuildWriter(build0, Some(metaBuild), renderCrossValueInTask)
+    val sbtJvmOpts = {
+      def lines(file: os.Path) = if (os.isFile(file))
+        os.read.lines.stream(file).map(_.trim).filter(_.nonEmpty).toSeq
+      else Nil
+      val jvmOpts = lines(os.pwd / ".jvmopts")
+        .flatMap(s => if (s.startsWith("#")) Nil else s.split(" "))
+      val sbtOptsJ = lines(os.pwd / ".sbtopts")
+        .flatMap(s => if (s.startsWith("-J")) s.substring(2).split(" ") else Nil)
+      jvmOpts ++ sbtOptsJ
     }
-    writer.writeFiles()
 
-    locally {
-      val jvmOptsSbt = os.pwd / ".jvmopts"
-      val jvmOptsMill = os.pwd / ".mill-jvm-opts"
-
-      if (os.exists(jvmOptsSbt)) {
-        println(s"copying ${jvmOptsSbt.last} to ${jvmOptsMill.last}")
-        if (os.exists(jvmOptsMill)) {
-          val backup = jvmOptsMill / os.up / s"${jvmOptsMill.last}.bak"
-          println(s"creating backup ${backup.last}")
-          os.move.over(jvmOptsMill, backup)
-        }
-        var reportOnce = true
-        // Since .jvmopts may contain multiple args per line, we warn the user
-        // as Mill wants each arg on a separate line
-        os.read.lines(jvmOptsSbt).collectFirst {
-          // Warn the user once when we find spaces, but ignore comments
-          case x if reportOnce && !x.trim().startsWith("#") && x.trim().contains(" ") =>
-            reportOnce = false
-            println(
-              s"${jvmOptsMill.last}: Please check that each arguments is on a separate line!"
-            )
-        }
-        os.copy(jvmOptsSbt, jvmOptsMill)
-      }
-
-      val sbtOpts = os.pwd / ".sbtopts"
-      if (os.exists(sbtOpts)) {
-        var jvmArgs = os.read.lines(sbtOpts).flatMap: s =>
-          if (s.startsWith("#")) Nil
-          else s.split(" ").iterator.collect:
-            case s if s.startsWith("-J") => s.substring(2)
-        if (jvmArgs.nonEmpty && os.exists(jvmOptsMill)) {
-          jvmArgs = jvmArgs.diff(os.read.lines(jvmOptsMill))
-        }
-        if (jvmArgs.nonEmpty) {
-          println(s"adding JVM args from ${sbtOpts.last} to ${jvmOptsMill.last}")
-          os.write.append(jvmOptsMill, jvmArgs.mkString(System.lineSeparator()))
-        }
-      }
-    }
+    var build = BuildRepr.fill(packages).copy(millJvmOpts = sbtJvmOpts)
+    if (merge.value) build = build.merged
+    if (!noMeta.value) build = build.withMetaBuild
+    BuildWriter(build, renderCrossValueInTask = "scalaVersion()").writeFiles()
   }
 }
 
 @mainargs.main
 case class SbtBuildGenArgs(
-    @mainargs.arg(doc = "name of generated test module")
-    testModule: String = "test",
     @mainargs.arg(doc = "merge generated build files")
     merge: mainargs.Flag,
+    @mainargs.arg(doc = "disable generating meta-build files")
+    noMeta: mainargs.Flag,
     @mainargs.arg(doc = "path to sbt executable")
-    sbtCmd: Option[String],
-    @mainargs.arg(doc = "disables generating meta-build")
-    noMetaBuild: mainargs.Flag
+    sbtCmd: Option[String]
 )
+object SbtBuildGenArgs {
+  given ParserForClass[SbtBuildGenArgs] = ParserForClass.apply
+}

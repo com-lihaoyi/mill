@@ -1,0 +1,366 @@
+//| mill-version: SNAPSHOT
+//| mill-jvm-version: zulu:21
+//| mill-jvm-opts: ["-XX:MaxMetaspaceSize=512m"]
+package build
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import mill.scalajslib._
+import mill.scalalib._
+import mill.scalanativelib._
+
+object `package` extends Module {
+
+  object dummy extends Module {
+
+    object js extends Cross[JsModule]("2.12.20", "2.13.14", "3.7.1")
+    trait JsModule
+        extends ScalaJSModule
+        with PublishModule
+        with SbtPlatformModule
+        with CrossScalaModule
+        with CrossSbtPlatformModule {
+
+      def scalaJSVersion = "1.16.0"
+
+      def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
+        (scalaVersion() match {
+          case "2.12.20" => Seq(
+              "-Xlint:_,-unused",
+              "-Ywarn-numeric-widen",
+              "-Ywarn-unused:_,-nowarn,-privates"
+            )
+          case "2.13.14" =>
+            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Seq("-Wunused")
+          case _       => Nil
+        })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "dummy"
+
+      def pomSettings = PomSettings(
+        "dummy",
+        "dummy",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+    }
+    object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
+    trait JvmModule
+        extends PublishModule
+        with SbtPlatformModule
+        with CrossScalaModule
+        with CrossSbtPlatformModule {
+
+      def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
+        (scalaVersion() match {
+          case "2.12.20" => Seq(
+              "-Xlint:_,-unused",
+              "-Ywarn-numeric-widen",
+              "-Ywarn-unused:_,-nowarn,-privates"
+            )
+          case "2.13.14" =>
+            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Seq("-Wunused")
+          case _       => Nil
+        })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "dummy"
+
+      def pomSettings = PomSettings(
+        "dummy",
+        "dummy",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+    }
+    object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
+    trait NativeModule
+        extends ScalaNativeModule
+        with PublishModule
+        with SbtPlatformModule
+        with CrossScalaModule
+        with CrossSbtPlatformModule {
+
+      def scalaNativeVersion = "0.5.4"
+
+      def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
+        (scalaVersion() match {
+          case "2.12.20" => Seq(
+              "-Xlint:_,-unused",
+              "-Ywarn-numeric-widen",
+              "-Ywarn-unused:_,-nowarn,-privates"
+            )
+          case "2.13.14" =>
+            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Seq("-Wunused")
+          case _       => Nil
+        })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "dummy"
+
+      def pomSettings = PomSettings(
+        "dummy",
+        "dummy",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+    }
+  }
+  object full extends Module {
+
+    object js extends Cross[JsModule]("2.12.20", "2.13.14", "3.7.1")
+    trait JsModule
+        extends ScalaJSModule
+        with PublishModule
+        with SbtPlatformModule
+        with CrossScalaModule
+        with CrossSbtPlatformModule {
+
+      def scalaJSVersion = "1.16.0"
+
+      def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
+        (scalaVersion() match {
+          case "2.12.20" => Seq(
+              "-Xlint:_,-unused",
+              "-Ywarn-numeric-widen",
+              "-Ywarn-unused:_,-nowarn,-privates"
+            )
+          case "2.13.14" =>
+            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Seq("-Wunused")
+          case _       => Nil
+        })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "full"
+
+      def pomSettings = PomSettings(
+        "full",
+        "full",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+    }
+    object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
+    trait JvmModule
+        extends PublishModule
+        with SbtPlatformModule
+        with CrossScalaModule
+        with CrossSbtPlatformModule {
+
+      def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
+        (scalaVersion() match {
+          case "2.12.20" => Seq(
+              "-Xlint:_,-unused",
+              "-Ywarn-numeric-widen",
+              "-Ywarn-unused:_,-nowarn,-privates"
+            )
+          case "2.13.14" =>
+            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Seq("-Wunused")
+          case _       => Nil
+        })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "full"
+
+      def pomSettings = PomSettings(
+        "full",
+        "full",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+    }
+    object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
+    trait NativeModule
+        extends ScalaNativeModule
+        with PublishModule
+        with SbtPlatformModule
+        with CrossScalaModule
+        with CrossSbtPlatformModule {
+
+      def scalaNativeVersion = "0.5.4"
+
+      def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
+        (scalaVersion() match {
+          case "2.12.20" => Seq(
+              "-Xlint:_,-unused",
+              "-Ywarn-numeric-widen",
+              "-Ywarn-unused:_,-nowarn,-privates"
+            )
+          case "2.13.14" =>
+            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Seq("-Wunused")
+          case _       => Nil
+        })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "full"
+
+      def pomSettings = PomSettings(
+        "full",
+        "full",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+    }
+  }
+  object pure extends Module {
+
+    object js extends Cross[JsModule]("2.12.20", "2.13.14", "3.7.1")
+    trait JsModule
+        extends ScalaJSModule
+        with PublishModule
+        with SbtPlatformModule
+        with CrossScalaModule
+        with CrossSbtPlatformModule {
+
+      def scalaJSVersion = "1.16.0"
+
+      def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
+        (scalaVersion() match {
+          case "2.12.20" => Seq(
+              "-Xlint:_,-unused",
+              "-Ywarn-numeric-widen",
+              "-Ywarn-unused:_,-nowarn,-privates"
+            )
+          case "2.13.14" =>
+            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Seq("-Wunused")
+          case _       => Nil
+        })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "pure"
+
+      def pomSettings = PomSettings(
+        "pure",
+        "pure",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+    }
+    object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
+    trait JvmModule
+        extends PublishModule
+        with SbtPlatformModule
+        with CrossScalaModule
+        with CrossSbtPlatformModule {
+
+      def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
+        (scalaVersion() match {
+          case "2.12.20" => Seq(
+              "-Xlint:_,-unused",
+              "-Ywarn-numeric-widen",
+              "-Ywarn-unused:_,-nowarn,-privates"
+            )
+          case "2.13.14" =>
+            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Seq("-Wunused")
+          case _       => Nil
+        })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "pure"
+
+      def pomSettings = PomSettings(
+        "pure",
+        "pure",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+    }
+    object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
+    trait NativeModule
+        extends ScalaNativeModule
+        with PublishModule
+        with SbtPlatformModule
+        with CrossScalaModule
+        with CrossSbtPlatformModule {
+
+      def scalaNativeVersion = "0.5.4"
+
+      def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
+        (scalaVersion() match {
+          case "2.12.20" => Seq(
+              "-Xlint:_,-unused",
+              "-Ywarn-numeric-widen",
+              "-Ywarn-unused:_,-nowarn,-privates"
+            )
+          case "2.13.14" =>
+            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Seq("-Wunused")
+          case _       => Nil
+        })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "pure"
+
+      def pomSettings = PomSettings(
+        "pure",
+        "pure",
+        "",
+        Seq(),
+        VersionControl(None, None, None, None),
+        Seq()
+      )
+
+      def publishVersion = "0.1.0-SNAPSHOT"
+
+    }
+  }
+}

@@ -10,11 +10,12 @@ object MillInitMavenCheckstyleTests extends GitRepoIntegrationTestSuite {
   // errorprone
   // Junit5
   // single module
-  def gitRepoUrl = "https://github.com/checkstyle/checkstyle.git"
-  def gitRepoBranch = "checkstyle-11.0.0"
 
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/checkstyle/checkstyle.git",
+      "checkstyle-11.0.0"
+    ) { tester =>
       import tester.*
 
       os.write(workspacePath / ".mill-jvm-version", "17")

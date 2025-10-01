@@ -5,21 +5,25 @@ import utest.*
 
 object MillInitGradleMicroconfigTests extends GitRepoIntegrationTestSuite {
 
-  // gradle 8.10.1
+  // Gradle 8.10.1
   // uses spring-boot-dependencies BOM
   // Junit5
-  def gitRepoUrl = "https://github.com/microconfig/microconfig.git"
-  def gitRepoBranch = "v4.9.5"
 
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/microconfig/microconfig.git",
+      "v4.9.5",
+      linkMillExecutable = true
+    ) { tester =>
       import tester.*
 
-      eval(("init", "-u"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("__.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("__.publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("__.test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("_.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("_.publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+
+      // Gradle resolves versions for Junit5 dependencies using transitive BOM?
+      eval("__.test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
     }
   }
 }

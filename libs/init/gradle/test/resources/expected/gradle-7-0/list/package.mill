@@ -1,0 +1,19 @@
+package build.list
+
+import mill.javalib._
+import millbuild._
+
+object `package` extends `7.0BaseModule` {
+
+  object test extends MavenTests with TestModule.Junit5 {
+
+    def mvnDeps = super.mvnDeps() ++ Seq(Deps.junitJupiterApi)
+
+    def runMvnDeps = super.runMvnDeps() ++ Seq(Deps.junitJupiterEngine)
+
+    def testParallelism = false
+
+    def testSandboxWorkingDir = false
+  }
+
+}

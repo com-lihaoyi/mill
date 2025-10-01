@@ -5,11 +5,11 @@ import utest.*
 
 object MillInitMavenAntlr4Tests extends GitRepoIntegrationTestSuite {
 
-  def gitRepoUrl = "https://github.com/antlr/antlr4.git"
-  def gitRepoBranch = "v4.11.1"
-
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/antlr/antlr4.git",
+      "v4.11.1"
+    ) { tester =>
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true

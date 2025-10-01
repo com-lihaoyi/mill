@@ -9,11 +9,12 @@ object MillInitMavenByteBuddyTests extends GitRepoIntegrationTestSuite {
   // contains Android module
   // contains C sources for JNA
   // Junit4
-  def gitRepoUrl = "https://github.com/raphw/byte-buddy.git"
-  def gitRepoBranch = "byte-buddy-1.17.7"
 
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/raphw/byte-buddy.git",
+      "byte-buddy-1.17.7"
+    ) { tester =>
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true

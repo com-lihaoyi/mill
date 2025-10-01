@@ -1,11 +1,6 @@
 package mill.main.maven
 
-import org.apache.maven.model.Model
-import org.apache.maven.model.building.{
-  DefaultModelBuilderFactory,
-  DefaultModelBuildingRequest,
-  ModelBuilder
-}
+import org.apache.maven.model.building.*
 import org.apache.maven.model.resolution.ModelResolver
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
 import org.eclipse.aether.repository.{LocalRepository, RemoteRepository}
@@ -13,10 +8,9 @@ import org.eclipse.aether.supplier.RepositorySystemSupplier
 
 import java.io.File
 import java.util.Properties
+import scala.jdk.CollectionConverters.*
 
 /**
- * Builds a [[Model]].
- *
  * The implementation is inspired by [[https://github.com/sbt/sbt-pom-reader/ sbt-pom-reader]].
  */
 class Modeler(
@@ -25,19 +19,24 @@ class Modeler(
     systemProperties: Properties
 ) {
 
-  /** Builds and returns the effective [[Model]] from `pomDir / "pom.xml"`. */
-  def read(pomDir: os.Path): Model =
+  /** Returns the [[ModelBuildingResult]] for `pomDir / "pom.xml"`. */
+  def read(pomDir: os.Path): ModelBuildingResult =
     read((pomDir / "pom.xml").toIO)
 
-  /** Builds and returns the effective [[Model]] from `pomFile`. */
-  def read(pomFile: File): Model = {
+  /** Returns the [[ModelBuildingResult]] for `pomFile`. */
+  def read(pomFile: File): ModelBuildingResult = {
     val request = new DefaultModelBuildingRequest()
     request.setPomFile(pomFile)
     request.setModelResolver(resolver.newCopy())
     request.setSystemProperties(systemProperties)
 
-    val result = builder.build(request)
-    result.getEffectiveModel
+    try {
+      builder.build(request)
+    } catch {
+      case e: ModelBuildingException =>
+        e.getProblems.asScala.foreach(problem => println(s"ignoring $problem"))
+        e.getResult
+    }
   }
 }
 object Modeler {
@@ -66,9 +65,8 @@ object Modeler {
     )
 
   def defaultSystemProperties: Properties = {
-    val props = new Properties()
-    sys.env.foreachEntry((k, v) => props.put(s"env.$k", v))
-    sys.props.foreachEntry(props.put)
+    val props = new Properties(System.getProperties)
+    System.getenv().forEach((k, v) => props.put(s"env.$k", v))
     props
   }
 }

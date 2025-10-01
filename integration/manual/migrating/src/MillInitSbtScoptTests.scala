@@ -9,11 +9,12 @@ object MillInitSbtScoptTests extends GitRepoIntegrationTestSuite {
   // cross Scala versions 2.11.12 2.12.16 2.13.8 3.1.3
   // sbt-crossproject 1.0.0
   // single cross-platform/version root module
-  def gitRepoUrl = "https://github.com/scopt/scopt.git"
-  def gitRepoBranch = "v4.1.0"
 
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/scopt/scopt.git",
+      "v4.1.0"
+    ) { tester =>
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true

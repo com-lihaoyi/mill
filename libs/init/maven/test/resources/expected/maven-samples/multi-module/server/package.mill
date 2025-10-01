@@ -9,13 +9,15 @@ object `package` extends MavenSamplesBaseModule {
   def javacOptions = super.javacOptions() ++
     Seq("-source", "1.6", "-target", "1.6")
 
+  def artifactName = "server"
+
   def pomParentProject = Some(
     Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
   )
 
   def pomSettings = PomSettings(
     "Logic.",
-    "",
+    "com.example.maven-samples",
     "http://www.example.com/server",
     Seq(),
     VersionControl(
@@ -27,15 +29,16 @@ object `package` extends MavenSamplesBaseModule {
     Seq()
   )
 
-  def artifactMetadata =
-    Artifact("com.example.maven-samples", "server", "1.0-SNAPSHOT")
+  def jvmId = "zulu:11"
 
   object test extends MavenTests with TestModule.Junit4 {
 
-    def mandatoryMvnDeps = super.mandatoryMvnDeps() ++ Seq(Deps.junitDep)
-
-    def mvnDeps = super.mvnDeps() ++
-      Seq(Deps.hamcrestCore, Deps.hamcrestLibrary, Deps.mockitoCore)
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      Deps.junitDep,
+      Deps.hamcrestCore,
+      Deps.hamcrestLibrary,
+      Deps.mockitoCore
+    )
 
     def forkWorkingDir = moduleDir
 

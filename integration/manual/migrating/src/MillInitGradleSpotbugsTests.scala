@@ -10,15 +10,16 @@ object MillInitGradleSpotbugsTests extends GitRepoIntegrationTestSuite {
   // dependencies with version constraints
   // custom layout
   // Junit5
-  def gitRepoUrl = "https://github.com/spotbugs/spotbugs.git"
-  def gitRepoBranch = "4.9.4"
 
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/spotbugs/spotbugs.git",
+      "4.9.4"
+    ) { tester =>
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval(("resolve", "__.compile"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval(
         "spotbugs-annotations.compile",
         stdout = os.Inherit,
@@ -30,7 +31,7 @@ object MillInitGradleSpotbugsTests extends GitRepoIntegrationTestSuite {
         stderr = os.Inherit
       ).isSuccess ==> true
 
-      // missing sources from custom layout
+      // custom source directory not supported
       eval("spotbugs-tests.test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
     }
   }

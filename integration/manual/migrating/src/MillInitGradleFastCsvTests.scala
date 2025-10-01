@@ -8,25 +8,27 @@ object MillInitGradleFastCsvTests extends GitRepoIntegrationTestSuite {
   // gradle 9.0.0-rc-1
   // Junit5
   // uses ErrorProne
-  def gitRepoUrl = "https://github.com/osiegmar/FastCSV.git"
-  def gitRepoBranch = "v4.0.0"
 
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/osiegmar/FastCSV.git",
+      "v4.0.0"
+    ) { tester =>
       import tester.*
 
-      os.write(workspacePath / ".mill-jvm-version", "17")
-
-      eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval(
+        ("init", "--gradle-jvm-id", "17"),
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      ).isSuccess ==> true
+      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("lib.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("lib.publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
-      // requires support for Java modules
+      // unlike Gradle, Mill does not autoconfigure javac --module-path"
       eval("example.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
 
-      // junit-platform-launcher version is set implicitly (tasks.test.useJunitPlatform())
-      // https://docs.gradle.org/8.14.3/userguide/upgrading_version_8.html#test_framework_implementation_dependencies
+      // junit-platform-launcher version is autoconfigured by Gradle
       eval("lib.test.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
     }
   }

@@ -8,10 +8,12 @@ import mill.api.Task
 trait SbtModule extends ScalaModule with MavenModule {
 
   override def sourcesFolders = sourcesFolders0 ++ Seq("src/main/scala")
-  override def sources = Task.Sources(sourcesFolders*) // replicated for binary compatibility
+  // Bincompat stub
+  override def sources = Task.Sources(sourcesFolders*)
 
   trait SbtTests extends ScalaTests with MavenTests with SbtModule {
     override def sourcesFolders = sourcesFolders0 ++ Seq(os.sub / "src" / testModuleName / "scala")
-    override def sources = Task.Sources(sourcesFolders*) // replicated for binary compatibility
+    // Bincompat stub
+    override def sources = Task.Sources(sourcesFolders*)
   }
 }

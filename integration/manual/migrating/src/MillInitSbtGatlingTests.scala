@@ -7,21 +7,26 @@ object MillInitSbtGatlingTests extends GitRepoIntegrationTestSuite {
 
   // sbt 1.10.11
   // Scala version 2.13.16
-  def gitRepoUrl = "https://github.com/gatling/gatling.git"
-  def gitRepoBranch = "v3.14.3"
 
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/gatling/gatling.git",
+      "v3.14.3"
+    ) { tester =>
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval(("resolve", "__.compile"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("__.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
-      eval("__.publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
-
-      // missing resource bundle
+      // io.gatling.charts.result.reader.LogFileReaderSpec fails due to missing resource bundle
       eval("__.test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
+      // ByteBufUtils.java:33: error: illegal cyclic reference involving class Utf8ByteBufCharsetDecoder
+      eval(
+        "gatling-netty-util.scalaDocGenerated",
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      ).isSuccess ==> false
     }
   }
 }

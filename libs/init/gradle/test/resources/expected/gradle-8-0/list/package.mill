@@ -1,0 +1,36 @@
+package build.list
+
+import mill.javalib._
+import mill.javalib.errorprone._
+import millbuild._
+
+object `package` extends ErrorProneModule with `8.0BaseModule` {
+
+  def errorProneVersion = "2.28.0"
+
+  def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
+    Seq(
+      "-XDcompilePolicy=simple",
+      "-XDshould-stop.ifError=FLOW",
+      "-XDshouldStopPolicyIfError=FLOW"
+    )
+
+  object test extends MavenTests with ErrorProneModule with TestModule.Junit5 {
+
+    def mvnDeps = super.mvnDeps() ++ Seq(Deps.junitJupiter)
+
+    def errorProneVersion = "2.28.0"
+
+    def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
+      Seq(
+        "-XDcompilePolicy=simple",
+        "-XDshould-stop.ifError=FLOW",
+        "-XDshouldStopPolicyIfError=FLOW"
+      )
+
+    def testParallelism = false
+
+    def testSandboxWorkingDir = false
+  }
+
+}

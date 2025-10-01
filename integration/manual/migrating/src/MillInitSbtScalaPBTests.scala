@@ -6,11 +6,12 @@ import utest.*
 object MillInitSbtScalaPBTests extends GitRepoIntegrationTestSuite {
 
   // sbt 1.11.2
-  def gitRepoUrl = "https://github.com/scalapb/ScalaPB.git"
-  def gitRepoBranch = "v0.11.19"
 
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/scalapb/ScalaPB.git",
+      "v0.11.19"
+    ) { tester =>
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true

@@ -6,11 +6,12 @@ import utest.*
 object MillInitMavenJodaBeansTests extends GitRepoIntegrationTestSuite {
 
   // single module
-  def gitRepoUrl = "https://github.com/JodaOrg/joda-beans.git"
-  def gitRepoBranch = "v2.11.1"
 
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/JodaOrg/joda-beans.git",
+      "v2.11.1"
+    ) { tester =>
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true

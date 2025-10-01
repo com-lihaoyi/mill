@@ -7,11 +7,12 @@ object MillInitMavenNettyTests extends GitRepoIntegrationTestSuite {
 
   // maven 3.9.10
   // dynamic classifiers/properties
-  def gitRepoUrl = "https://github.com/netty/netty.git"
-  def gitRepoBranch = "netty-4.2.4.Final"
 
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/netty/netty.git",
+      "netty-4.2.4.Final"
+    ) { tester =>
       import tester.*
 
       eval(

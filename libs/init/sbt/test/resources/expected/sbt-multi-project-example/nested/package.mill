@@ -1,6 +1,5 @@
 package build.nested
 
-import mill.api._
-import millbuild._
+import mill._
 
 object `package` extends Module {}

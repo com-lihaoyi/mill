@@ -8,11 +8,12 @@ object MillInitSbtRefinedTests extends GitRepoIntegrationTestSuite {
   // sbt 1.10.7
   // cross Scala versions 2.12.20 2.13.15 3.3.4
   // sbt-crossproject 1.3.2
-  def gitRepoUrl = "https://github.com/fthomas/refined.git"
-  def gitRepoBranch = "v0.11.3"
 
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/fthomas/refined.git",
+      "v0.11.3"
+    ) { tester =>
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true

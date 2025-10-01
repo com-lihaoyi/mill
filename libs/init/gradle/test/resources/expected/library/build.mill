@@ -1,8 +1,0 @@
-//| mill-version: SNAPSHOT
-//| mill-jvm-version: 11
-package build
-
-import mill.api._
-import millbuild._
-
-object `package` extends Module {}

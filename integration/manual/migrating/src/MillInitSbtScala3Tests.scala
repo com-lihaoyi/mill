@@ -7,11 +7,12 @@ object MillInitSbtScala3Tests extends GitRepoIntegrationTestSuite {
 
   // sbt 1.11.0
   // Scala version 3.7.0
-  def gitRepoUrl = "https://github.com/scala/scala3.git"
-  def gitRepoBranch = "3.7.1"
 
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/scala/scala3.git",
+      "3.7.1"
+    ) { tester =>
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true

@@ -43,8 +43,6 @@ object MillInitGradleFastCsvTests extends BuildGenTestSuite {
     val url = "https://github.com/osiegmar/FastCSV/archive/refs/tags/v3.4.0.zip"
 
     test - integrationTest(url) { tester =>
-      writeMillJvmVersion(tester.workspacePath, "17")
-
       testMillInit(
         tester,
         initCommand = Seq("init"),
@@ -72,17 +70,17 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
   def tests: Tests = Tests {
     // - multi-level modules
     // - additional repository (Terracotta)
-    // - JUnit 5
-    // - Gradle 7.6.2
+    // - JUnit 4
+    // - Gradle 7.2
     val url = "https://github.com/ehcache/ehcache3/archive/refs/tags/v3.10.8.zip"
 
     test - integrationTest(url) { tester =>
       // Takes forever on windows
       if (!Util.isWindows) {
-        writeMillJvmVersionTemurin11(tester.workspacePath)
         testMillInit(
           tester,
-          initCommand = Seq("init"),
+          // Gradle 7.2 does not support JDK 17+
+          initCommand = Seq("init", "--gradle-jvm-id", "11"),
           expectedAllSourceFileNums = Map(
             "ehcache-xml.test.allSourceFiles" -> 55,
             "ehcache-xml.ehcache-xml-spi.allSourceFiles" -> 7,

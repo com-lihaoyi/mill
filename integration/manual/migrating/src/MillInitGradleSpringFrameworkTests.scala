@@ -5,25 +5,30 @@ import utest.*
 
 object MillInitGradleSpringFrameworkTests extends GitRepoIntegrationTestSuite {
 
-  // gradle 8.14.3
+  // Gradle 8.14.3
   // custom repository
   // dependencies with version constraints
   // BOM modules
   // uses errorprone
-  def gitRepoUrl = "https://github.com/spring-projects/spring-framework.git"
-  def gitRepoBranch = "v6.2.10"
 
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/spring-projects/spring-framework.git",
+      "v6.2.11",
+      linkMillExecutable = true
+    ) { tester =>
       import tester.*
 
-      os.write(workspacePath / ".mill-jvm-version", "17")
+      // JDK 17 is for release but JDK 24 is required for javadoc
+      eval(
+        ("init", "--gradle-jvm-id", "24"),
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      ).isSuccess ==> true
+      eval(("resolve", "__.compile"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
-      eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-
-      // requires support for dependency version constraints
-      eval("spring-jcl.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
+      // local BOM module not supported
+      eval("spring-core.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
     }
   }
 }

@@ -9,11 +9,13 @@ object `package` extends MavenSamplesBaseModule {
   def javacOptions = super.javacOptions() ++
     Seq("-source", "1.6", "-target", "1.6")
 
+  def artifactName = "multi-module-parent"
+
   def pomPackagingType = "pom"
 
   def pomSettings = PomSettings(
     "Sample multi module Maven project with a working, deployable site.",
-    "",
+    "com.example.maven-samples",
     "http://www.example.com",
     Seq(),
     VersionControl(
@@ -25,7 +27,11 @@ object `package` extends MavenSamplesBaseModule {
     Seq()
   )
 
-  def artifactMetadata =
-    Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
+  def publishProperties = super.publishProperties() ++ Map(
+    ("project.build.sourceEncoding", "utf-8"),
+    ("project.reporting.outputEncoding", "utf-8")
+  )
+
+  def jvmId = "zulu:11"
 
 }

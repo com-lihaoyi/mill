@@ -1,0 +1,200 @@
+//| mill-version: SNAPSHOT
+//| mill-jvm-version: zulu:21
+//| mill-jvm-opts: []
+package build
+
+import mill.javalib._
+import mill.javalib.publish._
+
+object `package` extends MavenModule with PublishModule {
+
+  def artifactName = "parent"
+
+  def pomPackagingType = "pom"
+
+  def pomSettings = PomSettings(
+    "Just a pom that makes it easy to build both projects at the same time.",
+    "com.example.maven-samples",
+    "",
+    Seq(),
+    VersionControl(None, None, None, None),
+    Seq()
+  )
+
+  def publishVersion = "1.0-SNAPSHOT"
+
+  object `multi-module` extends MavenModule with PublishModule {
+
+    def javacOptions = super.javacOptions() ++
+      Seq("-source", "1.6", "-target", "1.6")
+
+    def artifactName = "multi-module-parent"
+
+    def pomPackagingType = "pom"
+
+    def pomSettings = PomSettings(
+      "Sample multi module Maven project with a working, deployable site.",
+      "com.example.maven-samples",
+      "http://www.example.com",
+      Seq(),
+      VersionControl(
+        Some("http://github.com/gabrielf/maven-samples"),
+        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+        Some("HEAD")
+      ),
+      Seq()
+    )
+
+    def publishVersion = "1.0-SNAPSHOT"
+
+    def publishProperties = super.publishProperties() ++ Map(
+      ("project.build.sourceEncoding", "utf-8"),
+      ("project.reporting.outputEncoding", "utf-8")
+    )
+
+    def jvmId = "zulu:11"
+
+    object server extends MavenModule with PublishModule {
+
+      def javacOptions = super.javacOptions() ++
+        Seq("-source", "1.6", "-target", "1.6")
+
+      def artifactName = "server"
+
+      def pomParentProject = Some(Artifact(
+        "com.example.maven-samples",
+        "multi-module-parent",
+        "1.0-SNAPSHOT"
+      ))
+
+      def pomSettings = PomSettings(
+        "Logic.",
+        "com.example.maven-samples",
+        "http://www.example.com/server",
+        Seq(),
+        VersionControl(
+          Some("http://github.com/gabrielf/maven-samples/server"),
+          Some("scm:git:git@github.com:gabrielf/maven-samples.git/server"),
+          Some("scm:git:git@github.com:gabrielf/maven-samples.git/server"),
+          Some("HEAD")
+        ),
+        Seq()
+      )
+
+      def publishVersion = "1.0-SNAPSHOT"
+
+      def jvmId = "zulu:11"
+
+      object test extends MavenTests with TestModule.Junit4 {
+
+        def mvnDeps = super.mvnDeps() ++ Seq(
+          mvn"junit:junit-dep:4.10",
+          mvn"org.hamcrest:hamcrest-core:1.2.1",
+          mvn"org.hamcrest:hamcrest-library:1.2.1",
+          mvn"org.mockito:mockito-core:1.8.5"
+        )
+
+        def forkWorkingDir = moduleDir
+
+        def testParallelism = false
+
+        def testSandboxWorkingDir = false
+      }
+
+    }
+    object webapp extends MavenModule with PublishModule {
+
+      def compileMvnDeps = super.compileMvnDeps() ++ Seq(
+        mvn"javax.servlet:servlet-api:2.5",
+        mvn"javax.servlet.jsp:jsp-api:2.2"
+      )
+
+      def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
+
+      def javacOptions = super.javacOptions() ++
+        Seq("-source", "1.6", "-target", "1.6")
+
+      def artifactName = "webapp"
+
+      def pomPackagingType = "war"
+
+      def pomParentProject = Some(Artifact(
+        "com.example.maven-samples",
+        "multi-module-parent",
+        "1.0-SNAPSHOT"
+      ))
+
+      def pomSettings = PomSettings(
+        "Webapp.",
+        "com.example.maven-samples",
+        "http://www.example.com/webapp",
+        Seq(),
+        VersionControl(
+          Some("http://github.com/gabrielf/maven-samples/webapp"),
+          Some("scm:git:git@github.com:gabrielf/maven-samples.git/webapp"),
+          Some("scm:git:git@github.com:gabrielf/maven-samples.git/webapp"),
+          Some("HEAD")
+        ),
+        Seq()
+      )
+
+      def publishVersion = "1.0-SNAPSHOT"
+
+      def jvmId = "zulu:11"
+
+    }
+  }
+  object `single-module` extends MavenModule with PublishModule {
+
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"javax.servlet:servlet-api:2.5",
+      mvn"javax.servlet.jsp:jsp-api:2.2"
+    )
+
+    def javacOptions = super.javacOptions() ++
+      Seq("-source", "1.6", "-target", "1.6")
+
+    def artifactName = "single-module-project"
+
+    def pomSettings = PomSettings(
+      "Sample single module Maven project with a working, deployable site.",
+      "com.example.maven-samples",
+      "http://www.example.com",
+      Seq(),
+      VersionControl(
+        Some("http://github.com/gabrielf/maven-samples"),
+        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+        Some("HEAD")
+      ),
+      Seq()
+    )
+
+    def publishVersion = "1.0-SNAPSHOT"
+
+    def publishProperties = super.publishProperties() ++ Map(
+      ("project.build.sourceEncoding", "utf-8"),
+      ("project.reporting.outputEncoding", "utf-8")
+    )
+
+    def jvmId = "zulu:11"
+
+    object test extends MavenTests with TestModule.Junit4 {
+
+      def mvnDeps = super.mvnDeps() ++ Seq(
+        mvn"junit:junit-dep:4.10",
+        mvn"org.hamcrest:hamcrest-core:1.2.1",
+        mvn"org.hamcrest:hamcrest-library:1.2.1",
+        mvn"org.mockito:mockito-core:1.8.5"
+      )
+
+      def forkWorkingDir = moduleDir
+
+      def testParallelism = false
+
+      def testSandboxWorkingDir = false
+    }
+
+  }
+}

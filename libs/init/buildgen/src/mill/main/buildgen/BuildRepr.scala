@@ -1,42 +1,59 @@
 package mill.main.buildgen
 
+import mill.main.buildgen.BuildInfo.millJvmVersion
+import mill.util.BuildInfo.millVersion
+
 /**
- * A representation for a build defined as a tree of packages, where a package is a tree of modules.
+ * A build represented as a [[Tree]] of packages where each package corresponds to a build file
+ * containing a [[Tree]] of modules.
  */
-type BuildRepr = Tree[Tree[ModuleRepr]]
-object BuildRepr {
+case class BuildRepr(
+    packages: Tree[Tree[ModuleRepr]],
+    metaBuild: Option[MetaBuildRepr] = None,
+    millVersion: String = millVersion,
+    millJvmVersion: String = millJvmVersion,
+    millJvmOpts: Seq[String] = Nil
+) {
 
-  /**
-   * Returns a build with empty packages added for intermediate segments not in the given list.
-   */
-  def fill(packages: Seq[Tree[ModuleRepr]]): BuildRepr = Tree.from(Seq.empty[String]): segments =>
-    val pkg = packages.find(_.root.segments == segments).getOrElse(Tree(ModuleRepr(segments)))
-    val nextDepth = segments.length + 1
-    val children = packages.iterator.collect:
-      case pkg
-          if pkg.root.segments.startsWith(segments) && pkg.root.segments.length >= nextDepth =>
-        pkg.root.segments.take(nextDepth)
-    .distinct.toSeq
-    (pkg, children.sortBy(os.sub / _))
-
-  /**
-   * A build transformation that moves modules in nested packages into the root package.
-   */
-  def merged(packages: BuildRepr) = {
-    def canUnify(pkg: Tree[Tree[ModuleRepr]], into: Seq[Tree[ModuleRepr]]): Boolean =
-      into.forall: modules =>
-        modules.root.segments.last != pkg.root.root.segments.last &&
-          !modules.root.testModule.exists(_.name == pkg.root.root.segments.last) &&
-          pkg.children.forall(canUnify(_, pkg.root.children))
-    val (unify, nested) = packages.children.partition(canUnify(_, packages.root.children))
-    if (unify.isEmpty) packages
+  def merged: BuildRepr = copy(packages = {
+    def canMerge(packages: Tree[Tree[ModuleRepr]], siblings: Seq[Tree[ModuleRepr]]): Boolean =
+      siblings.forall(pkg =>
+        pkg.root.segments.last != packages.root.root.segments.last &&
+          packages.children.forall(canMerge(_, packages.root.children))
+      )
+    val (merge, nested) = packages.children.partition(canMerge(_, packages.root.children))
+    if (merge.isEmpty) packages
     else Tree(
       packages.root.copy(children =
-        packages.root.children ++ unify.map: pkg =>
-          pkg.transform: (root, children) =>
-            root.copy(children = root.children ++ children)
+        packages.root.children ++ merge.map(pkg =>
+          pkg.transform((root, children) => root.copy(children = root.children ++ children))
+        )
       ),
       nested
     )
+  })
+
+  def withMetaBuild = if (metaBuild.nonEmpty) this
+  else {
+    val (packages0, metaBuild0) = MetaBuildRepr.of(packages)
+    copy(packages = packages0, metaBuild = Some(metaBuild0))
   }
+}
+object BuildRepr {
+
+  /**
+   * Returns a build with empty packages introduced for intermediate segments not in `packages`.
+   */
+  def fill(packages: Seq[Tree[ModuleRepr]]): BuildRepr = apply(
+    packages = Tree.from(Seq.empty[String]) { segments =>
+      val pkg = packages.find(_.root.segments == segments).getOrElse(Tree(ModuleRepr(segments)))
+      val nextDepth = segments.length + 1
+      val children = packages.iterator.collect {
+        case pkg
+            if pkg.root.segments.startsWith(segments) && pkg.root.segments.length >= nextDepth =>
+          pkg.root.segments.take(nextDepth)
+      }.distinct.toSeq
+      (pkg, children.sortBy(os.sub / _))
+    }
+  )
 }

@@ -24,12 +24,12 @@ object `package` extends SbtMultiProjectExampleBaseModule {
     "com.pbassiner",
     "https://github.com/com-lihaoyi/mill",
     Seq(License(
-      "Apache-2.0",
+      "",
       "Apache-2.0",
       "https://www.apache.org/licenses/LICENSE-2.0.txt",
       false,
       false,
-      ""
+      "repo"
     )),
     VersionControl(
       Some("https://github.com/com-lihaoyi/mill"),
@@ -40,12 +40,9 @@ object `package` extends SbtMultiProjectExampleBaseModule {
     Seq(Developer("johnd", "John Doe", "https://example.com/johnd", None, None))
   )
 
-  def artifactMetadata = Artifact("com.pbassiner", "multi2", "0.1.0-SNAPSHOT")
-
   object test extends SbtTests with TestModule.ScalaTest {
 
-    def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
-      Seq(Deps.scalatest, Deps.scalacheck)
+    def mvnDeps = super.mvnDeps() ++ Seq(Deps.scalatest, Deps.scalacheck)
 
     def testParallelism = false
 

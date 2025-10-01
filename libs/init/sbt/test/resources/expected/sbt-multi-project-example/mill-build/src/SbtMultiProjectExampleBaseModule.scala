@@ -22,4 +22,9 @@ trait SbtMultiProjectExampleBaseModule extends PublishModule with SbtModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
+  def repositories = super.repositories() ++ Seq(
+    "https://oss.sonatype.org/service/local/repositories/releases/content/",
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  )
+
 }

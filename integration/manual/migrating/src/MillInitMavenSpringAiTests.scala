@@ -9,11 +9,12 @@ object MillInitMavenSpringAiTests extends GitRepoIntegrationTestSuite {
   // custom repositories
   // contains BOM module
   // transitive test framework dependency
-  def gitRepoUrl = "https://github.com/spring-projects/spring-ai.git"
-  def gitRepoBranch = "v1.0.1"
 
   def tests = Tests {
-    test - integrationTest { tester =>
+    test - integrationTestGitRepo(
+      "https://github.com/spring-projects/spring-ai.git",
+      "v1.0.1"
+    ) { tester =>
       import tester.*
 
       os.write(workspacePath / ".mill-jvm-version", "17")

@@ -12,10 +12,11 @@ import java.nio.file.Path
  */
 trait MavenModule extends JavaModule { outer =>
 
-  // added for binary compatibility
+  // Bincompat stub
   private[mill] def sourcesFolders0 = Seq(os.sub / "src/main/java")
   override def sourcesFolders = sourcesFolders0
-  override def sources = Task.Sources(sourcesFolders*) // replicated for binary compatibility
+  // Bincompat stub
+  override def sources = Task.Sources(sourcesFolders*)
   override def resources = Task.Sources("src/main/resources")
 
   trait MavenTests extends JavaTests with MavenModule {
@@ -30,10 +31,11 @@ trait MavenModule extends JavaModule { outer =>
     private[mill] override def intellijModulePathJava: Path =
       (outer.moduleDir / "src" / testModuleName).toNIO
 
-    // added for binary compatibility
+    // Bincompat stub
     private[mill] override def sourcesFolders0 = Seq(os.sub / "src" / testModuleName / "java")
     override def sourcesFolders = sourcesFolders0
-    override def sources = Task.Sources(sourcesFolders*) // replicated for binary compatibility
+    // Bincompat stub
+    override def sources = Task.Sources(sourcesFolders*)
     override def resources = Task.Sources(moduleDir / "src" / testModuleName / "resources")
   }
 }

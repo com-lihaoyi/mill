@@ -24,11 +24,9 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
     val testRoot = os.pwd / tp.value
     os.copy.over(sourceRoot / sourceRel, testRoot, createFolders = true, replaceExisting = true)
 
-    // gen
     os.dynamicPwd.withValue(testRoot)(generate)
 
-    // fmt
-    val buildFiles = mill.init.Util.buildFiles(testRoot)
+    val buildFiles = Util.buildFiles(testRoot)
     object module extends TestRootModule with ScalafmtModule {
       override def filesToFormat(sources: Seq[PathRef]): Seq[PathRef] = buildFiles.map(PathRef(_))
 
