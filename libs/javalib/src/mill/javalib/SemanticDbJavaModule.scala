@@ -236,7 +236,7 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
     )
   }
 
-  private val userCodeStartMarker = "//SOURCECODE_ORIGINAL_CODE_START_MARKER"
+  private val userCodeStartMarker = "///SOURCE_CODE_START"
 
   private def postProcessed(
       generatedSourceSemdb: os.Path,
@@ -255,7 +255,7 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
       val generatedSource = sourceroot / generatedSourceSubPath
       val generatedSourceLines = os.read.lines(generatedSource)
       val source = generatedSourceLines
-        .collectFirst { case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => os.Path(rest.trim) }
+        .collectFirst { case s"///SOURCE_CODE_START:$rest" => os.Path(rest.trim) }
         .getOrElse {
           sys.error(s"Cannot get original source from generated source $generatedSource")
         }
