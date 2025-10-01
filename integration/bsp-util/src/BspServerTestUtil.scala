@@ -65,7 +65,7 @@ object BspServerTestUtil {
     val jsonStr = normalizeLocalValues(
       gson.toJson(
         value,
-        implicitly[ClassTag[T]].runtimeClass
+        summon[ClassTag[T]].runtimeClass
       )
     )
 

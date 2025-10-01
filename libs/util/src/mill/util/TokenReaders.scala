@@ -30,7 +30,7 @@ trait TokenReaders {
   implicit def millArgsTokenReader: mainargs.TokensReader.ShortNamed[Args] =
     new TokensReader.Leftover[Args, String] {
       def read(strs: Seq[String]) = Right(new Args(strs))
-      def shortName = implicitly[TokensReader.ShortNamed[String]].shortName
+      def shortName = summon[TokensReader.ShortNamed[String]].shortName
     }
 
   implicit def millTaskTokenReader[T](using

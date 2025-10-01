@@ -254,7 +254,7 @@ object CoursierModule {
     )(using ctx: mill.api.TaskCtx): Seq[PathRef] =
       Lib.resolveDependencies(
         repositories = repositories,
-        deps = deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
+        deps = deps.iterator.map(summon[CoursierModule.Resolvable[T]].bind(_, bind)),
         sources = sources,
         artifactTypes = artifactTypes,
         mapDependencies = Option(mapDependencies).getOrElse(this.mapDependencies),
@@ -276,7 +276,7 @@ object CoursierModule {
     )(using ctx: mill.api.TaskCtx): coursier.core.Resolution = {
       val deps0 = deps
         .iterator
-        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+        .map(summon[CoursierModule.Resolvable[T]].bind(_, bind))
         .toSeq
       Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
@@ -301,7 +301,7 @@ object CoursierModule {
     )(using ctx: mill.api.TaskCtx): coursier.Artifacts.Result = {
       val deps0 = deps
         .iterator
-        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+        .map(summon[CoursierModule.Resolvable[T]].bind(_, bind))
         .toSeq
       Jvm.getArtifacts(
         repositories,

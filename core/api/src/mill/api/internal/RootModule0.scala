@@ -18,8 +18,8 @@ abstract class RootModule0(
     millFile0: sourcecode.File
 ) extends Module.BaseClass(using
       mill.api.ModuleCtx.makeRoot(
-        implicitly,
-        implicitly,
+        summon,
+        summon,
         millSourcePath0,
         Segments(),
         external0,

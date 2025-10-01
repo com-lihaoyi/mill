@@ -8,5 +8,5 @@ object Show {
 
 object Example {
   def main(args: Array[String]): Unit =
-    println(implicitly[Show[Option[String]]])
+    println(summon[Show[Option[String]]])
 }
