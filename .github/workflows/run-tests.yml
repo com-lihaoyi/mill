@@ -65,6 +65,9 @@ jobs:
       matrix:
           # Run these with Mill native launcher as a smoketest
         include:
+          - os: ubuntu-24.04-arm
+            millargs: "'example.thirdparty[{mockito,netty,arrow}].native.daemon'"
+            java-version: 17
 
           - os: macos-latest
             millargs: "'example.thirdparty[{acyclic,fansi,gatling}].native.daemon'"
