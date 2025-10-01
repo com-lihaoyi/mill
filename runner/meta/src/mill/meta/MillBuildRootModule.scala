@@ -26,7 +26,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
  * calls within the scripts.
  */
 @internal
-trait MillBuildRootModule()(implicit
+trait MillBuildRootModule()(using
     rootModuleInfo: RootModule.Info
 ) extends ScalaModule {
   override def bspDisplayName0: String = rootModuleInfo

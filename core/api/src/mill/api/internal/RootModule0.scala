@@ -12,7 +12,7 @@ import mill.api.{Discover, Module}
 abstract class RootModule0(
     millSourcePath0: os.Path,
     external0: Boolean = false
-)(implicit
+)(using
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File

@@ -257,7 +257,7 @@ trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.api
    * scope. This is often the first cross module whose cross-version is
    * compatible with the current module.
    */
-  def apply[V >: M <: Cross.Module[?]]()(implicit resolver: Cross.Resolver[V]): M = {
+  def apply[V >: M <: Cross.Module[?]]()(using resolver: Cross.Resolver[V]): M = {
     resolver.resolve(this.asInstanceOf[Cross[V]]).asInstanceOf[M]
   }
 }
