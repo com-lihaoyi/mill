@@ -82,7 +82,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       exitCode: Int,
       output: PathRef,
       format: String
-  )(implicit ctx: TaskCtx): Int = {
+  )(using ctx: TaskCtx): Int = {
     exitCode match
       case 0 => Task.log.info("No violations found and no recoverable error occurred.")
       case 1 => Task.log.error("PMD finished with an exception.")
@@ -100,7 +100,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       output: PathRef,
       format: String,
       stdout: Boolean
-  )(implicit ctx: TaskCtx): Option[Int] = {
+  )(using ctx: TaskCtx): Option[Int] = {
     var violationCount: Option[Int] = None
     val lines = os.read.lines(output.path)
     if (lines.nonEmpty) {
@@ -130,7 +130,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
   private def reportViolations(
       failOnViolation: Boolean,
       violationCount: Option[Int]
-  )(implicit ctx: TaskCtx): Unit = {
+  )(using ctx: TaskCtx): Unit = {
     val msg = s"PMD found ${violationCount.getOrElse("some")} violation(s)"
     if (failOnViolation) Task.fail(msg)
     else Task.log.error(msg)

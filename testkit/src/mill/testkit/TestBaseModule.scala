@@ -7,7 +7,7 @@ import mill.api.internal.RootModule0
  */
 abstract class TestRootModule(
     baseModuleSourcePath: os.Path
-)(implicit
+)(using
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millModuleFile0: sourcecode.File
@@ -17,7 +17,7 @@ abstract class TestRootModule(
       millModuleLine0,
       millModuleFile0
     ) {
-  def this()(implicit
+  def this()(using
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
       millModuleFile0: sourcecode.File

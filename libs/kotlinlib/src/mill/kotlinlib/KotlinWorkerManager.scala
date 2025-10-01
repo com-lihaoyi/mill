@@ -10,7 +10,7 @@ import mill.api.{Discover, ExternalModule, TaskCtx}
 import mill.kotlinlib.worker.api.KotlinWorker
 import mill.util.ClassLoaderCachedFactory
 
-class KotlinWorkerManager()(implicit ctx: TaskCtx)
+class KotlinWorkerManager()(using ctx: TaskCtx)
     extends ClassLoaderCachedFactory[KotlinWorker](ctx.jobs) {
 
   def getValue(cl: ClassLoader) = KotlinWorkerManager.get(cl)
@@ -21,7 +21,7 @@ object KotlinWorkerManager extends ExternalModule {
     new KotlinWorkerManager()
   }
 
-  def get(toolsClassLoader: ClassLoader)(implicit ctx: TaskCtx): KotlinWorker = {
+  def get(toolsClassLoader: ClassLoader)(using ctx: TaskCtx): KotlinWorker = {
     val className =
       classOf[KotlinWorker].getPackage().getName().split("\\.").dropRight(1).mkString(
         "."

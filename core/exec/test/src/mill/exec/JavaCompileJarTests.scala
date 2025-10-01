@@ -12,7 +12,7 @@ import mill.*
 import mill.api.{Discover, Task}
 
 object JavaCompileJarTests extends TestSuite {
-  def compileAll(sources: Seq[PathRef])(implicit ctx: Dest) = {
+  def compileAll(sources: Seq[PathRef])(using ctx: Dest) = {
     os.makeDir.all(ctx.dest)
 
     os.proc("javac", sources.map(_.path.toString()).toSeq, "-d", ctx.dest).call(ctx.dest)

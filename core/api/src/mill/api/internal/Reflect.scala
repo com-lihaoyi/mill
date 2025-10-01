@@ -88,7 +88,7 @@ private[mill] object Reflect {
 
     val first = reflect(
       outerCls,
-      implicitly[ClassTag[T]].runtimeClass,
+      summon[ClassTag[T]].runtimeClass,
       filter,
       noParams = true,
       getMethods
@@ -106,7 +106,7 @@ private[mill] object Reflect {
     }
     val second = (Array(outerCls) ++ companionClassOpt)
       .flatMap(_.getClasses)
-      .filter(implicitly[ClassTag[T]].runtimeClass.isAssignableFrom(_))
+      .filter(summon[ClassTag[T]].runtimeClass.isAssignableFrom(_))
       .flatMap { c =>
         c.getName.stripPrefix(outerCls.getName) match {
           case s"$name$$" if filter(scala.reflect.NameTransformer.decode(name)) =>

@@ -522,7 +522,7 @@ object BomTests extends TestSuite {
   def expectedProtobufJarName = s"protobuf-java-$expectedProtobufJavaVersion.jar"
   def expectedCommonsCompressJarName = s"commons-compress-$expectedCommonsCompressVersion.jar"
 
-  def compileClasspathFileNames(module: JavaModule)(implicit
+  def compileClasspathFileNames(module: JavaModule)(using
       eval: UnitTester
   ): Seq[String] =
     eval(module.compileClasspath).right.get.value
@@ -532,7 +532,7 @@ object BomTests extends TestSuite {
       module: JavaModule,
       fileName: String,
       jarCheck: Option[String => Boolean] = None
-  )(implicit
+  )(using
       eval: UnitTester
   ) = {
     val fileNames = compileClasspathFileNames(module)
@@ -541,7 +541,7 @@ object BomTests extends TestSuite {
       assert(check(fileName))
   }
 
-  def runtimeClasspathFileNames(module: JavaModule)(implicit
+  def runtimeClasspathFileNames(module: JavaModule)(using
       eval: UnitTester
   ): Seq[String] =
     eval(module.runClasspath).right.get.value
@@ -551,7 +551,7 @@ object BomTests extends TestSuite {
       module: JavaModule,
       fileName: String,
       jarCheck: Option[String => Boolean] = None
-  )(implicit
+  )(using
       eval: UnitTester
   ) = {
     val fileNames = runtimeClasspathFileNames(module)
@@ -565,7 +565,7 @@ object BomTests extends TestSuite {
       dependencyModules: Seq[PublishModule],
       scalaSuffix: String,
       fetchRuntime: Boolean
-  )(implicit eval: UnitTester): Seq[os.Path] = {
+  )(using eval: UnitTester): Seq[os.Path] = {
     val localIvyRepo = eval.evaluator.workspace / "ivy2Local"
     eval(module.publishLocal(localIvyRepo.toString)).right.get
     for (dependencyModule <- dependencyModules)
@@ -601,7 +601,7 @@ object BomTests extends TestSuite {
       module: PublishModule,
       dependencyModules: Seq[PublishModule],
       scalaSuffix: String
-  )(implicit eval: UnitTester): Seq[os.Path] = {
+  )(using eval: UnitTester): Seq[os.Path] = {
     val localM2Repo = eval.evaluator.workspace / "m2Local"
     eval(module.publishM2Local(localM2Repo.toString)).right.get
     for (dependencyModule <- dependencyModules)
@@ -634,7 +634,7 @@ object BomTests extends TestSuite {
       ivy2LocalCheck: Boolean = true,
       scalaSuffix: String = "",
       runtimeOnly: Boolean = false
-  )(implicit eval: UnitTester): Unit = {
+  )(using eval: UnitTester): Unit = {
     if (runtimeOnly)
       runtimeClasspathContains(module, jarName, jarCheck)
     else
