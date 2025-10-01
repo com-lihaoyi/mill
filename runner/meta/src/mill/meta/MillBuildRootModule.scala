@@ -358,7 +358,7 @@ object MillBuildRootModule {
     }
   }
 
-  class BootstrapModule()(implicit
+  class BootstrapModule()(using
       rootModuleInfo: RootModule.Info
   ) extends MainRootModule() with MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]

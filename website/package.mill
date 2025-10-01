@@ -52,7 +52,7 @@ object `package` extends mill.Module {
     )
   }
 
-  def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
+  def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(using
       ctx: mill.api.TaskCtx.Log
   ) = {
 
@@ -111,7 +111,7 @@ object `package` extends mill.Module {
     PathRef(Task.dest)
   }
 
-  def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Seq[os.Path])(implicit
+  def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Seq[os.Path])(using
       ctx: mill.api.TaskCtx
   ) = {
 

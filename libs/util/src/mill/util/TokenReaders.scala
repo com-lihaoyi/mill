@@ -33,7 +33,7 @@ trait TokenReaders {
       def shortName = implicitly[TokensReader.ShortNamed[String]].shortName
     }
 
-  implicit def millTaskTokenReader[T](implicit
+  implicit def millTaskTokenReader[T](using
       tokensReaderOfT: TokensReader.ShortNamed[T]
   ): TokensReader[Task[T]] = tokensReaderOfT match {
     case t: TokensReader.Simple[_] => new SimpleTaskTokenReader[T](t)
