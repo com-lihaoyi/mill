@@ -13,7 +13,7 @@ init completed, run "mill resolve _" to list available tasks
 
 > ./mill compile # You will have to further configure the `CrossScalaModule` for different Scala versions
 compiling 7 Scala sources and 3 Java sources to ...
-error: class CSVReader protected (private val lineReader: LineReader)(inplicit format: CSVFormat) extends Closeable with CSVReaderCompat {
+error: class CSVReader protected (private val lineReader: LineReader)(implicit format: CSVFormat) extends Closeable with CSVReaderCompat {
 error:                                                                                                                   ^
 error: one error found
 */
