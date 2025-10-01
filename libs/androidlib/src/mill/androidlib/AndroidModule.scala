@@ -172,6 +172,19 @@ trait AndroidModule extends JavaModule { outer =>
     rules
   }
 
+  /**
+   * Common Proguard Rules used by AGP
+   *
+   * Source: https://android.googlesource.com/platform/tools/base/+/refs/heads/studio-master-dev/build-system/gradle-core/src/main/resources/com/android/build/gradle/proguard-common.txt
+   */
+  def androidCommonProguardFiles: T[Seq[PathRef]] = Task {
+    val resource = "proguard-common.txt"
+    val resourceUrl = getClass.getResourceAsStream(s"/$resource")
+    val dest = Task.dest / resource
+    os.write(dest, resourceUrl)
+    Seq(PathRef(dest))
+  }
+
   def androidProguard: T[PathRef] = Task {
     val globalProguardFile = Task.dest / "global-proguard.pro"
     os.write(globalProguardFile, "")
@@ -287,6 +300,10 @@ trait AndroidModule extends JavaModule { outer =>
    */
   def androidResolvedMvnDeps: T[Seq[PathRef]] = Task {
     transformedAndroidDeps(Task.Anon(resolvedMvnDeps()))()
+  }
+
+  def androidResolvedCompileMvnDeps: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(compileMvnDeps())
   }
 
   protected def transformedAndroidDeps(resolvedDeps: Task[Seq[PathRef]]): Task[Seq[PathRef]] =

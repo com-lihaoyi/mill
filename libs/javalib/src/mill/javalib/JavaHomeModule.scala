@@ -7,6 +7,7 @@ import mill.api.{PathRef, Task}
  * Common trait for modules that use either a custom or a globally shared [[JvmWorkerModule]].
  */
 trait JavaHomeModule extends CoursierModule {
+
   def jvmId: T[String] = ""
 
   def jvmIndexVersion: T[String] = mill.javalib.api.Versions.coursierJvmIndexVersion
@@ -27,7 +28,8 @@ trait JavaHomeModule extends CoursierModule {
         coursierCacheCustomizer = coursierCacheCustomizer(),
         ctx = Some(Task.ctx()),
         jvmIndexVersion = jvmIndexVersion(),
-        useShortPaths = useShortJvmPath(id)
+        useShortPaths = useShortJvmPath(id),
+        config = coursierConfigModule().coursierConfig()
       ).get
       // Java home is externally managed, better revalidate it at least once
       PathRef(path, quick = true).withRevalidateOnce

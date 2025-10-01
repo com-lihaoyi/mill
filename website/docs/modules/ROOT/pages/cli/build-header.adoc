@@ -28,8 +28,10 @@ package build
 
 Mill's build headers can contain the following keys:
 
-1. xref:cli/installation-ide.adoc[mill-version]: this must be unquoted in the first line
-   of the build header, and specifies the version of Mill used in this project.
+1. xref:cli/installation-ide.adoc[mill-version]: if provided, this must be unquoted in
+   the first line of the build header, and specifies the version of Mill used in this
+   project. If not provided, Mill will launch using the version of your `./mill` or
+   `./mill.bat` bootstrap script.
 
 2. xref:#_mill_opts[]: flags to pass to Mill by default, useful for flags that you want
    everyone to use so they don't need to always remember to type them at the command line
@@ -91,13 +93,9 @@ _build.mill_
 
 An explicit `mill-jvm-version` can help ensure your project uses a consistent JVM version and
 behaves identically regardless of what the developer may have installed on their laptop
-or dev environment. If `mill-jvm-version` is not provided, Mill uses the default version
-`{default-mill-jvm-version}`.
-
-If you wish to use your system `java` installation, you can set `mill-jvm-version: system`.
-Note that this is not recommended as it means your codebase may use different JVM versions
-on different developer, CI, and production machines, potentially resulting in hard-to-debug
-crashes and errors.
+or dev environment. If `mill-jvm-version` is not provided, Mill uses the globally-installed
+`java` installation if there is one present on your `PATH`, and otherwise will download and
+cache a default version of Java for usage.
 
 For configuring different JVM versions for individual modules within your build, see
 xref:fundamentals/configuring-jvm-versions.adoc[Configuring JVM Versions].

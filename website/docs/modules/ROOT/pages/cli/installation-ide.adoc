@@ -22,7 +22,6 @@ bootstrap script, included. You can also download the bootstrap script manually:
 ----
 > curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o mill
 > chmod +x mill
-> echo "//| mill-version: {mill-version}" > build.mill
 > ./mill version
 {mill-version}
 ----
@@ -31,7 +30,6 @@ bootstrap script, included. You can also download the bootstrap script manually:
 [source,console,subs="verbatim,attributes"]
 ----
 > curl.exe -L {mill-download-url}/mill-dist-{mill-version}-mill.bat -o mill.bat
-> echo "//| mill-version: {mill-version}" > build.mill
 > ./mill version
 {mill-version}
 ----
@@ -63,33 +61,15 @@ In-project bootstrap scripts are also useful for running Mill in CI/CD, ensuring
 that your build server like Jenkins or Github Actions has the correct version of Mill
 present to build, compile or test your code.
 
+You can also configure a `//| mill-version` in your xref:cli/build-header.adoc[build header]
+if you want to try a different version, but the best practice when upgrading is to just
+update your bootstrap scripts which ensures the script version and Mill version are compatible.
+
 If you are starting a new project using a Mill bootstrap script, you can use the
 xref:cli/builtin-commands.adoc#_init[mill init] to initialize the project
 folder with one of the Mill example projects. There are a wide range of example projects,
 from hello-world to multi-module libraries to client-server web applications, and you can
 pick one most similar to what you are doing so you can hit the ground running.
-
-=== JVM Version
-
-Mill uses Java `{default-mill-jvm-version}` by default, regardless of what is installed as your
-system `java`. You can set a Java version in the xref:cli/build-header.adoc[build.mill header] via
-a `mill-java-version` key if you wish to customize it:
-
-``` scala
-//| mill-jvm-version: temurin:24.0.1
-```
-
-The Mill JVM version is used for both evaluating the `build.mill` file as well as any
-``JavaModule``s, ``ScalaModule``s, or ``KotlinModule``s you define. You can also specify a
-xref:fundamentals/configuring-jvm-versions.adoc[per-module JVM version] if you need
-finer-grained control. Mill supports every JVM version from `11` onward.
-
-If you wish to use your system `java` installation, you can set `mill-jvm-version: system`.
-Note that this is not recommended as it means your codebase may use different JVM versions
-on different developer, CI, and production machines, potentially resulting in hard-to-debug
-crashes and errors.
-
-
 
 === Mill Native and JVM Executables
 
@@ -403,9 +383,6 @@ The below command should pass the environment variable to the `mill` command.
 ----
 > COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _
 ----
-
-NOTE: Currently, you may need to `./mill shutdown` before calling Mill with the environment variable to make sure it gets properly propagated to Mill's background daemon.
-There is an https://github.com/com-lihaoyi/mill/issues/5134[open issue] to let Mill  detect these changes automatically.
 
 If you are using bootstrap script, a more permanent solution could be to set the environment variable
 at the top of the bootstrap script, or as a user environment variable.

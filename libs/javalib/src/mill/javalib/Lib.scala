@@ -1,6 +1,7 @@
 package mill
 package javalib
 
+import com.lihaoyi.unroll
 import coursier.core.BomDependency
 import coursier.params.ResolutionParams
 import coursier.util.Task
@@ -39,7 +40,8 @@ object Lib {
       ] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       boms: IterableOnce[BomDependency] = Nil,
-      checkGradleModules: Boolean = false
+      checkGradleModules: Boolean = false,
+      @unroll config: mill.util.CoursierConfig = mill.util.CoursierConfig.default()
   ): Result[Resolution] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependenciesMetadataSafe(
@@ -52,7 +54,8 @@ object Lib {
       coursierCacheCustomizer = coursierCacheCustomizer,
       resolutionParams = resolutionParams,
       boms = boms,
-      checkGradleModules = checkGradleModules
+      checkGradleModules = checkGradleModules,
+      config = config
     )
   }
 
@@ -75,7 +78,8 @@ object Lib {
       ] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      checkGradleModules: Boolean = false
+      checkGradleModules: Boolean = false,
+      @unroll config: mill.util.CoursierConfig = mill.util.CoursierConfig.default()
   ): Result[Seq[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     val res = mill.util.Jvm.resolveDependencies(
@@ -89,7 +93,8 @@ object Lib {
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
       resolutionParams = resolutionParams,
-      checkGradleModules = checkGradleModules
+      checkGradleModules = checkGradleModules,
+      config = config
     )
 
     res.map(_.map(_.withRevalidateOnce))

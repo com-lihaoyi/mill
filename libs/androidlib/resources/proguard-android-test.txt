@@ -1,0 +1,2 @@
+#junit transitive dependency, referencing javax.lang
+-dontwarn  com.google.errorprone.annotations.**

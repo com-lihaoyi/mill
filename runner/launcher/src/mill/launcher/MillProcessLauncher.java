@@ -19,16 +19,20 @@ import mill.constants.*;
 
 public class MillProcessLauncher {
 
-  static int launchMillNoDaemon(String[] args, OutFolderMode outMode) throws Exception {
+  static int launchMillNoDaemon(
+      String[] args, OutFolderMode outMode, String[] runnerClasspath, String mainClass)
+      throws Exception {
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
     final Path processDir =
         Paths.get(".").resolve(outFor(outMode)).resolve(millNoDaemon).resolve(sig);
 
+    MillProcessLauncher.prepareMillRunFolder(processDir);
+
     final List<String> l = new ArrayList<>();
-    l.addAll(millLaunchJvmCommand(outMode));
+    l.addAll(millLaunchJvmCommand(outMode, runnerClasspath));
     Map<String, String> propsMap = ClientUtil.getUserSetProperties();
     for (String key : propsMap.keySet()) l.add("-D" + key + "=" + propsMap.get(key));
-    l.add("mill.daemon.MillNoDaemonMain");
+    l.add(mainClass);
     l.add(processDir.toAbsolutePath().toString());
     l.add(outMode.asString());
     l.addAll(millOpts(outMode));
@@ -39,7 +43,6 @@ public class MillProcessLauncher {
     boolean interrupted = false;
 
     try {
-      MillProcessLauncher.prepareMillRunFolder(processDir);
       Process p = configureRunMillProcess(builder, processDir);
       return p.waitFor();
 
@@ -57,8 +60,9 @@ public class MillProcessLauncher {
     }
   }
 
-  static Process launchMillDaemon(Path daemonDir, OutFolderMode outMode) throws Exception {
-    List<String> l = new ArrayList<>(millLaunchJvmCommand(outMode));
+  static Process launchMillDaemon(Path daemonDir, OutFolderMode outMode, String[] runnerClasspath)
+      throws Exception {
+    List<String> l = new ArrayList<>(millLaunchJvmCommand(outMode, runnerClasspath));
     l.add("mill.daemon.MillDaemonMain");
     l.add(daemonDir.toFile().getCanonicalPath());
     l.add(outMode.asString());
@@ -75,6 +79,7 @@ public class MillProcessLauncher {
 
     Path sandbox = daemonDir.resolve(DaemonFiles.sandbox);
     Files.createDirectories(sandbox);
+
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
     if (System.getenv(EnvVars.MILL_EXECUTABLE_PATH) == null)
       builder.environment().put(EnvVars.MILL_EXECUTABLE_PATH, getExecutablePath());
@@ -174,7 +179,13 @@ public class MillProcessLauncher {
 
     String javaHome = null;
     if (jvmId == null) {
-      jvmId = mill.client.BuildInfo.defaultJvmId;
+      boolean systemJavaExists =
+          new ProcessBuilder(isWin() ? "where" : "which", "java").start().waitFor() == 0;
+      if (systemJavaExists && System.getenv("MILL_TEST_SUITE_IGNORE_SYSTEM_JAVA") == null) {
+        jvmId = null;
+      } else {
+        jvmId = mill.client.BuildInfo.defaultJvmId;
+      }
     }
 
     if (jvmId != null) {
@@ -190,10 +201,8 @@ public class MillProcessLauncher {
           arr -> Files.exists(Paths.get(arr[0])))[0];
     }
 
-    if (jvmId == "system") {
-      if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
-      if (javaHome == null || javaHome.isEmpty()) javaHome = System.getenv("JAVA_HOME");
-    }
+    if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
+    if (javaHome == null || javaHome.isEmpty()) javaHome = System.getenv("JAVA_HOME");
     return javaHome;
   }
 
@@ -208,7 +217,8 @@ public class MillProcessLauncher {
     }
   }
 
-  static List<String> millLaunchJvmCommand(OutFolderMode outMode) throws Exception {
+  static List<String> millLaunchJvmCommand(OutFolderMode outMode, String[] runnerClasspath)
+      throws Exception {
     final List<String> vmOptions = new ArrayList<>();
 
     // Java executable
@@ -230,17 +240,7 @@ public class MillProcessLauncher {
 
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
-    String[] runnerClasspath = cachedComputedValue0(
-        outMode,
-        "resolve-runner",
-        BuildInfo.millVersion,
-        () -> CoursierClient.resolveMillDaemon(),
-        arr -> {
-          for (String s : arr) {
-            if (!Files.exists(Paths.get(s))) return false;
-          }
-          return true;
-        });
+
     vmOptions.add(String.join(File.pathSeparator, runnerClasspath));
 
     return vmOptions;

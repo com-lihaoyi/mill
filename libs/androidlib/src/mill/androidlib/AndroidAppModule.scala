@@ -917,6 +917,14 @@ trait AndroidAppModule extends AndroidModule { outer =>
       "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    override def androidCommonProguardFiles: T[Seq[PathRef]] = Task {
+      val resource = "proguard-android-test.txt"
+      val resourceUrl = getClass.getResourceAsStream(s"/$resource")
+      val dest = Task.dest / resource
+      os.write(dest, resourceUrl)
+      super.androidCommonProguardFiles() :+ PathRef(dest)
+    }
+
     private def androidInstrumentedTestsBaseManifest: Task[Elem] = Task.Anon {
       val label = s"Tests for ${outer.androidApplicationId}"
       val instrumentationName = testFramework()

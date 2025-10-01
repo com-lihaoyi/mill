@@ -1,13 +1,18 @@
 package mill.launcher;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Consumer;
 import mill.client.*;
 import mill.client.lock.Locks;
+import mill.constants.BuildInfo;
 import mill.constants.EnvVars;
 import mill.constants.OutFiles;
 import mill.constants.OutFolderMode;
@@ -18,27 +23,37 @@ import mill.internal.MillCliConfig;
  * A Scala implementation would result in the JVM loading much more classes almost doubling the start-up times.
  */
 public class MillLauncherMain {
-  static final String bspFlag = "--bsp";
 
   public static void main(String[] args) throws Exception {
-    boolean runNoServer = false;
-    if (args.length > 0) {
-      String firstArg = args[0];
-      runNoServer =
-          Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", bspFlag, "--help")
-                  .contains(firstArg)
-              || firstArg.startsWith("-i");
-    }
-    if (!runNoServer) {
-      // WSL2 has the directory /run/WSL/ and WSL1 not.
-      String osVersion = System.getProperty("os.version");
-      if (osVersion != null && (osVersion.contains("icrosoft") || osVersion.contains("WSL"))) {
-        // Server-Mode not supported under WSL1
-        runNoServer = true;
-      }
+    var needParsedConfig = Arrays.stream(args)
+        .anyMatch(f -> f.startsWith("-") && !f.startsWith("--") && f.contains("i"));
+    for (var token :
+        Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", "--bsp", "--help")) {
+      if (Arrays.stream(args).anyMatch(f -> f.equals(token))) needParsedConfig = true;
     }
 
-    var outMode = containsBspFlag(args) ? OutFolderMode.BSP : OutFolderMode.REGULAR;
+    var runNoDaemon = false;
+    var bspMode = false;
+
+    // Only use MillCliConfig and other Scala classes if we detect that a relevant flag
+    // might have been passed, to avoid loading those classes on the common path for performance
+    if (needParsedConfig) {
+      var config = MillCliConfig.parse(args).toOption();
+      if (config.exists(c -> c.bsp().value())) bspMode = true;
+      if (config.exists(
+          c -> c.interactive().value() || c.noServer().value() || c.noDaemon().value()))
+        runNoDaemon = true;
+    }
+
+    // Ensure that if we're running in BSP mode we don't start a daemon.
+    //
+    // This is needed because when Metals/Idea closes, they only kill the BSP client and the BSP
+    // server lurks around waiting for the next client to connect.
+    // This is unintuitive from the user's perspective and wastes resources, as most people expect
+    // everything related to the BSP server to be killed when closing the editor.
+    if (bspMode) runNoDaemon = true;
+
+    var outMode = bspMode ? OutFolderMode.BSP : OutFolderMode.REGULAR;
     exitInTestsAfterBspCheck();
     var outDir = OutFiles.outFor(outMode);
 
@@ -57,16 +72,33 @@ public class MillLauncherMain {
                   + " make it less responsive.");
     }
 
-    if (runNoServer) {
+    String[] runnerClasspath = MillProcessLauncher.cachedComputedValue0(
+        outMode,
+        "resolve-runner",
+        BuildInfo.millVersion,
+        () -> CoursierClient.resolveMillDaemon(),
+        arr -> {
+          for (String s : arr) {
+            if (!Files.exists(Paths.get(s))) return false;
+          }
+          return true;
+        });
+
+    if (runNoDaemon) {
+      String mainClass = bspMode ? "mill.daemon.MillBspMain" : "mill.daemon.MillNoDaemonMain";
       // start in no-server mode
-      System.exit(MillProcessLauncher.launchMillNoDaemon(args, outMode));
+      int exitCode =
+          MillProcessLauncher.launchMillNoDaemon(args, outMode, runnerClasspath, mainClass);
+      System.exit(exitCode);
     } else {
       var logs = new java.util.ArrayList<String>();
       try {
         // start in client-server mode
         var optsArgs = new java.util.ArrayList<>(MillProcessLauncher.millOpts(outMode));
         Collections.addAll(optsArgs, args);
-
+        var formatter =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"));
+        Consumer<String> log = (s) -> logs.add(formatter.format(Instant.now()) + " " + s);
         MillServerLauncher launcher =
             new MillServerLauncher(
                 new MillServerLauncher.Streams(System.in, System.out, System.err),
@@ -76,20 +108,18 @@ public class MillLauncherMain {
                 -1) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
                 return new LaunchedServer.OsProcess(
-                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode).toHandle());
-              }
-
-              public void prepareDaemonDir(Path daemonDir) throws Exception {
-                MillProcessLauncher.prepareMillRunFolder(daemonDir);
+                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode, runnerClasspath)
+                        .toHandle());
               }
             };
 
-        var daemonDir0 = Paths.get(outDir, OutFiles.millDaemon);
+        var daemonDir = Paths.get(outDir, OutFiles.millDaemon);
         String javaHome = MillProcessLauncher.javaHome(outMode);
-        Consumer<String> log = logs::add;
-        var exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;
+
+        MillProcessLauncher.prepareMillRunFolder(daemonDir);
+        var exitCode = launcher.run(daemonDir, javaHome, log);
         if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
-          exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;
+          exitCode = launcher.run(daemonDir, javaHome, log);
         }
         System.exit(exitCode);
       } catch (Exception e) {
@@ -105,20 +135,6 @@ public class MillLauncherMain {
         System.exit(1);
       }
     }
-  }
-
-  private static boolean containsBspFlag(String[] args) {
-    // First do a simple check because it is faster, as it only uses java stdlib.
-    var simpleCheck = Arrays.asList(args).contains(bspFlag);
-    if (!simpleCheck) return false;
-
-    // If the simple check passed, do a more expensive check which loads more classes, thus
-    // introduces startup
-    // overhead.
-    //
-    // This is done to prevent false positives in the simple check, for example when the user passes
-    // "--bsp" as a flag to `run` task.
-    return MillCliConfig.parse(args).toOption().exists(config -> config.bsp().value());
   }
 
   private static void exitInTestsAfterBspCheck() {

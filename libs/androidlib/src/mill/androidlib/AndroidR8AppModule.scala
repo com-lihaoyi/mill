@@ -159,12 +159,14 @@ trait AndroidR8AppModule extends AndroidAppModule {
     val baselineOutOpt = destDir / "baseline-profile-rewritten.txt"
     destDir / "res"
 
-    // Create an extra ProGuard config file that instructs R8 to print seeds and usage.
+    // Instruct R8 to print seeds and usage.
+    val extraRules = Seq(
+      s"-printseeds $seedsOut",
+      s"-printusage $usageOut"
+    )
+    // Create an extra ProGuard config file
     val extraRulesFile = destDir / "extra-rules.pro"
-    val extraRulesContent =
-      s"""-printseeds ${seedsOut.toString}
-         |-printusage ${usageOut.toString}
-         |""".stripMargin.trim
+    val extraRulesContent = extraRules.mkString("\n")
     os.write.over(extraRulesFile, extraRulesContent)
 
     val classpathClassFiles: Seq[PathRef] = androidPackagedClassfiles()
@@ -228,10 +230,30 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
     r8ArgsBuilder ++= libArgs
 
-    // ProGuard configuration files: add our extra rules file and all provided config files.
-    val pgArgs = Seq("--pg-conf", androidProguard().path.toString)
+    // ProGuard configuration files: add our extra rules file,
+    // all provided config files and the common rules.
+    val pgArgs =
+      Seq(
+        "--pg-conf",
+        androidProguard().path.toString,
+        "--pg-conf",
+        extraRulesFile.toString
+      ) ++ androidCommonProguardFiles().flatMap(pgf => Seq("--pg-conf", pgf.path.toString))
 
     r8ArgsBuilder ++= pgArgs
+
+    val resolvedCompileMvnDeps = androidResolvedCompileMvnDeps()
+    if (!resolvedCompileMvnDeps.isEmpty) {
+      val compiledMvnDepsFile = Task.dest / "compiled-mvndeps.txt"
+      os.write.over(
+        compiledMvnDepsFile,
+        androidResolvedCompileMvnDeps().map(_.path.toString()).mkString("\n")
+      )
+      r8ArgsBuilder ++= Seq(
+        "--classpath",
+        "@" + compiledMvnDepsFile.toString
+      )
+    }
 
     r8ArgsBuilder ++= androidR8Args()
 

@@ -242,7 +242,7 @@ trait MillBuildRootModule()(implicit
   }
 
   def compileMvnDeps = Seq(
-    mvn"com.lihaoyi::sourcecode:0.4.3-M5"
+    mvn"com.lihaoyi::sourcecode:${Versions.comLihaoyiSourcecodeVersion}"
   )
 
   override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(

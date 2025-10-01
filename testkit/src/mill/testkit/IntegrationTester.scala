@@ -26,7 +26,8 @@ class IntegrationTester(
     val millExecutable: os.Path,
     override val debugLog: Boolean = false,
     val baseWorkspacePath: os.Path = os.pwd,
-    val propagateJavaHome: Boolean = true
+    val propagateJavaHome: Boolean = true,
+    val cleanupProcessIdFile: Boolean = true
 ) extends IntegrationTester.Impl {
   initWorkspace()
 }

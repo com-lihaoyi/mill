@@ -1,15 +1,13 @@
-//| mill-jvm-version: 17
-
 // Althought running JVM bytecode via a one-off isolated classloader has less overhead
 // than running it in a subprocess, the fact that the classloader needs to be created
 // each time adds overhead: newly-created classloaders contain code that is not yet
 // optimized by the JVM. When performance matters, you can put the classloader in a
 // `Task.Worker` to keep it around, allowing the code internally to be optimized and
-// stay optimized without being thrown away each time
+// stay optimized without being thrown away each time.
 
 // This example is similar to the earlier example running the Groovy interpreter in
-// a subprocess, but instead of using `Jvm.runSubprocess` we use `ClassLoader.create` to
-// load the Groovy interpreter classpath files:
+// a subprocess, but instead of using `Jvm.runSubprocess` we use `Jvm.createClassLoader`
+// to load the Groovy interpreter classpath files:
 
 package build
 import mill.*, javalib.*
