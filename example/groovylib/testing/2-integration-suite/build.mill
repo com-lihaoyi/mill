@@ -1,0 +1,20 @@
+//// SNIPPET:BUILD2
+package build
+import mill.*, groovylib.*
+object qux extends GroovyModule {
+
+  def groovyVersion = "5.0.1"
+
+  object test extends GroovyTests with TestModule.Junit5 {
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"org.apache.groovy:groovy-test"
+    )
+  }
+  object integration extends GroovyTests with TestModule.Junit5 {
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"org.apache.groovy:groovy-test"
+    )
+  }
+}
+
+// The integration suite is just another regular test module within the parent GroovyModule
