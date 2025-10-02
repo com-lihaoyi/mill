@@ -43,7 +43,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       targetIds: collection.Seq[BuildTargetIdentifier],
       agg: java.util.List[JvmEnvironmentItem] => V,
       originId: String
-  )(implicit name: sourcecode.Name): CompletableFuture[V] = {
+  )(using name: sourcecode.Name): CompletableFuture[V] = {
     handlerTasks(
       targetIds = _ => targetIds,
       tasks = { case m: (RunModuleApi & TestModuleApi & JavaModuleApi) =>
@@ -89,7 +89,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       targetIds: collection.Seq[BuildTargetIdentifier],
       agg: java.util.List[JvmEnvironmentItem] => V,
       originId: String
-  )(implicit name: sourcecode.Name): CompletableFuture[V] = {
+  )(using name: sourcecode.Name): CompletableFuture[V] = {
     handlerTasks(
       targetIds = _ => targetIds,
       tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunEnvironment },

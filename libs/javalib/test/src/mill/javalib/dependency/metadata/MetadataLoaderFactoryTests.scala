@@ -61,7 +61,7 @@ object MetadataLoaderFactoryTests extends TestSuite {
         module: Module,
         version: String,
         fetch: coursier.Repository.Fetch[F]
-    )(implicit F: Monad[F]): EitherT[F, String, (ArtifactSource, Project)] =
+    )(using F: Monad[F]): EitherT[F, String, (ArtifactSource, Project)] =
       ???
 
     override def artifacts(

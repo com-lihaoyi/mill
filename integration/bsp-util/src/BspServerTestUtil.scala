@@ -53,7 +53,7 @@ object BspServerTestUtil {
       value: T,
       snapshotPath: os.Path,
       normalizedLocalValues: Seq[(String, String)] = Nil
-  )(implicit reporter: utest.framework.GoldenFix.Reporter): Unit = {
+  )(using reporter: utest.framework.GoldenFix.Reporter): Unit = {
 
     def normalizeLocalValues(input: String, inverse: Boolean = false): String =
       normalizedLocalValues.foldLeft(input) {
@@ -65,7 +65,7 @@ object BspServerTestUtil {
     val jsonStr = normalizeLocalValues(
       gson.toJson(
         value,
-        implicitly[ClassTag[T]].runtimeClass
+        summon[ClassTag[T]].runtimeClass
       )
     )
 
@@ -76,7 +76,7 @@ object BspServerTestUtil {
       log: String,
       snapshotPath: os.Path,
       ignoreLine: String => Boolean = _ => false
-  )(implicit reporter: utest.framework.GoldenFix.Reporter): Unit = {
+  )(using reporter: utest.framework.GoldenFix.Reporter): Unit = {
 
     val logLines = log
       .linesIterator

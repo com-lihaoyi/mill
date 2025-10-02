@@ -220,7 +220,7 @@ object TaskCtx {
           key: String,
           message: String,
           priority: Int = 0
-      )(t: Logger => T)(implicit
+      )(t: Logger => T)(using
           ctx: mill.api.TaskCtx
       ): Future[T]
     }
