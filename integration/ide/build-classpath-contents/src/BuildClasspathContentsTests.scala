@@ -27,6 +27,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-core-api-daemon_3.jar",
             "mill-core-api_3.jar",
             "mill-core-constants.jar",
+            "mill-libs-androidlib-databinding_3.jar",
             "mill-libs-androidlib_3.jar",
             "mill-libs-daemon-client.jar",
             "mill-libs-daemon-server_3.jar",
