@@ -1,0 +1,58 @@
+= Android Release Guide
+:page-aliases: android_release.adoc
+
+By default, mill projects are considered in debug mode, so if your project is ready for release, you should follow the steps below to configure your project for release builds.
+
+The code snippets below should be added to your app object in the `build.mill` file.
+
+== 1. Disable debug mode
+[source,scala]
+----
+def androidIsDebug = Task { false }
+----
+
+== 2. Configure signing information
+To sign your APK for release, you need to provide the keystore information.
+[source,scala]
+----
+def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+----
+
+Make sure to replace the values with your actual keystore information.
+If you don't have a keystore yet, you can create one using the `keytool` command:
+
+[,console]
+----
+> keytool -genkey -v -keystore releaseKey.jks \
+          -storepass <PASS> -keyalg RSA \
+          -keysize 2048 -validity 10000 \
+          -alias releaseKey -keypass <PASS>
+----
+
+== 3. (Optional) Enable ProGuard
+If you want to enable ProGuard for code shrinking and obfuscation, you can do so by first extending your app object with `AndroidR8AppModule`.
+You can then override the following methods.
+
+Example configuration:
+[source,scala]
+----
+def androidReleaseSettings = Task {
+  AndroidBuildTypeSettings(
+    isMinifyEnabled = true,
+  )
+}
+
+// You can specify your own ProGuard rules files here
+def androidProjectProguardFiles = Task.Sources("proguard-rules.pro")
+
+// You can specify the default ProGuard filenames to be used
+// These files are in /<sdk_path>/tools/proguard/proguard*.txt
+def androidDefaultProguardFileNames = Task.Anon {
+  Seq("proguard-android-optimize.txt")
+}
+----
+
+
