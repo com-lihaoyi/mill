@@ -11,7 +11,7 @@ import mill.api.internal.RootModule0
  *    override protected def millDiscover: Discover = Discover[this.type]
  * }}}
  */
-abstract class ExternalModule(implicit
+abstract class ExternalModule(using
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File

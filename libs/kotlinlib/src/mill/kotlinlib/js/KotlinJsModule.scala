@@ -138,7 +138,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       artifactId: String,
       envArgs: Map[String, String] = Map.empty[String, String],
       workingDir: os.Path
-  )(implicit ctx: mill.api.TaskCtx): Result[Int] = {
+  )(using ctx: mill.api.TaskCtx): Result[Int] = {
     if (binaryKind.isEmpty || binaryKind.get != BinaryKind.Executable) {
       return Result.Failure("Run action is only allowed for the executable binary")
     }
@@ -275,7 +275,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       extraKotlinArgs: Seq[String],
       worker: KotlinWorker,
       useBtApi: Boolean
-  )(implicit ctx: mill.api.TaskCtx): Result[CompilationResult] = {
+  )(using ctx: mill.api.TaskCtx): Result[CompilationResult] = {
     val versionAllowed = kotlinVersion.split("\\.").map(_.toInt) match {
       case Array(1, 8, z) => z >= 20
       case Array(1, y, _) => y >= 9
@@ -436,7 +436,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     }
 
   // **NOTE**: This logic may (and probably is) be incomplete
-  private def isKotlinJsLibrary(path: os.Path)(implicit ctx: mill.api.TaskCtx): Boolean = {
+  private def isKotlinJsLibrary(path: os.Path)(using ctx: mill.api.TaskCtx): Boolean = {
     if (os.isDir(path)) {
       true
     } else if (path.ext == "klib") {

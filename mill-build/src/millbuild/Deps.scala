@@ -8,7 +8,7 @@ object Deps {
   // The Scala version to use
   // When updating, run "Publish Bridges" Github Actions for the new version
   // and then add to it `bridgeScalaVersions`
-  val scalaVersion = "3.7.1"
+  val scalaVersion = "3.7.3"
   val scala2Version = "2.13.15"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.20"
@@ -32,6 +32,8 @@ object Deps {
       mvn"org.scala-js::scalajs-env-phantomjs:1.0.0".withDottyCompat(scalaVersion)
     val scalajsEnvSelenium =
       mvn"org.scala-js::scalajs-env-selenium:1.1.1".withDottyCompat(scalaVersion)
+    val scalajsEnvPlaywright =
+      mvn"io.github.thijsbroersen::scala-js-env-playwright:0.2.3"
     val scalajsSbtTestAdapter =
       mvn"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}".withDottyCompat(scalaVersion)
     val scalajsLinker =
@@ -172,20 +174,20 @@ object Deps {
   val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.9"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
   val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
-  val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.3-M5"
+  val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
   val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
   val upickle = mvn"com.lihaoyi::upickle:4.3.0"
   val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.3.0"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
   val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
-  val zinc = mvn"org.scala-sbt::zinc:1.10.8".withDottyCompat(scalaVersion)
+  val zinc = mvn"org.scala-sbt::zinc:1.11.0".withDottyCompat(scalaVersion)
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
   val gson = mvn"com.google.code.gson:gson:2.10.1"
   val fansi = mvn"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams =
-    mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.1".withDottyCompat(scalaVersion)
+    mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.15.0".withDottyCompat(scalaVersion)
   val requests = mvn"com.lihaoyi::requests:0.9.0"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.18"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"
@@ -194,6 +196,7 @@ object Deps {
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
   val kotlinBuildToolsApi = mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinVersion"
   val kotlinBuildToolsImpl = mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kotlinVersion"
+  val kotlinStdlib = mvn"org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
   /** Used for the `mill init` from a Maven project. */
   object MavenInit {
@@ -216,10 +219,13 @@ object Deps {
   val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
+  val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:8.13.0"
+  val androidDataBindingCompilerCommon =
+    mvn"androidx.databinding:databinding-compiler-common:8.13.0"
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
   val sbt = mvn"org.scala-sbt:sbt:1.10.10"
-  val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:2.9"
+  val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:2.10"
   val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.2.0"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
   // subsequent releases require Java 17+
@@ -242,9 +248,9 @@ object Deps {
     val kotlinxHtmlJvm = mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
     val koverCli = mvn"org.jetbrains.kotlinx:kover-cli:$koverVersion"
     val koverJvmAgent = mvn"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
-    val ktfmt = mvn"com.facebook:ktfmt:0.53"
+    val ktfmt = mvn"com.facebook:ktfmt:0.58"
     val ktlint = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
-    val palantirFormat = mvn"com.palantir.javaformat:palantir-java-format:2.51.0"
+    val palantirFormat = mvn"com.palantir.javaformat:palantir-java-format:2.74.0"
     val proguard = mvn"com.guardsquare:proguard-base:7.7.0"
     val revApi = mvn"org.revapi:revapi-standalone:0.12.0"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
@@ -279,7 +285,7 @@ object Deps {
     Deps.gson,
     mvn"com.google.protobuf:protobuf-java:4.29.5",
     mvn"com.google.guava:guava:33.4.0-jre",
-    mvn"org.yaml:snakeyaml:2.3",
+    mvn"org.yaml:snakeyaml:2.5",
     mvn"org.apache.commons:commons-compress:1.27.1"
   )
 

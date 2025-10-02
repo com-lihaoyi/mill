@@ -19,17 +19,20 @@ import mill.constants.*;
 
 public class MillProcessLauncher {
 
-  static int launchMillNoDaemon(String[] args, OutFolderMode outMode, String[] runnerClasspath)
+  static int launchMillNoDaemon(
+      String[] args, OutFolderMode outMode, String[] runnerClasspath, String mainClass)
       throws Exception {
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
     final Path processDir =
         Paths.get(".").resolve(outFor(outMode)).resolve(millNoDaemon).resolve(sig);
 
+    MillProcessLauncher.prepareMillRunFolder(processDir);
+
     final List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand(outMode, runnerClasspath));
     Map<String, String> propsMap = ClientUtil.getUserSetProperties();
     for (String key : propsMap.keySet()) l.add("-D" + key + "=" + propsMap.get(key));
-    l.add("mill.daemon.MillNoDaemonMain");
+    l.add(mainClass);
     l.add(processDir.toAbsolutePath().toString());
     l.add(outMode.asString());
     l.addAll(millOpts(outMode));
@@ -76,7 +79,7 @@ public class MillProcessLauncher {
 
     Path sandbox = daemonDir.resolve(DaemonFiles.sandbox);
     Files.createDirectories(sandbox);
-    MillProcessLauncher.prepareMillRunFolder(daemonDir);
+
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
     if (System.getenv(EnvVars.MILL_EXECUTABLE_PATH) == null)
       builder.environment().put(EnvVars.MILL_EXECUTABLE_PATH, getExecutablePath());

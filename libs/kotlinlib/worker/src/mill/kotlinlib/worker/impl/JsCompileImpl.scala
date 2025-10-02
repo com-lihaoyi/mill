@@ -8,7 +8,7 @@ class JsCompileImpl extends Compiler() {
   def compile(
       args: Seq[String],
       sources: Seq[os.Path]
-  )(implicit
+  )(using
       ctx: TaskCtx
   ): (Int, String) = {
 

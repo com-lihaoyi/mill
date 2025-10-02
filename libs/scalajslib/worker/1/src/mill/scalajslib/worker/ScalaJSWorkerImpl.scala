@@ -1,11 +1,15 @@
 package mill.scalajslib.worker
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 import java.io.File
 import java.nio.file.Path
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+
+import com.armanbilge.sjsimportmap.ImportMappedIRFile
+import mill.constants.InputPumper
 import mill.scalajslib.worker.api.*
 import mill.scalajslib.worker.jsenv.*
+import mill.util.CachedFactory
 import org.scalajs.ir.ScalaJSVersions
 import org.scalajs.linker.{PathIRContainer, PathOutputDirectory, PathOutputFile, StandardImpl}
 import org.scalajs.linker.interface.{
@@ -22,12 +26,7 @@ import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.testing.adapter.TestAdapter
 import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
 
-import scala.collection.mutable
-import scala.ref.SoftReference
-import com.armanbilge.sjsimportmap.ImportMappedIRFile
-import mill.constants.InputPumper
-
-class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
+class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
   private case class LinkerInput(
       isFullLinkJS: Boolean,
       optimizer: Boolean,
@@ -44,15 +43,12 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     case s"1.$n.$_" if n.toIntOption.exists(_ < number) => false
     case _ => true
   }
-  private object ScalaJSLinker {
+  private object ScalaJSLinker extends CachedFactory[LinkerInput, (Linker, IRFileCache.Cache)] {
     private val irFileCache = StandardImpl.irFileCache()
-    private val cache = mutable.Map.empty[LinkerInput, SoftReference[(Linker, IRFileCache.Cache)]]
-    def reuseOrCreate(input: LinkerInput): (Linker, IRFileCache.Cache) = cache.get(input) match {
-      case Some(SoftReference((linker, irFileCacheCache))) => (linker, irFileCacheCache)
-      case _ =>
-        val newResult = createLinker(input)
-        cache.update(input, SoftReference(newResult))
-        newResult
+    override def maxCacheSize: Int = jobs
+    override def setup(key: LinkerInput): (Linker, IRFileCache.Cache) = createLinker(key)
+    override def teardown(key: LinkerInput, value: (Linker, IRFileCache.Cache)): Unit = {
+      value._2.free()
     }
     private def createLinker(input: LinkerInput): (Linker, IRFileCache.Cache) = {
       val semantics = input.isFullLinkJS match {
@@ -197,23 +193,22 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       minify: Boolean,
       importMap: Seq[ESModuleImportMapping],
       experimentalUseWebAssembly: Boolean
-  ): Either[String, Report] = {
+  ): Either[String, Report] = ScalaJSLinker.withValue(LinkerInput(
+    isFullLinkJS = isFullLinkJS,
+    optimizer = optimizer,
+    sourceMap = sourceMap,
+    moduleKind = moduleKind,
+    esFeatures = esFeatures,
+    moduleSplitStyle = moduleSplitStyle,
+    outputPatterns = outputPatterns,
+    minify = minify,
+    dest = dest,
+    experimentalUseWebAssembly = experimentalUseWebAssembly
+  )) { (linker, irFileCacheCache) =>
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
     val useLegacy = forceOutJs || !minorIsGreaterThanOrEqual(3)
     import scala.concurrent.ExecutionContext.Implicits.global
-    val (linker, irFileCacheCache) = ScalaJSLinker.reuseOrCreate(LinkerInput(
-      isFullLinkJS = isFullLinkJS,
-      optimizer = optimizer,
-      sourceMap = sourceMap,
-      moduleKind = moduleKind,
-      esFeatures = esFeatures,
-      moduleSplitStyle = moduleSplitStyle,
-      outputPatterns = outputPatterns,
-      minify = minify,
-      dest = dest,
-      experimentalUseWebAssembly = experimentalUseWebAssembly
-    ))
     val irContainersAndPathsFuture = PathIRContainer.fromClasspath(runClasspath)
     val testInitializer =
       if (testBridgeInit)
@@ -374,6 +369,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       Phantom(config)
     case config: JsEnvConfig.Selenium =>
       Selenium(config)
+    case config: JsEnvConfig.Playwright =>
+      Playwright(config)
   }
 
   def jsEnvInput(report: Report): Seq[Input] = {
@@ -390,4 +387,6 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     }
     Seq(input)
   }
+
+  override def close(): Unit = ScalaJSLinker.close()
 }

@@ -327,7 +327,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
         background: Boolean = false,
         runBackgroundLogToConsole: Boolean = false,
         propagateEnv: java.lang.Boolean = null
-    )(implicit ctx: TaskCtx): Unit = {
+    )(using ctx: TaskCtx): Unit = {
 
       Option(mainClass) match {
         case None => mainClassDefault.fold(Task.fail, identity)

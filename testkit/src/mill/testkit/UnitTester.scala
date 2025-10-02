@@ -62,7 +62,7 @@ class UnitTester(
     debugEnabled: Boolean,
     env: Map[String, String],
     offline: Boolean
-)(implicit fullName: sourcecode.FullName) extends AutoCloseable {
+)(using fullName: sourcecode.FullName) extends AutoCloseable {
   assert(
     mill.api.MillURLClassLoader.openClassloaders.isEmpty,
     s"Unit tester detected leaked classloaders on initialization: \n${mill.api.MillURLClassLoader.openClassloaders.mkString("\n")}"

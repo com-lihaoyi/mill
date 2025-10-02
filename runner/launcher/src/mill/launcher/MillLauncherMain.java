@@ -48,12 +48,9 @@ public class MillLauncherMain {
     // Ensure that if we're running in BSP mode we don't start a daemon.
     //
     // This is needed because when Metals/Idea closes, they only kill the BSP client and the BSP
-    // server lurks around
-    // waiting for the next client to connect.
-    //
+    // server lurks around waiting for the next client to connect.
     // This is unintuitive from the user's perspective and wastes resources, as most people expect
-    // everything related
-    // to the BSP server to be killed when closing the editor.
+    // everything related to the BSP server to be killed when closing the editor.
     if (bspMode) runNoDaemon = true;
 
     var outMode = bspMode ? OutFolderMode.BSP : OutFolderMode.REGULAR;
@@ -88,8 +85,11 @@ public class MillLauncherMain {
         });
 
     if (runNoDaemon) {
+      String mainClass = bspMode ? "mill.daemon.MillBspMain" : "mill.daemon.MillNoDaemonMain";
       // start in no-server mode
-      System.exit(MillProcessLauncher.launchMillNoDaemon(args, outMode, runnerClasspath));
+      int exitCode =
+          MillProcessLauncher.launchMillNoDaemon(args, outMode, runnerClasspath, mainClass);
+      System.exit(exitCode);
     } else {
       var logs = new java.util.ArrayList<String>();
       try {
@@ -113,12 +113,13 @@ public class MillLauncherMain {
               }
             };
 
-        var daemonDir0 = Paths.get(outDir, OutFiles.millDaemon);
+        var daemonDir = Paths.get(outDir, OutFiles.millDaemon);
         String javaHome = MillProcessLauncher.javaHome(outMode);
 
-        var exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;
+        MillProcessLauncher.prepareMillRunFolder(daemonDir);
+        var exitCode = launcher.run(daemonDir, javaHome, log);
         if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
-          exitCode = launcher.run(daemonDir0, javaHome, log).exitCode;
+          exitCode = launcher.run(daemonDir, javaHome, log);
         }
         System.exit(exitCode);
       } catch (Exception e) {

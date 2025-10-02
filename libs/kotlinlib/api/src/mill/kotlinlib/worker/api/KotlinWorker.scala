@@ -15,6 +15,6 @@ trait KotlinWorker {
       useBtApi: Boolean,
       args: Seq[String],
       sources: Seq[os.Path]
-  )(implicit ctx: TaskCtx): Result[Unit]
+  )(using ctx: TaskCtx): Result[Unit]
 
 }

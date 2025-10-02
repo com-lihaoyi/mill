@@ -136,8 +136,7 @@ abstract class Server(args: Server.Args) {
           exit = msg => {
             serverLog(s"watchProcessIdFile: $msg")
             serverSocket.close()
-          },
-          log = serverLog
+          }
         )
 
         // Wrapper object to encapsulate `activeConnections` and `inactiveTimestampOpt`,
@@ -497,12 +496,10 @@ object Server {
       processIdFile: os.Path,
       processId: Long,
       running: () => Boolean,
-      exit: String => Unit,
-      log: String => Unit
+      exit: String => Unit
   ): Unit = {
     val processIdStr = processId.toString
 
-    log(s"watching processId file (expected content = $processIdStr): $processIdFile")
     os.write.over(processIdFile, processIdStr, createFolders = true)
 
     val processIdThread = new Thread(

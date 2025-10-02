@@ -138,7 +138,7 @@ object TwirlWorker {
       constructorAnnotations: Seq[String],
       codec: Codec,
       inclusiveDot: Boolean
-  )(implicit ctx: mill.api.TaskCtx): mill.api.Result[CompilationResult] = {
+  )(using ctx: mill.api.TaskCtx): mill.api.Result[CompilationResult] = {
     val compiler = twirl(twirlClassLoader)
     val formatExtsRegex = formats.keys.map(Regex.quote).mkString("|")
 

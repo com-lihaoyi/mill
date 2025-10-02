@@ -26,7 +26,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
  * calls within the scripts.
  */
 @internal
-trait MillBuildRootModule()(implicit
+trait MillBuildRootModule()(using
     rootModuleInfo: RootModule.Info
 ) extends ScalaModule {
   override def bspDisplayName0: String = rootModuleInfo
@@ -242,7 +242,7 @@ trait MillBuildRootModule()(implicit
   }
 
   def compileMvnDeps = Seq(
-    mvn"com.lihaoyi::sourcecode:0.4.3-M5"
+    mvn"com.lihaoyi::sourcecode:${Versions.comLihaoyiSourcecodeVersion}"
   )
 
   override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(
@@ -358,7 +358,7 @@ object MillBuildRootModule {
     }
   }
 
-  class BootstrapModule()(implicit
+  class BootstrapModule()(using
       rootModuleInfo: RootModule.Info
   ) extends MainRootModule() with MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]

@@ -60,7 +60,7 @@ object MethodHashTests extends TestSuite {
     }
   }
 
-  def testUnchanged()(implicit tp: utest.framework.TestPath) = {
+  def testUnchanged()(using tp: utest.framework.TestPath) = {
     def computeCodeSig2(suffix: String) = TestUtil.computeCodeSig(
       Seq("methodhash", tp.value.head, tp.value.tail.mkString("-") + suffix)
     )
