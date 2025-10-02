@@ -9,7 +9,7 @@ import java.io.{IOException, InputStream, OutputStream}
  * somewhat cleaned up as a single object rather than two loose objects you have
  * to connect together.
  */
-private[mill] class PipeStreams(val bufferSize: Int = 1024) { pipe =>
+class PipeStreams(val bufferSize: Int = 1024) { pipe =>
 
   private var closedByWriter = false
   @volatile private var closedByReader = false

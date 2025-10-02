@@ -16,7 +16,7 @@ import java.io.*
  * [[streams]] are *not* synchronized, and instead goes into a [[PipeStreams]]
  * buffer to be read out and handled asynchronously.
  */
-private[mill] class PromptLogger(
+class PromptLogger(
     colored: Boolean,
     enableTicker: Boolean,
     infoColor: fansi.Attrs,
@@ -107,15 +107,15 @@ private[mill] class PromptLogger(
 
   object prompt extends Logger.Prompt {
 
-    private[mill] def beginChromeProfileEntry(text: String): Unit = {
+    def beginChromeProfileEntry(text: String): Unit = {
       logBeginChromeProfileEntry(text, System.nanoTime())
     }
 
-    private[mill] def endChromeProfileEntry(): Unit = {
+    def endChromeProfileEntry(): Unit = {
       logEndChromeProfileEntry(System.nanoTime())
     }
 
-    override private[mill] def logBeginChromeProfileEntry(message: String, nanoTime: Long) = {
+    override def logBeginChromeProfileEntry(message: String, nanoTime: Long) = {
       chromeProfileLogger.logBegin(
         message,
         "job",
@@ -124,7 +124,7 @@ private[mill] class PromptLogger(
       )
     }
 
-    override private[mill] def logEndChromeProfileEntry(nanoTime: Long) = {
+    override def logEndChromeProfileEntry(nanoTime: Long) = {
       chromeProfileLogger.logEnd(
         nanoTime / 1000,
         threadNumberer.getThreadId(Thread.currentThread())
@@ -176,10 +176,10 @@ private[mill] class PromptLogger(
         seenIdentifiers(key) = (keySuffix, message)
       }
 
-    private[mill] override def withPromptPaused[T](t: => T): T =
+    override def withPromptPaused[T](t: => T): T =
       runningState.withPromptPaused0(true, t)
 
-    private[mill] override def withPromptUnpaused[T](t: => T): T =
+    override def withPromptUnpaused[T](t: => T): T =
       runningState.withPromptPaused0(false, t)
 
     def enableTicker = PromptLogger.this.enableTicker
@@ -221,7 +221,7 @@ private[mill] class PromptLogger(
   def streams = streamManager.proxySystemStreams
 }
 
-private[mill] object PromptLogger {
+object PromptLogger {
 
   /**
    * Manages the paused/unpaused/stopped state of the prompt logger. Encapsulate in a separate

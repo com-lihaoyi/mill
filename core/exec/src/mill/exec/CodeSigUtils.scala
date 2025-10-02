@@ -6,7 +6,7 @@ import mill.api.{Task, Segment}
 import scala.reflect.NameTransformer.encode
 import java.lang.reflect.Method
 
-private[mill] object CodeSigUtils {
+object CodeSigUtils {
   def precomputeMethodNamesPerClass(transitiveNamed: Seq[Task.Named[?]])
       : (Map[Class[?], IndexedSeq[Class[?]]], Map[Class[?], Map[String, Method]]) = {
 
