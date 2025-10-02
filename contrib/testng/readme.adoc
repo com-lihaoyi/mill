@@ -16,7 +16,7 @@ object project extends ScalaModule {
   object test extends ScalaTests {
     def testFramework = "mill.testng.TestNGFramework"
     def ivyDeps = super.ivyDeps ++ Agg(
-      ivy"com.lihaoyi:mill-contrib-testng:${mill.BuildInfo.millVersion}"
+      mvn"com.lihaoyi:mill-contrib-testng:${mill.BuildInfo.millVersion}"
     )
   }
 }

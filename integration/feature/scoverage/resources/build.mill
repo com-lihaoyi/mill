@@ -11,8 +11,8 @@ import mill.scalalib._
 
 object Deps {
   val millVersion = "0.11.0"
-  val millMain = ivy"com.lihaoyi::mill-main:${millVersion}"
-  val scalaTest = ivy"org.scalatest::scalatest:3.2.16"
+  val millMain = mvn"com.lihaoyi::mill-main:${millVersion}"
+  val scalaTest = mvn"org.scalatest::scalatest:3.2.16"
 }
 
 object core extends Cross[CoreCross]("2.13.11")

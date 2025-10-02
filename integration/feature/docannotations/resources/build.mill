@@ -8,7 +8,7 @@ trait JUnitTests extends TestModule.Junit4 {
   /**
    * Overridden ivyDeps Docs!!!
    */
-  def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
+  def ivyDeps = Agg(mvn"com.novocode:junit-interface:0.11")
   def task = Task {
     "???"
   }

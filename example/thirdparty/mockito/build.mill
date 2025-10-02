@@ -9,32 +9,32 @@ object libraries {
     val junitJupiter = "5.10.3"
     val errorprone = "2.23.0"
   }
-  val junit4 = ivy"junit:junit:4.13.2"
-  val junitJupiterApi = ivy"org.junit.jupiter:junit-jupiter-api:${versions.junitJupiter}"
-  val junitJupiterParams = ivy"org.junit.jupiter:junit-jupiter-params:${versions.junitJupiter}"
-  val junitPlatformLauncher = ivy"org.junit.platform:junit-platform-launcher:1.10.3"
-  val junitJupiterEngine = ivy"org.junit.jupiter:junit-jupiter-engine:${versions.junitJupiter}"
-  val junitVintageEngine = ivy"org.junit.vintage:junit-vintage-engine:${versions.junitJupiter}"
-  val assertj = ivy"org.assertj:assertj-core:3.26.3"
-  val hamcrest = ivy"org.hamcrest:hamcrest-core:2.2"
-  val opentest4j = ivy"org.opentest4j:opentest4j:1.3.0"
+  val junit4 = mvn"junit:junit:4.13.2"
+  val junitJupiterApi = mvn"org.junit.jupiter:junit-jupiter-api:${versions.junitJupiter}"
+  val junitJupiterParams = mvn"org.junit.jupiter:junit-jupiter-params:${versions.junitJupiter}"
+  val junitPlatformLauncher = mvn"org.junit.platform:junit-platform-launcher:1.10.3"
+  val junitJupiterEngine = mvn"org.junit.jupiter:junit-jupiter-engine:${versions.junitJupiter}"
+  val junitVintageEngine = mvn"org.junit.vintage:junit-vintage-engine:${versions.junitJupiter}"
+  val assertj = mvn"org.assertj:assertj-core:3.26.3"
+  val hamcrest = mvn"org.hamcrest:hamcrest-core:2.2"
+  val opentest4j = mvn"org.opentest4j:opentest4j:1.3.0"
 
-  val bytebuddy = ivy"net.bytebuddy:byte-buddy:${versions.bytebuddy}"
-  val bytebuddyagent = ivy"net.bytebuddy:byte-buddy-agent:${versions.bytebuddy}"
-  val bytebuddyandroid = ivy"net.bytebuddy:byte-buddy-android:${versions.bytebuddy}"
+  val bytebuddy = mvn"net.bytebuddy:byte-buddy:${versions.bytebuddy}"
+  val bytebuddyagent = mvn"net.bytebuddy:byte-buddy-agent:${versions.bytebuddy}"
+  val bytebuddyandroid = mvn"net.bytebuddy:byte-buddy-android:${versions.bytebuddy}"
 
-  val errorprone = ivy"com.google.errorprone:error_prone_core:${versions.errorprone}"
-  val errorproneTestApi = ivy"com.google.errorprone:error_prone_test_helpers:${versions.errorprone}"
+  val errorprone = mvn"com.google.errorprone:error_prone_core:${versions.errorprone}"
+  val errorproneTestApi = mvn"com.google.errorprone:error_prone_test_helpers:${versions.errorprone}"
 
-  val autoservice = ivy"com.google.auto.service:auto-service:1.1.1"
+  val autoservice = mvn"com.google.auto.service:auto-service:1.1.1"
 
-  val objenesis = ivy"org.objenesis:objenesis:3.3"
+  val objenesis = mvn"org.objenesis:objenesis:3.3"
 
-  val osgi = ivy"org.osgi:osgi.core:8.0.0"
-  val equinox = ivy"org.eclipse.platform:org.eclipse.osgi:3.20.0"
+  val osgi = mvn"org.osgi:osgi.core:8.0.0"
+  val equinox = mvn"org.eclipse.platform:org.eclipse.osgi:3.20.0"
   val bndGradle = "biz.aQute.bnd:biz.aQute.bnd.gradle:6.4.0"
 
-  val groovy = ivy"org.codehaus.groovy:groovy:3.0.22"
+  val groovy = mvn"org.codehaus.groovy:groovy:3.0.22"
 }
 
 trait MockitoModule extends MavenModule {
@@ -65,7 +65,7 @@ trait MockitoModule extends MavenModule {
           libraries.hamcrest,
           libraries.junit4,
           libraries.bytebuddyagent,
-          ivy"com.github.sbt:junit-interface:0.13.2"
+          mvn"com.github.sbt:junit-interface:0.13.2"
         )
   }
 }
@@ -176,7 +176,7 @@ object `package` extends RootModule with MockitoModule {
       def testIvyDeps = Agg(
         libraries.assertj,
         libraries.junitPlatformLauncher,
-        ivy"com.github.sbt.junit:jupiter-interface:0.11.4"
+        mvn"com.github.sbt.junit:jupiter-interface:0.11.4"
       )
 
       def testRuntimeIvyDeps = Agg(
@@ -191,7 +191,7 @@ object `package` extends RootModule with MockitoModule {
       def testRuntimeIvyDeps = Agg(
         libraries.junitJupiterEngine,
         libraries.junitPlatformLauncher,
-        ivy"com.github.sbt.junit:jupiter-interface:0.11.4"
+        mvn"com.github.sbt.junit:jupiter-interface:0.11.4"
       )
     }
     object junitJupiterInlineMockMakerExtensionTest extends MockitoModule {
@@ -201,7 +201,7 @@ object `package` extends RootModule with MockitoModule {
       def testRuntimeIvyDeps = Agg(
         libraries.junitJupiterEngine,
         libraries.junitPlatformLauncher,
-        ivy"com.github.sbt.junit:jupiter-interface:0.11.4"
+        mvn"com.github.sbt.junit:jupiter-interface:0.11.4"
       )
     }
     object junitJupiterParallelTest extends MockitoModule {
@@ -211,7 +211,7 @@ object `package` extends RootModule with MockitoModule {
       def testRuntimeIvyDeps = Agg(
         libraries.junitJupiterEngine,
         libraries.junitPlatformLauncher,
-        ivy"com.github.sbt.junit:jupiter-interface:0.11.4",
+        mvn"com.github.sbt.junit:jupiter-interface:0.11.4",
         libraries.bytebuddy
       )
     }

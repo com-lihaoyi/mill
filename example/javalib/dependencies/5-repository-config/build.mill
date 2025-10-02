@@ -11,8 +11,8 @@ val sonatypeReleases = Seq(
 object foo extends JavaModule {
 
   def ivyDeps = Agg(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
   def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }

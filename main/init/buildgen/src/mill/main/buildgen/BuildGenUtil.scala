@@ -327,7 +327,7 @@ object BuildGenUtil {
       .map { case (group, artifact) => s";exclude=$group:$artifact" }
       .mkString
 
-    s"ivy\"$group$sepArtifact$sepVersion$sepTpe$sepClassifier$sepExcludes\""
+    s"mvn\"$group$sepArtifact$sepVersion$sepTpe$sepClassifier$sepExcludes\""
   }
 
   def isBom(groupArtifactVersion: (String, String, String)): Boolean =

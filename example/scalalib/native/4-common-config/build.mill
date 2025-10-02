@@ -8,7 +8,7 @@ object `package` extends RootModule with ScalaNativeModule {
   // You can have arbitrary numbers of third-party dependencies
   // Scala Native uses double colon `::` between organization and the dependency names
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::fansi::0.5.0"
+    mvn"com.lihaoyi::fansi::0.5.0"
   )
 
   // Set the releaseMode to ReleaseFast.

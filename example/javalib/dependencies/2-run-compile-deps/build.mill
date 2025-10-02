@@ -5,9 +5,9 @@ import mill._, javalib._
 object foo extends JavaModule {
   def moduleDeps = Seq(bar)
   def runIvyDeps = Agg(
-    ivy"javax.servlet:servlet-api:2.5",
-    ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
-    ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
+    mvn"javax.servlet:servlet-api:2.5",
+    mvn"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
+    mvn"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
   )
   def mainClass = Some("bar.Bar")
 }
@@ -16,9 +16,9 @@ object foo extends JavaModule {
 
 object bar extends JavaModule {
   def compileIvyDeps = Agg(
-    ivy"javax.servlet:servlet-api:2.5",
-    ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
-    ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
+    mvn"javax.servlet:servlet-api:2.5",
+    mvn"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
+    mvn"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
   )
 }
 

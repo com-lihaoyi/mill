@@ -15,7 +15,7 @@ object `package` extends RootModule with KotlinJsModule {
   def kotlinVersion = "1.9.25"
   def kotlinJsRunTarget = Some(RunTarget.Node)
   def ivyDeps = Agg(
-    ivy"org.jetbrains.kotlinx:kotlinx-html-js:0.11.0"
+    mvn"org.jetbrains.kotlinx:kotlinx-html-js:0.11.0"
   )
   object test extends KotlinJsModule with KotestTests
 }

@@ -5,7 +5,7 @@ import mill._, javalib._
 object `package` extends RootModule with JavaModule {
   // You can have arbitrary numbers of third-party dependencies
   def ivyDeps = Agg(
-    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
   // Choose a main class to use for `.run` if there are multiple present

@@ -70,7 +70,7 @@ object PublishModuleTests extends TestSuite {
       )
       override def versionScheme = Some(VersionScheme.EarlySemVer)
       override def ivyDeps = Agg(
-        ivy"org.slf4j:slf4j-api:2.0.7"
+        mvn"org.slf4j:slf4j-api:2.0.7"
       )
       // ensure, these target won't be called
       override def jar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
@@ -95,10 +95,10 @@ object PublishModuleTests extends TestSuite {
     }
     object main extends JavaModule with TestPublishModule {
       def ivyDeps = Agg(
-        ivy"org.slf4j:slf4j-api:2.0.15"
+        mvn"org.slf4j:slf4j-api:2.0.15"
       )
       def runIvyDeps = Agg(
-        ivy"ch.qos.logback:logback-classic:1.5.12"
+        mvn"ch.qos.logback:logback-classic:1.5.12"
       )
     }
 
@@ -204,7 +204,7 @@ object PublishModuleTests extends TestSuite {
       }
     }
 
-    test("ivy") {
+    test("mvn") {
       test("should include scala-library dependency") - UnitTester(
         HelloWorldWithPublish,
         resourcePath

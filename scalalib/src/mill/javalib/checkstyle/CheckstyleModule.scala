@@ -80,7 +80,7 @@ trait CheckstyleModule extends JavaModule {
    */
   def checkstyleClasspath: T[Loose.Agg[PathRef]] = Task {
     defaultResolver().classpath(
-      Agg(ivy"com.puppycrawl.tools:checkstyle:${checkstyleVersion()}")
+      Agg(mvn"com.puppycrawl.tools:checkstyle:${checkstyleVersion()}")
     )
   }
 

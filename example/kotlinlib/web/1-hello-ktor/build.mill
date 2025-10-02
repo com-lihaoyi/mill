@@ -9,14 +9,14 @@ object `package` extends RootModule with KotlinModule {
   def mainClass = Some("com.example.HelloKtorKt")
 
   def ivyDeps = Agg(
-    ivy"io.ktor:ktor-server-core-jvm:2.3.12",
-    ivy"io.ktor:ktor-server-netty-jvm:2.3.12"
+    mvn"io.ktor:ktor-server-core-jvm:2.3.12",
+    mvn"io.ktor:ktor-server-netty-jvm:2.3.12"
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"io.ktor:ktor-server-test-host-jvm:2.3.12"
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"io.ktor:ktor-server-test-host-jvm:2.3.12"
     )
   }
 }

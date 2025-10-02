@@ -13,8 +13,8 @@ object `sentiment-analysis` extends PythonModule {
 
 object server extends JavaModule {
   def ivyDeps = Agg(
-    ivy"org.springframework.boot:spring-boot-starter-web:2.5.6",
-    ivy"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
+    mvn"org.springframework.boot:spring-boot-starter-web:2.5.6",
+    mvn"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
   )
 
   /** Bundle client & sentiment-analysis as resource */
@@ -27,7 +27,7 @@ object server extends JavaModule {
 
   object test extends JavaTests with javalib.TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
+      mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }
 }

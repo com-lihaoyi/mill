@@ -17,12 +17,12 @@ object BspModuleTests extends TestSuite {
   object MultiBase extends TestBaseModule {
     object HelloBsp extends ScalaModule {
       def scalaVersion = testScalaVersion
-      override def ivyDeps = Agg(ivy"org.slf4j:slf4j-api:1.7.34")
+      override def ivyDeps = Agg(mvn"org.slf4j:slf4j-api:1.7.34")
     }
     object HelloBsp2 extends ScalaModule {
       def scalaVersion = testScalaVersion
       override def moduleDeps = Seq(HelloBsp)
-      override def ivyDeps = Agg(ivy"ch.qos.logback:logback-classic:1.1.10")
+      override def ivyDeps = Agg(mvn"ch.qos.logback:logback-classic:1.1.10")
     }
   }
 

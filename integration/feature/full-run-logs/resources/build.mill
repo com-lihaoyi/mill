@@ -3,8 +3,8 @@ import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   def ivyDeps = Agg(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
-    ivy"org.slf4j:slf4j-simple:2.0.9"
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
+    mvn"org.slf4j:slf4j-simple:2.0.9"
   )
 }

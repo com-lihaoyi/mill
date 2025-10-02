@@ -12,13 +12,13 @@ object foo extends KotlinModule {
   def kotlinVersion = "1.9.24"
 
   def ivyDeps = super.ivyDeps() ++ Agg(
-    ivy"org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
+    mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
   )
 
   def processors = Task {
     defaultResolver().classpath(
       Agg(
-        ivy"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:1.9.24"
+        mvn"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:1.9.24"
       )
     )
   }
@@ -29,7 +29,7 @@ object foo extends KotlinModule {
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
   }
 }

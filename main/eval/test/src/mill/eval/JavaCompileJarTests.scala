@@ -1,14 +1,12 @@
 package mill.eval
 
-import mill.util.{Jvm, TestUtil}
-import mill.api.Ctx.Dest
-import mill.{T, Task}
-import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
-import mill.api.Strict.Agg
-import mill.api.{JarManifest, Loose}
-import utest._
 import mill._
+import mill.api.Ctx.Dest
+import mill.api.Strict.Agg
+import mill.api.Loose
+import mill.testkit.{TestBaseModule, UnitTester}
+import mill.util.{JarManifest, Jvm}
+import utest._
 
 object JavaCompileJarTests extends TestSuite {
   def compileAll(sources: mill.api.Loose.Agg[mill.api.PathRef])(implicit ctx: Dest) = {
@@ -58,7 +56,7 @@ object JavaCompileJarTests extends TestSuite {
         }
       }
 
-      import Build._
+      import Build.*
 
       var evaluator = UnitTester(
         Build,

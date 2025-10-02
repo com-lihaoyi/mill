@@ -13,13 +13,13 @@ object ScalaTypeLevelTests extends TestSuite {
       override def ammoniteVersion = "1.6.7"
 
       override def ivyDeps = Agg(
-        ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
+        mvn"com.github.julien-truffaut::monocle-macro::1.4.0"
       )
       override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
-        ivy"org.scalamacros:::paradise:2.1.0"
+        mvn"org.scalamacros:::paradise:2.1.0"
       )
       override def scalaDocPluginIvyDeps = super.scalaDocPluginIvyDeps() ++ Agg(
-        ivy"com.typesafe.genjavadoc:::genjavadoc-plugin:0.11"
+        mvn"com.typesafe.genjavadoc:::genjavadoc-plugin:0.11"
       )
     }
   }

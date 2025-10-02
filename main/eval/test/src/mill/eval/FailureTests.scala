@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.{T, Task}
+import mill.{Task}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import mill.api.Result.OuterStack

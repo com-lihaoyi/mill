@@ -31,7 +31,7 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
           |    Overridden ivyDeps Docs!!!
           |
           |    Any ivy dependencies you want to add to this Module, in the format
-          |    ivy"org::name:version" for Scala dependencies or ivy"org:name:version"
+          |    mvn"org::name:version" for Scala dependencies or mvn"org:name:version"
           |    for Java dependencies
           |
           |Inputs:

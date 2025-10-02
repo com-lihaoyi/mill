@@ -143,7 +143,7 @@ trait JavaModule
 
   /**
    * Any ivy dependencies you want to add to this Module, in the format
-   * ivy"org::name:version" for Scala dependencies or ivy"org:name:version"
+   * mvn"org::name:version" for Scala dependencies or mvn"org:name:version"
    * for Java dependencies
    */
   def ivyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
@@ -170,7 +170,7 @@ trait JavaModule
 
   /**
    * Any Bill of Material (BOM) dependencies you want to add to this Module, in the format
-   * ivy"org:name:version"
+   * mvn"org:name:version"
    */
   def bomIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
@@ -211,8 +211,8 @@ trait JavaModule
    * excludes org.slf4j:slf4j-api from com.lihaoyi::cask that it forces to version 0.9.4
    * {{{
    *   def depManagement = super.depManagement() ++ Agg(
-   *     ivy"com.lihaoyi::os-lib:0.11.3",
-   *     ivy"com.lihaoyi::cask:0.9.5".exclude("org.slf4j", "slf4j-api")
+   *     mvn"com.lihaoyi::os-lib:0.11.3",
+   *     mvn"com.lihaoyi::cask:0.9.5".exclude("org.slf4j", "slf4j-api")
    *   )
    * }}}
    */

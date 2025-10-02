@@ -4,6 +4,7 @@ import mill.define.NamedTask
 import mill.util.TestGraphs
 import mill.util.TestGraphs._
 import utest._
+
 object ResolveTests extends TestSuite {
 
   class Checker[T <: mill.define.BaseModule](module: T) {

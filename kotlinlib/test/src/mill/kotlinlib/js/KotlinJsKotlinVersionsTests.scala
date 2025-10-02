@@ -29,7 +29,7 @@ object KotlinJsKotlinVersionsTests extends TestSuite {
         case _ => "0.11.0"
       }
       super.ivyDeps() ++ Agg(
-        ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinxHtmlVersion"
+        mvn"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinxHtmlVersion"
       )
     }
   }

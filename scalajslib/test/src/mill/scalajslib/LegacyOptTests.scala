@@ -1,11 +1,5 @@
 package mill.scalajslib
 
-import mill._
-import mill.define.Discover
-import mill.scalalib.api.ZincWorkerUtil
-import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
-import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
-import mill.testkit.{TestBaseModule, UnitTester}
 import utest._
 
 object LegacyOptTests extends TestSuite {

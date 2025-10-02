@@ -9,7 +9,7 @@ package kotlinlib
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Command, ModuleRef, Task}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
-import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
+import mill.scalalib.api.{CompilationResult, JvmWorkerApi, ZincWorkerApi}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.scalalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
@@ -53,7 +53,7 @@ trait KotlinModule extends JavaModule { outer =>
    */
   override def mandatoryIvyDeps: T[Agg[Dep]] = Task {
     super.mandatoryIvyDeps() ++ Agg(
-      ivy"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}"
+      mvn"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}"
     )
   }
 
@@ -106,14 +106,14 @@ trait KotlinModule extends JavaModule { outer =>
    * Default is derived from [[kotlinCompilerVersion]].
    */
   def kotlinCompilerIvyDeps: T[Agg[Dep]] = Task {
-    Agg(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}") ++
+    Agg(mvn"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}") ++
       (
         if (
           !Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4").exists(prefix =>
             kotlinVersion().startsWith(prefix)
           )
         )
-          Agg(ivy"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}")
+          Agg(mvn"org.jetbrains.kotlin:kotlin-scripting-compiler:${kotlinCompilerVersion()}")
         else Seq()
       )
   }
@@ -228,7 +228,7 @@ trait KotlinModule extends JavaModule { outer =>
   private def dokkaCliClasspath: T[Agg[PathRef]] = Task {
     defaultResolver().classpath(
       Agg(
-        ivy"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
+        mvn"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
       )
     )
   }
@@ -236,8 +236,8 @@ trait KotlinModule extends JavaModule { outer =>
   private def dokkaPluginsClasspath: T[Agg[PathRef]] = Task {
     defaultResolver().classpath(
       Agg(
-        ivy"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
-        ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
+        mvn"org.jetbrains.dokka:dokka-base:${dokkaVersion()}",
+        mvn"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
         Dep.parse(Versions.kotlinxHtmlJvmDep),
         Dep.parse(Versions.freemarkerDep)
       )
@@ -366,14 +366,14 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   private[kotlinlib] def internalCompileJavaFiles(
-      worker: ZincWorkerApi,
+      worker: JvmWorkerApi,
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
       compileCp: Agg[os.Path],
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
       reportOldProblems: Boolean
-  )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
+  )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
     worker.compileJava(
       upstreamCompileOutput = upstreamCompileOutput,
       sources = javaSourceFiles,

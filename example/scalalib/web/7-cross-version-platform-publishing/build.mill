@@ -16,11 +16,11 @@ trait FooModule extends Cross.Module[String] {
       developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
     )
 
-    def ivyDeps = Agg(ivy"com.lihaoyi::scalatags::0.13.1")
+    def ivyDeps = Agg(mvn"com.lihaoyi::scalatags::0.13.1")
   }
 
   trait FooTestModule extends TestModule {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.5")
+    def ivyDeps = Agg(mvn"com.lihaoyi::utest::0.8.5")
     def testFramework = "utest.runner.Framework"
   }
 
@@ -40,7 +40,7 @@ trait FooModule extends Cross.Module[String] {
   object qux extends Module {
     object jvm extends Shared {
       def moduleDeps = Seq(bar.jvm)
-      def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.lihaoyi::upickle::3.0.0")
+      def ivyDeps = super.ivyDeps() ++ Agg(mvn"com.lihaoyi::upickle::3.0.0")
 
       object test extends ScalaTests with FooTestModule
     }

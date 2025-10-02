@@ -1,7 +1,6 @@
 package mill.api
 
-import mill.main.client.EnvVars
 object WorkspaceRoot {
-  val workspaceRoot: os.Path =
-    sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_, os.pwd))
+  @deprecated("Use mill.api.BuildCtx.workspaceRoot instead", "Mill 0.12.17")
+  val workspaceRoot: os.Path = BuildCtx.workspaceRoot
 }

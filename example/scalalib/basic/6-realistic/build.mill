@@ -21,9 +21,9 @@ trait MyModule extends PublishModule {
 }
 
 trait MyScalaModule extends MyModule with CrossScalaModule {
-  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.13.1")
+  def ivyDeps = Agg(mvn"com.lihaoyi::scalatags:0.13.1")
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
+    def ivyDeps = Agg(mvn"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
   }
 }

@@ -16,8 +16,8 @@ object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
 
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::scalatags:0.13.1",
-    ivy"com.lihaoyi::mainargs:0.6.2"
+    mvn"com.lihaoyi::scalatags:0.13.1",
+    mvn"com.lihaoyi::mainargs:0.6.2"
   )
 
   def repositoriesTask = Task.Anon {

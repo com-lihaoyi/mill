@@ -65,10 +65,10 @@ private[mill] class BspContext(
       override def rawOutputStream: PrintStream = systemStreams.out
     }
 
-    BspWorker(mill.api.WorkspaceRoot.workspaceRoot, home, log).flatMap { worker =>
+    BspWorker(mill.api.BuildCtx.workspaceRoot, home, log).flatMap { worker =>
       os.makeDir.all(home / Constants.bspDir)
       worker.startBspServer(
-        mill.api.WorkspaceRoot.workspaceRoot,
+        mill.api.BuildCtx.workspaceRoot,
         streams,
         logStream.getOrElse(streams.err),
         home / Constants.bspDir,

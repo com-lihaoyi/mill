@@ -3,35 +3,35 @@ import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   def ivyDeps = Agg(
-    ivy"org.springframework.boot:spring-boot-starter-data-jpa:2.5.4",
-    ivy"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",
-    ivy"org.springframework.boot:spring-boot-starter-validation:2.5.4",
-    ivy"org.springframework.boot:spring-boot-starter-web:2.5.4",
-    ivy"javax.xml.bind:jaxb-api:2.3.1",
-    ivy"org.webjars:webjars-locator:0.41",
-    ivy"org.webjars.npm:todomvc-common:1.0.5",
-    ivy"org.webjars.npm:todomvc-app-css:2.4.1"
+    mvn"org.springframework.boot:spring-boot-starter-data-jpa:2.5.4",
+    mvn"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",
+    mvn"org.springframework.boot:spring-boot-starter-validation:2.5.4",
+    mvn"org.springframework.boot:spring-boot-starter-web:2.5.4",
+    mvn"javax.xml.bind:jaxb-api:2.3.1",
+    mvn"org.webjars:webjars-locator:0.41",
+    mvn"org.webjars.npm:todomvc-common:1.0.5",
+    mvn"org.webjars.npm:todomvc-app-css:2.4.1"
   )
 
   trait HelloTests extends JavaTests with TestModule.Junit5 {
     def mainClass = Some("com.example.TodomvcApplication")
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
+      mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }
 
   object test extends HelloTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"com.h2database:h2:2.3.230"
+      mvn"com.h2database:h2:2.3.230"
     )
   }
 
   object integration extends HelloTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"org.testcontainers:testcontainers:1.18.0",
-      ivy"org.testcontainers:junit-jupiter:1.18.0",
-      ivy"org.testcontainers:postgresql:1.18.0",
-      ivy"org.postgresql:postgresql:42.6.0"
+      mvn"org.testcontainers:testcontainers:1.18.0",
+      mvn"org.testcontainers:junit-jupiter:1.18.0",
+      mvn"org.testcontainers:postgresql:1.18.0",
+      mvn"org.postgresql:postgresql:42.6.0"
     )
   }
 }

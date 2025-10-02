@@ -5,9 +5,9 @@ import mill.define.ModuleRef
 
 object foo extends JavaModule with NativeImageModule {
   def ivyDeps = Agg(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
-    ivy"org.slf4j:slf4j-nop:2.0.7"
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
+    mvn"org.slf4j:slf4j-nop:2.0.7"
   )
 
   def zincWorker = ModuleRef(ZincWorkerGraalvm)

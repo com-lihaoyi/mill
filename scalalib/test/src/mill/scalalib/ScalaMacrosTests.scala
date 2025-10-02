@@ -11,10 +11,10 @@ object ScalaMacrosTests extends TestSuite {
     object core extends ScalaModule {
       override def scalaVersion = scala212Version
       override def ivyDeps = Agg(
-        ivy"com.github.julien-truffaut::monocle-macro::1.6.0"
+        mvn"com.github.julien-truffaut::monocle-macro::1.6.0"
       )
       override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
-        ivy"org.scalamacros:::paradise:2.1.0"
+        mvn"org.scalamacros:::paradise:2.1.0"
       )
     }
   }
@@ -22,7 +22,7 @@ object ScalaMacrosTests extends TestSuite {
   object HelloWorldMacros213 extends TestBaseModule {
     object core extends ScalaModule {
       override def scalaVersion = scala213Version
-      override def ivyDeps = Agg(ivy"com.github.julien-truffaut::monocle-macro::2.1.0")
+      override def ivyDeps = Agg(mvn"com.github.julien-truffaut::monocle-macro::2.1.0")
       override def scalacOptions = super.scalacOptions() ++ Seq("-Ymacro-annotations")
     }
   }

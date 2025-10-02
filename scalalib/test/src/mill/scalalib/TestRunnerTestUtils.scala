@@ -37,7 +37,7 @@ object TestRunnerTestUtils {
       override def testParallelism = enableParallelism
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
-          ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
+          mvn"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
         )
       }
     }
@@ -47,7 +47,7 @@ object TestRunnerTestUtils {
       override def testParallelism = enableParallelism
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
-          ivy"org.scalatest::scalatest:${sys.props.getOrElse("TEST_SCALATEST_VERSION", ???)}"
+          mvn"org.scalatest::scalatest:${sys.props.getOrElse("TEST_SCALATEST_VERSION", ???)}"
         )
       }
     }
@@ -55,7 +55,7 @@ object TestRunnerTestUtils {
     trait DoneMessage extends ScalaTests {
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
-          ivy"org.scala-sbt:test-interface:${sys.props.getOrElse("TEST_TEST_INTERFACE_VERSION", ???)}"
+          mvn"org.scala-sbt:test-interface:${sys.props.getOrElse("TEST_TEST_INTERFACE_VERSION", ???)}"
         )
       }
     }
@@ -75,8 +75,8 @@ object TestRunnerTestUtils {
       override def testParallelism = enableParallelism
       override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
-          ivy"dev.zio::zio-test:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}",
-          ivy"dev.zio::zio-test-sbt:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}"
+          mvn"dev.zio::zio-test:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}",
+          mvn"dev.zio::zio-test-sbt:${sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)}"
         )
       }
     }

@@ -1,24 +1,24 @@
 package mill.scalajslib
 
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import utest._
 
 object ScalatestTests extends TestSuite {
-  import CompileLinkTests._
-  import UtestTests._
+  import CompileLinkTests.*
+  import UtestTests.*
   def tests: Tests = Tests {
 
     test("scalatest") {
       testAllMatrix(
         (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached = false),
-        skipScala = ZincWorkerUtil.isScala3
+        skipScala = JvmWorkerUtil.isScala3
       )
     }
 
     test("scalatestCached") {
       testAllMatrix(
         (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached = true),
-        skipScala = ZincWorkerUtil.isScala3
+        skipScala = JvmWorkerUtil.isScala3
       )
     }
 

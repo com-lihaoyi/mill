@@ -23,7 +23,7 @@ object KoverModuleTests extends TestSuite {
 
       }
       override def ivyDeps = super.ivyDeps() ++ Agg(
-        ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+        mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
       )
     }
 

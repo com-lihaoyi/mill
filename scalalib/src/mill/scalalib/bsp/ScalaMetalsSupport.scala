@@ -1,10 +1,9 @@
 package mill.scalalib.bsp
 
-import mill.api.experimental
+import mill.api.{Result, experimental}
 import mill.{Agg, T, Task}
 import mill.scalalib.{Dep, DepSyntax, ScalaModule}
-import mill.api.Result
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 
 /*+ Enable some common settings required to properly support Metals Language Server (via BSP). */
 @experimental
@@ -19,7 +18,7 @@ trait ScalaMetalsSupport extends ScalaModule {
     val sv = scalaVersion()
     val semDbVersion = semanticDbVersion()
     val superRes = super.scalacPluginIvyDeps()
-    if (!ZincWorkerUtil.isScala3(sv) && semDbVersion.isEmpty) {
+    if (!JvmWorkerUtil.isScala3(sv) && semDbVersion.isEmpty) {
       val msg =
         """|
            |When using ScalaMetalsSupport with Scala 2 you must provide a semanticDbVersion
@@ -27,12 +26,12 @@ trait ScalaMetalsSupport extends ScalaModule {
            |def semanticDbVersion = ???
            |""".stripMargin
       Result.Failure(msg)
-    } else if (ZincWorkerUtil.isScala3(sv)) {
+    } else if (JvmWorkerUtil.isScala3(sv)) {
       Result.Success(superRes)
     } else {
       Result.Success(
         superRes ++ Agg(
-          ivy"org.scalameta:::semanticdb-scalac:${semDbVersion}"
+          mvn"org.scalameta:::semanticdb-scalac:${semDbVersion}"
         )
       )
     }
@@ -41,7 +40,7 @@ trait ScalaMetalsSupport extends ScalaModule {
   /** Adds some options and configures the semanticDB plugin. */
   override def mandatoryScalacOptions: T[Seq[String]] = Task {
     super.mandatoryScalacOptions() ++ {
-      if (ZincWorkerUtil.isScala3(scalaVersion())) {
+      if (JvmWorkerUtil.isScala3(scalaVersion())) {
         Seq("-Xsemanticdb")
       } else {
         Seq("-Yrangepos", s"-P:semanticdb:sourceroot:${Task.workspace}")

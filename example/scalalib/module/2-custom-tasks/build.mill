@@ -14,7 +14,7 @@ import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
-  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
+  def ivyDeps = Agg(mvn"com.lihaoyi::mainargs:0.4.0")
 
   def generatedSources: T[Seq[PathRef]] = Task {
     val prettyIvyDeps = for (ivyDep <- ivyDeps()) yield {

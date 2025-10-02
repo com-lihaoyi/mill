@@ -131,7 +131,7 @@ object Watching {
           s"[watched-paths:unfiltered] ${watchedPathsSet.toSeq.sorted.mkString("\n")}"
         )
 
-        val workspaceRoot = mill.api.WorkspaceRoot.workspaceRoot
+        val workspaceRoot = mill.api.BuildCtx.workspaceRoot
 
         /** Paths that are descendants of [[workspaceRoot]]. */
         val pathsUnderWorkspaceRoot = watchedPathsSet.filter { path =>

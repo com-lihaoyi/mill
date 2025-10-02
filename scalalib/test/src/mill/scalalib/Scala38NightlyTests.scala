@@ -24,7 +24,7 @@ object Scala38NightlyTests extends TestSuite {
       }
       override def scalaVersion = "3.8.0-RC1-bin-20250825-ee2f641-NIGHTLY"
       override def ivyDeps = Agg(
-        ivy"org.scala-lang.modules::scala-xml:2.4.0"
+        mvn"org.scala-lang.modules::scala-xml:2.4.0"
       )
     }
 

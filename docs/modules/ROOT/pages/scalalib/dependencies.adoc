@@ -47,20 +47,20 @@ Scala 2 versions have the unusual version format: `{epoch}.{major}.{minor}`.]
 E.g. to select the Scala 2.13 version of a library `foo`, the final `artifactId` will contain the additional suffix `_2.13`, such that the final `artifactId` is `foo_2.13`.
 
 To always pick the right version and support cross compiling,
-you can omit the scala version and instead use a double colon (`::`) between the `organization` and the `name`, e.g. `ivy"com.typesafe.akka:akka-actor_2.12:2.5.25"`.
+you can omit the scala version and instead use a double colon (`::`) between the `organization` and the `name`, e.g. `mvn"com.typesafe.akka:akka-actor_2.12:2.5.25"`.
 Your module needs to `extends ScalaModule` though.
 
 If you want to use dependencies that are cross-published against the full Scala version, e.g. `2.12.12`,
-you can use three colons (`:::`) between `organization` and `name`, e.g.: `ivy"org.scalamacros:::paradise:2.1.1"`.
+you can use three colons (`:::`) between `organization` and `name`, e.g.: `mvn"org.scalamacros:::paradise:2.1.1"`.
 
 .Example
 [source,scala]
 ----
 def ivyDeps = Agg(
   // explicit scala version suffix, NOT RECOMMENDED!
-  ivy"com.typesafe.akka:akka-actor_2.12:2.5.25",
-  ivy"com.typesafe.akka::akka-actor:2.5.25",
-  ivy"org.scalamacros:::paradise:2.1.1"
+  mvn"com.typesafe.akka:akka-actor_2.12:2.5.25",
+  mvn"com.typesafe.akka::akka-actor:2.5.25",
+  mvn"org.scalamacros:::paradise:2.1.1"
 )
 ----
 
@@ -88,7 +88,7 @@ If your Scala version is a Scala 3.x, but you want to use the Scala 2.13 version
 ----
 def scalaVersion = "3.2.1"
 def ivyDeps = Agg(
-  ivy"com.lihaoyi::upickle:2.0.0".withDottyCompat(scalaVersion()) //1
+  mvn"com.lihaoyi::upickle:2.0.0".withDottyCompat(scalaVersion()) //1
 )
 ----
 <1> This will result in a Scala 2.13 dependency `com.lihaoyi::upicke_2.13:2.0.0`
