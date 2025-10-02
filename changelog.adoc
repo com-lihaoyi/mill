@@ -17,7 +17,7 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 === 1.0.6
 :version: 1.0.6
 :milestone-name: 1.0.6
-:milestone: 126
+:milestone: 131
 :prev-version: 1.0.5
 _2025-10-01_
 
@@ -33,7 +33,7 @@ _Changes since {prev-version}:_
 === 1.0.5
 :version: 1.0.5
 :milestone-name: 1.0.5
-:milestone: 125
+:milestone: 130
 :prev-version: 1.0.4
 _2025-09-16_
 
@@ -68,7 +68,7 @@ _Changes since {prev-version}:_
 === 1.0.4
 :version: 1.0.4
 :milestone-name: 1.0.4
-:milestone: 124
+:milestone: 129
 :prev-version: 1.0.3
 _2025-08-27_
 
@@ -88,7 +88,7 @@ _Changes since {prev-version}:_
 === 1.0.3
 :version: 1.0.3
 :milestone-name: 1.0.3
-:milestone: 123
+:milestone: 127
 :prev-version: 1.0.2
 _2025-08-05_
 
@@ -142,7 +142,7 @@ core.resolve    This module contains logic around resolving Mill command line
 === 1.0.2
 :version: 1.0.2
 :milestone-name: 1.0.2
-:milestone: 122
+:milestone: 126
 :prev-version: 1.0.1
 _2025-07-29_
 
@@ -172,7 +172,7 @@ _Changes since {prev-version}:_
 === 1.0.1
 :version: 1.0.1
 :milestone-name: 1.0.1
-:milestone: 121
+:milestone: 125
 :prev-version: 1.0.0
 _2025-07-21_
 
@@ -193,7 +193,7 @@ _Changes since {prev-version}:_
 === 1.0.0
 :version: 1.0.0
 :milestone-name: 1.0.0
-:milestone: 121
+:milestone: 124
 :prev-version: 1.0.0-RC3
 _2025-07-10_
 
@@ -611,7 +611,7 @@ _Changes since {prev-version}:_
 === 0.12.15
 :version: 0.12.15
 :milestone-name: 0.12.15
-:milestone: 116
+:milestone: 121
 :prev-version: 0.12.14
 _2025-08-01_
 
@@ -637,7 +637,7 @@ version contains regex-sensitive characters ({link-pr}/5599[#5599])
 === 0.12.14
 :version: 0.12.14
 :milestone-name: 0.12.14
-:milestone: 116
+:milestone: 119
 :prev-version: 0.12.13
 _2025-05-20_
 
@@ -655,7 +655,7 @@ _Changes since {prev-version}:_
 === 0.12.13
 :version: 0.12.13
 :milestone-name: 0.12.13
-:milestone: 115
+:milestone: 120
 :prev-version: 0.12.11
 _2025-05-18_
 
