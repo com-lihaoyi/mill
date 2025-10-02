@@ -695,7 +695,7 @@ official <a href="https://github.com/android/compose-samples">compose samples</a
 <h2 id="_android_mill_setup_for_building_jetlagged_and_jetnews"><a class="anchor" href="#_android_mill_setup_for_building_jetlagged_and_jetnews"></a>Android Mill Setup for building JetLagged and JetNews</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-1-a58ebd/mill-dist-1.0.6-1-a58ebd-example-thirdparty-android-compose-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/thirdparty/android-compose-samples">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-2-96c018/mill-dist-1.0.6-2-96c018-example-thirdparty-android-compose-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/thirdparty/android-compose-samples">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, androidlib.*, kotlinlib.*
 
@@ -934,6 +934,108 @@ object JetNews extends mill.api.Module {
       )
     }
   }
+}
+
+object Jetchat extends mill.api.Module {
+
+  object app extends AndroidAppKotlinModule, AndroidR8AppModule {
+
+    def kotlinVersion = Versions.kotlinVersion
+
+    override def androidApplicationNamespace: String = &quot;com.example.compose.jetchat&quot;
+
+    override def androidApplicationId: String = &quot;com.example.compose.jetchat&quot;
+
+    override def bomMvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;androidx.compose:compose-bom:2025.08.00&quot;
+    )
+
+    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+      AndroidBuildTypeSettings(
+        isMinifyEnabled = false,
+        isShrinkEnabled = false
+      )
+    }
+    def androidProjectProguardFiles = Task.Sources(
+      &quot;proguard-rules.pro&quot;
+    )
+    def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      Seq(&quot;proguard-android-optimize.txt&quot;)
+    }
+
+    override def androidEnableCompose: T[Boolean] = true
+
+    override def enableViewBinding = true
+
+    override def dataBindingCompilerVersion = &quot;8.13.0&quot;
+
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+      true
+    }
+
+    override def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;androidx.glance:glance-appwidget:1.1.1&quot;,
+      mvn&quot;androidx.glance:glance-material3:1.1.1&quot;,
+      mvn&quot;org.jetbrains.kotlin:kotlin-stdlib-jdk8:${build.Versions.kotlinVersion}&quot;,
+      mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2&quot;,
+      mvn&quot;androidx.activity:activity-compose:1.10.1&quot;,
+      mvn&quot;androidx.core:core-ktx:1.16.0&quot;,
+      mvn&quot;androidx.appcompat:appcompat:1.7.0&quot;,
+      mvn&quot;androidx.compose.runtime:runtime-livedata&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-runtime-compose:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-livedata:2.9.0&quot;,
+      mvn&quot;androidx.navigation:navigation-fragment-ktx:2.9.0&quot;,
+      mvn&quot;androidx.navigation:navigation-ui-ktx:2.9.0&quot;,
+      mvn&quot;androidx.compose.material3:material3&quot;,
+      mvn&quot;androidx.compose.material:material-icons-extended&quot;,
+      mvn&quot;androidx.compose.ui:ui-util&quot;,
+      mvn&quot;androidx.compose.ui:ui-viewbinding&quot;,
+      mvn&quot;androidx.compose.ui:ui-text-google-fonts&quot;,
+      mvn&quot;androidx.databinding:viewbinding:8.13.0&quot;,
+      mvn&quot;androidx.compose.ui:ui-tooling&quot;,
+      mvn&quot;androidx.compose.ui:ui-tooling-preview&quot;,
+      mvn&quot;androidx.compose.ui:ui-test-manifest&quot;,
+      mvn&quot;com.google.android.material:material:1.6.0&quot;
+    )
+
+    def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+
+    def androidCompileSdk = Versions.androidCompileSdk
+
+    def androidMinSdk = Versions.androidMinSdk
+
+    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule {
+      override def bomMvnDeps = super.mvnDeps() ++ Seq(
+        mvn&quot;androidx.compose:compose-bom:2025.08.00&quot;
+      )
+
+      // TODO consider defaulting this to the parent app value
+      override def androidEnableCompose = true
+
+      // TODO consider defaulting this to the parent app value
+      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+        true
+      }
+
+      // FIXME: R8 should compile without missing classes errors
+      override def androidR8Args = Seq(&quot;--map-diagnostics&quot;, &quot;error&quot;, &quot;warning&quot;)
+
+      def mvnDeps = super.mvnDeps() ++ Seq(
+        mvn&quot;junit:junit:4.13.2&quot;,
+        mvn&quot;androidx.test:core:1.6.1&quot;,
+        mvn&quot;androidx.test:runner:1.6.1&quot;,
+        mvn&quot;androidx.test.espresso:espresso-core:3.6.1&quot;,
+        mvn&quot;androidx.test:rules:1.6.1&quot;,
+        mvn&quot;androidx.test.ext:junit:1.2.1&quot;,
+        mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2&quot;,
+        mvn&quot;androidx.compose.ui:ui-test&quot;,
+        mvn&quot;androidx.compose.ui:ui-test-junit4&quot;,
+        mvn&quot;androidx.collection:collection-ktx:1.5.0&quot;
+      )
+
+    }
+  }
 }</code></pre>
 </div>
 </div>
@@ -945,10 +1047,10 @@ The following example is for building, testing and running JetNews.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill JetNews.app.androidApk
 
-&gt; ./mill show JetLagged.app.createAndroidVirtualDevice
+&gt; ./mill show JetNews.app.createAndroidVirtualDevice
 ...Name: test, DeviceId: medium_phone...
 
-&gt; ./mill show JetLagged.app.startAndroidEmulator
+&gt; ./mill show JetNews.app.startAndroidEmulator
 
 &gt; ./mill show JetNews.app.androidInstall
 ...All files should be loaded. Notifying the device...
