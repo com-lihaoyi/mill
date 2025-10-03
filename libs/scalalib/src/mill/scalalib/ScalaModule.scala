@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import mill.util.JarManifest
-import mill.api.{BuildCtx, DummyInputStream, ModuleRef, PathRef, Result, Task, Discover}
+import mill.api.{BuildCtx, DummyInputStream, ModuleRef, PathRef, Result, Task}
 import mill.util.BuildInfo
 import mill.util.Jvm
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
