@@ -9,7 +9,7 @@ object bar extends JavaModule {
 /** See Also: foo/mill.yaml */
 /** Usage
 
-> ./mill foo:run --text hello
+> ./mill foo.run --text hello
 <h1>hello</h1>
 
 */

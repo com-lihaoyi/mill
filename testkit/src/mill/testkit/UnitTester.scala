@@ -143,7 +143,7 @@ class UnitTester(
     allowPositionalCommandArgs = false,
     selectiveExecution = false,
     execution = execution,
-    scriptModuleResolver = (_, _) => ???
+    scriptModuleResolver = (_, _, _, _) => ???
   )
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
@@ -152,7 +152,7 @@ class UnitTester(
         evaluator.rootModule,
         args,
         SelectMode.Separated,
-        scriptModuleResolver = _ => ???
+        scriptModuleResolver = (_, _, _) => ???
       )
     } match {
       case Result.Failure(err) => Left(ExecResult.Failure(err))

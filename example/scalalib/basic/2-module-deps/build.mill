@@ -6,11 +6,11 @@
 
 /** Usage
 
-> ./mill bar/test
+> ./mill bar.test
 + bar.BarTests.simple...
 + bar.BarTests.escaping...
 
-> ./mill foo:run --text hello
+> ./mill foo.run --text hello
 <h1>hello</h1>
 
 */

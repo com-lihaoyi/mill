@@ -27,8 +27,10 @@ final class EvaluatorImpl private[mill] (
     private val execution: Execution,
     scriptModuleResolver: (
         String,
-        String => Option[mill.Module]
-    ) => Option[Result[mill.api.ExternalModule]]
+        String => Option[mill.Module],
+        Boolean,
+        Option[String]
+    ) => Seq[Result[mill.api.ExternalModule]]
 ) extends Evaluator {
 
   private[mill] def workspace = execution.workspace
@@ -73,7 +75,7 @@ final class EvaluatorImpl private[mill] (
         selectMode,
         allowPositionalCommandArgs,
         resolveToModuleTasks,
-        scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule)
+        scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule, _, _)
       )
     }
   }
@@ -90,7 +92,7 @@ final class EvaluatorImpl private[mill] (
         selectMode,
         allowPositionalCommandArgs,
         resolveToModuleTasks,
-        scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule)
+        scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule, _, _)
       )
     }
   }
@@ -113,7 +115,7 @@ final class EvaluatorImpl private[mill] (
           selectMode,
           allowPositionalCommandArgs,
           resolveToModuleTasks,
-          scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule)
+          scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule, _, _)
         )
       }
     }
@@ -132,7 +134,7 @@ final class EvaluatorImpl private[mill] (
           selectMode,
           allowPositionalCommandArgs,
           resolveToModuleTasks,
-          scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule)
+          scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule, _, _)
         )
       }
     }
@@ -294,7 +296,7 @@ final class EvaluatorImpl private[mill] (
             scriptArgs,
             selectMode,
             allowPositionalCommandArgs,
-            scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule)
+            scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule, _, _)
           )
         }
       }

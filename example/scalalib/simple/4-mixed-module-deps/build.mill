@@ -11,7 +11,7 @@ object bar extends ScalaModule {
 /** See Also: bar/src/Bar.scala */
 /** Usage
 
-> ./mill foo:run --text hello
+> ./mill foo.run --text hello
 <h1>hello</h1>
 
 */

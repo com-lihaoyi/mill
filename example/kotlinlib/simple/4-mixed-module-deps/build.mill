@@ -13,7 +13,7 @@ object bar extends KotlinModule {
 /** See Also: bar/src/bar/Bar.kt */
 /** Usage
 
-> ./mill foo:run --text hello
+> ./mill foo.run --text hello
 <h1>hello</h1>
 
 */
