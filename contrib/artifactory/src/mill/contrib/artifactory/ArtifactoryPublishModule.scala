@@ -83,11 +83,7 @@ object ArtifactoryPublishModule extends ExternalModule {
         password <- Task.env.get("ARTIFACTORY_PASSWORD")
       } yield {
         s"$username:$password"
-      }).getOrElse(
-        Task.fail(
-          "Consider using ARTIFACTORY_USERNAME/ARTIFACTORY_PASSWORD environment variables or passing `credentials` argument"
-        )
-      )
+      }).getOrElse("")
     } else {
       credentials
     }
