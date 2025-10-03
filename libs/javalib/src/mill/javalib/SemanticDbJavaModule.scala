@@ -64,13 +64,6 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
       else opts
     }
 
-    val compileTo = Task.dest
-
-    Task.log.debug(s"compiling to: $compileTo")
-    Task.log.debug(s"semantic db enabled: $compileSemanticDb")
-    Task.log.debug(s"effective javac options: ${jOpts.compiler}")
-    Task.log.debug(s"effective java runtime options: ${jOpts.runtime}")
-
     val sources = allSourceFiles().map(_.path)
 
     val compileClasspathSemanticDbJavaPlugin =
@@ -85,6 +78,11 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
       javacOptions = jOpts.compiler,
       incrementalCompilation = zincIncrementalCompilation()
     )
+
+    Task.log.debug(s"compiling to: ${compileJavaOp.compileTo}")
+    Task.log.debug(s"semantic db enabled: $compileSemanticDb")
+    Task.log.debug(s"effective javac options: ${jOpts.compiler}")
+    Task.log.debug(s"effective java runtime options: ${jOpts.runtime}")
 
     val compileJavaResult = jvmWorker()
       .internalWorker()

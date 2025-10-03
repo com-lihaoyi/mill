@@ -5,10 +5,6 @@ import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
 
-import scala.annotation.nowarn
-
-//noinspection ScalaDeprecation
-@nowarn("cat=deprecation")
 trait JvmWorkerApi extends PublicJvmWorkerApi {
 
   /** Compile a Java-only project. */
@@ -45,8 +41,23 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
-  )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] =
-    throw UnsupportedOperationException("Public API of JvmWorkerApi is deprecated.")
+  )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
+    val jOpts = JavaCompilerOptions(javacOptions)
+    compileJava(
+      ZincCompileJava(
+        compileTo = ctx.dest,
+        upstreamCompileOutput = upstreamCompileOutput,
+        sources = sources,
+        compileClasspath = compileClasspath,
+        javacOptions = jOpts.compiler,
+        incrementalCompilation = incrementalCompilation
+      ),
+      javaHome = javaHome,
+      javaRuntimeOptions = jOpts.runtime,
+      reporter = reporter,
+      reportCachedProblems = reportCachedProblems
+    )
+  }
 
   // public API forwarder
   override def compileMixed(
@@ -64,8 +75,29 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String]
-  )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] =
-    throw UnsupportedOperationException("Public API of JvmWorkerApi is deprecated.")
+  )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
+    val jOpts = JavaCompilerOptions(javacOptions)
+    compileMixed(
+      ZincCompileMixed(
+        compileTo = ctx.dest,
+        upstreamCompileOutput = upstreamCompileOutput,
+        sources = sources,
+        compileClasspath = compileClasspath,
+        javacOptions = jOpts.compiler,
+        scalaVersion = scalaVersion,
+        scalaOrganization = scalaOrganization,
+        scalacOptions = scalacOptions,
+        compilerClasspath = compilerClasspath,
+        scalacPluginClasspath = scalacPluginClasspath,
+        incrementalCompilation = incrementalCompilation,
+        auxiliaryClassFileExtensions = auxiliaryClassFileExtensions
+      ),
+      javaHome = javaHome,
+      javaRuntimeOptions = jOpts.runtime,
+      reporter = reporter,
+      reportCachedProblems = reportCachedProblems
+    )
+  }
 
   // public API forwarder
   override def docJar(
@@ -75,8 +107,18 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       scalacPluginClasspath: Seq[PathRef],
       javaHome: Option[os.Path],
       args: Seq[String]
-  )(using ctx: PublicJvmWorkerApi.Ctx): Boolean =
-    throw UnsupportedOperationException("Public API of JvmWorkerApi is deprecated.")
+  )(using ctx: PublicJvmWorkerApi.Ctx): Boolean = {
+    scaladocJar(
+      ZincScaladocJar(
+        scalaVersion = scalaVersion,
+        scalaOrganization = scalaOrganization,
+        compilerClasspath = compilerClasspath,
+        scalacPluginClasspath = scalacPluginClasspath,
+        args = args
+      ),
+      javaHome = javaHome
+    )
+  }
 }
 object JvmWorkerApi {
   type Ctx = PublicJvmWorkerApi.Ctx
