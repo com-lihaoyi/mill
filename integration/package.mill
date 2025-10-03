@@ -168,7 +168,10 @@ object `package` extends mill.Module {
   def testMill: T[PathRef] = {
     val name = if (scala.util.Properties.isWin) "mill.bat" else "mill"
     Task {
-      PathRef(build.dist.installLocalTask(binFile = Task.Anon((Task.dest / name).toString()))())
+      val executable = build.dist.executable().path
+      val dest = Task.dest / name
+      os.copy.over(executable, dest)
+      PathRef(dest)
     }
   }
 
