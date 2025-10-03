@@ -50,8 +50,9 @@ import scala.collection.immutable.SortedSet
  *  - cross builds
  */
 @internal
-object SbtBuildGenMain
-    extends BuildGenBase[Project, String, (BuildInfo, Tree[Node[Option[Project]]])] {
+object SbtBuildGenMain extends BuildGenBase {
+  override type Module = Project
+  override type Input = (BuildExport, Tree[Node[Option[Project]]])
   override type C = Config
 
   def main(args: Array[String]): Unit = {
@@ -137,7 +138,7 @@ object SbtBuildGenMain
     }
 
     val buildExportPickled = os.read(workspace / "target" / "mill-init-build-export.json")
-    // TODO This is mainly for debugging purposes. Comment out or uncomment this line as needed.
+    // This line is mainly for debugging purposes. Comment out or uncomment this line as needed.
     // println("sbt build export retrieved: " + buildExportPickled)
     import upickle.*
     val buildExport = read[BuildExport](buildExportPickled)
@@ -154,7 +155,7 @@ object SbtBuildGenMain
 
     val projectNodeTree = projectNodes.foldLeft(Tree(Node(Seq.empty, None)))(merge)
 
-    convertWriteOut(cfg, cfg.shared, (buildExport.defaultBuildInfo, projectNodeTree))
+    convertWriteOut(cfg, cfg.shared, (buildExport, projectNodeTree))
 
     println("converted sbt build to Mill")
 
@@ -222,23 +223,21 @@ object SbtBuildGenMain
     )
 
   override def getModuleTree(
-      input: (BuildInfo, Tree[Node[Option[Project]]])
+      input: (BuildExport, Tree[Node[Option[Project]]])
   ): Tree[Node[Option[Project]]] =
     input._2
 
   private def sbtSupertypes = Seq("SbtModule", "PublishModule") // always publish
 
   override def getBaseInfo(
-      input: (BuildInfo, Tree[Node[Option[Project]]]),
+      input: (BuildExport, Tree[Node[Option[Project]]]),
       cfg: Config,
       baseModule: String,
       packagesSize: Int
   ): IrBaseInfo = {
-    val buildInfo = cfg.baseProject.fold(input._1)(name =>
-      // TODO This can simplified if `buildExport.projects` is passed here.
-      input._2.nodes().collectFirst(Function.unlift(_.value.flatMap(project =>
-        Option.when(project.name == name)(project)
-      ))).get.buildInfo
+    val buildExport = input._1
+    val buildInfo = cfg.baseProject.fold(buildExport.defaultBuildInfo)(name =>
+      buildExport.projects.find(_.name == name).get.buildInfo
     )
 
     import buildInfo.*
@@ -247,7 +246,7 @@ object SbtBuildGenMain
     val pomSettings = extractPomSettings(buildPublicationInfo)
     val publishVersion = getPublishVersion(buildInfo)
 
-    val typedef = IrTrait(
+    IrBaseInfo(
       cfg.shared.jvmId, // There doesn't seem to be a Java version setting in `sbt` though. See https://stackoverflow.com/a/76456295/5082913.
       baseModule,
       sbtSupertypes,
@@ -259,8 +258,6 @@ object SbtBuildGenMain
       Seq.empty, // not available in `sbt` as it seems
       repositories
     )
-
-    IrBaseInfo(typedef)
   }
 
   /**
@@ -271,17 +268,17 @@ object SbtBuildGenMain
   override def getModuleFqnMap(moduleNodes: Seq[Node[Project]]): Map[String, String] =
     buildModuleFqnMap(moduleNodes)(_.projectRefProject)
 
-  override def extractIrBuild(
+  override def extractIrModuleBuild(
       cfg: Config,
       // baseInfo: IrBaseInfo,
       build: Node[Project],
       moduleFqnMap: ModuleFqnMap
-  ): IrBuild = {
+  ): IrModuleBuild = {
     val project = build.value
     val buildInfo = project.buildInfo
     val configurationDeps = extractConfigurationDeps(project, moduleFqnMap, cfg)
     val version = getPublishVersion(buildInfo)
-    IrBuild(
+    IrModuleBuild(
       scopedDeps = configurationDeps,
       testModule = cfg.shared.testModule,
       testModuleMainType = "SbtTests",
@@ -313,7 +310,11 @@ object SbtBuildGenMain
 
   def getMillSourcePath(project: Project): Path = os.Path(project.projectDirectory)
 
-  override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Project]): Seq[String] =
+  override def getSupertypes(
+      cfg: Config,
+      baseInfo: Option[IrBaseInfo],
+      build: Node[Project]
+  ): Seq[String] =
     getModuleSupertypes(cfg)
 
   def getJavacOptions(buildInfo: BuildInfo): Seq[String] =

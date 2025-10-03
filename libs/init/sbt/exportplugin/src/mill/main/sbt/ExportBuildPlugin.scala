@@ -135,7 +135,7 @@ object ExportBuildPlugin extends AutoPlugin {
           })
         )
       ),
-    // `target.value` doesn't work in `globalSettings` and `buildSettings`, so this is added to `projectSettings.
+    // `target.value` doesn't work in `globalSettings` and `buildSettings`, so this is added to `projectSettings`.
     millInitExportBuild := {
       val defaultBuildInfo = (ThisBuild / millInitBuildInfo).value
       val projects = millInitProject.all(ScopeFilter(inAnyProject)).value
