@@ -844,7 +844,6 @@ trait JavaModule
     true
   }
 
-  /** See [[SemanticDbJavaModule.compile]] for documentation. */
   override def compile: T[mill.javalib.api.CompilationResult] = Task(persistent = true) {
     SemanticDbJavaModule.compile(this)()
   }
