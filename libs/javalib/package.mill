@@ -1,6 +1,11 @@
 package build.libs.javalib
 
-import com.github.lolgab.mill.mima.{DirectMissingMethodProblem, MissingClassProblem, Problem, ProblemFilter}
+import com.github.lolgab.mill.mima.{
+  DirectMissingMethodProblem,
+  MissingClassProblem,
+  Problem,
+  ProblemFilter
+}
 
 import scala.util.Properties
 import scala.util.chaining.*
@@ -54,7 +59,9 @@ object `package` extends MillStableScalaModule {
       ProblemFilter.exclude[Problem]("mill.javalib.PublishModule.checkSonatypeCreds"),
       ProblemFilter.exclude[Problem]("mill.javalib.publish.SonatypeHelpers.getArtifactMappings"),
       ProblemFilter.exclude[Problem]("mill.javalib.publish.PublishInfo.parseFromFile"),
-      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.javalib.JavaModule.resolveRelativeToOut$default$2$"),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.javalib.JavaModule.resolveRelativeToOut$default$2$"
+      ),
       ProblemFilter.exclude[MissingClassProblem]("mill.javalib.CompileFor"),
       ProblemFilter.exclude[MissingClassProblem]("mill.javalib.CompileFor$")
     )
@@ -127,7 +134,7 @@ object `package` extends MillStableScalaModule {
     override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] =
       super.mimaBinaryIssueFilters() ++ Seq(
         // Ignore internal namespace.
-        ProblemFilter.exclude[Problem]("mill.javalib.api.internal.*"),
+        ProblemFilter.exclude[Problem]("mill.javalib.api.internal.*")
       )
   }
 

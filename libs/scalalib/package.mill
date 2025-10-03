@@ -38,10 +38,20 @@ object `package` extends MillStableScalaModule {
   override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] =
     super.mimaBinaryIssueFilters() ++ Seq(
       // This was `private[mill]`, package private doesn't have the JVM bytecode equivalent, so mima can't check it.
-      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.scalalib.scalafmt.ScalafmtWorkerModule.resolveRelativeToOut"),
-      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.scalalib.scalafmt.ScalafmtWorkerModule.resolveRelativeToOut$default$2"),
-      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.scalalib.scalafmt.ScalafmtWorkerModule.compileClasspathTask"),
-      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.scalalib.scalafmt.ScalafmtWorkerModule.compileFor"),
-      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.scalalib.scalafmt.ScalafmtWorkerModule.transitiveCompileClasspathTask")
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.scalalib.scalafmt.ScalafmtWorkerModule.resolveRelativeToOut"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.scalalib.scalafmt.ScalafmtWorkerModule.resolveRelativeToOut$default$2"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.scalalib.scalafmt.ScalafmtWorkerModule.compileClasspathTask"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.scalalib.scalafmt.ScalafmtWorkerModule.compileFor"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.scalalib.scalafmt.ScalafmtWorkerModule.transitiveCompileClasspathTask"
+      )
     )
 }

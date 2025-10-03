@@ -176,7 +176,7 @@ abstract class Server(args: Server.Args) {
       exit = msg => {
         serverLog(s"watchProcessIdFile: $msg")
         serverSocket.close()
-          }
+      }
     )
 
     // Wrapper object to encapsulate `activeConnections` and `inactiveTimestampOpt`,

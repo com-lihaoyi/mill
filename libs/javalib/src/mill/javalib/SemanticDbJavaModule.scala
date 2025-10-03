@@ -304,10 +304,11 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
 
   /** @note extracted code to be invoked from multiple places for binary compatibility reasons. */
   private[mill] def semanticDbDataDetailed(mod: SemanticDbJavaModule): Task[SemanticDbData] = {
+
     /** If any of the clients needs semanticdb, regular [[compile]] will produce that. */
     val task =
       if (mod.bspAnyClientNeedsSemanticDb()) mod.compile.map(Result.Success(_))
-      else mod.compileInternal.map(run => run(/* compileSemanticDb */ true))
+      else mod.compileInternal.map(run => run( /* compileSemanticDb */ true))
 
     Task.Anon {
       task().map { compilationResult =>
