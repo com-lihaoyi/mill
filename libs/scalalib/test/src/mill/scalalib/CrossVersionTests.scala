@@ -25,6 +25,7 @@ object CrossVersionTests extends TestSuite {
           |└─ org.scala-lang:scala-library:2.13.10
           |""".stripMargin
       override def scalaVersion = "2.13.10"
+      override def semanticDbVersion = "4.9.3" // last version to support Scala 2.13.10
       override def mvnDeps = Seq(mvn"com.lihaoyi::upickle:1.4.0")
     }
 

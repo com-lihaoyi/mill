@@ -117,6 +117,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   def compileClasspath: Task[Seq[PathRef]]
   def moduleDeps: Seq[JavaModule]
 
+  /** The version of SemanticDB plugin. */
   def semanticDbVersion: T[String] = Task.Input {
     val builtin = SemanticDbJavaModuleApi.buildTimeSemanticDbVersion
     val requested = Task.env.getOrElse[String](

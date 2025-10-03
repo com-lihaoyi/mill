@@ -10,7 +10,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
   object playsingleapi extends TestRootModule with PlayApiModule {
     override val moduleDir = os.temp() // workaround problem in `SingleModule`
     override def playVersion = Task { testPlay28 }
-    override def scalaVersion = Task { "2.13.12" }
+    override def scalaVersion = Task { "2.13.17" }
     object test extends PlayTests
 
     lazy val millDiscover = Discover[this.type]

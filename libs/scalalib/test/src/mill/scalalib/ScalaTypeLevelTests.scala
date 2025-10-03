@@ -12,6 +12,10 @@ object ScalaTypeLevelTests extends TestSuite {
     object foo extends ScalaModule {
       override def scalaVersion = "2.11.8"
       override def scalaOrganization = "org.typelevel"
+
+      // Hack to disable semanticdb, because there's no semanticdb for this ancient scala version.
+      override protected def semanticDbEnablePluginScalacOptions = Seq.empty
+
       override def ammoniteVersion = "1.6.7"
 
       override def mvnDeps = Seq(

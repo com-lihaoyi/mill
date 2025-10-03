@@ -14,6 +14,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       val (crossScalaVersion, crossPlayVersion) = (crossValue, crossValue2)
       override def playVersion = crossPlayVersion
       override def scalaVersion = crossScalaVersion
+
       object test extends PlayTests
       override def mvnDeps = Task { super.mvnDeps() ++ Seq(ws()) }
     }

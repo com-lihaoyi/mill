@@ -23,10 +23,6 @@ object HelloWorldTests extends TestSuite {
 
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = scala212Version
-    override def semanticDbVersion: T[String] = Task {
-      // The latest semanticDB release for Scala 2.12.6
-      "4.1.9"
-    }
   }
   trait SemanticModule extends scalalib.ScalaModule {
     def scalaVersion = scala213Version
@@ -42,6 +38,9 @@ object HelloWorldTests extends TestSuite {
   object HelloWorldNonPrecompiledBridge extends TestRootModule {
     object core extends HelloWorldModule {
       override def scalaVersion = "2.12.1"
+
+      // Hack to disable semanticdb, because there's no semanticdb for this ancient scala version.
+      override protected def semanticDbEnablePluginScalacOptions = Seq.empty
     }
     lazy val millDiscover = Discover[this.type]
 
@@ -52,7 +51,14 @@ object HelloWorldTests extends TestSuite {
           scala212Version,
           scala213Version
         )
-    trait HelloWorldCross extends CrossScalaModule
+
+    trait HelloWorldCross extends CrossScalaModule {
+      override def semanticDbVersion = Task { scalaVersion() match {
+        case `scala2123Version` => "2.1.2"
+        case _ => super.semanticDbVersion()
+      } }
+    }
+
     lazy val millDiscover = Discover[this.type]
   }
 

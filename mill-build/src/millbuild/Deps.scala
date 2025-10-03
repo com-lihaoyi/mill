@@ -17,7 +17,7 @@ object Deps {
   val testScala213Version = "2.13.16"
   // Scala Native 4.2 will not get releases for new Scala version
   val testScala213VersionForScalaNative42 = "2.13.16"
-  val testScala212Version = "2.12.6"
+  val testScala212Version = "2.12.20"
   val testScala32Version = "3.2.0"
   val testScala33Version = "3.3.1"
 

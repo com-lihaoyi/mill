@@ -12,7 +12,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
   object MultiModuleClasspaths extends TestRootModule {
     trait FooModule extends ScalaModule {
       def scalaVersion = "2.13.12"
-
+      def semanticDbVersion = "4.8.4" // Last version that supports 2.13.12
       def mvnDeps = Seq(mvn"com.lihaoyi::sourcecode:0.2.2")
       def compileMvnDeps = Seq(mvn"com.lihaoyi::geny:0.4.2")
       def runMvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
@@ -20,6 +20,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
     }
     trait BarModule extends ScalaModule {
       def scalaVersion = "2.13.12"
+      def semanticDbVersion = "4.8.4" // Last version that supports 2.13.12
 
       def mvnDeps = Seq(mvn"com.lihaoyi::sourcecode:0.2.1")
       def compileMvnDeps = Seq(mvn"com.lihaoyi::geny:0.4.1")
@@ -28,6 +29,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
     }
     trait QuxModule extends ScalaModule {
       def scalaVersion = "2.13.12"
+      def semanticDbVersion = "4.8.4" // Last version that supports 2.13.12
 
       def mvnDeps = Seq(mvn"com.lihaoyi::sourcecode:0.2.0")
       def compileMvnDeps = Seq(mvn"com.lihaoyi::geny:0.4.0")

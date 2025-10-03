@@ -30,7 +30,7 @@ object ScalaCrossVersionTests extends TestSuite {
         CrossModuleDeps.cuttingEdge(scala213Version).moduleDeps
       ).getMessage
       assert(
-        message == s"Unable to find compatible cross version between ${scala213Version} and 2.12.6,3.2.0"
+        message == s"Unable to find compatible cross version between ${scala213Version} and 2.12.20,3.2.0"
       )
     }
   }
