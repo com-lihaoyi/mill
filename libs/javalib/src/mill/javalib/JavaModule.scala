@@ -113,7 +113,7 @@ trait JavaModule
      * If, for some reason, those are too restrictive to you, you can override this method.
      * @throws MillException
      */
-    protected def hierarchyChecks(): Unit = JavaModule.hierarchyChecks(outer)
+    protected def hierarchyChecks(): Unit = JavaModule.hierarchyChecks(outer, this)
   }
 
   def defaultTask(): String = "run"
@@ -1563,9 +1563,9 @@ object JavaModule {
      *
      * @throws MillException
      */
-    protected def hierarchyChecks(): Unit = JavaModule.hierarchyChecks(outerRef())
+    protected def hierarchyChecks(): Unit = JavaModule.hierarchyChecks(outerRef(), this)
   }
-  private def hierarchyChecks(outer: JavaModule) = {
+  private def hierarchyChecks(outer: JavaModule, self: JavaModule) = {
     val outerInnerSets = Seq(
       ("mill.scalajslib.ScalaJSModule", "ScalaJSTests"),
       ("mill.scalanativelib.ScalaNativeModule", "ScalaNativeTests"),
@@ -1577,7 +1577,7 @@ object JavaModule {
       testMod = s"${mod}$$${testModShort}"
     }
       try {
-        if (Class.forName(mod).isInstance(outer) && !Class.forName(testMod).isInstance(this))
+        if (Class.forName(mod).isInstance(outer) && !Class.forName(testMod).isInstance(self))
           throw new MillException(
             s"$outer is a `${mod}`. $this needs to extend `${testModShort}`."
           )
