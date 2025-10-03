@@ -1,18 +1,16 @@
 package mill.javalib
 
-import mill.api.{BuildCtx, Discover, ExternalModule, ModuleRef, PathRef, Result, experimental}
 import mill.api.daemon.internal.SemanticDbJavaModuleApi
+import mill.api.daemon.internal.bsp.BspBuildTarget
+import mill.api.*
 import mill.constants.CodeGenConstants
-import mill.util.BuildInfo
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil}
-import mill.util.Version
+import mill.util.{BuildInfo, Version}
 import mill.{T, Task}
 
-import scala.jdk.CollectionConverters.*
-import mill.api.daemon.internal.bsp.BspBuildTarget
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
-
 import java.nio.file.NoSuchFileException
+import scala.jdk.CollectionConverters.*
 
 @experimental
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
@@ -303,7 +301,10 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
   /** @note extracted code to be invoked from multiple places for binary compatibility reasons. */
   private[mill] def semanticDbDataDetailed(mod: SemanticDbJavaModule): Task[SemanticDbData] = {
 
-    /** If any of the clients needs semanticdb, regular [[compile]] will produce that. */
+    /**
+     * If any of the clients needs semanticdb, regular [[compile]] will produce that, so let's reuse the tasks output
+     * to save resources.
+     */
     val task =
       if (mod.bspAnyClientNeedsSemanticDb()) mod.compile.map(Result.Success(_))
       else mod.compileInternal.map(run => run( /* compileSemanticDb */ true))
