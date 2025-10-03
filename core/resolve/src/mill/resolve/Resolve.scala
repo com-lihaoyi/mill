@@ -210,7 +210,7 @@ private[mill] object Resolve {
       val invoked = invokeCommand0(
         p,
         r.segments.last.value,
-        p match{
+        p match {
           case e: ExternalModule => e.discover
           case _ => rootModule.moduleCtx.discover
         },
@@ -310,7 +310,11 @@ private[mill] trait Resolve[T] {
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false,
-      scriptModuleResolver: (String, Boolean, Option[String]) => Seq[Result[mill.api.ExternalModule]]
+      scriptModuleResolver: (
+          String,
+          Boolean,
+          Option[String]
+      ) => Seq[Result[mill.api.ExternalModule]]
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val cache = new ResolveCore.Cache(scriptModuleChildResolver = scriptModuleResolver(_, true, _))
@@ -389,7 +393,11 @@ private[mill] trait Resolve[T] {
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean,
       resolveToModuleTasks: Boolean,
-      scriptModuleResolver: (String, Boolean, Option[String]) => Seq[Result[mill.api.ExternalModule]]
+      scriptModuleResolver: (
+          String,
+          Boolean,
+          Option[String]
+      ) => Seq[Result[mill.api.ExternalModule]]
   ): Result[Seq[T]] = {
     val cache = new ResolveCore.Cache(scriptModuleChildResolver = scriptModuleResolver(_, true, _))
     resolveNonEmptyAndHandle2(

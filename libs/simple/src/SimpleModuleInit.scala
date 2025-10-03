@@ -4,7 +4,14 @@ import mill.api.{ExternalModule, Result}
 import mill.simple.SimpleModule.parseHeaderData
 
 private object SimpleModuleInit
-    extends ((String, String => Option[mill.Module], Boolean, Option[String]) => Seq[Result[mill.api.ExternalModule]]) {
+    extends (
+        (
+            String,
+            String => Option[mill.Module],
+            Boolean,
+            Option[String]
+        ) => Seq[Result[mill.api.ExternalModule]]
+    ) {
   def instantiate(className: String, args: AnyRef*): ExternalModule = {
     val cls =
       try Class.forName(className)
@@ -33,10 +40,12 @@ private object SimpleModuleInit
     instantiate(className, SimpleModule.Config(millFile, moduleDeps.map(resolveModuleDep(_).get)))
   }
 
-  def apply(millFileString: String,
-            resolveModuleDep: String => Option[mill.Module],
-            resolveChildren: Boolean,
-            nameOpt: Option[String]) = {
+  def apply(
+      millFileString: String,
+      resolveModuleDep: String => Option[mill.Module],
+      resolveChildren: Boolean,
+      nameOpt: Option[String]
+  ) = {
     val workspace = mill.api.BuildCtx.workspaceRoot
 
     def resolve0(millFile: os.Path) = {
@@ -52,7 +61,7 @@ private object SimpleModuleInit
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
       val millFile0 = os.Path(millFileString, workspace)
       if (resolveChildren) {
-        nameOpt match{
+        nameOpt match {
           case Some(n) => resolve0(millFile0 / n).toSeq
           case None =>
             if (!os.isDir(millFile0)) Nil

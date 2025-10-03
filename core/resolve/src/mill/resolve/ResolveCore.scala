@@ -58,7 +58,10 @@ private object ResolveCore {
           String
       )]] =
         collection.mutable.Map(),
-      val scriptModuleChildResolver: (String, Option[String]) => Seq[mill.api.Result[mill.api.ExternalModule]]
+      val scriptModuleChildResolver: (
+          String,
+          Option[String]
+      ) => Seq[mill.api.Result[mill.api.ExternalModule]]
   ) {
     def decode(s: String): String = {
       decodedNames.getOrElseUpdate(s, scala.reflect.NameTransformer.decode(s))
@@ -449,7 +452,7 @@ private object ResolveCore {
           else {
             val scriptKey = segments.value.flatMap(_.pathSegments).mkString("/")
             val resolvedScript = cache.scriptModuleChildResolver(scriptKey, nameOpt)
-            for(mod <- resolvedScript) yield {
+            for (mod <- resolvedScript) yield {
               val newSegments = Segments.labels(mod.get.moduleSegments.last.value)
               (Resolved.Module(newSegments, mod.get.getClass), Some((_: Module) => mod))
             }

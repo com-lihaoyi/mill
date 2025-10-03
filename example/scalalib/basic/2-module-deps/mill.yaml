@@ -1,3 +1,0 @@
-extends: mill.scalalib.ScalaModule.Simple
-mvnDeps:
-- "com.lihaoyi::scalatags:0.13.1"
