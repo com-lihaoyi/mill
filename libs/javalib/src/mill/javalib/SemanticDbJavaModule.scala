@@ -138,6 +138,14 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 
   def semanticDbScalaVersion: T[String] = BuildInfo.scalaVersion
 
+  private def semanticDbScalaArtifactOrganization: String = "org.scalameta"
+
+  private def semanticDbScalaArtifactName(scalaVersion: String): String =
+    s"semanticdb-scalac_$scalaVersion"
+
+  private def semanticDbScalaArtifact(scalaVersion: String, semanticDbVersion: String): Dep =
+    mvn"$semanticDbScalaArtifactOrganization:${semanticDbScalaArtifactName(scalaVersion)}:$semanticDbVersion"
+
   protected def semanticDbPluginMvnDeps: T[Seq[Dep]] = Task {
     val sv = semanticDbScalaVersion()
     val semDbVersion = semanticDbVersion()
@@ -152,9 +160,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     } else if (JvmWorkerUtil.isScala3(sv)) {
       Seq.empty[Dep]
     } else {
-      Seq(
-        mvn"org.scalameta:semanticdb-scalac_${sv}:${semDbVersion}"
-      )
+      Seq(semanticDbScalaArtifact(sv, semDbVersion))
     }
   }
 
@@ -179,9 +185,32 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
    * Scalac options to activate the compiler plugins.
    */
   protected def semanticDbEnablePluginScalacOptions: T[Seq[String]] = Task {
-    val resolvedJars = defaultResolver().classpath(
-      semanticDbPluginMvnDeps().map(_.exclude("*" -> "*"))
-    )
+    val resolvedJars =
+      try {
+        defaultResolver().classpath(
+          semanticDbPluginMvnDeps().map(_.exclude("*" -> "*"))
+        )
+      } catch {
+        case t
+            if t.getMessage.contains(s"$semanticDbScalaArtifactOrganization:${semanticDbScalaArtifactName("")}") =>
+          Task.log.error(
+            s"""!!! It seems that your SemanticDB version is not compatible with your Scala version !!!
+               |
+               |Specify the version that is compatible with your scala version in your build:
+               |
+               |  ```
+               |  object myScalaApp extends ScalaModule {
+               |    def semanticDbVersion = "<version compatible with your scala version>"
+               |  }
+               |  ```
+               |
+               |One option to find the last SemanticDB version that is compatible with your Scala version is to visit
+               |https://mvnrepository.com/artifact/org.scalameta/semanticdb-scalac and find the value in "Version"
+               |column that has your Scala version next to it in the "Scala" column.
+               |""".stripMargin
+          )
+          throw t
+      }
     resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
   }
 

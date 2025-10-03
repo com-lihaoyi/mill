@@ -10,6 +10,7 @@ object FeaturesTests extends TestSuite {
   object Features extends TestRootModule with ScalaNativeModule {
     def scalaNativeVersion = "0.5.0"
     def scalaVersion = "2.13.10"
+    def semanticDbVersion = "4.9.3" // last compatible version
     def nativeIncrementalCompilation = true
     override lazy val millDiscover = Discover[this.type]
   }

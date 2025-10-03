@@ -77,6 +77,11 @@ object IntegrationTester {
       asTestValue(propagateEnv),
       asTestValue(shutdownGracePeriod)
     )
+    
+    /** Enhances the test with clues and then runs the evaluation. */
+    def runWithClues[A](f: EvalResult => A): A = {
+      withTestClues(clues*)(f(run()))
+    }
   }
 
   trait Impl extends AutoCloseable with IntegrationTesterBase {

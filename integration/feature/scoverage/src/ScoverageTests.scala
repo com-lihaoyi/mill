@@ -9,8 +9,9 @@ object ScoverageTests extends UtestIntegrationTestSuite {
     test("test") - retry(3) {
       integrationTest { tester =>
         import tester._
-        assert(eval("__.compile").isSuccess)
-        assert(eval("core[2.13.11].scoverage.xmlReport").isSuccess)
+
+        prepEval("__.compile").runWithClues(r => assert(r.isSuccess))
+        prepEval("core[2.13.11].scoverage.xmlReport").runWithClues(r => assert(r.isSuccess))
       }
     }
   }
