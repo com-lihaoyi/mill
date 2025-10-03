@@ -159,7 +159,7 @@ object TabCompleteTests extends TestSuite {
       test("crossComplete") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "qux[12].task3"),
-          Set()
+          Set("qux[12].task3")
         )
 
       }
