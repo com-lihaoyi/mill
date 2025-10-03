@@ -718,6 +718,7 @@ trait AndroidModule extends JavaModule { outer =>
 
   trait AndroidTestModule extends JavaTests, AndroidModule {
     override def outerRef: ModuleRef[AndroidModule] = ModuleRef(AndroidModule.this)
+
     override def androidCompileSdk: T[Int] = outerRef().androidCompileSdk()
 
     override def androidMinSdk: T[Int] = outerRef().androidMinSdk()
