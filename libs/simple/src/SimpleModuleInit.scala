@@ -31,9 +31,9 @@ private object SimpleModuleInit
   ) = {
     val className = extendsConfig.getOrElse {
       millFile.ext match {
-        case "java" => "mill.javalib.JavaModule.Simple"
-        case "scala" => "mill.scalalib.ScalaModule.Simple"
-        case "kt" => "mill.kotlinlib.KotlinModule.Simple"
+        case "java" => "mill.simple.JavaModule"
+        case "scala" => "mill.simple.ScalaModule"
+        case "kt" => "mill.simple.KotlinModule"
       }
     }
 

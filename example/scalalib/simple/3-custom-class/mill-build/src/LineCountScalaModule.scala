@@ -2,7 +2,7 @@ package millbuild
 import mill.*, javalib.*, scalalib.*
 
 class LineCountScalaModule(scriptConf: mill.simple.SimpleModule.Config)
-    extends mill.scalalib.ScalaModule.Simple(scriptConf) {
+    extends mill.simple.ScalaModule(scriptConf) {
 
   /** Total number of lines in module source files */
   def lineCount = Task {

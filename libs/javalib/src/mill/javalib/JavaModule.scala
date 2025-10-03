@@ -18,7 +18,6 @@ import mill.api.daemon.internal.bsp.{
 }
 import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.javalib.*
-import mill.simple.SimpleModule
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
 import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
 import mill.javalib.api.CompilationResult
@@ -1600,54 +1599,6 @@ object JavaModule {
   private lazy val removeInternalVersionRegex =
     (":" + Regex.quote(JavaModule.internalVersion) + "(\\w*$|\\n)").r
 
-  class Simple(val simpleConf: SimpleModule.Config) extends JavaModule.Base {
-    override lazy val millDiscover = Discover[this.type]
-  }
-
-  trait Base extends SimpleModule with JavaModule with NativeImageModule {
-    override def moduleDeps = simpleConf.moduleDeps.map(_.asInstanceOf[JavaModule])
-
-    override def sources =
-      if (os.isDir(simpleConf.simpleModulePath)) super.sources else Task.Sources()
-
-    def scriptSource = Task.Source(simpleConf.simpleModulePath)
-
-    override def allSources = {
-      if (os.isDir(simpleConf.simpleModulePath)) super.allSources
-      else Task {
-        sources() ++ Seq(scriptSource())
-      }
-    }
-  }
-
-  class Publish(val simpleConf: SimpleModule.Config) extends JavaModule.Base, PublishModule {
-    override lazy val millDiscover = Discover[this.type]
-
-    def pomSettings = Task {
-      ???
-    }
-
-    def publishVersion = Task {
-      ???
-    }
-
-  }
-
-  trait Test0 extends JavaModule.Base, JavaModule.Tests {
-    def outerRef = ModuleRef(simpleConf.moduleDeps.head.asInstanceOf[JavaModule])
-  }
-
-  class TestNg(val simpleConf: SimpleModule.Config) extends Test0, TestModule.TestNg {
-    override lazy val millDiscover = Discover[this.type]
-  }
-
-  class Junit4(val simpleConf: SimpleModule.Config) extends Test0, TestModule.Junit4 {
-    override lazy val millDiscover = Discover[this.type]
-  }
-
-  class Junit5(val simpleConf: SimpleModule.Config) extends Test0, TestModule.Junit5 {
-    override lazy val millDiscover = Discover[this.type]
-  }
 }
 
 /**

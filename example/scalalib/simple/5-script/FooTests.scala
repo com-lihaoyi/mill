@@ -1,7 +1,7 @@
+//| extends: mill.simple.ScalaModule.Utest
+//| moduleDeps: [Foo.scala]
 //| mvnDeps:
 //| - "com.lihaoyi::utest:0.9.1"
-//| moduleDeps: [Foo.scala]
-//| extends: mill.scalalib.ScalaModule.Utest
 import utest.*
 
 object FooTests extends TestSuite {

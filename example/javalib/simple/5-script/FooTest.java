@@ -1,7 +1,7 @@
+//| extends: mill.simple.JavaModule.Junit4
+//| moduleDeps: [Foo.java]
 //| mvnDeps:
 //| - "com.google.guava:guava:33.3.0-jre"
-//| moduleDeps: [Foo.java]
-//| extends: mill.javalib.JavaModule.Junit4
 
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 import static org.junit.Assert.assertEquals;

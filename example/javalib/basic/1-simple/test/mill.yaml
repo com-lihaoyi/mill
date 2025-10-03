@@ -1,4 +1,4 @@
-extends: mill.javalib.JavaModule.Junit4
+extends: mill.simple.JavaModule.Junit4
 moduleDeps: ["."]
 mvnDeps:
 - "com.google.guava:guava:33.3.0-jre"
