@@ -497,6 +497,7 @@ trait KspModule extends KotlinModule { outer =>
    */
   trait KspTests extends KspModule with KotlinTests {
     override def outerRef: ModuleRef[KspModule] = ModuleRef(KspModule.this)
+
     override def kspModuleMode: KspModuleMode = outerRef().kspModuleMode
     override def kspVersion: T[String] = outerRef().kspVersion()
     override def kspLanguageVersion: T[String] = outerRef().kspLanguageVersion()

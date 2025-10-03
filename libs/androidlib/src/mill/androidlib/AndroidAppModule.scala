@@ -889,6 +889,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   trait AndroidAppTests extends AndroidTestModule, AndroidAppModule {
     override def outerRef: ModuleRef[AndroidAppModule] = ModuleRef(AndroidAppModule.this)
+
     override def androidApplicationId: String = s"${outerRef().androidApplicationId}.test"
     override def androidApplicationNamespace: String =
       s"${outerRef().androidApplicationNamespace}.test"
@@ -896,6 +897,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   trait AndroidAppInstrumentedTests extends AndroidTestModule, AndroidAppModule {
     override def outerRef: ModuleRef[AndroidAppModule] = ModuleRef(AndroidAppModule.this)
+
     override def androidIsDebug: T[Boolean] = Task { true }
 
     override def resolutionParams: Task[ResolutionParams] = Task.Anon(outerRef().resolutionParams())

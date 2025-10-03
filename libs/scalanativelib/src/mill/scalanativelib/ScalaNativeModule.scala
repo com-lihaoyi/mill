@@ -30,6 +30,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
 
   trait ScalaNativeTests extends ScalaTests with TestScalaNativeModule {
     override def outerRef: ModuleRef[ScalaNativeModule] = ModuleRef(ScalaNativeModule.this)
+
     override def scalaNativeVersion = outerRef().scalaNativeVersion()
     override def releaseMode: T[ReleaseMode] = Task { outerRef().releaseMode() }
     override def logLevel: T[NativeLogLevel] = outerRef().logLevel()
