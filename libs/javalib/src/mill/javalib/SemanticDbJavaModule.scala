@@ -192,7 +192,9 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
         )
       } catch {
         case t
-            if t.getMessage.contains(s"$semanticDbScalaArtifactOrganization:${semanticDbScalaArtifactName("")}") =>
+            if t.getMessage.contains(
+              s"$semanticDbScalaArtifactOrganization:${semanticDbScalaArtifactName("")}"
+            ) =>
           Task.log.error(
             s"""!!! It seems that your SemanticDB version is not compatible with your Scala version !!!
                |
