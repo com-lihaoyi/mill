@@ -59,9 +59,8 @@ object FileImportGraph {
             try Right(mill.constants.Util.readBuildHeader(s.toNIO, s.last))
             catch { case e: RuntimeException => Left(e.getMessage) }
 
-        buildHeaderError.flatMap(_ =>
-          parser.splitScript(content, fileName)
-        ) match {
+        if (s.last.endsWith(".yaml")) seenScripts(s) = os.read(s)
+        else buildHeaderError.flatMap(_ => parser.splitScript(content, fileName)) match {
           case Right((prefix, pkgs, stmts)) =>
             val importSegments = pkgs.mkString(".")
 

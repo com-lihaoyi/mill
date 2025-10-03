@@ -1,5 +1,5 @@
-/** See Also: mill.yaml */
-/** See Also: test/mill.yaml */
+/** See Also: build.mill.yaml */
+/** See Also: test/package.mill.yaml */
 
 //// SNIPPET:USAGE
 /** Usage

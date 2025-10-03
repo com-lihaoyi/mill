@@ -289,6 +289,14 @@ object Task {
     ): Simple[T] = ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
+  inline def Literal[T](s: String)(using
+                            inline rw: ReadWriter[T],
+                            inline ctx: ModuleCtx) = ${
+    Macros.taskResultImpl[T](
+      '{ Result.Success(upickle.default.read[T](s)(using rw)) }
+    )('rw, 'ctx, 'false)
+  }
+
   abstract class Ops[+T] { this: Task[T] =>
     def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
     def filter(f: T => Boolean): Task[T] = this

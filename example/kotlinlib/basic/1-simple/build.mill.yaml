@@ -1,4 +1,5 @@
-extends: mill.simple.KotlinModule
+extends: [mill.kotlinlib.KotlinModule]
+kotlinVersion: "2.0.20"
 mvnDeps:
 - "com.github.ajalt.clikt:clikt:4.4.0"
 - "org.jetbrains.kotlinx:kotlinx-html:0.11.0"
