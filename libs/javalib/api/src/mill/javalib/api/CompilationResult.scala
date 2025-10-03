@@ -1,7 +1,8 @@
 package mill.javalib.api
 
+import com.lihaoyi.unroll
 import mill.api.PathRef
-import mill.api.JsonFormatters._
+import mill.api.JsonFormatters.*
 
 /**
  * @param analysisFile represented by os.Path, so we won't break caches after file changes
@@ -11,7 +12,7 @@ import mill.api.JsonFormatters._
 case class CompilationResult(
     analysisFile: os.Path,
     classes: PathRef,
-    semanticDbFiles: Option[PathRef]
+    @unroll semanticDbFiles: Option[PathRef] = None
 )
 
 object CompilationResult {

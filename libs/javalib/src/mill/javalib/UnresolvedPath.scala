@@ -8,9 +8,8 @@ import upickle.{ReadWriter, macroRW}
  * An unresolved path is relative to some unspecified destination
  * which depends on the actual configuration at evaluation time.
  *
- * TODO REVIEW: outdated comment
- * Hence, you need to call [[#resolve]] with an instance of
- * [[ExecutionPathsResolver]] to get the final [[os.Path]].
+ * Hence, you need to call [[resolve]] with the Mill's 'out/' path (for example from `EvaluatorApi.outPathJava` to
+ * get the final [[os.Path]].
  */
 sealed trait UnresolvedPath extends UnresolvedPathApi[os.Path] {
   def resolve(outPath: os.Path): os.Path

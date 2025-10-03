@@ -518,11 +518,7 @@ class ZincWorker(
           newResult.setup()
         )
       )
-      Result.Success(CompilationResult(
-        compileTo / zincCache,
-        PathRef(classesDir),
-        semanticDbFiles = None
-      ))
+      Result.Success(CompilationResult(compileTo / zincCache, PathRef(classesDir)))
     } catch {
       case e: CompileFailed =>
         Result.Failure(e.toString)

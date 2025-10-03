@@ -372,7 +372,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
         workerResult match {
           case Result.Success(_) =>
-            val cr = CompilationResult(analysisFile, PathRef(classes), semanticDbFiles = None)
+            val cr = CompilationResult(analysisFile, PathRef(classes))
             if (!isJava) {
               // pure Kotlin project
               cr

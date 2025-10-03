@@ -18,7 +18,6 @@ import scala.util.control.NonFatal
  * connections.
  */
 abstract class Server(args: Server.Args) {
-
   import args.*
 
   val processId: Long = Server.computeProcessId()

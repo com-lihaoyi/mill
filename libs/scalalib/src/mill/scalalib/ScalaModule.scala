@@ -269,12 +269,15 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     )
   }
 
+  /** See [[SemanticDbJavaModule.compile]] for documentation. */
+  override def compile: T[mill.javalib.api.CompilationResult] = Task(persistent = true) {
+    SemanticDbJavaModule.compile(this)()
+  }
+
   /**
    * Keep the return paths in sync with [[bspCompileClassesPath]].
    */
   override private[mill] def compileInternal = Task.Anon { (compileSemanticDb: Boolean) =>
-    println(s"compileScala(compileSemanticDb=$compileSemanticDb) start")
-
     val sv = scalaVersion()
     if (sv == "2.12.4") Task.log.warn(
       """Attention: Zinc is known to not work properly for Scala version 2.12.4.
@@ -310,13 +313,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       else baseClasspath
     }
 
+    val compileTo = Task.dest
+
+    Task.log.debug(s"compiling to: $compileTo")
+    Task.log.debug(s"semantic db enabled: $compileSemanticDb")
     Task.log.debug(s"effective scalac options: $scalacOptions")
     Task.log.debug(s"effective javac options: ${jOpts.compiler}")
     Task.log.debug(s"effective java runtime options: ${jOpts.runtime}")
 
     val sources = allSourceFiles().map(_.path)
     val compileMixedOp = ZincCompileMixed(
-      compileTo = Task.dest,
+      compileTo = compileTo,
       upstreamCompileOutput = upstreamCompileOutput(),
       sources = sources,
       compileClasspath = compileClasspath.map(_.path),
@@ -647,8 +654,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   }
 
   // binary compatibility forwarder
-  override def semanticDbData: T[PathRef] =
-    // This is the same as `super.semanticDbData()`, but we can't call it directly
-    // because then it generates a forwarder which breaks binary compatibility.
-    Task { semanticDbDataDetailed().semanticDbFiles }
+  override def semanticDbDataDetailed: T[SemanticDbJavaModule.SemanticDbData] = Task {
+    SemanticDbJavaModule.semanticDbDataDetailed(this)()
+  }
+
+  // binary compatibility forwarder
+  override def semanticDbData: T[PathRef] = Task {
+    SemanticDbJavaModule.semanticDbData(this)()
+  }
 }

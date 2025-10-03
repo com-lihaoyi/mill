@@ -46,7 +46,7 @@ trait AndroidHiltSupport extends KspModule, AndroidKotlinModule {
     val analysisFile = Task.dest / "kotlin.analysis.dummy"
     os.write(target = analysisFile, data = "", createFolders = true)
 
-    CompilationResult(analysisFile, transformClasses, semanticDbFiles = None)
+    CompilationResult(analysisFile, transformClasses)
   }
 
   def hiltProcessorClasspath: T[Seq[PathRef]] = Task {

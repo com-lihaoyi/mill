@@ -22,10 +22,10 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 
   /**
    * The upstream compilation output of all this module's upstream modules
+   *
+   * @note the implementation is in [[JavaModule.upstreamCompileOutput]] for binary compatibility reasons.
    */
-  def upstreamCompileOutput: T[Seq[CompilationResult]] = Task {
-    Task.traverse(transitiveModuleCompileModuleDeps)(_.compile)()
-  }
+  def upstreamCompileOutput: T[Seq[CompilationResult]]
 
   def upstreamSemanticDbDatas: Task[Seq[SemanticDbJavaModule.SemanticDbData]] =
     Task.sequence(transitiveModuleCompileModuleDeps.map(_.semanticDbDataDetailed))
@@ -42,14 +42,12 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
    * as that needs to point to the same compilation output path.
    *
    * Keep the paths in sync with [[JavaModule.bspCompileClassesPath]].
+   *
+   * @note the implementation is in [[JavaModule.compile]] for binary compatibility reasons.
    */
-  def compile: Task.Simple[mill.javalib.api.CompilationResult] = Task(persistent = true) {
-    val compileSemanticDb = bspAnyClientNeedsSemanticDb()
-    compileInternal.apply().apply(compileSemanticDb)
-  }
+  def compile: Task.Simple[mill.javalib.api.CompilationResult]
 
   private[mill] def compileInternal = Task.Anon { (compileSemanticDb: Boolean) =>
-    println(s"compile(compileSemanticDb=$compileSemanticDb) start")
     // Prepare an empty `compileGeneratedSources` folder for java annotation processors
     // to write generated sources into, that can then be picked up by IDEs like IntelliJ
     val compileGenSources = compileGeneratedSources()
@@ -69,6 +67,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     val compileTo = Task.dest
 
     Task.log.debug(s"compiling to: $compileTo")
+    Task.log.debug(s"semantic db enabled: $compileSemanticDb")
     Task.log.debug(s"effective javac options: ${jOpts.compiler}")
     Task.log.debug(s"effective java runtime options: ${jOpts.runtime}")
 
@@ -109,10 +108,10 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   }
 
   /**
-   * Path to sources generated as part of the `compile` step, eg.  by Java annotation
+   * Path to sources generated as part of the `compile` step, e.g. by Java annotation
    * processors which often generate source code alongside classfiles during compilation.
    *
-   * Typically these do not need to be compiled again, and are only used by IDEs
+   * Typically, these do not need to be compiled again, and are only used by IDEs
    */
   def compileGeneratedSources: T[os.Path]
 
@@ -197,59 +196,47 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     defaultResolver().classpath(semanticDbJavaPluginMvnDeps())
   }
 
-  // TODO review: document
-  private lazy val semanticDbSessionsDirWatch =
-    BuildCtx.watch(BuildCtx.bspSemanticDbSesssionsFolder)
+  /**
+   * Initializes the filesystem watcher for the semanticdb sessions directory.
+   *
+   * This is `lazy val` because we don't want to initialize the watcher until it's actually needed.
+   */
+  private lazy val semanticDbSessionsDirWatch: os.Path =
+    BuildCtx.watch(BuildCtx.bspSemanticDbSessionsFolder)
 
   /**
    * Returns true if the semanticdb will be needed by the BSP client or any of the other Mill daemons that are using
    * the same `out/` directory.
    */
-  private[mill] def bspAnyClientNeedsSemanticDb(): Boolean =
+  private[mill] def bspAnyClientNeedsSemanticDb(): Boolean = {
+    // Allows accessing files outside of normal task scope.
     BuildCtx.withFilesystemCheckerDisabled {
       val directory = semanticDbSessionsDirWatch
 
       val bspHasClientsThatNeedSemanticDb =
         try {
           os.list(directory).exists { path =>
-            path.last.toLongOption match {
-              case None =>
-                // malformatted pid
-                false
-              case Some(pid) =>
-                ProcessHandle.of(pid).isPresent
+            // Check if the sessions are not stale.
+            val maybePid = path.last.toLongOption
+            maybePid match {
+              case None => false // malformatted pid
+              case Some(pid) => ProcessHandle.of(pid).isPresent
             }
           }
         } catch {
           case _: NoSuchFileException => false
         }
 
-      println(s"bspHasClientsThatNeedSemanticDb=$bspHasClientsThatNeedSemanticDb")
-
       bspHasClientsThatNeedSemanticDb
-    }
-
-  def semanticDbDataDetailed: Task[SemanticDbJavaModule.SemanticDbData] = {
-    val task =
-      if (bspAnyClientNeedsSemanticDb()) compile.map(Result.Success(_))
-      else compileInternal.map(run => run(true))
-
-    Task.Anon {
-      task().map { compilationResult =>
-        // TODO review: how to do this?
-        //    val compileWithSemanticDb = SemanticDbJavaModule.withForcedSemanticDbCompilation(compile)
-        //    val compilationResult = compileWithSemanticDb.apply().apply(compileTo)
-        val semanticDbData =
-          compilationResult.semanticDbFiles.getOrElse(throw IllegalStateException(
-            "SemanticDB files were not produced, this is a bug in Mill."
-          ))
-        SemanticDbJavaModule.SemanticDbData(compilationResult, semanticDbData)
-      }
     }
   }
 
+  def semanticDbDataDetailed: T[SemanticDbJavaModule.SemanticDbData] = Task {
+    SemanticDbJavaModule.semanticDbDataDetailed(this)()
+  }
+
   def semanticDbData: T[PathRef] = Task {
-    semanticDbDataDetailed().semanticDbFiles
+    SemanticDbJavaModule.semanticDbData(this)()
   }
 
   /**
@@ -307,6 +294,36 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
       compilationResult: CompilationResult,
       semanticDbFiles: PathRef
   ) derives upickle.ReadWriter
+
+  /** @note extracted code to be invoked from multiple places for binary compatibility reasons. */
+  private[mill] def compile(mod: SemanticDbJavaModule): Task[mill.javalib.api.CompilationResult] =
+    Task.Anon {
+      val compileSemanticDb = mod.bspAnyClientNeedsSemanticDb()
+      mod.compileInternal.apply().apply(compileSemanticDb)
+    }
+
+  /** @note extracted code to be invoked from multiple places for binary compatibility reasons. */
+  private[mill] def semanticDbDataDetailed(mod: SemanticDbJavaModule): Task[SemanticDbData] = {
+    /** If any of the clients needs semanticdb, regular [[compile]] will produce that. */
+    val task =
+      if (mod.bspAnyClientNeedsSemanticDb()) mod.compile.map(Result.Success(_))
+      else mod.compileInternal.map(run => run(/* compileSemanticDb */ true))
+
+    Task.Anon {
+      task().map { compilationResult =>
+        val semanticDbData =
+          compilationResult.semanticDbFiles.getOrElse(throw IllegalStateException(
+            "SemanticDB files were not produced, this is a bug in Mill."
+          ))
+        SemanticDbData(compilationResult, semanticDbData)
+      }
+    }
+  }
+
+  /** @note extracted code to be invoked from multiple places for binary compatibility reasons. */
+  private[mill] def semanticDbData(mod: SemanticDbJavaModule): Task[PathRef] = Task.Anon {
+    mod.semanticDbDataDetailed().semanticDbFiles
+  }
 
   private[mill] def workerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(

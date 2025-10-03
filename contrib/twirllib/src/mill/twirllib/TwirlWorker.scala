@@ -164,11 +164,7 @@ object TwirlWorker {
     val zincFile = ctx.dest / "zinc"
     val classesDir = ctx.dest
 
-    mill.api.Result.Success(CompilationResult(
-      zincFile,
-      PathRef(classesDir),
-      semanticDbFiles = None
-    ))
+    mill.api.Result.Success(CompilationResult(zincFile, PathRef(classesDir)))
   }
 
   private def twirlExtensionClass(name: String, formats: Map[String, String]) =

@@ -1,6 +1,6 @@
 package mill.javalib.api.internal
 
-import mill.api.Result
+import mill.api.{PathRef, Result}
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
@@ -34,6 +34,49 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       op: ZincScaladocJar,
       javaHome: Option[os.Path]
   )(using context: JvmWorkerApi.Ctx): Boolean
+
+  // public API forwarder
+  override def compileJava(
+      upstreamCompileOutput: Seq[CompilationResult],
+      sources: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
+      javaHome: Option[os.Path],
+      javacOptions: Seq[String],
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean,
+      incrementalCompilation: Boolean
+  )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] =
+    throw UnsupportedOperationException("Public API of JvmWorkerApi is deprecated.")
+
+  // public API forwarder
+  override def compileMixed(
+      upstreamCompileOutput: Seq[CompilationResult],
+      sources: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
+      javaHome: Option[os.Path],
+      javacOptions: Seq[String],
+      scalaVersion: String,
+      scalaOrganization: String,
+      scalacOptions: Seq[String],
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean,
+      incrementalCompilation: Boolean,
+      auxiliaryClassFileExtensions: Seq[String]
+  )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] =
+    throw UnsupportedOperationException("Public API of JvmWorkerApi is deprecated.")
+
+  // public API forwarder
+  override def docJar(
+      scalaVersion: String,
+      scalaOrganization: String,
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
+      javaHome: Option[os.Path],
+      args: Seq[String]
+  )(using ctx: PublicJvmWorkerApi.Ctx): Boolean =
+    throw UnsupportedOperationException("Public API of JvmWorkerApi is deprecated.")
 }
 object JvmWorkerApi {
   type Ctx = PublicJvmWorkerApi.Ctx

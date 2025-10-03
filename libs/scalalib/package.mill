@@ -1,12 +1,14 @@
 package build.libs.scalalib
-import scala.util.Properties
-import scala.util.chaining._
 
+import com.github.lolgab.mill.mima.{DirectMissingMethodProblem, ProblemFilter}
+
+import scala.util.Properties
+import scala.util.chaining.*
 import coursier.maven.MavenRepository
-import mill._
+import mill.*
 import mill.util.Tasks
-import mill.scalalib._
-import mill.scalalib.publish._
+import mill.scalalib.*
+import mill.scalalib.publish.*
 import mill.util.Jvm
 import mill.api.SelectMode
 import mill.contrib.buildinfo.BuildInfo
@@ -32,4 +34,14 @@ object `package` extends MillStableScalaModule {
     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
     super.testForkEnv() ++ Map("LC_ALL" -> locale)
   }
+
+  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] =
+    super.mimaBinaryIssueFilters() ++ Seq(
+      // This was `private[mill]`, package private doesn't have the JVM bytecode equivalent, so mima can't check it.
+      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.scalalib.scalafmt.ScalafmtWorkerModule.resolveRelativeToOut"),
+      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.scalalib.scalafmt.ScalafmtWorkerModule.resolveRelativeToOut$default$2"),
+      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.scalalib.scalafmt.ScalafmtWorkerModule.compileClasspathTask"),
+      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.scalalib.scalafmt.ScalafmtWorkerModule.compileFor"),
+      ProblemFilter.exclude[DirectMissingMethodProblem]("mill.scalalib.scalafmt.ScalafmtWorkerModule.transitiveCompileClasspathTask")
+    )
 }

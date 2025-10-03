@@ -727,6 +727,11 @@ trait JavaModule
     Seq(internalDependenciesRepository())
   }
 
+  /** See [[SemanticDbJavaModule.upstreamCompileOutput]] for documentation. */
+  override def upstreamCompileOutput: T[Seq[CompilationResult]] = Task {
+    Task.traverse(transitiveModuleCompileModuleDeps)(_.compile)()
+  }
+
   /**
    * The transitive version of `localClasspath`
    */
@@ -837,6 +842,11 @@ trait JavaModule
 
   def zincIncrementalCompilation: T[Boolean] = Task {
     true
+  }
+
+  /** See [[SemanticDbJavaModule.compile]] for documentation. */
+  override def compile: T[mill.javalib.api.CompilationResult] = Task(persistent = true) {
+    SemanticDbJavaModule.compile(this)()
   }
 
   /** The path where the compiled classes produced by [[compile]] are stored. */
@@ -1523,7 +1533,7 @@ trait BomModule extends JavaModule {
     val sources = allSourceFiles()
     if (sources.nonEmpty)
       throw new Exception("A BomModule cannot have sources")
-    CompilationResult(Task.dest / "zinc", PathRef(Task.dest / "classes"), semanticDbFiles = None)
+    CompilationResult(Task.dest / "zinc", PathRef(Task.dest / "classes"))
   }
 
   abstract override def resources: T[Seq[PathRef]] = Task {
