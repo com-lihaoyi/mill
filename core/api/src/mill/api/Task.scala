@@ -57,7 +57,7 @@ object Task {
   /**
    * Returns the [[mill.api.TaskCtx]] that is available within this task
    */
-  def ctx()(implicit c: mill.api.TaskCtx): mill.api.TaskCtx = c
+  def ctx()(using c: mill.api.TaskCtx): mill.api.TaskCtx = c
 
   /**
    * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
@@ -67,7 +67,7 @@ object Task {
    * every Task or Command, so you can be sure that you will not collide or
    * interfere with anyone else writing to those same paths.
    */
-  def dest(implicit ctx: mill.api.TaskCtx.Dest): os.Path = ctx.dest
+  def dest(using ctx: mill.api.TaskCtx.Dest): os.Path = ctx.dest
 
   /**
    * `Task.log` is the default logger provided for every task. While your task is running,
@@ -79,7 +79,7 @@ object Task {
    * Messages logged with `log.debug` appear by default only in the log files.
    * You can use the `--debug` option when running mill to show them on the console too.
    */
-  def log(implicit ctx: mill.api.TaskCtx.Log): Logger = ctx.log
+  def log(using ctx: mill.api.TaskCtx.Log): Logger = ctx.log
 
   /**
    * `Task.env` is the environment variable map passed to the Mill command when
@@ -89,33 +89,33 @@ object Task {
    * Note that you should not use `sys.env`, as Mill's long-lived server
    * process means that `sys.env` variables may not be up to date.
    */
-  def env(implicit ctx: mill.api.TaskCtx.Env): Map[String, String] = ctx.env
+  def env(using ctx: mill.api.TaskCtx.Env): Map[String, String] = ctx.env
 
   /**
    * Returns the implicit [[mill.api.TaskCtx.Args.args]] in scope.
    */
-  def args(implicit ctx: mill.api.TaskCtx.Args): IndexedSeq[?] = ctx.args
+  def args(using ctx: mill.api.TaskCtx.Args): IndexedSeq[?] = ctx.args
 
   /**
    * Report test results to BSP for IDE integration
    */
-  def testReporter(implicit ctx: mill.api.TaskCtx): TestReporter = ctx.testReporter
+  def testReporter(using ctx: mill.api.TaskCtx): TestReporter = ctx.testReporter
 
   /**
    * Report build results to BSP for IDE integration
    */
-  def reporter(implicit ctx: mill.api.TaskCtx): Int => Option[CompileProblemReporter] =
+  def reporter(using ctx: mill.api.TaskCtx): Int => Option[CompileProblemReporter] =
     ctx.reporter
 
   /**
    * Provides the `.fork.async` and `.fork.await` APIs for spawning and joining
    * async futures within your task in a Mill-friendly mannter
    */
-  def fork(implicit ctx: mill.api.TaskCtx): mill.api.TaskCtx.Fork.Api = ctx.fork
+  def fork(using ctx: mill.api.TaskCtx): mill.api.TaskCtx.Fork.Api = ctx.fork
 
-  def offline(implicit ctx: mill.api.TaskCtx): Boolean = ctx.offline
+  def offline(using ctx: mill.api.TaskCtx): Boolean = ctx.offline
 
-  def fail(msg: String)(implicit ctx: mill.api.TaskCtx): Nothing = ctx.fail(msg)
+  def fail(msg: String)(using ctx: mill.api.TaskCtx): Nothing = ctx.fail(msg)
 
   /**
    * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`
@@ -139,13 +139,13 @@ object Task {
    * signature for you source files/folders and decides whether or not downstream
    * [[Task.Computed]]s need to be invalidated and re-computed.
    */
-  inline def Sources(inline values: (os.SubPath | os.FilePath)*)(implicit
+  inline def Sources(inline values: (os.SubPath | os.FilePath)*)(using
       inline ctx: mill.api.ModuleCtx
   ): Simple[Seq[PathRef]] = ${
     Macros.sourcesImpl('{ values.map(p => PathRef(mapToPath(p))) })('ctx)
   }
 
-  inline private def mapToPath(value: os.SubPath | os.FilePath)(implicit
+  inline private def mapToPath(value: os.SubPath | os.FilePath)(using
       inline ctx: mill.api.ModuleCtx
   ): os.Path = value match {
     // TODO: support "."
@@ -159,7 +159,7 @@ object Task {
    * Similar to [[Sources]], but only for a single source file or folder. Defined
    * using `Task.Source`.
    */
-  inline def Source(inline value: os.SubPath | os.FilePath)(implicit
+  inline def Source(inline value: os.SubPath | os.FilePath)(using
       inline ctx: mill.api.ModuleCtx
   ): Simple[PathRef] =
     ${ Macros.sourceImpl('{ PathRef(mapToPath(value)) })('ctx) }
@@ -180,7 +180,7 @@ object Task {
    * The most common case of [[Input]] is [[Source]] and [[Sources]],
    * used for detecting changes to source files.
    */
-  inline def Input[T](inline value: Result[T])(implicit
+  inline def Input[T](inline value: Result[T])(using
       inline w: Writer[T],
       inline ctx: ModuleCtx
   ): Simple[T] =
@@ -193,7 +193,7 @@ object Task {
    * take arguments that are automatically converted to command-line
    * arguments, as long as an implicit [[mainargs.TokensReader]] is available.
    */
-  inline def Command[T](inline t: Result[T])(implicit
+  inline def Command[T](inline t: Result[T])(using
       inline w: Writer[T],
       inline ctx: ModuleCtx
   ): Command[T] =
@@ -215,7 +215,7 @@ object Task {
       persistent: Boolean = false
   ): CommandFactory = new CommandFactory(exclusive = exclusive, persistent = persistent)
   class CommandFactory private[mill] (val exclusive: Boolean, val persistent: Boolean) {
-    inline def apply[T](inline t: Result[T])(implicit
+    inline def apply[T](inline t: Result[T])(using
         inline w: Writer[T],
         inline ctx: ModuleCtx
     ): Command[T] =
@@ -236,7 +236,7 @@ object Task {
    * responsibility of ensuring the implementation is idempotent regardless of
    * what in-memory state the worker may have.
    */
-  inline def Worker[T](inline t: Result[T])(implicit inline ctx: mill.api.ModuleCtx): Worker[T] =
+  inline def Worker[T](inline t: Result[T])(using inline ctx: mill.api.ModuleCtx): Worker[T] =
     ${ Macros.workerImpl2[T]('t)('ctx) }
 
   /**
@@ -245,12 +245,12 @@ object Task {
    * command line and do not perform any caching. Typically used as helpers to
    * implement `Task{...}` tasks.
    */
-  inline def Anon[T](inline t: Result[T])(implicit
+  inline def Anon[T](inline t: Result[T])(using
       inline enclosing: sourcecode.Enclosing
   ): Task[T] =
     ${ Macros.anonTaskImpl[T]('t, 'enclosing) }
 
-  inline def apply[T](inline t: Result[T])(implicit
+  inline def apply[T](inline t: Result[T])(using
       inline rw: ReadWriter[T],
       inline ctx: mill.api.ModuleCtx
   ): Simple[T] =
@@ -258,7 +258,7 @@ object Task {
 
   // Overload of [[apply]] to improve type inference for `Task{ Nil }` and `Task { Seq() }`
   @targetName("applySeq")
-  inline def apply[T](inline t: Result[Seq[T]])(implicit
+  inline def apply[T](inline t: Result[Seq[T]])(using
       inline rw: ReadWriter[Seq[T]],
       inline ctx: mill.api.ModuleCtx
   ): Simple[Seq[T]] = ${
@@ -283,7 +283,7 @@ object Task {
       persistent: Boolean = false
   ): ApplyFactory = new ApplyFactory(persistent)
   class ApplyFactory private[mill] (val persistent: Boolean) {
-    inline def apply[T](inline t: Result[T])(implicit
+    inline def apply[T](inline t: Result[T])(using
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
     ): Simple[T] = ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
@@ -410,7 +410,7 @@ object Task {
      * return type is JSON serializable. In return they automatically caches their
      * return value to disk, only re-computing if upstream [[Task]]s change
      */
-    implicit inline def create[T](inline t: T)(implicit
+    implicit inline def create[T](inline t: T)(using
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
     ): Simple[T] =
@@ -418,13 +418,13 @@ object Task {
 
     // Overload of [[create]] specialized to working on `Seq`s, to improve the type
     // inference for `Task{ Nil }` or `Task{ Seq() }`
-    implicit inline def createSeq[T](inline t: Seq[T])(implicit
+    implicit inline def createSeq[T](inline t: Seq[T])(using
         inline rw: ReadWriter[Seq[T]],
         inline ctx: ModuleCtx
     ): Simple[Seq[T]] =
       ${ Macros.taskResultImpl[Seq[T]]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
 
-    implicit inline def create[T](inline t: Result[T])(implicit
+    implicit inline def create[T](inline t: Result[T])(using
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
     ): Simple[T] =

@@ -7,14 +7,14 @@ import kotlinlib.ksp.KspModule
 object dagger extends KspModule {
 
   def kotlinVersion = "2.2.0"
-
   def kspVersion = "2.0.2"
-
   def kspJvmTarget = "17"
 
   def mainClass = Some("com.example.dagger.MainKt")
 
   def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
+
+//  override def kotlincUseBtApi = false
 
   def mvnDeps = super.mvnDeps() ++ Seq(
     mvn"com.google.dagger:dagger:2.57"
@@ -36,7 +36,6 @@ object dagger extends KspModule {
     def kotlinSymbolProcessors = Seq(
       mvn"com.google.dagger:dagger-compiler:2.57"
     )
-
   }
 }
 
@@ -46,12 +45,20 @@ object dagger extends KspModule {
 
 /** Usage
 
-> ./mill dagger.compile
+> ./mill show dagger.generatedSources
+[
+  "ref:v0:.../out/dagger/generatedSourcesWithKsp2.dest/generated/java",
+  "ref:v0:.../out/dagger/generatedSourcesWithKsp2.dest/generated/kotlin"
+]
 
 > ls out/dagger/generatedSourcesWithKsp2.dest/generated/java/com/example/dagger/
 DaggerNumberApp.java
 NumberService_Factory.java
 RandomNumberGenerator_Factory.java
+
+> ./mill dagger.compile
+Compiling 6 Kotlin sources and reading 3 Java sources to .../out/dagger/compile.dest/classes ...
+Compiling 3 Java sources to .../out/dagger/compile.dest/classes ...
 
 > ./mill dagger.run
 Random number: ...

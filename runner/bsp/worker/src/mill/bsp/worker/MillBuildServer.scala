@@ -902,7 +902,7 @@ private class MillBuildServer(
 
   protected def handlerEvaluators[V](
       checkInitialized: Boolean = true
-  )(block: (BspEvaluators, Logger) => V)(implicit
+  )(block: (BspEvaluators, Logger) => V)(using
       name: sourcecode.Name,
       enclosing: sourcecode.Enclosing
   ): CompletableFuture[V] = {
@@ -949,7 +949,7 @@ private class MillBuildServer(
     future
   }
 
-  protected def handlerRaw[V](block: Logger => V)(implicit
+  protected def handlerRaw[V](block: Logger => V)(using
       name: sourcecode.Name,
       enclosing: sourcecode.Enclosing
   ): CompletableFuture[V] = {
@@ -982,7 +982,7 @@ private class MillBuildServer(
     logger.debug("onRunReadStdin is current unsupported")
   }
 
-  protected def createLogger()(implicit enclosing: sourcecode.Enclosing): Logger = {
+  protected def createLogger()(using enclosing: sourcecode.Enclosing): Logger = {
     val requestCount0 = requestCount.incrementAndGet()
     val name = enclosingRequestName
     new MillBspLogger(
@@ -1097,7 +1097,7 @@ private object MillBuildServer {
       d.javaVersion.foreach(jv => it.setJavaVersion(jv))
     }
 
-  private[mill] def enclosingRequestName(implicit enclosing: sourcecode.Enclosing): String = {
+  private[mill] def enclosingRequestName(using enclosing: sourcecode.Enclosing): String = {
     // enclosing.value typically looks like "mill.bsp.worker.MillBuildServer#buildTargetCompile logger"
     // First, try to isolate the part with the BSP request name
     var name0 = enclosing.value.split(" ") match {

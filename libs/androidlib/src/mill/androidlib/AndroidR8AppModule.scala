@@ -2,6 +2,7 @@ package mill.androidlib
 
 import mill.*
 import mill.api.{PathRef, Task}
+import scala.xml.*
 
 @mill.api.experimental
 trait AndroidR8AppModule extends AndroidAppModule {
@@ -93,8 +94,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
    */
   def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
     AndroidBuildTypeSettings(
-      isMinifyEnabled = true,
-      isShrinkEnabled = true
+      isMinifyEnabled = true
     )
   }
 
@@ -159,12 +159,18 @@ trait AndroidR8AppModule extends AndroidAppModule {
     val baselineOutOpt = destDir / "baseline-profile-rewritten.txt"
     destDir / "res"
 
-    // Create an extra ProGuard config file that instructs R8 to print seeds and usage.
+    // Extra ProGuard rules
+    val extraRules =
+      Seq(
+        // Instruct R8 to print seeds and usage.
+        s"-printseeds $seedsOut",
+        s"-printusage $usageOut"
+      ) ++
+        (if (androidBuildSettings().isMinifyEnabled) then androidGeneratedMinifyKeepRules()
+         else Seq())
+    // Create an extra ProGuard config file
     val extraRulesFile = destDir / "extra-rules.pro"
-    val extraRulesContent =
-      s"""-printseeds ${seedsOut.toString}
-         |-printusage ${usageOut.toString}
-         |""".stripMargin.trim
+    val extraRulesContent = extraRules.mkString("\n")
     os.write.over(extraRulesFile, extraRulesContent)
 
     val classpathClassFiles: Seq[PathRef] = androidPackagedClassfiles()
@@ -203,11 +209,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
     }
 
     if (!androidBuildSettings().isMinifyEnabled) {
-      r8ArgsBuilder += "--no-minification"
-    }
-
-    if (!androidBuildSettings().isShrinkEnabled) {
-      r8ArgsBuilder += "--no-tree-shaking"
+      r8ArgsBuilder ++= Seq("--no-minification", "--no-tree-shaking")
     }
 
     r8ArgsBuilder ++= Seq(
@@ -228,10 +230,30 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
     r8ArgsBuilder ++= libArgs
 
-    // ProGuard configuration files: add our extra rules file and all provided config files.
-    val pgArgs = Seq("--pg-conf", androidProguard().path.toString)
+    // ProGuard configuration files: add our extra rules file,
+    // all provided config files and the common rules.
+    val pgArgs =
+      Seq(
+        "--pg-conf",
+        androidProguard().path.toString,
+        "--pg-conf",
+        extraRulesFile.toString
+      ) ++ androidCommonProguardFiles().flatMap(pgf => Seq("--pg-conf", pgf.path.toString))
 
     r8ArgsBuilder ++= pgArgs
+
+    val resolvedCompileMvnDeps = androidResolvedCompileMvnDeps()
+    if (!resolvedCompileMvnDeps.isEmpty) {
+      val compiledMvnDepsFile = Task.dest / "compiled-mvndeps.txt"
+      os.write.over(
+        compiledMvnDepsFile,
+        androidResolvedCompileMvnDeps().map(_.path.toString()).mkString("\n")
+      )
+      r8ArgsBuilder ++= Seq(
+        "--classpath",
+        "@" + compiledMvnDepsFile.toString
+      )
+    }
 
     r8ArgsBuilder ++= androidR8Args()
 
@@ -240,6 +262,83 @@ trait AndroidR8AppModule extends AndroidAppModule {
     val r8Args = r8ArgsBuilder.result()
 
     (PathRef(outputPath), r8Args, allClassFilesPathRefs)
+  }
+
+  /**
+   * Generates ProGuard/R8 keep rules to keep classes that are referenced in the AndroidManifest.xml
+   * and in the layout XML files (for custom views).
+   *
+   * [[https://android.googlesource.com/platform/tools/base/+/refs/tags/studio-2025.1.3/sdk-common/src/main/java/com/android/ide/common/symbols/SymbolUtils.kt#235]]
+   */
+  def androidGeneratedMinifyKeepRules: T[Seq[String]] = Task {
+    val keepClasses = extractKeepClassesFromManifest() ++ extractKeepClassesFromResources()
+    keepClasses.map(c => s"-keep class $c { *; }")
+  }
+
+  private def combinePackageAndClassName(packageName: String, className: String): String = {
+    className match {
+      case c if c.startsWith(".") => s"$packageName$c"
+      case c if !c.contains(".") => s"$packageName.$c"
+      case c => c
+    }
+  }
+
+  /**
+   * Extracts the classes to keep from the Manifest file.
+   *
+   * See `mManifestData.mKeepClasses` in
+   * [[https://android.googlesource.com/platform/tools/base/+/refs/tags/studio-2025.1.3/sdk-common/src/main/java/com/android/ide/common/xml/AndroidManifestParser.java]]
+   */
+  private def extractKeepClassesFromManifest: T[Seq[String]] = Task {
+    val manifestPath: os.Path = androidMergedManifest().path
+    val manifest = XML.loadFile(manifestPath.toIO)
+    val packageName: String = (manifest \ "@package").text
+
+    val androidNS = "http://schemas.android.com/apk/res/android"
+
+    def collectClasses(label: String): Seq[String] = {
+      (manifest \\ label).flatMap { node =>
+        val className = node.attribute(androidNS, "name").map(_.text)
+        className.map(c => combinePackageAndClassName(packageName, c))
+      }
+    }
+
+    val nodes = Seq(
+      "application",
+      "activity",
+      "service",
+      "receiver",
+      "provider",
+      "instrumentation"
+    )
+    nodes.flatMap(collectClasses).distinct
+  }
+
+  private def extractKeepClassesFromResources: T[Seq[String]] = Task {
+    val resDirs: Seq[os.Path] = androidResources().map(_.path)
+
+    val layoutXmls: Seq[os.Path] = resDirs.flatMap { resDir =>
+      if (os.exists(resDir) && os.isDir(resDir)) {
+        os.list(resDir)
+          .filter(p => os.isDir(p) && p.last.startsWith("layout"))
+          .flatMap(layoutDir =>
+            os.list(layoutDir)
+              .filter(f => os.isFile(f) && f.ext == "xml")
+          )
+      } else Seq.empty[os.Path]
+    }
+
+    def collectClasses(node: Node): Seq[String] = {
+      val tag = node.label
+      val curr = if (tag.contains(".")) Seq(tag)
+      else Seq.empty[String]
+      curr ++ node.child.flatMap(collectClasses)
+    }
+
+    layoutXmls.flatMap { xmlFile =>
+      val xml = XML.loadFile(xmlFile.toIO)
+      collectClasses(xml)
+    }
   }
 
 }

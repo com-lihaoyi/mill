@@ -95,28 +95,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * Compiles all the sources to the IR representation.
    */
   override def compile: T[CompilationResult] = Task {
-    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
-      kotlinWorker =>
-        kotlinJsCompile(
-          outputMode = OutputMode.KlibDir,
-          irClasspath = None,
-          allKotlinSourceFiles = allKotlinSourceFiles(),
-          librariesClasspath = compileClasspath(),
-          callMain = kotlinJsCallMain(),
-          moduleKind = kotlinJsModuleKind(),
-          produceSourceMaps = kotlinJsSourceMap(),
-          sourceMapEmbedSourcesKind = kotlinJsSourceMapEmbedSources(),
-          sourceMapNamesPolicy = kotlinJsSourceMapNamesPolicy(),
-          splitPerModule = kotlinJsSplitPerModule(),
-          esTarget = kotlinJsESTarget(),
-          kotlinVersion = kotlinVersion(),
-          destinationRoot = Task.dest,
-          artifactId = artifactId(),
-          explicitApi = kotlinExplicitApi(),
-          extraKotlinArgs = allKotlincOptions(),
-          worker = kotlinWorker
-        )
-    }
+    // same as super, but kept for bin-compat
+    kotlinCompileTask()()
   }
 
   override def runLocal(args: Task[Args] = Task.Anon(Args())): Command[Unit] =
@@ -158,7 +138,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       artifactId: String,
       envArgs: Map[String, String] = Map.empty[String, String],
       workingDir: os.Path
-  )(implicit ctx: mill.api.TaskCtx): Result[Int] = {
+  )(using ctx: mill.api.TaskCtx): Result[Int] = {
     if (binaryKind.isEmpty || binaryKind.get != BinaryKind.Executable) {
       return Result.Failure("Run action is only allowed for the executable binary")
     }
@@ -217,7 +197,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
           artifactId = artifactId(),
           explicitApi = kotlinExplicitApi(),
           extraKotlinArgs = allKotlincOptions() ++ extraKotlinArgs,
-          worker = kotlinWorker
+          worker = kotlinWorker,
+          useBtApi = kotlincUseBtApi()
         )
     }
   }
@@ -247,7 +228,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
           artifactId = artifactId(),
           explicitApi = kotlinExplicitApi(),
           extraKotlinArgs = allKotlincOptions(),
-          worker = kotlinWorker
+          worker = kotlinWorker,
+          useBtApi = kotlincUseBtApi()
         )
     }
   }
@@ -291,8 +273,9 @@ trait KotlinJsModule extends KotlinModule { outer =>
       artifactId: String,
       explicitApi: Boolean,
       extraKotlinArgs: Seq[String],
-      worker: KotlinWorker
-  )(implicit ctx: mill.api.TaskCtx): Result[CompilationResult] = {
+      worker: KotlinWorker,
+      useBtApi: Boolean
+  )(using ctx: mill.api.TaskCtx): Result[CompilationResult] = {
     val versionAllowed = kotlinVersion.split("\\.").map(_.toInt) match {
       case Array(1, 8, z) => z >= 20
       case Array(1, y, _) => y >= 9
@@ -308,10 +291,15 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // * https://kotlinlang.org/docs/compiler-reference.html#kotlin-js-compiler-options
     // * https://github.com/JetBrains/kotlin/blob/v1.9.25/compiler/cli/cli-common/src/org/jetbrains/kotlin/cli/common/arguments/K2JSCompilerArguments.kt
 
-    val inputFiles = irClasspath match {
-      case Some(x) => Seq(s"-Xinclude=${x.path.toIO.getAbsolutePath}")
-      case None => allKotlinSourceFiles.map(_.path.toIO.getAbsolutePath)
-    }
+//    val (inputFiles, includeArgs) = irClasspath match {
+//      case Some(x) =>
+//        (Seq(), Seq(s"-Xinclude=${x.path.toIO.getAbsolutePath}"))
+//      case None =>
+//        (allKotlinSourceFiles.map(_.path.toIO.getAbsolutePath), Seq())
+//    }
+
+    val includeArgs = irClasspath.map(p => s"-Xinclude=${p.path}").toSeq
+    val inputFiles = irClasspath.fold(allKotlinSourceFiles.map(_.path))(_ => Seq())
 
     val librariesCp = librariesClasspath.map(_.path)
       .filter(os.exists)
@@ -399,8 +387,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     val compilerArgs: Seq[String] = Seq(
       innerCompilerArgs.result(),
       extraKotlinArgs,
-      // parameters
-      inputFiles
+      includeArgs
     ).flatten
 
     val compileDestination = os.Path(outputArgs.last)
@@ -411,7 +398,12 @@ trait KotlinJsModule extends KotlinModule { outer =>
     } else {
       Task.log.info(s"Linking IR to $compileDestination")
     }
-    val workerResult = worker.compile(KotlinWorkerTarget.Js, compilerArgs)
+    val workerResult = worker.compile(
+      target = KotlinWorkerTarget.Js,
+      useBtApi = useBtApi,
+      args = compilerArgs,
+      sources = inputFiles
+    )
 
     val analysisFile = Task.dest / "kotlin.analysis.dummy"
     if (!os.exists(analysisFile)) {
@@ -431,6 +423,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
     }
   }
 
+  override def kotlincUseBtApi: Task.Simple[Boolean] = Task {
+    // currently not implemented
+    false
+  }
+
   private def binaryKindToOutputMode(binaryKind: Option[BinaryKind]): OutputMode =
     binaryKind match {
       // still produce IR classes, but they won't be yet linked
@@ -440,7 +437,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     }
 
   // **NOTE**: This logic may (and probably is) be incomplete
-  private def isKotlinJsLibrary(path: os.Path)(implicit ctx: mill.api.TaskCtx): Boolean = {
+  private def isKotlinJsLibrary(path: os.Path)(using ctx: mill.api.TaskCtx): Boolean = {
     if (os.isDir(path)) {
       true
     } else if (path.ext == "klib") {

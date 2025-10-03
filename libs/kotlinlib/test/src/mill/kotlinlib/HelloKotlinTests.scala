@@ -10,7 +10,7 @@ import utest.*
 object HelloKotlinTests extends TestSuite {
 
   val crossMatrix = for {
-    kotlinVersion <- Seq("1.9.24", "2.0.20", "2.1.0")
+    kotlinVersion <- Seq("1.9.24", "2.0.20", "2.1.20", Versions.kotlinVersion).distinct
     embeddable <- Seq(false, true)
   } yield (kotlinVersion, embeddable)
 

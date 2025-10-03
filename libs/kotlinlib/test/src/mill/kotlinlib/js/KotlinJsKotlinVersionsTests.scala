@@ -48,7 +48,6 @@ object KotlinJsKotlinVersionsTests extends TestSuite {
   def tests: Tests = Tests {
     test("compile with lowest Kotlin version") {
       testEval().scoped { eval =>
-
         val Right(_) = eval.apply(module.foo(kotlinLowestVersion).compile): @unchecked
       }
     }

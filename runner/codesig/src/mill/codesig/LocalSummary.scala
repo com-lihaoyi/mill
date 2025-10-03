@@ -32,7 +32,7 @@ object LocalSummary {
       methods: Map[MethodSig, MethodInfo]
   )
   object ClassInfo {
-    implicit def rw(implicit st: SymbolTable): ReadWriter[ClassInfo] = macroRW
+    implicit def rw(using st: SymbolTable): ReadWriter[ClassInfo] = macroRW
   }
   case class MethodInfo(
       calls: Set[MethodCall],
@@ -44,9 +44,9 @@ object LocalSummary {
     given rw: ReadWriter[MethodInfo] = macroRW
   }
 
-  implicit def rw(implicit st: SymbolTable): ReadWriter[LocalSummary] = macroRW
+  implicit def rw(using st: SymbolTable): ReadWriter[LocalSummary] = macroRW
 
-  def apply(classStreams: Iterator[java.io.InputStream])(implicit st: SymbolTable): LocalSummary = {
+  def apply(classStreams: Iterator[java.io.InputStream])(using st: SymbolTable): LocalSummary = {
     val visitors = classStreams
       .map { cs =>
         val visitor = new MyClassVisitor()
@@ -83,7 +83,7 @@ object LocalSummary {
     )
   }
 
-  class MyClassVisitor()(implicit st: SymbolTable) extends ClassVisitor(Opcodes.ASM9) {
+  class MyClassVisitor()(using st: SymbolTable) extends ClassVisitor(Opcodes.ASM9) {
     val classCallGraph
         : mutable.Builder[(MethodSig, Set[MethodCall]), Map[MethodSig, Set[MethodCall]]] =
       Map.newBuilder[MethodSig, Set[MethodCall]]
@@ -130,8 +130,7 @@ object LocalSummary {
       name: String,
       descriptor: String,
       access: Int
-  )(implicit st: SymbolTable) extends MethodVisitor(Opcodes.ASM9) {
-    if (name == "lazyValue$lzyINIT1") mill.constants.DebugLog.println("\n\nlazyValue$lzyINIT1")
+  )(using st: SymbolTable) extends MethodVisitor(Opcodes.ASM9) {
     val outboundCalls: mutable.Set[MethodCall] = collection.mutable.Set.empty[MethodCall]
     val labelIndices: mutable.Map[Label, Int] = collection.mutable.Map.empty[Label, Int]
     val jumpList: mutable.Buffer[Label] = collection.mutable.Buffer.empty[Label]

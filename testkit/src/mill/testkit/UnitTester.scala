@@ -62,7 +62,7 @@ class UnitTester(
     debugEnabled: Boolean,
     env: Map[String, String],
     offline: Boolean
-)(implicit fullName: sourcecode.FullName) extends AutoCloseable {
+)(using fullName: sourcecode.FullName) extends AutoCloseable {
   assert(
     mill.api.MillURLClassLoader.openClassloaders.isEmpty,
     s"Unit tester detected leaked classloaders on initialization: \n${mill.api.MillURLClassLoader.openClassloaders.mkString("\n")}"
@@ -136,7 +136,8 @@ class UnitTester(
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
-    headerData = ""
+    headerData = "",
+    enableTicker = false
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(

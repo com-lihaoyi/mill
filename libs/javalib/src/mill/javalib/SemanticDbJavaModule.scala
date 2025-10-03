@@ -17,6 +17,7 @@ import java.nio.file.NoSuchFileException
 @experimental
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     with WithJvmWorkerModule {
+
   def jvmWorker: ModuleRef[JvmWorkerModule]
 
   /**
@@ -317,7 +318,7 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
    * This overload just prepends the given `javacOptions`, so it's kind of pointless, but it's already there, so we
    * have to keep it.
    */
-  def javacOptionsTask(javacOptions: Seq[String], semanticDbJavaVersion: String)(implicit
+  def javacOptionsTask(javacOptions: Seq[String], semanticDbJavaVersion: String)(using
       ctx: mill.api.TaskCtx
   ): Seq[String] = {
     javacOptions ++ javacOptionsTask(semanticDbJavaVersion)

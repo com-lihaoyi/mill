@@ -353,9 +353,7 @@ trait GroupExecution {
 
     if (!failFast) taskLabelOpt.foreach { taskLabel =>
       val taskFailed = newResults.exists(task => task._2.isInstanceOf[ExecResult.Failing[?]])
-      if (taskFailed) {
-        logger.error(s"$taskLabel failed")
-      }
+      if (taskFailed) logger.error(s"$taskLabel task failed")
     }
 
     (newResults.toMap, newEvaluated)

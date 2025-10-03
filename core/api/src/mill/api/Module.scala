@@ -76,7 +76,7 @@ object Module {
     def reflect[T: ClassTag](filter: String => Boolean): Seq[T] = {
       Reflect.reflect(
         outer.getClass,
-        implicitly[ClassTag[T]].runtimeClass,
+        summon[ClassTag[T]].runtimeClass,
         filter,
         noParams = true,
         (cls, noParams, inner) =>

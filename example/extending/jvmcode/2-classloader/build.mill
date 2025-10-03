@@ -1,5 +1,3 @@
-//| mill-jvm-version: 17
-
 // This example is similar to the earlier example running the Groovy interpreter in
 // a subprocess, but:
 //

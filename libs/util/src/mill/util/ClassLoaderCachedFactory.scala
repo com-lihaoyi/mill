@@ -8,7 +8,7 @@ import mill.util.RefCountedClassLoaderCache
  * easy way to generate values of type [[T]] to each be used in a single-thread while
  * re-using the underling `URLClassLoader`s where possible.
  */
-abstract class ClassLoaderCachedFactory[T](jobs: Int)(implicit e: sourcecode.Enclosing)
+abstract class ClassLoaderCachedFactory[T](jobs: Int)(using e: sourcecode.Enclosing)
     extends CachedFactory[Seq[mill.PathRef], T] {
   private val classloaderCache = RefCountedClassLoaderCache(
     parent = getClass.getClassLoader,

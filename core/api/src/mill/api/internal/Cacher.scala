@@ -6,7 +6,7 @@ import scala.quoted.*
 trait Cacher extends mill.moduledefs.Cacher {
   private lazy val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Any]
 
-  protected def cachedTask[T](t: => T)(implicit c: sourcecode.Enclosing): T = synchronized {
+  protected def cachedTask[T](t: => T)(using c: sourcecode.Enclosing): T = synchronized {
     cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
   }
 }

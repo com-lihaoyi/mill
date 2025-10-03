@@ -43,7 +43,7 @@ public abstract class MillServerLauncher extends ServerLauncher {
    */
   public abstract LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception;
 
-  public Result run(Path daemonDir, String javaHome, Consumer<String> log) throws Exception {
+  public int run(Path daemonDir, String javaHome, Consumer<String> log) throws Exception {
     Files.createDirectories(daemonDir);
 
     var initData = new ClientInitData(
@@ -62,10 +62,9 @@ public abstract class MillServerLauncher extends ServerLauncher {
     }
     log.accept("launchOrConnectToServer: " + locks);
 
-    try (var connection = launchOrConnectToServer(
+    try (var launched = launchOrConnectToServer(
         locks,
         daemonDir,
-        "From MillServerLauncher",
         serverInitWaitMillis,
         () -> initServer(daemonDir, locks),
         serverDied -> {
@@ -73,12 +72,11 @@ public abstract class MillServerLauncher extends ServerLauncher {
           System.err.println(serverDied.toString());
           System.exit(1);
         },
-        log)) {
-      log.accept("runWithConnection: " + connection);
+        log,
+        true /*openSocket*/)) {
+      log.accept("runWithConnection: " + launched);
       var result = runWithConnection(
-          "MillServerLauncher[" + connection.getLocalSocketAddress() + " -> "
-              + connection.getRemoteSocketAddress() + "]",
-          connection,
+          launched.socket,
           streams,
           false,
           rawServerStdin -> {
@@ -93,19 +91,24 @@ public abstract class MillServerLauncher extends ServerLauncher {
           () -> {
             log.accept("running client logic");
             forceTestFailure(daemonDir, log);
-            return 0;
-          });
-      log.accept("runWithConnection exit code: " + result.exitCode);
-      return new Result(result.exitCode, daemonDir);
+          },
+          "MillServerLauncher[" + launched.socket.getLocalSocketAddress() + " -> "
+              + launched.socket.getRemoteSocketAddress() + "]");
+      log.accept("runWithConnection exit code: " + result);
+      return result;
     }
   }
 
-  private void forceTestFailure(Path daemonDir, Consumer<String> log) throws Exception {
+  private void forceTestFailure(Path daemonDir, Consumer<String> log) {
     if (forceFailureForTestingMillisDelay > 0) {
       log.accept(
           "Force failure for testing in " + forceFailureForTestingMillisDelay + "ms: " + daemonDir);
-      Thread.sleep(forceFailureForTestingMillisDelay);
-      throw new Exception("Force failure for testing: " + daemonDir);
+      try {
+        Thread.sleep(forceFailureForTestingMillisDelay);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      throw new RuntimeException("Force failure for testing: " + daemonDir);
     } else {
       log.accept("No force failure for testing: " + daemonDir);
     }

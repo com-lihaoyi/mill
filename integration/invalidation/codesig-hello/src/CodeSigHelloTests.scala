@@ -50,7 +50,6 @@ object CodeSigHelloTests extends UtestIntegrationTestSuite {
         "running foo2",
         "running helperFoo2"
       ))
-      mill.constants.DebugLog.println("=" * 100)
 
       val cached3 = eval("foo")
       assert(cached3.out == "")

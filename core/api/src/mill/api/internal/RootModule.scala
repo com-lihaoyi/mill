@@ -14,7 +14,7 @@ import scala.annotation.compileTimeOnly
  * defined at the top level of the `build.mill` and not nested in any other
  * modules.
  */
-abstract class RootModule()(implicit
+abstract class RootModule()(using
     baseModuleInfo: RootModule.Info,
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,

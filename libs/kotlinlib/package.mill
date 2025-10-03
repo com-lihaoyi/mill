@@ -6,8 +6,6 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.*
 import millbuild.*
 
-// TODO change MillPublishScalaModule to MillStableScalaModule after mill version with kotlinlib is released,
-//  because currently there is no previous artifact version
 object `package` extends MillStableScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.libs.javalib, build.libs.javalib.testrunner, api, `ksp2-api`)
@@ -39,16 +37,8 @@ object `package` extends MillStableScalaModule with BuildInfo {
     )
   )
 
-  trait MillKotlinModule extends MillPublishScalaModule {
-    override def javacOptions = super.javacOptions() ++ {
-      val release =
-        if (scala.util.Properties.isJavaAtLeast(11)) Seq("-release", "8")
-        else Seq("-source", "1.8", "-target", "1.8")
-      release ++ Seq("-encoding", "UTF-8", "-deprecation")
-    }
-  }
-
-  object api extends MillKotlinModule {
+  // shared between kotlinlib and kotlinlib.worker
+  object api extends MillPublishScalaModule {
     def moduleDeps = Seq(build.libs.javalib.testrunner)
 
     override def compileMvnDeps: T[Seq[Dep]] = Seq(
@@ -56,7 +46,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
     )
   }
 
-  object worker extends MillKotlinModule {
+  object worker extends MillPublishScalaModule {
     override def compileModuleDeps = Seq(api)
 
     def mandatoryMvnDeps = Seq.empty[Dep]
@@ -64,13 +54,14 @@ object `package` extends MillStableScalaModule with BuildInfo {
     override def compileMvnDeps: T[Seq[Dep]] =
       super.mandatoryMvnDeps() ++ Seq(
         Deps.osLib,
-        Deps.kotlinCompiler
+        Deps.kotlinCompiler,
+        Deps.kotlinBuildToolsApi
       )
   }
 
-  object `ksp2-api` extends MillKotlinModule
+  object `ksp2-api` extends MillPublishScalaModule
 
-  object ksp2 extends MillKotlinModule {
+  object ksp2 extends MillPublishScalaModule {
     def moduleDeps = Seq(`ksp2-api`)
     override def compileMvnDeps: T[Seq[Dep]] = super.compileMvnDeps() ++ Seq(
       mvn"com.google.devtools.ksp:symbol-processing-common-deps:${Deps.kotlinVersion}-${Deps.kspVersion}",

@@ -88,7 +88,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: TaskCtx): ZincCompilerBridgeProvider.AcquireResult[PathRef] = {
+  )(using ctx: TaskCtx): ZincCompilerBridgeProvider.AcquireResult[PathRef] = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, JvmWorkerUtil.scalaBinaryVersion(scalaVersion))
     }
@@ -133,12 +133,12 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     } else ZincCompilerBridgeProvider.AcquireResult.Compiled(bridgeJar)
   }
 
-  @deprecated("This is an internal API that has been accidentally exposed.", "1.0.2")
+  @deprecated("This is an internal API that has been accidentally exposed.", "Mill 1.0.2")
   def scalaCompilerBridgeJar(
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: TaskCtx): (Option[Seq[PathRef]], PathRef) =
+  )(using ctx: TaskCtx): (Option[Seq[PathRef]], PathRef) =
     scalaCompilerBridgeJarV2(
       scalaVersion = scalaVersion,
       scalaOrganization = scalaOrganization,
@@ -153,7 +153,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: TaskCtx): Seq[PathRef] = {
+  )(using ctx: TaskCtx): Seq[PathRef] = {
     resolver.classpath(
       deps = Seq(mvn"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
