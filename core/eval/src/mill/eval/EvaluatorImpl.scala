@@ -25,12 +25,6 @@ final class EvaluatorImpl private[mill] (
     private[mill] val allowPositionalCommandArgs: Boolean,
     private[mill] val selectiveExecution: Boolean = false,
     private val execution: Execution,
-    scriptModuleResolver: (
-        String,
-        String => Option[mill.Module],
-        Boolean,
-        Option[String]
-    ) => Seq[Result[mill.api.ExternalModule]]
 ) extends Evaluator {
 
   private[mill] def workspace = execution.workspace
@@ -47,7 +41,6 @@ final class EvaluatorImpl private[mill] (
     allowPositionalCommandArgs,
     selectiveExecution,
     execution.withBaseLogger(newBaseLogger),
-    scriptModuleResolver
   )
 
   private[mill] def resolveSingleModule(s: String): Option[mill.Module] = {
@@ -75,7 +68,6 @@ final class EvaluatorImpl private[mill] (
         selectMode,
         allowPositionalCommandArgs,
         resolveToModuleTasks,
-        scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule, _, _)
       )
     }
   }
@@ -92,7 +84,6 @@ final class EvaluatorImpl private[mill] (
         selectMode,
         allowPositionalCommandArgs,
         resolveToModuleTasks,
-        scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule, _, _)
       )
     }
   }
@@ -115,7 +106,6 @@ final class EvaluatorImpl private[mill] (
           selectMode,
           allowPositionalCommandArgs,
           resolveToModuleTasks,
-          scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule, _, _)
         )
       }
     }
@@ -134,7 +124,6 @@ final class EvaluatorImpl private[mill] (
           selectMode,
           allowPositionalCommandArgs,
           resolveToModuleTasks,
-          scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule, _, _)
         )
       }
     }
@@ -296,7 +285,6 @@ final class EvaluatorImpl private[mill] (
             scriptArgs,
             selectMode,
             allowPositionalCommandArgs,
-            scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule, _, _)
           )
         }
       }

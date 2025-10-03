@@ -430,7 +430,6 @@ object MillBuildBootstrap {
     val cl = rootModule.getClass.getClassLoader
     val evalImplCls = cl.loadClass("mill.eval.EvaluatorImpl")
     val execCls = cl.loadClass("mill.exec.Execution")
-    val scriptInitCls = cl.loadClass("mill.simple.SimpleModuleInit$")
     lazy val evaluator: EvaluatorApi = evalImplCls.getConstructors.head.newInstance(
       allowPositionalCommandArgs,
       selectiveExecution,
@@ -455,7 +454,6 @@ object MillBuildBootstrap {
         offline,
         enableTicker
       ),
-      scriptInitCls.getField("MODULE$").get(null)
     ).asInstanceOf[EvaluatorApi]
 
     evaluator

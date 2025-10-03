@@ -35,6 +35,5 @@ object `package` extends MillPublishScalaModule {
     build.runner.server,
     build.runner.launcher,
     build.runner.meta,
-    build.libs.simple
   )
 }
