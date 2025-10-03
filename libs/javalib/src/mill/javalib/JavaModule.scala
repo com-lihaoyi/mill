@@ -1600,8 +1600,7 @@ object JavaModule {
   private lazy val removeInternalVersionRegex =
     (":" + Regex.quote(JavaModule.internalVersion) + "(\\w*$|\\n)").r
 
-  class Simple(val simpleConf: SimpleModule.Config)
-      extends JavaModule.Base {
+  class Simple(val simpleConf: SimpleModule.Config) extends JavaModule.Base {
     override lazy val millDiscover = Discover[this.type]
   }
 
@@ -1621,8 +1620,7 @@ object JavaModule {
     }
   }
 
-  class Publish(val simpleConf: SimpleModule.Config)
-      extends JavaModule.Base, PublishModule {
+  class Publish(val simpleConf: SimpleModule.Config) extends JavaModule.Base, PublishModule {
     override lazy val millDiscover = Discover[this.type]
 
     def pomSettings = Task {
@@ -1639,18 +1637,15 @@ object JavaModule {
     def outerRef = ModuleRef(simpleConf.moduleDeps.head.asInstanceOf[JavaModule])
   }
 
-  class TestNg(val simpleConf: SimpleModule.Config) extends Test0,
-        TestModule.TestNg {
+  class TestNg(val simpleConf: SimpleModule.Config) extends Test0, TestModule.TestNg {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class Junit4(val simpleConf: SimpleModule.Config) extends Test0,
-        TestModule.Junit4 {
+  class Junit4(val simpleConf: SimpleModule.Config) extends Test0, TestModule.Junit4 {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class Junit5(val simpleConf: SimpleModule.Config) extends Test0,
-        TestModule.Junit5 {
+  class Junit5(val simpleConf: SimpleModule.Config) extends Test0, TestModule.Junit5 {
     override lazy val millDiscover = Discover[this.type]
   }
 }

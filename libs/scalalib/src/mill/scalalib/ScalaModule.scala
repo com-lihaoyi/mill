@@ -682,8 +682,7 @@ object ScalaModule {
       }
   }
 
-  class Simple(val simpleConf: SimpleModule.Config)
-      extends ScalaModule.Base {
+  class Simple(val simpleConf: SimpleModule.Config) extends ScalaModule.Base {
     override lazy val millDiscover = Discover[this.type]
   }
 
@@ -700,53 +699,43 @@ object ScalaModule {
     def outerRef = ModuleRef(simpleConf.moduleDeps.head.asInstanceOf[ScalaModule])
   }
 
-  class TestNg(val simpleConf: SimpleModule.Config)
-      extends Test0, TestModule.TestNg {
+  class TestNg(val simpleConf: SimpleModule.Config) extends Test0, TestModule.TestNg {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class Junit4(val simpleConf: SimpleModule.Config)
-      extends Test0, TestModule.Junit4 {
+  class Junit4(val simpleConf: SimpleModule.Config) extends Test0, TestModule.Junit4 {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class Junit5(val simpleConf: SimpleModule.Config)
-      extends Test0, TestModule.Junit5 {
+  class Junit5(val simpleConf: SimpleModule.Config) extends Test0, TestModule.Junit5 {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class ScalaTest(val simpleConf: SimpleModule.Config)
-      extends Test0, TestModule.ScalaTest {
+  class ScalaTest(val simpleConf: SimpleModule.Config) extends Test0, TestModule.ScalaTest {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class Specs2(val simpleConf: SimpleModule.Config)
-      extends Test0, TestModule.Specs2 {
+  class Specs2(val simpleConf: SimpleModule.Config) extends Test0, TestModule.Specs2 {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class Utest(val simpleConf: SimpleModule.Config)
-      extends Test0, TestModule.Utest {
+  class Utest(val simpleConf: SimpleModule.Config) extends Test0, TestModule.Utest {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class Munit(val simpleConf: SimpleModule.Config)
-      extends Test0, TestModule.Munit {
+  class Munit(val simpleConf: SimpleModule.Config) extends Test0, TestModule.Munit {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class Weaver(val simpleConf: SimpleModule.Config)
-      extends Test0, TestModule.Weaver {
+  class Weaver(val simpleConf: SimpleModule.Config) extends Test0, TestModule.Weaver {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class ZioTest(val simpleConf: SimpleModule.Config)
-      extends Test0, TestModule.ZioTest {
+  class ZioTest(val simpleConf: SimpleModule.Config) extends Test0, TestModule.ZioTest {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  class ScalaCheck(val simpleConf: SimpleModule.Config)
-      extends Test0, TestModule.ScalaCheck {
+  class ScalaCheck(val simpleConf: SimpleModule.Config) extends Test0, TestModule.ScalaCheck {
     override lazy val millDiscover = Discover[this.type]
   }
 }
