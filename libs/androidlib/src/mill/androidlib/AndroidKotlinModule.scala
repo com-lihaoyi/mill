@@ -1,7 +1,7 @@
 package mill.androidlib
 
 import mill.*
-import mill.api.{PathRef, Result, ModuleRef}
+import mill.api.{ModuleRef, PathRef, Result}
 import mill.javalib.{CoursierModule, Dep}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
 import mill.{T, Task}
@@ -225,15 +225,13 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
   }
 
   trait AndroidKotlinTestModule extends KotlinTests, AndroidTestModule {
-    override def outerRef: ModuleRef[AndroidKotlinModule] = ModuleRef(AndroidKotlinModule.this)
-
-    override def kotlinVersion: T[String] = outerRef().kotlinVersion
+    override def kotlinVersion: T[String] = outer.kotlinVersion
 
     private def kotlinSources = Task.Sources("src/test/kotlin")
 
     override def sources: T[Seq[PathRef]] =
       super.sources() ++ kotlinSources()
 
-    override def kotlincPluginMvnDeps: T[Seq[Dep]] = outerRef().kotlincPluginMvnDeps()
+    override def kotlincPluginMvnDeps: T[Seq[Dep]] = outer.kotlincPluginMvnDeps()
   }
 }

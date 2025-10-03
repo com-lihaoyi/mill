@@ -68,8 +68,52 @@ trait JavaModule
     () => genIdeaInternalExt()
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
-  trait JavaTests extends JavaModule.Tests {
-    def outerRef = ModuleRef(JavaModule.this)
+
+  // Keep in sync with JavaModule.Tests, separate due to binary compatibility
+  trait JavaTests extends JavaModule with TestModule {
+    // Run some consistence checks
+    hierarchyChecks()
+
+    override def resources = super[JavaModule].resources
+    override def moduleDeps: Seq[JavaModule] = Seq(outer)
+    override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+      outer.repositoriesTask()
+    }
+
+    override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
+      outer.resolutionCustomizer
+
+    override def javacOptions = outer.javacOptions()
+    override def jvmWorker = outer.jvmWorker
+
+    def jvmId = outer.jvmId
+
+    def jvmIndexVersion = outer.jvmIndexVersion
+
+    /**
+     * Optional custom Java Home for the JvmWorker to use
+     *
+     * If this value is None, then the JvmWorker uses the same Java used to run
+     * the current mill instance.
+     */
+    def javaHome = outer.javaHome
+
+    override def skipIdea = outer.skipIdea
+    override def runUseArgsFile = outer.runUseArgsFile()
+    override def sourcesFolders = outer.sourcesFolders
+
+    override def bomMvnDeps = super.bomMvnDeps() ++ outer.bomMvnDeps()
+
+    override def depManagement = super.depManagement() ++ outer.depManagement()
+
+    /**
+     * JavaModule and its derivatives define inner test modules.
+     * To avoid unexpected misbehavior due to the use of the wrong inner test trait
+     * we apply some hierarchy consistency checks.
+     * If, for some reason, those are too restrictive to you, you can override this method.
+     * @throws MillException
+     */
+    protected def hierarchyChecks(): Unit = JavaModule.hierarchyChecks(outer)
   }
 
   def defaultTask(): String = "run"
@@ -1468,6 +1512,7 @@ trait JavaModule
 }
 
 object JavaModule {
+  // Keep in sync with JavaModule#JavaTests, separate due to binary compatibility
   trait Tests extends JavaModule with TestModule {
     private[mill] def outerRef: ModuleRef[JavaModule]
     // Run some consistence checks
@@ -1484,11 +1529,9 @@ object JavaModule {
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outerRef().resolutionCustomizer
 
-    override def javacOptions: T[Seq[String]] = Task {
-      outerRef().javacOptions()
-    }
+    override def javacOptions = outerRef().javacOptions()
 
-    override def jvmWorker: ModuleRef[JvmWorkerModule] = outerRef().jvmWorker
+    override def jvmWorker = outerRef().jvmWorker
 
     def jvmId = outerRef().jvmId
 
@@ -1504,21 +1547,13 @@ object JavaModule {
 
     override def skipIdea: Boolean = outerRef().skipIdea
 
-    override def runUseArgsFile: T[Boolean] = Task {
-      outerRef().runUseArgsFile()
-    }
+    override def runUseArgsFile = outerRef().runUseArgsFile()
 
     override def sourcesFolders = outerRef().sourcesFolders
 
-    override def bomMvnDeps = Task[Seq[Dep]] {
-      super.bomMvnDeps() ++
-        outerRef().bomMvnDeps()
-    }
+    override def bomMvnDeps = super.bomMvnDeps() ++ outerRef().bomMvnDeps()
 
-    override def depManagement = Task[Seq[Dep]] {
-      super.depManagement() ++
-        outerRef().depManagement()
-    }
+    override def depManagement = super.depManagement() ++ outerRef().depManagement()
 
     /**
      * JavaModule and its derivatives define inner test modules.
@@ -1528,26 +1563,27 @@ object JavaModule {
      *
      * @throws MillException
      */
-    protected def hierarchyChecks(): Unit = {
-      val outerInnerSets = Seq(
-        ("mill.scalajslib.ScalaJSModule", "ScalaJSTests"),
-        ("mill.scalanativelib.ScalaNativeModule", "ScalaNativeTests"),
-        ("mill.scalalib.SbtModule", "SbtTests"),
-        ("mill.scalalib.MavenModule", "MavenTests")
-      )
-      for {
-        (mod, testModShort) <- outerInnerSets
-        testMod = s"${mod}$$${testModShort}"
-      }
-        try {
-          if (Class.forName(mod).isInstance(outerRef()) && !Class.forName(testMod).isInstance(this))
-            throw new MillException(
-              s"${outerRef()} is a `${mod}`. $this needs to extend `${testModShort}`."
-            )
-        } catch {
-          case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
-        }
+    protected def hierarchyChecks(): Unit = JavaModule.hierarchyChecks(outerRef())
+  }
+  private def hierarchyChecks(outer: JavaModule) = {
+    val outerInnerSets = Seq(
+      ("mill.scalajslib.ScalaJSModule", "ScalaJSTests"),
+      ("mill.scalanativelib.ScalaNativeModule", "ScalaNativeTests"),
+      ("mill.scalalib.SbtModule", "SbtTests"),
+      ("mill.scalalib.MavenModule", "MavenTests")
+    )
+    for {
+      (mod, testModShort) <- outerInnerSets
+      testMod = s"${mod}$$${testModShort}"
     }
+      try {
+        if (Class.forName(mod).isInstance(outer) && !Class.forName(testMod).isInstance(this))
+          throw new MillException(
+            s"$outer is a `${mod}`. $this needs to extend `${testModShort}`."
+          )
+      } catch {
+        case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
+      }
   }
 
   /**

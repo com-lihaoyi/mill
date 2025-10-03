@@ -473,16 +473,29 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     ).distinct
   }
 
-  /**
-   * A test sub-module linked to its parent module best suited for unit-tests.
-   */
-  trait KotlinTests extends KotlinModule.Tests {
-    def outerRef = ModuleRef(KotlinModule.this)
+  // Keep in sync with KotlinModule.Tests, separate due to binary compatibility
+  trait KotlinTests extends JavaTests with KotlinModule {
+
+    override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
+    override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
+    override def kotlinExplicitApi: T[Boolean] = false
+    override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
+    override def kotlincPluginMvnDeps: T[Seq[Dep]] =
+      Task { outer.kotlincPluginMvnDeps() }
+      // TODO: make Xfriend-path an explicit setting
+    override def kotlincOptions: T[Seq[String]] = Task {
+      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
+        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+    }
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
+      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+    override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
   }
 
 }
 
 object KotlinModule {
+  // Keep in sync with KotlinModule#KotlinTests, separate due to binary compatibility
   trait Tests extends JavaModule.Tests with KotlinModule {
     def outerRef: ModuleRef[KotlinModule]
 
@@ -492,7 +505,7 @@ object KotlinModule {
     override def kotlinVersion: T[String] = Task { outerRef().kotlinVersion() }
     override def kotlincPluginMvnDeps: T[Seq[Dep]] =
       Task { outerRef().kotlincPluginMvnDeps() }
-      // TODO: make Xfriend-path an explicit setting
+    // TODO: make Xfriend-path an explicit setting
     override def kotlincOptions: T[Seq[String]] = Task {
       outerRef().kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
         Seq(s"-Xfriend-paths=${outerRef().compile().classes.path.toString()}")
@@ -501,6 +514,7 @@ object KotlinModule {
       Task.Anon { outerRef().kotlinUseEmbeddableCompiler() }
     override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outerRef().kotlincUseBtApi() }
   }
+
   private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
     params.addVariantAttributes(
       "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),

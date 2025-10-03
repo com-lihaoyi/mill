@@ -4,7 +4,7 @@ package scalajslib
 import mainargs.{Flag, arg}
 import mill.api.daemon.internal.{ScalaJSModuleApi, ScalaPlatform, internal}
 import mill.api.daemon.internal.bsp.ScalaBuildTarget
-import mill.api.{Result, ModuleRef}
+import mill.api.Result
 import mill.api.CrossVersion
 import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
 import mill.javalib.api.JvmWorkerUtil
@@ -22,14 +22,12 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
   def scalaJSVersion: T[String]
 
   trait ScalaJSTests extends ScalaTests with TestScalaJSModule {
-    override def outerRef: ModuleRef[ScalaJSModule] = ModuleRef(ScalaJSModule.this)
-
-    override def scalaJSVersion = outerRef().scalaJSVersion()
-    override def moduleKind: T[ModuleKind] = outerRef().moduleKind()
-    override def moduleSplitStyle: T[ModuleSplitStyle] = outerRef().moduleSplitStyle()
-    override def esFeatures = outerRef().esFeatures()
-    override def jsEnvConfig: T[JsEnvConfig] = outerRef().jsEnvConfig()
-    override def scalaJSOptimizer: T[Boolean] = outerRef().scalaJSOptimizer()
+    override def scalaJSVersion = outer.scalaJSVersion()
+    override def moduleKind: T[ModuleKind] = outer.moduleKind()
+    override def moduleSplitStyle: T[ModuleSplitStyle] = outer.moduleSplitStyle()
+    override def esFeatures = outer.esFeatures()
+    override def jsEnvConfig: T[JsEnvConfig] = outer.jsEnvConfig()
+    override def scalaJSOptimizer: T[Boolean] = outer.scalaJSOptimizer()
   }
 
   def scalaJSBinaryVersion = Task { JvmWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }

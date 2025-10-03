@@ -25,8 +25,15 @@ import scala.util.Using
 trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     with ScalaModuleApi { outer =>
 
-  trait ScalaTests extends ScalaModule.Tests {
-    def outerRef = ModuleRef(ScalaModule.this)
+  // Keep in sync with ScalaModule.Tests, separate due to binary compatibility
+  trait ScalaTests extends JavaTests with ScalaModule {
+    override def scalaOrganization: T[String] = outer.scalaOrganization()
+    override def scalaVersion: T[String] = outer.scalaVersion()
+    override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
+    override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
+    override def scalacOptions: T[Seq[String]] = outer.scalacOptions()
+    override def mandatoryScalacOptions: T[Seq[String]] =
+      Task { super.mandatoryScalacOptions() }
   }
 
   private[mill] override lazy val bspExt = {
@@ -662,6 +669,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 }
 
 object ScalaModule {
+  // Keep in sync with ScalaModule#ScalaTests, separate due to binary compatibility
   trait Tests extends JavaModule.Tests with ScalaModule {
     private[mill] def outerRef: ModuleRef[ScalaModule]
 
