@@ -10,10 +10,16 @@ object ScalaVersionsRangesTests extends TestSuite {
 
   object ScalaVersionsRanges extends TestRootModule {
     object core extends Cross[CoreCrossModule]("2.12.13", "2.13.5", "3.3.3")
+
     trait CoreCrossModule extends CrossScalaModule
         with CrossScalaVersionRanges {
+
+      override def semanticDbVersion = "4.8.4" // last version to support these Scala versions
+
       object test extends ScalaTests with TestModule.Utest {
         override def utestVersion = "0.8.5"
+
+        override def semanticDbVersion = "4.8.4" // last version to support these Scala versions
       }
     }
 

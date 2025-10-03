@@ -7,8 +7,6 @@ object JvmWorkerApi {
   type Ctx = mill.api.TaskCtx.Dest & mill.api.TaskCtx.Log & mill.api.TaskCtx.Env
 }
 trait JvmWorkerApi {
-
-  /** Compile a Java-only project */
   def compileJava(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
@@ -20,7 +18,6 @@ trait JvmWorkerApi {
       incrementalCompilation: Boolean
   )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
-  /** Compile a mixed Scala/Java or Scala-only project */
   def compileMixed(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
@@ -38,7 +35,6 @@ trait JvmWorkerApi {
       auxiliaryClassFileExtensions: Seq[String]
   )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
-  /** Compiles a Scaladoc jar. */
   def docJar(
       scalaVersion: String,
       scalaOrganization: String,
