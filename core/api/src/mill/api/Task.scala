@@ -9,7 +9,7 @@ import mill.api.internal.{Applicative, Cacher, NamedParameterOnlyDummy}
 import upickle.ReadWriter
 import upickle.Writer
 
-import scala.annotation.{implicitAmbiguous, implicitNotFound, targetName, unused}
+import scala.annotation.{targetName, unused}
 import scala.language.implicitConversions
 import scala.quoted.*
 
