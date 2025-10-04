@@ -33,15 +33,18 @@ object bar extends MyModule {
 // `mvnDeps` specific to a particular module. This is a common pattern within Mill builds.
 //
 
-
+//// SNIPPET:TEST
 /** Usage
 
 > ./mill bar.test
 + bar.BarTests.simple...
 + bar.BarTests.escaping...
-
-> ./mill foo.run --text hello
-<h1>hello</h1>
+*/
+//// SNIPPET:END
+/** Usage
+> ./mill foo.run --foo-text hello --bar-text world
+Foo.value: hello
+Bar.value: <h1>world</h1>
 
 */
 

@@ -25,3 +25,12 @@ object bar extends MyModule {
     mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
   )
 }
+
+//// SNIPPET:TEST
+/** Usage
+
+> ./mill bar.test
+Test bar.BarTests simple finished...
+Test bar.BarTests escaping finished...
+*/
+//// SNIPPET:END

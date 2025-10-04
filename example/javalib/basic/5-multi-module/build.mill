@@ -19,3 +19,12 @@ object bar extends MyModule {
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 }
+
+//// SNIPPET:TEST
+/** Usage
+
+> ./mill bar.test
+Test bar.BarTests.simple finished...
+Test bar.BarTests.escaping finished...
+*/
+//// SNIPPET:END
