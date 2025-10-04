@@ -11,7 +11,7 @@ converting sbt build
 ...
 init completed, run "mill resolve _" to list available tasks
 
-> ./mill modules.core.jvm[2.12.20].compile # custom version range source roots 3.0+/3.0- not supported
+> ./mill modules.core.jvm[2.12.20].compile # source roots for custom version ranges need tweaking
 compiling 22 Scala sources to ...
 error: ...object boolean is not a member of package eu.timepit.refined
 */
