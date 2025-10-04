@@ -43,14 +43,6 @@ final class EvaluatorImpl private[mill] (
     execution.withBaseLogger(newBaseLogger)
   )
 
-  private[mill] def resolveSingleModule(s: String): Option[mill.Module] = {
-    resolveModulesOrTasks(Seq(s), SelectMode.Multi)
-      .toOption
-      .toSeq
-      .flatten
-      .collectFirst { case Left(m) => m }
-  }
-
   /**
    * Takes query selector tokens and resolves them to a list of [[Segments]]
    * representing concrete tasks or modules that match that selector
