@@ -119,7 +119,7 @@ object FileImportGraph {
       .filter(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
 
     val (dummy, foundRootBuildFileName) = rootBuildFiles.toSeq match {
-      case Nil => (true, rootBuildFileNames.get(0))
+      case Nil => (true, "build.mill")
       case Seq(single) => (false, single)
       case multiple =>
         System.err.println(
@@ -148,7 +148,6 @@ object FileImportGraph {
               (os.isDir(p) && !nestedBuildFileNames.exists(n => os.exists(p / n)))
         )
         .filter(p => nestedBuildFileNames.contains(p.last))
-        .++(Seq(projectRoot / foundRootBuildFileName))
         .distinctBy(_ / os.up)
 
       val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
