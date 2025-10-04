@@ -7,6 +7,9 @@ This page documents the usage of simple config-based Kotlin modules defined by
 full `build.mill` or `package.mill` build files, which makes them ideal for small
 projects which do not need additional flexibility.
 
+== Common Configuration Overrides for Simple Modules
+
+include::partial$example/kotlinlib/simple/1-common-config.adoc[]
 
 == Packaging and Publishing Simple Modules
 

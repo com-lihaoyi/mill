@@ -8,6 +8,10 @@ full `build.mill` or `package.mill` build files, which makes them ideal for smal
 projects which do not need additional flexibility.
 
 
+== Common Configuration Overrides for Simple Modules
+
+include::partial$example/javalib/simple/1-common-config.adoc[]
+
 == Packaging and Publishing Simple Modules
 
 include::partial$example/javalib/simple/2-publish.adoc[]
