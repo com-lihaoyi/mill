@@ -1,7 +1,6 @@
 package mill.scalalib
 
 import mill.Task
-import mill.api.ModuleRef
 
 /**
  * A [[ScalaModule]] with sbt compatible directory layout.
