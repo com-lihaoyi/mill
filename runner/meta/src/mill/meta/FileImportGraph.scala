@@ -116,10 +116,11 @@ object FileImportGraph {
     (dummy = dummy, foundRootBuildFileName = foundRootBuildFileName)
   }
 
+  val nestedBuildFileNames = buildFileExtensions.asScala.map(ext => s"package.$ext").toList
+
   def walkBuildFiles(projectRoot: os.Path, output: os.Path): Seq[os.Path] = {
     if (!os.exists(projectRoot)) Nil
     else {
-      val nestedBuildFileNames = buildFileExtensions.asScala.map(ext => s"package.$ext").toList
       val buildFiles = os
         .walk(
           projectRoot,

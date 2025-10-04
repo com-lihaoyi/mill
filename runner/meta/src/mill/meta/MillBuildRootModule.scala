@@ -41,10 +41,12 @@ trait MillBuildRootModule()(using
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
-  val scriptSourcesPaths = BuildCtx.withFilesystemCheckerDisabled {
-    FileImportGraph
-      .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
-      .sorted // Ensure ordering is deterministic
+  val scriptSourcesPaths = BuildCtx.watchValue{
+    BuildCtx.withFilesystemCheckerDisabled {
+      FileImportGraph
+        .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
+        .sorted // Ensure ordering is deterministic
+    }
   }
 
   /**
