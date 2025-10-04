@@ -76,16 +76,16 @@ trait JsonFormatters {
         )
     )
 
-//  implicit def enumFormat[T <: java.lang.Enum[?]: ClassTag]: RW[T] =
-//    upickle.readwriter[String].bimap(
-//      _.name(),
-//      (s: String) =>
-//        summon[ClassTag[T]]
-//          .runtimeClass
-//          .getConstructor(classOf[String])
-//          .newInstance(s)
-//          .asInstanceOf[T]
-//    )
+  def enumFormat[T <: java.lang.Enum[?]: ClassTag]: RW[T] =
+    upickle.readwriter[String].bimap(
+      _.name(),
+      (s: String) =>
+        summon[ClassTag[T]]
+          .runtimeClass
+          .getConstructor(classOf[String])
+          .newInstance(s)
+          .asInstanceOf[T]
+    )
 
   export upickle.implicits.namedTuples.default.given
 }
