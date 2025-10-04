@@ -154,6 +154,10 @@ error: Missing argument: --text <str>
 // details on the different task types.
 //
 // This example uses Mill's YAML-based syntax, which is a good fit for simple builds
-// where you are just setting some configuration keys. For scenarios which require
-// more customization, see xref:#_programmatic_configuration[Programmatic Configuration]
-// discussed below.
+// where you are just setting some configuration keys. This is discussed more in the documentation
+// for:
+//
+// * xref:{language-small}lib/simple.adoc[Simple {language} Modules]
+//
+// For scenarios which require more customization,
+// see xref:#_programmatic_configuration[Programmatic Configuration] discussed below.
