@@ -141,7 +141,7 @@ object BuildGenUtil {
 
   }
   def buildFile(dirs: Seq[String]): os.SubPath = {
-    val name = if (dirs.isEmpty) rootBuildFileNames.get(0) else nestedBuildFileNames.get(0)
+    val name = if (dirs.isEmpty) "build.mill" else "package.mill"
     os.sub / dirs / name
   }
 
