@@ -1525,7 +1525,7 @@ object JavaModule {
       try {
         if (Class.forName(mod).isInstance(outer) && !Class.forName(testMod).isInstance(self))
           throw new MillException(
-            s"$outer is a `${mod}`. $this needs to extend `${testModShort}`."
+            s"$outer is a `${mod}`. $self needs to extend `${testModShort}`."
           )
       } catch {
         case _: ClassNotFoundException => // if we can't find the classes, we certainly are not in a ScalaJSModule
