@@ -60,7 +60,6 @@ run
 compile(ScalaModule.scala:...)
     Compiles the current module to generate compiled classfiles/bytecode.
 Inputs:
-    scalaVersion
     upstreamCompileOutput
     allSourceFiles
     compileClasspath
