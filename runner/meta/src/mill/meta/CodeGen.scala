@@ -105,6 +105,10 @@ object CodeGen {
           if (moduleDeps.isEmpty) ""
           else s"override def moduleDeps = Seq(${moduleDeps.get.mkString(", ")})"
 
+        val extendsSnippet = {
+          if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}"
+          else ""
+        }
         os.write.over(
           (wrappedDestFile / os.up) / wrappedDestFile.baseName,
           s"""package $pkg
@@ -116,8 +120,7 @@ object CodeGen {
              |  ${if (segments.isEmpty) millDiscover(segments.nonEmpty) else ""}
              |  $childAliases
              |}
-             |trait package_
-             |extends ${extendsConfig.mkString(", ")} {
+             |trait package_$extendsSnippet {
              |  $moduleDepsSnippet
              |  ${definitions.mkString("\n  ")}
              |}
