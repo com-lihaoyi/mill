@@ -1,12 +1,2 @@
 //// SNIPPET:USAGE
 /** See Also: mill-build/src/LineCountKotlinModule.scala */
-/** See Also: mill.yaml */
-/** Usage
-
-> ./mill run
-...
-Line Count: 17
-
-> ./mill show lineCount
-17
-*/

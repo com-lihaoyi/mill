@@ -57,7 +57,7 @@ private object ResolveCore {
           java.lang.reflect.Method,
           String
       )]] =
-        collection.mutable.Map(),
+        collection.mutable.Map()
   ) {
     def decode(s: String): String = {
       decodedNames.getOrElseUpdate(s, scala.reflect.NameTransformer.decode(s))

@@ -309,7 +309,7 @@ private[mill] trait Resolve[T] {
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
-      resolveToModuleTasks: Boolean = false,
+      resolveToModuleTasks: Boolean = false
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val cache = new ResolveCore.Cache()
@@ -331,7 +331,7 @@ private[mill] trait Resolve[T] {
             Segments.labels(segments*),
             nullCommandDefaults,
             allowPositionalCommandArgs,
-            resolveToModuleTasks,
+            resolveToModuleTasks
           )
         )
       }
@@ -377,7 +377,7 @@ private[mill] trait Resolve[T] {
       sel: Segments,
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean,
-      resolveToModuleTasks: Boolean,
+      resolveToModuleTasks: Boolean
   ): Result[Seq[T]] = {
     val cache = new ResolveCore.Cache()
     resolveNonEmptyAndHandle2(

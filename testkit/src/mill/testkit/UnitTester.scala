@@ -142,7 +142,7 @@ class UnitTester(
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
     allowPositionalCommandArgs = false,
     selectiveExecution = false,
-    execution = execution,
+    execution = execution
   )
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
@@ -150,7 +150,7 @@ class UnitTester(
       Resolve.Tasks.resolve(
         evaluator.rootModule,
         args,
-        SelectMode.Separated,
+        SelectMode.Separated
       )
     } match {
       case Result.Failure(err) => Left(ExecResult.Failure(err))

@@ -289,9 +289,7 @@ object Task {
     ): Simple[T] = ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
-  inline def Literal[T](s: String)(using
-                            inline rw: ReadWriter[T],
-                            inline ctx: ModuleCtx) = ${
+  inline def Literal[T](s: String)(using inline rw: ReadWriter[T], inline ctx: ModuleCtx) = ${
     Macros.taskResultImpl[T](
       '{ Result.Success(upickle.default.read[T](s)(using rw)) }
     )('rw, 'ctx, 'false)

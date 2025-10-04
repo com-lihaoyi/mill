@@ -1,8 +1,7 @@
 package millbuild
-import mill.*, javalib.*, kotlinlib.*
+import mill.*, kotlinlib.*
 
-class LineCountKotlinModule(scriptConf: mill.simple.SimpleModule.Config)
-    extends mill.simple.KotlinModule(scriptConf) {
+trait LineCountKotlinModule extends mill.kotlinlib.KotlinModule {
 
   /** Total number of lines in module source files */
   def lineCount = Task {
@@ -14,6 +13,4 @@ class LineCountKotlinModule(scriptConf: mill.simple.SimpleModule.Config)
     os.write(Task.dest / "line-count.txt", "" + lineCount())
     super.resources() ++ Seq(PathRef(Task.dest))
   }
-
-  override lazy val millDiscover = mill.api.Discover[this.type]
 }

@@ -453,7 +453,7 @@ object MillBuildBootstrap {
         () => evaluator,
         offline,
         enableTicker
-      ),
+      )
     ).asInstanceOf[EvaluatorApi]
 
     evaluator

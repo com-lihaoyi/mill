@@ -25,12 +25,10 @@ object CodeGen {
   ): Unit = {
     val scriptSources = allScriptCode.keys.toSeq.sorted
 
-
     // Provide `build` as an alias to the root `build_.package_`, since from the user's
     // perspective it looks like they're writing things that live in `package build`,
     // but at compile-time we rename things, we so provide an alias to preserve the fiction
     val aliasImports = "import build_.{package_ => build}"
-
 
     for (scriptPath <- scriptSources) {
       val scriptFolderPath = scriptPath / os.up
@@ -48,9 +46,9 @@ object CodeGen {
       val childNames = scriptSources
         .collect {
           case path
-            if path != scriptPath
-              && CGConst.nestedBuildFileNames.contains(path.last)
-              && path / os.up / os.up == scriptFolderPath => (path / os.up).last
+              if path != scriptPath
+                && CGConst.nestedBuildFileNames.contains(path.last)
+                && path / os.up / os.up == scriptFolderPath => (path / os.up).last
         }
         .distinct
 
@@ -88,14 +86,13 @@ object CodeGen {
         val moduleDeps = parsedHeaderData.get("moduleDeps").map(_.arr.map(_.str))
         val extendsConfig = parsedHeaderData.get("extends").map(_.arr.map(_.str)).getOrElse(Nil)
         val definitions =
-          for((k, v) <- parsedHeaderData if !Set("moduleDeps", "extends").contains(k))
-          yield s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
+          for ((k, v) <- parsedHeaderData if !Set("moduleDeps", "extends").contains(k))
+            yield s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
 
         val prelude =
           s"""|import MillMiscInfo._
               |import _root_.mill.util.TokenReaders.given
               |""".stripMargin
-
 
         os.write(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
         os.write(
@@ -106,7 +103,11 @@ object CodeGen {
              |$prelude
              |//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
              |object package_ extends $newParent${extendsConfig.map(", " + _).mkString} {
-             |  ${if (moduleDeps.nonEmpty) s"override def moduleDeps = Seq(${moduleDeps.get.mkString(", ")})" else ""}
+             |  ${
+              if (moduleDeps.nonEmpty)
+                s"override def moduleDeps = Seq(${moduleDeps.get.mkString(", ")})"
+              else ""
+            }
              |  ${definitions.mkString("\n  ")}
              |  ${if (segments.isEmpty) millDiscover(segments.nonEmpty) else ""}
              |
@@ -127,11 +128,11 @@ object CodeGen {
 
           if (
             scriptFolderPath == projectRoot
-              && CGConst.nestedBuildFileNames.contains(scriptName)
+            && CGConst.nestedBuildFileNames.contains(scriptName)
           ) break()
           if (
             scriptFolderPath != projectRoot
-              && CGConst.rootBuildFileNames.contains(scriptName)
+            && CGConst.rootBuildFileNames.contains(scriptName)
           ) break()
 
           val scriptCode = allScriptCode(scriptPath)
