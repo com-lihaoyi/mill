@@ -525,7 +525,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     override def testFramework = ""
 
-    override def kotlinJsRunTarget: T[Option[RunTarget]] = KotlinJsModule.this.kotlinJsRunTarget()
+    override def kotlinJsRunTarget: T[Option[RunTarget]] = outer.kotlinJsRunTarget()
 
     override def kotlinJsModuleKind: T[ModuleKind] = ModuleKind.PlainModule
 
@@ -536,8 +536,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
         this.testForked(args*)()
       }
 
-    override protected[js] def kotlinJsFriendModule: Option[KotlinJsModule] =
-      Some(KotlinJsModule.this)
+    override protected[js] def kotlinJsFriendModule: Option[KotlinJsModule] = Some(outer)
 
     override protected def testTask(
         args: Task[Seq[String]],
