@@ -211,7 +211,7 @@ private[mill] object Resolve {
         p,
         r.segments.last.value,
         p match {
-          case e: ExternalModule => e.discover
+          case e: ExternalModule => e.moduleCtx.discover
           case _ => rootModule.moduleCtx.discover
         },
         args,
