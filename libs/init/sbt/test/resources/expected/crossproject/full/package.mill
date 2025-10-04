@@ -1,0 +1,112 @@
+package build.full
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import mill.scalajslib._
+import mill.scalalib._
+import mill.scalanativelib._
+import millbuild._
+
+object `package` extends Module {
+
+  object js extends ScalaJSModule with CrossprojectBaseModule {
+
+    def scalaJSVersion = "1.16.0"
+
+    def moduleDeps = super.moduleDeps ++ Seq(build.pure.js)
+
+    def artifactName = "full"
+
+    def pomSettings = PomSettings(
+      "full",
+      "full",
+      "",
+      Seq(),
+      VersionControl(None, None, None, None),
+      Seq()
+    )
+
+    def sourcesRootFolders = super.sourcesRootFolders ++ Seq(os.sub / "shared")
+
+    object test
+        extends ScalaJSTests
+        with SbtPlatformTests
+        with SbtTests
+        with TestModule.Utest {
+
+      def mvnDeps = super.mvnDeps() ++ Seq(Deps.utest)
+
+      def moduleDeps = super.moduleDeps ++ Seq(build.pure.js.test)
+
+      def testParallelism = false
+
+      def testSandboxWorkingDir = false
+    }
+
+  }
+  object jvm extends CrossprojectBaseModule {
+
+    def moduleDeps = super.moduleDeps ++ Seq(build.pure.jvm)
+
+    def artifactName = "full"
+
+    def pomSettings = PomSettings(
+      "full",
+      "full",
+      "",
+      Seq(),
+      VersionControl(None, None, None, None),
+      Seq()
+    )
+
+    def sourcesRootFolders = super.sourcesRootFolders ++ Seq(os.sub / "shared")
+
+    object test extends SbtPlatformTests with SbtTests with TestModule.Utest {
+
+      def mvnDeps = super.mvnDeps() ++ Seq(Deps.utest)
+
+      def moduleDeps = super.moduleDeps ++ Seq(build.pure.jvm.test)
+
+      def testParallelism = false
+
+      def testSandboxWorkingDir = false
+    }
+
+  }
+  object native extends ScalaNativeModule with CrossprojectBaseModule {
+
+    def scalaNativeVersion = "0.5.4"
+
+    def moduleDeps = super.moduleDeps ++ Seq(build.pure.native)
+
+    def artifactName = "full"
+
+    def pomSettings = PomSettings(
+      "full",
+      "full",
+      "",
+      Seq(),
+      VersionControl(None, None, None, None),
+      Seq()
+    )
+
+    def sourcesRootFolders = super.sourcesRootFolders ++ Seq(os.sub / "shared")
+
+    object test
+        extends ScalaNativeTests
+        with SbtPlatformTests
+        with SbtTests
+        with TestModule.Utest {
+
+      def mvnDeps = super.mvnDeps() ++ Seq(Deps.utest)
+
+      def moduleDeps = super.moduleDeps ++ Seq(build.pure.native.test)
+
+      def testParallelism = false
+
+      def testSandboxWorkingDir = false
+    }
+
+  }
+}

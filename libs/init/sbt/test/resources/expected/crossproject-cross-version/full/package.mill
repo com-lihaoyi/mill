@@ -1,0 +1,63 @@
+package build.full
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import mill.scalajslib._
+import mill.scalalib._
+import mill.scalanativelib._
+import millbuild._
+
+object `package` extends Module {
+
+  object js extends Cross[JsModule]("2.12.20", "2.13.14", "3.7.1")
+  trait JsModule extends ScalaJSModule with CrossprojectCrossVersionBaseModule {
+
+    def scalaJSVersion = "1.16.0"
+
+    def artifactName = "full"
+
+    def pomSettings = PomSettings(
+      "full",
+      "full",
+      "",
+      Seq(),
+      VersionControl(None, None, None, None),
+      Seq()
+    )
+
+  }
+  object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
+  trait JvmModule extends CrossprojectCrossVersionBaseModule {
+
+    def artifactName = "full"
+
+    def pomSettings = PomSettings(
+      "full",
+      "full",
+      "",
+      Seq(),
+      VersionControl(None, None, None, None),
+      Seq()
+    )
+
+  }
+  object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
+  trait NativeModule
+      extends ScalaNativeModule with CrossprojectCrossVersionBaseModule {
+
+    def scalaNativeVersion = "0.5.4"
+
+    def artifactName = "full"
+
+    def pomSettings = PomSettings(
+      "full",
+      "full",
+      "",
+      Seq(),
+      VersionControl(None, None, None, None),
+      Seq()
+    )
+
+  }
+}

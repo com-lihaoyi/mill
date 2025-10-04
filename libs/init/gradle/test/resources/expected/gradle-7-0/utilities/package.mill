@@ -1,0 +1,10 @@
+package build.utilities
+
+import mill.javalib._
+import millbuild._
+
+object `package` extends `7.0BaseModule` {
+
+  def moduleDeps = super.moduleDeps ++ Seq(build.list)
+
+}
