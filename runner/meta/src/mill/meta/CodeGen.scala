@@ -101,6 +101,10 @@ object CodeGen {
               |""".stripMargin
 
         os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
+        val moduleDepsSnippet =
+          if (moduleDeps.isEmpty) ""
+          else s"override def moduleDeps = Seq(${moduleDeps.get.mkString(", ")})"
+
         os.write.over(
           (wrappedDestFile / os.up) / wrappedDestFile.baseName,
           s"""package $pkg
@@ -108,16 +112,14 @@ object CodeGen {
              |$aliasImports
              |$prelude
              |//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
-             |object package_ extends $newParent${extendsConfig.map(", " + _).mkString} {
-             |  ${
-              if (moduleDeps.nonEmpty)
-                s"override def moduleDeps = Seq(${moduleDeps.get.mkString(", ")})"
-              else ""
-            }
-             |  ${definitions.mkString("\n  ")}
+             |object package_ extends $newParent, package_{
              |  ${if (segments.isEmpty) millDiscover(segments.nonEmpty) else ""}
-             |
              |  $childAliases
+             |}
+             |trait package_
+             |extends ${extendsConfig.mkString(", ")} {
+             |  $moduleDepsSnippet
+             |  ${definitions.mkString("\n  ")}
              |}
              |""".stripMargin,
           createFolders = true
