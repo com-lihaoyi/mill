@@ -186,7 +186,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       minify: Boolean,
       importMap: Seq[ESModuleImportMapping],
       experimentalUseWebAssembly: Boolean
-  )(implicit ctx: mill.api.TaskCtx): Result[Report] = {
+  )(using ctx: mill.api.TaskCtx): Result[Report] = {
     val outputPath = ctx.dest
 
     os.makeDir.all(ctx.dest)

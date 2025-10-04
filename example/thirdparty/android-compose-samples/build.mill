@@ -20,8 +20,7 @@ object JetLagged extends mill.api.Module {
 
     override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(
-        isMinifyEnabled = false,
-        isShrinkEnabled = false
+        isMinifyEnabled = false
       )
     }
 
@@ -129,8 +128,7 @@ object JetNews extends mill.api.Module {
 
     override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(
-        isMinifyEnabled = false,
-        isShrinkEnabled = false
+        isMinifyEnabled = false
       )
     }
     def androidProjectProguardFiles = Task.Sources(
@@ -232,6 +230,108 @@ object JetNews extends mill.api.Module {
   }
 }
 
+object Jetchat extends mill.api.Module {
+
+  object app extends AndroidAppKotlinModule, AndroidR8AppModule {
+
+    def kotlinVersion = Versions.kotlinVersion
+
+    override def androidApplicationNamespace: String = "com.example.compose.jetchat"
+
+    override def androidApplicationId: String = "com.example.compose.jetchat"
+
+    override def bomMvnDeps = super.mvnDeps() ++ Seq(
+      mvn"androidx.compose:compose-bom:2025.08.00"
+    )
+
+    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+      AndroidBuildTypeSettings(
+        isMinifyEnabled = false,
+        isShrinkEnabled = false
+      )
+    }
+    def androidProjectProguardFiles = Task.Sources(
+      "proguard-rules.pro"
+    )
+    def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      Seq("proguard-android-optimize.txt")
+    }
+
+    override def androidEnableCompose: T[Boolean] = true
+
+    override def enableViewBinding = true
+
+    override def dataBindingCompilerVersion = "8.13.0"
+
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+      true
+    }
+
+    override def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"androidx.glance:glance-appwidget:1.1.1",
+      mvn"androidx.glance:glance-material3:1.1.1",
+      mvn"org.jetbrains.kotlin:kotlin-stdlib-jdk8:${build.Versions.kotlinVersion}",
+      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2",
+      mvn"androidx.activity:activity-compose:1.10.1",
+      mvn"androidx.core:core-ktx:1.16.0",
+      mvn"androidx.appcompat:appcompat:1.7.0",
+      mvn"androidx.compose.runtime:runtime-livedata",
+      mvn"androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0",
+      mvn"androidx.lifecycle:lifecycle-runtime-compose:2.9.0",
+      mvn"androidx.lifecycle:lifecycle-livedata:2.9.0",
+      mvn"androidx.navigation:navigation-fragment-ktx:2.9.0",
+      mvn"androidx.navigation:navigation-ui-ktx:2.9.0",
+      mvn"androidx.compose.material3:material3",
+      mvn"androidx.compose.material:material-icons-extended",
+      mvn"androidx.compose.ui:ui-util",
+      mvn"androidx.compose.ui:ui-viewbinding",
+      mvn"androidx.compose.ui:ui-text-google-fonts",
+      mvn"androidx.databinding:viewbinding:8.13.0",
+      mvn"androidx.compose.ui:ui-tooling",
+      mvn"androidx.compose.ui:ui-tooling-preview",
+      mvn"androidx.compose.ui:ui-test-manifest",
+      mvn"com.google.android.material:material:1.6.0"
+    )
+
+    def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+
+    def androidCompileSdk = Versions.androidCompileSdk
+
+    def androidMinSdk = Versions.androidMinSdk
+
+    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule {
+      override def bomMvnDeps = super.mvnDeps() ++ Seq(
+        mvn"androidx.compose:compose-bom:2025.08.00"
+      )
+
+      // TODO consider defaulting this to the parent app value
+      override def androidEnableCompose = true
+
+      // TODO consider defaulting this to the parent app value
+      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+        true
+      }
+
+      // FIXME: R8 should compile without missing classes errors
+      override def androidR8Args = Seq("--map-diagnostics", "error", "warning")
+
+      def mvnDeps = super.mvnDeps() ++ Seq(
+        mvn"junit:junit:4.13.2",
+        mvn"androidx.test:core:1.6.1",
+        mvn"androidx.test:runner:1.6.1",
+        mvn"androidx.test.espresso:espresso-core:3.6.1",
+        mvn"androidx.test:rules:1.6.1",
+        mvn"androidx.test.ext:junit:1.2.1",
+        mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2",
+        mvn"androidx.compose.ui:ui-test",
+        mvn"androidx.compose.ui:ui-test-junit4",
+        mvn"androidx.collection:collection-ktx:1.5.0"
+      )
+
+    }
+  }
+}
+
 // The compose samples repository, contains many sample apps!
 // The following example is for building, testing and running JetNews.
 
@@ -239,10 +339,10 @@ object JetNews extends mill.api.Module {
 
 > ./mill JetNews.app.androidApk
 
-> ./mill show JetLagged.app.createAndroidVirtualDevice
+> ./mill show JetNews.app.createAndroidVirtualDevice
 ...Name: test, DeviceId: medium_phone...
 
-> ./mill show JetLagged.app.startAndroidEmulator
+> ./mill show JetNews.app.startAndroidEmulator
 
 > ./mill show JetNews.app.androidInstall
 ...All files should be loaded. Notifying the device...

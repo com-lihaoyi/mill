@@ -10,7 +10,7 @@ import mill.moduledefs.Scaladoc
 import mill.api.BuildCtx
 import mill.api.daemon.internal.bsp.BspMainModuleApi
 
-abstract class MainRootModule()(implicit
+abstract class MainRootModule()(using
     baseModuleInfo: RootModule.Info,
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,

@@ -20,7 +20,7 @@ class LocalM2Publisher(m2Repo: os.Path) {
       pom: os.Path,
       artifact: Artifact,
       publishInfos: Seq[PublishInfo]
-  )(implicit ctx: TaskCtx.Log): Seq[os.Path] =
+  )(using ctx: TaskCtx.Log): Seq[os.Path] =
     publish(artifact, LocalM2Publisher.createFileSetContents(pom, artifact, publishInfos))
 
   /**
@@ -32,7 +32,7 @@ class LocalM2Publisher(m2Repo: os.Path) {
   def publish(
       artifact: Artifact,
       contents: Map[os.SubPath, FileSetContents.Writable]
-  )(implicit ctx: TaskCtx.Log): Seq[os.Path] = {
+  )(using ctx: TaskCtx.Log): Seq[os.Path] = {
 
     val releaseDir = m2Repo / artifact.group.split("[.]") / artifact.id / artifact.version
     ctx.log.info(

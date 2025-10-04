@@ -8,7 +8,7 @@ import mill.api.{Discover, ExternalModule}
 
 class ScalaPBWorker {
 
-  private def scalaPB(scalaPBClasspath: Seq[PathRef])(implicit ctx: mill.api.TaskCtx) = {
+  private def scalaPB(scalaPBClasspath: Seq[PathRef])(using ctx: mill.api.TaskCtx) = {
     val instance = new ScalaPBWorkerApi {
       override def compileScalaPB(
           roots: Seq[File],
@@ -71,7 +71,7 @@ class ScalaPBWorker {
       scalaPBOptions: String,
       dest: os.Path,
       scalaPBCExtraArgs: Seq[String]
-  )(implicit ctx: mill.api.TaskCtx): mill.api.Result[PathRef] = {
+  )(using ctx: mill.api.TaskCtx): mill.api.Result[PathRef] = {
     val compiler = scalaPB(scalaPBClasspath)
     val sources = scalaPBSources.flatMap {
       path =>

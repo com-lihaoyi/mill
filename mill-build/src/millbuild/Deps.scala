@@ -196,6 +196,7 @@ object Deps {
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
   val kotlinBuildToolsApi = mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinVersion"
   val kotlinBuildToolsImpl = mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kotlinVersion"
+  val kotlinStdlib = mvn"org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
   /** Used for the `mill init` from a Maven project. */
   object MavenInit {
@@ -218,6 +219,9 @@ object Deps {
   val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
+  val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:8.13.0"
+  val androidDataBindingCompilerCommon =
+    mvn"androidx.databinding:databinding-compiler-common:8.13.0"
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
   val sbt = mvn"org.scala-sbt:sbt:1.10.10"
