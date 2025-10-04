@@ -27,3 +27,24 @@ Compiling 1 Kotlin sources to...
 */
 
 //// SNIPPET:END
+
+//// SNIPPET:TEST
+
+/** See Also: FooTest.kt */
+
+/** Usage
+> ./mill FooTest.kt
+<h1>hello</h1>
+<h1>&lt;hello&gt;</h1>
+
+*/
+
+// Again, you can pass the name of the task explicitly via `:`, e.g. `:run` below
+
+/** Usage
+> ./mill FooTest.kt:run # specifying the test task explicitly
+<h1>hello</h1>
+<h1>&lt;hello&gt;</h1>
+*/
+
+//// SNIPPET:END
