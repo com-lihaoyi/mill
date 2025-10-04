@@ -92,7 +92,7 @@ object CodeGen {
         val definitions =
           for ((k, v) <- parsedHeaderData if !Set("moduleDeps", "extends").contains(k))
             yield {
-              s"override def $k = Task.Literal(\"\"\"$v\"\"\")()"
+              s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
             }
 
         val prelude =

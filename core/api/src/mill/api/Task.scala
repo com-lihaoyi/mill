@@ -291,7 +291,7 @@ object Task {
 
   // The extra `(x: T) = null` parameter list is necessary to make type inference work
   // right, ensuring that `T` is fully inferred before implicit resolution starts
-  def Literal[T](s: String)(x: T = null.asInstanceOf[T])(using
+  def Literal[T](s: String)(using x: T = null.asInstanceOf[T])(using
       r: upickle.default.Reader[T],
       w: upickle.default.Writer[T],
       ctx: ModuleCtx
