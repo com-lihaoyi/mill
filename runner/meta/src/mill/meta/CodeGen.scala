@@ -24,26 +24,23 @@ object CodeGen {
       parser: MillScalaParser
   ): Unit = {
     val scriptSources = allScriptCode.keys.toSeq.sorted
-    for (scriptPath <- scriptSources) breakable {
-      val specialNames =
-        (CGConst.nestedBuildFileNames.asScala ++ CGConst.rootBuildFileNames.asScala).toSet
 
-      val isBuildScript = specialNames(scriptPath.last)
+    // Provide `build` as an alias to the root `build_.package_`, since from the user's
+    // perspective it looks like they're writing things that live in `package build`,
+    // but at compile-time we rename things, we so provide an alias to preserve the fiction
+    val aliasImports = "import build_.{package_ => build}"
+
+    for (scriptPath <- scriptSources) {
       val scriptFolderPath = scriptPath / os.up
-
-      val scriptName = scriptPath.last
-
-      if (
-        scriptFolderPath == projectRoot
-        && CGConst.nestedBuildFileNames.contains(scriptName)
-      ) break()
-      if (
-        scriptFolderPath != projectRoot
-        && CGConst.rootBuildFileNames.contains(scriptName)
-      ) break()
-
       val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath)
       val wrappedDestFile = wrappedDest / packageSegments
+      val pkgSegments = packageSegments.drop(1).dropRight(1)
+      def pkgSelector0(pre: Option[String], s: Option[String]) =
+        (pre ++ pkgSegments ++ s).map(backtickWrap).mkString(".")
+
+      val pkg = pkgSelector0(Some(CGConst.globalPackagePrefix), None)
+
+      val segments = calcSegments(scriptFolderPath, projectRoot)
       val supportDestDir = supportDest / packageSegments / os.up
 
       val childNames = scriptSources
@@ -54,11 +51,6 @@ object CodeGen {
                 && path / os.up / os.up == scriptFolderPath => (path / os.up).last
         }
         .distinct
-
-      val pkgSegments = packageSegments.drop(1).dropRight(1)
-
-      def pkgSelector0(pre: Option[String], s: Option[String]) =
-        (pre ++ pkgSegments ++ s).map(backtickWrap).mkString(".")
 
       def pkgSelector2(s: Option[String]) =
         s"_root_.${pkgSelector0(Some(CGConst.globalPackagePrefix), s)}"
@@ -73,82 +65,142 @@ object CodeGen {
         }
         .mkString("\n")
 
-      val pkg = pkgSelector0(Some(CGConst.globalPackagePrefix), None)
-
-      val aliasImports = Seq(
-        // Provide `build` as an alias to the root `build_.package_`, since from the user's
-        // perspective it looks like they're writing things that live in `package build`,
-        // but at compile-time we rename things, we so provide an alias to preserve the fiction
-        "import build_.{package_ => build}"
-      ).mkString("\n")
-
-      val scriptCode = allScriptCode(scriptPath)
-
-      val markerComment =
-        s"""//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
-           |//SOURCECODE_ORIGINAL_CODE_START_MARKER""".stripMargin
-
-      val siblingScripts = scriptSources
-        .filter(_ != scriptPath)
-        .filter(p => (p / os.up) == (scriptPath / os.up))
-        .map(_.last.split('.').head + "_")
-
-      val importSiblingScripts = siblingScripts
-        .filter(s => s != "build_" && s != "package_")
-        .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
-
-      if (isBuildScript) {
-        val segments = calcSegments(scriptFolderPath, projectRoot)
-        val miscInfo = generateMillMiscInfo(
-          pkg = pkg,
-          scriptFolderPath = scriptFolderPath,
-          segments = segments,
-          millTopLevelProjectRoot = millTopLevelProjectRoot,
-          output = output
+      if (scriptFolderPath == projectRoot) {
+        val buildFileImplCode = generateBuildFileImpl(pkg)
+        os.write.over(
+          supportDestDir / "BuildFileImpl.scala",
+          buildFileImplCode,
+          createFolders = true
         )
-
-        os.write(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
-
-        if (scriptFolderPath == projectRoot) {
-          val buildFileImplCode = generateBuildFileImpl(pkg)
-          os.write(supportDestDir / "BuildFileImpl.scala", buildFileImplCode, createFolders = true)
-        }
       }
 
-      val parts =
-        if (!isBuildScript) {
-          val wrapperName = backtickWrap(scriptPath.last.split('.').head + "_")
-          s"""|$generatedFileHeader
-              |package $pkg
-              |
-              |$aliasImports
-              |$importSiblingScripts
-              |
-              |object $wrapperName {
-              |$markerComment
-              |$scriptCode
-              |}
-              |
-              |export $wrapperName._
-              |""".stripMargin
-        } else {
-          generateBuildScript(
-            projectRoot = projectRoot,
-            millTopLevelProjectRoot = millTopLevelProjectRoot,
-            scriptPath = scriptPath,
-            scriptFolderPath = scriptFolderPath,
-            childAliases = childAliases,
-            pkg = pkg,
-            aliasImports = aliasImports,
-            scriptCode = scriptCode,
-            markerComment = markerComment,
-            parser = parser,
-            siblingScripts = siblingScripts,
-            importSiblingScripts = importSiblingScripts
-          )
-        }
+      val miscInfo = generateMillMiscInfo(
+        pkg = pkg,
+        scriptFolderPath = scriptFolderPath,
+        segments = segments,
+        millTopLevelProjectRoot = millTopLevelProjectRoot,
+        output = output
+      )
 
-      os.write(wrappedDestFile, parts, createFolders = true)
+      if (scriptPath.last.endsWith(".yaml")) {
+        val newParent =
+          if (segments.isEmpty) "_root_.mill.util.MainRootModule"
+          else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
+        val parsedHeaderData = mill.internal.Util.parsedHeaderData(allScriptCode(scriptPath))
+        val moduleDeps = parsedHeaderData.get("moduleDeps").map(_.arr.map(_.str))
+        val extendsConfig = parsedHeaderData.get("extends").map(_.arr.map(_.str)).getOrElse(Nil)
+        val definitions =
+          for ((k, v) <- parsedHeaderData if !Set("moduleDeps", "extends").contains(k))
+            yield {
+              s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
+            }
+
+        val prelude =
+          s"""|import MillMiscInfo._
+              |import _root_.mill.util.TokenReaders.given
+              |""".stripMargin
+
+        os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
+        val moduleDepsSnippet =
+          if (moduleDeps.isEmpty) ""
+          else s"override def moduleDeps = Seq(${moduleDeps.get.mkString(", ")})"
+
+        val extendsSnippet = {
+          if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}"
+          else ""
+        }
+        os.write.over(
+          (wrappedDestFile / os.up) / wrappedDestFile.baseName,
+          s"""package $pkg
+             |import mill.*, scalalib.*, javalib.*, kotlinlib.*
+             |$aliasImports
+             |$prelude
+             |//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
+             |object package_ extends $newParent, package_{
+             |  ${if (segments.isEmpty) millDiscover(segments.nonEmpty) else ""}
+             |  $childAliases
+             |}
+             |trait package_$extendsSnippet {
+             |  $moduleDepsSnippet
+             |  ${definitions.mkString("\n  ")}
+             |}
+             |""".stripMargin,
+          createFolders = true
+        )
+
+      } else {
+        breakable {
+          val specialNames =
+            (CGConst.nestedBuildFileNames.asScala ++ CGConst.rootBuildFileNames.asScala).toSet
+
+          val isBuildScript = specialNames(scriptPath.last)
+
+          val scriptName = scriptPath.last
+
+          if (
+            scriptFolderPath == projectRoot
+            && CGConst.nestedBuildFileNames.contains(scriptName)
+          ) break()
+          if (
+            scriptFolderPath != projectRoot
+            && CGConst.rootBuildFileNames.contains(scriptName)
+          ) break()
+
+          val scriptCode = allScriptCode(scriptPath)
+
+          val markerComment =
+            s"""//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
+               |//SOURCECODE_ORIGINAL_CODE_START_MARKER""".stripMargin
+
+          val siblingScripts = scriptSources
+            .filter(_ != scriptPath)
+            .filter(p => (p / os.up) == (scriptPath / os.up))
+            .map(_.last.split('.').head + "_")
+
+          val importSiblingScripts = siblingScripts
+            .filter(s => s != "build_" && s != "package_")
+            .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
+
+          if (isBuildScript) {
+            os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
+          }
+
+          val parts =
+            if (!isBuildScript) {
+              val wrapperName = backtickWrap(scriptPath.last.split('.').head + "_")
+              s"""|$generatedFileHeader
+                  |package $pkg
+                  |
+                  |$aliasImports
+                  |$importSiblingScripts
+                  |
+                  |object $wrapperName {
+                  |$markerComment
+                  |$scriptCode
+                  |}
+                  |
+                  |export $wrapperName._
+                  |""".stripMargin
+            } else {
+              generateBuildScript(
+                projectRoot = projectRoot,
+                millTopLevelProjectRoot = millTopLevelProjectRoot,
+                scriptPath = scriptPath,
+                scriptFolderPath = scriptFolderPath,
+                childAliases = childAliases,
+                pkg = pkg,
+                aliasImports = aliasImports,
+                scriptCode = scriptCode,
+                markerComment = markerComment,
+                parser = parser,
+                siblingScripts = siblingScripts,
+                importSiblingScripts = importSiblingScripts
+              )
+            }
+
+          os.write(wrappedDestFile, parts, createFolders = true)
+        }
+      }
     }
   }
 

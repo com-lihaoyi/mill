@@ -60,6 +60,7 @@ class MillBuildBootstrap(
     selectiveExecution: Boolean,
     offline: Boolean,
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
+    skipSelectiveExecution: Boolean,
     enableTicker: Boolean
 ) { outer =>
   import MillBuildBootstrap.*
@@ -98,13 +99,13 @@ class MillBuildBootstrap(
         os.exists(currentRoot / rootBuildFileName)
       )
 
-      val (nestedState, headerDataOpt) =
+      val nestedState =
         if (depth == 0) {
           // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
           // Unfortunately, some tasks also make sense without a `build.mill`, e.g. the `init` command.
           // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
           lazy val state = evaluateRec(depth + 1)
-          if (currentRootContainsBuildFile) (state, None)
+          if (currentRootContainsBuildFile) state
           else {
             val msg =
               s"No build file (${rootBuildFileNames.asScala.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
@@ -118,7 +119,7 @@ class MillBuildBootstrap(
                   case state => state
                 }
               }
-            (res, None)
+            res
           }
         } else {
           val parsedScriptFiles = FileImportGraph
@@ -134,12 +135,21 @@ class MillBuildBootstrap(
             else {
               val bootstrapModule =
                 new MillBuildRootModule.BootstrapModule()(
-                  using new RootModule.Info(currentRoot, output, projectRoot)
+                  using
+                  new RootModule.Info(
+                    currentRoot,
+                    output,
+                    projectRoot,
+                    upickle.read[Map[
+                      String,
+                      ujson.Value
+                    ]](mill.internal.Util.parsedHeaderData(parsedScriptFiles.headerData))
+                  )
                 )
               RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
             }
 
-          (state, Some(parsedScriptFiles.headerData))
+          state
         }
 
       val classloaderChanged =
@@ -223,7 +233,6 @@ class MillBuildBootstrap(
                   .getOrElse(0),
                 depth,
                 actualBuildFileName = nestedState.buildFile,
-                headerData = headerDataOpt.getOrElse(""),
                 enableTicker = enableTicker
               )) { evaluator =>
                 if (depth == requestedDepth) {
@@ -406,7 +415,6 @@ object MillBuildBootstrap {
       millClassloaderIdentityHash: Int,
       depth: Int,
       actualBuildFileName: Option[String] = None,
-      headerData: String,
       enableTicker: Boolean
   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
@@ -422,6 +430,7 @@ object MillBuildBootstrap {
     val cl = rootModule.getClass.getClassLoader
     val evalImplCls = cl.loadClass("mill.eval.EvaluatorImpl")
     val execCls = cl.loadClass("mill.exec.Execution")
+    val scriptInitCls = cl.loadClass("mill.script.ScriptModuleInit$")
     lazy val evaluator: EvaluatorApi = evalImplCls.getConstructors.head.newInstance(
       allowPositionalCommandArgs,
       selectiveExecution,
@@ -444,9 +453,9 @@ object MillBuildBootstrap {
         streams0,
         () => evaluator,
         offline,
-        headerData,
         enableTicker
-      )
+      ),
+      scriptInitCls.getField("MODULE$").get(null)
     ).asInstanceOf[EvaluatorApi]
 
     evaluator
