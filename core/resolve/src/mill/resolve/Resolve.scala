@@ -319,22 +319,7 @@ private[mill] trait Resolve[T] {
         case Seq(head, rest*) => (head, None, rest)
       }
 
-      def handleResolved(
-          resolved: Result[ExternalModule],
-          segments: Seq[String],
-          remaining: Seq[String]
-      ) = {
-        resolved.flatMap(scriptModule =>
-          resolveNonEmptyAndHandle(
-            remaining,
-            scriptModule,
-            Segments.labels(segments*),
-            nullCommandDefaults,
-            allowPositionalCommandArgs,
-            resolveToModuleTasks
-          )
-        )
-      }
+      
 
       fallback
     }

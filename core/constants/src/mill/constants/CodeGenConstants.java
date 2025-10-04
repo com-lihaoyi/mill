@@ -34,7 +34,8 @@ public class CodeGenConstants {
   /**
    * The extensions used by build files
    */
-  public static final List<String> buildFileExtensions = List.of("mill.yaml", "mill", "mill.scala", "sc");
+  public static final List<String> buildFileExtensions =
+      List.of("mill.yaml", "mill", "mill.scala", "sc");
 
   /**
    * The user-facing name for the root of the module tree.
