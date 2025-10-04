@@ -98,7 +98,7 @@ object CodeGen {
               |import _root_.mill.util.TokenReaders.given
               |""".stripMargin
 
-        os.write(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
+        os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
         os.write(
           (wrappedDestFile / os.up) / s"${wrappedDestFile.baseName}.scala",
           s"""package $pkg
@@ -155,7 +155,7 @@ object CodeGen {
             .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
 
           if (isBuildScript) {
-            os.write(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
+            os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
           }
 
           val parts =
