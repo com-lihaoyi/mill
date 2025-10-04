@@ -17,12 +17,7 @@ import mill.internal.Util.backtickWrap
  * @param metaBuild If `true`, a meta-build is enabled
  */
 @internal
-case class FileImportGraph(
-    seenScripts: Map[os.Path, String],
-    errors: Seq[String],
-    buildFile: String,
-    headerData: String
-)
+case class FileImportGraph(seenScripts: Map[os.Path, String], errors: Seq[String])
 
 /**
  * Logic around traversing the `import $file` graph, extracting necessary info
@@ -43,7 +38,8 @@ object FileImportGraph {
       topLevelProjectRoot: os.Path,
       projectRoot: os.Path,
       output: os.Path,
-      parser: MillScalaParser = MillScalaParser.current.value
+      parser: MillScalaParser,
+      walked: Seq[os.Path]
   ): FileImportGraph = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val errors = mutable.Buffer.empty[String]
@@ -97,22 +93,9 @@ object FileImportGraph {
 
     processScript(projectRoot / foundRootBuildFileName, useDummy)
 
-    val walked = walkBuildFiles(projectRoot, output)
     walked.foreach(processScript(_))
 
-    val headerData =
-      if (!os.exists(projectRoot / foundRootBuildFileName)) ""
-      else mill.constants.Util.readBuildHeader(
-        (projectRoot / foundRootBuildFileName).toNIO,
-        foundRootBuildFileName
-      )
-
-    new FileImportGraph(
-      seenScripts.toMap,
-      errors.toSeq,
-      foundRootBuildFileName,
-      headerData
-    )
+    new FileImportGraph(seenScripts.toMap, errors.toSeq)
   }
 
   def findRootBuildFiles(projectRoot: os.Path) = {

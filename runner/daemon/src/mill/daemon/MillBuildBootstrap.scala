@@ -4,7 +4,6 @@ import mill.api.daemon.internal.{
   BuildFileApi,
   CompileProblemReporter,
   EvaluatorApi,
-  MillScalaParser,
   PathRefApi,
   RootModuleApi
 }
@@ -15,8 +14,9 @@ import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
 import mill.api.{BuildCtx, PathRef, SelectMode}
 import mill.internal.PrefixLogger
-import mill.meta.{FileImportGraph, MillBuildRootModule}
+import mill.meta.MillBuildRootModule
 import mill.meta.CliImports
+import mill.meta.FileImportGraph.findRootBuildFiles
 import mill.server.Server
 import mill.util.BuildInfo
 
@@ -122,12 +122,13 @@ class MillBuildBootstrap(
             res
           }
         } else {
-          val parsedScriptFiles = FileImportGraph
-            .parseBuildFiles(
-              projectRoot,
-              currentRoot / os.up,
-              output,
-              MillScalaParser.current.value
+          val (useDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
+
+          val headerData =
+            if (!os.exists(projectRoot / foundRootBuildFileName)) ""
+            else mill.constants.Util.readBuildHeader(
+              (projectRoot / foundRootBuildFileName).toNIO,
+              foundRootBuildFileName
             )
 
           val state =
@@ -143,10 +144,10 @@ class MillBuildBootstrap(
                     upickle.read[Map[
                       String,
                       ujson.Value
-                    ]](mill.internal.Util.parsedHeaderData(parsedScriptFiles.headerData))
+                    ]](mill.internal.Util.parsedHeaderData(headerData))
                   )
                 )
-              RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
+              RunnerState(Some(bootstrapModule), Nil, None, Some(foundRootBuildFileName))
             }
 
           state
