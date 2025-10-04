@@ -1,0 +1,2 @@
+extends: [millbuild.LineCountKotlinModule]
+kotlinVersion: 2.0.20

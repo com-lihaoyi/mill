@@ -195,8 +195,10 @@ object IntegrationTester {
        * Returns the raw text of the `.json` metadata file
        */
       def text: String = {
-        val Seq((Seq(selector), _)) =
-          mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).get
+        val Seq(res) =
+          mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated)
+
+        val (Seq(selector), _) = res.get
 
         val segments = selector._2.getOrElse(Segments()).value.flatMap(_.pathSegments)
         os.read(workspacePath / OutFiles.out / segments.init / s"${segments.last}.json")

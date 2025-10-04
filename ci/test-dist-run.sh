@@ -2,7 +2,7 @@
 
 set -eux
 
-EXAMPLE=example/scalalib/basic/6-realistic
+EXAMPLE=example/scalalib/basic/7-realistic
 
 rm -rf $EXAMPLE/out
 
