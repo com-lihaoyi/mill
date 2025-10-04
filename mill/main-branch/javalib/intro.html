@@ -6,7 +6,7 @@
     <title>Building Java with Mill :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/javalib/intro.html" />
     <link rel="prev" href="../index.html" />
-    <link rel="next" href="module-config.html" />
+    <link rel="next" href="simple.html" />
     <meta name="generator" content="Antora 3.1.12" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -137,6 +137,10 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="simple.html">Simple Java Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="module-config.html">Java Module Configuration</a>
   </li>
 
@@ -144,7 +148,7 @@
     <a class="nav-link" href="dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="testing.html">Testing Java Projects</a>
   </li>
 
@@ -172,6 +176,10 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/simple.html">Simple Scala Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
   </li>
 
@@ -179,7 +187,7 @@
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
@@ -215,6 +223,10 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/simple.html">Simple Kotlin Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
   </li>
 
@@ -222,7 +234,7 @@
     <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
@@ -703,58 +715,40 @@ see <a href="../migrating/migrating.html" class="xref page">Migrating to Mill</a
 <h2 id="_simple_java_module"><a class="anchor" href="#_simple_java_module"></a>Simple Java Module</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-6-0ee02b/mill-dist-1.0.6-6-0ee02b-example-javalib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/1-simple">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/1-simple/build.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
-
-object foo extends JavaModule {
-  def mvnDeps = Seq(
-    mvn&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
-    mvn&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
-  )
-
-  object test extends JavaTests, TestModule.Junit4 {
-    def mvnDeps = Seq(
-      mvn&quot;com.google.guava:guava:33.3.0-jre&quot;
-    )
-  }
-}</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule]
+mvnDeps:
+- &quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;
+- &quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">test/package.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/1-simple/test/package.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.JavaTests, mill.javalib.TestModule.Junit4]
+mvnDeps:
+- &quot;com.google.guava:guava:33.3.0-jre&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This is a basic Mill build for a single <code>JavaModule</code>, with two
-third-party dependencies and a test suite using the JUnit framework.</p>
-</div>
-<div class="paragraph">
-<p>You can download this example project using the <strong>download</strong> link above
-if you want to try out the commands below yourself, or browse the full sources
-of the example (including supporting files) via the <strong>browse</strong> link. the <code>./mill</code> script
-(<code>./mill.bat</code> on windows) takes care of downloading and caching any further dependencies,
-including downloading a JVM if you do not already have one. All examples
-in this documentation site are executable and are continually exercised as
-part of Mill’s CI workflows, and they range from the simple hello-world
-projects on this page to more sophisticated
-<a href="web-examples.html" class="xref page">web build examples</a> or
-<a href="build-examples.html" class="xref page">example
-builds for real-world projects</a></p>
-</div>
-<div class="paragraph">
-<p>The source code for this module lives in the <code>src/</code> folder.
-Output for this module (compiled files, resolved dependency lists, ...​)
-lives in <code>out/</code>.</p>
+third-party dependencies and a test suite using the JUnit framework.
+This example project uses two third-party dependencies - <a href="https://argparse4j.github.io/">ArgParse4J</a> for CLI
+argument parsing, <a href="https://www.thymeleaf.org//">Thymeleaf</a> for HTML rendering - and uses them to wrap a
+given input string in HTML templates with proper escaping.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>build.mill
-foo/
+<pre>build.mill.yaml
+src/
+    foo/Foo.java
+resources/
+    ...
+test/
+    package.mill.yaml
     src/
-        foo/Foo.java
-    resources/
-        ...
-    test/
-        src/
-            foo/FooTest.java
+        foo/FooTest.java
 out/foo/
     compile.json
     compile.dest/
@@ -782,12 +776,342 @@ an existing codebase, you should use
 </tbody></table>
 </div>
 <div class="paragraph">
-<p>This example project uses two third-party dependencies - <a href="https://argparse4j.github.io/">ArgParse4J</a> for CLI
-argument parsing, <a href="https://www.thymeleaf.org//">Thymeleaf</a> for HTML rendering - and uses them to wrap a
-given input string in HTML templates with proper escaping.</p>
+<p>Typical usage from the command line is shown below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve _ # List what tasks are available to run
+assembly
+...
+compile
+...
+run
+...</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill inspect compile # Show documentation and inputs of a task
+compile(JavaModule.scala:...)
+    Compiles the current module to generate compiled classfiles/bytecode.
+Inputs:
+    upstreamCompileOutput
+    allSourceFiles
+    compileClasspath</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill compile # compile sources into classfiles
+...
+compiling 1 Java source to...</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
+...
+Test foo.FooTest.testSimple finished...
+Test foo.FooTest.testEscaping finished...</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run --text hello
+&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill assembly # bundle classfiles and libraries into a jar for deployment
+
+&gt; ./mill show assembly # show the output of the assembly task
+&quot;.../out/assembly.dest/out.jar&quot;
+
+&gt; java -jar ./out/assembly.dest/out.jar --text hello
+&lt;h1&gt;hello&lt;/h1&gt;
+
+&gt; ./out/assembly.dest/out.jar --text hello # mac/linux
+&lt;h1&gt;hello&lt;/h1&gt;
+
+&gt; # Note that on windows you need to rename `out.jar` to `out.bat` to run it
+&gt; cp ./out/assembly.dest/out.jar out.bat # windows
+
+&gt; ./out.bat --text hello # windows
+&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>Typical usage of a <code>JavaModule</code> is shown below</p>
+<p>You can download this example project using the <strong>download</strong> link above
+if you want to try out the commands below yourself, or browse the full sources
+of the example (including supporting files) via the <strong>browse</strong> link. the <code>./mill</code> script
+(<code>./mill.bat</code> on windows) takes care of downloading and caching any further dependencies,
+including downloading a JVM if you do not already have one. All examples
+in this documentation site are executable and are continually exercised as
+part of Mill’s CI workflows, and they range from the simple hello-world
+projects on this page to more sophisticated
+<a href="web-examples.html" class="xref page">web build examples</a> or
+<a href="build-examples.html" class="xref page">example
+builds for real-world projects</a></p>
+</div>
+<div class="paragraph">
+<p>The output of every Mill task is stored in the <code>out/</code> folder under a name
+corresponding to the task that created it. e.g. The <code>assembly</code> task puts its
+metadata output in <code>out/assembly.json</code>, and its output files in
+<code>out/assembly.dest</code>. You can also use <code>show</code> to print out the
+metadata output for a particular task, or <code>inspect</code> to print metadata about
+the task itself (docs, source location, etc.)</p>
+</div>
+<div class="paragraph">
+<p>Additional Mill tasks you would likely need include:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __ # recursively list all tasks and modules that are available
+
+&gt; ./mill runBackground # run the main method in the background
+
+&gt; ./mill clean &lt;task&gt;  # delete the cached output of a task, terminate any runBackground
+
+&gt; ./mill launcher      # prepares a out/launcher.dest/run you can run later
+
+&gt; ./mill jar           # bundle the classfiles into a jar suitable for publishing
+
+&gt; ./mill -i console    # start a Scala console within your project
+
+&gt; ./mill -i repl       # start an Ammonite Scala REPL within your project
+
+&gt; ./mill -w compile    # watch input files and re-compile whenever a file changes</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The most common <strong>tasks</strong> that Mill can run are cached tasks, such as
+<code>compile</code>, and un-cached <strong>commands</strong> such as <code>run</code>. Cached tasks do not
+re-evaluate unless one of their inputs changes, whereas commands re-run every
+time. See the documentation for <a href="../fundamentals/tasks.html" class="xref page">Tasks</a> for
+details on the different task types.</p>
+</div>
+<div class="paragraph">
+<p>This example uses Mill’s YAML-based syntax, which is a good fit for simple builds
+where you are just setting some configuration keys. This is discussed more in the documentation
+for:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="simple.html" class="xref page">Simple Java Modules</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For scenarios which require more customization,
+see <a href="#_programmatic_configuration">Programmatic Configuration</a> discussed below.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_multiple_java_modules"><a class="anchor" href="#_multiple_java_modules"></a>Multiple Java Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">foo/package.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/2-module-deps/foo/package.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule]
+moduleDeps: [build.bar]
+mvnDeps:
+- net.sourceforge.argparse4j:argparse4j:0.9.0</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">bar/package.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/2-module-deps/bar/package.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule]
+mvnDeps:
+- org.thymeleaf:thymeleaf:3.1.1.RELEASE</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">bar/test/package.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/2-module-deps/bar/test/package.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.bar.JavaTests, mill.javalib.TestModule.Junit4]
+mvnDeps:
+- com.google.guava:guava:33.3.0-jre</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example contains a simple Mill build with two modules, <code>foo</code> and <code>bar</code>,
+defined by their respective <code>foo/package.mill.yaml</code> and <code>bar/package.mill.yaml</code> config
+files, and on which you can run tasks on such as <code>foo.run</code> or
+<code>bar.run</code>. There is also a <code>bar.test</code> module defined by <code>bar/test/package.mill.yaml</code>.
+Inter-module dependencies are defined by the <code>moduleDeps</code> key, and modules
+can also be nested within each other, as <code>bar.test</code> is nested
+within <code>bar</code>.</p>
+</div>
+<div class="paragraph">
+<p>The above builds expect the following project layout:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>build.mill
+foo/
+    src/
+        foo/Foo.java
+bar/
+    src/
+        bar/Bar.java
+    test/
+        src/
+            bar/BarTests.java
+out/
+    foo/
+        compile.json
+        compile.dest/
+        ...
+    bar/
+        compile.json
+        compile.dest/
+        ...
+        test/
+            compile.json
+            compile.dest/
+            ...</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Typically, both source code and output files in Mill follow the module
+hierarchy, so e.g. input to the <code>foo</code> module lives in <code>foo/src/</code> and
+compiled output files live in <code>out/foo/compile.dest</code>. You can use
+<code>mill resolve</code> to list out what tasks you can run, e.g. <code>mill resolve __.run</code>
+below which lists out all the <code>run</code> tasks:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __.run
+foo.run
+bar.run
+
+&gt; ./mill foo.run --text &quot;hello-world&quot;
+&lt;h1&gt;hello-world&lt;/h1&gt;
+
+&gt; ./mill bar.test
+...
+...bar.BarTests...simple...
+...bar.BarTests...escaping...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill’s evaluator will ensure that the modules are compiled in the right
+order, and recompiled as necessary when source code in each module changes.
+The unique path on disk that Mill automatically assigns each task also ensures
+you do not need to worry about choosing a path on disk to cache outputs, or
+filesystem collisions if multiple tasks write to the same path.</p>
+</div>
+<div class="paragraph">
+<p>You can use wildcards and brace-expansion to select
+multiple tasks at once or to shorten the path to deeply nested tasks. If
+you provide optional task arguments and your wildcard or brace-expansion is
+resolved to multiple tasks, the arguments will be applied to each of the
+tasks.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Wildcards and brace-expansion</caption>
+<colgroup>
+<col style="width: 50%;" />
+<col style="width: 50%;" />
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Wildcard</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Function</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">matches a single segment of the task path</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>__</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">matches arbitrary segments of the task path</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>{a,b}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">is equal to specifying two tasks <code>a</code> and <code>b</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>You can use the + symbol to add another task with optional arguments.
+If you need to feed a + as argument to your task, you can mask it by
+preceding it with a backslash (<code>\</code>).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar._.compile # Runs `compile` for all direct sub-modules of `foo`
+
+&gt; ./mill bar.__.test # Runs `test` for all transitive sub-modules of `foo`
+
+&gt; ./mill {foo,bar}.compile # Runs `compile` for `foo` and `bar`
+
+&gt; ./mill __.compile + bar.__.test # Runs all `compile` tasks and all tests under `foo`.</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more details on the query syntax, check out the
+<a href="../cli/query-syntax.html" class="xref page">query syntax documentation</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_programmatic_configuration"><a class="anchor" href="#_programmatic_configuration"></a>Programmatic Configuration</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-7-a99306/mill-dist-1.0.6-7-a99306-example-javalib-basic-3-programmatic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/3-programmatic">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, javalib.*
+
+object foo extends JavaModule {
+  def mvnDeps = Seq(
+    mvn&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    mvn&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
+  )
+
+  object test extends JavaTests, TestModule.Junit4 {
+    def mvnDeps = Seq(
+      mvn&quot;com.google.guava:guava:33.3.0-jre&quot;
+    )
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is an example of Mill’s programmatic configuration syntax.
+This is slightly more verbose than the YAML syntax shown above, but
+in exchange allows more flexibility in how tasks are defined and their
+values are computed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>build.mill
+foo/
+    src/
+        foo/Foo.java
+    resources/
+        ...
+    test/
+        src/
+            foo/FooTest.java
+out/foo/
+    compile.json
+    compile.dest/
+    ...
+    test/
+        compile.json
+        compile.dest/
+        ...</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage of programmatic Mill builds is similar to usage of simple configuration-based
+Mill builds:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -796,32 +1120,7 @@ foo.assembly
 ...
 foo.compile
 ...
-foo.run</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill inspect foo.compile # Show documentation and inputs of a task
-foo.compile(JavaModule...)
-    Compiles the current module to generate compiled classfiles/bytecode.
-Inputs:
-    foo.upstreamCompileOutput
-    foo.allSourceFiles
-    foo.compileClasspath
-...</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.compile # compile sources into classfiles
-...
-compiling 1 Java source to...</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run # run the main method, if any
-error: argument -t/--text is required
+foo.run
 ...</code></pre>
 </div>
 </div>
@@ -834,10 +1133,8 @@ error: argument -t/--text is required
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
-...
-Test foo.FooTest.testEscaping finished, ...
 Test foo.FooTest.testSimple finished, ...
-Test run foo.FooTest finished: 0 failed, 0 ignored, 2 total, ...</code></pre>
+Test foo.FooTest.testEscaping finished, ...</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -848,59 +1145,16 @@ Test run foo.FooTest finished: 0 failed, 0 ignored, 2 total, ...</code></pre>
 &quot;.../out/foo/assembly.dest/out.jar&quot;
 
 &gt; java -jar ./out/foo/assembly.dest/out.jar --text hello
-&lt;h1&gt;hello&lt;/h1&gt;
-
-&gt; ./out/foo/assembly.dest/out.jar --text hello # mac/linux
-&lt;h1&gt;hello&lt;/h1&gt;
-
-&gt; cp ./out/foo/assembly.dest/out.jar out.bat # windows
-
-&gt; ./out.bat --text hello # windows
 &lt;h1&gt;hello&lt;/h1&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The output of every Mill task is stored in the <code>out/</code> folder under a name
-corresponding to the task that created it. e.g. The <code>foo.assembly</code> task puts its
-metadata output in <code>out/foo/assembly.json</code>, and its output files in
-<code>out/foo/assembly.dest</code>. You can also use <code>show</code> to print out the
-metadata output for a particular task, or <code>inspect</code> to print metadata about
-the task itself (docs, source location, etc.)</p>
-</div>
-<div class="paragraph">
-<p>Additional Mill tasks you would likely need include:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __ # recursively list all tasks and modules that are available
-
-&gt; ./mill foo.runBackground # run the main method in the background
-
-&gt; ./mill clean &lt;task&gt;  # delete the cached output of a task, terminate any runBackground
-
-&gt; ./mill foo.launcher      # prepares a foo/launcher.dest/run you can run later
-
-&gt; ./mill foo.jar           # bundle the classfiles into a jar suitable for publishing
-
-&gt; ./mill -i foo.console    # start a Scala console within your project
-
-&gt; ./mill -i foo.repl       # start an Ammonite Scala REPL within your project
-
-&gt; ./mill -w foo.compile    # watch input files and re-compile whenever a file changes</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The most common <strong>tasks</strong> that Mill can run are cached tasks, such as
-<code>compile</code>, and un-cached <strong>commands</strong> such as <code>foo.run</code>. Cached tasks do not
-re-evaluate unless one of their inputs changes, whereas commands re-run every
-time. See the documentation for <a href="../fundamentals/tasks.html" class="xref page">Tasks</a> for
-details on the different task types.</p>
-</div>
-<div class="paragraph">
-<p>Mill build files are <a href="../depth/why-scala.html" class="xref page">written in Scala</a>, but you do not need
-to have prior experience in Scala to read or write them. Like Gradle Groovy or Maven
+<p>Programmatic Mill build files are <a href="../depth/why-scala.html" class="xref page">written in Scala</a>, but you do
+not need to have prior experience in Scala to read or write them. Like Gradle Groovy or Maven
 XML, anyone can learn enough Scala for Mill without needing to become an expert in
-the language.</p>
+the language. For simpler builds that do not need the flexibility that programmatic builds
+provide, YAML-based <a href="#"><em>simple</em>java_module&quot;&gt;Simple Java Module</a> definitions
+are a great alternative.</p>
 </div>
 </div>
 </div>
@@ -915,7 +1169,7 @@ single generated text file containing the line count of all the source files
 in that module</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-6-0ee02b/mill-dist-1.0.6-6-0ee02b-example-javalib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/2-custom-build-logic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-7-a99306/mill-dist-1.0.6-7-a99306-example-javalib-basic-4-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/4-custom-build-logic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1066,7 +1320,7 @@ maintainable even as the complexity of your project grows.</p>
 <h2 id="_multi_module_project"><a class="anchor" href="#_multi_module_project"></a>Multi-Module Project</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-6-0ee02b/mill-dist-1.0.6-6-0ee02b-example-javalib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/3-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-7-a99306/mill-dist-1.0.6-7-a99306-example-javalib-basic-5-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/5-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1091,11 +1345,10 @@ object bar extends MyModule {
 </div>
 </div>
 <div class="paragraph">
-<p>This example contains a simple Mill build with two modules, <code>foo</code> and <code>bar</code>,
-which you can run tasks on such as <code>foo.run</code> or
-<code>bar.run</code>. You can define multiple modules the same way you define a single
-module, using <code>def moduleDeps</code> to define the relationship between them. Modules
-can also be nested within each other, as <code>foo.test</code> and <code>bar.test</code> are nested
+<p>This is similar to the xref:#_multiple_scala_modules example above, but using Mill’s
+programmatic configuration syntax. You can define multiple modules the same way you
+define a single module, using <code>def moduleDeps</code> to define the relationship between them.
+Modules can also be nested within each other, as <code>foo.test</code> and <code>bar.test</code> are nested
 within <code>foo</code> and <code>bar</code> respectively</p>
 </div>
 <div class="paragraph">
@@ -1105,68 +1358,19 @@ works like a <code>class</code> in Java, and lets us avoid the need to copy-past
 settings, while still letting us define any per-module configuration such as
 <code>mvnDeps</code> specific to a particular module. This is a common pattern within Mill builds.</p>
 </div>
-<div class="paragraph">
-<p>The above builds expect the following project layout:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar.test
+Test bar.BarTests.simple finished...
+Test bar.BarTests.escaping finished...</code></pre>
+</div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>build.mill
-foo/
-    src/
-        foo/Foo.java
-bar/
-    src/
-        bar/Bar.java
-    test/
-        src/
-            bar/BarTests.java
-out/
-    foo/
-        compile.json
-        compile.dest/
-        ...
-    bar/
-        compile.json
-        compile.dest/
-        ...
-        test/
-            compile.json
-            compile.dest/
-            ...</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Typically, both source code and output files in Mill follow the module
-hierarchy, so e.g. input to the <code>foo</code> module lives in <code>foo/src/</code> and
-compiled output files live in <code>out/foo/compile.dest</code>. You can use
-<code>mill resolve</code> to list out what tasks you can run, e.g. <code>mill resolve __.run</code>
-below which lists out all the <code>run</code> tasks:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __.run
-foo.run
-bar.run
-
-&gt; ./mill foo.run --foo-text hello --bar-text world
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run --foo-text hello --bar-text world
 Foo.value: hello
-Bar.value: &lt;h1&gt;world&lt;/h1&gt;
-
-&gt; ./mill bar.run world
-Bar.value: &lt;h1&gt;world&lt;/h1&gt;
-
-&gt; ./mill bar.test
-...
-...bar.BarTests...simple...
-...bar.BarTests...escaping...</code></pre>
+Bar.value: &lt;h1&gt;world&lt;/h1&gt;</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>Mill’s evaluator will ensure that the modules are compiled in the right
-order, and recompiled as necessary when source code in each module changes.
-The unique path on disk that Mill automatically assigns each task also ensures
-you do not need to worry about choosing a path on disk to cache outputs, or
-filesystem collisions if multiple tasks write to the same path.</p>
 </div>
 <div class="paragraph">
 <p>You can also put the configuration for each submodule in it’s respective
@@ -1174,58 +1378,6 @@ folder’s <code>package.mill</code> file, as described in <a href="../large/mul
 This can be helpful in larger projects to avoid having your <code>build.mill</code> grow
 large, and aid in discoverability by keeping the build configuration for each
 module close to the code it is configuring</p>
-</div>
-<div class="paragraph">
-<p>You can use wildcards and brace-expansion to select
-multiple tasks at once or to shorten the path to deeply nested tasks. If
-you provide optional task arguments and your wildcard or brace-expansion is
-resolved to multiple tasks, the arguments will be applied to each of the
-tasks.</p>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 1. Wildcards and brace-expansion</caption>
-<colgroup>
-<col style="width: 50%;" />
-<col style="width: 50%;" />
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Wildcard</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Function</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">matches a single segment of the task path</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>__</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">matches arbitrary segments of the task path</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>{a,b}</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">is equal to specifying two tasks <code>a</code> and <code>b</code></p></td>
-</tr>
-</tbody>
-</table>
-<div class="paragraph">
-<p>You can use the + symbol to add another task with optional arguments.
-If you need to feed a + as argument to your task, you can mask it by
-preceding it with a backslash (<code>\</code>).</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo._.compile # Runs `compile` for all direct sub-modules of `foo`
-
-&gt; ./mill foo.__.test # Runs `test` for all transitive sub-modules of `foo`
-
-&gt; ./mill {foo,bar}.__.testCached # Runs `testCached` for all sub-modules of `foo` and `bar`
-
-&gt; ./mill __.compile + foo.__.test # Runs all `compile` tasks and all tests under `foo`.</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>For more details on the query syntax, check out the
-<a href="../cli/query-syntax.html" class="xref page">query syntax documentation</a></p>
 </div>
 </div>
 </div>
@@ -1240,7 +1392,7 @@ migrating an existing codebase, you can use Mill’s <code>MavenModule</code> an
 Maven or Gradle build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-6-0ee02b/mill-dist-1.0.6-6-0ee02b-example-javalib-basic-4-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/4-compat-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-7-a99306/mill-dist-1.0.6-7-a99306-example-javalib-basic-6-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/6-compat-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1316,7 +1468,7 @@ and other topics covered in more detail in the Java section of the Mill docs,
 and you can browse each respective page if you want to learn more.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-6-0ee02b/mill-dist-1.0.6-6-0ee02b-example-javalib-basic-6-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/6-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-7-a99306/mill-dist-1.0.6-7-a99306-example-javalib-basic-7-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/7-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*, publish.*
@@ -1445,7 +1597,7 @@ Qux.value: 31337</code></pre>
 </div>
 <nav class="pagination">
   <span class="prev"><a href="../index.html">Mill Documentation</a></span>
-  <span class="next"><a href="module-config.html">Java Module Configuration</a></span>
+  <span class="next"><a href="simple.html">Simple Java Modules</a></span>
 </nav>
 </article>
   </div>
