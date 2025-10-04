@@ -145,7 +145,7 @@ object FileImportGraph {
           skip = p =>
             p == output ||
               p == projectRoot / millBuild ||
-              (os.isDir(p) && !nestedBuildFileNames.exists(n => !os.exists(p / n)))
+              (os.isDir(p) && !nestedBuildFileNames.exists(n => os.exists(p / n)))
         )
         .filter(p => nestedBuildFileNames.contains(p.last))
         .++(Seq(projectRoot / foundRootBuildFileName))
