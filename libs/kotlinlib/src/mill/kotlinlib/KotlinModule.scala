@@ -473,7 +473,6 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     ).distinct
   }
 
-  // Keep in sync with KotlinModule.Tests, separate due to binary compatibility
   trait KotlinTests extends JavaTests with KotlinModule {
 
     override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
@@ -490,36 +489,6 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     override def kotlinUseEmbeddableCompiler: Task[Boolean] =
       Task.Anon { outer.kotlinUseEmbeddableCompiler() }
     override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
-  }
-
-}
-
-object KotlinModule {
-  // Keep in sync with KotlinModule#KotlinTests, separate due to binary compatibility
-  trait Tests extends JavaModule.Tests with KotlinModule {
-    def outerRef: ModuleRef[KotlinModule]
-
-    override def kotlinLanguageVersion: T[String] = outerRef().kotlinLanguageVersion()
-    override def kotlinApiVersion: T[String] = outerRef().kotlinApiVersion()
-    override def kotlinExplicitApi: T[Boolean] = false
-    override def kotlinVersion: T[String] = Task { outerRef().kotlinVersion() }
-    override def kotlincPluginMvnDeps: T[Seq[Dep]] =
-      Task { outerRef().kotlincPluginMvnDeps() }
-    // TODO: make Xfriend-path an explicit setting
-    override def kotlincOptions: T[Seq[String]] = Task {
-      outerRef().kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
-        Seq(s"-Xfriend-paths=${outerRef().compile().classes.path.toString()}")
-    }
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
-      Task.Anon { outerRef().kotlinUseEmbeddableCompiler() }
-    override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outerRef().kotlincUseBtApi() }
-  }
-
-  private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
-    params.addVariantAttributes(
-      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
-      "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
-    )
   }
 
 }
