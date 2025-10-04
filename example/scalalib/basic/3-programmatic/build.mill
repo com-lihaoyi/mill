@@ -85,7 +85,6 @@ foo.run
 
 //// SNIPPET:END
 
-
 //
 // Programmatic Mill build files are xref:depth/why-scala.adoc[written in Scala], but you do
 // not need to have prior experience in Scala to read or write them. Like Gradle Groovy or Maven

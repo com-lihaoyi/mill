@@ -1,7 +1,6 @@
 /** See Also: build.mill.yaml */
 /** See Also: test/package.mill.yaml */
 
-
 //// SNIPPET:DEPENDENCIES
 //
 // This is a basic Mill build for a single `ScalaModule`, with two

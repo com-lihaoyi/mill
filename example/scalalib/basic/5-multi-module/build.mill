@@ -48,7 +48,6 @@ Bar.value: <h1>world</h1>
 
 */
 
-
 //
 // You can also put the configuration for each submodule in it's respective
 // folder's `package.mill` file, as described in xref:large/multi-file-builds.adoc[].

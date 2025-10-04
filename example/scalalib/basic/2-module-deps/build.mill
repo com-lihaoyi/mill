@@ -1,4 +1,3 @@
-
 /** See Also: foo/package.mill.yaml */
 /** See Also: bar/package.mill.yaml */
 /** See Also: bar/test/package.mill.yaml */
@@ -102,4 +101,3 @@ bar.run
 
 // For more details on the query syntax, check out the
 // xref:cli/query-syntax.adoc[query syntax documentation]
-

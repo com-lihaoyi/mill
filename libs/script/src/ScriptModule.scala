@@ -35,7 +35,8 @@ object ScriptModule {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  trait JavaModuleBase extends ScriptModule with mill.javalib.JavaModule with mill.javalib.NativeImageModule {
+  trait JavaModuleBase extends ScriptModule with mill.javalib.JavaModule
+      with mill.javalib.NativeImageModule {
     override def moduleDeps = simpleConf.moduleDeps.map(_.asInstanceOf[mill.javalib.JavaModule])
 
     override def sources =
@@ -62,7 +63,6 @@ object ScriptModule {
   class ScalaModule(val simpleConf: ScriptModule.Config) extends ScalaModuleBase {
     override lazy val millDiscover = Discover[this.type]
   }
-
 
   trait ScalaModuleBase extends JavaModuleBase, mill.scalalib.ScalaModule {
     def scalaVersion = mill.util.BuildInfo.scalaVersion

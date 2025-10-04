@@ -15,7 +15,6 @@ object foo extends JavaModule {
   }
 }
 
-
 //// SNIPPET:TREE
 // ----
 // build.mill
