@@ -54,6 +54,10 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
       println(s"writing Mill meta-build file to $depsObjectFile")
       os.write(os.pwd / depsObjectFile, renderDepsObject(packageName, depsObjectName))
     }
+
+    println(
+      s"NOTE: It is recommended to set mill-jvm-version in the build header in $rootBuildFile."
+    )
   }
 
   def renderBuildHeader = {
