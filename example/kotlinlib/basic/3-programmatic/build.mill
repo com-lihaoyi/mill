@@ -18,8 +18,7 @@ object foo extends KotlinModule {
   }
 }
 
-// This is a basic Mill build for a single `KotlinModule`, with two
-// third-party dependencies and a test suite using the JUnit framework.
+
 //// SNIPPET:TREE
 // ----
 // build.mill
@@ -41,17 +40,7 @@ object foo extends KotlinModule {
 //         ...
 // ----
 //
-// NOTE: The default Mill source folder layout `foo/src/` differs from that of Maven/Gradle's
-// `foo/src/main/kotlin`. If you wish to use the Maven source folder layout, e.g. for migrating
-// an existing codebase, you should use
-// xref:#_maven_compatible_modules[Maven-Compatible Modules]
-//
-//// SNIPPET:DEPENDENCIES
-//
-// This example project uses two third-party dependencies - Clikt for CLI
-// argument parsing, Apache Commons Text for HTML escaping - and uses them to wrap a
-// given input string in HTML templates with proper escaping.
-//
+
 // Typical usage of a `KotlinModule` is shown below
 
 /** Usage

@@ -19,31 +19,3 @@ object bar extends MyModule {
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 }
-
-//// SNIPPET:TREE
-// ----
-// build.mill
-// foo/
-//     src/
-//         foo/Foo.java
-// bar/
-//     src/
-//         bar/Bar.java
-//     test/
-//         src/
-//             bar/BarTests.java
-// out/
-//     foo/
-//         compile.json
-//         compile.dest/
-//         ...
-//     bar/
-//         compile.json
-//         compile.dest/
-//         ...
-//         test/
-//             compile.json
-//             compile.dest/
-//             ...
-// ----
-//

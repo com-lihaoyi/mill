@@ -1,12 +1,29 @@
-//// SNIPPET:BUILD
 
-/** Usage
+//// SNIPPET:TREE
+// ----
+// build.mill
+// foo/
+//     src/
+//         foo/Foo.java
+// bar/
+//     src/
+//         bar/Bar.java
+//     test/
+//         src/
+//             bar/BarTests.java
+// out/
+//     foo/
+//         compile.json
+//         compile.dest/
+//         ...
+//     bar/
+//         compile.json
+//         compile.dest/
+//         ...
+//         test/
+//             compile.json
+//             compile.dest/
+//             ...
+// ----
+//
 
-> ./mill bar.test
-Test bar.BarTests.simple finished...
-Test bar.BarTests.escaping finished...
-
-> ./mill foo.run --text hello
-<h1>hello</h1>
-
-*/
