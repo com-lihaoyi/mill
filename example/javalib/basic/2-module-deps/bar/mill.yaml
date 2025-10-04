@@ -1,3 +1,0 @@
-extends: mill.simple.JavaModule
-mvnDeps:
-- "org.thymeleaf:thymeleaf:3.1.1.RELEASE"

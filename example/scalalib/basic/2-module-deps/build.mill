@@ -1,6 +1,6 @@
-/** See Also: foo/mill.yaml */
-/** See Also: bar/mill.yaml */
-/** See Also: bar/test/mill.yaml */
+/** See Also: foo/package.mill.yaml */
+/** See Also: bar/package.mill.yaml */
+/** See Also: bar/test/package.mill.yaml */
 
 //// SNIPPET:BUILD
 

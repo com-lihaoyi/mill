@@ -1,5 +1,0 @@
-extends: mill.simple.KotlinModule.Junit5
-moduleDeps: ["bar"]
-mvnDeps:
-- "io.kotest:kotest-runner-junit5:5.9.1"
-- "com.github.sbt.junit:jupiter-interface:0.11.2"
