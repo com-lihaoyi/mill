@@ -41,28 +41,3 @@ compiling 1 Scala source to...
 */
 
 //// SNIPPET:END
-
-// Script files can have test suites, usually written in a separate test script. The test script
-// specifies what script it tests via `moduleDeps`, and needs to inherit from a test script
-// class via `extends` as shown below:
-
-//// SNIPPET:TEST
-/** See Also: FooTests.scala */
-
-/** Usage
-> ./mill FooTests.scala
-...
-+ FooTests...simple ...  "<h1>hello</h1>"
-+ FooTests...escaping ...  "<h1>&lt;hello&gt;</h1>"
-
-> ./mill FooTests.scala:testForked # specifying the test task explicitly
-
-*/
-
-//// SNIPPET:END
-
-// For more details on Mill script files, see
-// xref:{language-small}lib/module-config.adoc#_configuring_single_file_projects[Configuring Single-File Projects]
-// The rest of the examples below discuss the Mill config for building larger projects
-// beyond the single-file project format discussed above, using a dedicated `build.mill`
-// file to provide additional flexibility in setting up your project.

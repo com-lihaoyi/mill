@@ -29,20 +29,3 @@ compiling 1 Java source to...
 
 //// SNIPPET:END
 
-//// SNIPPET:TEST
-
-/** See Also: FooTest.java */
-
-/** Usage
-> ./mill FooTest.java
-...
-Test FooTest.testEscaping finished, ...
-Test FooTest.testSimple finished, ...
-Test run FooTest finished: 0 failed, 0 ignored, 2 total, ...
-
-
-> ./mill FooTest.java:testForked # specifying the test task explicitly
-
-*/
-
-//// SNIPPET:END

@@ -309,17 +309,49 @@ private[mill] trait Resolve[T] {
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
-      resolveToModuleTasks: Boolean = false
+      resolveToModuleTasks: Boolean = false,
+      scriptModuleResolver: (
+          String,
+          Boolean,
+          Option[String]
+      ) => Seq[Result[mill.api.ExternalModule]]
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
-    val cache = new ResolveCore.Cache()
+    val cache = new ResolveCore.Cache(scriptModuleChildResolver = scriptModuleResolver(_, true, _))
     def handleScriptModule(args: Seq[String], fallback: => Result[Seq[T]]): Result[Seq[T]] = {
       val (first, selector, remaining) = args match {
         case Seq(s"$prefix:$suffix", rest*) => (prefix, Some(suffix), rest)
         case Seq(head, rest*) => (head, None, rest)
       }
 
-      fallback
+      def handleResolved(
+          resolved: Result[ExternalModule],
+          segments: Seq[String],
+          remaining: Seq[String]
+      ) = {
+        resolved.flatMap(scriptModule =>
+          resolveNonEmptyAndHandle(
+            remaining,
+            scriptModule,
+            Segments.labels(segments*),
+            nullCommandDefaults,
+            allowPositionalCommandArgs,
+            resolveToModuleTasks,
+            scriptModuleResolver
+          )
+        )
+      }
+
+      scriptModuleResolver(first, false, None) match {
+        case Seq(resolved) => handleResolved(resolved, selector.toSeq, remaining)
+        case Nil =>
+          if (selector.isEmpty) { // if the `:selector` is empty, try treating the `first` as a selector
+            scriptModuleResolver(".", false, None) match {
+              case Seq(resolved) => handleResolved(resolved, Seq(first), remaining)
+              case Nil => fallback
+            }
+          } else fallback
+      }
     }
     val resolvedGroups = ParseArgs.separate(scriptArgs).map { group =>
       ParseArgs.extractAndValidate(group, selectMode == SelectMode.Multi) match {
@@ -360,9 +392,14 @@ private[mill] trait Resolve[T] {
       sel: Segments,
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean,
-      resolveToModuleTasks: Boolean
+      resolveToModuleTasks: Boolean,
+      scriptModuleResolver: (
+          String,
+          Boolean,
+          Option[String]
+      ) => Seq[Result[mill.api.ExternalModule]]
   ): Result[Seq[T]] = {
-    val cache = new ResolveCore.Cache()
+    val cache = new ResolveCore.Cache(scriptModuleChildResolver = scriptModuleResolver(_, true, _))
     resolveNonEmptyAndHandle2(
       rootModule,
       args,
