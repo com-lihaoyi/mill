@@ -38,7 +38,8 @@ object FileImportGraph {
       topLevelProjectRoot: os.Path,
       projectRoot: os.Path,
       output: os.Path,
-      parser: MillScalaParser = MillScalaParser.current.value
+      parser: MillScalaParser,
+      walked: Seq[os.Path]
   ): FileImportGraph = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val errors = mutable.Buffer.empty[String]
@@ -92,7 +93,6 @@ object FileImportGraph {
 
     processScript(projectRoot / foundRootBuildFileName, useDummy)
 
-    val walked = walkBuildFiles(projectRoot, output)
     walked.foreach(processScript(_))
 
     new FileImportGraph(seenScripts.toMap, errors.toSeq)

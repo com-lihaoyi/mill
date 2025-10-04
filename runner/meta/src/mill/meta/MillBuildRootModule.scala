@@ -44,7 +44,7 @@ trait MillBuildRootModule()(using
   val scriptSourcesPaths = BuildCtx.withFilesystemCheckerDisabled {
     FileImportGraph
       .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
-      .sorted  // Ensure ordering is deterministic
+      .sorted // Ensure ordering is deterministic
   }
 
   /**
@@ -54,13 +54,13 @@ trait MillBuildRootModule()(using
   def scriptSources: T[Seq[PathRef]] = Task.Sources(scriptSourcesPaths*)
 
   def parseBuildFiles: T[FileImportGraph] = Task {
-    scriptSources()
     BuildCtx.withFilesystemCheckerDisabled {
       FileImportGraph.parseBuildFiles(
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.projectRoot / os.up,
         rootModuleInfo.output,
-        MillScalaParser.current.value
+        MillScalaParser.current.value,
+        scriptSources().map(_.path)
       )
     }
   }

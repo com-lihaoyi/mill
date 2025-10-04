@@ -1,6 +1,12 @@
 package mill.daemon
 
-import mill.api.daemon.internal.{BuildFileApi, CompileProblemReporter, EvaluatorApi, MillScalaParser, PathRefApi, RootModuleApi}
+import mill.api.daemon.internal.{
+  BuildFileApi,
+  CompileProblemReporter,
+  EvaluatorApi,
+  PathRefApi,
+  RootModuleApi
+}
 import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.{millBuild, millRunnerState}
@@ -8,7 +14,7 @@ import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
 import mill.api.{BuildCtx, PathRef, SelectMode}
 import mill.internal.PrefixLogger
-import mill.meta.{FileImportGraph, MillBuildRootModule}
+import mill.meta.MillBuildRootModule
 import mill.meta.CliImports
 import mill.meta.FileImportGraph.findRootBuildFiles
 import mill.server.Server
