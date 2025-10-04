@@ -1,4 +1,4 @@
-extends: mill.simple.KotlinModule.Publish
+extends: [mill.javalib.JavaModule, mill.javalib.PublishModule, mill.javalib.NativeImageModule]
 jvmId: "graalvm-community:24"
 nativeImageOptions: ["--no-fallback"]
 publishVersion: "0.0.1"

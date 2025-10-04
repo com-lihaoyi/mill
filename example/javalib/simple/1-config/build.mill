@@ -1,6 +1,6 @@
 //// SNIPPET:LAST
 
-/** See Also: mill.yaml */
+/** See Also: build.mill.yaml */
 /** Usage
 
 > ./mill nativeImage
