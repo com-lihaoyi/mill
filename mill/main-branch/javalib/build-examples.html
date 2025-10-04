@@ -680,7 +680,7 @@ demonstrating how Mill can be used to build code outside of tiny example codebas
 <div class="sect2">
 <h3 id="_jimfs"><a class="anchor" href="#_jimfs"></a>JimFS</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-5-a8e15f/mill-dist-1.0.6-5-a8e15f-example-thirdparty-jimfs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/thirdparty/jimfs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-6-0ee02b/mill-dist-1.0.6-6-0ee02b-example-thirdparty-jimfs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/thirdparty/jimfs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*, publish.*
@@ -752,7 +752,7 @@ Test run com.google.common.jimfs.FileTest finished: 0 failed, 0 ignored, 7 total
 <div class="sect2">
 <h3 id="_apache_commons_io"><a class="anchor" href="#_apache_commons_io"></a>Apache Commons IO</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-5-a8e15f/mill-dist-1.0.6-5-a8e15f-example-thirdparty-commons-io.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/thirdparty/commons-io">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-6-0ee02b/mill-dist-1.0.6-6-0ee02b-example-thirdparty-commons-io.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/thirdparty/commons-io">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
 //| - com.lihaoyi::mill-contrib-jmh:$MILL_VERSION
@@ -760,16 +760,10 @@ Test run com.google.common.jimfs.FileTest finished: 0 failed, 0 ignored, 7 total
 package build
 
 import mill.*, javalib.*, publish.*
-import mill.api.ModuleRef
 import contrib.jmh.JmhModule
 
 object `package` extends PublishModule, MavenModule {
-
-  object JvmWorkerJava11 extends JvmWorkerModule {
-    def jvmId = &quot;temurin:11.0.24&quot;
-  }
-
-  override def jvmWorker = ModuleRef(JvmWorkerJava11)
+  def jvmId = &quot;temurin:11.0.24&quot;
   def javacOptions = Seq(&quot;-encoding&quot;, &quot;UTF-8&quot;)
   def publishVersion = &quot;2.17.0-SNAPSHOT&quot;
 

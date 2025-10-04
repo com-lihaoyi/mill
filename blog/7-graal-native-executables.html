@@ -342,7 +342,6 @@ program using common third-party dependencies.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
-import mill.api.ModuleRef
 
 object foo extends JavaModule {
   def mvnDeps = Seq(
@@ -393,7 +392,6 @@ above:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
-import mill.api.ModuleRef
 
 object foo extends JavaModule with NativeImageModule {
   def mvnDeps = Seq(
@@ -402,16 +400,12 @@ object foo extends JavaModule with NativeImageModule {
     mvn&quot;org.slf4j:slf4j-nop:2.0.7&quot;
   )
 
-  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
+  def jvmId = &quot;graalvm-community:23.0.1&quot;
 
   def nativeImageOptions = Seq(
     &quot;--no-fallback&quot;,
     &quot;-H:IncludeResourceBundles=net.sourceforge.argparse4j.internal.ArgumentParserImpl&quot;
   )
-}
-
-object JvmWorkerGraalvm extends JvmWorkerModule {
-  def jvmId = &quot;graalvm-community:23.0.1&quot;
 }</code></pre>
 </div>
 </div>
@@ -424,8 +418,8 @@ object JvmWorkerGraalvm extends JvmWorkerModule {
 <p><code>foo</code> now needs to inherit from <code>NativeImageModule</code></p>
 </li>
 <li>
-<p>We need to override <code>jvmWorker</code> to point at our own custom <code>JvmWorkerGraalvm</code>,
-using the version of Graal that we want to use to build our native image.
+<p>We need to override <code>jvmId</code> to point at
+the version of Graal that we want to use to build our native image.
 This uses Mill’s ability to <a href="../mill/fundamentals/configuring-jvm-versions.html" class="xref page">Configuring JVM Versions</a>
 to download the necessary Graal distribution as necessary</p>
 </li>
