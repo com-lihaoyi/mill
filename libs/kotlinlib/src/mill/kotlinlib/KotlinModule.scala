@@ -473,6 +473,9 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     ).distinct
   }
 
+  /**
+   * A test sub-module linked to its parent module best suited for unit-tests.
+   */
   trait KotlinTests extends JavaTests with KotlinModule {
 
     override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
@@ -489,6 +492,17 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     override def kotlinUseEmbeddableCompiler: Task[Boolean] =
       Task.Anon { outer.kotlinUseEmbeddableCompiler() }
     override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
+  }
+
+}
+
+object KotlinModule {
+
+  private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
+    params.addVariantAttributes(
+      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
+      "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
+    )
   }
 
 }
