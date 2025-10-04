@@ -41,19 +41,16 @@ trait MillBuildRootModule()(using
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
-  val scriptSourcesPaths = BuildCtx.watchValue{
-    BuildCtx.withFilesystemCheckerDisabled {
-      FileImportGraph
-        .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
-        .sorted // Ensure ordering is deterministic
-    }
-  }
-
   /**
    * All script files (that will get wrapped later)
    * @see [[generatedSources]]
    */
-  def scriptSources: T[Seq[PathRef]] = Task.Sources(scriptSourcesPaths*)
+  def scriptSources: T[Seq[PathRef]] = Task.Input {
+    FileImportGraph
+      .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
+      .sorted // Ensure ordering is deterministic
+      .map(PathRef(_))
+  }
 
   def parseBuildFiles: T[FileImportGraph] = Task {
     BuildCtx.withFilesystemCheckerDisabled {
