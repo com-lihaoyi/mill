@@ -291,10 +291,11 @@ object Task {
 
   // The extra `(x: T) = null` parameter list is necessary to make type inference work
   // right, ensuring that `T` is fully inferred before implicit resolution starts
-  def Literal[T](s: String)(x: T = null.asInstanceOf[T])
-                           (using r: upickle.default.Reader[T],
-                            w: upickle.default.Writer[T],
-                            ctx: ModuleCtx): Task.Simple[T] = {
+  def Literal[T](s: String)(x: T = null.asInstanceOf[T])(using
+      r: upickle.default.Reader[T],
+      w: upickle.default.Writer[T],
+      ctx: ModuleCtx
+  ): Task.Simple[T] = {
     new Task.Input[T](
       (_, _) => Result.Success(upickle.default.read[T](s)),
       ctx,

@@ -2,7 +2,7 @@
 //| mvnDeps:
 //| - "com.google.guava:guava:33.3.0-jre"
 import com.google.common.html.HtmlEscapers.htmlEscaper
-object FooTests  {
+object FooTests {
   def main(args: Array[String]): Unit = {
     val result = Foo.generateHtml("hello")
     assert(result == "<h1>hello</h1>")
