@@ -616,7 +616,6 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/api/internal/RootModule$$Info$.html#","e":false,"i":"","n":"Info","t":"Info","d":"mill.api.internal.RootModule","k":"object","x":""},
 {"l":"mill/api/internal/RootModule$$Info$.html#dummyInfo-0","e":false,"i":"","n":"dummyInfo","t":"dummyInfo: Info","d":"mill.api.internal.RootModule.Info","k":"def","x":""},
 {"l":"mill/api/internal/RootModule0.html#","e":false,"i":"","n":"RootModule0","t":"RootModule0(millSourcePath0: Path, external0: Boolean)(using millModuleEnclosing0: Enclosing, millModuleLine0: Line, millFile0: File) extends BaseClass, Module, BaseModuleApi","d":"mill.api.internal","k":"class","x":""},
-{"l":"mill/api/internal/RootModule0.html#discover-0","e":false,"i":"","n":"discover","t":"discover: Discover","d":"mill.api.internal.RootModule0","k":"def","x":""},
 {"l":"mill/api/internal/RootModule0.html#moduleCtx-0","e":false,"i":"","n":"moduleCtx","t":"moduleCtx: ModuleCtx","d":"mill.api.internal.RootModule0","k":"def","x":""},
 {"l":"mill/api/internal/SubfolderModule$.html#","e":false,"i":"","n":"SubfolderModule","t":"SubfolderModule","d":"mill.api.internal","k":"object","x":""},
 {"l":"mill/api/internal/SubfolderModule$$Info.html#","e":false,"i":"","n":"Info","t":"Info(val millSourcePath0: Path, val segments: Seq[String])","d":"mill.api.internal.SubfolderModule","k":"class","x":""},
