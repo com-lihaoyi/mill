@@ -2,7 +2,7 @@
 // `{language}Module`: specifying the `mainClass`, adding additional
 // sources/resources, and setting compilation/run
 // options.
-
+/** See Also: build.mill.yaml */
 /** Usage
 
 > ./mill run
