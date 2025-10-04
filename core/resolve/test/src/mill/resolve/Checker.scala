@@ -53,7 +53,6 @@ class Checker[T <: RootModule0](module: T) {
       SelectMode.Separated,
       false,
       false,
-      (_, _, _) => Nil
     )
   }
 
@@ -64,7 +63,6 @@ class Checker[T <: RootModule0](module: T) {
       SelectMode.Separated,
       false,
       false,
-      (_, _, _) => Nil
     ).map(_.map(_.render))
   }
 }
