@@ -8,9 +8,9 @@ full `build.mill` or `package.mill` build files, which makes them ideal for smal
 projects which do not need additional flexibility.
 
 
-== Configuring Simple Modules
+== Packaging and Publishing Simple Modules
 
-include::partial$example/scalalib/simple/1-config.adoc[]
+include::partial$example/scalalib/simple/2-publish.adoc[]
 
 
 == Custom Script Module Classes
