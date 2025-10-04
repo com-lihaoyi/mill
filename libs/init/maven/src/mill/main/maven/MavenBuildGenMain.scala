@@ -8,12 +8,12 @@ import org.apache.maven.model.*
 import scala.jdk.CollectionConverters.*
 
 /**
- * Application that generates Mill build files for a Maven project.
+ * Application that generates Mill build files for a Maven project. This is achieved by mapping each
+ * ''pom.xml'' in a workspace to a module with configurations extracted using the Maven POM API.
  */
 object MavenBuildGenMain {
 
   /**
-   * Maps each ''pom.xml'' in a workspace to a module with configurations derived from the POM.
    * @see [[MavenBuildGenArgs Command line arguments]]
    */
   def main(args: Array[String]): Unit = {

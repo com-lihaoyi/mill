@@ -9,11 +9,15 @@ import pprint.Util.literalize
 import scala.util.Using
 
 /**
- * Converts an SBT build by generating module configurations using a custom "apply" script.
- * @see [[SbtBuildGenArgs Command line arguments]]
+ * Application that generates Mill build files for an SBT project. This is achieved by using a
+ * custom script that maps each SBT `Project` to a module with configurations extracted using the
+ * SBT API.
  */
 object SbtBuildGenMain {
 
+  /**
+   * @see [[SbtBuildGenArgs Command line arguments]]
+   */
   def main(args: Array[String]): Unit = {
     println("converting sbt build")
 

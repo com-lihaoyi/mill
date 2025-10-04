@@ -13,11 +13,15 @@ import java.util.concurrent.TimeUnit
 import scala.util.Using
 
 /**
- * Converts a Gradle build by generating module configurations using a custom plugin.
- * @see [[GradleBuildGenArgs Command line arguments]]
+ * Application that generates Mill build files for a Gradle project. This is achieved by using a
+ * custom plugin that maps each Gradle `Project` to a module with configurations extracted using the
+ * Gradle Tooling API.
  */
 object GradleBuildGenMain {
 
+  /**
+   * @see [[GradleBuildGenArgs Command line arguments]]
+   */
   def main(args: Array[String]): Unit = {
     val args0 = summon[ParserForClass[GradleBuildGenArgs]].constructOrExit(args.toSeq)
     import args0.*

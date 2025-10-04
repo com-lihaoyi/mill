@@ -56,7 +56,7 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
     }
 
     println(
-      s"NOTE: It is recommended to set mill-jvm-version in the build header in $rootBuildFile."
+      s"NOTE: It is recommended to set mill-jvm-version in the header section in $rootBuildFile."
     )
   }
 
