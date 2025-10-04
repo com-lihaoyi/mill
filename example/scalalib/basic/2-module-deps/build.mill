@@ -53,8 +53,8 @@
 foo.run
 bar.run
 
-> ./mill foo.run --text "hello world"
-<h1>hello world</h1>
+> ./mill foo.run --text "hello-world"
+<h1>hello-world</h1>
 
 > ./mill bar.test
 ...
