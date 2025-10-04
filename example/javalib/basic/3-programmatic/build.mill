@@ -39,3 +39,10 @@ object foo extends JavaModule {
 //
 //
 
+//// SNIPPET:TEST
+/** Usage
+> ./mill foo.test
+Test foo.FooTest.testSimple finished, ...
+Test foo.FooTest.testEscaping finished, ...
+*/
+//// SNIPPET:END

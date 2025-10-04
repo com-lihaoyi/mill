@@ -41,3 +41,11 @@ object foo extends KotlinModule {
 // ----
 //
 
+//// SNIPPET:TEST
+/** Usage
+> ./mill foo.test
+Test foo.FooTest testSimple finished, ...
+Test foo.FooTest testEscaping finished, ...
+Test foo.FooTest finished, ...
+*/
+//// SNIPPET:END
