@@ -99,8 +99,8 @@ object CodeGen {
               |""".stripMargin
 
         os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
-        os.write(
-          (wrappedDestFile / os.up) / s"${wrappedDestFile.baseName}.scala",
+        os.write.over(
+          (wrappedDestFile / os.up) / wrappedDestFile.baseName,
           s"""package $pkg
              |import mill.*, scalalib.*, javalib.*, kotlinlib.*
              |$aliasImports

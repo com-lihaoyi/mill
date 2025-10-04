@@ -97,7 +97,8 @@ object FileImportGraph {
 
     processScript(projectRoot / foundRootBuildFileName, useDummy)
 
-    walkBuildFiles(projectRoot, output).foreach(processScript(_))
+    val walked = walkBuildFiles(projectRoot, output)
+    walked.foreach(processScript(_))
 
     val headerData =
       if (!os.exists(projectRoot / foundRootBuildFileName)) ""
@@ -135,12 +136,7 @@ object FileImportGraph {
   def walkBuildFiles(projectRoot: os.Path, output: os.Path): Seq[os.Path] = {
     if (!os.exists(projectRoot)) Nil
     else {
-      val foundRootBuildFileName = findRootBuildFiles(projectRoot).foundRootBuildFileName
-
-      val buildFileExtension =
-        buildFileExtensions.asScala.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
-
-      val nestedBuildFileName = s"package.$buildFileExtension"
+      val nestedBuildFileNames = buildFileExtensions.asScala.map(ext => s"package.$ext").toList
       val buildFiles = os
         .walk(
           projectRoot,
@@ -148,9 +144,9 @@ object FileImportGraph {
           skip = p =>
             p == output ||
               p == projectRoot / millBuild ||
-              (os.isDir(p) && !os.exists(p / nestedBuildFileName))
+              (os.isDir(p) && !nestedBuildFileNames.exists(n => os.exists(p / n)))
         )
-        .filter(_.last == nestedBuildFileName)
+        .filter(p => nestedBuildFileNames.contains(p.last))
 
       val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
         .flatMap(os.list(_))
