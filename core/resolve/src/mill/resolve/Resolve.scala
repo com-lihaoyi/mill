@@ -319,8 +319,6 @@ private[mill] trait Resolve[T] {
         case Seq(head, rest*) => (head, None, rest)
       }
 
-      
-
       fallback
     }
     val resolvedGroups = ParseArgs.separate(scriptArgs).map { group =>
