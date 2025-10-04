@@ -36,14 +36,24 @@
 //
 //// SNIPPET:USAGE
 /** Usage
-> ./mill run --text hello
-<h1>hello</h1>
+> ./mill inspect compile # Show documentation and inputs of a task
+compile(JavaModule.scala:...)
+    Compiles the current module to generate compiled classfiles/bytecode.
+Inputs:
+    upstreamCompileOutput
+    allSourceFiles
+    compileClasspath
 */
+/** Usage
+> ./mill compile # compile sources into classfiles
+...
+compiling 1 Java source to...
+*/
+
 /** Usage
 > ./mill test
 ...
-Test foo.FooTest.testEscaping finished, ...
-Test foo.FooTest.testSimple finished, ...
-Test run foo.FooTest finished: 0 failed, 0 ignored, 2 total, ...
+Test foo.FooTest.testSimple finished...
+Test foo.FooTest.testEscaping finished...
 */
 //// SNIPPET:END

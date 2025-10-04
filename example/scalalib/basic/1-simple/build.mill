@@ -47,57 +47,59 @@
 //
 /** Usage
 
-> ./mill resolve foo._ # List what tasks are available to run
-foo.assembly
+> ./mill resolve _ # List what tasks are available to run
+assembly
 ...
-foo.compile
+compile
 ...
-foo.run
+run
 ...
 */
+//// SNIPPET:USAGE
 /** Usage
-> ./mill inspect foo.compile # Show documentation and inputs of a task
-foo.compile(ScalaModule.scala:...)
+> ./mill inspect compile # Show documentation and inputs of a task
+compile(ScalaModule.scala:...)
     Compiles the current module to generate compiled classfiles/bytecode.
 Inputs:
-    foo.scalaVersion
-    foo.upstreamCompileOutput
-    foo.allSourceFiles
-    foo.compileClasspath
+    scalaVersion
+    upstreamCompileOutput
+    allSourceFiles
+    compileClasspath
 */
 /** Usage
-> ./mill foo.compile # compile sources into classfiles
+> ./mill compile # compile sources into classfiles
 ...
 compiling 1 Scala source to...
 */
+
 /** Usage
-> ./mill foo.run # run the main method, if any
-error: Missing argument: --text <str>
-*/
-/** Usage
-> ./mill foo.run --text hello
-<h1>hello</h1>
-*/
-/** Usage
-> ./mill foo.test
+> ./mill test
 ...
-+ foo.FooTests...simple ...  <h1>hello</h1>
-+ foo.FooTests...escaping ...  <h1>&lt;hello&gt;</h1>
++ foo.FooTests...simple ...  "<h1>hello</h1>"
++ foo.FooTests...escaping ...  "<h1>&lt;hello&gt;</h1>"
 */
+
+//// SNIPPET:END
+
 /** Usage
-> ./mill foo.assembly # bundle classfiles and libraries into a jar for deployment
+> ./mill run --text hello
+<h1>hello</h1>
+*/
 
-> ./mill show foo.assembly # show the output of the assembly task
-".../out/foo/assembly.dest/out.jar"
+/** Usage
+> ./mill assembly # bundle classfiles and libraries into a jar for deployment
 
-> java -jar ./out/foo/assembly.dest/out.jar --text hello
+> ./mill show assembly # show the output of the assembly task
+".../out/assembly.dest/out.jar"
+
+> java -jar ./out/assembly.dest/out.jar --text hello
 <h1>hello</h1>
 
-> ./out/foo/assembly.dest/out.jar --text hello # mac/linux
+> ./out/assembly.dest/out.jar --text hello # mac/linux
 <h1>hello</h1>
 
 > # Note that on windows you need to rename `out.jar` to `out.bat` to run it
-> cp ./out/foo/assembly.dest/out.jar out.bat # windows
+> cp ./out/assembly.dest/out.jar out.bat # windows
 
 > ./out.bat --text hello # windows
 <h1>hello</h1>
@@ -120,9 +122,9 @@ error: Missing argument: --text <str>
 //
 
 // The output of every Mill task is stored in the `out/` folder under a name
-// corresponding to the task that created it. e.g. The `foo.assembly` task puts its
-// metadata output in `out/foo/assembly.json`, and its output files in
-// `out/foo/assembly.dest`. You can also use `show` to print out the
+// corresponding to the task that created it. e.g. The `assembly` task puts its
+// metadata output in `out/assembly.json`, and its output files in
+// `out/assembly.dest`. You can also use `show` to print out the
 // metadata output for a particular task, or `inspect` to print metadata about
 // the task itself (docs, source location, etc.)
 //
@@ -132,23 +134,23 @@ error: Missing argument: --text <str>
 // ----
 // > ./mill resolve __ # recursively list all tasks and modules that are available
 //
-// > ./mill foo.runBackground # run the main method in the background
+// > ./mill runBackground # run the main method in the background
 //
 // > ./mill clean <task>  # delete the cached output of a task, terminate any runBackground
 //
-// > ./mill foo.launcher      # prepares a foo/launcher.dest/run you can run later
+// > ./mill launcher      # prepares a out/launcher.dest/run you can run later
 //
-// > ./mill foo.jar           # bundle the classfiles into a jar suitable for publishing
+// > ./mill jar           # bundle the classfiles into a jar suitable for publishing
 //
-// > ./mill -i foo.console    # start a Scala console within your project
+// > ./mill -i console    # start a Scala console within your project
 //
-// > ./mill -i foo.repl       # start an Ammonite Scala REPL within your project
+// > ./mill -i repl       # start an Ammonite Scala REPL within your project
 //
-// > ./mill -w foo.compile    # watch input files and re-compile whenever a file changes
+// > ./mill -w compile    # watch input files and re-compile whenever a file changes
 // ----
 //
 // The most common *tasks* that Mill can run are cached tasks, such as
-// `compile`, and un-cached *commands* such as `foo.run`. Cached tasks do not
+// `compile`, and un-cached *commands* such as `run`. Cached tasks do not
 // re-evaluate unless one of their inputs changes, whereas commands re-run every
 // time. See the documentation for xref:fundamentals/tasks.adoc[Tasks] for
 // details on the different task types.

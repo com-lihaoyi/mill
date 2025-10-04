@@ -31,9 +31,21 @@
 
 //// SNIPPET:USAGE
 /** Usage
-> ./mill run --text hello
-<h1>hello</h1>
+> ./mill inspect compile # Show documentation and inputs of a task
+compile(KotlinModule.scala:...)
+    Compiles the current module to generate compiled classfiles/bytecode.
+Inputs:
+    upstreamCompileOutput
+    allJavaSourceFiles
+    allKotlinSourceFiles
+    compileClasspath
 */
+/** Usage
+> ./mill compile # compile sources into classfiles
+...
+Compiling 1 Kotlin sources to...
+*/
+
 /** Usage
 > ./mill test
 Test foo.FooTest testSimple finished, ...

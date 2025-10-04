@@ -62,25 +62,6 @@ foo.run
 ...
 */
 /** Usage
-> ./mill inspect foo.compile # Show documentation and inputs of a task
-foo.compile(ScalaModule.scala:...)
-    Compiles the current module to generate compiled classfiles/bytecode.
-Inputs:
-    foo.scalaVersion
-    foo.upstreamCompileOutput
-    foo.allSourceFiles
-    foo.compileClasspath
-*/
-/** Usage
-> ./mill foo.compile # compile sources into classfiles
-...
-compiling 1 Scala source to...
-*/
-/** Usage
-> ./mill foo.run # run the main method, if any
-error: Missing argument: --text <str>
-*/
-/** Usage
 > ./mill foo.run --text hello
 <h1>hello</h1>
 */
@@ -98,16 +79,6 @@ error: Missing argument: --text <str>
 
 > java -jar ./out/foo/assembly.dest/out.jar --text hello
 <h1>hello</h1>
-
-> ./out/foo/assembly.dest/out.jar --text hello # mac/linux
-<h1>hello</h1>
-
-> # Note that on windows you need to rename `out.jar` to `out.bat` to run it
-> cp ./out/foo/assembly.dest/out.jar out.bat # windows
-
-> ./out.bat --text hello # windows
-<h1>hello</h1>
-
 */
 
 //// SNIPPET:END
