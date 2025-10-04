@@ -54,12 +54,8 @@
 foo.run
 bar.run
 
-> ./mill foo.run --foo-text hello --bar-text world
-Foo.value: hello
-Bar.value: <h1>world</h1>
-
-> ./mill bar.run world
-Bar.value: <h1>world</h1>
+> ./mill foo.run --text "hello world"
+<h1>hello world</h1>
 
 > ./mill bar.test
 ...
@@ -95,13 +91,13 @@ Bar.value: <h1>world</h1>
 //
 
 /** Usage
-> ./mill foo._.compile # Runs `compile` for all direct sub-modules of `foo`
+> ./mill bar._.compile # Runs `compile` for all direct sub-modules of `foo`
 
-> ./mill foo.__.test # Runs `test` for all transitive sub-modules of `foo`
+> ./mill bar.__.test # Runs `test` for all transitive sub-modules of `foo`
 
-> ./mill {foo,bar}.__.testCached # Runs `testCached` for all sub-modules of `foo` and `bar`
+> ./mill {foo,bar}.compile # Runs `compile` for `foo` and `bar`
 
-> ./mill __.compile + foo.__.test # Runs all `compile` tasks and all tests under `foo`.
+> ./mill __.compile + bar.__.test # Runs all `compile` tasks and all tests under `foo`.
 */
 
 // For more details on the query syntax, check out the
