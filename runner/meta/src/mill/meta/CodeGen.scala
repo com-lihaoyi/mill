@@ -67,7 +67,7 @@ object CodeGen {
 
       if (scriptFolderPath == projectRoot) {
         val buildFileImplCode = generateBuildFileImpl(pkg)
-        os.write(
+        os.write.over(
           supportDestDir / "BuildFileImpl.scala",
           buildFileImplCode,
           createFolders = true
@@ -100,7 +100,7 @@ object CodeGen {
               |import _root_.mill.util.TokenReaders.given
               |""".stripMargin
 
-        os.write(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
+        os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
         val moduleDepsSnippet =
           if (moduleDeps.isEmpty) ""
           else s"override def moduleDeps = Seq(${moduleDeps.get.mkString(", ")})"
@@ -109,7 +109,7 @@ object CodeGen {
           if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}"
           else ""
         }
-        os.write(
+        os.write.over(
           (wrappedDestFile / os.up) / wrappedDestFile.baseName,
           s"""package $pkg
              |import mill.*, scalalib.*, javalib.*, kotlinlib.*
@@ -162,7 +162,7 @@ object CodeGen {
             .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
 
           if (isBuildScript) {
-            os.write(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
+            os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
           }
 
           val parts =
