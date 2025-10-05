@@ -9,9 +9,9 @@ in the JVM ecosystem:
 * Mill builds the same Java project xref:comparisons/why-mill.adoc#_performance[3-6x
  faster than Maven or Gradle] due to aggressive caching & parallelism
 
-* Mill's rich featureset means
-xref:comparisons/why-mill.adoc#_rich_builtins[less fiddling with plugins],
-since everything needed for development is built in
+* Mill's featureset supports everything from xref:javalib/intro.adoc#_single_file_projects[single-files] to
+xref:large/large.adoc[large projects] needing
+xref:comparisons/why-mill.adoc#_rich_builtins[less fiddling with plugins]
 
 * Mill builds are xref:comparisons/why-mill.adoc#_ide_support[easily explorable in your IDE],
 letting you work on them without constantly googling for help
