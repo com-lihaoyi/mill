@@ -1,18 +1,19 @@
 package mill.main.buildgen
 
-import mill.constants.CodeGenConstants.{nestedBuildFileNames, rootBuildFileNames, rootModuleAlias}
+import mill.constants.CodeGenConstants.rootModuleAlias
 import mill.constants.OutFiles.millBuild
 import mill.init.Util.buildFiles
 import mill.internal.Util.backtickWrap
+import mill.main.buildgen.ModuleConfig.*
 import pprint.Util.literalize
 
 import scala.collection.mutable
 import scala.math.Ordered.orderingToOrdered
 import scala.reflect.TypeTest
 
-class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue") {
+class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue") {
 
-  private val refsByMvnDep: mutable.Map[ModuleConfig.MvnDep, String] = mutable.Map.empty
+  private val mvnDepRef: mutable.Map[MvnDep, String] = mutable.Map.empty
 
   def writeFiles(): Unit = {
     val toRemove = buildFiles(os.pwd)
@@ -22,48 +23,55 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
     }
 
     import build.*
-    val root +: nested = packages.iterator.toSeq: @unchecked
-    val rootBuildFile = os.sub / rootBuildFileNames.get(0)
+    val rootPackage +: nestedPackages = packages.toSeq: @unchecked
+    val rootBuildFile = os.sub / "build.mill"
     println(s"writing Mill build file to $rootBuildFile")
-    os.write(
-      os.pwd / rootBuildFileNames.get(0),
-      s"""$renderBuildHeader
-         |${renderPackage(root)}""".stripMargin
-    )
-    nested.foreach { pkg =>
-      val nestedBuildFile = os.sub / pkg.root.segments / nestedBuildFileNames.get(0)
-      println(s"writing Mill build file to $nestedBuildFile")
-      os.write(os.pwd / nestedBuildFile, renderPackage(pkg))
+    os.write(os.pwd / rootBuildFile, renderRootPackage(rootPackage))
+    nestedPackages.foreach { pkg =>
+      val buildFile = os.sub / pkg.segments / "package.mill"
+      println(s"writing Mill build file to $buildFile")
+      os.write(os.pwd / buildFile, renderPackage(pkg))
     }
 
-    metaBuild.foreach { metaBuild =>
+    metaBuild.foreach { meta =>
       val rootDir = os.sub / millBuild
       val srcDir = rootDir / "src"
       os.makeDir.all(os.pwd / srcDir)
-      val rootBuildFile = rootDir / rootBuildFileNames.get(0)
+      val rootBuildFile = rootDir / "build.mill"
       println(s"writing Mill meta-build file to $rootBuildFile")
       os.write(os.pwd / rootBuildFile, renderMetaBuildRoot)
-      import metaBuild.*
-      baseTraits.foreach { baseTrait =>
-        val baseTraitFile = srcDir / s"${baseTrait.name}.scala"
-        println(s"writing Mill meta-build file to $baseTraitFile")
-        os.write(os.pwd / baseTraitFile, renderBaseTrait(packageName, baseTrait))
+      import meta.*
+      baseModules.foreach { baseModule =>
+        val srcFile = srcDir / s"${baseModule.name}.scala"
+        println(s"writing Mill meta-build file to $srcFile")
+        os.write(os.pwd / srcFile, renderBaseModule(rootModuleName, baseModule))
       }
-      // must be written last due to mutable state
-      val depsObjectFile = srcDir / s"$depsObjectName.scala"
-      println(s"writing Mill meta-build file to $depsObjectFile")
-      os.write(os.pwd / depsObjectFile, renderDepsObject(packageName, depsObjectName))
+      val depsSrcFile = srcDir / s"$depsObjectName.scala"
+      println(s"writing Mill meta-build file to $depsSrcFile")
+      os.write(os.pwd / depsSrcFile, renderDepsObject(rootModuleName, depsObjectName))
     }
 
     println(
-      s"NOTE: It is recommended to set mill-jvm-version in the header section in $rootBuildFile."
+      s"NOTE: It is recommended to set `mill-jvm-version` in the header section of the root $rootBuildFile file."
     )
   }
 
-  def renderBuildHeader = {
+  def renderRootPackage(pkg: PackageSpec) = {
     import build.*
     s"""//| mill-version: $millVersion
-       |//| mill-jvm-opts: [${millJvmOpts.iterator.map(literalize(_)).mkString(", ")}]""".stripMargin
+       |//| mill-jvm-opts: [${millJvmOpts.map(literalize(_)).mkString(", ")}]
+       |${renderPackage(pkg)}
+       |""".stripMargin
+  }
+
+  def renderPackage(pkg: PackageSpec) = {
+    import pkg.*
+    s"""package ${(rootModuleAlias +: segments.map(backtickWrap)).mkString(".")}
+       |
+       |${renderModuleImports(module)}
+       |
+       |${renderModule(module, isPackageRoot = true)}
+       |""".stripMargin
   }
 
   def renderMetaBuildRoot = {
@@ -75,24 +83,16 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
        |""".stripMargin
   }
 
-  def renderBaseTrait(packageName: String, baseTrait: MetaBuildRepr.BaseTrait) = {
-    import baseTrait.*
+  def renderBaseModule(packageName: String, baseModule: ModuleSpec) = {
+    import baseModule.*
     s"""package $packageName
        |
-       |${renderImports(baseTrait)}
+       |${renderBaseModuleImports(baseModule)}
        |
        |trait $name ${renderExtendsClause(supertypes ++ mixins)} {
        |
        |  ${renderModuleConfigs(configs, crossConfigs)}
        |}""".stripMargin
-  }
-
-  def renderImports(baseTrait: MetaBuildRepr.BaseTrait): String = {
-    val wildcards = mutable.SortedSet.empty[String]
-    import baseTrait.*
-    configs.foreach(addImports(wildcards, _))
-
-    renderLines(wildcards.iterator.map(s => s"import $s._"))
   }
 
   def renderDepsObject(packageName: String, name: String) = {
@@ -102,95 +102,74 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
        |
        |object $name {
        |
-       |${renderLines(refsByMvnDep.toSeq.sortBy(_._2).iterator.map((dep, ref) =>
-        s"val ${backtickWrap(ref)} = ${renderMvnDep0(dep)}"
+       |${renderLines(mvnDepRef.toSeq.sortBy(_._2).map((dep, ref) =>
+        s"val ${backtickWrap(ref)} = $dep"
       ))}
        |}""".stripMargin
   }
 
-  def renderPackage(pkg: Tree[ModuleRepr]) = {
-    import pkg.*
-    s"""package ${(rootModuleAlias +: root.segments.map(backtickWrap)).mkString(".")}
-       |
-       |${renderImports(pkg)}
-       |
-       |${renderModuleDeclaration("package", root)} {
-       |
-       |  ${renderModuleConfigs(root.configs, root.crossConfigs)}
-       |
-       |  ${root.testModule.fold("")(renderTestModule)}
-       |
-       |  ${renderLines(children.iterator.map(renderModuleSubtree))}
-       |}""".stripMargin
+  def renderBaseModuleImports(baseModule: ModuleSpec) = {
+    val wildcards = mutable.SortedSet.empty[String]
+    import baseModule.*
+    configs.foreach(addImports(wildcards, _))
+    renderLines(wildcards.map(s => s"import $s._"))
   }
 
-  def renderImports(pkg: Tree[ModuleRepr]): String = {
+  def renderModuleImports(module: ModuleSpec) = {
     val wildcards = mutable.SortedSet.empty[String]
-    for module <- pkg.iterator do {
-      import module.*
-      if (supertypes.contains("Module") || crossConfigs.nonEmpty) wildcards += "mill"
-      if (testModule.nonEmpty) wildcards += "mill.javalib"
-      if (configs.nonEmpty) wildcards ++= build.metaBuild.map(_.packageName)
+    for spec <- module.sequence do {
+      import spec.*
+      if (supertypes.isEmpty || crossConfigs.nonEmpty) wildcards += "mill"
+      if (configs.nonEmpty) wildcards ++= build.metaBuild.map(_.rootModuleName)
       configs.foreach(addImports(wildcards, _))
     }
-
-    renderLines(wildcards.iterator.map(s => s"import $s._"))
+    renderLines(wildcards.map(s => s"import $s._"))
   }
 
-  private def addImports(wildcards: mutable.SortedSet[String], config: ModuleConfig): Unit = {
+  private def addImports(wildcards: mutable.SortedSet[String], config: ModuleConfig) =
     config match {
-      case _: ScalaModuleConfig => wildcards += "mill.scalalib"
-      case _: SbtPlatformModuleConfig => wildcards += "mill.scalalib"
-      case _: ScalaJSModuleConfig => wildcards += "mill.scalalib" += "mill.scalajslib"
-      case _: ScalaNativeModuleConfig => wildcards += "mill.scalalib" += "mill.scalanativelib"
-      case _: PublishModuleConfig => wildcards += "mill.javalib" += "mill.javalib.publish"
-      case _: ErrorProneModuleConfig => wildcards += "mill.javalib" += "mill.javalib.errorprone"
+      case _: PublishModule => wildcards += "mill.javalib" += "mill.javalib.publish"
+      case _: ErrorProneModule => wildcards += "mill.javalib" += "mill.javalib.errorprone"
+      case _: ScalaModule => wildcards += "mill.scalalib"
+      case _: ScalaJSModule =>
+        wildcards += "mill.scalalib" += "mill.scalajslib" += "mill.scalajslib.api"
+      case _: ScalaNativeModule => wildcards += "mill.scalalib" += "mill.scalanativelib"
+      case _: SbtPlatformModule => wildcards += "mill.scalalib"
       case _ => wildcards += "mill.javalib"
     }
-  }
 
-  def renderModuleSubtree(modules: Tree[ModuleRepr]): String = {
-    import modules.*
-    s"""${renderModuleDeclaration(root.segments.last, root)} {
-       |
-       |  ${renderModuleConfigs(root.configs, root.crossConfigs)}
-       |
-       |  ${root.testModule.fold("")(renderTestModule)}
-       |
-       |  ${renderLines(children.iterator.map(renderModuleSubtree))}
-       |}""".stripMargin
-  }
-
-  def renderModuleDeclaration(name: String, module: ModuleRepr) = {
+  def renderModule(module: ModuleSpec, isPackageRoot: Boolean = false): String = {
     import module.*
-    if (crossConfigs.isEmpty)
-      s"object ${backtickWrap(name)} ${renderExtendsClause(supertypes ++ mixins)}"
-    else
-      val crossTraitName = segments.lastOption.getOrElse(os.pwd.last).split("\\W").map(_.capitalize)
-        .mkString("", "", "Module")
-      val crossModuleExtends = crossConfigs.map((v, _) => literalize(v))
-        .mkString(s"extends Cross[$crossTraitName](", ", ", ")")
-      s"""object ${backtickWrap(name)} $crossModuleExtends
-         |trait $crossTraitName ${renderExtendsClause(supertypes ++ mixins)}""".stripMargin
-  }
-
-  def renderExtendsClause(supertypes: Seq[String]) = {
-    if (supertypes.isEmpty) ""
-    else
-      val head +: tail = supertypes: @unchecked
-      s" extends $head" + tail.map(" with " + _).mkString
-  }
-
-  def renderTestModule(module: TestModuleRepr) = {
-    import module.*
-    s"""object $name ${renderExtendsClause(supertypes ++ mixins)} {
+    s"""${renderModuleDeclaration(module, isPackageRoot)} {
        |
        |  ${renderModuleConfigs(configs, crossConfigs)}
        |
-       |  ${if (testParallelism) "" else "def testParallelism = false"}
-       |
-       |  ${if (testSandboxWorkingDir) "" else "def testSandboxWorkingDir = false"}
+       |  ${renderBlocks(nestedModules.sortBy(_.name).map(renderModule(_))*)}
        |}""".stripMargin
+  }
+
+  def renderModuleDeclaration(module: ModuleSpec, isPackageRoot: Boolean) = {
+    import module.*
+    val objectName = backtickWrap(if (isPackageRoot) "package" else name)
+    if (crossConfigs.isEmpty || isTestModule) {
+      val objectExtends = renderExtendsClause(supertypes ++ mixins)
+      s"object $objectName $objectExtends"
+    } else {
+      val traitName = name.split("\\W") match {
+        case Array("") => backtickWrap(name + "Module")
+        case parts => parts.map(_.capitalize).mkString("", "", "Module")
+      }
+      val crossValues = crossConfigs.map((v, _) => literalize(v)).sorted
+      val objectExtends = s"extends Cross[$traitName](${crossValues.mkString(", ")})"
+      val traitExtends = renderExtendsClause(supertypes ++ mixins)
+      s"""object $objectName $objectExtends
+         |trait $traitName $traitExtends""".stripMargin
+    }
+  }
+
+  def renderExtendsClause(supertypes: Seq[String]) = supertypes match {
+    case Nil => "extends Module"
+    case head +: tail => s" extends $head" + tail.map(" with " + _).mkString
   }
 
   def renderModuleConfigs(
@@ -203,460 +182,310 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
           case t: T => (k, t)
         }
       )
-    renderLines(configs.iterator.map {
-      case config: CoursierModuleConfig => renderCoursierModuleConfig(config, crossConfig)
-      case config: JavaHomeModuleConfig => renderJavaHomeModuleConfig(config, crossConfig)
-      case config: RunModuleConfig => renderRunModuleConfig(config, crossConfig)
-      case config: JavaModuleConfig => renderJavaModuleConfig(config, crossConfig)
-      case config: PublishModuleConfig => renderPublishModuleConfig(config, crossConfig)
-      case config: ErrorProneModuleConfig => renderErrorProneModuleConfig(config, crossConfig)
-      case config: ScalaModuleConfig => renderScalaModuleConfig(config, crossConfig)
-      case config: ScalaJSModuleConfig => renderScalaJSModuleConfig(config, crossConfig)
-      case config: ScalaNativeModuleConfig => renderScalaNativeModuleConfig(config, crossConfig)
-      case config: SbtPlatformModuleConfig => renderSbtPlatformModuleConfig(config, crossConfig)
+    renderLines(configs.map {
+      case config: CoursierModule => renderCoursierModule(config, crossConfig)
+      case config: JavaHomeModule => renderJavaHomeModule(config, crossConfig)
+      case config: RunModule => renderRunModule(config, crossConfig)
+      case config: JavaModule => renderJavaModule(config, crossConfig)
+      case config: PublishModule => renderPublishModule(config, crossConfig)
+      case config: ErrorProneModule => renderErrorProneModule(config, crossConfig)
+      case config: ScalaModule => renderScalaModule(config, crossConfig)
+      case config: ScalaJSModule => renderScalaJSModule(config, crossConfig)
+      case config: ScalaNativeModule => renderScalaNativeModule(config, crossConfig)
+      case config: SbtPlatformModule => renderSbtPlatformModule(config, crossConfig)
+      case config: TestModule => renderTestModule(config, crossConfig)
     })
   }
 
-  def renderCoursierModuleConfig(
-      config: CoursierModuleConfig,
-      crossConfigs: Seq[(String, CoursierModuleConfig)]
-  ) = {
-    def get[A](f: CoursierModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
+  def renderCoursierModule(config: CoursierModule, crossConfigs: Seq[(String, CoursierModule)]) = {
+    def cross[A](f: CoursierModule => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
-    s"""${renderRepositories(repositories, get(_.repositories))}
-       |""".stripMargin
+    renderBlocks(
+      renderTaskAsSeq("repositories", repositories, cross(_.repositories), literalize(_))
+    )
   }
 
-  def renderJavaHomeModuleConfig(
-      config: JavaHomeModuleConfig,
-      crossConfigs: Seq[(String, JavaHomeModuleConfig)]
-  ) = {
-    def get[A](f: JavaHomeModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
+  def renderJavaHomeModule(config: JavaHomeModule, crossConfigs: Seq[(String, JavaHomeModule)]) = {
+    def cross[A](f: JavaHomeModule => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
-    s"""${renderJvmId(jvmId, get(_.jvmId))}
-       |""".stripMargin
+    renderBlocks(
+      renderTask("jvmId", jvmId, cross(_.jvmId), literalize(_))
+    )
   }
 
-  def renderRunModuleConfig(
-      config: RunModuleConfig,
-      crossConfigs: Seq[(String, RunModuleConfig)]
-  ) = {
-    def get[A](f: RunModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
+  def renderRunModule(config: RunModule, crossConfigs: Seq[(String, RunModule)]) = {
+    def cross[A](f: RunModule => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
-    s"""${renderForkWorkingDir(forkWorkingDir, get(_.forkWorkingDir))}
-       |""".stripMargin
+    renderBlocks(
+      renderTask("forkWorkingDir", forkWorkingDir, cross(_.forkWorkingDir), identity)
+    )
   }
 
-  def renderJavaModuleConfig(
-      config: JavaModuleConfig,
-      crossConfigs: Seq[(String, JavaModuleConfig)]
-  ) = {
-    def get[A](f: JavaModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
+  def renderJavaModule(config: JavaModule, crossConfigs: Seq[(String, JavaModule)]) = {
+    def cross[A](f: JavaModule => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
-    s"""${renderMvnDeps(mvnDeps, get(_.mvnDeps))}
-       |
-       |${renderCompileMvnDeps(compileMvnDeps, get(_.compileMvnDeps))}
-       |
-       |${renderRunMvnDeps(runMvnDeps, get(_.runMvnDeps))}
-       |
-       |${renderBomMvnDeps(bomMvnDeps, get(_.bomMvnDeps))}
-       |
-       |${renderModuleDeps(moduleDeps, get(_.moduleDeps))}
-       |
-       |${renderCompileModuleDeps(compileModuleDeps, get(_.compileModuleDeps))}
-       |
-       |${renderRunModuleDeps(runModuleDeps, get(_.runModuleDeps))}
-       |
-       |${renderJavacOptions(javacOptions, get(_.javacOptions))}
-       |
-       |${renderArtifactName(artifactName, get(_.artifactName))}
-       |""".stripMargin
+    renderBlocks(
+      renderTaskAsSeq("mvnDeps", mvnDeps, cross(_.mvnDeps), renderMvnDep),
+      renderTaskAsSeq("compileMvnDeps", compileMvnDeps, cross(_.compileMvnDeps), renderMvnDep),
+      renderTaskAsSeq("runMvnDeps", runMvnDeps, cross(_.runMvnDeps), renderMvnDep),
+      renderTaskAsSeq("bomMvnDeps", bomMvnDeps, cross(_.bomMvnDeps), renderMvnDep),
+      renderMemberAsSeq("moduleDeps", moduleDeps, cross(_.moduleDeps), renderModuleDep),
+      renderMemberAsSeq(
+        "compileModuleDeps",
+        compileModuleDeps,
+        cross(_.compileModuleDeps),
+        renderModuleDep
+      ),
+      renderMemberAsSeq("runModuleDeps", runModuleDeps, cross(_.runModuleDeps), renderModuleDep),
+      renderTaskAsSeq("javacOptions", javacOptions, cross(_.javacOptions), literalize(_)),
+      renderTask("artifactName", artifactName, cross(_.artifactName), literalize(_))
+    )
   }
 
-  def renderPublishModuleConfig(
-      config: PublishModuleConfig,
-      crossConfigs: Seq[(String, PublishModuleConfig)]
-  ) = {
-    def get[A](f: PublishModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
+  def renderPublishModule(config: PublishModule, crossConfigs: Seq[(String, PublishModule)]) = {
+    def cross[A](f: PublishModule => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
-    s"""${renderPomPackagingType(pomPackagingType, get(_.pomPackagingType))}
-       |
-       |${renderPomParentProject(pomParentProject, get(_.pomParentProject))}
-       |
-       |${renderPomSettings(pomSettings, get(_.pomSettings))}
-       |
-       |${renderPublishVersion(publishVersion, get(_.publishVersion))}
-       |
-       |${renderVersionScheme(versionScheme, get(_.versionScheme))}
-       |
-       |${renderPublishProperties(publishProperties, get(_.publishProperties))}
-       |""".stripMargin
+    renderBlocks(
+      renderMember("pomPackagingType", pomPackagingType, cross(_.pomPackagingType), literalize(_)),
+      renderTask(
+        "pomParentProject",
+        pomParentProject,
+        cross(_.pomParentProject),
+        v => s"Some(${renderArtifact(v)})"
+      ),
+      renderTask("pomSettings", pomSettings, cross(_.pomSettings), renderPomSettings),
+      renderTask("publishVersion", publishVersion, cross(_.publishVersion), literalize(_)),
+      renderTask(
+        "versionScheme",
+        versionScheme,
+        cross(_.versionScheme),
+        v => s"Some(${renderVersionScheme(v)})"
+      ),
+      renderTaskAsMap(
+        "publishProperties",
+        publishProperties,
+        cross(_.publishProperties),
+        literalize(_),
+        literalize(_)
+      )
+    )
   }
 
-  def renderErrorProneModuleConfig(
-      config: ErrorProneModuleConfig,
-      crossConfigs: Seq[(String, ErrorProneModuleConfig)]
+  def renderErrorProneModule(
+      config: ErrorProneModule,
+      crossConfigs: Seq[(String, ErrorProneModule)]
   ) = {
-    def get[A](f: ErrorProneModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
+    def cross[A](f: ErrorProneModule => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
-    s"""${renderErrorProneVersion(errorProneVersion, get(_.errorProneVersion))}
-       |
-       |${renderErrorProneOptions(errorProneOptions, get(_.errorProneOptions))}
-       |
-       |${renderErrorProneJavacEnableOptions(
+    renderBlocks(
+      renderTask("errorProneVersion", errorProneVersion, cross(_.errorProneVersion), literalize(_)),
+      renderTaskAsSeq(
+        "errorProneOptions",
+        errorProneOptions,
+        cross(_.errorProneOptions),
+        literalize(_)
+      ),
+      renderTaskAsSeq(
+        "errorProneJavacEnableOptions",
         errorProneJavacEnableOptions,
-        get(_.errorProneJavacEnableOptions)
-      )}
-       |
-       |${renderErrorProneDeps(errorProneDeps, get(_.errorProneDeps))}
-       |""".stripMargin
+        cross(_.errorProneJavacEnableOptions),
+        literalize(_)
+      ),
+      renderTaskAsSeq("errorProneDeps", errorProneDeps, cross(_.errorProneDeps), renderMvnDep)
+    )
   }
 
-  def renderScalaModuleConfig(
-      config: ScalaModuleConfig,
-      crossConfigs: Seq[(String, ScalaModuleConfig)]
-  ) = {
-    def get[A](f: ScalaModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
+  def renderScalaModule(config: ScalaModule, crossConfigs: Seq[(String, ScalaModule)]) = {
+    def cross[A](f: ScalaModule => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
-    s"""${renderScalaVersion(scalaVersion, get(_.scalaVersion))}
-       |
-       |${renderScalacOptions(scalacOptions, get(_.scalacOptions))}
-       |
-       |${renderScalacPluginMvnDeps(scalacPluginMvnDeps, get(_.scalacPluginMvnDeps))}
-       |""".stripMargin
+    renderBlocks(
+      renderTask("scalaVersion", scalaVersion, cross(_.scalaVersion), literalize(_)),
+      renderTaskAsSeq("scalacOptions", scalacOptions, cross(_.scalacOptions), literalize(_)),
+      renderTaskAsSeq(
+        "scalacPluginMvnDeps",
+        scalacPluginMvnDeps,
+        cross(_.scalacPluginMvnDeps),
+        renderMvnDep
+      )
+    )
   }
 
-  def renderScalaJSModuleConfig(
-      config: ScalaJSModuleConfig,
-      crossConfigs: Seq[(String, ScalaJSModuleConfig)]
-  ) = {
-    def get[A](f: ScalaJSModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
+  def renderScalaJSModule(config: ScalaJSModule, crossConfigs: Seq[(String, ScalaJSModule)]) = {
+    def cross[A](f: ScalaJSModule => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
-    s"""${renderScalaJSVersion(scalaJSVersion, get(_.scalaJSVersion))}
-       |""".stripMargin
+    renderBlocks(
+      renderTask("scalaJSVersion", scalaJSVersion, cross(_.scalaJSVersion), literalize(_)),
+      renderTask("moduleKind", moduleKind, cross(_.moduleKind), "ModuleKind." + _)
+    )
   }
 
-  def renderScalaNativeModuleConfig(
-      config: ScalaNativeModuleConfig,
-      crossConfigs: Seq[(String, ScalaNativeModuleConfig)]
+  def renderScalaNativeModule(
+      config: ScalaNativeModule,
+      crossConfigs: Seq[(String, ScalaNativeModule)]
   ) = {
-    def get[A](f: ScalaNativeModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
+    def cross[A](f: ScalaNativeModule => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
-    s"""${renderScalaNativeVersion(scalaNativeVersion, get(_.scalaNativeVersion))}
-       |""".stripMargin
+    renderBlocks(
+      renderTask(
+        "scalaNativeVersion",
+        scalaNativeVersion,
+        cross(_.scalaNativeVersion),
+        literalize(_)
+      )
+    )
   }
 
-  def renderSbtPlatformModuleConfig(
-      config: SbtPlatformModuleConfig,
-      crossConfigs: Seq[(String, SbtPlatformModuleConfig)]
+  def renderSbtPlatformModule(
+      config: SbtPlatformModule,
+      crossConfigs: Seq[(String, SbtPlatformModule)]
   ) = {
-    def get[A](f: SbtPlatformModuleConfig => A) = crossConfigs.map((k, v) => (k, f(v)))
+    def cross[A](f: SbtPlatformModule => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
-    s"""${renderSourcesRootFolders(sourcesRootFolders, get(_.sourcesRootFolders))}
-       |""".stripMargin
+    renderBlocks(
+      renderMemberAsSeq(
+        "sourcesRootFolders",
+        sourcesRootFolders,
+        cross(_.sourcesRootFolders),
+        s => s"os.sub / ${literalize(s)}"
+      )
+    )
   }
 
-  def renderRepositories(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
-    renderTaskSeq("repositories", values, crossValues, literalize(_))
+  def renderTestModule(
+      config: TestModule,
+      crossConfigs: Seq[(String, TestModule)]
+  ) = {
+    def cross[A](f: TestModule => A) = crossConfigs.map((k, v) => (k, f(v)))
+    import config.*
+    renderBlocks(
+      renderTask("testParallelism", testParallelism, cross(_.testParallelism), identity),
+      renderTask(
+        "testSandboxWorkingDir",
+        testSandboxWorkingDir,
+        cross(_.testSandboxWorkingDir),
+        identity
+      )
+    )
+  }
 
-  def renderJvmId(value: String, crossValues: Seq[(String, String)]) =
-    renderTask("jvmId", value, crossValues, literalize(_))
-
-  def renderForkWorkingDir(value: String, crossValues: Seq[(String, String)]) =
-    renderTask("forkWorkingDir", value, crossValues, identity)
-
-  def renderMvnDeps(
-      values: Seq[ModuleConfig.MvnDep],
-      crossValues: Seq[(String, Seq[ModuleConfig.MvnDep])]
-  ) = renderTaskSeq("mvnDeps", values, crossValues, renderMvnDep)
-
-  def renderCompileMvnDeps(
-      values: Seq[ModuleConfig.MvnDep],
-      crossValues: Seq[(String, Seq[ModuleConfig.MvnDep])]
-  ) = renderTaskSeq("compileMvnDeps", values, crossValues, renderMvnDep)
-
-  def renderRunMvnDeps(
-      values: Seq[ModuleConfig.MvnDep],
-      crossValues: Seq[(String, Seq[ModuleConfig.MvnDep])]
-  ) = renderTaskSeq("runMvnDeps", values, crossValues, renderMvnDep)
-
-  def renderBomMvnDeps(
-      values: Seq[ModuleConfig.MvnDep],
-      crossValues: Seq[(String, Seq[ModuleConfig.MvnDep])]
-  ) = renderTaskSeq("bomMvnDeps", values, crossValues, renderMvnDep)
-
-  def renderModuleDeps(
-      values: Seq[ModuleConfig.ModuleDep],
-      crossValues: Seq[(String, Seq[ModuleConfig.ModuleDep])]
-  ) = renderMethodSeq("moduleDeps", values, crossValues, renderModuleDep)
-
-  def renderCompileModuleDeps(
-      values: Seq[ModuleConfig.ModuleDep],
-      crossValues: Seq[(String, Seq[ModuleConfig.ModuleDep])]
-  ) = renderMethodSeq("compileModuleDeps", values, crossValues, renderModuleDep)
-
-  def renderRunModuleDeps(
-      values: Seq[ModuleConfig.ModuleDep],
-      crossValues: Seq[(String, Seq[ModuleConfig.ModuleDep])]
-  ) = renderMethodSeq("runModuleDeps", values, crossValues, renderModuleDep)
-
-  def renderJavacOptions(
-      values: Seq[String],
-      crossValues: Seq[(String, Seq[String])]
-  ) = renderTaskSeq("javacOptions", values, crossValues, literalize(_))
-
-  def renderArtifactName(
-      value: String,
-      crossValues: Seq[(String, String)]
-  ) = renderTask("artifactName", value, crossValues, literalize(_))
-
-  def renderPomPackagingType(value: String, crossValues: Seq[(String, String)]) =
-    renderMethod("pomPackagingType", value, crossValues, literalize(_))
-
-  def renderPomParentProject(
-      value: Option[ModuleConfig.Artifact],
-      crossValues: Seq[(String, Option[ModuleConfig.Artifact])]
-  ) = renderTaskOption("pomParentProject", value, crossValues, renderArtifact)
-
-  def renderPomSettings(
-      value: ModuleConfig.PomSettings,
-      crossValues: Seq[(String, ModuleConfig.PomSettings)]
-  ) = renderTask("pomSettings", value, crossValues, renderPomSettings0)
-
-  def renderPublishVersion(value: String, crossValues: Seq[(String, String)]) =
-    renderTask("publishVersion", value, crossValues, literalize(_))
-
-  def renderVersionScheme(
-      value: Option[String],
-      crossValues: Seq[(String, Option[String])]
-  ) = renderTaskOption("versionScheme", value, crossValues, renderVersionScheme0)
-
-  def renderPublishProperties(
-      values: Map[String, String],
-      crossValues: Seq[(String, Map[String, String])]
-  ) = renderTaskMap("publishProperties", values, crossValues, literalize(_), literalize(_))
-
-  def renderErrorProneVersion(value: String, crossValues: Seq[(String, String)]) =
-    renderTask("errorProneVersion", value, crossValues, literalize(_))
-
-  def renderErrorProneOptions(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
-    renderTaskSeq("errorProneOptions", values, crossValues, literalize(_))
-
-  def renderErrorProneJavacEnableOptions(
-      values: Seq[String],
-      crossValues: Seq[(String, Seq[String])]
-  ) = renderTaskSeq("errorProneJavacEnableOptions", values, crossValues, literalize(_))
-
-  def renderErrorProneDeps(
-      values: Seq[ModuleConfig.MvnDep],
-      crossValues: Seq[(String, Seq[ModuleConfig.MvnDep])]
-  ) = renderTaskSeq("errorProneDeps", values, crossValues, renderMvnDep)
-
-  def renderScalaVersion(value: String, crossValues: Seq[(String, String)]) =
-    renderTask("scalaVersion", value, crossValues, literalize(_))
-
-  def renderScalacOptions(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
-    renderTaskSeq("scalacOptions", values, crossValues, literalize(_))
-
-  def renderScalacPluginMvnDeps(
-      values: Seq[ModuleConfig.MvnDep],
-      crossValues: Seq[(String, Seq[ModuleConfig.MvnDep])]
-  ) = renderTaskSeq("scalacPluginMvnDeps", values, crossValues, renderMvnDep)
-
-  def renderScalaJSVersion(value: String, crossValues: Seq[(String, String)]) =
-    renderTask("scalaJSVersion", value, crossValues, literalize(_))
-
-  def renderScalaNativeVersion(value: String, crossValues: Seq[(String, String)]) =
-    renderTask("scalaNativeVersion", value, crossValues, literalize(_))
-
-  def renderSourcesRootFolders(values: Seq[String], crossValues: Seq[(String, Seq[String])]) =
-    renderMethodSeq("sourcesRootFolders", values, crossValues, s => s"os.sub / ${literalize(s)}")
-
-  def renderMvnDep(dep: ModuleConfig.MvnDep) = build.metaBuild.fold(renderMvnDep0(dep)) { meta =>
-    var ref = refsByMvnDep.getOrElse(dep, null)
+  def renderMvnDep(dep: MvnDep) = build.metaBuild.fold(dep.toString()) { meta =>
+    var ref = mvnDepRef.getOrElse(dep, null)
     if (ref == null) {
-      /*
-        We use the dependency name as the seed for the reference. When a name collision occurs, a
-        suffix is added that starts with the '#' character. This forces backticks in the final name,
-        making the "duplicate" stand out visually in the output. The reference without backticks is
-        saved so that it is grouped together with the "original", when sorted, on render.
-        Example output:
-          val catsCore = mvn"org.typelevel::cats-core:2.0.0"
-          val `catsCore#0` = mvn"org.typelevel::cats-core:2.6.1"
-       */
       ref = dep.name.split("\\W") match
         case Array(head) => head
         case parts => parts.tail.map(_.capitalize).mkString(parts.head, "", "")
-      if (refsByMvnDep.valuesIterator.contains(ref))
+      if (mvnDepRef.valuesIterator.contains(ref)) {
+        // generate name for "duplicate" that will stand out visually, eg:
+        //    val catsCore = mvn"org.typelevel::cats-core:2.0.0"
+        //    val `catsCore#0` = mvn"org.typelevel::cats-core:2.6.1"
         ref += "#"
-        ref += refsByMvnDep.valuesIterator.count(_.startsWith(ref))
-      refsByMvnDep.put(dep, ref)
+        ref += mvnDepRef.valuesIterator.count(_.startsWith(ref))
+      }
+      mvnDepRef.put(dep, ref)
     }
     meta.depsObjectName + "." + backtickWrap(ref)
   }
 
-  def renderMvnDep0(dep: ModuleConfig.MvnDep) = {
+  def renderModuleDep(dep: ModuleDep) = {
     import dep.*
-    val sep = cross match {
-      case _: ModuleConfig.CrossVersion.Full => ":::"
-      case _: ModuleConfig.CrossVersion.Binary => "::"
-      case _ => ":"
-    }
-    val nameSuffix = cross match {
-      case v: ModuleConfig.CrossVersion.Constant => v.value
-      case _ => ""
-    }
-    var suffix = version.getOrElse("") + classifier.fold("") {
-      case "" => ""
-      case attr => s";classifier=$attr"
-    } + `type`.fold("") {
-      case "" | "jar" => ""
-      case attr => s";type=$attr"
-    } + excludes.iterator.map {
-      case (org, name) => s";exclude=$org:$name"
-    }.mkString
-    if (suffix.nonEmpty) {
-      val sep = if (cross.platformed) "::" else ":"
-      suffix = sep + suffix
-    }
-    s"""mvn"$organization$sep$name$nameSuffix$suffix""""
+    val segments0 = rootModuleAlias +: segments.map(backtickWrap)
+    def segment(i: Int) = segments0(i) + crossArgs.get(i - 1).fold("")(_.mkString("(", ", ", ")"))
+    segments0.indices.map(segment).mkString(".")
   }
 
-  def renderModuleDep(dep: ModuleConfig.ModuleDep) = {
-    import dep.*
-    rootModuleAlias + crossArgs.getOrElse(-1, "") + segments.indices
-      .map(i => "." + backtickWrap(segments(i)) + crossArgs.getOrElse(i, ""))
-      .mkString
-  }
-
-  def renderArtifact(value: ModuleConfig.Artifact) = {
+  def renderArtifact(value: Artifact) = {
     import value.*
     s"Artifact(${literalize(group)}, ${literalize(id)}, ${literalize(version)})"
   }
 
-  def renderPomSettings0(value: ModuleConfig.PomSettings) = {
+  def renderPomSettings(value: PomSettings) = {
     import value.*
-    s"PomSettings(${
-        literalize(if (description == null) "" else description)
-      }, ${
-        literalize(if (organization == null) "" else organization)
-      }, ${
-        literalize(if (url == null) "" else url)
-      }, ${
-        licenses.map(renderLicense).mkString("Seq(", ", ", ")")
-      }, ${
-        renderVersionControl(versionControl)
-      }, ${
-        developers.map(renderDeveloper).mkString("Seq(", ", ", ")")
-      })"
+    val description0 = literalize(if (description == null) "" else description)
+    val organization0 = literalize(if (organization == null) "" else organization)
+    val url0 = literalize(if (url == null) "" else url)
+    val licenses0 = s"Seq(${licenses.map(renderLicense).mkString(", ")})"
+    val versionControl0 = renderVersionControl(versionControl)
+    val developers0 = s"Seq(${developers.map(renderDeveloper).mkString(", ")})"
+    s"PomSettings($description0, $organization0, $url0, $licenses0, $versionControl0, $developers0)"
   }
 
-  def renderLicense(value: ModuleConfig.License) = {
+  def renderLicense(value: License) = {
     import value.*
-    s"License(${
-        literalize(if (id == null) "" else id)
-      }, ${
-        literalize(if (name == null) "" else name)
-      }, ${
-        literalize(if (url == null) "" else url)
-      }, ${
-        isOsiApproved
-      }, ${
-        isFsfLibre
-      }, ${
-        literalize(if (distribution == null) "" else distribution)
-      })"
+    val id0 = literalize(if (id == null) "" else id)
+    val name0 = literalize(if (name == null) "" else name)
+    val url0 = literalize(if (url == null) "" else url)
+    val distribution0 = literalize(if (distribution == null) "" else distribution)
+    s"License($id0, $name0, $url0, $isOsiApproved, $isFsfLibre, $distribution0)"
   }
 
-  def renderVersionControl(value: ModuleConfig.VersionControl) = {
+  def renderVersionControl(value: VersionControl) = {
     import value.*
-    s"VersionControl(${
-        browsableRepository.fold("None")(v => s"Some(${literalize(v)})")
-      }, ${
-        connection.fold("None")(v => s"Some(${literalize(v)})")
-      }, ${
-        developerConnection.fold("None")(v => s"Some(${literalize(v)})")
-      }, ${
-        tag.fold("None")(v => s"Some(${literalize(v)})")
-      })"
+    val browsableRepository0 = browsableRepository.fold("None")(v => s"Some(${literalize(v)})")
+    val connection0 = connection.fold("None")(v => s"Some(${literalize(v)})")
+    val developerConnection0 = developerConnection.fold("None")(v => s"Some(${literalize(v)})")
+    val tag0 = tag.fold("None")(v => s"Some(${literalize(v)})")
+    s"VersionControl($browsableRepository0, $connection0, $developerConnection0, $tag0)"
   }
 
-  def renderDeveloper(value: ModuleConfig.Developer) = {
+  def renderDeveloper(value: Developer) = {
     import value.*
-    s"Developer(${
-        literalize(if (id == null) "" else id)
-      }, ${
-        literalize(if (name == null) "" else name)
-      }, ${
-        literalize(if (url == null) "" else url)
-      }, ${
-        organization.fold("None")(v => s"Some(${literalize(v)})")
-      }, ${
-        organizationUrl.fold("None")(v => s"Some(${literalize(v)})")
-      })"
+    val id0 = literalize(if (id == null) "" else id)
+    val name0 = literalize(if (name == null) "" else name)
+    val url0 = literalize(if (url == null) "" else url)
+    val organization0 = organization.fold("None")(v => s"Some(${literalize(v)})")
+    val organizationUrl0 = organizationUrl.fold("None")(v => s"Some(${literalize(v)})")
+    s"Developer($id0, $name0, $url0, $organization0, $organizationUrl0)"
   }
 
-  def renderVersionScheme0(value: String) = value match {
+  def renderVersionScheme(value: String) = value match {
     case "early-semver" => "VersionScheme.EarlySemVer"
     case "pvp" => "VersionScheme.PVP"
     case "semver-spec" => "VersionScheme.SemVerSpec"
     case "strict" => "VersionScheme.Strict"
   }
 
-  def renderLines(values: IterableOnce[String]) = values.iterator.mkString(
+  def renderBlocks(blocks: String*) = blocks.mkString(
+    """
+      |""".stripMargin,
+    """
+      |
+      |""".stripMargin,
     """
       |""".stripMargin
   )
 
-  def renderMethod[A](
+  def renderLines(lines: Iterable[String]) = lines.mkString(
+    """
+      |""".stripMargin
+  )
+
+  def renderMember[A](
       name: String,
       value: A,
       crossValues: Seq[(String, A)],
       renderValue: A => String
   ) = {
-    val crossValues0 = crossValues.collect:
+    val crossValues0 = crossValues.collect {
       case (k, v) if v != null => (k, v)
+    }
     if (value == null && crossValues0.isEmpty) ""
     else {
       val value0 = if (value == null) s"super.$name" else renderValue(value)
-      s"def $name = " +
-        (if (crossValues0.isEmpty) value0
-         else
-           s"""crossValue match {
-              |${
-               renderLines(crossValues.groupMap(_._2)(_._1).toSeq.sortBy(_._2)
-                 .map((v, crosses) =>
-                   s"  case ${crosses.sorted.map(literalize(_)).mkString(" | ")} => ${renderValue(v)}"
-                 ))
-             }
-              |  case _ => $value0
-              |}""".stripMargin)
+      s"def $name = " + {
+        if (crossValues0.isEmpty) value0
+        else {
+          val crossCases = crossValues0.groupMap(_._2)(_._1).toSeq.sortBy(_._2).map {
+            (value, crosses) =>
+              val matchValues = crosses.sorted.map(literalize(_)).mkString(" | ")
+              s"case $matchValues => ${renderValue(value)}"
+          }
+          s"""crossValue match {
+             |  ${renderLines(crossCases)}
+             |  case _ => $value0
+             |}""".stripMargin
+        }
+      }
     }
-  }
-
-  def renderMethodSeq[A](
-      name: String,
-      values: Seq[A],
-      crossValues: Seq[(String, Seq[A])],
-      renderValue: A => String
-  ) = {
-    val crossValues0 = crossValues.filter(_._2.nonEmpty)
-    if (values.isEmpty && crossValues0.isEmpty) ""
-    else
-      s"def $name = super.$name" +
-        (if (values.isEmpty) ""
-         else s" ++ Seq(${values.iterator.map(renderValue).mkString(", ")})") +
-        (if (crossValues0.isEmpty) ""
-         else
-           s""" ++ (crossValue match {
-              |${
-               renderLines(crossValues0.groupMap(_._2)(_._1).toSeq.sortBy(_._2)
-                 .map((v, crosses) =>
-                   s"  case ${crosses.sorted.map(literalize(_)).mkString(" | ")} => Seq(${v.map(renderValue).mkString(", ")})"
-                 ))
-             }
-              |  case _ => Nil
-              |}""".stripMargin)
   }
 
   def renderTask[A](
@@ -665,105 +494,116 @@ class BuildWriter(build: BuildRepr, renderCrossValueInTask: String = "crossValue
       crossValues: Seq[(String, A)],
       renderValue: A => String
   ) = {
-    val crossValues0 = crossValues.collect:
-      case (k, v) if v != null => (k, renderValue(v))
+    val crossValues0 = crossValues.collect {
+      case (k, v) if v != null => (k, v)
+    }
     if (value == null && crossValues0.isEmpty) ""
     else {
       val value0 = if (value == null) s"super.$name()" else renderValue(value)
-      s"def $name = " +
-        (if (crossValues0.isEmpty) value0
-         else
-           s"""$renderCrossValueInTask match {
-              |${
-               renderLines(crossValues.groupMap(_._2)(_._1).toSeq.sortBy(_._2)
-                 .map((v, crosses) =>
-                   s"  case ${crosses.sorted.map(literalize(_)).mkString(" | ")} => $v"
-                 ))
-             }
-              |  case _ => $value0
-              |}""".stripMargin)
+      s"def $name = " + {
+        if (crossValues0.isEmpty) value0
+        else {
+          val crossCases = crossValues0.groupMap(_._2)(_._1).toSeq.sortBy(_._2).map {
+            (value, crosses) =>
+              val matchValues = crosses.sorted.map(literalize(_)).mkString(" | ")
+              s"case $matchValues => ${renderValue(value)}"
+          }
+          s"""$renderCrossValueInTask match {
+             |  ${renderLines(crossCases)}
+             |  case _ => $value0
+             |}""".stripMargin
+        }
+      }
     }
   }
 
-  def renderTaskOption[A](
+  def renderMemberAsSeq[A](
       name: String,
-      value: Option[A],
-      crossValues: Seq[(String, Option[A])],
+      value: Seq[A],
+      crossValues: Seq[(String, Seq[A])],
       renderValue: A => String
   ) = {
-    val crossValues0 = crossValues.collect:
-      case (k, Some(v)) if v != null => (k, s"Some(${renderValue(v)})")
+    val crossValues0 = crossValues.filter(_._2.nonEmpty)
     if (value.isEmpty && crossValues0.isEmpty) ""
     else {
-      val value0 = value.fold("None")(value => s"Some(${renderValue(value)})")
-      s"def $name = " +
-        (if (crossValues0.isEmpty) value0
-         else
-           s"""$renderCrossValueInTask match {
-              |${
-               renderLines(crossValues.groupMap(_._2)(_._1).toSeq.sortBy(_._2)
-                 .map((v, crosses) =>
-                   s"  case ${crosses.sorted.map(literalize(_)).mkString(" | ")} => $v}"
-                 ))
-             }
-              |  case _ => $value0
-              |}""".stripMargin)
+      def renderSeq(value: Seq[A]) = value.map(renderValue).mkString("Seq(", ", ", ")")
+      s"def $name = super.$name" + {
+        if (value.isEmpty) "" else " ++ " + renderSeq(value)
+      } + {
+        if (crossValues0.isEmpty) ""
+        else {
+          val crossCases = crossValues0.groupMap(_._2)(_._1).toSeq.sortBy(_._2).map {
+            (value, crosses) =>
+              val matchValues = crosses.sorted.map(literalize(_)).mkString(" | ")
+              s"case $matchValues => ${renderSeq(value)}"
+          }
+          s""" ++ (crossValue match {
+             |  ${renderLines(crossCases)}
+             |  case _ => Nil
+             |})""".stripMargin
+        }
+      }
     }
   }
 
-  def renderTaskMap[K, V](
+  def renderTaskAsMap[K, V](
       name: String,
-      values: Map[K, V],
+      value: Map[K, V],
       crossValues: Seq[(String, Map[K, V])],
       renderKey: K => String,
       renderValue: V => String
   ) = {
     val crossValues0 = crossValues.filter(_._2.nonEmpty)
-    if (values.isEmpty && crossValues0.isEmpty) ""
-    else
-      s"def $name = super.$name()" +
-        (if (values.isEmpty) ""
-         else
-           s" ++ Map(${values.map((k, v) => s"(${renderKey(k)}, ${renderValue(v)})").mkString(", ")})") +
-        (if (crossValues0.isEmpty) ""
-         else
-           s""" ++ ($renderCrossValueInTask match {
-              |${
-               renderLines(crossValues0.groupMap(_._2)(_._1).toSeq.sortBy(_._2)
-                 .map((v, crosses) =>
-                   s"  case ${crosses.sorted.map(literalize(_)).mkString(" | ")} => Map(${
-                       v.toSeq.map((k, v) =>
-                         s"(${renderKey(k)}, ${renderValue(v)})"
-                       ).mkString(", ")
-                     })"
-                 ))
-             }
-              |  case _ => Map()
-              |})""".stripMargin)
+    if (value.isEmpty && crossValues0.isEmpty) ""
+    else {
+      def renderMap(value: Map[K, V]) = value
+        .map((k, v) => s"(${renderKey(k)}, ${renderValue(v)})")
+        .mkString("Map(", ", ", ")")
+      s"def $name = super.$name()" + {
+        if (value.isEmpty) "" else " ++ " + renderMap(value)
+      } + {
+        if (crossValues0.isEmpty) ""
+        else {
+          val crossCases = crossValues0.groupMap(_._2)(_._1).toSeq.sortBy(_._2).map {
+            (value, crosses) =>
+              val matchValues = crosses.sorted.map(literalize(_)).mkString(" | ")
+              s"case $matchValues => ${renderMap(value)}"
+          }
+          s""" ++ ($renderCrossValueInTask match {
+             |  ${renderLines(crossCases)}
+             |  case _ => Map()
+             |})""".stripMargin
+        }
+      }
+    }
   }
 
-  def renderTaskSeq[A](
+  def renderTaskAsSeq[A](
       name: String,
-      values: Seq[A],
+      value: Seq[A],
       crossValues: Seq[(String, Seq[A])],
       renderValue: A => String
   ) = {
     val crossValues0 = crossValues.filter(_._2.nonEmpty)
-    if (values.isEmpty && crossValues0.isEmpty) ""
-    else
-      s"def $name = super.$name()" +
-        (if (values.isEmpty) ""
-         else s" ++ Seq(${values.iterator.map(renderValue).mkString(", ")})") +
-        (if (crossValues0.isEmpty) ""
-         else
-           s""" ++ ($renderCrossValueInTask match {
-              |${
-               renderLines(crossValues0.groupMap(_._2)(_._1).toSeq.sortBy(_._2)
-                 .map((v, crosses) =>
-                   s"  case ${crosses.sorted.map(literalize(_)).mkString(" | ")} => Seq(${v.map(renderValue).mkString(", ")})"
-                 ))
-             }
-              |  case _ => Nil
-              |})""".stripMargin)
+    if (value.isEmpty && crossValues0.isEmpty) ""
+    else {
+      def renderSeq(value: Seq[A]) = value.map(renderValue).mkString("Seq(", ", ", ")")
+      s"def $name = super.$name()" + {
+        if (value.isEmpty) "" else " ++ " + renderSeq(value)
+      } + {
+        if (crossValues0.isEmpty) ""
+        else {
+          val crossCases = crossValues0.groupMap(_._2)(_._1).toSeq.sortBy(_._2).map {
+            (value, crosses) =>
+              val matchValues = crosses.sorted.map(literalize(_)).mkString(" | ")
+              s"case $matchValues => ${renderSeq(value)}"
+          }
+          s""" ++ ($renderCrossValueInTask match {
+             |  ${renderLines(crossCases)}
+             |  case _ => Nil
+             |})""".stripMargin
+        }
+      }
+    }
   }
 }

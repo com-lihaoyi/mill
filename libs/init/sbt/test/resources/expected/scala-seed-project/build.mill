@@ -9,9 +9,9 @@ import millbuild._
 
 object `package` extends PublishModule with SbtModule {
 
-  def scalaVersion = "2.13.12"
-
   def artifactName = "scala-seed-project"
+
+  def scalaVersion = "2.13.12"
 
   def pomSettings = PomSettings(
     "Scala Seed Project",
@@ -31,6 +31,7 @@ object `package` extends PublishModule with SbtModule {
     def testParallelism = false
 
     def testSandboxWorkingDir = false
+
   }
 
 }

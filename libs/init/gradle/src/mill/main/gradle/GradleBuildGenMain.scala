@@ -13,9 +13,7 @@ import java.util.concurrent.TimeUnit
 import scala.util.Using
 
 /**
- * Application that generates Mill build files for a Gradle project. This is achieved by using a
- * custom plugin that maps each Gradle `Project` to a module with configurations extracted using the
- * Gradle Tooling API.
+ * Application that imports a Gradle build to Mill.
  */
 object GradleBuildGenMain {
 
@@ -25,7 +23,6 @@ object GradleBuildGenMain {
   def main(args: Array[String]): Unit = {
     val args0 = summon[ParserForClass[GradleBuildGenArgs]].constructOrExit(args.toSeq)
     import args0.*
-
     println("converting Gradle build")
 
     val gradleWrapperProperties = {
@@ -34,20 +31,23 @@ object GradleBuildGenMain {
       if (os.isFile(file)) Using.resource(os.read.inputStream(file))(properties.load)
       properties
     }
+    val gradleJvmArgs = Option(gradleWrapperProperties.getProperty("org.gradle.jvmargs"))
+      .fold(Nil)(_.trim.split("\\s+").toSeq)
 
-    val packages = {
-      val connector = GradleConnector.newConnector() match {
-        case conn: DefaultGradleConnector =>
-          conn.daemonMaxIdleTime(1, TimeUnit.SECONDS)
-          conn
-        case conn => conn
-      }
-      val gradleJavaHome =
-        Jvm.resolveJavaHome(id = gradleJvmId, config = CoursierConfig.default()).get
-      val exportPluginJar = Using.resource(
-        GradleBuildGenMain.getClass.getResourceAsStream(exportpluginAssemblyResource)
-      )(os.temp(_, suffix = ".jar"))
-      try Using.resource(connector.forProjectDirectory(os.pwd.toIO).connect()) { connection =>
+    val gradleJavaHome =
+      Jvm.resolveJavaHome(id = gradleJvmId, config = CoursierConfig.default()).get
+    val exportPluginJar = Using.resource(
+      GradleBuildGenMain.getClass.getResourceAsStream(exportpluginAssemblyResource)
+    )(os.temp(_, suffix = ".jar"))
+    val gradleConnector = GradleConnector.newConnector() match {
+      case conn: DefaultGradleConnector =>
+        conn.daemonMaxIdleTime(1, TimeUnit.SECONDS)
+        conn
+      case conn => conn
+    }
+    val packages =
+      try {
+        Using.resource(gradleConnector.forProjectDirectory(os.pwd.toIO).connect()) { connection =>
           val initScript = os.temp(
             s"""initscript {
                |    dependencies {
@@ -55,26 +55,21 @@ object GradleBuildGenMain {
                |    }
                |}
                |rootProject {
-               |    apply plugin: mill.main.gradle.GradleBuildModelPlugin
+               |    apply plugin: mill.main.gradle.BuildModelPlugin
                |}
                |""".stripMargin,
             suffix = ".gradle"
           )
-          val modelBuilder = connection.model(classOf[GradleBuildModel])
+          val modelBuilder = connection.model(classOf[BuildModel])
             .setJavaHome(gradleJavaHome.toIO)
             .addArguments("--init-script", initScript.toString)
-            .setStandardOutput(System.out)
+          println("connecting to Gradle daemon")
           val model = modelBuilder.get
-
-          upickle.default.read[Seq[ModuleRepr]](model.getModulesJson).map(Tree(_))
+          upickle.default.read[Seq[PackageSpec]](model.asJson)
         }
-      finally connector.disconnect()
-    }
+      } finally gradleConnector.disconnect()
 
-    val gradleJvmArgs = Option(gradleWrapperProperties.getProperty("org.gradle.jvmargs"))
-      .fold(Nil)(_.trim.split("\\s+").toSeq)
-
-    var build = BuildRepr.fill(packages).copy(millJvmOpts = gradleJvmArgs)
+    var build = BuildSpec.fill(packages).copy(millJvmOpts = gradleJvmArgs)
     if (merge.value) build = build.merged
     if (!noMeta.value) build = build.withMetaBuild
     BuildWriter(build).writeFiles()
@@ -88,8 +83,7 @@ case class GradleBuildGenArgs(
     @mainargs.arg(doc = "disable generating meta-build files")
     noMeta: mainargs.Flag,
     @mainargs.arg(doc = "JDK to use to run the Gradle daemon")
-    // We use the system JDK, instead of the one used by Mill, since it may be used to configure
-    // the Java toolchain for the build.
+    // The JDK used to run the daemon may be used to configure certain settings.
     gradleJvmId: String = "system"
 )
 object GradleBuildGenArgs {

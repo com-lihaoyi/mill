@@ -10,12 +10,13 @@ import millbuild._
 
 object `package`
     extends Cross[CrossVersionModule]("2.12.18", "2.13.12", "3.3.1")
-trait CrossVersionModule
-    extends PublishModule with CrossScalaModule with CrossSbtModule {
+trait CrossVersionModule extends PublishModule with CrossSbtModule {
 
   def javacOptions = super.javacOptions() ++ Seq("--release", "8")
 
   def artifactName = "my-cross-project"
+
+  def jvmId = "zulu:11"
 
   def pomSettings = PomSettings(
     "my-cross-project",
@@ -28,8 +29,6 @@ trait CrossVersionModule
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
-  def jvmId = "zulu:11"
-
   object test extends CrossSbtTests with TestModule.ScalaTest {
 
     def mvnDeps = super.mvnDeps() ++ Seq(Deps.scalatest)
@@ -37,6 +36,7 @@ trait CrossVersionModule
     def testParallelism = false
 
     def testSandboxWorkingDir = false
+
   }
 
 }

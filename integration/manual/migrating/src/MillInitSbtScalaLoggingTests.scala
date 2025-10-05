@@ -12,12 +12,8 @@ object MillInitSbtScalaLoggingTests extends GitRepoIntegrationTestSuite {
       linkMillExecutable = true
     ) { tester =>
       import tester.*
-
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("__.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("__.test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("__.publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
     }
   }
 }

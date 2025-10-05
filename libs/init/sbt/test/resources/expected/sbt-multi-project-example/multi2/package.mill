@@ -19,6 +19,8 @@ object `package` extends SbtMultiProjectExampleBaseModule {
 
   def moduleDeps = super.moduleDeps ++ Seq(build.common)
 
+  def artifactName = "multi2"
+
   def pomSettings = PomSettings(
     "This is an sbt sample project for testing Mill's init command.",
     "com.pbassiner",
@@ -47,6 +49,7 @@ object `package` extends SbtMultiProjectExampleBaseModule {
     def testParallelism = false
 
     def testSandboxWorkingDir = false
+
   }
 
 }

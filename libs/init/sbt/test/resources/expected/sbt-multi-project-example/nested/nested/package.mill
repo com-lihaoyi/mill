@@ -7,11 +7,11 @@ import millbuild._
 
 object `package` extends SbtMultiProjectExampleBaseModule {
 
-  def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
-
   def mvnDeps = super.mvnDeps() ++ Seq(Deps.nettyTransportNativeEpoll)
 
   def artifactName = "nested"
+
+  def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
 
   def pomSettings = PomSettings(
     "This is an sbt sample project for testing Mill's init command.",

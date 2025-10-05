@@ -49,7 +49,7 @@ class Plugins(model: Model) {
         .flatMap(configDom)
         .flatMap(value(_, "toolchains", "jdk", "version")))
       .orElse(mavenEnforcerPlugin
-        .flatMap(_.getExecutions.iterator.asScala.find(_.getGoals.contains("enforce")))
+        .flatMap(_.getExecutions.asScala.find(_.getGoals.contains("enforce")))
         .flatMap(configDom)
         .flatMap(value(_, "rules", "requireJavaVersion", "version")))
       .flatMap { spec =>
@@ -87,7 +87,7 @@ class Plugins(model: Model) {
     findPlugin("org.apache.maven.plugins", "maven-toolchains-plugin")
 
   def findPlugin(groupId: String, artifactId: String): Option[Plugin] =
-    model.getBuild.getPlugins.iterator.asScala
+    model.getBuild.getPlugins.asScala
       .find(p => p.getGroupId == groupId && p.getArtifactId == artifactId)
 
   def configDom(cc: ConfigurationContainer): Option[Xpp3Dom] = cc.getConfiguration match {
@@ -107,12 +107,12 @@ class Plugins(model: Model) {
 
   def values(dom: Xpp3Dom, names: String*): Seq[String] =
     if (dom == null) Nil
-    else if (names.isEmpty) dom.getChildren.iterator.flatMap(value0).toSeq
+    else if (names.isEmpty) dom.getChildren.toSeq.flatMap(value0)
     else dom.getChildren(names.head).toSeq.flatMap(values(_, names.tail*))
 
   def value0(dom: Xpp3Dom): Option[String] = dom.getValue match {
     case null | "" => None
-    // this could happen for a BOM module that references a property defined in the root POM
+    // This could happen for a BOM module that references a property defined in the root POM.
     case s"$${$prop}" => Option(model.getProperties.getProperty(prop))
     case value => Some(value)
   }

@@ -4,6 +4,7 @@ import mill._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalajslib._
+import mill.scalajslib.api._
 import mill.scalalib._
 import mill.scalanativelib._
 import millbuild._
@@ -36,9 +37,11 @@ object `package` extends Module {
       def testParallelism = false
 
       def testSandboxWorkingDir = false
+
     }
 
   }
+
   object jvm extends CrossprojectBaseModule {
 
     def mvnDeps = super.mvnDeps() ++ Seq(Deps.osLib)
@@ -61,9 +64,11 @@ object `package` extends Module {
       def testParallelism = false
 
       def testSandboxWorkingDir = false
+
     }
 
   }
+
   object native extends ScalaNativeModule with CrossprojectBaseModule {
 
     def scalaNativeVersion = "0.5.4"
@@ -90,7 +95,9 @@ object `package` extends Module {
       def testParallelism = false
 
       def testSandboxWorkingDir = false
+
     }
 
   }
+
 }

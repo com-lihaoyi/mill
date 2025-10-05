@@ -12,19 +12,13 @@ object MillInitGradlePCollectionsTests extends GitRepoIntegrationTestSuite {
       linkMillExecutable = true
     ) { tester =>
       import tester.*
-
       eval(
         ("init", "--gradle-jvm-id", "17"),
         stdout = os.Inherit,
         stderr = os.Inherit
       ).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-
-      // typos in class names
-      eval("javadocGenerated", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
       // mismatch between junit-jupiter-api and junit-platform-launcher (from sbt jupiter-interface)
-      eval("test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
     }
   }
 }

@@ -43,6 +43,13 @@ object SbtBuildGenTests extends TestSuite {
       ))
     }
     test("with-args") {
+      test("sbt-multi-project-example") {
+        assert(checker.check(
+          generate = SbtBuildGenMain.main(Array("--merge", "--no-meta")),
+          sourceRel = os.sub / "sbt-multi-project-example",
+          expectedRel = os.sub / "expected/with-args/sbt-multi-project-example"
+        ))
+      }
       test("crossproject-cross-version") {
         assert(checker.check(
           generate = SbtBuildGenMain.main(Array("--merge", "--no-meta")),

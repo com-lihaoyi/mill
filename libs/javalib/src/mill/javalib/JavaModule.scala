@@ -1443,7 +1443,7 @@ trait JavaModule
 //      case _ => bspCompileClassesPath(needsToMergeResourcesIntoCompileDest)
 //    }
 //    Task.Anon { (ev: EvaluatorApi) =>
-//      (
+//      (showMvnDepsTree
 //        classesPathTask().resolve(os.Path(ev.outPathJava)).toNIO,
 //        javacOptions() ++ mandatoryJavacOptions(),
 //        bspCompileClasspath(needsToMergeResourcesIntoCompileDest).apply().apply(ev)

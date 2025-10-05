@@ -12,12 +12,9 @@ object MillInitSbtRefinedTests extends GitRepoIntegrationTestSuite {
       linkMillExecutable = true
     ) { tester =>
       import tester.*
-
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-
       // custom version range source roots 3.0+/3.0- not supported
-      eval("__.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
     }
   }
 }

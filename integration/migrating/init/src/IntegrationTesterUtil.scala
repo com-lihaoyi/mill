@@ -76,4 +76,31 @@ object IntegrationTesterUtil {
       tester: IntegrationTester,
       selector: String = "__."
   ): Map[String, Seq[String]] = showNamed(tester, selector + "errorProneOptions")
+
+  def showNamedScalaVersion(
+      tester: IntegrationTester,
+      selector: String = "__."
+  ): Map[String, String] = showNamed(tester, selector + "scalaVersion")
+  def showNamedScalacOptions(
+      tester: IntegrationTester,
+      selector: String = "__."
+  ): Map[String, Seq[String]] = showNamed(tester, selector + "scalacOptions")
+  def showNamedScalacPluginMvnDeps(
+      tester: IntegrationTester,
+      selector: String = "__."
+  ): Map[String, Seq[String]] = showNamed(tester, selector + "scalacPluginMvnDeps")
+
+  def showNamedScalaJSVersion(
+      tester: IntegrationTester,
+      selector: String = "__."
+  ): Map[String, String] = showNamed(tester, selector + "scalaJSVersion")
+  def showNamedScalaJSModuleKind(
+      tester: IntegrationTester,
+      selector: String = "__."
+  ): Map[String, String] = showNamed(tester, selector + "moduleKind")
+
+  def showNamedScalaNativeVersion(
+      tester: IntegrationTester,
+      selector: String = "__."
+  ): Map[String, String] = showNamed(tester, selector + "scalaNativeVersion")
 }

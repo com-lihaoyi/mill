@@ -28,9 +28,17 @@ object MavenBuildGenTests extends TestSuite {
       ))
     }
     test("with-args") {
+      val args = Array("--merge", "--no-meta", "--publish-properties")
+      test("maven-samples") {
+        assert(checker.check(
+          generate = MavenBuildGenMain.main(args),
+          sourceRel = os.sub / "maven-samples",
+          expectedRel = os.sub / "expected/with-args/maven-samples"
+        ))
+      }
       test("quickstart") {
         assert(checker.check(
-          generate = MavenBuildGenMain.main(Array("--merge", "--no-meta", "--publish-properties")),
+          generate = MavenBuildGenMain.main(args),
           sourceRel = os.sub / "quickstart",
           expectedRel = os.sub / "expected/with-args/quickstart"
         ))

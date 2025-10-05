@@ -7,8 +7,6 @@ import millbuild._
 
 object `package` extends SbtMultiProjectExampleBaseModule {
 
-  def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8", "-V")
-
   def mvnDeps = super.mvnDeps() ++ Seq(
     Deps.logbackClassic,
     Deps.logstashLogbackEncoder,
@@ -21,6 +19,10 @@ object `package` extends SbtMultiProjectExampleBaseModule {
   )
 
   def moduleDeps = super.moduleDeps ++ Seq(build.common)
+
+  def artifactName = "multi1"
+
+  def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8", "-V")
 
   def pomSettings = PomSettings(
     "This is an sbt sample project for testing Mill's init command.",
@@ -50,6 +52,7 @@ object `package` extends SbtMultiProjectExampleBaseModule {
     def testParallelism = false
 
     def testSandboxWorkingDir = false
+
   }
 
 }

@@ -28,9 +28,11 @@ object `package` extends Module {
       def testParallelism = false
 
       def testSandboxWorkingDir = false
+
     }
 
   }
+
   object list extends MavenModule with ErrorProneModule {
 
     def javacOptions = super.javacOptions() ++
@@ -51,15 +53,20 @@ object `package` extends Module {
 
       def errorProneVersion = "2.28.0"
 
+      def errorProneOptions = super.errorProneOptions() ++
+        Seq("-XepCompilingTestOnlyCode")
+
       def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
         Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
       def testParallelism = false
 
       def testSandboxWorkingDir = false
+
     }
 
   }
+
   object utilities extends MavenModule with ErrorProneModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(build.list)
@@ -75,4 +82,5 @@ object `package` extends Module {
     def jvmId = "zulu:17"
 
   }
+
 }

@@ -4,8 +4,10 @@ import mill.javalib._
 import mill.javalib.publish._
 import millbuild._
 
-object `package` extends `9.0.0BaseModule` {
+object `package` extends `9.0.0PublishModule` {
 
   def moduleDeps = super.moduleDeps ++ Seq(build.list)
+
+  def artifactName = "utilities"
 
 }

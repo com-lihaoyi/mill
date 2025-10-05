@@ -97,7 +97,7 @@
           <!-- check ErrorProneModule -->
           <compilerArgs>
             <arg>-XDcompilePolicy=simple</arg>
-            <arg>--should-stop=ifError=FLOW</arg>
+            <arg>-XDshould-stop=ifError=FLOW</arg>
             <arg>-Xplugin:ErrorProne</arg>
           </compilerArgs>
           <annotationProcessorPaths>

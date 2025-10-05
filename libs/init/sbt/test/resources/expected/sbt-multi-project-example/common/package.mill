@@ -7,8 +7,6 @@ import millbuild._
 
 object `package` extends SbtMultiProjectExampleBaseModule {
 
-  def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
-
   def mvnDeps = super.mvnDeps() ++ Seq(
     Deps.logbackClassic,
     Deps.logstashLogbackEncoder,
@@ -17,6 +15,10 @@ object `package` extends SbtMultiProjectExampleBaseModule {
     Deps.config,
     Deps.akkaStream
   )
+
+  def artifactName = "common"
+
+  def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
 
   def pomSettings = PomSettings(
     "This is the common module.",
@@ -46,6 +48,7 @@ object `package` extends SbtMultiProjectExampleBaseModule {
     def testParallelism = false
 
     def testSandboxWorkingDir = false
+
   }
 
 }

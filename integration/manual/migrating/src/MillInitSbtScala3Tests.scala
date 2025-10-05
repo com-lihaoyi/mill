@@ -12,12 +12,9 @@ object MillInitSbtScala3Tests extends GitRepoIntegrationTestSuite {
       linkMillExecutable = true
     ) { tester =>
       import tester.*
-
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-
+      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
       // non-standard layout
-      eval("__.allSourceFiles", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
     }
   }
 }

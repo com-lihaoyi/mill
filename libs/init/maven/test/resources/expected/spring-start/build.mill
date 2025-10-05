@@ -12,6 +12,8 @@ object `package` extends MavenModule with PublishModule {
 
   def artifactName = "demo"
 
+  def jvmId = "zulu:17"
+
   def pomParentProject = Some(
     Artifact("org.springframework.boot", "spring-boot-starter-parent", "3.5.6")
   )
@@ -26,7 +28,5 @@ object `package` extends MavenModule with PublishModule {
   )
 
   def publishVersion = "0.0.1-SNAPSHOT"
-
-  def jvmId = "zulu:17"
 
 }

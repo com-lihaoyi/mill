@@ -6,19 +6,22 @@ import utest.*
 object MillInitMavenNettyTests extends GitRepoIntegrationTestSuite {
   def tests = Tests {
     test - integrationTestGitRepo(
+      // maven-enforcer-plugin, maven-checkstyle-plugin
+      // uses os-maven-plugin to configure dependencies
       // has modules that skip publish
       "https://github.com/netty/netty.git",
       "netty-4.2.6.Final",
       linkMillExecutable = true
     ) { tester =>
       import tester.*
-
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("common.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
-      // mismatch between junit-jupiter-api and junit-platform-launcher (from sbt jupiter-interface)
-      eval("common.test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
+      """Build functionality is limited due to unresolved (dynamically configured) dependencies.
+        |- `compile` succeeds for some modules like `buffer`
+        |- `test` fails due to version mismatch between Junit5 engine and platform dependencies
+        |- `javadocGenerated` failures could be fixed by adding support for `javadocOptions`
+        |""".stripMargin
     }
   }
 }

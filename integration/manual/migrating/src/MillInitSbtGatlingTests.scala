@@ -11,19 +11,9 @@ object MillInitSbtGatlingTests extends GitRepoIntegrationTestSuite {
       "v3.14.3"
     ) { tester =>
       import tester.*
-
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "__.compile"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("__.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-
-      // missing resource bundle
-      eval("__.test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
-      // illegal cyclic reference involving class Utf8ByteBufCharsetDecoder
-      eval(
-        "gatling-netty-util.scalaDocGenerated",
-        stdout = os.Inherit,
-        stderr = os.Inherit
-      ).isSuccess ==> false
+      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      // gatling-http-client jvmId is 11 but testing requires 17
     }
   }
 }

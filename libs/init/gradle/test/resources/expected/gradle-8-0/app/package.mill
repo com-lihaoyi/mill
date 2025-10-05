@@ -16,6 +16,7 @@ object `package` extends `8.0BaseModule` {
     def testParallelism = false
 
     def testSandboxWorkingDir = false
+
   }
 
 }

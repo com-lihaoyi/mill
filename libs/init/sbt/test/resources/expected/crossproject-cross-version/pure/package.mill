@@ -4,6 +4,7 @@ import mill._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalajslib._
+import mill.scalajslib.api._
 import mill.scalalib._
 import mill.scalanativelib._
 import millbuild._
@@ -11,10 +12,16 @@ import millbuild._
 object `package` extends Module {
 
   object js extends Cross[JsModule]("2.12.20", "2.13.14", "3.7.1")
-  trait JsModule extends ScalaJSModule with CrossprojectCrossVersionBaseModule {
+  trait JsModule
+      extends ScalaJSModule
+      with SbtPlatformModule
+      with CrossprojectCrossVersionBaseModule
+      with CrossSbtPlatformModule {
 
     def scalaJSVersion = "1.16.0"
 
+    def mvnDeps = super.mvnDeps() ++ Seq(Deps.`upickle#0`)
+
     def artifactName = "pure"
 
     def pomSettings = PomSettings(
@@ -27,8 +34,14 @@ object `package` extends Module {
     )
 
   }
+
   object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
-  trait JvmModule extends CrossprojectCrossVersionBaseModule {
+  trait JvmModule
+      extends SbtPlatformModule
+      with CrossprojectCrossVersionBaseModule
+      with CrossSbtPlatformModule {
+
+    def mvnDeps = super.mvnDeps() ++ Seq(Deps.`upickle#0`)
 
     def artifactName = "pure"
 
@@ -42,12 +55,18 @@ object `package` extends Module {
     )
 
   }
+
   object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
   trait NativeModule
-      extends ScalaNativeModule with CrossprojectCrossVersionBaseModule {
+      extends ScalaNativeModule
+      with SbtPlatformModule
+      with CrossprojectCrossVersionBaseModule
+      with CrossSbtPlatformModule {
 
     def scalaNativeVersion = "0.5.4"
 
+    def mvnDeps = super.mvnDeps() ++ Seq(Deps.`upickle#0`)
+
     def artifactName = "pure"
 
     def pomSettings = PomSettings(
@@ -60,4 +79,5 @@ object `package` extends Module {
     )
 
   }
+
 }

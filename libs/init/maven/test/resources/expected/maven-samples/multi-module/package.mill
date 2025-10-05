@@ -11,6 +11,8 @@ object `package` extends MavenSamplesBaseModule {
 
   def artifactName = "multi-module-parent"
 
+  def jvmId = "zulu:11"
+
   def pomPackagingType = "pom"
 
   def pomSettings = PomSettings(
@@ -26,7 +28,5 @@ object `package` extends MavenSamplesBaseModule {
     ),
     Seq()
   )
-
-  def jvmId = "zulu:11"
 
 }

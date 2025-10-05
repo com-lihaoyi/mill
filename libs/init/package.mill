@@ -116,18 +116,19 @@ object `package` extends MillPublishScalaModule {
 
   object sbt extends MillPublishScalaModule with BuildInfo {
     def moduleDeps = Seq(buildgen.api(Deps.scalaVersion), buildgen)
-    def sbtScriptJarResource = Task {
-      os.copy(exportscript.assembly().path, Task.dest / "exportscript-assembly.jar")
+    def sbtPluginJarResource = Task {
+      os.copy(exportplugin.assembly().path, Task.dest / "exportplugin-assembly.jar")
       PathRef(Task.dest)
     }
-    def resources = Task { super.resources() ++ Seq(sbtScriptJarResource()) }
+    def resources = Task { super.resources() ++ Seq(sbtPluginJarResource()) }
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
     def buildInfoPackageName = "mill.main.sbt"
     def buildInfoMembers = Seq(
-      BuildInfo.Value("exportscriptAssemblyResource", "/exportscript-assembly.jar")
+      BuildInfo.Value("exportpluginAssemblyResource", "/exportplugin-assembly.jar"),
+      BuildInfo.Value("sbtVersion", Deps.sbt.version)
     )
 
-    object exportscript extends ScalaModule {
+    object exportplugin extends ScalaModule {
       def scalaVersion = Deps.sbtScalaVersion212
       def mvnDeps = Seq(Deps.osLib)
       def moduleDeps = Seq(buildgen.api(Deps.sbtScalaVersion212))

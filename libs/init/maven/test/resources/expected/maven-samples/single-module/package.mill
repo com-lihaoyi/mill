@@ -13,6 +13,8 @@ object `package` extends MavenSamplesBaseModule {
 
   def artifactName = "single-module-project"
 
+  def jvmId = "zulu:11"
+
   def pomSettings = PomSettings(
     "Sample single module Maven project with a working, deployable site.",
     "com.example.maven-samples",
@@ -26,8 +28,6 @@ object `package` extends MavenSamplesBaseModule {
     ),
     Seq()
   )
-
-  def jvmId = "zulu:11"
 
   object test extends MavenTests with TestModule.Junit4 {
 
@@ -43,6 +43,7 @@ object `package` extends MavenSamplesBaseModule {
     def testParallelism = false
 
     def testSandboxWorkingDir = false
+
   }
 
 }

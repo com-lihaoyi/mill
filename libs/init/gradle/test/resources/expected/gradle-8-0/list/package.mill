@@ -17,12 +17,16 @@ object `package` extends ErrorProneModule with `8.0BaseModule` {
 
     def errorProneVersion = "2.28.0"
 
+    def errorProneOptions = super.errorProneOptions() ++
+      Seq("-XepCompilingTestOnlyCode")
+
     def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
       Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
     def testParallelism = false
 
     def testSandboxWorkingDir = false
+
   }
 
 }

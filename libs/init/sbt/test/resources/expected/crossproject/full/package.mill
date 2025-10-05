@@ -4,6 +4,7 @@ import mill._
 import mill.javalib._
 import mill.javalib.publish._
 import mill.scalajslib._
+import mill.scalajslib.api._
 import mill.scalalib._
 import mill.scalanativelib._
 import millbuild._
@@ -18,6 +19,8 @@ object `package` extends Module {
 
     def artifactName = "full"
 
+    def sourcesRootFolders = super.sourcesRootFolders ++ Seq(os.sub / "shared")
+
     def pomSettings = PomSettings(
       "full",
       "full",
@@ -26,8 +29,6 @@ object `package` extends Module {
       VersionControl(None, None, None, None),
       Seq()
     )
-
-    def sourcesRootFolders = super.sourcesRootFolders ++ Seq(os.sub / "shared")
 
     object test
         extends ScalaJSTests
@@ -42,14 +43,18 @@ object `package` extends Module {
       def testParallelism = false
 
       def testSandboxWorkingDir = false
+
     }
 
   }
+
   object jvm extends CrossprojectBaseModule {
 
     def moduleDeps = super.moduleDeps ++ Seq(build.pure.jvm)
 
     def artifactName = "full"
+
+    def sourcesRootFolders = super.sourcesRootFolders ++ Seq(os.sub / "shared")
 
     def pomSettings = PomSettings(
       "full",
@@ -59,8 +64,6 @@ object `package` extends Module {
       VersionControl(None, None, None, None),
       Seq()
     )
-
-    def sourcesRootFolders = super.sourcesRootFolders ++ Seq(os.sub / "shared")
 
     object test extends SbtPlatformTests with SbtTests with TestModule.Utest {
 
@@ -71,9 +74,11 @@ object `package` extends Module {
       def testParallelism = false
 
       def testSandboxWorkingDir = false
+
     }
 
   }
+
   object native extends ScalaNativeModule with CrossprojectBaseModule {
 
     def scalaNativeVersion = "0.5.4"
@@ -81,6 +86,8 @@ object `package` extends Module {
     def moduleDeps = super.moduleDeps ++ Seq(build.pure.native)
 
     def artifactName = "full"
+
+    def sourcesRootFolders = super.sourcesRootFolders ++ Seq(os.sub / "shared")
 
     def pomSettings = PomSettings(
       "full",
@@ -90,8 +97,6 @@ object `package` extends Module {
       VersionControl(None, None, None, None),
       Seq()
     )
-
-    def sourcesRootFolders = super.sourcesRootFolders ++ Seq(os.sub / "shared")
 
     object test
         extends ScalaNativeTests
@@ -106,7 +111,9 @@ object `package` extends Module {
       def testParallelism = false
 
       def testSandboxWorkingDir = false
+
     }
 
   }
+
 }

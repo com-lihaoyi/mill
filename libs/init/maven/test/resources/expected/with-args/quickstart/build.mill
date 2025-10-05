@@ -6,12 +6,16 @@ import mill.javalib._
 import mill.javalib.errorprone._
 import mill.javalib.publish._
 
-object `package` extends MavenModule with PublishModule with ErrorProneModule {
+object `package` extends MavenModule with ErrorProneModule with PublishModule {
 
-  def javacOptions = super.javacOptions() ++
-    Seq("-source", "8", "-target", "8", "--should-stop=ifError=FLOW")
+  def javacOptions = super.javacOptions() ++ Seq("-source", "8", "-target", "8")
 
   def artifactName = "maven-3-9-11"
+
+  def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
+    Seq("-XDshould-stop=ifError=FLOW")
+
+  def jvmId = "zulu:11"
 
   def pomSettings = PomSettings(
     "",
@@ -29,8 +33,6 @@ object `package` extends MavenModule with PublishModule with ErrorProneModule {
     ("project.build.sourceEncoding", "UTF-8")
   )
 
-  def jvmId = "zulu:11"
-
   object test extends MavenTests with ErrorProneModule with TestModule.Junit5 {
 
     def mvnDeps = super.mvnDeps() ++ Seq(
@@ -38,11 +40,15 @@ object `package` extends MavenModule with PublishModule with ErrorProneModule {
       mvn"org.junit.jupiter:junit-jupiter-params:5.11.0"
     )
 
+    def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
+      Seq("-XDshould-stop=ifError=FLOW")
+
     def forkWorkingDir = moduleDir
 
     def testParallelism = false
 
     def testSandboxWorkingDir = false
+
   }
 
 }

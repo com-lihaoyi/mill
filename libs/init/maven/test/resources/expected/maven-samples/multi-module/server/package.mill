@@ -11,6 +11,8 @@ object `package` extends MavenSamplesBaseModule {
 
   def artifactName = "server"
 
+  def jvmId = "zulu:11"
+
   def pomParentProject = Some(
     Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
   )
@@ -23,8 +25,6 @@ object `package` extends MavenSamplesBaseModule {
     VersionControl(None, None, None, None),
     Seq()
   )
-
-  def jvmId = "zulu:11"
 
   object test extends MavenTests with TestModule.Junit4 {
 
@@ -40,6 +40,7 @@ object `package` extends MavenSamplesBaseModule {
     def testParallelism = false
 
     def testSandboxWorkingDir = false
+
   }
 
 }

@@ -1,0 +1,26 @@
+package build.`jvm-util`
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import mill.scalalib._
+import millbuild._
+
+object `package` extends Cross[JvmUtilModule]("2.12.20", "2.13.14", "3.7.1")
+trait JvmUtilModule
+    extends CrossprojectCrossVersionBaseModule with CrossSbtModule {
+
+  def mvnDeps = super.mvnDeps() ++ Seq(Deps.upickle)
+
+  def artifactName = "jvmutil"
+
+  def pomSettings = PomSettings(
+    "jvmUtil",
+    "jvmutil",
+    "",
+    Seq(),
+    VersionControl(None, None, None, None),
+    Seq()
+  )
+
+}

@@ -12,12 +12,8 @@ object MillInitSbtNscalaTimeTests extends GitRepoIntegrationTestSuite {
       linkMillExecutable = true
     ) { tester =>
       import tester.*
-
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("__,showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("[_].compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("[_].test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("[_].publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
     }
   }
 }

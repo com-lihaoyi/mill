@@ -19,9 +19,17 @@ class Modeler(
     systemProperties: Properties
 ) {
 
-  /** Returns the [[ModelBuildingResult]] for `pomDir / "pom.xml"`. */
-  def build(pomDir: os.Path): ModelBuildingResult =
-    build((pomDir / "pom.xml").toIO)
+  /** Returns the [[ModelBuildingResult]] for all projects in `workspace`. */
+  def buildAll(workspace: os.Path = os.pwd): Seq[ModelBuildingResult] = {
+    def recurse(dir: os.Path): Seq[ModelBuildingResult] = {
+      val result = build((dir / "pom.xml").toIO)
+      val subResults = result.getEffectiveModel.getModules.asScala.flatMap(rel =>
+        recurse(dir / os.RelPath(rel))
+      ).toSeq
+      result +: subResults
+    }
+    recurse(workspace)
+  }
 
   /** Returns the [[ModelBuildingResult]] for `pomFile`. */
   def build(pomFile: File): ModelBuildingResult = {

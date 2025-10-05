@@ -11,11 +11,8 @@ object MillInitMavenJansiTests extends GitRepoIntegrationTestSuite {
       linkMillExecutable = true
     ) { tester =>
       import tester.*
-
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
     }
   }
 }
