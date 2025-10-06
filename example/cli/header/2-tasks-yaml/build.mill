@@ -1,0 +1,16 @@
+// For simple projects defined with a `build.mill.yaml` file, meta-build configuration
+// is put in the `mill-build:` key of the `build.mill.yaml` file:
+
+/** See Also: build.mill.yaml */
+
+/** Usage
+
+> ./mill version
+[typer...]
+[constructors...]
+[erasure...]
+[genBCode...]
+
+*/
+
+

@@ -91,9 +91,10 @@ _build.mill_
 //| mill-jvm-version: temurin:17.0.6
 ----
 
-Alternatively, you can use a `build.mill.yaml` file to specify the JVM version as a top-level YAML key:
+For projects using a `build.mill.yaml` file, you can specify the JVM version as a top-level
+YAML key:
 
-include::partial$example/cli/header/2-jvm-version-yaml.adoc[]
+include::partial$example/cli/header/3-jvm-version-yaml.adoc[]
 
 An explicit `mill-jvm-version` can help ensure your project uses a consistent JVM version and
 behaves identically regardless of what the developer may have installed on their laptop
@@ -138,6 +139,7 @@ Missing environment variables are converted to the empty string.
 == Meta-build Task Overrides
 
 include::partial$example/cli/header/1-tasks.adoc[]
+include::partial$example/cli/header/2-tasks-yaml.adoc[]
 
 == Single-File Project Build Headers
 
