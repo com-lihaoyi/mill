@@ -34,7 +34,7 @@ object Plugins {
         // javac throws exception if release is specified with source/target, and
         // plugin configuration returns default values for source/target when not specified
         val release = dom.child("release")
-        if (null == release) {
+        if (release == null) {
           dom.child("source").foreachValue(options += "-source" += _)
           dom.child("target").foreachValue(options += "-target" += _)
         } else {
@@ -51,12 +51,12 @@ object Plugins {
   private implicit class NullableDomOps(val self: Xpp3Dom) extends AnyVal {
 
     def child(name: String): Xpp3Dom =
-      if (null == self) self else self.getChild(name)
+      if (self == null) self else self.getChild(name)
 
     def foreachValue(f: String => Unit): Unit =
-      if (null != self) f(self.getValue)
+      if (self != null) f(self.getValue)
 
     def foreachChildValue(f: String => Unit): Unit =
-      if (null != self) self.getChildren.iterator.foreach(dom => f(dom.getValue))
+      if (self != null) self.getChildren.iterator.foreach(dom => f(dom.getValue))
   }
 }
