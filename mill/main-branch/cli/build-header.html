@@ -685,14 +685,33 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill supports a YAML comment block at the top of the <code>build.mill</code> file to configure
-your project. This must be at the very top of the <code>build.mill</code> file in YAML 1.2
-syntax, with every line prepended with <code>//| </code>, with YAML comments and newlines
-allowed. This contains Mill configuration that needs to take effect before the
-body of the <code>build.mill</code> file has been compiled and loaded.</p>
+<p>Mill supports storing metadata configuring the tool in the top of your build file.
+This contains Mill configuration that needs to take effect before the body of the
+<code>build.mill</code> or <code>build.mill.yaml</code> file has been compiled and loaded.</p>
 </div>
 <div class="paragraph">
-<p>For example, a build header may look something like:</p>
+<p>For <code>build.mill.yaml</code> files, these build headers are keys prefixed by <code>mill-</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-version: {mill-version}
+mill-opts: [&quot;--jobs=0.5C&quot;]
+mill-jvm-version: temurin:11
+mill-jvm-opts: [&quot;-XX:NonProfiledCodeHeapSize=250m&quot;, &quot;-XX:ReservedCodeCacheSize=500m&quot;]
+
+mill-build: # configuration for the Mill meta-build
+  repositories:
+  - https://oss.sonatype.org/content/repositories/snapshots
+  mvnDeps:
+  - com.goyeau::mill-scalafix::0.5.1-14-4d3f5ea-SNAPSHOT
+
+...rest of build.mill.yaml config...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For <code>build.mill</code> files, build headers are written in a YAML comment block at the
+top of the <code>build.mill</code> with every line prepended with <code>//| </code>, with YAML comments
+and newlines allowed:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -703,6 +722,7 @@ body of the <code>build.mill</code> file has been compiled and loaded.</p>
 //| mill-jvm-opts: [&quot;-XX:NonProfiledCodeHeapSize=250m&quot;, &quot;-XX:ReservedCodeCacheSize=500m&quot;]
 //| # newlines are allowed too
 //|
+//| # configuration for the Mill meta-build
 //| repositories:
 //| - https://oss.sonatype.org/content/repositories/snapshots
 //| mvnDeps:
@@ -809,6 +829,24 @@ version used for any JVMs spawned by Mill to <code>run</code> or <code>test</cod
 </div>
 </div>
 <div class="paragraph">
+<p>For projects using a <code>build.mill.yaml</code> file, you can specify the JVM version as a top-level
+YAML key:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/cli/header/3-jvm-version-yaml/build.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: temurin:17.0.6
+
+extends: [JavaModule]</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
+Java version: 17.0.6</code></pre>
+</div>
+</div>
+<div class="paragraph">
 <p>An explicit <code>mill-jvm-version</code> can help ensure your project uses a consistent JVM version and
 behaves identically regardless of what the developer may have installed on their laptop
 or dev environment. If <code>mill-jvm-version</code> is not provided, Mill uses the globally-installed
@@ -873,7 +911,7 @@ you can also override other tasks such as <code>scalacOptions</code> which in th
 is used to turn on fatal warnings for unused private methods:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-10-df493e/mill-dist-1.0.6-10-df493e-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/cli/header/1-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-11-07bac3/mill-dist-1.0.6-11-07bac3-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/cli/header/1-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| scalacOptions: [&quot;-Wunused:privates&quot;, &quot;-Xfatal-warnings&quot;]
 
@@ -892,7 +930,25 @@ error: ...unused private member
 </div>
 <div class="paragraph">
 <p>As the <code>build.mill</code> file is written in Scala, most tasks you override on
-<code>ScalaModule</code> can be set in the build header to apply to your <code>build.mill</code>.</p>
+<code>ScalaModule</code> can be set in the build header to apply to your <code>build.mill</code>.
+For simple projects defined with a <code>build.mill.yaml</code> file, meta-build configuration
+is put in the <code>mill-build:</code> key of the <code>build.mill.yaml</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/cli/header/2-tasks-yaml/build.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-build:
+  scalacOptions: [&quot;-verbose&quot;]</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill version
+[typer...]
+[constructors...]
+[erasure...]
+[genBCode...]</code></pre>
+</div>
 </div>
 </div>
 </div>
