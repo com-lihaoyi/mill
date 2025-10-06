@@ -136,7 +136,11 @@ class MillBuildBootstrap(
             else {
               val parsedHeaderData = mill.internal.Util.parsedHeaderData(headerData)
               val metaBuildData =
-                if (foundRootBuildFileName.endsWith(".yaml") || foundRootBuildFileName.endsWith(".yml")) {
+                if (
+                  foundRootBuildFileName.endsWith(".yaml") || foundRootBuildFileName.endsWith(
+                    ".yml"
+                  )
+                ) {
                   // For YAML files, extract the mill-build key if it exists, otherwise use empty map
                   parsedHeaderData.get("mill-build") match {
                     case Some(millBuildValue: ujson.Obj) => millBuildValue.obj.toMap
