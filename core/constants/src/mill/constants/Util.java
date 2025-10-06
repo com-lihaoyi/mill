@@ -93,6 +93,14 @@ public class Util {
   public static String readBuildHeader(
       Path buildFile, String errorFileName, boolean allowNonBuild) {
     try {
+      String fileName = buildFile.getFileName().toString();
+
+      // For .yaml files, return the entire file content as YAML
+      if (fileName.endsWith(".yaml") || fileName.endsWith(".yml")) {
+        return Files.readString(buildFile);
+      }
+
+      // For other files, extract YAML from //| comments
       java.util.List<String> lines = Files.readAllLines(buildFile);
       boolean readingBuildHeader = true;
       java.util.List<String> output = new ArrayList<>();
