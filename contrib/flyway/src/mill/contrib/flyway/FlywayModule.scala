@@ -115,7 +115,7 @@ object FlywayModule {
       ujson.Obj(
         "flywayVersion" -> r.flywayVersion.jsonify,
         "database" -> r.database.jsonify,
-        "operation" -> r.operation.jsonify,
+        "operation" -> r.getOperation.jsonify,
         "warnings" -> r.warnings.asScala.toSeq.map(_.jsonify),
         "initialSchemaVersion" -> r.initialSchemaVersion.jsonify,
         "targetSchemaVersion" -> r.targetSchemaVersion.jsonify,
