@@ -41,6 +41,7 @@ object ModuleCtx extends LowPriCtx {
   trait Wrapper {
     def moduleCtx: ModuleCtx
     private[mill] def moduleLinearized: Seq[Class[?]]
+    private[mill] def buildOverrides: Map[String, ujson.Value] = Map()
   }
   private case class Impl(
       enclosing: String,

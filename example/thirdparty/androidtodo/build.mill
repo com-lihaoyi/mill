@@ -31,8 +31,7 @@ object app
 
   override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
     AndroidBuildTypeSettings(
-      isMinifyEnabled = false,
-      isShrinkEnabled = false
+      isMinifyEnabled = false
     )
   }
 
@@ -161,8 +160,7 @@ object app
 
     override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(
-        isMinifyEnabled = false,
-        isShrinkEnabled = false
+        isMinifyEnabled = false
       )
     }
 

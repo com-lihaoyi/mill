@@ -1,0 +1,43 @@
+// This example shows some of the common tasks you may want to override on a
+// `{language}Module`: specifying the `mainClass`, adding additional
+// sources/resources, and setting compilation/run
+// options.
+/** See Also: build.mill.yaml */
+/** Usage
+
+> ./mill run
+Foo2.value: <h1>hello2</h1>
+Foo.value: <h1>hello</h1>
+MyResource: My Resource Contents
+MyOtherResource: My Other Resource Contents
+my.custom.property: my-prop-value
+MY_CUSTOM_ENV: my-env-value
+
+> ./mill show assembly
+".../out/assembly.dest/out.jar"
+
+> ./out/assembly.dest/out.jar # mac/linux
+Foo2.value: <h1>hello2</h1>
+Foo.value: <h1>hello</h1>
+MyResource: My Resource Contents
+MyOtherResource: My Other Resource Contents
+my.custom.property: my-prop-value
+
+*/
+
+//// SNIPPET:FATAL_WARNINGS
+
+/** Usage
+
+> sed -i.bak 's/Foo2 {/Foo2 { println(this + "hello")/g' custom-src/Foo2.scala
+
+> ./mill compile # demonstrate -deprecation/-Xfatal-warnings flags
+error: object Foo2 { println(this + "hello")
+error:                       ^
+error: ...Implicit injection of + is deprecated. Convert to String to call +...
+
+*/
+
+// Note that the `.build.yaml` config files only let you set simple configuration keys,
+// and do not let you extend your build with code e.g. to generate sources. For more flexibility,
+// see xref:{language-small}lib/module-config.adoc[Programmatic Module Configuration].
