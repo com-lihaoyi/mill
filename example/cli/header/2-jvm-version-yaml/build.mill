@@ -1,0 +1,9 @@
+
+/** See Also: build.mill.yaml */
+
+/** Usage
+
+> ./mill run
+Java version: 17.0.6
+
+*/
