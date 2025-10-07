@@ -14,7 +14,7 @@ import scala.annotation.compileTimeOnly
  * defined at the top level of the `build.mill` and not nested in any other
  * modules.
  */
-abstract class RootModule()(implicit
+abstract class RootModule()(using
     baseModuleInfo: RootModule.Info,
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
@@ -26,6 +26,8 @@ abstract class RootModule()(implicit
   // Provided for IDEs to think that one is available and not show errors in
   // build.mill/package.mill even though they can't see the codegen
   def millDiscover: Discover = sys.error("RootModule#millDiscover must be overridden")
+
+  override def buildOverrides: Map[String, ujson.Value] = baseModuleInfo.buildOverrides
 }
 
 @internal
@@ -33,17 +35,28 @@ object RootModule {
   class Info(
       val projectRoot: os.Path,
       val output: os.Path,
-      val topLevelProjectRoot: os.Path
+      val topLevelProjectRoot: os.Path,
+      @com.lihaoyi.unroll val buildOverrides: Map[String, ujson.Value] = Map()
   ) {
+
+    def this(
+        projectRoot0: String,
+        output0: String,
+        topLevelProjectRoot0: String,
+        headerData: String
+    ) = this(
+      os.Path(projectRoot0),
+      os.Path(output0),
+      os.Path(topLevelProjectRoot0),
+      upickle.read[Map[String, ujson.Value]](headerData)
+    )
+
     def this(
         projectRoot0: String,
         output0: String,
         topLevelProjectRoot0: String
-    ) = this(
-      os.Path(projectRoot0),
-      os.Path(output0),
-      os.Path(topLevelProjectRoot0)
-    )
+    ) = this(projectRoot0, output0, topLevelProjectRoot0, "{}")
+
     implicit val millMiscInfo: Info = this
   }
 

@@ -35,6 +35,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
       ),
       BuildInfo.Value("scalajsEnvPhantomJs", formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)),
       BuildInfo.Value("scalajsEnvSelenium", formatDep(Deps.Scalajs_1.scalajsEnvSelenium)),
+      BuildInfo.Value("scalajsEnvPlaywright", formatDep(Deps.Scalajs_1.scalajsEnvPlaywright)),
       BuildInfo.Value("scalajsImportMap", formatDep(Deps.Scalajs_1.scalajsImportMap))
     )
   }
@@ -49,7 +50,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
     def scalajsWorkerVersion = crossValue
     def moduleDir: os.Path = super.moduleDir / scalajsWorkerVersion
     def compileModuleDeps =
-      Seq(build.libs.scalajslib.api, build.core.constants, build.core.api.daemon)
+      Seq(build.libs.scalajslib.api, build.libs.util, build.core.constants, build.core.api.daemon)
     def mandatoryMvnDeps = Seq.empty[Dep]
     def mvnDeps = Seq(Deps.scalafmtDynamic)
     def compileMvnDeps = super.mandatoryMvnDeps() ++ Seq(
@@ -60,6 +61,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
       Deps.Scalajs_1.scalajsEnvExoegoJsdomNodejs,
       Deps.Scalajs_1.scalajsEnvPhantomjs,
       Deps.Scalajs_1.scalajsEnvSelenium,
+      Deps.Scalajs_1.scalajsEnvPlaywright,
       Deps.Scalajs_1.scalajsImportMap
     )
   }

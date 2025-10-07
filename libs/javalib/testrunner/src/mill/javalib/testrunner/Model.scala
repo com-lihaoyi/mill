@@ -23,7 +23,7 @@ import mill.api.daemon.internal.{TestReporter, internal}
 
 @internal object TestArgs {
   implicit lazy val logLevelRW: upickle.ReadWriter[TestReporter.LogLevel] =
-    implicitly[upickle.ReadWriter[String]].bimap(
+    summon[upickle.ReadWriter[String]].bimap(
       _.asString,
       TestReporter.LogLevel.fromString(_)
     )

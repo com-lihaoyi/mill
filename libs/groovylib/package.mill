@@ -23,7 +23,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
 
   // this module wasn't released in these versions
   def mimaPreviousVersions: T[Seq[String]] = super.mimaPreviousVersions().filterNot(
-    Seq("1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5").contains
+    Seq("1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5", "1.0.6").contains
   )
 
   object api extends MillPublishScalaModule {

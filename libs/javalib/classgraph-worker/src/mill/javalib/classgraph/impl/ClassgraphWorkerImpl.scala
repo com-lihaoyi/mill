@@ -11,7 +11,7 @@ import mill.javalib.classgraph.ClassgraphWorker
 
 class ClassgraphWorkerImpl() extends ClassgraphWorker {
 
-  def discoverMainClasses(classpath: Seq[os.Path])(implicit ctx: TaskCtx): Seq[String] = {
+  def discoverMainClasses(classpath: Seq[os.Path])(using ctx: TaskCtx): Seq[String] = {
 
     val cp = classpath.map(_.toNIO.toString()).mkString(File.pathSeparator)
     ctx.log.debug(s"Scanning for mainclasses: ${cp}")

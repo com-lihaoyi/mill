@@ -31,11 +31,11 @@ private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
   private val reformatted: mutable.Map[os.Path, Int] = mutable.Map.empty
   private var configSig: Int = 0
 
-  def reformat(input: Seq[PathRef], scalafmtConfig: PathRef)(implicit ctx: TaskCtx): Unit = {
+  def reformat(input: Seq[PathRef], scalafmtConfig: PathRef)(using ctx: TaskCtx): Unit = {
     reformatAction(input, scalafmtConfig, dryRun = false)
   }
 
-  def checkFormat(input: Seq[PathRef], scalafmtConfig: PathRef)(implicit
+  def checkFormat(input: Seq[PathRef], scalafmtConfig: PathRef)(using
       ctx: TaskCtx
   ): Result[Unit] = {
 
@@ -57,7 +57,7 @@ private[scalafmt] class ScalafmtWorker(cl: ClassLoader) extends AutoCloseable {
       input: Seq[PathRef],
       scalafmtConfig: PathRef,
       dryRun: Boolean
-  )(implicit ctx: TaskCtx): Seq[PathRef] = {
+  )(using ctx: TaskCtx): Seq[PathRef] = {
 
     // only consider files that have changed since last reformat
     val toConsider =

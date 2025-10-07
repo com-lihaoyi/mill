@@ -1,0 +1,17 @@
+//// SNIPPET:BUILD
+package build
+import mill.*, scalalib.*
+
+object bar extends ScalaModule {
+  def scalaVersion = "3.7.1"
+  def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.13.1")
+}
+
+/** See Also: foo/package.mill.yaml */
+/** See Also: bar/src/Bar.scala */
+/** Usage
+
+> ./mill foo.run --text hello
+<h1>hello</h1>
+
+*/

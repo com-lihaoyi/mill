@@ -3,7 +3,7 @@ package mill.scalajslib.worker.api
 import java.io.File
 import java.nio.file.Path
 
-private[scalajslib] trait ScalaJSWorkerApi {
+private[scalajslib] trait ScalaJSWorkerApi extends AutoCloseable {
   def link(
       runClasspath: Seq[Path],
       dest: File,

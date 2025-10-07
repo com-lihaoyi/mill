@@ -98,7 +98,7 @@ object JvmModel {
     val stableHashCode: Int = (cls, invokeType, name, desc).hashCode
     override def hashCode() = stableHashCode
 
-    def toMethodSig(implicit st: SymbolTable): MethodSig =
+    def toMethodSig(using st: SymbolTable): MethodSig =
       st.MethodSig(invokeType == InvokeType.Static, name, desc)
   }
 
@@ -171,7 +171,7 @@ object JvmModel {
     }
 
     object Arr {
-      def read(s: String)(implicit st: SymbolTable): Arr = Arr(JType.read(s.drop(1)))
+      def read(s: String)(using st: SymbolTable): Arr = Arr(JType.read(s.drop(1)))
     }
 
     class Cls private[JvmModel] (val name: String) extends JType {
@@ -184,17 +184,17 @@ object JvmModel {
     }
 
     object Cls {
-      def fromSlashed(s: String)(implicit st: SymbolTable): Cls = st.JCls(s.replace('/', '.'))
+      def fromSlashed(s: String)(using st: SymbolTable): Cls = st.JCls(s.replace('/', '.'))
 
-      implicit def rw(implicit st: SymbolTable): ReadWriter[Cls] =
+      implicit def rw(using st: SymbolTable): ReadWriter[Cls] =
         stringKeyRW(readwriter[String].bimap(_.name, st.JCls(_)))
 
       implicit val ordering: Ordering[Cls] = Ordering.by(_.name)
 
-      def read(s: String)(implicit st: SymbolTable): Cls = fromSlashed(s)
+      def read(s: String)(using st: SymbolTable): Cls = fromSlashed(s)
     }
 
-    def read(s: String)(implicit st: SymbolTable): JType = s match {
+    def read(s: String)(using st: SymbolTable): JType = s match {
       case x if Prim.all.contains(x(0)) => Prim.all(x(0))
       case s if s.charAt(0) == 'L' && s.last == ';' => Cls.read(s.slice(1, s.length - 1))
       case s if s.charAt(0) == '[' => Arr.read(s)
@@ -210,7 +210,7 @@ object JvmModel {
       case 'B' | 'C' | 'D' | 'F' | 'I' | 'J' | 'S' | 'Z' | 'L' => true
       case _ => false
     }
-    private[JvmModel] def read(s: String)(implicit st: SymbolTable): Desc = {
+    private[JvmModel] def read(s: String)(using st: SymbolTable): Desc = {
       val closeParenIndex = s.indexOf(')'.toInt)
       val args = Array.newBuilder[JType]
       var index = 1 // Skip index 0 which is the open paren '('

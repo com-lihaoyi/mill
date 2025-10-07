@@ -26,7 +26,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
  * calls within the scripts.
  */
 @internal
-trait MillBuildRootModule()(implicit
+trait MillBuildRootModule()(using
     rootModuleInfo: RootModule.Info
 ) extends ScalaModule {
   override def bspDisplayName0: String = rootModuleInfo
@@ -41,24 +41,29 @@ trait MillBuildRootModule()(implicit
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
-  val scriptSourcesPaths = BuildCtx.withFilesystemCheckerDisabled {
-    FileImportGraph
-      .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
-      .sorted
+  val scriptSourcesPaths = BuildCtx.watchValue {
+    BuildCtx.withFilesystemCheckerDisabled {
+      FileImportGraph
+        .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
+        .sorted // Ensure ordering is deterministic
+    }
   }
 
   /**
    * All script files (that will get wrapped later)
    * @see [[generatedSources]]
    */
-  def scriptSources: T[Seq[PathRef]] = Task.Sources(
-    scriptSourcesPaths* // Ensure ordering is deterministic
-  )
+  def scriptSources: T[Seq[PathRef]] = Task.Sources(scriptSourcesPaths*)
 
   def parseBuildFiles: T[FileImportGraph] = Task {
-    scriptSources()
     BuildCtx.withFilesystemCheckerDisabled {
-      MillBuildRootModule.parseBuildFiles(MillScalaParser.current.value, rootModuleInfo)
+      FileImportGraph.parseBuildFiles(
+        rootModuleInfo.topLevelProjectRoot,
+        rootModuleInfo.projectRoot / os.up,
+        rootModuleInfo.output,
+        MillScalaParser.current.value,
+        scriptSources().map(_.path)
+      )
     }
   }
 
@@ -358,7 +363,7 @@ object MillBuildRootModule {
     }
   }
 
-  class BootstrapModule()(implicit
+  class BootstrapModule()(using
       rootModuleInfo: RootModule.Info
   ) extends MainRootModule() with MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]
@@ -369,16 +374,4 @@ object MillBuildRootModule {
       output: os.Path,
       topLevelProjectRoot: os.Path
   )
-
-  def parseBuildFiles(
-      parser: MillScalaParser,
-      millBuildRootModuleInfo: RootModule.Info
-  ): FileImportGraph = {
-    FileImportGraph.parseBuildFiles(
-      millBuildRootModuleInfo.topLevelProjectRoot,
-      millBuildRootModuleInfo.projectRoot / os.up,
-      millBuildRootModuleInfo.output,
-      parser
-    )
-  }
 }

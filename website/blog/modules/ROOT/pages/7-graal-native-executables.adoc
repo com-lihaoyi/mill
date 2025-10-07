@@ -81,7 +81,6 @@ To build `Foo.java` using Mill, we can use the following build configuration:
 ----
 package build
 import mill._, javalib._
-import mill.api.ModuleRef
 
 object foo extends JavaModule {
   def mvnDeps = Seq(
@@ -125,7 +124,6 @@ above:
 ----
 package build
 import mill._, javalib._
-import mill.api.ModuleRef
 
 object foo extends JavaModule with NativeImageModule {
   def mvnDeps = Seq(
@@ -134,16 +132,12 @@ object foo extends JavaModule with NativeImageModule {
     mvn"org.slf4j:slf4j-nop:2.0.7"
   )
 
-  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
+  def jvmId = "graalvm-community:23.0.1"
 
   def nativeImageOptions = Seq(
     "--no-fallback",
     "-H:IncludeResourceBundles=net.sourceforge.argparse4j.internal.ArgumentParserImpl"
   )
-}
-
-object JvmWorkerGraalvm extends JvmWorkerModule {
-  def jvmId = "graalvm-community:23.0.1"
 }
 ----
 
@@ -151,8 +145,8 @@ Notable changes:
 
 - `foo` now needs to inherit from `NativeImageModule`
 
-- We need to override `jvmWorker` to point at our own custom `JvmWorkerGraalvm`,
-  using the version of Graal that we want to use to build our native image.
+- We need to override `jvmId` to point at
+  the version of Graal that we want to use to build our native image.
   This uses Mill's ability to xref:mill:ROOT:fundamentals/configuring-jvm-versions.adoc[]
   to download the necessary Graal distribution as necessary
 

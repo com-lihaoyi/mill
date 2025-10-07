@@ -79,7 +79,7 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
       options: PathRef,
       classPath: Seq[PathRef],
       jvmArgs: Seq[String]
-  )(implicit ctx: TaskCtx): Unit = {
+  )(using ctx: TaskCtx): Unit = {
 
     val javaFiles = sources
       .iterator

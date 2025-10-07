@@ -148,7 +148,7 @@ trait TaskTests extends TestSuite {
     }
   }
 
-  def withEnv(f: (Build, UnitTester) => Unit)(implicit tp: TestPath): Unit
+  def withEnv(f: (Build, UnitTester) => Unit)(using tp: TestPath): Unit
 
   val tests = Tests {
 
@@ -294,7 +294,7 @@ trait TaskTests extends TestSuite {
 }
 
 object SeqTaskTests extends TaskTests {
-  def withEnv(f: (Build, UnitTester) => Unit)(implicit tp: TestPath) = {
+  def withEnv(f: (Build, UnitTester) => Unit)(using tp: TestPath) = {
     object build extends Build {
       lazy val millDiscover = Discover[this.type]
     }
@@ -304,7 +304,7 @@ object SeqTaskTests extends TaskTests {
   }
 }
 object ParTaskTests extends TaskTests {
-  def withEnv(f: (Build, UnitTester) => Unit)(implicit tp: TestPath) = {
+  def withEnv(f: (Build, UnitTester) => Unit)(using tp: TestPath) = {
     object build extends Build {
       lazy val millDiscover = Discover[this.type]
     }

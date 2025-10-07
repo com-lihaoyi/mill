@@ -1,12 +1,31 @@
 = Build Header Config
 
-Mill supports a YAML comment block at the top of the `build.mill` file to configure
-your project. This must be at the very top of the `build.mill` file in YAML 1.2
-syntax, with every line prepended with ``//| ``, with YAML comments and newlines
-allowed. This contains Mill configuration that needs to take effect before the
-body of the `build.mill` file has been compiled and loaded.
+Mill supports storing metadata configuring the tool in the top of your build file.
+This contains Mill configuration that needs to take effect before the body of the
+`build.mill` or `build.mill.yaml` file has been compiled and loaded.
 
-For example, a build header may look something like:
+For `build.mill.yaml` files, these build headers are keys prefixed by `mill-`:
+
+[source,yaml]
+----
+mill-version: {mill-version}
+mill-opts: ["--jobs=0.5C"]
+mill-jvm-version: temurin:11
+mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
+
+mill-build: # configuration for the Mill meta-build
+  repositories:
+  - https://oss.sonatype.org/content/repositories/snapshots
+  mvnDeps:
+  - com.goyeau::mill-scalafix::0.5.1-14-4d3f5ea-SNAPSHOT
+
+...rest of build.mill.yaml config...
+----
+
+
+For `build.mill` files, build headers are written in a YAML comment block at the
+top of the `build.mill` with every line prepended with ``//| ``, with YAML comments
+and newlines allowed:
 
 [source,scala]
 ----
@@ -17,6 +36,7 @@ For example, a build header may look something like:
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| # newlines are allowed too
 //|
+//| # configuration for the Mill meta-build
 //| repositories:
 //| - https://oss.sonatype.org/content/repositories/snapshots
 //| mvnDeps:
@@ -91,6 +111,11 @@ _build.mill_
 //| mill-jvm-version: temurin:17.0.6
 ----
 
+For projects using a `build.mill.yaml` file, you can specify the JVM version as a top-level
+YAML key:
+
+include::partial$example/cli/header/3-jvm-version-yaml.adoc[]
+
 An explicit `mill-jvm-version` can help ensure your project uses a consistent JVM version and
 behaves identically regardless of what the developer may have installed on their laptop
 or dev environment. If `mill-jvm-version` is not provided, Mill uses the globally-installed
@@ -134,3 +159,11 @@ Missing environment variables are converted to the empty string.
 == Meta-build Task Overrides
 
 include::partial$example/cli/header/1-tasks.adoc[]
+include::partial$example/cli/header/2-tasks-yaml.adoc[]
+
+== Single-File Project Build Headers
+
+Build Header configuration is also used for
+xref:javalib/module-config.adoc#_configuring_single_file_scripts[Configuring Single-File Scripts],
+as a lightweight syntax for embedding configuration values within the single Java, Scala, or Kotlin
+file.

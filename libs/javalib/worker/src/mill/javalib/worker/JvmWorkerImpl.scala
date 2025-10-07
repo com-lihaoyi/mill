@@ -340,7 +340,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
           val debugName =
             s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}"
           ServerLauncher.runWithConnection(
-            debugName,
             socket,
             /* closeConnectionAfterCommand */ true,
             /* sendInitData */ _ => {},

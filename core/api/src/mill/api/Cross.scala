@@ -95,7 +95,7 @@ object Cross {
   /**
    * Convert the given value [[t]] to its cross segments
    */
-  def ToSegments[T: ToSegments](t: T): List[String] = implicitly[ToSegments[T]].convert(t)
+  def ToSegments[T: ToSegments](t: T): List[String] = summon[ToSegments[T]].convert(t)
 
   /**
    * A type-class defining what types [[T]] are allowed to be used in a
@@ -112,10 +112,10 @@ object Cross {
     implicit object BooleanToPathSegment extends ToSegments[Boolean](v => List(v.toString))
     implicit object SubPathToPathSegment extends ToSegments[os.SubPath](v => v.segments.toList)
     implicit def SeqToPathSegment[T: ToSegments]: ToSegments[Seq[T]] = new ToSegments[Seq[T]](
-      _.flatMap(implicitly[ToSegments[T]].convert).toList
+      _.flatMap(summon[ToSegments[T]].convert).toList
     )
     implicit def ListToPathSegment[T: ToSegments]: ToSegments[List[T]] = new ToSegments[List[T]](
-      _.flatMap(implicitly[ToSegments[T]].convert).toList
+      _.flatMap(summon[ToSegments[T]].convert).toList
     )
   }
 
@@ -257,7 +257,7 @@ trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.api
    * scope. This is often the first cross module whose cross-version is
    * compatible with the current module.
    */
-  def apply[V >: M <: Cross.Module[?]]()(implicit resolver: Cross.Resolver[V]): M = {
+  def apply[V >: M <: Cross.Module[?]]()(using resolver: Cross.Resolver[V]): M = {
     resolver.resolve(this.asInstanceOf[Cross[V]]).asInstanceOf[M]
   }
 }

@@ -20,7 +20,7 @@ object GenIdeaUtils {
       workspaceSourcePath: os.Path,
       workspacePath: os.Path,
       resource: os.SubPath
-  )(implicit reporter: utest.framework.GoldenFix.Reporter): Unit = {
+  )(using reporter: utest.framework.GoldenFix.Reporter): Unit = {
     val expectedResourcePath = workspaceSourcePath / "idea" / resource
     val actualResourcePath = workspacePath / ".idea" / resource
 

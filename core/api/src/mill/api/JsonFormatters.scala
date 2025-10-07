@@ -80,7 +80,7 @@ trait JsonFormatters {
     upickle.readwriter[String].bimap(
       _.name(),
       (s: String) =>
-        implicitly[ClassTag[T]]
+        summon[ClassTag[T]]
           .runtimeClass
           .getConstructor(classOf[String])
           .newInstance(s)

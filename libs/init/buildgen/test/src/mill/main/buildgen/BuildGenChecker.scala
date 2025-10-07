@@ -16,7 +16,7 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
       sourceRel: os.SubPath,
       expectedRel: os.SubPath,
       updateSnapshots: Boolean = false // pass true to update test data on disk
-  )(implicit
+  )(using
       tp: TestPath
   ): Boolean = {
     // prep

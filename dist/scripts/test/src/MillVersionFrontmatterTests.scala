@@ -7,12 +7,14 @@ object MillVersionFrontmatterTests extends TestSuite {
   private val millVersion = "1.0.0-RC1"
 
   val tests: Tests = Tests {
-    def doTest(frontmatter: String, expectedVersion: Option[String] = Some(millVersion))(using
-        testValue: TestPath
-    ): Unit = {
+    def doTest(
+        frontmatter: String,
+        expectedVersion: Option[String] = Some(millVersion),
+        buildFile: String = "build.mill"
+    )(using testValue: TestPath): Unit = {
       val wd = os.pwd / testValue.value
       os.makeDir.all(wd)
-      os.write(wd / "build.mill", frontmatter)
+      os.write(wd / buildFile, frontmatter)
 
       // If that particular version is not downloaded to the cache, stdout will be polluted by the download messages.
       // Thus, we run our own task to print the version.
@@ -71,5 +73,36 @@ object MillVersionFrontmatterTests extends TestSuite {
     )
 
     test("withCommentAfterTheBuildHeader") - doTest(s"""//| mill-version: $millVersion # comment""")
+
+    test("yaml") - {
+      test("noFrontmatter") - doTest("", expectedVersion = None, buildFile = "build.mill.yaml")
+
+      test("onFirstLine") - doTest(
+        s"""mill-version: $millVersion""",
+        buildFile = "build.mill.yaml"
+      )
+
+      test("onSecondLine") - doTest(
+        s"""
+           |mill-version: $millVersion
+           |""".stripMargin,
+        buildFile = "build.mill.yaml"
+      )
+
+      test("valueQuotedWithSingleQuote") - doTest(
+        s"""mill-version: '$millVersion'""",
+        buildFile = "build.mill.yaml"
+      )
+
+      test("valueQuotedWithDoubleQuote") - doTest(
+        s"""mill-version: "$millVersion"""",
+        buildFile = "build.mill.yaml"
+      )
+
+      test("withCommentAfterTheVersion") - doTest(
+        s"""mill-version: $millVersion # comment""",
+        buildFile = "build.mill.yaml"
+      )
+    }
   }
 }

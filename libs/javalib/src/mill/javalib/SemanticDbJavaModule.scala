@@ -224,7 +224,7 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
     ))
   }
 
-  def javacOptionsTask(javacOptions: Seq[String], semanticDbJavaVersion: String)(implicit
+  def javacOptionsTask(javacOptions: Seq[String], semanticDbJavaVersion: String)(using
       ctx: mill.api.TaskCtx
   ): Seq[String] = {
     val isNewEnough =

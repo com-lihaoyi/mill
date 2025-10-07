@@ -14,7 +14,7 @@ class CallGraphAnalysis(
     ignoreCall: (Option[MethodDef], MethodSig) => Boolean,
     logger: Logger,
     prevTransitiveCallGraphHashesOpt: () => Option[Map[String, Int]]
-)(implicit st: SymbolTable) {
+)(using st: SymbolTable) {
 
   val methods: Map[MethodDef, LocalSummary.MethodInfo] = for {
     (k, v) <- localSummary.items
@@ -148,7 +148,7 @@ object CallGraphAnalysis {
       externalSummary: ExternalSummary,
       nodeToIndex: Map[CallGraphAnalysis.Node, Int],
       ignoreCall: (Option[MethodDef], MethodSig) => Boolean
-  )(implicit st: SymbolTable): Array[Array[Int]] = {
+  )(using st: SymbolTable): Array[Array[Int]] = {
 
     def singleAbstractMethods(methodDefCls: JType.Cls) = {
       resolved.classSingleAbstractMethods.getOrElse(methodDefCls, Set.empty)

@@ -13,14 +13,14 @@ trait JsonFormatters {
 
   implicit lazy val modFormat: RW[coursier.Module] = upickle.macroRW
   implicit lazy val versionConstraintFormat: RW[coursier.version.VersionConstraint] =
-    implicitly[RW[String]].bimap(
+    summon[RW[String]].bimap(
       _.asString,
       coursier.version.VersionConstraint(_)
     )
   implicit lazy val versionIntervalFormat0: RW[coursier.version.VersionInterval] =
     upickle.macroRW
   implicit lazy val versionFormat0: RW[coursier.version.Version] =
-    implicitly[RW[String]].bimap(
+    summon[RW[String]].bimap(
       _.asString,
       coursier.version.Version(_)
     )
@@ -47,7 +47,7 @@ trait JsonFormatters {
     )
   implicit lazy val bomDepFormat: RW[coursier.core.BomDependency] = upickle.macroRW
   implicit lazy val overridesFormat: RW[coursier.core.Overrides] =
-    implicitly[RW[coursier.core.DependencyManagement.Map]].bimap(
+    summon[RW[coursier.core.DependencyManagement.Map]].bimap(
       _.flatten.toMap,
       coursier.core.Overrides(_)
     )
@@ -80,7 +80,7 @@ trait JsonFormatters {
   implicit lazy val versionInternalFormat: RW[coursier.core.VersionInterval] =
     upickle.macroRW
   implicit lazy val versionFormat: RW[coursier.core.Version] =
-    implicitly[RW[String]].bimap(
+    summon[RW[String]].bimap(
       _.repr,
       coursier.core.Version(_)
     )
@@ -111,14 +111,14 @@ trait JsonFormatters {
   private implicit lazy val variantPublicationFormat: RW[coursier.core.VariantPublication] =
     upickle.macroRW
   private implicit def attributesMapFormat[T: RW]: RW[Map[coursier.core.Variant.Attributes, T]] =
-    implicitly[RW[Map[String, T]]].bimap(
+    summon[RW[Map[String, T]]].bimap(
       attrMap => attrMap.map { case (k, v) => k.variantName -> v },
       strMap => strMap.map { case (k, v) => coursier.core.Variant.Attributes(k) -> v }
     )
   implicit lazy val projectFormat: RW[coursier.core.Project] = upickle.macroRW
 
   implicit lazy val logLevelRW: upickle.ReadWriter[TestReporter.LogLevel] =
-    implicitly[upickle.ReadWriter[String]].bimap(
+    summon[upickle.ReadWriter[String]].bimap(
       _.asString,
       TestReporter.LogLevel.fromString(_)
     )

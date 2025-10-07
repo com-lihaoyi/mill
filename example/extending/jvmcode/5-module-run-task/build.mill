@@ -58,6 +58,6 @@ Foo.value: HELLO
 //           forkEnv: Map[String, String] = null,
 //           workingDir: os.Path = null,
 //           useCpPassingJar: java.lang.Boolean = null)
-//          (implicit ctx: Ctx): Unit
+//          (using ctx: Ctx): Unit
 // }
 // ----

@@ -11,7 +11,7 @@ import mill.api.internal.RootModule0
  *    override protected def millDiscover: Discover = Discover[this.type]
  * }}}
  */
-abstract class ExternalModule(implicit
+abstract class ExternalModule(using
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
@@ -22,7 +22,8 @@ abstract class ExternalModule(implicit
       millFile0
     ) {
 
-  assert(
+  private[mill] def allowNestedExternalModule = false
+  if (!allowNestedExternalModule) assert(
     !" #".exists(millModuleEnclosing0.value.contains(_)),
     "External modules must be at a top-level static path, not " + millModuleEnclosing0.value
   )

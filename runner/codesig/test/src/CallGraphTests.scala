@@ -80,7 +80,7 @@ object CallGraphTests extends TestSuite {
     }
   }
 
-  def testExpectedCallGraph()(implicit tp: utest.framework.TestPath) = {
+  def testExpectedCallGraph()(using tp: utest.framework.TestPath) = {
     val codeSig = TestUtil.computeCodeSig(Seq("callgraph") ++ tp.value)
     val testCaseSourceFilesRoot =
       os.Path(sys.env("MILL_TEST_SOURCES_callgraph-" + tp.value.mkString("-")))
