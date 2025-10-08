@@ -896,6 +896,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def androidIsDebug: T[Boolean] = Task { true }
 
+    override def moduleDeps: Seq[JavaModule] = Seq.empty
+    override def compileModuleDeps: Seq[JavaModule] = Seq(outer)
+
     override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer.resolutionParams())
 
     override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
@@ -1063,7 +1066,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
      * as its apk is installed separately
      */
     def androidTransitiveTestClasspath: T[Seq[PathRef]] = Task {
-      Task.traverse(transitiveModuleCompileModuleDeps) {
+      Task.traverse(transitiveRunModuleDeps) {
         m =>
           Task.Anon(m.localRunClasspath())
       }().flatten
@@ -1071,7 +1074,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     /** The instrumented dex should just contain the test dependencies and locally tested files */
     override def androidPackagedClassfiles: T[Seq[PathRef]] = Task {
-      (testClasspath() ++ androidTransitiveTestClasspath())
+      androidTransitiveTestClasspath()
         .map(_.path).filter(os.isDir)
         .flatMap(os.walk(_))
         .filter(os.isFile)

@@ -193,11 +193,11 @@ trait AndroidModule extends JavaModule { outer =>
 
   /**
    * Gets all the compiled Android resources (typically in res/ directory)
-   * from the [[transitiveModuleCompileModuleDeps]]
+   * from the [[transitiveModuleRunModuleDeps]]
    * @return a sequence of PathRef to the compiled resources
    */
   def androidTransitiveCompiledResources: T[Seq[PathRef]] = Task {
-    Task.traverse(transitiveModuleCompileModuleDeps) {
+    Task.traverse(transitiveModuleRunModuleDeps) {
       case m: AndroidModule =>
         Task.Anon(m.androidCompiledModuleResources())
       case _ =>
