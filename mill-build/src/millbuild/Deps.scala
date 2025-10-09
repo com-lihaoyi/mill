@@ -24,7 +24,7 @@ object Deps {
   object Scalajs_1 {
     val scalaJsVersion = "1.19.0"
     val scalajsEnvJsdomNodejs =
-      mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0".withDottyCompat(scalaVersion)
+      mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvExoegoJsdomNodejs =
       mvn"net.exoego::scalajs-env-jsdom-nodejs:2.1.0".withDottyCompat(scalaVersion)
     val scalajsEnvNodejs = mvn"org.scala-js::scalajs-env-nodejs:1.4.0".withDottyCompat(scalaVersion)
