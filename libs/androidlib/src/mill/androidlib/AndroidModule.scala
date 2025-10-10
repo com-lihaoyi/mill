@@ -193,11 +193,11 @@ trait AndroidModule extends JavaModule { outer =>
 
   /**
    * Gets all the compiled Android resources (typically in res/ directory)
-   * from the [[transitiveModuleCompileModuleDeps]]
+   * from the [[transitiveModuleRunModuleDeps]]
    * @return a sequence of PathRef to the compiled resources
    */
   def androidTransitiveCompiledResources: T[Seq[PathRef]] = Task {
-    Task.traverse(transitiveModuleCompileModuleDeps) {
+    Task.traverse(transitiveModuleRunModuleDeps) {
       case m: AndroidModule =>
         Task.Anon(m.androidCompiledModuleResources())
       case _ =>
@@ -264,7 +264,7 @@ trait AndroidModule extends JavaModule { outer =>
   override def compileClasspath: T[Seq[PathRef]] = Task {
     // TODO process metadata shipped with Android libs. It can have some rules with Target SDK, for example.
     // TODO support baseline profiles shipped with Android libs.
-    androidDepsClasspath() ++ androidTransitiveLibRClasspath()
+    androidDepsClasspath() ++ androidTransitiveLibRClasspath() ++ androidTransitiveModuleRClasspath()
   }
 
   /**
@@ -517,6 +517,24 @@ trait AndroidModule extends JavaModule { outer =>
     Task.traverse(transitiveModuleDeps) {
       case m: AndroidModule =>
         Task.Anon(m.androidLibRClasspath())
+      case _ =>
+        Task.Anon(Seq.empty[PathRef])
+    }().flatten
+  }
+
+  def androidTransitiveModuleRClasspath: T[Seq[PathRef]] = Task {
+    Task.traverse(compileModuleDepsChecked) {
+      case m: AndroidModule =>
+        Task.Anon(Seq(m.androidProcessedResources()))
+      case _ =>
+        Task.Anon(Seq.empty[PathRef])
+    }().flatten
+  }
+
+  def androidTransitiveCompileOnlyClasspath: T[Seq[PathRef]] = Task {
+    Task.traverse(compileModuleDepsChecked) {
+      case m: AndroidModule =>
+        Task.Anon(Seq(m.compile().classes))
       case _ =>
         Task.Anon(Seq.empty[PathRef])
     }().flatten
