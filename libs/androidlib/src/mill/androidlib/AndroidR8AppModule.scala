@@ -79,9 +79,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
    */
   def androidR8CompileOnlyClasspath: T[Option[PathRef]] = Task {
     val resolvedCompileMvnDeps =
-      androidResolvedCompileMvnDeps() ++ upstreamCompileOutput().map(
-        _.classes
-      ) ++ androidTransitiveModuleRClasspath()
+      androidResolvedCompileMvnDeps() ++ androidTransitiveCompileOnlyClasspath() ++ androidTransitiveModuleRClasspath()
     if (!resolvedCompileMvnDeps.isEmpty) {
       val compiledMvnDepsFile = Task.dest / "compile-only-classpath.txt"
       os.write.over(

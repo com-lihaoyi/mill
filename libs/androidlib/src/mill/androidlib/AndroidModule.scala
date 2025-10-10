@@ -531,6 +531,15 @@ trait AndroidModule extends JavaModule { outer =>
     }().flatten
   }
 
+  def androidTransitiveCompileOnlyClasspath: T[Seq[PathRef]] = Task {
+    Task.traverse(compileModuleDepsChecked) {
+      case m: AndroidModule =>
+        Task.Anon(Seq(m.compile().classes))
+      case _ =>
+        Task.Anon(Seq.empty[PathRef])
+    }().flatten
+  }
+
   /**
    * Namespace of the Android module.
    * Used in manifest package and also used as the package to place the generated R sources
