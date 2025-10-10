@@ -1024,41 +1024,6 @@ node29 -> node24;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="androidDefaultProguardFileNames-0">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidR8AppModule.html#androidDefaultProguardFileNames-0" t="n" class="documentableName ">androidDefaultProguardFileNames</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>File names that are provided by the Android SDK in <code>androidSdkModule().androidProguardPath().path</code></p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>File names that are provided by the Android SDK in <code>androidSdkModule().androidProguardPath().path</code></p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/androidlib/src/mill/androidlib/AndroidR8AppModule.scala" target="_blank">AndroidR8AppModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="androidDex-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -1232,7 +1197,7 @@ node29 -> node24;
               </dt>
               <dd class="body-medium">
                <div>
-                <a href="AndroidAppModule.html">AndroidAppModule</a> -&gt; <a href="AndroidModule.html">AndroidModule</a>
+                <a href="AndroidModule.html">AndroidModule</a>
                </div>
               </dd>
               <dt class="body-small">
@@ -1333,6 +1298,41 @@ node29 -> node24;
            <div class="memberDocumentation">
             <div class="cover">
              <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/androidlib/src/mill/androidlib/AndroidR8AppModule.scala" target="_blank">AndroidR8AppModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="androidR8CompileOnlyClasspath-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidR8AppModule.html#androidR8CompileOnlyClasspath-0" t="n" class="documentableName ">androidR8CompileOnlyClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Option</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Creates a file for letting know R8 that <a href="AndroidR8AppModule.html#compileModuleDeps-0">compileModuleDeps</a> and <a href="AndroidR8AppModule.html#compileMvnDeps-0">compileMvnDeps</a> are in compile classpath only and not packaged with the apps. Useful for dependencies that are provided in devices and compile only module deps such as for avoiding to package main sources in the androidTest apk.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Creates a file for letting know R8 that <a href="AndroidR8AppModule.html#compileModuleDeps-0">compileModuleDeps</a> and <a href="AndroidR8AppModule.html#compileMvnDeps-0">compileMvnDeps</a> are in compile classpath only and not packaged with the apps. Useful for dependencies that are provided in devices and compile only module deps such as for avoiding to package main sources in the androidTest apk.</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -2090,6 +2090,48 @@ node29 -> node24;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="androidDefaultProguardFileNames-0" data-f-inherited="AndroidAppModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidR8AppModule.html#androidDefaultProguardFileNames-0" t="n" class="documentableName ">androidDefaultProguardFileNames</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>File names that are provided by the Android SDK in <code>androidSdkModule().androidProguardPath().path</code></p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>File names that are provided by the Android SDK in <code>androidSdkModule().androidProguardPath().path</code></p>
+              <p>For now, it's only used by <a href="AndroidR8AppModule.html">AndroidR8AppModule</a></p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="AndroidAppModule.html#androidDefaultProguardFileNames-0">AndroidAppModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/androidlib/src/mill/androidlib/AndroidAppModule.scala" target="_blank">AndroidAppModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="androidDeviceId-0" data-f-inherited="AndroidAppModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -2361,6 +2403,42 @@ node29 -> node24;
               </dt>
               <dd class="body-medium">
                <a href="AndroidAppModule.html#androidKeystore-0">AndroidAppModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/androidlib/src/mill/androidlib/AndroidAppModule.scala" target="_blank">AndroidAppModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="androidKnownProguardRules-0" data-f-inherited="AndroidAppModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidR8AppModule.html#androidKnownProguardRules-0" t="n" class="documentableName ">androidKnownProguardRules</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="AndroidAppModule.html#androidKnownProguardRules-0">AndroidAppModule</a>
               </dd>
               <dt class="body-small">
                Source
@@ -4167,6 +4245,42 @@ node29 -> node24;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="androidTransitiveCompileOnlyClasspath-0" data-f-inherited="AndroidModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidR8AppModule.html#androidTransitiveCompileOnlyClasspath-0" t="n" class="documentableName ">androidTransitiveCompileOnlyClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="AndroidModule.html#androidTransitiveCompileOnlyClasspath-0">AndroidModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/androidlib/src/mill/androidlib/AndroidModule.scala" target="_blank">AndroidModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="androidTransitiveCompiledResources-0" data-f-inherited="AndroidModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -4182,11 +4296,11 @@ node29 -> node24;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Gets all the compiled Android resources (typically in res/ directory) from the <a href="AndroidModule.html#transitiveModuleCompileModuleDeps-0">transitiveModuleCompileModuleDeps</a></p>
+             <p>Gets all the compiled Android resources (typically in res/ directory) from the <a href="AndroidModule.html#transitiveModuleRunModuleDeps-0">transitiveModuleRunModuleDeps</a></p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Gets all the compiled Android resources (typically in res/ directory) from the <a href="AndroidModule.html#transitiveModuleCompileModuleDeps-0">transitiveModuleCompileModuleDeps</a></p>
+              <p>Gets all the compiled Android resources (typically in res/ directory) from the <a href="AndroidModule.html#transitiveModuleRunModuleDeps-0">transitiveModuleRunModuleDeps</a></p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -4237,6 +4351,42 @@ node29 -> node24;
               </dt>
               <dd class="body-medium">
                <a href="AndroidModule.html#androidTransitiveLibRClasspath-0">AndroidModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/androidlib/src/mill/androidlib/AndroidModule.scala" target="_blank">AndroidModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="androidTransitiveModuleRClasspath-0" data-f-inherited="AndroidModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidR8AppModule.html#androidTransitiveModuleRClasspath-0" t="n" class="documentableName ">androidTransitiveModuleRClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="AndroidModule.html#androidTransitiveModuleRClasspath-0">AndroidModule</a>
               </dd>
               <dt class="body-small">
                Source
@@ -6960,42 +7110,6 @@ node29 -> node24;
               </dt>
               <dd class="body-medium">
                <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/JavaModule.scala" target="_blank">JavaModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="knownProguardRules-0" data-f-inherited="AndroidAppModule">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidR8AppModule.html#knownProguardRules-0" t="n" class="documentableName ">knownProguardRules</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="AndroidAppModule.html#knownProguardRules-0">AndroidAppModule</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/androidlib/src/mill/androidlib/AndroidAppModule.scala" target="_blank">AndroidAppModule.scala</a>
               </dd>
              </dl>
             </div>

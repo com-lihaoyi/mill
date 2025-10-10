@@ -695,7 +695,7 @@ that utilizes Hilt for dependency injection, based on the official
 <h2 id="_android_mill_setup_for_building_the_todo_app"><a class="anchor" href="#_android_mill_setup_for_building_the_todo_app"></a>Android Mill Setup for building the TODO App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-12-3dd89d/mill-dist-1.0.6-12-3dd89d-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/thirdparty/androidtodo">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-13-008e94/mill-dist-1.0.6-13-008e94-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/thirdparty/androidtodo">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -842,7 +842,6 @@ object Versions {
     def mvnDeps = super.mvnDeps() ++ composeDeps ++ Seq(
       mvn&quot;junit:junit:4.13.2&quot;,
       mvn&quot;androidx.arch.core:core-testing:2.2.0&quot;,
-      mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0&quot;,
       mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0&quot;,
       mvn&quot;androidx.navigation:navigation-testing:2.8.5&quot;,
       mvn&quot;androidx.test.espresso:espresso-core:3.6.1&quot;,
@@ -894,7 +893,6 @@ object Versions {
       // Dependencies for Android unit tests
       mvn&quot;junit:junit:4.13.2&quot;,
       mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0&quot;,
-      mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0&quot;,
       // AndroidX Test - Instrumented testing
       mvn&quot;androidx.test:core-ktx:1.6.1&quot;,
       mvn&quot;androidx.test.ext:junit-ktx:1.2.1&quot;,
@@ -936,7 +934,7 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
 
   def androidEnableCompose = true
 
-  def androidNamespace = &quot;com.example.android.architecture.blueprints.todoapp.daemon.test&quot;
+  def androidNamespace = &quot;com.example.android.architecture.blueprints.todoapp.shared.test&quot;
 
   def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
     mvn&quot;androidx.room:room-compiler:2.7.1&quot;,
@@ -946,7 +944,6 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
   def mvnDeps = super.mvnDeps() ++ Seq(
     mvn&quot;junit:junit:4.13.2&quot;,
     mvn&quot;androidx.arch.core:core-testing:2.2.0&quot;,
-    mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0&quot;,
     mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0&quot;,
     mvn&quot;androidx.test:core-ktx:1.6.1&quot;,
     mvn&quot;androidx.test.ext:junit-ktx:1.2.1&quot;,
