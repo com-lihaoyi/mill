@@ -79,7 +79,9 @@ trait AndroidR8AppModule extends AndroidAppModule {
    */
   def androidR8CompileOnlyClasspath: T[Option[PathRef]] = Task {
     val resolvedCompileMvnDeps =
-      androidResolvedCompileMvnDeps() ++ upstreamCompileOutput().map(_.classes)
+      androidResolvedCompileMvnDeps() ++ upstreamCompileOutput().map(
+        _.classes
+      ) ++ androidTransitiveModuleRClasspath()
     if (!resolvedCompileMvnDeps.isEmpty) {
       val compiledMvnDepsFile = Task.dest / "compile-only-classpath.txt"
       os.write.over(
@@ -117,14 +119,6 @@ trait AndroidR8AppModule extends AndroidAppModule {
     AndroidBuildTypeSettings(
       isMinifyEnabled = true
     )
-  }
-
-  /**
-   * File names that are provided by the Android SDK in `androidSdkModule().androidProguardPath().path`
-   * @return
-   */
-  def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
-    Seq.empty[String]
   }
 
   private def androidDefaultProguardFiles: Task[Seq[PathRef]] = Task.Anon {

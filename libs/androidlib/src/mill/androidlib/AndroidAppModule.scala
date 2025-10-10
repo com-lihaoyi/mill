@@ -822,7 +822,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   }
 
-  def knownProguardRules: T[String] = Task {
+  def androidKnownProguardRules: T[String] = Task {
     // TODO need also pick proguard files from
     // [[moduleDeps]]
     androidUnpackArchives()
@@ -833,15 +833,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .mkString("\n")
   }
 
-  override def androidProguard: T[PathRef] = Task {
-    val inheritedProguardFile = super.androidProguard()
-    val proguardFile = Task.dest / "proguard-rules.pro"
-
-    os.write(proguardFile, os.read(inheritedProguardFile.path))
-
-    os.write.append(proguardFile, knownProguardRules())
-
-    PathRef(proguardFile)
+  /**
+   * File names that are provided by the Android SDK in `androidSdkModule().androidProguardPath().path`
+   *
+   * For now, it's only used by [[AndroidR8AppModule]]
+   */
+  def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+    Seq.empty[String]
   }
 
   // uses the d8 tool to generate the dex file, when minification is disabled
@@ -915,6 +913,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def sources: T[Seq[PathRef]] = Task.Sources("src/androidTest/java")
 
     def androidResources: T[Seq[PathRef]] = Task.Sources("src/androidTest/res")
+
+    override def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      outer.androidDefaultProguardFileNames()
+    }
 
     override def testFramework: T[String] = Task {
       "androidx.test.runner.AndroidJUnitRunner"
