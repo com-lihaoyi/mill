@@ -1,0 +1,49 @@
+package build.libs.groovylib
+
+import mill.*
+import mill.contrib.buildinfo.BuildInfo
+import mill.scalalib.*
+import millbuild.*
+
+object `package` extends MillStableScalaModule with BuildInfo {
+
+  def moduleDeps = Seq(build.libs.util, build.libs.javalib, build.libs.javalib.testrunner, api)
+  def localTestExtraModules: Seq[MillJavaModule] =
+    super.localTestExtraModules ++ Seq(worker)
+
+  override def testMvnDeps: T[Seq[Dep]] = super.testMvnDeps() ++ Seq(
+    Deps.asmTree
+  )
+
+  def buildInfoPackageName = "mill.groovylib"
+  def buildInfoObjectName = "Versions"
+  def buildInfoMembers = Seq(
+    BuildInfo.Value("groovyVersion", Deps.groovyVersion, "Version of Groovy")
+  )
+
+  // this module wasn't released in these versions
+  def mimaPreviousVersions: T[Seq[String]] = super.mimaPreviousVersions().filterNot(
+    Seq("1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5", "1.0.6").contains
+  )
+
+  object api extends MillPublishScalaModule {
+    def moduleDeps = Seq(build.libs.javalib.testrunner)
+
+    override def compileMvnDeps: T[Seq[Dep]] = Seq(
+      Deps.osLib
+    )
+  }
+
+  object worker extends MillPublishScalaModule {
+    override def compileModuleDeps = Seq(api)
+
+    def mandatoryMvnDeps = Seq.empty[Dep]
+
+    override def compileMvnDeps: T[Seq[Dep]] =
+      super.mandatoryMvnDeps() ++ Seq(
+        Deps.osLib,
+        Deps.groovyCompiler
+      )
+  }
+
+}

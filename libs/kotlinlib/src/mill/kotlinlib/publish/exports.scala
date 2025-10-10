@@ -1,4 +1,4 @@
-package mill.kotlinlib.publish
+package mill.groovylib.publish
 
 export mill.javalib.publish.Ivy
 
