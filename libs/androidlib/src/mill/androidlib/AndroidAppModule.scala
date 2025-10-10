@@ -1083,7 +1083,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }
 
     override def androidPackagedDeps: T[Seq[PathRef]] = Task {
-      androidResolvedMvnDeps()
+      androidResolvedRunMvnDeps()
     }
 
     /**
