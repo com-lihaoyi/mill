@@ -89,11 +89,11 @@ object CodeGen {
         val parsedHeaderData = mill.internal.Util.parsedHeaderData(allScriptCode(scriptPath))
         val moduleDeps = parsedHeaderData.get("moduleDeps").map(_.arr.map(_.str))
         val extendsConfig = parsedHeaderData.get("extends").map(_.arr.map(_.str)).getOrElse(Nil)
-        val definitions =
-          for ((k, v) <- parsedHeaderData if !Set("moduleDeps", "extends").contains(k))
-            yield {
-              s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
-            }
+        val definitions = for {
+          (k, v) <- parsedHeaderData
+          if !Set("moduleDeps", "extends").contains(k)
+          if !k.startsWith("mill-")
+        } yield s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
 
         val prelude =
           s"""|import MillMiscInfo._
