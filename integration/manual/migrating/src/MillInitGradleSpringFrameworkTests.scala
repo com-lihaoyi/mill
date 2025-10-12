@@ -20,7 +20,14 @@ object MillInitGradleSpringFrameworkTests extends GitRepoIntegrationTestSuite {
         stderr = os.Inherit
       ).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      // local BomModule not supported
+
+      s"""Requires support for BomModule (framework-platform).
+         |
+         |spring-instrument.resolvedMvnDeps java.lang.RuntimeException: 
+         |Resolution failed for 1 modules:
+         |--------------------------------------------
+         |  com.google.code.findbugs:jsr305: 
+         |""".stripMargin
     }
   }
 }

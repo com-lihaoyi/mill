@@ -18,9 +18,8 @@ object MillInitMavenNettyTests extends GitRepoIntegrationTestSuite {
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
       """Build functionality is limited due to unresolved (dynamically configured) dependencies.
-        |- `compile` succeeds for some modules like `buffer`
-        |- `test` fails due to version mismatch between Junit5 engine and platform dependencies
-        |- `javadocGenerated` failures could be fixed by adding support for `javadocOptions`
+        |- test discovery fails due to version mismatch between Junit5 engine and platform dependencies
+        |- requires conversion support for javadocOptions
         |""".stripMargin
     }
   }

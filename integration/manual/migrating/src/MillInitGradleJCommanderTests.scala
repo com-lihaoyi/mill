@@ -6,7 +6,6 @@ import utest.*
 object MillInitGradleJCommanderTests extends GitRepoIntegrationTestSuite {
   def tests = Tests {
     // Gradle 8.9
-    // single module
     // TestNg 7.0.0
     test - integrationTestGitRepo(
       "https://github.com/cbeust/jcommander.git",
@@ -20,7 +19,12 @@ object MillInitGradleJCommanderTests extends GitRepoIntegrationTestSuite {
         stderr = os.Inherit
       ).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit)
-      // annotations defined in main-module cannot be used in test sources?
+
+      s"""test.compile
+         |.../src/test/java/com/beust/jcommander/ParameterOrderTest.java:33:23: cannot find symbol
+         |[66] [error]   symbol:   method order()
+         |[66] [error]   location: @interface com.beust.jcommander.DynamicParameter
+         |""".stripMargin
     }
   }
 }

@@ -206,13 +206,20 @@ object ExportBuildPlugin extends AutoPlugin {
             moduleDeps(_.exists(c => c == "provided" || c == "test->provided")),
           runModuleDeps = moduleDeps(_.exists(c => c == "provided" || c == "test->runtime"))
         )
-        val testConfigs = Seq(testJavaModule) ++ Seq(
+        val testScalaJSModule = if (mainScalaJSModule.isEmpty) None else Some(ScalaJSModule())
+        val testScalaNativeModule =
+          if (mainScalaJSModule.isEmpty) None else Some(ScalaNativeModule())
+        val testConfigs = Seq(
+          testJavaModule,
           // reproduce SBT behavior
           TestModule(
             testParallelism = "false",
             testSandboxWorkingDir = "false"
           )
-        )
+        ) ++ Seq(
+          testScalaJSModule,
+          testScalaNativeModule
+        ).flatten
         ModuleSpec(
           name = "test",
           supertypes = testSupertypes,

@@ -1,0 +1,3060 @@
+{
+  "all.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "bom.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "buffer.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "buffer.test.repositories": [],
+  "codec.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-base.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-base.test.repositories": [],
+  "codec-classes-quic.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-compression.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-compression.test.repositories": [],
+  "codec-dns.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-dns.test.repositories": [],
+  "codec-haproxy.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-haproxy.test.repositories": [],
+  "codec-http.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-http.test.repositories": [],
+  "codec-http2.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-http2.test.repositories": [],
+  "codec-http3.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-http3.test.repositories": [],
+  "codec-marshalling.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-marshalling.test.repositories": [],
+  "codec-memcache.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-memcache.test.repositories": [],
+  "codec-mqtt.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-mqtt.test.repositories": [],
+  "codec-native-quic.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-native-quic.test.repositories": [],
+  "codec-protobuf.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-protobuf.test.repositories": [],
+  "codec-redis.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-redis.test.repositories": [],
+  "codec-smtp.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-smtp.test.repositories": [],
+  "codec-socks.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-socks.test.repositories": [],
+  "codec-stomp.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-stomp.test.repositories": [],
+  "codec-xml.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "codec-xml.test.repositories": [],
+  "common.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "common.test.repositories": [],
+  "dev-tools.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "example.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "handler.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "handler.test.repositories": [],
+  "handler-proxy.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "handler-proxy.test.repositories": [],
+  "handler-ssl-ocsp.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "handler-ssl-ocsp.test.repositories": [],
+  "jfr-stub.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "microbench.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "pkitesting.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "pkitesting.test.repositories": [],
+  "repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "resolver.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "resolver.test.repositories": [],
+  "resolver-dns.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "resolver-dns.test.repositories": [],
+  "resolver-dns-classes-macos.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "resolver-dns-native-macos.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "resolver-dns-native-macos.test.repositories": [],
+  "testsuite.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-autobahn.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-http2.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-jpms.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-jpms.test.repositories": [],
+  "testsuite-karaf.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-native.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-native.test.repositories": [],
+  "testsuite-native-image.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-native-image-client.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-native-image-client-runtime-init.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-osgi.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-shading.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "testsuite-shading.test.repositories": [],
+  "transport.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport.test.repositories": [],
+  "transport-blockhound-tests.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-blockhound-tests.test.repositories": [],
+  "transport-classes-epoll.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-classes-io_uring.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-classes-kqueue.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-native-epoll.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-native-epoll.test.repositories": [],
+  "transport-native-io_uring.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-native-io_uring.test.repositories": [],
+  "transport-native-kqueue.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-native-kqueue.test.repositories": [],
+  "transport-native-unix-common.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-native-unix-common.test.repositories": [],
+  "transport-native-unix-common-tests.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-rxtx.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-sctp.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-sctp.test.repositories": [],
+  "transport-udt.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
+  "transport-udt.test.repositories": [],
+  "varhandle-stub.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ]
+}
+{
+  "all.jvmId": "zulu:11",
+  "bom.jvmId": "",
+  "buffer.jvmId": "zulu:11",
+  "codec.jvmId": "zulu:11",
+  "codec-base.jvmId": "zulu:11",
+  "codec-classes-quic.jvmId": "zulu:11",
+  "codec-compression.jvmId": "zulu:11",
+  "codec-dns.jvmId": "zulu:11",
+  "codec-haproxy.jvmId": "zulu:11",
+  "codec-http.jvmId": "zulu:11",
+  "codec-http2.jvmId": "zulu:11",
+  "codec-http3.jvmId": "zulu:11",
+  "codec-marshalling.jvmId": "zulu:11",
+  "codec-memcache.jvmId": "zulu:11",
+  "codec-mqtt.jvmId": "zulu:11",
+  "codec-native-quic.jvmId": "zulu:11",
+  "codec-protobuf.jvmId": "zulu:11",
+  "codec-redis.jvmId": "zulu:11",
+  "codec-smtp.jvmId": "zulu:11",
+  "codec-socks.jvmId": "zulu:11",
+  "codec-stomp.jvmId": "zulu:11",
+  "codec-xml.jvmId": "zulu:11",
+  "common.jvmId": "zulu:11",
+  "dev-tools.jvmId": "zulu:11",
+  "example.jvmId": "zulu:11",
+  "handler.jvmId": "zulu:11",
+  "handler-proxy.jvmId": "zulu:11",
+  "handler-ssl-ocsp.jvmId": "zulu:11",
+  "jfr-stub.jvmId": "zulu:11",
+  "jvmId": "zulu:11",
+  "microbench.jvmId": "zulu:11",
+  "pkitesting.jvmId": "zulu:11",
+  "resolver.jvmId": "zulu:11",
+  "resolver-dns.jvmId": "zulu:11",
+  "resolver-dns-classes-macos.jvmId": "zulu:11",
+  "resolver-dns-native-macos.jvmId": "zulu:11",
+  "testsuite.jvmId": "zulu:11",
+  "testsuite-autobahn.jvmId": "zulu:11",
+  "testsuite-http2.jvmId": "zulu:11",
+  "testsuite-jpms.jvmId": "zulu:11",
+  "testsuite-karaf.jvmId": "zulu:11",
+  "testsuite-native.jvmId": "zulu:11",
+  "testsuite-native-image.jvmId": "zulu:11",
+  "testsuite-native-image-client.jvmId": "zulu:11",
+  "testsuite-native-image-client-runtime-init.jvmId": "zulu:11",
+  "testsuite-osgi.jvmId": "zulu:11",
+  "testsuite-shading.jvmId": "zulu:11",
+  "transport.jvmId": "zulu:11",
+  "transport-blockhound-tests.jvmId": "zulu:11",
+  "transport-classes-epoll.jvmId": "zulu:11",
+  "transport-classes-io_uring.jvmId": "zulu:11",
+  "transport-classes-kqueue.jvmId": "zulu:11",
+  "transport-native-epoll.jvmId": "zulu:11",
+  "transport-native-io_uring.jvmId": "zulu:11",
+  "transport-native-kqueue.jvmId": "zulu:11",
+  "transport-native-unix-common.jvmId": "zulu:11",
+  "transport-native-unix-common-tests.jvmId": "zulu:11",
+  "transport-rxtx.jvmId": "zulu:11",
+  "transport-sctp.jvmId": "zulu:11",
+  "transport-udt.jvmId": "zulu:11",
+  "varhandle-stub.jvmId": "zulu:11"
+}
+{
+  "all.mvnDeps": [],
+  "bom.mvnDeps": [],
+  "buffer.mvnDeps": [],
+  "buffer.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0",
+    "ch.qos.logback:logback-classic:1.3.14"
+  ],
+  "codec.mvnDeps": [
+    "com.google.protobuf:protobuf-java:3.25.5",
+    "com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-5",
+    "org.jboss.marshalling:jboss-marshalling:2.2.3.Final"
+  ],
+  "codec-base.mvnDeps": [],
+  "codec-base.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.apache.commons:commons-compress:1.26.0",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-classes-quic.mvnDeps": [],
+  "codec-compression.mvnDeps": [
+    "com.jcraft:jzlib:1.1.3",
+    "com.ning:compress-lzf:1.0.3",
+    "org.lz4:lz4-java:1.8.0",
+    "com.github.jponge:lzma-java:1.3",
+    "com.github.luben:zstd-jni:1.5.6-5",
+    "com.aayushatharva.brotli4j:brotli4j:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-aarch64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-riscv64:1.16.0",
+    "com.aayushatharva.brotli4j:native-osx-x86_64:1.16.0",
+    "com.aayushatharva.brotli4j:native-osx-aarch64:1.16.0",
+    "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0"
+  ],
+  "codec-compression.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.apache.commons:commons-compress:1.26.0",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-dns.mvnDeps": [],
+  "codec-dns.test.mvnDeps": [
+    "org.apache.directory.server:apacheds-protocol-dns:1.5.7",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-haproxy.mvnDeps": [],
+  "codec-haproxy.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-http.mvnDeps": [
+    "com.jcraft:jzlib:1.1.3",
+    "com.aayushatharva.brotli4j:brotli4j:1.16.0",
+    "com.github.luben:zstd-jni:1.5.6-5"
+  ],
+  "codec-http.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "commons-io:commons-io:2.14.0",
+    "com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-aarch64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-riscv64:1.16.0",
+    "com.aayushatharva.brotli4j:native-osx-x86_64:1.16.0",
+    "com.aayushatharva.brotli4j:native-osx-aarch64:1.16.0",
+    "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-http2.mvnDeps": [
+    "com.jcraft:jzlib:1.1.3",
+    "com.aayushatharva.brotli4j:brotli4j:1.16.0",
+    "com.github.luben:zstd-jni:1.5.6-5"
+  ],
+  "codec-http2.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}",
+    "com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-aarch64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-riscv64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-armv7:1.16.0",
+    "com.aayushatharva.brotli4j:native-osx-x86_64:1.16.0",
+    "com.aayushatharva.brotli4j:native-osx-aarch64:1.16.0",
+    "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-http3.mvnDeps": [],
+  "codec-http3.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.hamcrest:hamcrest-library:1.3",
+    "io.netty:netty-build-common:31",
+    "org.mockito:mockito-core:3.6.28",
+    "org.bouncycastle:bcpkix-jdk18on:1.80"
+  ],
+  "codec-marshalling.mvnDeps": [
+    "org.jboss.marshalling:jboss-marshalling:2.2.3.Final"
+  ],
+  "codec-marshalling.test.mvnDeps": [
+    "org.jboss.marshalling:jboss-marshalling-serial:2.2.3.Final",
+    "org.jboss.marshalling:jboss-marshalling-river:2.2.3.Final",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-memcache.mvnDeps": [],
+  "codec-memcache.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-mqtt.mvnDeps": [],
+  "codec-mqtt.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-native-quic.mvnDeps": [
+    "io.netty:netty-jni-util:0.0.9.Final;classifier=sources"
+  ],
+  "codec-native-quic.test.mvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0",
+    "ch.qos.logback:logback-classic:1.3.14"
+  ],
+  "codec-protobuf.mvnDeps": [
+    "com.google.protobuf:protobuf-java:3.25.5",
+    "com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-5"
+  ],
+  "codec-protobuf.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-redis.mvnDeps": [],
+  "codec-redis.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-smtp.mvnDeps": [],
+  "codec-smtp.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-socks.mvnDeps": [],
+  "codec-socks.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-stomp.mvnDeps": [],
+  "codec-stomp.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "codec-xml.mvnDeps": [
+    "com.fasterxml:aalto-xml:1.3.3"
+  ],
+  "codec-xml.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "common.mvnDeps": [
+    "org.jctools:jctools-core:4.0.5",
+    "org.slf4j:slf4j-api:2.0.13",
+    "commons-logging:commons-logging:1.3.4",
+    "org.apache.logging.log4j:log4j-1.2-api:2.23.1;exclude=com.sun.jdmk:jmxtools;exclude=com.sun.jmx:jmxri;exclude=javax.jms:jms;exclude=javax.mail:mail",
+    "org.apache.logging.log4j:log4j-api:2.23.1",
+    "io.projectreactor.tools:blockhound:1.0.13.RELEASE"
+  ],
+  "common.test.mvnDeps": [
+    "org.apache.logging.log4j:log4j-core:2.23.1",
+    "org.mockito:mockito-core:3.6.28",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0",
+    "ch.qos.logback:logback-classic:1.3.14"
+  ],
+  "dev-tools.mvnDeps": [],
+  "example.mvnDeps": [
+    "com.google.protobuf:protobuf-java:3.25.5",
+    "org.conscrypt:conscrypt-openjdk-uber:2.5.2",
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "org.bouncycastle:bcprov-jdk18on:1.80",
+    "com.sun.activation:javax.activation:1.2.0"
+  ],
+  "handler.mvnDeps": [
+    "io.netty:netty-tcnative-classes:2.0.73.Final",
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "org.bouncycastle:bctls-jdk18on:1.80",
+    "org.conscrypt:conscrypt-openjdk-uber:2.5.2"
+  ],
+  "handler.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "software.amazon.cryptools:AmazonCorrettoCryptoProvider:2.4.1;classifier=${os.detected.name}-${os.detected.arch}",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0",
+    "ch.qos.logback:logback-classic:1.3.14"
+  ],
+  "handler-proxy.mvnDeps": [],
+  "handler-proxy.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "handler-ssl-ocsp.mvnDeps": [],
+  "handler-ssl-ocsp.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "jfr-stub.mvnDeps": [],
+  "microbench.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.openjdk.jmh:jmh-core:1.36",
+    "org.agrona:Agrona:0.5.1",
+    "org.jctools:jctools-core:4.0.5",
+    "org.jfree:jfreechart:1.5.6"
+  ],
+  "mvnDeps": [],
+  "pkitesting.mvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "org.bouncycastle:bcprov-jdk18on:1.80"
+  ],
+  "pkitesting.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "resolver.mvnDeps": [],
+  "resolver.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "resolver-dns.mvnDeps": [],
+  "resolver-dns.test.mvnDeps": [
+    "org.apache.directory.server:apacheds-protocol-dns:1.5.7;exclude=commons-lang:commons-lang",
+    "commons-lang:commons-lang:2.6",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "resolver-dns-classes-macos.mvnDeps": [],
+  "resolver-dns-native-macos.mvnDeps": [],
+  "resolver-dns-native-macos.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "testsuite.mvnDeps": [
+    "org.tukaani:xz:1.5",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0",
+    "org.mockito:mockito-core:3.6.28",
+    "ch.qos.logback:logback-classic:1.3.14",
+    "org.bouncycastle:bcpkix-jdk18on:1.80"
+  ],
+  "testsuite-autobahn.mvnDeps": [],
+  "testsuite-http2.mvnDeps": [],
+  "testsuite-jpms.mvnDeps": [
+    "io.netty:netty-tcnative-classes:2.0.73.Final",
+    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final;classifier=${os.detected.name}-${os.detected.arch}",
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "org.bouncycastle:bcprov-jdk18on:1.80"
+  ],
+  "testsuite-jpms.test.mvnDeps": [
+    "com.google.protobuf:protobuf-java:3.25.5",
+    "com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-5",
+    "org.jboss.marshalling:jboss-marshalling:2.2.3.Final",
+    "org.jboss.marshalling:jboss-marshalling-serial:2.2.3.Final",
+    "org.apache.logging.log4j:log4j-api:2.23.1",
+    "org.apache.logging.log4j:log4j-core:2.23.1",
+    "com.github.luben:zstd-jni:1.5.6-5",
+    "com.aayushatharva.brotli4j:brotli4j:1.16.0",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "ch.qos.logback:logback-classic:1.3.14",
+    "commons-logging:commons-logging:1.3.5"
+  ],
+  "testsuite-karaf.mvnDeps": [
+    "org.apache.karaf.features:framework:4.4.8;type=kar"
+  ],
+  "testsuite-native.mvnDeps": [],
+  "testsuite-native.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1"
+  ],
+  "testsuite-native-image.mvnDeps": [],
+  "testsuite-native-image-client.mvnDeps": [],
+  "testsuite-native-image-client-runtime-init.mvnDeps": [],
+  "testsuite-osgi.mvnDeps": [
+    "org.apache.felix:org.apache.felix.configadmin:1.9.14"
+  ],
+  "testsuite-shading.mvnDeps": [
+    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}"
+  ],
+  "testsuite-shading.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1"
+  ],
+  "transport.mvnDeps": [],
+  "transport.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0",
+    "ch.qos.logback:logback-classic:1.3.14"
+  ],
+  "transport-blockhound-tests.mvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80"
+  ],
+  "transport-blockhound-tests.test.mvnDeps": [
+    "io.projectreactor.tools:blockhound:1.0.13.RELEASE",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "transport-classes-epoll.mvnDeps": [],
+  "transport-classes-io_uring.mvnDeps": [],
+  "transport-classes-kqueue.mvnDeps": [],
+  "transport-native-epoll.mvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80"
+  ],
+  "transport-native-epoll.test.mvnDeps": [
+    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}",
+    "io.github.artsok:rerunner-jupiter:2.1.6",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "transport-native-io_uring.mvnDeps": [],
+  "transport-native-io_uring.test.mvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "transport-native-kqueue.mvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80"
+  ],
+  "transport-native-kqueue.test.mvnDeps": [
+    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "transport-native-unix-common.mvnDeps": [
+    "io.netty:netty-jni-util:0.0.9.Final;classifier=sources"
+  ],
+  "transport-native-unix-common.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "transport-native-unix-common-tests.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1"
+  ],
+  "transport-rxtx.mvnDeps": [
+    "org.rxtx:rxtx:2.1.7"
+  ],
+  "transport-sctp.mvnDeps": [],
+  "transport-sctp.test.mvnDeps": [
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "transport-udt.mvnDeps": [
+    "com.barchart.udt:barchart-udt-bundle:2.3.0"
+  ],
+  "transport-udt.test.mvnDeps": [
+    "com.google.caliper:caliper:0.5-rc1",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1",
+    "org.assertj:assertj-core:3.18.0"
+  ],
+  "varhandle-stub.mvnDeps": []
+}
+{
+  "all.compileMvnDeps": [],
+  "bom.compileMvnDeps": [],
+  "buffer.compileMvnDeps": [
+    "org.graalvm.nativeimage:svm:19.3.6"
+  ],
+  "buffer.test.compileMvnDeps": [
+    "org.graalvm.nativeimage:svm:19.3.6"
+  ],
+  "codec.compileMvnDeps": [],
+  "codec-base.compileMvnDeps": [],
+  "codec-base.test.compileMvnDeps": [],
+  "codec-classes-quic.compileMvnDeps": [
+    "org.jetbrains:annotations:26.0.2"
+  ],
+  "codec-compression.compileMvnDeps": [],
+  "codec-compression.test.compileMvnDeps": [],
+  "codec-dns.compileMvnDeps": [],
+  "codec-dns.test.compileMvnDeps": [],
+  "codec-haproxy.compileMvnDeps": [],
+  "codec-haproxy.test.compileMvnDeps": [],
+  "codec-http.compileMvnDeps": [],
+  "codec-http.test.compileMvnDeps": [],
+  "codec-http2.compileMvnDeps": [],
+  "codec-http2.test.compileMvnDeps": [],
+  "codec-http3.compileMvnDeps": [
+    "org.jetbrains:annotations:26.0.2",
+    "com.google.code.findbugs:jsr305:3.0.2"
+  ],
+  "codec-http3.test.compileMvnDeps": [
+    "org.jetbrains:annotations:26.0.2",
+    "com.google.code.findbugs:jsr305:3.0.2"
+  ],
+  "codec-marshalling.compileMvnDeps": [],
+  "codec-marshalling.test.compileMvnDeps": [],
+  "codec-memcache.compileMvnDeps": [],
+  "codec-memcache.test.compileMvnDeps": [],
+  "codec-mqtt.compileMvnDeps": [],
+  "codec-mqtt.test.compileMvnDeps": [],
+  "codec-native-quic.compileMvnDeps": [
+    "org.jetbrains:annotations:26.0.2"
+  ],
+  "codec-native-quic.test.compileMvnDeps": [
+    "org.jetbrains:annotations:26.0.2"
+  ],
+  "codec-protobuf.compileMvnDeps": [],
+  "codec-protobuf.test.compileMvnDeps": [],
+  "codec-redis.compileMvnDeps": [],
+  "codec-redis.test.compileMvnDeps": [],
+  "codec-smtp.compileMvnDeps": [],
+  "codec-smtp.test.compileMvnDeps": [],
+  "codec-socks.compileMvnDeps": [],
+  "codec-socks.test.compileMvnDeps": [],
+  "codec-stomp.compileMvnDeps": [],
+  "codec-stomp.test.compileMvnDeps": [],
+  "codec-xml.compileMvnDeps": [],
+  "codec-xml.test.compileMvnDeps": [],
+  "common.compileMvnDeps": [
+    "org.graalvm.nativeimage:svm:19.3.6",
+    "org.jboss:jdk-misc:3.Final",
+    "org.jetbrains:annotations:26.0.2"
+  ],
+  "common.test.compileMvnDeps": [
+    "org.graalvm.nativeimage:svm:19.3.6",
+    "org.jboss:jdk-misc:3.Final",
+    "org.jetbrains:annotations:26.0.2"
+  ],
+  "compileMvnDeps": [],
+  "dev-tools.compileMvnDeps": [],
+  "example.compileMvnDeps": [],
+  "handler.compileMvnDeps": [],
+  "handler.test.compileMvnDeps": [],
+  "handler-proxy.compileMvnDeps": [],
+  "handler-proxy.test.compileMvnDeps": [],
+  "handler-ssl-ocsp.compileMvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80"
+  ],
+  "handler-ssl-ocsp.test.compileMvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80"
+  ],
+  "jfr-stub.compileMvnDeps": [],
+  "microbench.compileMvnDeps": [
+    "org.openjdk.jmh:jmh-generator-annprocess:1.36"
+  ],
+  "pkitesting.compileMvnDeps": [],
+  "pkitesting.test.compileMvnDeps": [],
+  "resolver.compileMvnDeps": [],
+  "resolver.test.compileMvnDeps": [],
+  "resolver-dns.compileMvnDeps": [],
+  "resolver-dns.test.compileMvnDeps": [],
+  "resolver-dns-classes-macos.compileMvnDeps": [],
+  "resolver-dns-native-macos.compileMvnDeps": [],
+  "resolver-dns-native-macos.test.compileMvnDeps": [],
+  "testsuite.compileMvnDeps": [],
+  "testsuite-autobahn.compileMvnDeps": [],
+  "testsuite-http2.compileMvnDeps": [],
+  "testsuite-jpms.compileMvnDeps": [],
+  "testsuite-jpms.test.compileMvnDeps": [],
+  "testsuite-karaf.compileMvnDeps": [],
+  "testsuite-native.compileMvnDeps": [],
+  "testsuite-native.test.compileMvnDeps": [],
+  "testsuite-native-image.compileMvnDeps": [],
+  "testsuite-native-image-client.compileMvnDeps": [],
+  "testsuite-native-image-client-runtime-init.compileMvnDeps": [],
+  "testsuite-osgi.compileMvnDeps": [],
+  "testsuite-shading.compileMvnDeps": [],
+  "testsuite-shading.test.compileMvnDeps": [],
+  "transport.compileMvnDeps": [],
+  "transport.test.compileMvnDeps": [],
+  "transport-blockhound-tests.compileMvnDeps": [],
+  "transport-blockhound-tests.test.compileMvnDeps": [],
+  "transport-classes-epoll.compileMvnDeps": [],
+  "transport-classes-io_uring.compileMvnDeps": [],
+  "transport-classes-kqueue.compileMvnDeps": [],
+  "transport-native-epoll.compileMvnDeps": [],
+  "transport-native-epoll.test.compileMvnDeps": [],
+  "transport-native-io_uring.compileMvnDeps": [],
+  "transport-native-io_uring.test.compileMvnDeps": [],
+  "transport-native-kqueue.compileMvnDeps": [],
+  "transport-native-kqueue.test.compileMvnDeps": [],
+  "transport-native-unix-common.compileMvnDeps": [],
+  "transport-native-unix-common.test.compileMvnDeps": [],
+  "transport-native-unix-common-tests.compileMvnDeps": [],
+  "transport-rxtx.compileMvnDeps": [],
+  "transport-sctp.compileMvnDeps": [],
+  "transport-sctp.test.compileMvnDeps": [],
+  "transport-udt.compileMvnDeps": [],
+  "transport-udt.test.compileMvnDeps": [],
+  "varhandle-stub.compileMvnDeps": []
+}
+{
+  "all.runMvnDeps": [],
+  "bom.runMvnDeps": [],
+  "buffer.runMvnDeps": [],
+  "buffer.test.runMvnDeps": [
+    "org.graalvm.nativeimage:svm:19.3.6"
+  ],
+  "codec.runMvnDeps": [],
+  "codec-base.runMvnDeps": [],
+  "codec-base.test.runMvnDeps": [],
+  "codec-classes-quic.runMvnDeps": [],
+  "codec-compression.runMvnDeps": [],
+  "codec-compression.test.runMvnDeps": [],
+  "codec-dns.runMvnDeps": [],
+  "codec-dns.test.runMvnDeps": [],
+  "codec-haproxy.runMvnDeps": [],
+  "codec-haproxy.test.runMvnDeps": [],
+  "codec-http.runMvnDeps": [],
+  "codec-http.test.runMvnDeps": [],
+  "codec-http2.runMvnDeps": [],
+  "codec-http2.test.runMvnDeps": [],
+  "codec-http3.runMvnDeps": [],
+  "codec-http3.test.runMvnDeps": [
+    "org.jetbrains:annotations:26.0.2",
+    "com.google.code.findbugs:jsr305:3.0.2"
+  ],
+  "codec-marshalling.runMvnDeps": [],
+  "codec-marshalling.test.runMvnDeps": [],
+  "codec-memcache.runMvnDeps": [],
+  "codec-memcache.test.runMvnDeps": [],
+  "codec-mqtt.runMvnDeps": [],
+  "codec-mqtt.test.runMvnDeps": [],
+  "codec-native-quic.runMvnDeps": [],
+  "codec-native-quic.test.runMvnDeps": [
+    "org.jetbrains:annotations:26.0.2"
+  ],
+  "codec-protobuf.runMvnDeps": [],
+  "codec-protobuf.test.runMvnDeps": [],
+  "codec-redis.runMvnDeps": [],
+  "codec-redis.test.runMvnDeps": [],
+  "codec-smtp.runMvnDeps": [],
+  "codec-smtp.test.runMvnDeps": [],
+  "codec-socks.runMvnDeps": [],
+  "codec-socks.test.runMvnDeps": [],
+  "codec-stomp.runMvnDeps": [],
+  "codec-stomp.test.runMvnDeps": [],
+  "codec-xml.runMvnDeps": [],
+  "codec-xml.test.runMvnDeps": [],
+  "common.runMvnDeps": [],
+  "common.test.runMvnDeps": [
+    "org.graalvm.nativeimage:svm:19.3.6",
+    "org.jboss:jdk-misc:3.Final",
+    "org.jetbrains:annotations:26.0.2"
+  ],
+  "dev-tools.runMvnDeps": [],
+  "example.runMvnDeps": [
+    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}",
+    "com.jcraft:jzlib:1.1.3",
+    "ch.qos.logback:logback-classic:1.3.14",
+    "com.aayushatharva.brotli4j:brotli4j:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-aarch64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-riscv64:1.16.0",
+    "com.aayushatharva.brotli4j:native-linux-armv7:1.16.0",
+    "com.aayushatharva.brotli4j:native-osx-x86_64:1.16.0",
+    "com.aayushatharva.brotli4j:native-osx-aarch64:1.16.0",
+    "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0"
+  ],
+  "handler.runMvnDeps": [
+    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}"
+  ],
+  "handler.test.runMvnDeps": [],
+  "handler-proxy.runMvnDeps": [],
+  "handler-proxy.test.runMvnDeps": [],
+  "handler-ssl-ocsp.runMvnDeps": [],
+  "handler-ssl-ocsp.test.runMvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80"
+  ],
+  "jfr-stub.runMvnDeps": [],
+  "microbench.runMvnDeps": [
+    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}"
+  ],
+  "pkitesting.runMvnDeps": [],
+  "pkitesting.test.runMvnDeps": [],
+  "resolver.runMvnDeps": [],
+  "resolver.test.runMvnDeps": [],
+  "resolver-dns.runMvnDeps": [],
+  "resolver-dns.test.runMvnDeps": [],
+  "resolver-dns-classes-macos.runMvnDeps": [],
+  "resolver-dns-native-macos.runMvnDeps": [],
+  "resolver-dns-native-macos.test.runMvnDeps": [],
+  "runMvnDeps": [],
+  "testsuite.runMvnDeps": [
+    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}"
+  ],
+  "testsuite-autobahn.runMvnDeps": [],
+  "testsuite-http2.runMvnDeps": [],
+  "testsuite-jpms.runMvnDeps": [],
+  "testsuite-jpms.test.runMvnDeps": [],
+  "testsuite-karaf.runMvnDeps": [
+    "org.apache.karaf.features:framework:4.4.8;classifier=features;type=xml"
+  ],
+  "testsuite-native.runMvnDeps": [],
+  "testsuite-native.test.runMvnDeps": [],
+  "testsuite-native-image.runMvnDeps": [],
+  "testsuite-native-image-client.runMvnDeps": [],
+  "testsuite-native-image-client-runtime-init.runMvnDeps": [],
+  "testsuite-osgi.runMvnDeps": [],
+  "testsuite-shading.runMvnDeps": [],
+  "testsuite-shading.test.runMvnDeps": [],
+  "transport.runMvnDeps": [],
+  "transport.test.runMvnDeps": [],
+  "transport-blockhound-tests.runMvnDeps": [
+    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}"
+  ],
+  "transport-blockhound-tests.test.runMvnDeps": [],
+  "transport-classes-epoll.runMvnDeps": [],
+  "transport-classes-io_uring.runMvnDeps": [],
+  "transport-classes-kqueue.runMvnDeps": [],
+  "transport-native-epoll.runMvnDeps": [],
+  "transport-native-epoll.test.runMvnDeps": [],
+  "transport-native-io_uring.runMvnDeps": [],
+  "transport-native-io_uring.test.runMvnDeps": [],
+  "transport-native-kqueue.runMvnDeps": [],
+  "transport-native-kqueue.test.runMvnDeps": [],
+  "transport-native-unix-common.runMvnDeps": [],
+  "transport-native-unix-common.test.runMvnDeps": [],
+  "transport-native-unix-common-tests.runMvnDeps": [],
+  "transport-rxtx.runMvnDeps": [],
+  "transport-sctp.runMvnDeps": [],
+  "transport-sctp.test.runMvnDeps": [],
+  "transport-udt.runMvnDeps": [],
+  "transport-udt.test.runMvnDeps": [],
+  "varhandle-stub.runMvnDeps": []
+}
+{
+  "all.bomMvnDeps": [],
+  "bom.bomMvnDeps": [],
+  "bomMvnDeps": [],
+  "buffer.bomMvnDeps": [],
+  "buffer.test.bomMvnDeps": [],
+  "codec.bomMvnDeps": [],
+  "codec-base.bomMvnDeps": [],
+  "codec-base.test.bomMvnDeps": [],
+  "codec-classes-quic.bomMvnDeps": [],
+  "codec-compression.bomMvnDeps": [],
+  "codec-compression.test.bomMvnDeps": [],
+  "codec-dns.bomMvnDeps": [],
+  "codec-dns.test.bomMvnDeps": [],
+  "codec-haproxy.bomMvnDeps": [],
+  "codec-haproxy.test.bomMvnDeps": [],
+  "codec-http.bomMvnDeps": [],
+  "codec-http.test.bomMvnDeps": [],
+  "codec-http2.bomMvnDeps": [],
+  "codec-http2.test.bomMvnDeps": [],
+  "codec-http3.bomMvnDeps": [],
+  "codec-http3.test.bomMvnDeps": [],
+  "codec-marshalling.bomMvnDeps": [],
+  "codec-marshalling.test.bomMvnDeps": [],
+  "codec-memcache.bomMvnDeps": [],
+  "codec-memcache.test.bomMvnDeps": [],
+  "codec-mqtt.bomMvnDeps": [],
+  "codec-mqtt.test.bomMvnDeps": [],
+  "codec-native-quic.bomMvnDeps": [],
+  "codec-native-quic.test.bomMvnDeps": [],
+  "codec-protobuf.bomMvnDeps": [],
+  "codec-protobuf.test.bomMvnDeps": [],
+  "codec-redis.bomMvnDeps": [],
+  "codec-redis.test.bomMvnDeps": [],
+  "codec-smtp.bomMvnDeps": [],
+  "codec-smtp.test.bomMvnDeps": [],
+  "codec-socks.bomMvnDeps": [],
+  "codec-socks.test.bomMvnDeps": [],
+  "codec-stomp.bomMvnDeps": [],
+  "codec-stomp.test.bomMvnDeps": [],
+  "codec-xml.bomMvnDeps": [],
+  "codec-xml.test.bomMvnDeps": [],
+  "common.bomMvnDeps": [],
+  "common.test.bomMvnDeps": [],
+  "dev-tools.bomMvnDeps": [],
+  "example.bomMvnDeps": [],
+  "handler.bomMvnDeps": [],
+  "handler.test.bomMvnDeps": [],
+  "handler-proxy.bomMvnDeps": [],
+  "handler-proxy.test.bomMvnDeps": [],
+  "handler-ssl-ocsp.bomMvnDeps": [],
+  "handler-ssl-ocsp.test.bomMvnDeps": [],
+  "jfr-stub.bomMvnDeps": [],
+  "microbench.bomMvnDeps": [],
+  "pkitesting.bomMvnDeps": [],
+  "pkitesting.test.bomMvnDeps": [],
+  "resolver.bomMvnDeps": [],
+  "resolver.test.bomMvnDeps": [],
+  "resolver-dns.bomMvnDeps": [],
+  "resolver-dns.test.bomMvnDeps": [],
+  "resolver-dns-classes-macos.bomMvnDeps": [],
+  "resolver-dns-native-macos.bomMvnDeps": [],
+  "resolver-dns-native-macos.test.bomMvnDeps": [],
+  "testsuite.bomMvnDeps": [],
+  "testsuite-autobahn.bomMvnDeps": [],
+  "testsuite-http2.bomMvnDeps": [],
+  "testsuite-jpms.bomMvnDeps": [],
+  "testsuite-jpms.test.bomMvnDeps": [],
+  "testsuite-karaf.bomMvnDeps": [],
+  "testsuite-native.bomMvnDeps": [],
+  "testsuite-native.test.bomMvnDeps": [],
+  "testsuite-native-image.bomMvnDeps": [],
+  "testsuite-native-image-client.bomMvnDeps": [],
+  "testsuite-native-image-client-runtime-init.bomMvnDeps": [],
+  "testsuite-osgi.bomMvnDeps": [],
+  "testsuite-shading.bomMvnDeps": [],
+  "testsuite-shading.test.bomMvnDeps": [],
+  "transport.bomMvnDeps": [],
+  "transport.test.bomMvnDeps": [],
+  "transport-blockhound-tests.bomMvnDeps": [],
+  "transport-blockhound-tests.test.bomMvnDeps": [],
+  "transport-classes-epoll.bomMvnDeps": [],
+  "transport-classes-io_uring.bomMvnDeps": [],
+  "transport-classes-kqueue.bomMvnDeps": [],
+  "transport-native-epoll.bomMvnDeps": [],
+  "transport-native-epoll.test.bomMvnDeps": [],
+  "transport-native-io_uring.bomMvnDeps": [],
+  "transport-native-io_uring.test.bomMvnDeps": [],
+  "transport-native-kqueue.bomMvnDeps": [],
+  "transport-native-kqueue.test.bomMvnDeps": [],
+  "transport-native-unix-common.bomMvnDeps": [],
+  "transport-native-unix-common.test.bomMvnDeps": [],
+  "transport-native-unix-common-tests.bomMvnDeps": [],
+  "transport-rxtx.bomMvnDeps": [],
+  "transport-sctp.bomMvnDeps": [],
+  "transport-sctp.test.bomMvnDeps": [],
+  "transport-udt.bomMvnDeps": [],
+  "transport-udt.test.bomMvnDeps": [],
+  "varhandle-stub.bomMvnDeps": []
+}
+Module dependencies of all:
+  buffer
+  codec-base
+  codec
+  codec-dns
+  codec-haproxy
+  codec-compression
+  codec-http
+  codec-http2
+  codec-http3
+  codec-memcache
+  codec-mqtt
+  codec-redis
+  codec-smtp
+  codec-socks
+  codec-stomp
+  codec-xml
+  codec-protobuf
+  codec-marshalling
+  common
+  handler
+  handler-proxy
+  handler-ssl-ocsp
+  resolver
+  resolver-dns
+  transport
+  transport-rxtx
+  transport-sctp
+  transport-udt
+  transport-classes-epoll
+  transport-classes-kqueue
+  resolver-dns-classes-macos
+  transport-classes-io_uring
+  codec-classes-quic
+Module dependencies of bom:
+Module dependencies of buffer:
+  common
+  jfr-stub (compile)
+  varhandle-stub (compile)
+Module dependencies of buffer.test:
+  buffer
+  jfr-stub (compile,runtime)
+  varhandle-stub (compile,runtime)
+Module dependencies of codec:
+  common
+  buffer
+  transport
+  codec-base
+  codec-compression
+  codec-protobuf
+  codec-marshalling
+Module dependencies of codec-base:
+  common
+  buffer
+  transport
+Module dependencies of codec-base.test:
+  codec-base
+  transport
+Module dependencies of codec-classes-quic:
+  common
+  buffer
+  transport
+  codec-base
+  handler
+  transport-classes-epoll
+Module dependencies of codec-compression:
+  common
+  buffer
+  transport
+  codec-base
+Module dependencies of codec-compression.test:
+  codec-compression
+  transport
+Module dependencies of codec-dns:
+  common
+  buffer
+  transport
+  codec-base
+Module dependencies of codec-dns.test:
+  codec-dns
+  transport
+Module dependencies of codec-haproxy:
+  buffer
+  transport
+  codec-base
+Module dependencies of codec-haproxy.test:
+  codec-haproxy
+  transport
+Module dependencies of codec-http:
+  common
+  buffer
+  transport
+  codec-base
+  codec-compression
+  handler
+Module dependencies of codec-http.test:
+  codec-http
+  transport
+Module dependencies of codec-http2:
+  common
+  buffer
+  transport
+  codec-base
+  codec-compression
+  handler
+  codec-http
+Module dependencies of codec-http2.test:
+  codec-http2
+  pkitesting
+  transport
+Module dependencies of codec-http3:
+  common
+  buffer
+  codec-base
+  codec-http
+  transport
+  codec-classes-quic
+  codec-native-quic (runtime)
+Module dependencies of codec-http3.test:
+  codec-http3
+Module dependencies of codec-marshalling:
+  common
+  buffer
+  transport
+  codec-base
+Module dependencies of codec-marshalling.test:
+  codec-marshalling
+  transport
+Module dependencies of codec-memcache:
+  common
+  buffer
+  transport
+  codec-base
+Module dependencies of codec-memcache.test:
+  codec-memcache
+  transport
+Module dependencies of codec-mqtt:
+  common
+  buffer
+  transport
+  codec-base
+Module dependencies of codec-mqtt.test:
+  codec-mqtt
+  transport
+Module dependencies of codec-native-quic:
+  codec-classes-quic
+Module dependencies of codec-native-quic.test:
+  codec-native-quic
+  transport-classes-epoll
+  transport-native-epoll
+Module dependencies of codec-protobuf:
+  common
+  buffer
+  transport
+  codec-base
+Module dependencies of codec-protobuf.test:
+  codec-protobuf
+  transport
+Module dependencies of codec-redis:
+  common
+  buffer
+  transport
+  codec-base
+Module dependencies of codec-redis.test:
+  codec-redis
+  transport
+Module dependencies of codec-smtp:
+  common
+  buffer
+  transport
+  codec-base
+Module dependencies of codec-smtp.test:
+  codec-smtp
+  transport
+Module dependencies of codec-socks:
+  common
+  buffer
+  transport
+  codec-base
+Module dependencies of codec-socks.test:
+  codec-socks
+  transport
+Module dependencies of codec-stomp:
+  common
+  buffer
+  transport
+  codec-base
+Module dependencies of codec-stomp.test:
+  codec-stomp
+  transport
+Module dependencies of codec-xml:
+  buffer
+  transport
+  codec-base
+Module dependencies of codec-xml.test:
+  codec-xml
+  transport
+Module dependencies of common:
+  jfr-stub (compile)
+  varhandle-stub (compile)
+Module dependencies of common.test:
+  common
+  dev-tools
+  jfr-stub (compile,runtime)
+  varhandle-stub (compile,runtime)
+Module dependencies of dev-tools:
+Module dependencies of example:
+  common
+  buffer
+  transport
+  codec
+  handler
+  pkitesting
+  handler-ssl-ocsp
+  transport-sctp
+  handler-proxy
+  codec-compression
+  codec-http
+  codec-http2
+  codec-memcache
+  codec-redis
+  codec-socks
+  codec-stomp
+  codec-mqtt
+  codec-haproxy
+  codec-dns
+  codec-protobuf
+  transport-udt
+  transport-rxtx
+Module dependencies of handler:
+  common
+  resolver
+  buffer
+  transport
+  transport-native-unix-common
+  codec-base
+  pkitesting
+Module dependencies of handler.test:
+  handler
+  transport
+Module dependencies of handler-proxy:
+  common
+  buffer
+  transport
+  codec-base
+  codec-socks
+  codec-http
+  handler
+Module dependencies of handler-proxy.test:
+  handler-proxy
+  transport
+  pkitesting
+Module dependencies of handler-ssl-ocsp:
+  codec-http
+  transport
+  resolver-dns
+Module dependencies of handler-ssl-ocsp.test:
+  handler-ssl-ocsp
+  pkitesting
+Module dependencies of jfr-stub:
+Module dependencies of microbench:
+  handler
+  codec-compression
+  codec-http
+  codec-http2
+  codec-redis
+  codec-mqtt
+  codec-stomp
+  codec-protobuf
+  transport-native-epoll
+  transport-native-kqueue
+  jfr-stub (compile)
+Module dependencies of pkitesting:
+  common
+Module dependencies of pkitesting.test:
+  pkitesting
+Module dependencies of resolver:
+  common
+Module dependencies of resolver.test:
+  resolver
+Module dependencies of resolver-dns:
+  common
+  buffer
+  resolver
+  transport
+  codec-base
+  codec-dns
+  handler
+Module dependencies of resolver-dns.test:
+  resolver-dns
+  transport
+Module dependencies of resolver-dns-classes-macos:
+  common
+  resolver-dns
+  transport-native-unix-common
+Module dependencies of resolver-dns-native-macos:
+  resolver-dns-classes-macos
+Module dependencies of resolver-dns-native-macos.test:
+  resolver-dns-native-macos
+Module dependencies of :
+Module dependencies of testsuite:
+  common
+  buffer
+  transport
+  transport-sctp
+  handler
+  pkitesting
+  codec-http
+  transport-udt
+Module dependencies of testsuite-autobahn:
+  common
+  buffer
+  transport
+  codec-http
+Module dependencies of testsuite-http2:
+  common
+  buffer
+  transport
+  handler
+  codec-http
+  codec-http2
+Module dependencies of testsuite-jpms:
+  buffer
+  codec-base
+  handler
+  pkitesting
+  codec-http
+  transport-classes-kqueue
+  transport-classes-epoll
+  transport-classes-io_uring
+  codec-http3
+  transport-native-epoll
+  transport-native-io_uring
+  codec-native-quic
+Module dependencies of testsuite-jpms.test:
+  testsuite-jpms
+  codec-http2
+  codec-xml
+  codec-compression
+  codec-mqtt
+  codec-smtp
+  codec-memcache
+  codec-stomp
+  codec-socks
+  codec-redis
+  codec-haproxy
+  codec-protobuf
+  codec-marshalling
+  resolver-dns-classes-macos
+  handler-ssl-ocsp
+Module dependencies of testsuite-karaf:
+  buffer (compile)
+  codec-base (compile)
+  codec-compression (compile)
+  codec-classes-quic (compile)
+  codec-dns (compile)
+  codec-haproxy (compile)
+  codec-http (compile)
+  codec-http2 (compile)
+  codec-http3 (compile)
+  codec-marshalling (compile)
+  codec-memcache (compile)
+  codec-mqtt (compile)
+  codec-redis (compile)
+  codec-smtp (compile)
+  codec-socks (compile)
+  codec-stomp (compile)
+  codec-xml (compile)
+  common (compile)
+  handler (compile)
+  handler-proxy (compile)
+  handler-ssl-ocsp (compile)
+  resolver (compile)
+  resolver-dns (compile)
+  resolver-dns-classes-macos (compile)
+  transport (compile)
+  transport-classes-epoll (compile)
+  transport-classes-io_uring (compile)
+  transport-classes-kqueue (compile)
+  transport-native-unix-common (compile)
+  transport-rxtx (compile)
+  transport-sctp (compile)
+Module dependencies of testsuite-native:
+  transport-native-epoll
+  transport-native-kqueue
+  resolver-dns-native-macos
+Module dependencies of testsuite-native.test:
+  testsuite-native
+Module dependencies of testsuite-native-image:
+  common
+  buffer
+  transport
+  handler
+  codec-http
+  transport-classes-epoll
+  transport-classes-io_uring
+  codec-classes-quic
+Module dependencies of testsuite-native-image-client:
+  transport
+  resolver-dns
+Module dependencies of testsuite-native-image-client-runtime-init:
+  common
+Module dependencies of testsuite-osgi:
+Module dependencies of testsuite-shading:
+  common
+  transport-native-epoll
+  handler
+Module dependencies of testsuite-shading.test:
+  testsuite-shading
+Module dependencies of transport:
+  common
+  buffer
+  resolver
+Module dependencies of transport.test:
+  transport
+Module dependencies of transport-blockhound-tests:
+  transport
+  handler
+  pkitesting
+  resolver-dns
+Module dependencies of transport-blockhound-tests.test:
+  transport-blockhound-tests
+Module dependencies of transport-classes-epoll:
+  common
+  buffer
+  transport
+  transport-native-unix-common
+Module dependencies of transport-classes-io_uring:
+  common
+  buffer
+  transport
+  transport-native-unix-common
+Module dependencies of transport-classes-kqueue:
+  common
+  buffer
+  transport
+  transport-native-unix-common
+Module dependencies of transport-native-epoll:
+  common
+  buffer
+  transport
+  transport-native-unix-common
+  transport-classes-epoll
+Module dependencies of transport-native-epoll.test:
+  transport-native-epoll
+  testsuite
+  transport-native-unix-common-tests
+Module dependencies of transport-native-io_uring:
+  common
+  buffer
+  transport
+  transport-native-unix-common
+  transport-classes-io_uring
+Module dependencies of transport-native-io_uring.test:
+  transport-native-io_uring
+  testsuite
+  transport-native-unix-common-tests
+  transport-classes-epoll
+  transport-native-epoll
+Module dependencies of transport-native-kqueue:
+  common
+  buffer
+  transport
+  transport-native-unix-common
+  transport-classes-kqueue
+Module dependencies of transport-native-kqueue.test:
+  transport-native-kqueue
+  testsuite
+  transport-native-unix-common-tests
+Module dependencies of transport-native-unix-common:
+  common
+  buffer
+  transport
+Module dependencies of transport-native-unix-common.test:
+  transport-native-unix-common
+Module dependencies of transport-native-unix-common-tests:
+  transport
+  transport-native-unix-common
+Module dependencies of transport-rxtx:
+  buffer
+  transport
+Module dependencies of transport-sctp:
+  common
+  buffer
+  codec
+  transport
+Module dependencies of transport-sctp.test:
+  transport-sctp
+  transport
+Module dependencies of transport-udt:
+  common
+  buffer
+  transport
+Module dependencies of transport-udt.test:
+  transport-udt
+Module dependencies of varhandle-stub:
+{
+  "all.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "bom.javacOptions": [],
+  "buffer.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "buffer.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-base.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-base.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-classes-quic.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-compression.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-compression.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-dns.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-dns.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-haproxy.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-haproxy.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-http.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-http.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-http2.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-http2.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-http3.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-http3.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-marshalling.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-marshalling.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-memcache.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-memcache.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-mqtt.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-mqtt.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-native-quic.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-native-quic.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-protobuf.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-protobuf.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-redis.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-redis.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-smtp.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-smtp.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-socks.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-socks.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-stomp.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-stomp.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-xml.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "codec-xml.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "common.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "common.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "dev-tools.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "example.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "handler.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "handler.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "handler-proxy.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "handler-proxy.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "handler-ssl-ocsp.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "handler-ssl-ocsp.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "jfr-stub.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "microbench.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "pkitesting.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "pkitesting.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "resolver.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "resolver.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "resolver-dns.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "resolver-dns.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "resolver-dns-classes-macos.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "resolver-dns-native-macos.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "resolver-dns-native-macos.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "testsuite.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "testsuite-autobahn.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "testsuite-http2.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "testsuite-jpms.javacOptions": [
+    "--release",
+    "11"
+  ],
+  "testsuite-jpms.test.javacOptions": [
+    "--release",
+    "11"
+  ],
+  "testsuite-karaf.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "testsuite-native.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "testsuite-native.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "testsuite-native-image.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "testsuite-native-image-client.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "testsuite-native-image-client-runtime-init.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "testsuite-osgi.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "testsuite-shading.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "testsuite-shading.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-blockhound-tests.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-blockhound-tests.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-classes-epoll.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-classes-io_uring.javacOptions": [
+    "--release",
+    "9"
+  ],
+  "transport-classes-kqueue.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-native-epoll.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-native-epoll.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-native-io_uring.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-native-io_uring.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-native-kqueue.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-native-kqueue.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-native-unix-common.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-native-unix-common.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-native-unix-common-tests.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-rxtx.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-sctp.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-sctp.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-udt.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-udt.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "varhandle-stub.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ]
+}
+{
+  "all.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "bom.pomParentProject": {
+    "group": "org.sonatype.oss",
+    "id": "oss-parent",
+    "version": "7"
+  },
+  "buffer.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-base.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-classes-quic.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-compression.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-dns.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-haproxy.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-http.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-http2.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-http3.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-marshalling.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-memcache.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-mqtt.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-native-quic.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-protobuf.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-redis.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-smtp.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-socks.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-stomp.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "codec-xml.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "common.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "dev-tools.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "example.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "handler.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "handler-proxy.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "handler-ssl-ocsp.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "jfr-stub.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "microbench.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "pkitesting.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "pomParentProject": {
+    "group": "org.sonatype.oss",
+    "id": "oss-parent",
+    "version": "9"
+  },
+  "resolver.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "resolver-dns.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "resolver-dns-classes-macos.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "resolver-dns-native-macos.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "testsuite.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "transport.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "transport-classes-epoll.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "transport-classes-io_uring.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "transport-classes-kqueue.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "transport-native-epoll.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "transport-native-io_uring.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "transport-native-kqueue.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "transport-native-unix-common.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "transport-native-unix-common-tests.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "transport-rxtx.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "transport-sctp.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "transport-udt.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  },
+  "varhandle-stub.pomParentProject": {
+    "group": "io.netty",
+    "id": "netty-parent",
+    "version": "4.2.6.Final"
+  }
+}
+{
+  "all.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "bom.pomSettings": {
+    "description": "Netty (Bill of Materials)",
+    "organization": "io.netty",
+    "url": "https://netty.io/",
+    "licenses": [
+      {
+        "name": "Apache License, Version 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/netty/netty",
+      "connection": "scm:git:git://github.com/netty/netty.git",
+      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
+      "tag": "netty-4.2.6.Final"
+    },
+    "developers": [
+      {
+        "id": "netty.io",
+        "name": "The Netty Project Contributors",
+        "url": "https://netty.io/",
+        "organization": "The Netty Project",
+        "organizationUrl": "https://netty.io/"
+      }
+    ]
+  },
+  "buffer.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-base.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-classes-quic.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-compression.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-dns.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-haproxy.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-http.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-http2.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-http3.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-marshalling.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-memcache.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-mqtt.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-native-quic.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-protobuf.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-redis.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-smtp.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-socks.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-stomp.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "codec-xml.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "common.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "dev-tools.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "example.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "handler.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "handler-proxy.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "handler-ssl-ocsp.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "jfr-stub.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "microbench.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "pkitesting.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "pomSettings": {
+    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
+    "organization": "io.netty",
+    "url": "https://netty.io/",
+    "licenses": [
+      {
+        "name": "Apache License, Version 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/netty/netty",
+      "connection": "scm:git:git://github.com/netty/netty.git",
+      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
+      "tag": "netty-4.2.6.Final"
+    },
+    "developers": [
+      {
+        "id": "netty.io",
+        "name": "The Netty Project Contributors",
+        "url": "https://netty.io/",
+        "organization": "The Netty Project",
+        "organizationUrl": "https://netty.io/"
+      }
+    ]
+  },
+  "resolver.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "resolver-dns.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "resolver-dns-classes-macos.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "resolver-dns-native-macos.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "testsuite.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "transport.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "transport-classes-epoll.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "transport-classes-io_uring.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "transport-classes-kqueue.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "transport-native-epoll.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "transport-native-io_uring.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "transport-native-kqueue.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "transport-native-unix-common.pomSettings": {
+    "description": "Static library which contains common unix utilities.",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "transport-native-unix-common-tests.pomSettings": {
+    "description": "Tests for the static library which contains common unix utilities.",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "transport-rxtx.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "transport-sctp.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "transport-udt.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  },
+  "varhandle-stub.pomSettings": {
+    "description": "",
+    "organization": "",
+    "url": "",
+    "licenses": [],
+    "versionControl": {},
+    "developers": []
+  }
+}
+{
+  "all.publishVersion": "4.2.6.Final",
+  "bom.publishVersion": "4.2.6.Final",
+  "buffer.publishVersion": "4.2.6.Final",
+  "codec.publishVersion": "4.2.6.Final",
+  "codec-base.publishVersion": "4.2.6.Final",
+  "codec-classes-quic.publishVersion": "4.2.6.Final",
+  "codec-compression.publishVersion": "4.2.6.Final",
+  "codec-dns.publishVersion": "4.2.6.Final",
+  "codec-haproxy.publishVersion": "4.2.6.Final",
+  "codec-http.publishVersion": "4.2.6.Final",
+  "codec-http2.publishVersion": "4.2.6.Final",
+  "codec-http3.publishVersion": "4.2.6.Final",
+  "codec-marshalling.publishVersion": "4.2.6.Final",
+  "codec-memcache.publishVersion": "4.2.6.Final",
+  "codec-mqtt.publishVersion": "4.2.6.Final",
+  "codec-native-quic.publishVersion": "4.2.6.Final",
+  "codec-protobuf.publishVersion": "4.2.6.Final",
+  "codec-redis.publishVersion": "4.2.6.Final",
+  "codec-smtp.publishVersion": "4.2.6.Final",
+  "codec-socks.publishVersion": "4.2.6.Final",
+  "codec-stomp.publishVersion": "4.2.6.Final",
+  "codec-xml.publishVersion": "4.2.6.Final",
+  "common.publishVersion": "4.2.6.Final",
+  "dev-tools.publishVersion": "4.2.6.Final",
+  "example.publishVersion": "4.2.6.Final",
+  "handler.publishVersion": "4.2.6.Final",
+  "handler-proxy.publishVersion": "4.2.6.Final",
+  "handler-ssl-ocsp.publishVersion": "4.2.6.Final",
+  "jfr-stub.publishVersion": "4.2.6.Final",
+  "microbench.publishVersion": "4.2.6.Final",
+  "pkitesting.publishVersion": "4.2.6.Final",
+  "publishVersion": "4.2.6.Final",
+  "resolver.publishVersion": "4.2.6.Final",
+  "resolver-dns.publishVersion": "4.2.6.Final",
+  "resolver-dns-classes-macos.publishVersion": "4.2.6.Final",
+  "resolver-dns-native-macos.publishVersion": "4.2.6.Final",
+  "testsuite.publishVersion": "4.2.6.Final",
+  "transport.publishVersion": "4.2.6.Final",
+  "transport-classes-epoll.publishVersion": "4.2.6.Final",
+  "transport-classes-io_uring.publishVersion": "4.2.6.Final",
+  "transport-classes-kqueue.publishVersion": "4.2.6.Final",
+  "transport-native-epoll.publishVersion": "4.2.6.Final",
+  "transport-native-io_uring.publishVersion": "4.2.6.Final",
+  "transport-native-kqueue.publishVersion": "4.2.6.Final",
+  "transport-native-unix-common.publishVersion": "4.2.6.Final",
+  "transport-native-unix-common-tests.publishVersion": "4.2.6.Final",
+  "transport-rxtx.publishVersion": "4.2.6.Final",
+  "transport-sctp.publishVersion": "4.2.6.Final",
+  "transport-udt.publishVersion": "4.2.6.Final",
+  "varhandle-stub.publishVersion": "4.2.6.Final"
+}
+{
+  "all.versionScheme": null,
+  "bom.versionScheme": null,
+  "buffer.versionScheme": null,
+  "codec.versionScheme": null,
+  "codec-base.versionScheme": null,
+  "codec-classes-quic.versionScheme": null,
+  "codec-compression.versionScheme": null,
+  "codec-dns.versionScheme": null,
+  "codec-haproxy.versionScheme": null,
+  "codec-http.versionScheme": null,
+  "codec-http2.versionScheme": null,
+  "codec-http3.versionScheme": null,
+  "codec-marshalling.versionScheme": null,
+  "codec-memcache.versionScheme": null,
+  "codec-mqtt.versionScheme": null,
+  "codec-native-quic.versionScheme": null,
+  "codec-protobuf.versionScheme": null,
+  "codec-redis.versionScheme": null,
+  "codec-smtp.versionScheme": null,
+  "codec-socks.versionScheme": null,
+  "codec-stomp.versionScheme": null,
+  "codec-xml.versionScheme": null,
+  "common.versionScheme": null,
+  "dev-tools.versionScheme": null,
+  "example.versionScheme": null,
+  "handler.versionScheme": null,
+  "handler-proxy.versionScheme": null,
+  "handler-ssl-ocsp.versionScheme": null,
+  "jfr-stub.versionScheme": null,
+  "microbench.versionScheme": null,
+  "pkitesting.versionScheme": null,
+  "resolver.versionScheme": null,
+  "resolver-dns.versionScheme": null,
+  "resolver-dns-classes-macos.versionScheme": null,
+  "resolver-dns-native-macos.versionScheme": null,
+  "testsuite.versionScheme": null,
+  "transport.versionScheme": null,
+  "transport-classes-epoll.versionScheme": null,
+  "transport-classes-io_uring.versionScheme": null,
+  "transport-classes-kqueue.versionScheme": null,
+  "transport-native-epoll.versionScheme": null,
+  "transport-native-io_uring.versionScheme": null,
+  "transport-native-kqueue.versionScheme": null,
+  "transport-native-unix-common.versionScheme": null,
+  "transport-native-unix-common-tests.versionScheme": null,
+  "transport-rxtx.versionScheme": null,
+  "transport-sctp.versionScheme": null,
+  "transport-udt.versionScheme": null,
+  "varhandle-stub.versionScheme": null,
+  "versionScheme": null
+}
+{
+  "all.publishProperties": {},
+  "bom.publishProperties": {},
+  "buffer.publishProperties": {},
+  "codec.publishProperties": {},
+  "codec-base.publishProperties": {},
+  "codec-classes-quic.publishProperties": {},
+  "codec-compression.publishProperties": {},
+  "codec-dns.publishProperties": {},
+  "codec-haproxy.publishProperties": {},
+  "codec-http.publishProperties": {},
+  "codec-http2.publishProperties": {},
+  "codec-http3.publishProperties": {},
+  "codec-marshalling.publishProperties": {},
+  "codec-memcache.publishProperties": {},
+  "codec-mqtt.publishProperties": {},
+  "codec-native-quic.publishProperties": {},
+  "codec-protobuf.publishProperties": {},
+  "codec-redis.publishProperties": {},
+  "codec-smtp.publishProperties": {},
+  "codec-socks.publishProperties": {},
+  "codec-stomp.publishProperties": {},
+  "codec-xml.publishProperties": {},
+  "common.publishProperties": {},
+  "dev-tools.publishProperties": {},
+  "example.publishProperties": {},
+  "handler.publishProperties": {},
+  "handler-proxy.publishProperties": {},
+  "handler-ssl-ocsp.publishProperties": {},
+  "jfr-stub.publishProperties": {},
+  "microbench.publishProperties": {},
+  "pkitesting.publishProperties": {},
+  "publishProperties": {},
+  "resolver.publishProperties": {},
+  "resolver-dns.publishProperties": {},
+  "resolver-dns-classes-macos.publishProperties": {},
+  "resolver-dns-native-macos.publishProperties": {},
+  "testsuite.publishProperties": {},
+  "transport.publishProperties": {},
+  "transport-classes-epoll.publishProperties": {},
+  "transport-classes-io_uring.publishProperties": {},
+  "transport-classes-kqueue.publishProperties": {},
+  "transport-native-epoll.publishProperties": {},
+  "transport-native-io_uring.publishProperties": {},
+  "transport-native-kqueue.publishProperties": {},
+  "transport-native-unix-common.publishProperties": {},
+  "transport-native-unix-common-tests.publishProperties": {},
+  "transport-rxtx.publishProperties": {},
+  "transport-sctp.publishProperties": {},
+  "transport-udt.publishProperties": {},
+  "varhandle-stub.publishProperties": {}
+}
+
+
+
+
+
+
+
+
+
+

@@ -7,6 +7,7 @@ object MillInitGradleFastCsvTests extends GitRepoIntegrationTestSuite {
   def tests = Tests {
     test - integrationTestGitRepo(
       // Gradle 9.0.0-rc-1
+      // spotless, checkstyle, pmd plugins
       // ErrorProne
       "https://github.com/osiegmar/FastCSV.git",
       "v4.0.0",
@@ -21,7 +22,11 @@ object MillInitGradleFastCsvTests extends GitRepoIntegrationTestSuite {
         stderr = os.Inherit
       ).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      """> lib.compile
+
+      """Requires manual fix for javacOptions.
+        |Gradle auto-configures -proc:none when -processorpath is undefined/empty.
+        |
+        |lib.compile
         |[warn] No processor claimed any of these annotations: de.siegmar.fastcsv/de.siegmar.fastcsv.util.Nullable
         |[error] warnings found and -Werror specified
         |""".stripMargin

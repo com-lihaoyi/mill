@@ -7,8 +7,8 @@ object MillInitGradleAsmTests extends GitRepoIntegrationTestSuite {
   def tests = Tests {
     test - integrationTestGitRepo(
       // Gradle 8.3
-      // spotless, checkstyle, pmd plugins
-      // non-standard testing approach using asm-test module
+      // spotless, checkstyle, pmd, jmh plugins
+      // non-standard testing approach (uses asm-test module)
       "https://gitlab.ow2.org/asm/asm.git",
       "ASM_9_8",
       linkMillExecutable = true
@@ -20,7 +20,11 @@ object MillInitGradleAsmTests extends GitRepoIntegrationTestSuite {
         stderr = os.Inherit
       ).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      """tools.retrofitter.compile: requires support for custom sources (of asm module)
+
+      """Requires support for custom source folder.
+        |
+        |tools.retrofitter.compile
+        |[error] .../asm/tools/retrofitter/src/main/java/org/objectweb/asm/tools/Retrofitter.java:33:32: cannot find symbol
         |""".stripMargin
     }
   }

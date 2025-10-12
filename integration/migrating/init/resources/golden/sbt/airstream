@@ -1,9 +1,3 @@
-Module dependencies of [2.13.16]:
-Module dependencies of [2.13.16].test:
-  [2.13.16]
-Module dependencies of [3.3.3]:
-Module dependencies of [3.3.3].test:
-  [3.3.3]
 {
   "[2.13.16].repositories": [
     "https://oss.sonatype.org/content/repositories/public",
@@ -56,13 +50,22 @@ Module dependencies of [3.3.3].test:
   "[3.3.3].bomMvnDeps": [],
   "[3.3.3].test.bomMvnDeps": []
 }
+Module dependencies of [2.13.16]:
+Module dependencies of [2.13.16].test:
+  [2.13.16]
+Module dependencies of [3.3.3]:
+Module dependencies of [3.3.3].test:
+  [3.3.3]
 {
   "[2.13.16].javacOptions": [],
   "[2.13.16].test.javacOptions": [],
   "[3.3.3].javacOptions": [],
   "[3.3.3].test.javacOptions": []
 }
-
+{
+  "[2.13.16].pomParentProject": null,
+  "[3.3.3].pomParentProject": null
+}
 {
   "[2.13.16].pomSettings": {
     "description": "Airstream",
@@ -119,6 +122,14 @@ Module dependencies of [3.3.3].test:
   "[2.13.16].versionScheme": null,
   "[3.3.3].versionScheme": null
 }
+{
+  "[2.13.16].publishProperties": {},
+  "[3.3.3].publishProperties": {}
+}
+
+
+
+
 {
   "[2.13.16].scalaVersion": "2.13.16",
   "[2.13.16].test.scalaVersion": "2.13.16",

@@ -8,8 +8,7 @@ object MillInitGradleSpotbugsTests extends GitRepoIntegrationTestSuite {
   def tests = Tests {
     test - integrationTestGitRepo(
       // Gradle 9.0.0
-      // custom source folders
-      // junit-bom dependency
+      // test dependencies in spotbugs-test are configured in main configurations
       "https://github.com/spotbugs/spotbugs.git",
       "4.9.4",
       linkMillExecutable = true
@@ -22,8 +21,10 @@ object MillInitGradleSpotbugsTests extends GitRepoIntegrationTestSuite {
       ).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
-      """
-        |
+      """eclipsePlugin-test.resolvedMvnDeps java.lang.RuntimeException: 
+        |Resolution failed for 1 modules:
+        |--------------------------------------------
+        |  org.eclipse.platform:org.eclipse.swt.${osgi.platform}:[3.120.0,3.120.0]
         |""".stripMargin
     }
   }

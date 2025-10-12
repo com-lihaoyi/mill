@@ -55,7 +55,7 @@ object SbtBuildGenMain {
       .map(path => upickle.default.read[ExportedPackageSpec](path.toNIO))
       .toSeq
 
-    // segregate the exported build into packages
+    // divide the exported build into packages
     val packages = exportedBuild.groupMap(_._1)(_._2).map {
       // package with cross-platform members
       case ((true, crossRootDir), modules) =>
@@ -66,9 +66,10 @@ object SbtBuildGenMain {
           // cross version member
           case (_, partialSpecs) => unifyCrossVersionConfigs(partialSpecs)
         }.toSeq
+        // create parent module for cross-root
         val rootModule = ModuleSpec(
           name = crossRootDir.lastOption.getOrElse(os.pwd.last),
-          nestedModules = normalizeJvmPlatformDeps(nestedModules)
+          nestedModules = nestedModules
         )
         PackageSpec(crossRootDir, rootModule)
       // package with non-cross module
@@ -78,10 +79,11 @@ object SbtBuildGenMain {
       case ((_, moduleDir), partialSpecs) =>
         PackageSpec(moduleDir, unifyCrossVersionConfigs(partialSpecs))
     }.toSeq
+    val packages0 = normalizeJvmPlatformDeps(packages)
 
-    var build = BuildSpec.fill(packages).copy(millJvmOpts = sbtJvmOpts)
+    var build = BuildSpec.fill(packages0).copy(millJvmOpts = sbtJvmOpts)
     if (merge.value) build = build.merged
-    if (!noMeta.value) build = build.withMetaBuild
+    if (!noMeta.value) build = build.withDefaultMetaBuild
     BuildWriter(build, renderCrossValueInTask = "scalaVersion()").writeFiles()
   }
 
@@ -149,13 +151,12 @@ object SbtBuildGenMain {
   }
 
   /**
-   * A transformation that sets the platformed flag for JVM cross-platform dependencies. This
-   * prevents double entries when defining constants for dependencies.
+   * A transformation that sets the `platformed` flag for dependencies in JVM modules if required.
+   * This prevents double entries when defining constants for dependencies.
    */
-  def normalizeJvmPlatformDeps(members: Seq[ModuleSpec]) = {
-    val (jvmMembers, nonJvmMembers) = members.partition(_.name == "jvm")
-    val platformedDeps = nonJvmMembers
-      .flatMap(_.sequence)
+  def normalizeJvmPlatformDeps(packages: Seq[PackageSpec]) = {
+    val platformedDeps = packages
+      .flatMap(_.module.sequence)
       .flatMap(module => module.configs ++ module.crossConfigs.flatMap(_._2))
       .flatMap {
         case c: JavaModule => c.mvnDeps ++ c.compileMvnDeps ++ c.runMvnDeps
@@ -165,7 +166,11 @@ object SbtBuildGenMain {
       .filter(_.cross.platformed)
       .toSet
 
-    def updateDep(dep: MvnDep) = {
+    def isJvmModule(module: ModuleSpec) = module.configs.collectFirst {
+      case _: ModuleConfig.ScalaJSModule => false
+      case _: ModuleConfig.ScalaNativeModule => false
+    }.getOrElse(true)
+    def updatedDep(dep: MvnDep) = {
       val dep0 = if (dep.cross.platformed) dep
       else dep.copy(cross = dep.cross match {
         case v: CrossVersion.Constant => v.copy(platformed = true)
@@ -174,25 +179,27 @@ object SbtBuildGenMain {
       })
       if (platformedDeps.contains(dep0)) dep0 else dep
     }
-    def updateConfig(config: ModuleConfig) = config match {
+    def updatedConfig(config: ModuleConfig) = config match {
       case c: JavaModule => c.copy(
-          mvnDeps = c.mvnDeps.map(updateDep),
-          compileMvnDeps = c.compileMvnDeps.map(updateDep),
-          runMvnDeps = c.runMvnDeps.map(updateDep)
+          mvnDeps = c.mvnDeps.map(updatedDep),
+          compileMvnDeps = c.compileMvnDeps.map(updatedDep),
+          runMvnDeps = c.runMvnDeps.map(updatedDep)
         )
       case c: ScalaModule => c.copy(
-          scalacPluginMvnDeps = c.scalacPluginMvnDeps.map(updateDep)
+          scalacPluginMvnDeps = c.scalacPluginMvnDeps.map(updatedDep)
         )
       case _ => config
     }
-    def updateSpec(spec: ModuleSpec) = spec.transform { module =>
-      module.copy(
-        configs = module.configs.map(updateConfig),
-        crossConfigs = module.crossConfigs.map((k, v) => (k, v.map(updateConfig)))
+    def updatedSpec(spec: ModuleSpec) = spec.transform { module =>
+      if (isJvmModule(module)) module.copy(
+        configs = module.configs.map(updatedConfig),
+        crossConfigs = module.crossConfigs.map((k, v) => (k, v.map(updatedConfig)))
       )
+      else module
     }
 
-    jvmMembers.map(updateSpec) ++ nonJvmMembers
+    if (platformedDeps.isEmpty) packages
+    else packages.map(pkg => pkg.copy(module = updatedSpec(pkg.module)))
   }
 }
 

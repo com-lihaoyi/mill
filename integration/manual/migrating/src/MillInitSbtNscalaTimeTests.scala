@@ -14,6 +14,8 @@ object MillInitSbtNscalaTimeTests extends GitRepoIntegrationTestSuite {
       import tester.*
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+
+      "compile, test, publishLocal succeed."
     }
   }
 }

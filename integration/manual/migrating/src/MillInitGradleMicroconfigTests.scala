@@ -6,7 +6,7 @@ import utest.*
 object MillInitGradleMicroconfigTests extends GitRepoIntegrationTestSuite {
   def tests = Tests {
     // Gradle 8.10.1
-    // depends on spring-boot-dependencies BOM
+    // depends on BOM spring-boot-dependencies
     test - integrationTestGitRepo(
       "https://github.com/microconfig/microconfig.git",
       "v4.9.5",
@@ -14,11 +14,13 @@ object MillInitGradleMicroconfigTests extends GitRepoIntegrationTestSuite {
     ) { tester =>
       import tester.*
       eval(
-        ("init", "--gradle-jvm-id", "11"),
+        ("init", "--merge"),
         stdout = os.Inherit,
         stderr = os.Inherit
       ).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+
+      "Requires support for reading POM settings from XML."
     }
   }
 }

@@ -7,6 +7,7 @@ object MillInitGradleMockitoTests extends GitRepoIntegrationTestSuite {
   def tests = Tests {
     test - integrationTestGitRepo(
       // Gradle 8.14.2
+      // checkstyle, spotless plugins
       "https://github.com/mockito/mockito.git",
       "v5.19.0",
       linkMillExecutable = true
@@ -18,7 +19,12 @@ object MillInitGradleMockitoTests extends GitRepoIntegrationTestSuite {
         stderr = os.Inherit
       ).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      // ErrorProne requires JDK 17+ but module jvmId is 11
+
+      s"""Requires manual fix for jvmId (11).
+         |
+         |mockito-core.compile
+         |[error] java.lang.UnsupportedClassVersionError: com/google/errorprone/ErrorProneJavacPlugin has been compiled by a more recent version of the Java Runtime
+         |""".stripMargin
     }
   }
 }

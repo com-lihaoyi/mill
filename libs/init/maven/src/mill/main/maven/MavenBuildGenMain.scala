@@ -134,11 +134,11 @@ object MavenBuildGenMain {
         nestedModules = testModule.toSeq
       )
       PackageSpec(segments, mainModule)
-    }.toSeq
+    }
 
     var build = BuildSpec.fill(packages)
     if (merge.value) build = build.merged
-    if (!noMeta.value) build = build.withMetaBuild
+    if (!noMeta.value) build = build.withDefaultMetaBuild
     BuildWriter(build).writeFiles()
   }
 
@@ -165,7 +165,6 @@ object MavenBuildGenMain {
     }
   }
 
-  // TODO Add support for optional tags to reproduce the original POM.
   private def toPomSettings(model: Model) = {
     import model.*
     PomSettings(

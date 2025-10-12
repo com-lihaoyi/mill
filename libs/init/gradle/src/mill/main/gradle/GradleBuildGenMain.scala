@@ -71,7 +71,7 @@ object GradleBuildGenMain {
 
     var build = BuildSpec.fill(packages).copy(millJvmOpts = gradleJvmArgs)
     if (merge.value) build = build.merged
-    if (!noMeta.value) build = build.withMetaBuild
+    if (!noMeta.value) build = build.withDefaultMetaBuild
     BuildWriter(build).writeFiles()
   }
 }

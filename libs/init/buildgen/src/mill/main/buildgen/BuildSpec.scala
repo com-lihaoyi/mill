@@ -48,10 +48,10 @@ case class BuildSpec(
   /**
    * Derives a meta-build, with at most 2 base modules, and attaches it to this build.
    *
-   * A base module is derived by collecting shared settings from all non-test modules.
-   * If this module has no publish-settings, another base module is derived from publish-modules.
+   * A base module is derived for all non-test modules.
+   * If publish data is missing in the base module, another one is derived for publishable modules.
    */
-  def withMetaBuild = {
+  def withDefaultMetaBuild = {
     def abstractedModule(module1: ModuleSpec, module2: ModuleSpec) = module1.copy(
       supertypes = module1.supertypes.intersect(module2.supertypes),
       mixins = ModuleConfig.abstractedValue(module1.mixins, module2.mixins, Nil),

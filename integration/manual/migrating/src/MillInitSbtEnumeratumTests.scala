@@ -14,7 +14,11 @@ object MillInitSbtEnumeratumTests extends GitRepoIntegrationTestSuite {
       import tester.*
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      "enumeratum-json4s is not publishable because publish is disabled for Scala 3"
+
+      """Requires support for custom source folder.
+        |
+        |[error] .../macros/src/main/scala-2/enumeratum/EnumMacros.scala:3:8: not found: object ContextUtils
+        |""".stripMargin
     }
   }
 }

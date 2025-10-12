@@ -14,6 +14,11 @@ object MillInitSbtAirstreamTests extends GitRepoIntegrationTestSuite {
       import tester.*
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+
+      """Requires support for jsEnvConfig.
+        |
+        |[2.13.16].test.testForked 3 tests failed: 
+        |""".stripMargin
     }
   }
 }

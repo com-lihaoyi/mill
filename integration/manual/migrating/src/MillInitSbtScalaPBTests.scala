@@ -15,6 +15,8 @@ object MillInitSbtScalaPBTests extends GitRepoIntegrationTestSuite {
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       // requires support for converting sbt-projectmatrix platform modules
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
+
+      "Requires support for sbt-projectmatrix."
     }
   }
 }

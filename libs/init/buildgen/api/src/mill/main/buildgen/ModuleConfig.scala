@@ -3,7 +3,11 @@ package mill.main.buildgen
 import upickle.default.{ReadWriter, macroRW}
 
 /**
- * Settings for configuring a Mill build module.
+ * Data for configuring a Mill build module.
+ *
+ * Each subtype in this ADT maps to a module type defined in Mill.
+ * For example, `ModuleConfig.JavaModule` maps to `mill.javalib.JavaModule` and contains the data
+ * to configure tasks/members like `mvnDeps`/`moduleDeps`.
  */
 sealed trait ModuleConfig
 object ModuleConfig {
@@ -245,21 +249,21 @@ object ModuleConfig {
   }
   case class ErrorProneModule(
       errorProneVersion: String = null,
+      errorProneDeps: Seq[MvnDep] = Nil,
       errorProneOptions: Seq[String] = Nil,
-      errorProneJavacEnableOptions: Seq[String] = Nil,
-      errorProneDeps: Seq[MvnDep] = Nil
+      errorProneJavacEnableOptions: Seq[String] = Nil
   ) extends ModuleConfig {
     def abstracted(that: ErrorProneModule) = copy(
       abstractedValue(errorProneVersion, that.errorProneVersion),
+      errorProneDeps.intersect(that.errorProneDeps),
       errorProneOptions.intersect(that.errorProneOptions),
-      errorProneJavacEnableOptions.intersect(that.errorProneJavacEnableOptions),
-      errorProneDeps.intersect(that.errorProneDeps)
+      errorProneJavacEnableOptions.intersect(that.errorProneJavacEnableOptions)
     )
     def inherited(base: ErrorProneModule) = copy(
       inheritedValue(errorProneVersion, base.errorProneVersion),
+      errorProneDeps.diff(base.errorProneDeps),
       errorProneOptions.diff(base.errorProneOptions),
-      errorProneJavacEnableOptions.diff(base.errorProneJavacEnableOptions),
-      errorProneDeps.diff(base.errorProneDeps)
+      errorProneJavacEnableOptions.diff(base.errorProneJavacEnableOptions)
     )
   }
   object ErrorProneModule {
@@ -276,9 +280,9 @@ object ModuleConfig {
           .partition(_.startsWith("-XD"))
         val errorProneModule = Some(apply(
           errorProneVersion = epMvnDep.flatMap(_.version).orNull,
+          errorProneDeps = errorProneMvnDeps.diff(epMvnDep.toSeq),
           errorProneOptions = epOptions,
-          errorProneJavacEnableOptions = epJavacOptions,
-          errorProneDeps = errorProneMvnDeps.diff(epMvnDep.toSeq)
+          errorProneJavacEnableOptions = epJavacOptions
         ))
         (errorProneModule, javacOptions0)
       }.getOrElse((None, javacOptions))

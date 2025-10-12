@@ -14,7 +14,12 @@ object MillInitSbtScryptoTests extends GitRepoIntegrationTestSuite {
       import tester.*
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      // requires support for ScalablyTypedConverterGenSourcePlugin
+
+      """Requires support for ScalablyTypedConverterGenSourcePlugin
+        |
+        |js[2.13.16].compile
+        |[error] .../scrypto/js/src/main/scala/scorex/crypto/hash/Platform.scala:3:15: object nobleHashes is not a member of package scorex
+        |""".stripMargin
     }
   }
 }
