@@ -21,7 +21,6 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     BuildInfo.Value("groovyVersion", Deps.groovyVersion, "Version of Groovy")
   )
 
-
   object api extends MillPublishScalaModule {
     def moduleDeps = Seq(build.libs.javalib.testrunner)
 
