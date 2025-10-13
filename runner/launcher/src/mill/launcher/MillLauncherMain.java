@@ -72,6 +72,8 @@ public class MillLauncherMain {
                   + " make it less responsive.");
     }
 
+    coursier.Resolve.proxySetup();
+
     String[] runnerClasspath = MillProcessLauncher.cachedComputedValue0(
         outMode,
         "resolve-runner",
