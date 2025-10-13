@@ -1,0 +1,137 @@
+// Below, we should a realistic example of a build for a {language} project.
+// This example touches on library dependencies, testing, publishing, code generation,
+// and other topics covered in more detail in the {language} section of the Mill docs,
+// and you can browse each respective page if you want to learn more.
+//
+//// SNIPPET:ALL
+package build
+import mill.*, scalalib.*, publish.*
+
+trait MyModule extends PublishModule {
+  def publishVersion = "0.0.1"
+
+  def pomSettings = PomSettings(
+    description = "Hello",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/example",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "example"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+  )
+}
+
+trait MyScalaModule extends MyModule, CrossScalaModule {
+  def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.13.1")
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
+    def testFramework = "utest.runner.Framework"
+  }
+}
+
+val scalaVersions = Seq("2.13.16", "3.3.3")
+
+object foo extends Cross[FooModule](scalaVersions)
+trait FooModule extends MyScalaModule {
+  def moduleDeps = Seq(bar(), qux)
+
+  def generatedSources = Task {
+    os.write(
+      Task.dest / "Version.scala",
+      s"""
+         |package foo
+         |object Version{
+         |  def value = "${publishVersion()}"
+         |}
+      """.stripMargin
+    )
+    Seq(PathRef(Task.dest))
+  }
+}
+
+object bar extends Cross[BarModule](scalaVersions)
+trait BarModule extends MyScalaModule {
+  def moduleDeps = Seq(qux)
+}
+
+object qux extends JavaModule, MyModule
+
+// A semi-realistic build setup, combining all the individual Mill concepts:
+//
+// - Two `CrossScalaModules` compiled against two Scala versions, that depend on
+//   each other as well as on a `JavaModule`
+//
+// - With unit testing and publishing set up
+//
+// - With version-specific sources
+//
+// - With generated sources to include the `publishVersion` as a string in the
+//   code, so it can be printed at runtime
+//
+// Note that for multi-module builds like this, using using xref:cli/query-syntax.adoc[queries] to run tasks on
+// multiple modules at once can be very convenient:
+//
+// ----
+// __.test
+// __.publishLocal
+// ----
+//
+// Also note that ``ScalaModule``s can depend on ``JavaModule``s, and
+// when multiple inter-dependent modules are published they automatically will
+// include the inter-module dependencies in the publish metadata.
+//
+// Also note how you can use ``trait``s to bundle together common combinations of
+// modules: `MyScalaModule` not only defines a `ScalaModule` with some common
+// configuration, but it also defines a `object test` module within it with its
+// own configuration. This is a very useful technique for managing the often
+// repetitive module structure in a typical project
+
+/** Usage
+
+> ./mill resolve __.run
+bar[2.13.16].run
+bar[2.13.16].test.run
+bar[3.3.3].run
+bar[3.3.3].test.run
+foo[2.13.16].run
+foo[2.13.16].test.run
+foo[3.3.3].run
+foo[3.3.3].test.run
+qux.run
+
+> ./mill foo[2.13.16].run
+foo version 0.0.1
+Foo.value: <h1>hello</h1>
+Bar.value: <p>world Specific code for Scala 2.x</p>
+Qux.value: 31337
+
+> ./mill bar[3.3.3].test
++ bar.BarTests.test ... <p>world Specific code for Scala 3.x</p>
+
+> ./mill qux.run
+Qux.value: 31337
+
+> ./mill __.compile
+
+> ./mill __.test
++ bar.BarTests.test ... <p>world Specific code for Scala 2.x</p>
++ bar.BarTests.test ... <p>world Specific code for Scala 3.x</p>
++ foo.FooTests.test ... <h1>hello</h1>
++ foo.FooTests.test ... <h1>hello</h1>
+
+> ./mill __.publishLocal
+Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,bar_2.13,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
+
+> ./mill show foo[2.13.16].assembly # mac/linux
+".../out/foo/2.13.16/assembly.dest/out.jar"
+
+> ./out/foo/2.13.16/assembly.dest/out.jar # mac/linux
+foo version 0.0.1
+Foo.value: <h1>hello</h1>
+Bar.value: <p>world Specific code for Scala 2.x</p>
+Qux.value: 31337
+
+*/

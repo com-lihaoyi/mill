@@ -54,7 +54,7 @@ Test foo.FooTest.testSimple finished...
 import scalalib.*
 
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.16"
+  def scalaVersion = "2.13.12"
   def jvmId = "temurin:23.0.1"
   def jvmIndexVersion = "latest.release"
 }

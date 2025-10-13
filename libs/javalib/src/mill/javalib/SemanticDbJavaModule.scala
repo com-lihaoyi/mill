@@ -15,6 +15,7 @@ import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 @experimental
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     with WithJvmWorkerModule {
+
   def jvmWorker: ModuleRef[JvmWorkerModule]
 
   def upstreamSemanticDbDatas: Task[Seq[SemanticDbJavaModule.SemanticDbData]] =
@@ -223,7 +224,7 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
     ))
   }
 
-  def javacOptionsTask(javacOptions: Seq[String], semanticDbJavaVersion: String)(implicit
+  def javacOptionsTask(javacOptions: Seq[String], semanticDbJavaVersion: String)(using
       ctx: mill.api.TaskCtx
   ): Seq[String] = {
     val isNewEnough =

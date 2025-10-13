@@ -21,10 +21,11 @@ private[mill] trait MavenWorkerSupport extends CoursierModule with OfflineSuppor
     Jvm.createClassLoader(classPath = classPath, parent = getClass.getClassLoader)
   }
 
-  private[mill] def mavenWorker: Task.Worker[internal.MavenWorkerSupport.Api] = Task.Worker {
-    mavenWorkerClassloader().loadClass("mill.javalib.maven.worker.impl.WorkerImpl")
-      .getConstructor().newInstance().asInstanceOf[internal.MavenWorkerSupport.Api]
-  }
+  private[mill] def mavenWorker: Task.Worker[mill.javalib.internal.MavenWorkerSupport.Api] =
+    Task.Worker {
+      mavenWorkerClassloader().loadClass("mill.javalib.maven.worker.impl.WorkerImpl")
+        .getConstructor().newInstance().asInstanceOf[mill.javalib.internal.MavenWorkerSupport.Api]
+    }
 }
 object MavenWorkerSupport {
   trait Api {
@@ -40,7 +41,7 @@ object MavenWorkerSupport {
   }
 
   object RemoteM2Publisher {
-    @deprecated("This should have been an internal API.", "1.0.1")
+    @deprecated("This should have been an internal API.", "Mill 1.0.1")
     def asM2Artifacts(
         pom: os.Path,
         artifact: Artifact,

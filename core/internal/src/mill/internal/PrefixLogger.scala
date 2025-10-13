@@ -31,9 +31,10 @@ private[mill] class PrefixLogger(
   private[mill] override val logKey = logger0.logKey ++ key0
 
   assert(key0.forall(_.nonEmpty))
-  val linePrefix: String =
-    if (noPrefix || logKey.isEmpty || !prompt.enableTicker) ""
-    else s"[${logKey.mkString("-")}] "
+  val linePrefix: String = Logger.formatPrefix(
+    if (noPrefix || logKey.isEmpty || !prompt.enableTicker) Nil else logKey
+  )
+
   override def toString: String =
     s"PrefixLogger($logger0, $key0)"
 

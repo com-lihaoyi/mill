@@ -17,12 +17,7 @@ import mill.internal.Util.backtickWrap
  * @param metaBuild If `true`, a meta-build is enabled
  */
 @internal
-case class FileImportGraph(
-    seenScripts: Map[os.Path, String],
-    errors: Seq[String],
-    buildFile: String,
-    headerData: String
-)
+case class FileImportGraph(seenScripts: Map[os.Path, String], errors: Seq[String])
 
 /**
  * Logic around traversing the `import $file` graph, extracting necessary info
@@ -35,7 +30,7 @@ object FileImportGraph {
   implicit val readWriter: upickle.ReadWriter[FileImportGraph] = upickle.macroRW
 
   /**
-   * We perform a depth-first traversal of the import graph of `.mill` files,
+   * We perform a depth-first traversal of the import graph of `.sc` files,
    * starting from `build.mill`, collecting the information necessary to
    * instantiate the [[MillRootModule]]
    */
@@ -43,7 +38,8 @@ object FileImportGraph {
       topLevelProjectRoot: os.Path,
       projectRoot: os.Path,
       output: os.Path,
-      parser: MillScalaParser = MillScalaParser.current.value
+      parser: MillScalaParser,
+      walked: Seq[os.Path]
   ): FileImportGraph = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val errors = mutable.Buffer.empty[String]
@@ -59,9 +55,8 @@ object FileImportGraph {
             try Right(mill.constants.Util.readBuildHeader(s.toNIO, s.last))
             catch { case e: RuntimeException => Left(e.getMessage) }
 
-        buildHeaderError.flatMap(_ =>
-          parser.splitScript(content, fileName)
-        ) match {
+        if (s.last.endsWith(".yaml")) seenScripts(s) = os.read(s)
+        else buildHeaderError.flatMap(_ => parser.splitScript(content, fileName)) match {
           case Right((prefix, pkgs, stmts)) =>
             val importSegments = pkgs.mkString(".")
 
@@ -98,21 +93,9 @@ object FileImportGraph {
 
     processScript(projectRoot / foundRootBuildFileName, useDummy)
 
-    walkBuildFiles(projectRoot, output).foreach(processScript(_))
+    walked.foreach(processScript(_))
 
-    val headerData =
-      if (!os.exists(projectRoot / foundRootBuildFileName)) ""
-      else mill.constants.Util.readBuildHeader(
-        (projectRoot / foundRootBuildFileName).toNIO,
-        foundRootBuildFileName
-      )
-
-    new FileImportGraph(
-      seenScripts.toMap,
-      errors.toSeq,
-      foundRootBuildFileName,
-      headerData
-    )
+    new FileImportGraph(seenScripts.toMap, errors.toSeq)
   }
 
   def findRootBuildFiles(projectRoot: os.Path) = {
@@ -120,7 +103,7 @@ object FileImportGraph {
       .filter(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
 
     val (dummy, foundRootBuildFileName) = rootBuildFiles.toSeq match {
-      case Nil => (true, rootBuildFileNames.get(0))
+      case Nil => (true, "build.mill")
       case Seq(single) => (false, single)
       case multiple =>
         System.err.println(
@@ -136,12 +119,7 @@ object FileImportGraph {
   def walkBuildFiles(projectRoot: os.Path, output: os.Path): Seq[os.Path] = {
     if (!os.exists(projectRoot)) Nil
     else {
-      val foundRootBuildFileName = findRootBuildFiles(projectRoot).foundRootBuildFileName
-
-      val buildFileExtension =
-        buildFileExtensions.asScala.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
-
-      val nestedBuildFileName = s"package.$buildFileExtension"
+      val nestedBuildFileNames = buildFileExtensions.asScala.map(ext => s"package.$ext").toList
       val buildFiles = os
         .walk(
           projectRoot,
@@ -149,13 +127,13 @@ object FileImportGraph {
           skip = p =>
             p == output ||
               p == projectRoot / millBuild ||
-              (os.isDir(p) && !os.exists(p / nestedBuildFileName))
+              (os.isDir(p) && !nestedBuildFileNames.exists(n => os.exists(p / n)))
         )
-        .filter(_.last == nestedBuildFileName)
+        .filter(p => nestedBuildFileNames.contains(p.last))
 
       val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
         .flatMap(os.list(_))
-        .filter(_.last.endsWith(s".$buildFileExtension"))
+        .filter(p => buildFileExtensions.asScala.exists(ext => p.last.endsWith("." + ext)))
 
       buildFiles ++ adjacentScripts
     }

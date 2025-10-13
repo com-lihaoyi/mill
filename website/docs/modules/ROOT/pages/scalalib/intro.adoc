@@ -3,6 +3,7 @@
 :page-aliases: Intro_to_Mill_for_Scala.adoc, Scala_Intro_to_Mill.adoc
 :language: Scala
 :language-small: scala
+:language-ext: scala
 
 include::partial$Intro_Header.adoc[]
 
@@ -10,22 +11,26 @@ include::partial$Intro_Header.adoc[]
 
 include::partial$example/scalalib/basic/1-simple.adoc[]
 
+== Multiple Scala Modules
+
+include::partial$example/scalalib/basic/2-module-deps.adoc[]
+
+== Programmatic Configuration
+
+include::partial$example/scalalib/basic/3-programmatic.adoc[]
+
 == Custom Build Logic
 
-include::partial$example/scalalib/basic/2-custom-build-logic.adoc[]
+include::partial$example/scalalib/basic/4-custom-build-logic.adoc[]
 
 == Multi-Module Project
 
-include::partial$example/scalalib/basic/3-multi-module.adoc[]
+include::partial$example/scalalib/basic/5-multi-module.adoc[]
 
+== Maven-Compatible Modules
 
-== `sbt`-Compatible Modules
+include::partial$example/scalalib/basic/6-compat-modules.adoc[]
 
-include::partial$example/scalalib/basic/4-compat-modules.adoc[]
+== Realistic Java Example Project
 
-
-== Realistic Scala Example Project
-
-include::partial$example/scalalib/basic/6-realistic.adoc[]
-
-
+include::partial$example/scalalib/basic/7-realistic.adoc[]

@@ -30,8 +30,8 @@ object `package` extends Module {
     object dependencies extends Cross[ExampleCrossModuleJava](build.listCross)
     object testing extends Cross[ExampleCrossModuleJava](build.listCross)
     object linting extends Cross[ExampleCrossModuleJava](build.listCross)
-    object publishing
-        extends Cross[ExampleCrossModuleJava](build.listCross)
+    object publishing extends Cross[ExampleCrossModuleJava](build.listCross)
+    object simple extends Cross[ExampleCrossModuleJava](build.listCross)
     object web extends Cross[ExampleCrossModule](build.listCross)
   }
   object kotlinlib extends Module {
@@ -41,6 +41,7 @@ object `package` extends Module {
     object testing extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object linting extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object publishing extends Cross[ExampleCrossModuleKotlin](build.listCross)
+    object simple extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object web extends Cross[ExampleCrossModuleKotlin](build.listCross)
   }
   object scalalib extends Module {
@@ -50,6 +51,7 @@ object `package` extends Module {
     object testing extends Cross[ExampleCrossModule](build.listCross)
     object linting extends Cross[ExampleCrossModule](build.listCross)
     object publishing extends Cross[ExampleCrossModule](build.listCross)
+    object simple extends Cross[ExampleCrossModule](build.listCross)
     object web extends Cross[ExampleCrossModule](build.listCross)
     object native extends Cross[ExampleCrossModule](build.listCross)
     object spark extends Cross[ExampleCrossModule](build.listCross)
@@ -139,6 +141,7 @@ object `package` extends Module {
       case "module" => Some(scalalib.module)
       case "web" => Some(scalalib.web)
       case "publishing" => Some(scalalib.publishing)
+      case "simple" => Some(scalalib.simple)
       case _ => None
     }
     val upstreamOpt = upstreamCross(this.moduleSegments.parts.dropRight(1).last)
@@ -146,7 +149,7 @@ object `package` extends Module {
 
     def testRepoRoot = Task {
       os.copy(super.testRepoRoot().path, Task.dest, mergeFolders = true)
-      for (suffix <- Seq("build.mill")) {
+      for (suffix <- Seq("build.sc", "build.mill", "build.mill.scala")) {
         for (lines <- buildScLines() if os.exists(Task.dest / suffix)) {
           os.write.over(Task.dest / suffix, lines.mkString("\n"))
         }
@@ -159,7 +162,7 @@ object `package` extends Module {
       case Some(upstream) => Task {
           os.copy.over(super.testRepoRoot().path, Task.dest)
           val upstreamRoot = upstream.testRepoRoot().path
-          val suffix = Seq("build.mill").find(s => os.exists(upstreamRoot / s)).head
+          val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
           for (lines <- buildScLines()) {
             os.write.over(Task.dest / suffix, lines.mkString("\n"))
           }
@@ -171,7 +174,7 @@ object `package` extends Module {
       case Some(upstream) => Task {
           Some {
             val upstreamRoot = upstream.testRepoRoot().path
-            val suffix = Seq("build.mill").find(s => os.exists(upstreamRoot / s)).head
+            val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
             val upstreamLines = os.read.lines(upstream.testRepoRoot().path / suffix)
             val lines = os.read.lines(super.testRepoRoot().path / suffix)
 
@@ -250,9 +253,10 @@ object `package` extends Module {
           .map {
             case (s"see:$path", txt) =>
               // avoid .stripMargin, as the embedded content may contain the margin symbol
+              val lang = os.FilePath(path).ext
               s"""
 .$path ({mill-example-url}/$examplePath/$path[browse])
-[source,scala,subs="attributes,verbatim"]
+[source,$lang,subs="attributes,verbatim"]
 ----
 $txt
 ----"""
@@ -303,7 +307,7 @@ $txt
 
   def repoInfo = Map(
     "acyclic" -> ("com-lihaoyi/acyclic", "1ec221f377794db39e8ff9b43415f81c703c202f"),
-    "fansi" -> ("com-lihaoyi/fansi", "387754bc1fc0be0ac787b195490275012d80c683"),
+    "fansi" -> ("com-lihaoyi/fansi", "169ac96d7c6761a72590d312a433cf12c572573c"),
     "jimfs" -> ("google/jimfs", "5b60a42eb9d3cd7a2073d549bd0cb833f5a7e7e9"),
     "commons-io" -> ("apache/commons-io", "b91a48074231ef813bc9b91a815d77f6343ff8f0"),
     "netty" -> ("netty/netty", "20a790ed362a3c11e0e990b58598e4ac6aa88bef"),
@@ -345,6 +349,7 @@ $txt
       )
       os.remove.all(Task.dest / ".mill-version")
 
+      os.remove.all(Task.dest / "build.sc")
       PathRef(Task.dest)
     }
   }
