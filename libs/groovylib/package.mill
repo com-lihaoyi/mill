@@ -5,7 +5,7 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.*
 import millbuild.*
 
-object `package` extends MillStableScalaModule with BuildInfo {
+object `package` extends MillPublishScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.libs.util, build.libs.javalib, build.libs.javalib.testrunner, api)
   def localTestExtraModules: Seq[MillJavaModule] =
@@ -21,10 +21,6 @@ object `package` extends MillStableScalaModule with BuildInfo {
     BuildInfo.Value("groovyVersion", Deps.groovyVersion, "Version of Groovy")
   )
 
-  // this module wasn't released in these versions
-  def mimaPreviousVersions: T[Seq[String]] = super.mimaPreviousVersions().filterNot(
-    Seq("1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5").contains
-  )
 
   object api extends MillPublishScalaModule {
     def moduleDeps = Seq(build.libs.javalib.testrunner)
