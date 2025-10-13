@@ -82,14 +82,19 @@ object BspWorkerImpl {
         }
       }
 
-      new Thread(() => {
-        try listening.get()
-        catch {
-          case _: CancellationException => // normal exit
-        }
-        streams.err.println("Shutting down executor")
-        executor.shutdown()
-      }).start()
+      val thread = new Thread(
+        () => {
+          try listening.get()
+          catch {
+            case _: CancellationException => // normal exit
+          }
+          streams.err.println("Shutting down executor")
+          executor.shutdown()
+        },
+        "bsp-worker-watcher"
+      )
+      thread.setDaemon(true)
+      thread.start()
 
       Result.Success((bspServerHandle, client))
     } catch {
