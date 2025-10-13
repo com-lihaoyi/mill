@@ -3,7 +3,7 @@ package build.list
 import mill.javalib._
 import millbuild._
 
-object `package` extends `7.0BaseModule` {
+object `package` extends ProjectBaseModule {
 
   object test extends MavenTests with TestModule.Junit5 {
 

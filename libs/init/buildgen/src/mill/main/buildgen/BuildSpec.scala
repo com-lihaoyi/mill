@@ -1,6 +1,5 @@
 package mill.main.buildgen
 
-import mill.internal.Util.backtickWrap
 import mill.util.BuildInfo.millVersion
 
 /**
@@ -86,7 +85,7 @@ case class BuildSpec(
         case baseModule if baseModule.configs.nonEmpty =>
           val pwdName = os.pwd.last
           val baseModuleName = pwdName.dropWhile(!_.isLetter).split("\\W") match {
-            case Array("") => backtickWrap(pwdName + suffix)
+            case Array("") => "Project" + suffix
             case parts => parts.map(_.capitalize).mkString("", "", suffix)
           }
           val baseModuleSupertypes = baseModule.supertypes ++ (

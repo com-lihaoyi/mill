@@ -4,7 +4,7 @@ import mill.javalib._
 import mill.javalib.errorprone._
 import millbuild._
 
-object `package` extends ErrorProneModule with `8.0BaseModule` {
+object `package` extends ErrorProneModule with ProjectBaseModule {
 
   def moduleDeps = super.moduleDeps ++ Seq(build.list)
 

@@ -2,7 +2,7 @@ package millbuild
 
 import mill.javalib._
 
-trait `8.0BaseModule` extends MavenModule {
+trait ProjectBaseModule extends MavenModule {
 
   def javacOptions = super.javacOptions() ++
     Seq("-source", "11", "-target", "11")

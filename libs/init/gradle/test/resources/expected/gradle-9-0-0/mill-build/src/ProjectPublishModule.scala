@@ -3,7 +3,7 @@ package millbuild
 import mill.javalib._
 import mill.javalib.publish._
 
-trait `9.0.0PublishModule` extends PublishModule with `9.0.0BaseModule` {
+trait ProjectPublishModule extends PublishModule with ProjectBaseModule {
 
   def pomSettings = PomSettings(
     "",
