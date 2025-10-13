@@ -124,11 +124,10 @@ object SbtBuildGenMain {
 
   def sbtJvmOpts = {
     val file = os.pwd / ".jvmopts"
-    if (os.isFile(file)) os.read.lines.stream(file)
+    if (os.isFile(file)) os.read.lines(file)
       .map(_.trim)
       .filter(s => s.nonEmpty && !s.startsWith("#"))
-      .flatMap(_.split("\\s+"))
-      .toSeq
+      .flatMap(_.split("\\s"))
     else Nil
   }
 

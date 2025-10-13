@@ -271,7 +271,7 @@ object ModuleConfig {
 
     def find(javacOptions: Seq[String], errorProneMvnDeps: Seq[MvnDep]) = {
       javacOptions.find(_.startsWith("-Xplugin:ErrorProne")).map { epOption =>
-        val epOptions = epOption.split("\\s+").toSeq.tail
+        val epOptions = epOption.split("\\s").toSeq.tail
         val epMvnDep =
           errorProneMvnDeps.find(_.module == ("com.google.errorprone", "error_prone_core"))
         val (epJavacOptions, javacOptions0) = javacOptions

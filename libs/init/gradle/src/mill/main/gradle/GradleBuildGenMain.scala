@@ -32,7 +32,7 @@ object GradleBuildGenMain {
       properties
     }
     val gradleJvmArgs = Option(gradleWrapperProperties.getProperty("org.gradle.jvmargs"))
-      .fold(Nil)(_.trim.split("\\s+").toSeq)
+      .fold(Nil)(_.trim.split("\\s").toSeq)
 
     val gradleJavaHome =
       Jvm.resolveJavaHome(id = gradleJvmId, config = CoursierConfig.default()).get
