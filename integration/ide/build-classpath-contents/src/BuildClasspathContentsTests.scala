@@ -47,6 +47,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-libs-scalalib_3-SNAPSHOT.jar",
             "mill-libs-scalanativelib-api_3-SNAPSHOT.jar",
             "mill-libs-scalanativelib_3-SNAPSHOT.jar",
+            "mill-libs-script_3-SNAPSHOT.jar",
             "mill-libs-util_3-SNAPSHOT.jar",
             "mill-libs_3-SNAPSHOT.jar",
             "mill-moduledefs_3-0.11.10.jar"

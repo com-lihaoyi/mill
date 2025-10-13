@@ -1,0 +1,50 @@
+//// SNIPPET:BUILD
+
+package build
+import mill.*, kotlinlib.*
+
+object foo extends KotlinModule {
+  def kotlinVersion = "1.9.24"
+
+  def mvnDeps = Seq(
+    mvn"com.github.ajalt.clikt:clikt:4.4.0",
+    mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
+  )
+
+  object test extends KotlinTests, TestModule.Junit5 {
+    def mvnDeps = Seq(
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
+    )
+  }
+}
+
+//// SNIPPET:TREE
+// ----
+// build.mill
+// foo/
+//     src/
+//         foo/Foo.kt
+//     resources/
+//         ...
+//     test/
+//         src/
+//             foo/FooTest.kt
+// out/foo/
+//     compile.json
+//     compile.dest/
+//     ...
+//     test/
+//         compile.json
+//         compile.dest/
+//         ...
+// ----
+//
+
+//// SNIPPET:TEST
+/** Usage
+> ./mill foo.test
+Test foo.FooTest testSimple finished, ...
+Test foo.FooTest testEscaping finished, ...
+Test foo.FooTest finished, ...
+*/
+//// SNIPPET:END

@@ -133,7 +133,6 @@ object app
     def mvnDeps = super.mvnDeps() ++ composeDeps ++ Seq(
       mvn"junit:junit:4.13.2",
       mvn"androidx.arch.core:core-testing:2.2.0",
-      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0",
       mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0",
       mvn"androidx.navigation:navigation-testing:2.8.5",
       mvn"androidx.test.espresso:espresso-core:3.6.1",
@@ -185,7 +184,6 @@ object app
       // Dependencies for Android unit tests
       mvn"junit:junit:4.13.2",
       mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0",
-      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0",
       // AndroidX Test - Instrumented testing
       mvn"androidx.test:core-ktx:1.6.1",
       mvn"androidx.test.ext:junit-ktx:1.2.1",
@@ -227,7 +225,7 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
 
   def androidEnableCompose = true
 
-  def androidNamespace = "com.example.android.architecture.blueprints.todoapp.daemon.test"
+  def androidNamespace = "com.example.android.architecture.blueprints.todoapp.shared.test"
 
   def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
     mvn"androidx.room:room-compiler:2.7.1",
@@ -237,7 +235,6 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
   def mvnDeps = super.mvnDeps() ++ Seq(
     mvn"junit:junit:4.13.2",
     mvn"androidx.arch.core:core-testing:2.2.0",
-    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0",
     mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0",
     mvn"androidx.test:core-ktx:1.6.1",
     mvn"androidx.test.ext:junit-ktx:1.2.1",

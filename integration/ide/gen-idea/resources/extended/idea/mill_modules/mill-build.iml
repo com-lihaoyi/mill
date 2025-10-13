@@ -81,6 +81,7 @@
         <orderEntry type="library" name="mill-libs-scalalib_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalanativelib-api_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalanativelib_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-script_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-libs-tabcomplete_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-util_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs_3-SNAPSHOT.jar" level="project"/>
@@ -106,7 +107,7 @@
         <orderEntry type="library" scope="PROVIDED" name="scala3-library_3-3.3.3.jar" level="project"/>
         <orderEntry type="library" name="scala3-library_3-3.7.3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="slf4j-api-2.0.17.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="snakeyaml-engine-2.10.jar" level="project"/>
+        <orderEntry type="library" name="snakeyaml-engine-2.10.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-core_3-0.5.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-requests_3-0.5.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-upickle_3-0.5.0.jar" level="project"/>

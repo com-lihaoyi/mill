@@ -50,6 +50,7 @@ trait FlywayModule extends JavaModule {
       .configure(jdbcClassloader)
       .locations(flywayFileLocations().map("filesystem:" + _.path)*)
       .configuration(configProps.asJava)
+      .cleanDisabled(false)
       .load
   }
 
@@ -115,7 +116,7 @@ object FlywayModule {
       ujson.Obj(
         "flywayVersion" -> r.flywayVersion.jsonify,
         "database" -> r.database.jsonify,
-        "operation" -> r.operation.jsonify,
+        "operation" -> r.getOperation.jsonify,
         "warnings" -> r.warnings.asScala.toSeq.map(_.jsonify),
         "initialSchemaVersion" -> r.initialSchemaVersion.jsonify,
         "targetSchemaVersion" -> r.targetSchemaVersion.jsonify,
