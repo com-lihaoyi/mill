@@ -29,6 +29,8 @@ object IntegrationTesterUtil {
     val scalaJSVersion = eval(("show", "__.scalaJSVersion")).out
     val moduleKind = eval(("show", "__.moduleKind")).out
     val scalaNativeVersion = eval(("show", "__.scalaNativeVersion")).out
+    val testParallelism = eval(("show", "__.testParallelism")).out
+    val testSandboxWorkingDir = eval(("show", "__.testSandboxWorkingDir")).out
     s"""$repositories
        |$jvmId
        |$mvnDeps
@@ -52,6 +54,8 @@ object IntegrationTesterUtil {
        |$scalaJSVersion
        |$moduleKind
        |$scalaNativeVersion
+       |$testParallelism
+       |$testSandboxWorkingDir
        |""".stripMargin
   }
 }

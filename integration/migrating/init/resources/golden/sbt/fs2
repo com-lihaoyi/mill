@@ -6194,3 +6194,37 @@ Module dependencies of unidocs[3.3.5]:
   "scodec.native[2.13.16].scalaNativeVersion": "0.4.17",
   "scodec.native[3.3.5].scalaNativeVersion": "0.4.17"
 }
+{
+  "core.js[2.12.20].test.testParallelism": false,
+  "core.js[2.13.16].test.testParallelism": false,
+  "core.js[3.3.5].test.testParallelism": false,
+  "core.jvm[2.12.20].test.testParallelism": false,
+  "core.jvm[2.13.16].test.testParallelism": false,
+  "core.jvm[3.3.5].test.testParallelism": false,
+  "core.native[2.12.20].test.testParallelism": false,
+  "core.native[2.13.16].test.testParallelism": false,
+  "core.native[3.3.5].test.testParallelism": false,
+  "integration[2.12.20].test.testParallelism": false,
+  "integration[2.13.16].test.testParallelism": false,
+  "integration[3.3.5].test.testParallelism": false,
+  "reactive-streams[2.12.20].test.testParallelism": false,
+  "reactive-streams[2.13.16].test.testParallelism": false,
+  "reactive-streams[3.3.5].test.testParallelism": false
+}
+{
+  "core.js[2.12.20].test.testSandboxWorkingDir": false,
+  "core.js[2.13.16].test.testSandboxWorkingDir": false,
+  "core.js[3.3.5].test.testSandboxWorkingDir": false,
+  "core.jvm[2.12.20].test.testSandboxWorkingDir": false,
+  "core.jvm[2.13.16].test.testSandboxWorkingDir": false,
+  "core.jvm[3.3.5].test.testSandboxWorkingDir": false,
+  "core.native[2.12.20].test.testSandboxWorkingDir": false,
+  "core.native[2.13.16].test.testSandboxWorkingDir": false,
+  "core.native[3.3.5].test.testSandboxWorkingDir": false,
+  "integration[2.12.20].test.testSandboxWorkingDir": false,
+  "integration[2.13.16].test.testSandboxWorkingDir": false,
+  "integration[3.3.5].test.testSandboxWorkingDir": false,
+  "reactive-streams[2.12.20].test.testSandboxWorkingDir": false,
+  "reactive-streams[2.13.16].test.testSandboxWorkingDir": false,
+  "reactive-streams[3.3.5].test.testSandboxWorkingDir": false
+}

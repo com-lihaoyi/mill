@@ -182,3 +182,11 @@ Module dependencies of [3.3.3].test:
   "[3.3.3].test.moduleKind": "CommonJSModule"
 }
 
+{
+  "[2.13.16].test.testParallelism": false,
+  "[3.3.3].test.testParallelism": false
+}
+{
+  "[2.13.16].test.testSandboxWorkingDir": false,
+  "[3.3.3].test.testSandboxWorkingDir": false
+}

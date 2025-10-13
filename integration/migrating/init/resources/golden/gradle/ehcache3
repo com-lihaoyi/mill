@@ -1702,3 +1702,45 @@ Module dependencies of spi-tester:
 
 
 
+{
+  "clustered.ehcache-client.test.testParallelism": false,
+  "clustered.ehcache-common.test.testParallelism": false,
+  "clustered.ehcache-common-api.test.testParallelism": false,
+  "clustered.integration-test.test.testParallelism": false,
+  "clustered.ops-tool.test.testParallelism": false,
+  "clustered.osgi-test.test.testParallelism": false,
+  "clustered.server.ehcache-entity.test.testParallelism": false,
+  "clustered.server.ehcache-service.test.testParallelism": false,
+  "clustered.server.ehcache-service-api.test.testParallelism": false,
+  "ehcache-107.test.testParallelism": false,
+  "ehcache-api.test.testParallelism": false,
+  "ehcache-core.test.testParallelism": false,
+  "ehcache-impl.test.testParallelism": false,
+  "ehcache-management.test.testParallelism": false,
+  "ehcache-transactions.test.testParallelism": false,
+  "ehcache-xml.ehcache-xml-spi.test.testParallelism": false,
+  "ehcache-xml.test.testParallelism": false,
+  "integration-test.test.testParallelism": false,
+  "osgi-test.test.testParallelism": false
+}
+{
+  "clustered.ehcache-client.test.testSandboxWorkingDir": false,
+  "clustered.ehcache-common.test.testSandboxWorkingDir": false,
+  "clustered.ehcache-common-api.test.testSandboxWorkingDir": false,
+  "clustered.integration-test.test.testSandboxWorkingDir": false,
+  "clustered.ops-tool.test.testSandboxWorkingDir": false,
+  "clustered.osgi-test.test.testSandboxWorkingDir": false,
+  "clustered.server.ehcache-entity.test.testSandboxWorkingDir": false,
+  "clustered.server.ehcache-service.test.testSandboxWorkingDir": false,
+  "clustered.server.ehcache-service-api.test.testSandboxWorkingDir": false,
+  "ehcache-107.test.testSandboxWorkingDir": false,
+  "ehcache-api.test.testSandboxWorkingDir": false,
+  "ehcache-core.test.testSandboxWorkingDir": false,
+  "ehcache-impl.test.testSandboxWorkingDir": false,
+  "ehcache-management.test.testSandboxWorkingDir": false,
+  "ehcache-transactions.test.testSandboxWorkingDir": false,
+  "ehcache-xml.ehcache-xml-spi.test.testSandboxWorkingDir": false,
+  "ehcache-xml.test.testSandboxWorkingDir": false,
+  "integration-test.test.testSandboxWorkingDir": false,
+  "osgi-test.test.testSandboxWorkingDir": false
+}
