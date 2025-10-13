@@ -186,8 +186,7 @@ object Deps {
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
   val gson = mvn"com.google.code.gson:gson:2.10.1"
   val fansi = mvn"com.lihaoyi::fansi:0.5.0"
-  val jarjarabrams =
-    mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.15.0".withDottyCompat(scalaVersion)
+  val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
   val requests = mvn"com.lihaoyi::requests:0.9.0"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.18"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"
