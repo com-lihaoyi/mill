@@ -37,9 +37,6 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
       val rootDir = os.sub / millBuild
       val srcDir = rootDir / "src"
       os.makeDir.all(os.pwd / srcDir)
-      val rootBuildFile = rootDir / "build.mill"
-      println(s"writing Mill meta-build file to $rootBuildFile")
-      os.write(os.pwd / rootBuildFile, renderMetaBuildRoot)
       import meta.*
       baseModules.foreach { baseModule =>
         val srcFile = srcDir / s"${baseModule.name}.scala"
@@ -71,15 +68,6 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
        |${renderModuleImports(module)}
        |
        |${renderModule(module, isPackageRoot = true)}
-       |""".stripMargin
-  }
-
-  def renderMetaBuildRoot = {
-    s"""package $rootModuleAlias
-       |
-       |import mill.meta.MillBuildRootModule
-       |
-       |object `package` extends MillBuildRootModule
        |""".stripMargin
   }
 
