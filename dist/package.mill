@@ -76,10 +76,14 @@ trait DistModule extends Module {
    *
    * @param binFile The location where the Mill binary should be installed
    */
-  def installLocal(binFile: String = localBinName) =
+  def installLocal(binFile: String = localBinName) = {
+    val binFile0 = os.Path(binFile, BuildCtx.workspaceRoot)
+    val task = installIvyLocalTask(binFile0)
     Task.Command {
-      PathRef(installLocalTask(Task.Anon(binFile), globalInstall = true)())
+      task()
+      PathRef(binFile0)
     }
+  }
 
   val batExt = if (scala.util.Properties.isWin) ".bat" else ""
 
@@ -95,30 +99,28 @@ trait DistModule extends Module {
     PathRef(path)
   }
 
-  def installLocalTask(binFile: Task[String], globalInstall: Boolean = false): Task[os.Path] =
-    if (globalInstall)
-      Task.Anon {
-        val targetFile = os.Path(binFile(), BuildCtx.workspaceRoot)
-        if (os.exists(targetFile))
-          Task.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
-        Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
-        os.copy.over(executableRaw().path, targetFile, createFolders = true)
-        Task.log.info(
-          s"Published ${build.dist.allPublishModules.size} modules globally and installed ${targetFile}"
-        )
-        targetFile
-      }
-    else
-      Task.Anon {
-        val targetFile = os.Path(binFile(), BuildCtx.workspaceRoot)
-        if (os.exists(targetFile))
-          Task.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
-        os.copy.over(executable().path, targetFile, createFolders = true)
-        Task.log.info(
-          s"Published ${build.dist.allPublishModules.size} modules under local repo and installed ${targetFile}"
-        )
-        targetFile
-      }
+  def installLocalTask(binFile: Task[String]): Task[os.Path] =
+    Task.Anon {
+      val targetFile = os.Path(binFile(), BuildCtx.workspaceRoot)
+      if (os.exists(targetFile))
+        Task.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
+      os.copy.over(executable().path, targetFile, createFolders = true)
+      Task.log.info(
+        s"Published ${build.dist.allPublishModules.size} modules under Mill sources local repo ${localRepo().path} and installed ${targetFile}"
+      )
+      targetFile
+    }
+
+  def installIvyLocalTask(targetFile: os.Path): Task[Unit] =
+    Task.Anon {
+      if (os.exists(targetFile))
+        Task.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
+      Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
+      os.copy.over(executableRaw().path, targetFile, createFolders = true)
+      Task.log.info(
+        s"Published ${build.dist.allPublishModules.size} modules under ~/.ivy2/local and installed ${targetFile}"
+      )
+    }
 
   def artifactName: T[String]
   def artifact = Task { Artifact(Settings.pomOrg, artifactName(), build.millVersion()) }
