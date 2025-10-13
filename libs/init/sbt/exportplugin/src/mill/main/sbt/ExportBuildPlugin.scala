@@ -334,9 +334,9 @@ object ExportBuildPlugin extends AutoPlugin {
   def toPomSettings(moduleInfo: ModuleInfo, groupId: String) = {
     import moduleInfo._
     PomSettings(
-      description = description,
-      organization = groupId,
-      url = homepage.fold[String](null)(_.toExternalForm),
+      description = Option(description),
+      organization = Option(groupId),
+      url = homepage.map(_.toExternalForm),
       licenses = licenses.map(toLicense),
       versionControl = toVersionControl(scmInfo),
       developers = developers.map(toDeveloper)

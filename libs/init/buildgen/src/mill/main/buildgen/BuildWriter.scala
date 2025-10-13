@@ -401,9 +401,9 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
   def renderPomSettings(value: PomSettings) = {
     import value.*
     // TODO Supporting optional tags requires changes in Mill.
-    val description0 = literalize(if (description == null) "" else description)
-    val organization0 = literalize(if (organization == null) "" else organization)
-    val url0 = literalize(if (url == null) "" else url)
+    val description0 = literalize(description.getOrElse(""))
+    val organization0 = literalize(organization.getOrElse(""))
+    val url0 = literalize(url.getOrElse(""))
     val licenses0 = s"Seq(${licenses.map(renderLicense).mkString(", ")})"
     val versionControl0 = renderVersionControl(versionControl)
     val developers0 = s"Seq(${developers.map(renderDeveloper).mkString(", ")})"

@@ -103,9 +103,9 @@ object ModuleConfig {
     implicit val rw: ReadWriter[MvnDep] = macroRW
   }
   case class PomSettings(
-      description: String = null,
-      organization: String = null, // used to set artifactMetadata.group
-      url: String = null,
+      description: Option[String] = None,
+      organization: Option[String] = None, // used to set artifactMetadata.group
+      url: Option[String] = None,
       licenses: Seq[License] = Nil,
       versionControl: VersionControl = VersionControl(),
       developers: Seq[Developer] = Nil

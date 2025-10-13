@@ -168,9 +168,9 @@ object MavenBuildGenMain {
   private def toPomSettings(model: Model) = {
     import model.*
     PomSettings(
-      description = getDescription,
-      organization = getGroupId,
-      url = getUrl,
+      description = Option(getDescription),
+      organization = Option(getGroupId),
+      url = Option(getUrl),
       licenses = getLicenses.asScala.map(toLicense).toSeq,
       versionControl = toVersionControl(getScm),
       developers = getDevelopers.asScala.map(toDeveloper).toSeq

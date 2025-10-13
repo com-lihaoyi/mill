@@ -212,9 +212,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
       case _ => (Nil, VersionControl(), Nil)
     }
     PomSettings(
-      description = getDescription.getOrNull,
-      organization = groupId,
-      url = getUrl.getOrNull,
+      description = Option(getDescription.getOrNull),
+      organization = Option(groupId),
+      url = Option(getUrl.getOrNull),
       licenses = licenses,
       versionControl = versionControl,
       developers = developers
