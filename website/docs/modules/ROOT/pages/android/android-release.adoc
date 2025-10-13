@@ -17,8 +17,8 @@ To sign your APK for release, you need to provide the keystore information.
 ----
 def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
 def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+def androidReleaseKeyPass: T[Option[String]] = Task.Input { Task.env.get("KEY_PASS") }
+def androidReleaseKeyStorePass: T[Option[String]] = Task.Input { Task.env.get("KEYSTORE_PASS") }
 ----
 
 Make sure to replace the values with your actual keystore information.
@@ -27,9 +27,9 @@ If you don't have a keystore yet, you can create one using the `keytool` command
 [,console]
 ----
 > keytool -genkey -v -keystore releaseKey.jks \
-          -storepass <PASS> -keyalg RSA \
+          -storepass $KEYSTORE_PASS -keyalg RSA \
           -keysize 2048 -validity 10000 \
-          -alias releaseKey -keypass <PASS>
+          -alias releaseKey -keypass $KEY_PASS
 ----
 
 == 3. (Optional) Enable ProGuard
