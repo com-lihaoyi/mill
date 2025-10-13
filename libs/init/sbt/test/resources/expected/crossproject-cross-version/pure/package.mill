@@ -20,8 +20,6 @@ object `package` extends Module {
 
     def scalaJSVersion = "1.16.0"
 
-    def mvnDeps = super.mvnDeps() ++ Seq(Deps.`upickle#0`)
-
     def artifactName = "pure"
 
     def pomSettings = PomSettings(
@@ -40,8 +38,6 @@ object `package` extends Module {
       extends SbtPlatformModule
       with CrossprojectCrossVersionBaseModule
       with CrossSbtPlatformModule {
-
-    def mvnDeps = super.mvnDeps() ++ Seq(Deps.`upickle#0`)
 
     def artifactName = "pure"
 
@@ -64,8 +60,6 @@ object `package` extends Module {
       with CrossSbtPlatformModule {
 
     def scalaNativeVersion = "0.5.4"
-
-    def mvnDeps = super.mvnDeps() ++ Seq(Deps.`upickle#0`)
 
     def artifactName = "pure"
 
