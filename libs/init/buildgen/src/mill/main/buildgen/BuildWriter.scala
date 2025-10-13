@@ -198,27 +198,30 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
   }
 
   def renderCoursierModule(config: CoursierModule, crossConfigs: Seq[(String, CoursierModule)]) = {
-    def cross[A](f: CoursierModule => A) = crossConfigs.map((k, v) => (k, f(v)))
-    import config.*
-    renderBlocks(
-      renderTaskAsSeq("repositories", repositories, cross(_.repositories), literalize(_))
-    )
+    renderBlocks(renderTaskAsSeq(
+      "repositories",
+      config.repositories,
+      crossConfigs.map((k, v) => (k, v.repositories)),
+      literalize(_)
+    ))
   }
 
   def renderJavaHomeModule(config: JavaHomeModule, crossConfigs: Seq[(String, JavaHomeModule)]) = {
-    def cross[A](f: JavaHomeModule => A) = crossConfigs.map((k, v) => (k, f(v)))
-    import config.*
-    renderBlocks(
-      renderTask("jvmId", jvmId, cross(_.jvmId), literalize(_))
-    )
+    renderBlocks(renderTask(
+      "jvmId",
+      config.jvmId,
+      crossConfigs.map((k, v) => (k, v.jvmId)),
+      literalize(_)
+    ))
   }
 
   def renderRunModule(config: RunModule, crossConfigs: Seq[(String, RunModule)]) = {
-    def cross[A](f: RunModule => A) = crossConfigs.map((k, v) => (k, f(v)))
-    import config.*
-    renderBlocks(
-      renderTask("forkWorkingDir", forkWorkingDir, cross(_.forkWorkingDir), identity)
-    )
+    renderBlocks(renderTask(
+      "forkWorkingDir",
+      config.forkWorkingDir,
+      crossConfigs.map((k, v) => (k, v.forkWorkingDir)),
+      identity
+    ))
   }
 
   def renderJavaModule(config: JavaModule, crossConfigs: Seq[(String, JavaModule)]) = {
@@ -323,32 +326,24 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
       config: ScalaNativeModule,
       crossConfigs: Seq[(String, ScalaNativeModule)]
   ) = {
-    def cross[A](f: ScalaNativeModule => A) = crossConfigs.map((k, v) => (k, f(v)))
-    import config.*
-    renderBlocks(
-      renderTask(
-        "scalaNativeVersion",
-        scalaNativeVersion,
-        cross(_.scalaNativeVersion),
-        literalize(_)
-      )
-    )
+    renderBlocks(renderTask(
+      "scalaNativeVersion",
+      config.scalaNativeVersion,
+      crossConfigs.map((k, v) => (k, v.scalaNativeVersion)),
+      literalize(_)
+    ))
   }
 
   def renderSbtPlatformModule(
       config: SbtPlatformModule,
       crossConfigs: Seq[(String, SbtPlatformModule)]
   ) = {
-    def cross[A](f: SbtPlatformModule => A) = crossConfigs.map((k, v) => (k, f(v)))
-    import config.*
-    renderBlocks(
-      renderMemberAsSeq(
-        "sourcesRootFolders",
-        sourcesRootFolders,
-        cross(_.sourcesRootFolders),
-        s => s"os.sub / ${literalize(s)}"
-      )
-    )
+    renderBlocks(renderMemberAsSeq(
+      "sourcesRootFolders",
+      config.sourcesRootFolders,
+      crossConfigs.map((k, v) => (k, v.sourcesRootFolders)),
+      s => s"os.sub / ${literalize(s)}"
+    ))
   }
 
   def renderTestModule(
