@@ -55,8 +55,11 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
 
   def renderRootPackage(pkg: PackageSpec) = {
     import build.*
-    s"""//| mill-version: $millVersion
-       |//| mill-jvm-opts: [${millJvmOpts.map(literalize(_)).mkString(", ")}]
+    val header = Seq("mill-version: " + millVersion) ++
+      Option.when(millJvmOpts.nonEmpty) {
+        "mill-jvm-opts: " + millJvmOpts.map(literalize(_)).mkString("[", ", ", "]")
+      }
+    s"""${renderLines(header.map("//| " + _))}
        |${renderPackage(pkg)}
        |""".stripMargin
   }

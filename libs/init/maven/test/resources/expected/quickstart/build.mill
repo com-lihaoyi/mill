@@ -1,5 +1,4 @@
 //| mill-version: SNAPSHOT
-//| mill-jvm-opts: []
 package build
 
 import mill.javalib._
