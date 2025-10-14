@@ -1,0 +1,1137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Android Jetpack Compose :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/android/compose-samples.html" />
+    <link rel="prev" href="android-linting.html" />
+    <link rel="next" href="hilt-sample.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style></head><body class="article">
+  
+<header class="header">
+  
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.0.6-18-01285d">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/simple.html">Simple Java Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/simple.html">Simple Scala Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/simple.html">Simple Kotlin Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-current-page is-active" data-depth="3">
+    <a class="nav-link" href="compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="hilt-sample.html">Android Hilt Sample</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="android-native-example.html">Android Native Example</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.0.6-18-01285d</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.0.6</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.0.6-18-01285d</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.16</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Android Jetpack Compose</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This page provides an example of using Mill as a build tool against more real like examples, using the
+official <a href="https://github.com/android/compose-samples">compose samples</a></p>
+</div>
+<div class="paragraph">
+<p><strong>Example Apps</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/android/compose-samples/tree/main/JetLagged">JetLagged</a></p>
+</li>
+<li>
+<p><a href="https://github.com/android/compose-samples/tree/main/JetNews">JetNews</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_android_mill_setup_for_building_jetlagged_and_jetnews"><a class="anchor" href="#_android_mill_setup_for_building_jetlagged_and_jetnews"></a>Android Mill Setup for building JetLagged and JetNews</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-thirdparty-android-compose-samples.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/thirdparty/android-compose-samples">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, androidlib.*, kotlinlib.*
+
+object Versions {
+  val kotlinVersion = &quot;2.1.20&quot;
+
+  val androidCompileSdk = 33
+  val androidMinSdk = 21
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create and configure an Android SDK module to manage Android SDK paths and tools.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = &quot;35.0.0&quot;
+}
+
+object JetLagged extends mill.api.Module {
+  object app extends AndroidAppKotlinModule, AndroidR8AppModule {
+    def kotlinVersion = Versions.kotlinVersion
+
+    def androidIsDebug = true
+
+    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+      AndroidBuildTypeSettings(
+        isMinifyEnabled = false
+      )
+    }
+
+    def androidProjectProguardFiles = Task.Sources(
+      &quot;proguard-rules.pro&quot;
+    )
+    def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      Seq(&quot;proguard-android-optimize.txt&quot;)
+    }
+
+    override def androidApplicationNamespace = &quot;com.example.jetlagged&quot;
+
+    override def androidApplicationId = &quot;com.example.jetlagged&quot;
+
+    override def kotlincOptions = super.kotlincOptions() ++ Seq(
+      &quot;-jvm-target&quot;,
+      &quot;17&quot;
+    )
+
+    def bomMvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;androidx.compose:compose-bom:2025.05.00&quot;
+    )
+
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;com.google.accompanist:accompanist-adaptive:0.37.3&quot;,
+      mvn&quot;androidx.appcompat:appcompat:1.7.0&quot;,
+      mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2&quot;,
+      mvn&quot;androidx.concurrent:concurrent-futures:1.1.0&quot;,
+      mvn&quot;androidx.core:core-ktx:1.16.0&quot;,
+      mvn&quot;androidx.activity:activity-compose:1.10.1&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-common:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-process:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-runtime-compose:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0&quot;,
+      mvn&quot;androidx.navigation:navigation-compose:2.9.0&quot;,
+      mvn&quot;androidx.window:window:1.4.0&quot;,
+      mvn&quot;androidx.constraintlayout:constraintlayout-compose:1.1.1&quot;,
+      mvn&quot;org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1&quot;,
+
+      // version is resolved from compose-bom
+      mvn&quot;androidx.compose.runtime:runtime&quot;,
+      mvn&quot;androidx.compose.foundation:foundation&quot;,
+      mvn&quot;androidx.compose.foundation:foundation-layout&quot;,
+      mvn&quot;androidx.compose.ui:ui-util&quot;,
+      mvn&quot;androidx.compose.material3:material3&quot;,
+      mvn&quot;androidx.compose.animation:animation&quot;,
+      mvn&quot;androidx.compose.material:material-icons-extended&quot;,
+      mvn&quot;androidx.compose.material:material&quot;,
+      mvn&quot;androidx.compose.material3:material3-window-size-class&quot;,
+      mvn&quot;androidx.compose.ui:ui-text-google-fonts&quot;,
+      mvn&quot;androidx.compose.ui:ui-tooling-preview&quot;,
+      mvn&quot;androidx.compose.ui:ui-unit&quot;,
+      mvn&quot;androidx.compose.ui:ui-text&quot;,
+      mvn&quot;androidx.compose.ui:ui-graphics&quot;,
+
+      // debug dependencies
+      mvn&quot;androidx.compose.ui:ui-tooling&quot;,
+      mvn&quot;androidx.compose.ui:ui-test-manifest&quot;
+    )
+
+    def androidEnableCompose = true
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { true }
+
+    def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+
+    def androidCompileSdk = Versions.androidCompileSdk
+
+    def androidMinSdk = Versions.androidMinSdk
+
+    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule {
+
+      def bomMvnDeps = super.mvnDeps() ++ Seq(
+        mvn&quot;androidx.compose:compose-bom:2025.05.00&quot;
+      )
+
+      // TODO consider defaulting this to the parent app value
+      override def androidEnableCompose = true
+
+      // TODO consider defaulting this to the parent app value
+      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+        true
+      }
+
+      def mvnDeps = super.mvnDeps() ++ Seq(
+        mvn&quot;junit:junit:4.13.2&quot;,
+        mvn&quot;androidx.test:core:1.6.1&quot;,
+        mvn&quot;androidx.test:runner:1.6.1&quot;,
+        mvn&quot;androidx.test.espresso:espresso-core:3.6.1&quot;,
+        mvn&quot;androidx.test:rules:1.6.1&quot;,
+        mvn&quot;androidx.test.ext:junit:1.2.1&quot;,
+        mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2&quot;,
+        mvn&quot;androidx.compose.ui:ui-test&quot;,
+        mvn&quot;androidx.compose.ui:ui-test-junit4&quot;
+      )
+    }
+  }
+}
+
+object JetNews extends mill.api.Module {
+  object app extends AndroidAppKotlinModule, AndroidR8AppModule {
+    def kotlinVersion = Versions.kotlinVersion
+
+    def androidIsDebug = true
+
+    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+      AndroidBuildTypeSettings(
+        isMinifyEnabled = false
+      )
+    }
+    def androidProjectProguardFiles = Task.Sources(
+      &quot;proguard-rules.pro&quot;
+    )
+    def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      Seq(&quot;proguard-android-optimize.txt&quot;)
+    }
+
+    override def androidApplicationNamespace = &quot;com.example.jetnews&quot;
+
+    override def androidApplicationId = &quot;com.example.jetnews&quot;
+
+    override def kotlincOptions = super.kotlincOptions() ++ Seq(
+      &quot;-jvm-target&quot;,
+      &quot;17&quot;
+    )
+
+    def bomMvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;androidx.compose:compose-bom:2025.05.00&quot;
+    )
+
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;com.google.accompanist:accompanist-adaptive:0.37.3&quot;,
+      mvn&quot;androidx.appcompat:appcompat:1.7.0&quot;,
+      mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2&quot;,
+      mvn&quot;androidx.concurrent:concurrent-futures:1.1.0&quot;,
+      mvn&quot;androidx.core:core-ktx:1.16.0&quot;,
+      mvn&quot;androidx.activity:activity-compose:1.10.1&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-common:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-process:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-runtime-compose:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0&quot;,
+      mvn&quot;androidx.navigation:navigation-compose:2.9.0&quot;,
+      mvn&quot;androidx.window:window:1.4.0&quot;,
+      mvn&quot;androidx.constraintlayout:constraintlayout-compose:1.1.1&quot;,
+      mvn&quot;org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1&quot;,
+      mvn&quot;androidx.glance:glance-appwidget:1.2.0-alpha01&quot;,
+      mvn&quot;androidx.glance:glance-material3:1.2.0-alpha01&quot;,
+
+      // version is resolved from compose-bom
+      mvn&quot;androidx.compose.runtime:runtime&quot;,
+      mvn&quot;androidx.compose.foundation:foundation&quot;,
+      mvn&quot;androidx.compose.foundation:foundation-layout&quot;,
+      mvn&quot;androidx.compose.ui:ui-util&quot;,
+      mvn&quot;androidx.compose.material3:material3&quot;,
+      mvn&quot;androidx.compose.animation:animation&quot;,
+      mvn&quot;androidx.compose.animation:animation-tooling-internal&quot;,
+      mvn&quot;androidx.compose.material:material-icons-extended&quot;,
+      mvn&quot;androidx.compose.material:material&quot;,
+      mvn&quot;androidx.compose.material3:material3-window-size-class&quot;,
+      mvn&quot;androidx.compose.ui:ui-text-google-fonts&quot;,
+      mvn&quot;androidx.compose.ui:ui-tooling-preview&quot;,
+      mvn&quot;androidx.compose.ui:ui-unit&quot;,
+      mvn&quot;androidx.compose.ui:ui-text&quot;,
+      mvn&quot;androidx.compose.ui:ui-graphics&quot;,
+
+      // debug dependencies
+      mvn&quot;androidx.compose.ui:ui-tooling&quot;,
+      mvn&quot;androidx.compose.ui:ui-test-manifest&quot;
+    )
+
+    def androidEnableCompose = true
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { true }
+
+    def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+
+    def androidCompileSdk = Versions.androidCompileSdk
+
+    def androidMinSdk = Versions.androidMinSdk
+
+    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule {
+
+      def bomMvnDeps = super.mvnDeps() ++ Seq(
+        mvn&quot;androidx.compose:compose-bom:2025.05.00&quot;
+      )
+
+      // TODO consider defaulting this to the parent app value
+      override def androidEnableCompose = true
+
+      // TODO consider defaulting this to the parent app value
+      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+        true
+      }
+
+      def mvnDeps = super.mvnDeps() ++ Seq(
+        mvn&quot;junit:junit:4.13.2&quot;,
+        mvn&quot;androidx.test:core:1.6.1&quot;,
+        mvn&quot;androidx.test:runner:1.6.1&quot;,
+        mvn&quot;androidx.test.espresso:espresso-core:3.6.1&quot;,
+        mvn&quot;androidx.test:rules:1.6.1&quot;,
+        mvn&quot;androidx.test.ext:junit:1.2.1&quot;,
+        mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2&quot;,
+        mvn&quot;androidx.compose.ui:ui-test&quot;,
+        mvn&quot;androidx.compose.ui:ui-test-junit4&quot;
+      )
+    }
+  }
+}
+
+object Jetchat extends mill.api.Module {
+
+  object app extends AndroidAppKotlinModule, AndroidR8AppModule {
+
+    def kotlinVersion = Versions.kotlinVersion
+
+    override def androidApplicationNamespace: String = &quot;com.example.compose.jetchat&quot;
+
+    override def androidApplicationId: String = &quot;com.example.compose.jetchat&quot;
+
+    override def bomMvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;androidx.compose:compose-bom:2025.08.00&quot;
+    )
+
+    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+      AndroidBuildTypeSettings(
+        isMinifyEnabled = false,
+        isShrinkEnabled = false
+      )
+    }
+    def androidProjectProguardFiles = Task.Sources(
+      &quot;proguard-rules.pro&quot;
+    )
+    def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      Seq(&quot;proguard-android-optimize.txt&quot;)
+    }
+
+    override def androidEnableCompose: T[Boolean] = true
+
+    override def enableViewBinding = true
+
+    override def dataBindingCompilerVersion = &quot;8.13.0&quot;
+
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+      true
+    }
+
+    override def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;androidx.glance:glance-appwidget:1.1.1&quot;,
+      mvn&quot;androidx.glance:glance-material3:1.1.1&quot;,
+      mvn&quot;org.jetbrains.kotlin:kotlin-stdlib-jdk8:${build.Versions.kotlinVersion}&quot;,
+      mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2&quot;,
+      mvn&quot;androidx.activity:activity-compose:1.10.1&quot;,
+      mvn&quot;androidx.core:core-ktx:1.16.0&quot;,
+      mvn&quot;androidx.appcompat:appcompat:1.7.0&quot;,
+      mvn&quot;androidx.compose.runtime:runtime-livedata&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-runtime-compose:2.9.0&quot;,
+      mvn&quot;androidx.lifecycle:lifecycle-livedata:2.9.0&quot;,
+      mvn&quot;androidx.navigation:navigation-fragment-ktx:2.9.0&quot;,
+      mvn&quot;androidx.navigation:navigation-ui-ktx:2.9.0&quot;,
+      mvn&quot;androidx.compose.material3:material3&quot;,
+      mvn&quot;androidx.compose.material:material-icons-extended&quot;,
+      mvn&quot;androidx.compose.ui:ui-util&quot;,
+      mvn&quot;androidx.compose.ui:ui-viewbinding&quot;,
+      mvn&quot;androidx.compose.ui:ui-text-google-fonts&quot;,
+      mvn&quot;androidx.databinding:viewbinding:8.13.0&quot;,
+      mvn&quot;androidx.compose.ui:ui-tooling&quot;,
+      mvn&quot;androidx.compose.ui:ui-tooling-preview&quot;,
+      mvn&quot;androidx.compose.ui:ui-test-manifest&quot;,
+      mvn&quot;com.google.android.material:material:1.6.0&quot;
+    )
+
+    def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+
+    def androidCompileSdk = Versions.androidCompileSdk
+
+    def androidMinSdk = Versions.androidMinSdk
+
+    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule {
+      override def bomMvnDeps = super.mvnDeps() ++ Seq(
+        mvn&quot;androidx.compose:compose-bom:2025.08.00&quot;
+      )
+
+      // TODO consider defaulting this to the parent app value
+      override def androidEnableCompose = true
+
+      // TODO consider defaulting this to the parent app value
+      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+        true
+      }
+
+      // FIXME: R8 should compile without missing classes errors
+      override def androidR8Args = Seq(&quot;--map-diagnostics&quot;, &quot;error&quot;, &quot;warning&quot;)
+
+      def mvnDeps = super.mvnDeps() ++ Seq(
+        mvn&quot;junit:junit:4.13.2&quot;,
+        mvn&quot;androidx.test:core:1.6.1&quot;,
+        mvn&quot;androidx.test:runner:1.6.1&quot;,
+        mvn&quot;androidx.test.espresso:espresso-core:3.6.1&quot;,
+        mvn&quot;androidx.test:rules:1.6.1&quot;,
+        mvn&quot;androidx.test.ext:junit:1.2.1&quot;,
+        mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2&quot;,
+        mvn&quot;androidx.compose.ui:ui-test&quot;,
+        mvn&quot;androidx.compose.ui:ui-test-junit4&quot;,
+        mvn&quot;androidx.collection:collection-ktx:1.5.0&quot;
+      )
+
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The compose samples repository, contains many sample apps!
+The following example is for building, testing and running JetNews.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill JetNews.app.androidApk
+
+&gt; ./mill show JetNews.app.createAndroidVirtualDevice
+...Name: test, DeviceId: medium_phone...
+
+&gt; ./mill show JetNews.app.startAndroidEmulator
+
+&gt; ./mill show JetNews.app.androidInstall
+...All files should be loaded. Notifying the device...
+
+&gt; ./mill show JetNews.app.androidRun --activity com.example.jetnews.ui.MainActivity
+[
+  &quot;Starting: Intent { cmp=com.example.jetnews/.ui.MainActivity }&quot;,
+  &quot;Status: ok&quot;,
+  &quot;LaunchState: COLD&quot;,
+  &quot;Activity: com.example.jetnews/.ui.MainActivity&quot;,
+  &quot;TotalTime: ...&quot;,
+  &quot;WaitTime: ...&quot;,
+  &quot;Complete&quot;
+]
+
+&gt; ./mill show JetNews.app.androidTest
+{
+  &quot;msg&quot;: &quot;&quot;,
+  &quot;results&quot;: [
+    {
+      &quot;fullyQualifiedName&quot;: &quot;com.example.jetnews.HomeScreenTests.postsContainError_snackbarShown&quot;,
+      &quot;selector&quot;: &quot;com.example.jetnews.HomeScreenTests.postsContainError_snackbarShown&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
+    },
+    {
+      &quot;fullyQualifiedName&quot;: &quot;com.example.jetnews.JetnewsTests.app_opensArticle&quot;,
+      &quot;selector&quot;: &quot;com.example.jetnews.JetnewsTests.app_opensArticle&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
+    },
+    {
+      &quot;fullyQualifiedName&quot;: &quot;com.example.jetnews.JetnewsTests.app_launches&quot;,
+      &quot;selector&quot;: &quot;com.example.jetnews.JetnewsTests.app_launches&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
+    },
+    {
+      &quot;fullyQualifiedName&quot;: &quot;com.example.jetnews.JetnewsTests.app_opensInterests&quot;,
+      &quot;selector&quot;: &quot;com.example.jetnews.JetnewsTests.app_opensInterests&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
+    }
+  ]
+}
+
+&gt; ./mill show JetNews.app.stopAndroidEmulator
+
+&gt; ./mill show JetNews.app.deleteAndroidVirtualDevice</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates how to build multiple Android Apps from the same project, translating
+their Gradle configuration to Mill and using R8 to optimise the App in a similar configuration as the original Gradle setup.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="android-linting.html">Linting Android Projects</a></span>
+  <span class="next"><a href="hilt-sample.html">Android Hilt Sample</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

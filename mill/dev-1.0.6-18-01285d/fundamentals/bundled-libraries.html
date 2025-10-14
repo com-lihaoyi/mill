@@ -1,0 +1,1249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Bundled Libraries :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/bundled-libraries.html" />
+    <link rel="prev" href="cross-builds.html" />
+    <link rel="next" href="configuring-jvm-versions.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style></head><body class="article">
+  
+<header class="header">
+  
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.0.6-18-01285d">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/simple.html">Simple Java Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/simple.html">Simple Scala Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/simple.html">Simple Kotlin Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-current-page is-active" data-depth="2">
+    <a class="nav-link" href="bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.0.6-18-01285d</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.0.6</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.0.6-18-01285d</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.16</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Bundled Libraries</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill comes bundled with a set of external Open Source libraries and projects.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_os_lib"><a class="anchor" href="#_os_lib"></a>OS-lib</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Project page</dt>
+<dd>
+<p><a href="https://github.com/com-lihaoyi/os-lib" class="bare">https://github.com/com-lihaoyi/os-lib</a></p>
+</dd>
+<dt class="hdlist1">ScalaDoc</dt>
+<dd>
+<p><a href="https://javadoc.io/doc/com.lihaoyi/os-lib_2.13/latest/index.html" class="bare">https://javadoc.io/doc/com.lihaoyi/os-lib_2.13/latest/index.html</a></p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Mill uses OS-Lib for all of its file system and subprocess operations.</p>
+</div>
+<div class="sect2">
+<h3 id="_sandbox_working_directories"><a class="anchor" href="#_sandbox_working_directories"></a>Sandbox Working Directories</h3>
+<div class="paragraph">
+<p>One thing to note about Mill’s usage of OS-Lib is that Mill sets the <code>os.pwd</code>
+and for filesystem operations and subprocesses to each task’s <code>.dest</code> folder,
+as part of its <a href="../depth/sandboxing.html" class="xref page">Mill Sandboxing</a> efforts to prevent accidental
+interference between tasks:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-fundamentals-libraries-1-oslib.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/fundamentals/libraries/1-oslib">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
+
+def task1 = Task {
+  os.write(os.pwd / &quot;file.txt&quot;, &quot;hello&quot;)
+  PathRef(os.pwd / &quot;file.txt&quot;)
+}
+
+def task2 = Task {
+  os.call((&quot;bash&quot;, &quot;-c&quot;, &quot;echo 'world' &gt;&gt; file.txt&quot;))
+  PathRef(os.pwd / &quot;file.txt&quot;)
+}
+
+def command = Task {
+  println(task1().path)
+  println(os.read(task1().path))
+  println(task2().path)
+  println(os.read(task2().path))
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Thus although both <code>task1</code> and <code>task2</code> above write to <code>os.pwd / &quot;file.txt&quot;</code> -
+one via <code>os.write</code> and one via a Bash subprocess - each task gets its own
+working directory that prevents the files from colliding on disk. Thus the final
+<code>command</code> can depend on both tasks and read each task’s <code>file.txt</code> separately
+without conflict</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill command # mac/linux
+.../out/task1.dest/file.txt
+hello
+.../out/task2.dest/file.txt
+world</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_upickle"><a class="anchor" href="#_upickle"></a>uPickle</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Project page</dt>
+<dd>
+<p><a href="https://github.com/com-lihaoyi/upickle" class="bare">https://github.com/com-lihaoyi/upickle</a></p>
+</dd>
+<dt class="hdlist1">ScalaDoc</dt>
+<dd>
+<p><a href="https://javadoc.io/doc/com.lihaoyi/upickle_2.13/latest/index.html" class="bare">https://javadoc.io/doc/com.lihaoyi/upickle_2.13/latest/index.html</a></p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Mill uses uPickle to cache task output to disk as JSON, and to output JSON
+for third-party tools to consume. The output of every Mill task must be JSON
+serializable via uPickle.</p>
+</div>
+<div class="paragraph">
+<p>The uPickle serialized return of every Mill task is used for multiple purposes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>As the format for caching things on disk</p>
+</li>
+<li>
+<p>The output format for <code>show</code>, which can be used for manual inspection piped
+to external tools</p>
+</li>
+<li>
+<p>Decided whether downstream results can be read from the cache or whether they
+need to be recomputed</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_primitives_and_collections"><a class="anchor" href="#_primitives_and_collections"></a>Primitives and Collections</h3>
+<div class="paragraph">
+<p>Most Scala primitive types (<code>String</code>s, <code>Int</code>s, <code>Boolean</code>s, etc.) and
+collections types (<code>Seq</code>s, <code>List</code>s, <code>Tuple</code>s, etc.) are serializable by default.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-fundamentals-libraries-2-upickle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/fundamentals/libraries/2-upickle">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
+
+def taskInt = Task { 123 }
+def taskBoolean = Task { true }
+def taskString = Task { &quot;hello &quot; + taskInt() + &quot; world &quot; + taskBoolean() }</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show taskInt
+123
+
+&gt; ./mill show taskBoolean
+true
+
+&gt; ./mill show taskString
+&quot;hello 123 world true&quot;
+
+&gt; ./mill show taskTuple
+[
+  123,
+  true,
+  &quot;hello 123 world true&quot;
+]</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def taskTuple = Task { (taskInt(), taskBoolean(), taskString()) }
+def taskSeq = Task { Seq(taskInt(), taskInt() * 2, taskInt() * 3) }
+def taskMap = Task { Map(&quot;int&quot; -&gt; taskInt().toString, &quot;boolean&quot; -&gt; taskBoolean().toString) }</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show taskSeq
+[
+  123,
+  246,
+  369
+]
+
+&gt; ./mill show taskMap
+{
+  &quot;int&quot;: &quot;123&quot;,
+  &quot;boolean&quot;: &quot;true&quot;
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_paths_and_pathref"><a class="anchor" href="#_paths_and_pathref"></a>Paths and PathRef</h3>
+<div class="paragraph">
+<p><code>os.Path</code>s from OS-Lib are also serializable as strings.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def taskPath = Task {
+  os.write(os.pwd / &quot;file.txt&quot;, &quot;hello&quot;)
+  os.pwd / &quot;file.txt&quot;
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show taskPath
+&quot;.../out/taskPath.dest/file.txt&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that returning an <code>os.Path</code> from a task will only invalidate downstream
+tasks on changes to the path itself (e.g. from returning <code>file.txt</code> to <code>file2.txt</code>),
+and not to changes to the contents of any file or folder at that path. If you want
+to invalidate downstream tasks depending on the contents of a file or folder, you
+should return a <code>PathRef</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def taskPathRef = Task {
+  os.write(os.pwd / &quot;file.txt&quot;, &quot;hello&quot;)
+  PathRef(os.pwd / &quot;file.txt&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show taskPathRef
+&quot;ref.../out/taskPathRef.dest/file.txt&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The serialized <code>PathRef</code> contains a hexadecimal hash signature of the file or
+folder referenced on disk, computed from its contents.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_requests_scala"><a class="anchor" href="#_requests_scala"></a>Requests-Scala</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Project page</dt>
+<dd>
+<p><a href="https://github.com/com-lihaoyi/requests-scala" class="bare">https://github.com/com-lihaoyi/requests-scala</a></p>
+</dd>
+<dt class="hdlist1">ScalaDoc</dt>
+<dd>
+<p><a href="https://javadoc.io/doc/com.lihaoyi/requests_2.13/latest/index.html" class="bare">https://javadoc.io/doc/com.lihaoyi/requests_2.13/latest/index.html</a></p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Mill bundles Requests-Scala for you to use to make HTTP requests.
+<code>Requests-Scala</code> lets you integrate your build with the world beyond your local
+filesystem.</p>
+</div>
+<div class="paragraph">
+<p>Requests-Scala is mostly used in Mill for downloading files as part of your
+build. These can either be data files or executables, and in either case they
+are downloaded once and cached for later use.</p>
+</div>
+<div class="sect2">
+<h3 id="_downloading_compilers_and_source_code"><a class="anchor" href="#_downloading_compilers_and_source_code"></a>Downloading Compilers and Source Code</h3>
+<div class="paragraph">
+<p>In the example below, we download the
+<a href="https://github.com/bazelbuild/remote-apis">Remote APIs</a> source zip, download a
+<a href="https://github.com/bazelbuild/bazel">Bazel Build Tool</a> binary, and use Bazel to
+compile the Remote APIs source code as part of our build:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-fundamentals-libraries-3-requests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/fundamentals/libraries/3-requests">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
+
+def remoteApisZip = Task {
+  println(&quot;downloading bazel-remote-apis sources...&quot;)
+  os.write(
+    Task.dest / &quot;source.zip&quot;,
+    requests.get(&quot;https://github.com/bazelbuild/remote-apis/archive/refs/tags/v2.2.0.zip&quot;)
+  )
+  PathRef(Task.dest / &quot;source.zip&quot;)
+}
+
+def bazel = Task {
+  println(&quot;downloading bazel...&quot;)
+  val fileName =
+    if (System.getProperty(&quot;os.name&quot;) == &quot;Mac OS X&quot;) &quot;bazel-5.4.1-darwin-arm64&quot;
+    else &quot;bazel-5.4.1-linux-x86_64&quot;
+
+  os.write(
+    Task.dest / &quot;bazel&quot;,
+    requests.get(s&quot;https://github.com/bazelbuild/bazel/releases/download/5.4.1/$fileName&quot;)
+  )
+  os.perms.set(Task.dest / &quot;bazel&quot;, &quot;rwxrwxrwx&quot;)
+  PathRef(Task.dest / &quot;bazel&quot;)
+}
+
+def compiledRemoteApis = Task {
+  val javaBuildTarget = &quot;build/bazel/remote/execution/v2:remote_execution_java_proto&quot;
+  os.call((&quot;unzip&quot;, remoteApisZip().path, &quot;-d&quot;, Task.dest))
+  os.call((bazel().path, &quot;build&quot;, javaBuildTarget), cwd = Task.dest / &quot;remote-apis-2.2.0&quot;)
+
+  val queried = os.call(
+    (bazel().path, &quot;cquery&quot;, javaBuildTarget, &quot;--output=files&quot;),
+    cwd = Task.dest / &quot;remote-apis-2.2.0&quot;
+  )
+
+  queried
+    .out
+    .lines()
+    .map(line =&gt; PathRef(Task.dest / &quot;remote-apis-2.2.0&quot; / os.SubPath(line)))
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the execution example below, we can see the first time we ask for <code>compiledRemoteApis</code>,
+Mill downloads the Bazel build tool, downloads the Remote APIs source code, and then
+invokes Bazel to compile them:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show compiledRemoteApis
+downloading bazel...
+downloading bazel-remote-apis sources...
+Loading: ...
+Analyzing: ...
+...
+INFO: Build completed successfully...
+[
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar&quot;
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>However, in subsequent evaluations of <code>compiledRemoteApis</code>, the two downloads and
+the Bazel invocation are skipped and the earlier output directly and immediately re-used:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show compiledRemoteApis
+[
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libtimestamp_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libwrappers_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_http_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libdescriptor_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_api_annotations_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libany_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_rpc_status_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libempty_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/external/googleapis/libgoogle_longrunning_operations_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/libremote_execution_proto-speed.jar&quot;,
+  &quot;ref:.../bazel-out/...fastbuild/bin/build/bazel/remote/execution/v2/remote_execution_proto-speed-src.jar&quot;
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The various tasks will only be re-evaluated if there are code changes in your <code>build.mill</code>
+file that affect them.</p>
+</div>
+<div class="paragraph">
+<p>In general, Using <code>requests.get</code> to download files as part of your build is only safe
+as long as the files you download are immutable. Mill cannot know whether the remote
+HTTP endpoint has been changed or not. However, empirically most URLs you may want
+to download files from do turn out to be immutable: from package repositories, artifact
+servers, and so on. So this works out surprisingly well in practice.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mainargs"><a class="anchor" href="#_mainargs"></a>MainArgs</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Project page</dt>
+<dd>
+<p><a href="https://github.com/com-lihaoyi/mainargs" class="bare">https://github.com/com-lihaoyi/mainargs</a></p>
+</dd>
+<dt class="hdlist1">Scaladoc</dt>
+<dd>
+<p><a href="https://javadoc.io/doc/com.lihaoyi/mainargs_2.13/latest/index.html" class="bare">https://javadoc.io/doc/com.lihaoyi/mainargs_2.13/latest/index.html</a></p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Mill uses MainArgs to handle argument parsing for <code>Task.Command</code>s that
+are run from the command line.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-fundamentals-libraries-4-mainargs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/fundamentals/libraries/4-mainargs">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
+
+def commandSimple(str: String, i: Int, bool: Boolean = true) = Task.Command {
+  println(s&quot;$str $i $bool&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill uses MainArgs to let you parse most common Scala primitive types as command
+parameters: <code>String`s, `Int`s, `Boolean`s, etc. Single-character parameter names
+are treated as short arguments called with one dash `-</code> rather than two dashes <code>--</code>.
+Default values work as you would expect, and are substituted in if a value is not
+given at the command line</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill commandSimple --str hello -i 123
+hello 123 true</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_os_path"><a class="anchor" href="#_os_path"></a><code>os.Path</code></h3>
+<div class="paragraph">
+<p>In addition to the builtin set of types that MainArgs supports, Mill also
+supports parsing OS-Lib <code>os.Path</code>s from the command line:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def commandTakingPath(path: os.Path) = Task.Command {
+  println(path)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill commandTakingPath --path foo/bar/baz.txt
+...foo/bar/baz.txt</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_task"><a class="anchor" href="#_task"></a><code>Task</code></h3>
+<div class="paragraph">
+<p>Mill allows commands to take <code>Task[T]</code>s as parameters anywhere they can
+take an unboxed <code>T</code>. This can be handy later on if you want to call the
+command as part of another task, while passing it the value of an upstream
+task:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def commandTakingTask(str: Task[String]) = Task.Command {
+  val result = &quot;arg: &quot; + str()
+  println(result)
+  result
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill commandTakingTask --str helloworld
+arg: helloworld</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def upstreamTask = Task {
+  &quot;HELLO&quot;
+}
+
+def taskCallingCommand = Task {
+  commandTakingTask(upstreamTask)()
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show taskCallingCommand
+&quot;arg: HELLO&quot;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_evaluator_experimental"><a class="anchor" href="#_evaluator_experimental"></a>Evaluator (experimental)</h3>
+<div class="paragraph">
+<p><em>Evaluator Command are experimental and suspected to change.
+See <a href="https://github.com/com-lihaoyi/mill/issues/502">issue #502</a> for details.</em></p>
+</div>
+<div class="paragraph">
+<p>You can define a command that takes in the current <code>Evaluator</code> as an argument,
+which you can use to inspect the entire build, or run arbitrary tasks.
+For example, here is a <code>customPlanCommand</code> command which uses this
+to traverse the module tree to find the tasks specified by the <code>tasks</code> strings,
+and plan out what would be necessary to run them</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.api.{SelectMode, Evaluator}
+
+def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command(exclusive = true) {
+  val resolved = evaluator
+    .resolveTasks(tasks, SelectMode.Multi)
+    .get
+
+  val plan = evaluator.plan(resolved)
+    .sortedGroups
+    .keys()
+    .map(_.toString)
+    .toArray
+
+  plan.foreach(println)
+  ()
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can call our <code>customPlanCommand</code> from the command line and pass it the
+<code>taskCallingCommand</code> we saw earlier, and it prints out the list of tasks
+it needs to run in the order necessary to reach `taskCallingCommand</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill customPlanCommand taskCallingCommand
+upstreamTask
+commandTakingTask
+taskCallingCommand</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Many built-in tools are implemented as custom evaluator commands:
+<a href="../cli/builtin-commands.html#_inspect" class="xref page">inspect</a>,
+<a href="../cli/builtin-commands.html#_resolve" class="xref page">resolve</a>,
+<a href="../cli/builtin-commands.html#_show" class="xref page">show</a>.
+If you want a way to run Mill commands and programmatically manipulate the
+tasks and outputs, you do so with your own evaluator command.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_coursier"><a class="anchor" href="#_coursier"></a>Coursier</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Coursier is the Scala application and artifact manager. Mill uses Coursier for
+all third-party artifact resolution and management in JVM languages (Scala,
+Java, etc.)</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Project page</dt>
+<dd>
+<p><a href="https://github.com/coursier/coursier" class="bare">https://github.com/coursier/coursier</a></p>
+</dd>
+<dt class="hdlist1">Documentation</dt>
+<dd>
+<p><a href="https://get-coursier.io/docs/overview" class="bare">https://get-coursier.io/docs/overview</a></p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="cross-builds.html">Cross Builds</a></span>
+  <span class="next"><a href="configuring-jvm-versions.html">Configuring JVM Versions</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

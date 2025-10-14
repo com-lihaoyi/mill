@@ -1,0 +1,1451 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Scala Packaging &amp; Publishing :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/scalalib/publishing.html" />
+    <link rel="prev" href="linting.html" />
+    <link rel="next" href="build-examples.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style></head><body class="article">
+  
+<header class="header">
+  
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.0.6-18-01285d">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/simple.html">Simple Java Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="simple.html">Simple Scala Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-current-page is-active" data-depth="2">
+    <a class="nav-link" href="publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/simple.html">Simple Kotlin Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.0.6-18-01285d</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.0.6</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.0.6-18-01285d</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.16</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Scala Packaging &amp; Publishing</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This page will discuss common topics around packaging and publishing your Scala projects for others to use</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_building_executable_assemblies"><a class="anchor" href="#_building_executable_assemblies"></a>Building Executable Assemblies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill’s built in <code>.assembly</code> task makes it easy to generate an executable assembly
+jar from any JVM module. You can also customize the assembly jar as shown below:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-scalalib-publishing-1-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/scalalib/publishing/1-assembly-config">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+import mill.scalalib.Assembly.*
+
+object foo extends ScalaModule {
+  def moduleDeps = Seq(bar)
+  def scalaVersion = &quot;3.7.1&quot;
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::os-lib:0.11.4&quot;)
+  def assemblyRules = Seq(
+    // all application.conf files will be concatenated into single file
+    Rule.Append(&quot;application.conf&quot;),
+    // all *.conf files will be concatenated into single file
+    Rule.AppendPattern(&quot;.*\\.conf&quot;),
+    // all *.temp files will be excluded from a final jar
+    Rule.ExcludePattern(&quot;.*\\.temp&quot;),
+    // the `shapeless` package will be relocated under the `shade` package
+    Rule.Relocate(&quot;shapeless.**&quot;, &quot;shade.shapless.@1&quot;)
+  )
+
+  // def manifest: T[JarManifest]
+  // def prependShellScript: T[String]
+}
+
+object bar extends ScalaModule {
+  def scalaVersion = &quot;3.7.1&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The most common way of configuring an assembly is
+excluding some files from a final jar (like signature files,
+and manifest files from library jars), and merging duplicated files (for
+instance <code>reference.conf</code> files from library dependencies). This is
+done by overriding <code>def assemblyRules</code> as shown above</p>
+</div>
+<div class="paragraph">
+<p>By default mill excludes all <code>*.sf</code>, <code>*.dsa</code>, <code>*.rsa</code>, and
+<code>META-INF/MANIFEST.MF</code> files from assembly, and concatenates all
+<code>reference.conf</code> files. You can also define your own merge/exclude rules.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.assembly
+
+&gt; unzip -p ./out/foo/assembly.dest/out.jar application.conf || true
+Bar Application Conf
+Foo Application Conf
+
+&gt; java -jar ./out/foo/assembly.dest/out.jar
+Loaded application.conf from resources:...
+...Foo Application Conf
+...Bar Application Conf</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that when running the assembly directly via <code>./out.jar</code>, you can configure
+JVM flags via the <code>JAVA_OPTS</code> environment variable, and select the JVM
+to use via <code>JAVA_HOME</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; JAVA_OPTS=-Dtest.property=1337 ./out/foo/assembly.dest/out.jar
+Loaded test.property: 1337</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_building_native_image_binaries_with_graal_vm"><a class="anchor" href="#_building_native_image_binaries_with_graal_vm"></a>Building Native Image Binaries with Graal VM</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-scalalib-publishing-7-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/scalalib/publishing/7-native-image">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+import mill.api.ModuleRef
+
+object foo extends ScalaModule, NativeImageModule {
+  def scalaVersion = &quot;3.7.1&quot;
+
+  def jvmId = &quot;graalvm-community:17.0.7&quot;
+
+  def nativeImageOptions = Seq(&quot;--no-fallback&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example uses <code>NativeImageModule</code> to generate a native executable using <a href="https://www.graalvm.org/">Graal VM</a>.
+We recommend you <a href="../fundamentals/configuring-jvm-versions.html" class="xref page">configure a specific JDK version</a>
+via a custom <code>JvmWorkerModule</code> overriding <code>def jvmId</code> (shown above), as not every JVM can build Graal native images.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.nativeImage
+GraalVM Native Image: Generating...native-executable...
+Finished generating...native-executable...
+
+&gt; ./out/foo/nativeImage.dest/native-executable
+Hello, World!</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For another example building a slightly less trivial project into a Graal native
+image, see below:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-scalalib-publishing-8-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/scalalib/publishing/8-native-image-libs">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+import mill.api.ModuleRef
+
+object foo extends ScalaModule, NativeImageModule {
+  def scalaVersion = &quot;3.7.1&quot;
+
+  def nativeImageOptions = Seq(&quot;--no-fallback&quot;, &quot;-Os&quot;)
+
+  def mvnDeps = Seq(
+    mvn&quot;com.lihaoyi::scalatags:0.13.1&quot;,
+    mvn&quot;com.lihaoyi::mainargs:0.7.6&quot;
+  )
+
+  def jvmId = &quot;graalvm-community:23.0.1&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example shows how to generate native images for projects using third-party
+libraries, in this case Scalatags and Mainargs. We also demonstrate setting
+using <code>-Os</code> to optimize for the smallest binary size
+which is available in the <code>graalvm-community:23</code> JDK selected above</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.nativeImage
+
+&gt; ./out/foo/nativeImage.dest/native-executable --text hello-world
+&lt;h1&gt;hello-world&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can see the Graal documentation to see what flags are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.graalvm.org/21.3/reference-manual/native-image/Options/" class="bare">https://www.graalvm.org/21.3/reference-manual/native-image/Options/</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Or access the <code>native-image</code> compiler directly via <code>show foo.nativeImageTool</code>
+if you want to experiment it or view its <code>--help</code> text to see what you need to pass to
+<code>nativeImageOptions</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.nativeImageTool # mac/linux
+&quot;.../bin/native-image&quot;
+
+&gt; ./mill show foo.nativeImageTool # windows
+&quot;.../bin/native-image.cmd&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more details on using Graal, check the this blog post:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../../../blog/7-graal-native-executables.html" class="xref page">How to Compile Java into Native Binaries with Mill and Graal</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_publishing_locally"><a class="anchor" href="#_publishing_locally"></a>Publishing Locally</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-scalalib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/scalalib/publishing/2-publish-module">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*, publish.*
+
+object foo extends ScalaModule, PublishModule {
+  def scalaVersion = &quot;3.7.1&quot;
+  def publishVersion = &quot;0.0.1&quot;
+
+  def pomSettings = PomSettings(
+    description = &quot;Hello&quot;,
+    organization = &quot;com.lihaoyi&quot;,
+    url = &quot;https://github.com/lihaoyi/example&quot;,
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
+    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is an example <code>ScalaModule</code> with added publishing capabilities via
+<code>PublishModule</code>. This requires that you define an additional
+<code>publishVersion</code> and <code>pomSettings</code> with the relevant metadata, and provides
+the <code>.publishLocal</code> and <code>publishSigned</code> tasks for publishing locally to the
+machine or to the central maven repository</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.publishLocal # publish specific modules
+
+&gt; ./mill __.publishLocal # publish every eligible module
+Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>publishLocal</code> publishes the artifacts to the <code>~/.ivy2/local</code> folder on your
+machine, allowing them to be resolved by other projects and build tools. This
+is useful as a lightweight way of testing out the published artifacts, without
+the setup overhead and long latencies of publishing artifacts globally accessible
+to anyone in the world.</p>
+</div>
+<div class="paragraph">
+<p><code>publishLocal</code> accepts options like <code>--doc=false</code> and <code>--sources=false</code>,
+to disable publishing javadoc JARs and source JARs, which are generated and
+published by default. This can be helpful if you’re not interested in javadoc JARs,
+and javadoc generation fails or takes too much time. When using Scala 2, disabling
+javadoc generation can bring large speedups, given it entails compiling your code
+a second time.</p>
+</div>
+<div class="paragraph">
+<p><code>publishLocal</code> also accepts <code>--transitive=true</code>, to also publish locally the
+transitive dependencies of the module being published. This ensures the module
+can be resolved from the local repository, with no missing dependencies.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_publlishing_to_sonatype_maven_central"><a class="anchor" href="#_publlishing_to_sonatype_maven_central"></a>Publlishing to Sonatype Maven Central</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-scalalib-publishing-3-publish-module-sonatype.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/scalalib/publishing/3-publish-module-sonatype">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*, publish.*
+
+object foo extends ScalaModule, SonatypeCentralPublishModule {
+  def scalaVersion = &quot;3.7.1&quot;
+  def publishVersion = &quot;0.0.1&quot;
+
+  def pomSettings = PomSettings(
+    description = &quot;Hello&quot;,
+    organization = &quot;com.lihaoyi&quot;,
+    url = &quot;https://github.com/lihaoyi/example&quot;,
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
+    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example configured for publishing to Sonatype Maven Central via
+Central Portal. Extends <code>SonatypeCentralPublishModule</code> which provides
+simplified publishing tasks without requiring Nexus repository manager.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_instructions_for_publishing_to_maven_central_via_central_portal"><a class="anchor" href="#_instructions_for_publishing_to_maven_central_via_central_portal"></a>Instructions for Publishing to Maven Central via Central Portal</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Once you’ve mixed in <code>PublishModule</code>, apart from publishing locally, you can also publish
+your project’s modules to maven central</p>
+</div>
+<div class="sect2">
+<h3 id="_gpg"><a class="anchor" href="#_gpg"></a>GPG</h3>
+<div class="paragraph">
+<p>If you’ve never created a keypair before that can be used to sign your artifacts
+you’ll need to do this. <a href="https://central.sonatype.org/publish/requirements/gpg/">Sonatype’s GPG Documentation</a>
+has the instructions on how to do this</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_publishing_secrets"><a class="anchor" href="#_publishing_secrets"></a>Publishing Secrets</h3>
+<div class="paragraph">
+<p>Mill uses the following environment variables as a way to pass the necessary secrets
+for publishing:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh"># Sonatype Central Portal needs your public key to be uploaded so it can use for verification of artifacts from their end.
+#
+# Send your public key to ubuntu server so Sonatype Maven Central can use for verification of the artifacts
+gpg --keyserver  keyserver.ubuntu.com --send-keys $LONG_ID
+#
+# Check the server for information about the public key. information will be displayed if found
+gpg --keyserver  keyserver.ubuntu.com --recv-keys $LONG_ID
+#
+# The LHS and RHS of the User Token, accessible through the sonatype
+# website `Profile` / `User Token` / `Access User Token`
+export MILL_SONATYPE_USERNAME=...
+export MILL_SONATYPE_PASSWORD=...
+
+# The base-64 encoded PGP key, which can be encoded in the following way
+# for each OS:
+#
+# MacOS or FreeBSD
+# gpg --export-secret-key -a $LONG_ID | base64
+#
+# Ubuntu (assuming GNU base64)
+# gpg --export-secret-key -a $LONG_ID | base64 -w0
+#
+# Arch
+# gpg --export-secret-key -a $LONG_ID | base64 | sed -z 's;\n;;g'
+#
+# Windows
+# gpg --export-secret-key -a %LONG_ID% | openssl base64
+export MILL_PGP_SECRET_BASE64=...
+
+# The passphrase associated with your PGP key
+export MILL_PGP_PASSPHRASE=...</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_publishing"><a class="anchor" href="#_publishing"></a>Publishing</h3>
+<div class="paragraph">
+<p>You can publish all eligible modules in your Mill project using
+<code>mill.javalib.SonatypeCentralPublishModule/</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.javalib.SonatypeCentralPublishModule/</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also specify individual modules you want to publish in two ways:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.publishSonatypeCentral</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.javalib.SonatypeCentralPublishModule/ --publishArtifacts foo.publishArtifacts</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_snapshot_versions"><a class="anchor" href="#_snapshot_versions"></a>SNAPSHOT versions</h3>
+<div class="paragraph">
+<p>To publish SNAPSHOT versions (that is any version that ends with <code>-SNAPSHOT</code>), you need to enable support for them in
+your Sonatype Central namespace. To do that, go to the
+<a href="https://central.sonatype.com/publishing/namespaces">Sonatype Central portal</a>, click on the &quot;three dots&quot; next to the
+namespace name, and click on &quot;Enable SNAPSHOTs&quot;.</p>
+</div>
+<div class="paragraph">
+<p>SNAPSHOT versions do not have same semantics as regular versions: they are not signed and are not kept forever in the
+repository.</p>
+</div>
+<div class="paragraph">
+<p>See <a href="https://central.sonatype.org/publish/publish-portal-snapshots/">Sonatype Central documentation</a> for more information.</p>
+</div>
+<div class="paragraph">
+<p>You build file should look like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object mymodule extends JavaModule {
+  def publishVersion = &quot;0.0.1-SNAPSHOT&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Running any of the publishing tasks will now publish SNAPSHOT versions. When running them you should see a note from
+Mill that is has detected a SNAPSHOT version.</p>
+</div>
+<div class="paragraph">
+<p>To consume SNAPSHOT versions in your project, make sure to add the snapshot repository to your build file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myModule extends JavaModule {
+  def repositories = Seq(&quot;https://central.sonatype.com/repository/maven-snapshots&quot;)
+
+  def mvnDeps = Seq(mvn&quot;com.example:mymodule:1.0.0-SNAPSHOT&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that if you have downstream modules that depend on this module, they will need to add the snapshot repository
+to their definition as well, at least until <a href="https://github.com/com-lihaoyi/mill/issues/5573">this issue</a> is fixed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myDownstreamModule extends JavaModule {
+  def moduleDeps = Seq(myModule)
+
+  // This is also needed.
+  def repositories = Seq(&quot;https://central.sonatype.com/repository/maven-snapshots&quot;)
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_publishing_using_github_actions"><a class="anchor" href="#_publishing_using_github_actions"></a>Publishing Using Github Actions</h3>
+<div class="paragraph">
+<p>To publish on Github Actions, you can use something like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml"># .github/workflows/publish-artifacts.yml
+name: Publish Artifacts
+on:
+  push:
+    tags:
+      - '**'
+  workflow_dispatch:
+jobs:
+  publish-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - run: ./mill mill.javalib.SonatypeCentralPublishModule/
+        env:
+          MILL_PGP_PASSPHRASE: ${{ secrets.MILL_PGP_PASSPHRASE }}
+          MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}
+          MILL_SONATYPE_PASSWORD: ${{ secrets.MILL_SONATYPE_PASSWORD }}
+          MILL_SONATYPE_USERNAME: ${{ secrets.MILL_SONATYPE_USERNAME }}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Where <code>MILL_PGP_PASSPHRASE</code>, <code>MILL_PGP_SECRET_BASE64</code>, <code>MILL_SONATYPE_PASSWORD</code>, and
+<code>MILL_SONATYPE_USERNAME</code> configured for the repository’s or organization’s Github Actions
+workflows. See
+<a href="https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions">Using Secrets in Github Actions</a>
+for more details.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_instructions_for_publishing_to_maven_central_via_legacy_osshr_deprecated"><a class="anchor" href="#_instructions_for_publishing_to_maven_central_via_legacy_osshr_deprecated"></a>Instructions for Publishing to Maven Central via Legacy OSSHR (Deprecated)</h2>
+<div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Publishing via the legacy OSSRH (OSS Repository Hosting) is deprecated and will reach end-of-life on June 30, 2025,
+due to the retirement of <a href="https://help.sonatype.com/en/sonatype-nexus-repository-2-sunsetting-information.html">Sonatype&rsquo;s Nexus Repository Manager v2</a>. Sonatype now recommends using the <a href="https://central.sonatype.org/publish/publish-portal-guide/">Central Portal</a> for all new publishing.
+Migration is strongly encouraged to avoid disruptions. For full details, see the <a href="https://central.sonatype.org/news/20250326_ossrh_sunset/">OSSRH Sunset Announcement</a>.</p>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="paragraph">
+<p>Just like publishing via the Central Portal requires a GPG key and publish secrets,
+publishing via the legacy OSSHR(OSS Repository Hosting) also requires them.</p>
+</div>
+<div class="sect2">
+<h3 id="_publishing_2"><a class="anchor" href="#_publishing_2"></a>Publishing</h3>
+<div class="paragraph">
+<p>You can publish all eligible modules in your Mill project using
+the <a href="../fundamentals/modules.html#_default_tasks" class="xref page">default task</a> of the
+<a href="../fundamentals/modules.html#_external_modules" class="xref page">External Module</a> <code>mill.scalalib.PublishModule</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.scalalib.PublishModule/</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also specify individual modules you want to publish via a selector:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.scalalib.PublishModule/ --publishArtifacts foo.publishArtifacts</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The default URL for publishing to sonatype’s Maven Central is <code>oss.sonatype.org</code>.
+Newer projects registered on sonatype may need to publish using <code>s01.oss.sonatype.org</code>.
+In that case, you can pass in a <code>--sonatypeUri</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.scalalib.PublishModule/ \
+        --sonatypeUri https://s01.oss.sonatype.org/service/local</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This also allows you to publish to your own internal corporate sonatype deployment,
+by passing in <code>--sonatypeUri example.company.com</code> instead.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Since Feb. 2021 any new Sonatype accounts have been created on
+<code>s01.oss.sonatype.org</code>, so you’ll want to ensure you set the relevant URIs to match.</p>
+</div>
+<div class="paragraph">
+<p>The symptom of using the &quot;wrong&quot; URL for publishing is typically a 403 error code, in response to the publish request.</p>
+</div>
+<div class="paragraph">
+<p>See <a href="https://central.sonatype.org/publish/publish-guide/#releasing-to-central" class="bare">https://central.sonatype.org/publish/publish-guide/#releasing-to-central</a></p>
+</div>
+<div class="paragraph">
+<p>Typically</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code><a href="https://s01.oss.sonatype.org/service/local" class="bare">https://s01.oss.sonatype.org/service/local</a></code> - for the <code>--sonatypeUri</code></p>
+</li>
+<li>
+<p><code><a href="https://s01.oss.sonatype.org/content/repositories/snapshots" class="bare">https://s01.oss.sonatype.org/content/repositories/snapshots</a></code> - for <code>sonatypeSnapshotUri</code></p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_publishing_using_github_actions_2"><a class="anchor" href="#_publishing_using_github_actions_2"></a>Publishing Using Github Actions</h3>
+<div class="paragraph">
+<p>To publish on Github Actions, you can use something like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml"># .github/workflows/publish-artifacts.yml
+name: Publish Artifacts
+on:
+  push:
+    tags:
+      - '**'
+  workflow_dispatch:
+jobs:
+  publish-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - run: ./mill mill.scalalib.PublishModule/
+        env:
+          MILL_PGP_PASSPHRASE: ${{ secrets.MILL_PGP_PASSPHRASE }}
+          MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}
+          MILL_SONATYPE_PASSWORD: ${{ secrets.MILL_SONATYPE_PASSWORD }}
+          MILL_SONATYPE_USERNAME: ${{ secrets.MILL_SONATYPE_USERNAME }}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Where <code>MILL_PGP_PASSPHRASE</code>, <code>MILL_PGP_SECRET_BASE64</code>, <code>MILL_SONATYPE_PASSWORD</code>, and
+<code>MILL_SONATYPE_USERNAME</code> configured for the repository’s or organization’s Github Actions
+workflows. See
+<a href="https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions">Using Secrets in Github Actions</a>
+for more details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_non_staging_releases_classic_maven_uploads"><a class="anchor" href="#_non_staging_releases_classic_maven_uploads"></a>Non-Staging Releases (classic Maven uploads)</h3>
+<div class="paragraph">
+<p>If the site does not support staging releases as <code>oss.sonatype.org</code> and <code>s01.oss.sonatype.org</code> do (for
+example, a self-hosted OSS nexus site), you can pass in the
+<code>--stagingRelease false</code> option to simply upload release artifacts to corresponding
+maven path under <code>sonatypeUri</code> instead of staging path.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.scalalib.PublishModule/ \
+        --publishArtifacts foo.publishArtifacts \
+        --sonatypeCreds lihaoyi:$SONATYPE_PASSWORD \
+        --sonatypeUri http://example.company.com/release \
+        --stagingRelease false</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sonatypecentralpublishmodule_configurations"><a class="anchor" href="#_sonatypecentralpublishmodule_configurations"></a><code>SonatypeCentralPublishModule</code> Configurations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This module provides settings and a CLI interface for publishing artifacts to Sonatype Maven Central.
+You can configure it through your <code>build.mill</code> file or by passing command-line options to it.</p>
+</div>
+<div class="sect2">
+<h3 id="_module_level_settings"><a class="anchor" href="#_module_level_settings"></a>Module-Level Settings</h3>
+<div class="paragraph">
+<p>You can override default publishing settings in your build.mill like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object mymodule extends SonatypeCentralPublishModule {
+  override def sonatypeCentralGpgArgs: T[String] = &quot;--batch, --yes, -a, -b&quot;
+
+  override def sonatypeCentralConnectTimeout: T[Int] = 5000
+
+  override def sonatypeCentralReadTimeout: T[Int] = 60000
+
+  override def sonatypeCentralAwaitTimeout: T[Int] = 120 * 1000
+
+  override def sonatypeCentralShouldRelease: T[Boolean] = true
+  ...
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_argument_reference"><a class="anchor" href="#_argument_reference"></a>Argument Reference</h3>
+<div class="sect3">
+<h4 id="_publishall"><a class="anchor" href="#_publishall"></a>publishAll</h4>
+<div class="paragraph">
+<p>The <code>publishAll</code> task can be called from the CLI. If a required value is not provided via the CLI option,
+it will fall back to an environment variable (if available) or raise an error if missing.</p>
+</div>
+<div class="paragraph">
+<p>The <code>./mill mill.javalib.SonatypeCentralPublishModule/publishAll</code> takes the following options:</p>
+</div>
+<div class="paragraph">
+<p><code>username</code>: The username for calling the Sonatype Central publishing api. Defaults to the <code>SONATYPE_USERNAME</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br /></p>
+</div>
+<div class="paragraph">
+<p><code>password</code>: The password for calling the Sonatype Central publishing api. Defaults to the <code>SONATYPE_PASSWORD</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br /></p>
+</div>
+<div class="paragraph">
+<p><code>gpgArgs</code>: Arguments to pass to the gpg package for signing artifacts. Uses the <code>MILL_PGP_PASSPHRASE</code> environment variable if set. <em>Default: <code>[--passphrase=$MILL_PGP_PASSPHRASE], --no-tty, --pinentry-mode, loopback, --batch, --yes, --armor, --detach-sign</code>.</em><br /></p>
+</div>
+<div class="paragraph">
+<p><code>publishArtifacts</code>: The command for generating all publishable artifacts (ex. <code>__.publishArtifacts</code>). Required.<br /></p>
+</div>
+<div class="paragraph">
+<p><code>readTimeout</code>:  The timeout for receiving a response from Sonatype Central after the initial connection has occurred. <em>Default: 60000.</em><br /></p>
+</div>
+<div class="paragraph">
+<p><code>awaitTimeout</code>: The overall timeout for all retries (including exponential backoff) of the bundle upload. <em>Default: 120 * 1000.</em><br /></p>
+</div>
+<div class="paragraph">
+<p><code>connectTimeout</code>: The timeout for the initial connection to Sonatype Central if there is no response. <em>Default: 5000.</em><br /></p>
+</div>
+<div class="paragraph">
+<p><code>shouldRelease</code>: Whether the bundle should be automatically released when uploaded to Sonatype Central. If <code>false</code>, the bundle will still be uploaded, but users will need to manually log in to Sonatype Central and publish the bundle from the portal. <em>Default: true</em><br /></p>
+</div>
+<div class="paragraph">
+<p><code>bundleName</code>: If set, all packages will be uploaded in a single bundle with the given name. If unset, packages will be uploaded separately. Recommended bundle name syntax: groupName-artifactId-versionNumber. As an example, if publishing the <code>com.lihaoyi</code> <code>requests</code> package, without the bundle name, four different bundles will be uploaded, one for each scala version supported. With a bundle name of <code>com.lihaoyi-requests-&lt;new_version&gt;</code>, a single bundle will be uploaded that contains all packages across scala versions. It is recommended to set the bundle name, so that packages can be verified and deployed together. <em>Default: No bundle name is set and packages will be uploaded separately</em></p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_example_command"><a class="anchor" href="#_example_command"></a>Example command</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill -i \
+mill.javalib.SonatypeCentralPublishModule/publishAll \
+--username myusername \
+--password mypassword \
+--gpgArgs --passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pinentry-mode,loopback,--batch,--yes,--armor,--detach-sign \
+--publishArtifacts __.publishArtifacts \
+--readTimeout  36000 \
+--awaitTimeout 36000 \
+--connectTimeout 36000 \
+--shouldRelease false \
+--bundleName com.lihaoyi-requests:1.0.0</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_publishsonatypecentral"><a class="anchor" href="#_publishsonatypecentral"></a>publishSonatypeCentral</h4>
+<div class="paragraph">
+<p>The <code>__.publishSonatypeCentral</code> command takes the <code>username</code> and <code>password</code> arguments, documented above.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_publishing_to_other_repositories"><a class="anchor" href="#_publishing_to_other_repositories"></a>Publishing to other repositories</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>While Sonatype Maven Central is the default publish repository for JVM ecosystem projects,
+there are also others that you can use. Mill supports these largely through contrib plugins:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../contrib/codeartifact.html" class="xref page">Codeartifact</a></p>
+</li>
+<li>
+<p><a href="../contrib/artifactory.html" class="xref page">Artifactory</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_jlink_and_jpackage"><a class="anchor" href="#_jlink_and_jpackage"></a><code>jlink</code> and <code>jpackage</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill has builtin support for the <a href="https://docs.oracle.com/en/java/javase/11/tools/jlink.html">JLink</a> and
+<a href="https://docs.oracle.com/en/java/javase/17/docs/specs/man/jpackage.html">JPackage</a> command line tools.
+For more details, see:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../javalib/publishing.html#_java_app_and_bundles_using_jlink" class="xref page">Java App and Bundles using JLink</a></p>
+</li>
+<li>
+<p><a href="../javalib/publishing.html#_java_installers_using_jpackage" class="xref page">Java Installers using JPackage</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="linting.html">Linting Scala Projects</a></span>
+  <span class="next"><a href="build-examples.html">Scala Build Examples</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

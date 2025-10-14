@@ -1,0 +1,2087 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Cross Builds :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/cross-builds.html" />
+    <link rel="prev" href="library-deps.html" />
+    <link rel="next" href="bundled-libraries.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style></head><body class="article">
+  
+<header class="header">
+  
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.0.6-18-01285d">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/simple.html">Simple Java Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/simple.html">Simple Scala Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/simple.html">Simple Kotlin Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-current-page is-active" data-depth="2">
+    <a class="nav-link" href="cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.0.6-18-01285d</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.0.6</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.0.6-18-01285d</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.16</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Cross Builds</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Cross-building refers to taking the same sources and configuration and building
+it multiple times with minor changes. This could mean taking the same Scala
+codebase and building it across multiple Scala versions, taking the same
+application and building twice for dev/release, or taking the same module
+config and building it across a variety of source folders.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_simple_cross_modules"><a class="anchor" href="#_simple_cross_modules"></a>Simple Cross Modules</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill handles cross-building of all sorts via the <code>Cross[T]</code> module.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-fundamentals-cross-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/fundamentals/cross/1-simple">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*
+
+object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+trait FooModule extends Cross.Module[String] {
+  def suffix = Task { &quot;_&quot; + crossValue }
+  def bigSuffix = Task { &quot;[[[&quot; + suffix() + &quot;]]]&quot; }
+  def sources = Task.Sources(moduleDir)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<center>
+<svg width="315px" height="364px" viewBox="0.00 0.00 314.83 364.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-360 310.83,-360 310.83,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-116 298.83,-116 298.83,-8 8,-8"></polygon>
+<text text-anchor="middle" x="153.41" y="-99.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 298.83,-232 298.83,-124 8,-124"></polygon>
+<text text-anchor="middle" x="153.41" y="-215.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 298.83,-348 298.83,-240 8,-240"></polygon>
+<text text-anchor="middle" x="153.41" y="-331.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
+</g>
+<!-- foo[2.12].suffix -->
+<g id="node1" class="node">
+<title>foo[2.12].suffix</title>
+<polygon fill="white" stroke="black" points="125.12,-83.3 20.84,-83.3 20.84,-58.7 125.12,-58.7 125.12,-83.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-66.8" font-family="Times,serif" font-size="14.00">foo[2.12].suffix</text>
+</g>
+<!-- foo[2.12].bigSuffix -->
+<g id="node2" class="node">
+<title>foo[2.12].bigSuffix</title>
+<polygon fill="white" stroke="black" points="290.76,-83.3 166.03,-83.3 166.03,-58.7 290.76,-58.7 290.76,-83.3"></polygon>
+<text text-anchor="middle" x="228.39" y="-66.8" font-family="Times,serif" font-size="14.00">foo[2.12].bigSuffix</text>
+</g>
+<!-- foo[2.12].suffix&#45;&gt;foo[2.12].bigSuffix -->
+<g id="edge1" class="edge">
+<title>foo[2.12].suffix-&gt;foo[2.12].bigSuffix</title>
+<path fill="none" stroke="black" d="M125.49,-71C135.22,-71 145.56,-71 155.77,-71"></path>
+<polygon fill="black" stroke="black" points="155.92,-74.5 165.92,-71 155.92,-67.5 155.92,-74.5"></polygon>
+</g>
+<!-- foo[2.12].sources -->
+<g id="node3" class="node">
+<title>foo[2.12].sources</title>
+<polygon fill="white" stroke="black" points="129.94,-40.3 16.02,-40.3 16.02,-15.7 129.94,-15.7 129.94,-40.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-23.8" font-family="Times,serif" font-size="14.00">foo[2.12].sources</text>
+</g>
+<!-- foo[2.11].suffix -->
+<g id="node4" class="node">
+<title>foo[2.11].suffix</title>
+<polygon fill="white" stroke="black" points="125.12,-199.3 20.84,-199.3 20.84,-174.7 125.12,-174.7 125.12,-199.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-182.8" font-family="Times,serif" font-size="14.00">foo[2.11].suffix</text>
+</g>
+<!-- foo[2.11].bigSuffix -->
+<g id="node5" class="node">
+<title>foo[2.11].bigSuffix</title>
+<polygon fill="white" stroke="black" points="290.76,-199.3 166.03,-199.3 166.03,-174.7 290.76,-174.7 290.76,-199.3"></polygon>
+<text text-anchor="middle" x="228.39" y="-182.8" font-family="Times,serif" font-size="14.00">foo[2.11].bigSuffix</text>
+</g>
+<!-- foo[2.11].suffix&#45;&gt;foo[2.11].bigSuffix -->
+<g id="edge2" class="edge">
+<title>foo[2.11].suffix-&gt;foo[2.11].bigSuffix</title>
+<path fill="none" stroke="black" d="M125.49,-187C135.22,-187 145.56,-187 155.77,-187"></path>
+<polygon fill="black" stroke="black" points="155.92,-190.5 165.92,-187 155.92,-183.5 155.92,-190.5"></polygon>
+</g>
+<!-- foo[2.11].sources -->
+<g id="node6" class="node">
+<title>foo[2.11].sources</title>
+<polygon fill="white" stroke="black" points="129.94,-156.3 16.02,-156.3 16.02,-131.7 129.94,-131.7 129.94,-156.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-139.8" font-family="Times,serif" font-size="14.00">foo[2.11].sources</text>
+</g>
+<!-- foo[2.10].suffix -->
+<g id="node7" class="node">
+<title>foo[2.10].suffix</title>
+<polygon fill="white" stroke="black" points="125.12,-315.3 20.84,-315.3 20.84,-290.7 125.12,-290.7 125.12,-315.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-298.8" font-family="Times,serif" font-size="14.00">foo[2.10].suffix</text>
+</g>
+<!-- foo[2.10].bigSuffix -->
+<g id="node8" class="node">
+<title>foo[2.10].bigSuffix</title>
+<polygon fill="white" stroke="black" points="290.76,-315.3 166.03,-315.3 166.03,-290.7 290.76,-290.7 290.76,-315.3"></polygon>
+<text text-anchor="middle" x="228.39" y="-298.8" font-family="Times,serif" font-size="14.00">foo[2.10].bigSuffix</text>
+</g>
+<!-- foo[2.10].suffix&#45;&gt;foo[2.10].bigSuffix -->
+<g id="edge3" class="edge">
+<title>foo[2.10].suffix-&gt;foo[2.10].bigSuffix</title>
+<path fill="none" stroke="black" d="M125.49,-303C135.22,-303 145.56,-303 155.77,-303"></path>
+<polygon fill="black" stroke="black" points="155.92,-306.5 165.92,-303 155.92,-299.5 155.92,-306.5"></polygon>
+</g>
+<!-- foo[2.10].sources -->
+<g id="node9" class="node">
+<title>foo[2.10].sources</title>
+<polygon fill="white" stroke="black" points="129.94,-272.3 16.02,-272.3 16.02,-247.7 129.94,-247.7 129.94,-272.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-255.8" font-family="Times,serif" font-size="14.00">foo[2.10].sources</text>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>Cross modules defined using the <code>Cross[T]</code> class allow you to define
+multiple copies of the same module, differing only in some input key. This
+is very useful for building the same module against different versions of a
+language or library, or creating modules to represent folders on the
+filesystem.</p>
+</div>
+<div class="paragraph">
+<p>This example defines three copies of <code>FooModule</code>: <code>&quot;2.10&quot;</code>, <code>&quot;2.11&quot;</code> and
+<code>&quot;2.12&quot;</code>, each of which has their own <code>suffix</code> task. You can then run
+them as shown below. Note that by default, <code>sources</code> returns <code>foo</code> for every
+cross module, assuming you want to build the same sources for each. This can
+be overridden.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo[2.10].suffix
+&quot;_2.10&quot;
+
+&gt; ./mill show foo[2.10].bigSuffix
+&quot;[[[_2.10]]]&quot;
+
+&gt; ./mill show foo[2.10].sources
+[
+  &quot;.../foo&quot;
+]
+
+&gt; ./mill show foo[2.12].suffix
+&quot;_2.12&quot;
+
+&gt; ./mill show foo[2.12].bigSuffix
+&quot;[[[_2.12]]]&quot;
+
+&gt; ./mill show foo[2.12].sources
+[
+  &quot;.../foo&quot;
+]</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Please be aware that some shells like <code>zsh</code> interpret square brackets differently, so quoting or masking might be needed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-zsh hljs" data-lang="zsh">mill show foo\[2.10\].suffix
+mill show 'foo[2.10].suffix'
+mill show &quot;foo[2.10].suffix&quot;</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="paragraph">
+<p>The Cross module’s axes can take any type <code>T</code> with <code>Cross.ToSegments[T]</code>
+defined. There are default implementations for strings, chars, numbers,
+booleans, and lists; the example above demonstrates cross axes of type
+<code>String</code>, <code>Int</code>, and <code>Boolean</code>. You can define additional <code>ToPathSegments</code>
+for your own user-defined types that you wish to use in a Cross module</p>
+</div>
+<div class="sect2">
+<h3 id="_cross_modules_defaults"><a class="anchor" href="#_cross_modules_defaults"></a>Cross Modules Defaults</h3>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-fundamentals-cross-11-default-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/fundamentals/cross/11-default-cross-module">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*
+
+object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+
+trait FooModule extends Cross.Module[String] {
+  def suffix = Task { &quot;_&quot; + crossValue }
+}
+
+object bar extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;) {
+  def defaultCrossSegments = Seq(&quot;2.12&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For convenience, you can omit the selector for the default cross segment.
+By default, this is the first cross value specified, but you can override
+it by specifying <code>def defaultCrossSegments</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo[2.10].suffix # explicit cross value given
+&quot;_2.10&quot;
+
+&gt; ./mill show foo[].suffix # no cross value given, defaults to first cross value
+&quot;_2.10&quot;
+
+&gt; ./mill show bar[].suffix # no cross value given, defaults to overridden `defaultCrossSegments`
+&quot;_2.12&quot;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cross_modules_source_paths"><a class="anchor" href="#_cross_modules_source_paths"></a>Cross Modules Source Paths</h3>
+<div class="paragraph">
+<p>If you want to have dedicated <code>moduleDir</code>s, you can add the cross
+parameters to it as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-fundamentals-cross-2-cross-source-path.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/fundamentals/cross/2-cross-source-path">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*
+
+object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+trait FooModule extends Cross.Module[String] {
+  def moduleDir = super.moduleDir / crossValue
+  def sources = Task.Sources(moduleDir)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default, cross modules do not include the cross key as part of the
+<code>moduleDir</code> for each module. This is the common case, where you are
+cross-building the same sources across different input versions. If you want
+to use a cross module to build different folders with the same config, you
+can do so by overriding <code>moduleDir</code> as shown above.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo[2.10].sources
+[
+  &quot;.../foo/2.10&quot;
+]
+
+&gt; ./mill show foo[2.11].sources
+[
+  &quot;.../foo/2.11&quot;
+]
+
+&gt; ./mill show foo[2.12].sources
+[
+  &quot;.../foo/2.12&quot;
+]</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Before Mill 0.11.0-M5, <code>Cross</code> modules which were not also <code>CrossScalaModule</code>s, always added the cross parameters to the <code>moduleDir</code>. This often led to setups like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def moduleDir = super.moduleDir / os.up</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_cross_modules_from_outside_tasks"><a class="anchor" href="#_using_cross_modules_from_outside_tasks"></a>Using Cross Modules from Outside Tasks</h3>
+<div class="paragraph">
+<p>You can refer to tasks defined in cross-modules using the <code>foo(&quot;2.10&quot;)</code> syntax,
+as given below:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-fundamentals-cross-3-outside-dependency.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/fundamentals/cross/3-outside-dependency">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*
+
+object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+trait FooModule extends Cross.Module[String] {
+  def suffix = Task { &quot;_&quot; + crossValue }
+}
+
+def bar = Task { s&quot;hello ${foo(&quot;2.10&quot;).suffix()}&quot; }
+
+def qux = Task { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quot;2.12&quot;).suffix()}&quot; }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<center>
+<svg width="202px" height="235px" viewBox="0.00 0.00 201.64 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-231 197.64,-231 197.64,4 -4,4"></polygon>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"></polygon>
+<text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
+<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"></polygon>
+<text text-anchor="middle" x="68.32" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
+</g>
+<!-- foo[2.12].suffix -->
+<g id="node1" class="node">
+<title>foo[2.12].suffix</title>
+<polygon fill="white" stroke="black" points="120.46,-186.3 16.18,-186.3 16.18,-161.7 120.46,-161.7 120.46,-186.3"></polygon>
+<text text-anchor="middle" x="68.32" y="-169.8" font-family="Times,serif" font-size="14.00">foo[2.12].suffix</text>
+</g>
+<!-- qux -->
+<g id="node4" class="node">
+<title>qux</title>
+<polygon fill="white" stroke="black" points="193.64,-98.3 156.64,-98.3 156.64,-73.7 193.64,-73.7 193.64,-98.3"></polygon>
+<text text-anchor="middle" x="175.14" y="-81.8" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
+<!-- foo[2.12].suffix&#45;&gt;qux -->
+<g id="edge1" class="edge">
+<title>foo[2.12].suffix-&gt;qux</title>
+<path fill="none" stroke="black" d="M109.03,-161.62C115.95,-158.46 122.8,-154.61 128.64,-150 143.24,-138.46 155.21,-121.03 163.2,-107.28"></path>
+<polygon fill="black" stroke="black" points="166.3,-108.9 168.08,-98.46 160.17,-105.51 166.3,-108.9"></polygon>
+</g>
+<!-- foo[2.11].suffix -->
+<g id="node2" class="node">
+<title>foo[2.11].suffix</title>
+<polygon fill="white" stroke="black" points="120.46,-113.3 16.18,-113.3 16.18,-88.7 120.46,-88.7 120.46,-113.3"></polygon>
+<text text-anchor="middle" x="68.32" y="-96.8" font-family="Times,serif" font-size="14.00">foo[2.11].suffix</text>
+</g>
+<!-- foo[2.11].suffix&#45;&gt;qux -->
+<!-- foo[2.10].suffix -->
+<g id="node3" class="node">
+<title>foo[2.10].suffix</title>
+<polygon fill="white" stroke="black" points="120.46,-40.3 16.18,-40.3 16.18,-15.7 120.46,-15.7 120.46,-40.3"></polygon>
+<text text-anchor="middle" x="68.32" y="-23.8" font-family="Times,serif" font-size="14.00">foo[2.10].suffix</text>
+</g>
+<!-- foo[2.10].suffix&#45;&gt;qux -->
+<g id="edge3" class="edge">
+<title>foo[2.10].suffix-&gt;qux</title>
+<path fill="none" stroke="black" d="M91.81,-40.44C108.15,-49.49 130.33,-61.76 147.55,-71.29"></path>
+<polygon fill="black" stroke="black" points="146.1,-74.48 156.54,-76.26 149.49,-68.36 146.1,-74.48"></polygon>
+</g>
+<!-- bar -->
+<g id="node5" class="node">
+<title>bar</title>
+<polygon fill="white" stroke="black" points="192.01,-40.3 158.26,-40.3 158.26,-15.7 192.01,-15.7 192.01,-40.3"></polygon>
+<text text-anchor="middle" x="175.14" y="-23.8" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<!-- foo[2.10].suffix&#45;&gt;bar -->
+<g id="edge4" class="edge">
+<title>foo[2.10].suffix-&gt;bar</title>
+<path fill="none" stroke="black" d="M120.5,-28C130.04,-28 139.63,-28 148.02,-28"></path>
+<polygon fill="black" stroke="black" points="148.23,-31.5 158.23,-28 148.23,-24.5 148.23,-31.5"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>Here, <code>def bar</code> uses <code>foo(&quot;2.10&quot;)</code> to reference the <code>&quot;2.10&quot;</code> instance of
+<code>FooModule</code>. You can refer to whatever versions of the cross-module you want,
+even using multiple versions of the cross-module in the same task as we do
+in <code>def qux</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo[2.10].suffix
+&quot;_2.10&quot;
+
+&gt; ./mill show bar
+&quot;hello _2.10&quot;
+
+&gt; ./mill show qux
+&quot;hello _2.10 world _2.12&quot;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_cross_modules_from_other_cross_modules"><a class="anchor" href="#_using_cross_modules_from_other_cross_modules"></a>Using Cross Modules from other Cross Modules</h3>
+<div class="paragraph">
+<p>Tasks in cross-modules can use one another the same way they are used from
+external tasks:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-fundamentals-cross-4-cross-dependencies.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/fundamentals/cross/4-cross-dependencies">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*
+
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+trait FooModule extends Cross.Module[String] {
+  def suffix = Task { &quot;_&quot; + crossValue }
+}
+
+object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+trait BarModule extends Cross.Module[String] {
+  def bigSuffix = Task { &quot;[[[&quot; + foo(crossValue).suffix() + &quot;]]]&quot; }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<center>
+<svg width="305px" height="235px" viewBox="0.00 0.00 304.72 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-231 300.72,-231 300.72,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"></polygon>
+<text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"></polygon>
+<text text-anchor="middle" x="68.32" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-8 148.64,-73 288.72,-73 288.72,-8 148.64,-8"></polygon>
+<text text-anchor="middle" x="218.68" y="-56.4" font-family="Times,serif" font-size="14.00">bar[2.12]</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-154 148.64,-219 288.72,-219 288.72,-154 148.64,-154"></polygon>
+<text text-anchor="middle" x="218.68" y="-202.4" font-family="Times,serif" font-size="14.00">bar[2.10]</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
+<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-81 148.64,-146 288.72,-146 288.72,-81 148.64,-81"></polygon>
+<text text-anchor="middle" x="218.68" y="-129.4" font-family="Times,serif" font-size="14.00">bar[2.11]</text>
+</g>
+<!-- foo[2.12].suffix -->
+<g id="node1" class="node">
+<title>foo[2.12].suffix</title>
+<polygon fill="white" stroke="black" points="120.46,-40.3 16.18,-40.3 16.18,-15.7 120.46,-15.7 120.46,-40.3"></polygon>
+<text text-anchor="middle" x="68.32" y="-23.8" font-family="Times,serif" font-size="14.00">foo[2.12].suffix</text>
+</g>
+<!-- bar[2.12].bigSuffix -->
+<g id="node5" class="node">
+<title>bar[2.12].bigSuffix</title>
+<polygon fill="white" stroke="black" points="280.76,-40.3 156.6,-40.3 156.6,-15.7 280.76,-15.7 280.76,-40.3"></polygon>
+<text text-anchor="middle" x="218.68" y="-23.8" font-family="Times,serif" font-size="14.00">bar[2.12].bigSuffix</text>
+</g>
+<!-- foo[2.12].suffix&#45;&gt;bar[2.12].bigSuffix -->
+<g id="edge3" class="edge">
+<title>foo[2.12].suffix-&gt;bar[2.12].bigSuffix</title>
+<path fill="none" stroke="black" d="M120.79,-28C129.09,-28 137.81,-28 146.48,-28"></path>
+<polygon fill="black" stroke="black" points="146.6,-31.5 156.6,-28 146.6,-24.5 146.6,-31.5"></polygon>
+</g>
+<!-- foo[2.11].suffix -->
+<g id="node2" class="node">
+<title>foo[2.11].suffix</title>
+<polygon fill="white" stroke="black" points="120.46,-113.3 16.18,-113.3 16.18,-88.7 120.46,-88.7 120.46,-113.3"></polygon>
+<text text-anchor="middle" x="68.32" y="-96.8" font-family="Times,serif" font-size="14.00">foo[2.11].suffix</text>
+</g>
+<!-- bar[2.11].bigSuffix -->
+<g id="node4" class="node">
+<title>bar[2.11].bigSuffix</title>
+<polygon fill="white" stroke="black" points="280.76,-113.3 156.6,-113.3 156.6,-88.7 280.76,-88.7 280.76,-113.3"></polygon>
+<text text-anchor="middle" x="218.68" y="-96.8" font-family="Times,serif" font-size="14.00">bar[2.11].bigSuffix</text>
+</g>
+<!-- foo[2.11].suffix&#45;&gt;bar[2.11].bigSuffix -->
+<g id="edge2" class="edge">
+<title>foo[2.11].suffix-&gt;bar[2.11].bigSuffix</title>
+<path fill="none" stroke="black" d="M120.79,-101C129.09,-101 137.81,-101 146.48,-101"></path>
+<polygon fill="black" stroke="black" points="146.6,-104.5 156.6,-101 146.6,-97.5 146.6,-104.5"></polygon>
+</g>
+<!-- foo[2.10].suffix -->
+<g id="node3" class="node">
+<title>foo[2.10].suffix</title>
+<polygon fill="white" stroke="black" points="120.46,-186.3 16.18,-186.3 16.18,-161.7 120.46,-161.7 120.46,-186.3"></polygon>
+<text text-anchor="middle" x="68.32" y="-169.8" font-family="Times,serif" font-size="14.00">foo[2.10].suffix</text>
+</g>
+<!-- bar[2.10].bigSuffix -->
+<g id="node6" class="node">
+<title>bar[2.10].bigSuffix</title>
+<polygon fill="white" stroke="black" points="280.76,-186.3 156.6,-186.3 156.6,-161.7 280.76,-161.7 280.76,-186.3"></polygon>
+<text text-anchor="middle" x="218.68" y="-169.8" font-family="Times,serif" font-size="14.00">bar[2.10].bigSuffix</text>
+</g>
+<!-- foo[2.10].suffix&#45;&gt;bar[2.10].bigSuffix -->
+<g id="edge1" class="edge">
+<title>foo[2.10].suffix-&gt;bar[2.10].bigSuffix</title>
+<path fill="none" stroke="black" d="M120.79,-174C129.09,-174 137.81,-174 146.48,-174"></path>
+<polygon fill="black" stroke="black" points="146.6,-177.5 156.6,-174 146.6,-170.5 146.6,-177.5"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>Rather than passing in a literal <code>&quot;2.10&quot;</code> to the <code>foo</code> cross module, we pass
+in the <code>crossValue</code> property that is available within every <code>Cross.Module</code>.
+This ensures that each version of <code>bar</code> depends on the corresponding version
+of <code>foo</code>: <code>bar(&quot;2.10&quot;)</code> depends on <code>foo(&quot;2.10&quot;)</code>, <code>bar(&quot;2.11&quot;)</code> depends on
+<code>foo(&quot;2.11&quot;)</code>, etc.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill showNamed foo[__].suffix
+{
+  &quot;foo[2.10].suffix&quot;: &quot;_2.10&quot;,
+  &quot;foo[2.11].suffix&quot;: &quot;_2.11&quot;,
+  &quot;foo[2.12].suffix&quot;: &quot;_2.12&quot;
+}
+
+&gt; ./mill showNamed bar[__].bigSuffix
+{
+  &quot;bar[2.10].bigSuffix&quot;: &quot;[[[_2.10]]]&quot;,
+  &quot;bar[2.11].bigSuffix&quot;: &quot;[[[_2.11]]]&quot;,
+  &quot;bar[2.12].bigSuffix&quot;: &quot;[[[_2.12]]]&quot;
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_multiple_cross_axes"><a class="anchor" href="#_multiple_cross_axes"></a>Multiple Cross Axes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can have a cross-module with multiple inputs using the <code>Cross.Module2</code>
+trait:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-fundamentals-cross-5-multiple-cross-axes.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/fundamentals/cross/5-multiple-cross-axes">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*
+
+val crossMatrix = for {
+  crossVersion &lt;- Seq(&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+  platform &lt;- Seq(&quot;jvm&quot;, &quot;js&quot;, &quot;native&quot;)
+  if !(platform == &quot;native&quot; &amp;&amp; crossVersion != &quot;2.12&quot;)
+} yield (crossVersion, platform)
+
+object foo extends mill.Cross[FooModule](crossMatrix)
+trait FooModule extends Cross.Module2[String, String] {
+  val (crossVersion, platform) = (crossValue, crossValue2)
+  def suffix = Task { &quot;_&quot; + crossVersion + &quot;_&quot; + platform }
+}
+
+def bar = Task { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}&quot; }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<center>
+<svg width="568px" height="235px" viewBox="0.00 0.00 568.06 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-231 564.06,-231 564.06,4 -4,4"></polygon>
+<g id="clust3" class="cluster">
+<title>cluster_4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="192.57,-81 192.57,-146 491.96,-146 491.96,-81 192.57,-81"></polygon>
+<text text-anchor="middle" x="342.27" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11,js]</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="352.27,-154 352.27,-219 498.19,-219 498.19,-154 352.27,-154"></polygon>
+<text text-anchor="middle" x="425.23" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.10,jvm]</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="20.44,-81 20.44,-146 153.91,-146 153.91,-81 20.44,-81"></polygon>
+<text text-anchor="middle" x="87.17" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.12,js]</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="186.35,-154 186.35,-219 332.27,-219 332.27,-154 186.35,-154"></polygon>
+<text text-anchor="middle" x="259.31" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.11,jvm]</text>
+</g>
+<g id="clust7" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.21,-154 14.21,-219 160.13,-219 160.13,-154 14.21,-154"></polygon>
+<text text-anchor="middle" x="87.17" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12,jvm]</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_6</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 166.35,-73 166.35,-8 8,-8"></polygon>
+<text text-anchor="middle" x="87.17" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12,native]</text>
+</g>
+<!-- foo[2.12,native].suffix -->
+<g id="node1" class="node">
+<title>foo[2.12,native].suffix</title>
+<polygon fill="white" stroke="black" points="158.52,-40.3 15.83,-40.3 15.83,-15.7 158.52,-15.7 158.52,-40.3"></polygon>
+<text text-anchor="middle" x="87.17" y="-23.8" font-family="Times,serif" font-size="14.00">foo[2.12,native].suffix</text>
+</g>
+<!-- foo[2.10,js].suffix -->
+<g id="node2" class="node">
+<title>foo[2.10,js].suffix</title>
+<polygon fill="white" stroke="black" points="484.2,-113.3 366.25,-113.3 366.25,-88.7 484.2,-88.7 484.2,-113.3"></polygon>
+<text text-anchor="middle" x="425.23" y="-96.8" font-family="Times,serif" font-size="14.00">foo[2.10,js].suffix</text>
+</g>
+<!-- foo[2.11,js].suffix -->
+<g id="node3" class="node">
+<title>foo[2.11,js].suffix</title>
+<polygon fill="white" stroke="black" points="318.28,-113.3 200.33,-113.3 200.33,-88.7 318.28,-88.7 318.28,-113.3"></polygon>
+<text text-anchor="middle" x="259.31" y="-96.8" font-family="Times,serif" font-size="14.00">foo[2.11,js].suffix</text>
+</g>
+<!-- foo[2.11,js].suffix&#45;&gt;foo[2.10,js].suffix -->
+<!-- foo[2.12,js].suffix -->
+<g id="node4" class="node">
+<title>foo[2.12,js].suffix</title>
+<polygon fill="white" stroke="black" points="146.15,-113.3 28.2,-113.3 28.2,-88.7 146.15,-88.7 146.15,-113.3"></polygon>
+<text text-anchor="middle" x="87.17" y="-96.8" font-family="Times,serif" font-size="14.00">foo[2.12,js].suffix</text>
+</g>
+<!-- foo[2.12,js].suffix&#45;&gt;foo[2.11,js].suffix -->
+<!-- foo[2.10,jvm].suffix -->
+<g id="node5" class="node">
+<title>foo[2.10,jvm].suffix</title>
+<polygon fill="white" stroke="black" points="490.15,-186.3 360.31,-186.3 360.31,-161.7 490.15,-161.7 490.15,-186.3"></polygon>
+<text text-anchor="middle" x="425.23" y="-169.8" font-family="Times,serif" font-size="14.00">foo[2.10,jvm].suffix</text>
+</g>
+<!-- bar -->
+<g id="node8" class="node">
+<title>bar</title>
+<polygon fill="white" stroke="black" points="560,-186.3 526.25,-186.3 526.25,-161.7 560,-161.7 560,-186.3"></polygon>
+<text text-anchor="middle" x="543.12" y="-169.8" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<!-- foo[2.10,jvm].suffix&#45;&gt;bar -->
+<g id="edge5" class="edge">
+<title>foo[2.10,jvm].suffix-&gt;bar</title>
+<path fill="none" stroke="black" d="M490.28,-174C499.24,-174 508.01,-174 515.72,-174"></path>
+<polygon fill="black" stroke="black" points="515.8,-177.5 525.8,-174 515.8,-170.5 515.8,-177.5"></polygon>
+</g>
+<!-- foo[2.11,jvm].suffix -->
+<g id="node6" class="node">
+<title>foo[2.11,jvm].suffix</title>
+<polygon fill="white" stroke="black" points="324.23,-186.3 194.39,-186.3 194.39,-161.7 324.23,-161.7 324.23,-186.3"></polygon>
+<text text-anchor="middle" x="259.31" y="-169.8" font-family="Times,serif" font-size="14.00">foo[2.11,jvm].suffix</text>
+</g>
+<!-- foo[2.11,jvm].suffix&#45;&gt;foo[2.10,jvm].suffix -->
+<!-- foo[2.12,jvm].suffix -->
+<g id="node7" class="node">
+<title>foo[2.12,jvm].suffix</title>
+<polygon fill="white" stroke="black" points="152.09,-186.3 22.25,-186.3 22.25,-161.7 152.09,-161.7 152.09,-186.3"></polygon>
+<text text-anchor="middle" x="87.17" y="-169.8" font-family="Times,serif" font-size="14.00">foo[2.12,jvm].suffix</text>
+</g>
+<!-- foo[2.12,jvm].suffix&#45;&gt;foo[2.11,jvm].suffix -->
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>This example shows off using a for-loop to generate a list of
+cross-key-tuples, as a <code>Seq[(String, String)]</code> that we then pass it into the
+<code>Cross</code> constructor. These can be referenced from the command line as shown
+below, or referenced in other parts of your <code>build.mill</code> as shown in <code>def bar</code>
+above.</p>
+</div>
+<div class="paragraph">
+<p>In this example we assigned <code>crossValue</code> and <code>crossValue2</code> to the names
+<code>crossVersion</code> and <code>platform</code> for readability.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo[2.10,jvm].suffix
+&quot;_2.10_jvm&quot;
+
+&gt; ./mill showNamed foo[__].suffix
+{
+  &quot;foo[2.10,jvm].suffix&quot;: &quot;_2.10_jvm&quot;,
+  &quot;foo[2.10,js].suffix&quot;: &quot;_2.10_js&quot;,
+  &quot;foo[2.11,jvm].suffix&quot;: &quot;_2.11_jvm&quot;,
+  &quot;foo[2.11,js].suffix&quot;: &quot;_2.11_js&quot;,
+  &quot;foo[2.12,jvm].suffix&quot;: &quot;_2.12_jvm&quot;,
+  &quot;foo[2.12,js].suffix&quot;: &quot;_2.12_js&quot;,
+  &quot;foo[2.12,native].suffix&quot;: &quot;_2.12_native&quot;
+}</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_extending_cross_modules"><a class="anchor" href="#_extending_cross_modules"></a>Extending Cross Modules</h3>
+<div class="paragraph">
+<p>You can also take an existing cross module and extend it with additional cross
+axes as shown:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-fundamentals-cross-6-axes-extension.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/fundamentals/cross/6-axes-extension">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*
+
+object foo extends Cross[FooModule](&quot;a&quot;, &quot;b&quot;)
+trait FooModule extends Cross.Module[String] {
+  def param1 = Task { &quot;Param Value: &quot; + crossValue }
+}
+
+object foo2 extends Cross[FooModule2]((&quot;a&quot;, 1), (&quot;b&quot;, 2))
+trait FooModule2 extends Cross.Module2[String, Int] {
+  def param1 = Task { &quot;Param Value: &quot; + crossValue }
+  def param2 = Task { &quot;Param Value: &quot; + crossValue2 }
+}
+
+object foo3 extends Cross[FooModule3]((&quot;a&quot;, 1, true), (&quot;b&quot;, 2, false))
+trait FooModule3 extends FooModule2 with Cross.Module3[String, Int, Boolean] {
+  def param3 = Task { &quot;Param Value: &quot; + crossValue3 }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Starting from an existing cross module with <code>Cross.Module{N-1}</code>,
+you can extend <code>Cross.ModuleN</code> to add a new axis to it.</p>
+</div>
+<div class="paragraph">
+<p>Multi-axis cross modules take their input as tuples, and each element of the
+tuple beyond the first is bound to the <code>crossValueN</code> property defined by the
+corresponding <code>Cross.ArgN</code> trait. Providing tuples of the wrong arity to the
+<code>Cross[]</code> constructor is a compile error.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo[a].param1
+&quot;Param Value: a&quot;
+
+&gt; ./mill show foo[b].param1
+&quot;Param Value: b&quot;
+
+&gt; ./mill show foo2[a,1].param1
+&quot;Param Value: a&quot;
+
+&gt; ./mill show foo2[b,2].param2
+&quot;Param Value: 2&quot;
+
+&gt; ./mill show foo3[b,2,false].param3
+&quot;Param Value: false&quot;
+
+&gt; sed -i.bak 's/, true//g' build.mill
+
+&gt; sed -i.bak 's/, false//g' build.mill
+
+&gt; ./mill show foo3[b,2,false].param3
+error: ...object foo3 extends Cross[FooModule3]((&quot;a&quot;, 1), (&quot;b&quot;, 2))
+error: ...                                      ^^^^^^^^
+error: ...expected at least 3 elements, got 2...
+error: ...object foo3 extends Cross[FooModule3]((&quot;a&quot;, 1), (&quot;b&quot;, 2))
+error: ...                                                ^^^^^^^^
+error: ...expected at least 3 elements, got 2...</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_inner_cross_modules"><a class="anchor" href="#_inner_cross_modules"></a>Inner Cross Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-fundamentals-cross-7-inner-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/fundamentals/cross/7-inner-cross-module">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*
+
+trait MyModule extends Module {
+  def crossValue: String
+  def name: T[String]
+  def param = Task { name() + &quot; Param Value: &quot; + crossValue }
+}
+
+object foo extends Cross[FooModule](&quot;a&quot;, &quot;b&quot;)
+trait FooModule extends Cross.Module[String] {
+  object bar extends MyModule, CrossValue {
+    def name = &quot;Bar&quot;
+  }
+  object qux extends MyModule, CrossValue {
+    def name = &quot;Qux&quot;
+  }
+}
+
+def baz = Task { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<center>
+<svg width="450px" height="276px" viewBox="0.00 0.00 450.44 276.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 272.0)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-272 446.44,-272 446.44,4 -4,4"></polygon>
+<!-- root&#45;module -->
+<g id="node1" class="node">
+<title>root-module</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="309.4,-267.9 223.99,-267.9 223.99,-243.3 309.4,-243.3 309.4,-267.9"></polygon>
+<text text-anchor="middle" x="266.7" y="-251.4" font-family="Times,serif" font-size="14.00">root-module</text>
+</g>
+<!-- foo -->
+<g id="node2" class="node">
+<title>foo</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="283.86,-207.1 249.53,-207.1 249.53,-182.5 283.86,-182.5 283.86,-207.1"></polygon>
+<text text-anchor="middle" x="266.7" y="-190.6" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<!-- root&#45;module&#45;&gt;foo -->
+<g id="edge1" class="edge">
+<title>root-module-&gt;foo</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M266.7,-243.26C266.7,-235.86 266.7,-225.96 266.7,-217.12"></path>
+<polygon fill="black" stroke="black" points="270.2,-217.1 266.7,-207.1 263.2,-217.1 270.2,-217.1"></polygon>
+</g>
+<!-- foo[a] -->
+<g id="node3" class="node">
+<title>foo[a]</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="245.89,-146.3 195.5,-146.3 195.5,-121.7 245.89,-121.7 245.89,-146.3"></polygon>
+<text text-anchor="middle" x="220.7" y="-129.8" font-family="Times,serif" font-size="14.00">foo[a]</text>
+</g>
+<!-- foo&#45;&gt;foo[a] -->
+<g id="edge2" class="edge">
+<title>foo-&gt;foo[a]</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M257.83,-182.46C251.59,-174.49 243.09,-163.63 235.8,-154.3"></path>
+<polygon fill="black" stroke="black" points="238.46,-152.02 229.54,-146.3 232.94,-156.34 238.46,-152.02"></polygon>
+</g>
+<!-- foo[b] -->
+<g id="node4" class="node">
+<title>foo[b]</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="338.18,-146.3 287.21,-146.3 287.21,-121.7 338.18,-121.7 338.18,-146.3"></polygon>
+<text text-anchor="middle" x="312.7" y="-129.8" font-family="Times,serif" font-size="14.00">foo[b]</text>
+</g>
+<!-- foo&#45;&gt;foo[b] -->
+<g id="edge3" class="edge">
+<title>foo-&gt;foo[b]</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M275.56,-182.46C281.8,-174.49 290.3,-163.63 297.59,-154.3"></path>
+<polygon fill="black" stroke="black" points="300.45,-156.34 303.85,-146.3 294.94,-152.02 300.45,-156.34"></polygon>
+</g>
+<!-- foo[a].bar -->
+<g id="node5" class="node">
+<title>foo[a].bar</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="165.27,-85.5 94.12,-85.5 94.12,-60.9 165.27,-60.9 165.27,-85.5"></polygon>
+<text text-anchor="middle" x="129.7" y="-69" font-family="Times,serif" font-size="14.00">foo[a].bar</text>
+</g>
+<!-- foo[a]&#45;&gt;foo[a].bar -->
+<g id="edge4" class="edge">
+<title>foo[a]-&gt;foo[a].bar</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M203.15,-121.66C189.68,-112.96 170.87,-100.81 155.66,-90.98"></path>
+<polygon fill="black" stroke="black" points="157.49,-87.99 147.19,-85.5 153.69,-93.87 157.49,-87.99"></polygon>
+</g>
+<!-- foo[a].qux -->
+<g id="node6" class="node">
+<title>foo[a].qux</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="257.89,-85.5 183.5,-85.5 183.5,-60.9 257.89,-60.9 257.89,-85.5"></polygon>
+<text text-anchor="middle" x="220.7" y="-69" font-family="Times,serif" font-size="14.00">foo[a].qux</text>
+</g>
+<!-- foo[a]&#45;&gt;foo[a].qux -->
+<g id="edge5" class="edge">
+<title>foo[a]-&gt;foo[a].qux</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M220.7,-121.66C220.7,-114.26 220.7,-104.36 220.7,-95.52"></path>
+<polygon fill="black" stroke="black" points="224.2,-95.5 220.7,-85.5 217.2,-95.5 224.2,-95.5"></polygon>
+</g>
+<!-- foo[b].bar -->
+<g id="node7" class="node">
+<title>foo[b].bar</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="349.05,-85.5 276.34,-85.5 276.34,-60.9 349.05,-60.9 349.05,-85.5"></polygon>
+<text text-anchor="middle" x="312.7" y="-69" font-family="Times,serif" font-size="14.00">foo[b].bar</text>
+</g>
+<!-- foo[b]&#45;&gt;foo[b].bar -->
+<g id="edge6" class="edge">
+<title>foo[b]-&gt;foo[b].bar</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M312.7,-121.66C312.7,-114.26 312.7,-104.36 312.7,-95.52"></path>
+<polygon fill="black" stroke="black" points="316.2,-95.5 312.7,-85.5 309.2,-95.5 316.2,-95.5"></polygon>
+</g>
+<!-- foo[b].qux -->
+<g id="node8" class="node">
+<title>foo[b].qux</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="442.68,-85.5 366.71,-85.5 366.71,-60.9 442.68,-60.9 442.68,-85.5"></polygon>
+<text text-anchor="middle" x="404.7" y="-69" font-family="Times,serif" font-size="14.00">foo[b].qux</text>
+</g>
+<!-- foo[b]&#45;&gt;foo[b].qux -->
+<g id="edge7" class="edge">
+<title>foo[b]-&gt;foo[b].qux</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M330.43,-121.66C344.05,-112.96 363.07,-100.81 378.45,-90.98"></path>
+<polygon fill="black" stroke="black" points="380.47,-93.84 387.01,-85.5 376.7,-87.94 380.47,-93.84"></polygon>
+</g>
+<!-- foo[a].bar.name -->
+<g id="node9" class="node">
+<title>foo[a].bar.name</title>
+<polygon fill="white" stroke="black" points="105.59,-24.7 -0.2,-24.7 -0.2,-0.1 105.59,-0.1 105.59,-24.7"></polygon>
+<text text-anchor="middle" x="52.7" y="-8.2" font-family="Times,serif" font-size="14.00">foo[a].bar.name</text>
+</g>
+<!-- foo[a].bar&#45;&gt;foo[a].bar.name -->
+<g id="edge8" class="edge">
+<title>foo[a].bar-&gt;foo[a].bar.name</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M114.85,-60.86C103.77,-52.4 88.43,-40.69 75.76,-31.01"></path>
+<polygon fill="black" stroke="black" points="77.57,-27.99 67.5,-24.7 73.32,-33.55 77.57,-27.99"></polygon>
+</g>
+<!-- foo[a].bar.param -->
+<g id="node10" class="node">
+<title>foo[a].bar.param</title>
+<polygon fill="white" stroke="black" points="233.75,-24.7 123.64,-24.7 123.64,-0.1 233.75,-0.1 233.75,-24.7"></polygon>
+<text text-anchor="middle" x="178.7" y="-8.2" font-family="Times,serif" font-size="14.00">foo[a].bar.param</text>
+</g>
+<!-- foo[a].bar&#45;&gt;foo[a].bar.param -->
+<g id="edge9" class="edge">
+<title>foo[a].bar-&gt;foo[a].bar.param</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M139.14,-60.86C145.85,-52.81 155.03,-41.8 162.85,-32.42"></path>
+<polygon fill="black" stroke="black" points="165.56,-34.63 169.28,-24.7 160.19,-30.14 165.56,-34.63"></polygon>
+</g>
+<!-- ... -->
+<g id="node11" class="node">
+<title>...</title>
+<polygon fill="white" stroke="white" points="326.2,-24.7 299.19,-24.7 299.19,-0.1 326.2,-0.1 326.2,-24.7"></polygon>
+<text text-anchor="middle" x="312.7" y="-8.2" font-family="Times,serif" font-size="14.00">...</text>
+</g>
+<!-- foo[a].qux&#45;&gt;... -->
+<!-- foo[b].bar&#45;&gt;... -->
+<!-- foo[b].qux&#45;&gt;... -->
+<!-- foo[a].bar.name&#45;&gt;foo[a].bar.param -->
+<g id="edge13" class="edge">
+<title>foo[a].bar.name-&gt;foo[a].bar.param</title>
+<path fill="none" stroke="black" d="M105.85,-12.4C108.33,-12.4 110.81,-12.4 113.29,-12.4"></path>
+<polygon fill="black" stroke="black" points="113.49,-15.9 123.49,-12.4 113.49,-8.9 113.49,-15.9"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>You can use the <code>CrossValue</code> trait within any <code>Cross.Module</code> to
+propagate the <code>crossValue</code> defined by an enclosing <code>Cross.Module</code> to some
+nested module. In this case, we use it to bind <code>crossValue</code> so it can be
+used in <code>def param</code>.</p>
+</div>
+<div class="paragraph">
+<p>This lets you reduce verbosity by defining the <code>Cross</code>
+once for a group of modules rather than once for every single module  in
+that group. In the example above, we define the cross module once for
+<code>object foo extends Cross</code>, and then the nested modules <code>bar</code> and <code>qux</code>
+get automatically duplicated once for each <code>crossValue = &quot;a&quot;</code> and <code>crossValue = &quot;b&quot;</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo[a].bar.param
+&quot;Bar Param Value: a&quot;
+
+&gt; ./mill show foo[b].qux.param
+&quot;Qux Param Value: b&quot;
+
+&gt; ./mill show baz
+&quot;hello Bar Param Value: a&quot;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cross_resolvers"><a class="anchor" href="#_cross_resolvers"></a>Cross Resolvers</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-fundamentals-cross-8-resolvers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/fundamentals/cross/8-resolvers">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*
+
+trait MyModule extends Cross.Module[String] {
+  implicit object resolver extends mill.api.Cross.Resolver[MyModule] {
+    def resolve[V &lt;: MyModule](c: Cross[V]): V = c.valuesToModules(List(crossValue))
+  }
+}
+
+object foo extends mill.Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+trait FooModule extends MyModule {
+  def suffix = Task { &quot;_&quot; + crossValue }
+}
+
+object bar extends mill.Cross[BarModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+trait BarModule extends MyModule {
+  def bigSuffix = Task { &quot;[[[&quot; + foo().suffix() + &quot;]]]&quot; }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can define an implicit <code>mill.api.Cross.Resolver</code> within your
+cross-modules, which would let you use a shorthand <code>foo()</code> syntax when
+referring to other cross-modules with an identical set of cross values.</p>
+</div>
+<div class="paragraph">
+<p>While the example <code>resolver</code> simply looks up the task <code>Cross</code> value for
+the cross-module instance with the same <code>crossVersion</code>, you can make the
+resolver arbitrarily complex. E.g. the <code>resolver</code> for
+<code>mill.scalalib.CrossScalaModule</code> looks for a cross-module instance whose
+<code>scalaVersion</code> is binary compatible (e.g. 2.10.5 is compatible with 2.10.3)
+with the current cross-module.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show bar[2.10].bigSuffix
+...
+&quot;[[[_2.10]]]&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>suffix</code> tasks will have the corresponding output paths for their
+metadata and files:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">out/
+├── foo/
+│     ├── 2.10/
+│     │     ├── bigSuffix.json
+│     │     └── suffix.json
+│     ├── 2.11/
+│     │     ├── bigSuffix.json
+│     │     └── suffix.json
+│     └── 2.12/
+│         ├── bigSuffix.json
+│         └── suffix.json</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dynamic_cross_modules"><a class="anchor" href="#_dynamic_cross_modules"></a>Dynamic Cross Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-fundamentals-cross-9-dynamic-cross-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/fundamentals/cross/9-dynamic-cross-modules">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+import mill.api.BuildCtx
+
+val moduleNames = BuildCtx.watchValue(os.list(moduleDir / &quot;modules&quot;).map(_.last))
+
+object modules extends Cross[FolderModule](moduleNames)
+trait FolderModule extends ScalaModule, Cross.Module[String] {
+  def moduleDir = super.moduleDir / crossValue
+  def scalaVersion = &quot;2.13.16&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is sometimes necessary for the instances of a cross-module to vary based
+on some kind of runtime information: perhaps the list of modules is stored
+in some config file, or is inferred based on the folders present on the
+filesystem.</p>
+</div>
+<div class="paragraph">
+<p>In those cases, you can write arbitrary code to populate the cross-module
+cases, as long as you wrap the value in a <code>mill.api.BuildCtx.watchValue</code>. This ensures
+that Mill is aware that the module structure depends on that value, and will
+re-compute the value and re-create the module structure if the value changes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve modules[_]
+modules[bar]
+modules[foo]
+modules[qux]
+
+&gt; ./mill modules[bar].run
+Hello World Bar
+
+&gt; ./mill modules[new].run
+error: Cannot resolve modules[new]...
+
+&gt; cp -r modules/bar modules/new
+
+&gt; sed -i.bak 's/Bar/New/g' modules/new/src/Example.scala
+
+&gt; ./mill resolve modules[_]
+modules[bar]
+modules[foo]
+modules[qux]
+modules[new]
+
+&gt; ./mill modules[new].run
+Hello World New</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that because the inputs to the <code>Cross</code> constructor affects the number
+of cross-modules that are generated, it has to be a raw value e.g.
+<code>List[T]</code> and not a task <code>T[List[T]]</code>. That also means that the list of
+cross-modules cannot depend on the output of any tasks.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_use_case_static_blog"><a class="anchor" href="#_use_case_static_blog"></a>Use Case: Static Blog</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following example demonstrates a use case: using cross modules to
+turn files on disk into blog posts. To begin with, we <a href="../extending/import-mvn-plugins.html" class="xref page">//| mvnDeps</a>
+two third-party libraries - Commonmark and Scalatags - to deal with Markdown parsing and
+HTML generation respectively:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-18-01285d/mill-dist-1.0.6-18-01285d-example-fundamentals-cross-10-static-blog.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6-18-01285d/example/fundamentals/cross/10-static-blog">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
+//| - com.lihaoyi::scalatags:0.13.1
+//| - com.atlassian.commonmark:commonmark:0.13.1
+
+package build
+
+import scalatags.Text.all.*
+import org.commonmark.parser.Parser
+import org.commonmark.renderer.html.HtmlRenderer
+import mill.api.BuildCtx</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, we use <code>os.list</code> and <code>mill.api.BuildCtx.watchValue</code> on the <code>post/</code> folder to
+build a <code>Cross[PostModule]</code> whose entries depend no the markdown files we
+find in that folder. Each post has a <code>source</code> pointing at the markdown file,
+and a <code>render</code> task that parses the file’s markdown and generates a HTML
+output file</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
+
+def mdNameToHtml(s: String) = s.toLowerCase.replace(&quot;.md&quot;, &quot;.html&quot;)
+def mdNameToTitle(s: String) =
+  s.split('-').drop(1).mkString(&quot; &quot;).stripSuffix(&quot;.md&quot;)
+
+val posts = BuildCtx.watchValue {
+  os.list(moduleDir / &quot;post&quot;).map(_.last).sorted
+}
+
+object post extends Cross[PostModule](posts)
+trait PostModule extends Cross.Module[String] {
+  def source = Task.Source(moduleDir / crossValue)
+  def render = Task {
+    val doc = Parser.builder().build().parse(os.read(source().path))
+    val title = mdNameToTitle(crossValue)
+    val rendered = doctype(&quot;html&quot;)(
+      html(
+        body(
+          h1(a(&quot;Blog&quot;, href := &quot;../index.html&quot;), &quot; / &quot;, title),
+          raw(HtmlRenderer.builder().build().render(doc))
+        )
+      )
+    )
+
+    os.write(Task.dest / mdNameToHtml(crossValue), rendered)
+    PathRef(Task.dest / mdNameToHtml(crossValue))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The last page we need to generate is the index page, listing out the various
+blog posts and providing links so we can navigate into them. To do this, we
+need to wrap the <code>posts</code> value in a <code>Task.Input</code>, as it can change depending on
+what <code>os.list</code> finds on disk. After that, it’s straightforward to render the
+<code>index.html</code> file we want:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def postsInput = Task.Input { posts }
+
+def renderIndexEntry(mdName: String) = {
+  h2(a(mdNameToTitle(mdName), href := (&quot;post/&quot; + mdNameToHtml(mdName))))
+}
+
+def index = Task {
+  val rendered = doctype(&quot;html&quot;)(
+    html(body(h1(&quot;Blog&quot;), postsInput().map(renderIndexEntry)))
+  )
+  os.write(Task.dest / &quot;index.html&quot;, rendered)
+  PathRef(Task.dest / &quot;index.html&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Lastly we copy the individual post HTML files and the <code>index.html</code> file
+into a single task’s <code>.dest</code> folder, and return it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def dist = Task {
+  for (post &lt;- Task.traverse(post.crossModules)(_.render)()) {
+    os.copy(post.path, Task.dest / &quot;post&quot; / post.path.last, createFolders = true)
+  }
+  os.copy(index().path, Task.dest / &quot;index.html&quot;)
+  PathRef(Task.dest)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, you can run <code>mill dist</code> to generate the blog:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill dist
+
+&gt; cat out/dist.dest/index.html                    # root index page
+...
+...&lt;a href=&quot;post/1-my-first-post.html&quot;&gt;My First Post&lt;/a&gt;...
+...&lt;a href=&quot;post/2-my-second-post.html&quot;&gt;My Second Post&lt;/a&gt;...
+...&lt;a href=&quot;post/3-my-third-post.html&quot;&gt;My Third Post&lt;/a&gt;...
+
+&gt; cat out/dist.dest/post/1-my-first-post.html     # blog post page
+...
+...&lt;p&gt;Text contents of My First Post&lt;/p&gt;...</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/BlogIndex.png" alt="BlogIndex.png" />
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/BlogPost.png" alt="BlogPost.png" />
+</div>
+</div>
+<div class="paragraph">
+<p>This static blog automatically picks up new blog posts you add to the
+<code>post/</code> folder, and when you edit your posts it only re-parses and
+re-renders the markdown files that you changed. You can use <code>-w</code> to watch
+the posts folder to automatically re-run the <code>dist</code> command if a post
+changes, or <code>-j</code> e.g. <code>mill -j 4 dist</code> to enable parallelism if there are
+enough posts that the build is becoming noticeably slow.</p>
+</div>
+<div class="paragraph">
+<p>You can also build each individual post directly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show &quot;post[1-My-First-Post.md].render&quot;
+&quot;.../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html&quot;
+
+&gt; cat out/post/1-My-First-Post.md/render.dest/1-my-first-post.html
+...
+...&lt;p&gt;Text contents of My First Post&lt;/p&gt;...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All caching, incremental re-computation, and parallelism is done using the
+Mill task graph. For this simple example, the graph is as follows</p>
+</div>
+<div class="paragraph">
+<center>
+<svg width="309px" height="171px" viewBox="0.00 0.00 309.47 171.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 167.2)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-167.2 305.47,-167.2 305.47,4 -4,4"></polygon>
+<!-- 1 &#45; Foo.md -->
+<g id="node1" class="node">
+<title>1 - Foo.md</title>
+<polygon fill="none" stroke="black" points="77.75,-163.1 0.08,-163.1 0.08,-138.5 77.75,-138.5 77.75,-163.1"></polygon>
+<text text-anchor="middle" x="38.92" y="-146.6" font-family="Times,serif" font-size="14.00">1 - Foo.md</text>
+</g>
+<!-- post[1]\nrender -->
+<g id="node2" class="node">
+<title>post[1]\nrender</title>
+<polygon fill="none" stroke="black" points="77.57,-102.2 22.26,-102.2 22.26,-61 77.57,-61 77.57,-102.2"></polygon>
+<text text-anchor="middle" x="49.92" y="-85.8" font-family="Times,serif" font-size="14.00">post[1]</text>
+<text text-anchor="middle" x="49.92" y="-69" font-family="Times,serif" font-size="14.00">render</text>
+</g>
+<!-- 1 &#45; Foo.md&#45;&gt;post[1]\nrender -->
+<g id="edge1" class="edge">
+<title>1 - Foo.md-&gt;post[1]\nrender</title>
+<path fill="none" stroke="black" d="M40.78,-138.4C41.96,-131.22 43.54,-121.59 45.05,-112.35"></path>
+<polygon fill="black" stroke="black" points="48.54,-112.67 46.7,-102.23 41.63,-111.54 48.54,-112.67"></polygon>
+</g>
+<!-- dist -->
+<g id="node7" class="node">
+<title>dist</title>
+<polygon fill="none" stroke="black" points="190.14,-24.7 153.69,-24.7 153.69,-0.1 190.14,-0.1 190.14,-24.7"></polygon>
+<text text-anchor="middle" x="171.92" y="-8.2" font-family="Times,serif" font-size="14.00">dist</text>
+</g>
+<!-- post[1]\nrender&#45;&gt;dist -->
+<g id="edge4" class="edge">
+<title>post[1]\nrender-&gt;dist</title>
+<path fill="none" stroke="black" d="M77.6,-65.35C97.75,-54.25 124.9,-39.3 144.89,-28.29"></path>
+<polygon fill="black" stroke="black" points="146.73,-31.27 153.8,-23.38 143.35,-25.14 146.73,-31.27"></polygon>
+</g>
+<!-- 2 &#45; Foo.md -->
+<g id="node3" class="node">
+<title>2 - Foo.md</title>
+<polygon fill="none" stroke="black" points="173.75,-163.1 96.08,-163.1 96.08,-138.5 173.75,-138.5 173.75,-163.1"></polygon>
+<text text-anchor="middle" x="134.92" y="-146.6" font-family="Times,serif" font-size="14.00">2 - Foo.md</text>
+</g>
+<!-- post[2]\nrender -->
+<g id="node4" class="node">
+<title>post[2]\nrender</title>
+<polygon fill="none" stroke="black" points="162.57,-102.2 107.26,-102.2 107.26,-61 162.57,-61 162.57,-102.2"></polygon>
+<text text-anchor="middle" x="134.92" y="-85.8" font-family="Times,serif" font-size="14.00">post[2]</text>
+<text text-anchor="middle" x="134.92" y="-69" font-family="Times,serif" font-size="14.00">render</text>
+</g>
+<!-- 2 &#45; Foo.md&#45;&gt;post[2]\nrender -->
+<g id="edge2" class="edge">
+<title>2 - Foo.md-&gt;post[2]\nrender</title>
+<path fill="none" stroke="black" d="M134.92,-138.4C134.92,-131.22 134.92,-121.59 134.92,-112.35"></path>
+<polygon fill="black" stroke="black" points="138.42,-112.23 134.92,-102.23 131.42,-112.23 138.42,-112.23"></polygon>
+</g>
+<!-- post[2]\nrender&#45;&gt;dist -->
+<g id="edge5" class="edge">
+<title>post[2]\nrender-&gt;dist</title>
+<path fill="none" stroke="black" d="M145.82,-60.8C150.46,-52.36 155.88,-42.52 160.58,-33.99"></path>
+<polygon fill="black" stroke="black" points="163.73,-35.52 165.49,-25.08 157.6,-32.15 163.73,-35.52"></polygon>
+</g>
+<!-- 3 &#45; Foo.md -->
+<g id="node5" class="node">
+<title>3 - Foo.md</title>
+<polygon fill="none" stroke="black" points="269.75,-163.1 192.08,-163.1 192.08,-138.5 269.75,-138.5 269.75,-163.1"></polygon>
+<text text-anchor="middle" x="230.92" y="-146.6" font-family="Times,serif" font-size="14.00">3 - Foo.md</text>
+</g>
+<!-- post[3]\nrender -->
+<g id="node6" class="node">
+<title>post[3]\nrender</title>
+<polygon fill="none" stroke="black" points="236.57,-102.2 181.26,-102.2 181.26,-61 236.57,-61 236.57,-102.2"></polygon>
+<text text-anchor="middle" x="208.92" y="-85.8" font-family="Times,serif" font-size="14.00">post[3]</text>
+<text text-anchor="middle" x="208.92" y="-69" font-family="Times,serif" font-size="14.00">render</text>
+</g>
+<!-- 3 &#45; Foo.md&#45;&gt;post[3]\nrender -->
+<g id="edge3" class="edge">
+<title>3 - Foo.md-&gt;post[3]\nrender</title>
+<path fill="none" stroke="black" d="M227.18,-138.4C224.78,-131.06 221.54,-121.17 218.46,-111.75"></path>
+<polygon fill="black" stroke="black" points="221.78,-110.65 215.34,-102.23 215.13,-112.83 221.78,-110.65"></polygon>
+</g>
+<!-- post[3]\nrender&#45;&gt;dist -->
+<g id="edge6" class="edge">
+<title>post[3]\nrender-&gt;dist</title>
+<path fill="none" stroke="black" d="M198.02,-60.8C193.37,-52.36 187.95,-42.52 183.26,-33.99"></path>
+<polygon fill="black" stroke="black" points="186.24,-32.15 178.35,-25.08 180.1,-35.52 186.24,-32.15"></polygon>
+</g>
+<!-- index -->
+<g id="node8" class="node">
+<title>index</title>
+<polygon fill="none" stroke="black" points="301.52,-93.9 254.31,-93.9 254.31,-69.3 301.52,-69.3 301.52,-93.9"></polygon>
+<text text-anchor="middle" x="277.92" y="-77.4" font-family="Times,serif" font-size="14.00">index</text>
+</g>
+<!-- index&#45;&gt;dist -->
+<g id="edge7" class="edge">
+<title>index-&gt;dist</title>
+<path fill="none" stroke="black" d="M259.94,-69.2C243.11,-58.53 217.76,-42.46 198.58,-30.3"></path>
+<polygon fill="black" stroke="black" points="200.31,-27.25 189.99,-24.86 196.56,-33.17 200.31,-27.25"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>This example use case is taken from the following blog post, which contains
+some extensions and fun exercises to further familiarize yourself with Mill</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.lihaoyi.com/post/HowtocreateBuildPipelinesinScala.html">How to create Build Pipelines in Scala</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="library-deps.html">Library Dependencies in Mill</a></span>
+  <span class="next"><a href="bundled-libraries.html">Bundled Libraries</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>
