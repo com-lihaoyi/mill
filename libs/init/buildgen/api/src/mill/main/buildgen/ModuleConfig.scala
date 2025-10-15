@@ -367,8 +367,9 @@ object ModuleConfig {
     implicit val rw: ReadWriter[TestModule] = macroRW
 
     def mixin(mvnDeps: Seq[MvnDep]): Option[String] = {
+      val mvnModules = mvnDeps.map(_.module)
       // prioritize mixins that integrate with other frameworks
-      mvnDeps.map(_.module).collectFirst {
+      mvnModules.collectFirst {
         case ("org.scalatest" | "org.scalatestplus", _) => "TestModule.ScalaTest"
         case ("org.specs2", _) => "TestModule.Spec2"
         case ("org.scalameta", "munit") => "TestModule.Munit"
@@ -383,15 +384,17 @@ object ModuleConfig {
         case ("com.alejandrohdezma", "sbt-scripted-munit") => "TestModule.Munit"
         case ("qa.hedgehog", "hedgehog-munit") => "TestModule.Munit"
         case ("com.alejandrohdezma", "tapir-golden-openapi-munit") => "TestModule.Munit"
-      }.orElse(mvnDeps.map(_.module).collectFirst {
-        case ("org.testng", _) => "TestModule.TestNg"
-        case ("junit", _) => "TestModule.Junit4"
-        case ("org.junit.jupiter", _) => "TestModule.Junit5"
-        case ("com.lihaoyi", "utest") => "TestModule.Utest"
-        case ("com.disneystreaming", "weaver-scalacheck") => "TestModule.Weaver"
-        case ("dev.zio", "zio-test" | "zio-test-sbt") => "TestModule.ZioTest"
-        case ("org.scalacheck", _) => "TestModule.ScalaCheck"
-      })
+      }.orElse {
+        mvnModules.collectFirst {
+          case ("org.testng", _) => "TestModule.TestNg"
+          case ("junit", _) => "TestModule.Junit4"
+          case ("org.junit.jupiter", _) => "TestModule.Junit5"
+          case ("com.lihaoyi", "utest") => "TestModule.Utest"
+          case ("com.disneystreaming", "weaver-scalacheck") => "TestModule.Weaver"
+          case ("dev.zio", "zio-test" | "zio-test-sbt") => "TestModule.ZioTest"
+          case ("org.scalacheck", _) => "TestModule.ScalaCheck"
+        }
+      }
     }
   }
   implicit val rw: ReadWriter[ModuleConfig] = macroRW
