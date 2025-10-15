@@ -34,8 +34,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     }
 
     metaBuild.foreach { meta =>
-      val rootDir = os.sub / millBuild
-      val srcDir = rootDir / "src"
+      val srcDir = os.sub / millBuild / "src"
       os.makeDir.all(os.pwd / srcDir)
       import meta.*
       baseModules.foreach { baseModule =>
