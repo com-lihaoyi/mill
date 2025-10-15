@@ -11,21 +11,25 @@ projects which do not need additional flexibility.
 
 include::partial$example/scalalib/simple/1-common-config.adoc[]
 
+== SBT Compatibility Modules
+
+include::partial$example/scalalib/simple/2-compat-modules.adoc[]
+
 == Packaging and Publishing Simple Modules
 
-include::partial$example/scalalib/simple/2-publish.adoc[]
+include::partial$example/scalalib/simple/3-publish.adoc[]
 
 
 == Custom Script Module Classes
 
-include::partial$example/scalalib/simple/3-custom-class.adoc[]
+include::partial$example/scalalib/simple/4-custom-class.adoc[]
 
 == Depending on Programmatic Modules from Simple Modules
 
-include::partial$example/scalalib/simple/4-mixed-module-deps.adoc[]
+include::partial$example/scalalib/simple/5-mixed-module-deps.adoc[]
 
 == Single-File Scripts
 
-include::partial$example/scalalib/simple/5-script.adoc[]
+include::partial$example/scalalib/simple/6-script.adoc[]
 
 
