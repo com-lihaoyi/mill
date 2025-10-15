@@ -1870,6 +1870,8 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/javalib/CoursierModule.html#resolutionCustomizer-0","e":false,"i":"","n":"resolutionCustomizer","t":"resolutionCustomizer: Task[Option[Resolution => Resolution]]","d":"mill.javalib.CoursierModule","k":"def","x":""},
 {"l":"mill/javalib/CoursierModule.html#resolutionParams-0","e":false,"i":"","n":"resolutionParams","t":"resolutionParams: Task[ResolutionParams]","d":"mill.javalib.CoursierModule","k":"def","x":""},
 {"l":"mill/javalib/CoursierModule$.html#","e":false,"i":"","n":"CoursierModule","t":"CoursierModule","d":"mill.javalib","k":"object","x":""},
+{"l":"mill/javalib/CoursierModule$$KnownRepositories$.html#","e":false,"i":"","n":"KnownRepositories","t":"KnownRepositories","d":"mill.javalib.CoursierModule","k":"object","x":""},
+{"l":"mill/javalib/CoursierModule$$KnownRepositories$.html#ScalaLangNightlies-0","e":false,"i":"","n":"ScalaLangNightlies","t":"ScalaLangNightlies: String","d":"mill.javalib.CoursierModule.KnownRepositories","k":"val","x":""},
 {"l":"mill/javalib/CoursierModule$$Resolvable.html#","e":false,"i":"","n":"Resolvable","t":"Resolvable[T]","d":"mill.javalib.CoursierModule","k":"trait","x":""},
 {"l":"mill/javalib/CoursierModule$$Resolvable.html#bind-fffff1f0","e":false,"i":"","n":"bind","t":"bind(t: T, bind: Dep => BoundDep): BoundDep","d":"mill.javalib.CoursierModule.Resolvable","k":"def","x":""},
 {"l":"mill/javalib/CoursierModule$$ResolvableBoundDep$.html#","e":false,"i":"","n":"ResolvableBoundDep","t":"ResolvableBoundDep extends Resolvable[BoundDep]","d":"mill.javalib.CoursierModule","k":"object","x":""},
