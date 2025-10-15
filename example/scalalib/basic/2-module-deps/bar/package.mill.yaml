@@ -1,0 +1,4 @@
+extends: [mill.scalalib.ScalaModule]
+scalaVersion: 3.7.1
+mvnDeps:
+- com.lihaoyi::scalatags:0.13.1

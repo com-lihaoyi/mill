@@ -18,26 +18,42 @@ object BspServerTestUtil {
 
   private[mill] def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
 
-  trait DummyBuildClient extends b.BuildClient {
+  trait TestBuildClient extends b.BuildClient {
+    // Whether to check the validity of some messages
+    protected def enableAsserts: Boolean = true
+    private var gotInvalidMessages0 = false
+    def gotInvalidMessages: Boolean = gotInvalidMessages0
+
+    protected def doAssert(condition: Boolean): Unit = {
+      if (enableAsserts) {
+        if (!condition)
+          gotInvalidMessages0 = true
+        assert(condition)
+      }
+    }
+
+    def onBuildTaskProgress(params: b.TaskProgressParams): Unit = {
+      doAssert(params.getProgress <= params.getTotal)
+    }
+  }
+
+  trait DummyBuildClient extends TestBuildClient {
     def onBuildLogMessage(params: b.LogMessageParams): Unit = ()
     def onBuildPublishDiagnostics(params: b.PublishDiagnosticsParams): Unit = ()
     def onBuildShowMessage(params: b.ShowMessageParams): Unit = ()
     def onBuildTargetDidChange(params: b.DidChangeBuildTarget): Unit = ()
     def onBuildTaskFinish(params: b.TaskFinishParams): Unit = ()
-    def onBuildTaskProgress(params: b.TaskProgressParams): Unit = ()
     def onBuildTaskStart(params: b.TaskStartParams): Unit = ()
     def onRunPrintStderr(params: b.PrintParams): Unit = ()
     def onRunPrintStdout(params: b.PrintParams): Unit = ()
   }
-
-  object DummyBuildClient extends DummyBuildClient
 
   val gson: Gson = new GsonBuilder().setPrettyPrinting().create()
   def compareWithGsonSnapshot[T: ClassTag](
       value: T,
       snapshotPath: os.Path,
       normalizedLocalValues: Seq[(String, String)] = Nil
-  )(implicit reporter: utest.framework.GoldenFix.Reporter): Unit = {
+  )(using reporter: utest.framework.GoldenFix.Reporter): Unit = {
 
     def normalizeLocalValues(input: String, inverse: Boolean = false): String =
       normalizedLocalValues.foldLeft(input) {
@@ -49,7 +65,7 @@ object BspServerTestUtil {
     val jsonStr = normalizeLocalValues(
       gson.toJson(
         value,
-        implicitly[ClassTag[T]].runtimeClass
+        summon[ClassTag[T]].runtimeClass
       )
     )
 
@@ -60,7 +76,7 @@ object BspServerTestUtil {
       log: String,
       snapshotPath: os.Path,
       ignoreLine: String => Boolean = _ => false
-  )(implicit reporter: utest.framework.GoldenFix.Reporter): Unit = {
+  )(using reporter: utest.framework.GoldenFix.Reporter): Unit = {
 
     val logLines = log
       .linesIterator
@@ -101,7 +117,7 @@ object BspServerTestUtil {
       workspacePath: os.Path,
       millTestSuiteEnv: Map[String, String],
       bspLog: Option[(Array[Byte], Int) => Unit] = None,
-      client: b.BuildClient = DummyBuildClient
+      client: TestBuildClient = new DummyBuildClient {}
   )(f: (MillBuildServer, b.InitializeBuildResult) => T): T = {
 
     val outputOnErrorOnly = System.getenv("CI") != null
@@ -180,6 +196,10 @@ object BspServerTestUtil {
           buildServer.onBuildExit()
         }
       success = true
+      assert(
+        !client.gotInvalidMessages,
+        "Test build client got invalid messages from Mill, see assertions above"
+      )
       value
     } finally {
       try {
@@ -214,7 +234,6 @@ object BspServerTestUtil {
       millWorkspace.toURI.toASCIIString -> "file:///mill-workspace/",
       javaHome.toURI.toASCIIString.stripSuffix("/") -> "file:///java-home",
       os.home.toURI.toASCIIString.stripSuffix("/") -> "file:///user-home",
-      ("\"" + javaVersion + "\"") -> "\"<java-version>\"",
       workspacePath.toString -> "/workspace",
       coursierCache.toString -> "/coursier-cache",
       millWorkspace.toString -> "/mill-workspace",

@@ -1,4 +1,4 @@
-//| mill-version: 1.0.3-44-c2d57a
+//| mill-version: 1.0.6
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C"]
 
@@ -26,7 +26,7 @@ import scala.util.Properties
 import mill.api.BuildCtx
 import mill.androidlib.AndroidSdkModule
 
-def millVersionIsStable0(implicit ctx: mill.api.TaskCtx) = ctx.env.contains("MILL_STABLE_VERSION")
+def millVersionIsStable0(using ctx: mill.api.TaskCtx) = ctx.env.contains("MILL_STABLE_VERSION")
 def millVersionIsStable: T[Boolean] = Task.Input { millVersionIsStable0 }
 
 def millVersion: T[String] = Task.Input {
@@ -180,7 +180,7 @@ def formatDep(dep: Dep) = {
   s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
 }
 
-def listCross(implicit ctx: mill.api.ModuleCtx) = BuildCtx.watchValue {
+def listCross(using ctx: mill.api.ModuleCtx) = BuildCtx.watchValue {
   // millSourcePath is protected, so we need to access it via reflection
   import scala.reflect.Selectable.reflectiveSelectable
   os.list(ctx.asInstanceOf[{ def millSourcePath: os.Path }].millSourcePath).map(_.last)

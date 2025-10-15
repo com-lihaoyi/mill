@@ -1,7 +1,7 @@
 package mill.rpc
 
 import pprint.{TPrint, TPrintColors}
-import upickle.default.{Reader, Writer}
+import upickle.{Reader, Writer}
 
 import java.io.{BufferedReader, PrintStream}
 import java.util.concurrent.BlockingQueue
@@ -39,7 +39,7 @@ trait MillRpcWireTransport extends AutoCloseable {
 
       case Some(line) =>
         log(s"Received, will try to parse as $typeName: $line")
-        val parsed = upickle.default.read(line)
+        val parsed = upickle.read(line)
         log(s"Parsed: ${pprint.apply(parsed)}")
         Some(parsed)
     }
@@ -51,7 +51,7 @@ trait MillRpcWireTransport extends AutoCloseable {
   /** Helper that writes a message to the wire, logging along the way. */
   def writeSerialized[A: Writer](message: A, log: String => Unit): Unit = {
     log(s"Serializing message to be sent: ${pprint.apply(message)}")
-    val serialized = upickle.default.write(message)
+    val serialized = upickle.write(message)
     log(s"Sending: $serialized")
     write(serialized)
     log(s"Sent: $serialized")

@@ -65,9 +65,9 @@ if [!MILL_VERSION!]==[] (
     if exist .config\mill-version (
       set /p MILL_VERSION=<.config\mill-version
     ) else (
-      if not "%MILL_BUILD_SCRIPT%"=="" (
+      if exist build.mill.yaml (
         rem Find the line and process it
-        for /f "tokens=*" %%a in ('findstr /R /C:"//\|.*mill-version" "%MILL_BUILD_SCRIPT%"') do (
+        for /f "tokens=*" %%a in ('findstr /R /C:"mill-version:" "build.mill.yaml"') do (
             set "line=%%a"
 
             rem --- 1. Replicate sed 's/.*://' ---
@@ -96,7 +96,39 @@ if [!MILL_VERSION!]==[] (
         :version_found
         rem no-op
       ) else (
-        rem no-op
+        if not "%MILL_BUILD_SCRIPT%"=="" (
+          rem Find the line and process it
+          for /f "tokens=*" %%a in ('findstr /R /C:"//\|.*mill-version" "%MILL_BUILD_SCRIPT%"') do (
+              set "line=%%a"
+
+              rem --- 1. Replicate sed 's/.*://' ---
+              rem This removes everything up to and including the first colon
+              set "line=!line:*:=!"
+
+              rem --- 2. Replicate sed 's/#.*//' ---
+              rem Split on '#' and keep the first part
+              for /f "tokens=1 delims=#" %%b in ("!line!") do (
+                  set "line=%%b"
+              )
+
+              rem --- 3. Replicate sed 's/['"]//g' ---
+              rem Remove all quotes
+              set "line=!line:'=!"
+              set "line=!line:"=!"
+
+              rem --- 4. NEW: Replicate sed's trim/space removal ---
+              rem Remove all space characters from the result. This is more robust.
+              set "MILL_VERSION=!line: =!"
+
+              rem We found the version, so we can exit the loop
+              goto :version_found
+          )
+
+          :version_found
+          rem no-op
+        ) else (
+          rem no-op
+        )
       )
     )
   )

@@ -32,7 +32,7 @@ object TestModule {
 
     private[TestModule] def runCoverage: T[TestResult]
 
-    protected def coverageTask(args: Task[Seq[String]]): Task[TestResult] = Task {
+    protected def coverageTask(args: Task[Seq[String]]): Task[TestResult] = Task.Anon {
       val _ = args // silence unused parameter warning
       runCoverage()
     }

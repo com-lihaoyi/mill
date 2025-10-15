@@ -6,8 +6,8 @@ import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.internal.{NamedTaskApi, TaskApi, TestReporter}
 import mill.api.internal.Applicative.Applyable
 import mill.api.internal.{Applicative, Cacher, NamedParameterOnlyDummy}
-import upickle.default.ReadWriter
-import upickle.default.Writer
+import upickle.ReadWriter
+import upickle.Writer
 
 import scala.annotation.{targetName, unused}
 import scala.language.implicitConversions
@@ -57,7 +57,7 @@ object Task {
   /**
    * Returns the [[mill.api.TaskCtx]] that is available within this task
    */
-  def ctx()(implicit c: mill.api.TaskCtx): mill.api.TaskCtx = c
+  def ctx()(using c: mill.api.TaskCtx): mill.api.TaskCtx = c
 
   /**
    * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
@@ -67,7 +67,7 @@ object Task {
    * every Task or Command, so you can be sure that you will not collide or
    * interfere with anyone else writing to those same paths.
    */
-  def dest(implicit ctx: mill.api.TaskCtx.Dest): os.Path = ctx.dest
+  def dest(using ctx: mill.api.TaskCtx.Dest): os.Path = ctx.dest
 
   /**
    * `Task.log` is the default logger provided for every task. While your task is running,
@@ -79,7 +79,7 @@ object Task {
    * Messages logged with `log.debug` appear by default only in the log files.
    * You can use the `--debug` option when running mill to show them on the console too.
    */
-  def log(implicit ctx: mill.api.TaskCtx.Log): Logger = ctx.log
+  def log(using ctx: mill.api.TaskCtx.Log): Logger = ctx.log
 
   /**
    * `Task.env` is the environment variable map passed to the Mill command when
@@ -89,33 +89,33 @@ object Task {
    * Note that you should not use `sys.env`, as Mill's long-lived server
    * process means that `sys.env` variables may not be up to date.
    */
-  def env(implicit ctx: mill.api.TaskCtx.Env): Map[String, String] = ctx.env
+  def env(using ctx: mill.api.TaskCtx.Env): Map[String, String] = ctx.env
 
   /**
    * Returns the implicit [[mill.api.TaskCtx.Args.args]] in scope.
    */
-  def args(implicit ctx: mill.api.TaskCtx.Args): IndexedSeq[?] = ctx.args
+  def args(using ctx: mill.api.TaskCtx.Args): IndexedSeq[?] = ctx.args
 
   /**
    * Report test results to BSP for IDE integration
    */
-  def testReporter(implicit ctx: mill.api.TaskCtx): TestReporter = ctx.testReporter
+  def testReporter(using ctx: mill.api.TaskCtx): TestReporter = ctx.testReporter
 
   /**
    * Report build results to BSP for IDE integration
    */
-  def reporter(implicit ctx: mill.api.TaskCtx): Int => Option[CompileProblemReporter] =
+  def reporter(using ctx: mill.api.TaskCtx): Int => Option[CompileProblemReporter] =
     ctx.reporter
 
   /**
    * Provides the `.fork.async` and `.fork.await` APIs for spawning and joining
    * async futures within your task in a Mill-friendly mannter
    */
-  def fork(implicit ctx: mill.api.TaskCtx): mill.api.TaskCtx.Fork.Api = ctx.fork
+  def fork(using ctx: mill.api.TaskCtx): mill.api.TaskCtx.Fork.Api = ctx.fork
 
-  def offline(implicit ctx: mill.api.TaskCtx): Boolean = ctx.offline
+  def offline(using ctx: mill.api.TaskCtx): Boolean = ctx.offline
 
-  def fail(msg: String)(implicit ctx: mill.api.TaskCtx): Nothing = ctx.fail(msg)
+  def fail(msg: String)(using ctx: mill.api.TaskCtx): Nothing = ctx.fail(msg)
 
   /**
    * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`
@@ -139,13 +139,13 @@ object Task {
    * signature for you source files/folders and decides whether or not downstream
    * [[Task.Computed]]s need to be invalidated and re-computed.
    */
-  inline def Sources(inline values: (os.SubPath | os.FilePath)*)(implicit
+  inline def Sources(inline values: (os.SubPath | os.FilePath)*)(using
       inline ctx: mill.api.ModuleCtx
   ): Simple[Seq[PathRef]] = ${
     Macros.sourcesImpl('{ values.map(p => PathRef(mapToPath(p))) })('ctx)
   }
 
-  inline private def mapToPath(value: os.SubPath | os.FilePath)(implicit
+  inline private def mapToPath(value: os.SubPath | os.FilePath)(using
       inline ctx: mill.api.ModuleCtx
   ): os.Path = value match {
     // TODO: support "."
@@ -159,7 +159,7 @@ object Task {
    * Similar to [[Sources]], but only for a single source file or folder. Defined
    * using `Task.Source`.
    */
-  inline def Source(inline value: os.SubPath | os.FilePath)(implicit
+  inline def Source(inline value: os.SubPath | os.FilePath)(using
       inline ctx: mill.api.ModuleCtx
   ): Simple[PathRef] =
     ${ Macros.sourceImpl('{ PathRef(mapToPath(value)) })('ctx) }
@@ -180,7 +180,7 @@ object Task {
    * The most common case of [[Input]] is [[Source]] and [[Sources]],
    * used for detecting changes to source files.
    */
-  inline def Input[T](inline value: Result[T])(implicit
+  inline def Input[T](inline value: Result[T])(using
       inline w: Writer[T],
       inline ctx: ModuleCtx
   ): Simple[T] =
@@ -193,7 +193,7 @@ object Task {
    * take arguments that are automatically converted to command-line
    * arguments, as long as an implicit [[mainargs.TokensReader]] is available.
    */
-  inline def Command[T](inline t: Result[T])(implicit
+  inline def Command[T](inline t: Result[T])(using
       inline w: Writer[T],
       inline ctx: ModuleCtx
   ): Command[T] =
@@ -215,7 +215,7 @@ object Task {
       persistent: Boolean = false
   ): CommandFactory = new CommandFactory(exclusive = exclusive, persistent = persistent)
   class CommandFactory private[mill] (val exclusive: Boolean, val persistent: Boolean) {
-    inline def apply[T](inline t: Result[T])(implicit
+    inline def apply[T](inline t: Result[T])(using
         inline w: Writer[T],
         inline ctx: ModuleCtx
     ): Command[T] =
@@ -236,7 +236,7 @@ object Task {
    * responsibility of ensuring the implementation is idempotent regardless of
    * what in-memory state the worker may have.
    */
-  inline def Worker[T](inline t: Result[T])(implicit inline ctx: mill.api.ModuleCtx): Worker[T] =
+  inline def Worker[T](inline t: Result[T])(using inline ctx: mill.api.ModuleCtx): Worker[T] =
     ${ Macros.workerImpl2[T]('t)('ctx) }
 
   /**
@@ -245,12 +245,12 @@ object Task {
    * command line and do not perform any caching. Typically used as helpers to
    * implement `Task{...}` tasks.
    */
-  inline def Anon[T](inline t: Result[T])(implicit
+  inline def Anon[T](inline t: Result[T])(using
       inline enclosing: sourcecode.Enclosing
   ): Task[T] =
     ${ Macros.anonTaskImpl[T]('t, 'enclosing) }
 
-  inline def apply[T](inline t: Result[T])(implicit
+  inline def apply[T](inline t: Result[T])(using
       inline rw: ReadWriter[T],
       inline ctx: mill.api.ModuleCtx
   ): Simple[T] =
@@ -258,7 +258,7 @@ object Task {
 
   // Overload of [[apply]] to improve type inference for `Task{ Nil }` and `Task { Seq() }`
   @targetName("applySeq")
-  inline def apply[T](inline t: Result[Seq[T]])(implicit
+  inline def apply[T](inline t: Result[Seq[T]])(using
       inline rw: ReadWriter[Seq[T]],
       inline ctx: mill.api.ModuleCtx
   ): Simple[Seq[T]] = ${
@@ -283,10 +283,56 @@ object Task {
       persistent: Boolean = false
   ): ApplyFactory = new ApplyFactory(persistent)
   class ApplyFactory private[mill] (val persistent: Boolean) {
-    inline def apply[T](inline t: Result[T])(implicit
+    inline def apply[T](inline t: Result[T])(using
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
     ): Simple[T] = ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
+  }
+
+  // The extra `(x: T) = null` parameter list is necessary to make type inference work
+  // right, ensuring that `T` is fully inferred before implicit resolution starts
+  def Literal[T](s: String)(using
+      x: T = null.asInstanceOf[T]
+  )(using li: LiteralImplicit[T]): Task.Simple[T] = {
+    assert(li.ctx != null, "Unable to resolve context")
+    assert(li.writer != null, "Unable to resolve JSON writer")
+    assert(li.reader != null, "Unable to resolve JSON reader")
+    new Task.Input[T](
+      (_, _) => Result.Success(upickle.default.read[T](s)(using li.reader)),
+      li.ctx,
+      li.writer,
+      None
+    )
+  }
+
+  class LiteralImplicit[T](
+      val reader: upickle.default.Reader[T],
+      val writer: upickle.default.Writer[T],
+      val ctx: ModuleCtx
+  )
+  object LiteralImplicit {
+    // Use a custom macro to perform the implicit lookup so we have more control over implicit
+    // resolution failures. In this case, we want to fall back to `null` if an implicit search
+    // fails so we can provide a good error message
+    implicit inline def create[T]: LiteralImplicit[T] = ${ createImpl[T] }
+
+    private def createImpl[T: Type](using Quotes): Expr[LiteralImplicit[T]] = {
+      import quotes.reflect.*
+
+      def summonOrNull[U: Type]: Expr[U] = {
+        Implicits.search(TypeRepr.of[U]) match {
+          case s: ImplicitSearchSuccess => s.tree.asExprOf[U] // Use the found given
+          case _: ImplicitSearchFailure =>
+            '{ null.asInstanceOf[U] } // Includes both NoMatchingImplicits and AmbiguousImplicits
+        }
+      }
+
+      val readerExpr = summonOrNull[upickle.default.Reader[T]]
+      val writerExpr = summonOrNull[upickle.default.Writer[T]]
+      val ctxExpr = summonOrNull[ModuleCtx]
+
+      '{ new LiteralImplicit[T]($readerExpr, $writerExpr, $ctxExpr) }
+    }
   }
 
   abstract class Ops[+T] { this: Task[T] =>
@@ -341,9 +387,9 @@ object Task {
 
     val ctx: ModuleCtx = ctx0
 
-    def readWriterOpt: Option[upickle.default.ReadWriter[?]] = None
+    def readWriterOpt: Option[upickle.ReadWriter[?]] = None
 
-    def writerOpt: Option[upickle.default.Writer[?]] = readWriterOpt.orElse(None)
+    def writerOpt: Option[upickle.Writer[?]] = readWriterOpt.orElse(None)
   }
 
   class Computed[+T](
@@ -374,7 +420,7 @@ object Task {
      * return type is JSON serializable. In return they automatically caches their
      * return value to disk, only re-computing if upstream [[Task]]s change
      */
-    implicit inline def create[T](inline t: T)(implicit
+    implicit inline def create[T](inline t: T)(using
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
     ): Simple[T] =
@@ -382,13 +428,13 @@ object Task {
 
     // Overload of [[create]] specialized to working on `Seq`s, to improve the type
     // inference for `Task{ Nil }` or `Task{ Seq() }`
-    implicit inline def createSeq[T](inline t: Seq[T])(implicit
+    implicit inline def createSeq[T](inline t: Seq[T])(using
         inline rw: ReadWriter[Seq[T]],
         inline ctx: ModuleCtx
     ): Simple[Seq[T]] =
       ${ Macros.taskResultImpl[Seq[T]]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
 
-    implicit inline def create[T](inline t: Result[T])(implicit
+    implicit inline def create[T](inline t: Result[T])(using
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
     ): Simple[T] =
@@ -435,7 +481,7 @@ object Task {
   class Input[T](
       val evaluate0: (Seq[Any], mill.api.TaskCtx) => Result[T],
       val ctx0: mill.api.ModuleCtx,
-      val writer: upickle.default.Writer[?],
+      val writer: upickle.Writer[?],
       val isPrivate: Option[Boolean]
   ) extends Simple[T] {
     val inputs = Nil
@@ -451,7 +497,7 @@ object Task {
   ) extends Input[Seq[PathRef]](
         evaluate0,
         ctx0,
-        upickle.default.readwriter[Seq[PathRef]],
+        upickle.readwriter[Seq[PathRef]],
         isPrivate
       ) {}
 
@@ -462,7 +508,7 @@ object Task {
   ) extends Input[PathRef](
         evaluate0,
         ctx0,
-        upickle.default.readwriter[PathRef],
+        upickle.readwriter[PathRef],
         isPrivate
       ) {}
 
@@ -500,6 +546,7 @@ object Task {
         ctx: Expr[mill.api.ModuleCtx],
         persistent: Expr[Boolean]
     ): Expr[Simple[T]] = {
+      assertTaskShapeOwner("Task", 0)
       val expr = appImpl[Simple, T](
         (in, ev) =>
           '{ new Task.Computed[T]($in, $ev, $ctx, $rw, ${ taskIsPrivate() }, $persistent) },
@@ -516,6 +563,7 @@ object Task {
     )(
         ctx: Expr[mill.api.ModuleCtx]
     ): Expr[Simple[Seq[PathRef]]] = {
+      assertTaskShapeOwner("Task.Sources", 0)
       val expr = appImpl[Simple, Seq[PathRef]](
         ( /*in*/ _, ev) => '{ new Sources($ev, $ctx, ${ taskIsPrivate() }) },
         values,
@@ -524,12 +572,31 @@ object Task {
       Cacher.impl0(expr)
     }
 
+    def assertTaskShapeOwner(using
+        quotes: Quotes
+    )(typeName: String, expectedParamListCount: Int) = {
+      import quotes.reflect.*
+      val owner = sourcecode.Macros.actualOwner(Symbol.spliceOwner)
+      owner match {
+        case defSym
+            if defSym.isDefDef
+              && defSym.tree.asInstanceOf[DefDef].paramss.length == expectedParamListCount =>
+        case _ =>
+          val plural = if (expectedParamListCount == 1) "" else "s"
+          val err =
+            s"`$typeName` definition `$owner` must have $expectedParamListCount parameter list$plural"
+          owner.pos match {
+            case Some(p) => report.error(err, p)
+            case None => report.error(err)
+          }
+      }
+    }
     def sourceImpl(using
         Quotes
     )(value: Expr[Result[PathRef]])(
         ctx: Expr[mill.api.ModuleCtx]
     ): Expr[Simple[PathRef]] = {
-
+      assertTaskShapeOwner("Task.Source", 0)
       val expr = appImpl[Simple, PathRef](
         ( /*in*/ _, ev) => '{ new Source($ev, $ctx, ${ taskIsPrivate() }) },
         value,
@@ -542,10 +609,10 @@ object Task {
     def inputImpl[T: Type](using
         Quotes
     )(value: Expr[Result[T]])(
-        w: Expr[upickle.default.Writer[T]],
+        w: Expr[upickle.Writer[T]],
         ctx: Expr[mill.api.ModuleCtx]
     ): Expr[Simple[T]] = {
-
+      assertTaskShapeOwner("Task.Input", 0)
       val expr = appImpl[Simple, T](
         ( /*in*/ _, ev) => '{ new Input[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
         value,
@@ -562,6 +629,7 @@ object Task {
         exclusive: Expr[Boolean],
         persistent: Expr[Boolean]
     ): Expr[Command[T]] = {
+      assertTaskShapeOwner("Task.Command", 1)
       appImpl[Command, T](
         (in, ev) =>
           '{
@@ -584,7 +652,7 @@ object Task {
     )(t: Expr[Result[T]])(
         ctx: Expr[mill.api.ModuleCtx]
     ): Expr[Worker[T]] = {
-
+      assertTaskShapeOwner("Task.Worker", 0)
       val expr = appImpl[Worker, T](
         (in, ev) => '{ new Worker[T]($in, $ev, $ctx, ${ taskIsPrivate() }) },
         t

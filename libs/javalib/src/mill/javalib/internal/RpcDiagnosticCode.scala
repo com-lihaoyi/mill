@@ -6,7 +6,7 @@ import mill.api.daemon.internal.DiagnosticCode
 case class RpcDiagnosticCode(
     code: String,
     explanation: Option[String]
-) extends DiagnosticCode derives upickle.default.ReadWriter
+) extends DiagnosticCode derives upickle.ReadWriter
 object RpcDiagnosticCode {
   def apply(d: DiagnosticCode): RpcDiagnosticCode = apply(
     code = d.code,

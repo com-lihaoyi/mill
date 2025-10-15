@@ -1,10 +1,10 @@
 package mill.scalalib
 
-import mill.testkit.{TestRootModule, UnitTester}
-import utest.*
-import HelloWorldTests.*
 import mill.api.Discover
-import mill.util.TokenReaders._
+import mill.scalalib.HelloWorldTests.*
+import mill.testkit.{TestRootModule, UnitTester}
+import mill.util.TokenReaders.*
+import utest.*
 
 object ScalaSemanticDbTests extends TestSuite {
 

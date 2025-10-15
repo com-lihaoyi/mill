@@ -10,7 +10,7 @@ object Opt {
   def some[T](t: T): Opt[T] = new Opt(Some(t))
   val injectedCtx = "helloooo"
 
-  def ctx()(implicit c: String): String = c
+  def ctx()(using c: String): String = c
   inline def apply[T](inline t: T): Opt[T] = ${ applyImpl[T]('t) }
 
   def traverseCtx[I, R](xs: Seq[Opt[I]])(f: (Seq[I], String) => Applicative.Id[R])

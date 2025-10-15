@@ -22,7 +22,7 @@ import mill.util.BuildInfo
 import mill.api
 import mill.api.daemon.internal.bsp.BspServerResult
 
-import java.io.{InputStream, PipedInputStream, PrintStream, PrintWriter, StringWriter}
+import java.io.{InputStream, PrintStream, PrintWriter, StringWriter}
 import java.lang.reflect.InvocationTargetException
 import java.util.Locale
 import java.util.concurrent.{ThreadPoolExecutor, TimeUnit}
@@ -150,14 +150,6 @@ object MillMain0 {
               )
               (true, RunnerState.empty)
 
-            case Result.Success(config)
-                if config.noDaemonEnabled > 0 && streams.in.getClass == classOf[PipedInputStream] =>
-              // because we have stdin as dummy, we assume we were already started in server process
-              streams.err.println(
-                "-i/--interactive/--no-daemon/--bsp must be passed in as the first argument"
-              )
-              (false, RunnerState.empty)
-
             case Result.Success(config) if config.noDaemonEnabled > 1 =>
               streams.err.println(
                 "Only one of -i/--interactive, --no-daemon or --bsp may be given"
@@ -214,6 +206,11 @@ object MillMain0 {
                   Option.when(config.bspInstall.value)(defaultJobCount)
                 }
               }
+              val enableTicker = config.ticker
+                .orElse(config.enableTicker)
+                .orElse(Option.when(config.tabComplete.value)(false))
+                .orElse(Option.when(config.disableTicker.value)(false))
+                .getOrElse(true)
 
               val (success, nextStateCache) = {
                 if (config.repl.value) {
@@ -245,7 +242,7 @@ object MillMain0 {
                   val out = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
                   Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                     def runMillBootstrap(
-                        enterKeyPressed: Boolean,
+                        skipSelectiveExecution: Boolean,
                         prevState: Option[RunnerState],
                         tasksAndParams: Seq[String],
                         streams: SystemStreams,
@@ -265,7 +262,7 @@ object MillMain0 {
                       def proceed(logger: Logger): Watching.Result[RunnerState] = {
                         // Enter key pressed, removing mill-selective-execution.json to
                         // ensure all tasks re-run even though no inputs may have changed
-                        if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
+
                         mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                           mill.api.FilesystemCheckerEnabled.withValue(
                             !config.noFilesystemChecker.value
@@ -285,12 +282,14 @@ object MillMain0 {
                                 logger = logger,
                                 needBuildFile = needBuildFile(config),
                                 requestedMetaLevel = config.metaLevel,
-                                config.allowPositional.value,
+                                allowPositionalCommandArgs = config.allowPositional.value,
                                 systemExit = systemExit,
                                 streams0 = streams,
                                 selectiveExecution = config.watch.value,
                                 offline = config.offline.value,
-                                reporter = reporter
+                                reporter = reporter,
+                                skipSelectiveExecution = skipSelectiveExecution,
+                                enableTicker = enableTicker
                               ).evaluate()
                             }
                           }
@@ -304,10 +303,7 @@ object MillMain0 {
                           Using.resource(getLogger(
                             streams,
                             config,
-                            enableTicker = config.ticker
-                              .orElse(config.enableTicker)
-                              .orElse(Option.when(config.tabComplete.value)(false))
-                              .orElse(Option.when(config.disableTicker.value)(false)),
+                            enableTicker = enableTicker,
                             daemonDir,
                             colored = colored,
                             colors = colors,
@@ -320,7 +316,7 @@ object MillMain0 {
 
                     if (config.tabComplete.value) {
                       val bootstrapped = runMillBootstrap(
-                        enterKeyPressed = false,
+                        skipSelectiveExecution = false,
                         Some(stateCache),
                         Seq(
                           "mill.tabcomplete.TabCompleteModule/complete"
@@ -448,11 +444,6 @@ object MillMain0 {
                       ).run()
                       (true, RunnerState(None, Nil, None))
                     } else {
-                      // When starting a --watch, clear the `mill-selective-execution.json`
-                      // file, so that the first run always selects everything and only
-                      // subsequent re-runs are selective depending on what changed.
-                      if (config.watch.value)
-                        os.remove(out / OutFiles.millSelectiveExecution)
                       Watching.watchLoop(
                         ringBell = config.ringBell.value,
                         watch = Option.when(config.watch.value)(Watching.WatchArgs(
@@ -462,16 +453,17 @@ object MillMain0 {
                           daemonDir = daemonDir
                         )),
                         streams = streams,
-                        evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
-                          adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
-                          runMillBootstrap(
-                            enterKeyPressed,
-                            prevState,
-                            config.leftoverArgs.value,
-                            streams,
-                            config.leftoverArgs.value.mkString(" ")
-                          )
-                        }
+                        evaluate =
+                          (skipSelectiveExecution: Boolean, prevState: Option[RunnerState]) => {
+                            adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
+                            runMillBootstrap(
+                              skipSelectiveExecution,
+                              prevState,
+                              config.leftoverArgs.value,
+                              streams,
+                              config.leftoverArgs.value.mkString(" ")
+                            )
+                          }
                       )
                     }
                   }
@@ -549,7 +541,7 @@ object MillMain0 {
   def getLogger(
       streams: SystemStreams,
       config: MillCliConfig,
-      enableTicker: Option[Boolean],
+      enableTicker: Boolean,
       daemonDir: os.Path,
       colored: Boolean,
       colors: Colors,
@@ -557,7 +549,7 @@ object MillMain0 {
   ): Logger & AutoCloseable = {
     new PromptLogger(
       colored = colored,
-      enableTicker = enableTicker.getOrElse(true),
+      enableTicker = enableTicker,
       infoColor = colors.info,
       warnColor = colors.warn,
       errorColor = colors.error,

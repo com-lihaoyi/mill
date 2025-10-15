@@ -17,7 +17,7 @@ private[playlib] class RouteCompilerWorker {
       namespaceReverseRouter: Boolean,
       generatorType: RouteCompilerType,
       dest: os.Path
-  )(implicit ctx: TaskCtx): Result[CompilationResult] = {
+  )(using ctx: TaskCtx): Result[CompilationResult] = {
     // the routes file must come last as it can include the routers generated
     // by the others
     val toolsClassPath = toolsClasspath.map(_.path).toVector

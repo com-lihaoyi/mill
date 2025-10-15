@@ -236,10 +236,10 @@ Finding Largest File
 // returned and automatically serialized/de-serialized as necessary. One
 // notable exception is ``case class``es: if you want return your own
 // `case class`, you must mark it JSON-serializable by adding
-// `derives upickle.default.ReadWriter`:
+// `derives upickle.ReadWriter`:
 
 case class ClassFileData(totalFileSize: Long, largestFile: String)
-    derives upickle.default.ReadWriter
+    derives upickle.ReadWriter
 
 def summarizeClassFileStats = Task {
   val files = os.walk(classFiles().path)

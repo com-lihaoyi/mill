@@ -30,10 +30,6 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         normalized,
         List(
           "[info] compiling <digits> Scala sources to .../out/mill-build/compile.dest/classes ...",
-          "[warn] package scala contains object and package with same name: caps.",
-          "[warn] This indicates that there are several versions of the Scala standard library on the classpath.",
-          "[warn] The build should be reconfigured so that only one version of the standard library is on the classpath.",
-          "[warn] one warning found",
           "[info] done compiling",
           "[info] compiling <digits> Java source to .../out/compile.dest/classes ...",
           "[info] done compiling"
@@ -53,10 +49,6 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "============================== run  <dashes>text hello ==============================",
           "[build.mill-<digits>/<digits>] compile",
           "[build.mill-<digits>] [info] compiling <digits> Scala sources to .../out/mill-build/compile.dest/classes ...",
-          "[build.mill-<digits>] [warn] package scala contains object and package with same name: caps.",
-          "[build.mill-<digits>] [warn] This indicates that there are several versions of the Scala standard library on the classpath.",
-          "[build.mill-<digits>] [warn] The build should be reconfigured so that only one version of the standard library is on the classpath.",
-          "[build.mill-<digits>] [warn] one warning found",
           "[build.mill-<digits>] [info] done compiling",
           "[<digits>/<digits>] compile",
           "[<digits>] [info] compiling <digits> Java source to .../out/compile.dest/classes ...",
@@ -79,18 +71,38 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "============================== jar ==============================",
           "[build.mill-<digits>/<digits>] compile",
           "[build.mill-<digits>] [info] compiling <digits> Scala sources to .../out/mill-build/compile.dest/classes ...",
-          "[build.mill-<digits>] [warn] package scala contains object and package with same name: caps.",
-          "[build.mill-<digits>] [warn] This indicates that there are several versions of the Scala standard library on the classpath.",
-          "[build.mill-<digits>] [warn] The build should be reconfigured so that only one version of the standard library is on the classpath.",
-          "[build.mill-<digits>] [warn] one warning found",
           "[build.mill-<digits>] [info] done compiling",
           "[<digits>/<digits>] compile",
           "[<digits>] [info] compiling <digits> Java source to .../out/compile.dest/classes ...",
           "[<digits>] [error] .../src/foo/Foo.java:<digits>:<digits>: reached end of file while parsing",
-          "[<digits>] compile failed",
+          "[<digits>] compile task failed",
           "[<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
           "<digits> tasks failed",
-          "compile javac returned non-zero exit code"
+          "[<digits>] compile javac returned non-zero exit code"
+        )
+      )
+
+    }
+    test("keepGoingMetaFailure") - integrationTest { tester =>
+      import tester._
+      modifyFile(workspacePath / "build.mill", _ + "?")
+
+      val res2 = eval(("--ticker", "true", "--keep-going", "jar"))
+      res2.isSuccess ==> false
+
+      assertGoldenLiteral(
+        normalize(res2.err, workspacePath),
+        List(
+          "============================== jar ==============================",
+          "[build.mill-<digits>/<digits>] compile",
+          "[build.mill-<digits>] [info] compiling <digits> Scala sources to .../out/mill-build/compile.dest/classes ...",
+          "[build.mill-<digits>] [error]  <dashes> [E<digits>] .../build.mill:<digits>:<digits>",
+          "[build.mill-<digits>] [error] Illegal start of toplevel definition",
+          "[build.mill-<digits>] [error] one error found",
+          "[build.mill-<digits>] compile task failed",
+          "[<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
+          "<digits> tasks failed",
+          "[build.mill-<digits>] compile Compilation failed"
         )
       )
     }

@@ -7,10 +7,10 @@ object WebApp extends cask.MainRoutes {
   case class Todo(checked: Boolean, text: String)
 
   object Todo {
-    implicit def todoRW: upickle.default.ReadWriter[Todo] = upickle.default.macroRW[Todo]
+    implicit def todoRW: upickle.ReadWriter[Todo] = upickle.macroRW[Todo]
   }
 
-  val hashedResourceMapping = upickle.default.read[Map[String, String]](
+  val hashedResourceMapping = upickle.read[Map[String, String]](
     os.read(os.resource / "hashed-resource-mapping.json")
   )
   def hashedResource(s: String) = s match {

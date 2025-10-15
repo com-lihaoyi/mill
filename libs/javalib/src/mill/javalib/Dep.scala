@@ -1,6 +1,6 @@
 package mill.javalib
 
-import upickle.default.{macroRW, ReadWriter as RW}
+import upickle.{macroRW, ReadWriter as RW}
 import mill.api.CrossVersion.*
 import mill.api.CrossVersion
 import coursier.core.{Configuration, Dependency, MinimizedExclusions}
@@ -175,15 +175,15 @@ object Dep {
 
   // Use literal JSON strings for common cases so that files
   // containing serialized dependencies can be easier to skim
-  implicit val rw: RW[Dep] = upickle.default.readwriter[ujson.Value].bimap[Dep](
+  implicit val rw: RW[Dep] = upickle.readwriter[ujson.Value].bimap[Dep](
     (dep: Dep) =>
       unparse(dep) match {
         case Some(s) => ujson.Str(s)
-        case None => upickle.default.writeJs[Dep](dep)(using rw0)
+        case None => upickle.writeJs[Dep](dep)(using rw0)
       },
     {
       case s: ujson.Str => parse(s.value)
-      case v: ujson.Value => upickle.default.read[Dep](v)(using rw0)
+      case v: ujson.Value => upickle.read[Dep](v)(using rw0)
     }
   )
 
@@ -243,18 +243,18 @@ case class BoundDep(
 
 object BoundDep {
   @unused private implicit val depFormat: RW[Dependency] = mill.javalib.JsonFormatters.depFormat
-  private val jsonify0: upickle.default.ReadWriter[BoundDep] = upickle.default.macroRW
+  private val jsonify0: upickle.ReadWriter[BoundDep] = upickle.macroRW
 
   // Use literal JSON strings for common cases so that files
   // containing serialized dependencies can be easier to skim
   //
   // `BoundDep` is basically a `Dep` with `cross=CrossVersion.Constant("", false)`,
   // so we can re-use most of `Dep`'s serialization logic
-  implicit val jsonify: upickle.default.ReadWriter[BoundDep] =
-    upickle.default.readwriter[ujson.Value].bimap[BoundDep](
+  implicit val jsonify: upickle.ReadWriter[BoundDep] =
+    upickle.readwriter[ujson.Value].bimap[BoundDep](
       bdep => {
         Dep.unparse(Dep(bdep.dep, CrossVersion.Constant("", false), bdep.force)) match {
-          case None => upickle.default.writeJs(bdep)(using jsonify0)
+          case None => upickle.writeJs(bdep)(using jsonify0)
           case Some(s) => ujson.Str(s)
         }
       },
@@ -262,7 +262,7 @@ object BoundDep {
         case ujson.Str(s) =>
           val dep = Dep.parse(s)
           BoundDep(dep.dep, dep.force)
-        case v => upickle.default.read[BoundDep](v)(using jsonify0)
+        case v => upickle.read[BoundDep](v)(using jsonify0)
       }
     )
 }

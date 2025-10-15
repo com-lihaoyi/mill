@@ -24,7 +24,8 @@ import mill.javalib.PublishModule.PublishData
 import mill.javalib.internal.PublishModule.GpgArgs
 
 trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport {
-  @deprecated("Use `sonatypeCentralGpgArgsForKey` instead.", "1.0.1")
+
+  @deprecated("Use `sonatypeCentralGpgArgsForKey` instead.", "Mill 1.0.1")
   def sonatypeCentralGpgArgs: T[String] =
     Task { SonatypeCentralPublishModule.sonatypeCentralGpgArgsSentinelValue }
 

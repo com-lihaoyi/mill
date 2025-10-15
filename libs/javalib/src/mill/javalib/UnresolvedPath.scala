@@ -2,7 +2,7 @@ package mill.javalib
 
 import mill.api.daemon.internal.UnresolvedPathApi
 import mill.api.{ExecutionPaths, Segment, Segments}
-import upickle.default.{ReadWriter, macroRW}
+import upickle.{ReadWriter, macroRW}
 
 /**
  * An unresolved path is relative to some unspecified destination

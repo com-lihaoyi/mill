@@ -18,7 +18,7 @@ object Watching {
   case class Result[T](watched: Seq[Watchable], error: Option[String], result: T)
 
   trait Evaluate[T] {
-    def apply(enterKeyPressed: Boolean, previousState: Option[T]): Result[T]
+    def apply(skipSelectiveExecution: Boolean, previousState: Option[T]): Result[T]
   }
 
   /**
@@ -61,23 +61,23 @@ object Watching {
     watch match {
       case None =>
         val Result(_, errorOpt, result) =
-          evaluate(enterKeyPressed = false, previousState = None)
+          evaluate(skipSelectiveExecution = false, previousState = None)
         handleError(errorOpt)
         (errorOpt.isEmpty, result)
 
       case Some(watchArgs) =>
         var prevState: Option[T] = None
-        var enterKeyPressed = false
+        var skipSelectiveExecution = true // Always skip selective execution for first run
 
         // Exits when the thread gets interruped.
         while (true) {
-          val Result(watchables, errorOpt, result) = evaluate(enterKeyPressed, prevState)
+          val Result(watchables, errorOpt, result) = evaluate(skipSelectiveExecution, prevState)
           prevState = Some(result)
           handleError(errorOpt)
 
           try {
             watchArgs.setIdle(true)
-            enterKeyPressed = watchAndWait(
+            skipSelectiveExecution = watchAndWait(
               watchables,
               watchArgs,
               () => Option.when(lookForEnterKey(streams.in))(()),
@@ -127,7 +127,8 @@ object Watching {
       doWatch(notifiablesChanged = () => watchedPathsSeq.exists(p => !haveNotChanged(p)))
 
     def doWatchFsNotify() = {
-      Using.resource(os.write.outputStream(watchArgs.daemonDir / "fsNotifyWatchLog")) { watchLog =>
+      val watchLogFile = watchArgs.daemonDir / "fsNotifyWatchLog"
+      Using.resource(os.write.outputStream(watchLogFile)) { watchLog =>
         def writeToWatchLog(s: String): Unit = {
           try {
             watchLog.write(s.getBytes(java.nio.charset.StandardCharsets.UTF_8))
@@ -195,15 +196,29 @@ object Watching {
               changedPaths.exists(p =>
                 watchedPathsSet.exists(watchedPath => p.startsWith(watchedPath))
               )
-            writeToWatchLog(
-              s"[changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
-            )
+
+            // Do not log if the only thing that changed was the watch log file itself.
+            //
+            // See https://github.com/com-lihaoyi/mill/issues/5843
+            if (hasWatchedPath || changedPaths.exists(_ != watchLogFile)) {
+              writeToWatchLog(
+                s"[changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
+              )
+            }
+
             if (hasWatchedPath) {
               pathChangesDetected = true
             }
           },
-          logger = (eventType, data) =>
-            writeToWatchLog(s"[watch:event] $eventType: ${pprint.apply(data).plainText}")
+          logger = (eventType, data) => {
+            val _ = eventType
+            val _ = data
+            // Uncommenting this causes indefinite loop as writing to watch log triggers an event, which then
+            // gets written to the watch log, which then triggers an event, and so on.
+            //
+            // https://github.com/com-lihaoyi/mill/issues/5843
+//            writeToWatchLog(s"[watch:event] $eventType: ${pprint.apply(data).plainText}")
+          }
         )) { _ =>
           // If already stale, re-evaluate instantly.
           //

@@ -374,7 +374,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
       )
 
       var messages = Seq.empty[b.ShowMessageParams]
-      val client: b.BuildClient = new DummyBuildClient {
+      val client: TestBuildClient = new DummyBuildClient {
         override def onBuildShowMessage(params: b.ShowMessageParams): Unit = {
           messages = messages :+ params
         }
@@ -475,7 +475,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
       def runTest(): Unit = {
         var messages = Seq.empty[b.ShowMessageParams]
         val diagnostics = new mutable.ListBuffer[b.PublishDiagnosticsParams]
-        val client: b.BuildClient = new DummyBuildClient {
+        val client: TestBuildClient = new DummyBuildClient {
           override def onBuildPublishDiagnostics(params: b.PublishDiagnosticsParams): Unit = {
             // Not looking at diagnostics for generated sources of the build
             val keep =

@@ -14,7 +14,7 @@ object BuildCtx {
    * This is the `os.Path` pointing to the project root directory.
    *
    * This is the preferred access to the project directory, and should
-   * always be prefered over `os.pwd`* (which might also point to the
+   * always be preferred over `os.pwd`* (which might also point to the
    * project directory in classic cli scenarios, but might not in other
    * use cases like BSP or LSP server usage).
    */
@@ -37,7 +37,7 @@ object BuildCtx {
    * Register a compute value as watched during module initialization, so Mill knows
    * that if the value changes during `--watch` the module needs to be re-instantiated.
    */
-  def watchValue[T](v0: => T)(implicit fn: sourcecode.FileName, ln: sourcecode.Line): T = {
+  def watchValue[T](v0: => T)(using fn: sourcecode.FileName, ln: sourcecode.Line): T = {
     withFilesystemCheckerDisabled {
       val v = v0
       val watchable = Watchable.Value(

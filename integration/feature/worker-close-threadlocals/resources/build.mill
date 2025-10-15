@@ -1,0 +1,34 @@
+package build
+import mill.*
+
+/**
+ * Make sure threadlocals like `os.pwd`, `os.checker`, and various `println`
+ * APIs are all properly redirected to work in `Worker#close` calls.
+ */
+object demo extends Module {
+
+  def workerEnvConfig = Task.Input {
+    Task.env.getOrElse("WORKER_ENV", "")
+  }
+
+  def myWorker = Task.Worker {
+    new MyWorker(workerEnvConfig())
+  }
+
+  def demoCrash = Task {
+    println("Change the WORKER_ENV environnment variable to crash me")
+    myWorker().doWork()
+  }
+
+  class MyWorker(someSetup: String) extends AutoCloseable {
+    def doWork() = someSetup + ": work done"
+
+    override def close() = {
+      println("Worker is closing1 " + os.pwd + " " + os.checker.value.getClass)
+      Console.println("Worker is closing2")
+      System.out.println("Worker is closing3")
+      Console.err.println("Worker is closing4")
+      System.err.println("Worker is closing5")
+    }
+  }
+}

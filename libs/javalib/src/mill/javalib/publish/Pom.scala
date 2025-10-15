@@ -143,6 +143,7 @@ object Pom {
       <id>{d.id}</id>
       <name>{d.name}</name>
       <url>{d.url}</url>
+      <email>{d.email}</email>
       {<organization>{d.organization}</organization>.optional}
       {<organizationUrl>{d.organizationUrl}</organizationUrl>.optional}
     </developer>

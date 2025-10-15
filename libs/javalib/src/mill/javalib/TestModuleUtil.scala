@@ -47,7 +47,7 @@ final class TestModuleUtil(
     testParallelism: Boolean,
     testLogLevel: TestReporter.LogLevel,
     propagateEnv: Boolean = true
-)(implicit ctx: mill.api.TaskCtx) {
+)(using ctx: mill.api.TaskCtx) {
 
   private val (jvmArgs, props) = TestModuleUtil.loadArgsAndProps(useArgsFile, forkArgs)
 
@@ -132,7 +132,7 @@ final class TestModuleUtil(
       //     - first test class to run, folder containing test classes for test runner to claim from, and the worker's base folder.
       selector: Either[Seq[String], (Option[String], os.Path, os.Path)],
       poll: () => Unit
-  )(implicit ctx: mill.api.TaskCtx) = {
+  )(using ctx: mill.api.TaskCtx) = {
     if (!os.exists(baseFolder)) os.makeDir.all(baseFolder)
 
     val outputPath = baseFolder / "out.json"
@@ -152,7 +152,7 @@ final class TestModuleUtil(
 
     val argsFile = baseFolder / "testargs"
     val sandbox = baseFolder / "sandbox"
-    os.write(argsFile, upickle.default.write(testArgs), createFolders = true)
+    os.write(argsFile, upickle.write(testArgs), createFolders = true)
 
     os.makeDir.all(sandbox)
 
@@ -181,7 +181,7 @@ final class TestModuleUtil(
     if (!os.exists(outputPath))
       Result.Failure(s"Test reporting Failed: ${outputPath} does not exist")
     else
-      Result.Success(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
+      Result.Success(upickle.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
   }
 
   def prepareTestClassesFolder(selectors2: Seq[String], base: os.Path): os.Path = {
@@ -201,7 +201,7 @@ final class TestModuleUtil(
 
   def runTestQueueScheduler(
       filteredClassLists: Seq[Seq[String]]
-  )(implicit ctx: mill.api.TaskCtx) = {
+  )(using ctx: mill.api.TaskCtx) = {
 
     val filteredClassCount: Int = filteredClassLists.map(_.size).sum
 
@@ -289,7 +289,7 @@ final class TestModuleUtil(
       else groupFolder
 
     val resultPath = processFolder / s"result.log"
-    os.write.over(resultPath, upickle.default.write((0L, 0L)), createFolders = true)
+    os.write.over(resultPath, upickle.write((0L, 0L)), createFolders = true)
     val label =
       if (groupFolderData.size == 1) paddedProcessIndex
       else s"$paddedGroupIndex-$paddedProcessIndex"
@@ -609,7 +609,7 @@ private[mill] object TestModuleUtil {
         // since that might happen transiently during a write
         try {
           Some(subprocessFutures.map(_._1 / "result.log").map(p =>
-            upickle.default.read[(Long, Long)](os.read.stream(p))
+            upickle.read[(Long, Long)](os.read.stream(p))
           ))
         } catch {
           case _: Exception => None

@@ -9,7 +9,7 @@ object SubfolderModule {
   }
 }
 
-abstract class SubfolderModule(millDiscover: Discover)(implicit
+abstract class SubfolderModule(millDiscover: Discover)(using
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File,
     subFolderInfo: SubfolderModule.Info

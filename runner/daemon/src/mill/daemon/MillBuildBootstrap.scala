@@ -4,7 +4,6 @@ import mill.api.daemon.internal.{
   BuildFileApi,
   CompileProblemReporter,
   EvaluatorApi,
-  MillScalaParser,
   PathRefApi,
   RootModuleApi
 }
@@ -15,8 +14,9 @@ import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
 import mill.api.{BuildCtx, PathRef, SelectMode}
 import mill.internal.PrefixLogger
-import mill.meta.{FileImportGraph, MillBuildRootModule}
+import mill.meta.MillBuildRootModule
 import mill.meta.CliImports
+import mill.meta.FileImportGraph.findRootBuildFiles
 import mill.server.Server
 import mill.util.BuildInfo
 
@@ -59,7 +59,9 @@ class MillBuildBootstrap(
     streams0: SystemStreams,
     selectiveExecution: Boolean,
     offline: Boolean,
-    reporter: EvaluatorApi => Int => Option[CompileProblemReporter]
+    reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
+    skipSelectiveExecution: Boolean,
+    enableTicker: Boolean
 ) { outer =>
   import MillBuildBootstrap.*
 
@@ -72,7 +74,7 @@ class MillBuildBootstrap(
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
       os.write.over(
         recOut(output, depth) / millRunnerState,
-        upickle.default.write(frame.loggedData, indent = 4),
+        upickle.write(frame.loggedData, indent = 4),
         createFolders = true
       )
     }
@@ -93,17 +95,17 @@ class MillBuildBootstrap(
 
       val requestedDepth = requestedMetaLevel.filter(_ >= 0).getOrElse(0)
 
-      val (nestedState, headerDataOpt) =
+      val currentRootContainsBuildFile = rootBuildFileNames.asScala.exists(rootBuildFileName =>
+        os.exists(currentRoot / rootBuildFileName)
+      )
+
+      val nestedState =
         if (depth == 0) {
           // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
           // Unfortunately, some tasks also make sense without a `build.mill`, e.g. the `init` command.
           // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
           lazy val state = evaluateRec(depth + 1)
-          if (
-            rootBuildFileNames.asScala.exists(rootBuildFileName =>
-              os.exists(currentRoot / rootBuildFileName)
-            )
-          ) (state, None)
+          if (currentRootContainsBuildFile) state
           else {
             val msg =
               s"No build file (${rootBuildFileNames.asScala.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
@@ -117,28 +119,54 @@ class MillBuildBootstrap(
                   case state => state
                 }
               }
-            (res, None)
+            res
           }
         } else {
-          val parsedScriptFiles = FileImportGraph
-            .parseBuildFiles(
-              projectRoot,
-              currentRoot / os.up,
-              output,
-              MillScalaParser.current.value
+          val (useDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
+
+          val headerData =
+            if (!os.exists(projectRoot / foundRootBuildFileName)) ""
+            else mill.constants.Util.readBuildHeader(
+              (projectRoot / foundRootBuildFileName).toNIO,
+              foundRootBuildFileName
             )
 
           val state =
-            if (os.exists(currentRoot)) evaluateRec(depth + 1)
+            if (currentRootContainsBuildFile) evaluateRec(depth + 1)
             else {
+              val parsedHeaderData = mill.internal.Util.parsedHeaderData(headerData)
+              val metaBuildData =
+                if (
+                  foundRootBuildFileName.endsWith(".yaml") || foundRootBuildFileName.endsWith(
+                    ".yml"
+                  )
+                ) {
+                  // For YAML files, extract the mill-build key if it exists, otherwise use empty map
+                  parsedHeaderData.get("mill-build") match {
+                    case Some(millBuildValue: ujson.Obj) => millBuildValue.obj.toMap
+                    case _ => Map.empty[String, ujson.Value]
+                  }
+                } else {
+                  // For non-YAML files (build.mill), use the entire parsed header data
+                  parsedHeaderData
+                }
               val bootstrapModule =
                 new MillBuildRootModule.BootstrapModule()(
-                  using new RootModule.Info(currentRoot, output, projectRoot)
+                  using
+                  new RootModule.Info(
+                    currentRoot,
+                    output,
+                    projectRoot,
+                    upickle.read[Map[
+                      String,
+                      ujson.Value
+                    ]](metaBuildData)
+                  )
                 )
-              RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
+              RunnerState(Some(bootstrapModule), Nil, None, Some(foundRootBuildFileName))
             }
 
-          (state, Some(parsedScriptFiles.headerData))
+          state
         }
 
       val classloaderChanged =
@@ -222,7 +250,7 @@ class MillBuildBootstrap(
                   .getOrElse(0),
                 depth,
                 actualBuildFileName = nestedState.buildFile,
-                headerData = headerDataOpt.getOrElse("")
+                enableTicker = enableTicker
               )) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
@@ -404,7 +432,7 @@ object MillBuildBootstrap {
       millClassloaderIdentityHash: Int,
       depth: Int,
       actualBuildFileName: Option[String] = None,
-      headerData: String
+      enableTicker: Boolean
   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
@@ -419,6 +447,7 @@ object MillBuildBootstrap {
     val cl = rootModule.getClass.getClassLoader
     val evalImplCls = cl.loadClass("mill.eval.EvaluatorImpl")
     val execCls = cl.loadClass("mill.exec.Execution")
+    val scriptInitCls = cl.loadClass("mill.script.ScriptModuleInit$")
     lazy val evaluator: EvaluatorApi = evalImplCls.getConstructors.head.newInstance(
       allowPositionalCommandArgs,
       selectiveExecution,
@@ -441,8 +470,9 @@ object MillBuildBootstrap {
         streams0,
         () => evaluator,
         offline,
-        headerData
-      )
+        enableTicker
+      ),
+      scriptInitCls.getField("MODULE$").get(null)
     ).asInstanceOf[EvaluatorApi]
 
     evaluator
@@ -525,15 +555,12 @@ object MillBuildBootstrap {
   ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     import buildFileApi._
     evalWatchedValues.clear()
-    val evalTaskResult =
-      mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader) {
-        evaluator.evaluate(
-          tasksAndParams,
-          SelectMode.Separated,
-          reporter = reporter,
-          selectiveExecution = selectiveExecution
-        )
-      }
+    val evalTaskResult = evaluator.evaluate(
+      tasksAndParams,
+      SelectMode.Separated,
+      reporter = reporter,
+      selectiveExecution = selectiveExecution
+    )
 
     evalTaskResult match {
       case Result.Failure(msg) => (Result.Failure(msg), Nil, moduleWatchedValues)

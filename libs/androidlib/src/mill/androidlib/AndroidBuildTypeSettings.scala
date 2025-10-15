@@ -10,11 +10,10 @@ package mill.androidlib
  */
 case class AndroidBuildTypeSettings(
     isMinifyEnabled: Boolean = false,
-    isShrinkEnabled: Boolean = false,
     enableDesugaring: Boolean = true
 )
 
 object AndroidBuildTypeSettings {
-  implicit val resultRW: upickle.default.ReadWriter[AndroidBuildTypeSettings] =
-    upickle.default.macroRW
+  implicit val resultRW: upickle.ReadWriter[AndroidBuildTypeSettings] =
+    upickle.macroRW
 }

@@ -24,8 +24,8 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
     )
     val bridge = cl
       .loadClass("mill.scalajslib.worker.ScalaJSWorkerImpl")
-      .getDeclaredConstructor()
-      .newInstance()
+      .getDeclaredConstructor(classOf[Int])
+      .newInstance(jobs)
       .asInstanceOf[workerApi.ScalaJSWorkerApi]
 
     (cl, bridge)
@@ -35,7 +35,9 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
       key: Seq[PathRef],
       value: (URLClassLoader, workerApi.ScalaJSWorkerApi)
   ): Unit = {
-    value._1.close()
+    val (classloader, workerApi) = value
+    workerApi.close()
+    classloader.close()
   }
 
   override def maxCacheSize: Int = jobs
@@ -109,6 +111,30 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
               workerApi.JsEnvConfig.Selenium.SafariOptions()
           }
         )
+      case config: api.JsEnvConfig.Playwright =>
+        val options = config.capabilities match
+          case options: api.JsEnvConfig.Playwright.ChromeOptions =>
+            workerApi.JsEnvConfig.Playwright.ChromeOptions(
+              headless = options.headless,
+              showLogs = options.showLogs,
+              debug = options.debug,
+              launchOptions = options.launchOptions
+            )
+          case options: api.JsEnvConfig.Playwright.FirefoxOptions =>
+            workerApi.JsEnvConfig.Playwright.FirefoxOptions(
+              headless = options.headless,
+              showLogs = options.showLogs,
+              debug = options.debug,
+              firefoxUserPrefs = options.firefoxUserPrefs
+            )
+          case options: api.JsEnvConfig.Playwright.WebkitOptions =>
+            workerApi.JsEnvConfig.Playwright.WebkitOptions(
+              headless = options.headless,
+              showLogs = options.showLogs,
+              debug = options.debug,
+              launchOptions = options.launchOptions
+            )
+        workerApi.JsEnvConfig.Playwright(options)
     }
   }
 

@@ -21,6 +21,9 @@ object MillNoDaemonMain {
       // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
       sys.props("coursier.windows.disable-ffm") = "true"
 
+    // Take into account proxy-related Java properties
+    coursier.Resolve.proxySetup()
+
     val args = MillDaemonMain.Args(getClass.getName, args0)
       .fold(err => throw IllegalArgumentException(err), identity)
 
@@ -33,8 +36,7 @@ object MillNoDaemonMain {
       exit = msg => {
         System.err.println(msg)
         System.exit(0)
-      },
-      log = System.err.println
+      }
     )
 
     val outLock = MillMain0.doubleLock(out)

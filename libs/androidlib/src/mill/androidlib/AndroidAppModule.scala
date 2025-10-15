@@ -10,7 +10,8 @@ import mill.api.JsonFormatters.given
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import os.{Path, RelPath, zip}
-import upickle.default.*
+import os.RelPath.stringRelPathValidated
+import upickle.*
 import scala.concurrent.duration.*
 
 import scala.jdk.OptionConverters.RichOptional
@@ -18,6 +19,7 @@ import scala.xml.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.daemon.internal.EvaluatorApi
 import mill.javalib.testrunner.TestResult
+import scala.util.Properties.isWin
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -146,22 +148,24 @@ trait AndroidAppModule extends AndroidModule { outer =>
         val dest = Task.dest / ref.path.baseName
         os.unzip(ref.path, dest)
 
-        // Fix permissions of unzipped directories
-        // `os.walk.stream` doesn't work
-        def walkStream(p: os.Path): geny.Generator[os.Path] = {
-          if (!os.isDir(p)) geny.Generator()
-          else {
-            val streamed = os.list.stream(p)
-            streamed ++ streamed.flatMap(walkStream)
+        // Fix permissions of unzipped directories (skip on Windows)
+        if (!isWin) {
+          // `os.walk.stream` doesn't work
+          def walkStream(p: os.Path): geny.Generator[os.Path] = {
+            if (!os.isDir(p)) geny.Generator()
+            else {
+              val streamed = os.list.stream(p)
+              streamed ++ streamed.flatMap(walkStream)
+            }
           }
-        }
 
-        for (p <- walkStream(dest) if os.isDir(p)) {
-          import java.nio.file.attribute.PosixFilePermission
-          val newPerms =
-            os.perms(p) + PosixFilePermission.OWNER_READ + PosixFilePermission.OWNER_EXECUTE
+          for (p <- walkStream(dest) if os.isDir(p)) {
+            import java.nio.file.attribute.PosixFilePermission
+            val newPerms =
+              os.perms(p) + PosixFilePermission.OWNER_READ + PosixFilePermission.OWNER_EXECUTE
 
-          os.perms.set(p, newPerms)
+            os.perms.set(p, newPerms)
+          }
         }
 
         val lookupPath = dest / "META-INF"
@@ -205,6 +209,19 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
+   * Picks all jni deps from the resolved dependencies to be packaged into the APK.
+   */
+  def androidPackageableNativeDeps: T[Seq[AndroidPackageableExtraFile]] = Task {
+    androidTransformAarFiles(resolvedRunMvnDeps)().flatMap {
+      unpackedDep =>
+        unpackedDep.nativeLibs.toList.filter(pr => os.exists(pr.path))
+          .flatMap(lib => os.list(lib.path))
+    }.map(nativeLibDir =>
+      AndroidPackageableExtraFile(PathRef(nativeLibDir), "lib" / nativeLibDir.last)
+    )
+  }
+
+  /**
    * Packages DEX files and Android resources into an unsigned APK.
    *
    * @return A `PathRef` to the generated unsigned APK file (`app.unsigned.apk`).
@@ -217,14 +234,17 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .filter(_.ext == "dex")
       .map(os.zip.ZipSource.fromPath)
 
-    val metaInf = androidPackageMetaInfoFiles().map(extraFile =>
-      os.zip.ZipSource.fromPathTuple((extraFile.source.path, extraFile.destination.asSubPath))
-    )
+    def asZipSource(androidPackageableExtraFile: AndroidPackageableExtraFile): os.zip.ZipSource =
+      os.zip.ZipSource.fromPathTuple(
+        (androidPackageableExtraFile.source.path, androidPackageableExtraFile.destination.asSubPath)
+      )
+
+    val metaInf = androidPackageMetaInfoFiles().map(asZipSource)
+
+    val nativeDeps = androidPackageableNativeDeps().map(asZipSource)
 
     // add all the extra files to the APK
-    val extraFiles: Seq[zip.ZipSource] = androidPackageableExtraFiles().map(extraFile =>
-      os.zip.ZipSource.fromPathTuple((extraFile.source.path, extraFile.destination.asSubPath))
-    )
+    val extraFiles: Seq[zip.ZipSource] = androidPackageableExtraFiles().map(asZipSource)
 
     // TODO generate aar-metadata.properties (for lib distribution, not in this module) or
     //  app-metadata.properties (for app distribution).
@@ -240,6 +260,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     // androidGradlePluginVersion=8.7.2
     os.zip(unsignedApk, dexFiles)
     os.zip(unsignedApk, metaInf)
+    os.zip(unsignedApk, nativeDeps)
     os.zip(unsignedApk, extraFiles)
 
     PathRef(unsignedApk)
@@ -517,7 +538,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   def createAndroidVirtualDevice(): Command[String] = Task.Command(exclusive = true) {
     val command = os.call((
-      androidSdkModule().avdExe().path,
+      androidSdkModule().avdmanagerExe().path,
       "create",
       "avd",
       "--name",
@@ -540,7 +561,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   def deleteAndroidVirtualDevice: T[os.CommandResult] = Task {
     os.call((
-      androidSdkModule().avdExe().path,
+      androidSdkModule().avdmanagerExe().path,
       "delete",
       "avd",
       "--name",
@@ -801,7 +822,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   }
 
-  def knownProguardRules: T[String] = Task {
+  def androidKnownProguardRules: T[String] = Task {
     // TODO need also pick proguard files from
     // [[moduleDeps]]
     androidUnpackArchives()
@@ -812,15 +833,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .mkString("\n")
   }
 
-  override def androidProguard: T[PathRef] = Task {
-    val inheritedProguardFile = super.androidProguard()
-    val proguardFile = Task.dest / "proguard-rules.pro"
-
-    os.write(proguardFile, os.read(inheritedProguardFile.path))
-
-    os.write.append(proguardFile, knownProguardRules())
-
-    PathRef(proguardFile)
+  /**
+   * File names that are provided by the Android SDK in `androidSdkModule().androidProguardPath().path`
+   *
+   * For now, it's only used by [[AndroidR8AppModule]]
+   */
+  def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+    Seq.empty[String]
   }
 
   // uses the d8 tool to generate the dex file, when minification is disabled
@@ -838,6 +857,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val libsJarFiles = libsJarPathRefs.map(_.path.toString())
 
+    val filenamesFile = Task.dest / "all-files.txt"
+    os.write.over(filenamesFile, (appCompiledFiles ++ libsJarFiles).mkString("\n"))
+
     val proguardFile = androidProguard().path
 
     val d8Args = Seq(
@@ -852,7 +874,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       androidMinSdk().toString,
       "--main-dex-rules",
       proguardFile.toString()
-    ) ++ appCompiledFiles ++ libsJarFiles
+    ) :+ s"@$filenamesFile"
 
     Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
 
@@ -872,6 +894,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def androidIsDebug: T[Boolean] = Task { true }
 
+    override def moduleDeps: Seq[JavaModule] = Seq.empty
+    override def compileModuleDeps: Seq[JavaModule] = Seq(outer)
+
     override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer.resolutionParams())
 
     override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
@@ -889,8 +914,20 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     def androidResources: T[Seq[PathRef]] = Task.Sources("src/androidTest/res")
 
+    override def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      outer.androidDefaultProguardFileNames()
+    }
+
     override def testFramework: T[String] = Task {
       "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    override def androidCommonProguardFiles: T[Seq[PathRef]] = Task {
+      val resource = "proguard-android-test.txt"
+      val resourceUrl = getClass.getResourceAsStream(s"/$resource")
+      val dest = Task.dest / resource
+      os.write(dest, resourceUrl)
+      super.androidCommonProguardFiles() :+ PathRef(dest)
     }
 
     private def androidInstrumentedTestsBaseManifest: Task[Elem] = Task.Anon {
@@ -1031,7 +1068,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
      * as its apk is installed separately
      */
     def androidTransitiveTestClasspath: T[Seq[PathRef]] = Task {
-      Task.traverse(transitiveModuleCompileModuleDeps) {
+      Task.traverse(transitiveRunModuleDeps) {
         m =>
           Task.Anon(m.localRunClasspath())
       }().flatten
@@ -1039,7 +1076,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     /** The instrumented dex should just contain the test dependencies and locally tested files */
     override def androidPackagedClassfiles: T[Seq[PathRef]] = Task {
-      (testClasspath() ++ androidTransitiveTestClasspath())
+      androidTransitiveTestClasspath()
         .map(_.path).filter(os.isDir)
         .flatMap(os.walk(_))
         .filter(os.isFile)
@@ -1048,7 +1085,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }
 
     override def androidPackagedDeps: T[Seq[PathRef]] = Task {
-      androidResolvedMvnDeps()
+      androidResolvedRunMvnDeps()
     }
 
     /**

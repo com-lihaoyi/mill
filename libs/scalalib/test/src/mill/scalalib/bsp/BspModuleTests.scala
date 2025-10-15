@@ -1,4 +1,4 @@
-package mill.javalib.bsp
+package mill.scalalib.bsp
 
 import mill.api.{Cross, Discover}
 import mill.api.ExecutionPaths

@@ -20,7 +20,7 @@ case class Assembly(pathRef: PathRef, entries: Int)
  */
 object Assembly {
 
-  implicit val assemblyJsonRW: upickle.default.ReadWriter[Assembly] = upickle.default.macroRW
+  implicit val assemblyJsonRW: upickle.ReadWriter[Assembly] = upickle.macroRW
 
   val defaultRules: Seq[Rule] = Seq(
     Rule.Append("reference.conf", separator = "\n"),

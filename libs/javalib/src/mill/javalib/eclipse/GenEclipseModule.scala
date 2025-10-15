@@ -17,8 +17,8 @@ trait GenEclipseModule extends mill.api.Module with GenEclipseInternalApi {
   // download their sources as well.
   private[mill] def allCoursierDependencies = Task {
     Seq(
-      javaModule.coursierDependency,
-      javaModule.coursierDependency.withConfiguration(coursier.core.Configuration.provided)
+      javaModule.coursierDependencyTask(),
+      javaModule.coursierDependencyTask().withConfiguration(coursier.core.Configuration.provided)
     ).map(BoundDep(_, force = false))
   }
 

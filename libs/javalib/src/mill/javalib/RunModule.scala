@@ -288,7 +288,7 @@ object RunModule {
         extraRunClasspath: Seq[os.Path],
         background: Boolean,
         runBackgroundLogToConsole: Boolean
-    )(implicit ctx: TaskCtx): Unit = {
+    )(using ctx: TaskCtx): Unit = {
       run(
         args,
         mainClass,
@@ -313,7 +313,7 @@ object RunModule {
         background: Boolean = false,
         runBackgroundLogToConsole: Boolean = false,
         propagateEnv: java.lang.Boolean = null
-    )(implicit ctx: TaskCtx): Unit = {
+    )(using ctx: TaskCtx): Unit = {
       val _ = propagateEnv // silence unused, this is used in the override
 
       run(
@@ -350,7 +350,7 @@ object RunModule {
         background: Boolean = false,
         runBackgroundLogToConsole: Boolean = false,
         propagateEnv: java.lang.Boolean = null
-    )(implicit ctx: TaskCtx): Unit = {
+    )(using ctx: TaskCtx): Unit = {
       val dest = ctx.dest
       val cwd = Option(workingDir).getOrElse(dest)
       val mainClass1 = Option(mainClass).getOrElse(mainClass0.fold(sys.error, identity))

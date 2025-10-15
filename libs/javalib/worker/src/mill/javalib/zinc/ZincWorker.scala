@@ -4,6 +4,7 @@ import mill.api.JsonFormatters.*
 import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}
+import mill.client.lock.*
 import mill.javalib.api.internal.{
   JavaCompilerOptions,
   ZincCompileJava,
@@ -36,7 +37,7 @@ class ZincWorker(
     jobs: Int
 ) extends AutoCloseable { self =>
   private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
-  private val compilerBridgeLocks: mutable.Map[String, Object] = mutable.Map.empty[String, Object]
+  private val compilerBridgeLocks: mutable.Map[String, MemoryLock] = mutable.Map.empty
 
   private val classloaderCache = new RefCountedClassLoaderCache(
     sharedLoader = getClass.getClassLoader,
@@ -106,9 +107,10 @@ class ZincWorker(
           loaderLibraryOnly = ClasspathUtil.rootLoader,
           libraryJars = Array(libraryJarNameGrep(
             compilerClasspath,
-            // we don't support too outdated dotty versions
-            // and because there will be no scala 2.14, so hardcode "2.13." here is acceptable
-            if (JvmWorkerUtil.isDottyOrScala3(key.scalaVersion)) "2.13." else key.scalaVersion
+            // if Dotty or Scala 3.0 - 3.7, use the 2.13 version of the standard library
+            if (JvmWorkerUtil.enforceScala213Library(key.scalaVersion)) "2.13."
+            // otherwise use the library matching the Scala version
+            else key.scalaVersion
           ).path.toIO),
           compilerJars = combinedCompilerJars,
           allJars = combinedCompilerJars,
@@ -437,8 +439,7 @@ class ZincWorker(
             prevPhase: String,
             nextPhase: String
         ): Boolean = {
-          val percentage = current * 100 / total
-          reporter.notifyProgress(percentage = percentage, total = total)
+          reporter.notifyProgress(progress = current, total = total)
           true
         }
       }
@@ -547,10 +548,22 @@ class ZincWorker(
       compilerBridge: ZincCompilerBridgeProvider
   ): os.Path = {
     val workingDir = compilerBridge.workspace / s"zinc-${Versions.zinc}" / scalaVersion
-    val lock = synchronized(compilerBridgeLocks.getOrElseUpdate(scalaVersion, new Object()))
+
+    os.makeDir.all(compilerBridge.workspace / "compiler-bridge-locks")
+    val memoryLock = synchronized(
+      compilerBridgeLocks.getOrElseUpdate(scalaVersion, new MemoryLock)
+    )
     val compiledDest = workingDir / "compiled"
     val doneFile = compiledDest / "DONE"
-    lock.synchronized {
+    // Use a double-lock here because we need mutex both between threads within this
+    // process, as well as between different processes since sometimes we are initializing
+    // the compiler bridge inside a separate `ZincWorkerMain` subprocess
+    val doubleLock = new DoubleLock(
+      memoryLock,
+      new FileLock((compilerBridge.workspace / "compiler-bridge-locks" / scalaVersion).toString)
+    )
+    try {
+      doubleLock.lock()
       if (os.exists(doneFile)) compiledDest
       else {
         val acquired =
@@ -572,7 +585,7 @@ class ZincWorker(
             compiledDest
         }
       }
-    }
+    } finally doubleLock.close()
   }
 }
 object ZincWorker {
@@ -596,7 +609,7 @@ object ZincWorker {
       logDebugEnabled: Boolean,
       logPromptColored: Boolean,
       zincLogDebug: Boolean
-  ) derives upickle.default.ReadWriter
+  ) derives upickle.ReadWriter
 
   private case class ScalaCompilerCacheKey(
       scalaVersion: String,

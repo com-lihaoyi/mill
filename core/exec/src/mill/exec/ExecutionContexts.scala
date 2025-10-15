@@ -23,7 +23,7 @@ object ExecutionContexts {
     def close(): Unit = () // do nothing
 
     def blocking[T](t: => T): T = t
-    def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit
+    def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(using
         ctx: mill.api.TaskCtx
     ): Future[T] =
       Future.successful(t(ctx.log))
@@ -55,14 +55,17 @@ object ExecutionContexts {
     def execute(runnable: Runnable): Unit = {
       // By default, any child task inherits the pwd and system streams from the
       // context which submitted it
-      lazy val submitterPwd = os.pwd
-      lazy val submitterStreams = new mill.api.SystemStreams(System.out, System.err, System.in)
+      val submitterPwd = os.dynamicPwdFunction.value
+      val submitterChecker = os.checker.value
+      val submitterStreams = new mill.api.SystemStreams(Console.out, Console.err, System.in)
       executor.execute(new PriorityRunnable(
         0,
         () =>
-          os.dynamicPwdFunction.withValue(() => submitterPwd) {
-            mill.api.SystemStreamsUtils.withStreams(submitterStreams) {
-              runnable.run()
+          os.checker.withValue(submitterChecker) {
+            os.dynamicPwdFunction.withValue(() => submitterPwd()) {
+              mill.api.SystemStreamsUtils.withStreams(submitterStreams) {
+                runnable.run()
+              }
             }
           }
       ))
@@ -102,7 +105,7 @@ object ExecutionContexts {
      * folder [[dest]] and duplicates the logging streams to [[dest]].log while evaluating
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
-    def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit
+    def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(using
         ctx: mill.api.TaskCtx
     ): Future[T] = {
       val logger = new MultiLogger(
