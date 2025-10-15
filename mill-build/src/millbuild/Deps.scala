@@ -184,7 +184,8 @@ object Deps {
   val zinc = mvn"org.scala-sbt::zinc:1.11.0".withDottyCompat(scalaVersion)
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
-  val gson = mvn"com.google.code.gson:gson:2.10.1"
+  // https://github.com/google/gson/releases/tag/gson-parent-2.13.2
+  val gson = mvn"com.google.code.gson:gson:2.13.2"
   val fansi = mvn"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
   val requests = mvn"com.lihaoyi::requests:0.9.0"
