@@ -41,19 +41,19 @@ object foo extends KotlinModule, KotlinMavenModule {
 
 /** Usage
 
-> ./mill foo.compile
+> ./mill compile
 Compiling 1 Kotlin source...
 
-> ./mill foo.test.compile
+> ./mill test.compile
 Compiling 1 Kotlin source...
 
-> ./mill foo.test.testForked
+> ./mill test.testForked
 ...foo.FooTests hello ...
 
-> ./mill foo.test
+> ./mill test
 ...foo.FooTests hello ...
 
-> ./mill foo.integration
+> ./mill integration
 ...foo.FooIntegrationTests hello ...
 
 */

@@ -87,8 +87,7 @@ object CodeGen {
           if (segments.isEmpty) "_root_.mill.util.MainRootModule"
           else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
         val parsedHeaderData = mill.internal.Util.parsedHeaderData(allScriptCode(scriptPath))
-        val moduleDeps = parsedHeaderData.get("moduleDeps").map(_.arr.map(_.str))
-        val extendsConfig = parsedHeaderData.get("extends").map(_.arr.map(_.str)).getOrElse(Nil)
+
 
         val prelude =
           s"""|import MillMiscInfo._
@@ -98,11 +97,13 @@ object CodeGen {
         os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
 
         def renderTemplate(prefix: String, data: Map[String, ujson.Value]): String = {
+          val moduleDeps = data.get("moduleDeps").map(_.arr.map(_.str))
+          val extendsConfig = data.get("extends").map(_.arr.map(_.str)).getOrElse(Nil)
           val definitions =
             for {
-              (kString, v) <- parsedHeaderData
-              if !Set("moduleDeps", "extends").contains(k)
-              if !k.startsWith("mill-")
+              (kString, v) <- data
+              if !Set("moduleDeps", "extends").contains(kString)
+              if !kString.startsWith("mill-")
             }
               yield kString.split(" +") match{
                 case Array(k) => s"override def $k = Task.Literal(\"\"\"$v\"\"\")"

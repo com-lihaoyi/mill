@@ -42,19 +42,19 @@ object foo extends SbtModule {
 
 /** Usage
 
-> ./mill foo.compile
+> ./mill compile
 compiling 1 Scala source...
 
-> ./mill foo.test.compile
+> ./mill test.compile
 compiling 1 Scala source...
 
-> ./mill foo.test.testForked
+> ./mill test.testForked
 + foo.FooTests...hello ...
 
-> ./mill foo.test
+> ./mill test
 + foo.FooTests.hello ...
 
-> ./mill foo.integration
+> ./mill integration
 + foo.FooIntegrationTests.hello ...
 
 */
