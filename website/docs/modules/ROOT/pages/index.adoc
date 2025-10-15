@@ -24,9 +24,9 @@ full advantage of the Java platform's performance, usability, and IDE support.
 
 If you prefer a video introduction to Mill, see:
 
-* https://www.youtube.com/watch?v=3NllMpXMBT8[Video: Better Java Builds with the Mill Build Tool],
-GeeCon Krakow 16 May 2025
-* https://www.youtube.com/watch?v=fyf2AWUyq24[Video: Solving Scala's Build Problem with the Mill Build Tool], SF Scala Meetup 22 April 2025
+* https://www.youtube.com/watch?v=-DTYm1qhQ6U[Video: Engineering a Better Java Build Tool Experience],
+Berlin Expert Days 8 Oct 2025
+* https://www.youtube.com/watch?v=tNsz_dGCsVs[Video: Simpler Build Tools with Functional and Object Oriented Programming], Scala Workshop 13 October 2025
 
 For more discussion on the motivation behind the project, see xref:comparisons/why-mill.adoc[Why Use Mill?]
 

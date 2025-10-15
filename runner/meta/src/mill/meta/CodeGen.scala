@@ -99,7 +99,11 @@ object CodeGen {
 
         def renderTemplate(prefix: String, data: Map[String, ujson.Value]): String = {
           val definitions =
-            for ((kString, v) <- parsedHeaderData if !Set("moduleDeps", "extends").contains(k))
+            for {
+              (kString, v) <- parsedHeaderData
+              if !Set("moduleDeps", "extends").contains(k)
+              if !k.startsWith("mill-")
+            }
               yield kString.split(" +") match{
                 case Array(k) => s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
                 case Array("object", k) => renderTemplate(s"object $k", v.obj.toMap)

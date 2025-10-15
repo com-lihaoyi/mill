@@ -24,7 +24,7 @@ object Deps {
   object Scalajs_1 {
     val scalaJsVersion = "1.19.0"
     val scalajsEnvJsdomNodejs =
-      mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0".withDottyCompat(scalaVersion)
+      mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvExoegoJsdomNodejs =
       mvn"net.exoego::scalajs-env-jsdom-nodejs:2.1.0".withDottyCompat(scalaVersion)
     val scalajsEnvNodejs = mvn"org.scala-js::scalajs-env-nodejs:1.4.0".withDottyCompat(scalaVersion)
@@ -107,7 +107,7 @@ object Deps {
   val cask = mvn"com.lihaoyi::cask:0.9.4"
   val castor = mvn"com.lihaoyi::castor:0.3.0"
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
-  val flywayCore = mvn"org.flywaydb:flyway-core:8.5.13"
+  val flywayCore = mvn"org.flywaydb:flyway-core:11.8.2"
   val graphvizJava = Seq(
     mvn"guru.nidi:graphviz-java-min-deps:0.18.1",
     mvn"org.webjars.npm:viz.js-graphviz-java:2.1.3",
@@ -186,8 +186,7 @@ object Deps {
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
   val gson = mvn"com.google.code.gson:gson:2.10.1"
   val fansi = mvn"com.lihaoyi::fansi:0.5.0"
-  val jarjarabrams =
-    mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.15.0".withDottyCompat(scalaVersion)
+  val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
   val requests = mvn"com.lihaoyi::requests:0.9.0"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.18"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"

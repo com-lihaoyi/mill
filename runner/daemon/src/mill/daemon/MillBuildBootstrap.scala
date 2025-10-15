@@ -134,6 +134,22 @@ class MillBuildBootstrap(
           val state =
             if (currentRootContainsBuildFile) evaluateRec(depth + 1)
             else {
+              val parsedHeaderData = mill.internal.Util.parsedHeaderData(headerData)
+              val metaBuildData =
+                if (
+                  foundRootBuildFileName.endsWith(".yaml") || foundRootBuildFileName.endsWith(
+                    ".yml"
+                  )
+                ) {
+                  // For YAML files, extract the mill-build key if it exists, otherwise use empty map
+                  parsedHeaderData.get("mill-build") match {
+                    case Some(millBuildValue: ujson.Obj) => millBuildValue.obj.toMap
+                    case _ => Map.empty[String, ujson.Value]
+                  }
+                } else {
+                  // For non-YAML files (build.mill), use the entire parsed header data
+                  parsedHeaderData
+                }
               val bootstrapModule =
                 new MillBuildRootModule.BootstrapModule()(
                   using
@@ -144,7 +160,7 @@ class MillBuildBootstrap(
                     upickle.read[Map[
                       String,
                       ujson.Value
-                    ]](mill.internal.Util.parsedHeaderData(headerData))
+                    ]](metaBuildData)
                   )
                 )
               RunnerState(Some(bootstrapModule), Nil, None, Some(foundRootBuildFileName))
