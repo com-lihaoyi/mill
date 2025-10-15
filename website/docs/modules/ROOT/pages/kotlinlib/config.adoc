@@ -1,4 +1,4 @@
-= Simple Kotlin Modules
+= Config-Based Kotlin Modules
 :language: Kotlin
 :language-small: kotlin
 

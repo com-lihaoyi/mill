@@ -1,4 +1,4 @@
-= Simple Java Modules
+= Config-Based Java Modules
 :language: Java
 :language-small: java
 

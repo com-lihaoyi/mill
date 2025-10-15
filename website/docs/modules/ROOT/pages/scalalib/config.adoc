@@ -1,4 +1,4 @@
-= Simple Scala Modules
+= Config-Based Scala Modules
 :language: Scala
 :language-small: scala
 
