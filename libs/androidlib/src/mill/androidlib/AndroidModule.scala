@@ -205,6 +205,18 @@ trait AndroidModule extends JavaModule { outer =>
     }().flatten.distinct
   }
 
+  def androidDirectCompiledResources: T[Seq[PathRef]] = Task {
+    Task.traverse(moduleDepsChecked) {
+      case m: AndroidModule =>
+        Task.Anon(m.androidCompiledModuleResources())
+      case _ =>
+        Task.Anon(Seq.empty)
+    }().flatten.distinct
+  }
+
+
+  def androidNonTransitiveRClass: Boolean = false
+
   /**
    * Gets all the android resources (typically in res/ directory)
    * from the library dependencies using [[androidUnpackArchives]]
@@ -575,6 +587,12 @@ trait AndroidModule extends JavaModule { outer =>
     PathRef(Task.dest)
   }
 
+  def androidDepCompiledResources: T[Seq[PathRef]] =
+    androidNonTransitiveRClass match {
+      case true => Task { androidDirectCompiledResources() }
+      case false => Task { androidTransitiveCompiledResources() }
+    }
+
   /**
    * Gets all the android resources from this module,
    * compiles them into flata files and collects
@@ -602,7 +620,8 @@ trait AndroidModule extends JavaModule { outer =>
 
       os.call(aapt2Compile ++ aapt2Args)
     }
-    androidTransitiveCompiledResources() ++ Seq(PathRef(Task.dest))
+
+    Seq(PathRef(Task.dest))
   }
 
   /**
@@ -613,7 +632,7 @@ trait AndroidModule extends JavaModule { outer =>
    */
   def androidLinkedResources: T[PathRef] = Task {
     val compiledLibResDir = androidCompiledLibResources().path
-    val moduleResDirs = androidCompiledModuleResources()
+    val moduleResDirs = (androidCompiledModuleResources() ++ androidDepCompiledResources())
       .map(_.path)
 
     val filesToLink = os.walk(compiledLibResDir).filter(os.isFile(_)) ++
