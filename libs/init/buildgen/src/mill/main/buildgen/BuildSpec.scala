@@ -14,8 +14,8 @@ case class BuildSpec(
 ) {
 
   /**
-   * Moves modules in nested packages to the root module hierarchy. This transformation eliminates
-   * nested build files without modifying the build.
+   * Moves modules in nested packages to the root module hierarchy.
+   * This eliminates nested build files without modifying the build semantics.
    */
   def merged = {
     def recurse(pkg: PackageSpec): ModuleSpec = {
@@ -45,10 +45,11 @@ case class BuildSpec(
   }
 
   /**
-   * Derives a meta-build, with at most 2 base modules, and attaches it to this build.
+   * Derives and attaches a meta-build to this build.
    *
-   * A base module is derived for all non-test modules.
-   * If publish data is missing in the base module, another one is derived for publishable modules.
+   * At most, 2 base modules are created for sharing settings amongst build modules.
+   * The first one is derived from all non-test modules, if there are more than one such modules.
+   * The second one is derived from all publishable modules, if the first one has no publish data.
    */
   def withDefaultMetaBuild = {
     def abstractedModule(module1: ModuleSpec, module2: ModuleSpec) = module1.copy(
@@ -79,23 +80,20 @@ case class BuildSpec(
     def baseModuleFor(criteria: ModuleSpec => Boolean, suffix: String) = {
       val modules = packages0
         .flatMap(_.module.sequence)
-        .filter(_.configs.nonEmpty)
-        .filter(criteria).toSeq
+        .filter(module => module.configs.nonEmpty && criteria(module))
       Option.when(modules.length > 1)(modules.reduce(abstractedModule)).collect {
         case baseModule if baseModule.configs.nonEmpty =>
           val pwdName = os.pwd.last
-          val baseModuleName = pwdName.dropWhile(!_.isLetter).split("\\W") match {
+          val moduleName = pwdName.dropWhile(!_.isLetter).split("\\W") match {
             case Array("") => "Project" + suffix
             case parts => parts.map(_.capitalize).mkString("", "", suffix)
           }
-          val baseModuleSupertypes = baseModule.supertypes ++ (
-            if (baseModule.crossConfigs.nonEmpty && baseModule.isScalaModule)
-              Seq("CrossScalaModule")
-            else Nil
-          )
+          val moduleSupertypes = baseModule.supertypes ++ Option.when(
+            baseModule.crossConfigs.nonEmpty && baseModule.isScalaModule
+          )("CrossScalaModule")
           val baseModule0 = baseModule.copy(
-            name = baseModuleName,
-            supertypes = baseModuleSupertypes
+            name = moduleName,
+            supertypes = moduleSupertypes
           )
           packages0 = packages0.map { pkg =>
             pkg.copy(module =
