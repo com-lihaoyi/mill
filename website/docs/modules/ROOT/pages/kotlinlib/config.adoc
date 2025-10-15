@@ -9,26 +9,26 @@ projects which do not need additional flexibility.
 
 == Common Configuration Overrides for Simple Modules
 
-include::partial$example/kotlinlib/simple/1-common-config.adoc[]
+include::partial$example/kotlinlib/config/1-common-config.adoc[]
 
 == Maven Compatibility Modules
 
-include::partial$example/kotlinlib/simple/2-compat-modules.adoc[]
+include::partial$example/kotlinlib/config/2-compat-modules.adoc[]
 
 == Packaging and Publishing Simple Modules
 
-include::partial$example/kotlinlib/simple/3-publish.adoc[]
+include::partial$example/kotlinlib/config/3-publish.adoc[]
 
 == Custom Script Module Classes
 
-include::partial$example/kotlinlib/simple/4-custom-class.adoc[]
+include::partial$example/kotlinlib/config/4-custom-class.adoc[]
 
 == Depending on Programmatic Modules from Simple Modules
 
-include::partial$example/kotlinlib/simple/5-mixed-module-deps.adoc[]
+include::partial$example/kotlinlib/config/5-mixed-module-deps.adoc[]
 
 == Single-File Scripts
 
-include::partial$example/kotlinlib/simple/6-script.adoc[]
+include::partial$example/kotlinlib/config/6-script.adoc[]
 
 

@@ -153,11 +153,11 @@ compiling 1 Scala source to...
 // time. See the documentation for xref:fundamentals/tasks.adoc[Tasks] for
 // details on the different task types.
 //
-// This example uses Mill's YAML-based syntax, which is a good fit for simple builds
+// This example uses Mill's config-based YAML syntax, which is a good fit for simple builds
 // where you are just setting some configuration keys. This is discussed more in the documentation
 // for:
 //
-// * xref:{language-small}lib/simple.adoc[Simple {language} Modules]
+// * xref:{language-small}lib/config.adoc[Config-based {language} Modules]
 //
 // For scenarios which require more customization,
 // see xref:#_programmatic_configuration[Programmatic Configuration] discussed below.

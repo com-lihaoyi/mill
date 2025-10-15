@@ -5,20 +5,7 @@
 // `SbtTests` as shown below to preserve filesystem compatibility with an existing
 // `sbt` build:
 
-package build
-import mill.*, scalalib.*
-
-object foo extends SbtModule {
-  def scalaVersion = "3.7.1"
-  object test extends SbtTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
-    def testFramework = "utest.runner.Framework"
-  }
-  object integration extends SbtTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
-    def testFramework = "utest.runner.Framework"
-  }
-}
+/** See Also: build.mill.yaml */
 
 // `SbtModule`/`CrossSbtModule` are variants of `ScalaModule`/`CrossScalaModule`
 // that use the more verbose folder layout of `sbt`, Maven, and other tools:
