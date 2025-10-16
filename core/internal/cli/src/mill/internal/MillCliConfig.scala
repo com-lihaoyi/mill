@@ -149,19 +149,20 @@ case class MillCliConfig(
     disableTicker: Flag,
     @arg(
       doc = """Open a JShell REPL with the classpath of the meta-level 1 build module (mill-build/).
-               This is useful for interactively testing and debugging your build logic."""
+               This is useful for interactively testing and debugging your build logic.
+               Implies options `--meta-level 1` and `--no-server`."""
     )
     jshell: Flag = Flag()
 ) {
   def noDaemonEnabled =
     Seq(
-      interactive.value,
-      jshell.value,
-      repl.value,
-      noDaemon.value,
-      noServer.value,
-      bsp.value
-    ).count(identity)
+      interactive,
+      jshell,
+      repl,
+      noDaemon,
+      noServer,
+      bsp
+    ).count(_.value)
 }
 
 import mainargs.ParserForClass
@@ -176,7 +177,7 @@ Usage: mill [options] task [task-options] [+ task ...]
 """
   val cheatSheet =
     """
-task cheat sheet:
+Task cheat sheet:
   mill resolve _                 # see all top-level tasks and modules
   mill resolve __.compile        # see all `compile` tasks in any module (recursively)
 
@@ -200,14 +201,14 @@ task cheat sheet:
   mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
   mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
 
-options:
+Options:
 """
 
   lazy val parser: ParserForClass[MillCliConfig] = mainargs.ParserForClass[MillCliConfig]
 
   private lazy val helpAdvancedParser: ParserForClass[MillCliConfig] = new ParserForClass(
     parser.main.copy(argSigs0 = parser.main.argSigs0.collect {
-      case a if !a.doc.contains("Unsupported") && a.hidden =>
+      case a if !a.doc.contains("Unsupported,") && a.hidden =>
         a.copy(
           hidden = false,
           // Hack to work around `a.copy` not propagating the name mapping correctly, so we have
