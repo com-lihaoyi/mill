@@ -153,7 +153,14 @@ case class MillCliConfig(
     disableTicker: Flag
 ) {
   def noDaemonEnabled =
-    Seq(interactive.value, jshell.value, repl.value, noDaemon.value, noServer.value, bsp.value).count(identity)
+    Seq(
+      interactive.value,
+      jshell.value,
+      repl.value,
+      noDaemon.value,
+      noServer.value,
+      bsp.value
+    ).count(identity)
 }
 
 import mainargs.ParserForClass
