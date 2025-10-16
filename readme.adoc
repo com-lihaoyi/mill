@@ -28,7 +28,7 @@ in the JVM ecosystem:
 * Mill builds the same Java project https://mill-build.org/mill/comparisons/why-mill.html#_performance[3-6x
  faster than Maven or Gradle] due to aggressive caching & parallelism
 
-* Mill's rich featureset means
+* Mill's rich feature set means
 https://mill-build.org/mill/comparisons/why-mill.html#_rich_builtins[less fiddling with plugins],
 since everything needed for development is built in
 
