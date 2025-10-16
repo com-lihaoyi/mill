@@ -1,4 +1,4 @@
-= image:website/docs/logo.svg[Mill Logo] Mill: A Better Build Tool for Java, Scala, & Kotlin
+= image:website/docs/logo.svg[title=Mill Logo] Mill: A Better Build Tool for Java, Scala, & Kotlin
 :mill-stable-version: 1.0.6
 :link-github: https://github.com/com-lihaoyi/mill
 :link-current-doc-site: https://mill-build.org
