@@ -8,7 +8,7 @@ def fetchLinks(title: String): Seq[String] = {
       "format" -> "json"
     )
   )
-  for{
+  for {
     page <- ujson.read(resp)("query")("pages").obj.values.toSeq
     links <- page.obj.get("links").toSeq
     link <- links.arr

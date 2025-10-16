@@ -16,13 +16,12 @@ object `package` extends MillPublishScalaModule with BuildInfo {
 
   def buildInfoPackageName = "mill.script"
 
-  
   def buildInfoMembers = Seq(
     BuildInfo.Value("pprintVersion", millbuild.Deps.pprint.version),
     BuildInfo.Value("osLibVersion", millbuild.Deps.osLib.version),
     BuildInfo.Value("upickleVersion", millbuild.Deps.upickle.version),
     BuildInfo.Value("requestsVersion", millbuild.Deps.requests.version),
-    BuildInfo.Value("mainargsVersion", millbuild.Deps.mainargs.version),
+    BuildInfo.Value("mainargsVersion", millbuild.Deps.mainargs.version)
   )
 
 }

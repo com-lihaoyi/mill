@@ -50,9 +50,9 @@ object ScriptModule {
       else sources() ++ Seq(scriptSource())
 
     def includDefaultScriptMvnDeps: T[Boolean] = true
-    def defaultScriptMvnDeps = Task{ Seq.empty[Dep] }
+    def defaultScriptMvnDeps = Task { Seq.empty[Dep] }
 
-    override def mandatoryMvnDeps = Task{
+    override def mandatoryMvnDeps = Task {
       super.mandatoryMvnDeps() ++
         (if (includDefaultScriptMvnDeps()) defaultScriptMvnDeps() else Seq.empty[Dep])
     }
@@ -73,7 +73,7 @@ object ScriptModule {
       mvn"com.lihaoyi::os-lib:${mill.script.BuildInfo.osLibVersion}",
       mvn"com.lihaoyi::upickle:${mill.script.BuildInfo.upickleVersion}",
       mvn"com.lihaoyi::requests:${mill.script.BuildInfo.requestsVersion}",
-      mvn"com.lihaoyi::mainargs:${mill.script.BuildInfo.mainargsVersion}",
+      mvn"com.lihaoyi::mainargs:${mill.script.BuildInfo.mainargsVersion}"
     )
   }
 
