@@ -88,7 +88,6 @@ object CodeGen {
           else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
         val parsedHeaderData = mill.internal.Util.parsedHeaderData(allScriptCode(scriptPath))
 
-
         val prelude =
           s"""|import MillMiscInfo._
               |import _root_.mill.util.TokenReaders.given
@@ -104,11 +103,10 @@ object CodeGen {
               (kString, v) <- data
               if !Set("moduleDeps", "extends").contains(kString)
               if !kString.startsWith("mill-")
+            } yield kString.split(" +") match {
+              case Array(k) => s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
+              case Array("object", k) => renderTemplate(s"object $k", v.obj.toMap)
             }
-              yield kString.split(" +") match{
-                case Array(k) => s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
-                case Array("object", k) => renderTemplate(s"object $k", v.obj.toMap)
-              }
 
           val moduleDepsSnippet =
             if (moduleDeps.isEmpty) ""

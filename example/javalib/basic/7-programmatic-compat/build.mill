@@ -13,8 +13,6 @@ object foo extends MavenModule {
   object integration extends MavenTests, TestModule.Junit4
 }
 
-
-
 /** Usage
 
 > ./mill foo.compile
@@ -33,4 +31,3 @@ compiling 1 Java source...
 ...foo.FooIntegrationTests.hello ...
 
 */
-
