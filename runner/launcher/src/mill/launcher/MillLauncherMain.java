@@ -40,9 +40,7 @@ public class MillLauncherMain {
     if (needParsedConfig) {
       var config = MillCliConfig.parse(args).toOption();
       if (config.exists(c -> c.bsp().value())) bspMode = true;
-      if (config.exists(
-          c -> c.interactive().value() || c.noServer().value() || c.noDaemon().value()))
-        runNoDaemon = true;
+      if (config.exists(c -> c.noDaemonEnabled())) runNoDaemon = true;
     }
 
     // Ensure that if we're running in BSP mode we don't start a daemon.
