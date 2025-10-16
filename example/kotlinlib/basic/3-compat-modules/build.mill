@@ -5,20 +5,7 @@
 // `KotlinMavenTests` as shown below to preserve filesystem compatibility with an existing
 // Maven or Gradle build:
 
-package build
-import mill.*, kotlinlib.*
-
-object foo extends KotlinModule, KotlinMavenModule {
-
-  def kotlinVersion = "1.9.24"
-
-  object test extends KotlinMavenTests, TestModule.Junit5 {
-    def mvnDeps = Seq(mvn"io.kotest:kotest-runner-junit5:5.9.1")
-  }
-  object integration extends KotlinMavenTests, TestModule.Junit5 {
-    def mvnDeps = Seq(mvn"io.kotest:kotest-runner-junit5:5.9.1")
-  }
-}
+/** See Also: build.mill.yaml */
 
 // `KotlinMavenModule` is a variant of `KotlinModule`
 // that uses the more verbose folder layout of Maven, `sbt`, and other tools:
@@ -41,19 +28,19 @@ object foo extends KotlinModule, KotlinMavenModule {
 
 /** Usage
 
-> ./mill foo.compile
+> ./mill compile
 Compiling 1 Kotlin source...
 
-> ./mill foo.test.compile
+> ./mill test.compile
 Compiling 1 Kotlin source...
 
-> ./mill foo.test.testForked
+> ./mill test.testForked
 ...foo.FooTests hello ...
 
-> ./mill foo.test
+> ./mill test
 ...foo.FooTests hello ...
 
-> ./mill foo.integration
+> ./mill integration
 ...foo.FooIntegrationTests hello ...
 
 */

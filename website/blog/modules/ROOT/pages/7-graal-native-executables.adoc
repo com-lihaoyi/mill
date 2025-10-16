@@ -443,7 +443,7 @@ the fact that the native executable is OS/CPU-specific means that you need to sp
 generate separate native executables for each platform you want to support.
 
 The Mill build tool takes advantage of this hermeticity for easier installation: it's
-xref:mill:ROOT:cli/installation-ide.adoc#_mill_native_executable[Mill Native Executable] can be run on systems without
+xref:mill:ROOT:cli/installation-ide.adoc#_mill_native_and_jvm_executables[Mill Native Executable] can be run on systems without
 a JVM installed at all. Mill still needs a JVM later on, e.g. to compile and run user code, and so
 the native launcher downloads one on-demand automatically from the
 https://github.com/coursier/jvm-index[Coursier JVM Index]. But bootstrapping with a native

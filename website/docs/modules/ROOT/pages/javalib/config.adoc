@@ -1,4 +1,4 @@
-= Simple Java Modules
+= Config-Based Java Modules
 :language: Java
 :language-small: java
 
@@ -10,23 +10,24 @@ projects which do not need additional flexibility.
 
 == Common Configuration Overrides for Simple Modules
 
-include::partial$example/javalib/simple/1-common-config.adoc[]
+include::partial$example/javalib/config/1-common-config.adoc[]
+
 
 == Packaging and Publishing Simple Modules
 
-include::partial$example/javalib/simple/2-publish.adoc[]
+include::partial$example/javalib/config/3-publish.adoc[]
 
 == Custom Script Module Classes
 
-include::partial$example/javalib/simple/3-custom-class.adoc[]
+include::partial$example/javalib/config/4-custom-class.adoc[]
 
 == Depending on Programmatic Modules from Simple Modules
 
-include::partial$example/javalib/simple/4-mixed-module-deps.adoc[]
+include::partial$example/javalib/config/5-mixed-module-deps.adoc[]
 
 
 == Single-File Scripts
 
-include::partial$example/javalib/simple/5-script.adoc[]
+include::partial$example/javalib/config/6-script.adoc[]
 
 

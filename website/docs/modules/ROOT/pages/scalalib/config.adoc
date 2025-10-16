@@ -1,30 +1,31 @@
-= Simple Kotlin Modules
-:language: Kotlin
-:language-small: kotlin
+= Config-Based Scala Modules
+:language: Scala
+:language-small: scala
 
-This page documents the usage of simple config-based Kotlin modules defined by
+This page documents the usage of simple config-based Scala modules defined by
 `build.mill.yaml` and `package.mill.yaml` files. These are less flexible but easier to get started with than the
 full `build.mill` or `package.mill` build files, which makes them ideal for small
 projects which do not need additional flexibility.
 
 == Common Configuration Overrides for Simple Modules
 
-include::partial$example/kotlinlib/simple/1-common-config.adoc[]
+include::partial$example/scalalib/config/1-common-config.adoc[]
 
 == Packaging and Publishing Simple Modules
 
-include::partial$example/kotlinlib/simple/2-publish.adoc[]
+include::partial$example/scalalib/config/3-publish.adoc[]
+
 
 == Custom Script Module Classes
 
-include::partial$example/kotlinlib/simple/3-custom-class.adoc[]
+include::partial$example/scalalib/config/4-custom-class.adoc[]
 
 == Depending on Programmatic Modules from Simple Modules
 
-include::partial$example/kotlinlib/simple/4-mixed-module-deps.adoc[]
+include::partial$example/scalalib/config/5-mixed-module-deps.adoc[]
 
 == Single-File Scripts
 
-include::partial$example/kotlinlib/simple/5-script.adoc[]
+include::partial$example/scalalib/config/6-script.adoc[]
 
 

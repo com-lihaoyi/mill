@@ -5,11 +5,11 @@
 
 This page will discuss common topics around packaging and publishing your Java projects for others to use.
 
-== Building Executable Assemblies with `AssemblyModule`
+== Building Executable Assemblies
 
 include::partial$example/javalib/publishing/1-assembly-config.adoc[]
 
-== Building Executable Assemblies with `RepackageModule`
+== Building `Repackage` Assemblies
 
 include::partial$example/javalib/publishing/9-repackage-config.adoc[]
 

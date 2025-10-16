@@ -5,35 +5,12 @@
 // `SbtTests` as shown below to preserve filesystem compatibility with an existing
 // `sbt` build:
 
-package build
-import mill.*, scalalib.*
-
-object foo extends SbtModule {
-  def scalaVersion = "3.7.1"
-  object test extends SbtTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
-    def testFramework = "utest.runner.Framework"
-  }
-  object integration extends SbtTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
-    def testFramework = "utest.runner.Framework"
-  }
-}
-
-object bar extends Cross[BarModule]("2.12.17", "2.13.16")
-trait BarModule extends CrossSbtModule {
-  object test extends CrossSbtTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
-    def testFramework = "utest.runner.Framework"
-  }
-}
+/** See Also: build.mill.yaml */
 
 // `SbtModule`/`CrossSbtModule` are variants of `ScalaModule`/`CrossScalaModule`
 // that use the more verbose folder layout of `sbt`, Maven, and other tools:
 //
 // - `foo/src/main/scala`
-// - `foo/src/main/scala-2.12`
-// - `foo/src/main/scala-2.13`
 // - `foo/src/test/scala`
 // - `foo/src/integration/scala`
 //
@@ -50,26 +27,20 @@ trait BarModule extends CrossSbtModule {
 
 /** Usage
 
-> ./mill foo.compile
+> ./mill compile
 compiling 1 Scala source...
 
-> ./mill foo.test.compile
+> ./mill test.compile
 compiling 1 Scala source...
 
-> ./mill foo.test.testForked
+> ./mill test.testForked
 + foo.FooTests...hello ...
 
-> ./mill foo.test
+> ./mill test
 + foo.FooTests.hello ...
 
-> ./mill foo.integration
+> ./mill integration
 + foo.FooIntegrationTests.hello ...
-
-> ./mill bar[2.13.16].run
-Bar.value: Hello World Scala library version 2.13.16...
-
-> ./mill bar[2.12.17].run
-Bar.value: Hello World Scala library version 2.12.17...
 
 */
 

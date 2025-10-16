@@ -9,7 +9,7 @@ in the JVM ecosystem:
 * Mill builds the same Java project xref:comparisons/why-mill.adoc#_performance[3-6x
  faster than Maven or Gradle] due to aggressive caching & parallelism
 
-* Mill's featureset supports everything from xref:javalib/intro.adoc#_single_file_projects[single-files] to
+* Mill's featureset supports everything from xref:javalib/config.adoc#_single_file_scripts[single-files] to
 xref:large/large.adoc[large projects] needing
 xref:comparisons/why-mill.adoc#_rich_builtins[less fiddling with plugins]
 
@@ -51,7 +51,7 @@ Or see the language-specific introductory documentation linked below:
 
 === Mill Features
 
-* *Performance*: Mill automatically xref:depth/execution-model.adoc#_caching_in_mill[caches]
+* *Performance*: Mill automatically xref:depth/caching.adoc[caches]
 and xref:depth/parallelism.adoc[parallelizes build tasks] and https://mill-build.org/blog/11-jvm-test-parallelism.html[tests]
 to keep local development fast, https://mill-build.org/blog/9-mill-faster-assembly-jars.html[incrementally builds assembly jars]
 to speed up manual testing workflows, and shortens CI times with xref:large/selective-execution.adoc[selective test execution]

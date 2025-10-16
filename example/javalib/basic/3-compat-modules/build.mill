@@ -5,13 +5,7 @@
 // `MavenTests` as shown below to preserve filesystem compatibility with an existing
 // Maven or Gradle build:
 
-package build
-import mill.*, javalib.*
-
-object foo extends MavenModule {
-  object test extends MavenTests, TestModule.Junit4
-  object integration extends MavenTests, TestModule.Junit4
-}
+/** See Also: build.mill.yaml */
 
 // `MavenModule` is a variant of `JavaModule`
 // that uses the more verbose folder layout of Maven, `sbt`, and other tools:
@@ -30,19 +24,19 @@ object foo extends MavenModule {
 
 /** Usage
 
-> ./mill foo.compile
+> ./mill compile
 compiling 1 Java source...
 
-> ./mill foo.test.compile
+> ./mill test.compile
 compiling 1 Java source...
 
-> ./mill foo.test.testForked
+> ./mill test.testForked
 ...foo.FooTests.hello ...
 
-> ./mill foo.test
+> ./mill test
 ...foo.FooTests.hello ...
 
-> ./mill foo.integration
+> ./mill integration
 ...foo.FooIntegrationTests.hello ...
 
 */

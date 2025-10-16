@@ -2,7 +2,7 @@
 // using the YAML xref:cli/build-header.adoc[build header] syntax rather than a separate
 // `build.mill` file. That means you can xref:fundamentals/configuring-jvm-versions.adoc[configure the JVM version],
 // xref:javalib/module-config.adoc#_compilation_execution_flags[compile flags or runtime flags], create
-// xref:javalib/publishing.adoc#_building_executable_assemblies_with_assemblymodule[Executable Assemblies]
+// xref:javalib/publishing.adoc#_building_executable_assemblies[Executable Assemblies]
 // or xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Images],
 // xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[Publishing to Maven Central]
 // etc.
