@@ -1,15 +1,28 @@
 package build.libs.script
 
 // imports
+import mill.contrib.buildinfo.BuildInfo
 import millbuild.*
 
 /**
  * Scala logic for tab-completion in Bash and Zsh, delegated to by the `complete.sh`
  * script that runs in both shells
  */
-object `package` extends MillPublishScalaModule {
+object `package` extends MillPublishScalaModule with BuildInfo {
   def moduleDeps = Seq(build.core.api, build.libs.scalalib, build.libs.kotlinlib)
   def mvnDeps = Seq(Deps.snakeyamlEngine)
   def runModuleDeps = Seq(build.core.internal)
   def compileModuleDeps = Seq(build.core.internal)
+
+  def buildInfoPackageName = "mill.script"
+
+  
+  def buildInfoMembers = Seq(
+    BuildInfo.Value("pprintVersion", millbuild.Deps.pprint.version),
+    BuildInfo.Value("osLibVersion", millbuild.Deps.osLib.version),
+    BuildInfo.Value("upickleVersion", millbuild.Deps.upickle.version),
+    BuildInfo.Value("requestsVersion", millbuild.Deps.requests.version),
+    BuildInfo.Value("mainargsVersion", millbuild.Deps.mainargs.version),
+  )
+
 }
