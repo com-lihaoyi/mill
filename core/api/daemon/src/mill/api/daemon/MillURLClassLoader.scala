@@ -42,7 +42,7 @@ class MillURLClassLoader(
     else super.findClass(name)
 
   private var alreadyClosed = false
-  override def close() = synchronized{
+  override def close() = synchronized {
     if (!alreadyClosed) removeOpenClassloader(label)
     alreadyClosed = true
     super.close()
