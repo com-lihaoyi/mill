@@ -1,21 +1,15 @@
 package mill.integration
 
-import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
 
-object MillInitSbtScoptTests extends GitRepoIntegrationTestSuite {
+object MillInitSbtScoptTests extends MillInitTestSuite {
   def tests = Tests {
-    test - integrationTestGitRepo(
-      // sbt 1.5.2
+    test - checkImport(
       "https://github.com/scopt/scopt.git",
       "v4.1.0",
-      linkMillExecutable = true
-    ) { tester =>
-      import tester.*
-      eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-
-      "Requires Mill support for verify test framework."
-    }
+      passingTasks = Seq("native[2.13.8].compile"),
+      // no test module since verify framework is unsupported
+      failingTasks = Seq("native[2.13.8].test")
+    )
   }
 }

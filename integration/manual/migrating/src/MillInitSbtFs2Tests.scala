@@ -1,25 +1,18 @@
 package mill.integration
-
-import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
-
-object MillInitSbtFs2Tests extends GitRepoIntegrationTestSuite {
+object MillInitSbtFs2Tests extends MillInitTestSuite {
   def tests = Tests {
-    test - integrationTestGitRepo(
-      // sbt 1.10.11
+    test - checkImport(
       "https://github.com/typelevel/fs2.git",
       "v3.12.0",
-      linkMillExecutable = true
-    ) { tester =>
-      import tester.*
-      eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-
-      """Requires manual fix for scalacOptions Seq("-release", "8").
-        |
-        |benchmark[2.13.16].compile
-        |[error] .../fs2/benchmark/src/main/scala/fs2/benchmark/FlowInteropBenchmark.scala:39:29: object Flow is not a member of package java.util.concurrent
-        |""".stripMargin
-    }
+      passingTasks = Seq(
+        ("core.js[2.13.16].test.testOnly", "fs2.hashing.HashingSuite"),
+        ("core.jvm[3.3.5].test.testOnly", "fs2.hashing.HashingSuite")
+      ),
+      failingTasks = Seq(
+        "core.native[2.12.20].test.scalaNativeWorkerClasspath",
+        "benchmark[3.3.5].compile"
+      )
+    )
   }
 }

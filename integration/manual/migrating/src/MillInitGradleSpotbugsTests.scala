@@ -1,31 +1,13 @@
 package mill.integration
-
-import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
-
-object MillInitGradleSpotbugsTests extends GitRepoIntegrationTestSuite {
-
+object MillInitGradleSpotbugsTests extends MillInitTestSuite {
   def tests = Tests {
-    test - integrationTestGitRepo(
-      // Gradle 9.0.0
-      // test dependencies in spotbugs-test are configured in main configurations
-      "https://github.com/spotbugs/spotbugs.git",
-      "4.9.4",
-      linkMillExecutable = true
-    ) { tester =>
-      import tester.*
-      eval(
-        ("init", "--gradle-jvm-id", "17"),
-        stdout = os.Inherit,
-        stderr = os.Inherit
-      ).isSuccess ==> true
-      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-
-      """eclipsePlugin-test.resolvedMvnDeps java.lang.RuntimeException: 
-        |Resolution failed for 1 modules:
-        |--------------------------------------------
-        |  org.eclipse.platform:org.eclipse.swt.${osgi.platform}:[3.120.0,3.120.0]
-        |""".stripMargin
-    }
+    test - checkImport(
+      gitUrl = "https://github.com/spotbugs/spotbugs.git",
+      gitBranch = "4.9.4",
+      initArgs = Seq("--gradle-jvm-id", "17"),
+      passingTasks = Seq("spotbugs.compile"),
+      failingTasks = Seq("eclipsePlugin-test.resolvedMvnDeps")
+    )
   }
 }

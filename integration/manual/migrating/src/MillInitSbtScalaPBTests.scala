@@ -1,22 +1,14 @@
 package mill.integration
 
-import mill.testkit.GitRepoIntegrationTestSuite
 import utest.*
 
-object MillInitSbtScalaPBTests extends GitRepoIntegrationTestSuite {
+object MillInitSbtScalaPBTests extends MillInitTestSuite {
   def tests = Tests {
-    test - integrationTestGitRepo(
+    test - checkImport(
       // sbt 1.11.2
       "https://github.com/scalapb/ScalaPB.git",
       "v0.11.19",
-      linkMillExecutable = true
-    ) { tester =>
-      import tester.*
-      eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      // requires support for converting sbt-projectmatrix platform modules
-      eval("__.showModuleDeps", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
-
-      "Requires support for sbt-projectmatrix."
-    }
+      failingTasks = Seq(("resolve", "_"))
+    )
   }
 }
