@@ -1,0 +1,36 @@
+//// SNIPPET:ALL
+// This example is similar to the xref:#_maven_compatible_modules[Maven-Compatible Modules]
+// above, but using Mill's programmatic `build.mill` files. These are more flexible than
+// the config-driven `build.mill.yaml` files, and can contain
+// xref:javalib/intro.adoc#_custom_build_logic[Custom Build Logic] and other programmatic
+// configuration
+
+package build
+import mill.*, javalib.*
+
+object foo extends MavenModule {
+  object test extends MavenTests, TestModule.Junit4
+  object integration extends MavenTests, TestModule.Junit4
+}
+
+
+
+/** Usage
+
+> ./mill foo.compile
+compiling 1 Java source...
+
+> ./mill foo.test.compile
+compiling 1 Java source...
+
+> ./mill foo.test.testForked
+...foo.FooTests.hello ...
+
+> ./mill foo.test
+...foo.FooTests.hello ...
+
+> ./mill foo.integration
+...foo.FooIntegrationTests.hello ...
+
+*/
+

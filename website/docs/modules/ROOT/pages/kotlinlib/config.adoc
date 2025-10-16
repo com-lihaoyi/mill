@@ -11,10 +11,6 @@ projects which do not need additional flexibility.
 
 include::partial$example/kotlinlib/config/1-common-config.adoc[]
 
-== Maven Compatibility Modules
-
-include::partial$example/kotlinlib/config/2-compat-modules.adoc[]
-
 == Packaging and Publishing Simple Modules
 
 include::partial$example/kotlinlib/config/3-publish.adoc[]

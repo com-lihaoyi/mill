@@ -11,10 +11,6 @@ projects which do not need additional flexibility.
 
 include::partial$example/scalalib/config/1-common-config.adoc[]
 
-== SBT Compatibility Modules
-
-include::partial$example/scalalib/config/2-compat-modules.adoc[]
-
 == Packaging and Publishing Simple Modules
 
 include::partial$example/scalalib/config/3-publish.adoc[]

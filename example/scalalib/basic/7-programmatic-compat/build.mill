@@ -1,9 +1,8 @@
 //// SNIPPET:ALL
-// Mill's default folder layout of `foo/src/` and `foo/test/src` differs from that
-// of `sbt`'s `foo/src/main/scala/` and `foo/src/test/scala/`. If you are
-// migrating an existing codebase from `sbt`, you can use Mill's `SbtModule` and
-// `SbtTests` as shown below to preserve filesystem compatibility with an existing
-// `sbt` build:
+// This example is similar to the xref:#_sbt_compatible_modules[`sbt`-Compatible Modules]
+// above, but using Mill's programmatic `build.mill` files. These are more flexible than
+// the config-driven `build.mill.yaml` files, and additionally allows use of `Cross` modules
+// such as `CrossSbtModule`:
 
 package build
 import mill.*, scalalib.*
@@ -44,10 +43,6 @@ trait BarModule extends CrossSbtModule {
 // - `foo/src-2.13`
 // - `foo/test/src`
 //
-// This is especially useful if you are migrating from `sbt` to Mill (or vice
-// versa), during which a particular module may be built using both `sbt` and
-// Mill at the same time
-
 /** Usage
 
 > ./mill foo.compile
@@ -73,4 +68,3 @@ Bar.value: Hello World Scala library version 2.12.17...
 
 */
 
-// For more details on migrating from other build tools, see xref:migrating/migrating.adoc[]

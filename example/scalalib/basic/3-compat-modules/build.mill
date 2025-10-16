@@ -11,8 +11,6 @@
 // that use the more verbose folder layout of `sbt`, Maven, and other tools:
 //
 // - `foo/src/main/scala`
-// - `foo/src/main/scala-2.12`
-// - `foo/src/main/scala-2.13`
 // - `foo/src/test/scala`
 // - `foo/src/integration/scala`
 //
