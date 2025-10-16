@@ -128,6 +128,23 @@ case class MillCliConfig(
       doc = """Runs Mill in tab-completion mode"""
     )
     tabComplete: Flag = Flag(),
+    @arg(hidden = true, short = 'h', doc = "Unsupported, but kept for compatibility")
+    home: os.Path = os.home,
+    @arg(hidden = true, doc =
+      """Open a Scala REPL with the classpath of the meta-level 1 build module (mill-build/).
+        Implies options `--meta-level 1` and `--no-server`. """)
+    repl: Flag = Flag(),
+    @arg(hidden = true, doc = "Deprecated, but kept for compatibility")
+    noServer: Flag = Flag(),
+    @arg(short = 's', doc = "Unsupported, but kept for compatibility")
+    silent: Flag = Flag(),
+    @arg(name = "disable-callgraph", doc = "Unsupported, but kept for compatibility")
+    disableCallgraph: Flag = Flag(),
+    @arg(hidden = true, doc = "Unsupported, but kept for compatibility")
+    disablePrompt: Flag = Flag(),
+    @arg(hidden = true, doc = "Unsupported, but kept for compatibility")
+    enableTicker: Option[Boolean] = None,
+    @arg(hidden = true, doc = "Deprecated, but kept for compatibility")
     @arg(
       doc = """Open a JShell REPL with the classpath of the meta-level 1 build module (mill-build/).
                This is useful for interactively testing and debugging your build logic."""
@@ -135,21 +152,6 @@ case class MillCliConfig(
     jshell: Flag = Flag(),
 
     // ==================== DEPRECATED CLI FLAGS ====================
-    @arg(hidden = true, short = 'h', doc = "Unsupported")
-    home: os.Path = os.home,
-    @arg(hidden = true, doc = "Unsupported")
-    repl: Flag = Flag(),
-    @arg(hidden = true, doc = "Unsupported")
-    noServer: Flag = Flag(),
-    @arg(short = 's', doc = "Unsupported")
-    silent: Flag = Flag(),
-    @arg(name = "disable-callgraph", doc = "Unsupported")
-    disableCallgraph: Flag = Flag(),
-    @arg(hidden = true, doc = "Unsupported")
-    disablePrompt: Flag = Flag(),
-    @arg(hidden = true, doc = "Unsupported")
-    enableTicker: Option[Boolean] = None,
-    @arg(hidden = true, doc = "Unsupported")
     disableTicker: Flag
 ) {
   def noDaemonEnabled =
