@@ -26,7 +26,7 @@ If you prefer a video introduction to Mill, see:
 
 * https://www.youtube.com/watch?v=-DTYm1qhQ6U[Video: Engineering a Better Java Build Tool Experience],
 Berlin Expert Days 8 Oct 2025
-* https://www.youtube.com/watch?v=tNsz_dGCsVs[Video: Simpler Build Tools with Functional and Object Oriented Programming], Scala Workshop 13 October 2025
+* https://www.youtube.com/watch?v=tNsz_dGCsVs[Video: Simpler Build Tools with Functional and Object Oriented Programming], Scala Workshop 13 Oct 2025
 
 For more discussion on the motivation behind the project, see xref:comparisons/why-mill.adoc[Why Use Mill?]
 
