@@ -1,6 +1,6 @@
 package mill.internal
 
-import mainargs.{Flag, Leftover, arg}
+import mainargs.{ArgSig, Flag, Leftover, arg}
 import mill.api.JsonFormatters.*
 
 case class MillCliConfig(
@@ -118,7 +118,7 @@ case class MillCliConfig(
     offline: Flag = Flag(),
     @arg(
       doc = """
-        Globally disables the checks that prevent you from reading and writing to disallowed 
+        Globally disables the checks that prevent you from reading and writing to disallowed
         files or folders during evaluation. Useful as an escape hatch in case you desperately
         need to do something unusual and you are willing to take the risk
       """
@@ -208,7 +208,7 @@ Options:
 
   private lazy val helpAdvancedParser: ParserForClass[MillCliConfig] = new ParserForClass(
     parser.main.copy(argSigs0 = parser.main.argSigs0.collect {
-      case a if !a.doc.exists(_.startsWith("Unsupported")) && a.hidden =>
+      case a if !isUnsupported(a) && a.hidden =>
         a.copy(
           hidden = false,
           // Hack to work around `a.copy` not propagating the name mapping correctly, so we have
@@ -248,5 +248,9 @@ Options:
       customDoc = customDoc
     ))
   }
+
+  def isUnsupported(arg: ArgSig): Boolean = arg.doc.exists(_.startsWith("Unsupported"))
+
+  def isDeprecated(arg: ArgSig): Boolean = arg.doc.exists(_.startsWith("Deprecated"))
 
 }
