@@ -130,9 +130,10 @@ case class MillCliConfig(
     tabComplete: Flag = Flag(),
     @arg(hidden = true, short = 'h', doc = "Unsupported, but kept for compatibility")
     home: os.Path = os.home,
-    @arg(hidden = true, doc =
+    @arg(doc =
       """Open a Scala REPL with the classpath of the meta-level 1 build module (mill-build/).
-        Implies options `--meta-level 1` and `--no-server`. """)
+        Implies options `--meta-level 1` and `--no-server`."""
+    )
     repl: Flag = Flag(),
     @arg(hidden = true, doc = "Deprecated, but kept for compatibility")
     noServer: Flag = Flag(),
