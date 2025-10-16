@@ -893,7 +893,7 @@ and standardize it across all scripts that inherit it via <code>extends.</code><
 <h2 id="_depending_on_programmatic_modules_from_simple_modules"><a class="anchor" href="#_depending_on_programmatic_modules_from_simple_modules"></a>Depending on Programmatic Modules from Simple Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-22-9177a3/mill-dist-1.0.6-22-9177a3-example-scalalib-config-5-mixed-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/config/5-mixed-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-23-2e3e10/mill-dist-1.0.6-23-2e3e10-example-scalalib-config-5-mixed-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/config/5-mixed-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1042,6 +1042,94 @@ object FooTests {
 &lt;h1&gt;hello&lt;/h1&gt;
 &lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;</code></pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scripts_builtin_libraries"><a class="anchor" href="#_scripts_builtin_libraries"></a>Scripts Builtin Libraries</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill Scala scripts come with a number of bundled libraries for convenience. These
+are largely the same as the <a href="../fundamentals/bundled-libraries.html" class="xref page">libraries available in Mill build files</a>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a></p>
+</li>
+<li>
+<p><a href="https://github.com/com-lihaoyi/upickle">uPickle</a></p>
+</li>
+<li>
+<p><a href="https://github.com/com-lihaoyi/requests-scala">Requests-Scala</a></p>
+</li>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mainargs">MainArgs</a></p>
+</li>
+<li>
+<p><a href="https://github.com/com-lihaoyi/PPrint">PPrint</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These libraries can make it more convenient to script simple command-line workflows
+interacting with files, subprocesses, and HTTP endpoints. For example, below is a simple
+script using these libraries to crawl wikipedia and save the crawl results to a file:</p>
+</div>
+<div class="listingblock">
+<div class="title">Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/config/7-script-builtins/Foo.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def fetchLinks(title: String): Seq[String] = {
+  val resp = requests.get.stream(
+    &quot;https://en.wikipedia.org/w/api.php&quot;,
+    params = Seq(
+      &quot;action&quot; -&gt; &quot;query&quot;,
+      &quot;titles&quot; -&gt; title,
+      &quot;prop&quot; -&gt; &quot;links&quot;,
+      &quot;format&quot; -&gt; &quot;json&quot;
+    )
+  )
+  for {
+    page &lt;- ujson.read(resp)(&quot;query&quot;)(&quot;pages&quot;).obj.values.toSeq
+    links &lt;- page.obj.get(&quot;links&quot;).toSeq
+    link &lt;- links.arr
+  } yield link(&quot;title&quot;).str
+}
+
+@mainargs.main
+def main(startArticle: String, depth: Int) = {
+  var seen = Set(startArticle)
+  var current = Set(startArticle)
+  for (i &lt;- Range(0, depth)) {
+    val nextTitleLists = current.flatMap(fetchLinks(_))
+    current = nextTitleLists.filter(!seen.contains(_))
+    seen = seen ++ current
+  }
+
+  os.write(os.pwd / &quot;fetched.json&quot;, upickle.stream(seen, indent = 4))
+}
+
+def main(args: Array[String]): Unit = mainargs.ParserForMethods(this).runOrExit(args)</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.scala --start-article singapore --depth 2
+
+&gt; cat fetched.json
+[
+    &quot;Calling code&quot;,
+    &quot;+65&quot;,
+    &quot;British Empire&quot;,
+    &quot;1st Parliament of Singapore&quot;,
+    ...
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These bundled libraries are only available in single-file scripts for convenience; in
+config-based modules or programmatic modules, you would need to add them to <code>mvnDeps</code> explicitly.
+You can also disable use of these libraries in scripts via <code>//| includDefaultScriptMvnDeps: false</code>.</p>
 </div>
 </div>
 </div>
