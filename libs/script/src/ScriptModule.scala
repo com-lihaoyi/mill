@@ -3,6 +3,7 @@ import mill.*
 import mill.api.ExternalModule
 import mill.api.Discover
 import mill.api.daemon.Segments
+import mill.javalib.*
 
 trait ScriptModule extends ExternalModule {
   def simpleConf: ScriptModule.Config
@@ -44,11 +45,16 @@ object ScriptModule {
 
     def scriptSource = Task.Source(simpleConf.simpleModulePath)
 
-    override def allSources = {
-      if (os.isDir(simpleConf.simpleModulePath)) super.allSources
-      else Task {
-        sources() ++ Seq(scriptSource())
-      }
+    override def allSources =
+      if (os.isDir(simpleConf.simpleModulePath)) super.allSources()
+      else sources() ++ Seq(scriptSource())
+
+    def includDefaultScriptMvnDeps: T[Boolean] = true
+    def defaultScriptMvnDeps = Task { Seq.empty[Dep] }
+
+    override def mandatoryMvnDeps = Task {
+      super.mandatoryMvnDeps() ++
+        (if (includDefaultScriptMvnDeps()) defaultScriptMvnDeps() else Seq.empty[Dep])
     }
   }
 
@@ -62,6 +68,13 @@ object ScriptModule {
 
   class ScalaModule(val simpleConf: ScriptModule.Config) extends ScalaModuleBase {
     override lazy val millDiscover = Discover[this.type]
+    override def defaultScriptMvnDeps = Seq(
+      mvn"com.lihaoyi::pprint:${mill.script.BuildInfo.pprintVersion}",
+      mvn"com.lihaoyi::os-lib:${mill.script.BuildInfo.osLibVersion}",
+      mvn"com.lihaoyi::upickle:${mill.script.BuildInfo.upickleVersion}",
+      mvn"com.lihaoyi::requests:${mill.script.BuildInfo.requestsVersion}",
+      mvn"com.lihaoyi::mainargs:${mill.script.BuildInfo.mainargsVersion}"
+    )
   }
 
   trait ScalaModuleBase extends JavaModuleBase, mill.scalalib.ScalaModule {

@@ -28,4 +28,8 @@ include::partial$example/scalalib/config/5-mixed-module-deps.adoc[]
 
 include::partial$example/scalalib/config/6-script.adoc[]
 
+== Scripts Builtin Libraries
+
+include::partial$example/scalalib/config/7-script-builtins.adoc[]
+
 
