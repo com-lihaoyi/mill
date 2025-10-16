@@ -379,7 +379,7 @@ scalalib/web/6-webapp-scalajs-shared
 ...
 javalib/basic/1-simple
 ...
-javalib/basic/7-realistic
+javalib/basic/8-realistic
 ...
 javalib/web/1-hello-jetty
 javalib/web/2-hello-spring-boot
@@ -388,7 +388,7 @@ javalib/web/4-hello-micronaut
 javalib/web/5-todo-micronaut
 kotlinlib/basic/1-simple
 ...
-kotlinlib/basic/7-realistic
+kotlinlib/basic/8-realistic
 ...
 kotlinlib/web/1-hello-ktor
 */
