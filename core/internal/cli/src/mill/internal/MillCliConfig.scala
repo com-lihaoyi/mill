@@ -1,6 +1,6 @@
 package mill.internal
 
-import mainargs.{Flag, Leftover, arg}
+import mainargs.{ArgSig, Flag, Leftover, arg}
 import mill.api.JsonFormatters.*
 
 case class MillCliConfig(
@@ -118,7 +118,7 @@ case class MillCliConfig(
     offline: Flag = Flag(),
     @arg(
       doc = """
-        Globally disables the checks that prevent you from reading and writing to disallowed 
+        Globally disables the checks that prevent you from reading and writing to disallowed
         files or folders during evaluation. Useful as an escape hatch in case you desperately
         need to do something unusual and you are willing to take the risk
       """
@@ -128,39 +128,41 @@ case class MillCliConfig(
       doc = """Runs Mill in tab-completion mode"""
     )
     tabComplete: Flag = Flag(),
+    @arg(hidden = true, short = 'h', doc = "Unsupported, but kept for compatibility")
+    home: os.Path = os.home,
+    @arg(doc =
+      """Open a Scala REPL with the classpath of the meta-level 1 build module (mill-build/).
+        Implies options `--meta-level 1` and `--no-server`."""
+    )
+    repl: Flag = Flag(),
+    @arg(hidden = true, doc = "Deprecated, but kept for compatibility")
+    noServer: Flag = Flag(),
+    @arg(hidden = true, short = 's', doc = "Unsupported, but kept for compatibility")
+    silent: Flag = Flag(),
+    @arg(hidden = true, name = "disable-callgraph", doc = "Unsupported, but kept for compatibility")
+    disableCallgraph: Flag = Flag(),
+    @arg(hidden = true, doc = "Unsupported, but kept for compatibility")
+    disablePrompt: Flag = Flag(),
+    @arg(hidden = true, doc = "Unsupported, but kept for compatibility")
+    enableTicker: Option[Boolean] = None,
+    @arg(hidden = true, doc = "Deprecated, but kept for compatibility")
+    disableTicker: Flag,
     @arg(
       doc = """Open a JShell REPL with the classpath of the meta-level 1 build module (mill-build/).
-               This is useful for interactively testing and debugging your build logic."""
+               This is useful for interactively testing and debugging your build logic.
+               Implies options `--meta-level 1` and `--no-server`."""
     )
-    jshell: Flag = Flag(),
-
-    // ==================== DEPRECATED CLI FLAGS ====================
-    @arg(hidden = true, short = 'h', doc = "Unsupported")
-    home: os.Path = os.home,
-    @arg(hidden = true, doc = "Unsupported")
-    repl: Flag = Flag(),
-    @arg(hidden = true, doc = "Unsupported")
-    noServer: Flag = Flag(),
-    @arg(short = 's', doc = "Unsupported")
-    silent: Flag = Flag(),
-    @arg(name = "disable-callgraph", doc = "Unsupported")
-    disableCallgraph: Flag = Flag(),
-    @arg(hidden = true, doc = "Unsupported")
-    disablePrompt: Flag = Flag(),
-    @arg(hidden = true, doc = "Unsupported")
-    enableTicker: Option[Boolean] = None,
-    @arg(hidden = true, doc = "Unsupported")
-    disableTicker: Flag
+    jshell: Flag = Flag()
 ) {
   def noDaemonEnabled =
     Seq(
-      interactive.value,
-      jshell.value,
-      repl.value,
-      noDaemon.value,
-      noServer.value,
-      bsp.value
-    ).count(identity)
+      interactive,
+      jshell,
+      repl,
+      noDaemon,
+      noServer,
+      bsp
+    ).count(_.value)
 }
 
 import mainargs.ParserForClass
@@ -175,7 +177,7 @@ Usage: mill [options] task [task-options] [+ task ...]
 """
   val cheatSheet =
     """
-task cheat sheet:
+Task cheat sheet:
   mill resolve _                 # see all top-level tasks and modules
   mill resolve __.compile        # see all `compile` tasks in any module (recursively)
 
@@ -199,14 +201,14 @@ task cheat sheet:
   mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
   mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
 
-options:
+Options:
 """
 
   lazy val parser: ParserForClass[MillCliConfig] = mainargs.ParserForClass[MillCliConfig]
 
   private lazy val helpAdvancedParser: ParserForClass[MillCliConfig] = new ParserForClass(
     parser.main.copy(argSigs0 = parser.main.argSigs0.collect {
-      case a if !a.doc.contains("Unsupported") && a.hidden =>
+      case a if !isUnsupported(a) && a.hidden =>
         a.copy(
           hidden = false,
           // Hack to work around `a.copy` not propagating the name mapping correctly, so we have
@@ -246,5 +248,9 @@ options:
       customDoc = customDoc
     ))
   }
+
+  def isUnsupported(arg: ArgSig): Boolean = arg.doc.exists(_.startsWith("Unsupported"))
+
+  def isDeprecated(arg: ArgSig): Boolean = arg.doc.exists(_.startsWith("Deprecated"))
 
 }
