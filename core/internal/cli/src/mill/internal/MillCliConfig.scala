@@ -128,6 +128,11 @@ case class MillCliConfig(
       doc = """Runs Mill in tab-completion mode"""
     )
     tabComplete: Flag = Flag(),
+    @arg(
+      doc = """Open a JShell REPL with the classpath of the meta-level 1 build module (mill-build/).
+               This is useful for interactively testing and debugging your build logic."""
+    )
+    jshell: Flag = Flag(),
 
     // ==================== DEPRECATED CLI FLAGS ====================
     @arg(hidden = true, short = 'h', doc = "Unsupported")
@@ -148,7 +153,14 @@ case class MillCliConfig(
     disableTicker: Flag
 ) {
   def noDaemonEnabled =
-    Seq(interactive.value, repl.value, noDaemon.value, noServer.value, bsp.value).count(identity)
+    Seq(
+      interactive.value,
+      jshell.value,
+      repl.value,
+      noDaemon.value,
+      noServer.value,
+      bsp.value
+    ).count(identity)
 }
 
 import mainargs.ParserForClass

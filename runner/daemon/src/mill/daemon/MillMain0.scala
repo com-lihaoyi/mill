@@ -216,7 +216,9 @@ object MillMain0 {
                 if (bspInstallModeJobCountOpt.isDefined) {
                   BSP.install(bspInstallModeJobCountOpt.get, config.debugLog.value, streams.err)
                   (true, stateCache)
-                } else if (!bspMode && !config.repl.value && config.leftoverArgs.value.isEmpty) {
+                } else if (
+                  !bspMode && !config.jshell.value && !config.repl.value && config.leftoverArgs.value.isEmpty
+                ) {
                   println(MillCliConfig.shortUsageText)
 
                   (true, stateCache)
@@ -311,7 +313,18 @@ object MillMain0 {
                       }
                     }
 
-                    if (config.repl.value) {
+                    if (config.jshell.value) {
+                      val bootstrapped = runMillBootstrap(
+                        skipSelectiveExecution = false,
+                        Some(stateCache),
+                        Seq("jshell") ++ config.leftoverArgs.value,
+                        streams,
+                        "jshell",
+                        metaLevelOverride = Some(1)
+                      )
+
+                      (true, bootstrapped.result)
+                    } else if (config.repl.value) {
                       val bootstrapped = runMillBootstrap(
                         skipSelectiveExecution = false,
                         Some(stateCache),
