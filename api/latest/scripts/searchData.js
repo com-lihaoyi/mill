@@ -1955,6 +1955,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/javalib/JavaModule.html#jar-0","e":false,"i":"","n":"jar","t":"jar: Simple[PathRef]","d":"mill.javalib.JavaModule","k":"def","x":""},
 {"l":"mill/javalib/JavaModule.html#javadocGenerated-0","e":false,"i":"","n":"javadocGenerated","t":"javadocGenerated: Simple[PathRef]","d":"mill.javalib.JavaModule","k":"def","x":""},
 {"l":"mill/javalib/JavaModule.html#javadocOptions-0","e":false,"i":"","n":"javadocOptions","t":"javadocOptions: Simple[Seq[String]]","d":"mill.javalib.JavaModule","k":"def","x":""},
+{"l":"mill/javalib/JavaModule.html#jshell-fffff121","e":false,"i":"","n":"jshell","t":"jshell(args: String*): Command[Unit]","d":"mill.javalib.JavaModule","k":"def","x":""},
 {"l":"mill/javalib/JavaModule.html#launcher-0","e":false,"i":"","n":"launcher","t":"launcher: Simple[PathRef]","d":"mill.javalib.JavaModule","k":"def","x":""},
 {"l":"mill/javalib/JavaModule.html#localClasspath-0","e":false,"i":"","n":"localClasspath","t":"localClasspath: Simple[Seq[PathRef]]","d":"mill.javalib.JavaModule","k":"def","x":""},
 {"l":"mill/javalib/JavaModule.html#localCompileClasspath-0","e":false,"i":"","n":"localCompileClasspath","t":"localCompileClasspath: Simple[Seq[PathRef]]","d":"mill.javalib.JavaModule","k":"def","x":""},
