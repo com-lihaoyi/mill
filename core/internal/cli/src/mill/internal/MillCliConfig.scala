@@ -137,9 +137,9 @@ case class MillCliConfig(
     repl: Flag = Flag(),
     @arg(hidden = true, doc = "Deprecated, but kept for compatibility")
     noServer: Flag = Flag(),
-    @arg(short = 's', doc = "Unsupported, but kept for compatibility")
+    @arg(hidden = true, short = 's', doc = "Unsupported, but kept for compatibility")
     silent: Flag = Flag(),
-    @arg(name = "disable-callgraph", doc = "Unsupported, but kept for compatibility")
+    @arg(hidden = true, name = "disable-callgraph", doc = "Unsupported, but kept for compatibility")
     disableCallgraph: Flag = Flag(),
     @arg(hidden = true, doc = "Unsupported, but kept for compatibility")
     disablePrompt: Flag = Flag(),
@@ -208,7 +208,7 @@ Options:
 
   private lazy val helpAdvancedParser: ParserForClass[MillCliConfig] = new ParserForClass(
     parser.main.copy(argSigs0 = parser.main.argSigs0.collect {
-      case a if !a.doc.contains("Unsupported,") && a.hidden =>
+      case a if !a.doc.exists(_.startsWith("Unsupported")) && a.hidden =>
         a.copy(
           hidden = false,
           // Hack to work around `a.copy` not propagating the name mapping correctly, so we have

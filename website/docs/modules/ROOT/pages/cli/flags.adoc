@@ -63,7 +63,6 @@ Options:
   --color <bool>           Toggle colored output; by default enabled only if the console is
                            interactive and NO_COLOR environment variable is not set
   -d --debug               Show debug output on STDOUT
-  --disable-callgraph      Unsupported, but kept for compatibility
   --help                   Print this help message and exit.
   --help-advanced          Print a internal or advanced command flags not intended for common usage
   -i --interactive         Run Mill in interactive mode, suitable for opening REPLs and taking user
@@ -94,7 +93,6 @@ Options:
                            remote sources.
   --repl                   Open a Scala REPL with the classpath of the meta-level 1 build module
                            (mill-build/). Implies options `--meta-level 1` and `--no-server`.
-  -s --silent              Unsupported, but kept for compatibility
   --tab-complete           Runs Mill in tab-completion mode
   --ticker <bool>          Enable or disable the ticker log, which provides information on running
                            tasks and where each log line came from
