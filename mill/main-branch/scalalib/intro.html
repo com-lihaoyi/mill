@@ -6,7 +6,7 @@
     <title>Building Scala with Mill :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/scalalib/intro.html" />
     <link rel="prev" href="../javalib/web-examples.html" />
-    <link rel="next" href="simple.html" />
+    <link rel="next" href="config.html" />
     <meta name="generator" content="Antora 3.1.12" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -137,7 +137,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/simple.html">Simple Java Modules</a>
+    <a class="nav-link" href="../javalib/config.html">Config-Based Java Modules</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -176,7 +176,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="simple.html">Simple Scala Modules</a>
+    <a class="nav-link" href="config.html">Config-Based Scala Modules</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -223,7 +223,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/simple.html">Simple Kotlin Modules</a>
+    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -901,14 +901,14 @@ time. See the documentation for <a href="../fundamentals/tasks.html" class="xref
 details on the different task types.</p>
 </div>
 <div class="paragraph">
-<p>This example uses Mill’s YAML-based syntax, which is a good fit for simple builds
+<p>This example uses Mill’s config-based YAML syntax, which is a good fit for simple builds
 where you are just setting some configuration keys. This is discussed more in the documentation
 for:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="simple.html" class="xref page">Simple Scala Modules</a></p>
+<p><a href="config.html" class="xref page">Config-based Scala Modules</a></p>
 </li>
 </ul>
 </div>
@@ -1071,10 +1071,104 @@ preceding it with a backslash (<code>\</code>).</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_sbt_compatible_modules"><a class="anchor" href="#_sbt_compatible_modules"></a>SBT Compatible Modules</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill’s default folder layout of <code>foo/src/</code> and <code>foo/test/src</code> differs from that
+of <code>sbt’s `foo/src/main/scala/</code> and <code>foo/src/test/scala/</code>. If you are
+migrating an existing codebase from <code>sbt</code>, you can use Mill’s <code>SbtModule</code> and
+<code>SbtTests</code> as shown below to preserve filesystem compatibility with an existing
+<code>sbt</code> build:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/3-compat-modules/build.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.scalalib.SbtModule]
+scalaVersion: 3.7.2
+mvnDeps:
+- &quot;com.lihaoyi::scalatags:0.13.1&quot;
+- &quot;com.lihaoyi::mainargs:0.7.6&quot;
+
+object test:
+  extends: [build.SbtTests, mill.javalib.TestModule.Utest]
+  mvnDeps:
+  - &quot;com.lihaoyi::utest:0.9.1&quot;
+
+object integration:
+  extends: [build.SbtTests, mill.javalib.TestModule.Utest]
+  mvnDeps:
+  - &quot;com.lihaoyi::utest:0.9.1&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>SbtModule</code>/<code>CrossSbtModule</code> are variants of <code>ScalaModule</code>/<code>CrossScalaModule</code>
+that use the more verbose folder layout of <code>sbt</code>, Maven, and other tools:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>foo/src/main/scala</code></p>
+</li>
+<li>
+<p><code>foo/src/test/scala</code></p>
+</li>
+<li>
+<p><code>foo/src/integration/scala</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Rather than Mill’s</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>foo/src</code></p>
+</li>
+<li>
+<p><code>foo/src-2.12</code></p>
+</li>
+<li>
+<p><code>foo/src-2.13</code></p>
+</li>
+<li>
+<p><code>foo/test/src</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This is especially useful if you are migrating from <code>sbt</code> to Mill (or vice
+versa), during which a particular module may be built using both <code>sbt</code> and
+Mill at the same time</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill compile
+compiling 1 Scala source...
+
+&gt; ./mill test.compile
+compiling 1 Scala source...
+
+&gt; ./mill test.testForked
++ foo.FooTests...hello ...
+
+&gt; ./mill test
++ foo.FooTests.hello ...
+
+&gt; ./mill integration
++ foo.FooIntegrationTests.hello ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more details on migrating from other build tools, see <a href="../migrating/migrating.html" class="xref page">Migrating to Mill</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_programmatic_configuration"><a class="anchor" href="#_programmatic_configuration"></a>Programmatic Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-21-30fe68/mill-dist-1.0.6-21-30fe68-example-scalalib-basic-3-programmatic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/3-programmatic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-22-9177a3/mill-dist-1.0.6-22-9177a3-example-scalalib-basic-4-programmatic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/4-programmatic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1181,7 +1275,7 @@ single generated text file containing the line count of all the source files
 in that module</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-21-30fe68/mill-dist-1.0.6-21-30fe68-example-scalalib-basic-4-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/4-custom-build-logic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-22-9177a3/mill-dist-1.0.6-22-9177a3-example-scalalib-basic-5-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/5-custom-build-logic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1333,7 +1427,7 @@ maintainable even as the complexity of your project grows.</p>
 <h2 id="_multi_module_project"><a class="anchor" href="#_multi_module_project"></a>Multi-Module Project</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-21-30fe68/mill-dist-1.0.6-21-30fe68-example-scalalib-basic-5-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/5-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-22-9177a3/mill-dist-1.0.6-22-9177a3-example-scalalib-basic-6-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/6-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1394,17 +1488,16 @@ module close to the code it is configuring</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_maven_compatible_modules"><a class="anchor" href="#_maven_compatible_modules"></a>Maven-Compatible Modules</h2>
+<h2 id="_programmatic_compatibility_modules"><a class="anchor" href="#_programmatic_compatibility_modules"></a>Programmatic Compatibility Modules</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill’s default folder layout of <code>foo/src/</code> and <code>foo/test/src</code> differs from that
-of <code>sbt’s `foo/src/main/scala/</code> and <code>foo/src/test/scala/</code>. If you are
-migrating an existing codebase from <code>sbt</code>, you can use Mill’s <code>SbtModule</code> and
-<code>SbtTests</code> as shown below to preserve filesystem compatibility with an existing
-<code>sbt</code> build:</p>
+<p>This example is similar to the <a href="#_sbt_compatible_modules"><code>sbt</code>-Compatible Modules</a>
+above, but using Mill’s programmatic <code>build.mill</code> files. These are more flexible than
+the config-driven <code>build.mill.yaml</code> files, and additionally allows use of <code>Cross</code> modules
+such as <code>CrossSbtModule</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-21-30fe68/mill-dist-1.0.6-21-30fe68-example-scalalib-basic-6-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/6-compat-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-22-9177a3/mill-dist-1.0.6-22-9177a3-example-scalalib-basic-7-programmatic-compat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/7-programmatic-compat">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1472,11 +1565,6 @@ that use the more verbose folder layout of <code>sbt</code>, Maven, and other to
 </li>
 </ul>
 </div>
-<div class="paragraph">
-<p>This is especially useful if you are migrating from <code>sbt</code> to Mill (or vice
-versa), during which a particular module may be built using both <code>sbt</code> and
-Mill at the same time</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.compile
@@ -1501,9 +1589,6 @@ Bar.value: Hello World Scala library version 2.13.16...
 Bar.value: Hello World Scala library version 2.12.17...</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>For more details on migrating from other build tools, see <a href="../migrating/migrating.html" class="xref page">Migrating to Mill</a></p>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -1516,7 +1601,7 @@ and other topics covered in more detail in the Scala section of the Mill docs,
 and you can browse each respective page if you want to learn more.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-21-30fe68/mill-dist-1.0.6-21-30fe68-example-scalalib-basic-7-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/7-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-22-9177a3/mill-dist-1.0.6-22-9177a3-example-scalalib-basic-8-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/8-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, publish.*
@@ -1667,7 +1752,7 @@ Qux.value: 31337</code></pre>
 </div>
 <nav class="pagination">
   <span class="prev"><a href="../javalib/web-examples.html">Java Web Project Examples</a></span>
-  <span class="next"><a href="simple.html">Simple Scala Modules</a></span>
+  <span class="next"><a href="config.html">Config-Based Scala Modules</a></span>
 </nav>
 </article>
   </div>

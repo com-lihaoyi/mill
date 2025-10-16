@@ -137,7 +137,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/simple.html">Simple Java Modules</a>
+    <a class="nav-link" href="../javalib/config.html">Config-Based Java Modules</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -176,7 +176,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/simple.html">Simple Scala Modules</a>
+    <a class="nav-link" href="../scalalib/config.html">Config-Based Scala Modules</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -223,7 +223,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/simple.html">Simple Kotlin Modules</a>
+    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -703,14 +703,14 @@ These are configured using <a href="../javalib/module-config.html#_compilation_e
 </li>
 <li>
 <p>The Mill build tool process, e.g. <code>./mill --jobs 10</code>. These can be passed directly after the
-<code>./mill</code> executable name, or set in your <a href="build-header.html" class="xref page">Build Header Config</a> or <code>.mill-opts</code> file as shown below in
-<a href="build-header.html#_repo_level_mill_options" class="xref page">Repo-Level Mill Options</a></p>
+<code>./mill</code> executable name, or set in your <a href="build-header.html" class="xref page">Build Header Config</a> or <code>.mill-opts</code> file as shown  in
+<a href="build-header.html#_mill_opts" class="xref page">Repo-Level Mill Options</a></p>
 </li>
 <li>
 <p>The JVM running the Mill build tool process, which may take flags. e.g.
 <code>java -Xss10m -Xmx10G</code>. These are passed via <code>JAVA_OPTs</code>, your  <a href="build-header.html" class="xref page">Build Header Config</a>
 or via a <code>.mill-jvm-opts</code> file
-as shown below in <a href="build-header.html#_running_mill_with_custom_jvm_options" class="xref page">Mill with custom JVM options</a></p>
+as shown in <a href="build-header.html#_mill_jvm_opts" class="xref page">Mill with custom JVM options</a></p>
 </li>
 </ol>
 </div>
@@ -870,7 +870,7 @@ Defaults to the number of cores available on your system.</p>
 <div class="paragraph">
 <p>You can also set Mill’s parallelism to some multiple of the number of cores, e.g.
 <code>-j0.5C</code> to use half as many threads as cores, or <code>-j2C</code> to use twice as many threads as cores.
-These can be useful as <a href="build-header.html#_repo_level_mill_options" class="xref page">cli/build-header.adoc#_repo_level_mill_options</a> to configure an appropriate level
+These can be useful as <a href="build-header.html#_mill_opts" class="xref page">cli/build-header.adoc#_mill_opts</a> to configure an appropriate level
 of parallelism that scales based on the number of cores available (which might differ
 between e.g. developer laptops and CI machines)</p>
 </div>

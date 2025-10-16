@@ -3,8 +3,7 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Simple Kotlin Modules :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/dev-1.0.6-18-01285d/kotlinlib/simple.html" />
+    <title>Config-Based Scala Modules :: The Mill Build Tool</title>
     <link rel="prev" href="intro.html" />
     <link rel="next" href="module-config.html" />
     <meta name="generator" content="Antora 3.1.12" />
@@ -137,7 +136,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/simple.html">Simple Java Modules</a>
+    <a class="nav-link" href="../javalib/config.html">Config-Based Java Modules</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -172,82 +171,82 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+    <a class="nav-link" href="intro.html">Building Scala with Mill</a>
 <ul class="nav-list">
 
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/simple.html">Simple Scala Modules</a>
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="config.html">Config-Based Scala Modules</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+    <a class="nav-link" href="module-config.html">Scala Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+    <a class="nav-link" href="dependencies.html">Scala Library Dependencies</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+    <a class="nav-link" href="testing.html">Testing Scala Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+    <a class="nav-link" href="linting.html">Linting Scala Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+    <a class="nav-link" href="publishing.html">Scala Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+    <a class="nav-link" href="build-examples.html">Scala Build Examples</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+    <a class="nav-link" href="web-examples.html">Scala Web Project Examples</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+    <a class="nav-link" href="native-examples.html">Scala Native Examples</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+    <a class="nav-link" href="spark.html">Spark Examples</a>
   </li>
 </ul>
   </li>
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="intro.html">Building Kotlin with Mill</a>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
 <ul class="nav-list">
 
-  <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="simple.html">Simple Kotlin Modules</a>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="module-config.html">Kotlin Module Configuration</a>
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="dependencies.html">Kotlin Library Dependencies</a>
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="testing.html">Testing Kotlin Projects</a>
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="linting.html">Linting Kotlin Projects</a>
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="publishing.html">Kotlin Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="web-examples.html">Kotlin Web Project Examples</a>
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
   </li>
 </ul>
   </li>
@@ -677,18 +676,18 @@
 <button class="nav-toggle"></button>
 </div>
 <div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/kotlinlib/simple.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/scalalib/config.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Simple Kotlin Modules</h1>
+<h1 class="page">Config-Based Scala Modules</h1>
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>This page documents the usage of simple config-based Kotlin modules defined by
+<p>This page documents the usage of simple config-based Scala modules defined by
 <code>build.mill.yaml</code> and <code>package.mill.yaml</code> files. These are less flexible but easier to get started with than the
 full <code>build.mill</code> or <code>package.mill</code> build files, which makes them ideal for small
 projects which do not need additional flexibility.</p>
@@ -700,23 +699,25 @@ projects which do not need additional flexibility.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This example shows some of the common tasks you may want to override on a
-<code>KotlinModule</code>: specifying the <code>mainClass</code>, adding additional
+<code>ScalaModule</code>: specifying the <code>mainClass</code>, adding additional
 sources/resources, and setting compilation/run
 options.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/simple/1-common-config/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/config/1-common-config/build.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinModule]
-kotlinVersion: 1.9.24
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.scalalib.ScalaModule]
+scalaVersion: 2.13.16
 mvnDeps:
-- org.jetbrains.kotlinx:kotlinx-html:0.11.0
+- com.lihaoyi::scalatags:0.13.1
+- com.lihaoyi::os-lib:0.11.4
 
-mainClass: &quot;foo.Foo2Kt&quot;
+mainClass: &quot;foo.Foo2&quot;
 sources: [&quot;./src&quot;, &quot;./custom-src&quot;]
 resources: [&quot;./resources&quot;, &quot;./custom-resources&quot;]
 forkArgs: [&quot;-Dmy.custom.property=my-prop-value&quot;]
-forkEnv: { &quot;MY_CUSTOM_ENV&quot;: &quot;my-env-value&quot; }</code></pre>
+forkEnv: { &quot;MY_CUSTOM_ENV&quot;: &quot;my-env-value&quot; }
+scalacOptions: [&quot;-deprecation&quot;, &quot;-Xfatal-warnings&quot;]</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -740,6 +741,21 @@ MyOtherResource: My Other Resource Contents
 my.custom.property: my-prop-value</code></pre>
 </div>
 </div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sed -i.bak 's/Foo2 {/Foo2 { println(this + &quot;hello&quot;)/g' custom-src/Foo2.scala
+
+&gt; ./mill compile # demonstrate -deprecation/-Xfatal-warnings flags
+error: object Foo2 { println(this + &quot;hello&quot;)
+error:                       ^
+error: ...Implicit injection of + is deprecated. Convert to String to call +...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that the <code>.build.yaml</code> config files only let you set simple configuration keys,
+and do not let you extend your build with code e.g. to generate sources. For more flexibility,
+see <a href="module-config.html" class="xref page">Programmatic Module Configuration</a>.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -750,7 +766,7 @@ my.custom.property: my-prop-value</code></pre>
 using the YAML <a href="../cli/build-header.html" class="xref page">build header</a> syntax rather than a separate
 <code>build.mill</code> file. That means you can <a href="../fundamentals/configuring-jvm-versions.html" class="xref page">configure the JVM version</a>,
 <a href="../javalib/module-config.html#_compilation_execution_flags" class="xref page">compile flags or runtime flags</a>, create
-<a href="../javalib/publishing.html#_building_executable_assemblies_with_assemblymodule" class="xref page">Executable Assemblies</a>
+<a href="../javalib/publishing.html#_building_executable_assemblies" class="xref page">Executable Assemblies</a>
 or <a href="../javalib/publishing.html#_building_native_image_binaries_with_graal_vm" class="xref page">Graal Native Images</a>,
 <a href="../javalib/publishing.html#_publishing_to_sonatype_maven_central" class="xref page">Publishing to Maven Central</a>
 etc.</p>
@@ -760,10 +776,10 @@ etc.</p>
 of a single-file project, and then made of use from the command line:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/simple/2-publish/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/config/3-publish/build.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinModule, mill.kotlinlib.PublishModule, mill.kotlinlib.NativeImageModule]
-kotlinVersion: 2.0.20
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.scalalib.ScalaModule, mill.scalalib.PublishModule, mill.scalalib.NativeImageModule]
+scalaVersion: 3.7.3
 jvmId: &quot;graalvm-community:24&quot;
 nativeImageOptions: [&quot;--no-fallback&quot;]
 publishVersion: &quot;0.0.1&quot;
@@ -817,22 +833,22 @@ a dedicated <code>build.mill</code> file.</p>
 However, you can also customize it to inherit from a custom <code>Module</code> class that you define
 as part of your meta-build in <code>mill-build/src/</code>. For example, if we want to add a resource
 file generated by processing the source file of the script, this can be done in a custom
-<code>LineCountKotlinModule</code> as shown below:</p>
+<code>LineCountScalaModule</code> as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/simple/3-custom-class/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/config/4-custom-class/build.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [millbuild.LineCountKotlinModule]
-kotlinVersion: 2.0.20</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [millbuild.LineCountScalaModule]
+scalaVersion: 3.7.3</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/src/LineCountKotlinModule.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/simple/3-custom-class/mill-build/src/LineCountKotlinModule.scala">browse</a>)</div>
+<div class="title">mill-build/src/LineCountScalaModule.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/config/4-custom-class/mill-build/src/LineCountScalaModule.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
-import mill.*, kotlinlib.*
+import mill.*, scalalib.*
 
-trait LineCountKotlinModule extends mill.kotlinlib.KotlinModule {
+trait LineCountScalaModule extends mill.scalalib.ScalaModule {
 
   /** Total number of lines in module source files */
   def lineCount = Task {
@@ -858,10 +874,10 @@ Line Count: 17
 </div>
 </div>
 <div class="paragraph">
-<p>Your custom <code>LineCountKotlinModule</code> must be a <code>class</code> take two parameters
+<p>Your custom <code>LineCountScalaModule</code> must be a <code>class</code> take two parameters
 <code>val millScriptFile: os.Path</code>, and <code>override val moduleDeps: Seq[JavaModule]</code> that will be
-populated by Mill, and inherit from <code>mill.simple.Kotlin.Base</code> or some other subclass of
-<code>mill.simple.SimpleModule</code>. This can then be used via <code>//| extends: LineCountKotlinModule</code>
+populated by Mill, and inherit from <code>mill.simple.Scala.Base</code> or some other subclass of
+<code>mill.simple.SimpleModule</code>. This can then be used via <code>//| extends: LineCountScalaModule</code>
 in the header of your script file.</p>
 </div>
 <div class="paragraph">
@@ -877,40 +893,36 @@ and standardize it across all scripts that inherit it via <code>extends.</code><
 <h2 id="_depending_on_programmatic_modules_from_simple_modules"><a class="anchor" href="#_depending_on_programmatic_modules_from_simple_modules"></a>Depending on Programmatic Modules from Simple Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-21-30fe68/mill-dist-1.0.6-21-30fe68-example-kotlinlib-simple-4-mixed-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/simple/4-mixed-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-22-9177a3/mill-dist-1.0.6-22-9177a3-example-scalalib-config-5-mixed-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/config/5-mixed-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, kotlinlib.*
+import mill.*, scalalib.*
 
-object bar extends KotlinModule {
-  def kotlinVersion = &quot;1.9.24&quot;
-  def mvnDeps = Seq(
-    mvn&quot;org.jetbrains.kotlinx:kotlinx-html:0.11.0&quot;
-  )
+object bar extends ScalaModule {
+  def scalaVersion = &quot;3.7.1&quot;
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::scalatags:0.13.1&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/simple/4-mixed-module-deps/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/config/5-mixed-module-deps/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinModule]
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.scalalib.ScalaModule]
 moduleDeps: [build.bar]
-kotlinVersion: 2.0.20
-mvnDeps: [com.github.ajalt.clikt:clikt:4.4.0]</code></pre>
+scalaVersion: 3.7.3
+mvnDeps: [com.lihaoyi::mainargs:0.7.6]</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/src/bar/Bar.kt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/simple/4-mixed-module-deps/bar/src/bar/Bar.kt">browse</a>)</div>
+<div class="title">bar/src/Bar.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/config/5-mixed-module-deps/bar/src/Bar.scala">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package bar
-
-import kotlinx.html.h1
-import kotlinx.html.stream.createHTML
-
-fun generateHtml(text: String): String = createHTML(prettyPrint = false).h1 { text(text) }.toString()
-
-fun main(args: Array&lt;String&gt;) {
-    println(&quot;Bar.value: &quot; + generateHtml(args[0]))
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package bar
+import scalatags.Text.all.*
+object Bar {
+  def generateHtml(text: String) = {
+    val value = h1(text)
+    value.toString
+  }
 }</code></pre>
 </div>
 </div>
@@ -926,44 +938,42 @@ fun main(args: Array&lt;String&gt;) {
 <h2 id="_single_file_scripts"><a class="anchor" href="#_single_file_scripts"></a>Single-File Scripts</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill also allows you to run single-file Kotlin programs (often referred to as <em>scripts</em>)
+<p>Mill also allows you to run single-file Scala programs (often referred to as <em>scripts</em>)
 easily from the command-line,
 even those that contain third-party dependencies or other such configuration. These can be
 useful as a replacement for Bash scripts, letting you write small scripts or programs
-in Kotlin with full access to third-party libraries and other build-tool features.</p>
+in Scala with full access to third-party libraries and other build-tool features.</p>
 </div>
 <div class="paragraph">
-<p>For example, given the Kotlin program below, it can be run directly using Mill:</p>
+<p>For example, given the Scala program below, it can be run directly using Mill:</p>
 </div>
 <div class="listingblock">
-<div class="title">Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/simple/5-script/Foo.kt">browse</a>)</div>
+<div class="title">Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/config/6-script/Foo.scala">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| mvnDeps:
-//| - &quot;com.github.ajalt.clikt:clikt:4.4.0&quot;
-//| - &quot;org.jetbrains.kotlinx:kotlinx-html:0.11.0&quot;
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
-import kotlinx.html.h1
-import kotlinx.html.stream.createHTML
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
+//| - &quot;com.lihaoyi::scalatags:0.13.1&quot;
+//| - &quot;com.lihaoyi::mainargs:0.7.6&quot;
+import scalatags.Text.all.*
+import mainargs.{main, ParserForMethods}
 
-class Foo : CliktCommand() {
-    val text by option(&quot;-t&quot;, &quot;--text&quot;, help = &quot;text to insert&quot;).required()
+object Foo {
+  def generateHtml(text: String) = {
+    h1(text).toString
+  }
 
-    override fun run() {
-        echo(generateHtml(text))
-    }
-}
+  @main
+  def main(text: String) = {
+    println(generateHtml(text))
+  }
 
-fun generateHtml(text: String): String = createHTML(prettyPrint = false).h1 { text(text) }.toString()
-
-fun main(args: Array&lt;String&gt;) = Foo().main(args)</code></pre>
+  def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
+}</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.kt --text hello
-Compiling 1 Kotlin sources to...
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.scala --text hello
+compiling 1 Scala source to...
 &lt;h1&gt;hello&lt;/h1&gt;</code></pre>
 </div>
 </div>
@@ -974,19 +984,19 @@ below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.kt:run --text hello
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.scala:run --text hello
 &lt;h1&gt;hello&lt;/h1&gt;</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show Foo.kt:assembly # show the output of the assembly task
-&quot;.../out/Foo.kt/assembly.dest/out.jar&quot;
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show Foo.scala:assembly # show the output of the assembly task
+&quot;.../out/Foo.scala/assembly.dest/out.jar&quot;
 
-&gt; java -jar ./out/Foo.kt/assembly.dest/out.jar --text hello
+&gt; java -jar ./out/Foo.scala/assembly.dest/out.jar --text hello
 &lt;h1&gt;hello&lt;/h1&gt;
 
-&gt; ./out/Foo.kt/assembly.dest/out.jar --text hello # mac/linux
+&gt; ./out/Foo.scala/assembly.dest/out.jar --text hello # mac/linux
 &lt;h1&gt;hello&lt;/h1&gt;</code></pre>
 </div>
 </div>
@@ -997,28 +1007,28 @@ to those of the upstream script. The test script can then exercise functions fro
 script as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">FooTest.kt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/simple/5-script/FooTest.kt">browse</a>)</div>
+<div class="title">FooTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/config/6-script/FooTests.scala">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| moduleDeps: [Foo.kt]
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| moduleDeps: [Foo.scala]
 //| mvnDeps:
 //| - &quot;com.google.guava:guava:33.3.0-jre&quot;
-
 import com.google.common.html.HtmlEscapers.htmlEscaper
-
-fun main(args: Array&lt;String&gt;) {
-    val result = generateHtml(&quot;hello&quot;)
+object FooTests {
+  def main(args: Array[String]): Unit = {
+    val result = Foo.generateHtml(&quot;hello&quot;)
     assert(result == &quot;&lt;h1&gt;hello&lt;/h1&gt;&quot;)
     println(result)
-    val result2 = generateHtml(&quot;&lt;hello&gt;&quot;)
+    val result2 = Foo.generateHtml(&quot;&lt;hello&gt;&quot;)
     val expected2 = &quot;&lt;h1&gt;&quot; + htmlEscaper().escape(&quot;&lt;hello&gt;&quot;) + &quot;&lt;/h1&gt;&quot;
     assert(result2 == expected2)
     println(result2)
+  }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill FooTest.kt
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill FooTests.scala
 &lt;h1&gt;hello&lt;/h1&gt;
 &lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;</code></pre>
 </div>
@@ -1028,23 +1038,16 @@ fun main(args: Array&lt;String&gt;) {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill FooTest.kt:run # specifying the test task explicitly
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill FooTests.scala:run # specifying the test task explicitly
 &lt;h1&gt;hello&lt;/h1&gt;
 &lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>For more details on Mill script files, see
-<a href="module-config.html#_configuring_single_file_projects" class="xref page">Configuring Single-File Projects</a>
-The rest of the examples below discuss the Mill config for building larger projects
-beyond the single-file project format discussed above, using a dedicated <code>build.mill</code>
-file to provide additional flexibility in setting up your project.</p>
-</div>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="intro.html">Building Kotlin with Mill</a></span>
-  <span class="next"><a href="module-config.html">Kotlin Module Configuration</a></span>
+  <span class="prev"><a href="intro.html">Building Scala with Mill</a></span>
+  <span class="next"><a href="module-config.html">Scala Module Configuration</a></span>
 </nav>
 </article>
   </div>
