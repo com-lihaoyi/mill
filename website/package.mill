@@ -596,7 +596,6 @@ object `package` extends mill.Module {
           path,
           localLinks
             .filter(_._2 != "#")
-            .filter(_._2.startsWith("///"))
             .flatMap { case (elementString, url) =>
               val (baseUrl, anchorOpt) = url match {
                 case s"#$anchor" => (path.toString, Some(anchor))

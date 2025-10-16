@@ -1,0 +1,47 @@
+//// SNIPPET:ALL
+// Mill's default folder layout of `foo/src/` and `foo/test/src` differs from that
+// of `sbt`'s `foo/src/main/scala/` and `foo/src/test/scala/`. If you are
+// migrating an existing codebase from `sbt`, you can use Mill's `SbtModule` and
+// `SbtTests` as shown below to preserve filesystem compatibility with an existing
+// `sbt` build:
+
+/** See Also: build.mill.yaml */
+
+// `SbtModule`/`CrossSbtModule` are variants of `ScalaModule`/`CrossScalaModule`
+// that use the more verbose folder layout of `sbt`, Maven, and other tools:
+//
+// - `foo/src/main/scala`
+// - `foo/src/test/scala`
+// - `foo/src/integration/scala`
+//
+// Rather than Mill's
+//
+// - `foo/src`
+// - `foo/src-2.12`
+// - `foo/src-2.13`
+// - `foo/test/src`
+//
+// This is especially useful if you are migrating from `sbt` to Mill (or vice
+// versa), during which a particular module may be built using both `sbt` and
+// Mill at the same time
+
+/** Usage
+
+> ./mill compile
+compiling 1 Scala source...
+
+> ./mill test.compile
+compiling 1 Scala source...
+
+> ./mill test.testForked
++ foo.FooTests...hello ...
+
+> ./mill test
++ foo.FooTests.hello ...
+
+> ./mill integration
++ foo.FooIntegrationTests.hello ...
+
+*/
+
+// For more details on migrating from other build tools, see xref:migrating/migrating.adoc[]

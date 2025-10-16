@@ -56,3 +56,17 @@ Test foo.FooTest.testSimple finished...
 Test foo.FooTest.testEscaping finished...
 */
 //// SNIPPET:END
+//// SNIPPET:REPL
+//
+// You can also start a standalone JShell console
+// via `./mill --jshell`. This is useful if you just need a JShell console to experiment
+// with at the command line without being attached to a particular project or module.
+//
+// [source,console]
+// ----
+// > ./mill --jshell
+// ----
+//
+//// SNIPPET:END
+//
+//

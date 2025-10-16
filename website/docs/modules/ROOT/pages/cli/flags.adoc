@@ -10,13 +10,13 @@ flags or options:
    These are configured using xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation and Execution Flags]
 
 3. The Mill build tool process, e.g. `./mill --jobs 10`. These can be passed directly after the
-   `./mill` executable name, or set in your xref:cli/build-header.adoc[] or `.mill-opts` file as shown below in
-   xref:cli/build-header.adoc#_repo_level_mill_options[Repo-Level Mill Options]
+   `./mill` executable name, or set in your xref:cli/build-header.adoc[] or `.mill-opts` file as shown  in
+   xref:cli/build-header.adoc#_mill_opts[Repo-Level Mill Options]
 
 4. The JVM running the Mill build tool process, which may take flags. e.g.
    `java -Xss10m -Xmx10G`. These are passed via `JAVA_OPTs`, your  xref:cli/build-header.adoc[]
    or via a `.mill-jvm-opts` file
-   as shown below in xref:cli/build-header.adoc#_running_mill_with_custom_jvm_options[Mill with custom JVM options]
+   as shown in xref:cli/build-header.adoc#_mill_jvm_opts[Mill with custom JVM options]
 
 This can get confusing, so when you want to pass some flags to a Mill task, to Mill, or to
 the JVM (which one?) be clear who you want to pass the flags to so you can ensure they go
@@ -157,6 +157,6 @@ Example: Use up to 4 parallel threads to compile all modules:
 
 You can also set Mill's parallelism to some multiple of the number of cores, e.g.
 `-j0.5C` to use half as many threads as cores, or `-j2C` to use twice as many threads as cores.
-These can be useful as xref:cli/build-header.adoc#_repo_level_mill_options[] to configure an appropriate level
+These can be useful as xref:cli/build-header.adoc#_mill_opts[] to configure an appropriate level
 of parallelism that scales based on the number of cores available (which might differ
 between e.g. developer laptops and CI machines)

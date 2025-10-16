@@ -63,6 +63,8 @@ abstract class CachedFactoryWithInitData[K, InitData, V] extends AutoCloseable {
 
   def close(): Unit = synchronized {
     for ((k, v) <- keyValues) teardown(k, v)
+    // Make sure calling `close` twice doesn't teardown the same k-v pairs multiple times
+    keyValues = List.empty
   }
 }
 

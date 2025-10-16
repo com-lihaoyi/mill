@@ -213,14 +213,12 @@ object MillMain0 {
                 .getOrElse(true)
 
               val (success, nextStateCache) = {
-                if (config.repl.value) {
-                  streams.err.println("The --repl mode is no longer supported.")
-                  (false, stateCache)
-
-                } else if (bspInstallModeJobCountOpt.isDefined) {
+                if (bspInstallModeJobCountOpt.isDefined) {
                   BSP.install(bspInstallModeJobCountOpt.get, config.debugLog.value, streams.err)
                   (true, stateCache)
-                } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
+                } else if (
+                  !bspMode && !config.jshell.value && !config.repl.value && config.leftoverArgs.value.isEmpty
+                ) {
                   println(MillCliConfig.shortUsageText)
 
                   (true, stateCache)
@@ -250,7 +248,8 @@ object MillMain0 {
                         loggerOpt: Option[Logger] = None,
                         reporter: EvaluatorApi => Int => Option[CompileProblemReporter] =
                           _ => _ => None,
-                        extraEnv: Seq[(String, String)] = Nil
+                        extraEnv: Seq[(String, String)] = Nil,
+                        metaLevelOverride: Option[Int] = None
                     ) = MillDaemonServer.withOutLock(
                       config.noBuildLock.value,
                       config.noWaitForBuildLock.value,
@@ -281,7 +280,7 @@ object MillMain0 {
                                 prevRunnerState = prevState.getOrElse(stateCache),
                                 logger = logger,
                                 needBuildFile = needBuildFile(config),
-                                requestedMetaLevel = config.metaLevel,
+                                requestedMetaLevel = config.metaLevel.orElse(metaLevelOverride),
                                 allowPositionalCommandArgs = config.allowPositional.value,
                                 systemExit = systemExit,
                                 streams0 = streams,
@@ -314,7 +313,29 @@ object MillMain0 {
                       }
                     }
 
-                    if (config.tabComplete.value) {
+                    if (config.jshell.value) {
+                      val bootstrapped = runMillBootstrap(
+                        skipSelectiveExecution = false,
+                        Some(stateCache),
+                        Seq("jshell") ++ config.leftoverArgs.value,
+                        streams,
+                        "jshell",
+                        metaLevelOverride = Some(1)
+                      )
+
+                      (true, bootstrapped.result)
+                    } else if (config.repl.value) {
+                      val bootstrapped = runMillBootstrap(
+                        skipSelectiveExecution = false,
+                        Some(stateCache),
+                        Seq("console") ++ config.leftoverArgs.value,
+                        streams,
+                        "repl",
+                        metaLevelOverride = Some(1)
+                      )
+
+                      (true, bootstrapped.result)
+                    } else if (config.tabComplete.value) {
                       val bootstrapped = runMillBootstrap(
                         skipSelectiveExecution = false,
                         Some(stateCache),

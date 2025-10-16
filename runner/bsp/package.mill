@@ -43,7 +43,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       build.libs.javalib
     ) ++ build.libs.javalib.compileModuleDeps
     def mvnDeps = Seq(
-      Deps.bsp4j,
+      Deps.bsp4j.exclude(Deps.gson.organization -> Deps.gson.name),
       // Pulled transitively by bsp4j, that only depends on an interval for it, [2.9.1,2.11)
       // Adding it as a dependency here in order to depend on a constant version rather than an interval
       // If needed, that version can be bumped in the future to accomodate any conflict that might arise
