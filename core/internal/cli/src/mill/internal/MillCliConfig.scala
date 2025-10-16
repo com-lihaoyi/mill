@@ -145,14 +145,12 @@ case class MillCliConfig(
     @arg(hidden = true, doc = "Unsupported, but kept for compatibility")
     enableTicker: Option[Boolean] = None,
     @arg(hidden = true, doc = "Deprecated, but kept for compatibility")
+    disableTicker: Flag,
     @arg(
       doc = """Open a JShell REPL with the classpath of the meta-level 1 build module (mill-build/).
                This is useful for interactively testing and debugging your build logic."""
     )
-    jshell: Flag = Flag(),
-
-    // ==================== DEPRECATED CLI FLAGS ====================
-    disableTicker: Flag
+    jshell: Flag = Flag()
 ) {
   def noDaemonEnabled =
     Seq(
