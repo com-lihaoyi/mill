@@ -203,7 +203,7 @@ object TabCompleteTests extends TestSuite {
       test("long") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "--"),
-          HashSet(
+          Set(
             "--bsp                     Enable BSP server mode.",
             "--debug                   Show debug output on STDOUT",
             "--bell                    Ring the bell once if the run completes successfully, twice if it fails.",
