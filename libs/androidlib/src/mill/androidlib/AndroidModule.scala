@@ -205,6 +205,15 @@ trait AndroidModule extends JavaModule { outer =>
     }().flatten.distinct
   }
 
+  def androidDirectCompiledResources: T[Seq[PathRef]] = Task {
+    Task.traverse(moduleDepsChecked) {
+      case m: AndroidModule =>
+        Task.Anon(m.androidCompiledModuleResources())
+      case _ =>
+        Task.Anon(Seq.empty)
+    }().flatten.distinct
+  }
+
   /**
    * Gets all the android resources (typically in res/ directory)
    * from the library dependencies using [[androidUnpackArchives]]
@@ -576,9 +585,33 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   /**
+   * If true, only direct module dependencies will be used to
+   * compile android resources for R class generation.
+   * Corresponds to `android.nonTransitiveRClass` in Gradle.
+   *
+   * Default is false.
+   *
+   * When overridden, make sure to override all modules
+   * in the project to have consistent behavior.
+   */
+  def androidNonTransitiveRClass: Boolean = false
+
+  /**
+   * Gets the [[androidCompiledModuleResources]] from
+   * either direct or transitive module dependencies
+   * depending on the value of [[androidNonTransitiveRClass]]
+   * @return
+   */
+  def androidDepCompiledResources: T[Seq[PathRef]] =
+    androidNonTransitiveRClass match {
+      case true => Task { androidDirectCompiledResources() }
+      case false => Task { androidTransitiveCompiledResources() }
+    }
+
+  /**
    * Gets all the android resources from this module,
    * compiles them into flata files and collects
-   * transitive compiled resources from dependencies.
+   * compiled resources from dependencies.
    * @return a sequence of PathRef to the compiled resources
    */
   def androidCompiledModuleResources: T[Seq[PathRef]] = Task {
@@ -602,7 +635,8 @@ trait AndroidModule extends JavaModule { outer =>
 
       os.call(aapt2Compile ++ aapt2Args)
     }
-    androidTransitiveCompiledResources() ++ Seq(PathRef(Task.dest))
+
+    Seq(PathRef(Task.dest))
   }
 
   /**
@@ -613,7 +647,7 @@ trait AndroidModule extends JavaModule { outer =>
    */
   def androidLinkedResources: T[PathRef] = Task {
     val compiledLibResDir = androidCompiledLibResources().path
-    val moduleResDirs = androidCompiledModuleResources()
+    val moduleResDirs = (androidCompiledModuleResources() ++ androidDepCompiledResources())
       .map(_.path)
 
     val filesToLink = os.walk(compiledLibResDir).filter(os.isFile(_)) ++
