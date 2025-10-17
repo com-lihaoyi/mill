@@ -1,9 +1,9 @@
 //| mill-version: SNAPSHOT
 package build
 
-import mill._
-import mill.javalib._
-import mill.javalib.errorprone._
+import mill.*
+import mill.javalib.*
+import mill.javalib.errorprone.*
 
 object `package` extends Module {
 

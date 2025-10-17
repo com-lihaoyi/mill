@@ -1,8 +1,8 @@
 package build.list
 
-import mill.javalib._
-import mill.javalib.errorprone._
-import millbuild._
+import mill.javalib.*
+import mill.javalib.errorprone.*
+import millbuild.*
 
 object `package` extends ErrorProneModule with ProjectBaseModule {
 

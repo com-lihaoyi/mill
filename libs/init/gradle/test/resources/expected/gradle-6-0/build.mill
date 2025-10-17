@@ -1,8 +1,8 @@
 //| mill-version: SNAPSHOT
 package build
 
-import mill.javalib._
-import millbuild._
+import mill.javalib.*
+import millbuild.*
 
 object `package` extends MavenModule {
 

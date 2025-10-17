@@ -1,8 +1,8 @@
 package build.`single-module`
 
-import mill.javalib._
-import mill.javalib.publish._
-import millbuild._
+import mill.javalib.*
+import mill.javalib.publish.*
+import millbuild.*
 
 object `package` extends MavenSamplesBaseModule {
 

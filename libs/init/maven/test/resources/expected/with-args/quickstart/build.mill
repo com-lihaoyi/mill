@@ -1,9 +1,9 @@
 //| mill-version: SNAPSHOT
 package build
 
-import mill.javalib._
-import mill.javalib.errorprone._
-import mill.javalib.publish._
+import mill.javalib.*
+import mill.javalib.errorprone.*
+import mill.javalib.publish.*
 
 object `package` extends MavenModule with ErrorProneModule with PublishModule {
 

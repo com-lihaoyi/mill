@@ -1,7 +1,7 @@
 package build.app
 
-import mill.javalib._
-import millbuild._
+import mill.javalib.*
+import millbuild.*
 
 object `package` extends ProjectBaseModule {
 
