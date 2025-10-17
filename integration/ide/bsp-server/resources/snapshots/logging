@@ -7,10 +7,14 @@
 [bsp-init-mill-build/build.mill-59] [info] done compiling
 [bsp-init-build.mill-59] [info] compiling * Scala sources to * ...
 [bsp-init-build.mill-59] [info] done compiling
-[bsp-init-098] [info] compiling * Scala source to * ...
-[bsp-init-098] [info] done compiling
+[bsp-init-106] [info] compiling * Scala source to * ...
+[bsp-init-106] [info] done compiling
+[bsp-init] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
+[bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#enableBsp
 [bsp-init] SNAPSHOT
 [2-workspaceBuildTargets] Entered workspaceBuildTargets
+[bsp-init] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
+[bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#enableBsp
 [2-workspaceBuildTargets] Evaluating * tasks
 [2-workspaceBuildTargets] Done
 [2-workspaceBuildTargets] Evaluating 1 task

@@ -114,3 +114,14 @@ object sourcesNeedCompile extends scalalib.ScalaModule {
     super.sources()
   }
 }
+
+object skipped extends scalalib.ScalaModule {
+  def enableBsp = false
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+}
+
+// depends on skipped module, but doesn't set enableBsp to false - should be ignored from BSP anyway
+object dependsOnSkipped extends scalalib.ScalaModule {
+  def moduleDeps = Seq(skipped)
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+}

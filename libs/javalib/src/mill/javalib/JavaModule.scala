@@ -80,6 +80,8 @@ trait JavaModule
       outer.repositoriesTask()
     }
 
+    override def enableBsp: Boolean = outer.enableBsp
+
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
 
