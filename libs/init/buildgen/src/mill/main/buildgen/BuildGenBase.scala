@@ -4,14 +4,13 @@ import mill.main.buildgen.BuildGenUtil.{compactBuildTree, writeBuildObject}
 
 import scala.collection.immutable.{SortedMap, SortedSet}
 
-/*
-TODO Can we just convert all generic type parameters to abstract type members?
- See https://stackoverflow.com/a/1154727/5082913.
- I think abstract type members are preferred in this case.
- */
-trait BuildGenBase[M, D, I] {
+trait BuildGenBase {
+  type Module
+  type Input
+  // not renamed to `Config` as it would otherwise conflict with the concrete nested `Config` classes inside
   type C
-  def convertWriteOut(cfg: C, shared: BuildGenUtil.BasicConfig, input: I): Unit = {
+
+  def convertWriteOut(cfg: C, shared: BuildGenUtil.BasicConfig, input: Input): Unit = {
     val output = convert(input, cfg, shared)
     writeBuildObject(
       if (shared.merge.value) compactBuildTree(output) else output,
@@ -19,7 +18,7 @@ trait BuildGenBase[M, D, I] {
     )
   }
 
-  def getModuleTree(input: I): Tree[Node[Option[M]]]
+  def getModuleTree(input: Input): Tree[Node[Option[Module]]]
 
   /**
    * A [[Map]] mapping from a key retrieved from the original build tool
@@ -29,25 +28,26 @@ trait BuildGenBase[M, D, I] {
    * If there is no need for such a map, override it with [[Unit]].
    */
   type ModuleFqnMap
-  def getModuleFqnMap(moduleNodes: Seq[Node[M]]): ModuleFqnMap
+
+  def getModuleFqnMap(moduleNodes: Seq[Node[Module]]): ModuleFqnMap
 
   def convert(
-      input: I,
+      input: Input,
       cfg: C,
       shared: BuildGenUtil.BasicConfig
   ): Tree[Node[BuildObject]] = {
     val moduleTree = getModuleTree(input)
-    val moduleOptionTree = moduleTree.map(node => node.copy(value = node.value))
 
     // for resolving moduleDeps
     val moduleNodes =
-      moduleOptionTree.nodes().flatMap(node => node.value.map(m => node.copy(value = m))).toSeq
+      moduleTree.nodes().flatMap(node => node.value.map(m => node.copy(value = m))).toSeq
     val moduleRefMap = getModuleFqnMap(moduleNodes)
 
-    val baseInfo =
-      shared.baseModule.fold(IrBaseInfo()) { getBaseInfo(input, cfg, _, moduleNodes.size) }
+    val baseInfo = shared.baseModule.map {
+      getBaseInfo(input, cfg, _, moduleNodes.size)
+    }
 
-    moduleOptionTree.map(optionalBuild =>
+    moduleTree.map(optionalBuild =>
       optionalBuild.copy(value =
         optionalBuild.value.fold(
           BuildObject(SortedSet("mill._"), SortedMap.empty, Seq("Module"), "", "")
@@ -56,7 +56,7 @@ trait BuildGenBase[M, D, I] {
           println(s"converting module $name")
 
           val build = optionalBuild.copy(value = moduleModel)
-          val inner = extractIrBuild(cfg, build, moduleRefMap)
+          val inner = extractIrModuleBuild(cfg, build, moduleRefMap)
 
           val isNested = optionalBuild.dirs.nonEmpty
           BuildObject(
@@ -71,10 +71,10 @@ trait BuildGenBase[M, D, I] {
                 SortedMap((name, SortedMap(inner.scopedDeps.namedMvnDeps.toSeq*)))
               ),
             supertypes = getSupertypes(cfg, baseInfo, build),
-            inner = BuildGenUtil.renderIrBuild(inner, baseInfo),
+            inner = BuildGenUtil.renderIrModuleBuild(inner, baseInfo),
             outer =
-              if (isNested || baseInfo.moduleTypedef == null) ""
-              else BuildGenUtil.renderIrTrait(baseInfo.moduleTypedef)
+              if (isNested || baseInfo.isEmpty) ""
+              else BuildGenUtil.renderIrBaseInfo(baseInfo.get)
           )
         })
       )
@@ -83,29 +83,30 @@ trait BuildGenBase[M, D, I] {
 
   def extraImports: Seq[String]
 
-  def getSupertypes(cfg: C, baseInfo: IrBaseInfo, build: Node[M]): Seq[String]
+  def getSupertypes(cfg: C, baseInfo: Option[IrBaseInfo], build: Node[Module]): Seq[String]
 
   def getBaseInfo(
-      input: I,
+      input: Input,
       cfg: C,
       baseModule: String,
       packagesSize: Int
   ): IrBaseInfo
 
-  def getArtifactId(moduleModel: M): String
+  def getArtifactId(moduleModel: Module): String
 
-  def extractIrBuild(
+  def extractIrModuleBuild(
       cfg: C,
-      // baseInfo: IrBaseInfo, // `baseInfo` is no longer needed as we compare the `IrBuild` with `IrBaseInfo`/`IrTrait` in common code now.
-      build: Node[M],
+      // baseInfo: IrBaseInfo, // `baseInfo` is no longer needed as we compare the `IrModuleBuild` with `IrBaseInfo` in common code now.
+      build: Node[Module],
       moduleFqnMap: ModuleFqnMap
-  ): IrBuild
+  ): IrModuleBuild
 }
 
 object BuildGenBase {
-  trait MavenAndGradle[M, D] extends BuildGenBase[M, D, Tree[Node[M]]] {
-    override def getModuleTree(input: Tree[Node[M]]): Tree[Node[Option[M]]] =
-      // TODO consider filtering out projects without the `java` plugin applied in Gradle too
+  trait MavenAndGradle extends BuildGenBase {
+    type Input = Tree[Node[Module]]
+
+    override def getModuleTree(input: Tree[Node[Module]]): Tree[Node[Option[Module]]] =
       input.map(node => node.copy(value = Some(node.value)))
     override def extraImports: Seq[String] = Seq()
   }
