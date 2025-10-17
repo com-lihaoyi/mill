@@ -33,7 +33,7 @@ object ExportBuildPlugin extends AutoPlugin {
   )
 
   // https://github.com/scalacenter/bloop/blob/f6dff064ed96698c6d35daef43fe06e6cca74526/integrations/sbt-bloop/src/main/scala/bloop/integrations/sbt/SbtBloop.scala#L327
-  def scalaJSModuleKind = Def.settingDyn {
+  private def scalaJSModuleKind = Def.settingDyn {
     try {
       val class0 = Class.forName("org.scalajs.linker.interface.StandardConfig")
       val method = class0.getMethod("moduleKind")
@@ -47,14 +47,14 @@ object ExportBuildPlugin extends AutoPlugin {
   }
 
   // https://github.com/scalacenter/bloop/blob/f6dff064ed96698c6d35daef43fe06e6cca74526/integrations/sbt-bloop/src/main/scala/bloop/integrations/sbt/SbtBloop.scala#L305
-  def proxyForSetting(id: String, rt: Class[_]) = {
+  private def proxyForSetting(id: String, rt: Class[_]) = {
     val manifest = new Manifest[AnyRef] { def runtimeClass = rt }
     val anyRefWriter = implicitly[util.OptJsonWriter[AnyRef]]
     SettingKey(id)(manifest, anyRefWriter).?
   }
 
   // this is required to export projects that are not aggregated by the root project
-  def exportBuild = Def.taskDyn {
+  private def exportBuild = Def.taskDyn {
     val structure = Project.structure(Keys.state.value)
     Def.task {
       val _ = std.TaskExtra.joinTasks(structure.allProjectPairs.flatMap {
@@ -65,7 +65,7 @@ object ExportBuildPlugin extends AutoPlugin {
     }
   }
 
-  def exportProject = Def.taskDyn {
+  private def exportProject = Def.taskDyn {
     val project = Keys.thisProject.value
     val scalaVersion = Keys.scalaVersion.value
     val outDir = millInitExportDir.value
@@ -238,17 +238,17 @@ object ExportBuildPlugin extends AutoPlugin {
         nestedModules = testModule.toSeq
       )
 
-      val exportedData = (
-        (isCrossPlatform, toSegments(moduleDir)),
-        mainModule
-      )
+      val segments = toSegments(moduleDir)
+      val moduleType =
+        if (isCrossPlatform) SbtModuleType.Platform(segments) else SbtModuleType.Default(segments)
+      val exportedData = SbtModuleSpec(moduleType, mainModule)
       Using.resource(os.write.outputStream(outFile))(
         upickle.default.writeToOutputStream(exportedData, _)
       )
     })
   }
 
-  def mainHierarchy(
+  private def mainHierarchy(
       isCrossPlatform: Boolean,
       isCrossVersion: Boolean,
       useVersionRanges: Boolean,
@@ -271,7 +271,7 @@ object ExportBuildPlugin extends AutoPlugin {
     (supertypes.result(), mixins.result())
   }
 
-  def testHierarchy(mainHierarchy: Seq[String], testModuleMixin: String) = {
+  private def testHierarchy(mainHierarchy: Seq[String], testModuleMixin: String) = {
     val supertypes = Seq.newBuilder[String]
     val mixins = Seq.newBuilder[String]
     mainHierarchy.foreach {
@@ -287,7 +287,7 @@ object ExportBuildPlugin extends AutoPlugin {
     (supertypes.result(), mixins.result())
   }
 
-  def skipDep(dep: ModuleID) = {
+  private def skipDep(dep: ModuleID) = {
     import dep._
     (organization == "org.scala-lang" && (
       name.startsWith("scala-library") ||
@@ -298,17 +298,17 @@ object ExportBuildPlugin extends AutoPlugin {
     organization == "org.scala-native"
   }
 
-  def skipScalacOption(s: String) =
+  private def skipScalacOption(s: String) =
     s.startsWith("-P") || s.startsWith("-Xplugin") || s.startsWith("-scalajs")
 
-  def toSegment(s: String) =
+  private def toSegment(s: String) =
     // cleanup `CrossType.Pure` module names
     s.stripPrefix(".")
 
-  def toSegments(baseDir: os.Path) =
+  private def toSegments(baseDir: os.Path) =
     baseDir.relativeTo(os.pwd).segments.map(toSegment)
 
-  def toMvnDep(dep: ModuleID) = {
+  private def toMvnDep(dep: ModuleID) = {
     import ModuleConfig.{CrossVersion => CV}
     import dep._
     import librarymanagement.{For2_13Use3, For3Use2_13, Patch}
@@ -331,7 +331,7 @@ object ExportBuildPlugin extends AutoPlugin {
     )
   }
 
-  def toPomSettings(moduleInfo: ModuleInfo, groupId: String) = {
+  private def toPomSettings(moduleInfo: ModuleInfo, groupId: String) = {
     import moduleInfo._
     PomSettings(
       description = Option(description),
@@ -343,7 +343,7 @@ object ExportBuildPlugin extends AutoPlugin {
     )
   }
 
-  def toLicense(license: (String, URL)) = {
+  private def toLicense(license: (String, URL)) = {
     val (name, url) = license
     ModuleConfig.License(
       name = name,
@@ -352,7 +352,7 @@ object ExportBuildPlugin extends AutoPlugin {
     )
   }
 
-  def toVersionControl(scmInfo: Option[ScmInfo]) =
+  private def toVersionControl(scmInfo: Option[ScmInfo]) =
     scmInfo.fold(VersionControl()) { scmInfo =>
       import scmInfo._
       VersionControl(
@@ -362,7 +362,7 @@ object ExportBuildPlugin extends AutoPlugin {
       )
     }
 
-  def toDeveloper(developer: librarymanagement.Developer) = {
+  private def toDeveloper(developer: librarymanagement.Developer) = {
     import developer._
     ModuleConfig.Developer(id, name, url.toExternalForm)
   }

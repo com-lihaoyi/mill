@@ -50,22 +50,14 @@ object SbtBuildGenMain {
         )
     }
 
-    type ExportedPackageSpec = (
-        // A flag and the package location.
-        // When the flag is set, the location is the shared root directory for member projects.
-        // Otherwise, the location is the project base directory.
-        (Boolean, Seq[String]),
-        // Package root module specification for a given Scala version.
-        ModuleSpec
-    )
     val exportedBuild = os.list.stream(exportDir)
-      .map(path => upickle.default.read[ExportedPackageSpec](path.toNIO))
+      .map(path => upickle.default.read[SbtModuleSpec](path.toNIO))
       .toSeq
 
     // divide the exported build into packages
-    val packages = exportedBuild.groupMap(_._1)(_._2).map {
+    val packages = exportedBuild.groupMap(_.moduleType)(_.module).map {
       // package with cross-platform members
-      case ((true, crossRootDir), modules) =>
+      case (SbtModuleType.Platform(crossRootDir), modules) =>
         // segregate module specs for each member
         val nestedModules = modules.groupBy(_.name).map {
           // non-cross version member
@@ -73,17 +65,17 @@ object SbtBuildGenMain {
           // cross version member
           case (_, partialSpecs) => unifyCrossVersionConfigs(partialSpecs)
         }.toSeq
-        // create parent module for cross-root
+        // create module for cross-root
         val rootModule = ModuleSpec(
           name = crossRootDir.lastOption.getOrElse(os.pwd.last),
           nestedModules = nestedModules
         )
         PackageSpec(crossRootDir, rootModule)
       // package with non-cross module
-      case ((_, moduleDir), Seq(module)) =>
+      case (SbtModuleType.Default(moduleDir), Seq(module)) =>
         PackageSpec(moduleDir, module)
       // package with cross version module
-      case ((_, moduleDir), partialSpecs) =>
+      case (SbtModuleType.Default(moduleDir), partialSpecs) =>
         PackageSpec(moduleDir, unifyCrossVersionConfigs(partialSpecs))
     }.toSeq
     val packages0 = normalizeJvmPlatformDeps(packages)
@@ -94,7 +86,7 @@ object SbtBuildGenMain {
     BuildWriter(build, renderCrossValueInTask = "scalaVersion()").writeFiles()
   }
 
-  def defaultSbt = {
+  private def defaultSbt = {
     def systemSbtExists(cmd: String) =
       // The return code is somehow 1 instead of 0.
       os.call((cmd, "--help"), check = false).exitCode == 1
