@@ -67,9 +67,10 @@ object ExecResult {
     def flatMap[V](f: T => ExecResult[V]): Failing[V]
 
     override def asFailing: Option[ExecResult.Failing[T]] = Some(this)
-    def throwException: Nothing = this match {
-      case f: ExecResult.Failure[?] => throw new Result.Exception(f.msg)
-      case f: ExecResult.Exception => throw f.throwable
+    def throwException: Nothing = throw exception
+    private[mill] def exception: Throwable = this match {
+      case f: ExecResult.Failure[?] => new Result.Exception(f.msg)
+      case f: ExecResult.Exception => f.throwable
     }
   }
 

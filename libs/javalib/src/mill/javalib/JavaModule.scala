@@ -1127,6 +1127,13 @@ trait JavaModule
       localClasspath()
   }
 
+  override def runClasspathAsJars: T[Seq[PathRef]] = Task {
+    super[RunModule].runClasspathAsJars() ++ // Remove '[RunModule]' when we can break bin-compat
+      resolvedRunMvnDeps().toSeq ++
+      transitiveJars() ++
+      Seq(jar())
+  }
+
   /**
    * A jar containing only this module's resources and compiled classfiles,
    * without those from upstream modules and dependencies

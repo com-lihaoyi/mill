@@ -59,8 +59,19 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * All classfiles and resources including upstream modules and dependencies
    * necessary to run this module's code.
+   *
+   * The returned class path can include directories. See `runClasspathAsJars`
+   * if you'd like the class path to contain only JAR files.
    */
   def runClasspath: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+
+  /**
+   * All classfiles and resources including upstream modules and dependencies
+   * necessary to run this module's code.
+   *
+   * Unlike `runClasspath`, all class path entries here are JAR files.
+   */
+  def runClasspathAsJars: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   /**
    * The elements of the run classpath which are local to this module.
