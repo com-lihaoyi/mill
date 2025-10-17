@@ -50,7 +50,7 @@
 *** xref:pythonlib/linting.adoc[]
 *** xref:pythonlib/testing.adoc[]
 *** xref:pythonlib/publishing.adoc[]
-*** xref:pythonlib/web-examples.adoc
+*** xref:pythonlib/web-examples.adoc[]
 ** xref:javascriptlib/intro.adoc[]
 *** xref:javascriptlib/dependencies.adoc[]
 *** xref:javascriptlib/module-config.adoc[]
