@@ -74,7 +74,7 @@ object TutorialTests extends TestSuite {
 
   object TutorialWithJavaGen extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBGenerators = Seq(JavaGen)
+      override def scalaPBGenerators = Seq(Generator.JavaGen)
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -82,7 +82,7 @@ object TutorialTests extends TestSuite {
 
   object TutorialWithScalaAndJavaGen extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBGenerators = Seq[Generator](ScalaGen, JavaGen)
+      override def scalaPBGenerators = Seq(Generator.ScalaGen, Generator.JavaGen)
     }
 
     lazy val millDiscover = Discover[this.type]

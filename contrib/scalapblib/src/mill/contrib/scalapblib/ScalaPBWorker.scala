@@ -1,11 +1,8 @@
-package mill
-package contrib.scalapblib
-
-import java.io.File
+package mill.contrib.scalapblib
 
 import mill.api.PathRef
-import mill.api.{Discover, ExternalModule}
-import upickle.default.ReadWriter
+
+import java.io.File
 
 class ScalaPBWorker {
 
@@ -24,7 +21,7 @@ class ScalaPBWorker {
           val scalaPBCompilerClass = cl.loadClass("scalapb.ScalaPBC")
           val mainMethod = scalaPBCompilerClass.getMethod("main", classOf[Array[java.lang.String]])
           val args = otherArgs ++ generators.map { gen =>
-            val opts = if (scalaPBOptions.isEmpty || !gen.supportsScalaPBOptions) ""
+            val opts = if (scalaPBOptions.isEmpty || !gen.supportsScalaPbOptions) ""
             else scalaPBOptions + ":"
             s"${gen.generator}=$opts${generatedDirectory.getCanonicalPath}"
           } ++ roots.map(root => s"--proto_path=${root.getCanonicalPath}") ++ sources.map(
@@ -65,6 +62,7 @@ class ScalaPBWorker {
    * @param scalaPBOptions option string specific for scala generator. (the options in `--scala_out=<options>:output_path`)
    * @param dest output path
    * @param scalaPBCExtraArgs extra arguments other than `--scala_out=<options>:output_path`, `--proto_path=source_parent`, `source`
+   * @oaram generators At least on generators to use. See [[Generator]] for available generators.
    *
    * @return execute result with path ref to `dest`
    */
@@ -100,34 +98,4 @@ class ScalaPBWorker {
     )
     mill.api.Result.Success(PathRef(dest))
   }
-}
-
-trait ScalaPBWorkerApi {
-  def compileScalaPB(
-      roots: Seq[File],
-      source: Seq[File],
-      scalaPBOptions: String,
-      generatedDirectory: File,
-      otherArgs: Seq[String],
-      generators: Seq[Generator]
-  ): Unit
-}
-
-sealed trait Generator derives ReadWriter {
-  def generator: String
-  def supportsScalaPBOptions: Boolean
-}
-case object ScalaGen extends Generator {
-  override def generator: String = "--scala_out"
-  override def supportsScalaPBOptions: Boolean = true
-}
-case object JavaGen extends Generator {
-  override def generator: String = "--java_out"
-  override def supportsScalaPBOptions: Boolean =
-    false // Java options are specified directly in the proto file
-}
-
-object ScalaPBWorkerApi extends ExternalModule {
-  def scalaPBWorker: Worker[ScalaPBWorker] = Task.Worker { new ScalaPBWorker() }
-  lazy val millDiscover = Discover[this.type]
 }
