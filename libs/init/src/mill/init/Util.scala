@@ -5,7 +5,7 @@ object Util {
 
   def scalafmtConfig: String =
     """version = "3.8.5"
-      |runner.dialect = scala213
+      |runner.dialect = scala3
       |newlines.source=fold
       |""".stripMargin
 

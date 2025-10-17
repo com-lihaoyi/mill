@@ -2,11 +2,11 @@
 //| mill-jvm-opts: ["-Xms2g", "-Xmx2g"]
 package build
 
-import mill._
-import mill.javalib._
-import mill.javalib.publish._
-import mill.scalalib._
-import millbuild._
+import mill.*
+import mill.javalib.*
+import mill.javalib.publish.*
+import mill.scalalib.*
+import millbuild.*
 
 object `package`
     extends Cross[CrossVersionModule]("2.12.18", "2.13.12", "3.3.1")

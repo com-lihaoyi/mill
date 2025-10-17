@@ -88,7 +88,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
   private def renderDepsObject(packageName: String, name: String) = {
     s"""package $packageName
        |
-       |import mill.javalib._
+       |import mill.javalib.*
        |
        |object $name {
        |
@@ -102,7 +102,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     val wildcards = mutable.SortedSet.empty[String]
     import baseModule.*
     configs.foreach(addImports(wildcards, _))
-    renderLines(wildcards.map(s => s"import $s._"))
+    renderLines(wildcards.map(s => s"import $s.*"))
   }
 
   private def renderModuleImports(module: ModuleSpec) = {
@@ -113,7 +113,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
       if (configs.nonEmpty) wildcards ++= build.metaBuild.map(_.rootModuleName)
       configs.foreach(addImports(wildcards, _))
     }
-    renderLines(wildcards.map(s => s"import $s._"))
+    renderLines(wildcards.map(s => s"import $s.*"))
   }
 
   private def addImports(wildcards: mutable.SortedSet[String], config: ModuleConfig) =

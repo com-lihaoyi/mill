@@ -1,10 +1,10 @@
 //| mill-version: SNAPSHOT
 package build
 
-import mill.javalib._
-import mill.javalib.publish._
-import mill.scalalib._
-import millbuild._
+import mill.javalib.*
+import mill.javalib.publish.*
+import mill.scalalib.*
+import millbuild.*
 
 object `package` extends PublishModule with SbtModule {
 

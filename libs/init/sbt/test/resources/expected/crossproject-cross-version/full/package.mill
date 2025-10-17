@@ -1,13 +1,13 @@
 package build.full
 
-import mill._
-import mill.javalib._
-import mill.javalib.publish._
-import mill.scalajslib._
-import mill.scalajslib.api._
-import mill.scalalib._
-import mill.scalanativelib._
-import millbuild._
+import mill.*
+import mill.javalib.*
+import mill.javalib.publish.*
+import mill.scalajslib.*
+import mill.scalajslib.api.*
+import mill.scalalib.*
+import mill.scalanativelib.*
+import millbuild.*
 
 object `package` extends Module {
 

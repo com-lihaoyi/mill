@@ -1,8 +1,8 @@
 package millbuild
 
-import mill.javalib._
-import mill.javalib.publish._
-import mill.scalalib._
+import mill.javalib.*
+import mill.javalib.publish.*
+import mill.scalalib.*
 
 trait SbtMultiProjectExampleBaseModule extends PublishModule with SbtModule {
 

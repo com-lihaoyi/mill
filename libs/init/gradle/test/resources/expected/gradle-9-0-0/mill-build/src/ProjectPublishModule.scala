@@ -1,7 +1,7 @@
 package millbuild
 
-import mill.javalib._
-import mill.javalib.publish._
+import mill.javalib.*
+import mill.javalib.publish.*
 
 trait ProjectPublishModule extends PublishModule with ProjectBaseModule {
 
