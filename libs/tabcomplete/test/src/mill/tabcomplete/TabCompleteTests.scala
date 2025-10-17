@@ -205,7 +205,6 @@ object TabCompleteTests extends TestSuite {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "--"),
           HashSet(
-            "--bsp                     Enable BSP server mode.",
             "--debug                   Show debug output on STDOUT",
             "--bell                    Ring the bell once if the run completes successfully, twice if it fails.",
             "--interactive             Run Mill in interactive mode, suitable for opening REPLs and taking user input. Identical to --no-daemon. Must be the first argument.",
@@ -216,6 +215,7 @@ object TabCompleteTests extends TestSuite {
             "--allow-positional        Allows command args to be passed positionally without `--arg` by default",
             "--watch                   Watch and re-run the given tasks when when their inputs change.",
             "--no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands.",
+            "--bsp                     Enable BSP server mode. Typically used by a BSP client when starting the Mill BSP server.",
             "--offline                 Try to work offline. This tells modules that support it to work offline and avoid any access to the internet. This is on a best effort basis. There are currently no guarantees that modules don't attempt to fetch remote sources.",
             "--keep-going              Continue build, even after build failures.",
             "--define                  <k=v> Define (or overwrite) a system property.",
