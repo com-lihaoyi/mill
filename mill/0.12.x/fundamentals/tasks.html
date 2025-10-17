@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Tasks :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/tasks.html">
-    <link rel="prev" href="../migrating/sbt.html">
-    <link rel="next" href="modules.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/tasks.html" />
+    <link rel="prev" href="../migrating/sbt.html" />
+    <link rel="next" href="modules.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -651,7 +652,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -662,7 +663,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>One of Mill&#8217;s core abstractions is its <em>Task Graph</em>: this is how Mill defines,
+<p>One of Mill’s core abstractions is its <em>Task Graph</em>: this is how Mill defines,
 orders and caches work it needs to do, and exists independently of any support
 for building Java, Kotlin, or Scala.</p>
 </div>
@@ -688,13 +689,13 @@ different Task types:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 14.2857%;">
-<col style="width: 14.2857%;">
-<col style="width: 14.2857%;">
-<col style="width: 14.2857%;">
-<col style="width: 14.2857%;">
-<col style="width: 14.2857%;">
-<col style="width: 14.2858%;">
+<col style="width: 14.2857%;" />
+<col style="width: 14.2857%;" />
+<col style="width: 14.2857%;" />
+<col style="width: 14.2857%;" />
+<col style="width: 14.2857%;" />
+<col style="width: 14.2857%;" />
+<col style="width: 14.2858%;" />
 </colgroup>
 <thead>
 <tr>
@@ -775,31 +776,31 @@ to define a simple build graph with some input source files and intermediate bui
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
 
-def mainClass: T[Option[String]] = Some("foo.Foo")
+def mainClass: T[Option[String]] = Some(&quot;foo.Foo&quot;)
 
-def sources = Task.Source("src")
-def resources = Task.Source("resources")
+def sources = Task.Source(&quot;src&quot;)
+def resources = Task.Source(&quot;resources&quot;)
 
 def compile = Task {
   val allSources = os.walk(sources().path)
-  os.call(("javac", allSources, "-d", Task.dest))
+  os.call((&quot;javac&quot;, allSources, &quot;-d&quot;, Task.dest))
   PathRef(Task.dest)
 }
 
 def assembly = Task {
   for (p &lt;- Seq(compile(), resources())) os.copy(p.path, Task.dest, mergeFolders = true)
 
-  val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
+  val mainFlags = mainClass().toSeq.flatMap(Seq(&quot;-e&quot;, _))
   os.call(
-    ("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", "."),
+    (&quot;jar&quot;, &quot;-c&quot;, mainFlags, &quot;-f&quot;, Task.dest / &quot;assembly.jar&quot;, &quot;.&quot;),
     cwd = Task.dest
   )
 
-  PathRef(Task.dest / "assembly.jar")
+  PathRef(Task.dest / &quot;assembly.jar&quot;)
 }
 
 def run(args: String*) = Task.Command {
-  os.call(("java", "-jar", assembly().path, args), stdout = os.Inherit)
+  os.call((&quot;java&quot;, &quot;-jar&quot;, assembly().path, args), stdout = os.Inherit)
 }</code></pre>
 </div>
 </div>
@@ -809,76 +810,75 @@ and the arrows representing the <em>data-flow</em> between them:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="351px" height="119px"
- viewBox="0.00 0.00 351.07 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="351px" height="119px" viewBox="0.00 0.00 351.07 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"></polygon>
 <!-- sources -->
 <g id="node1" class="node">
 <title>sources</title>
-<polygon fill="white" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"/>
+<polygon fill="white" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"></polygon>
 <text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
 </g>
 <!-- compile -->
 <g id="node2" class="node">
 <title>compile</title>
-<polygon fill="white" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"/>
+<polygon fill="white" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
 <!-- sources&#45;&gt;compile -->
 <g id="edge1" class="edge">
-<title>sources&#45;&gt;compile</title>
-<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"/>
-<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"/>
+<title>sources-&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"></path>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"></polygon>
 </g>
 <!-- assembly -->
 <g id="node3" class="node">
 <title>assembly</title>
-<polygon fill="white" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"/>
+<polygon fill="white" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"></polygon>
 <text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
 </g>
 <!-- compile&#45;&gt;assembly -->
 <g id="edge2" class="edge">
-<title>compile&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"/>
-<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"/>
+<title>compile-&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"></path>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"></polygon>
 </g>
 <!-- run -->
 <g id="node6" class="node">
 <title>run</title>
-<polygon fill="white" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"/>
+<polygon fill="white" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"></polygon>
 <text text-anchor="middle" x="325.74" y="-51.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- assembly&#45;&gt;run -->
 <g id="edge5" class="edge">
-<title>assembly&#45;&gt;run</title>
-<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"/>
-<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"/>
+<title>assembly-&gt;run</title>
+<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"></path>
+<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"></polygon>
 </g>
 <!-- resources -->
 <g id="node4" class="node">
 <title>resources</title>
-<polygon fill="white" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"/>
+<polygon fill="white" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- resources&#45;&gt;assembly -->
 <g id="edge3" class="edge">
-<title>resources&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"/>
-<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"/>
+<title>resources-&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"></path>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"></polygon>
 </g>
 <!-- mainClass -->
 <g id="node5" class="node">
 <title>mainClass</title>
-<polygon fill="white" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"/>
+<polygon fill="white" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
 </g>
 <!-- mainClass&#45;&gt;assembly -->
 <g id="edge4" class="edge">
-<title>mainClass&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"/>
-<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"/>
+<title>mainClass-&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"></path>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"></polygon>
 </g>
 </g>
 </svg>
@@ -886,8 +886,8 @@ and the arrows representing the <em>data-flow</em> between them:</p>
 </center>
 </div>
 <div class="paragraph">
-<p>This example does not use any of Mill&#8217;s builtin support for building Java or
-Scala projects, and instead builds a pipeline "from scratch" using Mill
+<p>This example does not use any of Mill’s builtin support for building Java or
+Scala projects, and instead builds a pipeline &quot;from scratch&quot; using Mill
 tasks and <code>javac</code>/<code>jar</code>/<code>java</code> subprocesses. It makes use of the three most
 common kind of tasks:</p>
 </div>
@@ -907,7 +907,7 @@ common kind of tasks:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show assembly
-".../out/assembly.dest/assembly.jar"
+&quot;.../out/assembly.dest/assembly.jar&quot;
 
 &gt; java -jar out/assembly.dest/assembly.jar i am cow
 Foo.value: 31337
@@ -936,76 +936,75 @@ necessary, depending on what input sources changed:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="351px" height="119px"
- viewBox="0.00 0.00 351.07 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="351px" height="119px" viewBox="0.00 0.00 351.07 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"></polygon>
 <!-- sources -->
 <g id="node1" class="node">
 <title>sources</title>
-<polygon fill="lightpink" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"/>
+<polygon fill="lightpink" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"></polygon>
 <text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
 </g>
 <!-- compile -->
 <g id="node2" class="node">
 <title>compile</title>
-<polygon fill="lightpink" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"/>
+<polygon fill="lightpink" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
 <!-- sources&#45;&gt;compile -->
 <g id="edge1" class="edge">
-<title>sources&#45;&gt;compile</title>
-<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"/>
-<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"/>
+<title>sources-&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"></path>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"></polygon>
 </g>
 <!-- assembly -->
 <g id="node3" class="node">
 <title>assembly</title>
-<polygon fill="lightpink" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"/>
+<polygon fill="lightpink" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"></polygon>
 <text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
 </g>
 <!-- compile&#45;&gt;assembly -->
 <g id="edge2" class="edge">
-<title>compile&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"/>
-<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"/>
+<title>compile-&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"></path>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"></polygon>
 </g>
 <!-- run -->
 <g id="node6" class="node">
 <title>run</title>
-<polygon fill="white" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"/>
+<polygon fill="white" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"></polygon>
 <text text-anchor="middle" x="325.74" y="-51.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- assembly&#45;&gt;run -->
 <g id="edge5" class="edge">
-<title>assembly&#45;&gt;run</title>
-<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"/>
-<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"/>
+<title>assembly-&gt;run</title>
+<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"></path>
+<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"></polygon>
 </g>
 <!-- resources -->
 <g id="node4" class="node">
 <title>resources</title>
-<polygon fill="lightgreen" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"/>
+<polygon fill="lightgreen" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- resources&#45;&gt;assembly -->
 <g id="edge3" class="edge">
-<title>resources&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"/>
-<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"/>
+<title>resources-&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"></path>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"></polygon>
 </g>
 <!-- mainClass -->
 <g id="node5" class="node">
 <title>mainClass</title>
-<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"/>
+<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
 </g>
 <!-- mainClass&#45;&gt;assembly -->
 <g id="edge4" class="edge">
-<title>mainClass&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"/>
-<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"/>
+<title>mainClass-&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"></path>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"></polygon>
 </g>
 </g>
 </svg>
@@ -1022,76 +1021,75 @@ and use the cached output of <code>compile</code> (green)</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="351px" height="119px"
- viewBox="0.00 0.00 351.07 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="351px" height="119px" viewBox="0.00 0.00 351.07 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"></polygon>
 <!-- sources -->
 <g id="node1" class="node">
 <title>sources</title>
-<polygon fill="lightgreen" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"/>
+<polygon fill="lightgreen" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"></polygon>
 <text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
 </g>
 <!-- compile -->
 <g id="node2" class="node">
 <title>compile</title>
-<polygon fill="lightgreen" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"/>
+<polygon fill="lightgreen" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
 <!-- sources&#45;&gt;compile -->
 <g id="edge1" class="edge">
-<title>sources&#45;&gt;compile</title>
-<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"/>
-<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"/>
+<title>sources-&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"></path>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"></polygon>
 </g>
 <!-- assembly -->
 <g id="node3" class="node">
 <title>assembly</title>
-<polygon fill="lightpink" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"/>
+<polygon fill="lightpink" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"></polygon>
 <text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
 </g>
 <!-- compile&#45;&gt;assembly -->
 <g id="edge2" class="edge">
-<title>compile&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"/>
-<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"/>
+<title>compile-&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"></path>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"></polygon>
 </g>
 <!-- run -->
 <g id="node6" class="node">
 <title>run</title>
-<polygon fill="white" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"/>
+<polygon fill="white" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"></polygon>
 <text text-anchor="middle" x="325.74" y="-51.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- assembly&#45;&gt;run -->
 <g id="edge5" class="edge">
-<title>assembly&#45;&gt;run</title>
-<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"/>
-<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"/>
+<title>assembly-&gt;run</title>
+<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"></path>
+<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"></polygon>
 </g>
 <!-- resources -->
 <g id="node4" class="node">
 <title>resources</title>
-<polygon fill="lightpink" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"/>
+<polygon fill="lightpink" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- resources&#45;&gt;assembly -->
 <g id="edge3" class="edge">
-<title>resources&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"/>
-<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"/>
+<title>resources-&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"></path>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"></polygon>
 </g>
 <!-- mainClass -->
 <g id="node5" class="node">
 <title>mainClass</title>
-<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"/>
+<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
 </g>
 <!-- mainClass&#45;&gt;assembly -->
 <g id="edge4" class="edge">
-<title>mainClass&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"/>
-<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"/>
+<title>mainClass-&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"></path>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"></polygon>
 </g>
 </g>
 </svg>
@@ -1100,80 +1098,79 @@ and use the cached output of <code>compile</code> (green)</p>
 </div>
 <div class="paragraph">
 <p><code>run</code> behaves differently from <code>assembly</code>: as a <code>Task.Command</code> it is executed
-every time you run it, even if none of it&#8217;s upstream <code>Task</code>s or <code>Source</code>s changed.</p>
+every time you run it, even if none of it’s upstream <code>Task</code>s or <code>Source</code>s changed.</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="351px" height="119px"
- viewBox="0.00 0.00 351.07 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="351px" height="119px" viewBox="0.00 0.00 351.07 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"></polygon>
 <!-- sources -->
 <g id="node1" class="node">
 <title>sources</title>
-<polygon fill="lightgreen" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"/>
+<polygon fill="lightgreen" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"></polygon>
 <text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
 </g>
 <!-- compile -->
 <g id="node2" class="node">
 <title>compile</title>
-<polygon fill="lightgreen" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"/>
+<polygon fill="lightgreen" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
 <!-- sources&#45;&gt;compile -->
 <g id="edge1" class="edge">
-<title>sources&#45;&gt;compile</title>
-<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"/>
-<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"/>
+<title>sources-&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"></path>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"></polygon>
 </g>
 <!-- assembly -->
 <g id="node3" class="node">
 <title>assembly</title>
-<polygon fill="lightgreen" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"/>
+<polygon fill="lightgreen" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"></polygon>
 <text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
 </g>
 <!-- compile&#45;&gt;assembly -->
 <g id="edge2" class="edge">
-<title>compile&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"/>
-<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"/>
+<title>compile-&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"></path>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"></polygon>
 </g>
 <!-- run -->
 <g id="node6" class="node">
 <title>run</title>
-<polygon fill="lightpink" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"/>
+<polygon fill="lightpink" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"></polygon>
 <text text-anchor="middle" x="325.74" y="-51.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- assembly&#45;&gt;run -->
 <g id="edge5" class="edge">
-<title>assembly&#45;&gt;run</title>
-<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"/>
-<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"/>
+<title>assembly-&gt;run</title>
+<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"></path>
+<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"></polygon>
 </g>
 <!-- resources -->
 <g id="node4" class="node">
 <title>resources</title>
-<polygon fill="lightgreen" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"/>
+<polygon fill="lightgreen" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- resources&#45;&gt;assembly -->
 <g id="edge3" class="edge">
-<title>resources&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"/>
-<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"/>
+<title>resources-&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"></path>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"></polygon>
 </g>
 <!-- mainClass -->
 <g id="node5" class="node">
 <title>mainClass</title>
-<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"/>
+<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
 </g>
 <!-- mainClass&#45;&gt;assembly -->
 <g id="edge4" class="edge">
-<title>mainClass&#45;&gt;assembly</title>
-<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"/>
-<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"/>
+<title>mainClass-&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"></path>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"></polygon>
 </g>
 </g>
 </svg>
@@ -1196,13 +1193,13 @@ skipped is due to <a href="../large/selective-execution.html" class="xref page">
 <div class="ulist">
 <ul>
 <li>
-<p><a href="#_sources">Sources</a>, defined using <code>Task.Sources {&#8230;&#8203;}</code></p>
+<p><a href="#_sources">Sources</a>, defined using <code>Task.Sources {...​}</code></p>
 </li>
 <li>
-<p><a href="#_tasks">Tasks</a>, defined using <code>Task {&#8230;&#8203;}</code></p>
+<p><a href="#_tasks">Tasks</a>, defined using <code>Task {...​}</code></p>
 </li>
 <li>
-<p><a href="#_commands">Commands</a>, defined using <code>Task.Command {&#8230;&#8203;}</code></p>
+<p><a href="#_commands">Commands</a>, defined using <code>Task.Command {...​}</code></p>
 </li>
 </ul>
 </div>
@@ -1215,12 +1212,12 @@ skipped is due to <a href="../large/selective-execution.html" class="xref page">
 
 import mill.{Module, T, _}
 
-def sources = Task.Source { "src" }
-def resources = Task.Source { "resources" }</code></pre>
+def sources = Task.Source { &quot;src&quot; }
+def resources = Task.Source { &quot;resources&quot; }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>Source</code>s are defined using <code>Task.Source{&#8230;&#8203;}</code> taking one <code>os.Path</code>, or <code>Task.Sources{&#8230;&#8203;}</code>,
+<p><code>Source</code>s are defined using <code>Task.Source{...​}</code> taking one <code>os.Path</code>, or <code>Task.Sources{...​}</code>,
 taking multiple <code>os.Path</code>s as arguments. A <code>Source</code>'s:
 its build signature/<code>hashCode</code> depends not just on the path
 it refers to (e.g. <code>foo/bar/baz</code>) but also the MD5 hash of the file contents or
@@ -1239,12 +1236,12 @@ also be captured via the more general <a href="#_inputs">Input</a> tasks</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def allSources = Task {
   os.walk(sources().path)
-    .filter(_.ext == "java")
+    .filter(_.ext == &quot;java&quot;)
     .map(PathRef(_))
 }
 
 def lineCount: T[Int] = Task {
-  println("Computing line count")
+  println(&quot;Computing line count&quot;)
   allSources()
     .map(p =&gt; os.read.lines(p.path).size)
     .sum
@@ -1253,40 +1250,39 @@ def lineCount: T[Int] = Task {
 </div>
 <div class="paragraph">
 <center>
-<svg width="284px" height="33px"
- viewBox="0.00 0.00 283.51 32.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="284px" height="33px" viewBox="0.00 0.00 283.51 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28.8 279.51,-28.8 279.51,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28.8 279.51,-28.8 279.51,4 -4,4"></polygon>
 <!-- sources -->
 <g id="node1" class="node">
 <title>sources</title>
-<polygon fill="white" stroke="white" points="57.97,-24.7 0.01,-24.7 0.01,-0.1 57.97,-0.1 57.97,-24.7"/>
+<polygon fill="white" stroke="white" points="57.97,-24.7 0.01,-24.7 0.01,-0.1 57.97,-0.1 57.97,-24.7"></polygon>
 <text text-anchor="middle" x="28.99" y="-8.2" font-family="Times,serif" font-size="14.00">sources</text>
 </g>
 <!-- allSources -->
 <g id="node2" class="node">
 <title>allSources</title>
-<polygon fill="white" stroke="black" points="168.45,-24.7 93.82,-24.7 93.82,-0.1 168.45,-0.1 168.45,-24.7"/>
+<polygon fill="white" stroke="black" points="168.45,-24.7 93.82,-24.7 93.82,-0.1 168.45,-0.1 168.45,-24.7"></polygon>
 <text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">allSources</text>
 </g>
 <!-- sources&#45;&gt;allSources -->
 <g id="edge1" class="edge">
-<title>sources&#45;&gt;allSources</title>
-<path fill="none" stroke="black" d="M58.15,-12.4C66.14,-12.4 75.05,-12.4 83.8,-12.4"/>
-<polygon fill="black" stroke="black" points="83.95,-15.9 93.95,-12.4 83.95,-8.9 83.95,-15.9"/>
+<title>sources-&gt;allSources</title>
+<path fill="none" stroke="black" d="M58.15,-12.4C66.14,-12.4 75.05,-12.4 83.8,-12.4"></path>
+<polygon fill="black" stroke="black" points="83.95,-15.9 93.95,-12.4 83.95,-8.9 83.95,-15.9"></polygon>
 </g>
 <!-- lineCount -->
 <g id="node3" class="node">
 <title>lineCount</title>
-<polygon fill="white" stroke="black" points="275.63,-24.7 204.18,-24.7 204.18,-0.1 275.63,-0.1 275.63,-24.7"/>
+<polygon fill="white" stroke="black" points="275.63,-24.7 204.18,-24.7 204.18,-0.1 275.63,-0.1 275.63,-24.7"></polygon>
 <text text-anchor="middle" x="239.9" y="-8.2" font-family="Times,serif" font-size="14.00">lineCount</text>
 </g>
 <!-- allSources&#45;&gt;lineCount -->
 <g id="edge2" class="edge">
-<title>allSources&#45;&gt;lineCount</title>
-<path fill="none" stroke="black" d="M168.58,-12.4C176.74,-12.4 185.49,-12.4 193.95,-12.4"/>
-<polygon fill="black" stroke="black" points="194.06,-15.9 204.06,-12.4 194.06,-8.9 194.06,-15.9"/>
+<title>allSources-&gt;lineCount</title>
+<path fill="none" stroke="black" d="M168.58,-12.4C176.74,-12.4 185.49,-12.4 193.95,-12.4"></path>
+<polygon fill="black" stroke="black" points="194.06,-15.9 204.06,-12.4 194.06,-8.9 194.06,-15.9"></polygon>
 </g>
 </g>
 </svg>
@@ -1294,9 +1290,9 @@ def lineCount: T[Int] = Task {
 </center>
 </div>
 <div class="paragraph">
-<p><code>Tasks</code>s are defined using the <code>def foo = Task {&#8230;&#8203;}</code> syntax, and dependencies
+<p><code>Tasks</code>s are defined using the <code>def foo = Task {...​}</code> syntax, and dependencies
 on other tasks are defined using <code>foo()</code> to extract the value from them.
-Apart from the <code>foo()</code> calls, the <code>Task {&#8230;&#8203;}</code> block contains arbitrary code that
+Apart from the <code>foo()</code> calls, the <code>Task {...​}</code> block contains arbitrary code that
 does some work and returns a result. Note that tasks cannot have circular dependencies
 between each other.</p>
 </div>
@@ -1324,10 +1320,10 @@ Computing line count
 </div>
 </div>
 <div class="paragraph">
-<p>If a cached task&#8217;s inputs change but its output does not, then
+<p>If a cached task’s inputs change but its output does not, then
 downstream tasks do not re-evaluate. e.g. Someone may change a
-comment within an input source file that doesn&#8217;t affect the output classfiles.
-This is determined using the <code>.hashCode</code> of the cached task&#8217;s return value.</p>
+comment within an input source file that doesn’t affect the output classfiles.
+This is determined using the <code>.hashCode</code> of the cached task’s return value.</p>
 </div>
 <div class="paragraph">
 <p>Furthermore, when code changes occur, cached tasks only invalidate if the code change
@@ -1337,7 +1333,7 @@ not cause it to recompute:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff"> def lineCount: T[Int] = Task {
-  println("Computing line count")
+  println(&quot;Computing line count&quot;)
 +  // Hello World
   allSources()
     .map(p =&gt; os.read.lines(p.path).size)
@@ -1352,8 +1348,8 @@ next time it is invoked:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff">  def lineCount: T[Int] = Task {
--  println("Computing line count")
-+  println("Computing line count!!!")
+-  println(&quot;Computing line count&quot;)
++  println(&quot;Computing line count!!!&quot;)
   allSources()
     .map(p =&gt; os.read.lines(p.path).size)
     .sum</code></pre>
@@ -1383,9 +1379,9 @@ external tools. See the uPickle library documentation for more details:</p>
 <div class="paragraph">
 <p>Each task is assigned a unique <a href="https://mill-build.org/api/latest/mill/api/Ctx.html#dest:os.Path">Task.dest</a>
 folder on disk (e.g. <code>classFiles</code> is given <code>out/classFiles.dest/</code>). <code>Task.dest</code> is
-reset every time a task is recomputed, and can be used as scratch space or to store the task&#8217;s
+reset every time a task is recomputed, and can be used as scratch space or to store the task’s
 output files. Any metadata returned from the task is automatically JSON-serialized
-and stored at <code>out/classFiles.json</code> adjacent to it&#8217;s <code>.dest</code> folder. If you want to return a file
+and stored at <code>out/classFiles.json</code> adjacent to it’s <code>.dest</code> folder. If you want to return a file
 or a set of files as the result of a <code>Task</code>, write them to disk within your <code>Task.dest</code>
 folder and return a <code>PathRef()</code> that referencing the files or folders
 you want to return:</p>
@@ -1393,73 +1389,72 @@ you want to return:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def classFiles = Task {
-  println("Generating classfiles")
+  println(&quot;Generating classfiles&quot;)
 
-  os.proc("javac", allSources().map(_.path), "-d", Task.dest)
+  os.proc(&quot;javac&quot;, allSources().map(_.path), &quot;-d&quot;, Task.dest)
     .call(cwd = Task.dest)
 
   PathRef(Task.dest)
 }
 
 def jar = Task {
-  println("Generating jar")
+  println(&quot;Generating jar&quot;)
   os.copy(classFiles().path, Task.dest, mergeFolders = true)
   os.copy(resources().path, Task.dest, mergeFolders = true)
 
-  os.proc("jar", "-cfe", Task.dest / "foo.jar", "foo.Foo", ".").call(cwd = Task.dest)
+  os.proc(&quot;jar&quot;, &quot;-cfe&quot;, Task.dest / &quot;foo.jar&quot;, &quot;foo.Foo&quot;, &quot;.&quot;).call(cwd = Task.dest)
 
-  PathRef(Task.dest / "foo.jar")
+  PathRef(Task.dest / &quot;foo.jar&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <center>
-<svg width="256px" height="76px"
- viewBox="0.00 0.00 255.51 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="256px" height="76px" viewBox="0.00 0.00 255.51 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 251.51,-71.8 251.51,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 251.51,-71.8 251.51,4 -4,4"></polygon>
 <!-- allSources -->
 <g id="node1" class="node">
 <title>allSources</title>
-<polygon fill="white" stroke="white" points="74.47,-67.7 -0.16,-67.7 -0.16,-43.1 74.47,-43.1 74.47,-67.7"/>
+<polygon fill="white" stroke="white" points="74.47,-67.7 -0.16,-67.7 -0.16,-43.1 74.47,-43.1 74.47,-67.7"></polygon>
 <text text-anchor="middle" x="37.16" y="-51.2" font-family="Times,serif" font-size="14.00">allSources</text>
 </g>
 <!-- classFiles -->
 <g id="node2" class="node">
 <title>classFiles</title>
-<polygon fill="white" stroke="black" points="180.96,-67.7 110.1,-67.7 110.1,-43.1 180.96,-43.1 180.96,-67.7"/>
+<polygon fill="white" stroke="black" points="180.96,-67.7 110.1,-67.7 110.1,-43.1 180.96,-43.1 180.96,-67.7"></polygon>
 <text text-anchor="middle" x="145.53" y="-51.2" font-family="Times,serif" font-size="14.00">classFiles</text>
 </g>
 <!-- allSources&#45;&gt;classFiles -->
 <g id="edge1" class="edge">
-<title>allSources&#45;&gt;classFiles</title>
-<path fill="none" stroke="black" d="M74.47,-55.4C82.68,-55.4 91.5,-55.4 100.01,-55.4"/>
-<polygon fill="black" stroke="black" points="100.18,-58.9 110.18,-55.4 100.18,-51.9 100.18,-58.9"/>
+<title>allSources-&gt;classFiles</title>
+<path fill="none" stroke="black" d="M74.47,-55.4C82.68,-55.4 91.5,-55.4 100.01,-55.4"></path>
+<polygon fill="black" stroke="black" points="100.18,-58.9 110.18,-55.4 100.18,-51.9 100.18,-58.9"></polygon>
 </g>
 <!-- jar -->
 <g id="node3" class="node">
 <title>jar</title>
-<polygon fill="white" stroke="black" points="247.39,-45.7 216.86,-45.7 216.86,-21.1 247.39,-21.1 247.39,-45.7"/>
+<polygon fill="white" stroke="black" points="247.39,-45.7 216.86,-45.7 216.86,-21.1 247.39,-21.1 247.39,-45.7"></polygon>
 <text text-anchor="middle" x="232.13" y="-29.2" font-family="Times,serif" font-size="14.00">jar</text>
 </g>
 <!-- classFiles&#45;&gt;jar -->
 <g id="edge2" class="edge">
-<title>classFiles&#45;&gt;jar</title>
-<path fill="none" stroke="black" d="M180.94,-46.45C189.59,-44.2 198.7,-41.83 206.75,-39.74"/>
-<polygon fill="black" stroke="black" points="207.79,-43.09 216.58,-37.18 206.03,-36.31 207.79,-43.09"/>
+<title>classFiles-&gt;jar</title>
+<path fill="none" stroke="black" d="M180.94,-46.45C189.59,-44.2 198.7,-41.83 206.75,-39.74"></path>
+<polygon fill="black" stroke="black" points="207.79,-43.09 216.58,-37.18 206.03,-36.31 207.79,-43.09"></polygon>
 </g>
 <!-- resources -->
 <g id="node4" class="node">
 <title>resources</title>
-<polygon fill="white" stroke="white" points="179.88,-24.7 111.17,-24.7 111.17,-0.1 179.88,-0.1 179.88,-24.7"/>
+<polygon fill="white" stroke="white" points="179.88,-24.7 111.17,-24.7 111.17,-0.1 179.88,-0.1 179.88,-24.7"></polygon>
 <text text-anchor="middle" x="145.53" y="-8.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- resources&#45;&gt;jar -->
 <g id="edge3" class="edge">
-<title>resources&#45;&gt;jar</title>
-<path fill="none" stroke="black" d="M179.96,-20.7C188.93,-22.92 198.45,-25.29 206.81,-27.36"/>
-<polygon fill="black" stroke="black" points="206.11,-30.8 216.66,-29.81 207.8,-24 206.11,-30.8"/>
+<title>resources-&gt;jar</title>
+<path fill="none" stroke="black" d="M179.96,-20.7C188.93,-22.92 198.45,-25.29 206.81,-27.36"></path>
+<polygon fill="black" stroke="black" points="206.11,-30.8 216.66,-29.81 207.8,-24 206.11,-30.8"></polygon>
 </g>
 </g>
 </svg>
@@ -1473,24 +1468,24 @@ Generating classfiles
 Generating jar
 
 &gt; ./mill show jar
-".../out/jar.dest/foo.jar"</code></pre>
+&quot;.../out/jar.dest/foo.jar&quot;</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
 <strong><code>os.pwd</code> within a <code>Task</code> is set to the <code>Task.dest</code> folder by default.</strong>
 This is to stop you from accidentally reading and writing files to the base repository root,
-which would cause problems with Mill&#8217;s caches not invalidating properly or files from different
+which would cause problems with Mill’s caches not invalidating properly or files from different
 tasks colliding and causing issues. In the rare case where
 you truly need the Mill project root folder, you can access it via <code>Task.workspace</code>
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 <div class="sect2">
@@ -1501,55 +1496,54 @@ you truly need the Mill project root folder, you can access it via <code>Task.wo
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def largeFile = Task {
-  println("Finding Largest File")
+  println(&quot;Finding Largest File&quot;)
   allSources()
     .map(_.path)
-    .filter(_.ext == "java")
+    .filter(_.ext == &quot;java&quot;)
     .maxBy(os.read.lines(_).size)
 }
 
 def hugeFileName = Task {
   if (lineCount() &gt; 999) largeFile().last
-  else "&lt;no-huge-file&gt;"
+  else &quot;&lt;no-huge-file&gt;&quot;
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <center>
-<svg width="318px" height="33px"
- viewBox="0.00 0.00 318.49 32.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="318px" height="33px" viewBox="0.00 0.00 318.49 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28.8 314.49,-28.8 314.49,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28.8 314.49,-28.8 314.49,4 -4,4"></polygon>
 <!-- allSources -->
 <g id="node1" class="node">
 <title>allSources</title>
-<polygon fill="white" stroke="white" points="74.47,-24.7 -0.16,-24.7 -0.16,-0.1 74.47,-0.1 74.47,-24.7"/>
+<polygon fill="white" stroke="white" points="74.47,-24.7 -0.16,-24.7 -0.16,-0.1 74.47,-0.1 74.47,-24.7"></polygon>
 <text text-anchor="middle" x="37.16" y="-8.2" font-family="Times,serif" font-size="14.00">allSources</text>
 </g>
 <!-- largeFile -->
 <g id="node2" class="node">
 <title>largeFile</title>
-<polygon fill="white" stroke="black" points="175.95,-24.7 110.43,-24.7 110.43,-0.1 175.95,-0.1 175.95,-24.7"/>
+<polygon fill="white" stroke="black" points="175.95,-24.7 110.43,-24.7 110.43,-0.1 175.95,-0.1 175.95,-24.7"></polygon>
 <text text-anchor="middle" x="143.19" y="-8.2" font-family="Times,serif" font-size="14.00">largeFile</text>
 </g>
 <!-- allSources&#45;&gt;largeFile -->
 <g id="edge1" class="edge">
-<title>allSources&#45;&gt;largeFile</title>
-<path fill="none" stroke="black" d="M74.54,-12.4C82.79,-12.4 91.62,-12.4 100.08,-12.4"/>
-<polygon fill="black" stroke="black" points="100.16,-15.9 110.16,-12.4 100.16,-8.9 100.16,-15.9"/>
+<title>allSources-&gt;largeFile</title>
+<path fill="none" stroke="black" d="M74.54,-12.4C82.79,-12.4 91.62,-12.4 100.08,-12.4"></path>
+<polygon fill="black" stroke="black" points="100.16,-15.9 110.16,-12.4 100.16,-8.9 100.16,-15.9"></polygon>
 </g>
 <!-- hugeFileName -->
 <g id="node3" class="node">
 <title>hugeFileName</title>
-<polygon fill="white" stroke="black" points="310.7,-24.7 211.86,-24.7 211.86,-0.1 310.7,-0.1 310.7,-24.7"/>
+<polygon fill="white" stroke="black" points="310.7,-24.7 211.86,-24.7 211.86,-0.1 310.7,-0.1 310.7,-24.7"></polygon>
 <text text-anchor="middle" x="261.28" y="-8.2" font-family="Times,serif" font-size="14.00">hugeFileName</text>
 </g>
 <!-- largeFile&#45;&gt;hugeFileName -->
 <g id="edge2" class="edge">
-<title>largeFile&#45;&gt;hugeFileName</title>
-<path fill="none" stroke="black" d="M176.22,-12.4C184.13,-12.4 192.86,-12.4 201.6,-12.4"/>
-<polygon fill="black" stroke="black" points="201.82,-15.9 211.82,-12.4 201.82,-8.9 201.82,-15.9"/>
+<title>largeFile-&gt;hugeFileName</title>
+<path fill="none" stroke="black" d="M176.22,-12.4C184.13,-12.4 192.86,-12.4 201.6,-12.4"></path>
+<polygon fill="black" stroke="black" points="201.82,-15.9 211.82,-12.4 201.82,-8.9 201.82,-15.9"></polygon>
 </g>
 </g>
 </svg>
@@ -1558,7 +1552,7 @@ def hugeFileName = Task {
 </div>
 <div class="admonitionblock caution">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-caution" title="Caution"></i>
 </td>
@@ -1570,7 +1564,7 @@ not used in one branch of an <code>if</code> condition, it will get computed reg
 before the <code>if</code> condition is even considered.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>The output below demonstrates this behavior, with the <code>println</code> defined
@@ -1584,7 +1578,7 @@ in <code>def largeFile</code> above running even though the <code>largeFile()</c
 
 &gt; ./mill show hugeFileName # This still runs `largestFile` even though `lineCount() &lt; 999`
 Finding Largest File
-"&lt;no-huge-file&gt;"</code></pre>
+&quot;&lt;no-huge-file&gt;&quot;</code></pre>
 </div>
 </div>
 <div class="sect3">
@@ -1617,28 +1611,27 @@ def summarizeClassFileStats = Task {
 </div>
 <div class="paragraph">
 <center>
-<svg width="278px" height="33px"
- viewBox="0.00 0.00 278.19 32.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="278px" height="33px" viewBox="0.00 0.00 278.19 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28.8 274.19,-28.8 274.19,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28.8 274.19,-28.8 274.19,4 -4,4"></polygon>
 <!-- classFiles -->
 <g id="node1" class="node">
 <title>classFiles</title>
-<polygon fill="white" stroke="white" points="70.65,-24.7 -0.22,-24.7 -0.22,-0.1 70.65,-0.1 70.65,-24.7"/>
+<polygon fill="white" stroke="white" points="70.65,-24.7 -0.22,-24.7 -0.22,-0.1 70.65,-0.1 70.65,-24.7"></polygon>
 <text text-anchor="middle" x="35.22" y="-8.2" font-family="Times,serif" font-size="14.00">classFiles</text>
 </g>
 <!-- summarizedClassFileStats -->
 <g id="node2" class="node">
 <title>summarizedClassFileStats</title>
-<polygon fill="white" stroke="black" points="270.06,-24.7 106.56,-24.7 106.56,-0.1 270.06,-0.1 270.06,-24.7"/>
+<polygon fill="white" stroke="black" points="270.06,-24.7 106.56,-24.7 106.56,-0.1 270.06,-0.1 270.06,-24.7"></polygon>
 <text text-anchor="middle" x="188.31" y="-8.2" font-family="Times,serif" font-size="14.00">summarizedClassFileStats</text>
 </g>
 <!-- classFiles&#45;&gt;summarizedClassFileStats -->
 <g id="edge1" class="edge">
-<title>classFiles&#45;&gt;summarizedClassFileStats</title>
-<path fill="none" stroke="black" d="M70.5,-12.4C78.35,-12.4 87.05,-12.4 96.06,-12.4"/>
-<polygon fill="black" stroke="black" points="96.34,-15.9 106.34,-12.4 96.34,-8.9 96.34,-15.9"/>
+<title>classFiles-&gt;summarizedClassFileStats</title>
+<path fill="none" stroke="black" d="M70.5,-12.4C78.35,-12.4 87.05,-12.4 96.06,-12.4"></path>
+<polygon fill="black" stroke="black" points="96.34,-15.9 106.34,-12.4 96.34,-8.9 96.34,-15.9"></polygon>
 </g>
 </g>
 </svg>
@@ -1649,8 +1642,8 @@ def summarizeClassFileStats = Task {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show summarizeClassFileStats
 {
-  "totalFileSize": ...,
-  "largestFile": "..."
+  &quot;totalFileSize&quot;: ...,
+  &quot;largestFile&quot;: &quot;...&quot;
 }</code></pre>
 </div>
 </div>
@@ -1666,9 +1659,9 @@ def summarizeClassFileStats = Task {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(mainClass: String, args: String*) = Task.Command {
   os.proc(
-    "java",
-    "-cp",
-    s"${classFiles().path}:${resources().path}",
+    &quot;java&quot;,
+    &quot;-cp&quot;,
+    s&quot;${classFiles().path}:${resources().path}&quot;,
     mainClass,
     args
   )
@@ -1678,40 +1671,39 @@ def summarizeClassFileStats = Task {
 </div>
 <div class="paragraph">
 <center>
-<svg width="149px" height="76px"
- viewBox="0.00 0.00 149.09 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="149px" height="76px" viewBox="0.00 0.00 149.09 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 145.09,-71.8 145.09,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 145.09,-71.8 145.09,4 -4,4"></polygon>
 <!-- classFiles -->
 <g id="node1" class="node">
 <title>classFiles</title>
-<polygon fill="white" stroke="white" points="70.65,-67.7 -0.22,-67.7 -0.22,-43.1 70.65,-43.1 70.65,-67.7"/>
+<polygon fill="white" stroke="white" points="70.65,-67.7 -0.22,-67.7 -0.22,-43.1 70.65,-43.1 70.65,-67.7"></polygon>
 <text text-anchor="middle" x="35.22" y="-51.2" font-family="Times,serif" font-size="14.00">classFiles</text>
 </g>
 <!-- run -->
 <g id="node2" class="node">
 <title>run</title>
-<polygon fill="white" stroke="black" points="140.92,-45.7 106.6,-45.7 106.6,-21.1 140.92,-21.1 140.92,-45.7"/>
+<polygon fill="white" stroke="black" points="140.92,-45.7 106.6,-45.7 106.6,-21.1 140.92,-21.1 140.92,-45.7"></polygon>
 <text text-anchor="middle" x="123.76" y="-29.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- classFiles&#45;&gt;run -->
 <g id="edge1" class="edge">
-<title>classFiles&#45;&gt;run</title>
-<path fill="none" stroke="black" d="M70.92,-46.58C79.42,-44.42 88.38,-42.14 96.42,-40.1"/>
-<polygon fill="black" stroke="black" points="97.5,-43.43 106.33,-37.58 95.78,-36.65 97.5,-43.43"/>
+<title>classFiles-&gt;run</title>
+<path fill="none" stroke="black" d="M70.92,-46.58C79.42,-44.42 88.38,-42.14 96.42,-40.1"></path>
+<polygon fill="black" stroke="black" points="97.5,-43.43 106.33,-37.58 95.78,-36.65 97.5,-43.43"></polygon>
 </g>
 <!-- resources -->
 <g id="node3" class="node">
 <title>resources</title>
-<polygon fill="white" stroke="white" points="69.57,-24.7 0.86,-24.7 0.86,-0.1 69.57,-0.1 69.57,-24.7"/>
+<polygon fill="white" stroke="white" points="69.57,-24.7 0.86,-24.7 0.86,-0.1 69.57,-0.1 69.57,-24.7"></polygon>
 <text text-anchor="middle" x="35.22" y="-8.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- resources&#45;&gt;run -->
 <g id="edge2" class="edge">
-<title>resources&#45;&gt;run</title>
-<path fill="none" stroke="black" d="M69.92,-20.58C78.74,-22.72 88.1,-24.99 96.46,-27.02"/>
-<polygon fill="black" stroke="black" points="95.86,-30.47 106.4,-29.43 97.51,-23.67 95.86,-30.47"/>
+<title>resources-&gt;run</title>
+<path fill="none" stroke="black" d="M69.92,-20.58C78.74,-22.72 88.1,-24.99 96.46,-27.02"></path>
+<polygon fill="black" stroke="black" points="95.86,-30.47 106.4,-29.43 97.51,-23.67 95.86,-30.47"></polygon>
 </g>
 </g>
 </svg>
@@ -1719,20 +1711,20 @@ def summarizeClassFileStats = Task {
 </center>
 </div>
 <div class="paragraph">
-<p>Defined using <code>Task.Command {&#8230;&#8203;}</code> syntax, <code>Command</code>s can run arbitrary code, with
+<p>Defined using <code>Task.Command {...​}</code> syntax, <code>Command</code>s can run arbitrary code, with
 dependencies declared using the same <code>foo()</code> syntax (e.g. <code>classFiles()</code> above).
 Commands can be parametrized, but their output is not cached, so they will
 re-evaluate every time even if none of their inputs have changed. The only times
 <code>Command</code>s may be skipped is due to <a href="../large/selective-execution.html" class="xref page">Selective Test Execution</a>.</p>
 </div>
 <div class="paragraph">
-<p>A command with no parameter is defined as <code>def myCommand() = Task.Command {&#8230;&#8203;}</code>.
+<p>A command with no parameter is defined as <code>def myCommand() = Task.Command {...​}</code>.
 It is a compile error if <code>()</code> is missing.</p>
 </div>
 <div class="paragraph">
 <p>Tasks can take command line params, parsed by the <a href="https://github.com/com-lihaoyi/mainargs">MainArgs</a>
 library. Thus the signature <code>def run(mainClass: String, args: String*)</code> takes
-params of the form <code>--main-class &lt;str&gt; &lt;arg1&gt; &lt;arg2&gt; &#8230;&#8203; &lt;argn&gt;</code>:</p>
+params of the form <code>--main-class &lt;str&gt; &lt;arg1&gt; &lt;arg2&gt; ...​ &lt;argn&gt;</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1802,7 +1794,7 @@ path for consumption by external tools.</p>
 import mill._
 
 def myInput = Task.Input {
-  os.proc("git", "rev-parse", "HEAD").call(cwd = Task.workspace)
+  os.proc(&quot;git&quot;, &quot;rev-parse&quot;, &quot;HEAD&quot;).call(cwd = Task.workspace)
     .out
     .text()
     .trim()
@@ -1824,8 +1816,8 @@ even if the external <code>git</code> status changes:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusTask = Task {
-  "version-" +
-    os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
+  &quot;version-&quot; +
+    os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
       .call(cwd = Task.workspace)
       .out
       .text()
@@ -1836,15 +1828,15 @@ even if the external <code>git</code> status changes:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git init .
-&gt; git commit --allow-empty -m "Initial-Commit"
+&gt; git commit --allow-empty -m &quot;Initial-Commit&quot;
 
 &gt; ./mill show gitStatusTask
-"version-...-Initial-Commit"
+&quot;version-...-Initial-Commit&quot;
 
-&gt; git commit --allow-empty -m "Second-Commit"
+&gt; git commit --allow-empty -m &quot;Second-Commit&quot;
 
 &gt; ./mill show gitStatusTask # Mill didn't pick up the git change!
-"version-...-Initial-Commit"</code></pre>
+&quot;version-...-Initial-Commit&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1859,14 +1851,14 @@ not know to re-evaluate when your <code>git log</code> <em>does</em> change. Thi
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusInput = Task.Input {
-  os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
+  os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
     .call(cwd = Task.workspace)
     .out
     .text()
     .trim()
 }
 
-def gitStatusTask2 = Task { "version-" + gitStatusInput() }</code></pre>
+def gitStatusTask2 = Task { &quot;version-&quot; + gitStatusInput() }</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1875,21 +1867,21 @@ the output of <code>gitStatusInput</code> changes will <code>gitStatusTask2</cod
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git commit --allow-empty -m "Initial-Commit"
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git commit --allow-empty -m &quot;Initial-Commit&quot;
 
 &gt; ./mill show gitStatusTask2
-"version-...-Initial-Commit"
+&quot;version-...-Initial-Commit&quot;
 
-&gt; git commit --allow-empty -m "Second-Commit"
+&gt; git commit --allow-empty -m &quot;Second-Commit&quot;
 
 &gt; ./mill show gitStatusTask2 # Mill picked up git change
-"version-...-Second-Commit"</code></pre>
+&quot;version-...-Second-Commit&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Note that because <code>Task.Input</code>s re-evaluate every time, you should ensure that the
 code you put in <code>Task.Input</code> runs quickly. Ideally it should just be a simple check
-"did anything change?" and any heavy-lifting should be delegated to downstream
+&quot;did anything change?&quot; and any heavy-lifting should be delegated to downstream
 tasks where it can be cached if possible.</p>
 </div>
 <div class="sect3">
@@ -1906,24 +1898,24 @@ should be done downstream in a cached <a href="#_tasks">task</a>:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myPropertyInput = Task.Input {
-  sys.props("my-property")
+  sys.props(&quot;my-property&quot;)
 }
 
 def myPropertyTask = Task {
-  "Hello Prop " + myPropertyInput()
+  &quot;Hello Prop &quot; + myPropertyInput()
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show myPropertyTask
-"Hello Prop null"
+&quot;Hello Prop null&quot;
 
 &gt; ./mill -Dmy-property=world show myPropertyTask # Task is correctly invalidated when prop is added
-"Hello Prop world"
+&quot;Hello Prop world&quot;
 
 &gt; ./mill show myPropertyTask # Task is correctly invalidated when prop is removed
-"Hello Prop null"</code></pre>
+&quot;Hello Prop null&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1943,24 +1935,24 @@ due to JVM limitations:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myEnvInput = Task.Input {
-  Task.env.getOrElse("MY_ENV", null)
+  Task.env.getOrElse(&quot;MY_ENV&quot;, null)
 }
 
 def myEnvTask = Task {
-  "Hello Env " + myEnvInput()
+  &quot;Hello Env &quot; + myEnvInput()
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show myEnvTask
-"Hello Env null"
+&quot;Hello Env null&quot;
 
 &gt; MY_ENV=world ./mill show myEnvTask # Task is correctly invalidated when env is added
-"Hello Env world"
+&quot;Hello Env world&quot;
 
 &gt; ./mill show myEnvTask # Task is correctly invalidated when env is removed
-"Hello Env null"</code></pre>
+&quot;Hello Env null&quot;</code></pre>
 </div>
 </div>
 </div>
@@ -1971,14 +1963,14 @@ def myEnvTask = Task {
 <p>Persistent tasks defined using <code>Task(persistent = true)</code> are similar to normal
 cached <code>Task</code>s, except their <code>Task.dest</code> folder is not cleared before every
 evaluation. This makes them useful for caching things on disk in a more
-fine-grained manner than Mill&#8217;s own Task-level caching: the task can
+fine-grained manner than Mill’s own Task-level caching: the task can
 maintain a cache of one or more files on disk, and decide itself which files
 (or parts of which files!) need to invalidate, rather than having all generated
 files wiped out every time (which is the default behavior for normal Tasks).</p>
 </div>
 <div class="paragraph">
 <p>Below is a semi-realistic example of using <code>Task(persistent = true)</code> to compress
-files in an input folder, cache the previously-compressed files in <code>Task.dest / "cache"</code>,
+files in an input folder, cache the previously-compressed files in <code>Task.dest / &quot;cache&quot;</code>,
 and re-use previously-compressed files if a file in the
 input folder did not change:</p>
 </div>
@@ -1991,28 +1983,28 @@ import java.util.Arrays
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 
-def data = Task.Source("data")
+def data = Task.Source(&quot;data&quot;)
 
 def compressedData = Task(persistent = true) {
-  println("Evaluating compressedData")
-  os.makeDir.all(Task.dest / "cache")
-  os.remove.all(Task.dest / "compressed")
+  println(&quot;Evaluating compressedData&quot;)
+  os.makeDir.all(Task.dest / &quot;cache&quot;)
+  os.remove.all(Task.dest / &quot;compressed&quot;)
 
   for (p &lt;- os.list(data().path)) {
-    val compressedPath = Task.dest / "compressed" / s"${p.last}.gz"
+    val compressedPath = Task.dest / &quot;compressed&quot; / s&quot;${p.last}.gz&quot;
     val bytes = os.read.bytes(p)
     val hash = Arrays.hashCode(bytes)
-    val cachedPath = Task.dest / "cache" / hash.toHexString
+    val cachedPath = Task.dest / &quot;cache&quot; / hash.toHexString
     if (!os.exists(cachedPath)) {
-      println("Compressing: " + p.last)
+      println(&quot;Compressing: &quot; + p.last)
       os.write(cachedPath, compressBytes(bytes))
     } else {
-      println("Reading Cached from disk: " + p.last)
+      println(&quot;Reading Cached from disk: &quot; + p.last)
     }
     os.copy(cachedPath, compressedPath, createFolders = true)
   }
 
-  os.list(Task.dest / "compressed").map(PathRef(_))
+  os.list(Task.dest / &quot;compressed&quot;).map(PathRef(_))
 }
 
 def compressBytes(input: Array[Byte]) = {
@@ -2046,8 +2038,8 @@ Evaluating compressedData
 Compressing: hello.txt
 Compressing: world.txt
 [
-  ".../hello.txt.gz",
-  ".../world.txt.gz"
+  &quot;.../hello.txt.gz&quot;,
+  &quot;.../world.txt.gz&quot;
 ]
 
 &gt; ./mill compressedData # when no input changes, compressedData does not evaluate at all
@@ -2108,15 +2100,15 @@ import java.util.Arrays
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 
-def data = Task.Source("data")
+def data = Task.Source(&quot;data&quot;)
 
 def compressWorker = Task.Worker { new CompressWorker(Task.dest) }
 
 def compressedData = Task {
-  println("Evaluating compressedData")
+  println(&quot;Evaluating compressedData&quot;)
   for (p &lt;- os.list(data().path)) {
     os.write(
-      Task.dest / s"${p.last}.gz",
+      Task.dest / s&quot;${p.last}.gz&quot;,
       compressWorker().compress(p.last, os.read.bytes(p))
     )
   }
@@ -2130,20 +2122,20 @@ class CompressWorker(dest: os.Path) {
     if (!synchronized(cache.contains(hash))) {
       val cachedPath = dest / hash.toHexString
       if (!os.exists(cachedPath)) {
-        println("Compressing: " + name)
+        println(&quot;Compressing: &quot; + name)
         val compressed = compressBytes(bytes)
         synchronized {
           cache(hash) = compressed
           os.write(cachedPath, cache(hash))
         }
       } else {
-        println("Cached from disk: " + name)
+        println(&quot;Cached from disk: &quot; + name)
         synchronized {
           cache(hash) = os.read.bytes(cachedPath)
         }
       }
     } else {
-      println("Cached from memory: " + name)
+      println(&quot;Cached from memory: &quot; + name)
     }
     synchronized { cache(hash) }
   }
@@ -2160,21 +2152,21 @@ def compressBytes(input: Array[Byte]) = {
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
 The <em>initialization</em> of a <code>Task.Worker</code>'s value is single threaded,
-but <em>usage</em> of the worker&#8217;s value may be done concurrently. The user of
-<code>Task.Worker</code> is responsible for ensuring it&#8217;s value is safe to use in a
+but <em>usage</em> of the worker’s value may be done concurrently. The user of
+<code>Task.Worker</code> is responsible for ensuring it’s value is safe to use in a
 multi-threaded environment via techniques like locks, atomics, or concurrent data
 structures. The example above uses <code>synchronized{}</code> around all access to the
 shared <code>cache</code> state to allow the slow <code>compressBytes</code> operation to run in
 parallel while the fast mutation of the <code>cache</code> is single-threaded.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>Workers live as long as the Mill process. By default, consecutive <code>mill</code>
@@ -2197,8 +2189,8 @@ Evaluating compressedData
 Compressing: hello.txt
 Compressing: world.txt
 [
-  ".../hello.txt.gz",
-  "...world.txt.gz"
+  &quot;.../hello.txt.gz&quot;,
+  &quot;...world.txt.gz&quot;
 ]
 
 &gt; ./mill compressedData # when no input changes, compressedData does not evaluate at all
@@ -2293,12 +2285,12 @@ import java.io.ByteArrayOutputStream
 def cachedCompressWorker = Task.Worker { new CachedCompressWorker(Task.dest) }
 class CachedCompressWorker(dest: os.Path) extends CachedFactory[Unit, ByteArrayOutputStream] {
   def setup(key: Unit): ByteArrayOutputStream = {
-    println("setup ByteArrayOutputStream")
+    println(&quot;setup ByteArrayOutputStream&quot;)
     new ByteArrayOutputStream()
   }
 
   def teardown(key: Unit, value: ByteArrayOutputStream): Unit = {
-    println("teardown ByteArrayOutputStream")
+    println(&quot;teardown ByteArrayOutputStream&quot;)
     value.reset()
   }
 
@@ -2308,11 +2300,11 @@ class CachedCompressWorker(dest: os.Path) extends CachedFactory[Unit, ByteArrayO
   def compress(name: String, bytes: Array[Byte]): Array[Byte] = {
     val hash = Arrays.hashCode(bytes)
     if (!synchronized(cache.contains(hash))) {
-      println("Compressing: " + name)
+      println(&quot;Compressing: &quot; + name)
       val compressed = withValue(()) { bos =&gt; compressBytes2(bos, bytes) }
       synchronized { cache(hash) = compressed }
     } else {
-      println("Cached from memory: " + name)
+      println(&quot;Cached from memory: &quot; + name)
     }
     synchronized { cache(hash) }
   }
@@ -2350,7 +2342,7 @@ of cached entries exceeds that <code>maxCacheSize`</code></p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Although this example is synthetic (you don&#8217;t actually need to reset, reuse, and teardown
+<p>Although this example is synthetic (you don’t actually need to reset, reuse, and teardown
 <code>ByteArrayOutputStream</code>s) the same techniques would apply to any long-lived mutable state
 or components you need to manage. This is especially important when
 <a href="../extending/running-jvm-code.html" class="xref page">running JVM code in classloaders or subprocesses</a>,
@@ -2364,15 +2356,15 @@ when you are done with them</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compressed1 = Task {
-  cachedCompressWorker().compress("foo.txt", "I am cow".getBytes)
+  cachedCompressWorker().compress(&quot;foo.txt&quot;, &quot;I am cow&quot;.getBytes)
 }
 
 def compressed2 = Task {
-  cachedCompressWorker().compress("bar.txt", "Hear me moo".getBytes)
+  cachedCompressWorker().compress(&quot;bar.txt&quot;, &quot;Hear me moo&quot;.getBytes)
 }
 
 def compressed3 = Task {
-  cachedCompressWorker().compress("qux.txt", "I weigh twice as much as you".getBytes)
+  cachedCompressWorker().compress(&quot;qux.txt&quot;, &quot;I weigh twice as much as you&quot;.getBytes)
 }</code></pre>
 </div>
 </div>
@@ -2388,9 +2380,9 @@ Compressing: bar.txt
 Compressing: qux.txt
 teardown ByteArrayOutputStream
 {
-  "compressed1": ...
-  "compressed2": ...
-  "compressed3": ...
+  &quot;compressed1&quot;: ...
+  &quot;compressed2&quot;: ...
+  &quot;compressed3&quot;: ...
 }
 
 &gt; # `clean` clears the CachedFactory and tears down the two streams in the cache
@@ -2403,7 +2395,7 @@ teardown ByteArrayOutputStream</code></pre>
 <div class="sect2">
 <h3 id="_anonymous_tasks"><a class="anchor" href="#_anonymous_tasks"></a>Anonymous Tasks</h3>
 <div class="paragraph">
-<p>You can define anonymous tasks using the <code>Task.Anon {&#8230;&#8203;}</code> syntax. These are
+<p>You can define anonymous tasks using the <code>Task.Anon {...​}</code> syntax. These are
 not runnable from the command-line, but can be used to share common code you
 find yourself repeating in <code>Task</code>s and <code>Command</code>s.</p>
 </div>
@@ -2413,20 +2405,20 @@ find yourself repeating in <code>Task</code>s and <code>Command</code>s.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, define.Task
 
-def data = Task.Source("data")
+def data = Task.Source(&quot;data&quot;)
 
 def anonTask(fileName: String): Task[String] = Task.Anon {
   os.read(data().path / fileName)
 }
 
-def helloFileData = Task { anonTask("hello.txt")() }
+def helloFileData = Task { anonTask(&quot;hello.txt&quot;)() }
 def printFileData(fileName: String) = Task.Command {
   println(anonTask(fileName)())
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Anonymous task&#8217;s output does not need to be JSON-serializable, their output is
+<p>Anonymous task’s output does not need to be JSON-serializable, their output is
 not cached, and they can be defined with or without arguments.
 Unlike <a href="#_tasks">Tasks</a> or <a href="#_commands">Commands</a>, anonymous tasks can be defined
 anywhere and passed around any way you want, until you finally make use of them
@@ -2434,14 +2426,14 @@ within a downstream task or command.</p>
 </div>
 <div class="paragraph">
 <p>While an anonymous task <code>foo</code>'s own output is not cached, if it is used in a
-downstream task <code>baz</code> and the upstream task <code>bar</code> hasn&#8217;t changed,
+downstream task <code>baz</code> and the upstream task <code>bar</code> hasn’t changed,
 <code>baz</code>'s cached output will be used and <code>foo</code>'s evaluation will be skipped
 altogether.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show helloFileData
-"Hello"
+&quot;Hello&quot;
 
 &gt; ./mill printFileData --file-name hello.txt
 Hello
@@ -2470,20 +2462,20 @@ but can be used in your own tasks as well:</p>
 import mill._
 
 def taskSpawningFutures = Task {
-  val f1 = Task.fork.async(dest = Task.dest / "future-1", key = "1", message = "First Future") {
+  val f1 = Task.fork.async(dest = Task.dest / &quot;future-1&quot;, key = &quot;1&quot;, message = &quot;First Future&quot;) {
     logger =&gt;
-      println("Running First Future inside " + os.pwd)
+      println(&quot;Running First Future inside &quot; + os.pwd)
       Thread.sleep(3000)
       val res = 1
-      println("Finished First Future")
+      println(&quot;Finished First Future&quot;)
       res
   }
-  val f2 = Task.fork.async(dest = Task.dest / "future-2", key = "2", message = "Second Future") {
+  val f2 = Task.fork.async(dest = Task.dest / &quot;future-2&quot;, key = &quot;2&quot;, message = &quot;Second Future&quot;) {
     logger =&gt;
-      println("Running Second Future inside " + os.pwd)
+      println(&quot;Running Second Future inside &quot; + os.pwd)
       Thread.sleep(3000)
       val res = 2
-      println("Finished Second Future")
+      println(&quot;Finished Second Future&quot;)
       res
   }
 
@@ -2511,7 +2503,7 @@ def taskSpawningFutures = Task {
 for the duration of the future</p>
 </li>
 <li>
-<p><code>key</code> is a short prefix prepended to log lines to let you easily identify the future&#8217;s
+<p><code>key</code> is a short prefix prepended to log lines to let you easily identify the future’s
 log lines and distinguish them from logs of other futures and tasks running concurrently</p>
 </li>
 <li>
@@ -2527,15 +2519,15 @@ low priority</p>
 <div class="paragraph">
 <p>Each block spawned by <code>Task.fork.async</code> is assigned a dedicated <code>logger</code> with its own
 <code>.log</code> file and terminal UI integration
-Futures spawned by <code>Task.fork.async</code> count towards Mill&#8217;s <code>-j</code>/<code>--jobs</code> concurrency limit
+Futures spawned by <code>Task.fork.async</code> count towards Mill’s <code>-j</code>/<code>--jobs</code> concurrency limit
 (which defaults to one-per-core), so you can freely use <code>Task.fork.async</code> without worrying
 about spawning too many concurrent threads and causing CPU or memory contention. <code>Task.fork</code>
-uses Java&#8217;s built in <code>ForkJoinPool</code> and <code>ManagedBlocker</code> infrastructure under the hood
+uses Java’s built in <code>ForkJoinPool</code> and <code>ManagedBlocker</code> infrastructure under the hood
 to effectively manage the number of running threads.</p>
 </div>
 <div class="paragraph">
 <p>While <code>scala.concurrent</code> and <code>java.util.concurrent</code> can also be used to spawn thread
-pools and run async futures, <code>Task.fork</code> provides a way to do so that integrates with Mill&#8217;s
+pools and run async futures, <code>Task.fork</code> provides a way to do so that integrates with Mill’s
 existing concurrency, sandboxing and logging systems. Thus you should always prefer to
 run async futures on <code>Task.fork</code> whenever possible.</p>
 </div>
@@ -2550,9 +2542,9 @@ run async futures on <code>Task.fork</code> whenever possible.</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

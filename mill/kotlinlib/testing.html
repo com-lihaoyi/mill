@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Testing Kotlin Projects :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/kotlinlib/testing.html" />
-    <link rel="prev" href="dependencies.html" />
-    <link rel="next" href="linting.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/kotlinlib/testing.html">
+    <link rel="prev" href="dependencies.html">
+    <link rel="next" href="linting.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -664,7 +663,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -690,18 +689,18 @@ import mill.*, kotlinlib.*
 
 object foo extends KotlinModule {
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests {
-    def testFramework = &quot;com.github.sbt.junit.jupiter.api.JupiterFramework&quot;
+    def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     def mvnDeps = Seq(
-      mvn&quot;com.github.sbt.junit:jupiter-interface:0.11.4&quot;,
-      mvn&quot;io.kotest:kotest-runner-junit5:5.9.1&quot;,
-      mvn&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
+      mvn"com.github.sbt.junit:jupiter-interface:0.11.4",
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
+      mvn"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
-    // This is needed because of the &quot;mockito-kotlin&quot;
-    def kotlincOptions = super.kotlincOptions() ++ Seq(&quot;-jvm-target&quot;, &quot;11&quot;)
+    // This is needed because of the "mockito-kotlin"
+    def kotlincOptions = super.kotlincOptions() ++ Seq("-jvm-target", "11")
   }
 }</code></pre>
 </div>
@@ -712,7 +711,7 @@ object foo extends KotlinModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
 open class Foo {
-    fun hello(): String = &quot;Hello World&quot;
+    fun hello(): String = "Hello World"
 }
 
 fun main(args: Array&lt;String&gt;) = println(Foo().hello())</code></pre>
@@ -735,24 +734,24 @@ import org.mockito.kotlin.whenever
 class FooTests :
     FunSpec({
 
-        test(&quot;hello&quot;) {
+        test("hello") {
             val result = Foo().hello()
-            result shouldStartWith &quot;Hello&quot;
+            result shouldStartWith "Hello"
         }
 
-        test(&quot;world&quot;) {
+        test("world") {
             val result = Foo().hello()
-            result shouldEndWith &quot;World&quot;
+            result shouldEndWith "World"
         }
 
-        test(&quot;mockito&quot;) {
+        test("mockito") {
             val mockFoo = mock&lt;Foo&gt;()
 
-            whenever(mockFoo.hello()) doReturn &quot;Hello Mockito World&quot;
+            whenever(mockFoo.hello()) doReturn "Hello Mockito World"
 
             val result = mockFoo.hello()
 
-            result shouldBe &quot;Hello Mockito World&quot;
+            result shouldBe "Hello Mockito World"
             verify(mockFoo).hello()
         }
     })</code></pre>
@@ -760,7 +759,7 @@ class FooTests :
 </div>
 <div class="paragraph">
 <p>This build defines a single module with a test suite, configured to use
-&quot;JUnit&quot; + &quot;Kotest&quot; as the testing framework, along with Mockito. Test suites are themselves
+"JUnit" + "Kotest" as the testing framework, along with Mockito. Test suites are themselves
 <code>KotlinModule</code>s, nested within the enclosing module,
 and have all the normal tasks like
 <code>foo.test.compile</code> available to run, but with an additional <code>.test</code> task
@@ -833,18 +832,18 @@ details on how to use each one from the command line.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends KotlinModule {
 
-  def mainClass = Some(&quot;bar.BarKt&quot;)
+  def mainClass = Some("bar.BarKt")
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn&quot;io.kotest:kotest-runner-junit5:5.9.1&quot;,
-      mvn&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
+      mvn"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
-    // This is needed because of the &quot;mockito-kotlin&quot;
-    def kotlincOptions = super.kotlincOptions() ++ Seq(&quot;-jvm-target&quot;, &quot;11&quot;)
+    // This is needed because of the "mockito-kotlin"
+    def kotlincOptions = super.kotlincOptions() ++ Seq("-jvm-target", "11")
   }
 }</code></pre>
 </div>
@@ -857,7 +856,7 @@ details on how to use each one from the command line.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>You can also select multiple test suites in one command using Mill’s
+<p>You can also select multiple test suites in one command using Mill&#8217;s
 <a href="../cli/query-syntax.html" class="xref page">Task Query Syntax</a></p>
 </div>
 <div class="listingblock">
@@ -910,7 +909,7 @@ enabled, so that once you edit a file on disk the selected tests get re-run.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -924,7 +923,7 @@ paths can be provided to test via <code>forkEnv</code>. See
 for more details.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>If you want to pass any arguments to the test framework, you can pass them after
@@ -947,7 +946,7 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 <div class="sectionbody">
 <div class="admonitionblock important">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-important" title="Important"></i>
 </td>
@@ -957,7 +956,7 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 </div>
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>You might be used to test-scoped dependencies from other build tools like
@@ -974,27 +973,27 @@ import mill.*, kotlinlib.*
 
 object qux extends KotlinModule {
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
   def moduleDeps = Seq(baz)
 
   object test extends KotlinTests, TestModule.Junit5 {
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn&quot;io.kotest:kotest-runner-junit5:5.9.1&quot;,
-      mvn&quot;com.google.guava:guava:33.3.0-jre&quot;
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
+      mvn"com.google.guava:guava:33.3.0-jre"
     )
   }
 }
 
 object baz extends KotlinModule {
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn&quot;io.kotest:kotest-runner-junit5:5.9.1&quot;,
-      mvn&quot;com.google.guava:guava:33.3.0-jre&quot;
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
+      mvn"com.google.guava:guava:33.3.0-jre"
     )
   }
 }</code></pre>
@@ -1006,7 +1005,7 @@ object baz extends KotlinModule {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/VisualizeTestDeps.svg" alt="VisualizeTestDeps.svg" />
+<img src="../_images/basic/VisualizeTestDeps.svg" alt="VisualizeTestDeps.svg">
 </div>
 </div>
 <div class="paragraph">
@@ -1044,16 +1043,16 @@ to that named <code>test</code>.</p>
 import mill.*, kotlinlib.*
 object qux extends KotlinModule {
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn&quot;io.kotest:kotest-runner-junit5:5.9.1&quot;
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
   }
   object integration extends KotlinTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn&quot;io.kotest:kotest-runner-junit5:5.9.1&quot;
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
   }
 }</code></pre>
@@ -1065,7 +1064,7 @@ object qux extends KotlinModule {
 </div>
 <div class="paragraph">
 <p>These two test modules will expect their sources to be in their respective <code>qux/test</code> and
-<code>qux/integration</code> folder respectively. You can use Mill’s task query syntax to select
+<code>qux/integration</code> folder respectively. You can use Mill&#8217;s task query syntax to select
 the test modules which you want to run</p>
 </div>
 <div class="listingblock">
@@ -1100,14 +1099,14 @@ import mill.*, kotlinlib.*
 
 object foo extends KotlinModule {
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests {
-    def testFramework = &quot;com.github.sbt.junit.jupiter.api.JupiterFramework&quot;
+    def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     def mvnDeps = Seq(
-      mvn&quot;com.github.sbt.junit:jupiter-interface:0.11.4&quot;,
-      mvn&quot;io.kotest:kotest-runner-junit5:5.9.1&quot;,
-      mvn&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
+      mvn"com.github.sbt.junit:jupiter-interface:0.11.4",
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
+      mvn"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
     def testParallelism = true
@@ -1154,14 +1153,14 @@ import mill.*, kotlinlib.*
 
 object foo extends KotlinModule {
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests {
-    def testFramework = &quot;com.github.sbt.junit.jupiter.api.JupiterFramework&quot;
+    def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     def mvnDeps = Seq(
-      mvn&quot;com.github.sbt.junit:jupiter-interface:0.11.4&quot;,
-      mvn&quot;io.kotest:kotest-runner-junit5:5.9.1&quot;,
-      mvn&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
+      mvn"com.github.sbt.junit:jupiter-interface:0.11.4",
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
+      mvn"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
@@ -1180,12 +1179,12 @@ import io.kotest.matchers.string.shouldStartWith
 
 class HelloTests :
     FunSpec({
-        test(&quot;hello&quot;) {
-            println(&quot;Testing Hello&quot;)
+        test("hello") {
+            println("Testing Hello")
             val result = Foo().hello()
-            result shouldStartWith &quot;Hello&quot;
+            result shouldStartWith "Hello"
             java.lang.Thread.sleep(1000)
-            println(&quot;Testing Hello Completed&quot;)
+            println("Testing Hello Completed")
         }
     })</code></pre>
 </div>
@@ -1200,12 +1199,12 @@ import io.kotest.matchers.string.shouldEndWith
 
 class WorldTests :
     FunSpec({
-        test(&quot;world&quot;) {
-            println(&quot;Testing World&quot;)
+        test("world") {
+            println("Testing World")
             val result = Foo().hello()
-            result shouldEndWith &quot;World&quot;
+            result shouldEndWith "World"
             java.lang.Thread.sleep(1000)
-            println(&quot;Testing World Completed&quot;)
+            println("Testing World Completed")
         }
     })</code></pre>
 </div>
@@ -1276,18 +1275,18 @@ import mill.*, kotlinlib.*
 
 object foo extends KotlinModule {
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests {
-    def testFramework = &quot;com.github.sbt.junit.jupiter.api.JupiterFramework&quot;
+    def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     def mvnDeps = Seq(
-      mvn&quot;com.github.sbt.junit:jupiter-interface:0.11.4&quot;,
-      mvn&quot;io.kotest:kotest-runner-junit5:5.9.1&quot;,
-      mvn&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
+      mvn"com.github.sbt.junit:jupiter-interface:0.11.4",
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
+      mvn"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
     def testForkGrouping =
-      discoveredTestClasses().groupMapReduce(_.contains(&quot;GroupX&quot;))(Seq(_))(_ ++ _).toSeq.sortBy(
+      discoveredTestClasses().groupMapReduce(_.contains("GroupX"))(Seq(_))(_ ++ _).toSeq.sortBy(
         data =&gt; !data._1
       ).map(_._2)
     def testParallelism = true
@@ -1340,9 +1339,9 @@ your pipeline to render the generated <code>test-report.xml</code> files nicely 
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>

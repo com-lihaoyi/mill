@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Linting Kotlin Projects :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/kotlinlib/linting.html" />
-    <link rel="prev" href="testing.html" />
-    <link rel="next" href="publishing.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/kotlinlib/linting.html">
+    <link rel="prev" href="testing.html">
+    <link rel="next" href="publishing.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -664,7 +663,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -693,7 +692,7 @@ import kotlinlib.KotlinModule
 import kotlinlib.detekt.DetektModule
 
 object `package` extends KotlinModule, DetektModule {
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 }</code></pre>
 </div>
 </div>
@@ -716,7 +715,7 @@ fun main() {
                 if (Random.nextBoolean()) {
                     if (Random.nextBoolean()) {
                         if (Random.nextBoolean()) {
-                            println(&quot;Hello World&quot;)
+                            println("Hello World")
                         }
                     }
                 }
@@ -753,9 +752,9 @@ import kotlinlib.ktlint.KtlintModule
 import mill.api.BuildCtx
 
 object `package` extends KotlinModule, KtlintModule {
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
-  def ktlintConfig0 = Task.Source(BuildCtx.workspaceRoot / &quot;.editorconfig&quot;)
+  def ktlintConfig0 = Task.Source(BuildCtx.workspaceRoot / ".editorconfig")
   def ktlintConfig = Some(ktlintConfig0())
 }</code></pre>
 </div>
@@ -769,9 +768,9 @@ code formatting violations, via the <code>--format</code> flag shown below:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill ktlint --check true # run ktlint to produce a report, defaults to warning without error
-error: ...src/example/FooWrong.kt:6:28: Missing newline before &quot;)&quot; (standard:parameter-list-wrapping)...
+error: ...src/example/FooWrong.kt:6:28: Missing newline before ")" (standard:parameter-list-wrapping)...
 ...src/example/FooWrong.kt:6:28: Newline expected before closing parenthesis (standard:function-signature)...
-...src/example/FooWrong.kt:6:28: Missing trailing comma before &quot;)&quot; (standard:trailing-comma-on-declaration-site)...
+...src/example/FooWrong.kt:6:28: Missing trailing comma before ")" (standard:trailing-comma-on-declaration-site)...
 
 &gt; ./mill ktlint --format true
 
@@ -797,7 +796,7 @@ import kotlinlib.KotlinModule
 import kotlinlib.ktfmt.KtfmtModule
 
 object `package` extends KotlinModule, KtfmtModule {
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 }</code></pre>
 </div>
 </div>
@@ -826,7 +825,7 @@ Done formatting ...src/example/FooWrong.kt
 <div class="sectionbody">
 <div class="paragraph">
 <p>If your project has file groups each requiring different formatting,
-you may want to give Mill’s <a href="https://github.com/diffplug/spotless">Spotless</a> plugin a try.
+you may want to give Mill&#8217;s <a href="https://github.com/diffplug/spotless">Spotless</a> plugin a try.
 It supports formatting all files with a single command
 as opposed to using a different plugin/command for each group.</p>
 </div>
@@ -843,7 +842,7 @@ import mill.kotlinlib.KotlinModule
 import mill.javalib.spotless.SpotlessModule
 
 object `package` extends KotlinModule, SpotlessModule {
-  def kotlinVersion = &quot;2.1.20&quot;
+  def kotlinVersion = "2.1.20"
 }</code></pre>
 </div>
 </div>
@@ -859,7 +858,7 @@ import a.b
 
 fun main() {
     fun name() { a(); return b }
-    println(&quot;;&quot;)
+    println(";")
     println();
 }</code></pre>
 </div>
@@ -876,7 +875,7 @@ public class A {
  * Some javadoc.
  */
 public static void main(String[] args) {
-System.out.println(&quot;A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.&quot;);
+System.out.println("A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.");
 UsedB.someMethod();
 UsedA.someMethod();
 }
@@ -894,40 +893,40 @@ UsedA.someMethod();
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">[
   {
-    &quot;includes&quot;: [
-      &quot;glob:build.mill&quot;
+    "includes": [
+      "glob:build.mill"
     ],
-    &quot;steps&quot;: [
+    "steps": [
       {
-        &quot;$type&quot;: &quot;ScalaFmt&quot;
+        "$type": "ScalaFmt"
       }
     ]
   },
   {
-    &quot;includes&quot;: [
-      &quot;glob:**.java&quot;
+    "includes": [
+      "glob:**.java"
     ],
-    &quot;steps&quot;: [
+    "steps": [
       {
-        &quot;$type&quot;: &quot;PalantirJavaFormat&quot;
+        "$type": "PalantirJavaFormat"
       },
       {
-        &quot;$type&quot;: &quot;LicenseHeader&quot;,
-        &quot;delimiter&quot;: &quot;(package|import|public|class|module) &quot;
+        "$type": "LicenseHeader",
+        "delimiter": "(package|import|public|class|module) "
       }
     ]
   },
   {
-    &quot;includes&quot;: [
-      &quot;glob:**.{kt,kts}&quot;
+    "includes": [
+      "glob:**.{kt,kts}"
     ],
-    &quot;steps&quot;: [
+    "steps": [
       {
-        &quot;$type&quot;: &quot;Ktfmt&quot;
+        "$type": "Ktfmt"
       },
       {
-        &quot;$type&quot;: &quot;LicenseHeader&quot;,
-        &quot;delimiter&quot;: &quot;(package |@file|import )&quot;
+        "$type": "LicenseHeader",
+        "delimiter": "(package |@file|import )"
       }
     ]
   }
@@ -952,7 +951,7 @@ UsedA.someMethod();
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -961,11 +960,11 @@ Most fields have default values and can be omitted in the JSON file.
 An example is the <code>LicenseHeader.header</code> field that references the <code>LICENSE</code> file.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -974,7 +973,7 @@ as <code>.mill</code> files use Scala 3 syntax, we need the <code>.scalafmt.conf
 configure ScalaFmt to use Scala 3 compatible formatting
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>Next, we run the inherited <code>spotless</code> command to check/apply the format specifications.</p>
@@ -1012,7 +1011,7 @@ formatted 3 files
 </div>
 <div class="admonitionblock tip">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-tip" title="Tip"></i>
 </td>
@@ -1021,7 +1020,7 @@ For a multi-module project, it is sufficient to extend <code>SpotlessModule</cod
 build root module and define a format specification for each use-case.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>You can also run <code>spotless</code> <a href="../fundamentals/modules.html#_external_modules" class="xref page">globally</a>
@@ -1068,7 +1067,7 @@ public class A {
  * Some javadoc.
  */
 public static void main(String[] args) {
-System.out.println(&quot;A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.&quot;);
+System.out.println("A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.");
 UsedB.someMethod();
 UsedA.someMethod();
 }
@@ -1080,7 +1079,7 @@ UsedA.someMethod();
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -1089,13 +1088,13 @@ Since no <code>.spotless-formats.json</code> file is present, a default list of 
 The default is meant for use cases where some basic formatting is sufficient.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init . -b main
 &gt; git add .gitignore build.mill src/A.java
-&gt; git commit -a -m &quot;1&quot;</code></pre>
+&gt; git commit -a -m "1"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1103,7 +1102,7 @@ The default is meant for use cases where some basic formatting is sufficient.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo &quot; module hello {}&quot; &gt; src/module-info.java  # content has leading space at start
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo " module hello {}" &gt; src/module-info.java  # content has leading space at start
 
 &gt; ./mill spotless --check
 format errors in build.mill
@@ -1142,7 +1141,7 @@ formatted 1 files</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git add src/module-info.java        # stage and
-&gt; git commit -a -m &quot;2&quot;                # commit changes
+&gt; git commit -a -m "2"                # commit changes
 
 &gt; ./mill ratchet --check HEAD^ HEAD   # format changes between last 2 commits
 ratchet found changes in 1 files
@@ -1151,7 +1150,7 @@ ratchet found changes in 1 files
 </div>
 <div class="admonitionblock caution">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-caution" title="Caution"></i>
 </td>
@@ -1160,7 +1159,7 @@ CI actions may require additional
 <a href="https://github.com/diffplug/spotless/tree/main/plugin-gradle#using-ratchetfrom-on-ci-systems">setup</a>.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>The <code>ratchet</code> command is also available globally.</p>
@@ -1189,22 +1188,22 @@ object `package` extends KotlinModule, KoverModule {
 
   trait KotestTests extends TestModule.Junit5 {
     override def forkArgs: T[Seq[String]] = Task {
-      super.forkArgs() ++ Seq(&quot;-Dkotest.framework.classpath.scanning.autoscan.disable=true&quot;)
+      super.forkArgs() ++ Seq("-Dkotest.framework.classpath.scanning.autoscan.disable=true")
 
     }
     override def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn&quot;io.kotest:kotest-runner-junit5:5.9.1&quot;
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
   }
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
-  override def koverVersion = &quot;0.8.3&quot;
+  override def koverVersion = "0.8.3"
 
   object test extends KotlinTests, KotestTests, KoverTests
 
   object bar extends KotlinModule, KoverModule {
-    def kotlinVersion = &quot;1.9.24&quot;
+    def kotlinVersion = "1.9.24"
     object test extends KotlinTests, KotestTests, KoverTests
   }
 }</code></pre>
@@ -1267,9 +1266,9 @@ kover.xmlReport
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>

@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>What does a Build Tool do? :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/blog/8-what-is-a-build-tool.html" />
-    <link rel="prev" href="9-mill-faster-assembly-jars.html" />
-    <link rel="next" href="7-graal-native-executables.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/blog/8-what-is-a-build-tool.html">
+    <link rel="prev" href="9-mill-faster-assembly-jars.html">
+    <link rel="next" href="7-graal-native-executables.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -248,7 +247,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/8-what-is-a-build-tool.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -284,7 +283,7 @@ run - and how to run them - whenever you want to do something in your codebase.<
 <div class="paragraph">
 <p>A hello-world program may get by with <code>javac Foo.java</code> to compile your code and
 <code>java Foo</code> to run it, or even a single command <code>python foo.py</code>. But for most real-world
-projects a single &quot;user facing&quot; task may require a lot of work to be done first. The
+projects a single "user facing" task may require a lot of work to be done first. The
 job of the build tool is to help decide what work needs to be done to accomplish what
 you want, and how best to perform that work with caching and parallelism to complete it
 as quickly and as efficiently as possible.</p>
@@ -321,7 +320,7 @@ as quickly and as efficiently as possible.</p>
 </div>
 <div class="paragraph">
 <p>So although the developer may have just asked to <code>run</code> their code, it is only after all
-these tasks are done does it make sense to begin running it! However, it’s not as
+these tasks are done does it make sense to begin running it! However, it&#8217;s not as
 simple as running every one of the tasks listed above one after another. You also
 need to decide <em>which ones</em> to run and <em>how</em> to run them:</p>
 </div>
@@ -364,11 +363,11 @@ the equivalent external tools and services specific to that language:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 20%;" />
-<col style="width: 20%;" />
-<col style="width: 20%;" />
-<col style="width: 20%;" />
-<col style="width: 20%;" />
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
 </colgroup>
 <thead>
 <tr>
@@ -376,7 +375,7 @@ the equivalent external tools and services specific to that language:</p>
 <th class="tableblock halign-left valign-top">Build Tool</th>
 <th class="tableblock halign-left valign-top">Package Repository</th>
 <th class="tableblock halign-left valign-top">Compiler</th>
-<th class="tableblock halign-left valign-top">...​</th>
+<th class="tableblock halign-left valign-top">&#8230;&#8203;</th>
 </tr>
 </thead>
 <tbody>
@@ -385,41 +384,41 @@ the equivalent external tools and services specific to that language:</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://maven.apache.org">Maven</a>, <a href="https://gradle.org">Gradle</a>, <a href="https://mill-build.org">Mill</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://central.sonatype.com/">Maven Central</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://docs.oracle.com/javase/8/docs/technotes/tools/windows/javac.html">javac</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">...​</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#8230;&#8203;</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Python</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://python-poetry.org/">Poetry</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://pypi.org/">PyPI</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/python/mypy">mypy</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">...​</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#8230;&#8203;</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Javascript</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://webpack.js.org/">Webpack</a>, <a href="https://vite.dev/">Vite</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://www.npmjs.com/">NPM</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://www.typescriptlang.org/">tsc</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">...​</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#8230;&#8203;</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Ruby</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/ruby/rake">Rake</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://rubygems.org/">RubyGems</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://sorbet.org/">Sorbet</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">...​</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#8230;&#8203;</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Rust</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://doc.rust-lang.org/cargo/">Cargo</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://crates.io/">Crates</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://doc.rust-lang.org/rustc/what-is-rustc.html">rustc</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">...​</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&#8230;&#8203;</p></td>
 </tr>
 </tbody>
 </table>
 <div class="paragraph">
-<p>Generally each language’s build tools will come with integrations for
-the language’s other tooling by default: package repositories, compilers, linters, etc.
+<p>Generally each language&#8217;s build tools will come with integrations for
+the language&#8217;s other tooling by default: package repositories, compilers, linters, etc.
 There are also language agnostic build tools out there like <a href="https://en.wikipedia.org/wiki/Make_(software)">Make</a>,
 or multi-language build tools such as <a href="https://bazel.build/">Bazel</a> which is optimized
 for large monorepos that often contain multiple languages. The Mill build
@@ -434,13 +433,13 @@ for <a href="https://mill-build.org/mill/main-branch/large/multi-language-builds
 <h3 id="_build_tools_for_small_codebases"><a class="anchor" href="#_build_tools_for_small_codebases"></a>Build Tools for Small Codebases</h3>
 <div class="paragraph">
 <p>Most projects start off small, and while they <em>can</em> use a build tool, do not <em>need</em> one.
-A single-file program or script can get by with using its language’s built-in CLI
+A single-file program or script can get by with using its language&#8217;s built-in CLI
 to compile/run/test their code, and for small codebases these workflows are
 fast enough that parallelization or caching are not needed.</p>
 </div>
 <div class="paragraph">
-<p>Nevertheless, even in a small project, a simple task like <em>&quot;installing third party
-dependencies&quot;</em> can be surprisingly challenging. Consider
+<p>Nevertheless, even in a small project, a simple task like <em>"installing third party
+dependencies"</em> can be surprisingly challenging. Consider
 this scenario working with a simple Python script:</p>
 </div>
 <div class="ulist">
@@ -462,18 +461,18 @@ the new version when you come back to the <code>main</code> branch later!</p>
 <p>What if you end up with two scripts, <code>foo.py</code> and <code>bar.py</code>, that each requires different versions
 of the same <code>something</code>? Now you need to remember to manually <code>python -m venv</code> to create
 a virtual environment for each script, and remember to update each virtualenv
-whenever that script’s required <code>something</code> version changes.</p>
+whenever that script&#8217;s required <code>something</code> version changes.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>As you can see, even for the single problem of <em>&quot;installing third-party dependencies&quot;</em>,
-keeping everything in sync and everyone’s laptops up to date can be a real headache!</p>
+<p>As you can see, even for the single problem of <em>"installing third-party dependencies"</em>,
+keeping everything in sync and everyone&#8217;s laptops up to date can be a real headache!</p>
 </div>
 <div class="paragraph">
 <p>Developer workflows tend to get more complex and slower over time as projects
 progress and codebases grow. This can end up being a significant burden on the
-project’s developers, and slow down the project overall:</p>
+project&#8217;s developers, and slow down the project overall:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -539,8 +538,8 @@ e.g. <code>codegen.sh</code> and <code>download-dependencies.sh</code> may be ab
 <div class="paragraph">
 <p>At this stage, your scripts have their own ad-hoc dependency-management, caching,
 and parallelization engine! Because your main focus is on your <em>actual</em> project,
-this ad-hoc engine will never be in great shape: the performance won’t be optimal, the
-error messages and usability won’t be great, and bugs and issues will tend to linger.
+this ad-hoc engine will never be in great shape: the performance won&#8217;t be optimal, the
+error messages and usability won&#8217;t be great, and bugs and issues will tend to linger.
 This will be a drag on your productivity, since even if your focus is on
 your main project, you still need to interact with your build scripts constantly
 throughout the work day.</p>
@@ -551,7 +550,7 @@ implemented yourself anyway: it provides the ordering of tasks, parallelism,
 caching, and probably does so better than you could implement in your own
 ad-hoc build scripts. So even though any developer should <em>be able</em> to wrangle
 Bash or Python enough to get the ordering/parallelism/caching they need, they probably
-shouldn’t <em>actually do it</em> and just use an off-the-shelf build tool which
+shouldn&#8217;t <em>actually do it</em> and just use an off-the-shelf build tool which
 has all these problems already solved.</p>
 </div>
 </div>
@@ -572,7 +571,7 @@ to its place in the business and organization. For example:</p>
 <p><strong>Custom linters</strong>, to cover common mistakes that your developers tend to make</p>
 </li>
 <li>
-<p><strong>Custom deployment artifacts</strong>, to deploy to a new cloud platform that hasn’t become popular yet</p>
+<p><strong>Custom deployment artifacts</strong>, to deploy to a new cloud platform that hasn&#8217;t become popular yet</p>
 </li>
 </ul>
 </div>
@@ -586,7 +585,7 @@ your custom logic. While this does work, it can be problematic for a number of r
 <li>
 <p><strong>Bash scripts are not an easy programming environment to work in</strong>, so
 custom tasks implemented as scripts tend to be buggy and fragile.
-Even implementing logic like &quot;if-else&quot; or &quot;for-loops&quot; in Bash can
+Even implementing logic like "if-else" or "for-loops" in Bash can
 be error-prone and easy to mess up!</p>
 </li>
 <li>
@@ -604,12 +603,12 @@ can be quite a challenge!</p>
 </ol>
 </div>
 <div class="paragraph">
-<p>Most build tools thus provide some kind of <em>&quot;plugin system&quot;</em> to let you
+<p>Most build tools thus provide some kind of <em>"plugin system"</em> to let you
 implement your custom logic in a more comfortable programming environment
-than Bash: Maven’s <a href="https://maven.apache.org/plugin-developers/">MOJO</a> interface interface
+than Bash: Maven&#8217;s <a href="https://maven.apache.org/plugin-developers/">MOJO</a> interface interface
 lets you write plugins in Java, Webpack allows you to write <a href="https://webpack.js.org/plugins/">Webpack Plugins</a>
 in Javascript, Bazel provides the <a href="https://bazel.build/rules/language">Starlark Language</a>
-for writing extensions, and so on. The Mill build tool’s custom logic is
+for writing extensions, and so on. The Mill build tool&#8217;s custom logic is
 <a href="../mill/depth/why-scala.html" class="xref page">written in Scala</a> and runs on the JVM, and
 thus comes with typechecking, IDE support, access to the standard JVM libraries
 and package repositories and people are already used to.</p>
@@ -625,12 +624,12 @@ a build tool, one that gets increasingly important as the project grows.</p>
 <div class="sect2">
 <h3 id="_build_tools_for_large_codebases_and_monorepos"><a class="anchor" href="#_build_tools_for_large_codebases_and_monorepos"></a>Build Tools for Large Codebases and Monorepos</h3>
 <div class="paragraph">
-<p>Twice now we’ve mentioned that build tools get more important as projects grow,
-so it’s worth calling out the need for build tools on very-large-codebases:
+<p>Twice now we&#8217;ve mentioned that build tools get more important as projects grow,
+so it&#8217;s worth calling out the need for build tools on very-large-codebases:
 those with 100 to 1,000 to even 10,000 developers actively working on it.
 Perhaps 1,000,000s or 10,000,000s of lines of code. Very-large-codebases have an acute
-need for something to help manage the development workflows, which &quot;monorepo&quot;
-build tools like Bazel provides. Some examples of &quot;large codebase&quot; requirements are:</p>
+need for something to help manage the development workflows, which "monorepo"
+build tools like Bazel provides. Some examples of "large codebase" requirements are:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -662,7 +661,7 @@ over time more build tools are adopting these techniques</p>
 table-stakes. In large codebases you <em>need</em> the parallelism and caching that a
 build tool provides, otherwise you may end up waiting hours to compile and test
 each small change. You <em>need</em> the ability to customize and extend the build logic,
-in some way that doesn’t become a rat’s nest of shell scripts. You <em>need</em> to build
+in some way that doesn&#8217;t become a rat&#8217;s nest of shell scripts. You <em>need</em> to build
 3-5 different languages in order to generate a single web-service or executable.
 This is where tools like <a href="https://bazel.build/">Bazel</a>, <a href="https://www.pantsbuild.org/">Pants</a>,
 or <a href="https://buck.build/">Buck</a> really shine, although other tools like
@@ -671,7 +670,7 @@ of the features necessary for working with large codebases.</p>
 </div>
 <div class="paragraph">
 <p>See the following blog post for a deeper discussion on what features a
-<em>&quot;monorepo build tool&quot;</em> provides and why they are necessary:</p>
+<em>"monorepo build tool"</em> provides and why they are necessary:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -738,7 +737,7 @@ most modern build tools are some kind of graph evaluation engine.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Run <strong>TOOL</strong> on <strong>INPUT1</strong>, <strong>INPUT2</strong>, ...​ to generate <strong>OUTPUT</strong></p>
+<p>Run <strong>TOOL</strong> on <strong>INPUT1</strong>, <strong>INPUT2</strong>, &#8230;&#8203; to generate <strong>OUTPUT</strong></p>
 </li>
 </ul>
 </div>
@@ -747,27 +746,28 @@ most modern build tools are some kind of graph evaluation engine.</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="221px" height="76px" viewBox="0.00 0.00 221.34 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="221px" height="76px"
+ viewBox="0.00 0.00 221.34 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 217.34,-71.8 217.34,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 217.34,-71.8 217.34,4 -4,4"/>
 <!-- input1 -->
 <g id="node1" class="node">
 <title>input1</title>
-<polygon fill="none" stroke="black" points="51.67,-67.7 0.11,-67.7 0.11,-43.1 51.67,-43.1 51.67,-67.7"></polygon>
+<polygon fill="none" stroke="black" points="51.67,-67.7 0.11,-67.7 0.11,-43.1 51.67,-43.1 51.67,-67.7"/>
 <text text-anchor="middle" x="25.89" y="-51.2" font-family="Times,serif" font-size="14.00">input1</text>
 </g>
 <!-- tool -->
 <g id="node2" class="node">
 <title>tool</title>
-<polygon fill="none" stroke="black" points="125.45,-45.7 87.89,-45.7 87.89,-21.1 125.45,-21.1 125.45,-45.7"></polygon>
+<polygon fill="none" stroke="black" points="125.45,-45.7 87.89,-45.7 87.89,-21.1 125.45,-21.1 125.45,-45.7"/>
 <text text-anchor="middle" x="106.67" y="-29.2" font-family="Times,serif" font-size="14.00">tool</text>
 </g>
 <!-- input1&#45;&gt;tool -->
 <g id="edge1" class="edge">
-<title>input1-&gt;tool</title>
-<path fill="none" stroke="black" d="M51.82,-48.44C60.02,-46.15 69.2,-43.59 77.62,-41.23"></path>
-<polygon fill="black" stroke="black" points="78.71,-44.56 87.4,-38.5 76.83,-37.82 78.71,-44.56"></polygon>
+<title>input1&#45;&gt;tool</title>
+<path fill="none" stroke="black" d="M51.82,-48.44C60.02,-46.15 69.2,-43.59 77.62,-41.23"/>
+<polygon fill="black" stroke="black" points="78.71,-44.56 87.4,-38.5 76.83,-37.82 78.71,-44.56"/>
 </g>
 <!-- output -->
 <g id="node4" class="node">
@@ -776,21 +776,21 @@ most modern build tools are some kind of graph evaluation engine.</p>
 </g>
 <!-- tool&#45;&gt;output -->
 <g id="edge3" class="edge">
-<title>tool-&gt;output</title>
-<path fill="none" stroke="black" d="M125.55,-33.4C133.18,-33.4 142.37,-33.4 151.28,-33.4"></path>
-<polygon fill="black" stroke="black" points="151.48,-36.9 161.48,-33.4 151.48,-29.9 151.48,-36.9"></polygon>
+<title>tool&#45;&gt;output</title>
+<path fill="none" stroke="black" d="M125.55,-33.4C133.18,-33.4 142.37,-33.4 151.28,-33.4"/>
+<polygon fill="black" stroke="black" points="151.48,-36.9 161.48,-33.4 151.48,-29.9 151.48,-36.9"/>
 </g>
 <!-- input2 -->
 <g id="node3" class="node">
 <title>input2</title>
-<polygon fill="none" stroke="black" points="51.67,-24.7 0.11,-24.7 0.11,-0.1 51.67,-0.1 51.67,-24.7"></polygon>
+<polygon fill="none" stroke="black" points="51.67,-24.7 0.11,-24.7 0.11,-0.1 51.67,-0.1 51.67,-24.7"/>
 <text text-anchor="middle" x="25.89" y="-8.2" font-family="Times,serif" font-size="14.00">input2</text>
 </g>
 <!-- input2&#45;&gt;tool -->
 <g id="edge2" class="edge">
-<title>input2-&gt;tool</title>
-<path fill="none" stroke="black" d="M51.82,-19.04C60.02,-21.23 69.2,-23.68 77.62,-25.92"></path>
-<polygon fill="black" stroke="black" points="76.84,-29.34 87.4,-28.53 78.64,-22.57 76.84,-29.34"></polygon>
+<title>input2&#45;&gt;tool</title>
+<path fill="none" stroke="black" d="M51.82,-19.04C60.02,-21.23 69.2,-23.68 77.62,-25.92"/>
+<polygon fill="black" stroke="black" points="76.84,-29.34 87.4,-28.53 78.64,-22.57 76.84,-29.34"/>
 </g>
 </g>
 </svg>
@@ -804,10 +804,11 @@ arrows are the dataflow between them</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="632px" height="140px" viewBox="0.00 0.00 632.44 139.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="632px" height="140px"
+ viewBox="0.00 0.00 632.44 139.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 135.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-135.8 628.44,-135.8 628.44,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-135.8 628.44,-135.8 628.44,4 -4,4"/>
 <!-- direct_deps -->
 <g id="node1" class="node">
 <title>direct_deps</title>
@@ -816,62 +817,62 @@ arrows are the dataflow between them</p>
 <!-- resolve_deps -->
 <g id="node2" class="node">
 <title>resolve_deps</title>
-<polygon fill="none" stroke="black" points="205.66,-131.7 116.49,-131.7 116.49,-107.1 205.66,-107.1 205.66,-131.7"></polygon>
+<polygon fill="none" stroke="black" points="205.66,-131.7 116.49,-131.7 116.49,-107.1 205.66,-107.1 205.66,-131.7"/>
 <text text-anchor="middle" x="161.07" y="-115.2" font-family="Times,serif" font-size="14.00">resolve_deps</text>
 </g>
 <!-- direct_deps&#45;&gt;resolve_deps -->
 <g id="edge1" class="edge">
-<title>direct_deps-&gt;resolve_deps</title>
-<path fill="none" stroke="black" d="M80.5,-119.4C88.75,-119.4 97.6,-119.4 106.29,-119.4"></path>
-<polygon fill="black" stroke="black" points="106.37,-122.9 116.37,-119.4 106.37,-115.9 106.37,-122.9"></polygon>
+<title>direct_deps&#45;&gt;resolve_deps</title>
+<path fill="none" stroke="black" d="M80.5,-119.4C88.75,-119.4 97.6,-119.4 106.29,-119.4"/>
+<polygon fill="black" stroke="black" points="106.37,-122.9 116.37,-119.4 106.37,-115.9 106.37,-122.9"/>
 </g>
 <!-- compile -->
 <g id="node3" class="node">
 <title>compile</title>
-<polygon fill="none" stroke="black" points="328.43,-88.7 267.23,-88.7 267.23,-64.1 328.43,-64.1 328.43,-88.7"></polygon>
+<polygon fill="none" stroke="black" points="328.43,-88.7 267.23,-88.7 267.23,-64.1 328.43,-64.1 328.43,-88.7"/>
 <text text-anchor="middle" x="297.83" y="-72.2" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
 <!-- resolve_deps&#45;&gt;compile -->
 <g id="edge2" class="edge">
-<title>resolve_deps-&gt;compile</title>
-<path fill="none" stroke="black" d="M200.69,-107.08C218.54,-101.38 239.7,-94.63 257.62,-88.91"></path>
-<polygon fill="black" stroke="black" points="258.74,-92.23 267.2,-85.85 256.61,-85.56 258.74,-92.23"></polygon>
+<title>resolve_deps&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M200.69,-107.08C218.54,-101.38 239.7,-94.63 257.62,-88.91"/>
+<polygon fill="black" stroke="black" points="258.74,-92.23 267.2,-85.85 256.61,-85.56 258.74,-92.23"/>
 </g>
 <!-- unit_test -->
 <g id="node9" class="node">
 <title>unit_test</title>
-<polygon fill="none" stroke="black" points="469.92,-110.7 405.48,-110.7 405.48,-86.1 469.92,-86.1 469.92,-110.7"></polygon>
+<polygon fill="none" stroke="black" points="469.92,-110.7 405.48,-110.7 405.48,-86.1 469.92,-86.1 469.92,-110.7"/>
 <text text-anchor="middle" x="437.7" y="-94.2" font-family="Times,serif" font-size="14.00">unit_test</text>
 </g>
 <!-- compile&#45;&gt;unit_test -->
 <g id="edge7" class="edge">
-<title>compile-&gt;unit_test</title>
-<path fill="none" stroke="black" d="M328.4,-81.12C347.94,-84.24 373.82,-88.37 395.38,-91.81"></path>
-<polygon fill="black" stroke="black" points="394.83,-95.26 405.25,-93.38 395.93,-88.35 394.83,-95.26"></polygon>
+<title>compile&#45;&gt;unit_test</title>
+<path fill="none" stroke="black" d="M328.4,-81.12C347.94,-84.24 373.82,-88.37 395.38,-91.81"/>
+<polygon fill="black" stroke="black" points="394.83,-95.26 405.25,-93.38 395.93,-88.35 394.83,-95.26"/>
 </g>
 <!-- package -->
 <g id="node10" class="node">
 <title>package</title>
-<polygon fill="none" stroke="black" points="468.56,-67.7 406.84,-67.7 406.84,-43.1 468.56,-43.1 468.56,-67.7"></polygon>
+<polygon fill="none" stroke="black" points="468.56,-67.7 406.84,-67.7 406.84,-43.1 468.56,-43.1 468.56,-67.7"/>
 <text text-anchor="middle" x="437.7" y="-51.2" font-family="Times,serif" font-size="14.00">package</text>
 </g>
 <!-- compile&#45;&gt;package -->
 <g id="edge8" class="edge">
-<title>compile-&gt;package</title>
-<path fill="none" stroke="black" d="M328.4,-71.89C348.35,-68.86 374.91,-64.81 396.73,-61.49"></path>
-<polygon fill="black" stroke="black" points="397.34,-64.94 406.69,-59.97 396.28,-58.02 397.34,-64.94"></polygon>
+<title>compile&#45;&gt;package</title>
+<path fill="none" stroke="black" d="M328.4,-71.89C348.35,-68.86 374.91,-64.81 396.73,-61.49"/>
+<polygon fill="black" stroke="black" points="397.34,-64.94 406.69,-59.97 396.28,-58.02 397.34,-64.94"/>
 </g>
 <!-- code_gen -->
 <g id="node4" class="node">
 <title>code_gen</title>
-<polygon fill="none" stroke="black" points="195.72,-88.7 126.43,-88.7 126.43,-64.1 195.72,-64.1 195.72,-88.7"></polygon>
+<polygon fill="none" stroke="black" points="195.72,-88.7 126.43,-88.7 126.43,-64.1 195.72,-64.1 195.72,-88.7"/>
 <text text-anchor="middle" x="161.07" y="-72.2" font-family="Times,serif" font-size="14.00">code_gen</text>
 </g>
 <!-- code_gen&#45;&gt;compile -->
 <g id="edge3" class="edge">
-<title>code_gen-&gt;compile</title>
-<path fill="none" stroke="black" d="M195.73,-76.4C214.36,-76.4 237.64,-76.4 257.15,-76.4"></path>
-<polygon fill="black" stroke="black" points="257.26,-79.9 267.26,-76.4 257.26,-72.9 257.26,-79.9"></polygon>
+<title>code_gen&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M195.73,-76.4C214.36,-76.4 237.64,-76.4 257.15,-76.4"/>
+<polygon fill="black" stroke="black" points="257.26,-79.9 267.26,-76.4 257.26,-72.9 257.26,-79.9"/>
 </g>
 <!-- sources -->
 <g id="node5" class="node">
@@ -880,9 +881,9 @@ arrows are the dataflow between them</p>
 </g>
 <!-- sources&#45;&gt;compile -->
 <g id="edge4" class="edge">
-<title>sources-&gt;compile</title>
-<path fill="none" stroke="black" d="M190.32,-42.41C209.86,-48.65 236.13,-57.03 257.68,-63.91"></path>
-<polygon fill="black" stroke="black" points="256.63,-67.25 267.22,-66.95 258.75,-60.58 256.63,-67.25"></polygon>
+<title>sources&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M190.32,-42.41C209.86,-48.65 236.13,-57.03 257.68,-63.91"/>
+<polygon fill="black" stroke="black" points="256.63,-67.25 267.22,-66.95 258.75,-60.58 256.63,-67.25"/>
 </g>
 <!-- static_input_files -->
 <g id="node6" class="node">
@@ -892,32 +893,32 @@ arrows are the dataflow between them</p>
 <!-- asset_pipeline -->
 <g id="node7" class="node">
 <title>asset_pipeline</title>
-<polygon fill="none" stroke="black" points="485.51,-24.7 389.89,-24.7 389.89,-0.1 485.51,-0.1 485.51,-24.7"></polygon>
+<polygon fill="none" stroke="black" points="485.51,-24.7 389.89,-24.7 389.89,-0.1 485.51,-0.1 485.51,-24.7"/>
 <text text-anchor="middle" x="437.7" y="-8.2" font-family="Times,serif" font-size="14.00">asset_pipeline</text>
 </g>
 <!-- static_input_files&#45;&gt;asset_pipeline -->
 <g id="edge5" class="edge">
-<title>static_input_files-&gt;asset_pipeline</title>
-<path fill="none" stroke="black" d="M354.11,-12.4C362.53,-12.4 371.22,-12.4 379.67,-12.4"></path>
-<polygon fill="black" stroke="black" points="379.83,-15.9 389.83,-12.4 379.83,-8.9 379.83,-15.9"></polygon>
+<title>static_input_files&#45;&gt;asset_pipeline</title>
+<path fill="none" stroke="black" d="M354.11,-12.4C362.53,-12.4 371.22,-12.4 379.67,-12.4"/>
+<polygon fill="black" stroke="black" points="379.83,-15.9 389.83,-12.4 379.83,-8.9 379.83,-15.9"/>
 </g>
 <!-- integration_test -->
 <g id="node8" class="node">
 <title>integration_test</title>
-<polygon fill="none" stroke="black" points="624.49,-45.7 521.31,-45.7 521.31,-21.1 624.49,-21.1 624.49,-45.7"></polygon>
+<polygon fill="none" stroke="black" points="624.49,-45.7 521.31,-45.7 521.31,-21.1 624.49,-21.1 624.49,-45.7"/>
 <text text-anchor="middle" x="572.9" y="-29.2" font-family="Times,serif" font-size="14.00">integration_test</text>
 </g>
 <!-- asset_pipeline&#45;&gt;integration_test -->
 <g id="edge6" class="edge">
-<title>asset_pipeline-&gt;integration_test</title>
-<path fill="none" stroke="black" d="M485.66,-19.8C493.95,-21.11 502.69,-22.49 511.29,-23.84"></path>
-<polygon fill="black" stroke="black" points="510.87,-27.32 521.29,-25.42 511.96,-20.41 510.87,-27.32"></polygon>
+<title>asset_pipeline&#45;&gt;integration_test</title>
+<path fill="none" stroke="black" d="M485.66,-19.8C493.95,-21.11 502.69,-22.49 511.29,-23.84"/>
+<polygon fill="black" stroke="black" points="510.87,-27.32 521.29,-25.42 511.96,-20.41 510.87,-27.32"/>
 </g>
 <!-- package&#45;&gt;integration_test -->
 <g id="edge9" class="edge">
-<title>package-&gt;integration_test</title>
-<path fill="none" stroke="black" d="M468.59,-50.46C481.18,-48.38 496.31,-45.88 511.07,-43.45"></path>
-<polygon fill="black" stroke="black" points="511.89,-46.86 521.18,-41.78 510.75,-39.95 511.89,-46.86"></polygon>
+<title>package&#45;&gt;integration_test</title>
+<path fill="none" stroke="black" d="M468.59,-50.46C481.18,-48.38 496.31,-45.88 511.07,-43.45"/>
+<polygon fill="black" stroke="black" points="511.89,-46.86 521.18,-41.78 510.75,-39.95 511.89,-46.86"/>
 </g>
 </g>
 </svg>
@@ -934,10 +935,11 @@ can traverse the graph edges (red) to find it needs to ensure <code>compile</cod
 </div>
 <div class="paragraph">
 <center>
-<svg width="632px" height="140px" viewBox="0.00 0.00 632.44 139.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="632px" height="140px"
+ viewBox="0.00 0.00 632.44 139.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 135.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-135.8 628.44,-135.8 628.44,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-135.8 628.44,-135.8 628.44,4 -4,4"/>
 <!-- direct_deps -->
 <g id="node1" class="node">
 <title>direct_deps</title>
@@ -946,62 +948,62 @@ can traverse the graph edges (red) to find it needs to ensure <code>compile</cod
 <!-- resolve_deps -->
 <g id="node2" class="node">
 <title>resolve_deps</title>
-<polygon fill="lightpink" stroke="black" points="205.66,-131.7 116.49,-131.7 116.49,-107.1 205.66,-107.1 205.66,-131.7"></polygon>
+<polygon fill="lightpink" stroke="black" points="205.66,-131.7 116.49,-131.7 116.49,-107.1 205.66,-107.1 205.66,-131.7"/>
 <text text-anchor="middle" x="161.07" y="-115.2" font-family="Times,serif" font-size="14.00">resolve_deps</text>
 </g>
 <!-- direct_deps&#45;&gt;resolve_deps -->
 <g id="edge1" class="edge">
-<title>direct_deps-&gt;resolve_deps</title>
-<path fill="none" stroke="black" d="M80.5,-119.4C88.75,-119.4 97.6,-119.4 106.29,-119.4"></path>
-<polygon fill="black" stroke="black" points="106.37,-122.9 116.37,-119.4 106.37,-115.9 106.37,-122.9"></polygon>
+<title>direct_deps&#45;&gt;resolve_deps</title>
+<path fill="none" stroke="black" d="M80.5,-119.4C88.75,-119.4 97.6,-119.4 106.29,-119.4"/>
+<polygon fill="black" stroke="black" points="106.37,-122.9 116.37,-119.4 106.37,-115.9 106.37,-122.9"/>
 </g>
 <!-- compile -->
 <g id="node3" class="node">
 <title>compile</title>
-<polygon fill="lightpink" stroke="black" points="328.43,-88.7 267.23,-88.7 267.23,-64.1 328.43,-64.1 328.43,-88.7"></polygon>
+<polygon fill="lightpink" stroke="black" points="328.43,-88.7 267.23,-88.7 267.23,-64.1 328.43,-64.1 328.43,-88.7"/>
 <text text-anchor="middle" x="297.83" y="-72.2" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
 <!-- resolve_deps&#45;&gt;compile -->
 <g id="edge2" class="edge">
-<title>resolve_deps-&gt;compile</title>
-<path fill="none" stroke="red" stroke-width="2" d="M200.69,-107.08C218.54,-101.38 239.7,-94.63 257.62,-88.91"></path>
-<polygon fill="red" stroke="red" stroke-width="2" points="258.74,-92.23 267.2,-85.85 256.61,-85.56 258.74,-92.23"></polygon>
+<title>resolve_deps&#45;&gt;compile</title>
+<path fill="none" stroke="red" stroke-width="2" d="M200.69,-107.08C218.54,-101.38 239.7,-94.63 257.62,-88.91"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="258.74,-92.23 267.2,-85.85 256.61,-85.56 258.74,-92.23"/>
 </g>
 <!-- unit_test -->
 <g id="node9" class="node">
 <title>unit_test</title>
-<polygon fill="lightblue" stroke="black" points="469.92,-110.7 405.48,-110.7 405.48,-86.1 469.92,-86.1 469.92,-110.7"></polygon>
+<polygon fill="lightblue" stroke="black" points="469.92,-110.7 405.48,-110.7 405.48,-86.1 469.92,-86.1 469.92,-110.7"/>
 <text text-anchor="middle" x="437.7" y="-94.2" font-family="Times,serif" font-size="14.00">unit_test</text>
 </g>
 <!-- compile&#45;&gt;unit_test -->
 <g id="edge7" class="edge">
-<title>compile-&gt;unit_test</title>
-<path fill="none" stroke="red" stroke-width="2" d="M328.4,-81.12C347.94,-84.24 373.82,-88.37 395.38,-91.81"></path>
-<polygon fill="red" stroke="red" stroke-width="2" points="394.83,-95.26 405.25,-93.38 395.93,-88.35 394.83,-95.26"></polygon>
+<title>compile&#45;&gt;unit_test</title>
+<path fill="none" stroke="red" stroke-width="2" d="M328.4,-81.12C347.94,-84.24 373.82,-88.37 395.38,-91.81"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="394.83,-95.26 405.25,-93.38 395.93,-88.35 394.83,-95.26"/>
 </g>
 <!-- package -->
 <g id="node10" class="node">
 <title>package</title>
-<polygon fill="none" stroke="black" points="468.56,-67.7 406.84,-67.7 406.84,-43.1 468.56,-43.1 468.56,-67.7"></polygon>
+<polygon fill="none" stroke="black" points="468.56,-67.7 406.84,-67.7 406.84,-43.1 468.56,-43.1 468.56,-67.7"/>
 <text text-anchor="middle" x="437.7" y="-51.2" font-family="Times,serif" font-size="14.00">package</text>
 </g>
 <!-- compile&#45;&gt;package -->
 <g id="edge8" class="edge">
-<title>compile-&gt;package</title>
-<path fill="none" stroke="black" d="M328.4,-71.89C348.35,-68.86 374.91,-64.81 396.73,-61.49"></path>
-<polygon fill="black" stroke="black" points="397.34,-64.94 406.69,-59.97 396.28,-58.02 397.34,-64.94"></polygon>
+<title>compile&#45;&gt;package</title>
+<path fill="none" stroke="black" d="M328.4,-71.89C348.35,-68.86 374.91,-64.81 396.73,-61.49"/>
+<polygon fill="black" stroke="black" points="397.34,-64.94 406.69,-59.97 396.28,-58.02 397.34,-64.94"/>
 </g>
 <!-- code_gen -->
 <g id="node4" class="node">
 <title>code_gen</title>
-<polygon fill="lightpink" stroke="black" points="195.72,-88.7 126.43,-88.7 126.43,-64.1 195.72,-64.1 195.72,-88.7"></polygon>
+<polygon fill="lightpink" stroke="black" points="195.72,-88.7 126.43,-88.7 126.43,-64.1 195.72,-64.1 195.72,-88.7"/>
 <text text-anchor="middle" x="161.07" y="-72.2" font-family="Times,serif" font-size="14.00">code_gen</text>
 </g>
 <!-- code_gen&#45;&gt;compile -->
 <g id="edge3" class="edge">
-<title>code_gen-&gt;compile</title>
-<path fill="none" stroke="red" stroke-width="2" d="M195.73,-76.4C214.36,-76.4 237.64,-76.4 257.15,-76.4"></path>
-<polygon fill="red" stroke="red" stroke-width="2" points="257.26,-79.9 267.26,-76.4 257.26,-72.9 257.26,-79.9"></polygon>
+<title>code_gen&#45;&gt;compile</title>
+<path fill="none" stroke="red" stroke-width="2" d="M195.73,-76.4C214.36,-76.4 237.64,-76.4 257.15,-76.4"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="257.26,-79.9 267.26,-76.4 257.26,-72.9 257.26,-79.9"/>
 </g>
 <!-- sources -->
 <g id="node5" class="node">
@@ -1010,9 +1012,9 @@ can traverse the graph edges (red) to find it needs to ensure <code>compile</cod
 </g>
 <!-- sources&#45;&gt;compile -->
 <g id="edge4" class="edge">
-<title>sources-&gt;compile</title>
-<path fill="none" stroke="black" d="M190.32,-42.41C209.86,-48.65 236.13,-57.03 257.68,-63.91"></path>
-<polygon fill="black" stroke="black" points="256.63,-67.25 267.22,-66.95 258.75,-60.58 256.63,-67.25"></polygon>
+<title>sources&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M190.32,-42.41C209.86,-48.65 236.13,-57.03 257.68,-63.91"/>
+<polygon fill="black" stroke="black" points="256.63,-67.25 267.22,-66.95 258.75,-60.58 256.63,-67.25"/>
 </g>
 <!-- static_input_files -->
 <g id="node6" class="node">
@@ -1022,32 +1024,32 @@ can traverse the graph edges (red) to find it needs to ensure <code>compile</cod
 <!-- asset_pipeline -->
 <g id="node7" class="node">
 <title>asset_pipeline</title>
-<polygon fill="none" stroke="black" points="485.51,-24.7 389.89,-24.7 389.89,-0.1 485.51,-0.1 485.51,-24.7"></polygon>
+<polygon fill="none" stroke="black" points="485.51,-24.7 389.89,-24.7 389.89,-0.1 485.51,-0.1 485.51,-24.7"/>
 <text text-anchor="middle" x="437.7" y="-8.2" font-family="Times,serif" font-size="14.00">asset_pipeline</text>
 </g>
 <!-- static_input_files&#45;&gt;asset_pipeline -->
 <g id="edge5" class="edge">
-<title>static_input_files-&gt;asset_pipeline</title>
-<path fill="none" stroke="black" d="M354.11,-12.4C362.53,-12.4 371.22,-12.4 379.67,-12.4"></path>
-<polygon fill="black" stroke="black" points="379.83,-15.9 389.83,-12.4 379.83,-8.9 379.83,-15.9"></polygon>
+<title>static_input_files&#45;&gt;asset_pipeline</title>
+<path fill="none" stroke="black" d="M354.11,-12.4C362.53,-12.4 371.22,-12.4 379.67,-12.4"/>
+<polygon fill="black" stroke="black" points="379.83,-15.9 389.83,-12.4 379.83,-8.9 379.83,-15.9"/>
 </g>
 <!-- integration_test -->
 <g id="node8" class="node">
 <title>integration_test</title>
-<polygon fill="none" stroke="black" points="624.49,-45.7 521.31,-45.7 521.31,-21.1 624.49,-21.1 624.49,-45.7"></polygon>
+<polygon fill="none" stroke="black" points="624.49,-45.7 521.31,-45.7 521.31,-21.1 624.49,-21.1 624.49,-45.7"/>
 <text text-anchor="middle" x="572.9" y="-29.2" font-family="Times,serif" font-size="14.00">integration_test</text>
 </g>
 <!-- asset_pipeline&#45;&gt;integration_test -->
 <g id="edge6" class="edge">
-<title>asset_pipeline-&gt;integration_test</title>
-<path fill="none" stroke="black" d="M485.66,-19.8C493.95,-21.11 502.69,-22.49 511.29,-23.84"></path>
-<polygon fill="black" stroke="black" points="510.87,-27.32 521.29,-25.42 511.96,-20.41 510.87,-27.32"></polygon>
+<title>asset_pipeline&#45;&gt;integration_test</title>
+<path fill="none" stroke="black" d="M485.66,-19.8C493.95,-21.11 502.69,-22.49 511.29,-23.84"/>
+<polygon fill="black" stroke="black" points="510.87,-27.32 521.29,-25.42 511.96,-20.41 510.87,-27.32"/>
 </g>
 <!-- package&#45;&gt;integration_test -->
 <g id="edge9" class="edge">
-<title>package-&gt;integration_test</title>
-<path fill="none" stroke="black" d="M468.59,-50.46C481.18,-48.38 496.31,-45.88 511.07,-43.45"></path>
-<polygon fill="black" stroke="black" points="511.89,-46.86 521.18,-41.78 510.75,-39.95 511.89,-46.86"></polygon>
+<title>package&#45;&gt;integration_test</title>
+<path fill="none" stroke="black" d="M468.59,-50.46C481.18,-48.38 496.31,-45.88 511.07,-43.45"/>
+<polygon fill="black" stroke="black" points="511.89,-46.86 521.18,-41.78 510.75,-39.95 511.89,-46.86"/>
 </g>
 </g>
 </svg>
@@ -1070,10 +1072,11 @@ while <code>package</code> and <code>asset_pipeline</code> need to be run</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="632px" height="140px" viewBox="0.00 0.00 632.44 139.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="632px" height="140px"
+ viewBox="0.00 0.00 632.44 139.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 135.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-135.8 628.44,-135.8 628.44,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-135.8 628.44,-135.8 628.44,4 -4,4"/>
 <!-- direct_deps -->
 <g id="node1" class="node">
 <title>direct_deps</title>
@@ -1082,62 +1085,62 @@ while <code>package</code> and <code>asset_pipeline</code> need to be run</p>
 <!-- resolve_deps -->
 <g id="node2" class="node">
 <title>resolve_deps</title>
-<polygon fill="lightgreen" stroke="black" points="205.66,-131.7 116.49,-131.7 116.49,-107.1 205.66,-107.1 205.66,-131.7"></polygon>
+<polygon fill="lightgreen" stroke="black" points="205.66,-131.7 116.49,-131.7 116.49,-107.1 205.66,-107.1 205.66,-131.7"/>
 <text text-anchor="middle" x="161.07" y="-115.2" font-family="Times,serif" font-size="14.00">resolve_deps</text>
 </g>
 <!-- direct_deps&#45;&gt;resolve_deps -->
 <g id="edge1" class="edge">
-<title>direct_deps-&gt;resolve_deps</title>
-<path fill="none" stroke="black" d="M80.5,-119.4C88.75,-119.4 97.6,-119.4 106.29,-119.4"></path>
-<polygon fill="black" stroke="black" points="106.37,-122.9 116.37,-119.4 106.37,-115.9 106.37,-122.9"></polygon>
+<title>direct_deps&#45;&gt;resolve_deps</title>
+<path fill="none" stroke="black" d="M80.5,-119.4C88.75,-119.4 97.6,-119.4 106.29,-119.4"/>
+<polygon fill="black" stroke="black" points="106.37,-122.9 116.37,-119.4 106.37,-115.9 106.37,-122.9"/>
 </g>
 <!-- compile -->
 <g id="node3" class="node">
 <title>compile</title>
-<polygon fill="lightgreen" stroke="black" points="328.43,-88.7 267.23,-88.7 267.23,-64.1 328.43,-64.1 328.43,-88.7"></polygon>
+<polygon fill="lightgreen" stroke="black" points="328.43,-88.7 267.23,-88.7 267.23,-64.1 328.43,-64.1 328.43,-88.7"/>
 <text text-anchor="middle" x="297.83" y="-72.2" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
 <!-- resolve_deps&#45;&gt;compile -->
 <g id="edge2" class="edge">
-<title>resolve_deps-&gt;compile</title>
-<path fill="none" stroke="red" stroke-width="2" d="M200.69,-107.08C218.54,-101.38 239.7,-94.63 257.62,-88.91"></path>
-<polygon fill="red" stroke="red" stroke-width="2" points="258.74,-92.23 267.2,-85.85 256.61,-85.56 258.74,-92.23"></polygon>
+<title>resolve_deps&#45;&gt;compile</title>
+<path fill="none" stroke="red" stroke-width="2" d="M200.69,-107.08C218.54,-101.38 239.7,-94.63 257.62,-88.91"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="258.74,-92.23 267.2,-85.85 256.61,-85.56 258.74,-92.23"/>
 </g>
 <!-- unit_test -->
 <g id="node9" class="node">
 <title>unit_test</title>
-<polygon fill="none" stroke="black" points="469.92,-110.7 405.48,-110.7 405.48,-86.1 469.92,-86.1 469.92,-110.7"></polygon>
+<polygon fill="none" stroke="black" points="469.92,-110.7 405.48,-110.7 405.48,-86.1 469.92,-86.1 469.92,-110.7"/>
 <text text-anchor="middle" x="437.7" y="-94.2" font-family="Times,serif" font-size="14.00">unit_test</text>
 </g>
 <!-- compile&#45;&gt;unit_test -->
 <g id="edge7" class="edge">
-<title>compile-&gt;unit_test</title>
-<path fill="none" stroke="black" d="M328.4,-81.12C347.94,-84.24 373.82,-88.37 395.38,-91.81"></path>
-<polygon fill="black" stroke="black" points="394.83,-95.26 405.25,-93.38 395.93,-88.35 394.83,-95.26"></polygon>
+<title>compile&#45;&gt;unit_test</title>
+<path fill="none" stroke="black" d="M328.4,-81.12C347.94,-84.24 373.82,-88.37 395.38,-91.81"/>
+<polygon fill="black" stroke="black" points="394.83,-95.26 405.25,-93.38 395.93,-88.35 394.83,-95.26"/>
 </g>
 <!-- package -->
 <g id="node10" class="node">
 <title>package</title>
-<polygon fill="lightpink" stroke="black" points="468.56,-67.7 406.84,-67.7 406.84,-43.1 468.56,-43.1 468.56,-67.7"></polygon>
+<polygon fill="lightpink" stroke="black" points="468.56,-67.7 406.84,-67.7 406.84,-43.1 468.56,-43.1 468.56,-67.7"/>
 <text text-anchor="middle" x="437.7" y="-51.2" font-family="Times,serif" font-size="14.00">package</text>
 </g>
 <!-- compile&#45;&gt;package -->
 <g id="edge8" class="edge">
-<title>compile-&gt;package</title>
-<path fill="none" stroke="red" stroke-width="2" d="M328.4,-71.89C348.35,-68.86 374.91,-64.81 396.73,-61.49"></path>
-<polygon fill="red" stroke="red" stroke-width="2" points="397.34,-64.94 406.69,-59.97 396.28,-58.02 397.34,-64.94"></polygon>
+<title>compile&#45;&gt;package</title>
+<path fill="none" stroke="red" stroke-width="2" d="M328.4,-71.89C348.35,-68.86 374.91,-64.81 396.73,-61.49"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="397.34,-64.94 406.69,-59.97 396.28,-58.02 397.34,-64.94"/>
 </g>
 <!-- code_gen -->
 <g id="node4" class="node">
 <title>code_gen</title>
-<polygon fill="lightgreen" stroke="black" points="195.72,-88.7 126.43,-88.7 126.43,-64.1 195.72,-64.1 195.72,-88.7"></polygon>
+<polygon fill="lightgreen" stroke="black" points="195.72,-88.7 126.43,-88.7 126.43,-64.1 195.72,-64.1 195.72,-88.7"/>
 <text text-anchor="middle" x="161.07" y="-72.2" font-family="Times,serif" font-size="14.00">code_gen</text>
 </g>
 <!-- code_gen&#45;&gt;compile -->
 <g id="edge3" class="edge">
-<title>code_gen-&gt;compile</title>
-<path fill="none" stroke="red" stroke-width="2" d="M195.73,-76.4C214.36,-76.4 237.64,-76.4 257.15,-76.4"></path>
-<polygon fill="red" stroke="red" stroke-width="2" points="257.26,-79.9 267.26,-76.4 257.26,-72.9 257.26,-79.9"></polygon>
+<title>code_gen&#45;&gt;compile</title>
+<path fill="none" stroke="red" stroke-width="2" d="M195.73,-76.4C214.36,-76.4 237.64,-76.4 257.15,-76.4"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="257.26,-79.9 267.26,-76.4 257.26,-72.9 257.26,-79.9"/>
 </g>
 <!-- sources -->
 <g id="node5" class="node">
@@ -1146,9 +1149,9 @@ while <code>package</code> and <code>asset_pipeline</code> need to be run</p>
 </g>
 <!-- sources&#45;&gt;compile -->
 <g id="edge4" class="edge">
-<title>sources-&gt;compile</title>
-<path fill="none" stroke="black" d="M190.32,-42.41C209.86,-48.65 236.13,-57.03 257.68,-63.91"></path>
-<polygon fill="black" stroke="black" points="256.63,-67.25 267.22,-66.95 258.75,-60.58 256.63,-67.25"></polygon>
+<title>sources&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M190.32,-42.41C209.86,-48.65 236.13,-57.03 257.68,-63.91"/>
+<polygon fill="black" stroke="black" points="256.63,-67.25 267.22,-66.95 258.75,-60.58 256.63,-67.25"/>
 </g>
 <!-- static_input_files -->
 <g id="node6" class="node">
@@ -1158,32 +1161,32 @@ while <code>package</code> and <code>asset_pipeline</code> need to be run</p>
 <!-- asset_pipeline -->
 <g id="node7" class="node">
 <title>asset_pipeline</title>
-<polygon fill="lightpink" stroke="black" points="485.51,-24.7 389.89,-24.7 389.89,-0.1 485.51,-0.1 485.51,-24.7"></polygon>
+<polygon fill="lightpink" stroke="black" points="485.51,-24.7 389.89,-24.7 389.89,-0.1 485.51,-0.1 485.51,-24.7"/>
 <text text-anchor="middle" x="437.7" y="-8.2" font-family="Times,serif" font-size="14.00">asset_pipeline</text>
 </g>
 <!-- static_input_files&#45;&gt;asset_pipeline -->
 <g id="edge5" class="edge">
-<title>static_input_files-&gt;asset_pipeline</title>
-<path fill="none" stroke="black" d="M354.11,-12.4C362.53,-12.4 371.22,-12.4 379.67,-12.4"></path>
-<polygon fill="black" stroke="black" points="379.83,-15.9 389.83,-12.4 379.83,-8.9 379.83,-15.9"></polygon>
+<title>static_input_files&#45;&gt;asset_pipeline</title>
+<path fill="none" stroke="black" d="M354.11,-12.4C362.53,-12.4 371.22,-12.4 379.67,-12.4"/>
+<polygon fill="black" stroke="black" points="379.83,-15.9 389.83,-12.4 379.83,-8.9 379.83,-15.9"/>
 </g>
 <!-- integration_test -->
 <g id="node8" class="node">
 <title>integration_test</title>
-<polygon fill="lightblue" stroke="black" points="624.49,-45.7 521.31,-45.7 521.31,-21.1 624.49,-21.1 624.49,-45.7"></polygon>
+<polygon fill="lightblue" stroke="black" points="624.49,-45.7 521.31,-45.7 521.31,-21.1 624.49,-21.1 624.49,-45.7"/>
 <text text-anchor="middle" x="572.9" y="-29.2" font-family="Times,serif" font-size="14.00">integration_test</text>
 </g>
 <!-- asset_pipeline&#45;&gt;integration_test -->
 <g id="edge6" class="edge">
-<title>asset_pipeline-&gt;integration_test</title>
-<path fill="none" stroke="red" stroke-width="2" d="M485.66,-19.8C493.95,-21.11 502.69,-22.49 511.29,-23.84"></path>
-<polygon fill="red" stroke="red" stroke-width="2" points="510.87,-27.32 521.29,-25.42 511.96,-20.41 510.87,-27.32"></polygon>
+<title>asset_pipeline&#45;&gt;integration_test</title>
+<path fill="none" stroke="red" stroke-width="2" d="M485.66,-19.8C493.95,-21.11 502.69,-22.49 511.29,-23.84"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="510.87,-27.32 521.29,-25.42 511.96,-20.41 510.87,-27.32"/>
 </g>
 <!-- package&#45;&gt;integration_test -->
 <g id="edge9" class="edge">
-<title>package-&gt;integration_test</title>
-<path fill="none" stroke="red" stroke-width="2" d="M468.59,-50.46C481.18,-48.38 496.31,-45.88 511.07,-43.45"></path>
-<polygon fill="red" stroke="red" stroke-width="2" points="511.89,-46.86 521.18,-41.78 510.75,-39.95 511.89,-46.86"></polygon>
+<title>package&#45;&gt;integration_test</title>
+<path fill="none" stroke="red" stroke-width="2" d="M468.59,-50.46C481.18,-48.38 496.31,-45.88 511.07,-43.45"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="511.89,-46.86 521.18,-41.78 510.75,-39.95 511.89,-46.86"/>
 </g>
 </g>
 </svg>
@@ -1209,10 +1212,11 @@ again, the build tool can again traverse the graph edges and see that:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="632px" height="140px" viewBox="0.00 0.00 632.44 139.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="632px" height="140px"
+ viewBox="0.00 0.00 632.44 139.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 135.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-135.8 628.44,-135.8 628.44,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-135.8 628.44,-135.8 628.44,4 -4,4"/>
 <!-- direct_deps -->
 <g id="node1" class="node">
 <title>direct_deps</title>
@@ -1221,74 +1225,74 @@ again, the build tool can again traverse the graph edges and see that:</p>
 <!-- resolve_deps -->
 <g id="node2" class="node">
 <title>resolve_deps</title>
-<polygon fill="lightgreen" stroke="black" points="205.66,-131.7 116.49,-131.7 116.49,-107.1 205.66,-107.1 205.66,-131.7"></polygon>
+<polygon fill="lightgreen" stroke="black" points="205.66,-131.7 116.49,-131.7 116.49,-107.1 205.66,-107.1 205.66,-131.7"/>
 <text text-anchor="middle" x="161.07" y="-115.2" font-family="Times,serif" font-size="14.00">resolve_deps</text>
 </g>
 <!-- direct_deps&#45;&gt;resolve_deps -->
 <g id="edge1" class="edge">
-<title>direct_deps-&gt;resolve_deps</title>
-<path fill="none" stroke="black" d="M80.5,-119.4C88.75,-119.4 97.6,-119.4 106.29,-119.4"></path>
-<polygon fill="black" stroke="black" points="106.37,-122.9 116.37,-119.4 106.37,-115.9 106.37,-122.9"></polygon>
+<title>direct_deps&#45;&gt;resolve_deps</title>
+<path fill="none" stroke="black" d="M80.5,-119.4C88.75,-119.4 97.6,-119.4 106.29,-119.4"/>
+<polygon fill="black" stroke="black" points="106.37,-122.9 116.37,-119.4 106.37,-115.9 106.37,-122.9"/>
 </g>
 <!-- compile -->
 <g id="node3" class="node">
 <title>compile</title>
-<polygon fill="lightpink" stroke="black" points="328.43,-88.7 267.23,-88.7 267.23,-64.1 328.43,-64.1 328.43,-88.7"></polygon>
+<polygon fill="lightpink" stroke="black" points="328.43,-88.7 267.23,-88.7 267.23,-64.1 328.43,-64.1 328.43,-88.7"/>
 <text text-anchor="middle" x="297.83" y="-72.2" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
 <!-- resolve_deps&#45;&gt;compile -->
 <g id="edge2" class="edge">
-<title>resolve_deps-&gt;compile</title>
-<path fill="none" stroke="black" d="M200.69,-107.08C218.54,-101.38 239.7,-94.63 257.62,-88.91"></path>
-<polygon fill="black" stroke="black" points="258.74,-92.23 267.2,-85.85 256.61,-85.56 258.74,-92.23"></polygon>
+<title>resolve_deps&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M200.69,-107.08C218.54,-101.38 239.7,-94.63 257.62,-88.91"/>
+<polygon fill="black" stroke="black" points="258.74,-92.23 267.2,-85.85 256.61,-85.56 258.74,-92.23"/>
 </g>
 <!-- unit_test -->
 <g id="node9" class="node">
 <title>unit_test</title>
-<polygon fill="none" stroke="black" points="469.92,-110.7 405.48,-110.7 405.48,-86.1 469.92,-86.1 469.92,-110.7"></polygon>
+<polygon fill="none" stroke="black" points="469.92,-110.7 405.48,-110.7 405.48,-86.1 469.92,-86.1 469.92,-110.7"/>
 <text text-anchor="middle" x="437.7" y="-94.2" font-family="Times,serif" font-size="14.00">unit_test</text>
 </g>
 <!-- compile&#45;&gt;unit_test -->
 <g id="edge7" class="edge">
-<title>compile-&gt;unit_test</title>
-<path fill="none" stroke="black" d="M328.4,-81.12C347.94,-84.24 373.82,-88.37 395.38,-91.81"></path>
-<polygon fill="black" stroke="black" points="394.83,-95.26 405.25,-93.38 395.93,-88.35 394.83,-95.26"></polygon>
+<title>compile&#45;&gt;unit_test</title>
+<path fill="none" stroke="black" d="M328.4,-81.12C347.94,-84.24 373.82,-88.37 395.38,-91.81"/>
+<polygon fill="black" stroke="black" points="394.83,-95.26 405.25,-93.38 395.93,-88.35 394.83,-95.26"/>
 </g>
 <!-- package -->
 <g id="node10" class="node">
 <title>package</title>
-<polygon fill="lightpink" stroke="black" points="468.56,-67.7 406.84,-67.7 406.84,-43.1 468.56,-43.1 468.56,-67.7"></polygon>
+<polygon fill="lightpink" stroke="black" points="468.56,-67.7 406.84,-67.7 406.84,-43.1 468.56,-43.1 468.56,-67.7"/>
 <text text-anchor="middle" x="437.7" y="-51.2" font-family="Times,serif" font-size="14.00">package</text>
 </g>
 <!-- compile&#45;&gt;package -->
 <g id="edge8" class="edge">
-<title>compile-&gt;package</title>
-<path fill="none" stroke="red" stroke-width="2" d="M328.4,-71.89C348.35,-68.86 374.91,-64.81 396.73,-61.49"></path>
-<polygon fill="red" stroke="red" stroke-width="2" points="397.34,-64.94 406.69,-59.97 396.28,-58.02 397.34,-64.94"></polygon>
+<title>compile&#45;&gt;package</title>
+<path fill="none" stroke="red" stroke-width="2" d="M328.4,-71.89C348.35,-68.86 374.91,-64.81 396.73,-61.49"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="397.34,-64.94 406.69,-59.97 396.28,-58.02 397.34,-64.94"/>
 </g>
 <!-- code_gen -->
 <g id="node4" class="node">
 <title>code_gen</title>
-<polygon fill="lightgreen" stroke="black" points="195.72,-88.7 126.43,-88.7 126.43,-64.1 195.72,-64.1 195.72,-88.7"></polygon>
+<polygon fill="lightgreen" stroke="black" points="195.72,-88.7 126.43,-88.7 126.43,-64.1 195.72,-64.1 195.72,-88.7"/>
 <text text-anchor="middle" x="161.07" y="-72.2" font-family="Times,serif" font-size="14.00">code_gen</text>
 </g>
 <!-- code_gen&#45;&gt;compile -->
 <g id="edge3" class="edge">
-<title>code_gen-&gt;compile</title>
-<path fill="none" stroke="black" d="M195.73,-76.4C214.36,-76.4 237.64,-76.4 257.15,-76.4"></path>
-<polygon fill="black" stroke="black" points="257.26,-79.9 267.26,-76.4 257.26,-72.9 257.26,-79.9"></polygon>
+<title>code_gen&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M195.73,-76.4C214.36,-76.4 237.64,-76.4 257.15,-76.4"/>
+<polygon fill="black" stroke="black" points="257.26,-79.9 267.26,-76.4 257.26,-72.9 257.26,-79.9"/>
 </g>
 <!-- sources -->
 <g id="node5" class="node">
 <title>sources</title>
-<polygon fill="none" stroke="red" points="190.05,-45.7 132.09,-45.7 132.09,-21.1 190.05,-21.1 190.05,-45.7"></polygon>
+<polygon fill="none" stroke="red" points="190.05,-45.7 132.09,-45.7 132.09,-21.1 190.05,-21.1 190.05,-45.7"/>
 <text text-anchor="middle" x="161.07" y="-29.2" font-family="Times,serif" font-size="14.00">sources</text>
 </g>
 <!-- sources&#45;&gt;compile -->
 <g id="edge4" class="edge">
-<title>sources-&gt;compile</title>
-<path fill="none" stroke="red" stroke-width="2" d="M190.32,-42.41C209.86,-48.65 236.13,-57.03 257.68,-63.91"></path>
-<polygon fill="red" stroke="red" stroke-width="2" points="256.63,-67.25 267.22,-66.95 258.75,-60.58 256.63,-67.25"></polygon>
+<title>sources&#45;&gt;compile</title>
+<path fill="none" stroke="red" stroke-width="2" d="M190.32,-42.41C209.86,-48.65 236.13,-57.03 257.68,-63.91"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="256.63,-67.25 267.22,-66.95 258.75,-60.58 256.63,-67.25"/>
 </g>
 <!-- static_input_files -->
 <g id="node6" class="node">
@@ -1298,32 +1302,32 @@ again, the build tool can again traverse the graph edges and see that:</p>
 <!-- asset_pipeline -->
 <g id="node7" class="node">
 <title>asset_pipeline</title>
-<polygon fill="lightgreen" stroke="black" points="485.51,-24.7 389.89,-24.7 389.89,-0.1 485.51,-0.1 485.51,-24.7"></polygon>
+<polygon fill="lightgreen" stroke="black" points="485.51,-24.7 389.89,-24.7 389.89,-0.1 485.51,-0.1 485.51,-24.7"/>
 <text text-anchor="middle" x="437.7" y="-8.2" font-family="Times,serif" font-size="14.00">asset_pipeline</text>
 </g>
 <!-- static_input_files&#45;&gt;asset_pipeline -->
 <g id="edge5" class="edge">
-<title>static_input_files-&gt;asset_pipeline</title>
-<path fill="none" stroke="black" d="M354.11,-12.4C362.53,-12.4 371.22,-12.4 379.67,-12.4"></path>
-<polygon fill="black" stroke="black" points="379.83,-15.9 389.83,-12.4 379.83,-8.9 379.83,-15.9"></polygon>
+<title>static_input_files&#45;&gt;asset_pipeline</title>
+<path fill="none" stroke="black" d="M354.11,-12.4C362.53,-12.4 371.22,-12.4 379.67,-12.4"/>
+<polygon fill="black" stroke="black" points="379.83,-15.9 389.83,-12.4 379.83,-8.9 379.83,-15.9"/>
 </g>
 <!-- integration_test -->
 <g id="node8" class="node">
 <title>integration_test</title>
-<polygon fill="lightblue" stroke="black" points="624.49,-45.7 521.31,-45.7 521.31,-21.1 624.49,-21.1 624.49,-45.7"></polygon>
+<polygon fill="lightblue" stroke="black" points="624.49,-45.7 521.31,-45.7 521.31,-21.1 624.49,-21.1 624.49,-45.7"/>
 <text text-anchor="middle" x="572.9" y="-29.2" font-family="Times,serif" font-size="14.00">integration_test</text>
 </g>
 <!-- asset_pipeline&#45;&gt;integration_test -->
 <g id="edge6" class="edge">
-<title>asset_pipeline-&gt;integration_test</title>
-<path fill="none" stroke="black" d="M485.66,-19.8C493.95,-21.11 502.69,-22.49 511.29,-23.84"></path>
-<polygon fill="black" stroke="black" points="510.87,-27.32 521.29,-25.42 511.96,-20.41 510.87,-27.32"></polygon>
+<title>asset_pipeline&#45;&gt;integration_test</title>
+<path fill="none" stroke="black" d="M485.66,-19.8C493.95,-21.11 502.69,-22.49 511.29,-23.84"/>
+<polygon fill="black" stroke="black" points="510.87,-27.32 521.29,-25.42 511.96,-20.41 510.87,-27.32"/>
 </g>
 <!-- package&#45;&gt;integration_test -->
 <g id="edge9" class="edge">
-<title>package-&gt;integration_test</title>
-<path fill="none" stroke="red" stroke-width="2" d="M468.59,-50.46C481.18,-48.38 496.31,-45.88 511.07,-43.45"></path>
-<polygon fill="red" stroke="red" stroke-width="2" points="511.89,-46.86 521.18,-41.78 510.75,-39.95 511.89,-46.86"></polygon>
+<title>package&#45;&gt;integration_test</title>
+<path fill="none" stroke="red" stroke-width="2" d="M468.59,-50.46C481.18,-48.38 496.31,-45.88 511.07,-43.45"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="511.89,-46.86 521.18,-41.78 510.75,-39.95 511.89,-46.86"/>
 </g>
 </g>
 </svg>
@@ -1362,10 +1366,11 @@ but only can start once <code>compile</code> is complete</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="632px" height="140px" viewBox="0.00 0.00 632.44 139.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="632px" height="140px"
+ viewBox="0.00 0.00 632.44 139.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 135.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-135.8 628.44,-135.8 628.44,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-135.8 628.44,-135.8 628.44,4 -4,4"/>
 <!-- direct_deps -->
 <g id="node1" class="node">
 <title>direct_deps</title>
@@ -1374,62 +1379,62 @@ but only can start once <code>compile</code> is complete</p>
 <!-- resolve_deps -->
 <g id="node2" class="node">
 <title>resolve_deps</title>
-<polygon fill="lightgreen" stroke="black" points="205.66,-131.7 116.49,-131.7 116.49,-107.1 205.66,-107.1 205.66,-131.7"></polygon>
+<polygon fill="lightgreen" stroke="black" points="205.66,-131.7 116.49,-131.7 116.49,-107.1 205.66,-107.1 205.66,-131.7"/>
 <text text-anchor="middle" x="161.07" y="-115.2" font-family="Times,serif" font-size="14.00">resolve_deps</text>
 </g>
 <!-- direct_deps&#45;&gt;resolve_deps -->
 <g id="edge1" class="edge">
-<title>direct_deps-&gt;resolve_deps</title>
-<path fill="none" stroke="black" d="M80.5,-119.4C88.75,-119.4 97.6,-119.4 106.29,-119.4"></path>
-<polygon fill="black" stroke="black" points="106.37,-122.9 116.37,-119.4 106.37,-115.9 106.37,-122.9"></polygon>
+<title>direct_deps&#45;&gt;resolve_deps</title>
+<path fill="none" stroke="black" d="M80.5,-119.4C88.75,-119.4 97.6,-119.4 106.29,-119.4"/>
+<polygon fill="black" stroke="black" points="106.37,-122.9 116.37,-119.4 106.37,-115.9 106.37,-122.9"/>
 </g>
 <!-- compile -->
 <g id="node3" class="node">
 <title>compile</title>
-<polygon fill="lightpink" stroke="black" points="328.43,-88.7 267.23,-88.7 267.23,-64.1 328.43,-64.1 328.43,-88.7"></polygon>
+<polygon fill="lightpink" stroke="black" points="328.43,-88.7 267.23,-88.7 267.23,-64.1 328.43,-64.1 328.43,-88.7"/>
 <text text-anchor="middle" x="297.83" y="-72.2" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
 <!-- resolve_deps&#45;&gt;compile -->
 <g id="edge2" class="edge">
-<title>resolve_deps-&gt;compile</title>
-<path fill="none" stroke="black" d="M200.69,-107.08C218.54,-101.38 239.7,-94.63 257.62,-88.91"></path>
-<polygon fill="black" stroke="black" points="258.74,-92.23 267.2,-85.85 256.61,-85.56 258.74,-92.23"></polygon>
+<title>resolve_deps&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M200.69,-107.08C218.54,-101.38 239.7,-94.63 257.62,-88.91"/>
+<polygon fill="black" stroke="black" points="258.74,-92.23 267.2,-85.85 256.61,-85.56 258.74,-92.23"/>
 </g>
 <!-- unit_test -->
 <g id="node9" class="node">
 <title>unit_test</title>
-<polygon fill="lightblue" stroke="black" points="469.92,-110.7 405.48,-110.7 405.48,-86.1 469.92,-86.1 469.92,-110.7"></polygon>
+<polygon fill="lightblue" stroke="black" points="469.92,-110.7 405.48,-110.7 405.48,-86.1 469.92,-86.1 469.92,-110.7"/>
 <text text-anchor="middle" x="437.7" y="-94.2" font-family="Times,serif" font-size="14.00">unit_test</text>
 </g>
 <!-- compile&#45;&gt;unit_test -->
 <g id="edge7" class="edge">
-<title>compile-&gt;unit_test</title>
-<path fill="none" stroke="black" d="M328.4,-81.12C347.94,-84.24 373.82,-88.37 395.38,-91.81"></path>
-<polygon fill="black" stroke="black" points="394.83,-95.26 405.25,-93.38 395.93,-88.35 394.83,-95.26"></polygon>
+<title>compile&#45;&gt;unit_test</title>
+<path fill="none" stroke="black" d="M328.4,-81.12C347.94,-84.24 373.82,-88.37 395.38,-91.81"/>
+<polygon fill="black" stroke="black" points="394.83,-95.26 405.25,-93.38 395.93,-88.35 394.83,-95.26"/>
 </g>
 <!-- package -->
 <g id="node10" class="node">
 <title>package</title>
-<polygon fill="lightpink" stroke="black" points="468.56,-67.7 406.84,-67.7 406.84,-43.1 468.56,-43.1 468.56,-67.7"></polygon>
+<polygon fill="lightpink" stroke="black" points="468.56,-67.7 406.84,-67.7 406.84,-43.1 468.56,-43.1 468.56,-67.7"/>
 <text text-anchor="middle" x="437.7" y="-51.2" font-family="Times,serif" font-size="14.00">package</text>
 </g>
 <!-- compile&#45;&gt;package -->
 <g id="edge8" class="edge">
-<title>compile-&gt;package</title>
-<path fill="none" stroke="black" d="M328.4,-71.89C348.35,-68.86 374.91,-64.81 396.73,-61.49"></path>
-<polygon fill="black" stroke="black" points="397.34,-64.94 406.69,-59.97 396.28,-58.02 397.34,-64.94"></polygon>
+<title>compile&#45;&gt;package</title>
+<path fill="none" stroke="black" d="M328.4,-71.89C348.35,-68.86 374.91,-64.81 396.73,-61.49"/>
+<polygon fill="black" stroke="black" points="397.34,-64.94 406.69,-59.97 396.28,-58.02 397.34,-64.94"/>
 </g>
 <!-- code_gen -->
 <g id="node4" class="node">
 <title>code_gen</title>
-<polygon fill="lightgreen" stroke="black" points="195.72,-88.7 126.43,-88.7 126.43,-64.1 195.72,-64.1 195.72,-88.7"></polygon>
+<polygon fill="lightgreen" stroke="black" points="195.72,-88.7 126.43,-88.7 126.43,-64.1 195.72,-64.1 195.72,-88.7"/>
 <text text-anchor="middle" x="161.07" y="-72.2" font-family="Times,serif" font-size="14.00">code_gen</text>
 </g>
 <!-- code_gen&#45;&gt;compile -->
 <g id="edge3" class="edge">
-<title>code_gen-&gt;compile</title>
-<path fill="none" stroke="black" d="M195.73,-76.4C214.36,-76.4 237.64,-76.4 257.15,-76.4"></path>
-<polygon fill="black" stroke="black" points="257.26,-79.9 267.26,-76.4 257.26,-72.9 257.26,-79.9"></polygon>
+<title>code_gen&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M195.73,-76.4C214.36,-76.4 237.64,-76.4 257.15,-76.4"/>
+<polygon fill="black" stroke="black" points="257.26,-79.9 267.26,-76.4 257.26,-72.9 257.26,-79.9"/>
 </g>
 <!-- sources -->
 <g id="node5" class="node">
@@ -1438,9 +1443,9 @@ but only can start once <code>compile</code> is complete</p>
 </g>
 <!-- sources&#45;&gt;compile -->
 <g id="edge4" class="edge">
-<title>sources-&gt;compile</title>
-<path fill="none" stroke="black" d="M190.32,-42.41C209.86,-48.65 236.13,-57.03 257.68,-63.91"></path>
-<polygon fill="black" stroke="black" points="256.63,-67.25 267.22,-66.95 258.75,-60.58 256.63,-67.25"></polygon>
+<title>sources&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M190.32,-42.41C209.86,-48.65 236.13,-57.03 257.68,-63.91"/>
+<polygon fill="black" stroke="black" points="256.63,-67.25 267.22,-66.95 258.75,-60.58 256.63,-67.25"/>
 </g>
 <!-- static_input_files -->
 <g id="node6" class="node">
@@ -1450,32 +1455,32 @@ but only can start once <code>compile</code> is complete</p>
 <!-- asset_pipeline -->
 <g id="node7" class="node">
 <title>asset_pipeline</title>
-<polygon fill="lightgreen" stroke="black" points="485.51,-24.7 389.89,-24.7 389.89,-0.1 485.51,-0.1 485.51,-24.7"></polygon>
+<polygon fill="lightgreen" stroke="black" points="485.51,-24.7 389.89,-24.7 389.89,-0.1 485.51,-0.1 485.51,-24.7"/>
 <text text-anchor="middle" x="437.7" y="-8.2" font-family="Times,serif" font-size="14.00">asset_pipeline</text>
 </g>
 <!-- static_input_files&#45;&gt;asset_pipeline -->
 <g id="edge5" class="edge">
-<title>static_input_files-&gt;asset_pipeline</title>
-<path fill="none" stroke="black" d="M354.11,-12.4C362.53,-12.4 371.22,-12.4 379.67,-12.4"></path>
-<polygon fill="black" stroke="black" points="379.83,-15.9 389.83,-12.4 379.83,-8.9 379.83,-15.9"></polygon>
+<title>static_input_files&#45;&gt;asset_pipeline</title>
+<path fill="none" stroke="black" d="M354.11,-12.4C362.53,-12.4 371.22,-12.4 379.67,-12.4"/>
+<polygon fill="black" stroke="black" points="379.83,-15.9 389.83,-12.4 379.83,-8.9 379.83,-15.9"/>
 </g>
 <!-- integration_test -->
 <g id="node8" class="node">
 <title>integration_test</title>
-<polygon fill="lightpink" stroke="black" points="624.49,-45.7 521.31,-45.7 521.31,-21.1 624.49,-21.1 624.49,-45.7"></polygon>
+<polygon fill="lightpink" stroke="black" points="624.49,-45.7 521.31,-45.7 521.31,-21.1 624.49,-21.1 624.49,-45.7"/>
 <text text-anchor="middle" x="572.9" y="-29.2" font-family="Times,serif" font-size="14.00">integration_test</text>
 </g>
 <!-- asset_pipeline&#45;&gt;integration_test -->
 <g id="edge6" class="edge">
-<title>asset_pipeline-&gt;integration_test</title>
-<path fill="none" stroke="black" d="M485.66,-19.8C493.95,-21.11 502.69,-22.49 511.29,-23.84"></path>
-<polygon fill="black" stroke="black" points="510.87,-27.32 521.29,-25.42 511.96,-20.41 510.87,-27.32"></polygon>
+<title>asset_pipeline&#45;&gt;integration_test</title>
+<path fill="none" stroke="black" d="M485.66,-19.8C493.95,-21.11 502.69,-22.49 511.29,-23.84"/>
+<polygon fill="black" stroke="black" points="510.87,-27.32 521.29,-25.42 511.96,-20.41 510.87,-27.32"/>
 </g>
 <!-- package&#45;&gt;integration_test -->
 <g id="edge9" class="edge">
-<title>package-&gt;integration_test</title>
-<path fill="none" stroke="black" d="M468.59,-50.46C481.18,-48.38 496.31,-45.88 511.07,-43.45"></path>
-<polygon fill="black" stroke="black" points="511.89,-46.86 521.18,-41.78 510.75,-39.95 511.89,-46.86"></polygon>
+<title>package&#45;&gt;integration_test</title>
+<path fill="none" stroke="black" d="M468.59,-50.46C481.18,-48.38 496.31,-45.88 511.07,-43.45"/>
+<polygon fill="black" stroke="black" points="511.89,-46.86 521.18,-41.78 510.75,-39.95 511.89,-46.86"/>
 </g>
 </g>
 </svg>
@@ -1485,7 +1490,7 @@ but only can start once <code>compile</code> is complete</p>
 <div class="paragraph">
 <p>Most modern build tools do this kind of graph-based parallelism automatically.
 In contrast to most programming languages and application frameworks where you need
-to set up parallelism yourself, in a build tool you don’t need to fiddle
+to set up parallelism yourself, in a build tool you don&#8217;t need to fiddle
 with threads, locks, semaphores, futures, actors, and so on. You just define the
 shape of the build graph using whatever configuration format or language the build
 tool provides, and you get parallelism for free.</p>
@@ -1495,8 +1500,8 @@ tool provides, and you get parallelism for free.</p>
 <h3 id="_languages_for_defining_your_build_graph"><a class="anchor" href="#_languages_for_defining_your_build_graph"></a>Languages for defining your Build Graph</h3>
 <div class="paragraph">
 <p>Every build tool provides some format for defining the build graph data structure.
-There isn’t any industry-wide standard text format for graph data structures, so each build
-tool comes up with something on their own. Here we’ll look at how it is done in
+There isn&#8217;t any industry-wide standard text format for graph data structures, so each build
+tool comes up with something on their own. Here we&#8217;ll look at how it is done in
 a few common build tools:</p>
 </div>
 <div class="sect3">
@@ -1511,66 +1516,67 @@ targets (<code>deps</code>) and source files (<code>srcs</code>):</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">cc_library(
-    name = &quot;hello-greet&quot;,
-    srcs = [&quot;hello-greet.cc&quot;],
-    hdrs = [&quot;hello-greet.h&quot;],
+    name = "hello-greet",
+    srcs = ["hello-greet.cc"],
+    hdrs = ["hello-greet.h"],
 )
 
 cc_binary(
-    name = &quot;hello-world&quot;,
-    srcs = [&quot;hello-world.cc&quot;],
-    deps = [&quot;:hello-greet&quot;],
+    name = "hello-world",
+    srcs = ["hello-world.cc"],
+    deps = [":hello-greet"],
 )</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <center>
-<svg width="455px" height="84px" viewBox="0.00 0.00 454.56 84.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="455px" height="84px"
+ viewBox="0.00 0.00 454.56 84.20" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 80.2)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-80.2 450.56,-80.2 450.56,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-80.2 450.56,-80.2 450.56,4 -4,4"/>
 <!-- main/hello&#45;greet.cc\nmain/hello&#45;greet.h -->
 <g id="node1" class="node">
-<title>main/hello-greet.cc\nmain/hello-greet.h</title>
-<polygon fill="white" stroke="black" points="124.68,-76 -0.23,-76 -0.23,-34.8 124.68,-34.8 124.68,-76"></polygon>
-<text text-anchor="middle" x="62.23" y="-59.6" font-family="Times,serif" font-size="14.00">main/hello-greet.cc</text>
-<text text-anchor="middle" x="62.23" y="-42.8" font-family="Times,serif" font-size="14.00">main/hello-greet.h</text>
+<title>main/hello&#45;greet.cc\nmain/hello&#45;greet.h</title>
+<polygon fill="white" stroke="black" points="124.68,-76 -0.23,-76 -0.23,-34.8 124.68,-34.8 124.68,-76"/>
+<text text-anchor="middle" x="62.23" y="-59.6" font-family="Times,serif" font-size="14.00">main/hello&#45;greet.cc</text>
+<text text-anchor="middle" x="62.23" y="-42.8" font-family="Times,serif" font-size="14.00">main/hello&#45;greet.h</text>
 </g>
 <!-- //main:hello&#45;greet -->
 <g id="node2" class="node">
-<title>//main:hello-greet</title>
-<polygon fill="white" stroke="black" points="283.32,-67.7 166.71,-67.7 166.71,-43.1 283.32,-43.1 283.32,-67.7"></polygon>
-<text text-anchor="middle" x="225.02" y="-51.2" font-family="Times,serif" font-size="14.00">//main:hello-greet</text>
+<title>//main:hello&#45;greet</title>
+<polygon fill="white" stroke="black" points="283.32,-67.7 166.71,-67.7 166.71,-43.1 283.32,-43.1 283.32,-67.7"/>
+<text text-anchor="middle" x="225.02" y="-51.2" font-family="Times,serif" font-size="14.00">//main:hello&#45;greet</text>
 </g>
 <!-- main/hello&#45;greet.cc\nmain/hello&#45;greet.h&#45;&gt;//main:hello&#45;greet -->
 <g id="edge1" class="edge">
-<title>main/hello-greet.cc\nmain/hello-greet.h-&gt;//main:hello-greet</title>
-<path fill="none" stroke="black" d="M124.47,-55.4C134.96,-55.4 145.92,-55.4 156.56,-55.4"></path>
-<polygon fill="black" stroke="black" points="156.65,-58.9 166.65,-55.4 156.65,-51.9 156.65,-58.9"></polygon>
+<title>main/hello&#45;greet.cc\nmain/hello&#45;greet.h&#45;&gt;//main:hello&#45;greet</title>
+<path fill="none" stroke="black" d="M124.47,-55.4C134.96,-55.4 145.92,-55.4 156.56,-55.4"/>
+<polygon fill="black" stroke="black" points="156.65,-58.9 166.65,-55.4 156.65,-51.9 156.65,-58.9"/>
 </g>
 <!-- //main:hello&#45;world -->
 <g id="node3" class="node">
-<title>//main:hello-world</title>
-<polygon fill="white" stroke="black" points="446.55,-45.7 325.59,-45.7 325.59,-21.1 446.55,-21.1 446.55,-45.7"></polygon>
-<text text-anchor="middle" x="386.07" y="-29.2" font-family="Times,serif" font-size="14.00">//main:hello-world</text>
+<title>//main:hello&#45;world</title>
+<polygon fill="white" stroke="black" points="446.55,-45.7 325.59,-45.7 325.59,-21.1 446.55,-21.1 446.55,-45.7"/>
+<text text-anchor="middle" x="386.07" y="-29.2" font-family="Times,serif" font-size="14.00">//main:hello&#45;world</text>
 </g>
 <!-- //main:hello&#45;greet&#45;&gt;//main:hello&#45;world -->
 <g id="edge2" class="edge">
-<title>//main:hello-greet-&gt;//main:hello-world</title>
-<path fill="none" stroke="black" d="M283.44,-47.46C293.76,-46.03 304.61,-44.53 315.24,-43.06"></path>
-<polygon fill="black" stroke="black" points="315.9,-46.5 325.32,-41.66 314.94,-39.57 315.9,-46.5"></polygon>
+<title>//main:hello&#45;greet&#45;&gt;//main:hello&#45;world</title>
+<path fill="none" stroke="black" d="M283.44,-47.46C293.76,-46.03 304.61,-44.53 315.24,-43.06"/>
+<polygon fill="black" stroke="black" points="315.9,-46.5 325.32,-41.66 314.94,-39.57 315.9,-46.5"/>
 </g>
 <!-- main/hello&#45;world.cc -->
 <g id="node4" class="node">
-<title>main/hello-world.cc</title>
-<polygon fill="white" stroke="black" points="289.65,-24.7 160.39,-24.7 160.39,-0.1 289.65,-0.1 289.65,-24.7"></polygon>
-<text text-anchor="middle" x="225.02" y="-8.2" font-family="Times,serif" font-size="14.00">main/hello-world.cc</text>
+<title>main/hello&#45;world.cc</title>
+<polygon fill="white" stroke="black" points="289.65,-24.7 160.39,-24.7 160.39,-0.1 289.65,-0.1 289.65,-24.7"/>
+<text text-anchor="middle" x="225.02" y="-8.2" font-family="Times,serif" font-size="14.00">main/hello&#45;world.cc</text>
 </g>
 <!-- main/hello&#45;world.cc&#45;&gt;//main:hello&#45;world -->
 <g id="edge3" class="edge">
-<title>main/hello-world.cc-&gt;//main:hello-world</title>
-<path fill="none" stroke="black" d="M289.79,-20.82C298.24,-21.94 306.94,-23.08 315.48,-24.21"></path>
-<polygon fill="black" stroke="black" points="315.04,-27.68 325.41,-25.52 315.95,-20.74 315.04,-27.68"></polygon>
+<title>main/hello&#45;world.cc&#45;&gt;//main:hello&#45;world</title>
+<path fill="none" stroke="black" d="M289.79,-20.82C298.24,-21.94 306.94,-23.08 315.48,-24.21"/>
+<polygon fill="black" stroke="black" points="315.04,-27.68 325.41,-25.52 315.95,-20.74 315.04,-27.68"/>
 </g>
 </g>
 </svg>
@@ -1581,7 +1587,7 @@ cc_binary(
 <p>In Bazel, the implementation of what rules like <code>cc_library</code> actually <em>do</em> is
 done by upstream build libraries implemented in Java or Starlark. You can
 also define your own custom rules in <a href="https://bazel.build/rules/lib/globals/bzl">.bzl files</a>,
-or use other people’s rules from one of the
+or use other people&#8217;s rules from one of the
 <code>rules_{lang}</code> repos on <a href="https://github.com/bazel-contrib">Bazel-Contrib</a>,
 if you need functionality that Bazel does not come built in with</p>
 </div>
@@ -1595,66 +1601,67 @@ written in Kotlin, that adds a new <code>packageApp</code> task:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">val packageApp = tasks.register&lt;Zip&gt;(&quot;packageApp&quot;) {
-    from(layout.projectDirectory.file(&quot;run.sh&quot;))                // input - run.sh file
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">val packageApp = tasks.register&lt;Zip&gt;("packageApp") {
+    from(layout.projectDirectory.file("run.sh"))                // input - run.sh file
     from(tasks.jar) {                                           // input - jar task output
-        into(&quot;libs&quot;)
+        into("libs")
     }
     from(configurations.runtimeClasspath) {                     // input - jar of dependencies
-        into(&quot;libs&quot;)
+        into("libs")
     }
-    destinationDirectory.set(layout.buildDirectory.dir(&quot;dist&quot;)) // output - location of the zip file
-    archiveFileName.set(&quot;myApplication.zip&quot;)                    // output - name of the zip file
+    destinationDirectory.set(layout.buildDirectory.dir("dist")) // output - location of the zip file
+    archiveFileName.set("myApplication.zip")                    // output - name of the zip file
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <center>
-<svg width="304px" height="119px" viewBox="0.00 0.00 304.21 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="304px" height="119px"
+ viewBox="0.00 0.00 304.21 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 300.21,-114.8 300.21,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 300.21,-114.8 300.21,4 -4,4"/>
 <!-- run.sh -->
 <g id="node1" class="node">
 <title>run.sh</title>
-<polygon fill="white" stroke="black" points="112.23,-110.7 62.02,-110.7 62.02,-86.1 112.23,-86.1 112.23,-110.7"></polygon>
+<polygon fill="white" stroke="black" points="112.23,-110.7 62.02,-110.7 62.02,-86.1 112.23,-86.1 112.23,-110.7"/>
 <text text-anchor="middle" x="87.12" y="-94.2" font-family="Times,serif" font-size="14.00">run.sh</text>
 </g>
 <!-- packageApp -->
 <g id="node2" class="node">
 <title>packageApp</title>
-<polygon fill="white" stroke="black" points="296.19,-67.7 210.26,-67.7 210.26,-43.1 296.19,-43.1 296.19,-67.7"></polygon>
+<polygon fill="white" stroke="black" points="296.19,-67.7 210.26,-67.7 210.26,-43.1 296.19,-43.1 296.19,-67.7"/>
 <text text-anchor="middle" x="253.23" y="-51.2" font-family="Times,serif" font-size="14.00">packageApp</text>
 </g>
 <!-- run.sh&#45;&gt;packageApp -->
 <g id="edge1" class="edge">
-<title>run.sh-&gt;packageApp</title>
-<path fill="none" stroke="black" d="M112.27,-92.32C129.55,-87.95 153.35,-81.88 174.25,-76.4 182.72,-74.18 191.7,-71.79 200.44,-69.45"></path>
-<polygon fill="black" stroke="black" points="201.42,-72.81 210.16,-66.83 199.6,-66.05 201.42,-72.81"></polygon>
+<title>run.sh&#45;&gt;packageApp</title>
+<path fill="none" stroke="black" d="M112.27,-92.32C129.55,-87.95 153.35,-81.88 174.25,-76.4 182.72,-74.18 191.7,-71.79 200.44,-69.45"/>
+<polygon fill="black" stroke="black" points="201.42,-72.81 210.16,-66.83 199.6,-66.05 201.42,-72.81"/>
 </g>
 <!-- tasks.jar -->
 <g id="node3" class="node">
 <title>tasks.jar</title>
-<polygon fill="white" stroke="black" points="118.38,-67.7 55.86,-67.7 55.86,-43.1 118.38,-43.1 118.38,-67.7"></polygon>
+<polygon fill="white" stroke="black" points="118.38,-67.7 55.86,-67.7 55.86,-43.1 118.38,-43.1 118.38,-67.7"/>
 <text text-anchor="middle" x="87.12" y="-51.2" font-family="Times,serif" font-size="14.00">tasks.jar</text>
 </g>
 <!-- tasks.jar&#45;&gt;packageApp -->
 <g id="edge2" class="edge">
-<title>tasks.jar-&gt;packageApp</title>
-<path fill="none" stroke="black" d="M118.61,-55.4C141.45,-55.4 173.28,-55.4 200.13,-55.4"></path>
-<polygon fill="black" stroke="black" points="200.16,-58.9 210.16,-55.4 200.16,-51.9 200.16,-58.9"></polygon>
+<title>tasks.jar&#45;&gt;packageApp</title>
+<path fill="none" stroke="black" d="M118.61,-55.4C141.45,-55.4 173.28,-55.4 200.13,-55.4"/>
+<polygon fill="black" stroke="black" points="200.16,-58.9 210.16,-55.4 200.16,-51.9 200.16,-58.9"/>
 </g>
 <!-- configurations.runClassPath -->
 <g id="node4" class="node">
 <title>configurations.runClassPath</title>
-<polygon fill="white" stroke="black" points="174.37,-24.7 -0.12,-24.7 -0.12,-0.1 174.37,-0.1 174.37,-24.7"></polygon>
+<polygon fill="white" stroke="black" points="174.37,-24.7 -0.12,-24.7 -0.12,-0.1 174.37,-0.1 174.37,-24.7"/>
 <text text-anchor="middle" x="87.12" y="-8.2" font-family="Times,serif" font-size="14.00">configurations.runClassPath</text>
 </g>
 <!-- configurations.runClassPath&#45;&gt;packageApp -->
 <g id="edge3" class="edge">
-<title>configurations.runClassPath-&gt;packageApp</title>
-<path fill="none" stroke="black" d="M136.89,-24.74C149.09,-27.86 162.16,-31.23 174.25,-34.4 182.72,-36.62 191.7,-39.01 200.44,-41.35"></path>
-<polygon fill="black" stroke="black" points="199.6,-44.75 210.16,-43.97 201.42,-37.99 199.6,-44.75"></polygon>
+<title>configurations.runClassPath&#45;&gt;packageApp</title>
+<path fill="none" stroke="black" d="M136.89,-24.74C149.09,-27.86 162.16,-31.23 174.25,-34.4 182.72,-36.62 191.7,-39.01 200.44,-41.35"/>
+<polygon fill="black" stroke="black" points="199.6,-44.75 210.16,-43.97 201.42,-37.99 199.6,-44.75"/>
 </g>
 </g>
 </svg>
@@ -1674,7 +1681,7 @@ being important in your build system.</p>
 <div class="sect3">
 <h4 id="_mill"><a class="anchor" href="#_mill"></a>Mill</h4>
 <div class="paragraph">
-<p>Mill <a href="../mill/depth/why-scala.html" class="xref page">uses Scala for it’s build file format</a>, and lets you write
+<p>Mill <a href="../mill/depth/why-scala.html" class="xref page">uses Scala for it&#8217;s build file format</a>, and lets you write
 normal method <code>def</code>s to define <a href="../mill/javalib/intro.html#_custom_build_logic" class="xref page">custom tasks</a>
 in your build graph. The different methods can call each other, e.g. <code>def resources</code> below can
 call <code>lineCount()</code> or <code>super.resources()</code>, and these method calls become the edges in your build graph:</p>
@@ -1688,70 +1695,71 @@ def lineCount = Task {
 
 /** Generate resources using lineCount of sources */
 override def resources = Task {
-  os.write(Task.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
+  os.write(Task.dest / "line-count.txt", "" + lineCount())
   super.resources() ++ Seq(PathRef(Task.dest))
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <center>
-<svg width="418px" height="76px" viewBox="0.00 0.00 418.28 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="418px" height="76px"
+ viewBox="0.00 0.00 418.28 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 414.28,-71.8 414.28,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 414.28,-71.8 414.28,4 -4,4"/>
 <!-- allSourceFiles -->
 <g id="node1" class="node">
 <title>allSourceFiles</title>
-<polygon fill="white" stroke="white" points="96.14,-67.7 -0.05,-67.7 -0.05,-43.1 96.14,-43.1 96.14,-67.7"></polygon>
+<polygon fill="white" stroke="white" points="96.14,-67.7 -0.05,-67.7 -0.05,-43.1 96.14,-43.1 96.14,-67.7"/>
 <text text-anchor="middle" x="48.05" y="-51.2" font-family="Times,serif" font-size="14.00">allSourceFiles</text>
 </g>
 <!-- lineCount -->
 <g id="node2" class="node">
 <title>lineCount</title>
-<polygon fill="white" stroke="black" points="219.15,-67.7 147.7,-67.7 147.7,-43.1 219.15,-43.1 219.15,-67.7"></polygon>
+<polygon fill="white" stroke="black" points="219.15,-67.7 147.7,-67.7 147.7,-43.1 219.15,-43.1 219.15,-67.7"/>
 <text text-anchor="middle" x="183.43" y="-51.2" font-family="Times,serif" font-size="14.00">lineCount</text>
 </g>
 <!-- allSourceFiles&#45;&gt;lineCount -->
 <g id="edge1" class="edge">
-<title>allSourceFiles-&gt;lineCount</title>
-<path fill="none" stroke="black" d="M96.45,-55.4C109.8,-55.4 124.28,-55.4 137.49,-55.4"></path>
-<polygon fill="black" stroke="black" points="137.76,-58.9 147.76,-55.4 137.76,-51.9 137.76,-58.9"></polygon>
+<title>allSourceFiles&#45;&gt;lineCount</title>
+<path fill="none" stroke="black" d="M96.45,-55.4C109.8,-55.4 124.28,-55.4 137.49,-55.4"/>
+<polygon fill="black" stroke="black" points="137.76,-58.9 147.76,-55.4 137.76,-51.9 137.76,-58.9"/>
 </g>
 <!-- resources -->
 <g id="node3" class="node">
 <title>resources</title>
-<polygon fill="white" stroke="black" points="339.55,-45.7 270.84,-45.7 270.84,-21.1 339.55,-21.1 339.55,-45.7"></polygon>
+<polygon fill="white" stroke="black" points="339.55,-45.7 270.84,-45.7 270.84,-21.1 339.55,-21.1 339.55,-45.7"/>
 <text text-anchor="middle" x="305.19" y="-29.2" font-family="Times,serif" font-size="14.00">resources</text>
 </g>
 <!-- lineCount&#45;&gt;resources -->
 <g id="edge2" class="edge">
-<title>lineCount-&gt;resources</title>
-<path fill="none" stroke="black" d="M219.07,-49.04C231.95,-46.67 246.74,-43.95 260.34,-41.46"></path>
-<polygon fill="black" stroke="black" points="261.25,-44.85 270.46,-39.6 259.99,-37.96 261.25,-44.85"></polygon>
+<title>lineCount&#45;&gt;resources</title>
+<path fill="none" stroke="black" d="M219.07,-49.04C231.95,-46.67 246.74,-43.95 260.34,-41.46"/>
+<polygon fill="black" stroke="black" points="261.25,-44.85 270.46,-39.6 259.99,-37.96 261.25,-44.85"/>
 </g>
 <!-- run -->
 <g id="node4" class="node">
 <title>run</title>
-<polygon fill="white" stroke="white" points="410.11,-45.7 375.79,-45.7 375.79,-21.1 410.11,-21.1 410.11,-45.7"></polygon>
+<polygon fill="white" stroke="white" points="410.11,-45.7 375.79,-45.7 375.79,-21.1 410.11,-21.1 410.11,-45.7"/>
 <text text-anchor="middle" x="392.95" y="-29.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- resources&#45;&gt;run -->
 <g id="edge3" class="edge">
-<title>resources-&gt;run</title>
-<path fill="none" stroke="black" d="M339.59,-33.4C348.23,-33.4 357.4,-33.4 365.61,-33.4"></path>
-<polygon fill="black" stroke="black" points="365.74,-36.9 375.74,-33.4 365.74,-29.9 365.74,-36.9"></polygon>
+<title>resources&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M339.59,-33.4C348.23,-33.4 357.4,-33.4 365.61,-33.4"/>
+<polygon fill="black" stroke="black" points="365.74,-36.9 375.74,-33.4 365.74,-29.9 365.74,-36.9"/>
 </g>
 <!-- resources.super -->
 <g id="node5" class="node">
 <title>resources.super</title>
-<polygon fill="white" stroke="white" points="234.6,-24.7 132.25,-24.7 132.25,-0.1 234.6,-0.1 234.6,-24.7"></polygon>
+<polygon fill="white" stroke="white" points="234.6,-24.7 132.25,-24.7 132.25,-0.1 234.6,-0.1 234.6,-24.7"/>
 <text text-anchor="middle" x="183.43" y="-8.2" font-family="Times,serif" font-size="14.00">resources.super</text>
 </g>
 <!-- resources.super&#45;&gt;resources -->
 <g id="edge4" class="edge">
-<title>resources.super-&gt;resources</title>
-<path fill="none" stroke="black" d="M234.87,-21.25C243.51,-22.76 252.41,-24.32 260.84,-25.8"></path>
-<polygon fill="black" stroke="black" points="260.38,-29.27 270.84,-27.55 261.59,-22.38 260.38,-29.27"></polygon>
+<title>resources.super&#45;&gt;resources</title>
+<path fill="none" stroke="black" d="M234.87,-21.25C243.51,-22.76 252.41,-24.32 260.84,-25.8"/>
+<polygon fill="black" stroke="black" points="260.38,-29.27 270.84,-27.55 261.59,-22.38 260.38,-29.27"/>
 </g>
 </g>
 </svg>
@@ -1763,7 +1771,7 @@ override def resources = Task {
 part of your <code>def</code>s: above you can see the code for iterating over files, counting
 their lines, writing out a <code>line-count.txt</code> file, and so on. This is in contrast with Bazel
 or Gradle, where your Starlark/Kotlin/Groovy code is really just a fancy YAML file that
-configures build logic defined &quot;elsewhere&quot;.</p>
+configures build logic defined "elsewhere".</p>
 </div>
 <div class="paragraph">
 <p>This arbitrary-code approach is similar to the approach taken by the venerable Make
@@ -1776,7 +1784,7 @@ tool, but running on the JVM comes with additional advantages:</p>
 error-highlighting, and navigation up and down your build graph. This is something impossible
 in <code>make</code> (which runs Bash scripts too dynamic for your IDE to analyze) or config-based tools
 like Bazel or Gradle (where the code you write just configures an execution-engine that
-your IDE doesn’t understand)</p>
+your IDE doesn&#8217;t understand)</p>
 </li>
 <li>
 <p><strong>The compiler can check for mistakes</strong>: this is especially important in a build tool
@@ -1788,7 +1796,7 @@ valuable, and here the compiler provides a lot of help for free.</p>
 <p><strong>You can use any JVM library</strong>. e.g. The <code>os.read.lines</code> or <code>os.write</code> functions are
 from <a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a>, but you can
 download any library you want from
-Java’s Maven Central repository and use it in your build with full functionality and IDE support.
+Java&#8217;s Maven Central repository and use it in your build with full functionality and IDE support.
 The JVM ecosystem is deep and broad, and you can find libraries to do almost anything
 imaginable available for free. Mill lets you make full use of this to customize
 your build to do exactly what you need.</p>
@@ -1810,8 +1818,8 @@ you want in your build tool.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Although modern build tools may look very different on the surface, most of them
-are surprisingly similar once you peek under the covers. Bazel’s StarLark config,
-Gradle’s Groovy/Kotlin config, Mill’s Scala config, all end up boiling down to
+are surprisingly similar once you peek under the covers. Bazel&#8217;s StarLark config,
+Gradle&#8217;s Groovy/Kotlin config, Mill&#8217;s Scala config, all end up boiling down to
 a build graph similar to the one above with only minor differences. And although the
 way they execute their tasks using the build graph does differ, at their most
 fundamental level they use the sort of graph traversals that I discuss above.</p>
@@ -1838,9 +1846,9 @@ to debug a build tool that is doing something wrong!</p>
 </main>
 </div>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
-<script async="async" src="../_/js/vendor/highlight.js"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>
 <script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
-<script async="async" src="../search-index.js"></script>
-  
-</body></html>
+<script async src="../search-index.js"></script>
+  </body>
+</html>

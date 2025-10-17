@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Android Kotlin Projects :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/android/kotlin.html">
-    <link rel="prev" href="java.html">
-    <link rel="next" href="android-linting.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/android/kotlin.html" />
+    <link rel="prev" href="java.html" />
+    <link rel="next" href="android-linting.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -651,7 +652,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -719,7 +720,7 @@ import coursier.maven.MavenRepository</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object androidSdkModule0 extends AndroidSdkModule {
-  def buildToolsVersion = "35.0.0"
+  def buildToolsVersion = &quot;35.0.0&quot;
 }</code></pre>
 </div>
 </div>
@@ -730,44 +731,44 @@ import coursier.maven.MavenRepository</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object app extends AndroidAppKotlinModule {
 
-  def kotlinVersion = "2.0.20"
+  def kotlinVersion = &quot;2.0.20&quot;
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
 
   // Configuration for ReleaseKey
-  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
-  override def androidVirtualDeviceIdentifier: String = "kotlin-test"
-  override def androidEmulatorPort: String = "5556"
+  def androidReleaseKeyName: T[Option[String]] = Task { Some(&quot;releaseKey.jks&quot;) }
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
+  override def androidVirtualDeviceIdentifier: String = &quot;kotlin-test&quot;
+  override def androidEmulatorPort: String = &quot;5556&quot;
 
   object test extends AndroidAppKotlinTests with TestModule.Junit4 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"junit:junit:4.13.2"
+      ivy&quot;junit:junit:4.13.2&quot;
     )
   }
 
   object it extends AndroidAppKotlinInstrumentedTests with AndroidTestModule.AndroidJUnit {
 
-    override def instrumentationPackage = "com.helloworld.app"
+    override def instrumentationPackage = &quot;com.helloworld.app&quot;
 
     /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
      * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
      * resolution resolves conflicts between androidJvm and jvm platform types
      */
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"androidx.test.ext:junit:1.2.1".exclude((
-        "org.jetbrains.kotlinx",
-        "kotlinx-coroutines-core-jvm"
+      ivy&quot;androidx.test.ext:junit:1.2.1&quot;.exclude((
+        &quot;org.jetbrains.kotlinx&quot;,
+        &quot;kotlinx-coroutines-core-jvm&quot;
       )),
-      ivy"androidx.test:runner:1.6.2",
-      ivy"androidx.test.espresso:espresso-core:3.5.1".exclude((
-        "org.jetbrains.kotlinx",
-        "kotlinx-coroutines-core-jvm"
+      ivy&quot;androidx.test:runner:1.6.2&quot;,
+      ivy&quot;androidx.test.espresso:espresso-core:3.5.1&quot;.exclude((
+        &quot;org.jetbrains.kotlinx&quot;,
+        &quot;kotlinx-coroutines-core-jvm&quot;
       )),
-      ivy"junit:junit:4.13.2"
+      ivy&quot;junit:junit:4.13.2&quot;
     )
   }
 }</code></pre>
@@ -776,7 +777,7 @@ import coursier.maven.MavenRepository</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show app.androidApk
-".../out/app/androidApk.dest/app.apk"</code></pre>
+&quot;.../out/app/androidApk.dest/app.apk&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -785,7 +786,7 @@ code, generates Android resources, converts kotlin bytecode to DEX format, packa
 into an APK, optimizes the APK using <code>zipalign</code>, and finally signs it.</p>
 </div>
 <div class="paragraph">
-<p>This Mill build configuration is designed to build a simple "Hello World" Android application.
+<p>This Mill build configuration is designed to build a simple &quot;Hello World&quot; Android application.
 By extending <code>AndroidAppKotlinModule</code>, we leverage its predefined Android build tasks, ensuring that
 all necessary steps (resource generation, APK creation, and signing) are executed automatically.</p>
 </div>
@@ -817,7 +818,7 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 ...Compiling 2 Kotlin sources...
 
 &gt; cat out/app/test/test.dest/out.json
-["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.text_size_is_correct","selector":"com.helloworld.ExampleUnitTest.text_size_is_correct","duration":...,"status":"Success"},{"fullyQualifiedName":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","selector":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","duration":...,"status":"Success"}]]</code></pre>
+[&quot;&quot;,[{&quot;fullyQualifiedName&quot;:&quot;com.helloworld.ExampleUnitTest.text_size_is_correct&quot;,&quot;selector&quot;:&quot;com.helloworld.ExampleUnitTest.text_size_is_correct&quot;,&quot;duration&quot;:...,&quot;status&quot;:&quot;Success&quot;},{&quot;fullyQualifiedName&quot;:&quot;com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct&quot;,&quot;selector&quot;:&quot;com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct&quot;,&quot;duration&quot;:...,&quot;status&quot;:&quot;Success&quot;}]]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -835,13 +836,13 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 &gt; ./mill show app.it
 ...
 [
-  "",
+  &quot;&quot;,
   [
     {
-      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
-      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
-      "duration": ...,
-      "status": "Success"
+      &quot;fullyQualifiedName&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
+      &quot;selector&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
     }
   ]
 ]
@@ -850,11 +851,11 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 &gt; cat out/app/it/testTask.dest/test-report.xml
 ...
 &lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;testsuites tests="1" failures="0" errors="0" skipped="0" time="..."&gt;
-        &lt;testsuite name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" tests="1" failures="0" errors="0" skipped="0" time="0.0" timestamp="..."&gt;
+&lt;testsuites tests=&quot;1&quot; failures=&quot;0&quot; errors=&quot;0&quot; skipped=&quot;0&quot; time=&quot;...&quot;&gt;
+        &lt;testsuite name=&quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot; tests=&quot;1&quot; failures=&quot;0&quot; errors=&quot;0&quot; skipped=&quot;0&quot; time=&quot;0.0&quot; timestamp=&quot;...&quot;&gt;
         &lt;properties&gt;
       &lt;/properties&gt;
-        &lt;testcase classname="com.helloworld.app.ExampleInstrumentedTest.useAppContext" name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" time="..."&gt;
+        &lt;testcase classname=&quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot; name=&quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot; time=&quot;...&quot;&gt;
         &lt;/testcase&gt;
       &lt;/testsuite&gt;
       &lt;/testsuites&gt;
@@ -875,7 +876,7 @@ destroyAndroidVirtualDevice command destroys the AVD.
 The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.</p>
 </div>
 <div class="paragraph">
-<p>This example demonstrates how to create a basic "Hello World" Android application
+<p>This example demonstrates how to create a basic &quot;Hello World&quot; Android application
 using the Mill build tool. It outlines the minimum setup required to compile Kotlin code,
 package it into an APK, and run the app on an Android device.</p>
 </div>
@@ -912,7 +913,7 @@ everything from compiling the code to generating a signed APK for distribution.<
 <p><strong>Compiling Kotlin code</strong>: The module compiles your Kotlin code into <code>.class</code> files, which is the first step in creating an Android app.</p>
 </li>
 <li>
-<p><strong>Packaging into JAR</strong>: It then packages the compiled <code>.class</code> files into a JAR file, which is necessary before converting to Android&#8217;s format.</p>
+<p><strong>Packaging into JAR</strong>: It then packages the compiled <code>.class</code> files into a JAR file, which is necessary before converting to Android’s format.</p>
 </li>
 <li>
 <p><strong>Converting to DEX format</strong>: The JAR file is converted into DEX format, which is the executable format for Android applications.</p>
@@ -939,9 +940,9 @@ everything from compiling the code to generating a signed APK for distribution.<
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

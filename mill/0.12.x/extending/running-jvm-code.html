@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Running Dynamic JVM Code :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/extending/running-jvm-code.html">
-    <link rel="prev" href="thirdparty-plugins.html">
-    <link rel="next" href="writing-plugins.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/extending/running-jvm-code.html" />
+    <link rel="prev" href="thirdparty-plugins.html" />
+    <link rel="next" href="writing-plugins.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -651,7 +652,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -669,8 +670,8 @@ it comes with limitations as the JVM library it imports is global to your build:
 <ol class="arabic">
 <li>
 <p>The library has to be resolved and downloaded before any part of your build starts.
-If your codebase is large and most parts of your build don&#8217;t use that library,
-needing to download the library when working on parts that don&#8217;t need it can be wasteful</p>
+If your codebase is large and most parts of your build don’t use that library,
+needing to download the library when working on parts that don’t need it can be wasteful</p>
 </li>
 <li>
 <p>The library can only have one version across the entire build. This can be an issue if
@@ -729,19 +730,19 @@ import mill.util.Jvm
 
 object foo extends JavaModule {
   def groovyClasspath: Task[Agg[PathRef]] = Task {
-    defaultResolver().classpath(Agg(ivy"org.codehaus.groovy:groovy:3.0.9"))
+    defaultResolver().classpath(Agg(ivy&quot;org.codehaus.groovy:groovy:3.0.9&quot;))
   }
 
-  def groovyScript = Task.Source("generate.groovy")
+  def groovyScript = Task.Source(&quot;generate.groovy&quot;)
 
   def groovyGeneratedResources = Task {
     Jvm.runSubprocess(
-      mainClass = "groovy.ui.GroovyMain",
+      mainClass = &quot;groovy.ui.GroovyMain&quot;,
       classPath = groovyClasspath().map(_.path),
       mainArgs = Seq(
         groovyScript().path.toString,
-        "Groovy!",
-        (Task.dest / "groovy-generated.html").toString
+        &quot;Groovy!&quot;,
+        (Task.dest / &quot;groovy-generated.html&quot;).toString
       ),
       workingDir = Task.dest
     )
@@ -806,22 +807,22 @@ import mill.util.Jvm
 
 object foo extends JavaModule {
   def groovyClasspath: Task[Agg[PathRef]] = Task {
-    defaultResolver().classpath(Agg(ivy"org.codehaus.groovy:groovy:3.0.9"))
+    defaultResolver().classpath(Agg(ivy&quot;org.codehaus.groovy:groovy:3.0.9&quot;))
   }
 
-  def groovyScript = Task.Source("generate.groovy")
+  def groovyScript = Task.Source(&quot;generate.groovy&quot;)
 
   def groovyGeneratedResources = Task {
     Jvm.runClassloader(classPath = groovyClasspath().map(_.path)) { classLoader =&gt;
       classLoader
-        .loadClass("groovy.ui.GroovyMain")
-        .getMethod("main", classOf[Array[String]])
+        .loadClass(&quot;groovy.ui.GroovyMain&quot;)
+        .getMethod(&quot;main&quot;, classOf[Array[String]])
         .invoke(
           null,
           Array[String](
             groovyScript().path.toString,
-            "Groovy!",
-            (Task.dest / "groovy-generated.html").toString
+            &quot;Groovy!&quot;,
+            (Task.dest / &quot;groovy-generated.html&quot;).toString
           )
         )
     }
@@ -880,7 +881,7 @@ import mill.util.Jvm
 object coursierModule extends CoursierModule
 
 def groovyClasspath: Task[Agg[PathRef]] = Task {
-  coursierModule.defaultResolver().classpath(Agg(ivy"org.codehaus.groovy:groovy:3.0.9"))
+  coursierModule.defaultResolver().classpath(Agg(ivy&quot;org.codehaus.groovy:groovy:3.0.9&quot;))
 }
 
 def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker {
@@ -888,19 +889,19 @@ def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker {
 }
 
 trait GroovyGenerateJavaModule extends JavaModule {
-  def groovyScript = Task.Source("generate.groovy")
+  def groovyScript = Task.Source(&quot;generate.groovy&quot;)
 
   def groovyGeneratedResources = Task {
     mill.api.ClassLoader.withContextClassLoader(groovyWorker()) {
       groovyWorker()
-        .loadClass("groovy.ui.GroovyMain")
-        .getMethod("main", classOf[Array[String]])
+        .loadClass(&quot;groovy.ui.GroovyMain&quot;)
+        .getMethod(&quot;main&quot;, classOf[Array[String]])
         .invoke(
           null,
           Array[String](
             groovyScript().path.toString,
             groovyGenerateArg(),
-            (Task.dest / "groovy-generated.html").toString
+            (Task.dest / &quot;groovy-generated.html&quot;).toString
           )
         )
     }
@@ -912,10 +913,10 @@ trait GroovyGenerateJavaModule extends JavaModule {
 }
 
 object foo extends GroovyGenerateJavaModule {
-  def groovyGenerateArg = "Foo Groovy!"
+  def groovyGenerateArg = &quot;Foo Groovy!&quot;
 }
 object bar extends GroovyGenerateJavaModule {
-  def groovyGenerateArg = "Bar Groovy!"
+  def groovyGenerateArg = &quot;Bar Groovy!&quot;
 }</code></pre>
 </div>
 </div>
@@ -943,7 +944,7 @@ already extends <code>AutoCloseable</code>, <code>groovyWorker</code> gets treat
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -956,7 +957,7 @@ un-synchronized global mutable variables. If the JVM logic within the classloade
 rely on mutable state, see <a href="#_caching_and_re_using_jvm_subprocesses_and_classloaders">Caching and Re-using JVM subprocesses and classloaders</a> below
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 </div>
@@ -976,7 +977,7 @@ import mill._, scalalib._
 import mill.util.Jvm
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = &quot;2.13.8&quot;
   def moduleDeps = Seq(bar)
 
   def sources = Task {
@@ -986,8 +987,8 @@ object foo extends ScalaModule {
 }
 
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.8"
-  def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.10.7")
+  def scalaVersion = &quot;2.13.8&quot;
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::os-lib:0.10.7&quot;)
 }</code></pre>
 </div>
 </div>
@@ -1008,7 +1009,7 @@ Foo.value: HELLO</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This example does a trivial string-replace of "hello" with "HELLO", but is
+<p>This example does a trivial string-replace of &quot;hello&quot; with &quot;HELLO&quot;, but is
 enough to demonstrate how you can use Mill <code>ScalaModule</code>s to implement your
 own arbitrarily complex transformations. This is useful for build logic that
 may not fit nicely inside a <code>build.mill</code> file, whether due to the sheer lines
@@ -1017,7 +1018,7 @@ present in <code>build.mill</code></p>
 </div>
 <div class="paragraph">
 <p><code>bar.runner().run</code> by default inherits the <code>mainClass</code>, <code>forkEnv</code>, <code>forkArgs</code>,
-from the owning module <code>bar</code>, and the working directory from the calling task&#8217;s
+from the owning module <code>bar</code>, and the working directory from the calling task’s
 <code>Task.dest</code>. You can also pass in these parameters explicitly to <code>run()</code> as named
 arguments if you wish to override the defaults.</p>
 </div>
@@ -1059,8 +1060,8 @@ object foo extends JavaModule {
   def sources = Task {
     Jvm.runClassloader(classPath = bar.runClasspath().map(_.path)) { classLoader =&gt;
       classLoader
-        .loadClass("bar.Bar")
-        .getMethod("main", classOf[Array[String]])
+        .loadClass(&quot;bar.Bar&quot;)
+        .getMethod(&quot;main&quot;, classOf[Array[String]])
         .invoke(null, Array(Task.dest.toString) ++ super.sources().map(_.path.toString))
     }
     Seq(PathRef(Task.dest))
@@ -1121,8 +1122,8 @@ trait FooModule extends JavaModule {
   def sources = Task {
     barWorker().withValue(()) { classLoader =&gt;
       classLoader
-        .loadClass("bar.Bar")
-        .getMethod("main", classOf[Array[String]])
+        .loadClass(&quot;bar.Bar&quot;)
+        .getMethod(&quot;main&quot;, classOf[Array[String]])
         .invoke(null, Array(Task.dest.toString) ++ super.sources().map(_.path.toString))
     }
     Seq(PathRef(Task.dest))
@@ -1139,11 +1140,11 @@ def barWorker: Worker[BarWorker] = Task.Worker {
 
 class BarWorker(runClasspath: Seq[os.Path]) extends CachedFactory[Unit, URLClassLoader] {
   def setup(key: Unit) = {
-    println("Setting up Classloader")
+    println(&quot;Setting up Classloader&quot;)
     Jvm.spawnClassloader(runClasspath)
   }
   def teardown(key: Unit, value: URLClassLoader) = {
-    println("Tearing down Classloader")
+    println(&quot;Tearing down Classloader&quot;)
     value.close()
   }
   def maxCacheSize = 2
@@ -1177,9 +1178,9 @@ Tearing down Classloader</code></pre>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

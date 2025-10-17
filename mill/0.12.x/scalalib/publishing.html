@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Scala Packaging &amp; Publishing :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/scalalib/publishing.html">
-    <link rel="prev" href="linting.html">
-    <link rel="next" href="build-examples.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/scalalib/publishing.html" />
+    <link rel="prev" href="linting.html" />
+    <link rel="next" href="build-examples.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -651,7 +652,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -670,7 +671,7 @@
 <h2 id="_building_executable_assemblies"><a class="anchor" href="#_building_executable_assemblies"></a>Building Executable Assemblies</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill&#8217;s built in <code>.assembly</code> task makes it easy to generate an executable assembly
+<p>Mill’s built in <code>.assembly</code> task makes it easy to generate an executable assembly
 jar from any JVM module. You can also customize the assembly jar as shown below:</p>
 </div>
 <div class="listingblock">
@@ -682,17 +683,17 @@ import mill.scalalib.Assembly._
 
 object foo extends ScalaModule {
   def moduleDeps = Seq(bar)
-  def scalaVersion = "2.13.8"
-  def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.10.7")
+  def scalaVersion = &quot;2.13.8&quot;
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::os-lib:0.10.7&quot;)
   def assemblyRules = Seq(
     // all application.conf files will be concatenated into single file
-    Rule.Append("application.conf"),
+    Rule.Append(&quot;application.conf&quot;),
     // all *.conf files will be concatenated into single file
-    Rule.AppendPattern(".*\\.conf"),
+    Rule.AppendPattern(&quot;.*\\.conf&quot;),
     // all *.temp files will be excluded from a final jar
-    Rule.ExcludePattern(".*\\.temp"),
+    Rule.ExcludePattern(&quot;.*\\.temp&quot;),
     // the `shapeless` package will be relocated under the `shade` package
-    Rule.Relocate("shapeless.**", "shade.shapless.@1")
+    Rule.Relocate(&quot;shapeless.**&quot;, &quot;shade.shapless.@1&quot;)
   )
 
   // def manifest: T[JarManifest]
@@ -700,7 +701,7 @@ object foo extends ScalaModule {
 }
 
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = &quot;2.13.8&quot;
 }</code></pre>
 </div>
 </div>
@@ -754,15 +755,15 @@ import mill._, scalalib._
 import mill.define.ModuleRef
 
 object foo extends ScalaModule with NativeImageModule {
-  def scalaVersion = "2.13.11"
+  def scalaVersion = &quot;2.13.11&quot;
 
-  def nativeImageOptions = Seq("--no-fallback")
+  def nativeImageOptions = Seq(&quot;--no-fallback&quot;)
 
   def zincWorker = ModuleRef(ZincWorkerGraalvm)
 }
 
 object ZincWorkerGraalvm extends ZincWorkerModule {
-  def jvmId = "graalvm-community:17.0.7"
+  def jvmId = &quot;graalvm-community:17.0.7&quot;
 }</code></pre>
 </div>
 </div>
@@ -793,20 +794,20 @@ import mill._, scalalib._
 import mill.define.ModuleRef
 
 object foo extends ScalaModule with NativeImageModule {
-  def scalaVersion = "2.13.11"
+  def scalaVersion = &quot;2.13.11&quot;
 
-  def nativeImageOptions = Seq("--no-fallback", "-Os")
+  def nativeImageOptions = Seq(&quot;--no-fallback&quot;, &quot;-Os&quot;)
 
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::scalatags:0.13.1",
-    ivy"com.lihaoyi::mainargs:0.6.2"
+    ivy&quot;com.lihaoyi::scalatags:0.13.1&quot;,
+    ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
   )
 
   def zincWorker = ModuleRef(ZincWorkerGraalvm)
 }
 
 object ZincWorkerGraalvm extends ZincWorkerModule {
-  def jvmId = "graalvm-community:23.0.1"
+  def jvmId = &quot;graalvm-community:23.0.1&quot;
 }</code></pre>
 </div>
 </div>
@@ -842,10 +843,10 @@ if you want to experiment it or view its <code>--help</code> text to see what yo
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImageTool # mac/linux
-".../bin/native-image"
+&quot;.../bin/native-image&quot;
 
 &gt; ./mill show foo.nativeImageTool # windows
-".../bin/native-image.cmd"</code></pre>
+&quot;.../bin/native-image.cmd&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -870,16 +871,16 @@ if you want to experiment it or view its <code>--help</code> text to see what yo
 import mill._, scalalib._, publish._
 
 object foo extends ScalaModule with PublishModule {
-  def scalaVersion = "2.13.8"
-  def publishVersion = "0.0.1"
+  def scalaVersion = &quot;2.13.8&quot;
+  def publishVersion = &quot;0.0.1&quot;
 
   def pomSettings = PomSettings(
-    description = "Hello",
-    organization = "com.lihaoyi",
-    url = "https://github.com/lihaoyi/example",
+    description = &quot;Hello&quot;,
+    organization = &quot;com.lihaoyi&quot;,
+    url = &quot;https://github.com/lihaoyi/example&quot;,
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("lihaoyi", "example"),
-    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
+    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
   )
 }</code></pre>
 </div>
@@ -909,7 +910,7 @@ to anyone in the world.</p>
 <div class="paragraph">
 <p><code>publishLocal</code> accepts options like <code>--doc=false</code> and <code>--sources=false</code>,
 to disable publishing javadoc JARs and source JARs, which are generated and
-published by default. This can be helpful if you&#8217;re not interested in javadoc JARs,
+published by default. This can be helpful if you’re not interested in javadoc JARs,
 and javadoc generation fails or takes too much time. When using Scala 2, disabling
 javadoc generation can bring large speedups, given it entails compiling your code
 a second time.</p>
@@ -931,16 +932,16 @@ can be resolved from the local repository, with no missing dependencies.</p>
 import mill._, scalalib._, publish._
 
 object foo extends ScalaModule with SonatypeCentralPublishModule {
-  def scalaVersion = "2.13.8"
-  def publishVersion = "0.0.1"
+  def scalaVersion = &quot;2.13.8&quot;
+  def publishVersion = &quot;0.0.1&quot;
 
   def pomSettings = PomSettings(
-    description = "Hello",
-    organization = "com.lihaoyi",
-    url = "https://github.com/lihaoyi/example",
+    description = &quot;Hello&quot;,
+    organization = &quot;com.lihaoyi&quot;,
+    url = &quot;https://github.com/lihaoyi/example&quot;,
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("lihaoyi", "example"),
-    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
+    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
   )
 }</code></pre>
 </div>
@@ -956,14 +957,14 @@ simplified publishing tasks without requiring Nexus repository manager.</p>
 <h2 id="_instructions_for_publishing_to_maven_central_via_central_portal"><a class="anchor" href="#_instructions_for_publishing_to_maven_central_via_central_portal"></a>Instructions for Publishing to Maven Central via Central Portal</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Once you&#8217;ve mixed in <code>PublishModule</code>, apart from publishing locally, you can also publish
-your project&#8217;s modules to maven central</p>
+<p>Once you’ve mixed in <code>PublishModule</code>, apart from publishing locally, you can also publish
+your project’s modules to maven central</p>
 </div>
 <div class="sect2">
 <h3 id="_gpg"><a class="anchor" href="#_gpg"></a>GPG</h3>
 <div class="paragraph">
-<p>If you&#8217;ve never created a keypair before that can be used to sign your artifacts
-you&#8217;ll need to do this. <a href="https://central.sonatype.org/publish/requirements/gpg/">Sonatype&#8217;s GPG Documentation</a>
+<p>If you’ve never created a keypair before that can be used to sign your artifacts
+you’ll need to do this. <a href="https://central.sonatype.org/publish/requirements/gpg/">Sonatype’s GPG Documentation</a>
 has the instructions on how to do this</p>
 </div>
 </div>
@@ -1039,8 +1040,8 @@ export MILL_PGP_PASSPHRASE=...</code></pre>
 <div class="paragraph">
 <p>To publish SNAPSHOT versions (that is any version that ends with <code>-SNAPSHOT</code>), you need to enable support for them in
 your Sonatype Central namespace. To do that, go to the
-<a href="https://central.sonatype.com/publishing/namespaces">Sonatype Central portal</a>, click on the "three dots" next to the
-namespace name, and click on "Enable SNAPSHOTs".</p>
+<a href="https://central.sonatype.com/publishing/namespaces">Sonatype Central portal</a>, click on the &quot;three dots&quot; next to the
+namespace name, and click on &quot;Enable SNAPSHOTs&quot;.</p>
 </div>
 <div class="paragraph">
 <p>SNAPSHOT versions do not have same semantics as regular versions: they are not signed and are not kept forever in the
@@ -1055,7 +1056,7 @@ repository.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object mymodule extends JavaModule {
-  def publishVersion = "0.0.1-SNAPSHOT"
+  def publishVersion = &quot;0.0.1-SNAPSHOT&quot;
 }</code></pre>
 </div>
 </div>
@@ -1071,11 +1072,11 @@ Mill that is has detected a SNAPSHOT version.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myModule extends JavaModule {
   def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++ Seq(
-      coursier.maven.MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
+      coursier.maven.MavenRepository(&quot;https://central.sonatype.com/repository/maven-snapshots&quot;)
     )
   }
 
-  def ivyDeps = Seq(ivy"com.example:mymodule:1.0.0-SNAPSHOT")
+  def ivyDeps = Seq(ivy&quot;com.example:mymodule:1.0.0-SNAPSHOT&quot;)
 }</code></pre>
 </div>
 </div>
@@ -1091,7 +1092,7 @@ to their definition as well, at least until <a href="https://github.com/com-liha
   // This is also needed.
   def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++ Seq(
-      coursier.maven.MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
+      coursier.maven.MavenRepository(&quot;https://central.sonatype.com/repository/maven-snapshots&quot;)
     )
   }
 }</code></pre>
@@ -1131,7 +1132,7 @@ jobs:
 </div>
 <div class="paragraph">
 <p>Where <code>MILL_PGP_PASSPHRASE</code>, <code>MILL_PGP_SECRET_BASE64</code>, <code>MILL_SONATYPE_PASSWORD</code>, and
-<code>MILL_SONATYPE_USERNAME</code> configured for the repository&#8217;s or organization&#8217;s Github Actions
+<code>MILL_SONATYPE_USERNAME</code> configured for the repository’s or organization’s Github Actions
 workflows. See
 <a href="https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions">Using Secrets in Github Actions</a>
 for more details.</p>
@@ -1144,19 +1145,19 @@ for more details.</p>
 <div class="sectionbody">
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
 <div class="paragraph">
 <p>Publishing via the legacy OSSRH (OSS Repository Hosting) is deprecated and will reach end-of-life on June 30, 2025,
-due to the retirement of <a href="https://help.sonatype.com/en/sonatype-nexus-repository-2-sunsetting-information.html">Sonatype’s Nexus Repository Manager v2</a>. Sonatype now recommends using the <a href="https://central.sonatype.org/publish/publish-portal-guide/">Central Portal</a> for all new publishing.
+due to the retirement of <a href="https://help.sonatype.com/en/sonatype-nexus-repository-2-sunsetting-information.html">Sonatype&rsquo;s Nexus Repository Manager v2</a>. Sonatype now recommends using the <a href="https://central.sonatype.org/publish/publish-portal-guide/">Central Portal</a> for all new publishing.
 Migration is strongly encouraged to avoid disruptions. For full details, see the <a href="https://central.sonatype.org/news/20250326_ossrh_sunset/">OSSRH Sunset Announcement</a>.</p>
 </div>
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>Just like publishing via the Central Portal requires a GPG key and publish secrets,
@@ -1183,7 +1184,7 @@ the <a href="../fundamentals/modules.html#_default_tasks" class="xref page">defa
 </div>
 </div>
 <div class="paragraph">
-<p>The default URL for publishing to sonatype&#8217;s Maven Central is <code>oss.sonatype.org</code>.
+<p>The default URL for publishing to sonatype’s Maven Central is <code>oss.sonatype.org</code>.
 Newer projects registered on sonatype may need to publish using <code>s01.oss.sonatype.org</code>.
 In that case, you can pass in a <code>--sonatypeUri</code>:</p>
 </div>
@@ -1199,17 +1200,17 @@ by passing in <code>--sonatypeUri example.company.com</code> instead.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
 <div class="paragraph">
 <p>Since Feb. 2021 any new Sonatype accounts have been created on
-<code>s01.oss.sonatype.org</code>, so you&#8217;ll want to ensure you set the relevant URIs to match.</p>
+<code>s01.oss.sonatype.org</code>, so you’ll want to ensure you set the relevant URIs to match.</p>
 </div>
 <div class="paragraph">
-<p>The symptom of using the "wrong" URL for publishing is typically a 403 error code, in response to the publish request.</p>
+<p>The symptom of using the &quot;wrong&quot; URL for publishing is typically a 403 error code, in response to the publish request.</p>
 </div>
 <div class="paragraph">
 <p>See <a href="https://central.sonatype.org/publish/publish-guide/#releasing-to-central" class="bare">https://central.sonatype.org/publish/publish-guide/#releasing-to-central</a></p>
@@ -1229,7 +1230,7 @@ by passing in <code>--sonatypeUri example.company.com</code> instead.</p>
 </div>
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 <div class="sect2">
@@ -1265,7 +1266,7 @@ jobs:
 </div>
 <div class="paragraph">
 <p>Where <code>MILL_PGP_PASSPHRASE</code>, <code>MILL_PGP_SECRET_BASE64</code>, <code>MILL_SONATYPE_PASSWORD</code>, and
-<code>MILL_SONATYPE_USERNAME</code> configured for the repository&#8217;s or organization&#8217;s Github Actions
+<code>MILL_SONATYPE_USERNAME</code> configured for the repository’s or organization’s Github Actions
 workflows. See
 <a href="https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions">Using Secrets in Github Actions</a>
 for more details.</p>
@@ -1306,7 +1307,7 @@ You can configure it through your <code>build.mill</code> file or by passing com
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object mymodule extends SonatypeCentralPublishModule {
-  override def sonatypeCentralGpgArgs: T[String] = "--batch, --yes, -a, -b"
+  override def sonatypeCentralGpgArgs: T[String] = &quot;--batch, --yes, -a, -b&quot;
 
   override def sonatypeCentralConnectTimeout: T[Int] = 5000
 
@@ -1332,28 +1333,28 @@ it will fall back to an environment variable (if available) or raise an error if
 <p>The <code>./mill mill.scalalib.SonatypeCentralPublishModule/publishAll</code> takes the following options:</p>
 </div>
 <div class="paragraph">
-<p><code>username</code>: The username for calling the Sonatype Central publishing api. Defaults to the <code>SONATYPE_USERNAME</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br></p>
+<p><code>username</code>: The username for calling the Sonatype Central publishing api. Defaults to the <code>SONATYPE_USERNAME</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br /></p>
 </div>
 <div class="paragraph">
-<p><code>password</code>: The password for calling the Sonatype Central publishing api. Defaults to the <code>SONATYPE_PASSWORD</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br></p>
+<p><code>password</code>: The password for calling the Sonatype Central publishing api. Defaults to the <code>SONATYPE_PASSWORD</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br /></p>
 </div>
 <div class="paragraph">
-<p><code>gpgArgs</code>: Arguments to pass to the gpg package for signing artifacts. Uses the <code>MILL_PGP_PASSPHRASE</code> environment variable if set. <em>Default: <code>[--passphrase=$MILL_PGP_PASSPHRASE], --no-tty, --pinentry-mode, loopback, --batch, --yes, -a, -b</code>.</em><br></p>
+<p><code>gpgArgs</code>: Arguments to pass to the gpg package for signing artifacts. Uses the <code>MILL_PGP_PASSPHRASE</code> environment variable if set. <em>Default: <code>[--passphrase=$MILL_PGP_PASSPHRASE], --no-tty, --pinentry-mode, loopback, --batch, --yes, -a, -b</code>.</em><br /></p>
 </div>
 <div class="paragraph">
-<p><code>publishArtifacts</code>: The command for generating all publishable artifacts (ex. <code>__.publishArtifacts</code>). Required.<br></p>
+<p><code>publishArtifacts</code>: The command for generating all publishable artifacts (ex. <code>__.publishArtifacts</code>). Required.<br /></p>
 </div>
 <div class="paragraph">
-<p><code>readTimeout</code>:  The timeout for receiving a response from Sonatype Central after the initial connection has occurred. <em>Default: 60000.</em><br></p>
+<p><code>readTimeout</code>:  The timeout for receiving a response from Sonatype Central after the initial connection has occurred. <em>Default: 60000.</em><br /></p>
 </div>
 <div class="paragraph">
-<p><code>awaitTimeout</code>: The overall timeout for all retries (including exponential backoff) of the bundle upload. <em>Default: 120 * 1000.</em><br></p>
+<p><code>awaitTimeout</code>: The overall timeout for all retries (including exponential backoff) of the bundle upload. <em>Default: 120 * 1000.</em><br /></p>
 </div>
 <div class="paragraph">
-<p><code>connectTimeout</code>: The timeout for the initial connection to Sonatype Central if there is no response. <em>Default: 5000.</em><br></p>
+<p><code>connectTimeout</code>: The timeout for the initial connection to Sonatype Central if there is no response. <em>Default: 5000.</em><br /></p>
 </div>
 <div class="paragraph">
-<p><code>shouldRelease</code>: Whether the bundle should be automatically released when uploaded to Sonatype Central. If <code>false</code>, the bundle will still be uploaded, but users will need to manually log in to Sonatype Central and publish the bundle from the portal. <em>Default: true</em><br></p>
+<p><code>shouldRelease</code>: Whether the bundle should be automatically released when uploaded to Sonatype Central. If <code>false</code>, the bundle will still be uploaded, but users will need to manually log in to Sonatype Central and publish the bundle from the portal. <em>Default: true</em><br /></p>
 </div>
 <div class="paragraph">
 <p><code>bundleName</code>: If set, all packages will be uploaded in a single bundle with the given name. If unset, packages will be uploaded separately. Recommended bundle name syntax: groupName-artifactId-versionNumber. As an example, if publishing the <code>com.lihaoyi</code> <code>requests</code> package, without the bundle name, four different bundles will be uploaded, one for each scala version supported. With a bundle name of <code>com.lihaoyi-requests-&lt;new_version&gt;</code>, a single bundle will be uploaded that contains all packages across scala versions. It is recommended to set the bundle name, so that packages can be verified and deployed together. <em>Default: No bundle name is set and packages will be uploaded separately</em></p>
@@ -1437,9 +1438,9 @@ For more details, see:</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

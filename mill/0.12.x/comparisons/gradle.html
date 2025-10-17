@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Case Study: Mill vs Gradle :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/comparisons/gradle.html">
-    <link rel="prev" href="maven.html">
-    <link rel="next" href="sbt.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/comparisons/gradle.html" />
+    <link rel="prev" href="maven.html" />
+    <link rel="next" href="sbt.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -651,7 +652,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -740,14 +741,14 @@ same code and running the same tests in the same way.</p>
 <div class="paragraph">
 <p>For the benchmarks below, each provided number is the median wall time of three consecutive runs
 on my M1 Macbook Pro with Java 17 and Mill <code>0.12.9-native</code>. While ad-hoc, these benchmarks are
-enough to give you a flavor of how Mill&#8217;s performance compares to Gradle:</p>
+enough to give you a flavor of how Mill’s performance compares to Gradle:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
 </colgroup>
 <thead>
 <tr>
@@ -813,8 +814,8 @@ $ ./mill clean; time ./mill -j 1 __.compile
 </div>
 <div class="paragraph">
 <p>This benchmark measures the time taken to sequentially compiled all the Java code in
-the Mockito code base. The goal of this benchmark is to try and measure the "clean compile
-everything" step, without the effects of parallelism that can be nondeterministic and vary
+the Mockito code base. The goal of this benchmark is to try and measure the &quot;clean compile
+everything&quot; step, without the effects of parallelism that can be nondeterministic and vary
 wildly from machine to machine depending on the number of cores available.</p>
 </div>
 <div class="paragraph">
@@ -836,11 +837,11 @@ The 5-6s taken by Mill seems about what you would expect for a codebase of this 
 and the ~17s taken by Gradle is much more than what you would expect from simple Java compilation.</p>
 </div>
 <div class="paragraph">
-<p>It&#8217;s actually not clear to me where the difference in execution time is coming from. Unlike
-the <a href="maven.html" class="xref page">Mill v.s. Maven comparison</a>, Gradle&#8217;s command line output
-doesn&#8217;t show any obvious network requests or jar packing/unpacking/comparing going on. But
-Gradle&#8217;s CLI output is also much less verbose than Maven&#8217;s, so it&#8217;s possible things are going
-on under the hood that I&#8217;m not aware of.</p>
+<p>It’s actually not clear to me where the difference in execution time is coming from. Unlike
+the <a href="maven.html" class="xref page">Mill v.s. Maven comparison</a>, Gradle’s command line output
+doesn’t show any obvious network requests or jar packing/unpacking/comparing going on. But
+Gradle’s CLI output is also much less verbose than Maven’s, so it’s possible things are going
+on under the hood that I’m not aware of.</p>
 </div>
 </div>
 <div class="sect2">
@@ -904,12 +905,12 @@ the results above.</p>
 <h3 id="_incremental_compile_single_module"><a class="anchor" href="#_incremental_compile_single_module"></a>Incremental Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ echo "" &gt;&gt; src/main/java/org/mockito/BDDMockito.java; time ./gradlew :classes
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ echo &quot;&quot; &gt;&gt; src/main/java/org/mockito/BDDMockito.java; time ./gradlew :classes
 1.37s
 1.39s
 1.28s
 
-$ echo "" &gt;&gt; src/main/java/org/mockito/BDDMockito.java; time ./mill compile
+$ echo &quot;&quot; &gt;&gt; src/main/java/org/mockito/BDDMockito.java; time ./mill compile
 compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
 0.23s
 0.20s
@@ -968,8 +969,8 @@ For example, in Mill, overriding the resources to duplicate a file can be done a
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def resources = Task {
   os.copy(
-    compile().classes.path / "org/mockito/internal/creation/bytebuddy/inject/MockMethodDispatcher.class",
-    Task.dest / "org/mockito/internal/creation/bytebuddy/inject/MockMethodDispatcher.raw",
+    compile().classes.path / &quot;org/mockito/internal/creation/bytebuddy/inject/MockMethodDispatcher.class&quot;,
+    Task.dest / &quot;org/mockito/internal/creation/bytebuddy/inject/MockMethodDispatcher.raw&quot;,
     createFolders = true
   )
   super.resources() ++ Seq(PathRef(Task.dest))
@@ -984,17 +985,17 @@ For example, in Mill, overriding the resources to duplicate a file can be done a
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">tasks.register('copyMockMethodDispatcher', Copy) {
     dependsOn compileJava
 
-    from "${sourceSets.main.java.classesDirectory.get()}/org/mockito/internal/creation/bytebuddy/inject/MockMethodDispatcher.class"
-    into layout.buildDirectory.dir("generated/resources/inline/org/mockito/internal/creation/bytebuddy/inject")
+    from &quot;${sourceSets.main.java.classesDirectory.get()}/org/mockito/internal/creation/bytebuddy/inject/MockMethodDispatcher.class&quot;
+    into layout.buildDirectory.dir(&quot;generated/resources/inline/org/mockito/internal/creation/bytebuddy/inject&quot;)
 
     rename '(.+)\\.class', '$1.raw'
 }
 
-classes.dependsOn("copyMockMethodDispatcher")
+classes.dependsOn(&quot;copyMockMethodDispatcher&quot;)
 
 sourceSets.main {
     resources {
-        output.dir(layout.buildDirectory.dir("generated/resources/inline"))
+        output.dir(layout.buildDirectory.dir(&quot;generated/resources/inline&quot;))
     }
 }</code></pre>
 </div>
@@ -1017,7 +1018,7 @@ to mark the dependency, and <code>rename '(.+)\\.class', '$1.raw'</code> to make
 <li>
 <p>In Mill, overriding <code>def resources</code> is enough to make all tasks that previously depended on <code>resources</code>
 now depend on the override (e.g. <code>run</code>, <code>test</code>, <code>jar</code>, <code>assembly</code>, etc.) as is the norm for object-oriented
-<code>override</code>s. In Gradle, you need to explicitly call <code>classes.dependsOn("copyMockMethodDispatcher")</code> to
+<code>override</code>s. In Gradle, you need to explicitly call <code>classes.dependsOn(&quot;copyMockMethodDispatcher&quot;)</code> to
 make the downstream <code>classes</code> task depend on <code>copyMockMethodDispatcher</code>, and
 <code>sourcesSets.main resources output.dir</code> to wire up the generated files to the resources of the module</p>
 </li>
@@ -1026,12 +1027,12 @@ make the downstream <code>classes</code> task depend on <code>copyMockMethodDisp
 </li>
 <li>
 <p>In Mill, the <code>resources</code> task is given a unique <code>Task.dest</code> folder that is unique to it.
-In contrast, Gradle&#8217;s <code>copyMockMethodDispatcher</code> puts things in a global <code>generated/</code> folder</p>
+In contrast, Gradle’s <code>copyMockMethodDispatcher</code> puts things in a global <code>generated/</code> folder</p>
 <div class="ulist">
 <ul>
 <li>
 <p>This means that in Mill, you do not need to worry about filesystem collisions, since every
-task&#8217;s <code>Task.dest</code> is unique. In contrast, in Gradle you need to make sure that no other
+task’s <code>Task.dest</code> is unique. In contrast, in Gradle you need to make sure that no other
 task in the entire build is scribbling over <code>generated/</code>, otherwise they could interfere
 with one another in confusing ways</p>
 </li>
@@ -1057,7 +1058,7 @@ in a foolproof way without room for error</p>
 </li>
 <li>
 <p>In Gradle, <code>sourcesSets.map resources output.dir</code> needs to refer to the path generated by
-<code>copyMockMethodDispatcher</code> via it&#8217;s string <code>"generated/resources/inline"</code>. That adds a lot of
+<code>copyMockMethodDispatcher</code> via it’s string <code>&quot;generated/resources/inline&quot;</code>. That adds a lot of
 room for error, since the strings can easily get out of sync accidentally.</p>
 </li>
 </ul>
@@ -1066,7 +1067,7 @@ room for error, since the strings can easily get out of sync accidentally.</p>
 </ol>
 </div>
 <div class="paragraph">
-<p>In general, although the two snippets aren&#8217;t that different superficially, Mill makes it
+<p>In general, although the two snippets aren’t that different superficially, Mill makes it
 easy to do the right thing by default:</p>
 </div>
 <div class="ulist">
@@ -1078,7 +1079,7 @@ easy to do the right thing by default:</p>
 <p>Overridden definitions and automatically used by downstream tasks</p>
 </li>
 <li>
-<p>Every task is automatically assigned a place on disk so you don&#8217;t need
+<p>Every task is automatically assigned a place on disk so you don’t need
 to worry about collisions and can easily find outputs</p>
 </li>
 <li>
@@ -1102,12 +1103,12 @@ the identifier, but nothing about how it is implemented or where it is used:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijGradleResourcesClasses.png" alt="IntellijGradleResourcesClasses">
+<img src="../_images/comparisons/IntellijGradleResourcesClasses.png" alt="IntellijGradleResourcesClasses" />
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijGradleResourcesClassesDefinition.png" alt="IntellijGradleResourcesClassesDefinition">
+<img src="../_images/comparisons/IntellijGradleResourcesClassesDefinition.png" alt="IntellijGradleResourcesClassesDefinition" />
 </div>
 </div>
 <div class="paragraph">
@@ -1118,17 +1119,17 @@ as we saw earlier:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillCompile.png" alt="IntellijMockitoMillCompile">
+<img src="../_images/comparisons/IntellijMockitoMillCompile.png" alt="IntellijMockitoMillCompile" />
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillCompileClasspath.png" alt="IntellijMockitoMillCompileClasspath">
+<img src="../_images/comparisons/IntellijMockitoMillCompileClasspath.png" alt="IntellijMockitoMillCompileClasspath" />
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillCompileUsages.png" alt="IntellijMockitoMillCompileUsages">
+<img src="../_images/comparisons/IntellijMockitoMillCompileUsages.png" alt="IntellijMockitoMillCompileUsages" />
 </div>
 </div>
 <div class="paragraph">
@@ -1152,7 +1153,7 @@ that <code>compileArgs</code> exists and has the type <code>List&lt;String&gt;</
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions.png" alt="IntellijMockitoGradleCompileOptions">
+<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions.png" alt="IntellijMockitoGradleCompileOptions" />
 </div>
 </div>
 <div class="paragraph">
@@ -1160,11 +1161,11 @@ that <code>compileArgs</code> exists and has the type <code>List&lt;String&gt;</
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions2.png" alt="IntellijMockitoGradleCompileOptions2">
+<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions2.png" alt="IntellijMockitoGradleCompileOptions2" />
 </div>
 </div>
 <div class="paragraph">
-<p>Often working with build configurations feels like hitting dead ends: if you don&#8217;t have
+<p>Often working with build configurations feels like hitting dead ends: if you don’t have
 <code>options.compilerArgs</code> memorized in your head, there is literally nothing you can do in your editor to
 make progress to figure out what it is or what it is used for. That leaves you googling
 for answers, which can be a frustrating experience that distracts you from the task at hand.</p>
@@ -1178,13 +1179,13 @@ is usually un-interesting) and is unable to explore the actual build logic (whic
 is what you actually care about!)</p>
 </div>
 <div class="paragraph">
-<p>In comparison, Mill&#8217;s <code>.mill</code> files are all statically typed, and as a result IntelliJ is easily able to
-pull up the documentation for <code>def javacOptions</code>, even though it doesn&#8217;t have any special support
+<p>In comparison, Mill’s <code>.mill</code> files are all statically typed, and as a result IntelliJ is easily able to
+pull up the documentation for <code>def javacOptions</code>, even though it doesn’t have any special support
 for Mill built into the IDE:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDocs.png" alt="IntellijMockitoMillJavacOptionsDocs">
+<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDocs.png" alt="IntellijMockitoMillJavacOptionsDocs" />
 </div>
 </div>
 <div class="paragraph">
@@ -1196,12 +1197,12 @@ find the original definitions that were overridden, and show you where they are 
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsParents.png" alt="IntellijMockitoMillJavacOptionsParents">
+<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsParents.png" alt="IntellijMockitoMillJavacOptionsParents" />
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDef.png" alt="IntellijMockitoMillJavacOptionsDef">
+<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDef.png" alt="IntellijMockitoMillJavacOptionsDef" />
 </div>
 </div>
 <div class="paragraph">
@@ -1211,18 +1212,18 @@ call in the <code>def compile</code> task, which uses <code>javacOptions()</code
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillCompile.png" alt="IntellijMockitoMillCompile">
+<img src="../_images/comparisons/IntellijMockitoMillCompile.png" alt="IntellijMockitoMillCompile" />
 </div>
 </div>
 <div class="paragraph">
-<p>From there, if you are curious about any of the other tasks used alongside <code>javacOptions</code>, it&#8217;s
+<p>From there, if you are curious about any of the other tasks used alongside <code>javacOptions</code>, it’s
 easy for you to pull up <em>their</em> documentation, jump to <em>their</em>
 definition, or find <em>their</em> usages. For example we can pull up the docs of
 <code>compileClasspath()</code> below:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillCompileClasspath.png" alt="IntellijMockitoMillCompileClasspath">
+<img src="../_images/comparisons/IntellijMockitoMillCompileClasspath.png" alt="IntellijMockitoMillCompileClasspath" />
 </div>
 </div>
 <div class="paragraph">
@@ -1231,13 +1232,13 @@ and upstream in the Mill libraries:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillCompileUsages.png" alt="IntellijMockitoMillCompileUsages">
+<img src="../_images/comparisons/IntellijMockitoMillCompileUsages.png" alt="IntellijMockitoMillCompileUsages" />
 </div>
 </div>
 <div class="paragraph">
 <p>Unlike most other build tools, Mill builds are extremely easy to explore interactively in your
-IDE. If you do not know what something does, it&#8217;s documentation, definition, or usages is always
-one click away in IntelliJ or VSCode. That&#8217;s not to say Mill builds aren&#8217;t complex - as
+IDE. If you do not know what something does, it’s documentation, definition, or usages is always
+one click away in IntelliJ or VSCode. That’s not to say Mill builds aren’t complex - as
 we saw above, compilation has to deal with upstream outputs, classpaths, flags, reporters, and so on -
 but at least in Mill your IDE can help you explore, understand and manage the complexity in a way
 that no other build tool supports.</p>
@@ -1261,12 +1262,12 @@ the call graph, to see who calls who!</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>What Mill provides isn&#8217;t rocket science, but rather it is just about taking your existing experience
+<p>What Mill provides isn’t rocket science, but rather it is just about taking your existing experience
 and existing IDE tooling working with application codebases, and lets you use it to manage your build
 system as well.</p>
 </div>
 <div class="paragraph">
-<p>Mill IDE support isn&#8217;t perfect - you may have noticed the spurious red squigglies above - but it&#8217;s
+<p>Mill IDE support isn’t perfect - you may have noticed the spurious red squigglies above - but it’s
 much better than what you get with Gradle.</p>
 </div>
 </div>
@@ -1284,7 +1285,7 @@ JVM arguments or doing ad-hoc classpath mangling.</p>
 is not as big as when comparing <a href="maven.html" class="xref page">Mill v.s. Maven</a>. Mill builds
 do all the same things as gradle builds, and need to manage the same kind of complexity.
 But where Mill shines over Gradle is just the understandability of the build: while Gradle is
-<a href="https://news.ycombinator.com/item?id=25801986">famously confusing and opaque</a>, Mill&#8217;s great
+<a href="https://news.ycombinator.com/item?id=25801986">famously confusing and opaque</a>, Mill’s great
 IDE support allows the user to explore and understand their build as easily as any
 application codebase, and its fool-proof approach to extensibility means non-experts can
 confidently modify or add to their build system without worrying about getting it wrong.</p>
@@ -1307,9 +1308,9 @@ hopefully this comparison demonstrates the potential value, and convinces you to
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

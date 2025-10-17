@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Configuring JVM Versions :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/configuring-jvm-versions.html">
-    <link rel="prev" href="bundled-libraries.html">
-    <link rel="next" href="../extending/import-ivy-plugins.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/configuring-jvm-versions.html" />
+    <link rel="prev" href="bundled-libraries.html" />
+    <link rel="next" href="../extending/import-ivy-plugins.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -651,7 +652,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -686,7 +687,7 @@ using coursier and use it for the compile, run, and test tasks.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>"{name}:{version}"</pre>
+<pre>&quot;{name}:{version}&quot;</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -700,7 +701,7 @@ and architecture <a href="https://github.com/coursier/jvm-index/blob/master/indi
 import mill.define.ModuleRef
 
 object ZincWorkerJava extends ZincWorkerModule {
-  def jvmId = "temurin:18.0.2"
+  def jvmId = &quot;temurin:18.0.2&quot;
 }
 
 object foo extends JavaModule {
@@ -752,12 +753,12 @@ index version from the Maven Central:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import scalalib._
 
 object ZincWorkerJavaLatest extends ZincWorkerModule {
-  def jvmId = "temurin:23.0.1"
-  def jvmIndexVersion = "latest.release"
+  def jvmId = &quot;temurin:23.0.1&quot;
+  def jvmIndexVersion = &quot;latest.release&quot;
 }
 
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.12"
+  def scalaVersion = &quot;2.13.12&quot;
   def zincWorker = ModuleRef(ZincWorkerJavaLatest)
 
 }</code></pre>
@@ -787,16 +788,16 @@ OS/CPU combinations</p>
 
 object ZincWorkerJavaUrl extends ZincWorkerModule {
   def jvmId =
-    if (sys.props("os.name") == "Mac OS X") {
-      "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz"
+    if (sys.props(&quot;os.name&quot;) == &quot;Mac OS X&quot;) {
+      &quot;https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz&quot;
     } else {
-      "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_x64_linux_hotspot_22.0.2_9.tar.gz"
+      &quot;https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_x64_linux_hotspot_22.0.2_9.tar.gz&quot;
     }
 
 }
 
 object qux extends KotlinModule {
-  def kotlinVersion = "2.0.20"
+  def kotlinVersion = &quot;2.0.20&quot;
   def zincWorker = ModuleRef(ZincWorkerJavaUrl)
 }</code></pre>
 </div>
@@ -818,7 +819,7 @@ Qux running on Java 22.0.2</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object ZincWorkerLocalJvm extends ZincWorkerModule {
-  def javaHome = Some(PathRef(os.Path("/my/java/home"), quick = true))
+  def javaHome = Some(PathRef(os.Path(&quot;/my/java/home&quot;), quick = true))
 }
 
 object baz extends JavaModule {
@@ -838,9 +839,9 @@ object baz extends JavaModule {
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

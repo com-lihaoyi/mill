@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>How to Compile Java into Native Binaries with Mill and Graal :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/blog/7-graal-native-executables.html" />
-    <link rel="prev" href="8-what-is-a-build-tool.html" />
-    <link rel="next" href="6-garbage-collector-perf.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/blog/7-graal-native-executables.html">
+    <link rel="prev" href="8-what-is-a-build-tool.html">
+    <link rel="next" href="6-garbage-collector-perf.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -248,7 +247,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/7-graal-native-executables.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -296,17 +295,17 @@ import org.thymeleaf.context.Context;
 public class Foo {
   public static String generateHtml(String text) {
     Context context = new Context();
-    context.setVariable(&quot;text&quot;, text);
-    return new TemplateEngine().process(&quot;&lt;h1 th:text=\&quot;${text}\&quot;&gt;&lt;/h1&gt;&quot;, context);
+    context.setVariable("text", text);
+    return new TemplateEngine().process("&lt;h1 th:text=\"${text}\"&gt;&lt;/h1&gt;", context);
   }
 
   public static void main(String[] args) {
-    ArgumentParser parser = ArgumentParsers.newFor(&quot;template&quot;)
+    ArgumentParser parser = ArgumentParsers.newFor("template")
         .build()
         .defaultHelp(true)
-        .description(&quot;Inserts text into a HTML template&quot;);
+        .description("Inserts text into a HTML template");
 
-    parser.addArgument(&quot;-t&quot;, &quot;--text&quot;).required(true).help(&quot;text to insert&quot;);
+    parser.addArgument("-t", "--text").required(true).help("text to insert");
 
     Namespace ns = null;
     try {
@@ -316,7 +315,7 @@ public class Foo {
       System.exit(1);
     }
 
-    System.out.println(generateHtml(ns.getString(&quot;text&quot;)));
+    System.out.println(generateHtml(ns.getString("text")));
   }
 }</code></pre>
 </div>
@@ -348,9 +347,9 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   def mvnDeps = Seq(
-    mvn&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
-    mvn&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;,
-    mvn&quot;org.slf4j:slf4j-nop:2.0.7&quot;
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
+    mvn"org.slf4j:slf4j-nop:2.0.7"
   )
 }</code></pre>
 </div>
@@ -361,7 +360,7 @@ we can run this program as follows:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill foo.run --text &quot;hello-world&quot;
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill foo.run --text "hello-world"
 [55/55] foo.run
 [55] &lt;h1&gt;hello-world&lt;/h1&gt;</code></pre>
 </div>
@@ -373,9 +372,9 @@ outside of the build tool:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill show foo.assembly
-&quot;.../out/foo/assembly.dest/out.jar&quot;
+".../out/foo/assembly.dest/out.jar"
 
-$ out/foo/assembly.dest/out.jar --text &quot;hello world&quot;
+$ out/foo/assembly.dest/out.jar --text "hello world"
 &lt;h1&gt;hello world&lt;/h1&gt;</code></pre>
 </div>
 </div>
@@ -398,16 +397,16 @@ import mill._, javalib._
 
 object foo extends JavaModule with NativeImageModule {
   def mvnDeps = Seq(
-    mvn&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
-    mvn&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;,
-    mvn&quot;org.slf4j:slf4j-nop:2.0.7&quot;
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
+    mvn"org.slf4j:slf4j-nop:2.0.7"
   )
 
-  def jvmId = &quot;graalvm-community:23.0.1&quot;
+  def jvmId = "graalvm-community:23.0.1"
 
   def nativeImageOptions = Seq(
-    &quot;--no-fallback&quot;,
-    &quot;-H:IncludeResourceBundles=net.sourceforge.argparse4j.internal.ArgumentParserImpl&quot;
+    "--no-fallback",
+    "-H:IncludeResourceBundles=net.sourceforge.argparse4j.internal.ArgumentParserImpl"
   )
 }</code></pre>
 </div>
@@ -423,7 +422,7 @@ object foo extends JavaModule with NativeImageModule {
 <li>
 <p>We need to override <code>jvmId</code> to point at
 the version of Graal that we want to use to build our native image.
-This uses Mill’s ability to <a href="../mill/fundamentals/configuring-jvm-versions.html" class="xref page">Configuring JVM Versions</a>
+This uses Mill&#8217;s ability to <a href="../mill/fundamentals/configuring-jvm-versions.html" class="xref page">Configuring JVM Versions</a>
 to download the necessary Graal distribution as necessary</p>
 </li>
 <li>
@@ -439,9 +438,9 @@ the ArgParse4J library that the example project depends on</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill show foo.nativeImage
-&quot;.../out/foo/nativeImage.dest/native-executable&quot;
+".../out/foo/nativeImage.dest/native-executable"
 
-$ out/foo/nativeImage.dest/native-executable --text &quot;hello world&quot;
+$ out/foo/nativeImage.dest/native-executable --text "hello world"
 &lt;h1&gt;hello world&lt;/h1&gt;</code></pre>
 </div>
 </div>
@@ -462,7 +461,7 @@ if you want to use it directly or view its <code>--help</code> documentation:</p
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ~/Github/mill/mill show foo.nativeImageTool
-&quot;.../graalvm-community-openjdk-17.0.9+9.1/Contents/Home/bin/native-image&quot;
+".../graalvm-community-openjdk-17.0.9+9.1/Contents/Home/bin/native-image"
 
 $ .../graalvm-community-openjdk-17.0.9+9.1/Contents/Home/bin/native-image --help
 GraalVM Native Image (https://www.graalvm.org/native-image/)
@@ -495,9 +494,9 @@ and the Graal native image we built above can be summarized below:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 33.3333%;" />
-<col style="width: 33.3333%;" />
-<col style="width: 33.3334%;" />
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
 </colgroup>
 <tbody>
 <tr>
@@ -560,7 +559,7 @@ that the executable assembly takes about ~1s to create, while the native image t
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./mill show foo.assembly
 [1-41] [info] compiling 1 Java source...
-&quot;.../out/foo/assembly.dest/out.jar&quot;
+".../out/foo/assembly.dest/out.jar"
 ./mill show foo.assembly  0.12s user 0.06s system 21% cpu 0.818 total</code></pre>
 </div>
 </div>
@@ -575,7 +574,7 @@ that the executable assembly takes about ~1s to create, while the native image t
 [1-50] [2/8] Performing analysis...  [****]                                                                     (7.9s @ 0.77GB)
 ...
 [1-50] Finished generating 'native-executable' in 26.0s.
-&quot;.../out/foo/nativeImage.dest/native-executable&quot;
+".../out/foo/nativeImage.dest/native-executable"
 ./mill show foo.nativeImage  0.70s user 1.11s system 7% cpu 24.762 total</code></pre>
 </div>
 </div>
@@ -659,14 +658,14 @@ every ~1s print out how many iterations of the loop have occurred:</p>
 +    long prevTime = System.currentTimeMillis();
 +    String global = null;
 +    while(count &gt;= 0){
-       ArgumentParser parser = ArgumentParsers.newFor(&quot;template&quot;)
+       ArgumentParser parser = ArgumentParsers.newFor("template")
            .build()
            .defaultHelp(true)
 @@ -28,7 +32,15 @@ public class Foo {
          System.out.println(e.getMessage());
          System.exit(1);
        }
-+      global = generateHtml(ns.getString(&quot;text&quot;));
++      global = generateHtml(ns.getString("text"));
 +      if (System.currentTimeMillis() - prevTime &gt; 1000){
 +        prevTime = System.currentTimeMillis();
 +        System.out.println(count);
@@ -675,7 +674,7 @@ every ~1s print out how many iterations of the loop have occurred:</p>
 +      count++;
 +    }
 
--    System.out.println(generateHtml(ns.getString(&quot;text&quot;)));
+-    System.out.println(generateHtml(ns.getString("text")));
 +    System.out.println(global);
    }
  }</code></pre>
@@ -797,12 +796,12 @@ the fact that the native executable is OS/CPU-specific means that you need to sp
 generate separate native executables for each platform you want to support.</p>
 </div>
 <div class="paragraph">
-<p>The Mill build tool takes advantage of this hermeticity for easier installation: it’s
+<p>The Mill build tool takes advantage of this hermeticity for easier installation: it&#8217;s
 <a href="../mill/cli/installation-ide.html#_mill_native_and_jvm_executables" class="xref page">Mill Native Executable</a> can be run on systems without
 a JVM installed at all. Mill still needs a JVM later on, e.g. to compile and run user code, and so
 the native launcher downloads one on-demand automatically from the
 <a href="https://github.com/coursier/jvm-index">Coursier JVM Index</a>. But bootstrapping with a native
-launcher means there’s one less thing for people to do during setup and installation,
+launcher means there&#8217;s one less thing for people to do during setup and installation,
 and one less thing to go wrong and cause the user to get stuck.</p>
 </div>
 </div>
@@ -812,8 +811,8 @@ and one less thing to go wrong and cause the user to get stuck.</p>
 <h2 id="_native_image_limitations"><a class="anchor" href="#_native_image_limitations"></a>Native Image Limitations</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Now that we’ve seen many iof the benefits of Graal native images binaries over
-traditional executable assemblies, it’s worth discussing the limitations:</p>
+<p>Now that we&#8217;ve seen many iof the benefits of Graal native images binaries over
+traditional executable assemblies, it&#8217;s worth discussing the limitations:</p>
 </div>
 <div class="sect2">
 <h3 id="_no_cross_building"><a class="anchor" href="#_no_cross_building"></a>No Cross Building</h3>
@@ -882,7 +881,7 @@ of reflection and classloading that the framework performs</p>
 <h2 id="_cross_publishing_graal_native_binaries_on_github_actions"><a class="anchor" href="#_cross_publishing_graal_native_binaries_on_github_actions"></a>Cross-Publishing Graal Native Binaries on Github Actions</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Although Graal doesn’t let you cross-build from a single platform, you can still easily
+<p>Although Graal doesn&#8217;t let you cross-build from a single platform, you can still easily
 publish artifacts for all supported versions by taking advantage of CI systems like
 Github Actions that provide worker machines on different platforms.</p>
 </div>
@@ -913,19 +912,19 @@ jobs:
       matrix:
         include:
         - os: ubuntu-latest
-          coursierarchive: &quot;&quot;
+          coursierarchive: ""
           publishartifacts: __.publishArtifacts
 
         - os: ubuntu-24.04-arm
-          coursierarchive: &quot;&quot;
+          coursierarchive: ""
           publishartifacts: dist.native.publishArtifacts
 
         - os: macos-13
-          coursierarchive: &quot;&quot;
+          coursierarchive: ""
           publishartifacts: dist.native.publishArtifacts
 
         - os: macos-latest
-          coursierarchive: &quot;&quot;
+          coursierarchive: ""
           publishartifacts: dist.native.publishArtifacts
 
         - os: windows-latest
@@ -940,9 +939,9 @@ jobs:
       MILL_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
       MILL_PGP_SECRET_BASE64: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY }}
       MILL_PGP_PASSPHRASE: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY_PASSWORD }}
-      LANG: &quot;en_US.UTF-8&quot;
-      LC_MESSAGES: &quot;en_US.UTF-8&quot;
-      LC_ALL: &quot;en_US.UTF-8&quot;
+      LANG: "en_US.UTF-8"
+      LC_MESSAGES: "en_US.UTF-8"
+      LC_ALL: "en_US.UTF-8"
       COURSIER_ARCHIVE_CACHE: ${{ matrix.coursierarchive }}
       REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
     steps:
@@ -972,20 +971,20 @@ the default <code>.jar</code> artifact with our native image:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def artifactOsSuffix = Task {
-  val osName = System.getProperty(&quot;os.name&quot;).toLowerCase
-  if (osName.contains(&quot;mac&quot;)) &quot;mac&quot;
-  else if (osName.contains(&quot;windows&quot;)) &quot;windows&quot;
-  else &quot;linux&quot;
+  val osName = System.getProperty("os.name").toLowerCase
+  if (osName.contains("mac")) "mac"
+  else if (osName.contains("windows")) "windows"
+  else "linux"
 }
 
 def artifactCpuSuffix = Task {
-  System.getProperty(&quot;os.arch&quot;) match {
-    case &quot;x86_64&quot; =&gt; &quot;amd64&quot;
+  System.getProperty("os.arch") match {
+    case "x86_64" =&gt; "amd64"
     case s =&gt; s
   }
 }
 
-override def artifactName = s&quot;${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}&quot;
+override def artifactName = s"${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
 
 override def jar = nativeImage()</code></pre>
 </div>
@@ -1041,7 +1040,7 @@ ability to package your Java program into a native binary that can be run withou
 installed, starts much more quickly, and uses much less memory. There are some caveats around
 creation times, binary sizes, and runtime reflection, so they may not be suitable for all
 scenarios. But they are a useful tool in the toolbox that helps bridge the gap between the
-&quot;Java&quot; world and the world of native command-line tools on Linux, Mac, or Windows.</p>
+"Java" world and the world of native command-line tools on Linux, Mac, or Windows.</p>
 </div>
 </div>
 </div>
@@ -1054,9 +1053,9 @@ scenarios. But they are a useful tool in the toolbox that helps bridge the gap b
 </main>
 </div>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
-<script async="async" src="../_/js/vendor/highlight.js"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>
 <script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
-<script async="async" src="../search-index.js"></script>
-  
-</body></html>
+<script async src="../search-index.js"></script>
+  </body>
+</html>

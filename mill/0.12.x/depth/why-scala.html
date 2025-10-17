@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Why does Mill use Scala? :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/depth/why-scala.html">
-    <link rel="prev" href="design-principles.html">
-    <link rel="next" href="../reference/talks-blog-posts.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/depth/why-scala.html" />
+    <link rel="prev" href="design-principles.html" />
+    <link rel="next" href="../reference/talks-blog-posts.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -651,7 +652,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -690,8 +691,8 @@ that is the case is an interesting discussion.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
+<col style="width: 50%;" />
+<col style="width: 50%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -721,7 +722,7 @@ that is the case is an interesting discussion.</p>
 simpler than general purpose languages, with less complexity. However, build systems
 are often fundamentally complex systems, especially as codebases or organizations grow.
 Often projects find themselves with custom build system requirements that do not fit nicely
-into these "simple metadata formats":</p>
+into these &quot;simple metadata formats&quot;:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -737,7 +738,7 @@ into these "simple metadata formats":</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>While most "common" workflows in "common" build tools will have <em>some</em> built in support
+<p>While most &quot;common&quot; workflows in &quot;common&quot; build tools will have <em>some</em> built in support
 or plugin, it may not do exactly what you need, the plugin may be unmaintained, or you
 may hit some requirement unique to your business.
 When using a restricted config language to configure your build, and you hit one of these
@@ -746,12 +747,12 @@ unusual requirements, there are usually four outcomes:</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Find some third-party "plugin" (and these build systems always have plugins!) written
+<p>Find some third-party &quot;plugin&quot; (and these build systems always have plugins!) written
 in a general-purpose language to use in your XML/TOML/JSON file, or write your own plugin
 if none of the off-the-shelve plugins exactly match your requirements (which is very likely!)</p>
 </li>
 <li>
-<p>Have your build tool delegate the logic to some "run bash script" step, and implement your
+<p>Have your build tool delegate the logic to some &quot;run bash script&quot; step, and implement your
 custom logic in the bash script that the build tool wraps</p>
 </li>
 <li>
@@ -774,13 +775,13 @@ complex</em>, and if your built tool <em>language</em> does not accommodate that
 ends up leaking elsewhere outside the purview of the build tool.</p>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s choice of using a general purpose language does mean more complexity in the core
+<p>Mill’s choice of using a general purpose language does mean more complexity in the core
 language or build tool, but it also allows you to <em>move complexity into the build tool</em>
 rather than having it live in third-party plugins, ad-hoc bash scripts, or weird pseudo-languages
 embedded in your config. A general-purpose language likely has better IDE integration,
 tooling, safety, performance, and ecosystem support than bash scripts or
 embedded-pseudo-config-languages, and if your build system complexity has to live <em>somewhere</em>,
-it&#8217;s better to write it in a general-purpose language where it can be properly managed,
+it’s better to write it in a general-purpose language where it can be properly managed,
 as long as a suitable general-purpose language can be found.</p>
 </div>
 </div>
@@ -862,8 +863,8 @@ in the less-verbose end of the spectrum:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
+<col style="width: 50%;" />
+<col style="width: 50%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -894,10 +895,10 @@ Python/Groovy/Ruby/TOML/YAML level of conciseness is where most build tools end 
 </div>
 <div class="paragraph">
 <p>Given that, Scala fits right in: it is neither too verbose (like Java/C++/XML), nor is
-it as terse as the syntaxes of Bash or Make. Mill&#8217;s bundled libraries like
+it as terse as the syntaxes of Bash or Make. Mill’s bundled libraries like
 <a href="https://github.com/com-lihaoyi/requests-scala">Requests-Scala</a> or
 <a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a>, they would not look out of place in any
-Python or Ruby codebase. Scala&#8217;s balance between conciseness and verbosity is
+Python or Ruby codebase. Scala’s balance between conciseness and verbosity is
 more or less what we want when configuring a build.</p>
 </div>
 </div>
@@ -906,7 +907,7 @@ more or less what we want when configuring a build.</p>
 <div class="paragraph">
 <p>Scala is a statically typed language. That has many consequences: good performance,
 powerful linting frameworks (e.g. <a href="https://scalacenter.github.io/scalafix/">Scalafix</a>),
-good toolability, and protection against many classes of "dumb bugs".</p>
+good toolability, and protection against many classes of &quot;dumb bugs&quot;.</p>
 </div>
 <div class="paragraph">
 <p>For a build tool like Mill, perhaps what matters most is:
@@ -917,17 +918,17 @@ good toolability, and protection against many classes of "dumb bugs".</p>
 not build tool experts, and have no desire to become build tool experts. They will
 forever be cargo-culting examples they find online, copy-pasting from other parts of the
 codebase, or blindly fumbling their customizations. It is in this
-context that Mill&#8217;s static typing really shines: what such "perpetual beginners" need
+context that Mill’s static typing really shines: what such &quot;perpetual beginners&quot; need
 most is help understanding/navigating the build logic, and help checking their
 proposed changes for dumb mistakes. And there will be dumb mistakes, because most
 people are not and will never be build-tool experts or enthusiasts</p>
 </div>
 <div class="paragraph">
-<p>To that end, Mill&#8217;s static typing gives it a big advantage here. It&#8217;s IDE support
+<p>To that end, Mill’s static typing gives it a big advantage here. It’s IDE support
 is much better <a href="../comparisons/maven.html" class="xref page">compared to Maven</a> or
 <a href="../comparisons/maven.html" class="xref page">compared to Gradle</a>, and that is largely due to the
-way Scala&#8217;s static types give the IDE more to work with than more dynamic languages.
-And, while Scala&#8217;s static typing won&#8217;t catch every subtle bug, it does do a good job
+way Scala’s static types give the IDE more to work with than more dynamic languages.
+And, while Scala’s static typing won’t catch every subtle bug, it does do a good job
 at catching the dumb bugs that non-experts will typically make when configuring their
 build system</p>
 </div>
@@ -938,7 +939,7 @@ Javascript has <a href="https://www.typescriptlang.org/">TypeScript</a>, and so 
 Scala has static typing built deeply into the core of the language, and so it works
 more smoothly than other languages which have static typing bolted on after-the-fact:
 The syntax is slicker, the IDEs work better, the error reporting is friendlier.
-And that&#8217;s why Scala&#8217;s static typing really shines when used in Mill builds even
+And that’s why Scala’s static typing really shines when used in Mill builds even
 for non-experts with no prior background in Scala.</p>
 </div>
 </div>
@@ -974,8 +975,8 @@ and so on.</p>
 <p>While these are non-trivial semantics, they are semantics that should be immediately
 familiar to anyone who has ever passed programming 101 in college. You already <em>know</em>
 how <code>override</code> works or how <code>super</code> works in Mill, even if nobody told you! This approach
-of "making your build code feel just like your application code" is the key to Mill&#8217;s
-approachability to people from varying backgrounds, and to allow the "perpetual non-experts"
+of &quot;making your build code feel just like your application code&quot; is the key to Mill’s
+approachability to people from varying backgrounds, and to allow the &quot;perpetual non-experts&quot;
 typically modifying a build system to do so in a familiar and intuitive manner even if
 they know nothing about the Scala language.</p>
 </div>
@@ -1002,15 +1003,15 @@ not malicious. But build systems need to be pluggable, with the same build syste
 potentially being used to manage a wide variety of different tools and frameworks.</p>
 </div>
 <div class="paragraph">
-<p>It is in this context that the JVM&#8217;s dynamic classloading shines, and Mill goes all in
+<p>It is in this context that the JVM’s dynamic classloading shines, and Mill goes all in
 dynamic classloading. Features like <a href="../extending/import-ivy-plugins.html" class="xref page">import $ivy</a>,
 <a href="../extending/running-jvm-code.html" class="xref page">Running Dynamic JVM Code</a>, or the
 <a href="../extending/meta-build.html" class="xref page">Mill Meta-Build</a> would be difficult-to-impossible in
 less-dynamic platforms like Go, Swift, Rust, or C++. Mill simultaneously takes advantage of
-the Scala language&#8217;s <a href="#_static_typing">Static Typing</a>, while also leaning heavily on the
-JVM&#8217;s dynamic nature: it uses classloader hierarchies, dynamic class loading and unloading,
+the Scala language’s <a href="#_static_typing">Static Typing</a>, while also leaning heavily on the
+JVM’s dynamic nature: it uses classloader hierarchies, dynamic class loading and unloading,
 isolated and partially-isolated classloaders, bytecode instrumentation, the whole works.
-It wouldn&#8217;t be a stretch to say that a build tool like Mill could not be written on top of
+It wouldn’t be a stretch to say that a build tool like Mill could not be written on top of
 any other platform than the JVM it runs on today.</p>
 </div>
 </div>
@@ -1049,10 +1050,10 @@ single <a href="../extending/import-ivy-plugins.html" class="xref page">import $
 <h3 id="_built_in_publishing_infrastructure"><a class="anchor" href="#_built_in_publishing_infrastructure"></a>Built-in Publishing Infrastructure</h3>
 <div class="paragraph">
 <p>The last major benefit Mill gets from running on the JVM is the publishing infrastructure:
-primarily Sonatype&#8217;s <a href="https://central.sonatype.com/">Maven Central</a>. Mill has a rich and
+primarily Sonatype’s <a href="https://central.sonatype.com/">Maven Central</a>. Mill has a rich and
 constantly growing set of <a href="../extending/thirdparty-plugins.html" class="xref page">Third-Party Plugins</a> that
 are published on Maven Central for people to use, and anyone can easily
-<a href="../extending/writing-plugins.html" class="xref page">write and publish their own</a>. While Maven Central isn&#8217;t
+<a href="../extending/writing-plugins.html" class="xref page">write and publish their own</a>. While Maven Central isn’t
 perfect, it does a solid job as a package repository: hosting an enormous catalog of
 artifacts for the Java community to build upon, with nice properties such as
 <a href="https://central.sonatype.org/register/namespace/">namespacing</a>,
@@ -1064,7 +1065,7 @@ package repositories available for you to choose.</p>
 </div>
 <div class="paragraph">
 <p>Mill makes heavy use of Maven Central and the rest of the Java publishing infrastructure:
-Mill&#8217;s own artifacts are all published on Maven Central, Mill builds can resolve any
+Mill’s own artifacts are all published on Maven Central, Mill builds can resolve any
 artifact from Maven Central to use in your build, and anyone can publish their own plugins
 to Maven Central for free. it is easy to
 <a href="../javalib/dependencies.html#_repository_config" class="xref page">configure alternate repositories</a>,
@@ -1091,9 +1092,9 @@ far beyond what can be provided by most other build tools.</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

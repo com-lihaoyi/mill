@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Why Use a Monorepo Build Tool? :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/blog/2-monorepo-build-tool.html" />
-    <link rel="prev" href="3-selective-testing.html" />
-    <link rel="next" href="1-java-compile.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/blog/2-monorepo-build-tool.html">
+    <link rel="prev" href="3-selective-testing.html">
+    <link rel="next" href="1-java-compile.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -248,7 +247,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/2-monorepo-build-tool.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -285,10 +284,10 @@ like Poetry or Cargo, so why do people use them at all?</p>
 </div>
 <div class="paragraph">
 <p>It turns out that Monorepo build tools like Bazel or Mill do a lot of non-obvious things that
-other build tools don’t, that become important in larger codebases (100-10,000 active developers).
+other build tools don&#8217;t, that become important in larger codebases (100-10,000 active developers).
 These features are generally irrelevant for smaller projects, which explains why most people
 do not miss them. But past a certain size of codebase and engineering organization these
-features become critical. We’ll explore some of the core features of &quot;Monorepo Build Tools&quot;
+features become critical. We&#8217;ll explore some of the core features of "Monorepo Build Tools"
 below, from the perspective of Bazel (which I am familiar with) and Mill (which this
 technical blog is about).</p>
 </div>
@@ -343,7 +342,7 @@ you also need usually ends up being a mess that is impossible to work with.</p>
 Although they may come with some built in functionality (e.g. Bazel comes with C/C++/Java
 support built in, Mill comes with Java/Scala/Kotlin), monorepo build tools must make
 it extending them to support additional languages <em>easy</em>. Bazel via its ecosystem
-of <code>rules_*</code> libraries, Mill via it’s extensibility APIs which make it easy to
+of <code>rules_*</code> libraries, Mill via it&#8217;s extensibility APIs which make it easy to
 implement your own support for additional languages like
 <a href="../mill/extending/example-python-support.html" class="xref page">Python</a> or
 <a href="../mill/extending/example-typescript-support.html" class="xref page">Typescript</a>. That means that when
@@ -364,7 +363,7 @@ requirements that no-one else does, for example:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Invoking a bespoke code-generator to integrate with your company’s internal RPC system</p>
+<p>Invoking a bespoke code-generator to integrate with your company&#8217;s internal RPC system</p>
 </li>
 <li>
 <p>Generating custom deployment artifact formats to support that one legacy datacenter you
@@ -399,7 +398,7 @@ the custom build tasks you require.</p>
 <div class="paragraph">
 <p>That is why monorepo build tools like Bazel and Mill make it easy to write custom tasks. In
 Bazel a custom task is just a <a href="https://bazel.build/reference/be/general#genrule">genrule()</a>, in Mill
-just <code>def foo = Task { ...​ }</code> with a block of code doing what you need,
+just <code>def foo = Task { &#8230;&#8203; }</code> with a block of code doing what you need,
 and you can even use any third-party JVM library
 you are already familiar with as part of your custom task. This helps ensure your custom
 tasks are written in concise type-checked code with automatic caching and parallelism,
@@ -432,19 +431,19 @@ without inconvenience</p>
 <p>For medium-sized codebases, caching and parallelizing the slowest tasks (e.g. compilation
 or testing) is usually enough. Most build tools have some support for manually opting-in to
 some kind of caching or parallelization framework, and although you will likely miss out
-on many &quot;ad-hoc&quot; build tasks that still run un-cached and sequentially, those are few
+on many "ad-hoc" build tasks that still run un-cached and sequentially, those are few
 enough not to matter</p>
 </li>
 <li>
 <p>For large codebases, you want everything to be cached and parallelized. Caching just the
-&quot;core&quot; build tasks is no longer enough, and any non-cached or non-parallel build tasks
+"core" build tasks is no longer enough, and any non-cached or non-parallel build tasks
 results in noticeable slowness and inconvenience.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
 <p>Take ad-hoc source code generation as an example: a small codebase may not have any. A
-medium-sized codebase may have some but little enough that it doesn’t matter if it runs
+medium-sized codebase may have some but little enough that it doesn&#8217;t matter if it runs
 sequentially un-cached. But a large codebase may have multiple RPC IDL
 code generators (e.g. <a href="https://protobuf.dev/">protobuf</a>, <a href="https://thrift.apache.org/">thrift</a>,
 static resource pre-processors, and other custom tasks that not caching and parallelizing
@@ -452,8 +451,8 @@ these causes visible slowdowns and inconvenience.</p>
 </div>
 <div class="paragraph">
 <p>In monorepo build tools like Mill or Bazel, caching and parallelism are automatic and
-enabled by default. That means that it doesn’t matter what you are running - whether
-it’s the core compilation workflows or some ad-hoc custom tasks - you always get the
+enabled by default. That means that it doesn&#8217;t matter what you are running - whether
+it&#8217;s the core compilation workflows or some ad-hoc custom tasks - you always get the
 benefits of caching and parallelization to keep your build system fast and responsive.</p>
 </div>
 </div>
@@ -462,8 +461,8 @@ benefits of caching and parallelization to keep your build system fast and respo
 <h2 id="_seamless_remote_caching"><a class="anchor" href="#_seamless_remote_caching"></a>Seamless Remote Caching</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>&quot;Remote caching&quot; means I can compile something on my laptop, you download it to your laptop
-for usage. &quot;Seamless&quot; means I don’t need to do anything to get this behavior - no manual
+<p>"Remote caching" means I can compile something on my laptop, you download it to your laptop
+for usage. "Seamless" means I don&#8217;t need to do anything to get this behavior - no manual
 commands to upload and download - so the distribution of build outputs from my laptop to
 yours happens completely automatically.</p>
 </div>
@@ -488,7 +487,7 @@ add support in the not-too-distant future.</p>
 <h2 id="_remote_execution"><a class="anchor" href="#_remote_execution"></a>Remote Execution</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>&quot;Remote execution&quot; means that I can run &quot;compile&quot; on my laptop and have it automatically
+<p>"Remote execution" means that I can run "compile" on my laptop and have it automatically
 happen in the cloud on 96 core machines, or I run a lot of tests (e.g. after a big refactor)
 on my laptop and it seamlessly gets farmed out to run 1024x parallel on a large
 compute cluster.</p>
@@ -507,7 +506,7 @@ out the execution to a cluster you can easily run on many 1024 or more cores in 
 <p><strong>Better Utilization</strong>: e.g. If you
 give every individual a 96 core devbox, most of the time when they are not actively running
 anything (e.g. they are thinking, typing, talking to someone, etc.) those 96 cores are
-completely idle. It’s not usual for utilization on devboxes to be &lt;1% while you are still
+completely idle. It&#8217;s not usual for utilization on devboxes to be &lt;1% while you are still
 paying for the other 99% of idle CPU time. In contrast, an auto-scaling remote execution
 cluster can spin down machines that are not in use, and achieve &gt;50% utilization rates</p>
 </li>
@@ -515,7 +514,7 @@ cluster can spin down machines that are not in use, and achieve &gt;50% utilizat
 </div>
 <div class="paragraph">
 <p>One surprising thing is that remote execution can be both faster <em>and</em> cheaper_than running
-things locally on a laptop or devbox! Running 256 cores for 1 minute doesn’t cause any more
+things locally on a laptop or devbox! Running 256 cores for 1 minute doesn&#8217;t cause any more
 cloud spending than running 16 cores for 16 minutes, even though the former finishes 16x
 faster! And due to the improved utilization from remote execution clusters, the total savings
 can be significant.</p>
@@ -538,13 +537,13 @@ this, as <a href="../mill/large/selective-execution.html" class="xref page">Sele
 your code before and after a code change and only run tasks that are downstream of those changes.</p>
 </div>
 <div class="paragraph">
-<p>Fundamentally, running &quot;all tests&quot; in CI is wasteful when you know from the build tool
+<p>Fundamentally, running "all tests" in CI is wasteful when you know from the build tool
 that only some tests are relevant to the code change being tested. If every pull request always
-runs every single test in a monorepo, then it’s natural for PR validation times to grow unbounded
+runs every single test in a monorepo, then it&#8217;s natural for PR validation times to grow unbounded
 as the monorepo grows. Sooner or later this will start causing issues.</p>
 </div>
 <div class="paragraph">
-<p>Any large codebase that doesn’t use a monorepo build tool ends up re-inventing this manually, e.g.
+<p>Any large codebase that doesn&#8217;t use a monorepo build tool ends up re-inventing this manually, e.g.
 consider this code in apache/spark that re-implements this in a Python script that wraps
 <code>mvn</code> or <code>sbt</code> (<a href="https://github.com/apache/spark/blob/290b4b31bae2e02b648d2c5ef61183f337b18f8f/dev/sparktestsupport/modules.py#L108-L126">link</a>).
 With a proper monorepo build tool, such functionality comes for free out-of-the-box with better
@@ -575,19 +574,19 @@ deterministic error up front, enforced via a <a href="https://bazel.build/docs/s
 (<a href="https://github.com/bazelbuild/bazel/pull/21322" class="bare">https://github.com/bazelbuild/bazel/pull/21322</a>), which eliminates the noisy neighbour
  problem and ensures a build step or test gets the same compute footprint whether run alone
  during development or 96x parallel on a CI worker.
- Otherwise, it’s common for tests to pass when run alone during manual development, then timeout
+ Otherwise, it&#8217;s common for tests to pass when run alone during manual development, then timeout
  or OOM when run in CI under resource pressure from other tests hogging the CPU or RAM</p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
 <p>Both kinds of sandboxing have the same goal: to make sure your build tasks behave the same
-way no matter how they are run sequentially or in parallel with one another. Even Bazel’s
-sandboxes aren’t 100% hermetic, but are hermetic enough</p>
+way no matter how they are run sequentially or in parallel with one another. Even Bazel&#8217;s
+sandboxes aren&#8217;t 100% hermetic, but are hermetic enough</p>
 </div>
 <div class="paragraph">
-<p><a href="../mill/depth/sandboxing.html" class="xref page">The Mill build tool’s sandboxing</a> is less powerful
-than Bazel’s CGroup/Seatbelt sandboxes, and simply runs tasks and subprocesses in
+<p><a href="../mill/depth/sandboxing.html" class="xref page">The Mill build tool&#8217;s sandboxing</a> is less powerful
+than Bazel&#8217;s CGroup/Seatbelt sandboxes, and simply runs tasks and subprocesses in
 sandbox directories to try and limit cross-task interference. But it has the same goal
 of adding best-effort guardrails to mitigate race conditions and non-determinism.</p>
 </div>
@@ -633,7 +632,7 @@ cleaned up but nobody knows how.</p>
 bring down CI times, sandboxing improvements to reduce flakiness, and structured way
 of replacing the ubiquitous folder-full-of-bash-scripts. It is these features that really
 let a codebase <em>scale</em>, allowing you to grow your developer team from 100 to 1,000 developers
-and beyond without everything grinding to a halt. That is why people use &quot;monorepo build tools&quot;
+and beyond without everything grinding to a halt. That is why people use "monorepo build tools"
 like Mill (most suitable for projects 10-1,000 active developers) or Bazel
 (most suitable for larger projects 100-10,000 active developers) .</p>
 </div>
@@ -648,9 +647,9 @@ like Mill (most suitable for projects 10-1,000 active developers) or Bazel
 </main>
 </div>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
-<script async="async" src="../_/js/vendor/highlight.js"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>
 <script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
-<script async="async" src="../search-index.js"></script>
-  
-</body></html>
+<script async src="../search-index.js"></script>
+  </body>
+</html>

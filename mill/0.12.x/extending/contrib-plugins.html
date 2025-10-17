@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Contrib Plugins :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/extending/contrib-plugins.html">
-    <link rel="prev" href="import-ivy-plugins.html">
-    <link rel="next" href="../contrib/artifactory.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/extending/contrib-plugins.html" />
+    <link rel="prev" href="import-ivy-plugins.html" />
+    <link rel="next" href="../contrib/artifactory.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -651,7 +652,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -669,7 +670,7 @@
 </div>
 <div class="admonitionblock caution">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-caution" title="Caution"></i>
 </td>
@@ -677,7 +678,7 @@
 <div class="paragraph">
 <p>When using one of these contribution modules, it is important that the versions you load match your mill version.
 To facilitate this, Mill will automatically replace the <code>$MILL_VERSION</code> literal in your ivy imports with the correct value.
-You can also leave the version completely empty to default to the mill version (but don&#8217;t forget to keep the trailing colon).</p>
+You can also leave the version completely empty to default to the mill version (but don’t forget to keep the trailing colon).</p>
 </div>
 <div class="paragraph">
 <p>For instance:</p>
@@ -697,7 +698,7 @@ You can also leave the version completely empty to default to the mill version (
 </div>
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 </div>
 </div>
@@ -713,10 +714,10 @@ import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 import mill.contrib.buildinfo.BuildInfo
 
 object foo extends ScalaModule with BuildInfo {
-  def scalaVersion = "2.13.10"
-  def buildInfoPackageName = "foo"
+  def scalaVersion = &quot;2.13.10&quot;
+  def buildInfoPackageName = &quot;foo&quot;
   def buildInfoMembers = Seq(
-    BuildInfo.Value("scalaVersion", scalaVersion())
+    BuildInfo.Value(&quot;scalaVersion&quot;, scalaVersion())
   )
 }</code></pre>
 </div>
@@ -741,12 +742,12 @@ foo.BuildInfo.scalaVersion: 2.13.10</code></pre>
 <ul>
 <li>
 <p>Like builtin modules, contrib modules are tested and released as part of
-Mill&#8217;s own CI process, ensuring there is always a version of the plugin
+Mill’s own CI process, ensuring there is always a version of the plugin
 compatible with any Mill version</p>
 </li>
 <li>
 <p>Like third-party plugins, contrib modules are submitted by third-parties,
-and do now maintain the same binary compatibility guarantees of Mill&#8217;s
+and do now maintain the same binary compatibility guarantees of Mill’s
 builtin comdules</p>
 </li>
 </ul>
@@ -819,9 +820,9 @@ builtin comdules</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

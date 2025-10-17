@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Selective Test Execution :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/large/selective-execution.html" />
-    <link rel="prev" href="large.html" />
-    <link rel="next" href="multi-file-builds.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/large/selective-execution.html">
+    <link rel="prev" href="large.html">
+    <link rel="next" href="multi-file-builds.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -664,7 +663,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -741,69 +740,70 @@ object qux extends MyModule</code></pre>
 </div>
 <div class="paragraph">
 <center>
-<svg width="235px" height="129px" viewBox="0.00 0.00 234.54 128.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="235px" height="129px"
+ viewBox="0.00 0.00 234.54 128.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 124.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-124.8 230.54,-124.8 230.54,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-124.8 230.54,-124.8 230.54,4 -4,4"/>
 <!-- qux -->
 <g id="node1" class="node">
 <title>qux</title>
-<polygon fill="white" stroke="black" points="37,-24.7 0,-24.7 0,-0.1 37,-0.1 37,-24.7"></polygon>
+<polygon fill="white" stroke="black" points="37,-24.7 0,-24.7 0,-0.1 37,-0.1 37,-24.7"/>
 <text text-anchor="middle" x="18.5" y="-8.2" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.test -->
 <g id="node2" class="node">
 <title>qux.test</title>
-<polygon fill="white" stroke="black" points="132.91,-24.7 73.03,-24.7 73.03,-0.1 132.91,-0.1 132.91,-24.7"></polygon>
+<polygon fill="white" stroke="black" points="132.91,-24.7 73.03,-24.7 73.03,-0.1 132.91,-0.1 132.91,-24.7"/>
 <text text-anchor="middle" x="102.97" y="-8.2" font-family="Times,serif" font-size="14.00">qux.test</text>
 </g>
 <!-- qux&#45;&gt;qux.test -->
 <g id="edge1" class="edge">
-<title>qux-&gt;qux.test</title>
-<path fill="none" stroke="black" d="M37.39,-12.4C44.82,-12.4 53.74,-12.4 62.56,-12.4"></path>
-<polygon fill="black" stroke="black" points="62.76,-15.9 72.76,-12.4 62.76,-8.9 62.76,-15.9"></polygon>
+<title>qux&#45;&gt;qux.test</title>
+<path fill="none" stroke="black" d="M37.39,-12.4C44.82,-12.4 53.74,-12.4 62.56,-12.4"/>
+<polygon fill="black" stroke="black" points="62.76,-15.9 72.76,-12.4 62.76,-8.9 62.76,-15.9"/>
 </g>
 <!-- bar -->
 <g id="node3" class="node">
 <title>bar</title>
-<polygon fill="white" stroke="black" points="35.38,-88.7 1.62,-88.7 1.62,-64.1 35.38,-64.1 35.38,-88.7"></polygon>
+<polygon fill="white" stroke="black" points="35.38,-88.7 1.62,-88.7 1.62,-64.1 35.38,-64.1 35.38,-88.7"/>
 <text text-anchor="middle" x="18.5" y="-72.2" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- bar.test -->
 <g id="node4" class="node">
 <title>bar.test</title>
-<polygon fill="white" stroke="black" points="131.29,-120.7 74.65,-120.7 74.65,-96.1 131.29,-96.1 131.29,-120.7"></polygon>
+<polygon fill="white" stroke="black" points="131.29,-120.7 74.65,-120.7 74.65,-96.1 131.29,-96.1 131.29,-120.7"/>
 <text text-anchor="middle" x="102.97" y="-104.2" font-family="Times,serif" font-size="14.00">bar.test</text>
 </g>
 <!-- bar&#45;&gt;bar.test -->
 <g id="edge2" class="edge">
-<title>bar-&gt;bar.test</title>
-<path fill="none" stroke="black" d="M35.4,-82.57C43.86,-85.85 54.64,-90.03 65.05,-94.07"></path>
-<polygon fill="black" stroke="black" points="63.83,-97.36 74.42,-97.71 66.37,-90.83 63.83,-97.36"></polygon>
+<title>bar&#45;&gt;bar.test</title>
+<path fill="none" stroke="black" d="M35.4,-82.57C43.86,-85.85 54.64,-90.03 65.05,-94.07"/>
+<polygon fill="black" stroke="black" points="63.83,-97.36 74.42,-97.71 66.37,-90.83 63.83,-97.36"/>
 </g>
 <!-- foo -->
 <g id="node5" class="node">
 <title>foo</title>
-<polygon fill="white" stroke="black" points="120.13,-77.7 85.81,-77.7 85.81,-53.1 120.13,-53.1 120.13,-77.7"></polygon>
+<polygon fill="white" stroke="black" points="120.13,-77.7 85.81,-77.7 85.81,-53.1 120.13,-53.1 120.13,-77.7"/>
 <text text-anchor="middle" x="102.97" y="-61.2" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
 <!-- bar&#45;&gt;foo -->
 <g id="edge3" class="edge">
-<title>bar-&gt;foo</title>
-<path fill="none" stroke="black" d="M35.4,-74.28C46.78,-72.76 62.35,-70.68 75.58,-68.92"></path>
-<polygon fill="black" stroke="black" points="76.1,-72.38 85.55,-67.59 75.18,-65.44 76.1,-72.38"></polygon>
+<title>bar&#45;&gt;foo</title>
+<path fill="none" stroke="black" d="M35.4,-74.28C46.78,-72.76 62.35,-70.68 75.58,-68.92"/>
+<polygon fill="black" stroke="black" points="76.1,-72.38 85.55,-67.59 75.18,-65.44 76.1,-72.38"/>
 </g>
 <!-- foo.test -->
 <g id="node6" class="node">
 <title>foo.test</title>
-<polygon fill="white" stroke="black" points="226.34,-77.7 169.14,-77.7 169.14,-53.1 226.34,-53.1 226.34,-77.7"></polygon>
+<polygon fill="white" stroke="black" points="226.34,-77.7 169.14,-77.7 169.14,-53.1 226.34,-53.1 226.34,-77.7"/>
 <text text-anchor="middle" x="197.74" y="-61.2" font-family="Times,serif" font-size="14.00">foo.test</text>
 </g>
 <!-- foo&#45;&gt;foo.test -->
 <g id="edge4" class="edge">
-<title>foo-&gt;foo.test</title>
-<path fill="none" stroke="black" d="M120.56,-65.4C131.17,-65.4 145.38,-65.4 158.66,-65.4"></path>
-<polygon fill="black" stroke="black" points="159.02,-68.9 169.02,-65.4 159.02,-61.9 159.02,-68.9"></polygon>
+<title>foo&#45;&gt;foo.test</title>
+<path fill="none" stroke="black" d="M120.56,-65.4C131.17,-65.4 145.38,-65.4 158.66,-65.4"/>
+<polygon fill="black" stroke="black" points="159.02,-68.9 169.02,-65.4 159.02,-61.9 159.02,-68.9"/>
 </g>
 </g>
 </svg>
@@ -817,69 +817,70 @@ suites and show both successes and the one failure:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="235px" height="129px" viewBox="0.00 0.00 234.54 128.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="235px" height="129px"
+ viewBox="0.00 0.00 234.54 128.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 124.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-124.8 230.54,-124.8 230.54,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-124.8 230.54,-124.8 230.54,4 -4,4"/>
 <!-- qux.test -->
 <g id="node1" class="node">
 <title>qux.test</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="132.91,-24.7 73.03,-24.7 73.03,-0.1 132.91,-0.1 132.91,-24.7"></polygon>
+<polygon fill="white" stroke="red" stroke-width="2" points="132.91,-24.7 73.03,-24.7 73.03,-0.1 132.91,-0.1 132.91,-24.7"/>
 <text text-anchor="middle" x="102.97" y="-8.2" font-family="Times,serif" font-size="14.00">qux.test</text>
 </g>
 <!-- qux -->
 <g id="node2" class="node">
 <title>qux</title>
-<polygon fill="white" stroke="black" points="37,-24.7 0,-24.7 0,-0.1 37,-0.1 37,-24.7"></polygon>
+<polygon fill="white" stroke="black" points="37,-24.7 0,-24.7 0,-0.1 37,-0.1 37,-24.7"/>
 <text text-anchor="middle" x="18.5" y="-8.2" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux&#45;&gt;qux.test -->
 <g id="edge1" class="edge">
-<title>qux-&gt;qux.test</title>
-<path fill="none" stroke="black" d="M37.39,-12.4C44.82,-12.4 53.74,-12.4 62.56,-12.4"></path>
-<polygon fill="black" stroke="black" points="62.76,-15.9 72.76,-12.4 62.76,-8.9 62.76,-15.9"></polygon>
+<title>qux&#45;&gt;qux.test</title>
+<path fill="none" stroke="black" d="M37.39,-12.4C44.82,-12.4 53.74,-12.4 62.56,-12.4"/>
+<polygon fill="black" stroke="black" points="62.76,-15.9 72.76,-12.4 62.76,-8.9 62.76,-15.9"/>
 </g>
 <!-- bar -->
 <g id="node3" class="node">
 <title>bar</title>
-<polygon fill="white" stroke="black" points="35.38,-88.7 1.62,-88.7 1.62,-64.1 35.38,-64.1 35.38,-88.7"></polygon>
+<polygon fill="white" stroke="black" points="35.38,-88.7 1.62,-88.7 1.62,-64.1 35.38,-64.1 35.38,-88.7"/>
 <text text-anchor="middle" x="18.5" y="-72.2" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- bar.test -->
 <g id="node4" class="node">
 <title>bar.test</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="131.29,-120.7 74.65,-120.7 74.65,-96.1 131.29,-96.1 131.29,-120.7"></polygon>
+<polygon fill="white" stroke="red" stroke-width="2" points="131.29,-120.7 74.65,-120.7 74.65,-96.1 131.29,-96.1 131.29,-120.7"/>
 <text text-anchor="middle" x="102.97" y="-104.2" font-family="Times,serif" font-size="14.00">bar.test</text>
 </g>
 <!-- bar&#45;&gt;bar.test -->
 <g id="edge2" class="edge">
-<title>bar-&gt;bar.test</title>
-<path fill="none" stroke="black" d="M35.4,-82.57C43.86,-85.85 54.64,-90.03 65.05,-94.07"></path>
-<polygon fill="black" stroke="black" points="63.83,-97.36 74.42,-97.71 66.37,-90.83 63.83,-97.36"></polygon>
+<title>bar&#45;&gt;bar.test</title>
+<path fill="none" stroke="black" d="M35.4,-82.57C43.86,-85.85 54.64,-90.03 65.05,-94.07"/>
+<polygon fill="black" stroke="black" points="63.83,-97.36 74.42,-97.71 66.37,-90.83 63.83,-97.36"/>
 </g>
 <!-- foo -->
 <g id="node5" class="node">
 <title>foo</title>
-<polygon fill="white" stroke="black" points="120.13,-77.7 85.81,-77.7 85.81,-53.1 120.13,-53.1 120.13,-77.7"></polygon>
+<polygon fill="white" stroke="black" points="120.13,-77.7 85.81,-77.7 85.81,-53.1 120.13,-53.1 120.13,-77.7"/>
 <text text-anchor="middle" x="102.97" y="-61.2" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
 <!-- bar&#45;&gt;foo -->
 <g id="edge3" class="edge">
-<title>bar-&gt;foo</title>
-<path fill="none" stroke="black" d="M35.4,-74.28C46.78,-72.76 62.35,-70.68 75.58,-68.92"></path>
-<polygon fill="black" stroke="black" points="76.1,-72.38 85.55,-67.59 75.18,-65.44 76.1,-72.38"></polygon>
+<title>bar&#45;&gt;foo</title>
+<path fill="none" stroke="black" d="M35.4,-74.28C46.78,-72.76 62.35,-70.68 75.58,-68.92"/>
+<polygon fill="black" stroke="black" points="76.1,-72.38 85.55,-67.59 75.18,-65.44 76.1,-72.38"/>
 </g>
 <!-- foo.test -->
 <g id="node6" class="node">
 <title>foo.test</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="226.34,-77.7 169.14,-77.7 169.14,-53.1 226.34,-53.1 226.34,-77.7"></polygon>
+<polygon fill="white" stroke="red" stroke-width="2" points="226.34,-77.7 169.14,-77.7 169.14,-53.1 226.34,-53.1 226.34,-77.7"/>
 <text text-anchor="middle" x="197.74" y="-61.2" font-family="Times,serif" font-size="14.00">foo.test</text>
 </g>
 <!-- foo&#45;&gt;foo.test -->
 <g id="edge4" class="edge">
-<title>foo-&gt;foo.test</title>
-<path fill="none" stroke="black" d="M120.56,-65.4C131.17,-65.4 145.38,-65.4 158.66,-65.4"></path>
-<polygon fill="black" stroke="black" points="159.02,-68.9 169.02,-65.4 159.02,-61.9 159.02,-68.9"></polygon>
+<title>foo&#45;&gt;foo.test</title>
+<path fill="none" stroke="black" d="M120.56,-65.4C131.17,-65.4 145.38,-65.4 158.66,-65.4"/>
+<polygon fill="black" stroke="black" points="159.02,-68.9 169.02,-65.4 159.02,-61.9 159.02,-68.9"/>
 </g>
 </g>
 </svg>
@@ -906,7 +907,7 @@ your tests, because you know that <code>qux.test</code> does not depend on <code
 failure cannot be related to your changes.</p>
 </li>
 <li>
-<p>Even if <code>qux.test</code> wasn’t failing, running it on a pull request that changes <code>bar/</code> is
+<p>Even if <code>qux.test</code> wasn&#8217;t failing, running it on a pull request that changes <code>bar/</code> is
 wasteful, taking up compute resources to run tests that could not possibly be affected
 by the code change in question.</p>
 </li>
@@ -936,69 +937,70 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...</code></pre>
 </div>
 <div class="paragraph">
 <center>
-<svg width="235px" height="129px" viewBox="0.00 0.00 234.54 128.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="235px" height="129px"
+ viewBox="0.00 0.00 234.54 128.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 124.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-124.8 230.54,-124.8 230.54,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-124.8 230.54,-124.8 230.54,4 -4,4"/>
 <!-- qux -->
 <g id="node1" class="node">
 <title>qux</title>
-<polygon fill="white" stroke="black" points="37,-24.7 0,-24.7 0,-0.1 37,-0.1 37,-24.7"></polygon>
+<polygon fill="white" stroke="black" points="37,-24.7 0,-24.7 0,-0.1 37,-0.1 37,-24.7"/>
 <text text-anchor="middle" x="18.5" y="-8.2" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.test -->
 <g id="node2" class="node">
 <title>qux.test</title>
-<polygon fill="white" stroke="black" points="132.91,-24.7 73.03,-24.7 73.03,-0.1 132.91,-0.1 132.91,-24.7"></polygon>
+<polygon fill="white" stroke="black" points="132.91,-24.7 73.03,-24.7 73.03,-0.1 132.91,-0.1 132.91,-24.7"/>
 <text text-anchor="middle" x="102.97" y="-8.2" font-family="Times,serif" font-size="14.00">qux.test</text>
 </g>
 <!-- qux&#45;&gt;qux.test -->
 <g id="edge1" class="edge">
-<title>qux-&gt;qux.test</title>
-<path fill="none" stroke="black" d="M37.39,-12.4C44.82,-12.4 53.74,-12.4 62.56,-12.4"></path>
-<polygon fill="black" stroke="black" points="62.76,-15.9 72.76,-12.4 62.76,-8.9 62.76,-15.9"></polygon>
+<title>qux&#45;&gt;qux.test</title>
+<path fill="none" stroke="black" d="M37.39,-12.4C44.82,-12.4 53.74,-12.4 62.56,-12.4"/>
+<polygon fill="black" stroke="black" points="62.76,-15.9 72.76,-12.4 62.76,-8.9 62.76,-15.9"/>
 </g>
 <!-- bar -->
 <g id="node3" class="node">
 <title>bar</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="35.38,-88.7 1.62,-88.7 1.62,-64.1 35.38,-64.1 35.38,-88.7"></polygon>
+<polygon fill="white" stroke="red" stroke-width="2" points="35.38,-88.7 1.62,-88.7 1.62,-64.1 35.38,-64.1 35.38,-88.7"/>
 <text text-anchor="middle" x="18.5" y="-72.2" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- bar.test -->
 <g id="node4" class="node">
 <title>bar.test</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="131.29,-120.7 74.65,-120.7 74.65,-96.1 131.29,-96.1 131.29,-120.7"></polygon>
+<polygon fill="white" stroke="red" stroke-width="2" points="131.29,-120.7 74.65,-120.7 74.65,-96.1 131.29,-96.1 131.29,-120.7"/>
 <text text-anchor="middle" x="102.97" y="-104.2" font-family="Times,serif" font-size="14.00">bar.test</text>
 </g>
 <!-- bar&#45;&gt;bar.test -->
 <g id="edge2" class="edge">
-<title>bar-&gt;bar.test</title>
-<path fill="none" stroke="red" stroke-width="2" d="M35.4,-82.57C43.86,-85.85 54.64,-90.03 65.05,-94.07"></path>
-<polygon fill="red" stroke="red" stroke-width="2" points="63.83,-97.36 74.42,-97.71 66.37,-90.83 63.83,-97.36"></polygon>
+<title>bar&#45;&gt;bar.test</title>
+<path fill="none" stroke="red" stroke-width="2" d="M35.4,-82.57C43.86,-85.85 54.64,-90.03 65.05,-94.07"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="63.83,-97.36 74.42,-97.71 66.37,-90.83 63.83,-97.36"/>
 </g>
 <!-- foo -->
 <g id="node5" class="node">
 <title>foo</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="120.13,-77.7 85.81,-77.7 85.81,-53.1 120.13,-53.1 120.13,-77.7"></polygon>
+<polygon fill="white" stroke="red" stroke-width="2" points="120.13,-77.7 85.81,-77.7 85.81,-53.1 120.13,-53.1 120.13,-77.7"/>
 <text text-anchor="middle" x="102.97" y="-61.2" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
 <!-- bar&#45;&gt;foo -->
 <g id="edge3" class="edge">
-<title>bar-&gt;foo</title>
-<path fill="none" stroke="red" stroke-width="2" d="M35.4,-74.28C46.78,-72.76 62.35,-70.68 75.58,-68.92"></path>
-<polygon fill="red" stroke="red" stroke-width="2" points="76.1,-72.38 85.55,-67.59 75.18,-65.44 76.1,-72.38"></polygon>
+<title>bar&#45;&gt;foo</title>
+<path fill="none" stroke="red" stroke-width="2" d="M35.4,-74.28C46.78,-72.76 62.35,-70.68 75.58,-68.92"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="76.1,-72.38 85.55,-67.59 75.18,-65.44 76.1,-72.38"/>
 </g>
 <!-- foo.test -->
 <g id="node6" class="node">
 <title>foo.test</title>
-<polygon fill="white" stroke="red" stroke-width="2" points="226.34,-77.7 169.14,-77.7 169.14,-53.1 226.34,-53.1 226.34,-77.7"></polygon>
+<polygon fill="white" stroke="red" stroke-width="2" points="226.34,-77.7 169.14,-77.7 169.14,-53.1 226.34,-53.1 226.34,-77.7"/>
 <text text-anchor="middle" x="197.74" y="-61.2" font-family="Times,serif" font-size="14.00">foo.test</text>
 </g>
 <!-- foo&#45;&gt;foo.test -->
 <g id="edge4" class="edge">
-<title>foo-&gt;foo.test</title>
-<path fill="none" stroke="red" stroke-width="2" d="M120.56,-65.4C131.17,-65.4 145.38,-65.4 158.66,-65.4"></path>
-<polygon fill="red" stroke="red" stroke-width="2" points="159.02,-68.9 169.02,-65.4 159.02,-61.9 159.02,-68.9"></polygon>
+<title>foo&#45;&gt;foo.test</title>
+<path fill="none" stroke="red" stroke-width="2" d="M120.56,-65.4C131.17,-65.4 145.38,-65.4 158.66,-65.4"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="159.02,-68.9 169.02,-65.4 159.02,-61.9 159.02,-68.9"/>
 </g>
 </g>
 </svg>
@@ -1020,20 +1022,20 @@ bar.sources
 
 &gt; ./mill selective.resolveTree __.test
 {
-  &quot;bar.sources&quot;: {
-    &quot;bar.allSources&quot;: {
-      &quot;bar.allSourceFiles&quot;: {
-        &quot;bar.compile&quot;: {
-          &quot;bar.localRunClasspath&quot;: {
-            &quot;bar.localClasspath&quot;: {
-              &quot;bar.test.transitiveLocalClasspath&quot;: {
-                &quot;bar.test.runClasspath&quot;: {
-                  &quot;bar.test.testForked&quot;: {}
+  "bar.sources": {
+    "bar.allSources": {
+      "bar.allSourceFiles": {
+        "bar.compile": {
+          "bar.localRunClasspath": {
+            "bar.localClasspath": {
+              "bar.test.transitiveLocalClasspath": {
+                "bar.test.runClasspath": {
+                  "bar.test.testForked": {}
                 }
               },
-              &quot;foo.test.transitiveLocalClasspath&quot;: {
-                &quot;foo.test.runClasspath&quot;: {
-                  &quot;foo.test.testForked&quot;: {}
+              "foo.test.transitiveLocalClasspath": {
+                "foo.test.runClasspath": {
+                  "foo.test.testForked": {}
                 }
               }
             }
@@ -1086,7 +1088,7 @@ some subtleties to be aware of:</p>
 <p><strong>Dynamic <code>Task.Input</code> to capture Git metadata must be disabled</strong>, e.g. using
 <a href="https://github.com/lefou/mill-vcs-version">mill-vcs-version</a>. The easiest way to do
 this is to guard such dynamic inputs on an environment variable, such that
-in most scenarios it returns a constant <code>&quot;SNAPSHOT&quot;</code> string, and only when
+in most scenarios it returns a constant <code>"SNAPSHOT"</code> string, and only when
 necessary do you pass in the environment variable to compute a real version (e.g.
 during publishing)</p>
 </li>
@@ -1095,8 +1097,8 @@ during publishing)</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myProjectVersion: T[String] = Task.Input {
-  if (Task.env.contains(&quot;MY_PROJECT_STABLE_VERSION&quot;)) VcsVersion.calcVcsState(Task.log).format()
-  else &quot;SNAPSHOT&quot;
+  if (Task.env.contains("MY_PROJECT_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
+  else "SNAPSHOT"
 }</code></pre>
 </div>
 </div>
@@ -1184,9 +1186,9 @@ than the task skipping and cache-reuse that is done during evaluation.</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>
