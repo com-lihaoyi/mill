@@ -211,7 +211,7 @@ trait TestModule
       )
 
       val argsFile = Task.dest / "testargs"
-      os.write(argsFile, upickle.default.write(testArgs))
+      os.write(argsFile, upickle.write(testArgs))
 
       val testRunnerClasspathArg =
         jvmWorker().scalalibClasspath()

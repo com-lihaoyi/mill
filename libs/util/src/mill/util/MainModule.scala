@@ -10,7 +10,7 @@ import mill.moduledefs.Scaladoc
 import mill.api.BuildCtx
 import mill.api.daemon.internal.bsp.BspMainModuleApi
 
-abstract class MainRootModule()(implicit
+abstract class MainRootModule()(using
     baseModuleInfo: RootModule.Info,
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
@@ -354,7 +354,7 @@ object MainModule {
             t match {
               case t: mill.api.Task.Named[_] =>
                 val jsonFile = ExecutionPaths.resolve(evaluator.outPath, t).meta
-                val metadata = upickle.default.read[Cached](ujson.read(jsonFile.toIO))
+                val metadata = upickle.read[Cached](ujson.read(jsonFile.toIO))
                 Some((t.toString, metadata.value))
               case _ => None
             }

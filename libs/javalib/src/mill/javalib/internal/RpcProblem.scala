@@ -10,7 +10,7 @@ case class RpcProblem(
     message: String,
     position: RpcProblemPosition,
     diagnosticCode: Option[RpcDiagnosticCode]
-) extends Problem derives upickle.default.ReadWriter
+) extends Problem derives upickle.ReadWriter
 object RpcProblem {
   def apply(p: Problem): RpcProblem = apply(
     category = p.category,

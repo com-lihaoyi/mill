@@ -1,4 +1,3 @@
-//| mill-jvm-version: 17
 // This example demonstrates how to resolve a third-party library from Maven Central,
 // but instead of using xref:extending/import-mvn-plugins.adoc[//| mvnDeps] (which loads the
 // library as part of the main build) we use:

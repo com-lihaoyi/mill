@@ -211,7 +211,7 @@ trait PublishModule extends JavaModule { outer =>
    * @return
    */
   private def ivy(hasJar: Boolean): Task[String] = Task.Anon {
-    val dep = coursierDependency.withConfiguration(Configuration.runtime)
+    val dep = coursierDependencyTask().withConfiguration(Configuration.runtime)
     val resolution = millResolver().resolution(Seq(BoundDep(dep, force = false)))
 
     val (results, bomDepMgmt) =
@@ -292,7 +292,7 @@ trait PublishModule extends JavaModule { outer =>
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
-  @deprecated("Use `defaultPublishInfos` that takes parameters instead.", "1.0.1")
+  @deprecated("Use `defaultPublishInfos` that takes parameters instead.", "Mill 1.0.1")
   def defaultPublishInfos: T[Seq[PublishInfo]] =
     Task { defaultPublishInfos(sources = true, docs = true)() }
 
@@ -493,7 +493,7 @@ trait PublishModule extends JavaModule { outer =>
 
   @deprecated(
     "Do not override this task, override `artifactMetadata`, `publishArtifactsDefaultPayload` or `extraPublish` instead.",
-    "1.0.1"
+    "Mill 1.0.1"
   )
   def publishArtifacts: T[PublishModule.PublishData] = Task {
     PublishModule.PublishData(artifactMetadata(), publishArtifactsPayload()())
@@ -645,11 +645,11 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
 
   val defaultGpgArgs: Seq[String] = internal.PublishModule.defaultGpgArgs
 
-  @deprecated("This API should have been internal and is not guaranteed to stay.", "1.0.1")
+  @deprecated("This API should have been internal and is not guaranteed to stay.", "Mill 1.0.1")
   def pgpImportSecretIfProvided(env: Map[String, String]): Unit =
     internal.PublishModule.pgpImportSecretIfProvidedOrThrow(env)
 
-  @deprecated("This API should have been internal and is not guaranteed to stay.", "1.0.1")
+  @deprecated("This API should have been internal and is not guaranteed to stay.", "Mill 1.0.1")
   def defaultGpgArgsForPassphrase(passphrase: Option[String]): Seq[String] =
     internal.PublishModule.defaultGpgArgsForPassphrase(passphrase).map(Secret.unpack)
 
@@ -684,9 +684,9 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       (PublishData.withConcretePath(payloadAsMap), meta)
   }
   object PublishData {
-    implicit def jsonify: upickle.default.ReadWriter[PublishData] = {
+    implicit def jsonify: upickle.ReadWriter[PublishData] = {
       import mill.javalib.publish.JsonFormatters.artifactFormat
-      upickle.default.macroRW
+      upickle.macroRW
     }
 
     def apply(meta: Artifact, payload: Map[os.SubPath, PathRef]): PublishData =

@@ -5,13 +5,14 @@ import mill.api.internal.{Reflect, Resolved, RootModule0}
 import mill.api.{
   DefaultTaskModule,
   Discover,
+  ExternalModule,
   Module,
+  Result,
   Segments,
   SelectMode,
   SimpleTaskTokenReader,
   Task
 }
-import mill.api.Result
 import mill.resolve.ResolveCore.makeResultException
 
 private[mill] object Resolve {
@@ -138,7 +139,7 @@ private[mill] object Resolve {
                     nullCommandDefaults,
                     allowPositionalCommandArgs
                   ).map(Some(_))
-                case _ => ???
+                case r => sys.error("Unexepcted direct child " + r + " of " + r)
               }
             )
           case _ => Result.Success(None)
@@ -209,7 +210,10 @@ private[mill] object Resolve {
       val invoked = invokeCommand0(
         p,
         r.segments.last.value,
-        rootModule.moduleCtx.discover,
+        p match {
+          case e: ExternalModule => e.moduleCtx.discover
+          case _ => rootModule.moduleCtx.discover
+        },
         args,
         nullCommandDefaults,
         allowPositionalCommandArgs
@@ -300,46 +304,86 @@ private[mill] trait Resolve[T] {
       cache: ResolveCore.Cache
   ): Result[Seq[T]]
 
-  def resolve(
+  private[mill] def resolve(
       rootModule: RootModule0,
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
-      resolveToModuleTasks: Boolean = false
-  ): Result[List[T]] = {
-    resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
-  }
-
-  private[mill] def resolve0(
-      rootModule: RootModule0,
-      scriptArgs: Seq[String],
-      selectMode: SelectMode,
-      allowPositionalCommandArgs: Boolean,
-      resolveToModuleTasks: Boolean
+      resolveToModuleTasks: Boolean = false,
+      scriptModuleResolver: (
+          String,
+          Boolean,
+          Option[String]
+      ) => Seq[Result[mill.api.ExternalModule]]
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
-    val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
-      val resolved = groups.map { case (selectors, args) =>
-        val selected = selectors.map { case (scopedSel, sel) =>
-          resolveRootModule(rootModule, scopedSel).map { rootModuleSels =>
-            resolveNonEmptyAndHandle(
-              args,
-              rootModuleSels,
-              sel.getOrElse(Segments()),
-              nullCommandDefaults,
-              allowPositionalCommandArgs,
-              resolveToModuleTasks
-            )
-          }
-        }
-
-        Result.sequence(selected.map(_.flatten)).map(_.flatten)
+    val cache = new ResolveCore.Cache(scriptModuleChildResolver = scriptModuleResolver(_, true, _))
+    def handleScriptModule(args: Seq[String], fallback: => Result[Seq[T]]): Result[Seq[T]] = {
+      val (first, selector, remaining) = args match {
+        case Seq(s"$prefix:$suffix", rest*) => (prefix, Some(suffix), rest)
+        case Seq(head, rest*) => (head, None, rest)
       }
 
-      Result.sequence(resolved)
+      def handleResolved(
+          resolved: Result[ExternalModule],
+          segments: Seq[String],
+          remaining: Seq[String]
+      ) = {
+        resolved.flatMap(scriptModule =>
+          resolveNonEmptyAndHandle(
+            remaining,
+            scriptModule,
+            Segments.labels(segments*),
+            nullCommandDefaults,
+            allowPositionalCommandArgs,
+            resolveToModuleTasks,
+            scriptModuleResolver
+          )
+        )
+      }
+
+      scriptModuleResolver(first, false, None) match {
+        case Seq(resolved) => handleResolved(resolved, selector.toSeq, remaining)
+        case Nil =>
+          if (selector.isEmpty) { // if the `:selector` is empty, try treating the `first` as a selector
+            scriptModuleResolver(".", false, None) match {
+              case Seq(resolved) => handleResolved(resolved, Seq(first), remaining)
+              case Nil => fallback
+            }
+          } else fallback
+      }
+    }
+    val resolvedGroups = ParseArgs.separate(scriptArgs).map { group =>
+      ParseArgs.extractAndValidate(group, selectMode == SelectMode.Multi) match {
+        case f: Result.Failure => handleScriptModule(group, f)
+        case Result.Success((selectors, args)) =>
+          val selected: Seq[Result[Seq[T]]] = selectors.map { case (scopedSel, sel) =>
+            resolveRootModule(rootModule, scopedSel) match {
+              case f: Result.Failure => handleScriptModule(group, f)
+              case Result.Success(rootModuleSels) =>
+                val res =
+                  resolveNonEmptyAndHandle1(rootModuleSels, sel.getOrElse(Segments()), cache)
+                def notFoundResult = resolveNonEmptyAndHandle2(
+                  rootModuleSels,
+                  args,
+                  sel.getOrElse(Segments()),
+                  nullCommandDefaults,
+                  allowPositionalCommandArgs,
+                  resolveToModuleTasks,
+                  cache,
+                  res
+                )
+                res match {
+                  case _: ResolveCore.NotFound => handleScriptModule(group, notFoundResult)
+                  case res => notFoundResult
+                }
+            }
+          }
+          Result.sequence(selected).map(_.flatten)
+      }
     }
 
-    resolvedGroups.map(_.flatten.toList).map(deduplicate)
+    Result.sequence(resolvedGroups).map(_.flatten.toList).map(deduplicate)
   }
 
   private[mill] def resolveNonEmptyAndHandle(
@@ -348,40 +392,73 @@ private[mill] trait Resolve[T] {
       sel: Segments,
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean,
-      resolveToModuleTasks: Boolean
+      resolveToModuleTasks: Boolean,
+      scriptModuleResolver: (
+          String,
+          Boolean,
+          Option[String]
+      ) => Seq[Result[mill.api.ExternalModule]]
   ): Result[Seq[T]] = {
+    val cache = new ResolveCore.Cache(scriptModuleChildResolver = scriptModuleResolver(_, true, _))
+    resolveNonEmptyAndHandle2(
+      rootModule,
+      args,
+      sel,
+      nullCommandDefaults,
+      allowPositionalCommandArgs,
+      resolveToModuleTasks,
+      cache,
+      resolveNonEmptyAndHandle1(rootModule, sel, cache)
+    )
+  }
+  private[mill] def resolveNonEmptyAndHandle1(
+      rootModule: RootModule0,
+      sel: Segments,
+      cache: ResolveCore.Cache
+  ): ResolveCore.Result = {
     val rootResolved = Resolved.Module(Segments(), rootModule.getClass)
-    val cache = new ResolveCore.Cache()
-    val resolved =
-      ResolveCore.resolve(
-        rootModule = rootModule,
-        remainingQuery = sel.value.toList,
-        current = rootResolved,
-        querySoFar = Segments(),
-        seenModules = Set.empty,
-        cache = cache
-      ) match {
-        case ResolveCore.Success(value) => Result.Success(value)
-        case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-          val allPossibleNames = rootModule
-            .moduleCtx
-            .discover
-            .classInfo
-            .values
-            .flatMap(_.declaredTasks)
-            .map(_.name)
-            .toSet
+    ResolveCore.resolve(
+      rootModule = rootModule,
+      remainingQuery = sel.value.toList,
+      current = rootResolved,
+      querySoFar = Segments(),
+      seenModules = Set.empty,
+      cache = cache
+    )
+  }
 
-          Result.Failure(ResolveNotFoundHandler(
-            selector = sel,
-            segments = segments,
-            found = found,
-            next = next,
-            possibleNexts = possibleNexts,
-            allPossibleNames = allPossibleNames
-          ))
-        case ResolveCore.Error(value) => Result.Failure(value)
-      }
+  private[mill] def resolveNonEmptyAndHandle2(
+      rootModule: RootModule0,
+      args: Seq[String],
+      sel: Segments,
+      nullCommandDefaults: Boolean,
+      allowPositionalCommandArgs: Boolean,
+      resolveToModuleTasks: Boolean,
+      cache: ResolveCore.Cache,
+      result: ResolveCore.Result
+  ): Result[Seq[T]] = {
+    val resolved = result match {
+      case ResolveCore.Success(value) => Result.Success(value)
+      case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
+        val allPossibleNames = rootModule
+          .moduleCtx
+          .discover
+          .classInfo
+          .values
+          .flatMap(_.declaredTasks)
+          .map(_.name)
+          .toSet
+
+        Result.Failure(ResolveNotFoundHandler(
+          selector = sel,
+          segments = segments,
+          found = found,
+          next = next,
+          possibleNexts = possibleNexts,
+          allPossibleNames = allPossibleNames
+        ))
+      case ResolveCore.Error(value) => Result.Failure(value)
+    }
 
     resolved.flatMap { r =>
       val sorted = r.sorted

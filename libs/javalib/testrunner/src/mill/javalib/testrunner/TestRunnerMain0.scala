@@ -5,7 +5,7 @@ import mill.api.daemon.internal.{TestReporter, internal}
 @internal object TestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
     try {
-      val testArgs = upickle.default.read[TestArgs](os.read(os.Path(args(1))))
+      val testArgs = upickle.read[TestArgs](os.read(os.Path(args(1))))
       testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }
 
       val result = testArgs.globSelectors match {
@@ -38,7 +38,7 @@ import mill.api.daemon.internal.{TestReporter, internal}
       // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,
       // that flag causes writing the results to disk to fail
       Thread.interrupted()
-      os.write(testArgs.outputPath, upickle.default.stream(result))
+      os.write(testArgs.outputPath, upickle.stream(result))
     } catch {
       case e: Throwable =>
         println(e)

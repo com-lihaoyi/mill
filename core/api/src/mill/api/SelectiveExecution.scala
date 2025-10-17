@@ -44,7 +44,7 @@ object SelectiveExecution {
     )
   }
 
-  implicit val rw: upickle.default.ReadWriter[Metadata] = upickle.default.macroRW
+  implicit val rw: upickle.ReadWriter[Metadata] = upickle.macroRW
 
   case class ChangedTasks(
       resolved: Seq[Task.Named[?]],

@@ -2,7 +2,7 @@ package mill.rpc
 
 import mill.api.daemon.Logger
 import pprint.TPrint
-import upickle.default.{Reader, Writer}
+import upickle.{Reader, Writer}
 
 import scala.util.Try
 
@@ -60,14 +60,14 @@ object MillRpcClient {
               s"RPC wire has broken (${wireTransport.name}). The server probably crashed."
             )
           case Some(MillRpcServerToClient.Ask(id, dataJson)) =>
-            val data = upickle.default.read[ServerToClient](dataJson)
+            val data = upickle.read[ServerToClient](dataJson)
             handleServerMessage(id, data)
           case Some(MillRpcServerToClient.Response(`requestId`, either)) =>
             either match {
               case Left(err) =>
                 throw err
               case Right(responseJson) =>
-                val response = upickle.default.read[A](responseJson)
+                val response = upickle.read[A](responseJson)
                 responseReceived = Some(response)
             }
           case Some(MillRpcServerToClient.Response(reqId, either)) =>

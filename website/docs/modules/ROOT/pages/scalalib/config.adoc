@@ -1,0 +1,35 @@
+= Config-Based Scala Modules
+:language: Scala
+:language-small: scala
+
+This page documents the usage of simple config-based Scala modules defined by
+`build.mill.yaml` and `package.mill.yaml` files. These are less flexible but easier to get started with than the
+full `build.mill` or `package.mill` build files, which makes them ideal for small
+projects which do not need additional flexibility.
+
+== Common Configuration Overrides for Simple Modules
+
+include::partial$example/scalalib/config/1-common-config.adoc[]
+
+== Packaging and Publishing Simple Modules
+
+include::partial$example/scalalib/config/3-publish.adoc[]
+
+
+== Custom Script Module Classes
+
+include::partial$example/scalalib/config/4-custom-class.adoc[]
+
+== Depending on Programmatic Modules from Simple Modules
+
+include::partial$example/scalalib/config/5-mixed-module-deps.adoc[]
+
+== Single-File Scripts
+
+include::partial$example/scalalib/config/6-script.adoc[]
+
+== Scripts Builtin Libraries
+
+include::partial$example/scalalib/config/7-script-builtins.adoc[]
+
+

@@ -1,6 +1,6 @@
 package mill.scalajslib.api
 
-import upickle.default.ReadWriter
+import upickle.ReadWriter
 
 case class ESFeatures private (
     allowBigIntsForLongs: Boolean,

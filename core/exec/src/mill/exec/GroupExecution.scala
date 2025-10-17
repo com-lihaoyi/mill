@@ -17,7 +17,7 @@ import mill.api.daemon.internal.{BaseModuleApi, CompileProblemReporter, Evaluato
  * Logic around evaluating a single group, which is a collection of [[Task]]s
  * with a single [[Terminal]].
  */
-private trait GroupExecution {
+trait GroupExecution {
   def workspace: os.Path
   def outPath: os.Path
   def externalOutPath: os.Path
@@ -37,41 +37,7 @@ private trait GroupExecution {
   def systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
-  def headerData: String
   def offline: Boolean
-
-  lazy val parsedHeaderData: Map[String, ujson.Value] = {
-    import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
-    val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
-    // recursively convert java data structure to ujson.Value
-    val envWithPwd = env ++ Seq(
-      "PWD" -> workspace.toString,
-      "PWD_URI" -> workspace.toURI.toString,
-      "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
-      "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
-    )
-    def rec(x: Any): ujson.Value = {
-      import scala.jdk.CollectionConverters._
-      x match {
-        case d: java.util.Date => ujson.Str(d.toString)
-        case s: String => ujson.Str(mill.constants.Util.interpolateEnvVars(s, envWithPwd.asJava))
-        case d: Double => ujson.Num(d)
-        case d: Int => ujson.Num(d)
-        case d: Long => ujson.Num(d)
-        case true => ujson.True
-        case false => ujson.False
-        case null => ujson.Null
-        case m: java.util.Map[Object, Object] =>
-          val scalaMap = m.asScala
-          ujson.Obj.from(scalaMap.map { case (k, v) => (k.toString, rec(v)) })
-        case l: java.util.List[Object] =>
-          val scalaList: collection.Seq[Object] = l.asScala
-          ujson.Arr.from(scalaList.map(rec))
-      }
-    }
-
-    rec(loaded).objOpt.getOrElse(Map.empty[String, ujson.Value]).toMap
-  }
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
@@ -125,12 +91,29 @@ private trait GroupExecution {
     terminal match {
 
       case labelled: Task.Named[_] =>
-        labelled.ctx.segments.value match {
-          case Seq(Segment.Label(single)) if parsedHeaderData.contains(single) =>
-            val jsonData = parsedHeaderData(single)
+
+        // recursively convert java data structure to ujson.Value
+        val envWithPwd = env ++ Seq(
+          "PWD" -> workspace.toString,
+          "PWD_URI" -> workspace.toURI.toString,
+          "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
+          "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
+        )
+
+        labelled.ctx.segments.last.value match {
+          case single if labelled.ctx.enclosingModule.buildOverrides.contains(single) =>
+            val jsonData = labelled.ctx.enclosingModule.buildOverrides(single)
+
+            import collection.JavaConverters._
+            def rec(x: ujson.Value): ujson.Value = x match {
+              case ujson.Str(s) => mill.constants.Util.interpolateEnvVars(s, envWithPwd.asJava)
+              case ujson.Arr(xs) => ujson.Arr(xs.map(rec))
+              case ujson.Obj(kvs) => ujson.Obj.from(kvs.map((k, v) => (k, rec(v))))
+              case v => v
+            }
             val (resultData, serializedPaths) = PathRef.withSerializedPaths {
-              upickle.default.read[Any](jsonData)(
-                using labelled.readWriterOpt.get.asInstanceOf[upickle.default.Reader[Any]]
+              upickle.read[Any](rec(jsonData))(
+                using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
               )
             }
             GroupExecution.Results(
@@ -148,7 +131,21 @@ private trait GroupExecution {
             val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
             // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
-            val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled, cached.isEmpty)
+            val (multiLogger, fileLoggerOpt) = resolveLogger(Some(paths).map(_.log), logger)
+            val upToDateWorker = loadUpToDateWorker(
+              logger,
+              inputsHash,
+              labelled,
+              cached.isEmpty,
+              deps,
+              Some(paths),
+              upstreamPathRefs,
+              exclusive,
+              multiLogger,
+              countMsg,
+              new GroupExecution.DestCreator(Some(paths)),
+              terminal
+            )
 
             val cachedValueAndHash =
               upToDateWorker.map(w => (w -> Nil, inputsHash))
@@ -298,21 +295,12 @@ private trait GroupExecution {
             offline = offline
           )
 
-          // Tasks must be allowed to write to upstream worker's dest folders, because
-          // the point of workers is to manualy manage long-lived state which includes
-          // state on disk.
-          val validWriteDests =
-            deps.collect { case n: Task.Worker[?] =>
-              ExecutionPaths.resolve(outPath, n.ctx.segments).dest
-            } ++
-              paths.map(_.dest)
-
-          val validReadDests = validWriteDests ++ upstreamPathRefs.map(_.path)
-
           GroupExecution.wrap(
             workspace,
-            validWriteDests,
-            validReadDests,
+            deps,
+            outPath,
+            paths,
+            upstreamPathRefs,
             exclusive,
             multiLogger,
             logger,
@@ -320,7 +308,8 @@ private trait GroupExecution {
             counterMsg,
             destCreator,
             getEvaluator().asInstanceOf[Evaluator],
-            terminal
+            terminal,
+            rootModule.getClass.getClassLoader
           ) {
             try {
               task.evaluate(args) match {
@@ -347,9 +336,7 @@ private trait GroupExecution {
 
     if (!failFast) taskLabelOpt.foreach { taskLabel =>
       val taskFailed = newResults.exists(task => task._2.isInstanceOf[ExecResult.Failing[?]])
-      if (taskFailed) {
-        logger.error(s"$taskLabel failed")
-      }
+      if (taskFailed) logger.error(s"$taskLabel task failed")
     }
 
     (newResults.toMap, newEvaluated)
@@ -382,8 +369,8 @@ private trait GroupExecution {
         workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v))
       }
 
-    def normalJson(w: upickle.default.Writer[?]) = PathRef.withSerializedPaths {
-      upickle.default.writeJs(v.value)(using w.asInstanceOf[upickle.default.Writer[Any]])
+    def normalJson(w: upickle.Writer[?]) = PathRef.withSerializedPaths {
+      upickle.writeJs(v.value)(using w.asInstanceOf[upickle.Writer[Any]])
     }
     lazy val workerJson = labelled.asWorker.map { _ =>
       ujson.Obj(
@@ -402,7 +389,7 @@ private trait GroupExecution {
       case Some((json, serializedPaths)) =>
         os.write.over(
           metaPath,
-          upickle.default.stream(
+          upickle.stream(
             mill.api.Cached(json, hashCode, inputsHash),
             indent = 4
           ),
@@ -438,7 +425,7 @@ private trait GroupExecution {
   ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
     for {
       cached <-
-        try Some(upickle.default.read[Cached](paths.meta.toIO))
+        try Some(upickle.read[Cached](paths.meta.toIO))
         catch {
           case NonFatal(_) => None
         }
@@ -448,7 +435,7 @@ private trait GroupExecution {
         _ <- Option.when(cached.inputsHash == inputsHash)(())
         reader <- labelled.readWriterOpt
         (parsed, serializedPaths) <-
-          try Some(PathRef.withSerializedPaths(upickle.default.read(cached.value)(using reader)))
+          try Some(PathRef.withSerializedPaths(upickle.read(cached.value)(using reader)))
           catch {
             case e: PathRef.PathRefValidationException =>
               logger.debug(
@@ -469,7 +456,15 @@ private trait GroupExecution {
       logger: Logger,
       inputsHash: Int,
       labelled: Task.Named[?],
-      forceDiscard: Boolean
+      forceDiscard: Boolean,
+      deps: Seq[Task[?]],
+      paths: Option[ExecutionPaths],
+      upstreamPathRefs: Seq[PathRef],
+      exclusive: Boolean,
+      multiLogger: Logger,
+      counterMsg: String,
+      destCreator: GroupExecution.DestCreator,
+      terminal: Task[?]
   ): Option[Val] = {
     labelled.asWorker
       .flatMap { w =>
@@ -486,7 +481,24 @@ private trait GroupExecution {
           // worker cached but obsolete, needs to be closed
           try {
             logger.debug(s"Closing previous worker: $labelled")
-            obsolete.close()
+            GroupExecution.wrap(
+              workspace,
+              deps,
+              outPath,
+              paths,
+              upstreamPathRefs,
+              exclusive,
+              multiLogger,
+              logger,
+              exclusiveSystemStreams,
+              counterMsg,
+              destCreator,
+              getEvaluator().asInstanceOf[Evaluator],
+              terminal,
+              rootModule.getClass.getClassLoader
+            ) {
+              obsolete.close()
+            }
           } catch {
             case NonFatal(e) =>
               logger.error(
@@ -506,7 +518,7 @@ private trait GroupExecution {
   }
 }
 
-private object GroupExecution {
+object GroupExecution {
 
   class DestCreator(paths: Option[ExecutionPaths]) {
     var usedDest = Option.empty[os.Path]
@@ -522,10 +534,46 @@ private object GroupExecution {
       }
     }
   }
+
+  class ExecutionChecker(
+      workspace: os.Path,
+      isCommand: Boolean,
+      isInput: Boolean,
+      terminal: Task[?],
+      validReadDests: Seq[os.Path],
+      validWriteDests: Seq[os.Path]
+  ) extends os.Checker {
+    def onRead(path: os.ReadablePath): Unit = path match {
+      case path: os.Path =>
+        if (!isCommand && !isInput && mill.api.FilesystemCheckerEnabled.value) {
+          if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
+            sys.error(
+              s"Reading from ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
+                "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
+            )
+          }
+        }
+      case _ =>
+    }
+
+    def onWrite(path: os.Path): Unit = {
+      if (!isCommand && mill.api.FilesystemCheckerEnabled.value) {
+        if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
+          sys.error(
+            s"Writing to ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
+              "Normal `Task`s can only write to files within their `Task.dest` folder, only `Task.Command`s can write to other arbitrary files."
+          )
+        }
+      }
+    }
+  }
+
   def wrap[T](
       workspace: os.Path,
-      validWriteDests: Seq[os.Path],
-      validReadDests: Seq[os.Path],
+      deps: Seq[Task[?]],
+      outPath: os.Path,
+      paths: Option[ExecutionPaths],
+      upstreamPathRefs: Seq[PathRef],
       exclusive: Boolean,
       multiLogger: Logger,
       logger: Logger,
@@ -533,35 +581,24 @@ private object GroupExecution {
       counterMsg: String,
       destCreator: DestCreator,
       evaluator: Evaluator,
-      terminal: Task[?]
+      terminal: Task[?],
+      classLoader: ClassLoader
   )(t: => T): T = {
+    // Tasks must be allowed to write to upstream worker's dest folders, because
+    // the point of workers is to manualy manage long-lived state which includes
+    // state on disk.
+    val validWriteDests =
+      deps.collect { case n: Task.Worker[?] =>
+        ExecutionPaths.resolve(outPath, n.ctx.segments).dest
+      } ++
+        paths.map(_.dest)
+
+    val validReadDests = validWriteDests ++ upstreamPathRefs.map(_.path)
+
     val isCommand = terminal.isInstanceOf[Task.Command[?]]
     val isInput = terminal.isInstanceOf[Task.Input[?]]
-    val executionChecker = new os.Checker {
-      def onRead(path: os.ReadablePath): Unit = path match {
-        case path: os.Path =>
-          if (!isCommand && !isInput && mill.api.FilesystemCheckerEnabled.value) {
-            if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
-              sys.error(
-                s"Reading from ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
-                  "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
-              )
-            }
-          }
-        case _ =>
-      }
-
-      def onWrite(path: os.Path): Unit = {
-        if (!isCommand && mill.api.FilesystemCheckerEnabled.value) {
-          if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
-            sys.error(
-              s"Writing to ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
-                "Normal `Task`s can only write to files within their `Task.dest` folder, only `Task.Command`s can write to other arbitrary files."
-            )
-          }
-        }
-      }
-    }
+    val executionChecker =
+      new ExecutionChecker(workspace, isCommand, isInput, terminal, validReadDests, validWriteDests)
     val (streams, destFunc) =
       if (exclusive) (exclusiveSystemStreams, () => workspace)
       else (multiLogger.streams, () => destCreator.makeDest())
@@ -578,11 +615,18 @@ private object GroupExecution {
             )
 
           Evaluator.withCurrentEvaluator(exposedEvaluator) {
-            if (!exclusive) t
-            else {
-              logger.prompt.reportKey(Seq(counterMsg))
-              logger.prompt.withPromptPaused {
-                t
+            // Ensure the class loader used to load user code
+            // is set as context class loader when running user code.
+            // This is useful if users rely on libraries that look
+            // for resources added by other libraries, by using
+            // using java.util.ServiceLoader for example.
+            mill.api.ClassLoader.withContextClassLoader(classLoader) {
+              if (!exclusive) t
+              else {
+                logger.prompt.reportKey(Seq(counterMsg))
+                logger.prompt.withPromptPaused {
+                  t
+                }
               }
             }
           }

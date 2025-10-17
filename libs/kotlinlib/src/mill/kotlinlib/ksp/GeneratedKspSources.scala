@@ -1,7 +1,7 @@
 package mill.kotlinlib.ksp
 
 import mill.api.PathRef
-import upickle.default.ReadWriter
+import upickle.ReadWriter
 
 @mill.api.experimental
 case class GeneratedKspSources(

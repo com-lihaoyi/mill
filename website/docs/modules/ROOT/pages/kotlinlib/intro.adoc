@@ -3,34 +3,41 @@
 :page-aliases: Kotlin_Intro_to_Mill.adoc
 :language: Kotlin
 :language-small: kotlin
+:language-ext: kt
 
 include::partial$Intro_Header.adoc[]
-
-NOTE: Mill Kotlin support is currently focused on the JVM, with a lot of APIs
-still under active development. It is expected to continue evolving over time
-as Android and Multiplatform support is fleshed out. Try it out, but please be aware of its
-limitations!
 
 == Simple Kotlin Module
 
 include::partial$example/kotlinlib/basic/1-simple.adoc[]
 
+== Multiple Kotlin Modules
+
+include::partial$example/kotlinlib/basic/2-module-deps.adoc[]
+
+== Maven Compatible Modules
+
+include::partial$example/kotlinlib/basic/3-compat-modules.adoc[]
+
+== Programmatic Configuration
+
+include::partial$example/kotlinlib/basic/4-programmatic.adoc[]
+
 == Custom Build Logic
 
-include::partial$example/kotlinlib/basic/2-custom-build-logic.adoc[]
+include::partial$example/kotlinlib/basic/5-custom-build-logic.adoc[]
 
 == Multi-Module Project
 
-include::partial$example/kotlinlib/basic/3-multi-module.adoc[]
+include::partial$example/kotlinlib/basic/6-multi-module.adoc[]
 
-== Maven-Compatible Modules
+== Programmatic Compatibility Modules
 
-include::partial$example/kotlinlib/basic/4-compat-modules.adoc[]
+include::partial$example/kotlinlib/basic/7-programmatic-compat.adoc[]
 
+== Realistic Java Example Project
 
-== Realistic Kotlin Example Project
-
-include::partial$example/kotlinlib/basic/6-realistic.adoc[]
+include::partial$example/kotlinlib/basic/8-realistic.adoc[]
 
 
 == History

@@ -93,8 +93,8 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBProtoClasspath: T[Seq[PathRef]] = Task {
     millResolver().classpath(
       Seq(
-        coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-        coursierDependency
+        coursierDependencyTask().withConfiguration(coursier.core.Configuration.provided),
+        coursierDependencyTask()
       )
     )
   }

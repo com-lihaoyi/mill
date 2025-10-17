@@ -1,10 +1,11 @@
-= image:website/docs/logo.svg[Mill Logo] Mill: A Better Build Tool for Java, Scala, & Kotlin
-:idprefix:
-:idseparator: -
+= image:website/docs/logo.svg[title=Mill Logo] Mill: A Better Build Tool for Java, Scala, & Kotlin
+:mill-stable-version: 1.0.6
 :link-github: https://github.com/com-lihaoyi/mill
 :link-current-doc-site: https://mill-build.org
 :link-mill-moduledefs: https://github.com/com-lihaoyi/mill-moduledefs
-:example-scala-version: 3.3.4
+// customize appearance on GitHub
+:idprefix:
+:idseparator: -
 :toc:
 :toc-placement: preamble
 ifndef::env-github[]
@@ -18,7 +19,7 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=stable-version&versionSuffix=1.0.1[d]]
+link:changelog.adoc[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=stable-version&versionSuffix={mill-stable-version}[d]]
 https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=unstable-dev-version[Maven Central Version]]
 
 Mill is a build tool that tries to improve upon the tools traditionally used
@@ -27,7 +28,7 @@ in the JVM ecosystem:
 * Mill builds the same Java project https://mill-build.org/mill/comparisons/why-mill.html#_performance[3-6x
  faster than Maven or Gradle] due to aggressive caching & parallelism
 
-* Mill's rich featureset means
+* Mill's rich feature set means
 https://mill-build.org/mill/comparisons/why-mill.html#_rich_builtins[less fiddling with plugins],
 since everything needed for development is built in
 

@@ -1,19 +1,16 @@
 package mill.javalib
 
+import com.lihaoyi.unroll
 import coursier.cache.FileCache
 import coursier.core.Resolution
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import coursier.{Dependency, Repository, Resolve}
-import mill.api.Task
-import mill.api.PathRef
-import mill.api.Result
+import coursier.{Dependency, Repository}
+import mill.api.{ModuleRef, PathRef, Result, Task}
 import mill.util.Jvm
 import mill.T
 
 import scala.annotation.unused
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 /**
  * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
@@ -36,11 +33,14 @@ trait CoursierModule extends mill.api.Module {
     BoundDep(Lib.depToDependencyJava(dep), dep.force)
   }
 
+  def coursierConfigModule: ModuleRef[CoursierConfigModule] =
+    ModuleRef(CoursierConfigModule)
+
   /**
    * A [[CoursierModule.Resolver]] to resolve dependencies.
    *
    * Unlike [[defaultResolver]], this resolver can resolve Mill modules too
-   * (obtained via [[JavaModule.coursierDependency]]).
+   * (obtained via [[JavaModule.coursierDependencyTask]]).
    *
    * @return `CoursierModule.Resolver` instance
    */
@@ -53,7 +53,8 @@ trait CoursierModule extends mill.api.Module {
       coursierCacheCustomizer = coursierCacheCustomizer(),
       resolutionParams = resolutionParams(),
       offline = Task.offline,
-      checkGradleModules = checkGradleModules()
+      checkGradleModules = checkGradleModules(),
+      config = coursierConfigModule().coursierConfig()
     )
   }
 
@@ -74,7 +75,8 @@ trait CoursierModule extends mill.api.Module {
       coursierCacheCustomizer = coursierCacheCustomizer(),
       resolutionParams = resolutionParams(),
       offline = Task.offline,
-      checkGradleModules = checkGradleModules()
+      checkGradleModules = checkGradleModules(),
+      config = coursierConfigModule().coursierConfig()
     )
   }
 
@@ -104,11 +106,7 @@ trait CoursierModule extends mill.api.Module {
 
   // Bincompat stub
   private[mill] def repositoriesTask0 = Task.Anon {
-    val resolve = Resolve()
-    val repos = Await.result(
-      resolve.finalRepositories.future()(using resolve.cache.ec),
-      Duration.Inf
-    )
+    val repos = coursierConfigModule().defaultRepositories()
     Jvm.reposFromStrings(repositories()).map(_ ++ repos)
   }
 
@@ -143,7 +141,7 @@ trait CoursierModule extends mill.api.Module {
    *
    * Unlike [[repositoriesTask]], this includes the Mill internal repositories,
    * which allow to resolve Mill internal modules (usually brought in via
-   * `JavaModule#coursierDependency`).
+   * `JavaModule#coursierDependencyTask`).
    *
    * Beware that this needs to evaluate `JavaModule#coursierProject` of all
    * module dependencies of the current module, which itself evaluates `JavaModule#mvnDeps`
@@ -237,7 +235,8 @@ object CoursierModule {
       // TODO: this does nothing? :/
       // Introduced in https://github.com/com-lihaoyi/mill/commit/451df6846861a9c7d265bffec0c5fcf07133b320
       @unused offline: Boolean,
-      checkGradleModules: Boolean
+      checkGradleModules: Boolean,
+      @unroll config: mill.util.CoursierConfig = mill.util.CoursierConfig.default()
   ) {
 
     /**
@@ -252,10 +251,10 @@ object CoursierModule {
         artifactTypes: Option[Set[coursier.Type]] = None,
         resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
         mapDependencies: Option[Dependency => Dependency] = null
-    )(implicit ctx: mill.api.TaskCtx): Seq[PathRef] =
+    )(using ctx: mill.api.TaskCtx): Seq[PathRef] =
       Lib.resolveDependencies(
         repositories = repositories,
-        deps = deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
+        deps = deps.iterator.map(summon[CoursierModule.Resolvable[T]].bind(_, bind)),
         sources = sources,
         artifactTypes = artifactTypes,
         mapDependencies = Option(mapDependencies).getOrElse(this.mapDependencies),
@@ -263,7 +262,8 @@ object CoursierModule {
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = Some(ctx),
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams)),
-        checkGradleModules = checkGradleModules
+        checkGradleModules = checkGradleModules,
+        config = config
       ).get
 
     /**
@@ -273,10 +273,10 @@ object CoursierModule {
      */
     def resolution[T: CoursierModule.Resolvable](
         deps: IterableOnce[T]
-    )(implicit ctx: mill.api.TaskCtx): coursier.core.Resolution = {
+    )(using ctx: mill.api.TaskCtx): coursier.core.Resolution = {
       val deps0 = deps
         .iterator
-        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+        .map(summon[CoursierModule.Resolvable[T]].bind(_, bind))
         .toSeq
       Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
@@ -287,7 +287,8 @@ object CoursierModule {
         ctx = Some(ctx),
         resolutionParams = resolutionParams,
         boms = Nil,
-        checkGradleModules = checkGradleModules
+        checkGradleModules = checkGradleModules,
+        config = config
       ).get
     }
 
@@ -297,17 +298,18 @@ object CoursierModule {
     def artifacts[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false
-    )(implicit ctx: mill.api.TaskCtx): coursier.Artifacts.Result = {
+    )(using ctx: mill.api.TaskCtx): coursier.Artifacts.Result = {
       val deps0 = deps
         .iterator
-        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+        .map(summon[CoursierModule.Resolvable[T]].bind(_, bind))
         .toSeq
       Jvm.getArtifacts(
         repositories,
         deps0.map(_.dep),
         sources = sources,
         ctx = Some(ctx),
-        checkGradleModules = checkGradleModules
+        checkGradleModules = checkGradleModules,
+        config = config
       ).get
     }
   }
@@ -325,4 +327,14 @@ object CoursierModule {
     def bind(t: coursier.core.Dependency, bind: Dep => BoundDep): BoundDep =
       BoundDep(t, force = false)
   }
+
+  object KnownRepositories {
+
+    /**
+     * Repository containing nightly builds of Scala language  and compiler projects.
+     * See announcement: https://www.scala-lang.org/news/new-scala-nightlies-repo.html
+     */
+    val ScalaLangNightlies = "https://repo.scala-lang.org/artifactory/maven-nightlies"
+  }
+
 }

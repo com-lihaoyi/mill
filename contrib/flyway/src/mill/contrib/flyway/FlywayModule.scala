@@ -50,6 +50,7 @@ trait FlywayModule extends JavaModule {
       .configure(jdbcClassloader)
       .locations(flywayFileLocations().map("filesystem:" + _.path)*)
       .configuration(configProps.asJava)
+      .cleanDisabled(false)
       .load
   }
 
@@ -88,8 +89,8 @@ object FlywayModule {
     }
   }
 
-  implicit def migrateOutputWriter: upickle.default.Writer[MigrateOutput] =
-    upickle.default.writer[ujson.Obj].comap(r =>
+  implicit def migrateOutputWriter: upickle.Writer[MigrateOutput] =
+    upickle.writer[ujson.Obj].comap(r =>
       ujson.Obj(
         "category" -> r.category.jsonify,
         "version" -> r.version.jsonify,
@@ -99,8 +100,8 @@ object FlywayModule {
       )
     )
 
-  implicit def cleanResultWriter: upickle.default.Writer[CleanResult] =
-    upickle.default.writer[ujson.Obj].comap(r =>
+  implicit def cleanResultWriter: upickle.Writer[CleanResult] =
+    upickle.writer[ujson.Obj].comap(r =>
       ujson.Obj(
         "flywayVersion" -> r.flywayVersion.jsonify,
         "database" -> r.database.jsonify,
@@ -110,22 +111,22 @@ object FlywayModule {
         "schemasDropped" -> ujson.Arr.from(r.schemasDropped.asScala.toSeq.map(_.jsonify))
       )
     )
-  implicit def migrateResultWriter: upickle.default.Writer[MigrateResult] =
-    upickle.default.writer[ujson.Obj].comap(r =>
+  implicit def migrateResultWriter: upickle.Writer[MigrateResult] =
+    upickle.writer[ujson.Obj].comap(r =>
       ujson.Obj(
         "flywayVersion" -> r.flywayVersion.jsonify,
         "database" -> r.database.jsonify,
-        "operation" -> r.operation.jsonify,
+        "operation" -> r.getOperation.jsonify,
         "warnings" -> r.warnings.asScala.toSeq.map(_.jsonify),
         "initialSchemaVersion" -> r.initialSchemaVersion.jsonify,
         "targetSchemaVersion" -> r.targetSchemaVersion.jsonify,
         "schemaName" -> r.schemaName.jsonify,
-        "migrations" -> ujson.Arr.from(r.migrations.asScala.toSeq.map(upickle.default.write(_))),
+        "migrations" -> ujson.Arr.from(r.migrations.asScala.toSeq.map(upickle.write(_))),
         "migrationsExecuted" -> ujson.Num(r.migrationsExecuted)
       )
     )
-  implicit def baselineResultWriter: upickle.default.Writer[BaselineResult] =
-    upickle.default.writer[ujson.Obj].comap(r =>
+  implicit def baselineResultWriter: upickle.Writer[BaselineResult] =
+    upickle.writer[ujson.Obj].comap(r =>
       ujson.Obj(
         "flywayVersion" -> r.flywayVersion.jsonify,
         "database" -> r.database.jsonify,

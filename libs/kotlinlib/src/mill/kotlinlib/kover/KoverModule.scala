@@ -202,7 +202,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
       reportType: ReportType,
       classpath: Seq[Path],
       workingDir: os.Path
-  )(implicit ctx: mill.api.TaskCtx): PathRef = {
+  )(using ctx: mill.api.TaskCtx): PathRef = {
     val args = Seq.newBuilder[String]
     args += "report"
     args ++= binaryReportsPaths.map(_.toString())

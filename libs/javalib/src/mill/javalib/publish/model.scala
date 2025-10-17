@@ -1,7 +1,7 @@
 package mill.javalib.publish
 
 import mill.javalib.Dep
-import upickle.default.ReadWriter as RW
+import upickle.ReadWriter as RW
 import JsonFormatters._
 case class Artifact(group: String, id: String, version: String) derives RW {
   require(
@@ -60,11 +60,12 @@ case class Dependency(
 ) derives RW
 
 case class Developer(
-    id: String,
+    id: String = "",
     name: String,
-    url: String,
+    url: String = "",
     organization: Option[String] = None,
-    organizationUrl: Option[String] = None
+    organizationUrl: Option[String] = None,
+    @com.lihaoyi.unroll email: String = ""
 ) derives RW
 
 case class PomSettings(

@@ -9,7 +9,7 @@ import upickle.default.ReadWriter
 
 class ScalaPBWorker {
 
-  private def scalaPB(scalaPBClasspath: Seq[PathRef])(implicit ctx: mill.api.TaskCtx) = {
+  private def scalaPB(scalaPBClasspath: Seq[PathRef])(using ctx: mill.api.TaskCtx) = {
     val instance = new ScalaPBWorkerApi {
       override def compileScalaPB(
           roots: Seq[File],
@@ -75,7 +75,7 @@ class ScalaPBWorker {
       dest: os.Path,
       scalaPBCExtraArgs: Seq[String],
       generators: Seq[Generator]
-  )(implicit ctx: mill.api.TaskCtx): mill.api.Result[PathRef] = {
+  )(using ctx: mill.api.TaskCtx): mill.api.Result[PathRef] = {
     val compiler = scalaPB(scalaPBClasspath)
     val sources = scalaPBSources.flatMap {
       path =>

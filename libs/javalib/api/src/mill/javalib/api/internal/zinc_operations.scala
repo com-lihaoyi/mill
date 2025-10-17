@@ -11,7 +11,7 @@ case class ZincCompileJava(
     compileClasspath: Seq[os.Path],
     javacOptions: JavaCompilerOptions,
     incrementalCompilation: Boolean
-) derives upickle.default.ReadWriter
+) derives upickle.ReadWriter
 
 /** Compiles Java and Scala sources. */
 case class ZincCompileMixed(
@@ -26,7 +26,7 @@ case class ZincCompileMixed(
     scalacPluginClasspath: Seq[PathRef],
     incrementalCompilation: Boolean,
     auxiliaryClassFileExtensions: Seq[String]
-) derives upickle.default.ReadWriter
+) derives upickle.ReadWriter
 
 /** Creates a Scaladoc jar. */
 case class ZincScaladocJar(
@@ -35,4 +35,4 @@ case class ZincScaladocJar(
     compilerClasspath: Seq[PathRef],
     scalacPluginClasspath: Seq[PathRef],
     args: Seq[String]
-) derives upickle.default.ReadWriter
+) derives upickle.ReadWriter

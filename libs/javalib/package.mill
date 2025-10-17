@@ -116,7 +116,8 @@ object `package` extends MillStableScalaModule {
         },
         "The dependency containing the worker implementation to be loaded at runtime."
       ),
-      BuildInfo.Value("pmdVersion", Deps.RuntimeDeps.pmdDist.version)
+      BuildInfo.Value("pmdVersion", Deps.RuntimeDeps.pmdDist.version),
+      BuildInfo.Value("comLihaoyiSourcecodeVersion", Deps.sourcecode.version)
     )
   }
 

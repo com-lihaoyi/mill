@@ -156,7 +156,11 @@ private object TabCompleteModule extends ExternalModule {
             case _ => ""
           }
 
-          for (name <- nameField(arg) if !arg.doc.contains("Unsupported")) yield {
+          for (
+            name <- nameField(arg)
+            // We don't want complete outdated args, although we still support them
+            if !MillCliConfig.isUnsupported(arg) && !MillCliConfig.isDeprecated(arg)
+          ) yield {
             val suffix =
               val docLine = oneLine(arg.doc.getOrElse(""))
               s"$typeStringPrefix$docLine"

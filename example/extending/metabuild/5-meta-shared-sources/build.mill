@@ -9,7 +9,6 @@ object `package` extends ScalaModule {
   def sources = Task { super.sources() ++ customSources() }
 }
 
-/** See Also: mill-build/build.mill */
 /** See Also: mill-build/src/ScalaVersion.scala */
 /** See Also: src/Foo.scala */
 
@@ -22,7 +21,7 @@ object `package` extends ScalaModule {
 /** Usage
 
 > ./mill run
-scalaVersion: 2.13.16
+scalaVersion: 2.13.10
 
 */
 

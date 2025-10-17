@@ -1,7 +1,7 @@
 package build
 import mill.*, scalalib.*
 
-val scalaVersions = Seq("2.12.20", "2.13.16")
+val scalaVersions = Seq("2.12.17", "2.13.16")
 
 object foo extends Cross[FooModule](scalaVersions)
 trait FooModule extends CrossScalaModule {
@@ -25,13 +25,13 @@ trait BarModule extends CrossScalaModule
 /** Usage
 
 > ./mill resolve __.run
-foo[2.12.20].run
+foo[2.12.17].run
 foo[2.13.16].run
-bar[2.12.20].run
+bar[2.12.17].run
 bar[2.13.16].run
 
-> ./mill foo[2.12.20].run
-Foo.value: Hello World Scala library version 2.12.20...
+> ./mill foo[2.12.17].run
+Foo.value: Hello World Scala library version 2.12.17...
 Bar.value: bar-value
 Specific code for Scala 2.x
 Specific code for Scala 2.12.x

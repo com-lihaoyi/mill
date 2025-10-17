@@ -1,0 +1,310 @@
+= Mill as an Alternative Android Build Tool
+// tag::header[]
+:author: Vasilis Nicolaou
+:revdate: 17 September 2025
+
+_{author}, {revdate}_
+
+
+Until recently, Gradle was the only realistic option for Android builds. Today, Mill provides an alternative to Gradle that is easier to use and learn.
+
+In less than a year, Mill went from minimal Android support to producing installable APKs for projects as complex as:
+
+- xref:mill::android/hilt-sample.adoc[Jetpack Compose + Dependency Injection with Hilt]
+- xref:mill::android/java.adoc#_using_third_party_native_libraries[Android Native]
+- xref:mill::android/compose-samples.adoc[Jetpack Compose].
+// end::header[]
+
+- Multi-module Pokedex sample app (https://github.com/NicosNicolaou16/Pokedex_Compose_Multi_Module[original], https://github.com/vaslabs/Pokedex_Compose_Multi_Module/tree/testing-mill[with mill])
+image:AndroidPokedexMultimoduleExample.png[A multi-module Android app built with Mill, showing a list of Pokémon and details for each pokemon.]
+
+
+== Why you might prefer this to Gradle
+
+Because Mill’s Android support is built out of simple, object-oriented modules (AndroidModule, AndroidAppModule, etc.), the entire pipeline is transparent and hackable. If something doesn’t work, you don’t need to wait for a plugin update, you can open the task in your IDE, see the source, and tweak it yourself. This is the same design that let us implement end-to-end Android support in under a year, and it’s what makes Mill attractive if you value control and debuggability in your build.
+
+For example, you can inspect how Mill builds an Android APK with:
+
+[,console]
+----
+$ ./mill inspect __.androidApk
+[1/1] inspect
+app.androidApk(AndroidAppModule.scala:439)
+    Signs the APK using a keystore to generate a final, distributable APK.
+
+    The signing step is mandatory to distribute Android applications. It adds a cryptographic
+    signature to the APK, verifying its authenticity. This method uses the `apksigner` tool
+    along with a keystore file to sign the APK.
+
+    If no keystore is available, a new one is generated using the `keytool` utility.
+
+    For more details on the apksigner tool, refer to:
+    [[https://developer.android.com/tools/apksigner apksigner Documentation]]
+
+Inputs:
+    androidSdkModule0.apksignerPath
+    app.androidAlignedUnsignedApk
+    app.androidSignKeyDetails
+...
+----
+
+This post is a walkthrough of the basic Android build flow in Mill: what it does, why it’s complex, and why Mill makes it easier to reason about.
+
+== The Android build process
+
+Building and running a mixed Java/Kotlin application can be as simple as:
+
+.Standard JVM build pipeline
+[graphviz]
+....
+digraph G {
+  rankdir=TB
+  node [shape=box width=0 height=0]
+
+  "Sources" -> "Compile (Java/Kotlin)"
+  "Compile (Java/Kotlin)" -> "Jar"
+  "Jar" -> "Run"
+}
+....
+
+Android adds a dozen more steps, each involving different tools and formats:
+
+- Resource compilation (aapt2) for layouts, drawables, and strings
+- Manifest merging (app + library manifests)
+- Code shrinking and obfuscation (R8/Proguard)
+- DEX bytecode conversion (d8/r8)
+- APK packaging (resources + bytecode)
+- App signing (debug or release keystores)
+- Emulator deployment and test execution (ADB)
+
+
+Each step is order-sensitive: resources must be compiled before classes, manifests merged before packaging, APKs signed before installation. With Gradle, these steps are usually hidden inside plugin logic. When we explored Gradle builds, we often had to reverse engineer its behavior to understand what was going on. Mill instead exposes each phase as a target you can call, inspect its sources, or override.
+
+== The Mill Android Build Pipeline
+
+.Standard Android build pipeline (without Hilt)
+[graphviz]
+....
+digraph G {
+rankdir=TB
+node [shape=box width=0 height=0]
+
+"Java/Kotlin Sources" -> "Compile (Java/Kotlin)"
+"Resources (res/)" -> "Compile Resources (aapt2)"
+"AndroidManifest.xml" -> "Manifest Merging"
+"Manifest Merging" -> "Linked Resources"
+"Compile Resources (aapt2)" -> "Linked Resources"
+"Compile (Java/Kotlin)" -> "Compiled Classes"
+"Linked Resources" -> "Package APK"
+"Compiled Classes" -> "DEX (d8/r8)"
+"DEX (d8/r8)" -> "Package APK"
+"Package APK" -> "Code Shrinking (r8/Proguard)"
+"Code Shrinking (r8/Proguard)" -> "Sign APK"
+"Sign APK" -> "Install to Emulator"
+"Install to Emulator" -> "Run/Test via ADB"
+}
+....
+
+
+This flow considers plain apps without any dependencies. But real-world apps depend on libraries, which may have their own resources, manifests, and even native code. Android dependencies come with their own complexities:
+
+- Instead of a simple jar file that can be added to the classpath, Android libraries are distributed as AAR files, which are zip files containing compiled classes, resources, manifests, native libraries, Proguard files and more.
+- The AAR dependencies must be unpacked and each component processed separately in the appropriate step of the build pipeline.
+
+
+.Standard Android build pipeline with dependencies (AARs)
+[graphviz]
+....
+digraph G {
+  rankdir=TB
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+
+  // --- App inputs
+  "App Java/Kotlin Sources" -> "Compile (Java/Kotlin)"
+  "App Resources (res/)" -> "Compile App Resources (aapt2)"
+  "App AndroidManifest.xml" -> "Manifest Merging"
+  "App Proguard rules" -> "Proguard rules"
+
+  // --- Library inputs
+  subgraph cluster_aar {
+    label="Dependency (AARs)"
+    rankdir=TB
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+
+    "AAR Files" -> "Unpack AARs"
+    "Unpack AARs" -> "AAR classes.jar"
+    "Unpack AARs" -> "AAR res/"
+    "Unpack AARs" -> "AAR AndroidManifest.xml"
+    "Unpack AARs" -> "AAR proguard.txt"
+    "Unpack AARs" -> "AAR native .so (optional)"
+  }
+
+  // --- Resource/link phase
+  "AAR res/" -> "Compile Lib Resources (aapt2)"
+  "Compile App Resources (aapt2)" -> "Linked Resources"
+  "Compile Lib Resources (aapt2)" -> "Linked Resources"
+  "AAR AndroidManifest.xml" -> "Manifest Merging"
+  "Manifest Merging" -> "Linked Resources"
+
+  // --- Classes & DEX
+  "Compile (Java/Kotlin)" -> "Compiled Classes"
+  "AAR classes.jar" -> "Compile Classpath"
+  "AAR classes.jar" -> "DEX (d8/r8)"
+  "Compile Classpath" -> "Compile (Java/Kotlin)"
+  "Linked Resources" -> "Package APK"
+  "Compiled Classes" -> "DEX (d8/r8)"
+  "DEX (d8/r8)" -> "Package APK"
+
+  // --- Proguard / main-dex rules
+  "AAR proguard.txt" -> "Proguard rules"
+  "Linked Resources" -> "Proguard rules"
+  "Proguard rules" -> "DEX (d8/r8)"
+
+  // --- Native libs & META-INF (optional)
+  "AAR native .so (optional)" -> "Package APK"
+
+  // --- Final steps
+  "Package APK" -> "Code Shrinking (r8/Proguard)"
+  "Code Shrinking (r8/Proguard)" -> "Sign APK"
+  "Sign APK" -> "Install to Emulator"
+  "Install to Emulator" -> "Run/Test via ADB"
+}
+....
+
+The diagram above still doesn’t tell the whole story! It shows a typical build flow for a basic Android app, but there are more features to consider:
+
+- Hilt/Dagger code generation (annotation processing)
+- Jetpack Compose code generation (Kotlin compiler plugin)
+- Instrumented tests (separate APK, own resources, manifests, dependencies)
+- Native code (NDK builds, CMake integration)
+
+We cover a lot of these architecture styles in various Android examples, based on xref:mill::android/java.adoc[Java], xref:mill::android/kotlin.adoc[Kotlin] and third party integration examples covering xref:mill::android/compose-samples.adoc[Android Compose] and xref:mill::android/hilt-sample.adoc[Dependency Injection with Hilt].
+
+Endless tunnel sample app
+image:AndroidEndlessTunnelExample.png[An Android app built with Mill using native code, showing a 3D tunnel effect.]
+
+== Try it out
+
+Mill’s Android support is still young, but it already covers the full build pipeline: resource compilation, manifest merging, packaging, signing, running, and even testing on emulators.
+
+What makes this different from Gradle are control and transparency: every build step is a visible Mill task, easy to run on its own, inspect, check its dependencies, or override, without needing any extra/third party plugins. That means you can debug problems faster, adapt the pipeline to your project’s needs, and extend it without fighting opaque built-in or plugin logic.
+
+If you’re curious, the best way to appreciate this is to try it yourself:
+
+Get the `architecture-samples` containing the Todo App.
+
+[source,console]
+----
+> git clone git@github.com:android/architecture-samples.git
+> cd architecture-samples
+----
+
+Install mill
+
+[source,console]
+----
+> curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.5/mill-dist-1.0.5-mill.sh -o mill
+> chmod +x mill
+> echo "//| mill-version: 1.0.5" > build.mill
+> ./mill version
+----
+
+Configure the mill build
+
+[source,console]
+----
+> curl https://raw.githubusercontent.com/com-lihaoyi/mill/bef0194f3eecb4c7938f07e0cfcdf8d741a04468/example/thirdparty/androidtodo/build.mill >> build.mill
+----
+
+Start the emulator and run the app
+
+[source,console]
+----
+> ./mill show app.createAndroidVirtualDevice
+> ./mill show app.startAndroidEmulator
+> ./mill show app.androidInstall
+> ./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
+----
+
+The Android Todo App built with Mill
+image:AndroidTodoExample.png[The Todo app built with Mill, showing a list of tasks and a button to add new tasks.]
+
+Run the instrumented tests and watch the app being tested inside the emulator:
+
+[source,console]
+----
+> ./mill app.androidTest
+----
+
+image:androidtodo_test.gif[Android Test running inside an emulator, showing the Todo app being tested automatically.]
+
+Let's say you want to know how the apk is built. First, you can check the plan of `androidApk`, i.e. which
+tasks it depends on:
+[,console]
+----
+$ ./mill plan app.androidApk
+[1/1] plan
+androidSdkModule0.sdkPath
+androidSdkModule0.buildToolsVersion
+androidSdkModule0.platformsVersion
+androidSdkModule0.remoteReposInfo
+androidSdkModule0.installAndroidSdkComponents
+androidSdkModule0.buildToolsPath
+androidSdkModule0.apksignerPath
+androidSdkModule0.zipalignPath
+app.mandatoryMvnDeps.super.javalib.JavaModule
+app.kotlinVersion
+----
+
+
+You can use this to visualise the relationships between these tasks and how they feed each other and ultimately the `androidApk` task:
+
+[,console]
+----
+$ ./mill visualizePlan app.androidApk
+[3/3] visualizePlan
+[
+  ".../architecture-samples/out/visualizePlan.dest/out.dot",
+  ".../architecture-samples/out/visualizePlan.dest/out.json",
+  ".../architecture-samples/out/visualizePlan.dest/out.png",
+  ".../architecture-samples/out/visualizePlan.dest/out.svg",
+  ".../architecture-samples/out/visualizePlan.dest/out.txt"
+]
+[3/3] ============================== visualizePlan app.androidApk ============================== 2s
+----
+
+You can also check the code of each task and what it does exactly inside your IDE:
+image:AndroidIDEExplore.png[Exploring the Mill Android build tasks in an IDE, showing the source code for the androidApk task.]
+
+
+In addition, due to xref:12-direct-style-build-tool.adoc#_direct_style_builds[Mill's direct style], you can reason what's going on with relative ease.
+
+=== Example: tweak the build in your `build.mill`
+
+[,scala]
+----
+import mill._
+import mill.androidlib._
+
+object app extends AndroidAppModule {
+  def androidApplicationNamespace = "com.example.app"
+  def androidApplicationId = "com.example.app"
+  def androidCompileSdk = 35
+
+  // Add extra files into the APK
+  override def androidPackageableExtraFiles = super.androidPackageableExtraFiles() ++
+    Seq(
+      AndroidPackageableExtraFile(
+          PathRef(moduleDir / "assets/about.txt"),
+          os.RelPath("assets/about.txt")
+      )
+    )
+
+}
+----
+
+=== Further Exploration
+
+You may also inspect xref:mill::android/android-initial-setup.adoc[the getting started docs] to find out more.
+
+We’d love feedback from the Android community, whether it’s bug reports, feature requests, or success stories. If you’ve ever wished Android builds felt less like a black box, Mill is worth a look.

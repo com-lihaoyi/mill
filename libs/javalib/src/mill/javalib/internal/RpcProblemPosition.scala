@@ -20,7 +20,7 @@ case class RpcProblemPosition(
     startColumn: Option[Int],
     endLine: Option[Int],
     endColumn: Option[Int]
-) extends ProblemPosition derives upickle.default.ReadWriter
+) extends ProblemPosition derives upickle.ReadWriter
 object RpcProblemPosition {
   def apply(p: ProblemPosition): RpcProblemPosition = apply(
     line = p.line,

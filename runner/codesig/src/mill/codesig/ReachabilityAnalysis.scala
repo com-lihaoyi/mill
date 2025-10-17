@@ -3,7 +3,7 @@ package mill.codesig
 import mill.codesig.JvmModel.*
 import mill.internal.{SpanningForest, Tarjans}
 import ujson.Obj
-import upickle.default.{Writer, writer}
+import upickle.{Writer, writer}
 
 import scala.collection.immutable.SortedMap
 
@@ -14,7 +14,7 @@ class CallGraphAnalysis(
     ignoreCall: (Option[MethodDef], MethodSig) => Boolean,
     logger: Logger,
     prevTransitiveCallGraphHashesOpt: () => Option[Map[String, Int]]
-)(implicit st: SymbolTable) {
+)(using st: SymbolTable) {
 
   val methods: Map[MethodDef, LocalSummary.MethodInfo] = for {
     (k, v) <- localSummary.items
@@ -148,7 +148,7 @@ object CallGraphAnalysis {
       externalSummary: ExternalSummary,
       nodeToIndex: Map[CallGraphAnalysis.Node, Int],
       ignoreCall: (Option[MethodDef], MethodSig) => Boolean
-  )(implicit st: SymbolTable): Array[Array[Int]] = {
+  )(using st: SymbolTable): Array[Array[Int]] = {
 
     def singleAbstractMethods(methodDefCls: JType.Cls) = {
       resolved.classSingleAbstractMethods.getOrElse(methodDefCls, Set.empty)
@@ -271,7 +271,7 @@ object CallGraphAnalysis {
    */
   sealed trait Node
 
-  implicit def nodeRw: Writer[Node] = upickle.default.stringKeyW(
+  implicit def nodeRw: Writer[Node] = upickle.stringKeyW(
     writer[String].comap[Node](_.toString)
   )
 

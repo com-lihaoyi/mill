@@ -2,7 +2,7 @@ package mill.codesig
 
 import os.Path
 import utest._
-import upickle.default.{read, write}
+import upickle.{read, write}
 import scala.collection.immutable.{SortedMap, SortedSet}
 
 /**
@@ -80,7 +80,7 @@ object CallGraphTests extends TestSuite {
     }
   }
 
-  def testExpectedCallGraph()(implicit tp: utest.framework.TestPath) = {
+  def testExpectedCallGraph()(using tp: utest.framework.TestPath) = {
     val codeSig = TestUtil.computeCodeSig(Seq("callgraph") ++ tp.value)
     val testCaseSourceFilesRoot =
       os.Path(sys.env("MILL_TEST_SOURCES_callgraph-" + tp.value.mkString("-")))
@@ -139,7 +139,7 @@ object CallGraphTests extends TestSuite {
       parseJson(testCaseSourceFilesRoot, "expected-transitive-call-graph")
 
     val transitiveGraph0 = codeSig.transitiveCallGraphValues[SortedSet[String]](
-      codeSig.indexToNodes.map(x => SortedSet(upickle.default.writeJs(x).str)),
+      codeSig.indexToNodes.map(x => SortedSet(upickle.writeJs(x).str)),
       _ | _,
       SortedSet.empty[String]
     )
@@ -156,8 +156,8 @@ object CallGraphTests extends TestSuite {
       .to(SortedMap)
 
     for (expectedTransitiveGraph <- expectedTransitiveGraphOpt) {
-      val expectedTransitiveGraphJson = upickle.default.write(expectedTransitiveGraph, indent = 2)
-      val transitiveGraphJson = upickle.default.write(transitiveGraph, indent = 2)
+      val expectedTransitiveGraphJson = upickle.write(expectedTransitiveGraph, indent = 2)
+      val transitiveGraphJson = upickle.write(transitiveGraph, indent = 2)
       assert(expectedTransitiveGraphJson == transitiveGraphJson)
     }
   }

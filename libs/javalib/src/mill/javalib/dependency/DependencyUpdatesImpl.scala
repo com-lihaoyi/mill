@@ -1,7 +1,9 @@
 package mill.javalib.dependency
 
+import com.lihaoyi.unroll
 import mill.api.*
 import mill.api.internal.RootModule0
+import mill.javalib.CoursierConfigModule
 import mill.javalib.dependency.updates.{DependencyUpdates, ModuleDependenciesUpdates, UpdatesFinder}
 import mill.javalib.dependency.versions.{ModuleDependenciesVersions, VersionsFinder}
 
@@ -11,11 +13,12 @@ object DependencyUpdatesImpl {
       evaluator: Evaluator,
       ctx: TaskCtx,
       rootModule: RootModule0,
-      allowPreRelease: Boolean
+      allowPreRelease: Boolean,
+      @unroll coursierConfigModule: CoursierConfigModule = CoursierConfigModule
   ): Seq[ModuleDependenciesUpdates] = {
     // 1. Find all available versions for each dependency
     val allDependencyVersions: Seq[ModuleDependenciesVersions] =
-      VersionsFinder.findVersions(evaluator, ctx, rootModule)
+      VersionsFinder.findVersions(evaluator, ctx, rootModule, coursierConfigModule)
 
     // 2. Extract updated versions from all available versions
     val allUpdates = allDependencyVersions.map { dependencyVersions =>

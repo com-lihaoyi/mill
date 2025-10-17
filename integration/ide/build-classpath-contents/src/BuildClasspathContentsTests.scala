@@ -8,7 +8,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
     test("test") - integrationTest { tester =>
       val result1 =
         tester.eval(("--meta-level", "1", "show", "compileClasspath"), stderr = os.Inherit)
-      val deserialized = upickle.default.read[Seq[mill.api.PathRef]](result1.out)
+      val deserialized = upickle.read[Seq[mill.api.PathRef]](result1.out)
       val millPublishedJars = deserialized
         .map(_.path.last)
         .filter(_.startsWith("mill-"))
@@ -27,6 +27,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-core-api-daemon_3.jar",
             "mill-core-api_3.jar",
             "mill-core-constants.jar",
+            "mill-libs-androidlib-databinding_3.jar",
             "mill-libs-androidlib_3.jar",
             "mill-libs-daemon-client.jar",
             "mill-libs-daemon-server_3.jar",
@@ -36,6 +37,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-libs-javalib_3.jar",
             "mill-libs-javascriptlib_3.jar",
             "mill-libs-kotlinlib-api_3.jar",
+            "mill-libs-kotlinlib-ksp2-api_3.jar",
             "mill-libs-kotlinlib_3.jar",
             "mill-libs-pythonlib_3.jar",
             "mill-libs-rpc_3.jar",
@@ -44,6 +46,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-libs-scalalib_3.jar",
             "mill-libs-scalanativelib-api_3.jar",
             "mill-libs-scalanativelib_3.jar",
+            "mill-libs-script_3.jar",
             "mill-libs-util_3.jar",
             "mill-libs_3.jar",
             "mill-moduledefs_3-0.11.10.jar"

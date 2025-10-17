@@ -11,7 +11,7 @@ import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import os.{Path, RelPath, zip}
 import os.RelPath.stringRelPathValidated
-import upickle.default.*
+import upickle.*
 import scala.concurrent.duration.*
 
 import scala.jdk.OptionConverters.RichOptional
@@ -19,6 +19,7 @@ import scala.xml.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.daemon.internal.EvaluatorApi
 import mill.javalib.testrunner.TestResult
+import scala.util.Properties.isWin
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -147,22 +148,24 @@ trait AndroidAppModule extends AndroidModule { outer =>
         val dest = Task.dest / ref.path.baseName
         os.unzip(ref.path, dest)
 
-        // Fix permissions of unzipped directories
-        // `os.walk.stream` doesn't work
-        def walkStream(p: os.Path): geny.Generator[os.Path] = {
-          if (!os.isDir(p)) geny.Generator()
-          else {
-            val streamed = os.list.stream(p)
-            streamed ++ streamed.flatMap(walkStream)
+        // Fix permissions of unzipped directories (skip on Windows)
+        if (!isWin) {
+          // `os.walk.stream` doesn't work
+          def walkStream(p: os.Path): geny.Generator[os.Path] = {
+            if (!os.isDir(p)) geny.Generator()
+            else {
+              val streamed = os.list.stream(p)
+              streamed ++ streamed.flatMap(walkStream)
+            }
           }
-        }
 
-        for (p <- walkStream(dest) if os.isDir(p)) {
-          import java.nio.file.attribute.PosixFilePermission
-          val newPerms =
-            os.perms(p) + PosixFilePermission.OWNER_READ + PosixFilePermission.OWNER_EXECUTE
+          for (p <- walkStream(dest) if os.isDir(p)) {
+            import java.nio.file.attribute.PosixFilePermission
+            val newPerms =
+              os.perms(p) + PosixFilePermission.OWNER_READ + PosixFilePermission.OWNER_EXECUTE
 
-          os.perms.set(p, newPerms)
+            os.perms.set(p, newPerms)
+          }
         }
 
         val lookupPath = dest / "META-INF"
@@ -819,7 +822,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   }
 
-  def knownProguardRules: T[String] = Task {
+  def androidKnownProguardRules: T[String] = Task {
     // TODO need also pick proguard files from
     // [[moduleDeps]]
     androidUnpackArchives()
@@ -830,15 +833,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .mkString("\n")
   }
 
-  override def androidProguard: T[PathRef] = Task {
-    val inheritedProguardFile = super.androidProguard()
-    val proguardFile = Task.dest / "proguard-rules.pro"
-
-    os.write(proguardFile, os.read(inheritedProguardFile.path))
-
-    os.write.append(proguardFile, knownProguardRules())
-
-    PathRef(proguardFile)
+  /**
+   * File names that are provided by the Android SDK in `androidSdkModule().androidProguardPath().path`
+   *
+   * For now, it's only used by [[AndroidR8AppModule]]
+   */
+  def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+    Seq.empty[String]
   }
 
   // uses the d8 tool to generate the dex file, when minification is disabled
@@ -856,6 +857,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val libsJarFiles = libsJarPathRefs.map(_.path.toString())
 
+    val filenamesFile = Task.dest / "all-files.txt"
+    os.write.over(filenamesFile, (appCompiledFiles ++ libsJarFiles).mkString("\n"))
+
     val proguardFile = androidProguard().path
 
     val d8Args = Seq(
@@ -870,7 +874,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       androidMinSdk().toString,
       "--main-dex-rules",
       proguardFile.toString()
-    ) ++ appCompiledFiles ++ libsJarFiles
+    ) :+ s"@$filenamesFile"
 
     Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
 
@@ -890,6 +894,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def androidIsDebug: T[Boolean] = Task { true }
 
+    override def moduleDeps: Seq[JavaModule] = Seq.empty
+    override def compileModuleDeps: Seq[JavaModule] = Seq(outer)
+
     override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer.resolutionParams())
 
     override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
@@ -907,8 +914,20 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     def androidResources: T[Seq[PathRef]] = Task.Sources("src/androidTest/res")
 
+    override def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      outer.androidDefaultProguardFileNames()
+    }
+
     override def testFramework: T[String] = Task {
       "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    override def androidCommonProguardFiles: T[Seq[PathRef]] = Task {
+      val resource = "proguard-android-test.txt"
+      val resourceUrl = getClass.getResourceAsStream(s"/$resource")
+      val dest = Task.dest / resource
+      os.write(dest, resourceUrl)
+      super.androidCommonProguardFiles() :+ PathRef(dest)
     }
 
     private def androidInstrumentedTestsBaseManifest: Task[Elem] = Task.Anon {
@@ -1049,7 +1068,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
      * as its apk is installed separately
      */
     def androidTransitiveTestClasspath: T[Seq[PathRef]] = Task {
-      Task.traverse(transitiveModuleCompileModuleDeps) {
+      Task.traverse(transitiveRunModuleDeps) {
         m =>
           Task.Anon(m.localRunClasspath())
       }().flatten
@@ -1057,7 +1076,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     /** The instrumented dex should just contain the test dependencies and locally tested files */
     override def androidPackagedClassfiles: T[Seq[PathRef]] = Task {
-      (testClasspath() ++ androidTransitiveTestClasspath())
+      androidTransitiveTestClasspath()
         .map(_.path).filter(os.isDir)
         .flatMap(os.walk(_))
         .filter(os.isFile)
@@ -1066,7 +1085,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }
 
     override def androidPackagedDeps: T[Seq[PathRef]] = Task {
-      androidResolvedMvnDeps()
+      androidResolvedRunMvnDeps()
     }
 
     /**

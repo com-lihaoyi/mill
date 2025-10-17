@@ -1,7 +1,7 @@
 package mill.scalajslib.api
 
 import mill.api.internal.Mirrors
-import upickle.default.{ReadWriter => RW, macroRW}
+import upickle.{ReadWriter => RW, macroRW}
 import Mirrors.autoMirror
 
 final class Report private (val publicModules: Iterable[Report.Module], val dest: mill.PathRef) {

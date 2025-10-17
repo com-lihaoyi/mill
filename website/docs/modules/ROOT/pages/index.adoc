@@ -9,9 +9,9 @@ in the JVM ecosystem:
 * Mill builds the same Java project xref:comparisons/why-mill.adoc#_performance[3-6x
  faster than Maven or Gradle] due to aggressive caching & parallelism
 
-* Mill's rich featureset means
-xref:comparisons/why-mill.adoc#_rich_builtins[less fiddling with plugins],
-since everything needed for development is built in
+* Mill's featureset supports everything from xref:javalib/config.adoc#_single_file_scripts[single-files] to
+xref:large/large.adoc[large projects] needing
+xref:comparisons/why-mill.adoc#_rich_builtins[less fiddling with plugins]
 
 * Mill builds are xref:comparisons/why-mill.adoc#_ide_support[easily explorable in your IDE],
 letting you work on them without constantly googling for help
@@ -24,9 +24,9 @@ full advantage of the Java platform's performance, usability, and IDE support.
 
 If you prefer a video introduction to Mill, see:
 
-* https://www.youtube.com/watch?v=3NllMpXMBT8[Video: Better Java Builds with the Mill Build Tool],
-GeeCon Krakow 16 May 2025
-* https://www.youtube.com/watch?v=fyf2AWUyq24[Video: Solving Scala's Build Problem with the Mill Build Tool], SF Scala Meetup 22 April 2025
+* https://www.youtube.com/watch?v=-DTYm1qhQ6U[Video: Engineering a Better Java Build Tool Experience],
+Berlin Expert Days 8 Oct 2025
+* https://www.youtube.com/watch?v=tNsz_dGCsVs[Video: Simpler Build Tools with Functional and Object Oriented Programming], Scala Workshop 13 Oct 2025
 
 For more discussion on the motivation behind the project, see xref:comparisons/why-mill.adoc[Why Use Mill?]
 
@@ -51,7 +51,7 @@ Or see the language-specific introductory documentation linked below:
 
 === Mill Features
 
-* *Performance*: Mill automatically xref:depth/execution-model.adoc#_caching_in_mill[caches]
+* *Performance*: Mill automatically xref:depth/caching.adoc[caches]
 and xref:depth/parallelism.adoc[parallelizes build tasks] and https://mill-build.org/blog/11-jvm-test-parallelism.html[tests]
 to keep local development fast, https://mill-build.org/blog/9-mill-faster-assembly-jars.html[incrementally builds assembly jars]
 to speed up manual testing workflows, and shortens CI times with xref:large/selective-execution.adoc[selective test execution]
