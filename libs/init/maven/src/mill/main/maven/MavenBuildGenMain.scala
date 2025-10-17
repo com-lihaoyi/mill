@@ -150,9 +150,10 @@ object MavenBuildGenMain {
     BuildWriter(build).writeFiles()
   }
 
-  private def toGav(dep: Dependency) = (dep.getGroupId, dep.getArtifactId, dep.getVersion)
+  private def toGav(dep: Dependency): (String, String, String) =
+    (dep.getGroupId, dep.getArtifactId, dep.getVersion)
 
-  private def toMvnDep(dep: Dependency) = {
+  private def toMvnDep(dep: Dependency): MvnDep = {
     import dep.*
     MvnDep(
       organization = getGroupId,
@@ -165,7 +166,7 @@ object MavenBuildGenMain {
     )
   }
 
-  private def toPomParentProject(parent: Parent) = {
+  private def toPomParentProject(parent: Parent): Artifact = {
     if (parent == null) null
     else {
       import parent.*
@@ -173,7 +174,7 @@ object MavenBuildGenMain {
     }
   }
 
-  private def toPomSettings(model: Model) = {
+  private def toPomSettings(model: Model): PomSettings = {
     import model.*
     PomSettings(
       description = Option(getDescription),
@@ -185,7 +186,7 @@ object MavenBuildGenMain {
     )
   }
 
-  private def toLicense(license: MvnLicense) = {
+  private def toLicense(license: MvnLicense): License = {
     import license.*
     License(
       name = getName,
@@ -194,7 +195,7 @@ object MavenBuildGenMain {
     )
   }
 
-  private def toVersionControl(scm: Scm) = {
+  private def toVersionControl(scm: Scm): VersionControl = {
     if (scm == null) VersionControl()
     else
       import scm.*
@@ -206,7 +207,7 @@ object MavenBuildGenMain {
       )
   }
 
-  private def toDeveloper(developer: MvnDeveloper) = {
+  private def toDeveloper(developer: MvnDeveloper): Developer = {
     import developer.*
     Developer(
       id = getId,

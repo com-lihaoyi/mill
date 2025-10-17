@@ -5,7 +5,7 @@ import upickle.default.{ReadWriter, macroRW}
 /**
  * Data for configuring a Mill build module.
  *
- * Each subtype in this ADT maps to a module type defined in Mill.
+ * Each subtype of this ADT maps to a module type defined in Mill.
  * For example, `ModuleConfig.JavaModule` maps to `mill.javalib.JavaModule` and contains the data
  * to configure tasks/members like `mvnDeps`/`moduleDeps`.
  */
@@ -71,9 +71,8 @@ object ModuleConfig {
       excludes: Seq[(String, String)] = Nil,
       cross: CrossVersion = CrossVersion.Constant("", platformed = false)
   ) {
-    def module = (organization, name)
-    override def toString = {
-      super.toString
+    def module: (String, String) = (organization, name)
+    override def toString: String = {
       val sep = cross match {
         case _: CrossVersion.Full => ":::"
         case _: CrossVersion.Binary => "::"
@@ -124,10 +123,10 @@ object ModuleConfig {
   }
 
   case class CoursierModule(repositories: Seq[String] = Nil) extends ModuleConfig {
-    def abstracted(that: CoursierModule) = copy(
+    def abstracted(that: CoursierModule): CoursierModule = copy(
       repositories.intersect(that.repositories)
     )
-    def inherited(base: CoursierModule) = copy(
+    def inherited(base: CoursierModule): CoursierModule = copy(
       repositories.diff(base.repositories)
     )
   }
@@ -135,10 +134,10 @@ object ModuleConfig {
     implicit val rw: ReadWriter[CoursierModule] = macroRW
   }
   case class JavaHomeModule(jvmId: String) extends ModuleConfig {
-    def abstracted(that: JavaHomeModule) = copy(
+    def abstracted(that: JavaHomeModule): JavaHomeModule = copy(
       abstractedValue(jvmId, that.jvmId)
     )
-    def inherited(base: JavaHomeModule) = copy(
+    def inherited(base: JavaHomeModule): JavaHomeModule = copy(
       inheritedValue(jvmId, base.jvmId)
     )
   }
@@ -149,7 +148,7 @@ object ModuleConfig {
         javaVersion: Option[Int] = None,
         javacOptions: Seq[String] = Nil,
         scalacOptions: Seq[String] = Nil
-    ) = {
+    ): Option[JavaHomeModule] = {
       def versionIn(options: Seq[String], regex: String) =
         options.indexWhere(_.matches(regex)) match {
           case -1 => None
@@ -167,10 +166,10 @@ object ModuleConfig {
     }
   }
   case class RunModule(forkWorkingDir: String = null) extends ModuleConfig {
-    def abstracted(that: RunModule) = copy(
+    def abstracted(that: RunModule): RunModule = copy(
       abstractedValue(forkWorkingDir, that.forkWorkingDir)
     )
-    def inherited(base: RunModule) = copy(
+    def inherited(base: RunModule): RunModule = copy(
       inheritedValue(forkWorkingDir, base.forkWorkingDir)
     )
   }
@@ -188,7 +187,7 @@ object ModuleConfig {
       javacOptions: Seq[String] = Nil,
       artifactName: String = null
   ) extends ModuleConfig {
-    def abstracted(that: JavaModule) = copy(
+    def abstracted(that: JavaModule): JavaModule = copy(
       mvnDeps.intersect(that.mvnDeps),
       compileMvnDeps.intersect(that.compileMvnDeps),
       runMvnDeps.intersect(that.runMvnDeps),
@@ -199,7 +198,7 @@ object ModuleConfig {
       abstractedOptions(javacOptions, that.javacOptions),
       abstractedValue(artifactName, that.artifactName)
     )
-    def inherited(base: JavaModule) = copy(
+    def inherited(base: JavaModule): JavaModule = copy(
       mvnDeps.diff(base.mvnDeps),
       compileMvnDeps.diff(base.compileMvnDeps),
       runMvnDeps.diff(base.runMvnDeps),
@@ -222,7 +221,7 @@ object ModuleConfig {
       versionScheme: String = null,
       publishProperties: Map[String, String] = Map()
   ) extends ModuleConfig {
-    def abstracted(that: PublishModule) = copy(
+    def abstracted(that: PublishModule): PublishModule = copy(
       abstractedValue(pomPackagingType, that.pomPackagingType),
       abstractedValue(pomParentProject, that.pomParentProject),
       abstractedValue(pomSettings, that.pomSettings),
@@ -230,7 +229,7 @@ object ModuleConfig {
       abstractedValue(versionScheme, that.versionScheme),
       publishProperties.toSeq.intersect(that.publishProperties.toSeq).toMap
     )
-    def inherited(base: PublishModule) = copy(
+    def inherited(base: PublishModule): PublishModule = copy(
       inheritedValue(pomPackagingType, base.pomPackagingType),
       inheritedValue(pomParentProject, base.pomParentProject),
       inheritedValue(pomSettings, base.pomSettings),
@@ -253,13 +252,13 @@ object ModuleConfig {
       errorProneOptions: Seq[String] = Nil,
       errorProneJavacEnableOptions: Seq[String] = Nil
   ) extends ModuleConfig {
-    def abstracted(that: ErrorProneModule) = copy(
+    def abstracted(that: ErrorProneModule): ErrorProneModule = copy(
       abstractedValue(errorProneVersion, that.errorProneVersion),
       errorProneDeps.intersect(that.errorProneDeps),
       errorProneOptions.intersect(that.errorProneOptions),
       errorProneJavacEnableOptions.intersect(that.errorProneJavacEnableOptions)
     )
-    def inherited(base: ErrorProneModule) = copy(
+    def inherited(base: ErrorProneModule): ErrorProneModule = copy(
       inheritedValue(errorProneVersion, base.errorProneVersion),
       errorProneDeps.diff(base.errorProneDeps),
       errorProneOptions.diff(base.errorProneOptions),
@@ -269,7 +268,10 @@ object ModuleConfig {
   object ErrorProneModule {
     implicit val rw: ReadWriter[ErrorProneModule] = macroRW
 
-    def find(javacOptions: Seq[String], errorProneMvnDeps: Seq[MvnDep]) = {
+    def find(
+        javacOptions: Seq[String],
+        errorProneMvnDeps: Seq[MvnDep]
+    ): (Option[ErrorProneModule], Seq[String]) = {
       javacOptions.find(_.startsWith("-Xplugin:ErrorProne")).map { epOption =>
         val epOptions = epOption.split("\\s").toSeq.tail
         val epMvnDep =
@@ -293,12 +295,12 @@ object ModuleConfig {
       scalacOptions: Seq[String] = Nil,
       scalacPluginMvnDeps: Seq[MvnDep] = Nil
   ) extends ModuleConfig {
-    def abstracted(that: ScalaModule) = copy(
+    def abstracted(that: ScalaModule): ScalaModule = copy(
       abstractedValue(scalaVersion, that.scalaVersion),
       abstractedOptions(scalacOptions, that.scalacOptions),
       scalacPluginMvnDeps.intersect(that.scalacPluginMvnDeps)
     )
-    def inherited(base: ScalaModule) = copy(
+    def inherited(base: ScalaModule): ScalaModule = copy(
       inheritedValue(scalaVersion, base.scalaVersion),
       inheritedOptions(scalacOptions, base.scalacOptions),
       scalacPluginMvnDeps.diff(base.scalacPluginMvnDeps)
@@ -311,11 +313,11 @@ object ModuleConfig {
       scalaJSVersion: String = null,
       moduleKind: String = null
   ) extends ModuleConfig {
-    def abstracted(that: ScalaJSModule) = copy(
+    def abstracted(that: ScalaJSModule): ScalaJSModule = copy(
       abstractedValue(scalaJSVersion, that.scalaJSVersion),
       abstractedValue(moduleKind, that.moduleKind)
     )
-    def inherited(base: ScalaJSModule) = copy(
+    def inherited(base: ScalaJSModule): ScalaJSModule = copy(
       inheritedValue(scalaJSVersion, base.scalaJSVersion),
       inheritedValue(moduleKind, base.moduleKind)
     )
@@ -323,16 +325,16 @@ object ModuleConfig {
   object ScalaJSModule {
     implicit val rw: ReadWriter[ScalaJSModule] = macroRW
 
-    def moduleKindOverride(value: String) = value match {
+    def moduleKindOverride(value: String): String = value match {
       case "" | "NoModule" => null
       case _ => value
     }
   }
   case class ScalaNativeModule(scalaNativeVersion: String = null) extends ModuleConfig {
-    def abstracted(that: ScalaNativeModule) = copy(
+    def abstracted(that: ScalaNativeModule): ScalaNativeModule = copy(
       abstractedValue(that.scalaNativeVersion, that.scalaNativeVersion)
     )
-    def inherited(base: ScalaNativeModule) = copy(
+    def inherited(base: ScalaNativeModule): ScalaNativeModule = copy(
       inheritedValue(scalaNativeVersion, base.scalaNativeVersion)
     )
   }
@@ -340,10 +342,10 @@ object ModuleConfig {
     implicit val rw: ReadWriter[ScalaNativeModule] = macroRW
   }
   case class SbtPlatformModule(sourcesRootFolders: Seq[String] = Nil) extends ModuleConfig {
-    def abstracted(that: SbtPlatformModule) = copy(
+    def abstracted(that: SbtPlatformModule): SbtPlatformModule = copy(
       sourcesRootFolders.intersect(that.sourcesRootFolders)
     )
-    def inherited(base: SbtPlatformModule) = copy(
+    def inherited(base: SbtPlatformModule): SbtPlatformModule = copy(
       sourcesRootFolders.diff(base.sourcesRootFolders)
     )
   }
@@ -354,11 +356,11 @@ object ModuleConfig {
       testParallelism: String = null,
       testSandboxWorkingDir: String = null
   ) extends ModuleConfig {
-    def abstracted(that: TestModule) = copy(
+    def abstracted(that: TestModule): TestModule = copy(
       abstractedValue(testParallelism, that.testParallelism),
       abstractedValue(testSandboxWorkingDir, that.testSandboxWorkingDir)
     )
-    def inherited(base: TestModule) = copy(
+    def inherited(base: TestModule): TestModule = copy(
       inheritedValue(testParallelism, base.testParallelism),
       inheritedValue(testSandboxWorkingDir, base.testSandboxWorkingDir)
     )
@@ -399,10 +401,10 @@ object ModuleConfig {
   }
   implicit val rw: ReadWriter[ModuleConfig] = macroRW
 
-  def isBomDep(organization: String, name: String) = name.endsWith("-bom") ||
+  def isBomDep(organization: String, name: String): Boolean = name.endsWith("-bom") ||
     (organization == "org.springframework.boot" && name == "spring-boot-dependencies")
 
-  def groupedOptions(options: Seq[String]) = {
+  def groupedOptions(options: Seq[String]): Seq[Seq[String]] = {
     val b = Seq.newBuilder[Seq[String]]
     var rem = options
     while (rem.nonEmpty) {
@@ -413,21 +415,21 @@ object ModuleConfig {
     b.result()
   }
 
-  def abstractedOptions(self: Seq[String], that: Seq[String]) = {
+  def abstractedOptions(self: Seq[String], that: Seq[String]): Seq[String] = {
     groupedOptions(self).intersect(groupedOptions(that)).flatten
   }
 
-  def inheritedOptions(self: Seq[String], base: Seq[String]) = {
+  def inheritedOptions(self: Seq[String], base: Seq[String]): Seq[String] = {
     groupedOptions(self).diff(groupedOptions(base)).flatten
   }
 
-  def abstractedValue[A](self: A, that: A, default: A = null) =
+  def abstractedValue[A](self: A, that: A, default: A = null): A =
     if (self == that) self else default
 
-  def inheritedValue[A](self: A, base: A, default: A = null) =
+  def inheritedValue[A](self: A, base: A, default: A = null): A =
     if (self == base) default else self
 
-  def abstractedConfigs(self: Seq[ModuleConfig], that: Seq[ModuleConfig]) =
+  def abstractedConfigs(self: Seq[ModuleConfig], that: Seq[ModuleConfig]): Seq[ModuleConfig] =
     self.flatMap {
       case self: CoursierModule => that.collectFirst {
           case that: CoursierModule => self.abstracted(that)
@@ -464,7 +466,7 @@ object ModuleConfig {
         }
     }
 
-  def inheritedConfigs(self: Seq[ModuleConfig], base: Seq[ModuleConfig]) =
+  def inheritedConfigs(self: Seq[ModuleConfig], base: Seq[ModuleConfig]): Seq[ModuleConfig] =
     self.map {
       case self: CoursierModule => base.collectFirst {
           case base: CoursierModule => self.inherited(base)

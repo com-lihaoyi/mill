@@ -50,12 +50,12 @@ object SbtBuildGenMain {
         )
     }
 
-    // For cross projects, multiple specs are exported with settings for each Scala version.
     type ExportedPackageSpec = (
-        // A flag that is set for cross-platform projects and the package location.
+        // A flag and the package location.
         // When the flag is set, the location is the shared root directory for member projects.
         // Otherwise, the location is the project base directory.
         (Boolean, Seq[String]),
+        // Package root module specification for a given Scala version.
         ModuleSpec
     )
     val exportedBuild = os.list.stream(exportDir)
@@ -114,7 +114,7 @@ object SbtBuildGenMain {
     }
   }
 
-  def addExportPlugin() = {
+  private def addExportPlugin(): Unit = {
     val pluginJar = Using.resource(getClass.getResourceAsStream(exportpluginAssemblyResource))(
       os.temp(_, suffix = ".jar")
     )
@@ -129,7 +129,7 @@ object SbtBuildGenMain {
     )
   }
 
-  def sbtJvmOpts = {
+  private def sbtJvmOpts: Seq[String] = {
     val file = os.pwd / ".jvmopts"
     if (os.isFile(file)) os.read.lines(file)
       .map(_.trim)
@@ -141,7 +141,7 @@ object SbtBuildGenMain {
   /**
    * Returns the full module specification by combining Scala version specific configurations.
    */
-  def unifyCrossVersionConfigs(partials: Seq[ModuleSpec]) = {
+  private def unifyCrossVersionConfigs(partials: Seq[ModuleSpec]): ModuleSpec = {
     def combineSpecs(part1: ModuleSpec, part2: ModuleSpec): ModuleSpec = part1.copy(
       configs = abstractedConfigs(part1.configs, part2.configs),
       crossConfigs = part1.crossConfigs ++ part2.crossConfigs,
@@ -160,7 +160,7 @@ object SbtBuildGenMain {
    * A transformation that sets the `platformed` flag for dependencies in JVM modules if required.
    * This prevents double entries when defining constants for dependencies.
    */
-  def normalizeJvmPlatformDeps(packages: Seq[PackageSpec]) = {
+  private def normalizeJvmPlatformDeps(packages: Seq[PackageSpec]): Seq[PackageSpec] = {
     val platformedDeps = packages
       .flatMap(_.module.sequence)
       .flatMap(module => module.configs ++ module.crossConfigs.flatMap(_._2))

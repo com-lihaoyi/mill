@@ -30,7 +30,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
     new BuildModel.Impl(upickle.default.write(exportedBuild))
   }
 
-  def toPackage(project0: Project) = {
+  private def toPackage(project0: Project): PackageSpec = {
     import project0.*
     val moduleDir = os.Path(getProjectDir)
     val segments = moduleDir.subRelativeTo(workspace).segments
@@ -174,11 +174,11 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
     PackageSpec(segments, mainModule)
   }
 
-  val toRepositoryUrlString: PartialFunction[ArtifactRepository, String] = {
+  private val toRepositoryUrlString: PartialFunction[ArtifactRepository, String] = {
     case repo: UrlArtifactRepository => repo.getUrl.toURL.toExternalForm
   }
 
-  def toMvnDep(dep: ExternalDependency, config: Configuration) = {
+  private def toMvnDep(dep: ExternalDependency, config: Configuration): MvnDep = {
     import dep.*
     val artifact = getArtifacts.asScala.headOption
     MvnDep(
@@ -195,12 +195,12 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
     )
   }
 
-  def toModuleDep(dep: ProjectDependency) =
+  private def toModuleDep(dep: ProjectDependency): ModuleDep =
     ModuleDep(
       os.Path(ctx.project(dep).getProjectDir).subRelativeTo(workspace).segments
     )
 
-  def toPomSettings(pom: MavenPom, groupId: String) = {
+  private def toPomSettings(pom: MavenPom, groupId: String): PomSettings = {
     import pom.*
     val (licenses, versionControl, developers) = pom match {
       case pom: DefaultMavenPom =>
@@ -221,7 +221,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
     )
   }
 
-  def toLicense(license: MavenPomLicense) = {
+  private def toLicense(license: MavenPomLicense): License = {
     import license.*
     License(
       name = getName.getOrNull,
@@ -230,7 +230,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
     )
   }
 
-  def toVersionControl(scm: MavenPomScm) = {
+  private def toVersionControl(scm: MavenPomScm): VersionControl = {
     if (null == scm) VersionControl()
     else
       import scm.*
@@ -242,7 +242,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
       )
   }
 
-  def toDeveloper(developer: MavenPomDeveloper) = {
+  private def toDeveloper(developer: MavenPomDeveloper): Developer = {
     import developer.*
     Developer(
       id = getId.getOrNull,

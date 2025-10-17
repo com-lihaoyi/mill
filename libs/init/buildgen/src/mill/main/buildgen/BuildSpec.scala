@@ -17,7 +17,7 @@ case class BuildSpec(
    * Moves modules in nested packages to the root module hierarchy.
    * This eliminates nested build files without modifying the build semantics.
    */
-  def merged = {
+  def merged: BuildSpec = {
     def recurse(pkg: PackageSpec): ModuleSpec = {
       val mergedModules = packages.collect {
         case subPkg
@@ -51,7 +51,7 @@ case class BuildSpec(
    * The first one is derived from all non-test modules, if there are more than one such modules.
    * The second one is derived from all publishable modules, if the first one has no publish data.
    */
-  def withDefaultMetaBuild = {
+  def withDefaultMetaBuild: BuildSpec = {
     def abstractedModule(module1: ModuleSpec, module2: ModuleSpec) = module1.copy(
       supertypes = module1.supertypes.intersect(module2.supertypes),
       mixins = ModuleConfig.abstractedValue(module1.mixins, module2.mixins, Nil),

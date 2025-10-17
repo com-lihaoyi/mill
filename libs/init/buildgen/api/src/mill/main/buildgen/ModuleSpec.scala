@@ -21,9 +21,9 @@ case class ModuleSpec(
     crossConfigs: Seq[(String, Seq[ModuleConfig])] = Nil,
     nestedModules: Seq[ModuleSpec] = Nil
 ) {
-  def isPublishModule = configs.exists(_.isInstanceOf[ModuleConfig.PublishModule])
-  def isScalaModule = configs.exists(_.isInstanceOf[ModuleConfig.ScalaModule])
-  def isTestModule = configs.exists(_.isInstanceOf[ModuleConfig.TestModule])
+  def isPublishModule: Boolean = configs.exists(_.isInstanceOf[ModuleConfig.PublishModule])
+  def isScalaModule: Boolean = configs.exists(_.isInstanceOf[ModuleConfig.ScalaModule])
+  def isTestModule: Boolean = configs.exists(_.isInstanceOf[ModuleConfig.TestModule])
 
   def sequence: Seq[ModuleSpec] = this +: nestedModules.flatMap(_.sequence)
   def transform(f: ModuleSpec => ModuleSpec): ModuleSpec =

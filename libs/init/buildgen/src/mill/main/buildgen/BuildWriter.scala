@@ -52,7 +52,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     )
   }
 
-  def renderRootPackage(pkg: PackageSpec) = {
+  private def renderRootPackage(pkg: PackageSpec) = {
     import build.*
     val header = Seq("mill-version: " + millVersion) ++
       Option.when(millJvmOpts.nonEmpty) {
@@ -63,7 +63,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
        |""".stripMargin
   }
 
-  def renderPackage(pkg: PackageSpec) = {
+  private def renderPackage(pkg: PackageSpec) = {
     import pkg.*
     s"""package ${(rootModuleAlias +: segments.map(backtickWrap)).mkString(".")}
        |
@@ -73,7 +73,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
        |""".stripMargin
   }
 
-  def renderBaseModule(packageName: String, baseModule: ModuleSpec) = {
+  private def renderBaseModule(packageName: String, baseModule: ModuleSpec) = {
     import baseModule.*
     s"""package $packageName
        |
@@ -85,7 +85,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
        |}""".stripMargin
   }
 
-  def renderDepsObject(packageName: String, name: String) = {
+  private def renderDepsObject(packageName: String, name: String) = {
     s"""package $packageName
        |
        |import mill.javalib._
@@ -98,14 +98,14 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
        |}""".stripMargin
   }
 
-  def renderBaseModuleImports(baseModule: ModuleSpec) = {
+  private def renderBaseModuleImports(baseModule: ModuleSpec) = {
     val wildcards = mutable.SortedSet.empty[String]
     import baseModule.*
     configs.foreach(addImports(wildcards, _))
     renderLines(wildcards.map(s => s"import $s._"))
   }
 
-  def renderModuleImports(module: ModuleSpec) = {
+  private def renderModuleImports(module: ModuleSpec) = {
     val wildcards = mutable.SortedSet.empty[String]
     for spec <- module.sequence do {
       import spec.*
@@ -128,7 +128,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
       case _ => wildcards += "mill.javalib"
     }
 
-  def renderModule(module: ModuleSpec, isPackageRoot: Boolean = false): String = {
+  private def renderModule(module: ModuleSpec, isPackageRoot: Boolean = false): String = {
     import module.*
     s"""${renderModuleDeclaration(module, isPackageRoot)} {
        |
@@ -138,7 +138,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
        |}""".stripMargin
   }
 
-  def renderModuleDeclaration(module: ModuleSpec, isPackageRoot: Boolean) = {
+  private def renderModuleDeclaration(module: ModuleSpec, isPackageRoot: Boolean) = {
     import module.*
     val objectName = backtickWrap(if (isPackageRoot) "package" else name)
     if (crossConfigs.isEmpty || isTestModule) {
@@ -157,12 +157,12 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     }
   }
 
-  def renderExtendsClause(supertypes: Seq[String]) = supertypes match {
+  private def renderExtendsClause(supertypes: Seq[String]) = supertypes match {
     case Nil => "extends Module"
     case head +: tail => s" extends $head" + tail.map(" with " + _).mkString
   }
 
-  def renderModuleConfigs(
+  private def renderModuleConfigs(
       configs: Seq[ModuleConfig],
       crossConfigs: Seq[(String, Seq[ModuleConfig])]
   ) = {
@@ -187,7 +187,10 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     })
   }
 
-  def renderCoursierModule(config: CoursierModule, crossConfigs: Seq[(String, CoursierModule)]) = {
+  private def renderCoursierModule(
+      config: CoursierModule,
+      crossConfigs: Seq[(String, CoursierModule)]
+  ) = {
     renderBlocks(renderTaskAsSeq(
       "repositories",
       config.repositories,
@@ -196,7 +199,10 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     ))
   }
 
-  def renderJavaHomeModule(config: JavaHomeModule, crossConfigs: Seq[(String, JavaHomeModule)]) = {
+  private def renderJavaHomeModule(
+      config: JavaHomeModule,
+      crossConfigs: Seq[(String, JavaHomeModule)]
+  ) = {
     renderBlocks(renderTask(
       "jvmId",
       config.jvmId,
@@ -205,7 +211,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     ))
   }
 
-  def renderRunModule(config: RunModule, crossConfigs: Seq[(String, RunModule)]) = {
+  private def renderRunModule(config: RunModule, crossConfigs: Seq[(String, RunModule)]) = {
     renderBlocks(renderTask(
       "forkWorkingDir",
       config.forkWorkingDir,
@@ -214,7 +220,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     ))
   }
 
-  def renderJavaModule(config: JavaModule, crossConfigs: Seq[(String, JavaModule)]) = {
+  private def renderJavaModule(config: JavaModule, crossConfigs: Seq[(String, JavaModule)]) = {
     def cross[A](f: JavaModule => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
     renderBlocks(
@@ -235,7 +241,10 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     )
   }
 
-  def renderPublishModule(config: PublishModule, crossConfigs: Seq[(String, PublishModule)]) = {
+  private def renderPublishModule(
+      config: PublishModule,
+      crossConfigs: Seq[(String, PublishModule)]
+  ) = {
     def cross[A](f: PublishModule => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
     renderBlocks(
@@ -264,7 +273,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     )
   }
 
-  def renderErrorProneModule(
+  private def renderErrorProneModule(
       config: ErrorProneModule,
       crossConfigs: Seq[(String, ErrorProneModule)]
   ) = {
@@ -288,7 +297,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     )
   }
 
-  def renderScalaModule(config: ScalaModule, crossConfigs: Seq[(String, ScalaModule)]) = {
+  private def renderScalaModule(config: ScalaModule, crossConfigs: Seq[(String, ScalaModule)]) = {
     def cross[A](f: ScalaModule => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
     renderBlocks(
@@ -303,7 +312,10 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     )
   }
 
-  def renderScalaJSModule(config: ScalaJSModule, crossConfigs: Seq[(String, ScalaJSModule)]) = {
+  private def renderScalaJSModule(
+      config: ScalaJSModule,
+      crossConfigs: Seq[(String, ScalaJSModule)]
+  ) = {
     def cross[A](f: ScalaJSModule => A) = crossConfigs.map((k, v) => (k, f(v)))
     import config.*
     renderBlocks(
@@ -312,7 +324,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     )
   }
 
-  def renderScalaNativeModule(
+  private def renderScalaNativeModule(
       config: ScalaNativeModule,
       crossConfigs: Seq[(String, ScalaNativeModule)]
   ) = {
@@ -324,7 +336,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     ))
   }
 
-  def renderSbtPlatformModule(
+  private def renderSbtPlatformModule(
       config: SbtPlatformModule,
       crossConfigs: Seq[(String, SbtPlatformModule)]
   ) = {
@@ -336,7 +348,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     ))
   }
 
-  def renderTestModule(
+  private def renderTestModule(
       config: TestModule,
       crossConfigs: Seq[(String, TestModule)]
   ) = {
@@ -353,7 +365,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     )
   }
 
-  def renderMvnDep(dep: MvnDep) = build.metaBuild.fold(dep.toString()) { meta =>
+  private def renderMvnDep(dep: MvnDep) = build.metaBuild.fold(dep.toString()) { meta =>
     var ref = mvnDepRef.getOrElse(dep, null)
     if (ref == null) {
       ref = dep.name.split("\\W") match
@@ -371,19 +383,19 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     meta.depsObjectName + "." + backtickWrap(ref)
   }
 
-  def renderModuleDep(dep: ModuleDep) = {
+  private def renderModuleDep(dep: ModuleDep) = {
     import dep.*
     val segments0 = rootModuleAlias +: segments.map(backtickWrap)
     def segment(i: Int) = segments0(i) + crossArgs.get(i - 1).fold("")(_.mkString("(", ", ", ")"))
     segments0.indices.map(segment).mkString(".")
   }
 
-  def renderArtifact(value: Artifact) = {
+  private def renderArtifact(value: Artifact) = {
     import value.*
     s"Artifact(${literalize(group)}, ${literalize(id)}, ${literalize(version)})"
   }
 
-  def renderPomSettings(value: PomSettings) = {
+  private def renderPomSettings(value: PomSettings) = {
     import value.*
     // TODO Supporting optional tags requires changes in Mill.
     val description0 = literalize(description.getOrElse(""))
@@ -395,7 +407,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     s"PomSettings($description0, $organization0, $url0, $licenses0, $versionControl0, $developers0)"
   }
 
-  def renderLicense(value: License) = {
+  private def renderLicense(value: License) = {
     import value.*
     val id0 = literalize(if (id == null) "" else id)
     val name0 = literalize(if (name == null) "" else name)
@@ -404,7 +416,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     s"License($id0, $name0, $url0, $isOsiApproved, $isFsfLibre, $distribution0)"
   }
 
-  def renderVersionControl(value: VersionControl) = {
+  private def renderVersionControl(value: VersionControl) = {
     import value.*
     val browsableRepository0 = browsableRepository.fold("None")(v => s"Some(${literalize(v)})")
     val connection0 = connection.fold("None")(v => s"Some(${literalize(v)})")
@@ -413,7 +425,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     s"VersionControl($browsableRepository0, $connection0, $developerConnection0, $tag0)"
   }
 
-  def renderDeveloper(value: Developer) = {
+  private def renderDeveloper(value: Developer) = {
     import value.*
     val id0 = literalize(if (id == null) "" else id)
     val name0 = literalize(if (name == null) "" else name)
@@ -423,14 +435,14 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     s"Developer($id0, $name0, $url0, $organization0, $organizationUrl0)"
   }
 
-  def renderVersionScheme(value: String) = value match {
+  private def renderVersionScheme(value: String) = value match {
     case "early-semver" => "VersionScheme.EarlySemVer"
     case "pvp" => "VersionScheme.PVP"
     case "semver-spec" => "VersionScheme.SemVerSpec"
     case "strict" => "VersionScheme.Strict"
   }
 
-  def renderBlocks(blocks: String*) = blocks.mkString(
+  private def renderBlocks(blocks: String*) = blocks.mkString(
     """
       |""".stripMargin,
     """
@@ -440,12 +452,12 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
       |""".stripMargin
   )
 
-  def renderLines(lines: Iterable[String]) = lines.mkString(
+  private def renderLines(lines: Iterable[String]) = lines.mkString(
     """
       |""".stripMargin
   )
 
-  def renderMember[A](
+  private def renderMember[A](
       name: String,
       value: A,
       crossValues: Seq[(String, A)],
@@ -474,7 +486,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     }
   }
 
-  def renderTask[A](
+  private def renderTask[A](
       name: String,
       value: A,
       crossValues: Seq[(String, A)],
@@ -503,7 +515,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     }
   }
 
-  def renderMemberAsSeq[A](
+  private def renderMemberAsSeq[A](
       name: String,
       value: Seq[A],
       crossValues: Seq[(String, Seq[A])],
@@ -532,7 +544,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     }
   }
 
-  def renderTaskAsMap[K, V](
+  private def renderTaskAsMap[K, V](
       name: String,
       value: Map[K, V],
       crossValues: Seq[(String, Map[K, V])],
@@ -564,7 +576,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     }
   }
 
-  def renderTaskAsSeq[A](
+  private def renderTaskAsSeq[A](
       name: String,
       value: Seq[A],
       crossValues: Seq[(String, Seq[A])],
