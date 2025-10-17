@@ -132,6 +132,10 @@ object MillMain0 {
               streams.out.println(MillCliConfig.longUsageText)
               (true, RunnerState.empty)
 
+            case Result.Success(config) if config.helpAdvanced.value =>
+              streams.out.println(MillCliConfig.helpAdvancedUsageText)
+              (true, RunnerState.empty)
+
             case Result.Success(config) if config.showVersion.value =>
               def prop(k: String) = System.getProperty(k, s"<unknown $k>")
 
