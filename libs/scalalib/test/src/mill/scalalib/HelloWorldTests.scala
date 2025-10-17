@@ -53,10 +53,12 @@ object HelloWorldTests extends TestSuite {
         )
 
     trait HelloWorldCross extends CrossScalaModule {
-      override def semanticDbVersion = Task { scalaVersion() match {
-        case `scala2123Version` => "2.1.2"
-        case _ => super.semanticDbVersion()
-      } }
+      override def semanticDbVersion = Task {
+        scalaVersion() match {
+          case `scala2123Version` => "2.1.2"
+          case _ => super.semanticDbVersion()
+        }
+      }
     }
 
     lazy val millDiscover = Discover[this.type]
