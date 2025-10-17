@@ -438,6 +438,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     val jOpts = JavaCompilerOptions(javacOptions)
     worker.compileJava(
       ZincCompileJava(
+        compileTo = Task.dest,
         upstreamCompileOutput = upstreamCompileOutput,
         sources = javaSourceFiles,
         compileClasspath = compileCp,

@@ -19,6 +19,7 @@ object LargeAssemblyExeTests extends TestSuite {
 
     trait ExtraDeps extends ScalaModule {
       def scalaVersion = "2.13.11"
+      def semanticDbVersion = "4.9.9" // last version to support this Scala
 
       def sources = Task.Sources(mill.api.BuildCtx.workspaceRoot / "src")
 
