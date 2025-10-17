@@ -18,11 +18,19 @@ import scala.util.Using
 object GradleBuildGenMain {
 
   /**
-   * @see [[GradleBuildGenArgs Command line arguments]]
+   * @see [[runImport]]
    */
   def main(args: Array[String]): Unit = {
     val args0 = summon[ParserForClass[GradleBuildGenArgs]].constructOrExit(args.toSeq)
-    import args0.*
+    runImport(args0)
+  }
+
+  /**
+   * Imports a Gradle project located in the current working directory.
+   * @param args Command line arguments
+   */
+  def runImport(args: GradleBuildGenArgs): Unit = {
+    import args.*
     println("converting Gradle build")
 
     val gradleWrapperProperties = {

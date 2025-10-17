@@ -15,13 +15,20 @@ import scala.util.Using
 object SbtBuildGenMain {
 
   /**
-   * @see [[SbtBuildGenArgs Command line arguments]]
+   * @see [[runImport]]
    */
   def main(args: Array[String]): Unit = {
-    println("converting sbt build")
-
     val args0 = summon[ParserForClass[SbtBuildGenArgs]].constructOrExit(args.toSeq)
-    import args0.*
+    runImport(args0)
+  }
+
+  /**
+   * Imports an SBT project located in the current working directory.
+   * @param args Command line arguments
+   */
+  def runImport(args: SbtBuildGenArgs): Unit = {
+    import args.*
+    println("converting sbt build")
 
     val sbtCmd = customSbt.getOrElse(defaultSbt.fold(sys.error, identity))
     addExportPlugin()

@@ -13,11 +13,19 @@ import scala.jdk.CollectionConverters.*
 object MavenBuildGenMain {
 
   /**
-   * @see [[MavenBuildGenArgs Command line arguments]]
+   * @see [[runImport]]
    */
   def main(args: Array[String]): Unit = {
     val args0 = summon[ParserForClass[MavenBuildGenArgs]].constructOrExit(args.toSeq)
-    import args0.*
+    runImport(args0)
+  }
+
+  /**
+   * Imports a Maven project located in the current working directory.
+   * @param args Command line arguments
+   */
+  def runImport(args: MavenBuildGenArgs): Unit = {
+    import args.*
     println("converting Maven build")
 
     val modelBuildingResults = Modeler().buildAll()
