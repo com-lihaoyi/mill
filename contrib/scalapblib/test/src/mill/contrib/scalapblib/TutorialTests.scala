@@ -112,7 +112,8 @@ object TutorialTests extends TestSuite {
       expectedFiles: Seq[os.RelPath]
   ): Unit = {
     UnitTester(module, resourcePath).scoped { eval =>
-      if (!mill.constants.Util.isWindows) {
+      if (Util.isWindows) "Skipped test on Windows"
+      else {
         val Right(result) = eval.apply(module.core.compileScalaPB): @unchecked
 
         val outPath = protobufOutPath(eval)
@@ -159,7 +160,8 @@ object TutorialTests extends TestSuite {
         TutorialWithSpecificSources,
         resourcePath
       ).scoped { eval =>
-        if (!Util.isWindows) {
+        if (Util.isWindows) "Skipped test on Windows"
+        else {
           val Right(result) =
             eval.apply(TutorialWithSpecificSources.core.compileScalaPB): @unchecked
 
