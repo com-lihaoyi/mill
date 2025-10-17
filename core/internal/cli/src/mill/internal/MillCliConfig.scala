@@ -85,7 +85,7 @@ case class MillCliConfig(
     // ==================== ADVANCED CLI FLAGS ====================
     @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
     allowPositional: Flag = Flag(),
-    @arg(hidden = true, doc = """Enable BSP server mode.""")
+    @arg(hidden = true, doc = """Enable BSP server mode. Typically used by a BSP client when starting the Mill BSP server.""")
     bsp: Flag,
     @arg(hidden = true, doc = """Create mill-bsp.json with Mill details under .bsp/""")
     bspInstall: Flag,
@@ -204,6 +204,8 @@ Task cheat sheet:
 Options:
 """
   val advancedInfo = """
+Advanced and internal command-line flags not intended for common usage. Use at your own risk!
+
 Advanced Options:
 """
 
@@ -240,8 +242,7 @@ Advanced Options:
     customName +
       usageDoc +
       advancedInfo +
-      helpAdvancedParser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
-      "\nAdvanced or internal command-line flags not intended for common usage. Use at your own risk!"
+      helpAdvancedParser.helpText(customName = "", totalWidth = 100).stripPrefix("\n")
 
   def parse(args: Array[String]): mill.api.Result[MillCliConfig] = {
     mill.api.Result.fromEither(parser.constructEither(
