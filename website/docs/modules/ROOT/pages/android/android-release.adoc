@@ -55,4 +55,9 @@ def androidDefaultProguardFileNames = Task.Anon {
 }
 ----
 
+== Some examples
 
+The release configuration in the following Java and Kotlin examples can be used as a reference.
+
+- xref:android/java.adoc#_simple_android_hello_world_application[Java Example]
+- xref:android/kotlin.adoc#_simple_android_hello_world_application[Kotlin Example]
