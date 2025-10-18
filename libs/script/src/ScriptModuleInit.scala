@@ -64,7 +64,7 @@ private object ScriptModuleInit
           val parsedHeaderData = parseHeaderData(millFile)
           moduleFor(
             millFile,
-            parsedHeaderData.`extends`,
+            parsedHeaderData.`extends`.headOption,
             parsedHeaderData.moduleDeps,
             parsedHeaderData.compileModuleDeps,
             parsedHeaderData.runModuleDeps,

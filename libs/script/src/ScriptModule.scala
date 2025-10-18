@@ -4,7 +4,7 @@ import mill.api.ExternalModule
 import mill.api.Discover
 import mill.api.daemon.Segments
 import mill.javalib.*
-
+import mill.api.ModuleCtx.HeaderData
 trait ScriptModule extends ExternalModule {
   def scriptConfig: ScriptModule.Config
 
@@ -31,19 +31,12 @@ object ScriptModule {
       runModuleDeps: Seq[mill.Module]
   )
 
-  case class HeaderData(
-      `extends`: Option[String],
-      moduleDeps: Seq[String],
-      compileModuleDeps: Seq[String],
-      runModuleDeps: Seq[String],
-      @upickle.implicits.flatten rest: Map[String, ujson.Value]
-  ) derives upickle.ReadWriter
   private[mill] def parseHeaderData(millSimplePath: os.Path) = {
     val headerData = mill.api.BuildCtx.withFilesystemCheckerDisabled {
       mill.constants.Util.readBuildHeader(millSimplePath.toNIO, millSimplePath.last, true)
     }
 
-    upickle.read[HeaderData](mill.internal.Util.parsedHeaderData(headerData))
+    upickle.read[HeaderData](mill.internal.Util.parsedHeaderData(headerData), trace = true)
   }
 
   class JavaModule(val scriptConfig: ScriptModule.Config) extends JavaModuleBase {
