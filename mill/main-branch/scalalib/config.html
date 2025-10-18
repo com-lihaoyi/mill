@@ -716,12 +716,20 @@ mvnDeps:
 - com.lihaoyi::scalatags:0.13.1
 - com.lihaoyi::os-lib:0.11.4
 
+# Add a custom maven repository URL
+repositories: [&quot;https://oss.sonatype.org/content/repositories/releases&quot;]
+
+# Set an explicit main class
 mainClass: &quot;foo.Foo2&quot;
+
+# Add an additional source folder and resource folder, in addition to the default one
 sources: [&quot;./src&quot;, &quot;./custom-src&quot;]
 resources: [&quot;./resources&quot;, &quot;./custom-resources&quot;]
+
+# Configure compiler and runtime options and env vars
+scalacOptions: [&quot;-deprecation&quot;, &quot;-Xfatal-warnings&quot;]
 forkArgs: [&quot;-Dmy.custom.property=my-prop-value&quot;]
-forkEnv: { &quot;MY_CUSTOM_ENV&quot;: &quot;my-env-value&quot; }
-scalacOptions: [&quot;-deprecation&quot;, &quot;-Xfatal-warnings&quot;]</code></pre>
+forkEnv: { &quot;MY_CUSTOM_ENV&quot;: &quot;my-env-value&quot; }</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -754,6 +762,19 @@ error: object Foo2 { println(this + &quot;hello&quot;)
 error:                       ^
 error: ...Implicit injection of + is deprecated. Convert to String to call +...</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Paths such as <code>./custom-src</code> or <code>./custom-resources</code> are relative to the
+<a href="../fundamentals/modules.html#_moduledir" class="xref page">moduleDir</a> of the module being configured.
+In the example above this is the root folder of your codebase, but in multi-module
+projects this may be a subfolder containing the current <code>build.mill.yaml</code> file.</p>
+</div>
+<div class="paragraph">
+<p>Most <code>Task`s that you can define programmatically in a `build.mill</code> file can be specified
+in a <code>build.mill.yaml</code>, as long as they involve simple configuration (strings, lists, maps, etc.)
+and do not need custom code. For example, you can use the various configuration methods
+discussed in <a href="dependencies.html" class="xref page">Scala Library Dependencies</a>: <code>runMvnDeps</code>, <code>compileMvnDeps</code>,
+<code>unmanagedClasspath</code>, etc.</p>
 </div>
 <div class="paragraph">
 <p>Note that the <code>.build.yaml</code> config files only let you set simple configuration keys,
@@ -897,7 +918,7 @@ and standardize it across all scripts that inherit it via <code>extends.</code><
 <h2 id="_depending_on_programmatic_modules_from_simple_modules"><a class="anchor" href="#_depending_on_programmatic_modules_from_simple_modules"></a>Depending on Programmatic Modules from Simple Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-scalalib-config-5-mixed-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/config/5-mixed-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-36-07a0c4/mill-dist-1.0.6-36-07a0c4-example-scalalib-config-5-mixed-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/config/5-mixed-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
