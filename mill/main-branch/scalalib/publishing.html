@@ -267,10 +267,14 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+    <a class="nav-link" href="../android/android-release.html">Android Release Guide</a>
   </li>
 
   <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/java.html">Android Java Projects</a>
   </li>
 
@@ -322,7 +326,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
   </li>
 </ul>
   </li>
@@ -700,7 +704,7 @@
 jar from any JVM module. You can also customize the assembly jar as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-scalalib-publishing-1-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/publishing/1-assembly-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-scalalib-publishing-1-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/publishing/1-assembly-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -773,7 +777,7 @@ Loaded test.property: 1337</code></pre>
 <h2 id="_building_native_image_binaries_with_graal_vm"><a class="anchor" href="#_building_native_image_binaries_with_graal_vm"></a>Building Native Image Binaries with Graal VM</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-scalalib-publishing-7-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/publishing/7-native-image">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-scalalib-publishing-7-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/publishing/7-native-image">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -808,7 +812,7 @@ Hello, World!</code></pre>
 image, see below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-scalalib-publishing-8-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/publishing/8-native-image-libs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-scalalib-publishing-8-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/publishing/8-native-image-libs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -882,7 +886,7 @@ if you want to experiment it or view its <code>--help</code> text to see what yo
 <h2 id="_publishing_locally"><a class="anchor" href="#_publishing_locally"></a>Publishing Locally</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-scalalib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/publishing/2-publish-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-scalalib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/publishing/2-publish-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, publish.*
@@ -943,7 +947,7 @@ can be resolved from the local repository, with no missing dependencies.</p>
 <h2 id="_publlishing_to_sonatype_maven_central"><a class="anchor" href="#_publlishing_to_sonatype_maven_central"></a>Publlishing to Sonatype Maven Central</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-scalalib-publishing-3-publish-module-sonatype.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/publishing/3-publish-module-sonatype">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-scalalib-publishing-3-publish-module-sonatype.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/publishing/3-publish-module-sonatype">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, publish.*

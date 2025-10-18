@@ -6,7 +6,7 @@
     <title>Android Initial Setup :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/android/android-initial-setup.html" />
     <link rel="prev" href="../kotlinlib/web-examples.html" />
-    <link rel="next" href="ide.html" />
+    <link rel="next" href="android-release.html" />
     <meta name="generator" content="Antora 3.1.12" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -267,10 +267,14 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="ide.html">Android IDE Support</a>
+    <a class="nav-link" href="android-release.html">Android Release Guide</a>
   </li>
 
   <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="java.html">Android Java Projects</a>
   </li>
 
@@ -322,7 +326,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
   </li>
 </ul>
   </li>
@@ -799,38 +803,9 @@ If any issues occur with the automatic installation, you can manually install th
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_5_release_the_project"><a class="anchor" href="#_5_release_the_project"></a>5. Release the project</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>By default, mill projects are considered in debug mode, so if your project is ready for release, you should add the following to your app object in the <code>build.mill</code> file:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">override def androidIsDebug = Task { false }
-def androidReleaseKeyName: Option[String] = Some(&quot;releaseKey.jks&quot;)
-def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
-def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
-def androidReleaseKeyStorePass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Make sure to replace the values with your actual keystore information.
-If you don’t have a keystore yet, you can create one using the <code>keytool</code> command:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; keytool -genkey -v -keystore releaseKey.jks \
-          -storepass &lt;PASS&gt; -keyalg RSA \
-          -keysize 2048 -validity 10000 \
-          -alias releaseKey -keypass &lt;PASS&gt;</code></pre>
-</div>
-</div>
-</div>
-</div>
 <nav class="pagination">
   <span class="prev"><a href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a></span>
-  <span class="next"><a href="ide.html">Android IDE Support</a></span>
+  <span class="next"><a href="android-release.html">Android Release Guide</a></span>
 </nav>
 </article>
   </div>

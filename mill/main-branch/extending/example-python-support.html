@@ -267,10 +267,14 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+    <a class="nav-link" href="../android/android-release.html">Android Release Guide</a>
   </li>
 
   <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/java.html">Android Java Projects</a>
   </li>
 
@@ -322,7 +326,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
   </li>
 </ul>
   </li>
@@ -717,7 +721,7 @@ used in building language toolchains, and is not intended for production use.
 type hints, helping to catch errors in development.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-extending-python-1-hello-python.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/python/1-hello-python">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-extending-python-1-hello-python.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/python/1-hello-python">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -952,7 +956,7 @@ earlier with <code>sources</code>, <code>pythonExe</code>, <code>typeCheck</code
 that can be re-used.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-extending-python-2-python-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/python/2-python-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-extending-python-2-python-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/python/2-python-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -1033,11 +1037,6 @@ Hello, Mill Qux!</code></pre>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 492.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-492 308.95,-492 308.95,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-159 290.51,-159 290.51,-8 14.44,-8"></polygon>
-<text text-anchor="middle" x="152.47" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-167 8,-480 296.95,-480 296.95,-167 8,-167"></polygon>
@@ -1047,6 +1046,11 @@ Hello, Mill Qux!</code></pre>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-296 16,-447 288.95,-447 288.95,-296 16,-296"></polygon>
 <text text-anchor="middle" x="152.47" y="-430.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-159 290.51,-159 290.51,-8 14.44,-8"></polygon>
+<text text-anchor="middle" x="152.47" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.pythonExe -->
 <g id="node1" class="node">
@@ -1252,7 +1256,7 @@ We then use <code>Task.traverse</code> to aggregate the <code>sources</code> of 
 make them available during <code>typeCheck</code> and <code>run</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-extending-python-3-python-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/python/3-python-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-extending-python-3-python-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/python/3-python-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -1372,6 +1376,11 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5</code></pre>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 494.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-494 461.04,-494 461.04,4 -4,4"></polygon>
+<g id="clust3" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="172.97,-8 172.97,-159 449.04,-159 449.04,-8 172.97,-8"></polygon>
+<text text-anchor="middle" x="311" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
 <g id="clust1" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-169 8,-482 307.44,-482 307.44,-169 8,-169"></polygon>
@@ -1381,11 +1390,6 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5</code></pre>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-298 16,-449 299.44,-449 299.44,-298 16,-298"></polygon>
 <text text-anchor="middle" x="157.72" y="-432.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="172.97,-8 172.97,-159 449.04,-159 449.04,-8 172.97,-8"></polygon>
-<text text-anchor="middle" x="311" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- bar.pythonExe -->
 <g id="node1" class="node">
@@ -1621,7 +1625,7 @@ making deployment easier.</p>
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-extending-python-4-python-libs-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/python/4-python-libs-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-extending-python-4-python-libs-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/python/4-python-libs-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*

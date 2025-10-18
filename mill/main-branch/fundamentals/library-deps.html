@@ -267,10 +267,14 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+    <a class="nav-link" href="../android/android-release.html">Android Release Guide</a>
   </li>
 
   <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/java.html">Android Java Projects</a>
   </li>
 
@@ -322,7 +326,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
   </li>
 </ul>
   </li>
@@ -985,7 +989,7 @@ whose Maven coordinates are <code>com.google.cloud:libraries-bom:26.50.0</code><
 <p>Pass an external BOM to a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code> with <code>bomMvnDeps</code>, like</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-fundamentals-dependencies-1-external-bom.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/fundamentals/dependencies/1-external-bom">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-fundamentals-dependencies-1-external-bom.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/fundamentals/dependencies/1-external-bom">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1021,7 +1025,7 @@ for a dependency, all exclusions are added to that dependency.</p>
 <p>Pass dependencies to <code>depManagement</code> in a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code>, like</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/fundamentals/dependencies/2-managed">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/fundamentals/dependencies/2-managed">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1178,7 +1182,7 @@ dependencies with particularly weird version numbers. For example, given the fol
 build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-fundamentals-dependencies-3-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/fundamentals/dependencies/3-search-updates">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-fundamentals-dependencies-3-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/fundamentals/dependencies/3-search-updates">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*

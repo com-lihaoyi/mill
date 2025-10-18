@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Python Web Project Examples :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/pythonlib/web-examples.html" />
+    <link rel="prev" href="publishing.html" />
+    <link rel="next" href="../javascriptlib/intro.html" />
     <meta name="generator" content="Antora 3.1.12" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -265,10 +267,14 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+    <a class="nav-link" href="../android/android-release.html">Android Release Guide</a>
   </li>
 
   <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/java.html">Android Java Projects</a>
   </li>
 
@@ -319,8 +325,8 @@
     <a class="nav-link" href="publishing.html">Python Packaging &amp; Publishing</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
-    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
+  <li class="nav-item is-current-page is-active" data-depth="3">
+    <a class="nav-link" href="web-examples.html">Python Web Project Examples</a>
   </li>
 </ul>
   </li>
@@ -702,7 +708,7 @@ at the root URL (<code>/</code>), with Flask installed as a dependency
 and tests enabled using <code>unittest</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-pythonlib-web-1-hello-flask.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/pythonlib/web/1-hello-flask">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-pythonlib-web-1-hello-flask.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/pythonlib/web/1-hello-flask">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -755,7 +761,7 @@ Tasks can be filtered as <code>all</code>, <code>active</code>, or <code>complet
 The application demonstrates dynamic rendering using Flask’s routing and templating features.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-pythonlib-web-2-todo-flask.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/pythonlib/web/2-todo-flask">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-pythonlib-web-2-todo-flask.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/pythonlib/web/2-todo-flask">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -845,7 +851,7 @@ It features a simple view that returns <code>&lt;h1&gt;Hello, Mill!&lt;/h1&gt;</
 includes <code>Django’s</code> core functionality for <code>testing</code> and <code>running</code> a development server.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-pythonlib-web-3-hello-django.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/pythonlib/web/3-hello-django">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-pythonlib-web-3-hello-django.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/pythonlib/web/3-hello-django">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -894,7 +900,7 @@ It features dynamic <code>HTML</code> rendering with <code>Django’s</code> tem
 Django <code>ORM</code>, and efficient form handling for managing tasks.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-34-69daae/mill-dist-1.0.6-34-69daae-example-pythonlib-web-4-todo-django.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/pythonlib/web/4-todo-django">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-35-793ec2/mill-dist-1.0.6-35-793ec2-example-pythonlib-web-4-todo-django.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/pythonlib/web/4-todo-django">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -975,6 +981,10 @@ test_toggle_todo_view (main.tests.TodoAppTests...) ... ok
 </div>
 </div>
 </div>
+<nav class="pagination">
+  <span class="prev"><a href="publishing.html">Python Packaging &amp; Publishing</a></span>
+  <span class="next"><a href="../javascriptlib/intro.html">Building Javascript with Mill</a></span>
+</nav>
 </article>
   </div>
 </main>
