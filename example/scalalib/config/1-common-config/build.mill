@@ -48,8 +48,8 @@ error: ...Implicit injection of + is deprecated. Convert to String to call +...
 // Most `Task`s that you can define programmatically in a `build.mill` file can be specified
 // in a `build.mill.yaml`, as long as they involve simple configuration (strings, lists, maps, etc.)
 // and do not need custom code. For example, you can use the various configuration methods
-// discussed in xref:{language-small}lib/dependencies.adoc[] (`runMvnDeps`, `compileMvnDeps`,
-// `unmanagedClasspath`).
+// discussed in xref:{language-small}lib/dependencies.adoc[]: `runMvnDeps`, `compileMvnDeps`,
+// `unmanagedClasspath`, etc.
 //
 // Note that the `.build.yaml` config files only let you set simple configuration keys,
 // and do not let you extend your build with code e.g. to generate sources. For more flexibility,
