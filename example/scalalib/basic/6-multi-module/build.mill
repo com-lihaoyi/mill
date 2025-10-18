@@ -20,7 +20,7 @@ object bar extends MyModule {
 }
 //// SNIPPET:END
 
-// This is similar to the xref:#_multiple_scala_modules example above, but using Mill's
+// This is similar to the xref:#_multiple_{language-small}_modules[] example above, but using Mill's
 // programmatic configuration syntax. You can define multiple modules the same way you
 // define a single module, using `def moduleDeps` to define the relationship between them.
 // Modules can also be nested within each other, as `foo.test` and `bar.test` are nested
