@@ -731,39 +731,8 @@ example/
 <div class="sect1">
 <h2 id="_configuration_options"><a class="anchor" href="#_configuration_options"></a>Configuration options</h2>
 <div class="sectionbody">
-<div class="ulist">
-<ul>
-<li>
-<p>scalaPBVersion (mandatory) - The ScalaPB version <code>String</code> e.g. <code>&quot;0.7.4&quot;</code></p>
-</li>
-<li>
-<p>scalaPBSources - paths to search for <code>.proto</code> files and generate scala case classes for. Defaults to <code>moduleDir / &quot;protobuf&quot;</code></p>
-</li>
-<li>
-<p>scalaPBFlatPackage - A <code>Boolean</code> option which determines whether the <code>.proto</code> file name should be appended as the final segment of the package name in the generated sources.</p>
-</li>
-<li>
-<p>scalaPBJavaConversions - A <code>Boolean</code> option which determines whether methods for converting between the generated Scala classes and the Protocol Buffers Java API classes should be generated.</p>
-</li>
-<li>
-<p>scalaPBGrpc - A <code>Boolean</code> option which determines whether <a href="https://grpc.io">grpc</a> stubs should be generated.</p>
-</li>
-<li>
-<p>scalaPBSingleLineToProtoString - A <code>Boolean</code> option which determines whether the generated <code>.toString</code> methods should use a single line format.</p>
-</li>
-<li>
-<p>scalaPBProtocPath - A <code>Option[Path]</code> option which determines the protoc compiler to use. If <code>None</code>, a java embedded protoc will be used, if set to <code>Some</code> path, the given binary is used.</p>
-</li>
-<li>
-<p>scalaPBSearchDeps - A <code>Boolean</code> option which determines whether to search for <code>.proto</code> files in dependencies and add them to <code>scalaPBIncludePath</code>. Defaults to <code>false</code>.</p>
-</li>
-<li>
-<p>scalaPBScala3Sources - Generate the sources with scala 3 syntax (i. e. use <code>?</code> instead of <code>_</code> in types)</p>
-</li>
-<li>
-<p>scalaPBIncludePath - Additional paths to include <code>.proto</code> files when compiling.</p>
-</li>
-</ul>
+<div class="paragraph">
+<p>Please inspect the <a href="https://mill-build.org/api/latest/mill/contrib/scalapblib/ScalaPBModule.html">API docs of <code>ScalaPBModule</code></a> for all available tasks.</p>
 </div>
 <div class="paragraph">
 <p>If you’d like to configure the <a href="https://scalapb.github.io/docs/scalapbc#passing-generator-parameters">options</a> that are passed to the ScalaPB compiler directly, you can override the <code>scalaPBOptions</code> task, for example:</p>
