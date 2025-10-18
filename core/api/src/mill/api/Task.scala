@@ -298,7 +298,12 @@ object Task {
     assert(li.writer != null, "Unable to resolve JSON writer")
     assert(li.reader != null, "Unable to resolve JSON reader")
     new Task.Input[T](
-      (_, _) => Result.Success(upickle.default.read[T](s)(using li.reader)),
+      (_, _) =>
+        PathRef
+          .currentOverrideModulePath
+          .withValue(li.ctx.enclosingModule.moduleCtx.millSourcePath) {
+            Result.Success(upickle.default.read[T](s)(using li.reader))
+          },
       li.ctx,
       li.writer,
       None
