@@ -25,6 +25,9 @@ trait ScalaPBModule extends ScalaModule {
    */
   def scalaPBVersion: T[String]
 
+  /**
+   * The generators to use. Defaults to use [[Generator.ScalaGen]] which produces Scala files and was for a long time the only supported generator.
+   */
   def scalaPBGenerators: T[Seq[Generator]] = Seq(Generator.ScalaGen)
 
   /**
