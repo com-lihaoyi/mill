@@ -2,6 +2,9 @@ extends: [mill.javalib.JavaModule]
 mvnDeps:
 - org.thymeleaf:thymeleaf:3.1.1.RELEASE
 
+# Add a custom maven repository URL
+repositories: ["https://oss.sonatype.org/content/repositories/releases"]
+
 # Set an explicit main class
 mainClass: "foo.Foo2"
 
@@ -9,6 +12,7 @@ mainClass: "foo.Foo2"
 sources: ["./src", "./custom-src"]
 resources: ["./resources", "./custom-resources"]
 
-# Configure java runtime options and env vars
+# Configure java compiler and runtime options and env vars
+javacOptions: ["-deprecation"]
 forkArgs: ["-Dmy.custom.property=my-prop-value"]
 forkEnv: { "MY_CUSTOM_ENV": "my-env-value" }

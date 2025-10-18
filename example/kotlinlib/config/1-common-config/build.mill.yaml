@@ -3,6 +3,9 @@ kotlinVersion: 1.9.24
 mvnDeps:
 - org.jetbrains.kotlinx:kotlinx-html:0.11.0
 
+# Add a custom maven repository URL
+repositories: ["https://oss.sonatype.org/content/repositories/releases"]
+
 # Set an explicit main class
 mainClass: "foo.Foo2Kt"
 

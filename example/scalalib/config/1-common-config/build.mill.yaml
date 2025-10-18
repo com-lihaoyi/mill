@@ -4,6 +4,9 @@ mvnDeps:
 - com.lihaoyi::scalatags:0.13.1
 - com.lihaoyi::os-lib:0.11.4
 
+# Add a custom maven repository URL
+repositories: ["https://oss.sonatype.org/content/repositories/releases"]
+
 # Set an explicit main class
 mainClass: "foo.Foo2"
 
