@@ -4,52 +4,69 @@ import mill.api.ExternalModule
 import mill.api.Discover
 import mill.api.daemon.Segments
 import mill.javalib.*
-
+import mill.api.ModuleCtx.HeaderData
 trait ScriptModule extends ExternalModule {
-  def simpleConf: ScriptModule.Config
+  def scriptConfig: ScriptModule.Config
 
   override def moduleDir =
-    if (os.isDir(simpleConf.simpleModulePath)) simpleConf.simpleModulePath
-    else simpleConf.simpleModulePath / os.up
+    if (os.isDir(scriptConfig.simpleModulePath)) scriptConfig.simpleModulePath
+    else scriptConfig.simpleModulePath / os.up
 
   private[mill] def allowNestedExternalModule = true
 
   override def moduleSegments: Segments = {
     Segments.labels(
-      simpleConf.simpleModulePath.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*
+      scriptConfig.simpleModulePath.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*
     )
   }
-  override def buildOverrides: Map[String, ujson.Value] =
-    ScriptModule.parseHeaderData(simpleConf.simpleModulePath)
+  private[mill] override def buildOverrides: Map[String, ujson.Value] =
+    ScriptModule.parseHeaderData(scriptConfig.simpleModulePath).rest
 }
 
 object ScriptModule {
-  case class Config(simpleModulePath: os.Path, moduleDeps: Seq[mill.Module])
+  case class Config(
+      simpleModulePath: os.Path,
+      moduleDeps: Seq[mill.Module],
+      compileModuleDeps: Seq[mill.Module],
+      runModuleDeps: Seq[mill.Module]
+  )
+
   private[mill] def parseHeaderData(millSimplePath: os.Path) = {
     val headerData = mill.api.BuildCtx.withFilesystemCheckerDisabled {
       mill.constants.Util.readBuildHeader(millSimplePath.toNIO, millSimplePath.last, true)
     }
-    upickle.read[Map[String, ujson.Value]](mill.internal.Util.parsedHeaderData(headerData))
+
+    upickle.read[HeaderData](mill.internal.Util.parsedHeaderData(headerData), trace = true)
   }
 
-  class JavaModule(val simpleConf: ScriptModule.Config) extends JavaModuleBase {
+  class JavaModule(val scriptConfig: ScriptModule.Config) extends JavaModuleBase {
     override lazy val millDiscover = Discover[this.type]
   }
 
   trait JavaModuleBase extends ScriptModule with mill.javalib.JavaModule
       with mill.javalib.NativeImageModule {
-    override def moduleDeps = simpleConf.moduleDeps.map(_.asInstanceOf[mill.javalib.JavaModule])
+    override def moduleDeps = scriptConfig.moduleDeps.map(_.asInstanceOf[mill.javalib.JavaModule])
 
     override def sources =
-      if (os.isDir(simpleConf.simpleModulePath)) super.sources else Task.Sources()
+      if (os.isDir(scriptConfig.simpleModulePath)) super.sources else Task.Sources()
 
-    def scriptSource = Task.Source(simpleConf.simpleModulePath)
+    /** The script file itself */
+    def scriptSource = Task.Source(scriptConfig.simpleModulePath)
 
     override def allSources =
-      if (os.isDir(simpleConf.simpleModulePath)) super.allSources()
+      if (os.isDir(scriptConfig.simpleModulePath)) super.allSources()
       else sources() ++ Seq(scriptSource())
 
+    /**
+     * Whether or not to include the default `mvnDeps` that are bundled with single-file scripts.
+     */
     def includDefaultScriptMvnDeps: T[Boolean] = true
+
+    /**
+     * The default `mvnDeps` for single-file scripts. For Scala scripts that means MainArgs,
+     * uPickle, Requests-Scala, OS-Lib, and PPrint. For Java and Kotlin scripts it is currently
+     * empty
+     */
     def defaultScriptMvnDeps = Task { Seq.empty[Dep] }
 
     override def mandatoryMvnDeps = Task {
@@ -58,7 +75,7 @@ object ScriptModule {
     }
   }
 
-  class KotlinModule(val simpleConf: ScriptModule.Config) extends KotlinModuleBase {
+  class KotlinModule(val scriptConfig: ScriptModule.Config) extends KotlinModuleBase {
     override lazy val millDiscover = Discover[this.type]
   }
 
@@ -66,7 +83,7 @@ object ScriptModule {
     def kotlinVersion = "2.0.20"
   }
 
-  class ScalaModule(val simpleConf: ScriptModule.Config) extends ScalaModuleBase {
+  class ScalaModule(val scriptConfig: ScriptModule.Config) extends ScalaModuleBase {
     override lazy val millDiscover = Discover[this.type]
     override def defaultScriptMvnDeps = Seq(
       mvn"com.lihaoyi::pprint:${mill.script.BuildInfo.pprintVersion}",

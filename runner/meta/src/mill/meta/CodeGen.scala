@@ -7,6 +7,7 @@ import mill.api.Result
 import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
 import mill.api.daemon.internal.MillScalaParser
+import mill.api.ModuleCtx.HeaderData
 import scala.util.control.Breaks.*
 
 object CodeGen {
@@ -86,7 +87,10 @@ object CodeGen {
         val newParent =
           if (segments.isEmpty) "_root_.mill.util.MainRootModule"
           else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
-        val parsedHeaderData = mill.internal.Util.parsedHeaderData(allScriptCode(scriptPath))
+        val parsedHeaderData = upickle.read[HeaderData](
+          mill.internal.Util.parsedHeaderData(allScriptCode(scriptPath)),
+          trace = true
+        )
 
         val prelude =
           s"""|import MillMiscInfo._
@@ -95,22 +99,29 @@ object CodeGen {
 
         os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
 
-        def renderTemplate(prefix: String, data: Map[String, ujson.Value]): String = {
-          val moduleDeps = data.get("moduleDeps").map(_.arr.map(_.str))
-          val extendsConfig = data.get("extends").map(_.arr.map(_.str)).getOrElse(Nil)
+        def renderTemplate(prefix: String, data: HeaderData): String = {
+          val extendsConfig = data.`extends`
           val definitions =
             for {
-              (kString, v) <- data
-              if !Set("moduleDeps", "extends").contains(kString)
+              (kString, v) <- data.rest
               if !kString.startsWith("mill-")
             } yield kString.split(" +") match {
               case Array(k) => s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
-              case Array("object", k) => renderTemplate(s"object $k", v.obj.toMap)
+              case Array("object", k) =>
+                renderTemplate(s"object $k", upickle.read[HeaderData](v, trace = true))
             }
 
           val moduleDepsSnippet =
-            if (moduleDeps.isEmpty) ""
-            else s"override def moduleDeps = Seq(${moduleDeps.get.mkString(", ")})"
+            if (data.moduleDeps.isEmpty) ""
+            else s"override def moduleDeps = Seq(${data.moduleDeps.mkString(", ")})"
+
+          val compileModuleDepsSnippet =
+            if (data.compileModuleDeps.isEmpty) ""
+            else s"override def compileModuleDeps = Seq(${data.compileModuleDeps.mkString(", ")})"
+
+          val runModuleDepsSnippet =
+            if (data.runModuleDeps.isEmpty) ""
+            else s"override def runModuleDeps = Seq(${data.runModuleDeps.mkString(", ")})"
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}"
@@ -118,6 +129,8 @@ object CodeGen {
 
           s"""$prefix$extendsSnippet {
              |  $moduleDepsSnippet
+             |  $compileModuleDepsSnippet
+             |  $runModuleDepsSnippet
              |  ${definitions.mkString("\n  ")}
              |}
              |""".stripMargin

@@ -27,6 +27,8 @@ private object ScriptModuleInit
       millFile: os.Path,
       extendsConfig: Option[String],
       moduleDeps: Seq[String],
+      compileModuleDeps: Seq[String],
+      runModuleDeps: Seq[String],
       resolveModuleDep: String => Option[mill.Module]
   ) = {
     val className = extendsConfig.getOrElse {
@@ -37,7 +39,15 @@ private object ScriptModuleInit
       }
     }
 
-    instantiate(className, ScriptModule.Config(millFile, moduleDeps.map(resolveModuleDep(_).get)))
+    instantiate(
+      className,
+      ScriptModule.Config(
+        millFile,
+        moduleDeps.map(resolveModuleDep(_).get),
+        compileModuleDeps.map(resolveModuleDep(_).get),
+        runModuleDeps.map(resolveModuleDep(_).get)
+      )
+    )
   }
 
   def apply(
@@ -52,9 +62,14 @@ private object ScriptModuleInit
       Option.when(os.isFile(millFile) || os.exists(millFile / "mill.yaml")) {
         Result.create {
           val parsedHeaderData = parseHeaderData(millFile)
-          val moduleDeps = parsedHeaderData.get("moduleDeps").map(_.arr.map(_.str)).getOrElse(Nil)
-          val extendsConfig = parsedHeaderData.get("extends").map(_.str)
-          moduleFor(millFile, extendsConfig, moduleDeps.toSeq, resolveModuleDep)
+          moduleFor(
+            millFile,
+            parsedHeaderData.`extends`.headOption,
+            parsedHeaderData.moduleDeps,
+            parsedHeaderData.compileModuleDeps,
+            parsedHeaderData.runModuleDeps,
+            resolveModuleDep
+          )
         }
       }
     }
