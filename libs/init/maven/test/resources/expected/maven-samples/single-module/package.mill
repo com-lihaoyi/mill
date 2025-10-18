@@ -1,17 +1,19 @@
 package build.`single-module`
 
-import mill._
-import mill.javalib._
-import mill.javalib.publish._
+import mill.javalib.*
+import mill.javalib.publish.*
+import millbuild.*
 
-object `package` extends PublishModule with MavenModule {
+object `package` extends MavenSamplesBaseModule {
+
+  def mvnDeps = super.mvnDeps() ++ Seq(Deps.servletApi, Deps.jspApi)
+
+  def javacOptions = super.javacOptions() ++
+    Seq("-source", "1.6", "-target", "1.6")
 
   def artifactName = "single-module-project"
 
-  def javacOptions = Seq("-source", "1.6", "-target", "1.6")
-
-  def mvnDeps =
-    Seq(mvn"javax.servlet.jsp:jsp-api:2.2", mvn"javax.servlet:servlet-api:2.5")
+  def jvmId = "zulu:11"
 
   def pomSettings = PomSettings(
     "Sample single module Maven project with a working, deployable site.",
@@ -27,20 +29,21 @@ object `package` extends PublishModule with MavenModule {
     Seq()
   )
 
-  def publishVersion = "1.0-SNAPSHOT"
-
   object test extends MavenTests with TestModule.Junit4 {
 
-    def mvnDeps = Seq(
-      mvn"junit:junit-dep:4.10",
-      mvn"org.hamcrest:hamcrest-core:1.2.1",
-      mvn"org.hamcrest:hamcrest-library:1.2.1",
-      mvn"org.mockito:mockito-core:1.8.5"
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      Deps.junitDep,
+      Deps.hamcrestCore,
+      Deps.hamcrestLibrary,
+      Deps.mockitoCore
     )
 
-    def testSandboxWorkingDir = false
-    def testParallelism = false
     def forkWorkingDir = moduleDir
 
+    def testParallelism = false
+
+    def testSandboxWorkingDir = false
+
   }
+
 }

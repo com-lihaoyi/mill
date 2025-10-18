@@ -1,12 +1,13 @@
 package mill.main.buildgen
 
-import mill.constants.{CodeGenConstants, OutFiles}
 import mill.api.Discover
+import mill.init.Util
 import mill.scalalib.scalafmt.ScalafmtModule
 import mill.testkit.{TestRootModule, UnitTester}
+import mill.util.TokenReaders.*
 import mill.{PathRef, T}
 import utest.framework.TestPath
-import mill.util.TokenReaders._
+
 import java.nio.file.FileSystems
 
 class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
@@ -23,13 +24,11 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
     val testRoot = os.pwd / tp.value
     os.copy.over(sourceRoot / sourceRel, testRoot, createFolders = true, replaceExisting = true)
 
-    // gen
     os.dynamicPwd.withValue(testRoot)(generate)
 
-    // fmt
-    val files = mill.init.Util.buildFiles(testRoot).map(PathRef(_)).toSeq
+    val buildFiles = Util.buildFiles(testRoot)
     object module extends TestRootModule with ScalafmtModule {
-      override def filesToFormat(sources: Seq[PathRef]): Seq[PathRef] = files
+      override def filesToFormat(sources: Seq[PathRef]): Seq[PathRef] = buildFiles.map(PathRef(_))
 
       override def scalafmtConfig: T[Seq[PathRef]] = Seq(PathRef(scalafmtConfigFile))
 
@@ -38,15 +37,13 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
     UnitTester(module, testRoot).scoped { eval =>
       eval(module.reformat())
 
-      // check
-      val expectedRoot = sourceRoot / expectedRel
-      // Non *.mill files, that are not in test data, that we don't want
-      // to see in the diff
-      val toCleanUp = os.walk(testRoot, skip = (testRoot / OutFiles.out).equals)
+      // Remove non-build files before computing diff
+      val toCleanUp = os.walk.stream(testRoot, skip = buildFiles.contains)
         .filter(os.isFile)
-        .filterNot(file => CodeGenConstants.buildFileExtensions.contains(file.ext))
+        .toSeq
       toCleanUp.foreach(os.remove)
 
+      val expectedRoot = sourceRoot / expectedRel
       // Try to normalize permissions while not touching those of committed test data
       val supportsPerms = FileSystems.getDefault.supportedFileAttributeViews().contains("posix")
       if (supportsPerms)
@@ -78,5 +75,5 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
 object BuildGenChecker {
 
   def apply(sourceRoot: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))): BuildGenChecker =
-    new BuildGenChecker(sourceRoot, mill.init.Util.scalafmtConfigFile)
+    new BuildGenChecker(sourceRoot, os.temp(Util.scalafmtConfig))
 }
