@@ -9,7 +9,9 @@
 // Inter-module dependencies are defined by the `moduleDeps` key, and modules
 // can also be nested within each other, as `bar.test` is nested
 // within `bar`.
-
+//
+// === Multi-Module Folder Layout
+//
 // The above builds expect the following project layout:
 //
 //// SNIPPET:TREE
@@ -68,7 +70,9 @@ bar.run
 // The unique path on disk that Mill automatically assigns each task also ensures
 // you do not need to worry about choosing a path on disk to cache outputs, or
 // filesystem collisions if multiple tasks write to the same path.
-
+//
+// === Task Query Syntax
+//
 // You can use wildcards and brace-expansion to select
 // multiple tasks at once or to shorten the path to deeply nested tasks. If
 // you provide optional task arguments and your wildcard or brace-expansion is

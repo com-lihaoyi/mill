@@ -58,6 +58,13 @@ Test foo.FooTest.testEscaping finished...
 //// SNIPPET:END
 //// SNIPPET:REPL
 //
+// You can start a JShell REPL attached to your `foo` module via:
+//
+// [source,console]
+// ----
+// > ./mill -i foo.jshell
+// ----
+//
 // You can also start a standalone JShell console
 // via `./mill --jshell`. This is useful if you just need a JShell console to experiment
 // with at the command line without being attached to a particular project or module.
