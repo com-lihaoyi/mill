@@ -112,9 +112,11 @@ trait GroupExecution {
               case v => v
             }
             val (resultData, serializedPaths) = PathRef.withSerializedPaths {
-              upickle.read[Any](rec(jsonData))(
-                using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
-              )
+              PathRef.currentOverrideModulePath.withValue(labelled.ctx.millSourcePath) {
+                upickle.read[Any](rec(jsonData))(
+                  using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
+                )
+              }
             }
             GroupExecution.Results(
               Map(labelled -> ExecResult.Success(Val(resultData), resultData.##)),

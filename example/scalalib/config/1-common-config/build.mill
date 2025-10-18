@@ -38,6 +38,9 @@ error: ...Implicit injection of + is deprecated. Convert to String to call +...
 
 */
 
+// Paths such as `./custom-src` or `./custom-resources` are relative to the
+// xref:fundamentals/modules.adoc#_moduledir[moduleDir] of the module being configured
+//
 // Note that the `.build.yaml` config files only let you set simple configuration keys,
 // and do not let you extend your build with code e.g. to generate sources. For more flexibility,
 // see xref:{language-small}lib/module-config.adoc[Programmatic Module Configuration].
