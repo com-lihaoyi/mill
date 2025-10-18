@@ -743,6 +743,21 @@ argument parsing, Scalatags for HTML generation - and uses them to wrap a
 given input string in HTML templates with proper escaping.</p>
 </div>
 <div class="paragraph">
+<p>You can download this example project using the <strong>download</strong> link above
+if you want to try out the commands below yourself, or browse the full sources
+of the example (including supporting files) via the <strong>browse</strong> link. the <code>./mill</code> script
+(<code>./mill.bat</code> on windows) takes care of downloading and caching any further dependencies,
+including downloading a JVM if you do not already have one. All examples
+in this documentation site are executable and are continually exercised as
+part of Mill’s CI workflows, and they range from the simple hello-world
+projects on this page to more sophisticated
+<a href="web-examples.html" class="xref page">web build examples</a> or
+<a href="build-examples.html" class="xref page">example
+builds for real-world projects</a></p>
+</div>
+<div class="sect2">
+<h3 id="_basic_folder_layout"><a class="anchor" href="#_basic_folder_layout"></a>Basic Folder Layout</h3>
+<div class="paragraph">
 <p>The source code for this module lives in the <code>src/</code> folder.
 Output for this module (compiled files, resolved dependency lists, ...​)
 lives in <code>out/</code>. A typical filesystem layout is shown below:</p>
@@ -784,6 +799,9 @@ an existing codebase, you should use
 </tr>
 </tbody></table>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_typical_usage"><a class="anchor" href="#_typical_usage"></a>Typical Usage</h3>
 <div class="paragraph">
 <p>Typical usage from the command line is shown below:</p>
 </div>
@@ -851,19 +869,6 @@ compiling 1 Scala source to...</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can download this example project using the <strong>download</strong> link above
-if you want to try out the commands below yourself, or browse the full sources
-of the example (including supporting files) via the <strong>browse</strong> link. the <code>./mill</code> script
-(<code>./mill.bat</code> on windows) takes care of downloading and caching any further dependencies,
-including downloading a JVM if you do not already have one. All examples
-in this documentation site are executable and are continually exercised as
-part of Mill’s CI workflows, and they range from the simple hello-world
-projects on this page to more sophisticated
-<a href="web-examples.html" class="xref page">web build examples</a> or
-<a href="build-examples.html" class="xref page">example
-builds for real-world projects</a></p>
-</div>
-<div class="paragraph">
 <p>The output of every Mill task is stored in the <code>out/</code> folder under a name
 corresponding to the task that created it. e.g. The <code>assembly</code> task puts its
 metadata output in <code>out/assembly.json</code>, and its output files in
@@ -878,19 +883,25 @@ the task itself (docs, source location, etc.)</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __ # recursively list all tasks and modules that are available
 
-&gt; ./mill runBackground # run the main method in the background
+&gt; ./mill foo.runBackground # run the main method in the background
 
 &gt; ./mill clean &lt;task&gt;  # delete the cached output of a task, terminate any runBackground
 
-&gt; ./mill launcher      # prepares a out/launcher.dest/run you can run later
+&gt; ./mill foo.launcher      # prepares a out/launcher.dest/run you can run later
 
-&gt; ./mill jar           # bundle the classfiles into a jar suitable for publishing
+&gt; ./mill foo.jar           # bundle the classfiles into a jar suitable for publishing
 
-&gt; ./mill -i console    # start a Scala console within your project
+&gt; ./mill -w foo.compile    # watch input files and re-compile whenever a file changes</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can start a Scala REPL attached to your <code>foo</code> module via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill -i foo.console    # start a Scala console within your project
 
-&gt; ./mill -i repl       # start an Ammonite Scala REPL within your project
-
-&gt; ./mill -w compile    # watch input files and re-compile whenever a file changes</code></pre>
+&gt; ./mill -i foo.repl       # start an Ammonite Scala REPL within your project</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -926,6 +937,7 @@ for:</p>
 <div class="paragraph">
 <p>For scenarios which require more customization,
 see <a href="#_programmatic_configuration">Programmatic Configuration</a> discussed below.</p>
+</div>
 </div>
 </div>
 </div>
@@ -968,6 +980,8 @@ Inter-module dependencies are defined by the <code>moduleDeps</code> key, and mo
 can also be nested within each other, as <code>bar.test</code> is nested
 within <code>bar</code>.</p>
 </div>
+<div class="sect2">
+<h3 id="_multi_module_folder_layout"><a class="anchor" href="#_multi_module_folder_layout"></a>Multi-Module Folder Layout</h3>
 <div class="paragraph">
 <p>The above builds expect the following project layout:</p>
 </div>
@@ -1027,6 +1041,9 @@ The unique path on disk that Mill automatically assigns each task also ensures
 you do not need to worry about choosing a path on disk to cache outputs, or
 filesystem collisions if multiple tasks write to the same path.</p>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_task_query_syntax"><a class="anchor" href="#_task_query_syntax"></a>Task Query Syntax</h3>
 <div class="paragraph">
 <p>You can use wildcards and brace-expansion to select
 multiple tasks at once or to shorten the path to deeply nested tasks. If
@@ -1078,6 +1095,7 @@ preceding it with a backslash (<code>\</code>).</p>
 <div class="paragraph">
 <p>For more details on the query syntax, check out the
 <a href="../cli/query-syntax.html" class="xref page">query syntax documentation</a></p>
+</div>
 </div>
 </div>
 </div>
@@ -1179,7 +1197,7 @@ compiling 1 Scala source...
 <h2 id="_programmatic_configuration"><a class="anchor" href="#_programmatic_configuration"></a>Programmatic Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-31-e6155d/mill-dist-1.0.6-31-e6155d-example-scalalib-basic-4-programmatic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/4-programmatic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-32-9a6269/mill-dist-1.0.6-32-9a6269-example-scalalib-basic-4-programmatic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/4-programmatic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1286,7 +1304,7 @@ single generated text file containing the line count of all the source files
 in that module</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-31-e6155d/mill-dist-1.0.6-31-e6155d-example-scalalib-basic-5-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/5-custom-build-logic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-32-9a6269/mill-dist-1.0.6-32-9a6269-example-scalalib-basic-5-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/5-custom-build-logic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1438,7 +1456,7 @@ maintainable even as the complexity of your project grows.</p>
 <h2 id="_multi_module_project"><a class="anchor" href="#_multi_module_project"></a>Multi-Module Project</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-31-e6155d/mill-dist-1.0.6-31-e6155d-example-scalalib-basic-6-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/6-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-32-9a6269/mill-dist-1.0.6-32-9a6269-example-scalalib-basic-6-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/6-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1508,7 +1526,7 @@ the config-driven <code>build.mill.yaml</code> files, and additionally allows us
 such as <code>CrossSbtModule</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-31-e6155d/mill-dist-1.0.6-31-e6155d-example-scalalib-basic-7-programmatic-compat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/7-programmatic-compat">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-32-9a6269/mill-dist-1.0.6-32-9a6269-example-scalalib-basic-7-programmatic-compat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/7-programmatic-compat">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1612,7 +1630,7 @@ and other topics covered in more detail in the Scala section of the Mill docs,
 and you can browse each respective page if you want to learn more.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-31-e6155d/mill-dist-1.0.6-31-e6155d-example-scalalib-basic-8-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/8-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-32-9a6269/mill-dist-1.0.6-32-9a6269-example-scalalib-basic-8-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/8-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, publish.*
