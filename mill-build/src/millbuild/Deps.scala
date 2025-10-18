@@ -316,7 +316,9 @@ object Deps {
     val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
     val screenshotValidationJunitEngine =
       mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
-    val millCmdlineToolsVersion = "19.0"
+    // https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
+    // https://developer.android.com/studio?hl=de#command-tools
+    val cmdlineToolsVersion = "19.0"
     // TODO: uiTooling is needed for screenshot tests
     // so we handle it diferrently.
     // Removed it from updaetable for now

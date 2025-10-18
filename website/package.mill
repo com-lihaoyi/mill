@@ -221,6 +221,9 @@ object `package` extends mill.Module {
         s"version: '$version'\ndisplay-version: '$displayVersion'$preReleaseSuffix"
       case s"    mill-version:$_" => s"    mill-version: '$millVersion'"
       case s"    mill-last-tag:$_" => s"    mill-last-tag: '$millVersion'" // for older branches
+      case s"    android-cmdline-tools-version:$_" =>
+        s"    android-cmdline-tools-version: '${Deps.AndroidDeps.cmdlineToolsVersion}'"
+
       case l => l
     }
 
