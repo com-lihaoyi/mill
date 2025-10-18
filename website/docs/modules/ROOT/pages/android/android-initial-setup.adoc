@@ -58,27 +58,3 @@ If you want to start with an example project, you can use the `init` command as 
 You can use Android Studio to open and work with your Mill project.
 
 image::android/AndroidStudio.png[AndroidStudio.png]
-
-== 5. Release the project
-By default, mill projects are considered in debug mode, so if your project is ready for release, you should add the following to your app object in the `build.mill` file:
-
-[source,scala]
-----
-override def androidIsDebug = Task { false }
-def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
-def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
-----
-
-Make sure to replace the values with your actual keystore information.
-If you don't have a keystore yet, you can create one using the `keytool` command:
-
-[,console]
-----
-> keytool -genkey -v -keystore releaseKey.jks \
-          -storepass <PASS> -keyalg RSA \
-          -keysize 2048 -validity 10000 \
-          -alias releaseKey -keypass <PASS>
-----
-

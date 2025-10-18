@@ -36,6 +36,7 @@
 * Experimental Platform Support
 ** Building Android Apps
 *** xref:android/android-initial-setup.adoc[]
+*** xref:android/android-release.adoc[]
 *** xref:android/ide.adoc[]
 *** xref:android/java.adoc[]
 *** xref:android/kotlin.adoc[]
@@ -49,7 +50,7 @@
 *** xref:pythonlib/linting.adoc[]
 *** xref:pythonlib/testing.adoc[]
 *** xref:pythonlib/publishing.adoc[]
-*** xref:pythonlib/web-examples.adoc
+*** xref:pythonlib/web-examples.adoc[]
 ** xref:javascriptlib/intro.adoc[]
 *** xref:javascriptlib/dependencies.adoc[]
 *** xref:javascriptlib/module-config.adoc[]
