@@ -7,7 +7,7 @@
 </div>
 <div class="main-signature mono-small-block">
  <div class="signature">
-  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="ScriptModule$$ScalaModule.html" t="n" class="documentableName ">ScalaModule</a>(<span t="k"></span><span t="k">val </span><span data-unresolved-link="" t="n">simpleConf</span>: <a href="ScriptModule$$Config.html" t="t">Config</a>)<span t="k"> extends </span><a href="ScriptModule$$ScalaModuleBase.html" t="t">ScalaModuleBase</a></span><span class="signature-long"></span>
+  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="ScriptModule$$ScalaModule.html" t="n" class="documentableName ">ScalaModule</a>(<span t="k"></span><span t="k">val </span><span data-unresolved-link="" t="n">scriptConfig</span>: <a href="ScriptModule$$Config.html" t="t">Config</a>)<span t="k"> extends </span><a href="ScriptModule$$ScalaModuleBase.html" t="t">ScalaModuleBase</a></span><span class="signature-long"></span>
  </div>
 </div>
 <div class="cover">
@@ -763,8 +763,13 @@ node38 -> node33;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The default <code>mvnDeps</code> for single-file scripts. For Scala scripts that means MainArgs, uPickle, Requests-Scala, OS-Lib, and PPrint. For Java and Kotlin scripts it is currently empty</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>The default <code>mvnDeps</code> for single-file scripts. For Scala scripts that means MainArgs, uPickle, Requests-Scala, OS-Lib, and PPrint. For Java and Kotlin scripts it is currently empty</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -1834,50 +1839,6 @@ node38 -> node33;
               </dt>
               <dd class="body-medium">
                <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/scalalib/src/mill/scalalib/ScalaModule.scala" target="_blank">ScalaModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="buildOverrides-0" data-f-keywords="override" data-f-inherited="ScriptModule">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="ScriptModule$$ScalaModule.html#buildOverrides-0" t="n" class="documentableName ">buildOverrides</a>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Value</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Definition Classes
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <a href="ScriptModule.html#buildOverrides-0">ScriptModule</a> -&gt; <a href="../api/ModuleCtx$$Wrapper.html">Wrapper</a>
-               </div>
-              </dd>
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="ScriptModule.html#buildOverrides-0">ScriptModule</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/script/src/ScriptModule.scala" target="_blank">ScriptModule.scala</a>
               </dd>
              </dl>
             </div>
@@ -3351,8 +3312,13 @@ node38 -> node33;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Whether or not to include the default <code>mvnDeps</code> that are bundled with single-file scripts.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>Whether or not to include the default <code>mvnDeps</code> that are bundled with single-file scripts.</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -6814,8 +6780,13 @@ node38 -> node33;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The script file itself</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>The script file itself</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -8291,12 +8262,12 @@ node38 -> node33;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="simpleConf-0">
+        <div class="documentableElement" id="scriptConfig-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">val </span></span><a href="ScriptModule$$ScalaModule.html#simpleConf-0" t="n" class="documentableName ">simpleConf</a>: <a href="ScriptModule$$Config.html" t="t">Config</a>
+            <span class="modifiers"></span><span class="kind"><span t="k">val </span></span><a href="ScriptModule$$ScalaModule.html#scriptConfig-0" t="n" class="documentableName ">scriptConfig</a>: <a href="ScriptModule$$Config.html" t="t">Config</a>
            </div>
           </div>
          </div>
