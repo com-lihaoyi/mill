@@ -20,23 +20,44 @@ trait ScalaPBModule extends ScalaModule {
        else Seq(mvn"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
   }
 
+  /**
+   * The ScalaPB version `String`, e.g. `"0.7.4"`
+   */
   def scalaPBVersion: T[String]
 
   def scalaPBGenerators: T[Seq[Generator]] = Seq(Generator.ScalaGen)
 
+  /**
+   * A [[Boolean]] option which determines whether the `.proto` file name should be appended as the final segment of the package name in the generated sources.
+   */
   def scalaPBFlatPackage: T[Boolean] = Task { false }
 
+  /**
+   * A [[Boolean]] option which determines whether methods for converting between the generated Scala classes and the Protocol Buffers Java API classes should be generated.
+   */
   def scalaPBJavaConversions: T[Boolean] = Task { false }
 
+  /**
+   * A [[Boolean]] option which determines whether https://grpc.io[grpc] stubs should be generated.
+   */
   def scalaPBGrpc: T[Boolean] = Task { true }
 
+  /**
+   * A [[Boolean]] option which determines whether the generated `.toString` methods should use a single line format.
+   */
   def scalaPBSingleLineToProtoString: T[Boolean] = Task { false }
 
   /** ScalaPB enables lenses by default, this option allows you to disable it. */
   def scalaPBLenses: T[Boolean] = Task { true }
 
+  /**
+   * Generate the sources with scala 3 syntax (i. e. use `?` instead of `_` in types)
+   */
   def scalaPBScala3Sources: T[Boolean] = Task { false }
 
+  /**
+   *  A [[Boolean]] option which determines whether to search for `.proto` files in dependencies and add them to [[scalaPBIncludePath]]. Defaults to `false`.
+   */
   def scalaPBSearchDeps: Boolean = false
 
   /**
@@ -52,8 +73,15 @@ trait ScalaPBModule extends ScalaModule {
    */
   def scalaPBAdditionalArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
+  /**
+   * A [[Option]] option which determines the protoc compiler to use. If `None`, a java embedded protoc will be used, if set to `Some` path, the given binary is used.
+   */
   def scalaPBProtocPath: T[Option[String]] = Task { None }
 
+  /**
+   * Paths to search for `.proto` files and generate scala case classes for.
+   * Defaults to `moduleDir / "protobuf"`
+   */
   def scalaPBSources: T[Seq[PathRef]] = Task.Sources("protobuf")
 
   def scalaPBOptions: T[String] = Task {
@@ -83,6 +111,9 @@ trait ScalaPBModule extends ScalaModule {
     )
   }
 
+  /**
+   * Additional paths to include `.proto` files when compiling.
+   */
   def scalaPBIncludePath: T[Seq[PathRef]] = Task.Sources()
 
   private def scalaDepsPBIncludePath: Task[Seq[PathRef]] = scalaPBSearchDeps match {
