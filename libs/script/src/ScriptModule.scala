@@ -36,7 +36,7 @@ object ScriptModule {
       mill.constants.Util.readBuildHeader(millSimplePath.toNIO, millSimplePath.last, true)
     }
 
-    upickle.read[HeaderData](mill.internal.Util.parsedHeaderData(headerData), trace = true)
+    upickle.read[HeaderData](mill.internal.Util.parsedHeaderData(headerData))
   }
 
   class JavaModule(val scriptConfig: ScriptModule.Config) extends JavaModuleBase {

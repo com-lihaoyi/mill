@@ -88,8 +88,7 @@ object CodeGen {
           if (segments.isEmpty) "_root_.mill.util.MainRootModule"
           else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
         val parsedHeaderData = upickle.read[HeaderData](
-          mill.internal.Util.parsedHeaderData(allScriptCode(scriptPath)),
-          trace = true
+          mill.internal.Util.parsedHeaderData(allScriptCode(scriptPath))
         )
 
         val prelude =
@@ -108,7 +107,7 @@ object CodeGen {
             } yield kString.split(" +") match {
               case Array(k) => s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
               case Array("object", k) =>
-                renderTemplate(s"object $k", upickle.read[HeaderData](v, trace = true))
+                renderTemplate(s"object $k", upickle.read[HeaderData](v))
             }
 
           val moduleDepsSnippet =
