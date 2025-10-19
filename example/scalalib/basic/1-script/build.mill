@@ -1,4 +1,4 @@
-// Mill allows you to run single-file {language} programs (often referred to as _scripts_)
+// Mill allows you to run single-file {language} programs
 // easily from the command-line, even those that contain third-party dependencies, specific
 // JVM versions, or other such configuration. These can be useful for several purposes:
 //
@@ -6,8 +6,8 @@
 //   in {language} with full access to third-party libraries that run in a deterministic way
 //   across different dev, test, or prod environments
 //
-// - Reproducing issues, as you can include both the code and dependencies necessary to
-//   reproduce an issue in a self-contained file that doesn't require manual setup or
+// - Self-contained examples or issue reproductions, as you can include both the code and
+//   dependencies necessary in a self-contained file that doesn't require manual setup or
 //   installation
 //
 // For example, given the {language} program below, it can be run directly using Mill:
@@ -72,4 +72,6 @@ Jvm Version: 11.0.28
 
 //// SNIPPET:END
 
-// {language} scripts
+// {language} scripts support most of the same configuration keys as
+// xref:#_simple_config_based_modules[] as part of their `//|` header comment.
+
