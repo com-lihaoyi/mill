@@ -767,7 +767,7 @@ discussed in <a href="dependencies.html" class="xref page">Java Library Dependen
 <div class="paragraph">
 <p>Note that the <code>.build.yaml</code> config files only let you set simple configuration keys,
 and do not let you extend your build with code e.g. to generate sources. For more flexibility,
-see <a href="module-config.html" class="xref page">Programmatic Module Configuration</a>.</p>
+see <a href="intro.html#_programmatic_modules" class="xref page">javalib/intro.adoc#_programmatic_modules</a>.</p>
 </div>
 </div>
 </div>
@@ -904,7 +904,7 @@ and standardize it across all scripts that inherit it via <code>extends.</code><
 <h2 id="_depending_on_programmatic_modules_from_simple_modules"><a class="anchor" href="#_depending_on_programmatic_modules_from_simple_modules"></a>Depending on Programmatic Modules from Simple Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-41-012e6e/mill-dist-1.0.6-41-012e6e-example-javalib-config-5-mixed-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/5-mixed-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-42-f29dcb/mill-dist-1.0.6-42-f29dcb-example-javalib-config-5-mixed-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/5-mixed-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -926,136 +926,6 @@ mvnDeps: [net.sourceforge.argparse4j:argparse4j:0.9.0]</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run --text hello
 &lt;h1&gt;hello&lt;/h1&gt;</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_single_file_scripts"><a class="anchor" href="#_single_file_scripts"></a>Single-File Scripts</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill also allows you to run single-file Java programs (often referred to as <em>scripts</em>)
-easily from the command-line,
-even those that contain third-party dependencies or other such configuration. These can be
-useful as a replacement for Bash scripts, letting you write small scripts or programs
-in Java with full access to third-party libraries and other build-tool features.</p>
-</div>
-<div class="paragraph">
-<p>For example, given the Java program below, it can be run directly using Mill:</p>
-</div>
-<div class="listingblock">
-<div class="title">Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/6-script/Foo.java">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps:
-//| - &quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;
-//| - &quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
-import net.sourceforge.argparse4j.ArgumentParsers;
-import net.sourceforge.argparse4j.inf.ArgumentParser;
-import net.sourceforge.argparse4j.inf.Namespace;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
-
-public class Foo {
-  public static String generateHtml(String text) {
-    Context context = new Context();
-    context.setVariable(&quot;text&quot;, text);
-    return new TemplateEngine().process(&quot;&lt;h1 th:text=\&quot;${text}\&quot;&gt;&lt;/h1&gt;&quot;, context);
-  }
-
-  public static void main(String[] args) {
-    ArgumentParser parser = ArgumentParsers.newFor(&quot;template&quot;)
-        .build()
-        .defaultHelp(true)
-        .description(&quot;Inserts text into a HTML template&quot;);
-
-    parser.addArgument(&quot;-t&quot;, &quot;--text&quot;).required(true).help(&quot;text to insert&quot;);
-
-    Namespace ns = null;
-    try {
-      ns = parser.parseArgs(args);
-    } catch (Exception e) {
-      System.out.println(e.getMessage());
-      System.exit(1);
-    }
-
-    System.out.println(generateHtml(ns.getString(&quot;text&quot;)));
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.java --text hello
-compiling 1 Java source to...
-&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.java:run --text hello
-&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The <code>./mill Foo.{language-ext}</code> syntax is shorthand for <code>./mill Foo.{language-ext}:run</code>.
-You can also call other tasks on your script modules, such as <code>Foo.{langauge-ext}:assembly</code>
-below:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show Foo.java:assembly # show the output of the assembly task
-&quot;.../out/Foo.java/assembly.dest/out.jar&quot;
-
-&gt; java -jar ./out/Foo.java/assembly.dest/out.jar --text hello
-&lt;h1&gt;hello&lt;/h1&gt;
-
-&gt; ./out/Foo.java/assembly.dest/out.jar --text hello # mac/linux
-&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Script files can have test suites, usually written in a separate test script. The test script
-specifies what script it tests via <code>moduleDeps</code>, and can have its own <code>mvnDeps</code> in addition
-to those of the upstream script. The test script can then exercise functions from the upstream
-script as shown below:</p>
-</div>
-<div class="listingblock">
-<div class="title">FooTest.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/6-script/FooTest.java">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| moduleDeps: [Foo.java]
-//| mvnDeps:
-//| - &quot;com.google.guava:guava:33.3.0-jre&quot;
-
-import static com.google.common.html.HtmlEscapers.htmlEscaper;
-
-public class FooTest {
-  public static void main(String[] args) {
-    var result = Foo.generateHtml(&quot;hello&quot;);
-    assert(result == &quot;&lt;h1&gt;hello&lt;/h1&gt;&quot;);
-    System.out.println(result);
-    var result2 = Foo.generateHtml(&quot;&lt;hello&gt;&quot;);
-    var expected2 = &quot;&lt;h1&gt;&quot; + htmlEscaper().escape(&quot;&lt;hello&gt;&quot;) + &quot;&lt;/h1&gt;&quot;;
-    assert(result2 == expected2);
-    System.out.println(result2);
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill FooTest.java
-&lt;h1&gt;hello&lt;/h1&gt;
-&lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Again, you can pass the name of the task explicitly via <code>:</code>, e.g. <code>:run</code> below</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill FooTest.java:run # specifying the test task explicitly
-&lt;h1&gt;hello&lt;/h1&gt;
-&lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;</code></pre>
 </div>
 </div>
 </div>

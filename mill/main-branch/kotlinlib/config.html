@@ -767,7 +767,7 @@ discussed in <a href="dependencies.html" class="xref page">Kotlin Library Depend
 <div class="paragraph">
 <p>Note that the <code>.build.yaml</code> config files only let you set simple configuration keys,
 and do not let you extend your build with code e.g. to generate sources. For more flexibility,
-see <a href="module-config.html" class="xref page">Programmatic Module Configuration</a>.</p>
+see <a href="intro.html#_programmatic_modules" class="xref page">kotlinlib/intro.adoc#_programmatic_modules</a>.</p>
 </div>
 </div>
 </div>
@@ -906,7 +906,7 @@ and standardize it across all scripts that inherit it via <code>extends.</code><
 <h2 id="_depending_on_programmatic_modules_from_simple_modules"><a class="anchor" href="#_depending_on_programmatic_modules_from_simple_modules"></a>Depending on Programmatic Modules from Simple Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-41-012e6e/mill-dist-1.0.6-41-012e6e-example-kotlinlib-config-5-mixed-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/5-mixed-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-42-f29dcb/mill-dist-1.0.6-42-f29dcb-example-kotlinlib-config-5-mixed-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/5-mixed-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -947,119 +947,6 @@ fun main(args: Array&lt;String&gt;) {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run --text hello
 &lt;h1&gt;hello&lt;/h1&gt;</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_single_file_scripts"><a class="anchor" href="#_single_file_scripts"></a>Single-File Scripts</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill also allows you to run single-file Kotlin programs (often referred to as <em>scripts</em>)
-easily from the command-line,
-even those that contain third-party dependencies or other such configuration. These can be
-useful as a replacement for Bash scripts, letting you write small scripts or programs
-in Kotlin with full access to third-party libraries and other build-tool features.</p>
-</div>
-<div class="paragraph">
-<p>For example, given the Kotlin program below, it can be run directly using Mill:</p>
-</div>
-<div class="listingblock">
-<div class="title">Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/6-script/Foo.kt">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| mvnDeps:
-//| - &quot;com.github.ajalt.clikt:clikt:4.4.0&quot;
-//| - &quot;org.jetbrains.kotlinx:kotlinx-html:0.11.0&quot;
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
-import kotlinx.html.h1
-import kotlinx.html.stream.createHTML
-
-class Foo : CliktCommand() {
-    val text by option(&quot;-t&quot;, &quot;--text&quot;, help = &quot;text to insert&quot;).required()
-
-    override fun run() {
-        echo(generateHtml(text))
-    }
-}
-
-fun generateHtml(text: String): String = createHTML(prettyPrint = false).h1 { text(text) }.toString()
-
-fun main(args: Array&lt;String&gt;) = Foo().main(args)</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.kt --text hello
-Compiling 1 Kotlin sources to...
-&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The <code>./mill Foo.{language-ext}</code> syntax is shorthand for <code>./mill Foo.{language-ext}:run</code>.
-You can also call other tasks on your script modules, such as <code>Foo.{langauge-ext}:assembly</code>
-below:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.kt:run --text hello
-&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show Foo.kt:assembly # show the output of the assembly task
-&quot;.../out/Foo.kt/assembly.dest/out.jar&quot;
-
-&gt; java -jar ./out/Foo.kt/assembly.dest/out.jar --text hello
-&lt;h1&gt;hello&lt;/h1&gt;
-
-&gt; ./out/Foo.kt/assembly.dest/out.jar --text hello # mac/linux
-&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Script files can have test suites, usually written in a separate test script. The test script
-specifies what script it tests via <code>moduleDeps</code>, and can have its own <code>mvnDeps</code> in addition
-to those of the upstream script. The test script can then exercise functions from the upstream
-script as shown below:</p>
-</div>
-<div class="listingblock">
-<div class="title">FooTest.kt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/6-script/FooTest.kt">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| moduleDeps: [Foo.kt]
-//| mvnDeps:
-//| - &quot;com.google.guava:guava:33.3.0-jre&quot;
-
-import com.google.common.html.HtmlEscapers.htmlEscaper
-
-fun main(args: Array&lt;String&gt;) {
-    val result = generateHtml(&quot;hello&quot;)
-    assert(result == &quot;&lt;h1&gt;hello&lt;/h1&gt;&quot;)
-    println(result)
-    val result2 = generateHtml(&quot;&lt;hello&gt;&quot;)
-    val expected2 = &quot;&lt;h1&gt;&quot; + htmlEscaper().escape(&quot;&lt;hello&gt;&quot;) + &quot;&lt;/h1&gt;&quot;
-    assert(result2 == expected2)
-    println(result2)
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill FooTest.kt
-&lt;h1&gt;hello&lt;/h1&gt;
-&lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Again, you can pass the name of the task explicitly via <code>:</code>, e.g. <code>:run</code> below</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill FooTest.kt:run # specifying the test task explicitly
-&lt;h1&gt;hello&lt;/h1&gt;
-&lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;</code></pre>
 </div>
 </div>
 </div>
