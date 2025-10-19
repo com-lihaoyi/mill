@@ -11,7 +11,7 @@ include::partial$Intro_Header.adoc[]
 
 include::partial$example/scalalib/basic/1-script.adoc[]
 
-== Scripts Builtin Libraries
+== Script Builtin Libraries
 
 include::partial$example/scalalib/basic/2-script-builtins.adoc[]
 

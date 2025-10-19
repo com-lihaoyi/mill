@@ -49,6 +49,12 @@ Jvm Version: 11.0.28
 
 //// SNIPPET:END
 
+// {language} scripts support of the same configuration keys as
+// xref:#_simple_config_based_modules[] as part of their `//|` header comment, and support most
+// of the same tasks via the `:run` `:assembly` etc. command-line syntax.
+//
+// === Testing Scripts
+//
 // Script files can have test suites, usually written in a separate test script. The test script
 // specifies what script it tests via `moduleDeps`, and can have its own `mvnDeps` in addition
 // to those of the upstream script. The test script can then exercise functions from the upstream
@@ -72,6 +78,6 @@ Jvm Version: 11.0.28
 
 //// SNIPPET:END
 
-// {language} scripts support most of the same configuration keys as
-// xref:#_simple_config_based_modules[] as part of their `//|` header comment.
+// For scripts that grow larger than a single file, you should convert them
+// to xref:#_simple_config_based_modules[].
 
