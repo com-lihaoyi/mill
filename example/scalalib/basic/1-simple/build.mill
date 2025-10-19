@@ -49,8 +49,8 @@
 //         ...
 // ----
 //
-// NOTE: The default Mill source folder layout `foo/src/` differs from that of ``sbt``'s
-// `foo/src/main/scala`.
+// NOTE: The default Mill source folder layout `src/` differs from that of ``sbt``'s
+// `src/main/scala`.
 // If you wish to use the `sbt` source folder layout, e.g. for migrating
 // an existing codebase, you should use
 // xref:#_sbt_compatible_modules[`sbt`-Compatible Modules]
