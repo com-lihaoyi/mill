@@ -29,7 +29,7 @@ include::partial$example/scalalib/basic/4-module-deps.adoc[]
 include::partial$example/scalalib/basic/5-compat-modules.adoc[]
 
 
-== Programmatic Module Definitions
+== Programmatic Modules
 
 include::partial$example/scalalib/basic/6-programmatic.adoc[]
 

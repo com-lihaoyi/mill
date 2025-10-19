@@ -25,7 +25,7 @@ include::partial$example/javalib/basic/4-module-deps.adoc[]
 include::partial$example/javalib/basic/5-compat-modules.adoc[]
 
 
-== Programmatic Module Definitions
+== Programmatic Modules
 
 include::partial$example/javalib/basic/6-programmatic.adoc[]
 

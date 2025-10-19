@@ -7,7 +7,7 @@ Mill supports three main ways of defining {language} projects:
 * xref:#_simple_config_based_modules[]: these are a good fit for most simple projects, where you
   may just need to configure a few dependencies or compile/execution flags without any custom logic
 
-* xref:#_programmatic_module_definitions[]: these are necessary
+* xref:#_programmatic_modules[]: these are necessary
   for scenarios which require custom logic, e.g. custom resource-file processing or code-generation
 
 This page contains a quick introduction to getting start with using Mill to build
