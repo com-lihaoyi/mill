@@ -21,7 +21,8 @@ object foo extends ScalaModule {
 // This is an example of Mill's programmatic configuration syntax.
 // This is slightly more verbose than the YAML syntax shown above, but
 // in exchange allows more flexibility in how tasks are defined and their
-// values are computed.
+// values are computed. Keys such as `mvnDeps:` in the YAML syntax correspond
+// directly to the `def mvnDeps` methods in the programmatic syntax.
 
 //// SNIPPET:TREE
 // ----
@@ -48,6 +49,10 @@ object foo extends ScalaModule {
 //// SNIPPET:END
 //
 
+// This example places the `ScalaModule` in the `foo/` subfolder, but you can also use
+// define a xref:fundamentals/modules.adoc#_root_modules[Root Module] to place it at the
+// root of your repository.
+//
 // Usage of programmatic Mill builds is similar to usage of simple configuration-based
 // Mill builds:
 
@@ -90,5 +95,5 @@ foo.run
 // not need to have prior experience in Scala to read or write them. Like Gradle Groovy or Maven
 // XML, anyone can learn enough Scala for Mill without needing to become an expert in
 // the language. For simpler builds that do not need the flexibility that programmatic builds
-// provide, YAML-based xref:#_simple_{language-small}_module[Simple {language} Module] definitions
+// provide, YAML-based xref:{language-small}lib/config.adoc[Config-Based Module definitions]
 // are a great alternative.

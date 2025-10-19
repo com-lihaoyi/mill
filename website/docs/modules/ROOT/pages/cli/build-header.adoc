@@ -164,6 +164,6 @@ include::partial$example/cli/header/2-tasks-yaml.adoc[]
 == Single-File Project Build Headers
 
 Build Header configuration is also used for
-xref:javalib/config.adoc#_single_file_scripts[Configuring Single-File Scripts],
+xref:javalib/intro.adoc#_single_file_scripts[Configuring Single-File Scripts],
 as a lightweight syntax for embedding configuration values within the single Java, Scala, or Kotlin
 file.

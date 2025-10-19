@@ -1,3 +1,4 @@
+//| jvmId: 11.0.28
 //| mvnDeps:
 //| - "com.github.ajalt.clikt:clikt:4.4.0"
 //| - "org.jetbrains.kotlinx:kotlinx-html:0.11.0"
@@ -11,6 +12,7 @@ class Foo : CliktCommand() {
     val text by option("-t", "--text", help = "text to insert").required()
 
     override fun run() {
+        echo("Jvm Version: " + System.getProperty("java.version"))
         echo(generateHtml(text))
     }
 }

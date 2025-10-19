@@ -27,6 +27,11 @@
 //         ...
 // ----
 //
+// NOTE: The default Mill source folder layout `src/` differs from that of Maven/Gradle's
+// `src/main/java/`.
+// If you wish to use the Maven source folder layout, e.g. for migrating
+// an existing codebase, you should use
+// xref:#_maven_compatible_modules[Maven-Compatible Modules]
 
 //// SNIPPET:USAGE
 /** Usage
