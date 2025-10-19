@@ -16,11 +16,11 @@ include::partial$example/javalib/basic/1-script.adoc[]
 
 include::partial$example/javalib/basic/3-simple.adoc[]
 
-== Multi-Module Projects
+=== Multi-Module Projects
 
 include::partial$example/javalib/basic/4-module-deps.adoc[]
 
-== Maven Compatible Modules
+=== Maven Compatible Modules
 
 include::partial$example/javalib/basic/5-compat-modules.adoc[]
 
@@ -29,15 +29,15 @@ include::partial$example/javalib/basic/5-compat-modules.adoc[]
 
 include::partial$example/javalib/basic/6-programmatic.adoc[]
 
-== Custom Build Logic
+=== Custom Build Logic
 
 include::partial$example/javalib/basic/7-custom-build-logic.adoc[]
 
-== Programmatic Multi-Module Project
+=== Programmatic Multi-Module Project
 
 include::partial$example/javalib/basic/8-multi-module.adoc[]
 
-== Programmatic Compatibility Modules
+=== Programmatic Compatibility Modules
 
 include::partial$example/javalib/basic/9-programmatic-compat.adoc[]
 

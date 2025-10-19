@@ -10,7 +10,7 @@
 // can also be nested within each other, as `bar.test` is nested
 // within `bar`.
 //
-// === Multi-Module Folder Layout
+// ==== Multi-Module Folder Layout
 //
 // The above builds expect the following project layout:
 //
@@ -71,7 +71,7 @@ bar.run
 // you do not need to worry about choosing a path on disk to cache outputs, or
 // filesystem collisions if multiple tasks write to the same path.
 //
-// === Task Query Syntax
+// ==== Task Query Syntax
 //
 // You can use wildcards and brace-expansion to select
 // multiple tasks at once or to shorten the path to deeply nested tasks. If
