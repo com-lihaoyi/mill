@@ -437,7 +437,9 @@ trait GroupExecution {
         _ <- Option.when(cached.inputsHash == inputsHash)(())
         reader <- labelled.readWriterOpt
         (parsed, serializedPaths) <-
-          try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using reader)))
+          try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
+              reader
+            )))
           catch {
             case e: PathRef.PathRefValidationException =>
               logger.debug(
