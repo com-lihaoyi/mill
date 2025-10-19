@@ -11,11 +11,11 @@ include::partial$Intro_Header.adoc[]
 
 include::partial$example/kotlinlib/basic/1-simple.adoc[]
 
-== Multiple Kotlin Modules
+== Multi-Module Projects
 
 include::partial$example/kotlinlib/basic/2-module-deps.adoc[]
 
-== Multi-Module Project
+== Maven Compatible Modules
 
 include::partial$example/kotlinlib/basic/3-compat-modules.adoc[]
 

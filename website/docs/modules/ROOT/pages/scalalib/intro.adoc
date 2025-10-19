@@ -11,7 +11,7 @@ include::partial$Intro_Header.adoc[]
 
 include::partial$example/scalalib/basic/1-simple.adoc[]
 
-== Multi-Module Project
+== Multi-Module Projects
 
 include::partial$example/scalalib/basic/2-module-deps.adoc[]
 
