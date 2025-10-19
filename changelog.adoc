@@ -844,7 +844,7 @@ _2025-01-31_
 
 _Changes since {prev-version}:_
 
-* https://mill-build.org/mill/cli/installation-ide.html#_mill_native_executable[Mill now provides native executables] on windows-amd64, linux-{amd64,aarch64}, and
+* https://mill-build.org/mill/cli/installation-ide.html#_mill_native_and_jvm_executables[Mill now provides native executables] on windows-amd64, linux-{amd64,aarch64}, and
 macos-{amd64,aarch64}. These can be enabled by adding the `-native` suffix to your `.mill-version`
 file (e.g. `0.12.6-native`), and allows you to run Mill on clean machines without needing
 a pre-installed JVM (Mill will instead download one as necessary)

@@ -1,4 +1,4 @@
-// :api-spotless: {site-url}/api/latest/mill/scalalib/spotless
+// :api-spotless: {site-url}/api/latest/mill/javalib/spotless
 
 // If your project has file groups each requiring different formatting,
 // you may want to give Mill's https://github.com/diffplug/spotless[Spotless] plugin a try.

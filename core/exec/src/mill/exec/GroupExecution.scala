@@ -112,9 +112,11 @@ trait GroupExecution {
               case v => v
             }
             val (resultData, serializedPaths) = PathRef.withSerializedPaths {
-              upickle.read[Any](rec(jsonData))(
-                using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
-              )
+              PathRef.currentOverrideModulePath.withValue(labelled.ctx.millSourcePath) {
+                upickle.read[Any](rec(jsonData))(
+                  using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
+                )
+              }
             }
             GroupExecution.Results(
               Map(labelled -> ExecResult.Success(Val(resultData), resultData.##)),
@@ -425,7 +427,7 @@ trait GroupExecution {
   ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
     for {
       cached <-
-        try Some(upickle.read[Cached](paths.meta.toIO))
+        try Some(upickle.read[Cached](paths.meta.toIO, trace = false))
         catch {
           case NonFatal(_) => None
         }
@@ -435,7 +437,9 @@ trait GroupExecution {
         _ <- Option.when(cached.inputsHash == inputsHash)(())
         reader <- labelled.readWriterOpt
         (parsed, serializedPaths) <-
-          try Some(PathRef.withSerializedPaths(upickle.read(cached.value)(using reader)))
+          try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
+              reader
+            )))
           catch {
             case e: PathRef.PathRefValidationException =>
               logger.debug(

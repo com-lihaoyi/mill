@@ -219,10 +219,11 @@ object PathRef {
         pr
       case s =>
         mill.api.BuildCtx.withFilesystemCheckerDisabled(
-          PathRef(os.Path(s, mill.api.BuildCtx.workspaceRoot))
+          PathRef(os.Path(s, currentOverrideModulePath.value))
         )
     }
   )
+  private[mill] val currentOverrideModulePath = DynamicVariable[os.Path](null)
 
   // scalafix:off; we want to hide the unapply method
   @nowarn("msg=unused")

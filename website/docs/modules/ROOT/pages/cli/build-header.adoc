@@ -53,7 +53,7 @@ Mill's build headers can contain the following keys:
    project. If not provided, Mill will launch using the version of your `./mill` or
    `./mill.bat` bootstrap script.
 
-2. xref:#_mill_opts[]: flags to pass to Mill by default, useful for flags that you want
+2. xref:_mill_opts[]: flags to pass to Mill by default, useful for flags that you want
    everyone to use so they don't need to always remember to type them at the command line
 
 3. xref:_mill_jvm_version[]: specifies an explicit JVM version to use, useful to help
@@ -164,6 +164,6 @@ include::partial$example/cli/header/2-tasks-yaml.adoc[]
 == Single-File Project Build Headers
 
 Build Header configuration is also used for
-xref:javalib/module-config.adoc#_configuring_single_file_scripts[Configuring Single-File Scripts],
+xref:javalib/intro.adoc#_single_file_scripts[Configuring Single-File Scripts],
 as a lightweight syntax for embedding configuration values within the single Java, Scala, or Kotlin
 file.
