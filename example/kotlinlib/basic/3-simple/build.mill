@@ -33,7 +33,6 @@
 // an existing codebase, you should use
 // xref:#_maven_compatible_modules[Maven-Compatible Modules]
 
-
 //// SNIPPET:USAGE
 /** Usage
 > ./mill inspect compile # Show documentation and inputs of a task

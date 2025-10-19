@@ -1,4 +1,4 @@
-//| jvmId: 24.0.2
+//| jvmId: 11.0.28
 //| mvnDeps:
 //| - "com.lihaoyi::scalatags:0.13.1"
 //| - "com.lihaoyi::mainargs:0.7.6"

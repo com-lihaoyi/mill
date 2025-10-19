@@ -253,7 +253,7 @@ object `package` extends Module {
           .map {
             case (s"see:$path", txt) =>
               // avoid .stripMargin, as the embedded content may contain the margin symbol
-              val lang = os.FilePath(path).ext match{
+              val lang = os.FilePath(path).ext match {
                 case "mill" => "scala"
                 case s => s
               }
