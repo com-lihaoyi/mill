@@ -1,6 +1,8 @@
+//| jvmId: 24.0.2
 //| mvnDeps:
 //| - "net.sourceforge.argparse4j:argparse4j:0.9.0"
 //| - "org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -14,7 +16,7 @@ public class Foo {
     return new TemplateEngine().process("<h1 th:text=\"${text}\"></h1>", context);
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     ArgumentParser parser = ArgumentParsers.newFor("template")
         .build()
         .defaultHelp(true)
@@ -23,13 +25,8 @@ public class Foo {
     parser.addArgument("-t", "--text").required(true).help("text to insert");
 
     Namespace ns = null;
-    try {
-      ns = parser.parseArgs(args);
-    } catch (Exception e) {
-      System.out.println(e.getMessage());
-      System.exit(1);
-    }
-
+    ns = parser.parseArgs(args);
+    System.out.println("Jvm Version: " + System.getProperty("java.version"));
     System.out.println(generateHtml(ns.getString("text")));
   }
 }

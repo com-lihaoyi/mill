@@ -53,4 +53,4 @@ error: ...Implicit injection of + is deprecated. Convert to String to call +...
 //
 // Note that the `.build.yaml` config files only let you set simple configuration keys,
 // and do not let you extend your build with code e.g. to generate sources. For more flexibility,
-// see xref:{language-small}lib/module-config.adoc[Programmatic Module Configuration].
+// see xref:{language-small}lib/intro.adoc#_programmatic_module_definitions[].

@@ -1,8 +1,14 @@
-// Mill also allows you to run single-file {language} programs (often referred to as _scripts_)
-// easily from the command-line,
-// even those that contain third-party dependencies or other such configuration. These can be
-// useful as a replacement for Bash scripts, letting you write small scripts or programs
-// in {language} with full access to third-party libraries and other build-tool features.
+// Mill allows you to run single-file {language} programs (often referred to as _scripts_)
+// easily from the command-line, even those that contain third-party dependencies, specific
+// JVM versions, or other such configuration. These can be useful for several purposes:
+//
+// - A replacement for Bash scripts, letting you write small scripts or programs
+//   in {language} with full access to third-party libraries that run in a deterministic way
+//   across different dev, test, or prod environments
+//
+// - Reproducing issues, as you can include both the code and dependencies necessary to
+//   reproduce an issue in a self-contained file that doesn't require manual setup or
+//   installation
 //
 // For example, given the {language} program below, it can be run directly using Mill:
 
@@ -13,6 +19,7 @@
 > ./mill Foo.scala --text hello
 compiling 1 Scala source to...
 <h1>hello</h1>
+Jvm Version: 24.0.2
 */
 
 //// SNIPPET:END
@@ -64,3 +71,5 @@ compiling 1 Scala source to...
 */
 
 //// SNIPPET:END
+
+// {language} scripts

@@ -1,3 +1,4 @@
+//| jvmId: 24.0.2
 //| mvnDeps:
 //| - "com.lihaoyi::scalatags:0.13.1"
 //| - "com.lihaoyi::mainargs:0.7.6"
@@ -11,6 +12,7 @@ object Foo {
 
   @main
   def main(text: String) = {
+    println("Jvm Version: " + System.getProperty("java.version"))
     println(generateHtml(text))
   }
 

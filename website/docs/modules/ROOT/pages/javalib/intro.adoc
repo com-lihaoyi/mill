@@ -7,35 +7,40 @@
 
 include::partial$Intro_Header.adoc[]
 
-== Simple Java Module
+== Single-File Scripts
 
-include::partial$example/javalib/basic/1-simple.adoc[]
+include::partial$example/javalib/basic/1-script.adoc[]
+
+
+== Simple Config-Based Modules
+
+include::partial$example/javalib/basic/3-simple.adoc[]
 
 == Multi-Module Projects
 
-include::partial$example/javalib/basic/2-module-deps.adoc[]
+include::partial$example/javalib/basic/4-module-deps.adoc[]
 
 == Maven Compatible Modules
 
-include::partial$example/javalib/basic/3-compat-modules.adoc[]
+include::partial$example/javalib/basic/5-compat-modules.adoc[]
 
 
-== Programmatic Configuration
+== Programmatic Module Definitions
 
-include::partial$example/javalib/basic/4-programmatic.adoc[]
+include::partial$example/javalib/basic/6-programmatic.adoc[]
 
 == Custom Build Logic
 
-include::partial$example/javalib/basic/5-custom-build-logic.adoc[]
+include::partial$example/javalib/basic/7-custom-build-logic.adoc[]
 
 == Programmatic Multi-Module Project
 
-include::partial$example/javalib/basic/6-multi-module.adoc[]
+include::partial$example/javalib/basic/8-multi-module.adoc[]
 
 == Programmatic Compatibility Modules
 
-include::partial$example/javalib/basic/7-programmatic-compat.adoc[]
+include::partial$example/javalib/basic/9-programmatic-compat.adoc[]
 
 == Realistic Java Example Project
 
-include::partial$example/javalib/basic/8-realistic.adoc[]
+include::partial$example/javalib/basic/10-realistic.adoc[]

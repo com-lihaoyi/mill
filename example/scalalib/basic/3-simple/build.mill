@@ -180,5 +180,3 @@ compiling 1 Scala source to...
 //
 // * xref:{language-small}lib/config.adoc[Config-based {language} Modules]
 //
-// For scenarios which require more customization,
-// see xref:#_programmatic_configuration[Programmatic Configuration] discussed below.
