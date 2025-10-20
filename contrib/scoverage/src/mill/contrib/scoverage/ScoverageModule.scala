@@ -141,11 +141,11 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
         .report(reportType, allSources().map(_.path), Seq(data().path), BuildCtx.workspaceRoot)
     }
 
-    def validateCoverageMin(): Task[Unit] = Task.Anon {
+    def validateCoverageMin(statementCoverageMin: Option[Double], branchCoverageMin: Option[Double]): Task[Unit] = Task.Anon {
       ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(scoverageToolsClasspath())
-        .report(reportType, allSources().map(_.path), Seq(data().path), BuildCtx.workspaceRoot)
+        .validateCoverageMinimums(allSources().map(_.path), Seq(data().path), statementCoverageMin.getOrElse(0.0), branchCoverageMin..getOrElse(0.0), BuildCtx.workspaceRoot)
     }
 
 
@@ -202,7 +202,11 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def xmlCoberturaReport(): Command[Unit] = Task.Command { doReport(ReportType.XmlCobertura)() }
     def consoleReport(): Command[Unit] = Task.Command { doReport(ReportType.Console)() }
     def validateCoverageMinimums: Command[Unit] = Task.Command {
-      validateCoverageMin()
+      List(statementCoverageMin(), branchCoverageMin()).exists(_.isDefined) match {
+        case true => validateCoverageMin(statementCoverageMin(), branchCoverageMin())
+        case _ => //TODO: Throw exception
+      }
+
     }
     //TODO: Add the task of validating coverage minimums
     //TODO: Hook into the test to fail if it falls too low
