@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 public interface ScoverageReportWorkerApi2 {
 
@@ -27,7 +28,8 @@ public interface ScoverageReportWorkerApi2 {
     private String name;
 
     /*private[api]*/
-    ReportType(String name) {}
+    ReportType(String name) {
+    }
 
     public static final ReportType Console = new ConsoleModule();
     public static final FileReportType Html = new HtmlModule();
@@ -41,6 +43,7 @@ public interface ScoverageReportWorkerApi2 {
         super("Console");
       }
     }
+
     ;
 
     /* private[api]*/
@@ -50,6 +53,7 @@ public interface ScoverageReportWorkerApi2 {
         super("Html", "htmlReport");
       }
     }
+
     ;
 
     /* private[api]*/
@@ -89,6 +93,9 @@ public interface ScoverageReportWorkerApi2 {
   }
 
   void report(ReportType reportType, Path[] sources, Path[] dataDirs, Path sourceRoot, Ctx ctx);
+
+  void validateCoverageMinimums(Path[] sources, Path[] dataDirs, Path sourceRoot, Double statementCoverageMin,
+                                Double branchCoverageMin, Ctx ctx);
 
   static void makeAllDirs(Path path) throws IOException {
     // Replicate behavior of `os.makeDir.all(path)`

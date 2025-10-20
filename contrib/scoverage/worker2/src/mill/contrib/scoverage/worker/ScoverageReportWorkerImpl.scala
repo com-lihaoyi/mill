@@ -18,6 +18,48 @@ import java.nio.file.Path
  */
 class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi2 {
 
+  /**
+   * @param sources
+   * @param dataDirs
+   * @param sourceRoot
+   * @param statementCoverageMin This is a nullalble expectation of the statement coverage minimum.
+   * @param branchCoverageMin This is a nullalble expectation of the branch coverage minimum.
+   * @param ctx
+   */
+  override def validateCoverageMinimums(
+      sources: Array[Path],
+      dataDirs: Array[Path],
+      sourceRoot: Path,
+      statementCoverageMin: Double,
+      branchCoverageMin: Double,
+      ctx: Ctx
+  ): Unit = {
+    try {
+      ctx.log.info(s"Processing coverage data for ${dataDirs.size} data locations")
+      CoverageAggregator.aggregate(dataDirs.map(_.toFile).toIndexedSeq, sourceRoot.toFile).map(
+        cov => (cov.statementCoverage, cov.branchCoverage))
+        
+        //TODO: Create a warning and an exception that there is no coverage despite it being requested
+        //TODO: Break if the statementCOverageMin was not met 
+        //TODO: Break if the statementCoverageMin was not met
+        //TODO: Write out the results before breaking
+        //TODO: If both were met then do a console write 
+        
+     /* ) match {
+        case Some(coverage) => {
+          ctx.log.info(s"Statement coverage.: ${coverage.statementCoverageFormatted}%")
+          ctx.log.info(s"Branch coverage....: ${coverage.branchCoverageFormatted}%")
+        }
+        case None =>
+          ctx.log.warn(s"No coverage data found in [${dataDirs.mkString(", ")}]")
+      }*/
+    } catch {
+      case e: Throwable =>
+        ctx.log.error(s"Exception while building coverage report. ${e.getMessage()}")
+        e.printStackTrace()
+        throw e
+    }
+  }
   override def report(
       reportType: ReportType,
       sources: Array[Path],

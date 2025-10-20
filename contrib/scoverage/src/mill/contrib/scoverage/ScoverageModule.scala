@@ -1,14 +1,12 @@
 package mill.contrib.scoverage
 
 import coursier.Repository
-import mill._
-import mill.api.{PathRef}
-import mill.api.BuildCtx
-import mill.api.{Result}
+import mill.*
+import mill.api.{BuildCtx, PathRef, Result}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
-import mill.util.BuildInfo
 import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
+import mill.util.BuildInfo
 
 /**
  * Adds tasks to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
@@ -57,6 +55,11 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
    * The Scoverage version to use.
    */
   def scoverageVersion: T[String]
+
+  def branchCoverageMin: T[Option[Double]] = T[Option.empty[Double]]
+  def statementCoverageMin: T[Option[Double]] = T[Option.empty[Double]]
+
+
 
   private def isScala3: Task[Boolean] = Task.Anon { JvmWorkerUtil.isScala3(outer.scalaVersion()) }
 
@@ -138,6 +141,14 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
         .report(reportType, allSources().map(_.path), Seq(data().path), BuildCtx.workspaceRoot)
     }
 
+    def validateCoverageMin(): Task[Unit] = Task.Anon {
+      ScoverageReportWorker
+        .scoverageReportWorker()
+        .bridge(scoverageToolsClasspath())
+        .report(reportType, allSources().map(_.path), Seq(data().path), BuildCtx.workspaceRoot)
+    }
+
+
     /**
      * The persistent data dir used to store scoverage coverage data.
      * Use to store coverage data at compile-time and by the various report tasks.
@@ -190,6 +201,11 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def xmlReport(): Command[Unit] = Task.Command { doReport(ReportType.Xml)() }
     def xmlCoberturaReport(): Command[Unit] = Task.Command { doReport(ReportType.XmlCobertura)() }
     def consoleReport(): Command[Unit] = Task.Command { doReport(ReportType.Console)() }
+    def validateCoverageMinimums: Command[Unit] = Task.Command {
+      validateCoverageMin()
+    }
+    //TODO: Add the task of validating coverage minimums
+    //TODO: Hook into the test to fail if it falls too low
 
     override def skipIdea = true
   }
