@@ -589,12 +589,12 @@ trait AndroidModule extends JavaModule { outer =>
    * compile android resources for R class generation.
    * Corresponds to `android.nonTransitiveRClass` in Gradle.
    *
-   * Default is false.
+   * Default is true.
    *
    * When overridden, make sure to override all modules
    * in the project to have consistent behavior.
    */
-  def androidNonTransitiveRClass: Boolean = false
+  def androidNonTransitiveRClass: Boolean = true
 
   /**
    * Gets the [[androidCompiledModuleResources]] from
