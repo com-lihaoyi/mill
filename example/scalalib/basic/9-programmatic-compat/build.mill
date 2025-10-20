@@ -10,19 +10,19 @@ import mill.*, scalalib.*
 object foo extends SbtModule {
   def scalaVersion = "3.7.1"
   object test extends SbtTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
     def testFramework = "utest.runner.Framework"
   }
   object integration extends SbtTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
     def testFramework = "utest.runner.Framework"
   }
 }
 
-object bar extends Cross[BarModule]("2.12.17", "2.13.16")
+object bar extends Cross[BarModule]("2.12.20", "2.13.16")
 trait BarModule extends CrossSbtModule {
   object test extends CrossSbtTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -63,7 +63,7 @@ compiling 1 Scala source...
 > ./mill bar[2.13.16].run
 Bar.value: Hello World Scala library version 2.13.16...
 
-> ./mill bar[2.12.17].run
-Bar.value: Hello World Scala library version 2.12.17...
+> ./mill bar[2.12.20].run
+Bar.value: Hello World Scala library version 2.12.20...
 
 */
