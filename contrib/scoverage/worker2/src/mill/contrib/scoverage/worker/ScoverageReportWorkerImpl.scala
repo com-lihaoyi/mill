@@ -6,11 +6,11 @@ import _root_.scoverage.reporter.{
   ScoverageHtmlWriter,
   ScoverageXmlWriter
 }
-
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2
 import ScoverageReportWorkerApi2.ReportType
 import ScoverageReportWorkerApi2.Ctx
 
+import java.lang
 import java.nio.file.Path
 
 /**
@@ -30,22 +30,23 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi2 {
       sources: Array[Path],
       dataDirs: Array[Path],
       sourceRoot: Path,
-      statementCoverageMin: Double,
-      branchCoverageMin: Double,
+      statementCoverageMin: lang.Double,
+      branchCoverageMin: lang.Double,
       ctx: Ctx
   ): Unit = {
     try {
       ctx.log.info(s"Processing coverage data for ${dataDirs.size} data locations")
       CoverageAggregator.aggregate(dataDirs.map(_.toFile).toIndexedSeq, sourceRoot.toFile).map(
-        cov => (cov.statementCoverage, cov.branchCoverage))
-        
-        //TODO: Create a warning and an exception that there is no coverage despite it being requested
-        //TODO: Break if the statementCOverageMin was not met 
-        //TODO: Break if the statementCoverageMin was not met
-        //TODO: Write out the results before breaking
-        //TODO: If both were met then do a console write 
-        
-     /* ) match {
+        cov => (cov.statementCoverage, cov.branchCoverage)
+      )
+
+      // TODO: Create a warning and an exception that there is no coverage despite it being requested
+      // TODO: Break if the statementCOverageMin was not met
+      // TODO: Break if the statementCoverageMin was not met
+      // TODO: Write out the results before breaking
+      // TODO: If both were met then do a console write
+
+      /* ) match {
         case Some(coverage) => {
           ctx.log.info(s"Statement coverage.: ${coverage.statementCoverageFormatted}%")
           ctx.log.info(s"Branch coverage....: ${coverage.branchCoverageFormatted}%")
@@ -97,4 +98,5 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi2 {
         e.printStackTrace()
         throw e
     }
+
 }
