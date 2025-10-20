@@ -199,7 +199,7 @@ trait AndroidModule extends JavaModule { outer =>
   def androidTransitiveCompiledResources: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleRunModuleDeps) {
       case m: AndroidModule =>
-        Task.Anon(m.androidCompiledModuleResources())
+        m.androidCompiledModuleResources
       case _ =>
         Task.Anon(Seq.empty)
     }().flatten.distinct
@@ -208,7 +208,7 @@ trait AndroidModule extends JavaModule { outer =>
   def androidDirectCompiledResources: T[Seq[PathRef]] = Task {
     Task.traverse(moduleDepsChecked) {
       case m: AndroidModule =>
-        Task.Anon(m.androidCompiledModuleResources())
+        m.androidCompiledModuleResources
       case _ =>
         Task.Anon(Seq.empty)
     }().flatten.distinct
@@ -525,7 +525,7 @@ trait AndroidModule extends JavaModule { outer =>
   def androidTransitiveLibRClasspath: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleDeps) {
       case m: AndroidModule =>
-        Task.Anon(m.androidLibRClasspath())
+        m.androidLibRClasspath
       case _ =>
         Task.Anon(Seq.empty[PathRef])
     }().flatten

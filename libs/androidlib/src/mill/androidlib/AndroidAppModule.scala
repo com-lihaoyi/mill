@@ -1070,7 +1070,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     def androidTransitiveTestClasspath: T[Seq[PathRef]] = Task {
       Task.traverse(transitiveRunModuleDeps) {
         m =>
-          Task.Anon(m.localRunClasspath())
+          m.localRunClasspath
       }().flatten
     }
 
