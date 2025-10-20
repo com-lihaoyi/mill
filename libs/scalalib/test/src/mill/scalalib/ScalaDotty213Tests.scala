@@ -9,6 +9,10 @@ object ScalaDotty213Tests extends TestSuite {
   object Dotty213 extends TestRootModule {
     object foo extends ScalaModule {
       def scalaVersion = "0.18.1-RC1"
+
+      // Hack to disable semanticdb, because there's no semanticdb for this ancient scala version.
+      override protected def semanticDbEnablePluginScalacOptions = Seq.empty
+
       override def mvnDeps = Seq(
         mvn"org.scala-lang.modules::scala-xml:1.2.0".withDottyCompat(scalaVersion())
       )

@@ -17,7 +17,15 @@ object Deps {
 object core extends Cross[CoreCross]("2.13.11")
 trait CoreCross extends CrossScalaModule with ScoverageModule {
   override def scoverageVersion = "2.0.11"
+  override def semanticDbVersion = "4.9.9" // last version to support this Scala
+
+  // customized scoverage data
+  override lazy val scoverage: ScoverageData = new ScoverageData {
+    override def semanticDbVersion = "4.9.9" // last version to support this Scala
+  }
+
   object test extends ScoverageTests with TestModule.ScalaTest {
+    override def semanticDbVersion = "4.9.9" // last version to support this Scala
     override def mvnDeps = Seq(Deps.scalaTest, Deps.millMain)
   }
 }
@@ -25,8 +33,11 @@ trait CoreCross extends CrossScalaModule with ScoverageModule {
 object extra extends ScalaModule with ScoverageModule {
   override def scoverageVersion = "2.0.11"
   override def scalaVersion = "2.13.11"
+  override def semanticDbVersion = "4.9.9" // last version to support this Scala
+
   // customized scoverage data
   override lazy val scoverage: ScoverageData = new ScoverageData {
     // some customizations
+    override def semanticDbVersion = "4.9.9" // last version to support this Scala
   }
 }

@@ -4,8 +4,6 @@ import mill.api.{PathRef, Result}
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
-import mill.javalib.api.JvmWorkerApi.Ctx
-import os.Path
 
 trait JvmWorkerApi extends PublicJvmWorkerApi {
 
@@ -36,17 +34,18 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
   // public API forwarder
   override def compileJava(
       upstreamCompileOutput: Seq[CompilationResult],
-      sources: Seq[Path],
-      compileClasspath: Seq[Path],
-      javaHome: Option[Path],
+      sources: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
+      javaHome: Option[os.Path],
       javacOptions: Seq[String],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
-  )(using ctx: Ctx): Result[CompilationResult] = {
+  )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
     val jOpts = JavaCompilerOptions(javacOptions)
     compileJava(
       ZincCompileJava(
+        compileTo = ctx.dest,
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
         compileClasspath = compileClasspath,
@@ -63,9 +62,9 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
   // public API forwarder
   override def compileMixed(
       upstreamCompileOutput: Seq[CompilationResult],
-      sources: Seq[Path],
-      compileClasspath: Seq[Path],
-      javaHome: Option[Path],
+      sources: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
+      javaHome: Option[os.Path],
       javacOptions: Seq[String],
       scalaVersion: String,
       scalaOrganization: String,
@@ -76,10 +75,11 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String]
-  )(using ctx: Ctx): Result[CompilationResult] = {
+  )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
     val jOpts = JavaCompilerOptions(javacOptions)
     compileMixed(
       ZincCompileMixed(
+        compileTo = ctx.dest,
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
         compileClasspath = compileClasspath,
@@ -105,9 +105,9 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
-      javaHome: Option[Path],
+      javaHome: Option[os.Path],
       args: Seq[String]
-  )(using ctx: Ctx): Boolean = {
+  )(using ctx: PublicJvmWorkerApi.Ctx): Boolean = {
     scaladocJar(
       ZincScaladocJar(
         scalaVersion = scalaVersion,

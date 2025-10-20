@@ -1,7 +1,8 @@
 package mill.api
 import collection.mutable
 import mill.api.Watchable
-import mill.constants.EnvVars
+import mill.constants.{EnvVars, OutFiles, OutFolderMode}
+
 import scala.util.DynamicVariable
 
 /**
@@ -50,6 +51,7 @@ object BuildCtx {
     }
   }
 
+  /** As [[watchValue]] but watches a file path. */
   def watch(p: os.Path): os.Path = {
     val watchable = Watchable.Path(p.toNIO, false, PathRef(p).sig)
     watchedValues.append(watchable)
@@ -59,4 +61,16 @@ object BuildCtx {
   def watch0(w: Watchable): Unit = watchedValues.append(w)
 
   def evalWatch0(w: Watchable): Unit = evalWatchedValues.append(w)
+
+  /**
+   * Folder in the filesystem where Mill's BSP sessions that require semanticdb store an indicator file (name =
+   * process PID, contents are irrelevant) to communicate to main Mill daemon and other BSP sessions that there is at
+   * least one Mill session that will need the semanticdb.
+   *
+   * The reasoning is that if at least one of Mill's clients requests semanticdb, then there is no point in running
+   * regular `compile` without semanticdb, as eventually we will have to rerun it with semanticdb, and thus we should
+   * compile with semanticdb upfront to avoid paying the price of compling twice (without semanticdb and then with it).
+   */
+  private[mill] def bspSemanticDbSessionsFolder: os.Path =
+    workspaceRoot / os.SubPath(OutFiles.outFor(OutFolderMode.BSP)) / "semanticdb-sessions"
 }
