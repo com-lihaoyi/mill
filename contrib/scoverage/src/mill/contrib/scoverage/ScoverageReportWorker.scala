@@ -1,14 +1,13 @@
 package mill.contrib.scoverage
 
 import mill.Task
-import mill.api.{TaskCtx, PathRef}
+import mill.api.{PathRef, TaskCtx}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2
 import mill.api.{Discover, ExternalModule}
-
-import ScoverageReportWorker.ScoverageReportWorkerApiBridge
+import ScoverageReportWorker.{ScoverageReportWorkerApiBridge, scoverageReportWorker}
 import ScoverageReportWorkerApi2.ReportType
-import ScoverageReportWorkerApi2.{Logger => ApiLogger}
-import ScoverageReportWorkerApi2.{Ctx => ApiCtx}
+import ScoverageReportWorkerApi2.Logger as ApiLogger
+import ScoverageReportWorkerApi2.Ctx as ApiCtx
 
 class ScoverageReportWorker {
 
@@ -46,7 +45,6 @@ class ScoverageReportWorker {
               .getDeclaredConstructor()
               .newInstance()
               .asInstanceOf[api.ScoverageReportWorkerApi2]
-
           worker.report(
             reportType,
             sources.map(_.toNIO).toArray,
