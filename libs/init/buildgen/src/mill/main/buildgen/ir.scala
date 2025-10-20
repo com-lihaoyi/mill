@@ -36,7 +36,7 @@ object BuildObject {
 @mill.api.experimental
 case class Node[T](dirs: Seq[String], value: T)
 
-case class IrTrait(
+case class IrBaseInfo(
     jvmId: Option[String],
     baseModule: String,
     moduleSupertypes: Seq[String],
@@ -77,9 +77,8 @@ case class IrLicense(
     distribution: String = "repo"
 )
 
-// TODO Consider renaming to `IrModule(Build)` to disambiguate? `sbt`, for example, uses `ThisBuild` and `buildSettings` to refer to the whole build.
-// TODO reuse the members in `IrTrait`?
-case class IrBuild(
+// TODO reuse the members in `IrBaseInfo`?
+case class IrModuleBuild(
     scopedDeps: IrScopedDeps,
     testModule: String,
     testModuleMainType: String,
@@ -101,9 +100,9 @@ case class IrBuild(
     testForkDir: Option[String]
 )
 
-object IrBuild {
-  // TODO not used
-  def empty(dirs: Seq[String]) = IrBuild(
+object IrModuleBuild {
+  // This function is not used currently but temporarily kept for possible use cases. Remove if it's ensured that it's not going to be used.
+  def empty(dirs: Seq[String]) = IrModuleBuild(
     IrScopedDeps(),
     null,
     null,
@@ -142,21 +141,6 @@ case class IrScopedDeps(
     testModuleDeps: SortedSet[String] = SortedSet(),
     testCompileMvnDeps: SortedSet[String] = SortedSet(),
     testCompileModuleDeps: SortedSet[String] = SortedSet()
-)
-
-// TODO remove `IrBaseInfo` and just use `IrTrait` directly?
-case class IrBaseInfo(
-    /*
-    javacOptions: Seq[String] = Nil,
-    scalaVersion: Option[String] = None,
-    scalacOptions: Option[Seq[String]] = None,
-    repositories: Seq[String] = Nil,
-    noPom: Boolean = true,
-    publishVersion: String = "",
-    publishProperties: Seq[(String, String)] = Nil,
-     */
-    // TODO consider renaming directly to `trait` or `baseTrait`?
-    moduleTypedef: IrTrait | Null = null
 )
 
 sealed class IrDependencyType

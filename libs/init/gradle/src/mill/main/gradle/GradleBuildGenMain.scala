@@ -42,7 +42,8 @@ import scala.jdk.CollectionConverters.*
  *  - non-Java sources
  */
 @internal
-object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep] {
+object GradleBuildGenMain extends BuildGenBase.MavenAndGradle {
+  override type Module = ProjectModel
   override type C = Config
 
   def main(args: Array[String]): Unit = {
@@ -118,7 +119,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       val projects = input.nodes(Tree.Traversal.BreadthFirst).map(_.value).toSeq
       cfg.baseProject
         .flatMap(name => projects.collectFirst { case m if name == m.name => m })
-        .orElse(projects.collectFirst { case m if null != m.maven().pom() => m })
+        .orElse(projects.collectFirst { case m if m.maven().pom() != null => m })
         .orElse(projects.collectFirst { case m if !m.maven().repositories().isEmpty => m })
         .getOrElse(input.node.value)
     }
@@ -127,7 +128,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
     }
     val supertypes =
       Seq("MavenModule") ++
-        Option.when(null != project.maven().pom()) { "PublishModule" }
+        Option.when(project.maven().pom() != null) { "PublishModule" }
 
     val javacOptions = getJavacOptions(project)
     val scalaVersion = None
@@ -137,7 +138,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
     val publishVersion = getPublishVersion(project)
     val publishProperties = getPublishProperties(project, cfg.shared)
 
-    val typedef = IrTrait(
+    IrBaseInfo(
       cfg.shared.basicConfig.jvmId,
       baseModule,
       supertypes,
@@ -149,8 +150,6 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       publishProperties,
       repos
     )
-
-    IrBaseInfo(typedef)
   }
 
   override type ModuleFqnMap = Map[String, String]
@@ -158,16 +157,16 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       : ModuleFqnMap =
     buildModuleFqnMap(moduleNodes)(_.path())
 
-  override def extractIrBuild(
+  override def extractIrModuleBuild(
       cfg: Config,
       // baseInfo: IrBaseInfo,
       build: Node[ProjectModel],
       moduleFqnMap: ModuleFqnMap
-  ): IrBuild = {
+  ): IrModuleBuild = {
     val project = build.value
-    val scopedDeps = extractScopedDeps(project, moduleFqnMap, cfg)
+    val scopedDeps = extractConfigurationDeps(project, moduleFqnMap, cfg)
     val version = getPublishVersion(project)
-    IrBuild(
+    IrModuleBuild(
       scopedDeps = scopedDeps,
       testModule = cfg.shared.basicConfig.testModule,
       testModuleMainType = "MavenTests",
@@ -201,13 +200,13 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
 
   override def getSupertypes(
       cfg: Config,
-      baseInfo: IrBaseInfo,
+      baseInfo: Option[IrBaseInfo],
       build: Node[ProjectModel]
   ): Seq[String] =
-    Option.when(null != build.value.maven().pom() && {
-      val baseTrait = baseInfo.moduleTypedef
-      baseTrait == null || !baseTrait.moduleSupertypes.contains("PublishModule")
-    }) { "PublishModule" }.toSeq ++
+    Option.when(build.value.maven().pom() != null &&
+      baseInfo.forall(!_.moduleSupertypes.contains("PublishModule"))) {
+      "PublishModule"
+    }.toSeq ++
       Option.when(build.dirs.nonEmpty || os.exists(getMillSourcePath(build.value) / "src")) {
         getModuleSupertypes(cfg)
       }.toSeq.flatten
@@ -216,9 +215,9 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
     (dep.group(), dep.name(), dep.version())
 
   def getJavacOptions(project: ProjectModel): Seq[String] = {
-    val _java = project._java()
-    if (null == _java) Seq.empty
-    else _java.javacOptions().asScala.toSeq
+    val javaModel = project.javaModel()
+    if (javaModel == null) Seq.empty
+    else javaModel.javacOptions().asScala.toSeq
   }
 
   def getRepositories(project: ProjectModel): Seq[String] =
@@ -226,13 +225,16 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
 
   def getPomPackaging(project: ProjectModel): String = {
     val pom = project.maven().pom()
-    if (null == pom) null else pom.packaging()
+    if (pom == null) null else pom.packaging()
   }
 
-  def getPublishProperties(project: ProjectModel, cfg: BuildGenUtil.Config): Seq[(String, String)] =
+  def getPublishProperties(
+      project: ProjectModel,
+      cfg: BuildGenUtil.MavenAndGradleCommonConfig
+  ): Seq[(String, String)] =
     if (cfg.publishProperties.value) {
       val pom = project.maven().pom()
-      if (null == pom) Seq.empty
+      if (pom == null) Seq.empty
       else pom.properties().iterator().asScala
         .map(prop => (prop.key(), prop.value()))
         .toSeq
@@ -250,7 +252,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
 
   def extractPomSettings(project: ProjectModel): IrPom | Null = {
     val pom = project.maven.pom()
-    if (null == pom) null
+    if (pom == null) null
     else {
       IrPom(
         pom.description(),
@@ -269,16 +271,15 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
     }
   }
 
-  // TODO consider renaming to `extractConfigurationDeps` as Gradle calls them configurations instead of scopes
-  def extractScopedDeps(
+  def extractConfigurationDeps(
       project: ProjectModel,
       getModuleFqn: PartialFunction[String, String],
       cfg: Config
   ): IrScopedDeps = {
     var sd = IrScopedDeps()
     val hasTest = os.exists(os.Path(project.directory()) / "src/test")
-    val _java = project._java()
-    if (null != _java) {
+    val javaModel = project.javaModel()
+    if (javaModel != null) {
       val mvnDep: ExternalDep => String =
         cfg.shared.basicConfig.depsObject.fold(interpMvn(_)) { objName => dep =>
           val depName = s"`${dep.group()}:${dep.name()}`"
@@ -302,7 +303,8 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
           }
         }
       }
-      _java.configs().forEach { config =>
+
+      javaModel.configs().forEach { config =>
         import JavaPlugin.*
 
         val conf = config.name()
@@ -369,7 +371,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
   @main
   @internal
   case class Config(
-      shared: BuildGenUtil.Config,
+      shared: BuildGenUtil.MavenAndGradleCommonConfig,
       @arg(doc = "name of Gradle project to extract settings for --base-module", short = 'g')
       baseProject: Option[String] = None
   )

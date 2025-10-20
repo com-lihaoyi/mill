@@ -14,7 +14,7 @@ import scala.util.boundary
 @internal
 object BuildGenUtil {
 
-  def renderIrTrait(value: IrTrait): String = {
+  def renderIrBaseInfo(value: IrBaseInfo): String = {
     import value.*
 
     s"""trait $baseModule ${renderExtends(moduleSupertypes)} {
@@ -49,8 +49,7 @@ object BuildGenUtil {
   /**
    * @param baseInfo to compare with [[build]] and render the values only if they are different.
    */
-  def renderIrBuild(build: IrBuild, baseInfo: IrBaseInfo): String = {
-    val baseTrait = baseInfo.moduleTypedef
+  def renderIrModuleBuild(build: IrModuleBuild, baseInfo: Option[IrBaseInfo]): String = {
     import build.*
     val testModuleTypedef =
       if (!hasTest) ""
@@ -82,22 +81,13 @@ object BuildGenUtil {
 
     s"""${renderArtifactName(projectName, dirs)}
        |
-       |${renderJavacOptions(
-        javacOptions,
-        if (baseTrait != null) baseTrait.javacOptions else Seq.empty
-      )}
+       |${renderJavacOptions(javacOptions, baseInfo.fold(Seq.empty)(_.javacOptions))}
        |
-       |${renderScalaVersion(scalaVersion, if (baseTrait != null) baseTrait.scalaVersion else None)}
+       |${renderScalaVersion(scalaVersion, baseInfo.flatMap(_.scalaVersion))}
        |
-       |${renderScalacOptions(
-        scalacOptions,
-        if (baseTrait != null) baseTrait.scalacOptions else None
-      )}
+       |${renderScalacOptions(scalacOptions, baseInfo.flatMap(_.scalacOptions))}
        |
-       |${renderRepositories(
-        repositories,
-        if (baseTrait != null) baseTrait.repositories else Seq.empty
-      )}
+       |${renderRepositories(repositories, baseInfo.fold(Seq.empty)(_.repositories))}
        |
        |${renderBomMvnDeps(scopedDeps.mainBomMvnDeps)}
        |
@@ -114,15 +104,12 @@ object BuildGenUtil {
        |${renderRunModuleDeps(scopedDeps.mainRunModuleDeps)}
        |
        |${
-        if (pomSettings != (if (baseTrait != null) baseTrait.pomSettings else null))
+        if (pomSettings != baseInfo.map(_.pomSettings).orNull)
           renderPomSettings(renderIrPom(pomSettings))
         else ""
       }
        |
-       |${renderPublishVersion(
-        publishVersion,
-        if (baseTrait != null) baseTrait.publishVersion else null
-      )}
+       |${renderPublishVersion(publishVersion, baseInfo.map(_.publishVersion).orNull)}
        |
        |${renderPomPackaging(packaging)}
        |
@@ -219,7 +206,7 @@ object BuildGenUtil {
 
       childCompanions.foreach { case entry @ (objectName, childConstants) =>
         val parentConstants = mergedParentCompanions.getOrElse(objectName, null)
-        if (null == parentConstants) mergedParentCompanions += entry
+        if (parentConstants == null) mergedParentCompanions += entry
         else {
           if (childConstants.exists { case (k, v) => v != parentConstants.getOrElse(k, v) })
             boundary.break(null)
@@ -237,7 +224,7 @@ object BuildGenUtil {
       children.iterator.foreach {
         case child @ Tree(Node(_ :+ dir, nested), Seq()) if nested.outer.isEmpty =>
           val mergedCompanions = merge(module.companions, nested.companions)
-          if (null == mergedCompanions) unmerged += child
+          if (mergedCompanions == null) unmerged += child
           else {
             val mergedImports = module.imports ++ nested.imports
             val mergedInner = {
@@ -271,7 +258,7 @@ object BuildGenUtil {
     pprint.Util.literalize(if (value == null) "" else value)
 
   def escapeOption(value: String): String =
-    if (null == value) "None" else s"Some(\"$value\")"
+    if (value == null) "None" else s"Some(\"$value\")"
 
   def renderMvnString(
       group: String,
@@ -291,7 +278,7 @@ object BuildGenUtil {
         }
     }
     val sepVersion =
-      if (null == version) {
+      if (version == null) {
         println(
           s"assuming $group:$artifact is a BOM dependency; if not, please specify version in the generated build file"
         )
@@ -319,7 +306,7 @@ object BuildGenUtil {
     groupArtifactVersion._2.endsWith("-bom")
 
   def isNullOrEmpty(value: String | Null): Boolean =
-    null == value || value.isEmpty
+    value == null || value.isEmpty
 
   val linebreak: String =
     """
@@ -356,11 +343,16 @@ object BuildGenUtil {
   def renderVersionControl(vc: IrVersionControl): String =
     s"VersionControl(${escapeOption(vc.url)}, ${escapeOption(vc.connection)}, ${escapeOption(vc.devConnection)}, ${escapeOption(vc.tag)})"
 
-  // TODO consider renaming to `renderOptionalDef` or `renderIfArgsNonEmpty`?
-  def optional(construct: String, args: IterableOnce[String]): String =
-    optional(construct + "(", args, ",", ")")
+  // TODO more alternative names: `renderOptional(Def)` or `render(Def)IfArgsNonEmpty`?
+  def renderIfArgsNonEmpty(construct: String, args: IterableOnce[String]): String =
+    renderIfArgsNonEmpty(construct + "(", args, ",", ")")
 
-  def optional(start: String, args: IterableOnce[String], sep: String, end: String): String = {
+  def renderIfArgsNonEmpty(
+      start: String,
+      args: IterableOnce[String],
+      sep: String,
+      end: String
+  ): String = {
     val itr = args.iterator
     if (itr.isEmpty) ""
     else itr.mkString(start, sep, end)
@@ -406,25 +398,25 @@ object BuildGenUtil {
     else s"def artifactName = ${escape(name)}"
 
   def renderBomMvnDeps(args: IterableOnce[String]): String =
-    optional("def bomMvnDeps = super.bomMvnDeps() ++ Seq", args)
+    renderIfArgsNonEmpty("def bomMvnDeps = super.bomMvnDeps() ++ Seq", args)
 
   def renderMvnDeps(args: IterableOnce[String]): String =
-    optional("def mvnDeps = Seq", args)
+    renderIfArgsNonEmpty("def mvnDeps = Seq", args)
 
   def renderModuleDeps(args: IterableOnce[String]): String =
-    optional("def moduleDeps = super.moduleDeps ++ Seq", args)
+    renderIfArgsNonEmpty("def moduleDeps = super.moduleDeps ++ Seq", args)
 
   def renderCompileMvnDeps(args: IterableOnce[String]): String =
-    optional("def compileMvnDeps = Seq", args)
+    renderIfArgsNonEmpty("def compileMvnDeps = Seq", args)
 
   def renderCompileModuleDeps(args: IterableOnce[String]): String =
-    optional("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
+    renderIfArgsNonEmpty("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
 
   def renderRunMvnDeps(args: IterableOnce[String]): String =
-    optional("def runMvnDeps = Seq", args)
+    renderIfArgsNonEmpty("def runMvnDeps = Seq", args)
 
   def renderRunModuleDeps(args: IterableOnce[String]): String =
-    optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)
+    renderIfArgsNonEmpty("def runModuleDeps = super.runModuleDeps ++ Seq", args)
 
   def renderJavacOptions(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
     renderSeqTaskDefWithSuper("javacOptions", args, superArgs, "String", escape).getOrElse("")
@@ -455,7 +447,7 @@ object BuildGenUtil {
     ).getOrElse("")
 
   def renderResources(args: IterableOnce[os.SubPath]): String =
-    optional(
+    renderIfArgsNonEmpty(
       """def resources = Task { super.resources() ++ customResources() }
         |def customResources = Task.Sources(""".stripMargin,
       args.iterator.map(sub => escape(sub.toString())),
@@ -464,9 +456,9 @@ object BuildGenUtil {
     )
 
   def renderPomPackaging(packaging: String): String =
-    if (isNullOrEmpty(packaging) || "jar" == packaging) "" // skip default
+    if (isNullOrEmpty(packaging) || packaging == "jar") "" // skip default
     else {
-      val pkg = if ("pom" == packaging) "PackagingType.Pom" else escape(packaging)
+      val pkg = if (packaging == "pom") "PackagingType.Pom" else escape(packaging)
       s"def pomPackagingType = $pkg"
     }
 
@@ -491,7 +483,7 @@ object BuildGenUtil {
       args: Seq[(String, String)]
   ): String = {
     val tuples = args.iterator.map { case (k, v) => s"(${escape(k)}, ${escape(v)})" }
-    optional("def publishProperties = super.publishProperties() ++ Map", tuples)
+    renderIfArgsNonEmpty("def publishProperties = super.publishProperties() ++ Map", tuples)
   }
 
   def renderJvmWorker(moduleName: String): String =
@@ -557,15 +549,16 @@ object BuildGenUtil {
   object BasicConfig {
     implicit def parser: mainargs.ParserForClass[BasicConfig] = mainargs.ParserForClass[BasicConfig]
   }
-  // TODO alternative names: `MavenAndGradleConfig`, `MavenAndGradleSharedConfig`
+
+  // TODO other alternative names to consider: `MavenAndGradleConfig`, `MavenAndGradleSharedConfig`
   @mainargs.main
-  case class Config(
+  case class MavenAndGradleCommonConfig(
       basicConfig: BasicConfig,
       @arg(doc = "capture Maven publish properties", short = 'p')
       publishProperties: Flag = Flag()
   )
-
-  object Config {
-    implicit def configParser: mainargs.ParserForClass[Config] = mainargs.ParserForClass[Config]
+  object MavenAndGradleCommonConfig {
+    implicit def configParser: mainargs.ParserForClass[MavenAndGradleCommonConfig] =
+      mainargs.ParserForClass[MavenAndGradleCommonConfig]
   }
 }
