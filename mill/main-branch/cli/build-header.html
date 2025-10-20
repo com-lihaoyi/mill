@@ -856,9 +856,14 @@ Java version: 17.0.6</code></pre>
 <div class="paragraph">
 <p>An explicit <code>mill-jvm-version</code> can help ensure your project uses a consistent JVM version and
 behaves identically regardless of what the developer may have installed on their laptop
-or dev environment. If <code>mill-jvm-version</code> is not provided, Mill uses the globally-installed
-<code>java</code> installation if there is one present on your <code>PATH</code>, and otherwise will download and
-cache a default version of Java for usage.</p>
+or dev environment. If <code>mill-jvm-version</code> is not provided, Mill uses the default version
+<code>{default-mill-jvm-version}</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you wish to use your system <code>java</code> installation, you can set <code>mill-jvm-version: system</code>.
+Note that this is not recommended as it means your codebase may use different JVM versions
+on different developer, CI, and production machines, potentially resulting in hard-to-debug
+crashes and errors.</p>
 </div>
 <div class="paragraph">
 <p>For configuring different JVM versions for individual modules within your build, see
@@ -918,7 +923,7 @@ you can also override other tasks such as <code>scalacOptions</code> which in th
 is used to turn on fatal warnings for unused private methods:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-43-805b9a/mill-dist-1.0.6-43-805b9a-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/cli/header/1-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-44-58e70f/mill-dist-1.0.6-44-58e70f-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/cli/header/1-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| scalacOptions: [&quot;-Wunused:privates&quot;, &quot;-Xfatal-warnings&quot;]
 

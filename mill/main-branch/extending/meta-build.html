@@ -757,7 +757,7 @@ de.tototec:de.tobiasroeser.mill.vcs.version_mill0.11_2.13 : 0.3.1-&gt; 0.4.0</pr
 <h2 id="_sharing_libraries_between_build_mill_and_application_code"><a class="anchor" href="#_sharing_libraries_between_build_mill_and_application_code"></a>Sharing Libraries between <code>build.mill</code> and Application Code</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-43-805b9a/mill-dist-1.0.6-43-805b9a-example-extending-metabuild-4-meta-build.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/metabuild/4-meta-build">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-44-58e70f/mill-dist-1.0.6-44-58e70f-example-extending-metabuild-4-meta-build.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/metabuild/4-meta-build">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -765,7 +765,7 @@ import mill.*, scalalib.*
 import scalatags.Text.all.*
 
 object `package` extends ScalaModule {
-  def scalaVersion = &quot;2.13.4&quot;
+  def scalaVersion = &quot;2.13.16&quot;
   def mvnDeps = Seq(
     mvn&quot;com.lihaoyi::scalatags:${millbuild.DepVersions.scalatagsVersion}&quot;,
     mvn&quot;com.lihaoyi::os-lib:0.10.7&quot;
@@ -895,7 +895,7 @@ cli option.</p>
 <h2 id="_sharing_source_code_between_build_mill_and_application_code"><a class="anchor" href="#_sharing_source_code_between_build_mill_and_application_code"></a>Sharing Source Code between <code>build.mill</code> and Application Code</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-43-805b9a/mill-dist-1.0.6-43-805b9a-example-extending-metabuild-5-meta-shared-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/metabuild/5-meta-shared-sources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-44-58e70f/mill-dist-1.0.6-44-58e70f-example-extending-metabuild-5-meta-shared-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/metabuild/5-meta-shared-sources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -914,7 +914,7 @@ object `package` extends ScalaModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
 object ScalaVersion {
-  def myScalaVersion = &quot;2.13.10&quot;
+  def myScalaVersion = &quot;2.13.16&quot;
 }</code></pre>
 </div>
 </div>
@@ -940,7 +940,7 @@ configuring your <code>def sources</code> in <code>build.mill</code> above.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
-scalaVersion: 2.13.10</code></pre>
+scalaVersion: 2.13.16</code></pre>
 </div>
 </div>
 <div class="paragraph">
