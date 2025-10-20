@@ -57,10 +57,6 @@ MILL_BUILD_SCRIPT=""
 
 if [ -f "build.mill" ] ; then
   MILL_BUILD_SCRIPT="build.mill"
-elif [ -f "build.mill.scala" ] ; then
-  MILL_BUILD_SCRIPT="build.mill.scala"
-elif [ -f "build.sc" ] ; then
-  MILL_BUILD_SCRIPT="build.sc"
 fi
 
 # Please note, that if a MILL_VERSION is already set in the environment,

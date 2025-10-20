@@ -1,7 +1,3 @@
-This example configured for publishing to Sonatype Maven Central via
-Central Portal. Extends `SonatypeCentralPublishModule` which provides
-simplified publishing tasks without requiring Nexus repository manager.
-
 == Instructions for Publishing to Maven Central via Central Portal
 
 Once you've mixed in `PublishModule`, apart from publishing locally, you can also publish

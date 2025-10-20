@@ -27,7 +27,11 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
+<<<<<<< HEAD
         "javaVersion": "17.0.16"
+=======
+        "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
       }
     },
     {
@@ -59,7 +63,11 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
+<<<<<<< HEAD
         "javaVersion": "17.0.16"
+=======
+        "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
       }
     },
     {
@@ -98,7 +106,11 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
+<<<<<<< HEAD
           "javaVersion": "17.0.16"
+=======
+          "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
         }
       }
     },
@@ -138,7 +150,11 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
+<<<<<<< HEAD
           "javaVersion": "17.0.16"
+=======
+          "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
         }
       }
     },
@@ -178,7 +194,11 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
+<<<<<<< HEAD
           "javaVersion": "17.0.16"
+=======
+          "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
         }
       }
     },
@@ -218,7 +238,11 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
+<<<<<<< HEAD
           "javaVersion": "17.0.16"
+=======
+          "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
         }
       }
     },
@@ -258,7 +282,11 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
+<<<<<<< HEAD
           "javaVersion": "17.0.16"
+=======
+          "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
         }
       }
     },
@@ -285,7 +313,11 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
+<<<<<<< HEAD
         "javaVersion": "17.0.16"
+=======
+        "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
       }
     },
     {
@@ -314,7 +346,11 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
+<<<<<<< HEAD
         "javaVersion": "17.0.16"
+=======
+        "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
       }
     },
     {
@@ -341,7 +377,11 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
+<<<<<<< HEAD
         "javaVersion": "17.0.16"
+=======
+        "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
       }
     },
     {
@@ -380,7 +420,11 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
+<<<<<<< HEAD
           "javaVersion": "17.0.16"
+=======
+          "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
         }
       }
     },
@@ -423,7 +467,11 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
+<<<<<<< HEAD
           "javaVersion": "17.0.16"
+=======
+          "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
         }
       }
     },
@@ -450,7 +498,11 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
+<<<<<<< HEAD
         "javaVersion": "17.0.16"
+=======
+        "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
       }
     },
     {
@@ -496,7 +548,11 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
+<<<<<<< HEAD
           "javaVersion": "17.0.16"
+=======
+          "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
         }
       }
     },
@@ -543,7 +599,11 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
+<<<<<<< HEAD
           "javaVersion": "17.0.16"
+=======
+          "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
         }
       }
     },
@@ -601,7 +661,11 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
+<<<<<<< HEAD
           "javaVersion": "17.0.16"
+=======
+          "javaVersion": "21.0.8"
+>>>>>>> parent of 3055286ed06 (Revert locally breaking changes for now (#5861))
         }
       }
     }
