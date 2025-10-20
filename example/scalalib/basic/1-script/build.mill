@@ -1,0 +1,82 @@
+// Mill allows you to run single-file {language} programs
+// easily from the command-line, even those that contain third-party dependencies, specific
+// JVM versions, or other such configuration. These can be useful for several purposes:
+//
+// - A replacement for Bash scripts, letting you write small scripts or programs
+//   in {language} with full access to third-party libraries that run in a deterministic way
+//   across different dev, test, or prod environments
+//
+// - Self-contained examples or issue reproductions, as you can include both the code and
+//   dependencies necessary in a self-contained file that doesn't require manual setup or
+//   installation
+//
+// For example, given the {language} program below, it can be run directly using Mill:
+
+//// SNIPPET:FILE
+/** See Also: Foo.scala */
+
+/** Usage
+> ./mill Foo.scala --text hello
+compiling 1 Scala source to...
+<h1>hello</h1>
+Jvm Version: 11.0.28
+*/
+
+//// SNIPPET:END
+
+// The `./mill Foo.{language-ext}` syntax is shorthand for `./mill Foo.{language-ext}:run`.
+// You can also call other tasks on your script modules, such as `Foo.{langauge-ext}:assembly`
+// below:
+
+//// SNIPPET:MORE
+
+/** Usage
+> ./mill Foo.scala:run --text hello
+<h1>hello</h1>
+*/
+
+/** Usage
+> ./mill show Foo.scala:assembly # show the output of the assembly task
+".../out/Foo.scala/assembly.dest/out.jar"
+
+> java -jar ./out/Foo.scala/assembly.dest/out.jar --text hello
+<h1>hello</h1>
+
+> ./out/Foo.scala/assembly.dest/out.jar --text hello # mac/linux
+<h1>hello</h1>
+
+*/
+
+//// SNIPPET:END
+
+// {language} scripts support of the same configuration keys as
+// xref:#_simple_config_based_modules[] as part of their `//|` header comment, and support most
+// of the same tasks via the `:run` `:assembly` etc. command-line syntax.
+//
+// === Testing Scripts
+//
+// Script files can have test suites, usually written in a separate test script. The test script
+// specifies what script it tests via `moduleDeps`, and can have its own `mvnDeps` in addition
+// to those of the upstream script. The test script can then exercise functions from the upstream
+// script as shown below:
+
+//// SNIPPET:TEST
+/** See Also: FooTests.scala */
+
+/** Usage
+> ./mill FooTests.scala
+<h1>hello</h1>
+<h1>&lt;hello&gt;</h1>
+*/
+
+// Again, you can pass the name of the task explicitly via `:`, e.g. `:run` below
+/** Usage
+> ./mill FooTests.scala:run # specifying the test task explicitly
+<h1>hello</h1>
+<h1>&lt;hello&gt;</h1>
+*/
+
+//// SNIPPET:END
+
+// For scripts that grow larger than a single file, you should convert them
+// to xref:#_simple_config_based_modules[].

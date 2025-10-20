@@ -6,7 +6,7 @@ object ExampleParser {
     val states = collection.mutable.Buffer("yaml")
     val chunks = collection.mutable.Buffer(collection.mutable.Buffer.empty[String])
 
-    val rootBuildFileNames = Seq("build.sc", "build.mill", "build.mill.scala")
+    val rootBuildFileNames = Seq("build.mill")
     val buildFile = rootBuildFileNames.map(testRepoRoot / _)
       .find(os.exists)
       .getOrElse(

@@ -2,9 +2,6 @@
 :language: Typescript
 :language-small: javascript
 
-include::partial$Intro_Header.adoc[]
-
-
 == Simple Typescript Module
 
 include::partial$example/javascriptlib/basic/1-simple.adoc[]

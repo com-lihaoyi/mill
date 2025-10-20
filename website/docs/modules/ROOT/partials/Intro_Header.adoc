@@ -1,3 +1,15 @@
+Mill supports three main ways of defining {language} projects:
+
+* xref:#_single_file_scripts[]:
+  these are useful for small self-contained programs with both the code and
+  configuration contained within a single file
+
+* xref:#_simple_config_based_modules[]: these are a good fit for most simple projects, where you
+  may just need to configure a few dependencies or compile/execution flags without any custom logic
+
+* xref:#_programmatic_modules[]: these are necessary
+  for scenarios which require custom logic, e.g. custom resource-file processing or code-generation
+
 This page contains a quick introduction to getting start with using Mill to build
 a simple {language} program. It walks through a series of Mill builds of increasing
 complexity to show you the key features and usage of the Mill build tool.

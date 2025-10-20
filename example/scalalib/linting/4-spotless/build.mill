@@ -1,4 +1,4 @@
-// :api-spotless: {site-url}/api/latest/mill/scalalib/spotless
+// :api-spotless: {site-url}/api/latest/mill/javalib/spotless
 
 // If your project has file groups each requiring different formatting,
 // you may want to give Mill's https://github.com/diffplug/spotless[Spotless] plugin a try.
@@ -16,7 +16,7 @@ import mill.scalalib.CrossScalaModule
 import mill.javalib.spotless.SpotlessModule
 
 object `package` extends SpotlessModule {
-  object lib extends Cross[LibModule]("2.13.15", "3.7.0")
+  object lib extends Cross[LibModule]("2.13.16", "3.7.0")
   trait LibModule extends CrossScalaModule
 }
 

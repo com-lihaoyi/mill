@@ -7,6 +7,7 @@ import mill.api.Result
 import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
 import mill.api.daemon.internal.MillScalaParser
+import mill.api.ModuleCtx.HeaderData
 import scala.util.control.Breaks.*
 
 object CodeGen {
@@ -86,14 +87,9 @@ object CodeGen {
         val newParent =
           if (segments.isEmpty) "_root_.mill.util.MainRootModule"
           else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
-        val parsedHeaderData = mill.internal.Util.parsedHeaderData(allScriptCode(scriptPath))
-        val moduleDeps = parsedHeaderData.get("moduleDeps").map(_.arr.map(_.str))
-        val extendsConfig = parsedHeaderData.get("extends").map(_.arr.map(_.str)).getOrElse(Nil)
-        val definitions = for {
-          (k, v) <- parsedHeaderData
-          if !Set("moduleDeps", "extends").contains(k)
-          if !k.startsWith("mill-")
-        } yield s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
+        val parsedHeaderData = upickle.read[HeaderData](
+          mill.internal.Util.parsedHeaderData(allScriptCode(scriptPath))
+        )
 
         val prelude =
           s"""|import MillMiscInfo._
@@ -101,14 +97,44 @@ object CodeGen {
               |""".stripMargin
 
         os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
-        val moduleDepsSnippet =
-          if (moduleDeps.isEmpty) ""
-          else s"override def moduleDeps = Seq(${moduleDeps.get.mkString(", ")})"
 
-        val extendsSnippet = {
-          if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}"
-          else ""
+        def renderTemplate(prefix: String, data: HeaderData): String = {
+          val extendsConfig = data.`extends`
+          val definitions =
+            for {
+              (kString, v) <- data.rest
+              if !kString.startsWith("mill-")
+            } yield kString.split(" +") match {
+              case Array(k) => s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
+              case Array("object", k) =>
+                renderTemplate(s"object $k", upickle.read[HeaderData](v))
+            }
+
+          val moduleDepsSnippet =
+            if (data.moduleDeps.isEmpty) ""
+            else s"override def moduleDeps = Seq(${data.moduleDeps.mkString(", ")})"
+
+          val compileModuleDepsSnippet =
+            if (data.compileModuleDeps.isEmpty) ""
+            else s"override def compileModuleDeps = Seq(${data.compileModuleDeps.mkString(", ")})"
+
+          val runModuleDepsSnippet =
+            if (data.runModuleDeps.isEmpty) ""
+            else s"override def runModuleDeps = Seq(${data.runModuleDeps.mkString(", ")})"
+
+          val extendsSnippet =
+            if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}"
+            else ""
+
+          s"""$prefix$extendsSnippet {
+             |  $moduleDepsSnippet
+             |  $compileModuleDepsSnippet
+             |  $runModuleDepsSnippet
+             |  ${definitions.mkString("\n  ")}
+             |}
+             |""".stripMargin
         }
+
         os.write.over(
           (wrappedDestFile / os.up) / wrappedDestFile.baseName,
           s"""package $pkg
@@ -120,10 +146,7 @@ object CodeGen {
              |  ${if (segments.isEmpty) millDiscover(segments.nonEmpty) else ""}
              |  $childAliases
              |}
-             |trait package_$extendsSnippet {
-             |  $moduleDepsSnippet
-             |  ${definitions.mkString("\n  ")}
-             |}
+             |${renderTemplate("trait package_", parsedHeaderData)}
              |""".stripMargin,
           createFolders = true
         )

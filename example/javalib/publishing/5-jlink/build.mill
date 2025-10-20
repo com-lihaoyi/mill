@@ -18,7 +18,6 @@ object foo extends JavaModule, JlinkModule {
 // The main Java module is typically the module containing the `mainClass`.
 //
 // If your build file doesn't explicitly specify a `mainClass`, `JlinkModule` will infer it from `JavaModule`, which is its parent trait.
-// See xref:javalib/module-config.adoc#specifying-main-class[Specifying the Main Class] to learn more on how to influence the inference process.
 // You can explicitly specify a `mainClass` like so in your build file:
 //
 // [source,scala]

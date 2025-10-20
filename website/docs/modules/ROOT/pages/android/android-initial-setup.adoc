@@ -1,5 +1,7 @@
 = Android Initial Setup
 :page-aliases: android_initial_setup.adoc
+// Default, if not set via antora.yml
+:android-cmdline-tools-version: 19.0
 
 This page provides an overview of the initial setup required for building Android applications using Mill.
 
@@ -13,7 +15,7 @@ Mill requires the Android SDK `cmdline-tools` to build Android applications.
 
 Ensure the `$ANDROID_HOME` environment variable is set (typically to `~/Android/Sdk`).
 
-Mill will automatically install and use the `19.0` version.
+Mill will automatically install and use the `{android-cmdline-tools-version}` version.
 To use a different version, override `cmdlineToolsVersion` in your `build.mill`.
 
 [NOTE]
@@ -23,6 +25,7 @@ If not accepted, Mill will throw an error with instructions.
 You can also configure Mill to automatically accept the licenses by overriding `autoAcceptLicenses`.
 ====
 
+.Override `AndroidSdkModule.cmdlineToolsVersion` to specify a different version.
 [source,scala]
 ----
 object androidSdkModule0 extends AndroidSdkModule {
@@ -58,27 +61,3 @@ If you want to start with an example project, you can use the `init` command as 
 You can use Android Studio to open and work with your Mill project.
 
 image::android/AndroidStudio.png[AndroidStudio.png]
-
-== 5. Release the project
-By default, mill projects are considered in debug mode, so if your project is ready for release, you should add the following to your app object in the `build.mill` file:
-
-[source,scala]
-----
-override def androidIsDebug = Task { false }
-def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
-def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
-----
-
-Make sure to replace the values with your actual keystore information.
-If you don't have a keystore yet, you can create one using the `keytool` command:
-
-[,console]
-----
-> keytool -genkey -v -keystore releaseKey.jks \
-          -storepass <PASS> -keyalg RSA \
-          -keysize 2048 -validity 10000 \
-          -alias releaseKey -keypass <PASS>
-----
-
