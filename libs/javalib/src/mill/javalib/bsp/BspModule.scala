@@ -15,6 +15,7 @@ trait BspModule extends mill.api.Module with BspModuleApi {
     case n => n
   }
 
+  private[mill] def isScript: Boolean = false
   /** Use to fill most fields of `BuildTarget`. */
   @internal
   private[mill] def bspBuildTarget: BspBuildTarget = BspBuildTarget(

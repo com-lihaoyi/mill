@@ -10,7 +10,9 @@ import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 
 /**
  * Synthesised [[BspBuildTarget]] to handle exclusions.
- * Intellij-Bsp doesn't provide a way to exclude files outside of module,so if there is no module having content root of [[topLevelProjectRoot]], [[SyntheticRootBspBuildTargetData]] will be created
+ * Intellij-Bsp doesn't provide a way to exclude files outside of module,so if there is no
+ * module having content root of [[topLevelProjectRoot]], [[SyntheticRootBspBuildTargetData]]
+ * will be created
  */
 class SyntheticRootBspBuildTargetData(topLevelProjectRoot: os.Path) {
   val id: BuildTargetIdentifier = new BuildTargetIdentifier(
@@ -41,11 +43,11 @@ object SyntheticRootBspBuildTargetData {
       workspaceDir: os.Path
   ): Option[SyntheticRootBspBuildTargetData] = {
     def containsWorkspaceDir(path: Option[os.Path]) = path.exists(workspaceDir.startsWith)
-    if (
+    /*if (
       existingModules.exists { m =>
         containsWorkspaceDir(m.bspBuildTarget.baseDirectory.map(os.Path(_)))
       }
     ) None
-    else Some(new SyntheticRootBspBuildTargetData(workspaceDir))
+    else */Some(new SyntheticRootBspBuildTargetData(workspaceDir))
   }
 }

@@ -8,7 +8,7 @@ package mill.script
  */
 object ScriptFileDiscovery {
 
-  private val scriptExtensions = Set("scala", "java", "kotlin")
+  private val scriptExtensions = Set("scala", "java", "kt")
 
   /**
    * Discovers all script files in the given workspace directory.

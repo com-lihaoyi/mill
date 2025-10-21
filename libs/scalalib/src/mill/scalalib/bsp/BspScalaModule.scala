@@ -18,6 +18,7 @@ object BspScalaModule {
     @internal
     object internalBspJavaModule extends BspScalaModule {
       def javaModuleRef = mill.api.ModuleRef(jm0)
+      def isScript = jm0.isScript
     }
   }
 }

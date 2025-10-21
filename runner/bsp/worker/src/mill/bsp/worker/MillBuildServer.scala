@@ -340,8 +340,7 @@ private class MillBuildServer(
     } { (targets, state) =>
       new WorkspaceBuildTargetsResult(
         (targets.asScala ++
-         state.syntheticRootBspBuildTarget.map(_.target) ++
-         state.syntheticScriptBspTargets.map(_.target))
+         state.syntheticRootBspBuildTarget.map(_.target))
           .sortBy(_.getId.getUri)
           .asJava
       )
@@ -377,7 +376,11 @@ private class MillBuildServer(
         s"Getting sources of ${sourcesParams.getTargets.asScala.map(_.getUri).mkString(", ")}",
       originId = ""
     ) {
-      case (_, _, id, _, result) => new SourcesItem(
+      case (_, _, id, _, result) =>
+        mill.constants.DebugLog.println("buildTargetSources id " + id)
+        mill.constants.DebugLog.println("buildTargetSources result.sources " + result.sources)
+        mill.constants.DebugLog.println("buildTargetSources result.generatedSources " + result.generatedSources)
+        new SourcesItem(
           id,
           (
             result.sources.map(p => sourceItem(os.Path(p), false)) ++
@@ -387,8 +390,7 @@ private class MillBuildServer(
     } { (sourceItems, state) =>
       new SourcesResult(
         (sourceItems.asScala ++
-         state.syntheticRootBspBuildTarget.map(_.synthSources) ++
-         state.syntheticScriptBspTargets.map(_.synthSources))
+         state.syntheticRootBspBuildTarget.map(_.synthSources))
           .sortBy(_.getTarget.getUri)
           .asJava
       )

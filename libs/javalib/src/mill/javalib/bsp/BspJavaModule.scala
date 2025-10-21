@@ -10,7 +10,7 @@ import mill.javalib.{JavaModule, SemanticDbJavaModule}
 import mill.api.JsonFormatters.given
 
 trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
-
+  private[mill] def isScript: Boolean = false
   def javaModuleRef: mill.api.ModuleRef[JavaModule & BspModule]
   val jm = javaModuleRef()
   override private[mill] def bspBuildTargetInverseSources[T](
@@ -84,13 +84,21 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
   }
 
   override private[mill] def bspBuildTargetSources
-      : Task.Simple[(sources: Seq[Path], generatedSources: Seq[Path])] =
-    Task {
-      (
-        jm.sources().map(_.path.toNIO),
-        jm.generatedSources().map(_.path.toNIO) ++ Seq(jm.compileGeneratedSources().toNIO)
-      )
+      : Task.Simple[(sources: Seq[Path], generatedSources: Seq[Path])] = {
+    if (isScript) {
+      mill.constants.DebugLog.println("bspBuildTargetSources true")
+      Task {(Seq(javaModuleRef().moduleDir.toNIO), Seq.empty[Path])}
     }
+    else {
+      mill.constants.DebugLog.println("bspBuildTargetSources false")
+      Task {
+        (
+          jm.sources().map(_.path.toNIO),
+          jm.generatedSources().map(_.path.toNIO) ++ Seq(jm.compileGeneratedSources().toNIO)
+        )
+      }
+    }
+  }
 
   override private[mill] def bspBuildTargetResources = Task.Anon {
     jm.resources().map(_.path.toNIO)
@@ -158,6 +166,7 @@ object BspJavaModule {
 
     @internal
     object internalBspJavaModule extends BspJavaModule {
+      private[mill] def isScript = jm0.isScript
       def javaModuleRef = mill.api.ModuleRef(jm0)
     }
   }

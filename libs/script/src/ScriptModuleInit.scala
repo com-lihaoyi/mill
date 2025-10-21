@@ -3,7 +3,7 @@ import mill.*
 import mill.api.{ExternalModule, Result}
 import mill.script.ScriptModule.parseHeaderData
 
-private object ScriptModuleInit
+object ScriptModuleInit
     extends (
         (
             String,
@@ -50,6 +50,30 @@ private object ScriptModuleInit
     )
   }
 
+  /**
+   * Resolves a single script file to a module instance.
+   * Exposed for use in BSP integration.
+   */
+  def resolveScriptModule(
+      millFile0: String,
+      resolveModuleDep: String => Option[mill.Module]
+  ): Option[Result[ExternalModule]] = {
+    val millFile = os.Path(millFile0, mill.api.BuildCtx.workspaceRoot)
+    Option.when(os.isFile(millFile)) {
+      Result.create {
+        val parsedHeaderData = parseHeaderData(millFile)
+        moduleFor(
+          millFile,
+          parsedHeaderData.`extends`.headOption,
+          parsedHeaderData.moduleDeps,
+          parsedHeaderData.compileModuleDeps,
+          parsedHeaderData.runModuleDeps,
+          resolveModuleDep
+        )
+      }
+    }
+  }
+
   def apply(
       millFileString: String,
       resolveModuleDep: String => Option[mill.Module],
@@ -58,31 +82,16 @@ private object ScriptModuleInit
   ) = {
     val workspace = mill.api.BuildCtx.workspaceRoot
 
-    def resolve0(millFile: os.Path) = {
-      Option.when(os.isFile(millFile) || os.exists(millFile / "mill.yaml")) {
-        Result.create {
-          val parsedHeaderData = parseHeaderData(millFile)
-          moduleFor(
-            millFile,
-            parsedHeaderData.`extends`.headOption,
-            parsedHeaderData.moduleDeps,
-            parsedHeaderData.compileModuleDeps,
-            parsedHeaderData.runModuleDeps,
-            resolveModuleDep
-          )
-        }
-      }
-    }
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
       val millFile0 = os.Path(millFileString, workspace)
       if (resolveChildren) {
         nameOpt match {
-          case Some(n) => resolve0(millFile0 / n).toSeq
+          case Some(n) => resolveScriptModule((millFile0 / n).toString, resolveModuleDep).toSeq
           case None =>
             if (!os.isDir(millFile0)) Nil
-            else os.list(millFile0).filter(os.isDir).flatMap(resolve0)
+            else os.list(millFile0).filter(os.isDir).flatMap(p => resolveScriptModule(p.toString, resolveModuleDep))
         }
-      } else resolve0(millFile0).toSeq
+      } else resolveScriptModule(millFileString, resolveModuleDep).toSeq
     }
   }
 }
