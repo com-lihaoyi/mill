@@ -85,12 +85,8 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
 
   override private[mill] def bspBuildTargetSources
       : Task.Simple[(sources: Seq[Path], generatedSources: Seq[Path])] = {
-    if (isScript) {
-      mill.constants.DebugLog.println("bspBuildTargetSources true")
-      Task {(Seq(javaModuleRef().moduleDir.toNIO), Seq.empty[Path])}
-    }
+    if (isScript) { Task {(Seq(javaModuleRef().moduleDir.toNIO), Seq.empty[Path])} }
     else {
-      mill.constants.DebugLog.println("bspBuildTargetSources false")
       Task {
         (
           jm.sources().map(_.path.toNIO),

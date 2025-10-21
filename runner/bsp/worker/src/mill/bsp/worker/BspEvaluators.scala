@@ -60,60 +60,23 @@ private[mill] class BspEvaluators(
     ScriptFileDiscovery
       .discoverScriptFiles(workspaceDir, outDir)
       .flatMap { scriptPath =>
-        try {
-          // Reflectively load ScriptModuleInit from the evaluator's classloader
-          val scriptModuleInitClass = evalClassLoader.loadClass("mill.script.ScriptModuleInit$")
-          val scriptModuleInit = scriptModuleInitClass.getField("MODULE$").get(null)
+        // Reflectively load `ScriptModuleInit` from the evaluator's classloader
+        // and invoke `resolveScriptModule`
+        val scriptModuleInitClass = evalClassLoader.loadClass("mill.script.ScriptModuleInit$")
+        val scriptModuleInit = scriptModuleInitClass.getField("MODULE$").get(null)
+        val resolveScriptModuleMethod = scriptModuleInitClass.getMethods
+          .find(m => m.getName == "resolveScriptModule")
+          .getOrElse(throw new NoSuchMethodException("resolveScriptModule not found"))
 
-          // Find the resolveScriptModule method by name and parameter count
-          // We can't use getMethod with exact types due to generics erasure
-          val resolveScriptModuleMethod = scriptModuleInitClass.getMethods
-            .find(m => m.getName == "resolveScriptModule" && m.getParameterCount == 2)
-            .getOrElse(throw new NoSuchMethodException("resolveScriptModule not found"))
+        val result = resolveScriptModuleMethod
+          .invoke(scriptModuleInit, scriptPath.toString, resolveModuleDep)
+          .asInstanceOf[Option[mill.api.Result[Any]]]
 
-          // Call resolveScriptModule
-          val result = resolveScriptModuleMethod.invoke(
-            scriptModuleInit,
-            scriptPath.toString,
-            resolveModuleDep
-          )
-
-          // Pattern match on the result (which is Option[Result[ExternalModule]])
-          result match {
-            case Some(successResult) =>
-              // Check if it's a Result.Success
-              val resultClass = successResult.getClass
-              if (resultClass.getName.contains("Result$Success")) {
-                // Extract the module from Success
-                val valueMethod = resultClass.getMethod("value")
-                val module = valueMethod.invoke(successResult)
-
-                // Check if it's a BspModuleApi
-                if (module.isInstanceOf[BspModuleApi]) {
-                  val uri = Utils.sanitizeUri(scriptPath.toNIO)
-                  val id = new BuildTargetIdentifier(uri)
-                  Some((id, (module.asInstanceOf[BspModuleApi], eval)))
-                } else {
-                  mill.constants.DebugLog.println(s"Script module for $scriptPath is not a BspModuleApi")
-                  None
-                }
-              } else {
-                // It's a Failure
-                val msgMethod = resultClass.getMethod("msg")
-                val msg = msgMethod.invoke(successResult)
-                mill.constants.DebugLog.println(s"Failed to instantiate script module for $scriptPath: $msg")
-                None
-              }
-            case None =>
-              None
-            case _ =>
-              mill.constants.DebugLog.println(s"Unexpected result type for $scriptPath")
-              None
-          }
-        } catch {
-          case e: Exception =>
-            mill.constants.DebugLog.println(s"Failed to instantiate script module for $scriptPath: ${e.getMessage}")
-            None
+        result.map {
+          case mill.api.Result.Success(module: BspModuleApi) =>
+            val uri = Utils.sanitizeUri(scriptPath.toNIO)
+            val id = new BuildTargetIdentifier(uri)
+            (id, (module, eval))
         }
       }
   }
