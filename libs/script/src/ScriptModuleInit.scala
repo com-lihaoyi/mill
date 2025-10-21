@@ -82,7 +82,10 @@ object ScriptModuleInit
     // For now, we don't resolve moduleDeps as that would require access to other modules
     val resolveModuleDep: String => Option[mill.Module] = _ => None
 
-    discoverScriptFiles(mill.api.BuildCtx.workspaceRoot, os.Path(mill.constants.OutFiles.out))
+    discoverScriptFiles(
+      mill.api.BuildCtx.workspaceRoot,
+      os.Path(mill.constants.OutFiles.out, mill.api.BuildCtx.workspaceRoot)
+    )
       .flatMap { scriptPath =>
         resolveScriptModule(scriptPath.toString, resolveModuleDep).map { result =>
           (scriptPath.toNIO, result)
@@ -100,8 +103,6 @@ object ScriptModuleInit
    * @return A sequence of paths to script files
    */
   def discoverScriptFiles(workspaceDir: os.Path, outDir: os.Path): Seq[os.Path] = {
-    if (!os.exists(workspaceDir)) return Seq.empty
-
     os.walk(workspaceDir)
       .filter { path =>
         // Check if it's a file with the right extension
@@ -125,7 +126,7 @@ object ScriptModuleInit
       case _: Exception => false
     }
   }
-  
+
 
   def apply(
       millFileString: String,

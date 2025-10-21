@@ -59,8 +59,8 @@ private[mill] class BspEvaluators(
 
     val result = scriptModuleInitClass
       .getMethod("discoverAndInstantiateScriptModules")
-      .invoke(null, workspaceDir, outDir)
-      .asInstanceOf[Seq[(java.nio.file.Path, mill.api.Result[mill.api.ExternalModule])]]
+      .invoke(null)
+      .asInstanceOf[Seq[(java.nio.file.Path, mill.api.Result[BspModuleApi])]]
 
     result.map {
       case (scriptPath: java.nio.file.Path, mill.api.Result.Success(module: BspModuleApi)) =>

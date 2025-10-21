@@ -377,9 +377,6 @@ private class MillBuildServer(
       originId = ""
     ) {
       case (_, _, id, _, result) =>
-        mill.constants.DebugLog.println("buildTargetSources id " + id)
-        mill.constants.DebugLog.println("buildTargetSources result.sources " + result.sources)
-        mill.constants.DebugLog.println("buildTargetSources result.generatedSources " + result.generatedSources)
         new SourcesItem(
           id,
           (
@@ -817,6 +814,7 @@ private class MillBuildServer(
             "{}",
             targetIdTasks.map(_._2.bspDisplayName).mkString(", ")
           )
+
           val results = evaluate(
             ev,
             requestDescription0,
@@ -824,6 +822,7 @@ private class MillBuildServer(
             logger = logger,
             reporter = Utils.getBspLoggedReporterPool(originId, state.bspIdByModule, client)
           )
+
           val resultsById = targetIdTasks.flatMap {
             case (id, m, task) =>
               results.transitiveResultsApi(task)
