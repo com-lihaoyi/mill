@@ -339,8 +339,7 @@ private class MillBuildServer(
 
     } { (targets, state) =>
       new WorkspaceBuildTargetsResult(
-        (targets.asScala ++
-         state.syntheticRootBspBuildTarget.map(_.target))
+        (targets.asScala ++ state.syntheticRootBspBuildTarget.map(_.target))
           .sortBy(_.getId.getUri)
           .asJava
       )
@@ -376,8 +375,7 @@ private class MillBuildServer(
         s"Getting sources of ${sourcesParams.getTargets.asScala.map(_.getUri).mkString(", ")}",
       originId = ""
     ) {
-      case (_, _, id, _, result) =>
-        new SourcesItem(
+      case (_, _, id, _, result) => new SourcesItem(
           id,
           (
             result.sources.map(p => sourceItem(os.Path(p), false)) ++
@@ -386,8 +384,7 @@ private class MillBuildServer(
         )
     } { (sourceItems, state) =>
       new SourcesResult(
-        (sourceItems.asScala ++
-         state.syntheticRootBspBuildTarget.map(_.synthSources))
+        (sourceItems.asScala ++ state.syntheticRootBspBuildTarget.map(_.synthSources))
           .sortBy(_.getTarget.getUri)
           .asJava
       )
@@ -814,7 +811,6 @@ private class MillBuildServer(
             "{}",
             targetIdTasks.map(_._2.bspDisplayName).mkString(", ")
           )
-
           val results = evaluate(
             ev,
             requestDescription0,
@@ -822,7 +818,6 @@ private class MillBuildServer(
             logger = logger,
             reporter = Utils.getBspLoggedReporterPool(originId, state.bspIdByModule, client)
           )
-
           val resultsById = targetIdTasks.flatMap {
             case (id, m, task) =>
               results.transitiveResultsApi(task)
