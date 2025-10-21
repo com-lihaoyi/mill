@@ -64,7 +64,7 @@ object CodeGen {
           val rhs = s"${pkgSelector2(Some(c))}.package_"
           s"final lazy val $lhs: $rhs.type = $rhs // subfolder module reference"
         }
-        .mkString("\n")
+        .mkString("\n  ")
 
       if (scriptFolderPath == projectRoot) {
         val buildFileImplCode = generateBuildFileImpl(pkg)

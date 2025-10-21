@@ -10,6 +10,8 @@ import mill.javalib.{JavaModule, SemanticDbJavaModule}
 import mill.api.JsonFormatters.given
 
 trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
+  private[mill] def isScript: Boolean = false
+  if (isScript) mill.constants.DebugLog.println("moduleSegments " + moduleSegments)
 
   def javaModuleRef: mill.api.ModuleRef[JavaModule & BspModule]
   val jm = javaModuleRef()
@@ -84,13 +86,21 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
   }
 
   override private[mill] def bspBuildTargetSources
-      : Task.Simple[(sources: Seq[Path], generatedSources: Seq[Path])] =
-    Task {
-      (
-        jm.sources().map(_.path.toNIO),
-        jm.generatedSources().map(_.path.toNIO) ++ Seq(jm.compileGeneratedSources().toNIO)
-      )
+      : Task.Simple[(sources: Seq[Path], generatedSources: Seq[Path])] = {
+
+    if (isScript) {
+      Task {
+        (Seq(javaModuleRef().moduleDir.toNIO), Seq.empty[Path])
+      }
+    } else {
+      Task {
+        (
+          jm.sources().map(_.path.toNIO),
+          jm.generatedSources().map(_.path.toNIO) ++ Seq(jm.compileGeneratedSources().toNIO)
+        )
+      }
     }
+  }
 
   override private[mill] def bspBuildTargetResources = Task.Anon {
     jm.resources().map(_.path.toNIO)
@@ -155,9 +165,10 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
 object BspJavaModule {
   trait Wrap(jm0: JavaModule & BspModule) extends mill.api.Module {
     override def moduleCtx: ModuleCtx = jm0.moduleCtx
-
+    override protected[mill] implicit def moduleNestedCtx: ModuleCtx.Nested = jm0.moduleNestedCtx
     @internal
     object internalBspJavaModule extends BspJavaModule {
+      private[mill] def isScript = jm0.isScript
       def javaModuleRef = mill.api.ModuleRef(jm0)
     }
   }
