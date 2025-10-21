@@ -43,9 +43,9 @@ object ScriptModuleInit
       className,
       ScriptModule.Config(
         millFile,
-        moduleDeps.map(resolveModuleDep(_).get),
-        compileModuleDeps.map(resolveModuleDep(_).get),
-        runModuleDeps.map(resolveModuleDep(_).get)
+        moduleDeps.flatMap(resolveModuleDep(_)),
+        compileModuleDeps.flatMap(resolveModuleDep(_)),
+        runModuleDeps.flatMap(resolveModuleDep(_))
       )
     )
   }
