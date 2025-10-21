@@ -61,13 +61,11 @@ class ScoverageReportWorker {
       }
 
       override def validateCoverageMinimums(
-          sources: Seq[Path],
           dataDirs: Seq[Path],
           sourceRoot: Path,
           statementCoverageMin: Double,
           branchCoverageMin: Double
       )(using ctx: TaskCtx): Unit = innerWorker(_.validateCoverageMinimums(
-        sources.map(_.toNIO).toArray,
         dataDirs.map(_.toNIO).toArray,
         sourceRoot.toNIO,
         statementCoverageMin,
@@ -92,7 +90,6 @@ object ScoverageReportWorker extends ExternalModule {
     ): Unit
 
     def validateCoverageMinimums(
-        sources: Seq[os.Path],
         dataDirs: Seq[os.Path],
         sourceRoot: os.Path,
         statementCoverageMin: Double,

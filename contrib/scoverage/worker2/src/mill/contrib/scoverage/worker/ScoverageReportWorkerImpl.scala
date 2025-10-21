@@ -19,17 +19,8 @@ import java.nio.file.Path
  */
 class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi2 {
 
-  /**
-   * @param sources
-   * @param dataDirs
-   * @param sourceRoot
-   * @param statementCoverageMin This is a nullalble expectation of the statement coverage minimum.
-   * @param branchCoverageMin This is a nullalble expectation of the branch coverage minimum.
-   * @param ctx
-   */
-
+  
   override def validateCoverageMinimums(
-      sources: Array[Path],
       dataDirs: Array[Path],
       sourceRoot: Path,
       statementCoverageMin: lang.Double,
@@ -96,57 +87,6 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi2 {
     }
   }
 
-  /*override def validateCoverageMinimums(
-        sources: Array[Path],
-        dataDirs: Array[Path],
-        sourceRoot: Path,
-        statementCoverageMin: lang.Double,
-        branchCoverageMin: lang.Double,
-        ctx: Ctx
-    ): Unit = {
-      try {
-        ctx.log.info(s"Processing coverage data for ${dataDirs.size} data locations")
-        val errors = for {
-          currentCoverages <- CoverageAggregator.aggregate(
-            dataDirs.map(_.toFile).toIndexedSeq,
-            sourceRoot.toFile
-          ).toRight(ctx.log.warn(s"No coverage data found in [${dataDirs.mkString(", ")}]"))
-          statementMatch = Either.cond(
-            currentCoverages.statementCoverage >= statementCoverageMin,
-            (),
-            s"This project's statement coverage (${currentCoverages.statementCoverage} did not at least meet the minimum desired by the project. ($statementCoverageMin))"
-          )
-          branchMatch = Either.cond(
-            currentCoverages.branchCoverage >= branchCoverageMin,
-            (),
-            s"This project's branch coverage (${currentCoverages.branchCoverage} did not at least meet the minimum desired by the project. ($branchCoverageMin))"
-          )
-          a = (branchMatch :: statementMatch :: Nil).flatMap(_.swap.toOption)
-        } yield (a)
-
-
-        // TODO: Create a warning and an exception that there is no coverage despite it being requested
-        // TODO: Break if the statementCOverageMin was not met
-        // TODO: Break if the statementCoverageMin was not met
-        // TODO: Write out the results before breaking
-        // TODO: If both were met then do a console write
-
-        /* ) match {
-          case Some(coverage) => {
-            ctx.log.info(s"Statement coverage.: ${coverage.statementCoverageFormatted}%")
-            ctx.log.info(s"Branch coverage....: ${coverage.branchCoverageFormatted}%")
-          }
-          case None =>
-            ctx.log.warn(s"No coverage data found in [${dataDirs.mkString(", ")}]")
-        }*/
-      } catch {
-        case e: Throwable =>
-          ctx.log.error(s"Exception while building coverage report. ${e.getMessage()}")
-          e.printStackTrace()
-          throw e
-      }
-    }
-   */
   override def report(
       reportType: ReportType,
       sources: Array[Path],
