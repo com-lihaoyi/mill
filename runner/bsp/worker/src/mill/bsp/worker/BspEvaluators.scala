@@ -48,9 +48,15 @@ private[mill] class BspEvaluators(
   lazy val syntheticRootBspBuildTarget: Option[SyntheticRootBspBuildTargetData] =
     SyntheticRootBspBuildTargetData.makeIfNeeded(bspModulesById.values.map(_._1), workspaceDir)
 
+  lazy val syntheticScriptBspTargets: Seq[SyntheticScriptBspTarget] = {
+    val outDir = evaluators.headOption.map(e => os.Path(e.outPathJava)).getOrElse(workspaceDir / "out")
+    SyntheticScriptBspTarget.discoverScriptTargets(workspaceDir, outDir)
+  }
+
   def filterNonSynthetic(input: java.util.List[BuildTargetIdentifier])
       : java.util.List[BuildTargetIdentifier] = {
     import scala.jdk.CollectionConverters.*
-    input.asScala.filterNot(syntheticRootBspBuildTarget.map(_.id).contains).toList.asJava
+    val syntheticIds = syntheticRootBspBuildTarget.map(_.id).toSet ++ syntheticScriptBspTargets.map(_.id).toSet
+    input.asScala.filterNot(syntheticIds.contains).toList.asJava
   }
 }

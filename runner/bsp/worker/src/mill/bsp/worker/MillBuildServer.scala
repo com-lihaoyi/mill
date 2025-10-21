@@ -339,7 +339,9 @@ private class MillBuildServer(
 
     } { (targets, state) =>
       new WorkspaceBuildTargetsResult(
-        (targets.asScala ++ state.syntheticRootBspBuildTarget.map(_.target))
+        (targets.asScala ++
+         state.syntheticRootBspBuildTarget.map(_.target) ++
+         state.syntheticScriptBspTargets.map(_.target))
           .sortBy(_.getId.getUri)
           .asJava
       )
@@ -384,7 +386,9 @@ private class MillBuildServer(
         )
     } { (sourceItems, state) =>
       new SourcesResult(
-        (sourceItems.asScala ++ state.syntheticRootBspBuildTarget.map(_.synthSources))
+        (sourceItems.asScala ++
+         state.syntheticRootBspBuildTarget.map(_.synthSources) ++
+         state.syntheticScriptBspTargets.map(_.synthSources))
           .sortBy(_.getTarget.getUri)
           .asJava
       )
