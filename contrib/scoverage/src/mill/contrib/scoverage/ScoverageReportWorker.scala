@@ -1,13 +1,15 @@
 package mill.contrib.scoverage
 
 import mill.Task
-import mill.api.{PathRef, TaskCtx}
+import mill.api.{Discover, ExternalModule, PathRef, TaskCtx}
+import mill.contrib.scoverage.ScoverageReportWorker.ScoverageReportWorkerApiBridge
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2
-import mill.api.{Discover, ExternalModule}
-import ScoverageReportWorker.{ScoverageReportWorkerApiBridge, scoverageReportWorker}
-import ScoverageReportWorkerApi2.ReportType
-import ScoverageReportWorkerApi2.Logger as ApiLogger
-import ScoverageReportWorkerApi2.Ctx as ApiCtx
+import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.{
+  ReportType,
+  Ctx as ApiCtx,
+  Logger as ApiLogger
+}
+import os.Path
 
 class ScoverageReportWorker {
 
@@ -26,6 +28,21 @@ class ScoverageReportWorker {
     }
 
     new ScoverageReportWorkerApiBridge {
+      private def innerWorker[T](worker: ScoverageReportWorkerApi2 => T) = {
+        mill.util.Jvm.withClassLoader(
+          classpath.map(_.path).toVector,
+          getClass.getClassLoader
+        ) { cl =>
+          val a = cl
+            .loadClass("mill.contrib.scoverage.worker.ScoverageReportWorkerImpl")
+            .getDeclaredConstructor()
+            .newInstance()
+            .asInstanceOf[api.ScoverageReportWorkerApi2]
+
+          worker(a)
+        }
+      }
+
       override def report(
           reportType: ReportType,
           sources: Seq[os.Path],
@@ -34,29 +51,31 @@ class ScoverageReportWorker {
       )(using
           ctx: TaskCtx
       ): Unit = {
-        mill.util.Jvm.withClassLoader(
-          classpath.map(_.path).toVector,
-          getClass.getClassLoader
-        ) { cl =>
-
-          val worker =
-            cl
-              .loadClass("mill.contrib.scoverage.worker.ScoverageReportWorkerImpl")
-              .getDeclaredConstructor()
-              .newInstance()
-              .asInstanceOf[api.ScoverageReportWorkerApi2]
-          worker.report(
-            reportType,
-            sources.map(_.toNIO).toArray,
-            dataDirs.map(_.toNIO).toArray,
-            sourceRoot.toNIO,
-            ctx0
-          )
-        }
+        innerWorker(_.report(
+          reportType,
+          sources.map(_.toNIO).toArray,
+          dataDirs.map(_.toNIO).toArray,
+          sourceRoot.toNIO,
+          ctx0
+        ))
       }
+
+      override def validateCoverageMinimums(
+          sources: Seq[Path],
+          dataDirs: Seq[Path],
+          sourceRoot: Path,
+          statementCoverageMin: Double,
+          branchCoverageMin: Double
+      )(using ctx: TaskCtx): Unit = innerWorker(_.validateCoverageMinimums(
+        sources.map(_.toNIO).toArray,
+        dataDirs.map(_.toNIO).toArray,
+        sourceRoot.toNIO,
+        statementCoverageMin,
+        branchCoverageMin,
+        ctx0
+      ))
     }
   }
-
 }
 
 object ScoverageReportWorker extends ExternalModule {
@@ -68,6 +87,16 @@ object ScoverageReportWorker extends ExternalModule {
         sources: Seq[os.Path],
         dataDirs: Seq[os.Path],
         sourceRoot: os.Path
+    )(using
+        ctx: TaskCtx
+    ): Unit
+
+    def validateCoverageMinimums(
+        sources: Seq[os.Path],
+        dataDirs: Seq[os.Path],
+        sourceRoot: os.Path,
+        statementCoverageMin: Double,
+        branchCoverageMin: Double
     )(using
         ctx: TaskCtx
     ): Unit

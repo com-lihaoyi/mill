@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 
 public interface ScoverageReportWorkerApi2 {
 
