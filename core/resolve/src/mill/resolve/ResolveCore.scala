@@ -50,7 +50,7 @@ private object ResolveCore {
    * same module
    */
   class Cache(
-      val instantiatedModules: collection.mutable.Map[Segments, mill.api.Result[Module]] =
+      val instantiatedModules: collection.mutable.Map[(RootModule0, Segments), mill.api.Result[Module]] =
         collection.mutable.Map(),
       decodedNames: collection.mutable.Map[String, String] = collection.mutable.Map(),
       methods: collection.mutable.Map[(Class[?], Boolean, Class[?]), Array[(
@@ -265,7 +265,7 @@ private object ResolveCore {
       segments: Segments,
       cache: Cache
   ): mill.api.Result[Module] = cache.instantiatedModules.getOrElseUpdate(
-    segments, {
+    (rootModule, segments), {
       segments.value.foldLeft[mill.api.Result[Module]](mill.api.Result.Success(rootModule)) {
         case (mill.api.Result.Success(current), Segment.Label(s)) =>
           assert(s != "_", s)
