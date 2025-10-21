@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Invalidating build caches using JVM bytecode callgraph analysis :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/blog/10-bytecode-callgraph-analysis.html">
-    <link rel="prev" href="11-jvm-test-parallelism.html">
-    <link rel="next" href="9-mill-faster-assembly-jars.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/blog/10-bytecode-callgraph-analysis.html" />
+    <link rel="prev" href="11-jvm-test-parallelism.html" />
+    <link rel="next" href="9-mill-faster-assembly-jars.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -247,7 +248,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/10-bytecode-callgraph-analysis.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -266,15 +267,15 @@
 files change, and build tools often let you implement tasks using blocks of arbitrary
 code in some general-purpose language. But the combination of these raises a
 question: if your tasks can contain arbitrary code, how can you detect when that code
-has changed, and appropriately invalidate the task&#8217;s caches? In most programming
-languages, "blocks of arbitrary code" are opaque - and the only thing you can do is
+has changed, and appropriately invalidate the task’s caches? In most programming
+languages, &quot;blocks of arbitrary code&quot; are opaque - and the only thing you can do is
 run them - so this problem is unsolvable.</p>
 </div>
 <div class="paragraph">
 <p>This blog post explores how Mill extends its JVM runtime by analyzing the callgraph of your
-build logic at a bytecode level. This lets Mill analyze a task&#8217;s code-block to detect
+build logic at a bytecode level. This lets Mill analyze a task’s code-block to detect
 changes in its implementation or that of transitively-called methods, letting us automatically
-invalidate task caches when the code is modified. We&#8217;ll discuss the implementation and
+invalidate task caches when the code is modified. We’ll discuss the implementation and
 limitations of this bytecode analysis, and show empirically how this is able to provide
 a significant improvement over more naive approaches to the problem.</p>
 </div>
@@ -288,16 +289,16 @@ a significant improvement over more naive approaches to the problem.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def fooSource = Task.Source("foo.txt")
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def fooSource = Task.Source(&quot;foo.txt&quot;)
 def fooTask = Task{
-  println("evaluating fooTask")
+  println(&quot;evaluating fooTask&quot;)
   os.read(fooSource().path).toUpperCase
 }
 
-def barSource = Task.Source("bar.txt")
+def barSource = Task.Source(&quot;bar.txt&quot;)
 def barHelper(s: String) = s.toUpperCase
 def barTask = Task{
-  println("evaluating barTask")
+  println(&quot;evaluating barTask&quot;)
   barHelper(os.read(barSource().path))
 }</code></pre>
 </div>
@@ -307,46 +308,45 @@ def barTask = Task{
 </div>
 <div class="paragraph">
 <center>
-<svg width="179px" height="76px"
- viewBox="0.00 0.00 179.41 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="179px" height="76px" viewBox="0.00 0.00 179.41 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 175.41,-71.8 175.41,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 175.41,-71.8 175.41,4 -4,4"></polygon>
 <!-- barSource -->
 <g id="node1" class="node">
 <title>barSource</title>
-<polygon fill="none" stroke="black" points="73.01,-24.7 0.52,-24.7 0.52,-0.1 73.01,-0.1 73.01,-24.7"/>
+<polygon fill="none" stroke="black" points="73.01,-24.7 0.52,-24.7 0.52,-0.1 73.01,-0.1 73.01,-24.7"></polygon>
 <text text-anchor="middle" x="36.77" y="-8.2" font-family="Times,serif" font-size="14.00">barSource</text>
 </g>
 <!-- barTask -->
 <g id="node2" class="node">
 <title>barTask</title>
-<polygon fill="none" stroke="black" points="171.06,-24.7 109.88,-24.7 109.88,-0.1 171.06,-0.1 171.06,-24.7"/>
+<polygon fill="none" stroke="black" points="171.06,-24.7 109.88,-24.7 109.88,-0.1 171.06,-0.1 171.06,-24.7"></polygon>
 <text text-anchor="middle" x="140.47" y="-8.2" font-family="Times,serif" font-size="14.00">barTask</text>
 </g>
 <!-- barSource&#45;&gt;barTask -->
 <g id="edge1" class="edge">
-<title>barSource&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M73.05,-12.4C81.63,-12.4 90.86,-12.4 99.63,-12.4"/>
-<polygon fill="black" stroke="black" points="99.65,-15.9 109.65,-12.4 99.65,-8.9 99.65,-15.9"/>
+<title>barSource-&gt;barTask</title>
+<path fill="none" stroke="black" d="M73.05,-12.4C81.63,-12.4 90.86,-12.4 99.63,-12.4"></path>
+<polygon fill="black" stroke="black" points="99.65,-15.9 109.65,-12.4 99.65,-8.9 99.65,-15.9"></polygon>
 </g>
 <!-- fooSource -->
 <g id="node3" class="node">
 <title>fooSource</title>
-<polygon fill="none" stroke="black" points="73.3,-67.7 0.23,-67.7 0.23,-43.1 73.3,-43.1 73.3,-67.7"/>
+<polygon fill="none" stroke="black" points="73.3,-67.7 0.23,-67.7 0.23,-43.1 73.3,-43.1 73.3,-67.7"></polygon>
 <text text-anchor="middle" x="36.77" y="-51.2" font-family="Times,serif" font-size="14.00">fooSource</text>
 </g>
 <!-- fooTask -->
 <g id="node4" class="node">
 <title>fooTask</title>
-<polygon fill="none" stroke="black" points="171.34,-67.7 109.6,-67.7 109.6,-43.1 171.34,-43.1 171.34,-67.7"/>
+<polygon fill="none" stroke="black" points="171.34,-67.7 109.6,-67.7 109.6,-43.1 171.34,-43.1 171.34,-67.7"></polygon>
 <text text-anchor="middle" x="140.47" y="-51.2" font-family="Times,serif" font-size="14.00">fooTask</text>
 </g>
 <!-- fooSource&#45;&gt;fooTask -->
 <g id="edge2" class="edge">
-<title>fooSource&#45;&gt;fooTask</title>
-<path fill="none" stroke="black" d="M73.34,-55.4C81.73,-55.4 90.73,-55.4 99.3,-55.4"/>
-<polygon fill="black" stroke="black" points="99.48,-58.9 109.48,-55.4 99.48,-51.9 99.48,-58.9"/>
+<title>fooSource-&gt;fooTask</title>
+<path fill="none" stroke="black" d="M73.34,-55.4C81.73,-55.4 90.73,-55.4 99.3,-55.4"></path>
+<polygon fill="black" stroke="black" points="99.48,-58.9 109.48,-55.4 99.48,-51.9 99.48,-58.9"></polygon>
 </g>
 </g>
 </svg>
@@ -363,8 +363,8 @@ tasks were evaluated:</p>
 evaluating fooTask
 evaluating barTask
 {
-  "fooTask": "FOO.TXT CONTENTS",
-  "barTask": "BAR.TXT CONTENTS"
+  &quot;fooTask&quot;: &quot;FOO.TXT CONTENTS&quot;,
+  &quot;barTask&quot;: &quot;BAR.TXT CONTENTS&quot;
 }</code></pre>
 </div>
 </div>
@@ -374,13 +374,13 @@ and <code>barTask</code> does not:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo " changed" &gt;&gt; foo.txt
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo &quot; changed&quot; &gt;&gt; foo.txt
 
 &gt; ./mill '{fooTask,barTask}'
 evaluating fooTask
 {
-  "fooTask": "FOO.TXT CONTENTS CHANGED",
-  "barTask": "BAR.TXT CONTENTS"
+  &quot;fooTask&quot;: &quot;FOO.TXT CONTENTS CHANGED&quot;,
+  &quot;barTask&quot;: &quot;BAR.TXT CONTENTS&quot;
 }</code></pre>
 </div>
 </div>
@@ -391,46 +391,45 @@ cache and force <code>fooTask</code> to re-evaluate:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="179px" height="76px"
- viewBox="0.00 0.00 179.41 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="179px" height="76px" viewBox="0.00 0.00 179.41 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 175.41,-71.8 175.41,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 175.41,-71.8 175.41,4 -4,4"></polygon>
 <!-- barSource -->
 <g id="node1" class="node">
 <title>barSource</title>
-<polygon fill="none" stroke="black" points="73.01,-24.7 0.52,-24.7 0.52,-0.1 73.01,-0.1 73.01,-24.7"/>
+<polygon fill="none" stroke="black" points="73.01,-24.7 0.52,-24.7 0.52,-0.1 73.01,-0.1 73.01,-24.7"></polygon>
 <text text-anchor="middle" x="36.77" y="-8.2" font-family="Times,serif" font-size="14.00">barSource</text>
 </g>
 <!-- barTask -->
 <g id="node2" class="node">
 <title>barTask</title>
-<polygon fill="none" stroke="black" points="171.06,-24.7 109.88,-24.7 109.88,-0.1 171.06,-0.1 171.06,-24.7"/>
+<polygon fill="none" stroke="black" points="171.06,-24.7 109.88,-24.7 109.88,-0.1 171.06,-0.1 171.06,-24.7"></polygon>
 <text text-anchor="middle" x="140.47" y="-8.2" font-family="Times,serif" font-size="14.00">barTask</text>
 </g>
 <!-- barSource&#45;&gt;barTask -->
 <g id="edge1" class="edge">
-<title>barSource&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M73.05,-12.4C81.63,-12.4 90.86,-12.4 99.63,-12.4"/>
-<polygon fill="black" stroke="black" points="99.65,-15.9 109.65,-12.4 99.65,-8.9 99.65,-15.9"/>
+<title>barSource-&gt;barTask</title>
+<path fill="none" stroke="black" d="M73.05,-12.4C81.63,-12.4 90.86,-12.4 99.63,-12.4"></path>
+<polygon fill="black" stroke="black" points="99.65,-15.9 109.65,-12.4 99.65,-8.9 99.65,-15.9"></polygon>
 </g>
 <!-- fooSource -->
 <g id="node3" class="node">
 <title>fooSource</title>
-<polygon fill="none" stroke="red" stroke-width="3" points="73.3,-67.7 0.23,-67.7 0.23,-43.1 73.3,-43.1 73.3,-67.7"/>
+<polygon fill="none" stroke="red" stroke-width="3" points="73.3,-67.7 0.23,-67.7 0.23,-43.1 73.3,-43.1 73.3,-67.7"></polygon>
 <text text-anchor="middle" x="36.77" y="-51.2" font-family="Times,serif" font-size="14.00">fooSource</text>
 </g>
 <!-- fooTask -->
 <g id="node4" class="node">
 <title>fooTask</title>
-<polygon fill="none" stroke="red" stroke-width="3" points="171.34,-67.7 109.6,-67.7 109.6,-43.1 171.34,-43.1 171.34,-67.7"/>
+<polygon fill="none" stroke="red" stroke-width="3" points="171.34,-67.7 109.6,-67.7 109.6,-43.1 171.34,-43.1 171.34,-67.7"></polygon>
 <text text-anchor="middle" x="140.47" y="-51.2" font-family="Times,serif" font-size="14.00">fooTask</text>
 </g>
 <!-- fooSource&#45;&gt;fooTask -->
 <g id="edge2" class="edge">
-<title>fooSource&#45;&gt;fooTask</title>
-<path fill="none" stroke="red" stroke-width="3" d="M73.34,-55.4C81.73,-55.4 90.73,-55.4 99.3,-55.4"/>
-<polygon fill="red" stroke="red" stroke-width="3" points="99.48,-58.9 109.48,-55.4 99.48,-51.9 99.48,-58.9"/>
+<title>fooSource-&gt;fooTask</title>
+<path fill="none" stroke="red" stroke-width="3" d="M73.34,-55.4C81.73,-55.4 90.73,-55.4 99.3,-55.4"></path>
+<polygon fill="red" stroke="red" stroke-width="3" points="99.48,-58.9 109.48,-55.4 99.48,-51.9 99.48,-58.9"></polygon>
 </g>
 </g>
 </svg>
@@ -448,7 +447,7 @@ to <code>toLowerCase</code>:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff"> def fooTask = Task{
-   println("evaluating fooTask")
+   println(&quot;evaluating fooTask&quot;)
 -   os.read(fooSource().path).toUpperCase
 +   os.read(fooSource().path).toLowerCase
  }</code></pre>
@@ -463,8 +462,8 @@ changed, but <code>barTask</code> to not re-evaluate since because nothing we ch
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show '{fooTask,barTask}'
 evaluating fooTask
 {
-  "fooTask": "foo.txt contents",
-  "barTask": "BAR.TXT CONTENTS"
+  &quot;fooTask&quot;: &quot;foo.txt contents&quot;,
+  &quot;barTask&quot;: &quot;BAR.TXT CONTENTS&quot;
 }</code></pre>
 </div>
 </div>
@@ -479,7 +478,7 @@ which <code>barTask</code> uses:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>This isn&#8217;t directly changing either of <code>fooTask</code> or <code>barTask</code>, but instead
+<p>This isn’t directly changing either of <code>fooTask</code> or <code>barTask</code>, but instead
 changes the <code>barHelper</code> helper method that is called by <code>barTask</code>. Again, we would
 want <code>barTask</code> to re-evaluate to make use of the new helper method, while <code>fooTask</code>
 can be cached:</p>
@@ -489,13 +488,13 @@ can be cached:</p>
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show '{fooTask,barTask}'
 evaluating barTask
 {
-  "fooTask": "FOO.TXT CONTENTS",
-  "barTask": "bar.txt contents"
+  &quot;fooTask&quot;: &quot;FOO.TXT CONTENTS&quot;,
+  &quot;barTask&quot;: &quot;bar.txt contents&quot;
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>That looks straightforward enough, so what&#8217;s the issue?</p>
+<p>That looks straightforward enough, so what’s the issue?</p>
 </div>
 <div class="sect2">
 <h3 id="_why_code_change_invalidation_is_hard"><a class="anchor" href="#_why_code_change_invalidation_is_hard"></a>Why Code Change Invalidation is Hard</h3>
@@ -507,13 +506,13 @@ When you look at the definition of a task such as:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def fooTask = Task{
-  println("evaluating fooTask")
+  println(&quot;evaluating fooTask&quot;)
   os.read(fooSource().path).toUpperCase
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>Task</code> takes a "by-name" block argument of type <code>&#8658; T</code>.</p>
+<p><code>Task</code> takes a &quot;by-name&quot; block argument of type <code>⇒ T</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -521,20 +520,20 @@ When you look at the definition of a task such as:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Essentially, this means when you call <code>Task{ &#8230;&#8203; }</code>, the <code>&#8230;&#8203;</code> is wrapped in a zero-argument
-function <code>() &#8658; &#8230;&#8203;</code> of type <code>Function0[T]</code> that you can call via <code>.apply()</code> returning a <code>T</code>:</p>
+<p>Essentially, this means when you call <code>Task{ ...​ }</code>, the <code>...​</code> is wrapped in a zero-argument
+function <code>() ⇒ ...​</code> of type <code>Function0[T]</code> that you can call via <code>.apply()</code> returning a <code>T</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def fooTask = Task{ () =&gt;
-  println("evaluating fooTask")
+  println(&quot;evaluating fooTask&quot;)
   os.read(fooSource().path).toUpperCase
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>"By-name" parameters are just a convenient way to define blocks of runnable code without
-needing to tediously repeat the <code>() &#8658;</code> in front of every one, but for all intents and
+<p>&quot;By-name&quot; parameters are just a convenient way to define blocks of runnable code without
+needing to tediously repeat the <code>() ⇒</code> in front of every one, but for all intents and
 purposes the effect is the same: you get a <code>Function0[T]</code> that you can call via <code>.apply</code>
 to get the value out of it. This <code>Function0</code> is what lets Mill decide whether or not it
 needs to run the code in the block:</p>
@@ -580,12 +579,12 @@ and leave it up to the implementor of the task to do so. That means the implemen
 their own book-keeping to track versions of both the task inputs and task implementations, making
 sure to manually invalidate caches when the either changes. This is tedious and error prone,
 resulting in cache invalidation problems ubiquitous enough that
-<a href="https://stackoverflow.com/questions/4662452/in-maven-why-run-mvn-clean"><em>"always run mvn clean"</em></a>
+<a href="https://stackoverflow.com/questions/4662452/in-maven-why-run-mvn-clean"><em>&quot;always run mvn clean&quot;</em></a>
 has become a common practice.</p>
 </li>
 <li>
-<p>Some build tools like Bazel split the problem: the "arbitrary code" in StarLark is not cached,
-and the "cached" actions can only run in sub-processes with fixed executables and input flags
+<p>Some build tools like Bazel split the problem: the &quot;arbitrary code&quot; in StarLark is not cached,
+and the &quot;cached&quot; actions can only run in sub-processes with fixed executables and input flags
 without access to the StarLark codebase. This works, but introduces an awkward boundary in
 the middle of your build logic, forcing it to be written in two
 languages and serializing data to send it back and forth across the process boundary.</p>
@@ -605,8 +604,8 @@ like this for decades - but we can do better.</p>
 <h2 id="_basic_calligraphy_analysis"><a class="anchor" href="#_basic_calligraphy_analysis"></a>Basic Calligraphy Analysis</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The basic idea behind Mill&#8217;s callgraph analysis is that JVM <code>Function0</code> objects
-aren&#8217;t <em>completely</em> opaque: if you would like to you could pull up the <code>.class</code> file
+<p>The basic idea behind Mill’s callgraph analysis is that JVM <code>Function0</code> objects
+aren’t <em>completely</em> opaque: if you would like to you could pull up the <code>.class</code> file
 describing each object on disk, and get some understanding of what the code block
 or method is doing to do.</p>
 </div>
@@ -618,14 +617,14 @@ or method is doing to do.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def barTask = Task{
-  println("evaluating barTask")
+  println(&quot;evaluating barTask&quot;)
   barHelper(os.read(barSource().path))
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>We mentioned earlier that body of the <code>Task</code> block is wrapped in an anonymous <code>Function0</code>
-<code>() &#8658; &#8230;&#8203;</code>. This anonymous function compiles to an <code>$$anonfun</code> method with the bytecode
+<code>() ⇒ ...​</code>. This anonymous function compiles to an <code>$$anonfun</code> method with the bytecode
 below, which can be rendered using the <code>javap -c -p</code> command on the relevant compiled <code>.class</code> file:</p>
 </div>
 <div class="listingblock">
@@ -651,7 +650,7 @@ below, which can be rendered using the <code>javap -c -p</code> command on the r
 </div>
 <div class="paragraph">
 <p>This bytecode contains a lot of <code>invokevirtual</code> and <code>invokeinterface</code> methods that specify,
-after all the compiler&#8217;s work is done, which methods in the JVM bytecode actually need to be
+after all the compiler’s work is done, which methods in the JVM bytecode actually need to be
 called when this function is actually run. We can see the invocation of <code>scala/Predef$.println</code> and
 <code>os/read$</code> in the bytecode, some <code>mill/api</code> helper methods, and also the call to <code>barHelper</code>.</p>
 </div>
@@ -686,33 +685,32 @@ example snippet above, the (simplified) callgraph looks like this</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="177px" height="76px"
- viewBox="0.00 0.00 177.05 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="177px" height="76px" viewBox="0.00 0.00 177.05 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 173.05,-71.8 173.05,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 173.05,-71.8 173.05,4 -4,4"></polygon>
 <!-- barHelper -->
 <g id="node1" class="node">
 <title>barHelper</title>
-<polygon fill="none" stroke="black" points="71.94,-24.7 0.02,-24.7 0.02,-0.1 71.94,-0.1 71.94,-24.7"/>
+<polygon fill="none" stroke="black" points="71.94,-24.7 0.02,-24.7 0.02,-0.1 71.94,-0.1 71.94,-24.7"></polygon>
 <text text-anchor="middle" x="35.98" y="-8.2" font-family="Times,serif" font-size="14.00">barHelper</text>
 </g>
 <!-- barTask -->
 <g id="node2" class="node">
 <title>barTask</title>
-<polygon fill="none" stroke="black" points="169.09,-24.7 107.92,-24.7 107.92,-0.1 169.09,-0.1 169.09,-24.7"/>
+<polygon fill="none" stroke="black" points="169.09,-24.7 107.92,-24.7 107.92,-0.1 169.09,-0.1 169.09,-24.7"></polygon>
 <text text-anchor="middle" x="138.51" y="-8.2" font-family="Times,serif" font-size="14.00">barTask</text>
 </g>
 <!-- barHelper&#45;&gt;barTask -->
 <g id="edge1" class="edge">
-<title>barHelper&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M72.14,-12.4C80.43,-12.4 89.33,-12.4 97.8,-12.4"/>
-<polygon fill="black" stroke="black" points="97.87,-15.9 107.87,-12.4 97.87,-8.9 97.87,-15.9"/>
+<title>barHelper-&gt;barTask</title>
+<path fill="none" stroke="black" d="M72.14,-12.4C80.43,-12.4 89.33,-12.4 97.8,-12.4"></path>
+<polygon fill="black" stroke="black" points="97.87,-15.9 107.87,-12.4 97.87,-8.9 97.87,-15.9"></polygon>
 </g>
 <!-- fooTask -->
 <g id="node3" class="node">
 <title>fooTask</title>
-<polygon fill="none" stroke="black" points="66.85,-67.7 5.11,-67.7 5.11,-43.1 66.85,-43.1 66.85,-67.7"/>
+<polygon fill="none" stroke="black" points="66.85,-67.7 5.11,-67.7 5.11,-43.1 66.85,-43.1 66.85,-67.7"></polygon>
 <text text-anchor="middle" x="35.98" y="-51.2" font-family="Times,serif" font-size="14.00">fooTask</text>
 </g>
 </g>
@@ -723,7 +721,7 @@ example snippet above, the (simplified) callgraph looks like this</p>
 <div class="paragraph">
 <p>With this call graph, it is straightforward to do a breadth-first search starting from each task
 to find all transitively called methods and hash their contents (the bytecode shown above).
-Any change to this hash would indicate that a method&#8217;s implementation changed, and any tasks that
+Any change to this hash would indicate that a method’s implementation changed, and any tasks that
 depend on it needs to re-evaluate. For example, the change we saw earlier to the <code>barHelper</code>
 source code:</p>
 </div>
@@ -752,33 +750,32 @@ we can then see that <code>barTask</code> depends on <code>barHelper</code> and 
 </div>
 <div class="paragraph">
 <center>
-<svg width="177px" height="76px"
- viewBox="0.00 0.00 177.05 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="177px" height="76px" viewBox="0.00 0.00 177.05 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 173.05,-71.8 173.05,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 173.05,-71.8 173.05,4 -4,4"></polygon>
 <!-- barHelper -->
 <g id="node1" class="node">
 <title>barHelper</title>
-<polygon fill="none" stroke="red" stroke-width="3" points="71.94,-24.7 0.02,-24.7 0.02,-0.1 71.94,-0.1 71.94,-24.7"/>
+<polygon fill="none" stroke="red" stroke-width="3" points="71.94,-24.7 0.02,-24.7 0.02,-0.1 71.94,-0.1 71.94,-24.7"></polygon>
 <text text-anchor="middle" x="35.98" y="-8.2" font-family="Times,serif" font-size="14.00">barHelper</text>
 </g>
 <!-- barTask -->
 <g id="node2" class="node">
 <title>barTask</title>
-<polygon fill="none" stroke="red" stroke-width="3" points="169.09,-24.7 107.92,-24.7 107.92,-0.1 169.09,-0.1 169.09,-24.7"/>
+<polygon fill="none" stroke="red" stroke-width="3" points="169.09,-24.7 107.92,-24.7 107.92,-0.1 169.09,-0.1 169.09,-24.7"></polygon>
 <text text-anchor="middle" x="138.51" y="-8.2" font-family="Times,serif" font-size="14.00">barTask</text>
 </g>
 <!-- barHelper&#45;&gt;barTask -->
 <g id="edge1" class="edge">
-<title>barHelper&#45;&gt;barTask</title>
-<path fill="none" stroke="red" stroke-width="3" d="M72.14,-12.4C80.43,-12.4 89.33,-12.4 97.8,-12.4"/>
-<polygon fill="red" stroke="red" stroke-width="3" points="97.87,-15.9 107.87,-12.4 97.87,-8.9 97.87,-15.9"/>
+<title>barHelper-&gt;barTask</title>
+<path fill="none" stroke="red" stroke-width="3" d="M72.14,-12.4C80.43,-12.4 89.33,-12.4 97.8,-12.4"></path>
+<polygon fill="red" stroke="red" stroke-width="3" points="97.87,-15.9 107.87,-12.4 97.87,-8.9 97.87,-15.9"></polygon>
 </g>
 <!-- fooTask -->
 <g id="node3" class="node">
 <title>fooTask</title>
-<polygon fill="none" stroke="black" points="66.85,-67.7 5.11,-67.7 5.11,-43.1 66.85,-43.1 66.85,-67.7"/>
+<polygon fill="none" stroke="black" points="66.85,-67.7 5.11,-67.7 5.11,-43.1 66.85,-43.1 66.85,-67.7"></polygon>
 <text text-anchor="middle" x="35.98" y="-51.2" font-family="Times,serif" font-size="14.00">fooTask</text>
 </g>
 </g>
@@ -801,7 +798,7 @@ tasks that call that method (directly or transitively) need to be re-evaluated.<
 <div class="paragraph">
 <p>Although callgraph analysis on the static methods shown above is simple,
 JVM languages like Java and Scala make heavy use of objects, classes, and subclassing.
-Mill&#8217;s callgraph analyzer working on Scala sources compiled to JVM bytecode thus need
+Mill’s callgraph analyzer working on Scala sources compiled to JVM bytecode thus need
 to handle these object-oriented language features.</p>
 </div>
 <div class="sect2">
@@ -817,19 +814,19 @@ to handle these object-oriented language features.</p>
 }
 
 def barTask = Task{
-  val qux = new Qux("!")
+  val qux = new Qux(&quot;!&quot;)
   qux.bazHelper(os.read(barSource().path))
 } // BAR.TXT CONTENTS!!!</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Here, we are calling <code>bazHelper</code> on the value in <code>barTask</code>. But the behavior of
-a <code>qux.bazHelper()</code> doesn&#8217;t just depend on the implementation of <code>bazHelper</code> itself, but also:</p>
+a <code>qux.bazHelper()</code> doesn’t just depend on the implementation of <code>bazHelper</code> itself, but also:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>The value <code>suffix</code> that was passed in when <code>new Qux</code> was constructed, in this case <code>"!"</code></p>
+<p>The value <code>suffix</code> that was passed in when <code>new Qux</code> was constructed, in this case <code>&quot;!&quot;</code></p>
 </li>
 <li>
 <p>The implementation of the <code>new Qux</code> constructor (often called <code>Qux#&lt;init&gt;</code> on the JVM)
@@ -844,40 +841,39 @@ must have called its constructor and passed in arguments (directly or indirectly
 </div>
 <div class="paragraph">
 <center>
-<svg width="210px" height="76px"
- viewBox="0.00 0.00 209.71 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="210px" height="76px" viewBox="0.00 0.00 209.71 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 205.71,-71.8 205.71,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 205.71,-71.8 205.71,4 -4,4"></polygon>
 <!-- Qux#bazHelper -->
 <g id="node1" class="node">
 <title>Qux#bazHelper</title>
-<polygon fill="none" stroke="black" points="104.43,-67.7 0.19,-67.7 0.19,-43.1 104.43,-43.1 104.43,-67.7"/>
+<polygon fill="none" stroke="black" points="104.43,-67.7 0.19,-67.7 0.19,-43.1 104.43,-43.1 104.43,-67.7"></polygon>
 <text text-anchor="middle" x="52.31" y="-51.2" font-family="Times,serif" font-size="14.00">Qux#bazHelper</text>
 </g>
 <!-- barTask -->
 <g id="node2" class="node">
 <title>barTask</title>
-<polygon fill="none" stroke="black" points="201.75,-45.7 140.58,-45.7 140.58,-21.1 201.75,-21.1 201.75,-45.7"/>
+<polygon fill="none" stroke="black" points="201.75,-45.7 140.58,-45.7 140.58,-21.1 201.75,-21.1 201.75,-45.7"></polygon>
 <text text-anchor="middle" x="171.17" y="-29.2" font-family="Times,serif" font-size="14.00">barTask</text>
 </g>
 <!-- Qux#bazHelper&#45;&gt;barTask -->
 <g id="edge1" class="edge">
-<title>Qux#bazHelper&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M104.57,-45.75C113.29,-44.11 122.22,-42.43 130.58,-40.85"/>
-<polygon fill="black" stroke="black" points="131.26,-44.29 140.44,-39 129.96,-37.41 131.26,-44.29"/>
+<title>Qux#bazHelper-&gt;barTask</title>
+<path fill="none" stroke="black" d="M104.57,-45.75C113.29,-44.11 122.22,-42.43 130.58,-40.85"></path>
+<polygon fill="black" stroke="black" points="131.26,-44.29 140.44,-39 129.96,-37.41 131.26,-44.29"></polygon>
 </g>
 <!-- Qux#&lt;init&gt; -->
 <g id="node3" class="node">
 <title>Qux#&lt;init&gt;</title>
-<polygon fill="none" stroke="black" points="92.88,-24.7 11.74,-24.7 11.74,-0.1 92.88,-0.1 92.88,-24.7"/>
+<polygon fill="none" stroke="black" points="92.88,-24.7 11.74,-24.7 11.74,-0.1 92.88,-0.1 92.88,-24.7"></polygon>
 <text text-anchor="middle" x="52.31" y="-8.2" font-family="Times,serif" font-size="14.00">Qux#&lt;init&gt;</text>
 </g>
 <!-- Qux#&lt;init&gt;&#45;&gt;barTask -->
 <g id="edge2" class="edge">
-<title>Qux#&lt;init&gt;&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M93.2,-19.57C105.17,-21.72 118.29,-24.08 130.26,-26.23"/>
-<polygon fill="black" stroke="black" points="129.96,-29.73 140.42,-28.05 131.19,-22.84 129.96,-29.73"/>
+<title>Qux#&lt;init&gt;-&gt;barTask</title>
+<path fill="none" stroke="black" d="M93.2,-19.57C105.17,-21.72 118.29,-24.08 130.26,-26.23"></path>
+<polygon fill="black" stroke="black" points="129.96,-29.73 140.42,-28.05 131.19,-22.84 129.96,-29.73"></polygon>
 </g>
 </g>
 </svg>
@@ -887,7 +883,7 @@ must have called its constructor and passed in arguments (directly or indirectly
 <div class="ulist">
 <ul>
 <li>
-<p>Changes to the <code>Qux</code> constructor param <code>"!"</code> are part of the <code>barTask</code> task body</p>
+<p>Changes to the <code>Qux</code> constructor param <code>&quot;!&quot;</code> are part of the <code>barTask</code> task body</p>
 </li>
 <li>
 <p>Changes to the <code>Qux#&lt;init&gt;</code> constructor are captured because <code>Qux#&lt;init&gt;</code> is called by <code>barTask</code>
@@ -919,7 +915,7 @@ in contrast to methods defined via <code>def</code>:</p>
 }
 
 def barTask = Task{
-  val qux = new Qux("!")
+  val qux = new Qux(&quot;!&quot;)
   qux.doubleSuffix()
   qux.doubleSuffix()
   os.read(barSource().path) + qux.suffix
@@ -928,47 +924,46 @@ def barTask = Task{
 </div>
 <div class="paragraph">
 <p>In this case, <code>barTask</code> references the <code>suffix</code> field directly, without going through
-a <code>bazHelper</code> method. Method call graph analysis does not track fields, but it doesn&#8217;t
+a <code>bazHelper</code> method. Method call graph analysis does not track fields, but it doesn’t
 need to: a field can only get its value from the methods that set it, whether
 the constructor (above setting <code>var suffix = suffix0</code>) or other methods (e.g. <code>def doubleSuffix</code>,
 which sets <code>suffix = suffix + suffix</code>).</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="225px" height="76px"
- viewBox="0.00 0.00 225.29 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="225px" height="76px" viewBox="0.00 0.00 225.29 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 221.29,-71.8 221.29,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 221.29,-71.8 221.29,4 -4,4"></polygon>
 <!-- Qux#&lt;init&gt; -->
 <g id="node1" class="node">
 <title>Qux#&lt;init&gt;</title>
-<polygon fill="none" stroke="black" points="100.67,-67.7 19.53,-67.7 19.53,-43.1 100.67,-43.1 100.67,-67.7"/>
+<polygon fill="none" stroke="black" points="100.67,-67.7 19.53,-67.7 19.53,-43.1 100.67,-43.1 100.67,-67.7"></polygon>
 <text text-anchor="middle" x="60.1" y="-51.2" font-family="Times,serif" font-size="14.00">Qux#&lt;init&gt;</text>
 </g>
 <!-- barTask -->
 <g id="node2" class="node">
 <title>barTask</title>
-<polygon fill="none" stroke="black" points="217.34,-45.7 156.16,-45.7 156.16,-21.1 217.34,-21.1 217.34,-45.7"/>
+<polygon fill="none" stroke="black" points="217.34,-45.7 156.16,-45.7 156.16,-21.1 217.34,-21.1 217.34,-45.7"></polygon>
 <text text-anchor="middle" x="186.75" y="-29.2" font-family="Times,serif" font-size="14.00">barTask</text>
 </g>
 <!-- Qux#&lt;init&gt;&#45;&gt;barTask -->
 <g id="edge1" class="edge">
-<title>Qux#&lt;init&gt;&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M100.88,-48.38C115.22,-45.85 131.39,-42.99 145.74,-40.46"/>
-<polygon fill="black" stroke="black" points="146.58,-43.87 155.82,-38.68 145.36,-36.97 146.58,-43.87"/>
+<title>Qux#&lt;init&gt;-&gt;barTask</title>
+<path fill="none" stroke="black" d="M100.88,-48.38C115.22,-45.85 131.39,-42.99 145.74,-40.46"></path>
+<polygon fill="black" stroke="black" points="146.58,-43.87 155.82,-38.68 145.36,-36.97 146.58,-43.87"></polygon>
 </g>
 <!-- Qux#doubleSuffix -->
 <g id="node3" class="node">
 <title>Qux#doubleSuffix</title>
-<polygon fill="none" stroke="black" points="120.31,-24.7 -0.1,-24.7 -0.1,-0.1 120.31,-0.1 120.31,-24.7"/>
+<polygon fill="none" stroke="black" points="120.31,-24.7 -0.1,-24.7 -0.1,-0.1 120.31,-0.1 120.31,-24.7"></polygon>
 <text text-anchor="middle" x="60.1" y="-8.2" font-family="Times,serif" font-size="14.00">Qux#doubleSuffix</text>
 </g>
 <!-- Qux#doubleSuffix&#45;&gt;barTask -->
 <g id="edge2" class="edge">
-<title>Qux#doubleSuffix&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M120.51,-22.41C129.15,-23.86 137.86,-25.33 145.99,-26.7"/>
-<polygon fill="black" stroke="black" points="145.47,-30.16 155.91,-28.37 146.63,-23.26 145.47,-30.16"/>
+<title>Qux#doubleSuffix-&gt;barTask</title>
+<path fill="none" stroke="black" d="M120.51,-22.41C129.15,-23.86 137.86,-25.33 145.99,-26.7"></path>
+<polygon fill="black" stroke="black" points="145.47,-30.16 155.91,-28.37 146.63,-23.26 145.47,-30.16"></polygon>
 </g>
 </g>
 </svg>
@@ -977,7 +972,7 @@ which sets <code>suffix = suffix + suffix</code>).</p>
 </div>
 <div class="paragraph">
 <p>Since these methods are all already captured as part of the normal callgraph analysis,
-it&#8217;s fine to ignore fields entirely: you will never
+it’s fine to ignore fields entirely: you will never
 miss a code change that affects a field value because such code changes must occur in
 methods which we already track.</p>
 </div>
@@ -991,7 +986,7 @@ than a method (<code>def</code>) in an enclosing <code>object</code>?</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object enclosing extends Module{
-  val suffix = "???"
+  val suffix = &quot;???&quot;
   def barTask = Task{
     os.read(barSource().path) + suffix
   } // bar.txt contents???
@@ -1013,52 +1008,51 @@ constructor (and that of any other enclosing objects) to <code>barTask</code> wh
 </div>
 <div class="paragraph">
 <center>
-<svg width="216px" height="119px"
- viewBox="0.00 0.00 216.20 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="216px" height="119px" viewBox="0.00 0.00 216.20 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 212.2,-114.8 212.2,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 212.2,-114.8 212.2,4 -4,4"></polygon>
 <!-- Qux#bazHelper -->
 <g id="node1" class="node">
 <title>Qux#bazHelper</title>
-<polygon fill="none" stroke="black" points="107.68,-110.7 3.43,-110.7 3.43,-86.1 107.68,-86.1 107.68,-110.7"/>
+<polygon fill="none" stroke="black" points="107.68,-110.7 3.43,-110.7 3.43,-86.1 107.68,-86.1 107.68,-110.7"></polygon>
 <text text-anchor="middle" x="55.56" y="-94.2" font-family="Times,serif" font-size="14.00">Qux#bazHelper</text>
 </g>
 <!-- barTask -->
 <g id="node2" class="node">
 <title>barTask</title>
-<polygon fill="none" stroke="black" points="208.25,-67.7 147.07,-67.7 147.07,-43.1 208.25,-43.1 208.25,-67.7"/>
+<polygon fill="none" stroke="black" points="208.25,-67.7 147.07,-67.7 147.07,-43.1 208.25,-43.1 208.25,-67.7"></polygon>
 <text text-anchor="middle" x="177.66" y="-51.2" font-family="Times,serif" font-size="14.00">barTask</text>
 </g>
 <!-- Qux#bazHelper&#45;&gt;barTask -->
 <g id="edge1" class="edge">
-<title>Qux#bazHelper&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M90.97,-86.08C105.42,-80.91 122.29,-74.86 137.23,-69.52"/>
-<polygon fill="black" stroke="black" points="138.49,-72.78 146.73,-66.12 136.13,-66.19 138.49,-72.78"/>
+<title>Qux#bazHelper-&gt;barTask</title>
+<path fill="none" stroke="black" d="M90.97,-86.08C105.42,-80.91 122.29,-74.86 137.23,-69.52"></path>
+<polygon fill="black" stroke="black" points="138.49,-72.78 146.73,-66.12 136.13,-66.19 138.49,-72.78"></polygon>
 </g>
 <!-- Qux#&lt;init&gt; -->
 <g id="node3" class="node">
 <title>Qux#&lt;init&gt;</title>
-<polygon fill="none" stroke="black" points="96.13,-67.7 14.99,-67.7 14.99,-43.1 96.13,-43.1 96.13,-67.7"/>
+<polygon fill="none" stroke="black" points="96.13,-67.7 14.99,-67.7 14.99,-43.1 96.13,-43.1 96.13,-67.7"></polygon>
 <text text-anchor="middle" x="55.56" y="-51.2" font-family="Times,serif" font-size="14.00">Qux#&lt;init&gt;</text>
 </g>
 <!-- Qux#&lt;init&gt;&#45;&gt;barTask -->
 <g id="edge2" class="edge">
-<title>Qux#&lt;init&gt;&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M96.22,-55.4C109.26,-55.4 123.77,-55.4 136.83,-55.4"/>
-<polygon fill="black" stroke="black" points="136.94,-58.9 146.94,-55.4 136.94,-51.9 136.94,-58.9"/>
+<title>Qux#&lt;init&gt;-&gt;barTask</title>
+<path fill="none" stroke="black" d="M96.22,-55.4C109.26,-55.4 123.77,-55.4 136.83,-55.4"></path>
+<polygon fill="black" stroke="black" points="136.94,-58.9 146.94,-55.4 136.94,-51.9 136.94,-58.9"></polygon>
 </g>
 <!-- enclosing#&lt;init&gt; -->
 <g id="node4" class="node">
 <title>enclosing#&lt;init&gt;</title>
-<polygon fill="none" stroke="black" points="111.17,-24.7 -0.06,-24.7 -0.06,-0.1 111.17,-0.1 111.17,-24.7"/>
+<polygon fill="none" stroke="black" points="111.17,-24.7 -0.06,-24.7 -0.06,-0.1 111.17,-0.1 111.17,-24.7"></polygon>
 <text text-anchor="middle" x="55.56" y="-8.2" font-family="Times,serif" font-size="14.00">enclosing#&lt;init&gt;</text>
 </g>
 <!-- enclosing#&lt;init&gt;&#45;&gt;barTask -->
 <g id="edge3" class="edge">
-<title>enclosing#&lt;init&gt;&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M90.97,-24.72C105.42,-29.89 122.29,-35.94 137.23,-41.28"/>
-<polygon fill="black" stroke="black" points="136.13,-44.61 146.73,-44.68 138.49,-38.02 136.13,-44.61"/>
+<title>enclosing#&lt;init&gt;-&gt;barTask</title>
+<path fill="none" stroke="black" d="M90.97,-24.72C105.42,-29.89 122.29,-35.94 137.23,-41.28"></path>
+<polygon fill="black" stroke="black" points="136.13,-44.61 146.73,-44.68 138.49,-38.02 136.13,-44.61"></polygon>
 </g>
 </g>
 </svg>
@@ -1088,7 +1082,7 @@ class Qux2(prefix: String) extends Qux {
 }
 
 def barTask = Task{
-  val qux: Qux = if (math.random() &gt; 0.5) new Qux1("!") else new Qux2("!")
+  val qux: Qux = if (math.random() &gt; 0.5) new Qux1(&quot;!&quot;) else new Qux2(&quot;!&quot;)
   qux.bazHelper(os.read(barSource().path))
 }</code></pre>
 </div>
@@ -1127,7 +1121,7 @@ implements that method that is <em>instantiated and passed to this specific call
 potential entrypoint, and find all classes instantiated across your build codebase in one pass.
 This is less precise than running the analysis separately for every <code>Task</code> that <em>Rapid Type
 Analysis</em> would require, but is more precise than a naive <em>Class Hierarchy Analysis</em> that
-doesn&#8217;t consider whether a class is instantiated or not.</p>
+doesn’t consider whether a class is instantiated or not.</p>
 </div>
 <div class="paragraph">
 <p>For example, in the snippet below,
@@ -1154,83 +1148,82 @@ class Qux3(prefixSuffix: String) extends Qux {
 }
 
 def barTask = Task{
-  val qux: Qux = if (math.random() &gt; 0.5) new Qux1("!") else new Qux2("!")
+  val qux: Qux = if (math.random() &gt; 0.5) new Qux1(&quot;!&quot;) else new Qux2(&quot;!&quot;)
   qux.bazHelper(os.read(barSource().path))
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <center>
-<svg width="357px" height="140px"
- viewBox="0.00 0.00 357.33 139.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="357px" height="140px" viewBox="0.00 0.00 357.33 139.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 135.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-135.8 353.33,-135.8 353.33,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-135.8 353.33,-135.8 353.33,4 -4,4"></polygon>
 <!-- Qux#bazHelper -->
 <g id="node1" class="node">
 <title>Qux#bazHelper</title>
-<polygon fill="none" stroke="black" points="252.06,-45.7 147.81,-45.7 147.81,-21.1 252.06,-21.1 252.06,-45.7"/>
+<polygon fill="none" stroke="black" points="252.06,-45.7 147.81,-45.7 147.81,-21.1 252.06,-21.1 252.06,-45.7"></polygon>
 <text text-anchor="middle" x="199.93" y="-29.2" font-family="Times,serif" font-size="14.00">Qux#bazHelper</text>
 </g>
 <!-- barTask -->
 <g id="node2" class="node">
 <title>barTask</title>
-<polygon fill="none" stroke="black" points="349.38,-88.7 288.2,-88.7 288.2,-64.1 349.38,-64.1 349.38,-88.7"/>
+<polygon fill="none" stroke="black" points="349.38,-88.7 288.2,-88.7 288.2,-64.1 349.38,-64.1 349.38,-88.7"></polygon>
 <text text-anchor="middle" x="318.79" y="-72.2" font-family="Times,serif" font-size="14.00">barTask</text>
 </g>
 <!-- Qux#bazHelper&#45;&gt;barTask -->
 <g id="edge1" class="edge">
-<title>Qux#bazHelper&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M234.42,-45.72C248.12,-50.76 264.07,-56.63 278.33,-61.88"/>
-<polygon fill="black" stroke="black" points="277.29,-65.23 287.88,-65.4 279.71,-58.66 277.29,-65.23"/>
+<title>Qux#bazHelper-&gt;barTask</title>
+<path fill="none" stroke="black" d="M234.42,-45.72C248.12,-50.76 264.07,-56.63 278.33,-61.88"></path>
+<polygon fill="black" stroke="black" points="277.29,-65.23 287.88,-65.4 279.71,-58.66 277.29,-65.23"></polygon>
 </g>
 <!-- Qux1#&lt;init&gt; -->
 <g id="node3" class="node">
 <title>Qux1#&lt;init&gt;</title>
-<polygon fill="none" stroke="black" points="244,-131.7 155.87,-131.7 155.87,-107.1 244,-107.1 244,-131.7"/>
+<polygon fill="none" stroke="black" points="244,-131.7 155.87,-131.7 155.87,-107.1 244,-107.1 244,-131.7"></polygon>
 <text text-anchor="middle" x="199.93" y="-115.2" font-family="Times,serif" font-size="14.00">Qux1#&lt;init&gt;</text>
 </g>
 <!-- Qux1#&lt;init&gt;&#45;&gt;barTask -->
 <g id="edge2" class="edge">
-<title>Qux1#&lt;init&gt;&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M234.42,-107.08C248.12,-102.04 264.07,-96.17 278.33,-90.92"/>
-<polygon fill="black" stroke="black" points="279.71,-94.14 287.88,-87.4 277.29,-87.57 279.71,-94.14"/>
+<title>Qux1#&lt;init&gt;-&gt;barTask</title>
+<path fill="none" stroke="black" d="M234.42,-107.08C248.12,-102.04 264.07,-96.17 278.33,-90.92"></path>
+<polygon fill="black" stroke="black" points="279.71,-94.14 287.88,-87.4 277.29,-87.57 279.71,-94.14"></polygon>
 </g>
 <!-- Qux2#&lt;init&gt; -->
 <g id="node4" class="node">
 <title>Qux2#&lt;init&gt;</title>
-<polygon fill="none" stroke="black" points="244,-88.7 155.87,-88.7 155.87,-64.1 244,-64.1 244,-88.7"/>
+<polygon fill="none" stroke="black" points="244,-88.7 155.87,-88.7 155.87,-64.1 244,-64.1 244,-88.7"></polygon>
 <text text-anchor="middle" x="199.93" y="-72.2" font-family="Times,serif" font-size="14.00">Qux2#&lt;init&gt;</text>
 </g>
 <!-- Qux2#&lt;init&gt;&#45;&gt;barTask -->
 <g id="edge3" class="edge">
-<title>Qux2#&lt;init&gt;&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M244.11,-76.4C255.15,-76.4 266.97,-76.4 277.83,-76.4"/>
-<polygon fill="black" stroke="black" points="277.9,-79.9 287.9,-76.4 277.9,-72.9 277.9,-79.9"/>
+<title>Qux2#&lt;init&gt;-&gt;barTask</title>
+<path fill="none" stroke="black" d="M244.11,-76.4C255.15,-76.4 266.97,-76.4 277.83,-76.4"></path>
+<polygon fill="black" stroke="black" points="277.9,-79.9 287.9,-76.4 277.9,-72.9 277.9,-79.9"></polygon>
 </g>
 <!-- Qux1#bazHelper -->
 <g id="node5" class="node">
 <title>Qux1#bazHelper</title>
-<polygon fill="none" stroke="black" points="111.43,-67.7 0.19,-67.7 0.19,-43.1 111.43,-43.1 111.43,-67.7"/>
+<polygon fill="none" stroke="black" points="111.43,-67.7 0.19,-67.7 0.19,-43.1 111.43,-43.1 111.43,-67.7"></polygon>
 <text text-anchor="middle" x="55.81" y="-51.2" font-family="Times,serif" font-size="14.00">Qux1#bazHelper</text>
 </g>
 <!-- Qux1#bazHelper&#45;&gt;Qux#bazHelper -->
 <g id="edge4" class="edge">
-<title>Qux1#bazHelper&#45;&gt;Qux#bazHelper</title>
-<path fill="none" stroke="black" d="M111.76,-46.89C120.18,-45.59 128.92,-44.24 137.47,-42.91"/>
-<polygon fill="black" stroke="black" points="138.05,-46.37 147.39,-41.38 136.98,-39.45 138.05,-46.37"/>
+<title>Qux1#bazHelper-&gt;Qux#bazHelper</title>
+<path fill="none" stroke="black" d="M111.76,-46.89C120.18,-45.59 128.92,-44.24 137.47,-42.91"></path>
+<polygon fill="black" stroke="black" points="138.05,-46.37 147.39,-41.38 136.98,-39.45 138.05,-46.37"></polygon>
 </g>
 <!-- Qux2#bazHelper -->
 <g id="node6" class="node">
 <title>Qux2#bazHelper</title>
-<polygon fill="none" stroke="black" points="111.43,-24.7 0.19,-24.7 0.19,-0.1 111.43,-0.1 111.43,-24.7"/>
+<polygon fill="none" stroke="black" points="111.43,-24.7 0.19,-24.7 0.19,-0.1 111.43,-0.1 111.43,-24.7"></polygon>
 <text text-anchor="middle" x="55.81" y="-8.2" font-family="Times,serif" font-size="14.00">Qux2#bazHelper</text>
 </g>
 <!-- Qux2#bazHelper&#45;&gt;Qux#bazHelper -->
 <g id="edge5" class="edge">
-<title>Qux2#bazHelper&#45;&gt;Qux#bazHelper</title>
-<path fill="none" stroke="black" d="M111.76,-20.52C120.18,-21.76 128.92,-23.05 137.47,-24.32"/>
-<polygon fill="black" stroke="black" points="136.99,-27.79 147.39,-25.78 138.01,-20.86 136.99,-27.79"/>
+<title>Qux2#bazHelper-&gt;Qux#bazHelper</title>
+<path fill="none" stroke="black" d="M111.76,-20.52C120.18,-21.76 128.92,-23.05 137.47,-24.32"></path>
+<polygon fill="black" stroke="black" points="136.99,-27.79 147.39,-25.78 138.01,-20.86 136.99,-27.79"></polygon>
 </g>
 </g>
 </svg>
@@ -1246,7 +1239,7 @@ def barTask = Task{
 <div class="sect2">
 <h3 id="_library_methods"><a class="anchor" href="#_library_methods"></a>Library Methods</h3>
 <div class="paragraph">
-<p>Performance is a big constraint in Mill&#8217;s analysis. In particular, we don&#8217;t want to have
+<p>Performance is a big constraint in Mill’s analysis. In particular, we don’t want to have
 to analyze the entire Java or Scala standard libraries, because that would be very
 expensive. Mill thus only constructs a call graph for code written and compiled locally
 as part of your build, modelling upstream libraries in a simplified fashion
@@ -1275,7 +1268,7 @@ those objects. Consider the following case:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">class MyException extends Exception{
-  override def printStackTrace(ps: java.io.PrintStream) = {ps.println("dummy")}
+  override def printStackTrace(ps: java.io.PrintStream) = {ps.println(&quot;dummy&quot;)}
 }
 
 class MyOutputStream extends java.io.OutputStream{ def write(b: Int) = println(b) }
@@ -1311,88 +1304,87 @@ from here</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="499px" height="162px"
- viewBox="0.00 0.00 498.86 161.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="499px" height="162px" viewBox="0.00 0.00 498.86 161.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 157.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-157.8 494.86,-157.8 494.86,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-157.8 494.86,-157.8 494.86,4 -4,4"></polygon>
 <!-- MyException#&lt;init&gt; -->
 <g id="node1" class="node">
 <title>MyException#&lt;init&gt;</title>
-<polygon fill="none" stroke="black" points="375.86,-153.7 242.52,-153.7 242.52,-129.1 375.86,-129.1 375.86,-153.7"/>
+<polygon fill="none" stroke="black" points="375.86,-153.7 242.52,-153.7 242.52,-129.1 375.86,-129.1 375.86,-153.7"></polygon>
 <text text-anchor="middle" x="309.19" y="-137.2" font-family="Times,serif" font-size="14.00">MyException#&lt;init&gt;</text>
 </g>
 <!-- barTask -->
 <g id="node2" class="node">
 <title>barTask</title>
-<polygon fill="none" stroke="black" points="490.9,-88.7 429.73,-88.7 429.73,-64.1 490.9,-64.1 490.9,-88.7"/>
+<polygon fill="none" stroke="black" points="490.9,-88.7 429.73,-88.7 429.73,-64.1 490.9,-64.1 490.9,-88.7"></polygon>
 <text text-anchor="middle" x="460.32" y="-72.2" font-family="Times,serif" font-size="14.00">barTask</text>
 </g>
 <!-- MyException#&lt;init&gt;&#45;&gt;barTask -->
 <g id="edge1" class="edge">
-<title>MyException#&lt;init&gt;&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M367.24,-129.03C376.29,-126.32 385.41,-123.12 393.77,-119.4 408.48,-112.85 423.59,-103.17 435.59,-94.66"/>
-<polygon fill="black" stroke="black" points="437.71,-97.44 443.73,-88.72 433.59,-91.79 437.71,-97.44"/>
+<title>MyException#&lt;init&gt;-&gt;barTask</title>
+<path fill="none" stroke="black" d="M367.24,-129.03C376.29,-126.32 385.41,-123.12 393.77,-119.4 408.48,-112.85 423.59,-103.17 435.59,-94.66"></path>
+<polygon fill="black" stroke="black" points="437.71,-97.44 443.73,-88.72 433.59,-91.79 437.71,-97.44"></polygon>
 </g>
 <!-- MyOutputStream#&lt;init&gt; -->
 <g id="node3" class="node">
 <title>MyOutputStream#&lt;init&gt;</title>
-<polygon fill="none" stroke="black" points="387.14,-110.7 231.24,-110.7 231.24,-86.1 387.14,-86.1 387.14,-110.7"/>
+<polygon fill="none" stroke="black" points="387.14,-110.7 231.24,-110.7 231.24,-86.1 387.14,-86.1 387.14,-110.7"></polygon>
 <text text-anchor="middle" x="309.19" y="-94.2" font-family="Times,serif" font-size="14.00">MyOutputStream#&lt;init&gt;</text>
 </g>
 <!-- MyOutputStream#&lt;init&gt;&#45;&gt;barTask -->
 <g id="edge2" class="edge">
-<title>MyOutputStream#&lt;init&gt;&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M386.94,-87.08C398.17,-85.42 409.33,-83.77 419.41,-82.29"/>
-<polygon fill="black" stroke="black" points="420.09,-85.72 429.47,-80.8 419.07,-78.8 420.09,-85.72"/>
+<title>MyOutputStream#&lt;init&gt;-&gt;barTask</title>
+<path fill="none" stroke="black" d="M386.94,-87.08C398.17,-85.42 409.33,-83.77 419.41,-82.29"></path>
+<polygon fill="black" stroke="black" points="420.09,-85.72 429.47,-80.8 419.07,-78.8 420.09,-85.72"></polygon>
 </g>
 <!-- PrintStream#&lt;init&gt; -->
 <g id="node4" class="node">
 <title>PrintStream#&lt;init&gt;</title>
-<polygon fill="none" stroke="black" points="371.53,-67.7 246.85,-67.7 246.85,-43.1 371.53,-43.1 371.53,-67.7"/>
+<polygon fill="none" stroke="black" points="371.53,-67.7 246.85,-67.7 246.85,-43.1 371.53,-43.1 371.53,-67.7"></polygon>
 <text text-anchor="middle" x="309.19" y="-51.2" font-family="Times,serif" font-size="14.00">PrintStream#&lt;init&gt;</text>
 </g>
 <!-- PrintStream#&lt;init&gt;&#45;&gt;barTask -->
 <g id="edge3" class="edge">
-<title>PrintStream#&lt;init&gt;&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M371.71,-64.06C387.85,-66.34 404.83,-68.73 419.5,-70.79"/>
-<polygon fill="black" stroke="black" points="419.34,-74.3 429.73,-72.23 420.31,-67.37 419.34,-74.3"/>
+<title>PrintStream#&lt;init&gt;-&gt;barTask</title>
+<path fill="none" stroke="black" d="M371.71,-64.06C387.85,-66.34 404.83,-68.73 419.5,-70.79"></path>
+<polygon fill="black" stroke="black" points="419.34,-74.3 429.73,-72.23 420.31,-67.37 419.34,-74.3"></polygon>
 </g>
 <!-- Exception#printStackTrace -->
 <g id="node5" class="node">
 <title>Exception#printStackTrace</title>
-<polygon fill="none" stroke="black" points="393.86,-24.7 224.53,-24.7 224.53,-0.1 393.86,-0.1 393.86,-24.7"/>
+<polygon fill="none" stroke="black" points="393.86,-24.7 224.53,-24.7 224.53,-0.1 393.86,-0.1 393.86,-24.7"></polygon>
 <text text-anchor="middle" x="309.19" y="-8.2" font-family="Times,serif" font-size="14.00">Exception#printStackTrace</text>
 </g>
 <!-- Exception#printStackTrace&#45;&gt;barTask -->
 <g id="edge4" class="edge">
-<title>Exception#printStackTrace&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M366.76,-24.71C375.96,-27.44 385.25,-30.66 393.77,-34.4 408.07,-40.68 422.82,-49.84 434.69,-58.01"/>
-<polygon fill="black" stroke="black" points="432.97,-61.08 443.16,-64 437.01,-55.37 432.97,-61.08"/>
+<title>Exception#printStackTrace-&gt;barTask</title>
+<path fill="none" stroke="black" d="M366.76,-24.71C375.96,-27.44 385.25,-30.66 393.77,-34.4 408.07,-40.68 422.82,-49.84 434.69,-58.01"></path>
+<polygon fill="black" stroke="black" points="432.97,-61.08 443.16,-64 437.01,-55.37 432.97,-61.08"></polygon>
 </g>
 <!-- MyOutputStream#write -->
 <g id="node6" class="node">
 <title>MyOutputStream#write</title>
-<polygon fill="none" stroke="black" points="169.05,-67.7 19.56,-67.7 19.56,-43.1 169.05,-43.1 169.05,-67.7"/>
+<polygon fill="none" stroke="black" points="169.05,-67.7 19.56,-67.7 19.56,-43.1 169.05,-43.1 169.05,-67.7"></polygon>
 <text text-anchor="middle" x="94.3" y="-51.2" font-family="Times,serif" font-size="14.00">MyOutputStream#write</text>
 </g>
 <!-- MyOutputStream#write&#45;&gt;PrintStream#&lt;init&gt; -->
 <g id="edge5" class="edge">
-<title>MyOutputStream#write&#45;&gt;PrintStream#&lt;init&gt;</title>
-<path fill="none" stroke="black" d="M169.16,-55.4C191.04,-55.4 214.95,-55.4 236.67,-55.4"/>
-<polygon fill="black" stroke="black" points="236.81,-58.9 246.81,-55.4 236.81,-51.9 236.81,-58.9"/>
+<title>MyOutputStream#write-&gt;PrintStream#&lt;init&gt;</title>
+<path fill="none" stroke="black" d="M169.16,-55.4C191.04,-55.4 214.95,-55.4 236.67,-55.4"></path>
+<polygon fill="black" stroke="black" points="236.81,-58.9 246.81,-55.4 236.81,-51.9 236.81,-58.9"></polygon>
 </g>
 <!-- MyException#printStackTrace -->
 <g id="node7" class="node">
 <title>MyException#printStackTrace</title>
-<polygon fill="none" stroke="black" points="188.41,-24.7 0.2,-24.7 0.2,-0.1 188.41,-0.1 188.41,-24.7"/>
+<polygon fill="none" stroke="black" points="188.41,-24.7 0.2,-24.7 0.2,-0.1 188.41,-0.1 188.41,-24.7"></polygon>
 <text text-anchor="middle" x="94.3" y="-8.2" font-family="Times,serif" font-size="14.00">MyException#printStackTrace</text>
 </g>
 <!-- MyException#printStackTrace&#45;&gt;Exception#printStackTrace -->
 <g id="edge6" class="edge">
-<title>MyException#printStackTrace&#45;&gt;Exception#printStackTrace</title>
-<path fill="none" stroke="black" d="M188.68,-12.4C197.27,-12.4 205.98,-12.4 214.57,-12.4"/>
-<polygon fill="black" stroke="black" points="214.6,-15.9 224.6,-12.4 214.6,-8.9 214.6,-15.9"/>
+<title>MyException#printStackTrace-&gt;Exception#printStackTrace</title>
+<path fill="none" stroke="black" d="M188.68,-12.4C197.27,-12.4 205.98,-12.4 214.57,-12.4"></path>
+<polygon fill="black" stroke="black" points="214.6,-15.9 224.6,-12.4 214.6,-8.9 214.6,-15.9"></polygon>
 </g>
 </g>
 </svg>
@@ -1400,19 +1392,19 @@ from here</p>
 </center>
 </div>
 <div class="paragraph">
-<p>Since Mill does not do <em>Points-To Analysis</em> or other <em>Data-flow Analyses</em>, it isn&#8217;t able
+<p>Since Mill does not do <em>Points-To Analysis</em> or other <em>Data-flow Analyses</em>, it isn’t able
 to determine that the value <code>ex</code> is of class <code>MyException</code>, or that the value <code>stream</code>
 is of class <code>MyOutputStream</code>, and so it must treat them broadly as <code>Exception</code> and <code>OutputStream</code>
 instances that could be of any sub-class. This may result in false positives with Mill treating method as callable
-when it really isn&#8217;t, invalidating more caches than it needs to, but it will never result in
+when it really isn’t, invalidating more caches than it needs to, but it will never result in
 Mill missing a potential call and failing to invalidate a task cache when it should have done so.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_lambdas_and_single_abstract_methods"><a class="anchor" href="#_lambdas_and_single_abstract_methods"></a>Lambdas and Single-Abstract-Methods</h3>
 <div class="paragraph">
-<p>Mill special-cases handling of inline functions (e.g. <code>() &#8658; &#8230;&#8203;</code>) and single-abstract method
-instances (e.g. <code>new Runnable{ def run() = &#8230;&#8203; }</code>) and treats them as if they were called
+<p>Mill special-cases handling of inline functions (e.g. <code>() ⇒ ...​</code>) and single-abstract method
+instances (e.g. <code>new Runnable{ def run() = ...​ }</code>) and treats them as if they were called
 immediately at their definition site.</p>
 </div>
 <div class="paragraph">
@@ -1430,13 +1422,13 @@ where <code>fooTask</code> calls <code>fooHelper</code> in a lambda, and <code>b
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def fooHelper(s: String) = s.toLowerCase
 def fooTask = Task{
-  println("evaluating fooTask")
+  println(&quot;evaluating fooTask&quot;)
   os.read.lines(fooSource().path).map(s =&gt; fooHelper(s))
 }
 
 def barHelper(s: String) = s.toUpperCase
 def barTask = Task{
-  println("evaluating barTask")
+  println(&quot;evaluating barTask&quot;)
   os.read.lines(barSource().path).map(s =&gt; barHelper(s))
 }</code></pre>
 </div>
@@ -1462,64 +1454,63 @@ every lambda. This is conservatively correct, but imprecise enough to be useless
 </div>
 <div class="paragraph">
 <center>
-<svg width="326px" height="76px"
- viewBox="0.00 0.00 325.50 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="326px" height="76px" viewBox="0.00 0.00 325.50 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 321.5,-71.8 321.5,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 321.5,-71.8 321.5,4 -4,4"></polygon>
 <!-- fooHelper -->
 <g id="node1" class="node">
 <title>fooHelper</title>
-<polygon fill="none" stroke="black" points="72.62,-67.7 0.13,-67.7 0.13,-43.1 72.62,-43.1 72.62,-67.7"/>
+<polygon fill="none" stroke="black" points="72.62,-67.7 0.13,-67.7 0.13,-43.1 72.62,-43.1 72.62,-67.7"></polygon>
 <text text-anchor="middle" x="36.37" y="-51.2" font-family="Times,serif" font-size="14.00">fooHelper</text>
 </g>
 <!-- Function0#apply -->
 <g id="node2" class="node">
 <title>Function0#apply</title>
-<polygon fill="none" stroke="black" points="219.57,-45.7 108.81,-45.7 108.81,-21.1 219.57,-21.1 219.57,-45.7"/>
+<polygon fill="none" stroke="black" points="219.57,-45.7 108.81,-45.7 108.81,-21.1 219.57,-21.1 219.57,-45.7"></polygon>
 <text text-anchor="middle" x="164.19" y="-29.2" font-family="Times,serif" font-size="14.00">Function0#apply</text>
 </g>
 <!-- fooHelper&#45;&gt;Function0#apply -->
 <g id="edge1" class="edge">
-<title>fooHelper&#45;&gt;Function0#apply</title>
-<path fill="none" stroke="black" d="M72.76,-49.21C80.89,-47.79 89.78,-46.24 98.72,-44.67"/>
-<polygon fill="black" stroke="black" points="99.55,-48.08 108.8,-42.91 98.34,-41.19 99.55,-48.08"/>
+<title>fooHelper-&gt;Function0#apply</title>
+<path fill="none" stroke="black" d="M72.76,-49.21C80.89,-47.79 89.78,-46.24 98.72,-44.67"></path>
+<polygon fill="black" stroke="black" points="99.55,-48.08 108.8,-42.91 98.34,-41.19 99.55,-48.08"></polygon>
 </g>
 <!-- fooTask -->
 <g id="node3" class="node">
 <title>fooTask</title>
-<polygon fill="none" stroke="black" points="317.44,-67.7 255.69,-67.7 255.69,-43.1 317.44,-43.1 317.44,-67.7"/>
+<polygon fill="none" stroke="black" points="317.44,-67.7 255.69,-67.7 255.69,-43.1 317.44,-43.1 317.44,-67.7"></polygon>
 <text text-anchor="middle" x="286.57" y="-51.2" font-family="Times,serif" font-size="14.00">fooTask</text>
 </g>
 <!-- Function0#apply&#45;&gt;fooTask -->
 <g id="edge2" class="edge">
-<title>Function0#apply&#45;&gt;fooTask</title>
-<path fill="none" stroke="black" d="M219.74,-43.37C228.4,-44.95 237.22,-46.56 245.47,-48.07"/>
-<polygon fill="black" stroke="black" points="245.09,-51.56 255.56,-49.92 246.35,-44.67 245.09,-51.56"/>
+<title>Function0#apply-&gt;fooTask</title>
+<path fill="none" stroke="black" d="M219.74,-43.37C228.4,-44.95 237.22,-46.56 245.47,-48.07"></path>
+<polygon fill="black" stroke="black" points="245.09,-51.56 255.56,-49.92 246.35,-44.67 245.09,-51.56"></polygon>
 </g>
 <!-- barTask -->
 <g id="node5" class="node">
 <title>barTask</title>
-<polygon fill="none" stroke="black" points="317.15,-24.7 255.98,-24.7 255.98,-0.1 317.15,-0.1 317.15,-24.7"/>
+<polygon fill="none" stroke="black" points="317.15,-24.7 255.98,-24.7 255.98,-0.1 317.15,-0.1 317.15,-24.7"></polygon>
 <text text-anchor="middle" x="286.57" y="-8.2" font-family="Times,serif" font-size="14.00">barTask</text>
 </g>
 <!-- Function0#apply&#45;&gt;barTask -->
 <g id="edge4" class="edge">
-<title>Function0#apply&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M219.74,-23.88C228.59,-22.34 237.6,-20.77 246,-19.3"/>
-<polygon fill="black" stroke="black" points="246.64,-22.74 255.89,-17.58 245.44,-15.85 246.64,-22.74"/>
+<title>Function0#apply-&gt;barTask</title>
+<path fill="none" stroke="black" d="M219.74,-23.88C228.59,-22.34 237.6,-20.77 246,-19.3"></path>
+<polygon fill="black" stroke="black" points="246.64,-22.74 255.89,-17.58 245.44,-15.85 246.64,-22.74"></polygon>
 </g>
 <!-- barHelper -->
 <g id="node4" class="node">
 <title>barHelper</title>
-<polygon fill="none" stroke="black" points="72.34,-24.7 0.41,-24.7 0.41,-0.1 72.34,-0.1 72.34,-24.7"/>
+<polygon fill="none" stroke="black" points="72.34,-24.7 0.41,-24.7 0.41,-0.1 72.34,-0.1 72.34,-24.7"></polygon>
 <text text-anchor="middle" x="36.37" y="-8.2" font-family="Times,serif" font-size="14.00">barHelper</text>
 </g>
 <!-- barHelper&#45;&gt;Function0#apply -->
 <g id="edge3" class="edge">
-<title>barHelper&#45;&gt;Function0#apply</title>
-<path fill="none" stroke="black" d="M72.42,-18.25C80.56,-19.61 89.47,-21.1 98.44,-22.59"/>
-<polygon fill="black" stroke="black" points="98.1,-26.08 108.54,-24.28 99.25,-19.18 98.1,-26.08"/>
+<title>barHelper-&gt;Function0#apply</title>
+<path fill="none" stroke="black" d="M72.42,-18.25C80.56,-19.61 89.47,-21.1 98.44,-22.59"></path>
+<polygon fill="black" stroke="black" points="98.1,-26.08 108.54,-24.28 99.25,-19.18 98.1,-26.08"></polygon>
 </g>
 </g>
 </svg>
@@ -1530,51 +1521,50 @@ every lambda. This is conservatively correct, but imprecise enough to be useless
 <p>As a compromise, for lambdas and SAM types, we instead use the other heuristic: we instead
 consider them called <em>once they are instantiated</em>, ignoring whether or not there is a callsite.
 This is still conservatively correct, and can still have false positives if someone instantiates
-a lambda or SAM they never call. But people generally don&#8217;t do that, and so empirically it
+a lambda or SAM they never call. But people generally don’t do that, and so empirically it
 provides a much more precise callgraph.</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="179px" height="76px"
- viewBox="0.00 0.00 178.62 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="179px" height="76px" viewBox="0.00 0.00 178.62 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 174.62,-71.8 174.62,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 174.62,-71.8 174.62,4 -4,4"></polygon>
 <!-- fooHelper -->
 <g id="node1" class="node">
 <title>fooHelper</title>
-<polygon fill="none" stroke="black" points="72.62,-24.7 0.13,-24.7 0.13,-0.1 72.62,-0.1 72.62,-24.7"/>
+<polygon fill="none" stroke="black" points="72.62,-24.7 0.13,-24.7 0.13,-0.1 72.62,-0.1 72.62,-24.7"></polygon>
 <text text-anchor="middle" x="36.37" y="-8.2" font-family="Times,serif" font-size="14.00">fooHelper</text>
 </g>
 <!-- fooTask -->
 <g id="node2" class="node">
 <title>fooTask</title>
-<polygon fill="none" stroke="black" points="170.56,-24.7 108.81,-24.7 108.81,-0.1 170.56,-0.1 170.56,-24.7"/>
+<polygon fill="none" stroke="black" points="170.56,-24.7 108.81,-24.7 108.81,-0.1 170.56,-0.1 170.56,-24.7"></polygon>
 <text text-anchor="middle" x="139.68" y="-8.2" font-family="Times,serif" font-size="14.00">fooTask</text>
 </g>
 <!-- fooHelper&#45;&gt;fooTask -->
 <g id="edge1" class="edge">
-<title>fooHelper&#45;&gt;fooTask</title>
-<path fill="none" stroke="black" d="M72.81,-12.4C81.08,-12.4 89.96,-12.4 98.42,-12.4"/>
-<polygon fill="black" stroke="black" points="98.48,-15.9 108.48,-12.4 98.48,-8.9 98.48,-15.9"/>
+<title>fooHelper-&gt;fooTask</title>
+<path fill="none" stroke="black" d="M72.81,-12.4C81.08,-12.4 89.96,-12.4 98.42,-12.4"></path>
+<polygon fill="black" stroke="black" points="98.48,-15.9 108.48,-12.4 98.48,-8.9 98.48,-15.9"></polygon>
 </g>
 <!-- barHelper -->
 <g id="node3" class="node">
 <title>barHelper</title>
-<polygon fill="none" stroke="black" points="72.34,-67.7 0.41,-67.7 0.41,-43.1 72.34,-43.1 72.34,-67.7"/>
+<polygon fill="none" stroke="black" points="72.34,-67.7 0.41,-67.7 0.41,-43.1 72.34,-43.1 72.34,-67.7"></polygon>
 <text text-anchor="middle" x="36.37" y="-51.2" font-family="Times,serif" font-size="14.00">barHelper</text>
 </g>
 <!-- barTask -->
 <g id="node4" class="node">
 <title>barTask</title>
-<polygon fill="none" stroke="black" points="170.27,-67.7 109.1,-67.7 109.1,-43.1 170.27,-43.1 170.27,-67.7"/>
+<polygon fill="none" stroke="black" points="170.27,-67.7 109.1,-67.7 109.1,-43.1 170.27,-43.1 170.27,-67.7"></polygon>
 <text text-anchor="middle" x="139.68" y="-51.2" font-family="Times,serif" font-size="14.00">barTask</text>
 </g>
 <!-- barHelper&#45;&gt;barTask -->
 <g id="edge2" class="edge">
-<title>barHelper&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M72.52,-55.4C80.97,-55.4 90.06,-55.4 98.71,-55.4"/>
-<polygon fill="black" stroke="black" points="98.98,-58.9 108.98,-55.4 98.98,-51.9 98.98,-58.9"/>
+<title>barHelper-&gt;barTask</title>
+<path fill="none" stroke="black" d="M72.52,-55.4C80.97,-55.4 90.06,-55.4 98.71,-55.4"></path>
+<polygon fill="black" stroke="black" points="98.98,-58.9 108.98,-55.4 98.98,-51.9 98.98,-58.9"></polygon>
 </g>
 </g>
 </svg>
@@ -1619,20 +1609,20 @@ turns out to be a fine assumption to make.</p>
 <div class="paragraph">
 <p>The biggest limitation of using method <em>callgraph analysis</em> to detect code changes affecting
 tasks is the lack of <em>dataflow analysis</em>: we are simply aggregating all methods that get
-called (transitively) by a task, but we don&#8217;t actually know if those methods actually
+called (transitively) by a task, but we don’t actually know if those methods actually
 affect the task output. For example, consider the following snippet:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def barSource = Task.Source("bar.txt")
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def barSource = Task.Source(&quot;bar.txt&quot;)
 class Qux(suffix0: String) {
   val suffix = suffix0 + suffix0 + suffix0
   def bazHelper(s: String) = s.toUpperCase + suffix
 }
 
 def barTask = Task{
-  println("evaluating barTask")
-  val qux = new Qux("!")
+  println(&quot;evaluating barTask&quot;)
+  val qux = new Qux(&quot;!&quot;)
   qux.bazHelper(os.read(barSource().path))
 } // BAR.TXT CONTENTS!!!</code></pre>
 </div>
@@ -1644,12 +1634,12 @@ def barTask = Task{
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">  public Qux(java.lang.String);
        0: aload_0
-       1: invokespecial #13         // Method java/lang/Object."&lt;init&gt;":()V
+       1: invokespecial #13         // Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V
        4: aload_0
        5: new           #15         // class java/lang/StringBuilder
        8: dup
        9: ldc           #16         // int 0
-      11: invokespecial #19         // Method java/lang/StringBuilder."&lt;init&gt;":(I)V
+      11: invokespecial #19         // Method java/lang/StringBuilder.&quot;&lt;init&gt;&quot;:(I)V
       14: aload_1
       15: invokevirtual #23         // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
       18: aload_1
@@ -1680,12 +1670,12 @@ def barTask = Task{
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff">  public Qux(java.lang.String);
        0: aload_0
-       1: invokespecial #14         // Method java/lang/Object."&lt;init&gt;":()V
+       1: invokespecial #14         // Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V
        4: aload_0
        5: new           #16         // class java/lang/StringBuilder
        8: dup
        9: ldc           #17         // int 0
-      11: invokespecial #20         // Method java/lang/StringBuilder."&lt;init&gt;":(I)V
+      11: invokespecial #20         // Method java/lang/StringBuilder.&quot;&lt;init&gt;&quot;:(I)V
       14: aload_1
       15: invokevirtual #24         // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
       18: aload_1
@@ -1705,40 +1695,39 @@ def barTask = Task{
 </div>
 <div class="paragraph">
 <center>
-<svg width="210px" height="76px"
- viewBox="0.00 0.00 209.71 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="210px" height="76px" viewBox="0.00 0.00 209.71 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 205.71,-71.8 205.71,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 205.71,-71.8 205.71,4 -4,4"></polygon>
 <!-- Qux#bazHelper -->
 <g id="node1" class="node">
 <title>Qux#bazHelper</title>
-<polygon fill="none" stroke="black" points="104.43,-67.7 0.19,-67.7 0.19,-43.1 104.43,-43.1 104.43,-67.7"/>
+<polygon fill="none" stroke="black" points="104.43,-67.7 0.19,-67.7 0.19,-43.1 104.43,-43.1 104.43,-67.7"></polygon>
 <text text-anchor="middle" x="52.31" y="-51.2" font-family="Times,serif" font-size="14.00">Qux#bazHelper</text>
 </g>
 <!-- barTask -->
 <g id="node2" class="node">
 <title>barTask</title>
-<polygon fill="none" stroke="red" stroke-width="3" points="201.75,-45.7 140.58,-45.7 140.58,-21.1 201.75,-21.1 201.75,-45.7"/>
+<polygon fill="none" stroke="red" stroke-width="3" points="201.75,-45.7 140.58,-45.7 140.58,-21.1 201.75,-21.1 201.75,-45.7"></polygon>
 <text text-anchor="middle" x="171.17" y="-29.2" font-family="Times,serif" font-size="14.00">barTask</text>
 </g>
 <!-- Qux#bazHelper&#45;&gt;barTask -->
 <g id="edge1" class="edge">
-<title>Qux#bazHelper&#45;&gt;barTask</title>
-<path fill="none" stroke="black" d="M104.57,-45.75C113.29,-44.11 122.22,-42.43 130.58,-40.85"/>
-<polygon fill="black" stroke="black" points="131.26,-44.29 140.44,-39 129.96,-37.41 131.26,-44.29"/>
+<title>Qux#bazHelper-&gt;barTask</title>
+<path fill="none" stroke="black" d="M104.57,-45.75C113.29,-44.11 122.22,-42.43 130.58,-40.85"></path>
+<polygon fill="black" stroke="black" points="131.26,-44.29 140.44,-39 129.96,-37.41 131.26,-44.29"></polygon>
 </g>
 <!-- Qux#&lt;init&gt; -->
 <g id="node3" class="node">
 <title>Qux#&lt;init&gt;</title>
-<polygon fill="none" stroke="red" stroke-width="3" points="92.88,-24.7 11.74,-24.7 11.74,-0.1 92.88,-0.1 92.88,-24.7"/>
+<polygon fill="none" stroke="red" stroke-width="3" points="92.88,-24.7 11.74,-24.7 11.74,-0.1 92.88,-0.1 92.88,-24.7"></polygon>
 <text text-anchor="middle" x="52.31" y="-8.2" font-family="Times,serif" font-size="14.00">Qux#&lt;init&gt;</text>
 </g>
 <!-- Qux#&lt;init&gt;&#45;&gt;barTask -->
 <g id="edge2" class="edge">
-<title>Qux#&lt;init&gt;&#45;&gt;barTask</title>
-<path fill="none" stroke="red" stroke-width="3" d="M93.2,-19.57C105.17,-21.72 118.29,-24.08 130.26,-26.23"/>
-<polygon fill="red" stroke="red" stroke-width="3" points="129.96,-29.73 140.42,-28.05 131.19,-22.84 129.96,-29.73"/>
+<title>Qux#&lt;init&gt;-&gt;barTask</title>
+<path fill="none" stroke="red" stroke-width="3" d="M93.2,-19.57C105.17,-21.72 118.29,-24.08 130.26,-26.23"></path>
+<polygon fill="red" stroke="red" stroke-width="3" points="129.96,-29.73 140.42,-28.05 131.19,-22.84 129.96,-29.73"></polygon>
 </g>
 </g>
 </svg>
@@ -1748,7 +1737,7 @@ def barTask = Task{
 <div class="paragraph">
 <p>However, if you actually track the dataflow of the code, we would realize that
 the field <code>otherSuffix</code> is not used by <code>barTask</code> at all! Only <code>suffix</code> is used.
-Thus although our <code>Qux#&lt;init&gt;</code> was affected by the code change, <code>barTask</code> isn&#8217;t
+Thus although our <code>Qux#&lt;init&gt;</code> was affected by the code change, <code>barTask</code> isn’t
 actually affected, and so invalidating <code>barTask</code> and forcing a re-evaluation would
 be wasteful and unnecessary.</p>
 </div>
@@ -1772,17 +1761,17 @@ what method is actually being called:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def barSource = Task.Source("bar.txt")
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def barSource = Task.Source(&quot;bar.txt&quot;)
 class Qux(suffix0: String) {
   val suffix = suffix0 + suffix0 + suffix0
   def bazHelper(s: String) = s.toUpperCase + suffix
 }
 
 def barTask = Task{
-  println("evaluating barTask")
-  val qux = new Qux("!")
-  val b = "baz"
-  val h = "helper"
+  println(&quot;evaluating barTask&quot;)
+  val qux = new Qux(&quot;!&quot;)
+  val b = &quot;baz&quot;
+  val h = &quot;helper&quot;
   classOf[Qux]
     .getMethod(b + h.capitalize, classOf[String])
     .invoke(qux, os.read(barSource().path))
@@ -1823,12 +1812,12 @@ the methods in the program call each other.</p>
 <h3 id="_precision"><a class="anchor" href="#_precision"></a>Precision</h3>
 <div class="paragraph">
 <p>To test out how well this works in practice, I ran a number of manual tests to exercise
-the callgraph analysis, using Mill&#8217;s own Mill build as the test case.</p>
+the callgraph analysis, using Mill’s own Mill build as the test case.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Adding a whitespace at the top of <code>build.mill</code>, to offset everyone&#8217;s line numbers without changing their logic,
+<p>Adding a whitespace at the top of <code>build.mill</code>, to offset everyone’s line numbers without changing their logic,
 invalidates <code>16/8154</code> tasks, all downstream of <code>millVersion</code> which is invalidated by the dirty hash of
 the repo checkout changing</p>
 </li>
@@ -1846,7 +1835,7 @@ tasks, mostly stuff in <code>contrib.playlib.worker[_]</code></p>
 <li>
 <p>Changing a constant <code>Deps.scalaVersion</code> ends up invalidating ~<code>4343/8154</code> tasks. I skimmed through the
 results and they seem reasonable: all <code>.scalaVersion</code> and <code>.compile</code> tasks end up invalidated, while
-many external tasks aren&#8217;t invalidated because they don&#8217;t have any local code to be affected by the
+many external tasks aren’t invalidated because they don’t have any local code to be affected by the
 callgraph analysis and their upstream build graph is not affected by <code>Deps.scalaVersion</code> (e.g.
 <code>integration.test.javacOptions</code>,` contrib.codeartifact.mandatoryScalacOptions`)</p>
 </li>
@@ -1858,7 +1847,7 @@ Mill has <a href="#_no_data_flow_analysis">No Data Flow Analysis</a> to determin
 </ol>
 </div>
 <div class="paragraph">
-<p>In general, Mill&#8217;s fine-grained task invalidation via bytecode callgraph analysis
+<p>In general, Mill’s fine-grained task invalidation via bytecode callgraph analysis
 works as expected: in many cases where the change is trivial it is able to narrow down the
 effect of the change and reduce the number of tasks we need to invalidate, although for
 wide-ranging changes (e.g. <code>Deps.scalaVersion</code>) it still ends up invalidating a large number
@@ -1870,12 +1859,12 @@ which aggressively invalidated all caches on every single change, this was a big
 <div class="sect2">
 <h3 id="_performance"><a class="anchor" href="#_performance"></a>Performance</h3>
 <div class="paragraph">
-<p>Performance-wise, ad-hoc benchmarks on com-lihaoyi/mill&#8217;s own build show a
+<p>Performance-wise, ad-hoc benchmarks on com-lihaoyi/mill’s own build show a
 ~5% increase in <code>build.mill</code> compilation times due to the cost of the bytecode callgraph analysis.</p>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s callgraph analysis is written as a post-processing step on the <code>.class</code> files that are
-generated by the Scala compiler that Mill uses to compile it&#8217;s <code>build.mill</code> and <code>package.mill</code>
+<p>Mill’s callgraph analysis is written as a post-processing step on the <code>.class</code> files that are
+generated by the Scala compiler that Mill uses to compile it’s <code>build.mill</code> and <code>package.mill</code>
 files. The analysis computes a hash for every method representing its own implementation and that
 of transitively called methods, and saves that to a <code>methodCodeHashSignatures.json</code> file for
 the Mill evaluator to include in Task cache keys at runtime. Thus it is easy to separate
@@ -1883,9 +1872,9 @@ the time taken for each phase, which I have done below:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
+<col style="width: 33.3333%;" />
+<col style="width: 33.3333%;" />
+<col style="width: 33.3334%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -1919,7 +1908,7 @@ analysis can likely be further optimized in future if necessary.</p>
 <h2 id="_conclusion"><a class="anchor" href="#_conclusion"></a>Conclusion</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill&#8217;s callgraph bytecode analysis landed in <a href="https://github.com/com-lihaoyi/mill/pull/2417">#2417</a>
+<p>Mill’s callgraph bytecode analysis landed in <a href="https://github.com/com-lihaoyi/mill/pull/2417">#2417</a>
 in Mill <a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#0112---2023-08-28">0.11.2</a>.
 The implementation is surprisingly small: ~1k lines of code for the main implementation using
 the <a href="https://asm.ow2.io/">OW2 ASM library</a> for bytecode parsing, and ~6k lines
@@ -1928,8 +1917,8 @@ but since then it has worked great without any major issues.</p>
 </div>
 <div class="paragraph">
 <p>Although the callgraph analysis can be imprecise and sometimes unpredictable, as long as it
-is conservatively correct it won&#8217;t cause any semantic problems. Mill builds are already meant
-to be composed of pure build tasks, so a task re-evaluating spuriously won&#8217;t cause any behavioral
+is conservatively correct it won’t cause any semantic problems. Mill builds are already meant
+to be composed of pure build tasks, so a task re-evaluating spuriously won’t cause any behavioral
 changes other than having to wait slightly longer for your CLI commands to finish.</p>
 </div>
 <div class="paragraph">
@@ -1952,7 +1941,7 @@ the developer is making, and there is an <a href="https://github.com/com-lihaoyi
 <li>
 <p>Implementing data-flow analysis. As mentioned above, the fact that we only analyze callgraphs and not dataflow
 is a major weakness in this analysis, which results in a lot of spurious task invalidations. Dataflow analysis on
-JVM bytecode is very common, and an implementation would greatly increase the precision of Mill&#8217;s analysis</p>
+JVM bytecode is very common, and an implementation would greatly increase the precision of Mill’s analysis</p>
 </li>
 </ol>
 </div>
@@ -1967,9 +1956,9 @@ JVM bytecode is very common, and an implementation would greatly increase the pr
 </main>
 </div>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
-<script async src="../_/js/vendor/highlight.js"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>
 <script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
-<script async src="../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>

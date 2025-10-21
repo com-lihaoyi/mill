@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Strategies for Efficiently Parallelizing JVM Test Suites :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/blog/11-jvm-test-parallelism.html">
-    <link rel="prev" href="12-direct-style-build-tool.html">
-    <link rel="next" href="10-bytecode-callgraph-analysis.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/blog/11-jvm-test-parallelism.html" />
+    <link rel="prev" href="12-direct-style-build-tool.html" />
+    <link rel="next" href="10-bytecode-callgraph-analysis.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -247,7 +248,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/11-jvm-test-parallelism.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -268,7 +269,7 @@ practice can be challenging: a naive implementation can easily result in increas
 without any speedup, or even slow things down compared to running things on a single thread.</p>
 </div>
 <div class="paragraph">
-<p>This blog post will explore the design and evolution of the Mill JVM build tool&#8217;s test
+<p>This blog post will explore the design and evolution of the Mill JVM build tool’s test
 parallelism strategy, from its start as a simple serial test runner, to naive module-based and
 class-based sharding, to the dynamic sharding strategy implemented in the latest
 version of Mill 0.12.9. We will discuss the pros and cons of the different approaches to
@@ -293,7 +294,7 @@ tests as well. When asked to execute tasks, Mill would:</p>
 <p>Do a <a href="https://en.wikipedia.org/wiki/Breadth-first_search">breadth first search</a> on the task graph to find the full list of transitive tasks</p>
 </li>
 <li>
-<p>Sort the tasks in topological order using <a href="https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm">Tarjan&#8217;s Algorithm</a></p>
+<p>Sort the tasks in topological order using <a href="https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm">Tarjan’s Algorithm</a></p>
 </li>
 <li>
 <p>Execute the tasks in order one at a time, skipping those with earlier cached values it can re-use</p>
@@ -304,7 +305,7 @@ tests as well. When asked to execute tasks, Mill would:</p>
 </ol>
 </div>
 <div class="paragraph">
-<p>While this serial execution works fine, it&#8217;s unsatisfying in a world of modern
+<p>While this serial execution works fine, it’s unsatisfying in a world of modern
 computers each of which has anywhere from 8-16 CPU cores you can make use of. You may be
 waiting seconds or minutes for your tests to run on 1 CPU core while the other 9 cores are sitting idle.</p>
 </div>
@@ -351,163 +352,162 @@ on a simple example build with:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="742px" height="235px"
- viewBox="0.00 0.00 742.16 235.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="742px" height="235px" viewBox="0.00 0.00 742.16 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-231 738.16,-231 738.16,4 -4,4"/>
-<g id="clust1" class="cluster">
-<title>cluster_a</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 235.08,-219 235.08,-154 8,-154"/>
-<text text-anchor="middle" x="121.54" y="-202.4" font-family="Times,serif" font-size="14.00">ModuleA.test</text>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-231 738.16,-231 738.16,4 -4,4"></polygon>
+<g id="clust3" class="cluster">
+<title>cluster_c</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-73 726.16,-73 726.16,-8 8.38,-8"></polygon>
+<text text-anchor="middle" x="367.27" y="-56.4" font-family="Times,serif" font-size="14.00">ModuleC.test</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_b</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-81 8.38,-146 480.62,-146 480.62,-81 8.38,-81"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-81 8.38,-146 480.62,-146 480.62,-81 8.38,-81"></polygon>
 <text text-anchor="middle" x="244.5" y="-129.4" font-family="Times,serif" font-size="14.00">ModuleB.test</text>
 </g>
-<g id="clust3" class="cluster">
-<title>cluster_c</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-73 726.16,-73 726.16,-8 8.38,-8"/>
-<text text-anchor="middle" x="367.27" y="-56.4" font-family="Times,serif" font-size="14.00">ModuleC.test</text>
+<g id="clust1" class="cluster">
+<title>cluster_a</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 235.08,-219 235.08,-154 8,-154"></polygon>
+<text text-anchor="middle" x="121.54" y="-202.4" font-family="Times,serif" font-size="14.00">ModuleA.test</text>
 </g>
 <!-- TestClassA1 -->
 <g id="node1" class="node">
 <title>TestClassA1</title>
-<polygon fill="lightpink" stroke="black" points="103.31,-186.3 16.23,-186.3 16.23,-161.7 103.31,-161.7 103.31,-186.3"/>
+<polygon fill="lightpink" stroke="black" points="103.31,-186.3 16.23,-186.3 16.23,-161.7 103.31,-161.7 103.31,-186.3"></polygon>
 <text text-anchor="middle" x="59.77" y="-169.8" font-family="Times,serif" font-size="14.00">TestClassA1</text>
 </g>
 <!-- TestClassA2 -->
 <g id="node2" class="node">
 <title>TestClassA2</title>
-<polygon fill="lightpink" stroke="black" points="226.85,-186.3 139.77,-186.3 139.77,-161.7 226.85,-161.7 226.85,-186.3"/>
+<polygon fill="lightpink" stroke="black" points="226.85,-186.3 139.77,-186.3 139.77,-161.7 226.85,-161.7 226.85,-186.3"></polygon>
 <text text-anchor="middle" x="183.31" y="-169.8" font-family="Times,serif" font-size="14.00">TestClassA2</text>
 </g>
 <!-- TestClassA1&#45;&gt;TestClassA2 -->
 <g id="edge1" class="edge">
-<title>TestClassA1&#45;&gt;TestClassA2</title>
-<path fill="none" stroke="black" d="M103.62,-174C111.88,-174 120.63,-174 129.17,-174"/>
-<polygon fill="black" stroke="black" points="129.44,-177.5 139.44,-174 129.44,-170.5 129.44,-177.5"/>
+<title>TestClassA1-&gt;TestClassA2</title>
+<path fill="none" stroke="black" d="M103.62,-174C111.88,-174 120.63,-174 129.17,-174"></path>
+<polygon fill="black" stroke="black" points="129.44,-177.5 139.44,-174 129.44,-170.5 129.44,-177.5"></polygon>
 </g>
 <!-- TestClassB1 -->
 <g id="node3" class="node">
 <title>TestClassB1</title>
-<polygon fill="lightgreen" stroke="black" points="103.04,-113.3 16.5,-113.3 16.5,-88.7 103.04,-88.7 103.04,-113.3"/>
+<polygon fill="lightgreen" stroke="black" points="103.04,-113.3 16.5,-113.3 16.5,-88.7 103.04,-88.7 103.04,-113.3"></polygon>
 <text text-anchor="middle" x="59.77" y="-96.8" font-family="Times,serif" font-size="14.00">TestClassB1</text>
 </g>
 <!-- TestClassA2&#45;&gt;TestClassB1 -->
 <g id="edge10" class="edge">
-<title>TestClassA2&#45;&gt;TestClassB1</title>
-<path fill="none" stroke="black" d="M161.59,-161.56C141.91,-149.74 112.13,-131.85 90.04,-118.58"/>
-<polygon fill="black" stroke="black" points="91.76,-115.53 81.39,-113.38 88.16,-121.53 91.76,-115.53"/>
+<title>TestClassA2-&gt;TestClassB1</title>
+<path fill="none" stroke="black" d="M161.59,-161.56C141.91,-149.74 112.13,-131.85 90.04,-118.58"></path>
+<polygon fill="black" stroke="black" points="91.76,-115.53 81.39,-113.38 88.16,-121.53 91.76,-115.53"></polygon>
 </g>
 <!-- TestClassB2 -->
 <g id="node4" class="node">
 <title>TestClassB2</title>
-<polygon fill="lightgreen" stroke="black" points="226.58,-113.3 140.04,-113.3 140.04,-88.7 226.58,-88.7 226.58,-113.3"/>
+<polygon fill="lightgreen" stroke="black" points="226.58,-113.3 140.04,-113.3 140.04,-88.7 226.58,-88.7 226.58,-113.3"></polygon>
 <text text-anchor="middle" x="183.31" y="-96.8" font-family="Times,serif" font-size="14.00">TestClassB2</text>
 </g>
 <!-- TestClassB1&#45;&gt;TestClassB2 -->
 <g id="edge2" class="edge">
-<title>TestClassB1&#45;&gt;TestClassB2</title>
-<path fill="none" stroke="black" d="M103.28,-101C111.84,-101 120.93,-101 129.79,-101"/>
-<polygon fill="black" stroke="black" points="130.03,-104.5 140.03,-101 130.03,-97.5 130.03,-104.5"/>
+<title>TestClassB1-&gt;TestClassB2</title>
+<path fill="none" stroke="black" d="M103.28,-101C111.84,-101 120.93,-101 129.79,-101"></path>
+<polygon fill="black" stroke="black" points="130.03,-104.5 140.03,-101 130.03,-97.5 130.03,-104.5"></polygon>
 </g>
 <!-- TestClassB3 -->
 <g id="node5" class="node">
 <title>TestClassB3</title>
-<polygon fill="lightgreen" stroke="black" points="349.74,-113.3 263.19,-113.3 263.19,-88.7 349.74,-88.7 349.74,-113.3"/>
+<polygon fill="lightgreen" stroke="black" points="349.74,-113.3 263.19,-113.3 263.19,-88.7 349.74,-88.7 349.74,-113.3"></polygon>
 <text text-anchor="middle" x="306.46" y="-96.8" font-family="Times,serif" font-size="14.00">TestClassB3</text>
 </g>
 <!-- TestClassB2&#45;&gt;TestClassB3 -->
 <g id="edge3" class="edge">
-<title>TestClassB2&#45;&gt;TestClassB3</title>
-<path fill="none" stroke="black" d="M226.68,-101C235.12,-101 244.08,-101 252.81,-101"/>
-<polygon fill="black" stroke="black" points="252.91,-104.5 262.91,-101 252.91,-97.5 252.91,-104.5"/>
+<title>TestClassB2-&gt;TestClassB3</title>
+<path fill="none" stroke="black" d="M226.68,-101C235.12,-101 244.08,-101 252.81,-101"></path>
+<polygon fill="black" stroke="black" points="252.91,-104.5 262.91,-101 252.91,-97.5 252.91,-104.5"></polygon>
 </g>
 <!-- TestClassB4 -->
 <g id="node6" class="node">
 <title>TestClassB4</title>
-<polygon fill="lightgreen" stroke="black" points="472.51,-113.3 385.96,-113.3 385.96,-88.7 472.51,-88.7 472.51,-113.3"/>
+<polygon fill="lightgreen" stroke="black" points="472.51,-113.3 385.96,-113.3 385.96,-88.7 472.51,-88.7 472.51,-113.3"></polygon>
 <text text-anchor="middle" x="429.23" y="-96.8" font-family="Times,serif" font-size="14.00">TestClassB4</text>
 </g>
 <!-- TestClassB3&#45;&gt;TestClassB4 -->
 <g id="edge4" class="edge">
-<title>TestClassB3&#45;&gt;TestClassB4</title>
-<path fill="none" stroke="black" d="M350.04,-101C358.25,-101 366.94,-101 375.43,-101"/>
-<polygon fill="black" stroke="black" points="375.63,-104.5 385.63,-101 375.63,-97.5 375.63,-104.5"/>
+<title>TestClassB3-&gt;TestClassB4</title>
+<path fill="none" stroke="black" d="M350.04,-101C358.25,-101 366.94,-101 375.43,-101"></path>
+<polygon fill="black" stroke="black" points="375.63,-104.5 385.63,-101 375.63,-97.5 375.63,-104.5"></polygon>
 </g>
 <!-- TestClassC1 -->
 <g id="node7" class="node">
 <title>TestClassC1</title>
-<polygon fill="lightblue" stroke="black" points="103.04,-40.3 16.5,-40.3 16.5,-15.7 103.04,-15.7 103.04,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="103.04,-40.3 16.5,-40.3 16.5,-15.7 103.04,-15.7 103.04,-40.3"></polygon>
 <text text-anchor="middle" x="59.77" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC1</text>
 </g>
 <!-- TestClassB4&#45;&gt;TestClassC1 -->
 <g id="edge11" class="edge">
-<title>TestClassB4&#45;&gt;TestClassC1</title>
-<path fill="none" stroke="black" d="M385.93,-92.44C318.08,-79.04 186.87,-53.11 113.23,-38.56"/>
-<polygon fill="black" stroke="black" points="113.73,-35.09 103.24,-36.59 112.37,-41.96 113.73,-35.09"/>
+<title>TestClassB4-&gt;TestClassC1</title>
+<path fill="none" stroke="black" d="M385.93,-92.44C318.08,-79.04 186.87,-53.11 113.23,-38.56"></path>
+<polygon fill="black" stroke="black" points="113.73,-35.09 103.24,-36.59 112.37,-41.96 113.73,-35.09"></polygon>
 </g>
 <!-- TestClassC2 -->
 <g id="node8" class="node">
 <title>TestClassC2</title>
-<polygon fill="lightblue" stroke="black" points="226.58,-40.3 140.04,-40.3 140.04,-15.7 226.58,-15.7 226.58,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="226.58,-40.3 140.04,-40.3 140.04,-15.7 226.58,-15.7 226.58,-40.3"></polygon>
 <text text-anchor="middle" x="183.31" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC2</text>
 </g>
 <!-- TestClassC1&#45;&gt;TestClassC2 -->
 <g id="edge5" class="edge">
-<title>TestClassC1&#45;&gt;TestClassC2</title>
-<path fill="none" stroke="black" d="M103.28,-28C111.84,-28 120.93,-28 129.79,-28"/>
-<polygon fill="black" stroke="black" points="130.03,-31.5 140.03,-28 130.03,-24.5 130.03,-31.5"/>
+<title>TestClassC1-&gt;TestClassC2</title>
+<path fill="none" stroke="black" d="M103.28,-28C111.84,-28 120.93,-28 129.79,-28"></path>
+<polygon fill="black" stroke="black" points="130.03,-31.5 140.03,-28 130.03,-24.5 130.03,-31.5"></polygon>
 </g>
 <!-- TestClassC3 -->
 <g id="node9" class="node">
 <title>TestClassC3</title>
-<polygon fill="lightblue" stroke="black" points="349.74,-40.3 263.19,-40.3 263.19,-15.7 349.74,-15.7 349.74,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="349.74,-40.3 263.19,-40.3 263.19,-15.7 349.74,-15.7 349.74,-40.3"></polygon>
 <text text-anchor="middle" x="306.46" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC3</text>
 </g>
 <!-- TestClassC2&#45;&gt;TestClassC3 -->
 <g id="edge6" class="edge">
-<title>TestClassC2&#45;&gt;TestClassC3</title>
-<path fill="none" stroke="black" d="M226.68,-28C235.12,-28 244.08,-28 252.81,-28"/>
-<polygon fill="black" stroke="black" points="252.91,-31.5 262.91,-28 252.91,-24.5 252.91,-31.5"/>
+<title>TestClassC2-&gt;TestClassC3</title>
+<path fill="none" stroke="black" d="M226.68,-28C235.12,-28 244.08,-28 252.81,-28"></path>
+<polygon fill="black" stroke="black" points="252.91,-31.5 262.91,-28 252.91,-24.5 252.91,-31.5"></polygon>
 </g>
 <!-- TestClassC4 -->
 <g id="node10" class="node">
 <title>TestClassC4</title>
-<polygon fill="lightblue" stroke="black" points="472.51,-40.3 385.96,-40.3 385.96,-15.7 472.51,-15.7 472.51,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="472.51,-40.3 385.96,-40.3 385.96,-15.7 472.51,-15.7 472.51,-40.3"></polygon>
 <text text-anchor="middle" x="429.23" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC4</text>
 </g>
 <!-- TestClassC3&#45;&gt;TestClassC4 -->
 <g id="edge7" class="edge">
-<title>TestClassC3&#45;&gt;TestClassC4</title>
-<path fill="none" stroke="black" d="M350.04,-28C358.25,-28 366.94,-28 375.43,-28"/>
-<polygon fill="black" stroke="black" points="375.63,-31.5 385.63,-28 375.63,-24.5 375.63,-31.5"/>
+<title>TestClassC3-&gt;TestClassC4</title>
+<path fill="none" stroke="black" d="M350.04,-28C358.25,-28 366.94,-28 375.43,-28"></path>
+<polygon fill="black" stroke="black" points="375.63,-31.5 385.63,-28 375.63,-24.5 375.63,-31.5"></polygon>
 </g>
 <!-- TestClassC5 -->
 <g id="node11" class="node">
 <title>TestClassC5</title>
-<polygon fill="lightblue" stroke="black" points="595.28,-40.3 508.73,-40.3 508.73,-15.7 595.28,-15.7 595.28,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="595.28,-40.3 508.73,-40.3 508.73,-15.7 595.28,-15.7 595.28,-40.3"></polygon>
 <text text-anchor="middle" x="552" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC5</text>
 </g>
 <!-- TestClassC4&#45;&gt;TestClassC5 -->
 <g id="edge8" class="edge">
-<title>TestClassC4&#45;&gt;TestClassC5</title>
-<path fill="none" stroke="black" d="M472.81,-28C481.02,-28 489.71,-28 498.2,-28"/>
-<polygon fill="black" stroke="black" points="498.4,-31.5 508.4,-28 498.4,-24.5 498.4,-31.5"/>
+<title>TestClassC4-&gt;TestClassC5</title>
+<path fill="none" stroke="black" d="M472.81,-28C481.02,-28 489.71,-28 498.2,-28"></path>
+<polygon fill="black" stroke="black" points="498.4,-31.5 508.4,-28 498.4,-24.5 498.4,-31.5"></polygon>
 </g>
 <!-- TestClassC6 -->
 <g id="node12" class="node">
 <title>TestClassC6</title>
-<polygon fill="lightblue" stroke="black" points="718.05,-40.3 631.5,-40.3 631.5,-15.7 718.05,-15.7 718.05,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="718.05,-40.3 631.5,-40.3 631.5,-15.7 718.05,-15.7 718.05,-40.3"></polygon>
 <text text-anchor="middle" x="674.77" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC6</text>
 </g>
 <!-- TestClassC5&#45;&gt;TestClassC6 -->
 <g id="edge9" class="edge">
-<title>TestClassC5&#45;&gt;TestClassC6</title>
-<path fill="none" stroke="black" d="M595.58,-28C603.79,-28 612.48,-28 620.97,-28"/>
-<polygon fill="black" stroke="black" points="621.17,-31.5 631.17,-28 621.17,-24.5 621.17,-31.5"/>
+<title>TestClassC5-&gt;TestClassC6</title>
+<path fill="none" stroke="black" d="M595.58,-28C603.79,-28 612.48,-28 620.97,-28"></path>
+<polygon fill="black" stroke="black" points="621.17,-31.5 631.17,-28 621.17,-24.5 621.17,-31.5"></polygon>
 </g>
 </g>
 </svg>
@@ -526,14 +526,14 @@ of <em>serial execution</em> they all execute on a single thread.</p>
 </li>
 <li>
 <p>The dashed boxes represent the testrunner processes that were spawned. In this case,
-every module&#8217;s tests are run in a separate process, which is again a common approach
+every module’s tests are run in a separate process, which is again a common approach
 to isolate the code of different modules from one another.</p>
 </li>
 </ul>
 </div>
 <div class="admonitionblock note">
 <table>
-<tr>
+<tbody><tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -546,7 +546,7 @@ process-separation of different modules' test suites is a useful enough default 
 we will assume it necessary for the rest of this article.
 </td>
 </tr>
-</table>
+</tbody></table>
 </div>
 <div class="paragraph">
 <p>Given this example test run, there are two numbers we would like to minimize:</p>
@@ -570,8 +570,8 @@ Again, we just assume that every process spawn has the same overhead, and add it
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
+<col style="width: 50%;" />
+<col style="width: 50%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -604,7 +604,7 @@ but each test class runs relatively quickly (~0.1s). This kind of testing worklo
 seen in library codebases where all logic and tests can take place quickly in memory.</p>
 </li>
 <li>
-<p>The tests of Mill&#8217;s own <code>scalalib</code> module. This is a single large module with a
+<p>The tests of Mill’s own <code>scalalib</code> module. This is a single large module with a
 large number of test classes (52), but each test class runs relatively slowly (~10s). While
 not ideal, this kind of testing workload is common in monolithic application codebases with
 heavy integration testing.</p>
@@ -616,10 +616,10 @@ heavy integration testing.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -654,7 +654,7 @@ mill$ ./mill -j1 scalalib.test</code></pre>
 </div>
 <div class="paragraph">
 <p>The selection of test suites in the Netty codebase is somewhat arbitrary (the tests that
-the example build happens to contain), but that doesn&#8217;t matter since we will be running the same
+the example build happens to contain), but that doesn’t matter since we will be running the same
 selection of tests throughout this article to see the effect of these tests.</p>
 </div>
 <div class="paragraph">
@@ -681,8 +681,8 @@ is as follows</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
+<col style="width: 50%;" />
+<col style="width: 50%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -717,12 +717,12 @@ flag (the name taken from the <a href="https://en.wikipedia.org/wiki/Make_%28sof
 and it became the default in Mill <code>0.12.0</code> for tasks to run parallel to use
 all cores on your system. During testing, typically each Mill module <code>foo</code> would
 have a single <code>foo.test</code> sub-module, with a single <code>foo.test.testForked</code> task.
-This means that Mill&#8217;s <em>task-level parallelism</em> would effectively shards your test suites
+This means that Mill’s <em>task-level parallelism</em> would effectively shards your test suites
 at a <em>module level</em>.</p>
 </div>
 <div class="paragraph">
 <p>One consequence of this is that if your codebase was broken up into many small modules,
-each module&#8217;s tests could run in parallel. But if your codebase had a few large modules,
+each module’s tests could run in parallel. But if your codebase had a few large modules,
 you may not be able to make full use of all the CPU cores available on your machine.</p>
 </div>
 <div class="paragraph">
@@ -730,151 +730,150 @@ you may not be able to make full use of all the CPU cores available on your mach
 </div>
 <div class="paragraph">
 <center>
-<svg width="742px" height="235px"
- viewBox="0.00 0.00 742.16 235.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="742px" height="235px" viewBox="0.00 0.00 742.16 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-231 738.16,-231 738.16,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-231 738.16,-231 738.16,4 -4,4"></polygon>
 <g id="clust1" class="cluster">
 <title>cluster_c</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-73 726.16,-73 726.16,-8 8.38,-8"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-73 726.16,-73 726.16,-8 8.38,-8"></polygon>
 <text text-anchor="middle" x="367.27" y="-56.4" font-family="Times,serif" font-size="14.00">ModuleC.test</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_b</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-81 8.38,-146 480.62,-146 480.62,-81 8.38,-81"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-81 8.38,-146 480.62,-146 480.62,-81 8.38,-81"></polygon>
 <text text-anchor="middle" x="244.5" y="-129.4" font-family="Times,serif" font-size="14.00">ModuleB.test</text>
 </g>
 <g id="clust3" class="cluster">
 <title>cluster_a</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 235.08,-219 235.08,-154 8,-154"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 235.08,-219 235.08,-154 8,-154"></polygon>
 <text text-anchor="middle" x="121.54" y="-202.4" font-family="Times,serif" font-size="14.00">ModuleA.test</text>
 </g>
 <!-- TestClassC1 -->
 <g id="node1" class="node">
 <title>TestClassC1</title>
-<polygon fill="lightblue" stroke="black" points="103.04,-40.3 16.5,-40.3 16.5,-15.7 103.04,-15.7 103.04,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="103.04,-40.3 16.5,-40.3 16.5,-15.7 103.04,-15.7 103.04,-40.3"></polygon>
 <text text-anchor="middle" x="59.77" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC1</text>
 </g>
 <!-- TestClassC2 -->
 <g id="node2" class="node">
 <title>TestClassC2</title>
-<polygon fill="lightblue" stroke="black" points="226.58,-40.3 140.04,-40.3 140.04,-15.7 226.58,-15.7 226.58,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="226.58,-40.3 140.04,-40.3 140.04,-15.7 226.58,-15.7 226.58,-40.3"></polygon>
 <text text-anchor="middle" x="183.31" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC2</text>
 </g>
 <!-- TestClassC1&#45;&gt;TestClassC2 -->
 <g id="edge1" class="edge">
-<title>TestClassC1&#45;&gt;TestClassC2</title>
-<path fill="none" stroke="black" d="M103.28,-28C111.84,-28 120.93,-28 129.79,-28"/>
-<polygon fill="black" stroke="black" points="130.03,-31.5 140.03,-28 130.03,-24.5 130.03,-31.5"/>
+<title>TestClassC1-&gt;TestClassC2</title>
+<path fill="none" stroke="black" d="M103.28,-28C111.84,-28 120.93,-28 129.79,-28"></path>
+<polygon fill="black" stroke="black" points="130.03,-31.5 140.03,-28 130.03,-24.5 130.03,-31.5"></polygon>
 </g>
 <!-- TestClassC3 -->
 <g id="node3" class="node">
 <title>TestClassC3</title>
-<polygon fill="lightblue" stroke="black" points="349.74,-40.3 263.19,-40.3 263.19,-15.7 349.74,-15.7 349.74,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="349.74,-40.3 263.19,-40.3 263.19,-15.7 349.74,-15.7 349.74,-40.3"></polygon>
 <text text-anchor="middle" x="306.46" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC3</text>
 </g>
 <!-- TestClassC2&#45;&gt;TestClassC3 -->
 <g id="edge2" class="edge">
-<title>TestClassC2&#45;&gt;TestClassC3</title>
-<path fill="none" stroke="black" d="M226.68,-28C235.12,-28 244.08,-28 252.81,-28"/>
-<polygon fill="black" stroke="black" points="252.91,-31.5 262.91,-28 252.91,-24.5 252.91,-31.5"/>
+<title>TestClassC2-&gt;TestClassC3</title>
+<path fill="none" stroke="black" d="M226.68,-28C235.12,-28 244.08,-28 252.81,-28"></path>
+<polygon fill="black" stroke="black" points="252.91,-31.5 262.91,-28 252.91,-24.5 252.91,-31.5"></polygon>
 </g>
 <!-- TestClassC4 -->
 <g id="node4" class="node">
 <title>TestClassC4</title>
-<polygon fill="lightblue" stroke="black" points="472.51,-40.3 385.96,-40.3 385.96,-15.7 472.51,-15.7 472.51,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="472.51,-40.3 385.96,-40.3 385.96,-15.7 472.51,-15.7 472.51,-40.3"></polygon>
 <text text-anchor="middle" x="429.23" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC4</text>
 </g>
 <!-- TestClassC3&#45;&gt;TestClassC4 -->
 <g id="edge3" class="edge">
-<title>TestClassC3&#45;&gt;TestClassC4</title>
-<path fill="none" stroke="black" d="M350.04,-28C358.25,-28 366.94,-28 375.43,-28"/>
-<polygon fill="black" stroke="black" points="375.63,-31.5 385.63,-28 375.63,-24.5 375.63,-31.5"/>
+<title>TestClassC3-&gt;TestClassC4</title>
+<path fill="none" stroke="black" d="M350.04,-28C358.25,-28 366.94,-28 375.43,-28"></path>
+<polygon fill="black" stroke="black" points="375.63,-31.5 385.63,-28 375.63,-24.5 375.63,-31.5"></polygon>
 </g>
 <!-- TestClassC5 -->
 <g id="node5" class="node">
 <title>TestClassC5</title>
-<polygon fill="lightblue" stroke="black" points="595.28,-40.3 508.73,-40.3 508.73,-15.7 595.28,-15.7 595.28,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="595.28,-40.3 508.73,-40.3 508.73,-15.7 595.28,-15.7 595.28,-40.3"></polygon>
 <text text-anchor="middle" x="552" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC5</text>
 </g>
 <!-- TestClassC4&#45;&gt;TestClassC5 -->
 <g id="edge4" class="edge">
-<title>TestClassC4&#45;&gt;TestClassC5</title>
-<path fill="none" stroke="black" d="M472.81,-28C481.02,-28 489.71,-28 498.2,-28"/>
-<polygon fill="black" stroke="black" points="498.4,-31.5 508.4,-28 498.4,-24.5 498.4,-31.5"/>
+<title>TestClassC4-&gt;TestClassC5</title>
+<path fill="none" stroke="black" d="M472.81,-28C481.02,-28 489.71,-28 498.2,-28"></path>
+<polygon fill="black" stroke="black" points="498.4,-31.5 508.4,-28 498.4,-24.5 498.4,-31.5"></polygon>
 </g>
 <!-- TestClassC6 -->
 <g id="node6" class="node">
 <title>TestClassC6</title>
-<polygon fill="lightblue" stroke="black" points="718.05,-40.3 631.5,-40.3 631.5,-15.7 718.05,-15.7 718.05,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="718.05,-40.3 631.5,-40.3 631.5,-15.7 718.05,-15.7 718.05,-40.3"></polygon>
 <text text-anchor="middle" x="674.77" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC6</text>
 </g>
 <!-- TestClassC5&#45;&gt;TestClassC6 -->
 <g id="edge5" class="edge">
-<title>TestClassC5&#45;&gt;TestClassC6</title>
-<path fill="none" stroke="black" d="M595.58,-28C603.79,-28 612.48,-28 620.97,-28"/>
-<polygon fill="black" stroke="black" points="621.17,-31.5 631.17,-28 621.17,-24.5 621.17,-31.5"/>
+<title>TestClassC5-&gt;TestClassC6</title>
+<path fill="none" stroke="black" d="M595.58,-28C603.79,-28 612.48,-28 620.97,-28"></path>
+<polygon fill="black" stroke="black" points="621.17,-31.5 631.17,-28 621.17,-24.5 621.17,-31.5"></polygon>
 </g>
 <!-- TestClassB1 -->
 <g id="node7" class="node">
 <title>TestClassB1</title>
-<polygon fill="lightgreen" stroke="black" points="103.04,-113.3 16.5,-113.3 16.5,-88.7 103.04,-88.7 103.04,-113.3"/>
+<polygon fill="lightgreen" stroke="black" points="103.04,-113.3 16.5,-113.3 16.5,-88.7 103.04,-88.7 103.04,-113.3"></polygon>
 <text text-anchor="middle" x="59.77" y="-96.8" font-family="Times,serif" font-size="14.00">TestClassB1</text>
 </g>
 <!-- TestClassB2 -->
 <g id="node8" class="node">
 <title>TestClassB2</title>
-<polygon fill="lightgreen" stroke="black" points="226.58,-113.3 140.04,-113.3 140.04,-88.7 226.58,-88.7 226.58,-113.3"/>
+<polygon fill="lightgreen" stroke="black" points="226.58,-113.3 140.04,-113.3 140.04,-88.7 226.58,-88.7 226.58,-113.3"></polygon>
 <text text-anchor="middle" x="183.31" y="-96.8" font-family="Times,serif" font-size="14.00">TestClassB2</text>
 </g>
 <!-- TestClassB1&#45;&gt;TestClassB2 -->
 <g id="edge6" class="edge">
-<title>TestClassB1&#45;&gt;TestClassB2</title>
-<path fill="none" stroke="black" d="M103.28,-101C111.84,-101 120.93,-101 129.79,-101"/>
-<polygon fill="black" stroke="black" points="130.03,-104.5 140.03,-101 130.03,-97.5 130.03,-104.5"/>
+<title>TestClassB1-&gt;TestClassB2</title>
+<path fill="none" stroke="black" d="M103.28,-101C111.84,-101 120.93,-101 129.79,-101"></path>
+<polygon fill="black" stroke="black" points="130.03,-104.5 140.03,-101 130.03,-97.5 130.03,-104.5"></polygon>
 </g>
 <!-- TestClassB3 -->
 <g id="node9" class="node">
 <title>TestClassB3</title>
-<polygon fill="lightgreen" stroke="black" points="349.74,-113.3 263.19,-113.3 263.19,-88.7 349.74,-88.7 349.74,-113.3"/>
+<polygon fill="lightgreen" stroke="black" points="349.74,-113.3 263.19,-113.3 263.19,-88.7 349.74,-88.7 349.74,-113.3"></polygon>
 <text text-anchor="middle" x="306.46" y="-96.8" font-family="Times,serif" font-size="14.00">TestClassB3</text>
 </g>
 <!-- TestClassB2&#45;&gt;TestClassB3 -->
 <g id="edge7" class="edge">
-<title>TestClassB2&#45;&gt;TestClassB3</title>
-<path fill="none" stroke="black" d="M226.68,-101C235.12,-101 244.08,-101 252.81,-101"/>
-<polygon fill="black" stroke="black" points="252.91,-104.5 262.91,-101 252.91,-97.5 252.91,-104.5"/>
+<title>TestClassB2-&gt;TestClassB3</title>
+<path fill="none" stroke="black" d="M226.68,-101C235.12,-101 244.08,-101 252.81,-101"></path>
+<polygon fill="black" stroke="black" points="252.91,-104.5 262.91,-101 252.91,-97.5 252.91,-104.5"></polygon>
 </g>
 <!-- TestClassB4 -->
 <g id="node10" class="node">
 <title>TestClassB4</title>
-<polygon fill="lightgreen" stroke="black" points="472.51,-113.3 385.96,-113.3 385.96,-88.7 472.51,-88.7 472.51,-113.3"/>
+<polygon fill="lightgreen" stroke="black" points="472.51,-113.3 385.96,-113.3 385.96,-88.7 472.51,-88.7 472.51,-113.3"></polygon>
 <text text-anchor="middle" x="429.23" y="-96.8" font-family="Times,serif" font-size="14.00">TestClassB4</text>
 </g>
 <!-- TestClassB3&#45;&gt;TestClassB4 -->
 <g id="edge8" class="edge">
-<title>TestClassB3&#45;&gt;TestClassB4</title>
-<path fill="none" stroke="black" d="M350.04,-101C358.25,-101 366.94,-101 375.43,-101"/>
-<polygon fill="black" stroke="black" points="375.63,-104.5 385.63,-101 375.63,-97.5 375.63,-104.5"/>
+<title>TestClassB3-&gt;TestClassB4</title>
+<path fill="none" stroke="black" d="M350.04,-101C358.25,-101 366.94,-101 375.43,-101"></path>
+<polygon fill="black" stroke="black" points="375.63,-104.5 385.63,-101 375.63,-97.5 375.63,-104.5"></polygon>
 </g>
 <!-- TestClassA1 -->
 <g id="node11" class="node">
 <title>TestClassA1</title>
-<polygon fill="lightpink" stroke="black" points="103.31,-186.3 16.23,-186.3 16.23,-161.7 103.31,-161.7 103.31,-186.3"/>
+<polygon fill="lightpink" stroke="black" points="103.31,-186.3 16.23,-186.3 16.23,-161.7 103.31,-161.7 103.31,-186.3"></polygon>
 <text text-anchor="middle" x="59.77" y="-169.8" font-family="Times,serif" font-size="14.00">TestClassA1</text>
 </g>
 <!-- TestClassA2 -->
 <g id="node12" class="node">
 <title>TestClassA2</title>
-<polygon fill="lightpink" stroke="black" points="226.85,-186.3 139.77,-186.3 139.77,-161.7 226.85,-161.7 226.85,-186.3"/>
+<polygon fill="lightpink" stroke="black" points="226.85,-186.3 139.77,-186.3 139.77,-161.7 226.85,-161.7 226.85,-186.3"></polygon>
 <text text-anchor="middle" x="183.31" y="-169.8" font-family="Times,serif" font-size="14.00">TestClassA2</text>
 </g>
 <!-- TestClassA1&#45;&gt;TestClassA2 -->
 <g id="edge9" class="edge">
-<title>TestClassA1&#45;&gt;TestClassA2</title>
-<path fill="none" stroke="black" d="M103.62,-174C111.88,-174 120.63,-174 129.17,-174"/>
-<polygon fill="black" stroke="black" points="129.44,-177.5 139.44,-174 129.44,-170.5 129.44,-177.5"/>
+<title>TestClassA1-&gt;TestClassA2</title>
+<path fill="none" stroke="black" d="M103.62,-174C111.88,-174 120.63,-174 129.17,-174"></path>
+<polygon fill="black" stroke="black" points="129.44,-177.5 139.44,-174 129.44,-170.5 129.44,-177.5"></polygon>
 </g>
 </g>
 </svg>
@@ -883,9 +882,9 @@ you may not be able to make full use of all the CPU cores available on your mach
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
+<col style="width: 33.3333%;" />
+<col style="width: 33.3333%;" />
+<col style="width: 33.3334%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -921,9 +920,9 @@ large module that does not benefit from module sharding.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
+<col style="width: 33.3333%;" />
+<col style="width: 33.3333%;" />
+<col style="width: 33.3334%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -978,184 +977,183 @@ making full use of the three cores available in the example:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="496px" height="160px"
- viewBox="0.00 0.00 495.85 160.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="496px" height="160px" viewBox="0.00 0.00 495.85 160.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 156.0)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-156 491.85,-156 491.85,4 -4,4"/>
-<g id="clust5" class="cluster">
-<title>cluster_c5</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-56 377.08,-96 479.85,-96 479.85,-56 377.08,-56"/>
-</g>
-<g id="clust4" class="cluster">
-<title>cluster_c4</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-104 377.08,-144 479.85,-144 479.85,-104 377.08,-104"/>
-</g>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-156 491.85,-156 491.85,4 -4,4"></polygon>
 <g id="clust6" class="cluster">
 <title>cluster_c6</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-8 377.08,-48 479.85,-48 479.85,-8 377.08,-8"/>
-</g>
-<g id="clust10" class="cluster">
-<title>cluster_b4</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-8 131.54,-48 234.31,-48 234.31,-8 131.54,-8"/>
-</g>
-<g id="clust8" class="cluster">
-<title>cluster_b2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-104 131.54,-144 234.31,-144 234.31,-104 131.54,-104"/>
-</g>
-<g id="clust11" class="cluster">
-<title>cluster_a1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-104 8,-144 111.54,-144 111.54,-104 8,-104"/>
-</g>
-<g id="clust12" class="cluster">
-<title>cluster_a2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-56 8,-96 111.54,-96 111.54,-56 8,-56"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-8 377.08,-48 479.85,-48 479.85,-8 377.08,-8"></polygon>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_b1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 111.15,-48 111.15,-8 8.38,-8"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 111.15,-48 111.15,-8 8.38,-8"></polygon>
+</g>
+<g id="clust8" class="cluster">
+<title>cluster_b2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-104 131.54,-144 234.31,-144 234.31,-104 131.54,-104"></polygon>
 </g>
 <g id="clust9" class="cluster">
 <title>cluster_b3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-56 131.54,-96 234.31,-96 234.31,-56 131.54,-56"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-56 131.54,-96 234.31,-96 234.31,-56 131.54,-56"></polygon>
+</g>
+<g id="clust10" class="cluster">
+<title>cluster_b4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-8 131.54,-48 234.31,-48 234.31,-8 131.54,-8"></polygon>
+</g>
+<g id="clust11" class="cluster">
+<title>cluster_a1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-104 8,-144 111.54,-144 111.54,-104 8,-104"></polygon>
+</g>
+<g id="clust12" class="cluster">
+<title>cluster_a2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-56 8,-96 111.54,-96 111.54,-56 8,-56"></polygon>
 </g>
 <g id="clust1" class="cluster">
 <title>cluster_c1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-104 254.31,-144 357.08,-144 357.08,-104 254.31,-104"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-104 254.31,-144 357.08,-144 357.08,-104 254.31,-104"></polygon>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_c2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-56 254.31,-96 357.08,-96 357.08,-56 254.31,-56"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-56 254.31,-96 357.08,-96 357.08,-56 254.31,-56"></polygon>
 </g>
 <g id="clust3" class="cluster">
 <title>cluster_c3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-8 254.31,-48 357.08,-48 357.08,-8 254.31,-8"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-8 254.31,-48 357.08,-48 357.08,-8 254.31,-8"></polygon>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_c4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-104 377.08,-144 479.85,-144 479.85,-104 377.08,-104"></polygon>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_c5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="377.08,-56 377.08,-96 479.85,-96 479.85,-56 377.08,-56"></polygon>
 </g>
 <!-- TestClassB1 -->
 <g id="node1" class="node">
 <title>TestClassB1</title>
-<polygon fill="lightgreen" stroke="black" points="103.04,-40.3 16.5,-40.3 16.5,-15.7 103.04,-15.7 103.04,-40.3"/>
+<polygon fill="lightgreen" stroke="black" points="103.04,-40.3 16.5,-40.3 16.5,-15.7 103.04,-15.7 103.04,-40.3"></polygon>
 <text text-anchor="middle" x="59.77" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassB1</text>
 </g>
 <!-- TestClassB4 -->
 <g id="node2" class="node">
 <title>TestClassB4</title>
-<polygon fill="lightgreen" stroke="black" points="226.2,-40.3 139.65,-40.3 139.65,-15.7 226.2,-15.7 226.2,-40.3"/>
+<polygon fill="lightgreen" stroke="black" points="226.2,-40.3 139.65,-40.3 139.65,-15.7 226.2,-15.7 226.2,-40.3"></polygon>
 <text text-anchor="middle" x="182.93" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassB4</text>
 </g>
 <!-- TestClassB1&#45;&gt;TestClassB4 -->
 <g id="edge1" class="edge">
-<title>TestClassB1&#45;&gt;TestClassB4</title>
-<path fill="none" stroke="black" d="M103.14,-28C111.58,-28 120.54,-28 129.27,-28"/>
-<polygon fill="black" stroke="black" points="129.37,-31.5 139.37,-28 129.37,-24.5 129.37,-31.5"/>
+<title>TestClassB1-&gt;TestClassB4</title>
+<path fill="none" stroke="black" d="M103.14,-28C111.58,-28 120.54,-28 129.27,-28"></path>
+<polygon fill="black" stroke="black" points="129.37,-31.5 139.37,-28 129.37,-24.5 129.37,-31.5"></polygon>
 </g>
 <!-- TestClassC3 -->
 <g id="node3" class="node">
 <title>TestClassC3</title>
-<polygon fill="lightblue" stroke="black" points="348.97,-40.3 262.42,-40.3 262.42,-15.7 348.97,-15.7 348.97,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="348.97,-40.3 262.42,-40.3 262.42,-15.7 348.97,-15.7 348.97,-40.3"></polygon>
 <text text-anchor="middle" x="305.7" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC3</text>
 </g>
 <!-- TestClassB4&#45;&gt;TestClassC3 -->
 <g id="edge2" class="edge">
-<title>TestClassB4&#45;&gt;TestClassC3</title>
-<path fill="none" stroke="black" d="M226.5,-28C234.71,-28 243.4,-28 251.89,-28"/>
-<polygon fill="black" stroke="black" points="252.09,-31.5 262.09,-28 252.09,-24.5 252.09,-31.5"/>
+<title>TestClassB4-&gt;TestClassC3</title>
+<path fill="none" stroke="black" d="M226.5,-28C234.71,-28 243.4,-28 251.89,-28"></path>
+<polygon fill="black" stroke="black" points="252.09,-31.5 262.09,-28 252.09,-24.5 252.09,-31.5"></polygon>
 </g>
 <!-- TestClassC6 -->
 <g id="node4" class="node">
 <title>TestClassC6</title>
-<polygon fill="lightblue" stroke="black" points="471.74,-40.3 385.19,-40.3 385.19,-15.7 471.74,-15.7 471.74,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="471.74,-40.3 385.19,-40.3 385.19,-15.7 471.74,-15.7 471.74,-40.3"></polygon>
 <text text-anchor="middle" x="428.47" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC6</text>
 </g>
 <!-- TestClassC3&#45;&gt;TestClassC6 -->
 <g id="edge3" class="edge">
-<title>TestClassC3&#45;&gt;TestClassC6</title>
-<path fill="none" stroke="black" d="M349.27,-28C357.48,-28 366.17,-28 374.66,-28"/>
-<polygon fill="black" stroke="black" points="374.86,-31.5 384.86,-28 374.86,-24.5 374.86,-31.5"/>
+<title>TestClassC3-&gt;TestClassC6</title>
+<path fill="none" stroke="black" d="M349.27,-28C357.48,-28 366.17,-28 374.66,-28"></path>
+<polygon fill="black" stroke="black" points="374.86,-31.5 384.86,-28 374.86,-24.5 374.86,-31.5"></polygon>
 </g>
 <!-- TestClassA2 -->
 <g id="node5" class="node">
 <title>TestClassA2</title>
-<polygon fill="lightpink" stroke="black" points="103.31,-88.3 16.23,-88.3 16.23,-63.7 103.31,-63.7 103.31,-88.3"/>
+<polygon fill="lightpink" stroke="black" points="103.31,-88.3 16.23,-88.3 16.23,-63.7 103.31,-63.7 103.31,-88.3"></polygon>
 <text text-anchor="middle" x="59.77" y="-71.8" font-family="Times,serif" font-size="14.00">TestClassA2</text>
 </g>
 <!-- TestClassB3 -->
 <g id="node6" class="node">
 <title>TestClassB3</title>
-<polygon fill="lightgreen" stroke="black" points="226.2,-88.3 139.65,-88.3 139.65,-63.7 226.2,-63.7 226.2,-88.3"/>
+<polygon fill="lightgreen" stroke="black" points="226.2,-88.3 139.65,-88.3 139.65,-63.7 226.2,-63.7 226.2,-88.3"></polygon>
 <text text-anchor="middle" x="182.93" y="-71.8" font-family="Times,serif" font-size="14.00">TestClassB3</text>
 </g>
 <!-- TestClassA2&#45;&gt;TestClassB3 -->
 <g id="edge4" class="edge">
-<title>TestClassA2&#45;&gt;TestClassB3</title>
-<path fill="none" stroke="black" d="M103.48,-76C111.91,-76 120.84,-76 129.53,-76"/>
-<polygon fill="black" stroke="black" points="129.6,-79.5 139.6,-76 129.6,-72.5 129.6,-79.5"/>
+<title>TestClassA2-&gt;TestClassB3</title>
+<path fill="none" stroke="black" d="M103.48,-76C111.91,-76 120.84,-76 129.53,-76"></path>
+<polygon fill="black" stroke="black" points="129.6,-79.5 139.6,-76 129.6,-72.5 129.6,-79.5"></polygon>
 </g>
 <!-- TestClassC2 -->
 <g id="node7" class="node">
 <title>TestClassC2</title>
-<polygon fill="lightblue" stroke="black" points="348.97,-88.3 262.42,-88.3 262.42,-63.7 348.97,-63.7 348.97,-88.3"/>
+<polygon fill="lightblue" stroke="black" points="348.97,-88.3 262.42,-88.3 262.42,-63.7 348.97,-63.7 348.97,-88.3"></polygon>
 <text text-anchor="middle" x="305.7" y="-71.8" font-family="Times,serif" font-size="14.00">TestClassC2</text>
 </g>
 <!-- TestClassB3&#45;&gt;TestClassC2 -->
 <g id="edge5" class="edge">
-<title>TestClassB3&#45;&gt;TestClassC2</title>
-<path fill="none" stroke="black" d="M226.5,-76C234.71,-76 243.4,-76 251.89,-76"/>
-<polygon fill="black" stroke="black" points="252.09,-79.5 262.09,-76 252.09,-72.5 252.09,-79.5"/>
+<title>TestClassB3-&gt;TestClassC2</title>
+<path fill="none" stroke="black" d="M226.5,-76C234.71,-76 243.4,-76 251.89,-76"></path>
+<polygon fill="black" stroke="black" points="252.09,-79.5 262.09,-76 252.09,-72.5 252.09,-79.5"></polygon>
 </g>
 <!-- TestClassC5 -->
 <g id="node8" class="node">
 <title>TestClassC5</title>
-<polygon fill="lightblue" stroke="black" points="471.74,-88.3 385.19,-88.3 385.19,-63.7 471.74,-63.7 471.74,-88.3"/>
+<polygon fill="lightblue" stroke="black" points="471.74,-88.3 385.19,-88.3 385.19,-63.7 471.74,-63.7 471.74,-88.3"></polygon>
 <text text-anchor="middle" x="428.47" y="-71.8" font-family="Times,serif" font-size="14.00">TestClassC5</text>
 </g>
 <!-- TestClassC2&#45;&gt;TestClassC5 -->
 <g id="edge6" class="edge">
-<title>TestClassC2&#45;&gt;TestClassC5</title>
-<path fill="none" stroke="black" d="M349.27,-76C357.48,-76 366.17,-76 374.66,-76"/>
-<polygon fill="black" stroke="black" points="374.86,-79.5 384.86,-76 374.86,-72.5 374.86,-79.5"/>
+<title>TestClassC2-&gt;TestClassC5</title>
+<path fill="none" stroke="black" d="M349.27,-76C357.48,-76 366.17,-76 374.66,-76"></path>
+<polygon fill="black" stroke="black" points="374.86,-79.5 384.86,-76 374.86,-72.5 374.86,-79.5"></polygon>
 </g>
 <!-- TestClassA1 -->
 <g id="node9" class="node">
 <title>TestClassA1</title>
-<polygon fill="lightpink" stroke="black" points="103.31,-136.3 16.23,-136.3 16.23,-111.7 103.31,-111.7 103.31,-136.3"/>
+<polygon fill="lightpink" stroke="black" points="103.31,-136.3 16.23,-136.3 16.23,-111.7 103.31,-111.7 103.31,-136.3"></polygon>
 <text text-anchor="middle" x="59.77" y="-119.8" font-family="Times,serif" font-size="14.00">TestClassA1</text>
 </g>
 <!-- TestClassB2 -->
 <g id="node10" class="node">
 <title>TestClassB2</title>
-<polygon fill="lightgreen" stroke="black" points="226.2,-136.3 139.65,-136.3 139.65,-111.7 226.2,-111.7 226.2,-136.3"/>
+<polygon fill="lightgreen" stroke="black" points="226.2,-136.3 139.65,-136.3 139.65,-111.7 226.2,-111.7 226.2,-136.3"></polygon>
 <text text-anchor="middle" x="182.93" y="-119.8" font-family="Times,serif" font-size="14.00">TestClassB2</text>
 </g>
 <!-- TestClassA1&#45;&gt;TestClassB2 -->
 <g id="edge7" class="edge">
-<title>TestClassA1&#45;&gt;TestClassB2</title>
-<path fill="none" stroke="black" d="M103.48,-124C111.91,-124 120.84,-124 129.53,-124"/>
-<polygon fill="black" stroke="black" points="129.6,-127.5 139.6,-124 129.6,-120.5 129.6,-127.5"/>
+<title>TestClassA1-&gt;TestClassB2</title>
+<path fill="none" stroke="black" d="M103.48,-124C111.91,-124 120.84,-124 129.53,-124"></path>
+<polygon fill="black" stroke="black" points="129.6,-127.5 139.6,-124 129.6,-120.5 129.6,-127.5"></polygon>
 </g>
 <!-- TestClassC1 -->
 <g id="node11" class="node">
 <title>TestClassC1</title>
-<polygon fill="lightblue" stroke="black" points="348.97,-136.3 262.42,-136.3 262.42,-111.7 348.97,-111.7 348.97,-136.3"/>
+<polygon fill="lightblue" stroke="black" points="348.97,-136.3 262.42,-136.3 262.42,-111.7 348.97,-111.7 348.97,-136.3"></polygon>
 <text text-anchor="middle" x="305.7" y="-119.8" font-family="Times,serif" font-size="14.00">TestClassC1</text>
 </g>
 <!-- TestClassB2&#45;&gt;TestClassC1 -->
 <g id="edge8" class="edge">
-<title>TestClassB2&#45;&gt;TestClassC1</title>
-<path fill="none" stroke="black" d="M226.5,-124C234.71,-124 243.4,-124 251.89,-124"/>
-<polygon fill="black" stroke="black" points="252.09,-127.5 262.09,-124 252.09,-120.5 252.09,-127.5"/>
+<title>TestClassB2-&gt;TestClassC1</title>
+<path fill="none" stroke="black" d="M226.5,-124C234.71,-124 243.4,-124 251.89,-124"></path>
+<polygon fill="black" stroke="black" points="252.09,-127.5 262.09,-124 252.09,-120.5 252.09,-127.5"></polygon>
 </g>
 <!-- TestClassC4 -->
 <g id="node12" class="node">
 <title>TestClassC4</title>
-<polygon fill="lightblue" stroke="black" points="471.74,-136.3 385.19,-136.3 385.19,-111.7 471.74,-111.7 471.74,-136.3"/>
+<polygon fill="lightblue" stroke="black" points="471.74,-136.3 385.19,-136.3 385.19,-111.7 471.74,-111.7 471.74,-136.3"></polygon>
 <text text-anchor="middle" x="428.47" y="-119.8" font-family="Times,serif" font-size="14.00">TestClassC4</text>
 </g>
 <!-- TestClassC1&#45;&gt;TestClassC4 -->
 <g id="edge9" class="edge">
-<title>TestClassC1&#45;&gt;TestClassC4</title>
-<path fill="none" stroke="black" d="M349.27,-124C357.48,-124 366.17,-124 374.66,-124"/>
-<polygon fill="black" stroke="black" points="374.86,-127.5 384.86,-124 374.86,-120.5 374.86,-127.5"/>
+<title>TestClassC1-&gt;TestClassC4</title>
+<path fill="none" stroke="black" d="M349.27,-124C357.48,-124 366.17,-124 374.66,-124"></path>
+<polygon fill="black" stroke="black" points="374.86,-127.5 384.86,-124 374.86,-120.5 374.86,-127.5"></polygon>
 </g>
 </g>
 </svg>
@@ -1164,10 +1162,10 @@ making full use of the three cores available in the example:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -1200,10 +1198,10 @@ is allocated its own process.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -1294,175 +1292,174 @@ a much smaller number resulting in much smaller JVM overhead overall.</p>
 for isolation.
 So if a process is available to run a test class but the process was spawned
 from a different module as that test class, the process will need to be shut down and
-a new one created for the new test class&#8217;s module.</p>
+a new one created for the new test class’s module.</p>
 </div>
 <div class="paragraph">
 <p>If you consider this approach on our theoretical example, the execution looks something like this:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="496px" height="160px"
- viewBox="0.00 0.00 495.85 160.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="496px" height="160px" viewBox="0.00 0.00 495.85 160.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 156.0)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-156 491.85,-156 491.85,4 -4,4"/>
-<g id="clust2" class="cluster">
-<title>cluster_c2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-56 254.31,-96 479.85,-96 479.85,-56 254.31,-56"/>
-</g>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-156 491.85,-156 491.85,4 -4,4"></polygon>
 <g id="clust1" class="cluster">
 <title>cluster_c1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-104 254.31,-144 479.85,-144 479.85,-104 254.31,-104"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-104 254.31,-144 479.85,-144 479.85,-104 254.31,-104"></polygon>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_c2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-56 254.31,-96 479.85,-96 479.85,-56 254.31,-56"></polygon>
 </g>
 <g id="clust3" class="cluster">
 <title>cluster_c3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-8 254.31,-48 479.85,-48 479.85,-8 254.31,-8"/>
-</g>
-<g id="clust5" class="cluster">
-<title>cluster_b2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-104 131.54,-144 234.31,-144 234.31,-104 131.54,-104"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="254.31,-8 254.31,-48 479.85,-48 479.85,-8 254.31,-8"></polygon>
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_b1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 234.31,-48 234.31,-8 8.38,-8"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 234.31,-48 234.31,-8 8.38,-8"></polygon>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_b2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-104 131.54,-144 234.31,-144 234.31,-104 131.54,-104"></polygon>
 </g>
 <g id="clust6" class="cluster">
 <title>cluster_b3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-56 131.54,-96 234.31,-96 234.31,-56 131.54,-56"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="131.54,-56 131.54,-96 234.31,-96 234.31,-56 131.54,-56"></polygon>
 </g>
 <g id="clust7" class="cluster">
 <title>cluster_a1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-104 8,-144 111.54,-144 111.54,-104 8,-104"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-104 8,-144 111.54,-144 111.54,-104 8,-104"></polygon>
 </g>
 <g id="clust8" class="cluster">
 <title>cluster_a2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-56 8,-96 111.54,-96 111.54,-56 8,-56"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-56 8,-96 111.54,-96 111.54,-56 8,-56"></polygon>
 </g>
 <!-- TestClassB1 -->
 <g id="node1" class="node">
 <title>TestClassB1</title>
-<polygon fill="lightgreen" stroke="black" points="103.04,-40.3 16.5,-40.3 16.5,-15.7 103.04,-15.7 103.04,-40.3"/>
+<polygon fill="lightgreen" stroke="black" points="103.04,-40.3 16.5,-40.3 16.5,-15.7 103.04,-15.7 103.04,-40.3"></polygon>
 <text text-anchor="middle" x="59.77" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassB1</text>
 </g>
 <!-- TestClassB4 -->
 <g id="node2" class="node">
 <title>TestClassB4</title>
-<polygon fill="lightgreen" stroke="black" points="226.2,-40.3 139.65,-40.3 139.65,-15.7 226.2,-15.7 226.2,-40.3"/>
+<polygon fill="lightgreen" stroke="black" points="226.2,-40.3 139.65,-40.3 139.65,-15.7 226.2,-15.7 226.2,-40.3"></polygon>
 <text text-anchor="middle" x="182.93" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassB4</text>
 </g>
 <!-- TestClassB1&#45;&gt;TestClassB4 -->
 <g id="edge1" class="edge">
-<title>TestClassB1&#45;&gt;TestClassB4</title>
-<path fill="none" stroke="black" d="M103.14,-28C111.58,-28 120.54,-28 129.27,-28"/>
-<polygon fill="black" stroke="black" points="129.37,-31.5 139.37,-28 129.37,-24.5 129.37,-31.5"/>
+<title>TestClassB1-&gt;TestClassB4</title>
+<path fill="none" stroke="black" d="M103.14,-28C111.58,-28 120.54,-28 129.27,-28"></path>
+<polygon fill="black" stroke="black" points="129.37,-31.5 139.37,-28 129.37,-24.5 129.37,-31.5"></polygon>
 </g>
 <!-- TestClassC3 -->
 <g id="node3" class="node">
 <title>TestClassC3</title>
-<polygon fill="lightblue" stroke="black" points="348.97,-40.3 262.42,-40.3 262.42,-15.7 348.97,-15.7 348.97,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="348.97,-40.3 262.42,-40.3 262.42,-15.7 348.97,-15.7 348.97,-40.3"></polygon>
 <text text-anchor="middle" x="305.7" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC3</text>
 </g>
 <!-- TestClassB4&#45;&gt;TestClassC3 -->
 <g id="edge2" class="edge">
-<title>TestClassB4&#45;&gt;TestClassC3</title>
-<path fill="none" stroke="black" d="M226.5,-28C234.71,-28 243.4,-28 251.89,-28"/>
-<polygon fill="black" stroke="black" points="252.09,-31.5 262.09,-28 252.09,-24.5 252.09,-31.5"/>
+<title>TestClassB4-&gt;TestClassC3</title>
+<path fill="none" stroke="black" d="M226.5,-28C234.71,-28 243.4,-28 251.89,-28"></path>
+<polygon fill="black" stroke="black" points="252.09,-31.5 262.09,-28 252.09,-24.5 252.09,-31.5"></polygon>
 </g>
 <!-- TestClassC6 -->
 <g id="node4" class="node">
 <title>TestClassC6</title>
-<polygon fill="lightblue" stroke="black" points="471.74,-40.3 385.19,-40.3 385.19,-15.7 471.74,-15.7 471.74,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="471.74,-40.3 385.19,-40.3 385.19,-15.7 471.74,-15.7 471.74,-40.3"></polygon>
 <text text-anchor="middle" x="428.47" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC6</text>
 </g>
 <!-- TestClassC3&#45;&gt;TestClassC6 -->
 <g id="edge3" class="edge">
-<title>TestClassC3&#45;&gt;TestClassC6</title>
-<path fill="none" stroke="black" d="M349.27,-28C357.48,-28 366.17,-28 374.66,-28"/>
-<polygon fill="black" stroke="black" points="374.86,-31.5 384.86,-28 374.86,-24.5 374.86,-31.5"/>
+<title>TestClassC3-&gt;TestClassC6</title>
+<path fill="none" stroke="black" d="M349.27,-28C357.48,-28 366.17,-28 374.66,-28"></path>
+<polygon fill="black" stroke="black" points="374.86,-31.5 384.86,-28 374.86,-24.5 374.86,-31.5"></polygon>
 </g>
 <!-- TestClassA2 -->
 <g id="node5" class="node">
 <title>TestClassA2</title>
-<polygon fill="lightpink" stroke="black" points="103.31,-88.3 16.23,-88.3 16.23,-63.7 103.31,-63.7 103.31,-88.3"/>
+<polygon fill="lightpink" stroke="black" points="103.31,-88.3 16.23,-88.3 16.23,-63.7 103.31,-63.7 103.31,-88.3"></polygon>
 <text text-anchor="middle" x="59.77" y="-71.8" font-family="Times,serif" font-size="14.00">TestClassA2</text>
 </g>
 <!-- TestClassB3 -->
 <g id="node6" class="node">
 <title>TestClassB3</title>
-<polygon fill="lightgreen" stroke="black" points="226.2,-88.3 139.65,-88.3 139.65,-63.7 226.2,-63.7 226.2,-88.3"/>
+<polygon fill="lightgreen" stroke="black" points="226.2,-88.3 139.65,-88.3 139.65,-63.7 226.2,-63.7 226.2,-88.3"></polygon>
 <text text-anchor="middle" x="182.93" y="-71.8" font-family="Times,serif" font-size="14.00">TestClassB3</text>
 </g>
 <!-- TestClassA2&#45;&gt;TestClassB3 -->
 <g id="edge4" class="edge">
-<title>TestClassA2&#45;&gt;TestClassB3</title>
-<path fill="none" stroke="black" d="M103.48,-76C111.91,-76 120.84,-76 129.53,-76"/>
-<polygon fill="black" stroke="black" points="129.6,-79.5 139.6,-76 129.6,-72.5 129.6,-79.5"/>
+<title>TestClassA2-&gt;TestClassB3</title>
+<path fill="none" stroke="black" d="M103.48,-76C111.91,-76 120.84,-76 129.53,-76"></path>
+<polygon fill="black" stroke="black" points="129.6,-79.5 139.6,-76 129.6,-72.5 129.6,-79.5"></polygon>
 </g>
 <!-- TestClassC2 -->
 <g id="node7" class="node">
 <title>TestClassC2</title>
-<polygon fill="lightblue" stroke="black" points="348.97,-88.3 262.42,-88.3 262.42,-63.7 348.97,-63.7 348.97,-88.3"/>
+<polygon fill="lightblue" stroke="black" points="348.97,-88.3 262.42,-88.3 262.42,-63.7 348.97,-63.7 348.97,-88.3"></polygon>
 <text text-anchor="middle" x="305.7" y="-71.8" font-family="Times,serif" font-size="14.00">TestClassC2</text>
 </g>
 <!-- TestClassB3&#45;&gt;TestClassC2 -->
 <g id="edge5" class="edge">
-<title>TestClassB3&#45;&gt;TestClassC2</title>
-<path fill="none" stroke="black" d="M226.5,-76C234.71,-76 243.4,-76 251.89,-76"/>
-<polygon fill="black" stroke="black" points="252.09,-79.5 262.09,-76 252.09,-72.5 252.09,-79.5"/>
+<title>TestClassB3-&gt;TestClassC2</title>
+<path fill="none" stroke="black" d="M226.5,-76C234.71,-76 243.4,-76 251.89,-76"></path>
+<polygon fill="black" stroke="black" points="252.09,-79.5 262.09,-76 252.09,-72.5 252.09,-79.5"></polygon>
 </g>
 <!-- TestClassC5 -->
 <g id="node8" class="node">
 <title>TestClassC5</title>
-<polygon fill="lightblue" stroke="black" points="471.74,-88.3 385.19,-88.3 385.19,-63.7 471.74,-63.7 471.74,-88.3"/>
+<polygon fill="lightblue" stroke="black" points="471.74,-88.3 385.19,-88.3 385.19,-63.7 471.74,-63.7 471.74,-88.3"></polygon>
 <text text-anchor="middle" x="428.47" y="-71.8" font-family="Times,serif" font-size="14.00">TestClassC5</text>
 </g>
 <!-- TestClassC2&#45;&gt;TestClassC5 -->
 <g id="edge6" class="edge">
-<title>TestClassC2&#45;&gt;TestClassC5</title>
-<path fill="none" stroke="black" d="M349.27,-76C357.48,-76 366.17,-76 374.66,-76"/>
-<polygon fill="black" stroke="black" points="374.86,-79.5 384.86,-76 374.86,-72.5 374.86,-79.5"/>
+<title>TestClassC2-&gt;TestClassC5</title>
+<path fill="none" stroke="black" d="M349.27,-76C357.48,-76 366.17,-76 374.66,-76"></path>
+<polygon fill="black" stroke="black" points="374.86,-79.5 384.86,-76 374.86,-72.5 374.86,-79.5"></polygon>
 </g>
 <!-- TestClassA1 -->
 <g id="node9" class="node">
 <title>TestClassA1</title>
-<polygon fill="lightpink" stroke="black" points="103.31,-136.3 16.23,-136.3 16.23,-111.7 103.31,-111.7 103.31,-136.3"/>
+<polygon fill="lightpink" stroke="black" points="103.31,-136.3 16.23,-136.3 16.23,-111.7 103.31,-111.7 103.31,-136.3"></polygon>
 <text text-anchor="middle" x="59.77" y="-119.8" font-family="Times,serif" font-size="14.00">TestClassA1</text>
 </g>
 <!-- TestClassB2 -->
 <g id="node10" class="node">
 <title>TestClassB2</title>
-<polygon fill="lightgreen" stroke="black" points="226.2,-136.3 139.65,-136.3 139.65,-111.7 226.2,-111.7 226.2,-136.3"/>
+<polygon fill="lightgreen" stroke="black" points="226.2,-136.3 139.65,-136.3 139.65,-111.7 226.2,-111.7 226.2,-136.3"></polygon>
 <text text-anchor="middle" x="182.93" y="-119.8" font-family="Times,serif" font-size="14.00">TestClassB2</text>
 </g>
 <!-- TestClassA1&#45;&gt;TestClassB2 -->
 <g id="edge7" class="edge">
-<title>TestClassA1&#45;&gt;TestClassB2</title>
-<path fill="none" stroke="black" d="M103.48,-124C111.91,-124 120.84,-124 129.53,-124"/>
-<polygon fill="black" stroke="black" points="129.6,-127.5 139.6,-124 129.6,-120.5 129.6,-127.5"/>
+<title>TestClassA1-&gt;TestClassB2</title>
+<path fill="none" stroke="black" d="M103.48,-124C111.91,-124 120.84,-124 129.53,-124"></path>
+<polygon fill="black" stroke="black" points="129.6,-127.5 139.6,-124 129.6,-120.5 129.6,-127.5"></polygon>
 </g>
 <!-- TestClassC1 -->
 <g id="node11" class="node">
 <title>TestClassC1</title>
-<polygon fill="lightblue" stroke="black" points="348.97,-136.3 262.42,-136.3 262.42,-111.7 348.97,-111.7 348.97,-136.3"/>
+<polygon fill="lightblue" stroke="black" points="348.97,-136.3 262.42,-136.3 262.42,-111.7 348.97,-111.7 348.97,-136.3"></polygon>
 <text text-anchor="middle" x="305.7" y="-119.8" font-family="Times,serif" font-size="14.00">TestClassC1</text>
 </g>
 <!-- TestClassB2&#45;&gt;TestClassC1 -->
 <g id="edge8" class="edge">
-<title>TestClassB2&#45;&gt;TestClassC1</title>
-<path fill="none" stroke="black" d="M226.5,-124C234.71,-124 243.4,-124 251.89,-124"/>
-<polygon fill="black" stroke="black" points="252.09,-127.5 262.09,-124 252.09,-120.5 252.09,-127.5"/>
+<title>TestClassB2-&gt;TestClassC1</title>
+<path fill="none" stroke="black" d="M226.5,-124C234.71,-124 243.4,-124 251.89,-124"></path>
+<polygon fill="black" stroke="black" points="252.09,-127.5 262.09,-124 252.09,-120.5 252.09,-127.5"></polygon>
 </g>
 <!-- TestClassC4 -->
 <g id="node12" class="node">
 <title>TestClassC4</title>
-<polygon fill="lightblue" stroke="black" points="471.74,-136.3 385.19,-136.3 385.19,-111.7 471.74,-111.7 471.74,-136.3"/>
+<polygon fill="lightblue" stroke="black" points="471.74,-136.3 385.19,-136.3 385.19,-111.7 471.74,-111.7 471.74,-136.3"></polygon>
 <text text-anchor="middle" x="428.47" y="-119.8" font-family="Times,serif" font-size="14.00">TestClassC4</text>
 </g>
 <!-- TestClassC1&#45;&gt;TestClassC4 -->
 <g id="edge9" class="edge">
-<title>TestClassC1&#45;&gt;TestClassC4</title>
-<path fill="none" stroke="black" d="M349.27,-124C357.48,-124 366.17,-124 374.66,-124"/>
-<polygon fill="black" stroke="black" points="374.86,-127.5 384.86,-124 374.86,-120.5 374.86,-127.5"/>
+<title>TestClassC1-&gt;TestClassC4</title>
+<path fill="none" stroke="black" d="M349.27,-124C357.48,-124 366.17,-124 374.66,-124"></path>
+<polygon fill="black" stroke="black" points="374.86,-127.5 384.86,-124 374.86,-120.5 374.86,-127.5"></polygon>
 </g>
 </g>
 </svg>
@@ -1471,11 +1468,11 @@ a new one created for the new test class&#8217;s module.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 20%;">
-<col style="width: 20%;">
-<col style="width: 20%;">
-<col style="width: 20%;">
-<col style="width: 20%;">
+<col style="width: 20%;" />
+<col style="width: 20%;" />
+<col style="width: 20%;" />
+<col style="width: 20%;" />
+<col style="width: 20%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -1522,11 +1519,11 @@ we saw earlier.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 20%;">
-<col style="width: 20%;">
-<col style="width: 20%;">
-<col style="width: 20%;">
-<col style="width: 20%;">
+<col style="width: 20%;" />
+<col style="width: 20%;" />
+<col style="width: 20%;" />
+<col style="width: 20%;" />
+<col style="width: 20%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -1578,7 +1575,7 @@ and <em>subsequent</em> processes only later if there were no other first-proces
 </div>
 <div class="paragraph">
 <p>What biased dynamic sharding does is try to minimize the number of
-processes each module&#8217;s test suite will run: If the scheduler has a choice between
+processes each module’s test suite will run: If the scheduler has a choice between
 spawning a second process for <code>ModuleA</code> or the first process for <code>ModuleB</code>, it should
 prioritize the first process for <code>ModuleB</code>. This gives the existing first process
 for <code>ModulaA</code> a chance to complete its current test class and pick up the next one,
@@ -1589,152 +1586,151 @@ without needing to spawn a second process and paying the cost of doing so.</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="497px" height="160px"
- viewBox="0.00 0.00 496.62 160.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="497px" height="160px" viewBox="0.00 0.00 496.62 160.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 156.0)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-156 492.62,-156 492.62,4 -4,4"/>
-<g id="clust2" class="cluster">
-<title>cluster_b1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-56 8.38,-96 480.62,-96 480.62,-56 8.38,-56"/>
-</g>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-156 492.62,-156 492.62,4 -4,4"></polygon>
 <g id="clust1" class="cluster">
 <title>cluster_c1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 480.62,-48 480.62,-8 8.38,-8"/>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_a1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-104 8,-144 235.08,-144 235.08,-104 8,-104"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-8 8.38,-48 480.62,-48 480.62,-8 8.38,-8"></polygon>
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_c5</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="255.08,-104 255.08,-144 480.62,-144 480.62,-104 255.08,-104"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="255.08,-104 255.08,-144 480.62,-144 480.62,-104 255.08,-104"></polygon>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_a1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-104 8,-144 235.08,-144 235.08,-104 8,-104"></polygon>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_b1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8.38,-56 8.38,-96 480.62,-96 480.62,-56 8.38,-56"></polygon>
 </g>
 <!-- TestClassC1 -->
 <g id="node1" class="node">
 <title>TestClassC1</title>
-<polygon fill="lightblue" stroke="black" points="103.04,-40.3 16.5,-40.3 16.5,-15.7 103.04,-15.7 103.04,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="103.04,-40.3 16.5,-40.3 16.5,-15.7 103.04,-15.7 103.04,-40.3"></polygon>
 <text text-anchor="middle" x="59.77" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC1</text>
 </g>
 <!-- TestClassC2 -->
 <g id="node2" class="node">
 <title>TestClassC2</title>
-<polygon fill="lightblue" stroke="black" points="226.58,-40.3 140.04,-40.3 140.04,-15.7 226.58,-15.7 226.58,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="226.58,-40.3 140.04,-40.3 140.04,-15.7 226.58,-15.7 226.58,-40.3"></polygon>
 <text text-anchor="middle" x="183.31" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC2</text>
 </g>
 <!-- TestClassC1&#45;&gt;TestClassC2 -->
 <g id="edge7" class="edge">
-<title>TestClassC1&#45;&gt;TestClassC2</title>
-<path fill="none" stroke="black" d="M103.28,-28C111.84,-28 120.93,-28 129.79,-28"/>
-<polygon fill="black" stroke="black" points="130.03,-31.5 140.03,-28 130.03,-24.5 130.03,-31.5"/>
+<title>TestClassC1-&gt;TestClassC2</title>
+<path fill="none" stroke="black" d="M103.28,-28C111.84,-28 120.93,-28 129.79,-28"></path>
+<polygon fill="black" stroke="black" points="130.03,-31.5 140.03,-28 130.03,-24.5 130.03,-31.5"></polygon>
 </g>
 <!-- TestClassC3 -->
 <g id="node3" class="node">
 <title>TestClassC3</title>
-<polygon fill="lightblue" stroke="black" points="349.74,-40.3 263.19,-40.3 263.19,-15.7 349.74,-15.7 349.74,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="349.74,-40.3 263.19,-40.3 263.19,-15.7 349.74,-15.7 349.74,-40.3"></polygon>
 <text text-anchor="middle" x="306.47" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC3</text>
 </g>
 <!-- TestClassC2&#45;&gt;TestClassC3 -->
 <g id="edge8" class="edge">
-<title>TestClassC2&#45;&gt;TestClassC3</title>
-<path fill="none" stroke="black" d="M226.68,-28C235.12,-28 244.08,-28 252.81,-28"/>
-<polygon fill="black" stroke="black" points="252.91,-31.5 262.91,-28 252.91,-24.5 252.91,-31.5"/>
+<title>TestClassC2-&gt;TestClassC3</title>
+<path fill="none" stroke="black" d="M226.68,-28C235.12,-28 244.08,-28 252.81,-28"></path>
+<polygon fill="black" stroke="black" points="252.91,-31.5 262.91,-28 252.91,-24.5 252.91,-31.5"></polygon>
 </g>
 <!-- TestClassC4 -->
 <g id="node4" class="node">
 <title>TestClassC4</title>
-<polygon fill="lightblue" stroke="black" points="472.51,-40.3 385.96,-40.3 385.96,-15.7 472.51,-15.7 472.51,-40.3"/>
+<polygon fill="lightblue" stroke="black" points="472.51,-40.3 385.96,-40.3 385.96,-15.7 472.51,-15.7 472.51,-40.3"></polygon>
 <text text-anchor="middle" x="429.24" y="-23.8" font-family="Times,serif" font-size="14.00">TestClassC4</text>
 </g>
 <!-- TestClassC3&#45;&gt;TestClassC4 -->
 <g id="edge9" class="edge">
-<title>TestClassC3&#45;&gt;TestClassC4</title>
-<path fill="none" stroke="black" d="M350.04,-28C358.25,-28 366.94,-28 375.43,-28"/>
-<polygon fill="black" stroke="black" points="375.63,-31.5 385.63,-28 375.63,-24.5 375.63,-31.5"/>
+<title>TestClassC3-&gt;TestClassC4</title>
+<path fill="none" stroke="black" d="M350.04,-28C358.25,-28 366.94,-28 375.43,-28"></path>
+<polygon fill="black" stroke="black" points="375.63,-31.5 385.63,-28 375.63,-24.5 375.63,-31.5"></polygon>
 </g>
 <!-- TestClassB1 -->
 <g id="node5" class="node">
 <title>TestClassB1</title>
-<polygon fill="lightgreen" stroke="black" points="103.04,-88.3 16.5,-88.3 16.5,-63.7 103.04,-63.7 103.04,-88.3"/>
+<polygon fill="lightgreen" stroke="black" points="103.04,-88.3 16.5,-88.3 16.5,-63.7 103.04,-63.7 103.04,-88.3"></polygon>
 <text text-anchor="middle" x="59.77" y="-71.8" font-family="Times,serif" font-size="14.00">TestClassB1</text>
 </g>
 <!-- TestClassB2 -->
 <g id="node6" class="node">
 <title>TestClassB2</title>
-<polygon fill="lightgreen" stroke="black" points="226.58,-88.3 140.04,-88.3 140.04,-63.7 226.58,-63.7 226.58,-88.3"/>
+<polygon fill="lightgreen" stroke="black" points="226.58,-88.3 140.04,-88.3 140.04,-63.7 226.58,-63.7 226.58,-88.3"></polygon>
 <text text-anchor="middle" x="183.31" y="-71.8" font-family="Times,serif" font-size="14.00">TestClassB2</text>
 </g>
 <!-- TestClassB1&#45;&gt;TestClassB2 -->
 <g id="edge4" class="edge">
-<title>TestClassB1&#45;&gt;TestClassB2</title>
-<path fill="none" stroke="black" d="M103.28,-76C111.84,-76 120.93,-76 129.79,-76"/>
-<polygon fill="black" stroke="black" points="130.03,-79.5 140.03,-76 130.03,-72.5 130.03,-79.5"/>
+<title>TestClassB1-&gt;TestClassB2</title>
+<path fill="none" stroke="black" d="M103.28,-76C111.84,-76 120.93,-76 129.79,-76"></path>
+<polygon fill="black" stroke="black" points="130.03,-79.5 140.03,-76 130.03,-72.5 130.03,-79.5"></polygon>
 </g>
 <!-- TestClassB3 -->
 <g id="node7" class="node">
 <title>TestClassB3</title>
-<polygon fill="lightgreen" stroke="black" points="349.74,-88.3 263.19,-88.3 263.19,-63.7 349.74,-63.7 349.74,-88.3"/>
+<polygon fill="lightgreen" stroke="black" points="349.74,-88.3 263.19,-88.3 263.19,-63.7 349.74,-63.7 349.74,-88.3"></polygon>
 <text text-anchor="middle" x="306.47" y="-71.8" font-family="Times,serif" font-size="14.00">TestClassB3</text>
 </g>
 <!-- TestClassB2&#45;&gt;TestClassB3 -->
 <g id="edge5" class="edge">
-<title>TestClassB2&#45;&gt;TestClassB3</title>
-<path fill="none" stroke="black" d="M226.68,-76C235.12,-76 244.08,-76 252.81,-76"/>
-<polygon fill="black" stroke="black" points="252.91,-79.5 262.91,-76 252.91,-72.5 252.91,-79.5"/>
+<title>TestClassB2-&gt;TestClassB3</title>
+<path fill="none" stroke="black" d="M226.68,-76C235.12,-76 244.08,-76 252.81,-76"></path>
+<polygon fill="black" stroke="black" points="252.91,-79.5 262.91,-76 252.91,-72.5 252.91,-79.5"></polygon>
 </g>
 <!-- TestClassB4 -->
 <g id="node8" class="node">
 <title>TestClassB4</title>
-<polygon fill="lightgreen" stroke="black" points="472.51,-88.3 385.96,-88.3 385.96,-63.7 472.51,-63.7 472.51,-88.3"/>
+<polygon fill="lightgreen" stroke="black" points="472.51,-88.3 385.96,-88.3 385.96,-63.7 472.51,-63.7 472.51,-88.3"></polygon>
 <text text-anchor="middle" x="429.24" y="-71.8" font-family="Times,serif" font-size="14.00">TestClassB4</text>
 </g>
 <!-- TestClassB3&#45;&gt;TestClassB4 -->
 <g id="edge6" class="edge">
-<title>TestClassB3&#45;&gt;TestClassB4</title>
-<path fill="none" stroke="black" d="M350.04,-76C358.25,-76 366.94,-76 375.43,-76"/>
-<polygon fill="black" stroke="black" points="375.63,-79.5 385.63,-76 375.63,-72.5 375.63,-79.5"/>
+<title>TestClassB3-&gt;TestClassB4</title>
+<path fill="none" stroke="black" d="M350.04,-76C358.25,-76 366.94,-76 375.43,-76"></path>
+<polygon fill="black" stroke="black" points="375.63,-79.5 385.63,-76 375.63,-72.5 375.63,-79.5"></polygon>
 </g>
 <!-- TestClassA1 -->
 <g id="node9" class="node">
 <title>TestClassA1</title>
-<polygon fill="lightpink" stroke="black" points="103.31,-136.3 16.23,-136.3 16.23,-111.7 103.31,-111.7 103.31,-136.3"/>
+<polygon fill="lightpink" stroke="black" points="103.31,-136.3 16.23,-136.3 16.23,-111.7 103.31,-111.7 103.31,-136.3"></polygon>
 <text text-anchor="middle" x="59.77" y="-119.8" font-family="Times,serif" font-size="14.00">TestClassA1</text>
 </g>
 <!-- TestClassA2 -->
 <g id="node10" class="node">
 <title>TestClassA2</title>
-<polygon fill="lightpink" stroke="black" points="226.85,-136.3 139.77,-136.3 139.77,-111.7 226.85,-111.7 226.85,-136.3"/>
+<polygon fill="lightpink" stroke="black" points="226.85,-136.3 139.77,-136.3 139.77,-111.7 226.85,-111.7 226.85,-136.3"></polygon>
 <text text-anchor="middle" x="183.31" y="-119.8" font-family="Times,serif" font-size="14.00">TestClassA2</text>
 </g>
 <!-- TestClassA1&#45;&gt;TestClassA2 -->
 <g id="edge1" class="edge">
-<title>TestClassA1&#45;&gt;TestClassA2</title>
-<path fill="none" stroke="black" d="M103.62,-124C111.88,-124 120.63,-124 129.17,-124"/>
-<polygon fill="black" stroke="black" points="129.44,-127.5 139.44,-124 129.44,-120.5 129.44,-127.5"/>
+<title>TestClassA1-&gt;TestClassA2</title>
+<path fill="none" stroke="black" d="M103.62,-124C111.88,-124 120.63,-124 129.17,-124"></path>
+<polygon fill="black" stroke="black" points="129.44,-127.5 139.44,-124 129.44,-120.5 129.44,-127.5"></polygon>
 </g>
 <!-- TestClassC5 -->
 <g id="node11" class="node">
 <title>TestClassC5</title>
-<polygon fill="lightblue" stroke="black" points="349.74,-136.3 263.19,-136.3 263.19,-111.7 349.74,-111.7 349.74,-136.3"/>
+<polygon fill="lightblue" stroke="black" points="349.74,-136.3 263.19,-136.3 263.19,-111.7 349.74,-111.7 349.74,-136.3"></polygon>
 <text text-anchor="middle" x="306.47" y="-119.8" font-family="Times,serif" font-size="14.00">TestClassC5</text>
 </g>
 <!-- TestClassA2&#45;&gt;TestClassC5 -->
 <g id="edge2" class="edge">
-<title>TestClassA2&#45;&gt;TestClassC5</title>
-<path fill="none" stroke="black" d="M227.02,-124C235.45,-124 244.38,-124 253.07,-124"/>
-<polygon fill="black" stroke="black" points="253.14,-127.5 263.14,-124 253.14,-120.5 253.14,-127.5"/>
+<title>TestClassA2-&gt;TestClassC5</title>
+<path fill="none" stroke="black" d="M227.02,-124C235.45,-124 244.38,-124 253.07,-124"></path>
+<polygon fill="black" stroke="black" points="253.14,-127.5 263.14,-124 253.14,-120.5 253.14,-127.5"></polygon>
 </g>
 <!-- TestClassC6 -->
 <g id="node12" class="node">
 <title>TestClassC6</title>
-<polygon fill="lightblue" stroke="black" points="472.51,-136.3 385.96,-136.3 385.96,-111.7 472.51,-111.7 472.51,-136.3"/>
+<polygon fill="lightblue" stroke="black" points="472.51,-136.3 385.96,-136.3 385.96,-111.7 472.51,-111.7 472.51,-136.3"></polygon>
 <text text-anchor="middle" x="429.24" y="-119.8" font-family="Times,serif" font-size="14.00">TestClassC6</text>
 </g>
 <!-- TestClassC5&#45;&gt;TestClassC6 -->
 <g id="edge3" class="edge">
-<title>TestClassC5&#45;&gt;TestClassC6</title>
-<path fill="none" stroke="black" d="M350.04,-124C358.25,-124 366.94,-124 375.43,-124"/>
-<polygon fill="black" stroke="black" points="375.63,-127.5 385.63,-124 375.63,-120.5 375.63,-127.5"/>
+<title>TestClassC5-&gt;TestClassC6</title>
+<path fill="none" stroke="black" d="M350.04,-124C358.25,-124 366.94,-124 375.43,-124"></path>
+<polygon fill="black" stroke="black" points="375.63,-127.5 385.63,-124 375.63,-120.5 375.63,-127.5"></polygon>
 </g>
 </g>
 </svg>
@@ -1743,12 +1739,12 @@ without needing to spawn a second process and paying the cost of doing so.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.667%;">
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.667%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -1793,12 +1789,12 @@ tests and Mill scalalib tests show speedups over the previous <em>dynamic shardi
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.667%;">
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.667%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -1842,13 +1838,13 @@ without the pathological slowdowns that previous strategies exhibited.</p>
 <h2 id="_implementation"><a class="anchor" href="#_implementation"></a>Implementation</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The implementation of the various parallelism strategies we discussed above isn&#8217;t complicated:
+<p>The implementation of the various parallelism strategies we discussed above isn’t complicated:
 the Mill build tool is a JVM application, and all these strategies basically boil down
 to passing <code>Runnable</code>s to a <code>ThreadPoolExecutor</code>, each one
 using <code>ProcessBuilder</code> to spawn the test runner. Different strategies have different
 levels of granularity for the <code>Runnable</code>s, and different queues for the <code>ThreadPoolExecutor</code>
 (e.g. <em>biased dynamic sharding</em> using a <code>PriorityBlockingQueue</code> to bias the scheduler
-towards running some tasks over others) but fundamentally there&#8217;s nothing advanced going on.</p>
+towards running some tasks over others) but fundamentally there’s nothing advanced going on.</p>
 </div>
 <div class="paragraph">
 <p>Perhaps the most interesting implementation detail is for <em>dynamic sharding</em>:
@@ -1868,7 +1864,7 @@ small-scale that a build tool test runner operates at (100-1000s of test classes
 <h2 id="_build_tool_comparisons"><a class="anchor" href="#_build_tool_comparisons"></a>Build Tool Comparisons</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill is a relatively new JVM build tool, so it begs the question: how does Mill&#8217;s test
+<p>Mill is a relatively new JVM build tool, so it begs the question: how does Mill’s test
 runner compare to other JVM build tools like Maven, Gradle, or SBT? For this we ran the
 benchmarks above on the Mill example builds we used for our
 <a href="../mill/comparisons/maven.html" class="xref page">Maven case study</a>,
@@ -1880,7 +1876,7 @@ above fit into the larger build tool landscape.</p>
 <div class="sect2">
 <h3 id="_maven_comparison"><a class="anchor" href="#_maven_comparison"></a>Maven Comparison</h3>
 <div class="paragraph">
-<p>The Netty project we&#8217;ve been discussing in this article
+<p>The Netty project we’ve been discussing in this article
 is normally built using Maven: the Mill build is non-standard
 and used mainly as a <a href="../mill/comparisons/maven.html" class="xref page">Case Study Comparison</a>,
 but that gives us an opportunity to run these benchmarks using Maven to see how
@@ -1902,12 +1898,12 @@ timings for various testing strategies:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.667%;">
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.667%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -1930,9 +1926,9 @@ timings for various testing strategies:</p>
 </table>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
+<col style="width: 33.3333%;" />
+<col style="width: 33.3333%;" />
+<col style="width: 33.3334%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -1952,7 +1948,7 @@ timings for various testing strategies:</p>
 <a href="https://maven.apache.org/">Maven</a> build using the
 <a href="https://maven.apache.org/surefire/maven-surefire-plugin/">Maven-Surefire-Plugin</a>.
 For the purposes of this comparison, we did not manage to get further speedups from setting
-the Maven-Surefire-Plugin&#8217;s internal parallelism configuration
+the Maven-Surefire-Plugin’s internal parallelism configuration
 (<a href="https://maven.apache.org/surefire/maven-surefire-plugin/examples/fork-options-and-parallel-execution.html">link</a>),
 and so did not include that in the table above.</p>
 </div>
@@ -1978,12 +1974,12 @@ $ ./gradlew cleanTest &amp;&amp; ./gradlew :test android:test errorprone:test ex
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.667%;">
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.667%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -2006,10 +2002,10 @@ $ ./gradlew cleanTest &amp;&amp; ./gradlew :test android:test errorprone:test ex
 </table>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -2028,13 +2024,13 @@ $ ./gradlew cleanTest &amp;&amp; ./gradlew :test android:test errorprone:test ex
 </table>
 <div class="paragraph">
 <p>The <em>Gradle Serial</em> and <em>Gradle Parallel</em> benchmarks were run with <code>org.gradle.parallel</code>
-configured accordingly: <em>Gradle Serial</em> is similar to Mill&#8217;s <em>serial execution</em>,
-while <em>Gradle Parallel</em> is similar to Mill&#8217;s <em>module sharding</em> strategies. Enabling
+configured accordingly: <em>Gradle Serial</em> is similar to Mill’s <em>serial execution</em>,
+while <em>Gradle Parallel</em> is similar to Mill’s <em>module sharding</em> strategies. Enabling
 <a href="https://docs.gradle.org/current/userguide/performance.html#execute_tests_in_parallel">maxParallelForks</a>
 in Gradle to parallelize the tests within a subproject improves performance significantly,
-with numbers comparable to Mill&#8217;s <em>dynamic sharding</em>, although it is still significantly
-slower than Mill&#8217;s <em>biased dynamic sharding</em> strategy. From the numbers I would assume
-that Gradle&#8217;s parallelism approach is similar to Mill&#8217;s <em>dynamic sharding</em>, but it doesn&#8217;t
+with numbers comparable to Mill’s <em>dynamic sharding</em>, although it is still significantly
+slower than Mill’s <em>biased dynamic sharding</em> strategy. From the numbers I would assume
+that Gradle’s parallelism approach is similar to Mill’s <em>dynamic sharding</em>, but it doesn’t
 have the same process-spawning optimizations that Mill does in its <em>biased dynamic sharding</em>
 strategy</p>
 </div>
@@ -2057,12 +2053,12 @@ $ sbt test</code></pre>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.6666%;">
-<col style="width: 16.667%;">
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.6666%;" />
+<col style="width: 16.667%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -2085,9 +2081,9 @@ $ sbt test</code></pre>
 </table>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
+<col style="width: 33.3333%;" />
+<col style="width: 33.3333%;" />
+<col style="width: 33.3334%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -2105,12 +2101,12 @@ $ sbt test</code></pre>
 <div class="paragraph">
 <p><em>SBT Serial</em> is run with <code>fork := true</code> spawning a process to run tests,
 while <em>SBT Parallel</em> is run with <code>fork := false</code> running tests in the shared JVM process.
-Here we can see that for this benchmark, SBT&#8217;s in-memory parallel test running has
-similar performance to Mill&#8217;s <em>biased dynamic sharding</em>. Although the Mill test runner isn&#8217;t
+Here we can see that for this benchmark, SBT’s in-memory parallel test running has
+similar performance to Mill’s <em>biased dynamic sharding</em>. Although the Mill test runner isn’t
 faster, it does have nice properties: running the tests in subprocesses in sandbox folders
 provides a greater degree of isolation between the concurrent tests, which mitigates the
-risk of inter-test interference. Perhaps more importantly, Mill&#8217;s <code>testParallelism</code>
-is relatively self-tuning and should generally "just work" once enabled, whereas SBT
+risk of inter-test interference. Perhaps more importantly, Mill’s <code>testParallelism</code>
+is relatively self-tuning and should generally &quot;just work&quot; once enabled, whereas SBT
 has a number of different flags (<code>parallelExecution</code>, <code>concurrencyRestriction</code>, <code>fork</code>,
 <code>testForkedParallel</code>) that need to be configured together which can be tedious and
 error-prone.</p>
@@ -2122,19 +2118,19 @@ error-prone.</p>
 <h2 id="_conclusion"><a class="anchor" href="#_conclusion"></a>Conclusion</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>It&#8217;s interesting how similar the problem of parallelizing tests is to the challenge of
+<p>It’s interesting how similar the problem of parallelizing tests is to the challenge of
 architecting any distributed system. The ideas of <em>static sharding</em> and <em>dynamic
 sharding</em> should be familiar to any backend or infrastructure engineer, and the same
-tradeoffs that apply to their use in backend systems also apply to their use in a build tool&#8217;s
-test runner. It&#8217;s also surprising how much detail there is when trying to "parallelize unit
-tests": not only throwing the work at a thread or process-pool, but also managing the lifetimes,
+tradeoffs that apply to their use in backend systems also apply to their use in a build tool’s
+test runner. It’s also surprising how much detail there is when trying to &quot;parallelize unit
+tests&quot;: not only throwing the work at a thread or process-pool, but also managing the lifetimes,
 re-use, and scheduling of heavyweight JVM test processes in order to provide good performance
 across a wide variety of workloads.</p>
 </div>
 <div class="paragraph">
-<p>The Mill build tool&#8217;s test parallelism strategy has gone through a lot of iterations and
+<p>The Mill build tool’s test parallelism strategy has gone through a lot of iterations and
 improvement over the years, but at this point it is in a pretty good state.
-Most importantly, Mill&#8217;s new <code>def testParallelism = true</code> flag is a single switch.
+Most importantly, Mill’s new <code>def testParallelism = true</code> flag is a single switch.
 It is not that much <em>faster</em> than running tests with older strategies or other
 build tools, but it provides that performance across a wide range of workloads without needing
 manual tuning or configuration. This simplifies the user experience,
@@ -2153,9 +2149,9 @@ we expect to make it the default (with an opt-out) in the next major version of 
 </main>
 </div>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
-<script async src="../_/js/vendor/highlight.js"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>
 <script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
-<script async src="../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>

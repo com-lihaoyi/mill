@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Scala Build Examples :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/scalalib/build-examples.html" />
-    <link rel="prev" href="publishing.html" />
-    <link rel="next" href="web-examples.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/scalalib/build-examples.html">
+    <link rel="prev" href="publishing.html">
+    <link rel="next" href="web-examples.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -684,41 +683,41 @@ when preparing the resources for test suite execution</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">os.copy.over(
-  interp.watch(mill.api.WorkspaceRoot.workspaceRoot / &quot;acyclic&quot;),
-  os.pwd / &quot;acyclic&quot;,
+  interp.watch(mill.api.WorkspaceRoot.workspaceRoot / "acyclic"),
+  os.pwd / "acyclic",
   createFolders = true
 )
 
 object Deps {
-  def acyclic = ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;
-  def scalaCompiler(scalaVersion: String) = ivy&quot;org.scala-lang:scala-compiler:$scalaVersion&quot;
-  val utest = ivy&quot;com.lihaoyi::utest:0.8.5&quot;
+  def acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
+  def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:$scalaVersion"
+  val utest = ivy"com.lihaoyi::utest:0.8.5"
 }
 
 val crosses =
-  Seq(&quot;2.11.12&quot;) ++
-    Range.inclusive(8, 17).map(&quot;2.12.&quot; + _) ++
-    Range.inclusive(0, 10).map(&quot;2.13.&quot; + _)
+  Seq("2.11.12") ++
+    Range.inclusive(8, 17).map("2.12." + _) ++
+    Range.inclusive(0, 10).map("2.13." + _)
 
 object acyclic extends Cross[AcyclicModule](crosses)
 trait AcyclicModule extends CrossScalaModule with PublishModule {
   def crossFullScalaVersion = true
-  def artifactName = &quot;acyclic&quot;
-  def publishVersion = &quot;1.3.3.7&quot;
+  def artifactName = "acyclic"
+  def publishVersion = "1.3.3.7"
 
   def pomSettings = PomSettings(
     description = artifactName(),
-    organization = &quot;com.lihaoyi&quot;,
-    url = &quot;https://github.com/com-lihaoyi/acyclic&quot;,
+    organization = "com.lihaoyi",
+    url = "https://github.com/com-lihaoyi/acyclic",
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(owner = &quot;com-lihaoyi&quot;, repo = &quot;acyclic&quot;),
-    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+    versionControl = VersionControl.github(owner = "com-lihaoyi", repo = "acyclic"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
   def compileIvyDeps = Agg(Deps.scalaCompiler(crossScalaVersion))
 
   object test extends ScalaTests with TestModule.Utest {
-    def sources = Task.Sources(&quot;src&quot;, &quot;resources&quot;)
+    def sources = Task.Sources("src", "resources")
     def ivyDeps = Agg(Deps.utest, Deps.scalaCompiler(crossScalaVersion))
   }
 }</code></pre>
@@ -774,26 +773,26 @@ compiling 6 Scala sources...
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, scalajslib._, scalanativelib._, publish._
 
-val dottyCommunityBuildVersion = sys.props.get(&quot;dottyVersion&quot;).toList
+val dottyCommunityBuildVersion = sys.props.get("dottyVersion").toList
 
-val scalaVersions = Seq(&quot;2.12.17&quot;, &quot;2.13.8&quot;, &quot;2.11.12&quot;, &quot;3.1.3&quot;) ++ dottyCommunityBuildVersion
+val scalaVersions = Seq("2.12.17", "2.13.8", "2.11.12", "3.1.3") ++ dottyCommunityBuildVersion
 
 trait FansiModule extends PublishModule with CrossScalaModule with PlatformScalaModule {
-  def publishVersion = &quot;1.3.3.7&quot;
+  def publishVersion = "1.3.3.7"
 
   def pomSettings = PomSettings(
     description = artifactName(),
-    organization = &quot;com.lihaoyi&quot;,
-    url = &quot;https://github.com/com-lihaoyi/Fansi&quot;,
+    organization = "com.lihaoyi",
+    url = "https://github.com/com-lihaoyi/Fansi",
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(owner = &quot;com-lihaoyi&quot;, repo = &quot;fansi&quot;),
-    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+    versionControl = VersionControl.github(owner = "com-lihaoyi", repo = "fansi"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::sourcecode::0.3.0&quot;)
+  def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode::0.3.0")
 
   trait FansiTests extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.5&quot;)
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.5")
   }
 }
 
@@ -805,13 +804,13 @@ object fansi extends Module {
 
   object js extends Cross[JsFansiModule](scalaVersions)
   trait JsFansiModule extends FansiModule with ScalaJSModule {
-    def scalaJSVersion = &quot;1.16.0&quot;
+    def scalaJSVersion = "1.16.0"
     object test extends FansiTests with ScalaJSTests
   }
 
   object native extends Cross[NativeFansiModule](scalaVersions)
   trait NativeFansiModule extends FansiModule with ScalaNativeModule {
-    def scalaNativeVersion = &quot;0.4.5&quot;
+    def scalaNativeVersion = "0.4.5"
     object test extends FansiTests with ScalaNativeTests
   }
 }</code></pre>
@@ -907,9 +906,9 @@ used in many build tools down resolve and download third party dependencies</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Library Dependencies in Mill :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/library-deps.html" />
-    <link rel="prev" href="out-dir.html" />
-    <link rel="next" href="cross-builds.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/library-deps.html">
+    <link rel="prev" href="out-dir.html">
+    <link rel="next" href="cross-builds.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -680,7 +679,7 @@ For more details about coursier, refer to the <a href="https://get-coursier.io/d
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>ivy&quot;{organization}:{name}:{version}&quot;</pre>
+<pre>ivy"{organization}:{name}:{version}"</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -688,7 +687,7 @@ For more details about coursier, refer to the <a href="https://get-coursier.io/d
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>ivy&quot;{organization}:{name}:{version}[;{attribute}={value}]*&quot;</pre>
+<pre>ivy"{organization}:{name}:{version}[;{attribute}={value}]*"</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -698,13 +697,13 @@ The whole triplet is often called <code>GAV</code>.</p>
 </div>
 <div class="paragraph">
 <p>In Mill we use the additional term <code>artifactId</code> which is identical to the <code>name</code> when used in the normal form shown above.
-When a different form is used, e.g. some double-colons are used between the parts, the <code>artifactId</code> typically contains suffixes, but the name doesn’t.</p>
+When a different form is used, e.g. some double-colons are used between the parts, the <code>artifactId</code> typically contains suffixes, but the name doesn&#8217;t.</p>
 </div>
 <div class="listingblock">
 <div class="title">Example for a simple Java Dependency</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def ivyDeps = Agg(
-  ivy&quot;org.slf4j:slf4j-api:1.7.25&quot;
+  ivy"org.slf4j:slf4j-api:1.7.25"
 )</code></pre>
 </div>
 </div>
@@ -717,8 +716,8 @@ which already inherits all dependencies of their parent module.
 If you need additional test dependencies, you simply add them by overriding <code>def ivyDeps</code>, as you would do with normal library dependencies.</p>
 </div>
 <div class="paragraph">
-<p>When migrating a sbt project and seeing a dependency like this: <code>&quot;ch.qos.logback&quot; % &quot;logback-classic&quot; % &quot;1.2.3&quot; % &quot;test&quot;</code>,
-simply add it to the test module’s <code>ivyDeps</code> as ordinary dependency.
+<p>When migrating a sbt project and seeing a dependency like this: <code>"ch.qos.logback" % "logback-classic" % "1.2.3" % "test"</code>,
+simply add it to the test module&#8217;s <code>ivyDeps</code> as ordinary dependency.
 There is no special test scope in Mill.</p>
 </div>
 <div class="listingblock">
@@ -727,7 +726,7 @@ There is no special test scope in Mill.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object main extends JavaModule {
   object test extends JavaModuleTests {
     def ivyDeps = Agg(
-      ivy&quot;org.qos.logback:logback-classic:1.2.3&quot;
+      ivy"org.qos.logback:logback-classic:1.2.3"
     )
   }
 }</code></pre>
@@ -743,7 +742,7 @@ There is no special test scope in Mill.</p>
 <div class="title">Example</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compileIvyDeps = Agg(
-  ivy&quot;org.slf4j:slf4j-api:1.7.25&quot;
+  ivy"org.slf4j:slf4j-api:1.7.25"
 )</code></pre>
 </div>
 </div>
@@ -751,7 +750,7 @@ There is no special test scope in Mill.</p>
 <p>When Mill generated file to interact with package manager like <code>pom.xml</code> for Maven repositories, such compile-only dependencies are mapped to the <code>provided</code> scope.</p>
 </div>
 <div class="paragraph">
-<p>Please note, that dependencies with <code>provided</code> scope will never be resolved transitively. Hence, the name &quot;provided&quot;, as the task runtime needs to &quot;provide&quot; them, if they are needed.</p>
+<p>Please note, that dependencies with <code>provided</code> scope will never be resolved transitively. Hence, the name "provided", as the task runtime needs to "provide" them, if they are needed.</p>
 </div>
 </div>
 <div class="sect2">
@@ -763,7 +762,7 @@ There is no special test scope in Mill.</p>
 <div class="title">Example</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def runIvyDeps = Agg(
-  ivy&quot;ch.qos.logback:logback-classic:1.2.0&quot;
+  ivy"ch.qos.logback:logback-classic:1.2.0"
 )</code></pre>
 </div>
 </div>
@@ -796,8 +795,8 @@ There is no special test scope in Mill.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>After compiling your module(s) you can find and examine files such as <code>ivyDeps.json</code> and <code>transitiveIvyDeps.json</code> in your <code>out</code> build’s folder for a given module.
-After running the <code>ivyDepsTree</code> command you’ll also find the <code>ivyDepsTree.json</code> and <code>ivyDepsTree.log</code> file that contain the output of the above <code>ivyDepsTree</code> command.</p>
+<p>After compiling your module(s) you can find and examine files such as <code>ivyDeps.json</code> and <code>transitiveIvyDeps.json</code> in your <code>out</code> build&#8217;s folder for a given module.
+After running the <code>ivyDepsTree</code> command you&#8217;ll also find the <code>ivyDepsTree.json</code> and <code>ivyDepsTree.log</code> file that contain the output of the above <code>ivyDepsTree</code> command.</p>
 </div>
 <div class="paragraph">
 <p>You can observe the actual version being used by running <code>mill show myModule.resolvedIvyDeps</code>. If you run <code>mill myModule.resolvedIvyDeps</code>, the same information is available in <code>out/myModule/resolvedIvyDeps.json</code>.</p>
@@ -811,7 +810,7 @@ command provides a nice utility to be able to target the part of the tree that
 brings in a specific dependency.</p>
 </div>
 <div class="paragraph">
-<p>For example, let’s again  use the Mill codebase as an example. We’ll search the
+<p>For example, let&#8217;s again  use the Mill codebase as an example. We&#8217;ll search the
 tree in the  <code>main</code> module and try to find where the <code>jsoniter-scala-core_2.13</code>
 artifact is coming from using the <code>--whatDependsOn</code> argument:</p>
 </div>
@@ -827,13 +826,13 @@ artifact is coming from using the <code>--whatDependsOn</code> argument:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>By looking at the output we can see that it’s our dependency on <code>coursier_2.13</code>
+<p>By looking at the output we can see that it&#8217;s our dependency on <code>coursier_2.13</code>
 that is bringing in the <code>jsoniter-scala-core_2.13</code> artifact.</p>
 </div>
 <div class="paragraph">
 <p>The <code>--whatDependsOn</code> argument can also be repeated to target multiple
 artifacts at once. Just repeat the <code>--whatDependsOn &lt;artifact&gt;</code> pattern. Note
-that the artifact pattern follows the <code>org:artifact</code> convention. You can’t
+that the artifact pattern follows the <code>org:artifact</code> convention. You can&#8217;t
 include a version as the utility will show you all usages of the <code>artifact</code>.
 Also note that when using <code>--whatDependsOn</code> on usage of <code>--inverse</code> is forced
 in order to make the tree appear in an inverted manner to more easily show you
@@ -850,7 +849,7 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="title">Example: Exclude <code>fansi_2.12</code> library from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def deps = Agg(
-  ivy&quot;com.lihaoyi::pprint:0.5.3&quot;.exclude(&quot;com.lihaoyi&quot; -&gt; &quot;fansi_2.12&quot;)
+  ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -&gt; "fansi_2.12")
 )</code></pre>
 </div>
 </div>
@@ -864,14 +863,14 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="title">Example: Shot notation to exclude <code>fansi_2.12</code> library from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def deps = Agg(
-  ivy&quot;com.lihaoyi::pprint:0.5.3;exclude=com.lihaoyi:fansi_2.12&quot;
+  ivy"com.lihaoyi::pprint:0.5.3;exclude=com.lihaoyi:fansi_2.12"
 )</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Example: Exclude all <code>com.lihaoyi</code> libraries from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Agg(ivy&quot;com.lihaoyi::pprint:0.5.3&quot;.excludeOrg(&quot;com.lihaoyi&quot;))</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -881,9 +880,9 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="title">Example: Excluding a library (fansi) by name from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Agg(
-  ivy&quot;com.lihaoyi::pprint:0.5.3&quot;
-    .excludeName(&quot;fansi_2.12&quot;)
-    .excludeName(&quot;sourcecode&quot;)
+  ivy"com.lihaoyi::pprint:0.5.3"
+    .excludeName("fansi_2.12")
+    .excludeName("sourcecode")
 )</code></pre>
 </div>
 </div>
@@ -896,22 +895,22 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="ulist">
 <ul>
 <li>
-<p>You declare a dependency <code>val deps = Agg(ivy&quot;com.lihaoyi::fansi:0.2.14&quot;)</code></p>
+<p>You declare a dependency <code>val deps = Agg(ivy"com.lihaoyi::fansi:0.2.14")</code></p>
 </li>
 <li>
-<p>There is another dependency, <code>val deps = Agg(ivy&quot;com.lihaoyi::PPrint:0.8.1&quot;)</code></p>
+<p>There is another dependency, <code>val deps = Agg(ivy"com.lihaoyi::PPrint:0.8.1")</code></p>
 </li>
 <li>
 <p>PPrint 0.8.1 uses fansi 0.4.0, so it is a transitive dependency</p>
 </li>
 <li>
-<p><code>mill show myModule.resolvedIvyDeps | grep &quot;fansi&quot;</code> should show fansi 0.4.0</p>
+<p><code>mill show myModule.resolvedIvyDeps | grep "fansi"</code> should show fansi 0.4.0</p>
 </li>
 <li>
-<p>If you want to force to the older version (to prevent it being evicted, and replaced by 0.4.0) then you can use <code>val deps = Agg(ivy&quot;com.lihaoyi::fansi:0.2.14&quot;.forceVersion())</code></p>
+<p>If you want to force to the older version (to prevent it being evicted, and replaced by 0.4.0) then you can use <code>val deps = Agg(ivy"com.lihaoyi::fansi:0.2.14".forceVersion())</code></p>
 </li>
 <li>
-<p><code>mill show myModule.resolvedIvyDeps | grep &quot;fansi&quot;</code> should show fansi 0.2.14</p>
+<p><code>mill show myModule.resolvedIvyDeps | grep "fansi"</code> should show fansi 0.2.14</p>
 </li>
 </ul>
 </div>
@@ -923,7 +922,7 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="sectionbody">
 <div class="paragraph">
 <p>Dependency management consists in listing dependencies whose versions we want to force. Having
-a dependency in dependency management doesn’t mean that this dependency will be fetched, only
+a dependency in dependency management doesn&#8217;t mean that this dependency will be fetched, only
 that</p>
 </div>
 <div class="ulist">
@@ -967,16 +966,16 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   def bomIvyDeps = Agg(
-    ivy&quot;com.google.cloud:libraries-bom:26.50.0&quot;
+    ivy"com.google.cloud:libraries-bom:26.50.0"
   )
   def ivyDeps = Agg(
-    ivy&quot;io.grpc:grpc-protobuf&quot;
+    ivy"io.grpc:grpc-protobuf"
   )
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The version of grpc-protobuf (<code>io.grpc:grpc-protobuf</code>) isn’t written down here, so the version
+<p>The version of grpc-protobuf (<code>io.grpc:grpc-protobuf</code>) isn&#8217;t written down here, so the version
 from the BOM, <code>1.67.1</code> is used.</p>
 </div>
 <div class="paragraph">
@@ -1003,17 +1002,17 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   def depManagement = Agg(
-    ivy&quot;com.google.protobuf:protobuf-java:4.28.3&quot;,
-    ivy&quot;io.grpc:grpc-protobuf:1.67.1&quot;
+    ivy"com.google.protobuf:protobuf-java:4.28.3",
+    ivy"io.grpc:grpc-protobuf:1.67.1"
   )
   def ivyDeps = Agg(
-    ivy&quot;io.grpc:grpc-protobuf&quot;
+    ivy"io.grpc:grpc-protobuf"
   )
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The version of grpc-protobuf (<code>io.grpc:grpc-protobuf</code>) isn’t written down here, so the version
+<p>The version of grpc-protobuf (<code>io.grpc:grpc-protobuf</code>) isn&#8217;t written down here, so the version
 found in <code>depManagement</code>, <code>1.67.1</code> is used.</p>
 </div>
 <div class="paragraph">
@@ -1028,11 +1027,11 @@ protobuf-java <code>4.28.3</code> ends up being pulled here.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
   def depManagement = Agg(
-    ivy&quot;io.grpc:grpc-protobuf:1.67.1&quot;
-      .exclude((&quot;com.google.protobuf&quot;, &quot;protobuf-java&quot;))
+    ivy"io.grpc:grpc-protobuf:1.67.1"
+      .exclude(("com.google.protobuf", "protobuf-java"))
   )
   def ivyDeps = Agg(
-    ivy&quot;io.grpc:grpc-protobuf&quot;
+    ivy"io.grpc:grpc-protobuf"
   )
 }</code></pre>
 </div>
@@ -1050,11 +1049,11 @@ like</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object baz extends JavaModule {
   def depManagement = Agg(
-    ivy&quot;io.grpc:grpc-protobuf&quot;
-      .exclude((&quot;com.google.protobuf&quot;, &quot;protobuf-java&quot;))
+    ivy"io.grpc:grpc-protobuf"
+      .exclude(("com.google.protobuf", "protobuf-java"))
   )
   def ivyDeps = Agg(
-    ivy&quot;io.grpc:grpc-protobuf:1.67.1&quot;
+    ivy"io.grpc:grpc-protobuf:1.67.1"
   )
 }</code></pre>
 </div>
@@ -1071,11 +1070,11 @@ like</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myBom extends BomModule {
   // Importing external BOMs from our BOM module with bomIvyDeps
   def bomIvyDeps = Agg(
-    ivy&quot;com.google.protobuf:protobuf-bom:4.28.1&quot;
+    ivy"com.google.protobuf:protobuf-bom:4.28.1"
   )
   // Managing versions directly from our BOM module with depManagement
   def depManagement = Agg(
-    ivy&quot;io.grpc:grpc-protobuf:1.67.1&quot;
+    ivy"io.grpc:grpc-protobuf:1.67.1"
   )
 }</code></pre>
 </div>
@@ -1090,7 +1089,7 @@ like</p>
     myBom
   )
   def ivyDeps = Agg(
-    ivy&quot;io.grpc:grpc-protobuf&quot;
+    ivy"io.grpc:grpc-protobuf"
   )
 }</code></pre>
 </div>
@@ -1103,10 +1102,10 @@ packaging type <code>pom</code>, usable as a BOM from other build tools:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myPublishedBom extends BomModule with MyPublishModule {
   def bomIvyDeps = Agg(
-    ivy&quot;com.google.protobuf:protobuf-bom:4.28.1&quot;
+    ivy"com.google.protobuf:protobuf-bom:4.28.1"
   )
   def depManagement = Agg(
-    ivy&quot;io.grpc:grpc-protobuf:1.67.1&quot;
+    ivy"io.grpc:grpc-protobuf:1.67.1"
   )
 }</code></pre>
 </div>
@@ -1122,20 +1121,20 @@ but we can still use it right from our build with bomModuleDeps:</p>
     myPublishedBom
   )
   def ivyDeps = Agg(
-    ivy&quot;io.grpc:grpc-protobuf&quot;
+    ivy"io.grpc:grpc-protobuf"
   )
 }
 
 trait MyPublishModule extends PublishModule {
   def pomSettings = PomSettings(
-    description = &quot;My Project&quot;,
-    organization = &quot;com.lihaoyi.mill-examples&quot;,
-    url = &quot;https://github.com/com-lihaoyi/mill&quot;,
+    description = "My Project",
+    organization = "com.lihaoyi.mill-examples",
+    url = "https://github.com/com-lihaoyi/mill",
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(&quot;com-lihaoyi&quot;, &quot;mill&quot;),
-    developers = Seq(Developer(&quot;me&quot;, &quot;Me&quot;, &quot;https://github.com/me&quot;))
+    versionControl = VersionControl.github("com-lihaoyi", "mill"),
+    developers = Seq(Developer("me", "Me", "https://github.com/me"))
   )
-  def publishVersion = &quot;0.1.0&quot;
+  def publishVersion = "0.1.0"
 }</code></pre>
 </div>
 </div>
@@ -1146,8 +1145,8 @@ trait MyPublishModule extends PublishModule {
 <h2 id="_searching_for_dependency_updates"><a class="anchor" href="#_searching_for_dependency_updates"></a>Searching For Dependency Updates</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill can search for updated versions of your project’s dependencies, if
-available from your project’s configured repositories. Note that it uses
+<p>Mill can search for updated versions of your project&#8217;s dependencies, if
+available from your project&#8217;s configured repositories. Note that it uses
 heuristics based on common versioning schemes, so it may not work as expected for
 dependencies with particularly weird version numbers. For example, given the following
 build:</p>
@@ -1159,16 +1158,16 @@ build:</p>
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
-  def scalaVersion = &quot;2.13.11&quot;
+  def scalaVersion = "2.13.11"
 }
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
+  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
 }
 
 object bar extends MyModule {
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;)
+  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
 }</code></pre>
 </div>
 </div>
@@ -1195,7 +1194,7 @@ object bar extends MyModule {
 <p>Always applies to all modules in the build.</p>
 </li>
 <li>
-<p>Doesn’t apply to <code>$ivy</code> dependencies used in the build definition itself.</p>
+<p>Doesn&#8217;t apply to <code>$ivy</code> dependencies used in the build definition itself.</p>
 </li>
 </ul>
 </div>
@@ -1210,9 +1209,9 @@ object bar extends MyModule {
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

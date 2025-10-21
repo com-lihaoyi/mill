@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Python Packaging &amp; Publishing :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/pythonlib/publishing.html" />
-    <link rel="prev" href="testing.html" />
-    <link rel="next" href="../javascriptlib/intro.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/pythonlib/publishing.html">
+    <link rel="prev" href="testing.html">
+    <link rel="next" href="../javascriptlib/intro.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -677,36 +676,36 @@ Start by extending it.</p>
 object `package` extends RootModule with PythonModule with PublishModule {
 
   // information about dependencies will be included in the published package
-  def pythonDeps = Seq(&quot;jinja2==3.1.4&quot;)
+  def pythonDeps = Seq("jinja2==3.1.4")
 
   def publishMeta = PublishMeta(
-    name = &quot;testpkg-mill&quot;,
-    description = &quot;an example package&quot;,
-    requiresPython = &quot;&gt;= 3.12&quot;,
+    name = "testpkg-mill",
+    description = "an example package",
+    requiresPython = "&gt;= 3.12",
     license = License.MIT,
-    authors = Seq(Developer(&quot;John Doe&quot;, &quot;jdoe@example.org&quot;))
+    authors = Seq(Developer("John Doe", "jdoe@example.org"))
   )
 
   // the version under which the package will be published
-  def publishVersion = &quot;0.0.2&quot;
+  def publishVersion = "0.0.2"
 
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You’ll need to define some metadata in the <code>publishMeta</code> and <code>publishVersion</code>
-tasks. This metadata is roughly equivalent to what you’d define in a
+<p>You&#8217;ll need to define some metadata in the <code>publishMeta</code> and <code>publishVersion</code>
+tasks. This metadata is roughly equivalent to what you&#8217;d define in a
 <a href="https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#basic-information"><code>pyproject.toml</code> file</a>.</p>
 </div>
 <div class="paragraph">
-<p>You’ll also need to create a <code>readme</code> file, which will be bundled in the
+<p>You&#8217;ll also need to create a <code>readme</code> file, which will be bundled in the
 final package and serves as the landing page seen on PyPI. By default, Mill
 assumes a file starting with the string <code>readme</code> (in any capitalization), but
 you can override it to whatever you please.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -719,7 +718,7 @@ control.</p>
 </div>
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 </div>
 </div>
@@ -732,17 +731,17 @@ control.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show sdist
-&quot;.../out/sdist.dest/dist/testpkg_mill-0.0.2.tar.gz&quot;
+".../out/sdist.dest/dist/testpkg_mill-0.0.2.tar.gz"
 
 &gt; mill show wheel
-&quot;.../out/wheel.dest/dist/testpkg_mill-0.0.2-py3-none-any.whl&quot;</code></pre>
+".../out/wheel.dest/dist/testpkg_mill-0.0.2-py3-none-any.whl"</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>These files can then be <code>pip-installed</code> by other projects, or, if you’re using Mill, you can
+<p>These files can then be <code>pip-installed</code> by other projects, or, if you&#8217;re using Mill, you can
 include them in your <a href="dependencies.html#_unmanaged_wheels" class="xref page">unmanagedWheels</a> task.
-Usually however, you’d want to publish them to a package index such as PyPI or your
-organization’s internal package repository.</p>
+Usually however, you&#8217;d want to publish them to a package index such as PyPI or your
+organization&#8217;s internal package repository.</p>
 </div>
 </div>
 </div>
@@ -766,7 +765,7 @@ mill __.publish</code></pre>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -774,13 +773,13 @@ mill __.publish</code></pre>
 <div class="paragraph">
 <p>Mill does not transitively upload all your packages, hence we
 recommended to use <code>mill __.publish</code>, instead of <code>mill &lt;module&gt;.publish</code>.
-While it’s technically possible to upload packages of individual Mill modules
-by calling their <code>publish</code> tasks separately, you’d usually want to ensure all
+While it&#8217;s technically possible to upload packages of individual Mill modules
+by calling their <code>publish</code> tasks separately, you&#8217;d usually want to ensure all
 your dependencies are also published.</p>
 </div>
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="sect2">
 <h3 id="_check_before_uploading"><a class="anchor" href="#_check_before_uploading"></a>Check before uploading</h3>
@@ -827,7 +826,7 @@ customization.</p>
 <div class="sect2">
 <h3 id="_customizing_the_pyproject_toml_and_other_build_files"><a class="anchor" href="#_customizing_the_pyproject_toml_and_other_build_files"></a>Customizing the <code>pyproject.toml</code> and other build files</h3>
 <div class="paragraph">
-<p>If you’re happy to use a PEP-518-compliant <code>pyproject.toml</code> to describe how to
+<p>If you&#8217;re happy to use a PEP-518-compliant <code>pyproject.toml</code> to describe how to
 package your published project, but would like some customization, you can amend
 or override the <code>pyproject</code> task with your own metadata.</p>
 </div>
@@ -847,32 +846,32 @@ custom <code>setup.py</code> file.</p>
 object `package` extends RootModule with PythonModule with PublishModule {
 
   def publishMeta = PublishMeta(
-    name = &quot;testpackage&quot;,
-    description = &quot;an example package&quot;,
-    requiresPython = &quot;&gt;= 3.12&quot;,
+    name = "testpackage",
+    description = "an example package",
+    requiresPython = "&gt;= 3.12",
     license = License.MIT,
-    authors = Seq(Developer(&quot;John Doe&quot;, &quot;jdoe@example.org&quot;))
+    authors = Seq(Developer("John Doe", "jdoe@example.org"))
   )
 
-  def publishVersion = &quot;0.0.3&quot;
+  def publishVersion = "0.0.3"
 
   // you could also reference an existing setup.py file directly, e.g.
-  // `def setup = Task.Source {&quot;setup.py&quot; }`
+  // `def setup = Task.Source {"setup.py" }`
   def setup = Task {
     val str =
-      s&quot;&quot;&quot;#from setuptools import setup
+      s"""#from setuptools import setup
           #
-          #print(&quot;hello from custom setup.py!&quot;)
+          #print("hello from custom setup.py!")
           #
           ## empty setup, defers to using values in pyproject.toml
           #setup()
-          #&quot;&quot;&quot;.stripMargin('#')
-    os.write(Task.dest / &quot;setup.py&quot;, str)
-    PathRef(Task.dest / &quot;setup.py&quot;)
+          #""".stripMargin('#')
+    os.write(Task.dest / "setup.py", str)
+    PathRef(Task.dest / "setup.py")
   }
 
   override def buildFiles = Task {
-    super.buildFiles() ++ Map(&quot;setup.py&quot; -&gt; setup())
+    super.buildFiles() ++ Map("setup.py" -&gt; setup())
   }
 
 }</code></pre>
@@ -906,9 +905,9 @@ packaging implementation. Publishing with <code>__.publish</code> will still wor
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

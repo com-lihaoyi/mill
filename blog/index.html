@@ -1,19 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>The Mill Build Engineering Blog :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/blog/index.html">
-    <link rel="next" href="16-zero-setup.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/blog/index.html" />
+    <link rel="next" href="16-zero-setup.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -44,7 +42,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -63,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -246,7 +247,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/index.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -273,7 +274,7 @@ build tooling for large codebases in JVM and non-JVM languages.</p>
 </div>
 <div class="paragraph">
 <p>Getting the software you need installed onto your machine is a common point of
-friction, whether you&#8217;re on OS-X finding
+friction, whether you’re on OS-X finding
 <a href="https://github.com/orgs/Homebrew/discussions/1177">Homebrew being terribly slow</a> or on Ubuntu finding
 <a href="https://www.reddit.com/r/Ubuntu/comments/1j3ldpm/why_are_all_my_apt_programs_so_outdated/">the versions available are all outdated</a>.
 Setting up Java projects in particular often involves a multi-step process to install <code>mvn</code>,
@@ -282,7 +283,7 @@ Setting up Java projects in particular often involves a multi-step process to in
 <div class="paragraph">
 <p>The Mill build tool does something interesting here: it requires no system-wide installation
 at all to build your Java projects! You can checkout any codebase built with Mill on a bare
-Linux/Mac/Windows machine, build it without any prior setup using it&#8217;s <code>./mill</code> bootstrap
+Linux/Mac/Windows machine, build it without any prior setup using it’s <code>./mill</code> bootstrap
 script, and Mill will automatically download and cache itself, any JVMs, and any third-party
 libraries and tools necessary. For example, the <code>./mill __.compile</code> below is all that is needed
 libraries and tools necessary. For example, the <code>./mill __.compile</code> below is all that is needed
@@ -299,13 +300,13 @@ simplifying building your project on diverse dev and CI environments:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>This blog post explores how Mill&#8217;s zero-install workflow works: the status quo,
-the interesting innovations that Mill builds upon, and Mill&#8217;s unique ideas
+<p>This blog post explores how Mill’s zero-install workflow works: the status quo,
+the interesting innovations that Mill builds upon, and Mill’s unique ideas
 that let it achieve this zero-setup usage to greatly simplify getting started
 working with Java, Scala, or Kotlin projects.</p>
 </div>
 <div class="paragraph">
-<p><a href="16-zero-setup.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="16-zero-setup.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -335,7 +336,7 @@ working with Java, Scala, or Kotlin projects.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p><a href="15-android-build-flow.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="15-android-build-flow.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -350,7 +351,7 @@ working with Java, Scala, or Kotlin projects.</p>
 that half your users would be using Bash-on-Linux, while the other half will be
 using Zsh-on-OSX, each of which has different tab-completion APIs. Furthermore, most
 users exploring an unfamiliar CLI tool using tab completion appreciate showing a
-description along with each completion so they can read what it is, but that&#8217;s
+description along with each completion so they can read what it is, but that’s
 normally only available on Zsh and not on Bash.</p>
 </div>
 <div class="paragraph">
@@ -364,16 +365,16 @@ examples to set up Bash and Zsh completions for your own command-line tooling.</
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/CompletionDescriptions.png" alt="CompletionDescriptions">
+<img src="_images/CompletionDescriptions.png" alt="CompletionDescriptions" />
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/CompletionDescriptions2.png" alt="CompletionDescriptions2">
+<img src="_images/CompletionDescriptions2.png" alt="CompletionDescriptions2" />
 </div>
 </div>
 <div class="paragraph">
-<p><a href="14-bash-zsh-completion.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="14-bash-zsh-completion.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -396,7 +397,7 @@ listing of the various changes, as well as detailed migration instructions, this
 instead spends more time discussing some of the highlights of the Mill 1.0.0 release.</p>
 </div>
 <div class="paragraph">
-<p><a href="13-mill-build-tool-v1-0-0.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="13-mill-build-tool-v1-0-0.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -410,12 +411,12 @@ instead spends more time discussing some of the highlights of the Mill 1.0.0 rel
 <p><a href="https://mill-build.org">Mill</a> is a JVM build tool that targets Java/Scala/Kotlin and has
 potential to serve the large-monorepo codebases that Bazel currently serves. Mill has good
 traction among its users, benchmarks that demonstrate 3-6x faster builds than its competitors,
-and a unique "direct-style" design that make it easy to use and extend. This page discusses
+and a unique &quot;direct-style&quot; design that make it easy to use and extend. This page discusses
 one of the most interesting design decisions in Mill, and how it sets Mill apart from
 other build tools on the market.</p>
 </div>
 <div class="paragraph">
-<p><a href="12-direct-style-build-tool.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="12-direct-style-build-tool.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -432,7 +433,7 @@ practice can be challenging: a naive implementation can easily result in increas
 without any speedup, or even slow things down compared to running things on a single thread.</p>
 </div>
 <div class="paragraph">
-<p>This blog post will explore the design and evolution of the Mill JVM build tool&#8217;s test
+<p>This blog post will explore the design and evolution of the Mill JVM build tool’s test
 parallelism strategy, from its start as a simple serial test runner, to naive module-based and
 class-based sharding, to the dynamic sharding strategy implemented in the latest
 version of Mill 0.12.9. We will discuss the pros and cons of the different approaches to
@@ -440,7 +441,7 @@ test parallelization, analyze how they perform both theoretically and with bench
 and compare them to the runtime characteristics of other build tool test runners.</p>
 </div>
 <div class="paragraph">
-<p><a href="11-jvm-test-parallelism.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="11-jvm-test-parallelism.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -455,20 +456,20 @@ and compare them to the runtime characteristics of other build tool test runners
 files change, and build tools often let you implement tasks using blocks of arbitrary
 code in some general-purpose language. But the combination of these raises a
 question: if your tasks can contain arbitrary code, how can you detect when that code
-has changed, and appropriately invalidate the task&#8217;s caches? In most programming
-languages, "blocks of arbitrary code" are opaque - and the only thing you can do is
+has changed, and appropriately invalidate the task’s caches? In most programming
+languages, &quot;blocks of arbitrary code&quot; are opaque - and the only thing you can do is
 run them - so this problem is unsolvable.</p>
 </div>
 <div class="paragraph">
 <p>This blog post explores how Mill extends its JVM runtime by analyzing the callgraph of your
-build logic at a bytecode level. This lets Mill analyze a task&#8217;s code-block to detect
+build logic at a bytecode level. This lets Mill analyze a task’s code-block to detect
 changes in its implementation or that of transitively-called methods, letting us automatically
-invalidate task caches when the code is modified. We&#8217;ll discuss the implementation and
+invalidate task caches when the code is modified. We’ll discuss the implementation and
 limitations of this bytecode analysis, and show empirically how this is able to provide
 a significant improvement over more naive approaches to the problem.</p>
 </div>
 <div class="paragraph">
-<p><a href="10-bytecode-callgraph-analysis.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="10-bytecode-callgraph-analysis.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -489,7 +490,7 @@ to less than a second. This can substantially increase your developer productivi
 saving time you would otherwise spend waiting for your assembly to be created.</p>
 </div>
 <div class="paragraph">
-<p><a href="9-mill-faster-assembly-jars.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="9-mill-faster-assembly-jars.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -510,7 +511,7 @@ are all about, why they are important to most software projects as they scale, a
 how they work under the hood.</p>
 </div>
 <div class="paragraph">
-<p><a href="8-what-is-a-build-tool.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="8-what-is-a-build-tool.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -531,7 +532,7 @@ using the <a href="../mill/index.html" class="xref page">Mill build tool</a> and
 and how to think about the benefits and challenges of doing so.</p>
 </div>
 <div class="paragraph">
-<p><a href="7-graal-native-executables.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="7-graal-native-executables.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -550,7 +551,7 @@ should come away with a deeper understanding of how the JVM garbage collector wo
 concrete ways you can work to improve its performance in your own real-world projects.</p>
 </div>
 <div class="paragraph">
-<p><a href="6-garbage-collector-perf.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="6-garbage-collector-perf.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -567,7 +568,7 @@ assembly jars it creates are directly executable:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.assembly # generate the assembly jar
-"ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar"
+&quot;ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar&quot;
 
 &gt; out/foo/assembly.dest/out.jar # run the assembly jar directly
 Hello World</code></pre>
@@ -584,11 +585,11 @@ code built with Mill fit more nicely into command-line centric workflows common 
 software systems.</p>
 </div>
 <div class="paragraph">
-<p>This article will discuss how Mill&#8217;s executable assemblies are implemented, so perhaps
+<p>This article will discuss how Mill’s executable assemblies are implemented, so perhaps
 other build tools and toolchains will be able to provide the same convenience</p>
 </div>
 <div class="paragraph">
-<p><a href="5-executable-jars.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="5-executable-jars.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -607,13 +608,13 @@ arguments between individuals and teams in an organization.</p>
 <p>This article dives deep into working with flaky tests, from the perspective of someone
 who built the first flaky test management systems at Dropbox and Databricks and maintained
 the related build and CI workflows over the past decade. The issue of flaky tests can be
-surprisingly unintuitive, with many "obvious" approaches being ineffective
+surprisingly unintuitive, with many &quot;obvious&quot; approaches being ineffective
 or counterproductive. But it turns out there <em>are</em> right and wrong answers to many of
 these issues, and we will discuss both so you can better understand what managing flaky tests
 is all about.</p>
 </div>
 <div class="paragraph">
-<p><a href="4-flaky-tests.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="4-flaky-tests.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -633,7 +634,7 @@ Dropbox and Databricks. Lastly, we will discuss
 <a href="../mill/large/selective-execution.html" class="xref page">how the Mill build tool supports selective testing</a>.</p>
 </div>
 <div class="paragraph">
-<p><a href="3-selective-testing.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="3-selective-testing.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -665,7 +666,7 @@ like Bazel are orders of magnitude more complicated and hard to use than tools
 like Poetry or Cargo, so why do people use them at all?</p>
 </div>
 <div class="paragraph">
-<p><a href="2-monorepo-build-tool.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="2-monorepo-build-tool.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -677,13 +678,13 @@ like Poetry or Cargo, so why do people use them at all?</p>
 </div>
 <div class="paragraph">
 <p>Java compiles have the reputation for being slow, but that reputation does
-not match today&#8217;s reality. Nowadays the Java compiler can compile "typical" Java code at over
+not match today’s reality. Nowadays the Java compiler can compile &quot;typical&quot; Java code at over
 100,000 lines a second on a single core. That means that even a million line project
 should take more than 10s to compile in a single-threaded fashion, and should be even
 faster in the presence of parallelism</p>
 </div>
 <div class="paragraph">
-<p><a href="1-java-compile.html" class="xref page">Read More&#8230;&#8203;</a></p>
+<p><a href="1-java-compile.html" class="xref page">Read More...​</a></p>
 </div>
 </div>
 </div>
@@ -695,9 +696,9 @@ faster in the presence of parallelism</p>
 </main>
 </div>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
-<script async src="../_/js/vendor/highlight.js"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>
 <script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
-<script async src="../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>

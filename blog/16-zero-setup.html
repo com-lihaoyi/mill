@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Zero-Setup Java Build Tooling via Mill Bootstrap Scripts :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/blog/16-zero-setup.html">
-    <link rel="prev" href="index.html">
-    <link rel="next" href="15-android-build-flow.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/blog/16-zero-setup.html" />
+    <link rel="prev" href="index.html" />
+    <link rel="next" href="15-android-build-flow.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -247,7 +248,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/16-zero-setup.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -263,7 +264,7 @@
 </div>
 <div class="paragraph">
 <p>Getting the software you need installed onto your machine is a common point of
-friction, whether you&#8217;re on OS-X finding
+friction, whether you’re on OS-X finding
 <a href="https://github.com/orgs/Homebrew/discussions/1177">Homebrew being terribly slow</a> or on Ubuntu finding
 <a href="https://www.reddit.com/r/Ubuntu/comments/1j3ldpm/why_are_all_my_apt_programs_so_outdated/">the versions available are all outdated</a>.
 Setting up Java projects in particular often involves a multi-step process to install <code>mvn</code>,
@@ -272,7 +273,7 @@ Setting up Java projects in particular often involves a multi-step process to in
 <div class="paragraph">
 <p>The Mill build tool does something interesting here: it requires no system-wide installation
 at all to build your Java projects! You can checkout any codebase built with Mill on a bare
-Linux/Mac/Windows machine, build it without any prior setup using it&#8217;s <code>./mill</code> bootstrap
+Linux/Mac/Windows machine, build it without any prior setup using it’s <code>./mill</code> bootstrap
 script, and Mill will automatically download and cache itself, any JVMs, and any third-party
 libraries and tools necessary. For example, the <code>./mill __.compile</code> below is all that is needed
 libraries and tools necessary. For example, the <code>./mill __.compile</code> below is all that is needed
@@ -289,8 +290,8 @@ simplifying building your project on diverse dev and CI environments:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>This blog post explores how Mill&#8217;s zero-install workflow works: the status quo,
-the interesting innovations that Mill builds upon, and Mill&#8217;s unique ideas
+<p>This blog post explores how Mill’s zero-install workflow works: the status quo,
+the interesting innovations that Mill builds upon, and Mill’s unique ideas
 that let it achieve this zero-setup usage to greatly simplify getting started
 working with Java, Scala, or Kotlin projects.</p>
 </div>
@@ -338,12 +339,12 @@ for development, you may need to:</p>
 <p><code>apt install mvn</code></p>
 </li>
 <li>
-<p>It&#8217;s also common to install <a href="https://sdkman.io/">SdkMan</a> or <a href="https://github.com/jenv/jenv">JEnv</a>
+<p>It’s also common to install <a href="https://sdkman.io/">SdkMan</a> or <a href="https://github.com/jenv/jenv">JEnv</a>
 to help manage your JVM, e.g.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>curl -s "https://get.sdkman.io" | bash</code>, <code>sdk install java 17-tem</code></p>
+<p><code>curl -s &quot;https://get.sdkman.io&quot; | bash</code>, <code>sdk install java 17-tem</code></p>
 </li>
 <li>
 <p><code>sudo apt install jenv</code>, <code>jenv local 17</code></p>
@@ -369,7 +370,7 @@ This gives a lot of room for things to go wrong, for example:</p>
 <ol class="arabic">
 <li>
 <p><strong>Things falling out of sync</strong>: the installation commands on MacOS using <code>brew</code> will be different
-from Amazon-Linux using <code>yum</code> or Ubuntu using <code>apt</code>, so it&#8217;s terribly easy to end up with
+from Amazon-Linux using <code>yum</code> or Ubuntu using <code>apt</code>, so it’s terribly easy to end up with
 subtly different sets of packages on each. This results in tedious busy-work trying to keep the
 various environments in sync.</p>
 </li>
@@ -388,7 +389,7 @@ process with dozens of steps that can be tedious if run manually and fragile if 
 </div>
 <div class="paragraph">
 <p>Multi-step setup workflows are the norm, an 1-step setup workflows are something people often
-strive towards. But it&#8217;s worth asking: could we do better?</p>
+strive towards. But it’s worth asking: could we do better?</p>
 </div>
 </div>
 </div>
@@ -401,7 +402,7 @@ were popularized by the <a href="https://gradle.org/">Gradle build tool</a> as a
 <a href="https://docs.gradle.org/current/userguide/gradle_wrapper.html">./gradlew</a> bootstrap script you
 commit to the repository root. The bootstrap script embeds the version of Gradle you
 want to use, and ensures to download and cache that specific version when it is invoked. That means
-you can checkout a project&#8217;s code and run:</p>
+you can checkout a project’s code and run:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -411,7 +412,7 @@ you can checkout a project&#8217;s code and run:</p>
 <div class="paragraph">
 <p>And be sure you are using the same version of Gradle that everyone else is also using
 to build that project. This can be very handy: you now no longer need to worry about installing
-the "right version" of Gradle on your colleagues' laptops, on CI, etc. The bootstrap
+the &quot;right version&quot; of Gradle on your colleagues' laptops, on CI, etc. The bootstrap
 script ensures that anyone working on the project - human or otherwise - will be using the
 same version.</p>
 </div>
@@ -443,23 +444,23 @@ ends up being a 1-step installation process: you need to install <code>java</cod
 of Java!) before you begin, possibly using SdkMan or Jenv, each of which themselves need to
 be installed first. Thus although these bootstrap scripts mitigate
 the problem - differing Java versions tend to be more forgiving than differing Maven/Gradle
-versions - they haven&#8217;t completely solved it.</p>
+versions - they haven’t completely solved it.</p>
 </div>
 <div class="paragraph">
-<p>Why do these bootstrap scripts have require <code>java</code> to be installed? It&#8217;s
-because they don&#8217;t want to put non-trivial bootstrapping logic into <code>.sh</code> or <code>.bat</code> scripts,
+<p>Why do these bootstrap scripts have require <code>java</code> to be installed? It’s
+because they don’t want to put non-trivial bootstrapping logic into <code>.sh</code> or <code>.bat</code> scripts,
 and as JVM build tools writing their bootstrapping logic in Java running on the JVM makes sense.
-But that doesn&#8217;t seem like a hard requirement, and it should be possible to make a bootstrapping
+But that doesn’t seem like a hard requirement, and it should be possible to make a bootstrapping
 binary that can run without <code>java</code> or any other runtime pre-installed. That is the approach
 that Mill takes.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_mills_zero_setup_bootstrap_scripts"><a class="anchor" href="#_mills_zero_setup_bootstrap_scripts"></a>Mill&#8217;s Zero-Setup Bootstrap Scripts</h2>
+<h2 id="_mills_zero_setup_bootstrap_scripts"><a class="anchor" href="#_mills_zero_setup_bootstrap_scripts"></a>Mill’s Zero-Setup Bootstrap Scripts</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill&#8217;s <a href="../mill/cli/installation-ide.html#_bootstrap_scripts" class="xref page">./mill bootstrap scripts</a> are
+<p>Mill’s <a href="../mill/cli/installation-ide.html#_bootstrap_scripts" class="xref page">./mill bootstrap scripts</a> are
 similar to <code>./mvnw</code> or <code>./gradle</code>, but differ in that
 by default they do not require <code>java</code> pre-installed in order to run. Instead, <code>./mill</code> downloads
 a native platform-specific binary that then performs the bootstrapping process:</p>
@@ -488,22 +489,22 @@ The <code>.sh</code> version of this implemented using <code>uname</code> is as 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">ARTIFACT_SUFFIX=""
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">ARTIFACT_SUFFIX=&quot;&quot;
 set_artifact_suffix(){
-  if [ "$(expr substr $(uname -s) 1 5 2&gt;/dev/null)" = "Linux" ]; then
-    if [ "$(uname -m)" = "aarch64" ]; then
-      ARTIFACT_SUFFIX="-native-linux-aarch64"
+  if [ &quot;$(expr substr $(uname -s) 1 5 2&gt;/dev/null)&quot; = &quot;Linux&quot; ]; then
+    if [ &quot;$(uname -m)&quot; = &quot;aarch64&quot; ]; then
+      ARTIFACT_SUFFIX=&quot;-native-linux-aarch64&quot;
     else
-      ARTIFACT_SUFFIX="-native-linux-amd64"
+      ARTIFACT_SUFFIX=&quot;-native-linux-amd64&quot;
     fi
-  elif [ "$(uname)" = "Darwin" ]; then
-    if [ "$(uname -m)" = "arm64" ]; then
-      ARTIFACT_SUFFIX="-native-mac-aarch64"
+  elif [ &quot;$(uname)&quot; = &quot;Darwin&quot; ]; then
+    if [ &quot;$(uname -m)&quot; = &quot;arm64&quot; ]; then
+      ARTIFACT_SUFFIX=&quot;-native-mac-aarch64&quot;
     else
-      ARTIFACT_SUFFIX="-native-mac-amd64"
+      ARTIFACT_SUFFIX=&quot;-native-mac-amd64&quot;
     fi
   else
-     echo "This native mill launcher supports only Linux and macOS." 1&gt;&amp;2
+     echo &quot;This native mill launcher supports only Linux and macOS.&quot; 1&gt;&amp;2
      exit 1
   fi
 }</code></pre>
@@ -515,8 +516,8 @@ from the Maven Central package repository:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">DOWNLOAD_URL="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.${DOWNLOAD_EXT}"
-curl -f -L -o "${DOWNLOAD_FILE}" "${DOWNLOAD_URL}"</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">DOWNLOAD_URL=&quot;https://repo1.maven.org/maven2/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.${DOWNLOAD_EXT}&quot;
+curl -f -L -o &quot;${DOWNLOAD_FILE}&quot; &quot;${DOWNLOAD_URL}&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -525,14 +526,14 @@ script and forwarding them to the native binary:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">exec "${DOWNLOAD_FILE}" "$@"</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">exec &quot;${DOWNLOAD_FILE}&quot; &quot;$@&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The snippets above are somewhat simplified - the
 <a href="https://github.com/com-lihaoyi/mill/blob/1.0.5/dist/scripts/src/mill.sh">actual bootstrap script</a>
 contains a lot more logic to handle backwards compatibility, version configuration, Windows
-support, and other necessary details. But at a high level, they illustrate what Mill&#8217;s
+support, and other necessary details. But at a high level, they illustrate what Mill’s
 bootstrap script does: it picks the downloads the native binary of the configured version,
 operating system, and CPU architecture, and executes it to begin the Mill bootstrapping process.
 This lets it bootstrap from <em>shell/bat script</em> to <em>native image binary</em> without any prior
@@ -572,7 +573,7 @@ build dependencies and user code dependencies</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><strong>Resolve any <code>.jar</code> files necessary for Mill&#8217;s build logic, and any user-configured plugins</strong>,
+<p><strong>Resolve any <code>.jar</code> files necessary for Mill’s build logic, and any user-configured plugins</strong>,
 and load them into a classloader to invoke the build</p>
 </li>
 <li>
@@ -611,200 +612,199 @@ indicating downloads from package repositories:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="455px" height="474px"
- viewBox="0.00 0.00 455.00 474.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="455px" height="474px" viewBox="0.00 0.00 455.00 474.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 470.4)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-470.4 451,-470.4 451,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-470.4 451,-470.4 451,4 -4,4"></polygon>
 <g id="clust1" class="cluster">
 <title>cluster0</title>
-<polygon fill="none" stroke="white" points="8,-8 8,-413.6 439,-413.6 439,-8 8,-8"/>
+<polygon fill="none" stroke="white" points="8,-8 8,-413.6 439,-413.6 439,-8 8,-8"></polygon>
 </g>
 <!-- ./mill -->
 <g id="node1" class="node">
 <title>./mill</title>
-<polygon fill="white" stroke="black" points="245.95,-466.3 200.05,-466.3 200.05,-441.7 245.95,-441.7 245.95,-466.3"/>
+<polygon fill="white" stroke="black" points="245.95,-466.3 200.05,-466.3 200.05,-441.7 245.95,-441.7 245.95,-466.3"></polygon>
 <text text-anchor="middle" x="223" y="-449.8" font-family="Times,serif" font-size="14.00">./mill</text>
 </g>
 <!-- native image launcher binary -->
 <g id="node2" class="node">
 <title>native image launcher binary</title>
-<polygon fill="white" stroke="black" points="312.38,-405.5 133.62,-405.5 133.62,-380.9 312.38,-380.9 312.38,-405.5"/>
+<polygon fill="white" stroke="black" points="312.38,-405.5 133.62,-405.5 133.62,-380.9 312.38,-380.9 312.38,-405.5"></polygon>
 <text text-anchor="middle" x="223" y="-389" font-family="Times,serif" font-size="14.00">native image launcher binary</text>
 </g>
 <!-- ./mill&#45;&gt;native image launcher binary -->
 <g id="edge1" class="edge">
-<title>./mill&#45;&gt;native image launcher binary</title>
-<path fill="none" stroke="black" d="M223,-441.66C223,-434.26 223,-424.36 223,-415.52"/>
-<polygon fill="black" stroke="black" points="226.5,-415.5 223,-405.5 219.5,-415.5 226.5,-415.5"/>
+<title>./mill-&gt;native image launcher binary</title>
+<path fill="none" stroke="black" d="M223,-441.66C223,-434.26 223,-424.36 223,-415.52"></path>
+<polygon fill="black" stroke="black" points="226.5,-415.5 223,-405.5 219.5,-415.5 226.5,-415.5"></polygon>
 </g>
 <!-- daemon jars -->
 <g id="node3" class="node">
 <title>daemon jars</title>
-<polygon fill="white" stroke="black" points="277.03,-344.7 192.97,-344.7 192.97,-320.1 277.03,-320.1 277.03,-344.7"/>
+<polygon fill="white" stroke="black" points="277.03,-344.7 192.97,-344.7 192.97,-320.1 277.03,-320.1 277.03,-344.7"></polygon>
 <text text-anchor="middle" x="235" y="-328.2" font-family="Times,serif" font-size="14.00">daemon jars</text>
 </g>
 <!-- native image launcher binary&#45;&gt;daemon jars -->
 <g id="edge2" class="edge">
-<title>native image launcher binary&#45;&gt;daemon jars</title>
-<path fill="none" stroke="black" d="M225.31,-380.86C226.82,-373.46 228.84,-363.56 230.65,-354.72"/>
-<polygon fill="black" stroke="black" points="234.12,-355.2 232.69,-344.7 227.26,-353.8 234.12,-355.2"/>
+<title>native image launcher binary-&gt;daemon jars</title>
+<path fill="none" stroke="black" d="M225.31,-380.86C226.82,-373.46 228.84,-363.56 230.65,-354.72"></path>
+<polygon fill="black" stroke="black" points="234.12,-355.2 232.69,-344.7 227.26,-353.8 234.12,-355.2"></polygon>
 </g>
 <!-- daemon JVM -->
 <g id="node8" class="node">
 <title>daemon JVM</title>
-<polygon fill="white" stroke="black" points="174.82,-344.7 83.18,-344.7 83.18,-320.1 174.82,-320.1 174.82,-344.7"/>
+<polygon fill="white" stroke="black" points="174.82,-344.7 83.18,-344.7 83.18,-320.1 174.82,-320.1 174.82,-344.7"></polygon>
 <text text-anchor="middle" x="129" y="-328.2" font-family="Times,serif" font-size="14.00">daemon JVM</text>
 </g>
 <!-- native image launcher binary&#45;&gt;daemon JVM -->
 <g id="edge7" class="edge">
-<title>native image launcher binary&#45;&gt;daemon JVM</title>
-<path fill="none" stroke="black" d="M204.88,-380.86C190.96,-372.16 171.53,-360.01 155.82,-350.18"/>
-<polygon fill="black" stroke="black" points="157.4,-347.04 147.07,-344.7 153.69,-352.97 157.4,-347.04"/>
+<title>native image launcher binary-&gt;daemon JVM</title>
+<path fill="none" stroke="black" d="M204.88,-380.86C190.96,-372.16 171.53,-360.01 155.82,-350.18"></path>
+<polygon fill="black" stroke="black" points="157.4,-347.04 147.07,-344.7 153.69,-352.97 157.4,-347.04"></polygon>
 </g>
 <!-- daemon process -->
 <g id="node4" class="node">
 <title>daemon process</title>
-<polygon fill="white" stroke="black" points="268.8,-283.9 163.2,-283.9 163.2,-259.3 268.8,-259.3 268.8,-283.9"/>
+<polygon fill="white" stroke="black" points="268.8,-283.9 163.2,-283.9 163.2,-259.3 268.8,-259.3 268.8,-283.9"></polygon>
 <text text-anchor="middle" x="216" y="-267.4" font-family="Times,serif" font-size="14.00">daemon process</text>
 </g>
 <!-- daemon jars&#45;&gt;daemon process -->
 <g id="edge3" class="edge">
-<title>daemon jars&#45;&gt;daemon process</title>
-<path fill="none" stroke="black" d="M231.34,-320.06C228.92,-312.58 225.68,-302.55 222.8,-293.63"/>
-<polygon fill="black" stroke="black" points="226.06,-292.34 219.65,-283.9 219.4,-294.49 226.06,-292.34"/>
+<title>daemon jars-&gt;daemon process</title>
+<path fill="none" stroke="black" d="M231.34,-320.06C228.92,-312.58 225.68,-302.55 222.8,-293.63"></path>
+<polygon fill="black" stroke="black" points="226.06,-292.34 219.65,-283.9 219.4,-294.49 226.06,-292.34"></polygon>
 </g>
 <!-- build jars -->
 <g id="node5" class="node">
 <title>build jars</title>
-<polygon fill="white" stroke="black" points="250.49,-223.1 181.51,-223.1 181.51,-198.5 250.49,-198.5 250.49,-223.1"/>
+<polygon fill="white" stroke="black" points="250.49,-223.1 181.51,-223.1 181.51,-198.5 250.49,-198.5 250.49,-223.1"></polygon>
 <text text-anchor="middle" x="216" y="-206.6" font-family="Times,serif" font-size="14.00">build jars</text>
 </g>
 <!-- daemon process&#45;&gt;build jars -->
 <g id="edge4" class="edge">
-<title>daemon process&#45;&gt;build jars</title>
-<path fill="none" stroke="black" d="M216,-259.26C216,-251.86 216,-241.96 216,-233.12"/>
-<polygon fill="black" stroke="black" points="219.5,-233.1 216,-223.1 212.5,-233.1 219.5,-233.1"/>
+<title>daemon process-&gt;build jars</title>
+<path fill="none" stroke="black" d="M216,-259.26C216,-251.86 216,-241.96 216,-233.12"></path>
+<polygon fill="black" stroke="black" points="219.5,-233.1 216,-223.1 212.5,-233.1 219.5,-233.1"></polygon>
 </g>
 <!-- build classloader -->
 <g id="node6" class="node">
 <title>build classloader</title>
-<polygon fill="white" stroke="black" points="271.47,-162.3 160.53,-162.3 160.53,-137.7 271.47,-137.7 271.47,-162.3"/>
+<polygon fill="white" stroke="black" points="271.47,-162.3 160.53,-162.3 160.53,-137.7 271.47,-137.7 271.47,-162.3"></polygon>
 <text text-anchor="middle" x="216" y="-145.8" font-family="Times,serif" font-size="14.00">build classloader</text>
 </g>
 <!-- build jars&#45;&gt;build classloader -->
 <g id="edge5" class="edge">
-<title>build jars&#45;&gt;build classloader</title>
-<path fill="none" stroke="black" d="M216,-198.46C216,-191.06 216,-181.16 216,-172.32"/>
-<polygon fill="black" stroke="black" points="219.5,-172.3 216,-162.3 212.5,-172.3 219.5,-172.3"/>
+<title>build jars-&gt;build classloader</title>
+<path fill="none" stroke="black" d="M216,-198.46C216,-191.06 216,-181.16 216,-172.32"></path>
+<polygon fill="black" stroke="black" points="219.5,-172.3 216,-162.3 212.5,-172.3 219.5,-172.3"></polygon>
 </g>
 <!-- user code dependency jars -->
 <g id="node7" class="node">
 <title>user code dependency jars</title>
-<polygon fill="white" stroke="black" points="430.82,-101.5 267.18,-101.5 267.18,-76.9 430.82,-76.9 430.82,-101.5"/>
+<polygon fill="white" stroke="black" points="430.82,-101.5 267.18,-101.5 267.18,-76.9 430.82,-76.9 430.82,-101.5"></polygon>
 <text text-anchor="middle" x="349" y="-85" font-family="Times,serif" font-size="14.00">user code dependency jars</text>
 </g>
 <!-- build classloader&#45;&gt;user code dependency jars -->
 <g id="edge6" class="edge">
-<title>build classloader&#45;&gt;user code dependency jars</title>
-<path fill="none" stroke="black" d="M241.64,-137.66C262.25,-128.55 291.4,-115.66 314.13,-105.62"/>
-<polygon fill="black" stroke="black" points="315.7,-108.75 323.43,-101.5 312.87,-102.34 315.7,-108.75"/>
+<title>build classloader-&gt;user code dependency jars</title>
+<path fill="none" stroke="black" d="M241.64,-137.66C262.25,-128.55 291.4,-115.66 314.13,-105.62"></path>
+<polygon fill="black" stroke="black" points="315.7,-108.75 323.43,-101.5 312.87,-102.34 315.7,-108.75"></polygon>
 </g>
 <!-- user code JVM -->
 <g id="node9" class="node">
 <title>user code JVM</title>
-<polygon fill="white" stroke="black" points="249.25,-101.5 148.75,-101.5 148.75,-76.9 249.25,-76.9 249.25,-101.5"/>
+<polygon fill="white" stroke="black" points="249.25,-101.5 148.75,-101.5 148.75,-76.9 249.25,-76.9 249.25,-101.5"></polygon>
 <text text-anchor="middle" x="199" y="-85" font-family="Times,serif" font-size="14.00">user code JVM</text>
 </g>
 <!-- build classloader&#45;&gt;user code JVM -->
 <g id="edge9" class="edge">
-<title>build classloader&#45;&gt;user code JVM</title>
-<path fill="none" stroke="black" d="M212.72,-137.66C210.56,-130.18 207.66,-120.15 205.08,-111.23"/>
-<polygon fill="black" stroke="black" points="208.41,-110.14 202.27,-101.5 201.68,-112.08 208.41,-110.14"/>
+<title>build classloader-&gt;user code JVM</title>
+<path fill="none" stroke="black" d="M212.72,-137.66C210.56,-130.18 207.66,-120.15 205.08,-111.23"></path>
+<polygon fill="black" stroke="black" points="208.41,-110.14 202.27,-101.5 201.68,-112.08 208.41,-110.14"></polygon>
 </g>
 <!-- __.compile -->
 <g id="node10" class="node">
 <title>__.compile</title>
-<polygon fill="white" stroke="black" points="238.1,-40.7 159.9,-40.7 159.9,-16.1 238.1,-16.1 238.1,-40.7"/>
+<polygon fill="white" stroke="black" points="238.1,-40.7 159.9,-40.7 159.9,-16.1 238.1,-16.1 238.1,-40.7"></polygon>
 <text text-anchor="middle" x="199" y="-24.2" font-family="Times,serif" font-size="14.00">__.compile</text>
 </g>
 <!-- user code dependency jars&#45;&gt;__.compile -->
 <g id="edge11" class="edge">
-<title>user code dependency jars&#45;&gt;__.compile</title>
-<path fill="none" stroke="black" d="M320.08,-76.86C296.53,-67.63 263.07,-54.52 237.3,-44.41"/>
-<polygon fill="black" stroke="black" points="238.42,-41.09 227.83,-40.7 235.87,-47.61 238.42,-41.09"/>
+<title>user code dependency jars-&gt;__.compile</title>
+<path fill="none" stroke="black" d="M320.08,-76.86C296.53,-67.63 263.07,-54.52 237.3,-44.41"></path>
+<polygon fill="black" stroke="black" points="238.42,-41.09 227.83,-40.7 235.87,-47.61 238.42,-41.09"></polygon>
 </g>
 <!-- daemon JVM&#45;&gt;daemon process -->
 <g id="edge8" class="edge">
-<title>daemon JVM&#45;&gt;daemon process</title>
-<path fill="none" stroke="black" d="M145.77,-320.06C158.53,-311.44 176.3,-299.43 190.77,-289.65"/>
-<polygon fill="black" stroke="black" points="192.95,-292.4 199.28,-283.9 189.03,-286.6 192.95,-292.4"/>
+<title>daemon JVM-&gt;daemon process</title>
+<path fill="none" stroke="black" d="M145.77,-320.06C158.53,-311.44 176.3,-299.43 190.77,-289.65"></path>
+<polygon fill="black" stroke="black" points="192.95,-292.4 199.28,-283.9 189.03,-286.6 192.95,-292.4"></polygon>
 </g>
 <!-- user code JVM&#45;&gt;__.compile -->
 <g id="edge10" class="edge">
-<title>user code JVM&#45;&gt;__.compile</title>
-<path fill="none" stroke="black" d="M199,-76.86C199,-69.46 199,-59.56 199,-50.72"/>
-<polygon fill="black" stroke="black" points="202.5,-50.7 199,-40.7 195.5,-50.7 202.5,-50.7"/>
+<title>user code JVM-&gt;__.compile</title>
+<path fill="none" stroke="black" d="M199,-76.86C199,-69.46 199,-59.56 199,-50.72"></path>
+<polygon fill="black" stroke="black" points="202.5,-50.7 199,-40.7 195.5,-50.7 202.5,-50.7"></polygon>
 </g>
 <!-- user code sources -->
 <g id="node11" class="node">
 <title>user code sources</title>
-<polygon fill="white" stroke="black" points="130.23,-101.5 15.77,-101.5 15.77,-76.9 130.23,-76.9 130.23,-101.5"/>
+<polygon fill="white" stroke="black" points="130.23,-101.5 15.77,-101.5 15.77,-76.9 130.23,-76.9 130.23,-101.5"></polygon>
 <text text-anchor="middle" x="73" y="-85" font-family="Times,serif" font-size="14.00">user code sources</text>
 </g>
 <!-- user code sources&#45;&gt;__.compile -->
 <g id="edge12" class="edge">
-<title>user code sources&#45;&gt;__.compile</title>
-<path fill="none" stroke="black" d="M97.29,-76.86C116.73,-67.79 144.19,-54.98 165.68,-44.95"/>
-<polygon fill="black" stroke="black" points="167.2,-48.1 174.78,-40.7 164.24,-41.76 167.2,-48.1"/>
+<title>user code sources-&gt;__.compile</title>
+<path fill="none" stroke="black" d="M97.29,-76.86C116.73,-67.79 144.19,-54.98 165.68,-44.95"></path>
+<polygon fill="black" stroke="black" points="167.2,-48.1 174.78,-40.7 164.24,-41.76 167.2,-48.1"></polygon>
 </g>
 <!-- JVM Vendor -->
 <g id="node12" class="node">
 <title>JVM Vendor</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="166.98,-466.3 77.02,-466.3 77.02,-441.7 166.98,-441.7 166.98,-466.3"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="166.98,-466.3 77.02,-466.3 77.02,-441.7 166.98,-441.7 166.98,-466.3"></polygon>
 <text text-anchor="middle" x="122" y="-449.8" font-family="Times,serif" font-size="14.00">JVM Vendor</text>
 </g>
 <!-- JVM Vendor&#45;&gt;daemon JVM -->
 <g id="edge15" class="edge">
-<title>JVM Vendor&#45;&gt;daemon JVM</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M122.33,-441.49C122.77,-427.23 123.65,-402.21 125,-380.8 125.53,-372.41 126.27,-363.21 126.97,-355.15"/>
-<polygon fill="none" stroke="black" points="130.46,-355.35 127.87,-345.08 123.49,-354.72 130.46,-355.35"/>
+<title>JVM Vendor-&gt;daemon JVM</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M122.33,-441.49C122.77,-427.23 123.65,-402.21 125,-380.8 125.53,-372.41 126.27,-363.21 126.97,-355.15"></path>
+<polygon fill="none" stroke="black" points="130.46,-355.35 127.87,-345.08 123.49,-354.72 130.46,-355.35"></polygon>
 </g>
 <!-- JVM Vendor&#45;&gt;user code JVM -->
 <g id="edge18" class="edge">
-<title>JVM Vendor&#45;&gt;user code JVM</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M113.24,-441.58C96.94,-418.98 64.44,-366.65 74,-320 91.69,-233.63 102.75,-210.73 152,-137.6 159.14,-127 168.84,-116.74 177.58,-108.49"/>
-<polygon fill="none" stroke="black" points="180.19,-110.85 185.24,-101.53 175.48,-105.67 180.19,-110.85"/>
+<title>JVM Vendor-&gt;user code JVM</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M113.24,-441.58C96.94,-418.98 64.44,-366.65 74,-320 91.69,-233.63 102.75,-210.73 152,-137.6 159.14,-127 168.84,-116.74 177.58,-108.49"></path>
+<polygon fill="none" stroke="black" points="180.19,-110.85 185.24,-101.53 175.48,-105.67 180.19,-110.85"></polygon>
 </g>
 <!-- Maven Central -->
 <g id="node13" class="node">
 <title>Maven Central</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="376.58,-466.3 277.42,-466.3 277.42,-441.7 376.58,-441.7 376.58,-466.3"/>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="376.58,-466.3 277.42,-466.3 277.42,-441.7 376.58,-441.7 376.58,-466.3"></polygon>
 <text text-anchor="middle" x="327" y="-449.8" font-family="Times,serif" font-size="14.00">Maven Central</text>
 </g>
 <!-- Maven Central&#45;&gt;native image launcher binary -->
 <g id="edge13" class="edge">
-<title>Maven Central&#45;&gt;native image launcher binary</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M306.95,-441.66C291.27,-432.8 269.25,-420.35 251.7,-410.43"/>
-<polygon fill="none" stroke="black" points="253.42,-407.38 242.99,-405.5 249.97,-413.47 253.42,-407.38"/>
+<title>Maven Central-&gt;native image launcher binary</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M306.95,-441.66C291.27,-432.8 269.25,-420.35 251.7,-410.43"></path>
+<polygon fill="none" stroke="black" points="253.42,-407.38 242.99,-405.5 249.97,-413.47 253.42,-407.38"></polygon>
 </g>
 <!-- Maven Central&#45;&gt;daemon jars -->
 <g id="edge14" class="edge">
-<title>Maven Central&#45;&gt;daemon jars</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M329.14,-441.7C331.36,-426.54 333.04,-399.38 321,-380.8 311.79,-366.58 296.77,-356.26 281.84,-348.95"/>
-<polygon fill="none" stroke="black" points="283.16,-345.71 272.61,-344.78 280.28,-352.09 283.16,-345.71"/>
+<title>Maven Central-&gt;daemon jars</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M329.14,-441.7C331.36,-426.54 333.04,-399.38 321,-380.8 311.79,-366.58 296.77,-356.26 281.84,-348.95"></path>
+<polygon fill="none" stroke="black" points="283.16,-345.71 272.61,-344.78 280.28,-352.09 283.16,-345.71"></polygon>
 </g>
 <!-- Maven Central&#45;&gt;build jars -->
 <g id="edge16" class="edge">
-<title>Maven Central&#45;&gt;build jars</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M331.65,-441.65C336.89,-427.35 344.04,-402.07 339,-380.8 325.07,-321.96 316.56,-305.77 278,-259.2 268.36,-247.56 255.35,-237.06 243.73,-228.92"/>
-<polygon fill="none" stroke="black" points="245.45,-225.86 235.2,-223.18 241.54,-231.67 245.45,-225.86"/>
+<title>Maven Central-&gt;build jars</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M331.65,-441.65C336.89,-427.35 344.04,-402.07 339,-380.8 325.07,-321.96 316.56,-305.77 278,-259.2 268.36,-247.56 255.35,-237.06 243.73,-228.92"></path>
+<polygon fill="none" stroke="black" points="245.45,-225.86 235.2,-223.18 241.54,-231.67 245.45,-225.86"></polygon>
 </g>
 <!-- Maven Central&#45;&gt;user code dependency jars -->
 <g id="edge17" class="edge">
-<title>Maven Central&#45;&gt;user code dependency jars</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M337.2,-441.52C343.07,-434.11 349.89,-423.96 353,-413.6 357.19,-399.64 353.1,-395.38 353,-380.8 352.31,-280.14 350.26,-159.88 349.4,-111.7"/>
-<polygon fill="none" stroke="black" points="352.89,-111.49 349.21,-101.55 345.9,-111.62 352.89,-111.49"/>
+<title>Maven Central-&gt;user code dependency jars</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M337.2,-441.52C343.07,-434.11 349.89,-423.96 353,-413.6 357.19,-399.64 353.1,-395.38 353,-380.8 352.31,-280.14 350.26,-159.88 349.4,-111.7"></path>
+<polygon fill="none" stroke="black" points="352.89,-111.49 349.21,-101.55 345.9,-111.62 352.89,-111.49"></polygon>
 </g>
 </g>
 </svg>
@@ -833,13 +833,13 @@ different library or JVM versions.</p>
 </div>
 <div class="paragraph">
 <p>This is unlike packages installed via <code>brew</code> or <code>apt</code> or <code>yum</code>, where installation often
-has to be done manually, and typically only a single version of a package can be "installed"
-or "active" globally on a system at any one point in time. While traditional package management
-and program installation often involves manual work to set up and maintain, Mill&#8217;s handling
+has to be done manually, and typically only a single version of a package can be &quot;installed&quot;
+or &quot;active&quot; globally on a system at any one point in time. While traditional package management
+and program installation often involves manual work to set up and maintain, Mill’s handling
 of dependencies in this bootstrap process is largely hands-off and automated.</p>
 </div>
 <div class="paragraph">
-<p>Despite the complexity described above, Mill&#8217;s zero-install bootstrap process means that the user
+<p>Despite the complexity described above, Mill’s zero-install bootstrap process means that the user
 never needs to deal with any of it. They can immediately start using <code>./mill __.compile</code> or
 or any other command on a clean system, and the only indication noticeable
 difference would be the first command taking longer than normal and logging indicating that
@@ -911,7 +911,7 @@ contribute to such projects, whether in a proprietary setting or open-source.</p
 <p>Zero-step installation workflows are really the only thing that scales as a project grows.
 While multiple 1-step installs can add up and become a long N-step installation process,
 multiple zero-step installs will always remain zero-step even if added together, regardless
-of how large and messy the project gets. Hopefully you&#8217;ve come away from this article
+of how large and messy the project gets. Hopefully you’ve come away from this article
 with an appreciation for how Mill builds upon prior art to come up with its zero-step setup
 process, so next time the opportunity arises you can implement something similar in your
 own projects.</p>
@@ -927,9 +927,9 @@ own projects.</p>
 </main>
 </div>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
-<script async src="../_/js/vendor/highlight.js"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>
 <script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
-<script async src="../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>

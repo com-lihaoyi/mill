@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Multi-File Builds :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/large/multi-file-builds.html">
-    <link rel="prev" href="selective-execution.html">
-    <link rel="next" href="multi-language-builds.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/large/multi-file-builds.html" />
+    <link rel="prev" href="selective-execution.html" />
+    <link rel="next" href="multi-language-builds.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -663,7 +664,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -676,7 +677,7 @@
 <div class="paragraph">
 <p>Mill allows you to break up your <code>build.mill</code> file into smaller files by defining the
 build-related logic for any particular subfolder as a <code>package.mill</code> file in that subfolder.
-This can be very useful to keep large Mill builds maintainable, as each folder&#8217;s build logic
+This can be very useful to keep large Mill builds maintainable, as each folder’s build logic
 gets co-located with the files that need to be built, and speeds up compilation of the
 build logic since each <code>build.mill</code> or <code>package.mill</code> file can be compiled independently when
 it is modified without re-compiling all the others.</p>
@@ -691,7 +692,7 @@ it is modified without re-compiling all the others.</p>
 </div>
 <div class="paragraph">
 <p>You have a smaller <code>build.mill</code> with the config for each sub-folder broken
-out into that folder&#8217;s respective <code>package.mill</code></p>
+out into that folder’s respective <code>package.mill</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -709,7 +710,7 @@ build.mill</pre>
 <div class="paragraph">
 <p>This is useful in larger projects, as it co-locates the build definition
 for each module in the same sub-folder as the relevant code. This can
-make things easier to find compared to having every module&#8217;s build configuration
+make things easier to find compared to having every module’s build configuration
 in a single large <code>build.mill</code> that may grow to thousands of lines long.</p>
 </div>
 </div>
@@ -724,7 +725,7 @@ in a single large <code>build.mill</code> that may grow to thousands of lines lo
 import mill.*, scalalib.*
 
 trait MyModule extends ScalaModule {
-  def scalaVersion = "2.13.11"
+  def scalaVersion = &quot;2.13.11&quot;
 }</code></pre>
 </div>
 </div>
@@ -736,7 +737,7 @@ import mill.*, scalalib.*
 
 object `package` extends build.MyModule {
   def moduleDeps = Seq(build.bar.qux.mymodule)
-  def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.4.0")
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::mainargs:0.4.0&quot;)
 }</code></pre>
 </div>
 </div>
@@ -753,7 +754,7 @@ object `package` extends build.MyModule {
 import mill.*, scalalib.*
 
 object mymodule extends build.MyModule {
-  def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.8.2")
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::scalatags:0.8.2&quot;)
 }</code></pre>
 </div>
 </div>
@@ -814,8 +815,8 @@ import mill.*, scalalib.*
 
 object `package` extends MyModule {
   def forkEnv = Map(
-    "MY_SCALA_VERSION" -&gt; build.scalaVersion(),
-    "MY_PROJECT_VERSION" -&gt; foo.myProjectVersion
+    &quot;MY_SCALA_VERSION&quot; -&gt; build.scalaVersion(),
+    &quot;MY_PROJECT_VERSION&quot; -&gt; foo.myProjectVersion
   )
 }</code></pre>
 </div>
@@ -826,7 +827,7 @@ object `package` extends MyModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
 
-def myScalaVersion = "2.13.14"
+def myScalaVersion = &quot;2.13.14&quot;
 
 trait MyModule extends ScalaModule {
   def scalaVersion = myScalaVersion
@@ -840,8 +841,8 @@ trait MyModule extends ScalaModule {
 import mill.*, scalalib.*
 object `package` extends build.MyModule {
   def forkEnv = Map(
-    "MY_SCALA_VERSION" -&gt; build.myScalaVersion,
-    "MY_PROJECT_VERSION" -&gt; myProjectVersion
+    &quot;MY_SCALA_VERSION&quot; -&gt; build.myScalaVersion,
+    &quot;MY_PROJECT_VERSION&quot; -&gt; myProjectVersion
   )
 }</code></pre>
 </div>
@@ -851,7 +852,7 @@ object `package` extends build.MyModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
 
-def myProjectVersion = "0.0.1"</code></pre>
+def myProjectVersion = &quot;0.0.1&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -896,9 +897,9 @@ Foo Env build.foo.versions.myProjectVersion: 0.0.1</code></pre>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

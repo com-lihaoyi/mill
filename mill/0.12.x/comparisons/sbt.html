@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Case Study: Mill vs sbt :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/comparisons/sbt.html" />
-    <link rel="prev" href="gradle.html" />
-    <link rel="next" href="../cli/installation-ide.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/comparisons/sbt.html">
+    <link rel="prev" href="gradle.html">
+    <link rel="next" href="../cli/installation-ide.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -678,18 +677,18 @@ with each other.</p>
 <p><strong>Mill is much more performant</strong>: <code>sbt</code> has enough overhead that even a dozen
 subprojects is enough to slow it down, while Mill can handle hundreds of modules without issue.
 Custom tasks in <code>sbt</code> re-execute every time, whereas in Mill they are cached automatically.
-Mill’s watch-for-changes-and-re-run implementation has much lower latency than `sbt’s. The
-list of ways Mill improves upon `sbt’s performance is long, and at the command line you
+Mill&#8217;s watch-for-changes-and-re-run implementation has much lower latency than `sbt&#8217;s. The
+list of ways Mill improves upon `sbt&#8217;s performance is long, and at the command line you
 can really feel it</p>
 </li>
 <li>
 <p><strong>Mill builds are much easier to understand</strong>: Your Mill build is made of bog-standard
-<code>object</code>s and <code>def</code>s, rather than <code>sbt’s
-<a href="https://eed3si9n.com/4th-dimension-with-sbt-013/">four-dimensional task matrix</a>. Your IDE’s
-&quot;<strong>jump-to-definition</strong>&quot; in Mill actually brings you to the implementation of a task, rather
+<code>object</code>s and <code>def</code>s, rather than <code>sbt&#8217;s
+<a href="https://eed3si9n.com/4th-dimension-with-sbt-013/">four-dimensional task matrix</a>. Your IDE&#8217;s
+"<strong>jump-to-definition</strong>" in Mill actually brings you to the implementation of a task, rather
 than an `sbt</code> <code>taskKey</code> declaration. Customizing things is as simple as writing or overriding
 `def`s. The net effect is that despite both tools' build files being written in Scala,
-Mill’s build files are much easier to understand and maintain.</p>
+Mill&#8217;s build files are much easier to understand and maintain.</p>
 </li>
 </ul>
 </div>
@@ -701,7 +700,7 @@ to <code>sbt</code> in more realistic, real-world projects.</p>
 </div>
 <div class="paragraph">
 <p>In general, in the ideal case Mill and <code>sbt</code> have similar performance: caching, parallelism, incremental
-compilation, and so on. Mill’s main advantage over <code>sbt</code> is its simplicity:</p>
+compilation, and so on. Mill&#8217;s main advantage over <code>sbt</code> is its simplicity:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -711,7 +710,7 @@ or juggle multiple terminal windows to run <code>sbt</code> in one and Bash in a
 run Mill like any command line tool, and Mill caches and parallelizes to maximize performance automatically</p>
 </li>
 <li>
-<p>Mill’s IDE support is better than <code>sbt’s due to how Mill is designed: peek-at-documentation,
+<p>Mill&#8217;s IDE support is better than <code>sbt&#8217;s due to how Mill is designed: peek-at-documentation,
 jump-to-definition, find-overrides, etc. is much more useful since your IDE understands Mill
 much better than it understands `sbt</code>.</p>
 </li>
@@ -757,10 +756,10 @@ real-world project compares to using <code>sbt</code>.</p>
 <div class="sectionbody">
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;" />
-<col style="width: 25%;" />
-<col style="width: 25%;" />
-<col style="width: 25%;" />
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
 </colgroup>
 <thead>
 <tr>
@@ -774,31 +773,31 @@ real-world project compares to using <code>sbt</code>.</p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_parallel_clean_compile_all">Parallel Clean Compile All</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">34.28s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">&asymp; 14s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">≈ 14s</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">10.4s</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_clean_compile_single_module">Clean Compile Single-Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">10.1s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">&asymp; 1s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">≈ 1s</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">0.96s</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_incremental_compile_single_module">Incremental Compile Single-Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">6.2s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">&asymp; 0s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">≈ 0s</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">0.48s</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_no_op_compile_single_module">No-Op Compile Single-Module</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">4.2s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">&asymp; 0s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">≈ 0s</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">0.40s</p></td>
 </tr>
 </tbody>
 </table>
 <div class="paragraph">
-<p><code>sbt</code> can be used in two modes, either &quot;cold&quot; run directly from the command line, or &quot;hot&quot;
+<p><code>sbt</code> can be used in two modes, either "cold" run directly from the command line, or "hot"
 where an <code>sbt</code> session is kept open and commands are run within in. I provide the timings for
 both scenarios above, along with the time taken for Mill commands. Mill does not have this
 distinction, and can only be run directly from the command line. The Hot <code>sbt</code> mode only
@@ -808,15 +807,15 @@ reports timings to the nearest second, so that is the number used in this compar
 <p>The Mill build benchmarks for Gatling is generally much snappier than the Cold <code>sbt</code> benchmark,
 and comparable to that Hot <code>sbt</code> benchmark. Mill is marginally faster in the
 <code>Parallel Clean Compile All</code> benchmark (10s vs 14s), but more importantly does not have the same
-<em>Cold vs Hot</em> distinction that <code>sbt</code> has: as Mill is always run &quot;cold&quot; from the command line and
-keeps the process around to provide &quot;hot&quot; performance automatically.</p>
+<em>Cold vs Hot</em> distinction that <code>sbt</code> has: as Mill is always run "cold" from the command line and
+keeps the process around to provide "hot" performance automatically.</p>
 </div>
 <div class="paragraph">
 <p>For the benchmarks above, each provided number is the median wall time of three consecutive runs
 on my M1 Macbook Pro. While ad-hoc, these benchmarks are enough to give you a flavor of how
-Mill’s performance compares to <code>sbt</code>. For a fair comparison, we disabled <code>gatling-build-plugin</code>
+Mill&#8217;s performance compares to <code>sbt</code>. For a fair comparison, we disabled <code>gatling-build-plugin</code>
 in the sbt setup, which bundles the various scalafmt/scalafix/etc. linters as part of <code>compile</code>,
-since Mill doesn’t bundle them and instead expects them to be invoked separately.</p>
+since Mill doesn&#8217;t bundle them and instead expects them to be invoked separately.</p>
 </div>
 <div class="sect2">
 <h3 id="_parallel_clean_compile_all"><a class="anchor" href="#_parallel_clean_compile_all"></a>Parallel Clean Compile All</h3>
@@ -869,7 +868,7 @@ $ ./mill clean; time ./mill gatling-common.compile
 </div>
 <div class="paragraph">
 <p>This benchmark indicates the use case of clean-compiling a single module. In this case,
-the <code>gatling-commons</code> module’s application code in `commons/, <em>excluding</em> the test code in
+the <code>gatling-commons</code> module&#8217;s application code in `commons/, <em>excluding</em> the test code in
 and all the downstream submodules.</p>
 </div>
 </div>
@@ -877,7 +876,7 @@ and all the downstream submodules.</p>
 <h3 id="_incremental_compile_single_module"><a class="anchor" href="#_incremental_compile_single_module"></a>Incremental Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ echo &quot;&quot; &gt;&gt; gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ echo "" &gt;&gt; gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala
 $ time sbt gatling-commons/compile
 6.6s
 6.2s
@@ -888,7 +887,7 @@ sbt&gt; gatling-commons/compile
 0s
 0s
 
-$ echo &quot;&quot; &gt;&gt; gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala
+$ echo "" &gt;&gt; gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala
 $ time ./mill gatling-commons.compile
 0.49s
 0.48s
@@ -904,7 +903,7 @@ file <code>gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala</
 <div class="paragraph">
 <p>Both Mill and <code>sbt</code> are able to take advantage of the small code change and re-compile
 only the single files needing re-compilation, demonstrating substantial speedups over
-the <a href="#_clean_compile_single_module">Clean Compile Single-Module</a> benchmark above. Both Hot <code>sbt</code> and &quot;Mill&quot; finish in
+the <a href="#_clean_compile_single_module">Clean Compile Single-Module</a> benchmark above. Both Hot <code>sbt</code> and "Mill" finish in
 a fraction of a second, while Cold <code>sbt</code> has substantial overhead.</p>
 </div>
 </div>
@@ -934,7 +933,7 @@ module that did <em>not</em> change, the build tool should need to do <em>nothin
 any time taken is pure overhead.</p>
 </div>
 <div class="paragraph">
-<p>Again, we see both Hot <code>sbt</code> and &quot;Mill&quot; finish in a fraction of a second, with the Mill numbers
+<p>Again, we see both Hot <code>sbt</code> and "Mill" finish in a fraction of a second, with the Mill numbers
 showing a ~0.4s overhead to run Mill even when there is no work to do, and the Cold <code>sbt</code> has
 in comparison substantial &gt;4s overhead.</p>
 </div>
@@ -952,12 +951,12 @@ of looking into an <code>sbt</code> Task:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijGatlingSbtTask1.png" alt="IntellijGatlingSbtTask1" />
+<img src="../_images/comparisons/IntellijGatlingSbtTask1.png" alt="IntellijGatlingSbtTask1">
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijGatlingSbtTask2.png" alt="IntellijGatlingSbtTask2" />
+<img src="../_images/comparisons/IntellijGatlingSbtTask2.png" alt="IntellijGatlingSbtTask2">
 </div>
 </div>
 <div class="paragraph">
@@ -965,12 +964,12 @@ of looking into an <code>sbt</code> Task:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijGatlingSbtPlugin1.png" alt="IntellijGatlingSbtPlugin1" />
+<img src="../_images/comparisons/IntellijGatlingSbtPlugin1.png" alt="IntellijGatlingSbtPlugin1">
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijGatlingSbtPlugin2.png" alt="IntellijGatlingSbtPlugin2" />
+<img src="../_images/comparisons/IntellijGatlingSbtPlugin2.png" alt="IntellijGatlingSbtPlugin2">
 </div>
 </div>
 <div class="paragraph">
@@ -987,7 +986,7 @@ inspecting a task, it is able to pull up the documentation comment:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijGatlingMillTask1.png" alt="IntellijGatlingMillTask1" />
+<img src="../_images/comparisons/IntellijGatlingMillTask1.png" alt="IntellijGatlingMillTask1">
 </div>
 </div>
 <div class="paragraph">
@@ -995,7 +994,7 @@ inspecting a task, it is able to pull up the documentation comment:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijGatlingMillTask2.png" alt="IntellijGatlingMillTask2" />
+<img src="../_images/comparisons/IntellijGatlingMillTask2.png" alt="IntellijGatlingMillTask2">
 </div>
 </div>
 <div class="paragraph">
@@ -1004,21 +1003,21 @@ what you are overriding:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijGatlingMillTask3.png" alt="IntellijGatlingMillTask3" />
+<img src="../_images/comparisons/IntellijGatlingMillTask3.png" alt="IntellijGatlingMillTask3">
 </div>
 </div>
 <div class="paragraph">
-<p>Mill’s equivalent of <code>sbt</code> plugins are just Scala traits, and again you can easily pull up their
+<p>Mill&#8217;s equivalent of <code>sbt</code> plugins are just Scala traits, and again you can easily pull up their
 documentation in-line in the editor or jump to their full implementation:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijGatlingMillPlugin1.png" alt="IntellijGatlingMillPlugin1" />
+<img src="../_images/comparisons/IntellijGatlingMillPlugin1.png" alt="IntellijGatlingMillPlugin1">
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijGatlingMillPlugin2.png" alt="IntellijGatlingMillPlugin2" />
+<img src="../_images/comparisons/IntellijGatlingMillPlugin2.png" alt="IntellijGatlingMillPlugin2">
 </div>
 </div>
 <div class="paragraph">
@@ -1043,7 +1042,7 @@ Mill, you can run <code>./mill visualize __.compile</code>, and it will show you
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/GatlingCompileGraph.svg" alt="GatlingCompileGraph" />
+<img src="../_images/comparisons/GatlingCompileGraph.svg" alt="GatlingCompileGraph">
 </div>
 </div>
 <div class="paragraph">
@@ -1055,7 +1054,7 @@ visualize where your build is spending time and where the performance bottleneck
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/GatlingCompileProfile.png" alt="GatlingCompileProfile" />
+<img src="../_images/comparisons/GatlingCompileProfile.png" alt="GatlingCompileProfile">
 </div>
 </div>
 <div class="paragraph">
@@ -1106,12 +1105,12 @@ are performant and do what needs to be done.</p>
 </div>
 <div class="paragraph">
 <p>Where Mill has an advantage over <code>sbt</code> is in its simplicity and understandability. You
-do not need to worry about using it &quot;the wrong way&quot; and ending up with workflows running
+do not need to worry about using it "the wrong way" and ending up with workflows running
 slower than necessary. You can explore your build using your IDE like you would any other
 project, tracing task dependencies using the same jump-to-definition you use to trace
 method calls in your application code. Mill provides builtin tools to help you navigate,
-visualize, and understand your build, turning a normally opaque &quot;build config&quot; into
-something that’s transparent and easily understandable.</p>
+visualize, and understand your build, turning a normally opaque "build config" into
+something that&#8217;s transparent and easily understandable.</p>
 </div>
 </div>
 </div>
@@ -1124,9 +1123,9 @@ something that’s transparent and easily understandable.</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

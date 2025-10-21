@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Linting Scala Projects :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/scalalib/linting.html" />
-    <link rel="prev" href="testing.html" />
-    <link rel="next" href="publishing.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/scalalib/linting.html">
+    <link rel="prev" href="testing.html">
+    <link rel="next" href="publishing.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -723,10 +722,10 @@ shown below:</p>
 import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
-  def scalaVersion = &quot;2.13.11&quot;
-  def compileIvyDeps = Agg(ivy&quot;com.lihaoyi:::acyclic:0.3.15&quot;)
-  def scalacPluginIvyDeps = Agg(ivy&quot;com.lihaoyi:::acyclic:0.3.15&quot;)
-  def scalacOptions = Seq(&quot;-P:acyclic:force&quot;)
+  def scalaVersion = "2.13.11"
+  def compileIvyDeps = Agg(ivy"com.lihaoyi:::acyclic:0.3.15")
+  def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi:::acyclic:0.3.15")
+  def scalacOptions = Seq("-P:acyclic:force")
 }</code></pre>
 </div>
 </div>
@@ -737,7 +736,7 @@ object `package` extends RootModule with ScalaModule {
 object Foo {
   val value = 123
   def main(args: Array[String]): Unit = {
-    println(&quot;hello &quot; + Bar)
+    println("hello " + Bar)
   }
 }</code></pre>
 </div>
@@ -747,7 +746,7 @@ object Foo {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 object Bar {
-  val value = Foo + &quot; world&quot;
+  val value = Foo + " world"
 }</code></pre>
 </div>
 </div>
@@ -760,11 +759,11 @@ object Bar {
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill compile
 error: Unwanted cyclic dependency
 ...src/Bar.scala...
-  val value = Foo + &quot; world&quot;
+  val value = Foo + " world"
               ^
 symbol: object Foo
 ...src/Foo.scala...
-    println(&quot;hello &quot; + Bar)
+    println("hello " + Bar)
                        ^
 symbol: object Bar</code></pre>
 </div>
@@ -794,7 +793,7 @@ done compiling</code></pre>
 import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
-  def scalaVersion = &quot;2.13.11&quot;
+  def scalaVersion = "2.13.11"
 }</code></pre>
 </div>
 </div>
@@ -802,15 +801,15 @@ object `package` extends RootModule with ScalaModule {
 <div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/scalalib/linting/1-scalafmt/.scalafmt.conf">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala"># Newer versions won't work with Java 8!
-version = &quot;3.7.15&quot;
+version = "3.7.15"
 runner.dialect = scala213</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Mill supports code formatting via <a href="https://scalameta.org/scalafmt/">scalafmt</a> out of the box.
-You can reformat your project’s code globally with <code>mill mill.scalalib.scalafmt/</code> command,
+You can reformat your project&#8217;s code globally with <code>mill mill.scalalib.scalafmt/</code> command,
 specific modules via <code>mill mill.scalalib.scalafmt/ '{foo,bar}.sources</code>
-or only check the code’s format with <code>+mill mill.scalalib.scalafmt/checkFormatAll</code>.
+or only check the code&#8217;s format with <code>+mill mill.scalalib.scalafmt/checkFormatAll</code>.
 By default, ScalaFmt checks for a <code>.scalafmt.conf</code> file at the root of repository.</p>
 </div>
 <div class="listingblock">
@@ -822,7 +821,7 @@ def main(args:
 Array[String
 ]
 ):Unit=
-{println(&quot;hello world&quot;)
+{println("hello world")
 }
 }
 
@@ -835,7 +834,7 @@ error: ...Found 1 misformatted files
 &gt; cat src/Foo.scala
 package foo
 object Foo {
-  def main(args: Array[String]): Unit = { println(&quot;hello world&quot;) }
+  def main(args: Array[String]): Unit = { println("hello world") }
 }
 
 &gt; mill mill.scalalib.scalafmt/checkFormatAll
@@ -847,7 +846,7 @@ Everything is formatted already</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; echo &quot;maxColumn: 50&quot; &gt;&gt; .scalafmt.conf
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; echo "maxColumn: 50" &gt;&gt; .scalafmt.conf
 
 &gt; mill mill.scalalib.scalafmt/
 
@@ -855,7 +854,7 @@ Everything is formatted already</code></pre>
 package foo
 object Foo {
   def main(args: Array[String]): Unit = {
-    println(&quot;hello world&quot;)
+    println("hello world")
   }
 }</code></pre>
 </div>
@@ -864,7 +863,7 @@ object Foo {
 <p>If entering the long fully-qualified module name <code>mill.scalalib.scalafmt/</code>
 is tedious, you can add
 an <a href="../fundamentals/modules.html#_aliasing_external_modules" class="xref page">External Module Alias</a>
-to give it a shorter name that’s easier to type</p>
+to give it a shorter name that&#8217;s easier to type</p>
 </div>
 </div>
 </div>
@@ -881,16 +880,16 @@ import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
 import mill.contrib.scoverage._
 
 object `package` extends RootModule with ScoverageModule {
-  def scoverageVersion = &quot;2.1.0&quot;
-  def scalaVersion = &quot;2.13.11&quot;
+  def scoverageVersion = "2.1.0"
+  def scalaVersion = "2.13.11"
   def ivyDeps = Agg(
-    ivy&quot;com.lihaoyi::scalatags:0.13.1&quot;,
-    ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
+    ivy"com.lihaoyi::scalatags:0.13.1",
+    ivy"com.lihaoyi::mainargs:0.6.2"
   )
 
   object test extends ScoverageTests /*with TestModule.Utest */ {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
   }
 }</code></pre>
 </div>
@@ -973,9 +972,9 @@ the mill-mima documentation for more details:</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

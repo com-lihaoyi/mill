@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Typescript Module Configuration :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/javascriptlib/module-config.html" />
-    <link rel="prev" href="dependencies.html" />
-    <link rel="next" href="testing.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/javascriptlib/module-config.html">
+    <link rel="prev" href="dependencies.html">
+    <link rel="next" href="testing.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -673,29 +672,29 @@ import mill.javascriptlib._
 
 object foo extends TypeScriptModule {
 
-  def customSource = Task.Sources(&quot;custom-src/foo2.ts&quot;)
+  def customSource = Task.Sources("custom-src/foo2.ts")
 
   def sources = Task { super.sources() ++ customSource() }
 
-  def resources = super.resources() ++ Seq(PathRef(moduleDir / &quot;custom-resources&quot;))
+  def resources = super.resources() ++ Seq(PathRef(moduleDir / "custom-resources"))
 
   def generatedSources = Task {
-    for (name &lt;- Seq(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)) os.write(
-      Task.dest / s&quot;foo-$name.ts&quot;,
-      s&quot;&quot;&quot;export default class Foo$name {
-  static value: string = &quot;Hello $name&quot;
+    for (name &lt;- Seq("A", "B", "C")) os.write(
+      Task.dest / s"foo-$name.ts",
+      s"""export default class Foo$name {
+  static value: string = "Hello $name"
 }
-      &quot;&quot;&quot;.stripMargin
+      """.stripMargin
     )
 
     Seq(PathRef(Task.dest))
   }
 
-  def forkEnv = super.forkEnv() + (&quot;MY_CUSTOM_ENV&quot; -&gt; &quot;my-env-value&quot;)
+  def forkEnv = super.forkEnv() + ("MY_CUSTOM_ENV" -&gt; "my-env-value")
 
-  def mainFileName = s&quot;foo2.ts&quot;
+  def mainFileName = s"foo2.ts"
 
-  def mainFilePath = compile().path / &quot;custom-src&quot; / mainFileName()
+  def mainFilePath = compile().path / "custom-src" / mainFileName()
 
 }</code></pre>
 </div>
@@ -710,8 +709,8 @@ various filesystem operations:</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><code>moduleDir</code>: Base path of the module. For the root module, it’s the repo root.
-For inner modules, it’s the module path (e.g., <code>foo/bar/qux</code> for <code>foo.bar.qux</code>). Can be overridden if needed.</p>
+<p><code>moduleDir</code>: Base path of the module. For the root module, it&#8217;s the repo root.
+For inner modules, it&#8217;s the module path (e.g., <code>foo/bar/qux</code> for <code>foo.bar.qux</code>). Can be overridden if needed.</p>
 </li>
 <li>
 <p><code>Task.dest</code>: Destination folder in the <code>out/</code> folder for task output.
@@ -767,24 +766,24 @@ object foo extends TypeScriptModule {
   def lineCount: T[Int] = Task {
     sources()
       .flatMap(pathRef =&gt; os.walk(pathRef.path))
-      .filter(_.ext == &quot;ts&quot;)
+      .filter(_.ext == "ts")
       .map(os.read.lines(_).size)
       .sum
   }
 
   def generatedSources = Task {
     os.write(
-      Task.dest / &quot;bar.ts&quot;,
-      s&quot;&quot;&quot;export default class Bar {
+      Task.dest / "bar.ts",
+      s"""export default class Bar {
   static value: number = 123
 }
-      &quot;&quot;&quot;.stripMargin
+      """.stripMargin
     )
 
     Seq(PathRef(Task.dest))
   }
 
-  def forkEnv = super.forkEnv() + (&quot;LINE_COUNT&quot; -&gt; lineCount().toString)
+  def forkEnv = super.forkEnv() + ("LINE_COUNT" -&gt; lineCount().toString)
 
   def printLineCount() = Task.Command { println(lineCount()) }
 
@@ -798,87 +797,88 @@ labels representing existing Mill tasks:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="457px" height="119px" viewBox="0.00 0.00 457.09 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="457px" height="119px"
+ viewBox="0.00 0.00 457.09 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 453.09,-114.8 453.09,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 453.09,-114.8 453.09,4 -4,4"/>
 <!-- generatedSources -->
 <g id="node1" class="node">
 <title>generatedSources</title>
-<polygon fill="none" stroke="black" points="315.79,-110.7 201.34,-110.7 201.34,-86.1 315.79,-86.1 315.79,-110.7"></polygon>
+<polygon fill="none" stroke="black" points="315.79,-110.7 201.34,-110.7 201.34,-86.1 315.79,-86.1 315.79,-110.7"/>
 <text text-anchor="middle" x="258.57" y="-94.2" font-family="Times,serif" font-size="14.00">generatedSources</text>
 </g>
 <!-- ... -->
 <g id="node2" class="node">
 <title>...</title>
-<polygon fill="none" stroke="white" points="378.68,-88.7 351.67,-88.7 351.67,-64.1 378.68,-64.1 378.68,-88.7"></polygon>
+<polygon fill="none" stroke="white" points="378.68,-88.7 351.67,-88.7 351.67,-64.1 378.68,-64.1 378.68,-88.7"/>
 <text text-anchor="middle" x="365.18" y="-72.2" font-family="Times,serif" font-size="14.00">...</text>
 </g>
 <!-- generatedSources&#45;&gt;... -->
 <g id="edge1" class="edge">
-<title>generatedSources-&gt;...</title>
-<path fill="none" stroke="black" d="M315.85,-86.56C325.06,-84.63 334.1,-82.73 341.82,-81.1"></path>
-<polygon fill="black" stroke="black" points="342.68,-84.5 351.74,-79.01 341.24,-77.65 342.68,-84.5"></polygon>
+<title>generatedSources&#45;&gt;...</title>
+<path fill="none" stroke="black" d="M315.85,-86.56C325.06,-84.63 334.1,-82.73 341.82,-81.1"/>
+<polygon fill="black" stroke="black" points="342.68,-84.5 351.74,-79.01 341.24,-77.65 342.68,-84.5"/>
 </g>
 <!-- run -->
 <g id="node6" class="node">
 <title>run</title>
-<polygon fill="none" stroke="white" points="448.92,-88.7 414.6,-88.7 414.6,-64.1 448.92,-64.1 448.92,-88.7"></polygon>
+<polygon fill="none" stroke="white" points="448.92,-88.7 414.6,-88.7 414.6,-64.1 448.92,-64.1 448.92,-88.7"/>
 <text text-anchor="middle" x="431.76" y="-72.2" font-family="Times,serif" font-size="14.00">run</text>
 </g>
 <!-- ...&#45;&gt;run -->
 <g id="edge5" class="edge">
-<title>...-&gt;run</title>
-<path fill="none" stroke="black" d="M378.63,-76.4C385.82,-76.4 395.16,-76.4 403.94,-76.4"></path>
-<polygon fill="black" stroke="black" points="404.19,-79.9 414.19,-76.4 404.19,-72.9 404.19,-79.9"></polygon>
+<title>...&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M378.63,-76.4C385.82,-76.4 395.16,-76.4 403.94,-76.4"/>
+<polygon fill="black" stroke="black" points="404.19,-79.9 414.19,-76.4 404.19,-72.9 404.19,-79.9"/>
 </g>
 <!-- sources -->
 <g id="node3" class="node">
 <title>sources</title>
-<polygon fill="none" stroke="white" points="57.97,-45.7 0.01,-45.7 0.01,-21.1 57.97,-21.1 57.97,-45.7"></polygon>
+<polygon fill="none" stroke="white" points="57.97,-45.7 0.01,-45.7 0.01,-21.1 57.97,-21.1 57.97,-45.7"/>
 <text text-anchor="middle" x="28.99" y="-29.2" font-family="Times,serif" font-size="14.00">sources</text>
 </g>
 <!-- lineCount -->
 <g id="node4" class="node">
 <title>lineCount</title>
-<polygon fill="none" stroke="black" points="165.31,-45.7 93.87,-45.7 93.87,-21.1 165.31,-21.1 165.31,-45.7"></polygon>
+<polygon fill="none" stroke="black" points="165.31,-45.7 93.87,-45.7 93.87,-21.1 165.31,-21.1 165.31,-45.7"/>
 <text text-anchor="middle" x="129.59" y="-29.2" font-family="Times,serif" font-size="14.00">lineCount</text>
 </g>
 <!-- sources&#45;&gt;lineCount -->
 <g id="edge2" class="edge">
-<title>sources-&gt;lineCount</title>
-<path fill="none" stroke="black" d="M57.98,-33.4C66,-33.4 74.95,-33.4 83.72,-33.4"></path>
-<polygon fill="black" stroke="black" points="83.85,-36.9 93.85,-33.4 83.85,-29.9 83.85,-36.9"></polygon>
+<title>sources&#45;&gt;lineCount</title>
+<path fill="none" stroke="black" d="M57.98,-33.4C66,-33.4 74.95,-33.4 83.72,-33.4"/>
+<polygon fill="black" stroke="black" points="83.85,-36.9 93.85,-33.4 83.85,-29.9 83.85,-36.9"/>
 </g>
 <!-- forkEnv -->
 <g id="node5" class="node">
 <title>forkEnv</title>
-<polygon fill="none" stroke="black" points="289.44,-67.7 227.69,-67.7 227.69,-43.1 289.44,-43.1 289.44,-67.7"></polygon>
+<polygon fill="none" stroke="black" points="289.44,-67.7 227.69,-67.7 227.69,-43.1 289.44,-43.1 289.44,-67.7"/>
 <text text-anchor="middle" x="258.57" y="-51.2" font-family="Times,serif" font-size="14.00">forkEnv</text>
 </g>
 <!-- lineCount&#45;&gt;forkEnv -->
 <g id="edge3" class="edge">
-<title>lineCount-&gt;forkEnv</title>
-<path fill="none" stroke="black" d="M165.29,-39.41C181.46,-42.21 200.8,-45.56 217.58,-48.47"></path>
-<polygon fill="black" stroke="black" points="217.2,-51.96 227.65,-50.22 218.4,-45.06 217.2,-51.96"></polygon>
+<title>lineCount&#45;&gt;forkEnv</title>
+<path fill="none" stroke="black" d="M165.29,-39.41C181.46,-42.21 200.8,-45.56 217.58,-48.47"/>
+<polygon fill="black" stroke="black" points="217.2,-51.96 227.65,-50.22 218.4,-45.06 217.2,-51.96"/>
 </g>
 <!-- printLineCount -->
 <g id="node7" class="node">
 <title>printLineCount</title>
-<polygon fill="none" stroke="black" points="309.89,-24.7 207.24,-24.7 207.24,-0.1 309.89,-0.1 309.89,-24.7"></polygon>
+<polygon fill="none" stroke="black" points="309.89,-24.7 207.24,-24.7 207.24,-0.1 309.89,-0.1 309.89,-24.7"/>
 <text text-anchor="middle" x="258.57" y="-8.2" font-family="Times,serif" font-size="14.00">printLineCount</text>
 </g>
 <!-- lineCount&#45;&gt;printLineCount -->
 <g id="edge6" class="edge">
-<title>lineCount-&gt;printLineCount</title>
-<path fill="none" stroke="black" d="M165.29,-27.66C175.18,-26.03 186.26,-24.19 197.21,-22.38"></path>
-<polygon fill="black" stroke="black" points="197.9,-25.81 207.2,-20.73 196.76,-18.91 197.9,-25.81"></polygon>
+<title>lineCount&#45;&gt;printLineCount</title>
+<path fill="none" stroke="black" d="M165.29,-27.66C175.18,-26.03 186.26,-24.19 197.21,-22.38"/>
+<polygon fill="black" stroke="black" points="197.9,-25.81 207.2,-20.73 196.76,-18.91 197.9,-25.81"/>
 </g>
 <!-- forkEnv&#45;&gt;... -->
 <g id="edge4" class="edge">
-<title>forkEnv-&gt;...</title>
-<path fill="none" stroke="black" d="M289.54,-61.42C306.16,-64.75 326.48,-68.83 341.71,-71.89"></path>
-<polygon fill="black" stroke="black" points="341.29,-75.38 351.79,-73.91 342.67,-68.51 341.29,-75.38"></polygon>
+<title>forkEnv&#45;&gt;...</title>
+<path fill="none" stroke="black" d="M289.54,-61.42C306.16,-64.75 326.48,-68.83 341.71,-71.89"/>
+<polygon fill="black" stroke="black" points="341.29,-75.38 351.79,-73.91 342.67,-68.51 341.29,-75.38"/>
 </g>
 </g>
 </svg>
@@ -886,11 +886,11 @@ labels representing existing Mill tasks:</p>
 </center>
 </div>
 <div class="paragraph">
-<p>Mill lets you define new cached Tasks using the <code>Task {...​}</code> syntax,
+<p>Mill lets you define new cached Tasks using the <code>Task {&#8230;&#8203;}</code> syntax,
 depending on existing Tasks e.g. <code>foo.sources</code> via the <code>foo.sources()</code>
 syntax to extract their current value, as shown in <code>lineCount</code> above. The
 return-type of a Task has to be JSON-serializable (using
-<a href="https://github.com/lihaoyi/upickle">uPickle</a>, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>)
+<a href="https://github.com/lihaoyi/upickle">uPickle</a>, one of Mill&#8217;s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>)
 and the Task is cached when first run until its inputs change (in this case, if
 someone edits the <code>foo.sources</code> files which live in <code>foo/src</code>). Cached Tasks
 cannot take parameters.</p>
@@ -903,7 +903,7 @@ implementation.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run &quot;Hello World!&quot;
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run "Hello World!"
 Bar.value: 123
 text: Hello World!
 Line count: 9</code></pre>
@@ -923,32 +923,32 @@ import mill._
 import mill.javascriptlib._
 
 object `package` extends RootModule with TypeScriptModule {
-  def moduleName = &quot;foo&quot;
+  def moduleName = "foo"
 
   def sources = Task {
-    val srcPath = Task.dest / &quot;src&quot;
-    val filePath = srcPath / &quot;foo.ts&quot;
+    val srcPath = Task.dest / "src"
+    val filePath = srcPath / "foo.ts"
 
     os.makeDir.all(srcPath)
 
     os.write.over(
       filePath,
-      &quot;&quot;&quot;(function () {
-  console.log(&quot;Hello World!&quot;)
+      """(function () {
+  console.log("Hello World!")
 })()
-      &quot;&quot;&quot;.stripMargin
+      """.stripMargin
     )
 
     Seq(PathRef(Task.dest))
   }
 
   def compile = Task {
-    println(&quot;Compiling...&quot;)
+    println("Compiling...")
     super.compile()
   }
 
   def run(args: mill.define.Args) = Task.Command {
-    println(&quot;Running... &quot; + args.value.mkString(&quot; &quot;))
+    println("Running... " + args.value.mkString(" "))
     super.run(args)()
   }
 
@@ -960,11 +960,11 @@ object `package` extends RootModule with TypeScriptModule {
 want to refer to the originally defined task. The above example shows how to
 override <code>compile</code> and <code>run</code> to add additional logging messages, and we
 override <code>sources</code> which was <code>Task.Sources</code> for the <code>src/</code> folder with a plain
-<code>T{...​}</code> task that generates the  necessary source files on-the-fly.</p>
+<code>T{&#8230;&#8203;}</code> task that generates the  necessary source files on-the-fly.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -975,11 +975,11 @@ generated sources, you can either override <code>generatedSources</code>, or you
 override <code>sources</code> and use <code>super</code> to include the original source folder with <code>super</code>:
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run &quot;added tags&quot;
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run "added tags"
 Compiling...
 Hello World!
 Running... added tags</code></pre>
@@ -1001,15 +1001,15 @@ import mill.javascriptlib._
 object foo extends TypeScriptModule {
   def compilerOptions =
     super.compilerOptions() + (
-      &quot;skipLibCheck&quot; -&gt; ujson.True,
-      &quot;module&quot; -&gt; ujson.Str(&quot;commonjs&quot;),
-      &quot;target&quot; -&gt; ujson.Str(&quot;es6&quot;)
+      "skipLibCheck" -&gt; ujson.True,
+      "module" -&gt; ujson.Str("commonjs"),
+      "target" -&gt; ujson.Str("es6")
     )
 
   def executionFlags =
     Map(
-      &quot;inspect&quot; -&gt; &quot;&quot;,
-      &quot;max-old-space-size&quot; -&gt; &quot;4096&quot;
+      "inspect" -&gt; "",
+      "max-old-space-size" -&gt; "4096"
     )
 
 }</code></pre>
@@ -1042,9 +1042,9 @@ import ujson._
 
 object foo extends TypeScriptModule {
   object test extends TypeScriptTests with TestModule.Jest {
-    def otherFiles = Task.Source(&quot;other-files&quot;)
+    def otherFiles = Task.Source("other-files")
 
-    def forkEnv = super.forkEnv() + (&quot;OTHER_FILES_DIR&quot; -&gt; otherFiles().path.toString)
+    def forkEnv = super.forkEnv() + ("OTHER_FILES_DIR" -&gt; otherFiles().path.toString)
   }
 }</code></pre>
 </div>
@@ -1135,7 +1135,7 @@ files, especially when running in parallel.</p>
 <div class="paragraph">
 <p>Mill runs test processes in a <a href="../depth/sandboxing.html" class="xref page">sandbox/ folder</a>, not in your project root folder, to
 prevent you from accidentally accessing files without explicitly passing them. Thus
-you cannot just read resources off disk via <code>with fs.readFile(&quot;foo/resources/test-file-a.txt&quot;, {...​})</code> as file.
+you cannot just read resources off disk via <code>with fs.readFile("foo/resources/test-file-a.txt", {&#8230;&#8203;})</code> as file.
 If you have legacy tests that need to run in the project root folder to work, you
 can configure your test suite with <code>def testSandboxWorkingDir = false</code> to disable
 the sandbox and make the tests run in the project root.</p>
@@ -1156,10 +1156,10 @@ import mill.javascriptlib._
 object foo extends TypeScriptModule {
   def bundleFlags =
     Map(
-      &quot;platform&quot; -&gt; ujson.Str(&quot;node&quot;),
-      &quot;entryPoints&quot; -&gt; ujson.Arr(mainFilePath().toString),
-      &quot;bundle&quot; -&gt; ujson.Bool(true),
-      &quot;minify&quot; -&gt; ujson.Bool(true)
+      "platform" -&gt; ujson.Str("node"),
+      "entryPoints" -&gt; ujson.Arr(mainFilePath().toString),
+      "bundle" -&gt; ujson.Bool(true),
+      "minify" -&gt; ujson.Bool(true)
     )
 
 }</code></pre>
@@ -1167,8 +1167,8 @@ object foo extends TypeScriptModule {
 </div>
 <div class="paragraph">
 <p>The above build demonstrates passing bundle flags
-After generating your bundle with <code>mill foo.bundle</code> you’ll find by running
-your <code>out/foo/bundle.dest/bundle.js</code> you’ll get the programmed output
+After generating your bundle with <code>mill foo.bundle</code> you&#8217;ll find by running
+your <code>out/foo/bundle.dest/bundle.js</code> you&#8217;ll get the programmed output
 and usage is based on project logic like which args to include with command.</p>
 </div>
 <div class="listingblock">
@@ -1191,9 +1191,9 @@ Hello World!</code></pre>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

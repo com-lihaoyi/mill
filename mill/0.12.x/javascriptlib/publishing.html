@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Typescript Packaging &amp; Publishing :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/javascriptlib/publishing.html" />
-    <link rel="prev" href="linting.html" />
-    <link rel="next" href="../android/java.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/javascriptlib/publishing.html">
+    <link rel="prev" href="linting.html">
+    <link rel="next" href="../android/java.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -679,14 +678,14 @@ import mill._, javascriptlib._
 import ujson._
 
 object foo extends PublishModule {
-  def pubBundledOut = &quot;dist&quot;
+  def pubBundledOut = "dist"
   def packageJson = PackageJson(
-    name = &quot;mill-simple&quot;,
-    version = &quot;1.0.0&quot;,
-    description = &quot;A simple Node.js command-line tool&quot;,
-    files = Seq(&quot;README.md&quot;),
+    name = "mill-simple",
+    version = "1.0.0",
+    description = "A simple Node.js command-line tool",
+    files = Seq("README.md"),
     bin = ujson.Obj(
-      &quot;greet&quot; -&gt; s&quot;${pubBundledOut()}/src/foo.js&quot;
+      "greet" -&gt; s"${pubBundledOut()}/src/foo.js"
     )
   )
 
@@ -694,8 +693,8 @@ object foo extends PublishModule {
 </div>
 </div>
 <div class="paragraph">
-<p>You’ll need to define some metadata in the <code>publishMeta</code> tasks.
-This metadata is roughly equivalent to what you’d define in a
+<p>You&#8217;ll need to define some metadata in the <code>publishMeta</code> tasks.
+This metadata is roughly equivalent to what you&#8217;d define in a
 <a href="https://docs.npmjs.com/cli/v11/configuring-npm/package-json"><code>package.json</code> file</a>.</p>
 </div>
 <div class="paragraph">
@@ -712,22 +711,22 @@ change the regsitry to publish to a private registry.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
- &quot;name&quot;: &quot;mill-simple&quot;,
- &quot;version&quot;: &quot;1.0.0&quot;,
- &quot;description&quot;: &quot;A simple Node.js command-line tool&quot;,
- &quot;license&quot;: &quot;MIT&quot;,
- &quot;main&quot;: &quot;dist/src/foo.js&quot;,
- &quot;types&quot;: &quot;declarations/src/foo.d.ts&quot;,
- &quot;files&quot;: [&quot;README.md&quot;, &quot;dist&quot;, &quot;declarations&quot;],
- &quot;bin&quot;: {
-   &quot;greet&quot;: &quot;./dist/src/foo.js&quot;
+ "name": "mill-simple",
+ "version": "1.0.0",
+ "description": "A simple Node.js command-line tool",
+ "license": "MIT",
+ "main": "dist/src/foo.js",
+ "types": "declarations/src/foo.d.ts",
+ "files": ["README.md", "dist", "declarations"],
+ "bin": {
+   "greet": "./dist/src/foo.js"
  },
- &quot;exports&quot;: {
-   &quot;.&quot;: &quot;./dist/src/foo.js&quot;
+ "exports": {
+   ".": "./dist/src/foo.js"
  },
- &quot;typesVersions&quot;: {
-   &quot;*&quot;: {
-   &quot;./dist/src/foo&quot;: [&quot;declarations/src/foo.d.ts&quot;]
+ "typesVersions": {
+   "*": {
+   "./dist/src/foo": ["declarations/src/foo.d.ts"]
    }
  }
 }</code></pre>
@@ -735,19 +734,19 @@ change the regsitry to publish to a private registry.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run &quot;James Bond&quot;
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run "James Bond"
 Hello James Bond!
 
 &gt; mill show foo.bundle
 Build succeeded!
 
-&gt; node out/foo/bundle.dest/dist/src/foo.js &quot;James Bond&quot;
+&gt; node out/foo/bundle.dest/dist/src/foo.js "James Bond"
 Hello James Bond!
 
 &gt; npm i -g mill-simple # install the executable file globally
 ...
 
-&gt; greet &quot;James Bond&quot;
+&gt; greet "James Bond"
 Hello James Bond!</code></pre>
 </div>
 </div>
@@ -766,7 +765,7 @@ import ujson._
 
 object foo extends TypeScriptModule {
   object bar extends TypeScriptModule {
-    def npmDeps = Seq(&quot;immutable@4.3.7&quot;)
+    def npmDeps = Seq("immutable@4.3.7")
   }
 
 }
@@ -776,31 +775,31 @@ object qux extends PublishModule {
 
   def generatedSources = Task {
     os.write(
-      Task.dest / &quot;qux.generated.ts&quot;,
-      s&quot;&quot;&quot;export default class QuxGen {
+      Task.dest / "qux.generated.ts",
+      s"""export default class QuxGen {
   static value: number = 123
 }
-      &quot;&quot;&quot;.stripMargin
+      """.stripMargin
     )
 
     Seq(PathRef(Task.dest))
   }
 
-  def pubBundledOut = &quot;dist&quot;
+  def pubBundledOut = "dist"
 
   def pubExports = Map(
-    &quot;./qux/generate_user&quot; -&gt; &quot;src/generate_user.js&quot;,
-    &quot;./foo&quot; -&gt; &quot;foo/src/foo.js&quot;,
-    &quot;./foo/bar&quot; -&gt; &quot;foo/bar/src/bar.js&quot;
+    "./qux/generate_user" -&gt; "src/generate_user.js",
+    "./foo" -&gt; "foo/src/foo.js",
+    "./foo/bar" -&gt; "foo/bar/src/bar.js"
   )
 
   def packageJson = PackageJson(
-    name = &quot;mill-realistic&quot;,
-    version = &quot;1.0.3&quot;,
-    description = &quot;A simple Node.js command-line tool&quot;,
-    files = Seq(&quot;README.md&quot;),
+    name = "mill-realistic",
+    version = "1.0.3",
+    description = "A simple Node.js command-line tool",
+    files = Seq("README.md"),
     bin = ujson.Obj(
-      &quot;qux&quot; -&gt; s&quot;${pubBundledOut()}/src/qux.js&quot;
+      "qux" -&gt; s"${pubBundledOut()}/src/qux.js"
     )
   )
 
@@ -815,34 +814,34 @@ The package.json generated for this lib publish:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
- &quot;name&quot;: &quot;mill-realistic&quot;,
- &quot;version&quot;: &quot;1.0.3&quot;,
- &quot;description&quot;: &quot;A simple Node.js command-line tool&quot;,
- &quot;license&quot;: &quot;MIT&quot;,
- &quot;main&quot;: &quot;dist/src/qux.js&quot;,
- &quot;types&quot;: &quot;declarations/src/qux.d.ts&quot;,
- &quot;files&quot;: [
-   &quot;README.md&quot;,
-   &quot;dist&quot;,
-   &quot;declarations&quot;
+ "name": "mill-realistic",
+ "version": "1.0.3",
+ "description": "A simple Node.js command-line tool",
+ "license": "MIT",
+ "main": "dist/src/qux.js",
+ "types": "declarations/src/qux.d.ts",
+ "files": [
+   "README.md",
+   "dist",
+   "declarations"
  ],
- &quot;bin&quot;: {
-   &quot;qux&quot;: &quot;./dist/src/qux.js&quot;
+ "bin": {
+   "qux": "./dist/src/qux.js"
  },
- &quot;dependencies&quot;: {
-   &quot;immutable&quot;: &quot;4.3.7&quot;
+ "dependencies": {
+   "immutable": "4.3.7"
  },
- &quot;devDependencies&quot;: {
-   &quot;immutable&quot;: &quot;4.3.7&quot;
+ "devDependencies": {
+   "immutable": "4.3.7"
  },
- &quot;exports&quot;: {
-   &quot;.&quot;: &quot;./dist/src/qux.js&quot;,
-   &quot;./qux/generate_user&quot;: &quot;./dist/src/generate_user.js&quot;,
-   &quot;./foo&quot;: &quot;./dist/foo/src/foo.js&quot;,
-   &quot;./foo/bar&quot;: &quot;./dist/foo/bar/src/bar.js&quot;
+ "exports": {
+   ".": "./dist/src/qux.js",
+   "./qux/generate_user": "./dist/src/generate_user.js",
+   "./foo": "./dist/foo/src/foo.js",
+   "./foo/bar": "./dist/foo/bar/src/bar.js"
  },
- &quot;typesVersions&quot;: {
-   &quot;*&quot;: { ... }
+ "typesVersions": {
+   "*": { ... }
  }
 }</code></pre>
 </div>
@@ -889,9 +888,9 @@ Hello James Bond Professor</code></pre>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

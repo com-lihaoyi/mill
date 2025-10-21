@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Testing Python Projects :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/pythonlib/testing.html" />
-    <link rel="prev" href="linting.html" />
-    <link rel="next" href="publishing.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/pythonlib/testing.html">
+    <link rel="prev" href="linting.html">
+    <link rel="next" href="publishing.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -677,9 +676,9 @@
 import mill._, pythonlib._
 
 object foo extends PythonModule {
-  def mainScript = Task.Source { &quot;src/foo.py&quot; }
+  def mainScript = Task.Source { "src/foo.py" }
   object test extends PythonTests with TestModule.Unittest {
-    def mainScript = Task.Source { &quot;src/test_foo.py&quot; }
+    def mainScript = Task.Source { "src/test_foo.py" }
   }
 }</code></pre>
 </div>
@@ -689,10 +688,10 @@ object foo extends PythonModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">class Foo:
     def main(self):
-        return &quot;Hello World&quot;
+        return "Hello World"
 
 
-if __name__ == &quot;__main__&quot;:
+if __name__ == "__main__":
     print(Foo().main())</code></pre>
 </div>
 </div>
@@ -707,20 +706,20 @@ from foo import Foo  # type: ignore
 class TestScript(unittest.TestCase):
     def test_hello(self) -&gt; None:
         result = Foo().main()
-        self.assertTrue(result.startswith(&quot;Hello&quot;))
+        self.assertTrue(result.startswith("Hello"))
 
     def test_world(self) -&gt; None:
         result = Foo().main()
-        self.assertTrue(result.endswith(&quot;World&quot;))
+        self.assertTrue(result.endswith("World"))
 
     def test_mock(self):
         mock_foo = MagicMock(spec=Foo)
-        mock_foo.main.return_value = &quot;Hello Mockito World&quot;
+        mock_foo.main.return_value = "Hello Mockito World"
         result = mock_foo.main()
         self.assertEqual(
             result,
-            &quot;Hello Mockito World&quot;,
-            &quot;Mocked hello() did not return expected value&quot;,
+            "Hello Mockito World",
+            "Mocked hello() did not return expected value",
         )
         mock_foo.main.assert_called_once()</code></pre>
 </div>
@@ -776,7 +775,7 @@ details on how to use each one from the command line.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends PythonModule {
-  def mainScript = Task.Source { &quot;src/bar.py&quot; }
+  def mainScript = Task.Source { "src/bar.py" }
   object test extends PythonTests with TestModule.Pytest
 }</code></pre>
 </div>
@@ -791,7 +790,7 @@ details on how to use each one from the command line.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>You can also select multiple test suites in one command using Mill’s
+<p>You can also select multiple test suites in one command using Mill&#8217;s
 <a href="../cli/query-syntax.html" class="xref page">Task Query Syntax</a></p>
 </div>
 <div class="listingblock">
@@ -856,7 +855,7 @@ enabled, so that once you save a file to disk the selected tests get re-run.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -868,7 +867,7 @@ Additional paths can be provided to test via <code>forkEnv</code>. See
 for more details.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>If you want to pass any arguments to the test framework, you can pass them after
@@ -902,16 +901,16 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { &quot;src/foo.py&quot; }
+  def mainScript = Task.Source { "src/foo.py" }
 
   def moduleDeps = Seq(bar)
 
-  def pythonDeps = Seq(&quot;jinja2==3.1.4&quot;)
+  def pythonDeps = Seq("jinja2==3.1.4")
 
   object test extends PythonTests with TestModule.Unittest {
     def moduleDeps = super.moduleDeps ++ Seq(bar.test)
 
-    def pythonDeps = Seq(&quot;MarkupSafe==3.0.2&quot;)
+    def pythonDeps = Seq("MarkupSafe==3.0.2")
 
   }
 
@@ -919,7 +918,7 @@ object foo extends PythonModule {
 
 object bar extends PythonModule {
 
-  def mainScript = Task.Source { &quot;src/bar.py&quot; }
+  def mainScript = Task.Source { "src/bar.py" }
 
   object test extends PythonTests with TestModule.Unittest
 
@@ -932,57 +931,58 @@ object bar extends PythonModule {
 </div>
 <div class="paragraph">
 <center>
-<svg width="228px" height="76px" viewBox="0.00 0.00 228.29 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="228px" height="76px"
+ viewBox="0.00 0.00 228.29 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 224.29,-71.8 224.29,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 224.29,-71.8 224.29,4 -4,4"/>
 <!-- bar -->
 <g id="node1" class="node">
 <title>bar</title>
-<polygon fill="none" stroke="black" points="33.81,-45.7 0.06,-45.7 0.06,-21.1 33.81,-21.1 33.81,-45.7"></polygon>
+<polygon fill="none" stroke="black" points="33.81,-45.7 0.06,-45.7 0.06,-21.1 33.81,-21.1 33.81,-45.7"/>
 <text text-anchor="middle" x="16.94" y="-29.2" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- bar.test -->
 <g id="node2" class="node">
 <title>bar.test</title>
-<polygon fill="none" stroke="black" points="126.6,-67.7 69.97,-67.7 69.97,-43.1 126.6,-43.1 126.6,-67.7"></polygon>
+<polygon fill="none" stroke="black" points="126.6,-67.7 69.97,-67.7 69.97,-43.1 126.6,-43.1 126.6,-67.7"/>
 <text text-anchor="middle" x="98.28" y="-51.2" font-family="Times,serif" font-size="14.00">bar.test</text>
 </g>
 <!-- bar&#45;&gt;bar.test -->
 <g id="edge1" class="edge">
-<title>bar-&gt;bar.test</title>
-<path fill="none" stroke="black" d="M33.99,-37.85C41.51,-39.94 50.8,-42.51 59.93,-45.04"></path>
-<polygon fill="black" stroke="black" points="59.11,-48.45 69.68,-47.75 60.98,-41.7 59.11,-48.45"></polygon>
+<title>bar&#45;&gt;bar.test</title>
+<path fill="none" stroke="black" d="M33.99,-37.85C41.51,-39.94 50.8,-42.51 59.93,-45.04"/>
+<polygon fill="black" stroke="black" points="59.11,-48.45 69.68,-47.75 60.98,-41.7 59.11,-48.45"/>
 </g>
 <!-- foo -->
 <g id="node4" class="node">
 <title>foo</title>
-<polygon fill="none" stroke="black" points="115.45,-24.7 81.12,-24.7 81.12,-0.1 115.45,-0.1 115.45,-24.7"></polygon>
+<polygon fill="none" stroke="black" points="115.45,-24.7 81.12,-24.7 81.12,-0.1 115.45,-0.1 115.45,-24.7"/>
 <text text-anchor="middle" x="98.28" y="-8.2" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
 <!-- bar&#45;&gt;foo -->
 <g id="edge3" class="edge">
-<title>bar-&gt;foo</title>
-<path fill="none" stroke="black" d="M33.99,-29.15C44.68,-26.32 58.96,-22.54 71.24,-19.29"></path>
-<polygon fill="black" stroke="black" points="72.21,-22.66 80.98,-16.72 70.42,-15.89 72.21,-22.66"></polygon>
+<title>bar&#45;&gt;foo</title>
+<path fill="none" stroke="black" d="M33.99,-29.15C44.68,-26.32 58.96,-22.54 71.24,-19.29"/>
+<polygon fill="black" stroke="black" points="72.21,-22.66 80.98,-16.72 70.42,-15.89 72.21,-22.66"/>
 </g>
 <!-- foo.test -->
 <g id="node3" class="node">
 <title>foo.test</title>
-<polygon fill="none" stroke="black" points="220.09,-45.7 162.89,-45.7 162.89,-21.1 220.09,-21.1 220.09,-45.7"></polygon>
+<polygon fill="none" stroke="black" points="220.09,-45.7 162.89,-45.7 162.89,-21.1 220.09,-21.1 220.09,-45.7"/>
 <text text-anchor="middle" x="191.49" y="-29.2" font-family="Times,serif" font-size="14.00">foo.test</text>
 </g>
 <!-- bar.test&#45;&gt;foo.test -->
 <g id="edge2" class="edge">
-<title>bar.test-&gt;foo.test</title>
-<path fill="none" stroke="black" d="M126.65,-48.8C134.96,-46.79 144.24,-44.56 153.09,-42.42"></path>
-<polygon fill="black" stroke="black" points="153.93,-45.82 162.83,-40.07 152.29,-39.01 153.93,-45.82"></polygon>
+<title>bar.test&#45;&gt;foo.test</title>
+<path fill="none" stroke="black" d="M126.65,-48.8C134.96,-46.79 144.24,-44.56 153.09,-42.42"/>
+<polygon fill="black" stroke="black" points="153.93,-45.82 162.83,-40.07 152.29,-39.01 153.93,-45.82"/>
 </g>
 <!-- foo&#45;&gt;foo.test -->
 <g id="edge4" class="edge">
-<title>foo-&gt;foo.test</title>
-<path fill="none" stroke="black" d="M115.59,-16.15C125.94,-18.54 139.78,-21.72 152.75,-24.71"></path>
-<polygon fill="black" stroke="black" points="152.35,-28.21 162.88,-27.04 153.92,-21.39 152.35,-28.21"></polygon>
+<title>foo&#45;&gt;foo.test</title>
+<path fill="none" stroke="black" d="M115.59,-16.15C125.94,-18.54 139.78,-21.72 152.75,-24.71"/>
+<polygon fill="black" stroke="black" points="152.35,-28.21 162.88,-27.04 153.92,-21.39 152.35,-28.21"/>
 </g>
 </g>
 </svg>
@@ -1035,7 +1035,7 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { &quot;src/foo.py&quot; }
+  def mainScript = Task.Source { "src/foo.py" }
 
   object test extends PythonTests with TestModule.Unittest
 
@@ -1086,9 +1086,9 @@ test_world (test.TestScript...) ... ok
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

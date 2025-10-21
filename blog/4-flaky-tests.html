@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>How To Manage Flaky Tests in your CI Workflows :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/blog/4-flaky-tests.html">
-    <link rel="prev" href="5-executable-jars.html">
-    <link rel="next" href="3-selective-testing.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/blog/4-flaky-tests.html" />
+    <link rel="prev" href="5-executable-jars.html" />
+    <link rel="next" href="3-selective-testing.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -247,7 +248,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/4-flaky-tests.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -270,7 +271,7 @@ arguments between individuals and teams in an organization.</p>
 <p>This article dives deep into working with flaky tests, from the perspective of someone
 who built the first flaky test management systems at Dropbox and Databricks and maintained
 the related build and CI workflows over the past decade. The issue of flaky tests can be
-surprisingly unintuitive, with many "obvious" approaches being ineffective
+surprisingly unintuitive, with many &quot;obvious&quot; approaches being ineffective
 or counterproductive. But it turns out there <em>are</em> right and wrong answers to many of
 these issues, and we will discuss both so you can better understand what managing flaky tests
 is all about.</p>
@@ -316,7 +317,7 @@ tests run in the same order will behave the same - but practically non-determini
 since different CI runs may run tests in different orders.
 <a href="3-selective-testing.html" class="xref page">Selective Testing</a> may cause this kind of issue,
 or dynamic load-balancing of tests between parallel workers to minimize total wall
-clock time (which <a href="https://github.com/dropbox/changes">Dropbox&#8217;s Changes CI system</a> did)</p>
+clock time (which <a href="https://github.com/dropbox/changes">Dropbox’s Changes CI system</a> did)</p>
 </div>
 </div>
 <div class="sect2">
@@ -335,8 +336,8 @@ processes at random.</p>
 <p>Integration or end-to-end tests often
 interact with third-party services, and it is not uncommon for the service
 to be flaky, rate limit you, have transient networking errors, or just be entirely
-down for some period of time. Even fundamental workflows like "downloading
-packages from a package repository" can be subject to flaky failures</p>
+down for some period of time. Even fundamental workflows like &quot;downloading
+packages from a package repository&quot; can be subject to flaky failures</p>
 </div>
 <div class="paragraph">
 <p>Sometimes the flakiness is test-specific, sometimes it is actually flakiness in the
@@ -367,7 +368,7 @@ anything.</p>
 </li>
 <li>
 <p>Once test failures start happening spuriously, it quickly becomes
-impossible to get a fully "green" test run without failures</p>
+impossible to get a fully &quot;green&quot; test run without failures</p>
 </li>
 <li>
 <p>So in order to make
@@ -378,7 +379,7 @@ if they are real issues or spurious</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>This means that you are back to the "manual" workflow of developers squinting at
+<p>This means that you are back to the &quot;manual&quot; workflow of developers squinting at
 test failures to decide if they are relevant or not. This risks both false positives
 and false negatives:</p>
 </div>
@@ -440,7 +441,7 @@ that hitting flaky tests entails</p>
 </div>
 <div class="paragraph">
 <p><a href="3-selective-testing.html" class="xref page">Selective Testing</a> can help mitigate this to some extent by
-letting you avoid running unrelated tests, but it doesn&#8217;t make the problem fully disappear.
+letting you avoid running unrelated tests, but it doesn’t make the problem fully disappear.
 For example, a downstream service may be triggered every time an upstream utility library
 is changed, and if the tests are flaky and the service and library are owned by different
 teams, you end up with the conflict described above.</p>
@@ -448,7 +449,7 @@ teams, you end up with the conflict described above.</p>
 <div class="paragraph">
 <p>What ends up happening is that <em>nobody</em> prioritizes fixing their flaky tests, because
 that is the selfishly-optimal thing to do, but as a result <em>everyone</em>
-suffers from <em>everyone else&#8217;s</em> flaky tests, even if everyone would be better if all flaky tests
+suffers from <em>everyone else’s</em> flaky tests, even if everyone would be better if all flaky tests
 were fixed. This is a classic <a href="https://en.wikipedia.org/wiki/Tragedy_of_the_commons">Tragedy of the Commons</a>,
 and as long as flaky tests are allowed to exist, this will result in
 endless debates or arguments between teams about who needs to fix their flaky tests,
@@ -471,14 +472,14 @@ mitigate them:</p>
 affecting users, and avoid race conditions in your test code</p>
 </li>
 <li>
-<p>Run parallel test processes inside "sandbox" empty temp folders, to try and avoid
+<p>Run parallel test processes inside &quot;sandbox&quot; empty temp folders, to try and avoid
 them reading and writing to the same files on the filesystem and risking race conditions.
 (See <a href="../mill/depth/sandboxing.html" class="xref page">Mill Sandboxing</a>)</p>
 </li>
 <li>
 <p>Run test processes inside CGroups to mitigate resource contention: e.g. if every test process is limited
 in how much memory it uses, it cannot cause memory pressure that might cause other tests
-to be OOM-killed (See Bazel&#8217;s <a href="https://github.com/bazelbuild/bazel/pull/21322">Extended CGroup Support</a>,
+to be OOM-killed (See Bazel’s <a href="https://github.com/bazelbuild/bazel/pull/21322">Extended CGroup Support</a>,
 which we implemented in <a href="https://www.databricks.com/blog/2021/10/14/developing-databricks-runbot-ci-solution.html">Databricks' Runbot CI system</a>)</p>
 </li>
 <li>
@@ -487,7 +488,7 @@ Kubernetes can be mocked using <a href="https://kind.sigs.k8s.io/">KIND</a>, etc
 </li>
 <li>
 <p><a href="3-selective-testing.html" class="xref page">Selective Testing</a>, e.g. via
-<a href="../mill/large/selective-execution.html" class="xref page">Mill&#8217;s Selective Test Execution</a>, reduces the
+<a href="../mill/large/selective-execution.html" class="xref page">Mill’s Selective Test Execution</a>, reduces the
 number of tests you run
 and thus  the impact of flakiness,</p>
 </li>
@@ -504,12 +505,12 @@ entirely.</p>
 need some hardcoded timeouts to prevent your test suite hanging forever.</p>
 </li>
 <li>
-<p>There will always be <em>some</em> limited physical resource you didn&#8217;t realize could run out,
+<p>There will always be <em>some</em> limited physical resource you didn’t realize could run out,
 until it does.</p>
 </li>
 <li>
 <p>Mocking out third-party services never ends up working 100%: inevitably
-you hit cases where the mock isn&#8217;t accurate enough, or trustworthy enough, and you still
+you hit cases where the mock isn’t accurate enough, or trustworthy enough, and you still
 need to test against the real service to get confidence in the correctness of your system.</p>
 </li>
 </ul>
@@ -562,21 +563,21 @@ is mentally costly.</p>
 </li>
 <li>
 <p>Blocking progress on a flaky test introduces an incentives problem: The code/test owner
-benefits from the flaky test&#8217;s existence, but other people working in that codebase
+benefits from the flaky test’s existence, but other people working in that codebase
 get blocked with no benefit. This directly leads to the endless <a href="#_inter_team_conflict">Inter-team Conflict</a>
 mentioned earlier.</p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
-<p>Although <em>"all tests should pass before merging"</em> is a common requirement, it is ultimately
+<p>Although <em>&quot;all tests should pass before merging&quot;</em> is a common requirement, it is ultimately
 unhelpful when you are dealing with flaky tests.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_preventing_flaky_tests_from_being_introduced_is_hard"><a class="anchor" href="#_preventing_flaky_tests_from_being_introduced_is_hard"></a>Preventing Flaky Tests From Being Introduced Is Hard</h3>
 <div class="paragraph">
-<p>It can be tempting to try and "<a href="https://en.wikipedia.org/wiki/Shift-left_testing">Shift Left</a>"
+<p>It can be tempting to try and &quot;<a href="https://en.wikipedia.org/wiki/Shift-left_testing">Shift Left</a>&quot;
 your flaky test management, to try and catch them before they end up landing in your codebase.
 But doing so ends up being surprisingly difficult.</p>
 </div>
@@ -619,7 +620,7 @@ slow and expensive, causing a test suite that may take 5 minutes to run costing 
 take 25 hours to run costing $300.</p>
 </div>
 <div class="paragraph">
-<p>In general, it is very hard to block flaky tests "up front". You have to accept that
+<p>In general, it is very hard to block flaky tests &quot;up front&quot;. You have to accept that
 over time some parts of your test suite will become flaky, and then make plans on how
 to respond and manage those flaky tests when they inevitably appear.</p>
 </div>
@@ -652,14 +653,14 @@ was a flaky failure. This is the metric we used in
 to monitor the flaky test numbers.</p>
 </li>
 <li>
-<p>Some CI systems or test frameworks have automatic retries: e.g. in <a href="https://github.com/dropbox/changes">Dropbox&#8217;s Changes CI system</a>
+<p>Some CI systems or test frameworks have automatic retries: e.g. in <a href="https://github.com/dropbox/changes">Dropbox’s Changes CI system</a>
 all tests were retried twice by default. If a test fails initially and then
-passes on the retry, it is flaky: the fact that it&#8217;s non-deterministic means that
+passes on the retry, it is flaky: the fact that it’s non-deterministic means that
 next time, it might fail initially and then fail on the retry!</p>
 </li>
 <li>
 <p>Most CI systems run tests to validate code changes before merging, and then run tests
-again to validate the code post-merge. Post-merge should "always" be green, but sometimes
+again to validate the code post-merge. Post-merge should &quot;always&quot; be green, but sometimes
 suffers breakages or flakiness. If a test passes, fails, then passes on three consecutive
 commit test runs post-merge, it is likely to be flaky. Breakages
 tend to cause a string of consecutive test failures before being fixed or reverted, and
@@ -671,7 +672,7 @@ very rarely get noticed and dealt with immediately</p>
 <p>Notably, most test failures when validating code changes (e.g. on pull requests) are not useful
 here: tests are <em>meant</em> to break when validating code changes in order to catch problems!
 Hence the need for the slightly-roundabout ways above to determine what tests are flaky,
-by looking for failures at times when you wouldn&#8217;t expect failures to occur.</p>
+by looking for failures at times when you wouldn’t expect failures to occur.</p>
 </div>
 <div class="paragraph">
 <p>Once you have noticed a test is flaky, there are two main options: retries and quarantine</p>
@@ -690,7 +691,7 @@ not being an effective way of getting the flakiness fixed.</p>
 <p>Furthermore, developers
 are going to be manually retrying flaky tests anyway: whether by restarting the job
 validating their pull request, or running the test manually on their laptop or devbox
-to check if it&#8217;s truly broken. Thus, we should feel free to add automatic retries around
+to check if it’s truly broken. Thus, we should feel free to add automatic retries around
 flaky tests to automate that tedious manual process.</p>
 </div>
 <div class="paragraph">
@@ -713,7 +714,7 @@ them, running all those failing tests three times can be a significant performan
 and latency penalty</p>
 </div>
 <div class="paragraph">
-<p>To mitigate this, you should generally avoid "blanket" retries, and only add
+<p>To mitigate this, you should generally avoid &quot;blanket&quot; retries, and only add
 retries around specific tests that you have detected as being flaky</p>
 </div>
 </div>
@@ -760,7 +761,7 @@ people do manually in the presence of flaky tests anyway:</p>
 <ul>
 <li>
 <p>When enough tests are flaky, eventually developers are going to start merging/deploying code
-changes despite the failures being present, because getting a "fully green" test run is
+changes despite the failures being present, because getting a &quot;fully green&quot; test run is
 impossible</p>
 </li>
 <li>
@@ -806,8 +807,8 @@ up deciding</p>
 </div>
 <div class="paragraph">
 <p>Most commonly, quarantining is automatic, while un-quarantining a test can be automatic or manual.
-Due to the non-determinstic nature of flakiness, it&#8217;s often hard to determine whether a flaky
-test has been truly fixed or not, but it turns out it doesn&#8217;t matter. If you try to fix a test,
+Due to the non-determinstic nature of flakiness, it’s often hard to determine whether a flaky
+test has been truly fixed or not, but it turns out it doesn’t matter. If you try to fix a test,
 take it out of quarantine, and it turns out to be still flaky, the auto-quarantine system will
 just put it back into quarantine for you to take another look at it.</p>
 </div>
@@ -842,7 +843,7 @@ tests, tracking retry counts, tracking test results, etc.</p>
 </li>
 <li>
 <p>Some kind of web interface giving you visibility into all the components and workflows above,
-so when things inevitably go wrong you are able to figure out what&#8217;s misbehaving</p>
+so when things inevitably go wrong you are able to figure out what’s misbehaving</p>
 </li>
 </ul>
 </div>
@@ -874,9 +875,9 @@ things that I have learned working on flaky tests over the past decade.</p>
 </main>
 </div>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
-<script async src="../_/js/vendor/highlight.js"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>
 <script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
-<script async src="../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>

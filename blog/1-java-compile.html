@@ -1,19 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>How Fast Does Java Compile? :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/blog/1-java-compile.html">
-    <link rel="prev" href="2-monorepo-build-tool.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/blog/1-java-compile.html" />
+    <link rel="prev" href="2-monorepo-build-tool.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -44,7 +42,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -63,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -246,7 +247,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/1-java-compile.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -262,7 +263,7 @@
 </div>
 <div class="paragraph">
 <p>Java compiles have the reputation for being slow, but that reputation does
-not match today&#8217;s reality. Nowadays the Java compiler can compile "typical" Java code at over
+not match today’s reality. Nowadays the Java compiler can compile &quot;typical&quot; Java code at over
 100,000 lines a second on a single core. That means that even a million line project
 should take more than 10s to compile in a single-threaded fashion, and should be even
 faster in the presence of parallelism</p>
@@ -273,14 +274,14 @@ build tools add significant overhead over compiling Java directly:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -358,11 +359,11 @@ tooling to become truly great.</p>
 </div>
 <div class="paragraph">
 <p>Mockito is a medium-sized Java project with a few dozen sub-modules and about ~100,000 lines
-of code. To give us a simple reproducible scenario, let&#8217;s consider the root mockito module
+of code. To give us a simple reproducible scenario, let’s consider the root mockito module
 with sources in <code>src/main/java/</code>, on which all the downstream module and tests depend on.</p>
 </div>
 <div class="paragraph">
-<p>Mockito is built using Gradle. It&#8217;s not totally trivial to extract the compilation classpath
+<p>Mockito is built using Gradle. It’s not totally trivial to extract the compilation classpath
 from Gradle, but the following stackoverflow answer gives us some tips:</p>
 </div>
 <div class="ulist">
@@ -374,7 +375,7 @@ from Gradle, but the following stackoverflow answer gives us some tips:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./gradlew clean &amp;&amp; ./gradlew :classes --no-build-cache --debug | grep "classpath "</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./gradlew clean &amp;&amp; ./gradlew :classes --no-build-cache --debug | grep &quot;classpath &quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -465,11 +466,11 @@ public class Bench {
     public static void main(String[] args) throws Exception {
         while (true) {
             long now = System.currentTimeMillis();
-            String classpath = System.getenv("MY_CLASSPATH");
-            Path sourceFolder = Paths.get("src/main/java");
+            String classpath = System.getenv(&quot;MY_CLASSPATH&quot;);
+            Path sourceFolder = Paths.get(&quot;src/main/java&quot;);
 
             List&lt;JavaFileObject&gt; files = Files.walk(sourceFolder)
-                .filter(p -&gt; p.toString().endsWith(".java"))
+                .filter(p -&gt; p.toString().endsWith(&quot;.java&quot;))
                 .map(p -&gt;
                     new SimpleJavaFileObject(p.toUri(), JavaFileObject.Kind.SOURCE) {
                         public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
@@ -489,23 +490,23 @@ public class Bench {
                 new OutputStreamWriter(System.out),
                 fileManager,
                 null,
-                List.of("-classpath", classpath),
+                List.of(&quot;-classpath&quot;, classpath),
                 null,
                 files
             );
 
-            System.out.println("Compile Result: " + task.call());
+            System.out.println(&quot;Compile Result: &quot; + task.call());
             long end = System.currentTimeMillis();
             long lineCount = Files.walk(sourceFolder)
-                .filter(p -&gt; p.toString().endsWith(".java"))
+                .filter(p -&gt; p.toString().endsWith(&quot;.java&quot;))
                 .map(p -&gt; {
                     try { return Files.readAllLines(p).size(); }
                     catch(Exception e){ throw new RuntimeException(e); }
                 })
                 .reduce(0, (x, y) -&gt; x + y);
-            System.out.println("Lines: " + lineCount);
-            System.out.println("Duration: " + (end - now));
-            System.out.println("Lines/second: " + lineCount / ((end - now) / 1000));
+            System.out.println(&quot;Lines: &quot; + lineCount);
+            System.out.println(&quot;Duration: &quot; + (end - now));
+            System.out.println(&quot;Lines/second: &quot; + lineCount / ((end - now) / 1000));
         }
     }
 }</code></pre>
@@ -523,7 +524,7 @@ settle on approximately the following numbers:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The codebase hasn&#8217;t changed - we are still compiling 41,601 lines of code -
+<p>The codebase hasn’t changed - we are still compiling 41,601 lines of code -
 but now it only takes ~359ms. That tells us that using a long-lived warm Java compiler
 we can compile approximately <strong>116,000</strong> lines of Java a second on a single core.</p>
 </div>
@@ -553,7 +554,7 @@ For this I will use the Netty codebase:</p>
 </div>
 <div class="paragraph">
 <p>Netty is a large-ish Java project: ~500,000 lines of code. Again, to pick a somewhat
-easily-reproducible benchmark, we want a decently-sized module that&#8217;s relatively
+easily-reproducible benchmark, we want a decently-sized module that’s relatively
 standalone within the project: <code>netty-common</code> is a perfect fit. Again, we can use <code>find | grep | xargs</code>
 to see how many lines of code we are looking at:</p>
 </div>
@@ -564,7 +565,7 @@ to see how many lines of code we are looking at:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Again, Maven doesn&#8217;t make it easy to show the classpath used to call <code>javac</code> ourselves,
+<p>Again, Maven doesn’t make it easy to show the classpath used to call <code>javac</code> ourselves,
 but the following stackoverflow answer gives us a hint in how to do so:</p>
 </div>
 <div class="ulist">
@@ -614,7 +615,7 @@ therefore compiles at <strong>~104,000 lines/second</strong>.</p>
 </div>
 <div class="paragraph">
 <p>Although the choice of project is arbitrary, Mockito-Core and Netty-Common are decent
-examples of Java code found "out in the wild". They aren&#8217;t synthetic fake codebases generated
+examples of Java code found &quot;out in the wild&quot;. They aren’t synthetic fake codebases generated
 for the purpose of benchmarks, nor are they particularly unusual or idiosyncratic. They follow
 most Java best practices and adhere to many of the most common Java linters (although those
 were disabled for this performance benchmark). This is Java code that looks just like
@@ -665,7 +666,7 @@ $ ./mill clean common; time ./mill common.compile
 <p>These benchmarks are run in similar conditions as those we saw earlier: ad-hoc on my M1
 Macbook Pro, with the metadata and jars of all third-party dependencies already downloaded and
 cached locally. So the time we are seeing above is purely the Java compilation + the overhead
-of the build tool realizing it doesn&#8217;t need to do anything except compile the Java source code
+of the build tool realizing it doesn’t need to do anything except compile the Java source code
 using the dependencies we already have on disk.</p>
 </div>
 <div class="paragraph">
@@ -673,14 +674,14 @@ using the dependencies we already have on disk.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -740,7 +741,7 @@ using the dependencies we already have on disk.</p>
 or <a href="../mill/comparisons/maven.html" class="xref page">Maven vs Mill</a> in more detail on their own dedicated pages.
 For this article, the important thing is not comparing the build tools against each other,
 but comparing the build tools against what how fast they <em>could</em> be if they just used
-the <code>javac</code> Java compiler directly. And it&#8217;s clear that compared to the actual work
+the <code>javac</code> Java compiler directly. And it’s clear that compared to the actual work
 done by <code>javac</code> to actually compile your code, build tools add a frankly absurd amount
 of overhead ranging from ~4x for Mill to 15-16x for Maven and Gradle!</p>
 </div>
@@ -795,7 +796,7 @@ short of the snappiness you would expect from a compiler that takes ~0.3s to com
 <p>These benchmarks were run ad-hoc and on my laptop on arbitrary codebases, and the details
 will obviously differ depending on environment and the code in question. Running it on an
 entire codebase, rather than a single module, will give different results. Nevertheless, the
-results are clear: "typical" Java code <em>should</em> compile at ~100,000 lines/second on a single
+results are clear: &quot;typical&quot; Java code <em>should</em> compile at ~100,000 lines/second on a single
 thread. Anything less is purely build-tool overhead from Maven, Gradle, or Mill.</p>
 </div>
 <div class="paragraph">
@@ -803,8 +804,8 @@ thread. Anything less is purely build-tool overhead from Maven, Gradle, or Mill.
 caching and invalidation, and all sorts of other auxiliary tasks. But in the common case where
 someone edits code and then compiles it, and all your dependencies are already downloaded and
 cached locally, any time doing other things and not spent <em>actually
-compiling Java</em> is pure overhead. Checking for cache invalidation in <em>shouldn&#8217;t</em> take 15-16x
-as long as actually compiling your code. I mean it obviously does <em>today</em>, but it <em>shouldn&#8217;t</em>!</p>
+compiling Java</em> is pure overhead. Checking for cache invalidation in <em>shouldn’t</em> take 15-16x
+as long as actually compiling your code. I mean it obviously does <em>today</em>, but it <em>shouldn’t</em>!</p>
 </div>
 <div class="paragraph">
 <p>The Mill build tool goes to great lengths to try and minimize overhead, and already gets
@@ -824,9 +825,9 @@ your own projects and get involved in the effort!</p>
 </main>
 </div>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
-<script async src="../_/js/vendor/highlight.js"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>
 <script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
-<script async src="../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>

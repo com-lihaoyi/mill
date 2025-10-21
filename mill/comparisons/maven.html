@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Case Study: Mill vs Maven :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/comparisons/maven.html" />
-    <link rel="prev" href="why-mill.html" />
-    <link rel="next" href="gradle.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/comparisons/maven.html">
+    <link rel="prev" href="why-mill.html">
+    <link rel="next" href="gradle.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -664,7 +663,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -686,7 +685,7 @@ see the page <a href="why-mill.html" class="xref page">Why Use Mill?</a>.</p>
 <ul>
 <li>
 <p><strong>Performance</strong>: Mill compiles the same project 4-6x faster than Maven.
-<a href="#_performance">A Maven &quot;clean install&quot; workflow
+<a href="#_performance">A Maven "clean install" workflow
 taking over a minute might take just a few seconds in Mill</a>. It does this by aggressively
 parallelizing and caching your build at all levels.</p>
 </li>
@@ -694,7 +693,7 @@ parallelizing and caching your build at all levels.</p>
 <p><strong>Extensibility</strong>: Mill makes customizing the build tool much easier than Maven. Projects usually
 grow beyond just compiling a single language: needing custom
 code generation, linting workflows, tool integrations, output artifacts, or support for
-additional languages. Mill’s <a href="#_extensibility_ide_experience">extensibility and IDE experience</a>
+additional languages. Mill&#8217;s <a href="#_extensibility_ide_experience">extensibility and IDE experience</a>
 makes doing this yourself easy and safe, with type-checked code and
 <a href="../depth/sandboxing.html" class="xref page">sandboxed tasks</a>.</p>
 </li>
@@ -766,14 +765,14 @@ most workflows.</p>
 <div class="paragraph">
 <p>For the benchmarks below, each provided number is the wall time of three consecutive runs
 on my M1 Macbook Pro using Java 17 and Mill <code>0.12.9-native</code>. While ad-hoc, these benchmarks
-are enough to give you a flavor of how Mill’s performance compares to Maven:</p>
+are enough to give you a flavor of how Mill&#8217;s performance compares to Maven:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;" />
-<col style="width: 25%;" />
-<col style="width: 25%;" />
-<col style="width: 25%;" />
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
 </colgroup>
 <thead>
 <tr>
@@ -838,7 +837,7 @@ $ ./mill clean; time ./mill -j1 __.compile
 </div>
 </div>
 <div class="paragraph">
-<p>This benchmark exercises the simple &quot;build everything from scratch&quot; workflow, with all remote
+<p>This benchmark exercises the simple "build everything from scratch" workflow, with all remote
 artifacts already in the local cache. The actual files
 being compiled are the same in either case (as mentioned in the <a href="#_completeness">Completeness</a> section).
 I have explicitly disabled the various linters and tests for the Maven build, to just focus
@@ -856,8 +855,8 @@ and the ~100s taken by Maven is far beyond what you would expect from simple Jav
 <h4 id="_maven_compile_vs_install"><a class="anchor" href="#_maven_compile_vs_install"></a>Maven Compile vs Install</h4>
 <div class="paragraph">
 <p>In general, the reason we have to use <code>./mvnw install</code> rather than <code>./mvnw compile</code> is that
-Maven’s main mechanism for managing inter-module dependencies is via the local artifact cache
-at <code>~/.m2/repository</code>. Although many workflows work with <code>compile</code>, some don’t, and
+Maven&#8217;s main mechanism for managing inter-module dependencies is via the local artifact cache
+at <code>~/.m2/repository</code>. Although many workflows work with <code>compile</code>, some don&#8217;t, and
 <code>./mvnw clean compile</code> on the Netty repository fails with:</p>
 </div>
 <div class="listingblock">
@@ -882,7 +881,7 @@ to publish to it. That means Mill builds are able to work directly with classfil
 simply referencing them and using them as-is without spending time packing and unpacking them
 into <code>.jar</code> files. But even if we <em>did</em> want Mill to generate the <code>.jar</code>s, the
 overhead of doing so is just a few seconds, far less than the minutes that
-Maven’s overhead adds to the clean build:</p>
+Maven&#8217;s overhead adds to the clean build:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -923,7 +922,7 @@ tools see a similar ~2x speedup for building the Netty project using 4 threads.A
 this tests a clean build using <code>./mvnw clean</code> or <code>./mill clean</code>.</p>
 </div>
 <div class="paragraph">
-<p>This comparison shows that much of Mill’s speedup over Maven is unrelated to parallelism.
+<p>This comparison shows that much of Mill&#8217;s speedup over Maven is unrelated to parallelism.
 Whether sequential or parallel, Mill has approximately the same 4-5x speedup over Maven
 when performing a clean build of the Netty repository.</p>
 </div>
@@ -951,15 +950,15 @@ ignoring test sources.</p>
 <p>Again, we can see a significant speedup of Mill v.s. Maven remains even when compiling a
 single module: a clean compile of <code>common/</code> is about 6x faster with Mill than with Maven!
 Again, <code>common/</code> is about 30,000 lines of Java source code, so at 10,000-50,000 lines per
-second we would expect it to compile in about 1-4s. That puts Mill’s compile times right
-at what you would expect, whereas Maven’s has a significant overhead.</p>
+second we would expect it to compile in about 1-4s. That puts Mill&#8217;s compile times right
+at what you would expect, whereas Maven&#8217;s has a significant overhead.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_incremental_compile_single_module"><a class="anchor" href="#_incremental_compile_single_module"></a>Incremental Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ echo &quot;&quot; &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ echo "" &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
 $ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
 Compiling 174 source files to /Users/lihaoyi/Github/netty/common/target/classes
 Compiling 60 source files to /Users/lihaoyi/Github/netty/common/target/test-classes
@@ -969,7 +968,7 @@ Compiling 60 source files to /Users/lihaoyi/Github/netty/common/target/test-clas
 6.82s
 
 
-$ echo &quot;&quot; &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
+$ echo "" &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
 $ time ./mill common.test.compile
 compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
 
@@ -990,7 +989,7 @@ because Mill only compiles the single file we changed, and not the others.</p>
 <div class="paragraph">
 <p>For this incremental compilation, Mill uses the
 <a href="https://github.com/sbt/zinc">Zinc Incremental Compiler</a>. Zinc is able to analyze the dependencies
-between files to figure out what needs to re-compile: for an internal change that doesn’t
+between files to figure out what needs to re-compile: for an internal change that doesn&#8217;t
 affect downstream compilation (e.g. changing a string literal) Zinc only needs to compile
 the file that changed, taking barely half a second:</p>
 </div>
@@ -1002,8 +1001,8 @@ diff --git a/common/src/main/java/io/netty/util/AbstractConstant.java b/common/s
              return 1;
          }
 
--        throw new Error(&quot;failed to compare two different constants&quot;);
-+        throw new Error(&quot;failed to compare two different CONSTANTS!!&quot;);
+-        throw new Error("failed to compare two different constants");
++        throw new Error("failed to compare two different CONSTANTS!!");
      }
 
  }</code></pre>
@@ -1081,7 +1080,7 @@ $ time ./mill common.test.compile
 <div class="paragraph">
 <p>This last benchmark explores the boundaries of Maven and Mill: what happens if
 we ask to compile a single module <em>that has already been compiled</em>? In this case,
-there is literally <em>nothing to do</em>. For Maven, &quot;doing nothing&quot; takes ~17 seconds,
+there is literally <em>nothing to do</em>. For Maven, "doing nothing" takes ~17 seconds,
 whereas for Mill we can see it complete and return in less than 0.5 seconds</p>
 </div>
 <div class="paragraph">
@@ -1095,7 +1094,7 @@ we still see Maven taking <strong>17 entire seconds</strong> before it can decid
 <div class="paragraph">
 <p>In contrast, doing the same no-op compile using Mill, we see the timing from 2.2s
 in <a href="#_clean_compile_single_module">Clean Compile Single-Module</a> to 0.5 seconds here. This is the same ~2s reduction
-we saw with Maven, but due to Mill’s minimal overhead, in the end the command
+we saw with Maven, but due to Mill&#8217;s minimal overhead, in the end the command
 finishes in less than half a second.</p>
 </div>
 </div>
@@ -1158,25 +1157,25 @@ uses a Groovy script for code generation. This is configured via:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
-//| - &quot;org.codehaus.groovy:groovy:3.0.9&quot;
-//| - &quot;org.codehaus.groovy:groovy-ant:3.0.9&quot;
-//| - &quot;ant:ant-optional:1.5.3-1&quot;
+//| - "org.codehaus.groovy:groovy:3.0.9"
+//| - "org.codehaus.groovy:groovy-ant:3.0.9"
+//| - "ant:ant-optional:1.5.3-1"
 
 object common extends NettyModule {
   ...
-  def script = Task.Source(&quot;src&quot; / &quot;main&quot; / &quot;script&quot;)
+  def script = Task.Source("src" / "main" / "script")
   def generatedSources = Task {
     val shell = new groovy.lang.GroovyShell()
 
     val context = new java.util.HashMap[String, Object]
-    context.put(&quot;collection.template.dir&quot;, s&quot;${mill.api.BuildCtx.workspaceRoot}/common/src/main/templates&quot;)
-    context.put(&quot;collection.template.test.dir&quot;, s&quot;${mill.api.BuildCtx.workspaceRoot}/common/src/test/templates&quot;)
-    context.put(&quot;collection.src.dir&quot;, (Task.dest / &quot;src&quot;).toString)
-    context.put(&quot;collection.testsrc.dir&quot;, (Task.dest / &quot;testsrc&quot;).toString)
-    shell.setProperty(&quot;properties&quot;, context)
-    shell.setProperty(&quot;ant&quot;, new groovy.ant.AntBuilder())
-    shell.evaluate((script().path / &quot;codegen.groovy&quot;).toIO)
-    PathRef(Task.dest / &quot;src&quot;)
+    context.put("collection.template.dir", s"${mill.api.BuildCtx.workspaceRoot}/common/src/main/templates")
+    context.put("collection.template.test.dir", s"${mill.api.BuildCtx.workspaceRoot}/common/src/test/templates")
+    context.put("collection.src.dir", (Task.dest / "src").toString)
+    context.put("collection.testsrc.dir", (Task.dest / "testsrc").toString)
+    shell.setProperty("properties", context)
+    shell.setProperty("ant", new groovy.ant.AntBuilder())
+    shell.evaluate((script().path / "codegen.groovy").toIO)
+    PathRef(Task.dest / "src")
   }
 }</code></pre>
 </div>
@@ -1215,22 +1214,22 @@ some source files:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijNettyMaven1.png" alt="IntellijNettyMaven1" />
+<img src="../_images/comparisons/IntellijNettyMaven1.png" alt="IntellijNettyMaven1">
 </div>
 </div>
 <div class="paragraph">
-<p>If you weren’t sure what <code>build-helper-maven-plugin</code> does, the obvious thing
+<p>If you weren&#8217;t sure what <code>build-helper-maven-plugin</code> does, the obvious thing
 to reach for is to try and jump-to-definition in your IDE. If you do that in Intellij,
 you get:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijNettyMaven2.png" alt="IntellijNettyMaven2" />
+<img src="../_images/comparisons/IntellijNettyMaven2.png" alt="IntellijNettyMaven2">
 </div>
 </div>
 <div class="paragraph">
 <p>This gives you the signature of the config value: <code>sources</code> is an array of files,
-it is required, and its description is <em>&quot;additional source directories&quot;</em>. While
+it is required, and its description is <em>"additional source directories"</em>. While
 this is better than nothing, it is less than what you would expect if you use
 <em>jump-to-definition</em> in any application codebase.</p>
 </div>
@@ -1240,12 +1239,12 @@ explore available methods, their signatures, and their documentation:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijNettyAutocomplete.png" alt="IntellijNettyAutocomplete" />
+<img src="../_images/comparisons/IntellijNettyAutocomplete.png" alt="IntellijNettyAutocomplete">
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijNettyPeekDocs.png" alt="IntellijNettyPeekDocs" />
+<img src="../_images/comparisons/IntellijNettyPeekDocs.png" alt="IntellijNettyPeekDocs">
 </div>
 </div>
 <div class="paragraph">
@@ -1254,7 +1253,7 @@ to the original definition that was overridden:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijNettyJumpToDefinition.png" alt="IntellijNettyJumpToDefinition" />
+<img src="../_images/comparisons/IntellijNettyJumpToDefinition.png" alt="IntellijNettyJumpToDefinition">
 </div>
 </div>
 <div class="paragraph">
@@ -1263,7 +1262,7 @@ gets used by <code>def sources</code>, then <code>def allSources</code>:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijNettyDataflow.png" alt="IntellijNettyDataflow" />
+<img src="../_images/comparisons/IntellijNettyDataflow.png" alt="IntellijNettyDataflow">
 </div>
 </div>
 <div class="paragraph">
@@ -1271,7 +1270,7 @@ gets used by <code>def sources</code>, then <code>def allSources</code>:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijNettyDataflow2.png" alt="IntellijNettyDataflow2" />
+<img src="../_images/comparisons/IntellijNettyDataflow2.png" alt="IntellijNettyDataflow2">
 </div>
 </div>
 <div class="paragraph">
@@ -1284,7 +1283,7 @@ understand how the various configuration values actually end up affecting your b
 <div class="paragraph">
 <p>With Mill, you get your full IDE experience working with your build: autocomplete, code
 assistance, navigation, and so on. You can explore and navigate around your build
-just like you would any application codebase, avoiding the feeling of &quot;hitting a wall&quot;
+just like you would any application codebase, avoiding the feeling of "hitting a wall"
 that often occurs when trying to figure out why a Maven build or plugin does not behave
 quite as you expect. Where with Maven you may find yourself searching online docs
 or digging through plugin source code on Github, with Mill you can comfortably
@@ -1301,7 +1300,7 @@ compile Java code, zip them into Jar files, run tests. Sometimes they compile an
 C code or run <code>make</code> or Groovy to accomplish what they need to do.</p>
 </div>
 <div class="paragraph">
-<p>Mill doesn’t do <em>more</em> than Maven does, but it tries to do it <em>better</em>: faster compiles,
+<p>Mill doesn&#8217;t do <em>more</em> than Maven does, but it tries to do it <em>better</em>: faster compiles,
 easier extensibility via libraries (e.g. <code>org.codehaus.groovy:groovy</code>), better IDE
 support for working with your build.</p>
 </div>
@@ -1312,8 +1311,8 @@ different operating system architectures, Java versions, and so on. However, hop
 it demonstrates the potential value: greatly improved performance, easy extensibility,
 and a much better IDE experience for working with your build.
 Mill provides builtin tools to help you navigate,
-visualize, and understand your build, turning a normally opaque &quot;build config&quot; into
-something that’s transparent and easily understandable.</p>
+visualize, and understand your build, turning a normally opaque "build config" into
+something that&#8217;s transparent and easily understandable.</p>
 </div>
 </div>
 </div>
@@ -1326,9 +1325,9 @@ something that’s transparent and easily understandable.</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>

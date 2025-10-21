@@ -1,20 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Understanding JVM Garbage Collector Performance :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/blog/6-garbage-collector-perf.html">
-    <link rel="prev" href="7-graal-native-executables.html">
-    <link rel="next" href="5-executable-jars.html">
-    <meta name="generator" content="Antora 3.1.12">
-    <link rel="stylesheet" href="../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/blog/6-garbage-collector-perf.html" />
+    <link rel="prev" href="7-graal-native-executables.html" />
+    <link rel="next" href="5-executable-jars.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
-<header class="header">
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -45,7 +43,10 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style>
+  </style></head><body class="article">
+  
+<header class="header">
+  
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -64,9 +65,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -247,7 +248,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/6-garbage-collector-perf.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -292,60 +293,59 @@ below where we have 16 slots in memory:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="373px" height="95px"
- viewBox="0.00 0.00 372.55 94.60" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="373px" height="95px" viewBox="0.00 0.00 372.55 94.60" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 90.6)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-90.6 368.55,-90.6 368.55,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-90.6 368.55,-90.6 368.55,4 -4,4"></polygon>
 <!-- heap -->
 <g id="node1" class="node">
 <title>heap</title>
-<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 364.55,-86.1 364.55,-61.3 0,-61.3"/>
+<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 364.55,-86.1 364.55,-61.3 0,-61.3"></polygon>
 <text text-anchor="middle" x="26.27" y="-69.5" font-family="Times,serif" font-size="14.00">HEAP</text>
-<polyline fill="none" stroke="black" points="52.55,-61.3 52.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="52.55,-61.3 52.55,-86.1"></polyline>
 <text text-anchor="middle" x="62.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="72.05,-61.3 72.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="72.05,-61.3 72.05,-86.1"></polyline>
 <text text-anchor="middle" x="81.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="91.55,-61.3 91.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="91.55,-61.3 91.55,-86.1"></polyline>
 <text text-anchor="middle" x="101.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="111.05,-61.3 111.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="111.05,-61.3 111.05,-86.1"></polyline>
 <text text-anchor="middle" x="120.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="130.55,-61.3 130.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="130.55,-61.3 130.55,-86.1"></polyline>
 <text text-anchor="middle" x="140.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="150.05,-61.3 150.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="150.05,-61.3 150.05,-86.1"></polyline>
 <text text-anchor="middle" x="159.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="169.55,-61.3 169.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="169.55,-61.3 169.55,-86.1"></polyline>
 <text text-anchor="middle" x="179.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="189.05,-61.3 189.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="189.05,-61.3 189.05,-86.1"></polyline>
 <text text-anchor="middle" x="198.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="208.55,-61.3 208.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="208.55,-61.3 208.55,-86.1"></polyline>
 <text text-anchor="middle" x="218.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="228.05,-61.3 228.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="228.05,-61.3 228.05,-86.1"></polyline>
 <text text-anchor="middle" x="237.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="247.55,-61.3 247.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="247.55,-61.3 247.55,-86.1"></polyline>
 <text text-anchor="middle" x="257.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="267.05,-61.3 267.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="267.05,-61.3 267.05,-86.1"></polyline>
 <text text-anchor="middle" x="276.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="286.55,-61.3 286.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="286.55,-61.3 286.55,-86.1"></polyline>
 <text text-anchor="middle" x="296.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="306.05,-61.3 306.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="306.05,-61.3 306.05,-86.1"></polyline>
 <text text-anchor="middle" x="315.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="325.55,-61.3 325.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="325.55,-61.3 325.55,-86.1"></polyline>
 <text text-anchor="middle" x="335.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="345.05,-61.3 345.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="345.05,-61.3 345.05,-86.1"></polyline>
 <text text-anchor="middle" x="354.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- alloc -->
 <g id="node2" class="node">
 <title>alloc</title>
-<polygon fill="white" stroke="transparent" points="106.18,-24.7 18.37,-24.7 18.37,-0.1 106.18,-0.1 106.18,-24.7"/>
+<polygon fill="white" stroke="transparent" points="106.18,-24.7 18.37,-24.7 18.37,-0.1 106.18,-0.1 106.18,-24.7"></polygon>
 <text text-anchor="middle" x="62.27" y="-8.2" font-family="Times,serif" font-size="14.00">free memory</text>
 </g>
 <!-- heap&#45;&gt;alloc -->
 <g id="edge1" class="edge">
-<title>heap:s&#45;&gt;alloc:n</title>
-<path fill="none" stroke="black" stroke-dasharray="1,5" d="M62.27,-50.67C62.27,-42.05 62.27,-36.8 62.27,-24.8"/>
-<polygon fill="black" stroke="black" points="58.77,-50.8 62.27,-60.8 65.77,-50.8 58.77,-50.8"/>
+<title>heap:s-&gt;alloc:n</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M62.27,-50.67C62.27,-42.05 62.27,-36.8 62.27,-24.8"></path>
+<polygon fill="black" stroke="black" points="58.77,-50.8 62.27,-60.8 65.77,-50.8 58.77,-50.8"></polygon>
 </g>
 </g>
 </svg>
@@ -355,116 +355,115 @@ below where we have 16 slots in memory:</p>
 <div class="paragraph">
 <p>These storage locations can contain objects (below named <code>foo</code>, <code>bar</code>, <code>qux</code>, <code>baz</code>) that take
 up memory and may reference other objects (solid arrows). Furthermore, the values may be referenced from outside
-the heap (dashed lines), e.g. from the "stack" which represents
+the heap (dashed lines), e.g. from the &quot;stack&quot; which represents
 local variables in methods that are currently being run (shown below) or from static global
 variables (not shown). We keep a <code>free-memory</code> pointer to the first empty slot on the right.</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="436px" height="156px"
- viewBox="0.00 0.00 435.51 156.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="436px" height="156px" viewBox="0.00 0.00 435.51 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 431.51,-152.4 431.51,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 431.51,-152.4 431.51,4 -4,4"></polygon>
 <!-- heap -->
 <g id="node1" class="node">
 <title>heap</title>
-<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 427.51,-86.1 427.51,-61.3 0,-61.3"/>
+<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 427.51,-86.1 427.51,-61.3 0,-61.3"></polygon>
 <text text-anchor="middle" x="26.27" y="-69.5" font-family="Times,serif" font-size="14.00">HEAP</text>
-<polyline fill="none" stroke="black" points="52.55,-61.3 52.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="52.55,-61.3 52.55,-86.1"></polyline>
 <text text-anchor="middle" x="69.88" y="-69.5" font-family="Times,serif" font-size="14.00">foo</text>
-<polyline fill="none" stroke="black" points="87.21,-61.3 87.21,-86.1 "/>
+<polyline fill="none" stroke="black" points="87.21,-61.3 87.21,-86.1"></polyline>
 <text text-anchor="middle" x="104.15" y="-69.5" font-family="Times,serif" font-size="14.00">bar</text>
-<polyline fill="none" stroke="black" points="121.08,-61.3 121.08,-86.1 "/>
+<polyline fill="none" stroke="black" points="121.08,-61.3 121.08,-86.1"></polyline>
 <text text-anchor="middle" x="139.58" y="-69.5" font-family="Times,serif" font-size="14.00">qux</text>
-<polyline fill="none" stroke="black" points="158.08,-61.3 158.08,-86.1 "/>
+<polyline fill="none" stroke="black" points="158.08,-61.3 158.08,-86.1"></polyline>
 <text text-anchor="middle" x="175.8" y="-69.5" font-family="Times,serif" font-size="14.00">baz</text>
-<polyline fill="none" stroke="black" points="193.51,-61.3 193.51,-86.1 "/>
+<polyline fill="none" stroke="black" points="193.51,-61.3 193.51,-86.1"></polyline>
 <text text-anchor="middle" x="203.26" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="213.01,-61.3 213.01,-86.1 "/>
+<polyline fill="none" stroke="black" points="213.01,-61.3 213.01,-86.1"></polyline>
 <text text-anchor="middle" x="222.76" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="232.51,-61.3 232.51,-86.1 "/>
+<polyline fill="none" stroke="black" points="232.51,-61.3 232.51,-86.1"></polyline>
 <text text-anchor="middle" x="242.26" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="252.01,-61.3 252.01,-86.1 "/>
+<polyline fill="none" stroke="black" points="252.01,-61.3 252.01,-86.1"></polyline>
 <text text-anchor="middle" x="261.76" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="271.51,-61.3 271.51,-86.1 "/>
+<polyline fill="none" stroke="black" points="271.51,-61.3 271.51,-86.1"></polyline>
 <text text-anchor="middle" x="281.26" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="291.01,-61.3 291.01,-86.1 "/>
+<polyline fill="none" stroke="black" points="291.01,-61.3 291.01,-86.1"></polyline>
 <text text-anchor="middle" x="300.76" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="310.51,-61.3 310.51,-86.1 "/>
+<polyline fill="none" stroke="black" points="310.51,-61.3 310.51,-86.1"></polyline>
 <text text-anchor="middle" x="320.26" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="330.01,-61.3 330.01,-86.1 "/>
+<polyline fill="none" stroke="black" points="330.01,-61.3 330.01,-86.1"></polyline>
 <text text-anchor="middle" x="339.76" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="349.51,-61.3 349.51,-86.1 "/>
+<polyline fill="none" stroke="black" points="349.51,-61.3 349.51,-86.1"></polyline>
 <text text-anchor="middle" x="359.26" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="369.01,-61.3 369.01,-86.1 "/>
+<polyline fill="none" stroke="black" points="369.01,-61.3 369.01,-86.1"></polyline>
 <text text-anchor="middle" x="378.76" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="388.51,-61.3 388.51,-86.1 "/>
+<polyline fill="none" stroke="black" points="388.51,-61.3 388.51,-86.1"></polyline>
 <text text-anchor="middle" x="398.26" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="408.01,-61.3 408.01,-86.1 "/>
+<polyline fill="none" stroke="black" points="408.01,-61.3 408.01,-86.1"></polyline>
 <text text-anchor="middle" x="417.76" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge1" class="edge">
-<title>heap:s&#45;&gt;heap:s</title>
-<path fill="none" stroke="black" d="M69.76,-61.7C60.76,-50.8 60.76,-30.8 86.76,-30.8 106.46,-30.8 111.23,-42.29 108.47,-52.59"/>
-<polygon fill="black" stroke="black" points="105.25,-51.21 103.76,-61.7 111.46,-54.43 105.25,-51.21"/>
+<title>heap:s-&gt;heap:s</title>
+<path fill="none" stroke="black" d="M69.76,-61.7C60.76,-50.8 60.76,-30.8 86.76,-30.8 106.46,-30.8 111.23,-42.29 108.47,-52.59"></path>
+<polygon fill="black" stroke="black" points="105.25,-51.21 103.76,-61.7 111.46,-54.43 105.25,-51.21"></polygon>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge2" class="edge">
-<title>heap:s&#45;&gt;heap:s</title>
-<path fill="none" stroke="black" d="M69.76,-61.7C60.76,-50.8 60.76,-30.8 104.76,-30.8 138.1,-30.8 146.18,-42.29 144.21,-52.59"/>
-<polygon fill="black" stroke="black" points="141.01,-51.18 139.76,-61.7 147.3,-54.26 141.01,-51.18"/>
+<title>heap:s-&gt;heap:s</title>
+<path fill="none" stroke="black" d="M69.76,-61.7C60.76,-50.8 60.76,-30.8 104.76,-30.8 138.1,-30.8 146.18,-42.29 144.21,-52.59"></path>
+<polygon fill="black" stroke="black" points="141.01,-51.18 139.76,-61.7 147.3,-54.26 141.01,-51.18"></polygon>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge3" class="edge">
-<title>heap:n&#45;&gt;heap:n</title>
-<path fill="none" stroke="black" d="M139.76,-85.7C130.76,-96.6 130.76,-116.6 157.76,-116.6 178.22,-116.6 183.17,-105.11 180.46,-94.81"/>
-<polygon fill="black" stroke="black" points="183.45,-92.98 175.76,-85.7 177.23,-96.19 183.45,-92.98"/>
+<title>heap:n-&gt;heap:n</title>
+<path fill="none" stroke="black" d="M139.76,-85.7C130.76,-96.6 130.76,-116.6 157.76,-116.6 178.22,-116.6 183.17,-105.11 180.46,-94.81"></path>
+<polygon fill="black" stroke="black" points="183.45,-92.98 175.76,-85.7 177.23,-96.19 183.45,-92.98"></polygon>
 </g>
 <!-- alloc -->
 <g id="node2" class="node">
 <title>alloc</title>
-<polygon fill="white" stroke="transparent" points="247.66,-24.7 159.85,-24.7 159.85,-0.1 247.66,-0.1 247.66,-24.7"/>
+<polygon fill="white" stroke="transparent" points="247.66,-24.7 159.85,-24.7 159.85,-0.1 247.66,-0.1 247.66,-24.7"></polygon>
 <text text-anchor="middle" x="203.76" y="-8.2" font-family="Times,serif" font-size="14.00">free memory</text>
 </g>
 <!-- heap&#45;&gt;alloc -->
 <g id="edge4" class="edge">
-<title>heap:s&#45;&gt;alloc:n</title>
-<path fill="none" stroke="black" stroke-dasharray="1,5" d="M203.76,-50.67C203.76,-42.05 203.76,-36.8 203.76,-24.8"/>
-<polygon fill="black" stroke="black" points="200.26,-50.8 203.76,-60.8 207.26,-50.8 200.26,-50.8"/>
+<title>heap:s-&gt;alloc:n</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M203.76,-50.67C203.76,-42.05 203.76,-36.8 203.76,-24.8"></path>
+<polygon fill="black" stroke="black" points="200.26,-50.8 203.76,-60.8 207.26,-50.8 200.26,-50.8"></polygon>
 </g>
 <!-- stack -->
 <g id="node3" class="node">
 <title>stack</title>
-<polygon fill="white" stroke="black" points="40.81,-123.1 40.81,-147.9 258.7,-147.9 258.7,-123.1 40.81,-123.1"/>
+<polygon fill="white" stroke="black" points="40.81,-123.1 40.81,-147.9 258.7,-147.9 258.7,-123.1 40.81,-123.1"></polygon>
 <text text-anchor="middle" x="71.76" y="-131.3" font-family="Times,serif" font-size="14.00">STACK</text>
-<polyline fill="none" stroke="black" points="102.7,-123.1 102.7,-147.9 "/>
+<polyline fill="none" stroke="black" points="102.7,-123.1 102.7,-147.9"></polyline>
 <text text-anchor="middle" x="112.45" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="122.2,-123.1 122.2,-147.9 "/>
+<polyline fill="none" stroke="black" points="122.2,-123.1 122.2,-147.9"></polyline>
 <text text-anchor="middle" x="131.95" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="141.7,-123.1 141.7,-147.9 "/>
+<polyline fill="none" stroke="black" points="141.7,-123.1 141.7,-147.9"></polyline>
 <text text-anchor="middle" x="151.45" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="161.2,-123.1 161.2,-147.9 "/>
+<polyline fill="none" stroke="black" points="161.2,-123.1 161.2,-147.9"></polyline>
 <text text-anchor="middle" x="170.95" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="180.7,-123.1 180.7,-147.9 "/>
+<polyline fill="none" stroke="black" points="180.7,-123.1 180.7,-147.9"></polyline>
 <text text-anchor="middle" x="190.45" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="200.2,-123.1 200.2,-147.9 "/>
+<polyline fill="none" stroke="black" points="200.2,-123.1 200.2,-147.9"></polyline>
 <text text-anchor="middle" x="209.95" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="219.7,-123.1 219.7,-147.9 "/>
+<polyline fill="none" stroke="black" points="219.7,-123.1 219.7,-147.9"></polyline>
 <text text-anchor="middle" x="229.45" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="239.2,-123.1 239.2,-147.9 "/>
+<polyline fill="none" stroke="black" points="239.2,-123.1 239.2,-147.9"></polyline>
 <text text-anchor="middle" x="248.95" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- stack&#45;&gt;heap -->
 <g id="edge5" class="edge">
-<title>stack:f0&#45;&gt;heap:f1</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M112.76,-122.6C112.76,-106.11 103.76,-103.09 103.76,-86.6"/>
+<title>stack:f0-&gt;heap:f1</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M112.76,-122.6C112.76,-106.11 103.76,-103.09 103.76,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap -->
 <g id="edge6" class="edge">
-<title>stack:f1&#45;&gt;heap:f2</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M131.76,-122.6C131.76,-106.21 139.76,-102.99 139.76,-86.6"/>
+<title>stack:f1-&gt;heap:f2</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M131.76,-122.6C131.76,-106.21 139.76,-102.99 139.76,-86.6"></path>
 </g>
 </g>
 </svg>
@@ -477,115 +476,114 @@ the <code>free-memory</code> pointer (green below), and bump the pointer 1 slot 
 </div>
 <div class="paragraph">
 <center>
-<svg width="462px" height="156px"
- viewBox="0.00 0.00 462.33 156.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="462px" height="156px" viewBox="0.00 0.00 462.33 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 458.33,-152.4 458.33,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 458.33,-152.4 458.33,4 -4,4"></polygon>
 <!-- heap -->
 <g id="node1" class="node">
 <title>heap</title>
-<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 454.33,-86.1 454.33,-61.3 0,-61.3"/>
+<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 454.33,-86.1 454.33,-61.3 0,-61.3"></polygon>
 <text text-anchor="middle" x="26.27" y="-69.5" font-family="Times,serif" font-size="14.00">HEAP</text>
-<polyline fill="none" stroke="black" points="52.55,-61.3 52.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="52.55,-61.3 52.55,-86.1"></polyline>
 <text text-anchor="middle" x="69.88" y="-69.5" font-family="Times,serif" font-size="14.00">foo</text>
-<polyline fill="none" stroke="black" points="87.21,-61.3 87.21,-86.1 "/>
+<polyline fill="none" stroke="black" points="87.21,-61.3 87.21,-86.1"></polyline>
 <text text-anchor="middle" x="104.15" y="-69.5" font-family="Times,serif" font-size="14.00">bar</text>
-<polyline fill="none" stroke="black" points="121.08,-61.3 121.08,-86.1 "/>
+<polyline fill="none" stroke="black" points="121.08,-61.3 121.08,-86.1"></polyline>
 <text text-anchor="middle" x="139.58" y="-69.5" font-family="Times,serif" font-size="14.00">qux</text>
-<polyline fill="none" stroke="black" points="158.08,-61.3 158.08,-86.1 "/>
+<polyline fill="none" stroke="black" points="158.08,-61.3 158.08,-86.1"></polyline>
 <text text-anchor="middle" x="175.8" y="-69.5" font-family="Times,serif" font-size="14.00">baz</text>
-<polyline fill="none" stroke="black" points="193.51,-61.3 193.51,-86.1 "/>
+<polyline fill="none" stroke="black" points="193.51,-61.3 193.51,-86.1"></polyline>
 <text text-anchor="middle" x="216.67" y="-69.5" font-family="Times,serif" font-size="14.00">new1</text>
-<polyline fill="none" stroke="black" points="239.83,-61.3 239.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="239.83,-61.3 239.83,-86.1"></polyline>
 <text text-anchor="middle" x="249.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="259.33,-61.3 259.33,-86.1 "/>
+<polyline fill="none" stroke="black" points="259.33,-61.3 259.33,-86.1"></polyline>
 <text text-anchor="middle" x="269.08" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="278.83,-61.3 278.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="278.83,-61.3 278.83,-86.1"></polyline>
 <text text-anchor="middle" x="288.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="298.33,-61.3 298.33,-86.1 "/>
+<polyline fill="none" stroke="black" points="298.33,-61.3 298.33,-86.1"></polyline>
 <text text-anchor="middle" x="308.08" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="317.83,-61.3 317.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="317.83,-61.3 317.83,-86.1"></polyline>
 <text text-anchor="middle" x="327.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="337.33,-61.3 337.33,-86.1 "/>
+<polyline fill="none" stroke="black" points="337.33,-61.3 337.33,-86.1"></polyline>
 <text text-anchor="middle" x="347.08" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="356.83,-61.3 356.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="356.83,-61.3 356.83,-86.1"></polyline>
 <text text-anchor="middle" x="366.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="376.33,-61.3 376.33,-86.1 "/>
+<polyline fill="none" stroke="black" points="376.33,-61.3 376.33,-86.1"></polyline>
 <text text-anchor="middle" x="386.08" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="395.83,-61.3 395.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="395.83,-61.3 395.83,-86.1"></polyline>
 <text text-anchor="middle" x="405.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="415.33,-61.3 415.33,-86.1 "/>
+<polyline fill="none" stroke="black" points="415.33,-61.3 415.33,-86.1"></polyline>
 <text text-anchor="middle" x="425.08" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="434.83,-61.3 434.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="434.83,-61.3 434.83,-86.1"></polyline>
 <text text-anchor="middle" x="444.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge1" class="edge">
-<title>heap:s&#45;&gt;heap:s</title>
-<path fill="none" stroke="black" d="M70.17,-61.7C61.17,-50.8 61.17,-30.8 87.17,-30.8 106.87,-30.8 111.64,-42.29 108.88,-52.59"/>
-<polygon fill="black" stroke="black" points="105.66,-51.21 104.17,-61.7 111.87,-54.43 105.66,-51.21"/>
+<title>heap:s-&gt;heap:s</title>
+<path fill="none" stroke="black" d="M70.17,-61.7C61.17,-50.8 61.17,-30.8 87.17,-30.8 106.87,-30.8 111.64,-42.29 108.88,-52.59"></path>
+<polygon fill="black" stroke="black" points="105.66,-51.21 104.17,-61.7 111.87,-54.43 105.66,-51.21"></polygon>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge2" class="edge">
-<title>heap:s&#45;&gt;heap:s</title>
-<path fill="none" stroke="black" d="M70.17,-61.7C61.17,-50.8 61.17,-30.8 104.67,-30.8 137.63,-30.8 145.62,-42.29 143.63,-52.59"/>
-<polygon fill="black" stroke="black" points="140.43,-51.18 139.17,-61.7 146.71,-54.26 140.43,-51.18"/>
+<title>heap:s-&gt;heap:s</title>
+<path fill="none" stroke="black" d="M70.17,-61.7C61.17,-50.8 61.17,-30.8 104.67,-30.8 137.63,-30.8 145.62,-42.29 143.63,-52.59"></path>
+<polygon fill="black" stroke="black" points="140.43,-51.18 139.17,-61.7 146.71,-54.26 140.43,-51.18"></polygon>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge3" class="edge">
-<title>heap:n&#45;&gt;heap:n</title>
-<path fill="none" stroke="black" d="M139.17,-85.7C130.17,-96.6 130.17,-116.6 157.67,-116.6 178.51,-116.6 183.55,-105.11 180.86,-94.81"/>
-<polygon fill="black" stroke="black" points="183.86,-92.99 176.17,-85.7 177.64,-96.19 183.86,-92.99"/>
+<title>heap:n-&gt;heap:n</title>
+<path fill="none" stroke="black" d="M139.17,-85.7C130.17,-96.6 130.17,-116.6 157.67,-116.6 178.51,-116.6 183.55,-105.11 180.86,-94.81"></path>
+<polygon fill="black" stroke="black" points="183.86,-92.99 176.17,-85.7 177.64,-96.19 183.86,-92.99"></polygon>
 </g>
 <!-- alloc -->
 <g id="node2" class="node">
 <title>alloc</title>
-<polygon fill="white" stroke="transparent" points="293.07,-24.7 205.26,-24.7 205.26,-0.1 293.07,-0.1 293.07,-24.7"/>
+<polygon fill="white" stroke="transparent" points="293.07,-24.7 205.26,-24.7 205.26,-0.1 293.07,-0.1 293.07,-24.7"></polygon>
 <text text-anchor="middle" x="249.17" y="-8.2" font-family="Times,serif" font-size="14.00">free memory</text>
 </g>
 <!-- heap&#45;&gt;alloc -->
 <g id="edge4" class="edge">
-<title>heap:s&#45;&gt;alloc:n</title>
-<path fill="none" stroke="black" stroke-dasharray="1,5" d="M249.17,-50.67C249.17,-42.05 249.17,-36.8 249.17,-24.8"/>
-<polygon fill="black" stroke="black" points="245.67,-50.8 249.17,-60.8 252.67,-50.8 245.67,-50.8"/>
+<title>heap:s-&gt;alloc:n</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M249.17,-50.67C249.17,-42.05 249.17,-36.8 249.17,-24.8"></path>
+<polygon fill="black" stroke="black" points="245.67,-50.8 249.17,-60.8 252.67,-50.8 245.67,-50.8"></polygon>
 </g>
 <!-- stack -->
 <g id="node3" class="node">
 <title>stack</title>
-<polygon fill="white" stroke="black" points="48.22,-123.1 48.22,-147.9 266.11,-147.9 266.11,-123.1 48.22,-123.1"/>
+<polygon fill="white" stroke="black" points="48.22,-123.1 48.22,-147.9 266.11,-147.9 266.11,-123.1 48.22,-123.1"></polygon>
 <text text-anchor="middle" x="79.17" y="-131.3" font-family="Times,serif" font-size="14.00">STACK</text>
-<polyline fill="none" stroke="black" points="110.11,-123.1 110.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="110.11,-123.1 110.11,-147.9"></polyline>
 <text text-anchor="middle" x="119.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="129.61,-123.1 129.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="129.61,-123.1 129.61,-147.9"></polyline>
 <text text-anchor="middle" x="139.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="149.11,-123.1 149.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="149.11,-123.1 149.11,-147.9"></polyline>
 <text text-anchor="middle" x="158.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="168.61,-123.1 168.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="168.61,-123.1 168.61,-147.9"></polyline>
 <text text-anchor="middle" x="178.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="188.11,-123.1 188.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="188.11,-123.1 188.11,-147.9"></polyline>
 <text text-anchor="middle" x="197.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="207.61,-123.1 207.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="207.61,-123.1 207.61,-147.9"></polyline>
 <text text-anchor="middle" x="217.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="227.11,-123.1 227.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="227.11,-123.1 227.11,-147.9"></polyline>
 <text text-anchor="middle" x="236.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="246.61,-123.1 246.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="246.61,-123.1 246.61,-147.9"></polyline>
 <text text-anchor="middle" x="256.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- stack&#45;&gt;heap -->
 <g id="edge5" class="edge">
-<title>stack:f0&#45;&gt;heap:f1</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M120.17,-122.6C120.17,-105.09 104.17,-104.11 104.17,-86.6"/>
+<title>stack:f0-&gt;heap:f1</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M120.17,-122.6C120.17,-105.09 104.17,-104.11 104.17,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap -->
 <g id="edge6" class="edge">
-<title>stack:f1&#45;&gt;heap:f2</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M139.17,-122.6C139.17,-106.6 139.17,-102.6 139.17,-86.6"/>
+<title>stack:f1-&gt;heap:f2</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M139.17,-122.6C139.17,-106.6 139.17,-102.6 139.17,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap -->
 <g id="edge7" class="edge">
-<title>stack:f2&#45;&gt;heap:f4</title>
-<path fill="none" stroke="green" stroke-width="3" stroke-dasharray="5,2" d="M159.17,-122.6C159.17,-92.26 217.17,-116.94 217.17,-86.6"/>
+<title>stack:f2-&gt;heap:f4</title>
+<path fill="none" stroke="green" stroke-width="3" stroke-dasharray="5,2" d="M159.17,-122.6C159.17,-92.26 217.17,-116.94 217.17,-86.6"></path>
 </g>
 </g>
 </svg>
@@ -600,110 +598,109 @@ it are no longer necessary</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="462px" height="156px"
- viewBox="0.00 0.00 462.33 156.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="462px" height="156px" viewBox="0.00 0.00 462.33 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 458.33,-152.4 458.33,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 458.33,-152.4 458.33,4 -4,4"></polygon>
 <!-- heap -->
 <g id="node1" class="node">
 <title>heap</title>
-<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 454.33,-86.1 454.33,-61.3 0,-61.3"/>
+<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 454.33,-86.1 454.33,-61.3 0,-61.3"></polygon>
 <text text-anchor="middle" x="26.27" y="-69.5" font-family="Times,serif" font-size="14.00">HEAP</text>
-<polyline fill="none" stroke="black" points="52.55,-61.3 52.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="52.55,-61.3 52.55,-86.1"></polyline>
 <text text-anchor="middle" x="69.88" y="-69.5" font-family="Times,serif" font-size="14.00">foo</text>
-<polyline fill="none" stroke="black" points="87.21,-61.3 87.21,-86.1 "/>
+<polyline fill="none" stroke="black" points="87.21,-61.3 87.21,-86.1"></polyline>
 <text text-anchor="middle" x="104.15" y="-69.5" font-family="Times,serif" font-size="14.00">bar</text>
-<polyline fill="none" stroke="black" points="121.08,-61.3 121.08,-86.1 "/>
+<polyline fill="none" stroke="black" points="121.08,-61.3 121.08,-86.1"></polyline>
 <text text-anchor="middle" x="139.58" y="-69.5" font-family="Times,serif" font-size="14.00">qux</text>
-<polyline fill="none" stroke="black" points="158.08,-61.3 158.08,-86.1 "/>
+<polyline fill="none" stroke="black" points="158.08,-61.3 158.08,-86.1"></polyline>
 <text text-anchor="middle" x="175.8" y="-69.5" font-family="Times,serif" font-size="14.00">baz</text>
-<polyline fill="none" stroke="black" points="193.51,-61.3 193.51,-86.1 "/>
+<polyline fill="none" stroke="black" points="193.51,-61.3 193.51,-86.1"></polyline>
 <text text-anchor="middle" x="216.67" y="-69.5" font-family="Times,serif" font-size="14.00">new1</text>
-<polyline fill="none" stroke="black" points="239.83,-61.3 239.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="239.83,-61.3 239.83,-86.1"></polyline>
 <text text-anchor="middle" x="249.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="259.33,-61.3 259.33,-86.1 "/>
+<polyline fill="none" stroke="black" points="259.33,-61.3 259.33,-86.1"></polyline>
 <text text-anchor="middle" x="269.08" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="278.83,-61.3 278.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="278.83,-61.3 278.83,-86.1"></polyline>
 <text text-anchor="middle" x="288.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="298.33,-61.3 298.33,-86.1 "/>
+<polyline fill="none" stroke="black" points="298.33,-61.3 298.33,-86.1"></polyline>
 <text text-anchor="middle" x="308.08" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="317.83,-61.3 317.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="317.83,-61.3 317.83,-86.1"></polyline>
 <text text-anchor="middle" x="327.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="337.33,-61.3 337.33,-86.1 "/>
+<polyline fill="none" stroke="black" points="337.33,-61.3 337.33,-86.1"></polyline>
 <text text-anchor="middle" x="347.08" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="356.83,-61.3 356.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="356.83,-61.3 356.83,-86.1"></polyline>
 <text text-anchor="middle" x="366.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="376.33,-61.3 376.33,-86.1 "/>
+<polyline fill="none" stroke="black" points="376.33,-61.3 376.33,-86.1"></polyline>
 <text text-anchor="middle" x="386.08" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="395.83,-61.3 395.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="395.83,-61.3 395.83,-86.1"></polyline>
 <text text-anchor="middle" x="405.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="415.33,-61.3 415.33,-86.1 "/>
+<polyline fill="none" stroke="black" points="415.33,-61.3 415.33,-86.1"></polyline>
 <text text-anchor="middle" x="425.08" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="434.83,-61.3 434.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="434.83,-61.3 434.83,-86.1"></polyline>
 <text text-anchor="middle" x="444.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge1" class="edge">
-<title>heap:s&#45;&gt;heap:s</title>
-<path fill="none" stroke="black" d="M70.17,-61.7C61.17,-50.8 61.17,-30.8 87.17,-30.8 106.87,-30.8 111.64,-42.29 108.88,-52.59"/>
-<polygon fill="black" stroke="black" points="105.66,-51.21 104.17,-61.7 111.87,-54.43 105.66,-51.21"/>
+<title>heap:s-&gt;heap:s</title>
+<path fill="none" stroke="black" d="M70.17,-61.7C61.17,-50.8 61.17,-30.8 87.17,-30.8 106.87,-30.8 111.64,-42.29 108.88,-52.59"></path>
+<polygon fill="black" stroke="black" points="105.66,-51.21 104.17,-61.7 111.87,-54.43 105.66,-51.21"></polygon>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge2" class="edge">
-<title>heap:s&#45;&gt;heap:s</title>
-<path fill="none" stroke="black" d="M70.17,-61.7C61.17,-50.8 61.17,-30.8 104.67,-30.8 137.63,-30.8 145.62,-42.29 143.63,-52.59"/>
-<polygon fill="black" stroke="black" points="140.43,-51.18 139.17,-61.7 146.71,-54.26 140.43,-51.18"/>
+<title>heap:s-&gt;heap:s</title>
+<path fill="none" stroke="black" d="M70.17,-61.7C61.17,-50.8 61.17,-30.8 104.67,-30.8 137.63,-30.8 145.62,-42.29 143.63,-52.59"></path>
+<polygon fill="black" stroke="black" points="140.43,-51.18 139.17,-61.7 146.71,-54.26 140.43,-51.18"></polygon>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge3" class="edge">
-<title>heap:n&#45;&gt;heap:n</title>
-<path fill="none" stroke="black" d="M139.17,-85.7C130.17,-96.6 130.17,-116.6 157.67,-116.6 178.51,-116.6 183.55,-105.11 180.86,-94.81"/>
-<polygon fill="black" stroke="black" points="183.86,-92.99 176.17,-85.7 177.64,-96.19 183.86,-92.99"/>
+<title>heap:n-&gt;heap:n</title>
+<path fill="none" stroke="black" d="M139.17,-85.7C130.17,-96.6 130.17,-116.6 157.67,-116.6 178.51,-116.6 183.55,-105.11 180.86,-94.81"></path>
+<polygon fill="black" stroke="black" points="183.86,-92.99 176.17,-85.7 177.64,-96.19 183.86,-92.99"></polygon>
 </g>
 <!-- alloc -->
 <g id="node2" class="node">
 <title>alloc</title>
-<polygon fill="white" stroke="transparent" points="293.07,-24.7 205.26,-24.7 205.26,-0.1 293.07,-0.1 293.07,-24.7"/>
+<polygon fill="white" stroke="transparent" points="293.07,-24.7 205.26,-24.7 205.26,-0.1 293.07,-0.1 293.07,-24.7"></polygon>
 <text text-anchor="middle" x="249.17" y="-8.2" font-family="Times,serif" font-size="14.00">free memory</text>
 </g>
 <!-- heap&#45;&gt;alloc -->
 <g id="edge4" class="edge">
-<title>heap:s&#45;&gt;alloc:n</title>
-<path fill="none" stroke="black" stroke-dasharray="1,5" d="M249.17,-50.67C249.17,-42.05 249.17,-36.8 249.17,-24.8"/>
-<polygon fill="black" stroke="black" points="245.67,-50.8 249.17,-60.8 252.67,-50.8 245.67,-50.8"/>
+<title>heap:s-&gt;alloc:n</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M249.17,-50.67C249.17,-42.05 249.17,-36.8 249.17,-24.8"></path>
+<polygon fill="black" stroke="black" points="245.67,-50.8 249.17,-60.8 252.67,-50.8 245.67,-50.8"></polygon>
 </g>
 <!-- stack -->
 <g id="node3" class="node">
 <title>stack</title>
-<polygon fill="white" stroke="black" points="77.22,-123.1 77.22,-147.9 295.11,-147.9 295.11,-123.1 77.22,-123.1"/>
+<polygon fill="white" stroke="black" points="77.22,-123.1 77.22,-147.9 295.11,-147.9 295.11,-123.1 77.22,-123.1"></polygon>
 <text text-anchor="middle" x="108.17" y="-131.3" font-family="Times,serif" font-size="14.00">STACK</text>
-<polyline fill="none" stroke="black" points="139.11,-123.1 139.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="139.11,-123.1 139.11,-147.9"></polyline>
 <text text-anchor="middle" x="148.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="158.61,-123.1 158.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="158.61,-123.1 158.61,-147.9"></polyline>
 <text text-anchor="middle" x="168.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="178.11,-123.1 178.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="178.11,-123.1 178.11,-147.9"></polyline>
 <text text-anchor="middle" x="187.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="197.61,-123.1 197.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="197.61,-123.1 197.61,-147.9"></polyline>
 <text text-anchor="middle" x="207.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="217.11,-123.1 217.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="217.11,-123.1 217.11,-147.9"></polyline>
 <text text-anchor="middle" x="226.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="236.61,-123.1 236.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="236.61,-123.1 236.61,-147.9"></polyline>
 <text text-anchor="middle" x="246.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="256.11,-123.1 256.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="256.11,-123.1 256.11,-147.9"></polyline>
 <text text-anchor="middle" x="265.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="275.61,-123.1 275.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="275.61,-123.1 275.61,-147.9"></polyline>
 <text text-anchor="middle" x="285.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- stack&#45;&gt;heap -->
 <g id="edge5" class="edge">
-<title>stack:f1&#45;&gt;heap:f2</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M168.17,-122.6C168.17,-102.05 139.17,-107.15 139.17,-86.6"/>
+<title>stack:f1-&gt;heap:f2</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M168.17,-122.6C168.17,-102.05 139.17,-107.15 139.17,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap -->
 <g id="edge6" class="edge">
-<title>stack:f2&#45;&gt;heap:f4</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M188.17,-122.6C188.17,-102.05 217.17,-107.15 217.17,-86.6"/>
+<title>stack:f2-&gt;heap:f4</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M188.17,-122.6C188.17,-102.05 217.17,-107.15 217.17,-86.6"></path>
 </g>
 </g>
 </svg>
@@ -713,7 +710,7 @@ it are no longer necessary</p>
 <div class="paragraph">
 <p>For the purposes of this example, we show all objects on the heap taking up 1 slot, but
 in real programs the size of each object may vary depending on the fields it has
-or if it&#8217;s a variable-length array.</p>
+or if it’s a variable-length array.</p>
 </div>
 </div>
 <div class="sect2">
@@ -725,116 +722,115 @@ there are only 3 slots left in that half of the heap, we will need to do a colle
 </div>
 <div class="paragraph">
 <center>
-<svg width="546px" height="156px"
- viewBox="0.00 0.00 546.44 156.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="546px" height="156px" viewBox="0.00 0.00 546.44 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 542.44,-152.4 542.44,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 542.44,-152.4 542.44,4 -4,4"></polygon>
 <!-- heap1 -->
 <g id="node1" class="node">
 <title>heap1</title>
-<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 305.33,-86.1 305.33,-61.3 0,-61.3"/>
+<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 305.33,-86.1 305.33,-61.3 0,-61.3"></polygon>
 <text text-anchor="middle" x="29.77" y="-69.5" font-family="Times,serif" font-size="14.00">HALF1</text>
-<polyline fill="none" stroke="black" points="59.55,-61.3 59.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="59.55,-61.3 59.55,-86.1"></polyline>
 <text text-anchor="middle" x="76.88" y="-69.5" font-family="Times,serif" font-size="14.00">foo</text>
-<polyline fill="none" stroke="black" points="94.21,-61.3 94.21,-86.1 "/>
+<polyline fill="none" stroke="black" points="94.21,-61.3 94.21,-86.1"></polyline>
 <text text-anchor="middle" x="111.15" y="-69.5" font-family="Times,serif" font-size="14.00">bar</text>
-<polyline fill="none" stroke="black" points="128.08,-61.3 128.08,-86.1 "/>
+<polyline fill="none" stroke="black" points="128.08,-61.3 128.08,-86.1"></polyline>
 <text text-anchor="middle" x="145.8" y="-69.5" font-family="Times,serif" font-size="14.00">baz</text>
-<polyline fill="none" stroke="black" points="163.51,-61.3 163.51,-86.1 "/>
+<polyline fill="none" stroke="black" points="163.51,-61.3 163.51,-86.1"></polyline>
 <text text-anchor="middle" x="182.01" y="-69.5" font-family="Times,serif" font-size="14.00">qux</text>
-<polyline fill="none" stroke="black" points="200.51,-61.3 200.51,-86.1 "/>
+<polyline fill="none" stroke="black" points="200.51,-61.3 200.51,-86.1"></polyline>
 <text text-anchor="middle" x="223.67" y="-69.5" font-family="Times,serif" font-size="14.00">new1</text>
-<polyline fill="none" stroke="black" points="246.83,-61.3 246.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="246.83,-61.3 246.83,-86.1"></polyline>
 <text text-anchor="middle" x="256.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="266.33,-61.3 266.33,-86.1 "/>
+<polyline fill="none" stroke="black" points="266.33,-61.3 266.33,-86.1"></polyline>
 <text text-anchor="middle" x="276.08" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="285.83,-61.3 285.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="285.83,-61.3 285.83,-86.1"></polyline>
 <text text-anchor="middle" x="295.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- heap1&#45;&gt;heap1 -->
 <g id="edge1" class="edge">
-<title>heap1:s&#45;&gt;heap1:s</title>
-<path fill="none" stroke="black" d="M76.67,-61.7C67.67,-50.8 67.67,-30.8 93.67,-30.8 113.37,-30.8 118.14,-42.29 115.38,-52.59"/>
-<polygon fill="black" stroke="black" points="112.16,-51.21 110.67,-61.7 118.37,-54.43 112.16,-51.21"/>
+<title>heap1:s-&gt;heap1:s</title>
+<path fill="none" stroke="black" d="M76.67,-61.7C67.67,-50.8 67.67,-30.8 93.67,-30.8 113.37,-30.8 118.14,-42.29 115.38,-52.59"></path>
+<polygon fill="black" stroke="black" points="112.16,-51.21 110.67,-61.7 118.37,-54.43 112.16,-51.21"></polygon>
 </g>
 <!-- heap1&#45;&gt;heap1 -->
 <g id="edge2" class="edge">
-<title>heap1:s&#45;&gt;heap1:s</title>
-<path fill="none" stroke="black" d="M76.67,-61.7C67.67,-50.8 67.67,-30.8 111.17,-30.8 144.13,-30.8 152.12,-42.29 150.13,-52.59"/>
-<polygon fill="black" stroke="black" points="146.93,-51.18 145.67,-61.7 153.21,-54.26 146.93,-51.18"/>
+<title>heap1:s-&gt;heap1:s</title>
+<path fill="none" stroke="black" d="M76.67,-61.7C67.67,-50.8 67.67,-30.8 111.17,-30.8 144.13,-30.8 152.12,-42.29 150.13,-52.59"></path>
+<polygon fill="black" stroke="black" points="146.93,-51.18 145.67,-61.7 153.21,-54.26 146.93,-51.18"></polygon>
 </g>
 <!-- heap1&#45;&gt;heap1 -->
 <g id="edge3" class="edge">
-<title>heap1:n&#45;&gt;heap1:n</title>
-<path fill="none" stroke="black" d="M145.67,-85.7C136.67,-96.6 136.67,-116.6 163.67,-116.6 184.13,-116.6 189.08,-105.11 186.37,-94.81"/>
-<polygon fill="black" stroke="black" points="189.36,-92.98 181.67,-85.7 183.14,-96.19 189.36,-92.98"/>
+<title>heap1:n-&gt;heap1:n</title>
+<path fill="none" stroke="black" d="M145.67,-85.7C136.67,-96.6 136.67,-116.6 163.67,-116.6 184.13,-116.6 189.08,-105.11 186.37,-94.81"></path>
+<polygon fill="black" stroke="black" points="189.36,-92.98 181.67,-85.7 183.14,-96.19 189.36,-92.98"></polygon>
 </g>
 <!-- alloc -->
 <g id="node3" class="node">
 <title>alloc</title>
-<polygon fill="white" stroke="transparent" points="300.57,-24.7 212.76,-24.7 212.76,-0.1 300.57,-0.1 300.57,-24.7"/>
+<polygon fill="white" stroke="transparent" points="300.57,-24.7 212.76,-24.7 212.76,-0.1 300.57,-0.1 300.57,-24.7"></polygon>
 <text text-anchor="middle" x="256.67" y="-8.2" font-family="Times,serif" font-size="14.00">free memory</text>
 </g>
 <!-- heap1&#45;&gt;alloc -->
 <g id="edge4" class="edge">
-<title>heap1:s&#45;&gt;alloc:n</title>
-<path fill="none" stroke="black" stroke-dasharray="1,5" d="M256.67,-50.67C256.67,-42.05 256.67,-36.8 256.67,-24.8"/>
-<polygon fill="black" stroke="black" points="253.17,-50.8 256.67,-60.8 260.17,-50.8 253.17,-50.8"/>
+<title>heap1:s-&gt;alloc:n</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M256.67,-50.67C256.67,-42.05 256.67,-36.8 256.67,-24.8"></path>
+<polygon fill="black" stroke="black" points="253.17,-50.8 256.67,-60.8 260.17,-50.8 253.17,-50.8"></polygon>
 </g>
 <!-- heap2 -->
 <g id="node2" class="node">
 <title>heap2</title>
-<polygon fill="white" stroke="black" points="322.89,-61.3 322.89,-86.1 538.44,-86.1 538.44,-61.3 322.89,-61.3"/>
+<polygon fill="white" stroke="black" points="322.89,-61.3 322.89,-86.1 538.44,-86.1 538.44,-61.3 322.89,-61.3"></polygon>
 <text text-anchor="middle" x="352.67" y="-69.5" font-family="Times,serif" font-size="14.00">HALF2</text>
-<polyline fill="none" stroke="black" points="382.44,-61.3 382.44,-86.1 "/>
+<polyline fill="none" stroke="black" points="382.44,-61.3 382.44,-86.1"></polyline>
 <text text-anchor="middle" x="392.19" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="401.94,-61.3 401.94,-86.1 "/>
+<polyline fill="none" stroke="black" points="401.94,-61.3 401.94,-86.1"></polyline>
 <text text-anchor="middle" x="411.69" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="421.44,-61.3 421.44,-86.1 "/>
+<polyline fill="none" stroke="black" points="421.44,-61.3 421.44,-86.1"></polyline>
 <text text-anchor="middle" x="431.19" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="440.94,-61.3 440.94,-86.1 "/>
+<polyline fill="none" stroke="black" points="440.94,-61.3 440.94,-86.1"></polyline>
 <text text-anchor="middle" x="450.69" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="460.44,-61.3 460.44,-86.1 "/>
+<polyline fill="none" stroke="black" points="460.44,-61.3 460.44,-86.1"></polyline>
 <text text-anchor="middle" x="470.19" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="479.94,-61.3 479.94,-86.1 "/>
+<polyline fill="none" stroke="black" points="479.94,-61.3 479.94,-86.1"></polyline>
 <text text-anchor="middle" x="489.69" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="499.44,-61.3 499.44,-86.1 "/>
+<polyline fill="none" stroke="black" points="499.44,-61.3 499.44,-86.1"></polyline>
 <text text-anchor="middle" x="509.19" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="518.94,-61.3 518.94,-86.1 "/>
+<polyline fill="none" stroke="black" points="518.94,-61.3 518.94,-86.1"></polyline>
 <text text-anchor="middle" x="528.69" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- stack -->
 <g id="node4" class="node">
 <title>stack</title>
-<polygon fill="white" stroke="black" points="83.72,-123.1 83.72,-147.9 301.61,-147.9 301.61,-123.1 83.72,-123.1"/>
+<polygon fill="white" stroke="black" points="83.72,-123.1 83.72,-147.9 301.61,-147.9 301.61,-123.1 83.72,-123.1"></polygon>
 <text text-anchor="middle" x="114.67" y="-131.3" font-family="Times,serif" font-size="14.00">STACK</text>
-<polyline fill="none" stroke="black" points="145.61,-123.1 145.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="145.61,-123.1 145.61,-147.9"></polyline>
 <text text-anchor="middle" x="155.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="165.11,-123.1 165.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="165.11,-123.1 165.11,-147.9"></polyline>
 <text text-anchor="middle" x="174.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="184.61,-123.1 184.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="184.61,-123.1 184.61,-147.9"></polyline>
 <text text-anchor="middle" x="194.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="204.11,-123.1 204.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="204.11,-123.1 204.11,-147.9"></polyline>
 <text text-anchor="middle" x="213.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="223.61,-123.1 223.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="223.61,-123.1 223.61,-147.9"></polyline>
 <text text-anchor="middle" x="233.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="243.11,-123.1 243.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="243.11,-123.1 243.11,-147.9"></polyline>
 <text text-anchor="middle" x="252.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="262.61,-123.1 262.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="262.61,-123.1 262.61,-147.9"></polyline>
 <text text-anchor="middle" x="272.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="282.11,-123.1 282.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="282.11,-123.1 282.11,-147.9"></polyline>
 <text text-anchor="middle" x="291.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- stack&#45;&gt;heap1 -->
 <g id="edge5" class="edge">
-<title>stack:f1&#45;&gt;heap1:f2</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M174.67,-122.6C174.67,-102.05 145.67,-107.15 145.67,-86.6"/>
+<title>stack:f1-&gt;heap1:f2</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M174.67,-122.6C174.67,-102.05 145.67,-107.15 145.67,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap1 -->
 <g id="edge6" class="edge">
-<title>stack:f2&#45;&gt;heap1:f4</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M194.67,-122.6C194.67,-102.05 223.67,-107.15 223.67,-86.6"/>
+<title>stack:f2-&gt;heap1:f4</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M194.67,-122.6C194.67,-102.05 223.67,-107.15 223.67,-86.6"></path>
 </g>
 </g>
 </svg>
@@ -843,121 +839,120 @@ there are only 3 slots left in that half of the heap, we will need to do a colle
 </div>
 <div class="paragraph">
 <p>To do a collection, the GC first starts from all non-heap
-references (e.g. the <code>STACK</code> references above) often called "GC roots". It then traces
+references (e.g. the <code>STACK</code> references above) often called &quot;GC roots&quot;. It then traces
 the graph of references, highlighted red below:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="546px" height="156px"
- viewBox="0.00 0.00 546.44 156.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="546px" height="156px" viewBox="0.00 0.00 546.44 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 542.44,-152.4 542.44,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 542.44,-152.4 542.44,4 -4,4"></polygon>
 <!-- heap1 -->
 <g id="node1" class="node">
 <title>heap1</title>
-<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 305.33,-86.1 305.33,-61.3 0,-61.3"/>
+<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 305.33,-86.1 305.33,-61.3 0,-61.3"></polygon>
 <text text-anchor="middle" x="29.77" y="-69.5" font-family="Times,serif" font-size="14.00">HALF1</text>
-<polyline fill="none" stroke="black" points="59.55,-61.3 59.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="59.55,-61.3 59.55,-86.1"></polyline>
 <text text-anchor="middle" x="76.88" y="-69.5" font-family="Times,serif" font-size="14.00">foo</text>
-<polyline fill="none" stroke="black" points="94.21,-61.3 94.21,-86.1 "/>
+<polyline fill="none" stroke="black" points="94.21,-61.3 94.21,-86.1"></polyline>
 <text text-anchor="middle" x="111.15" y="-69.5" font-family="Times,serif" font-size="14.00">bar</text>
-<polyline fill="none" stroke="black" points="128.08,-61.3 128.08,-86.1 "/>
+<polyline fill="none" stroke="black" points="128.08,-61.3 128.08,-86.1"></polyline>
 <text text-anchor="middle" x="146.58" y="-69.5" font-family="Times,serif" font-size="14.00">qux</text>
-<polyline fill="none" stroke="black" points="165.08,-61.3 165.08,-86.1 "/>
+<polyline fill="none" stroke="black" points="165.08,-61.3 165.08,-86.1"></polyline>
 <text text-anchor="middle" x="182.8" y="-69.5" font-family="Times,serif" font-size="14.00">baz</text>
-<polyline fill="none" stroke="black" points="200.51,-61.3 200.51,-86.1 "/>
+<polyline fill="none" stroke="black" points="200.51,-61.3 200.51,-86.1"></polyline>
 <text text-anchor="middle" x="223.67" y="-69.5" font-family="Times,serif" font-size="14.00">new1</text>
-<polyline fill="none" stroke="black" points="246.83,-61.3 246.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="246.83,-61.3 246.83,-86.1"></polyline>
 <text text-anchor="middle" x="256.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="266.33,-61.3 266.33,-86.1 "/>
+<polyline fill="none" stroke="black" points="266.33,-61.3 266.33,-86.1"></polyline>
 <text text-anchor="middle" x="276.08" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="285.83,-61.3 285.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="285.83,-61.3 285.83,-86.1"></polyline>
 <text text-anchor="middle" x="295.58" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- heap1&#45;&gt;heap1 -->
 <g id="edge1" class="edge">
-<title>heap1:s&#45;&gt;heap1:s</title>
-<path fill="none" stroke="black" d="M76.67,-61.7C67.67,-50.8 67.67,-30.8 93.67,-30.8 113.37,-30.8 118.14,-42.29 115.38,-52.59"/>
-<polygon fill="black" stroke="black" points="112.16,-51.21 110.67,-61.7 118.37,-54.43 112.16,-51.21"/>
+<title>heap1:s-&gt;heap1:s</title>
+<path fill="none" stroke="black" d="M76.67,-61.7C67.67,-50.8 67.67,-30.8 93.67,-30.8 113.37,-30.8 118.14,-42.29 115.38,-52.59"></path>
+<polygon fill="black" stroke="black" points="112.16,-51.21 110.67,-61.7 118.37,-54.43 112.16,-51.21"></polygon>
 </g>
 <!-- heap1&#45;&gt;heap1 -->
 <g id="edge2" class="edge">
-<title>heap1:s&#45;&gt;heap1:s</title>
-<path fill="none" stroke="black" d="M76.67,-61.7C67.67,-50.8 67.67,-30.8 111.67,-30.8 145.01,-30.8 153.09,-42.29 151.13,-52.59"/>
-<polygon fill="black" stroke="black" points="147.92,-51.18 146.67,-61.7 154.21,-54.26 147.92,-51.18"/>
+<title>heap1:s-&gt;heap1:s</title>
+<path fill="none" stroke="black" d="M76.67,-61.7C67.67,-50.8 67.67,-30.8 111.67,-30.8 145.01,-30.8 153.09,-42.29 151.13,-52.59"></path>
+<polygon fill="black" stroke="black" points="147.92,-51.18 146.67,-61.7 154.21,-54.26 147.92,-51.18"></polygon>
 </g>
 <!-- heap1&#45;&gt;heap1 -->
 <g id="edge3" class="edge">
-<title>heap1:n&#45;&gt;heap1:n</title>
-<path fill="none" stroke="red" stroke-width="3" d="M146.67,-85.7C137.67,-96.6 137.67,-116.6 164.67,-116.6 185.13,-116.6 190.08,-105.11 187.37,-94.81"/>
-<polygon fill="red" stroke="red" stroke-width="3" points="190.36,-92.98 182.67,-85.7 184.14,-96.19 190.36,-92.98"/>
+<title>heap1:n-&gt;heap1:n</title>
+<path fill="none" stroke="red" stroke-width="3" d="M146.67,-85.7C137.67,-96.6 137.67,-116.6 164.67,-116.6 185.13,-116.6 190.08,-105.11 187.37,-94.81"></path>
+<polygon fill="red" stroke="red" stroke-width="3" points="190.36,-92.98 182.67,-85.7 184.14,-96.19 190.36,-92.98"></polygon>
 </g>
 <!-- alloc -->
 <g id="node3" class="node">
 <title>alloc</title>
-<polygon fill="white" stroke="transparent" points="300.57,-24.7 212.76,-24.7 212.76,-0.1 300.57,-0.1 300.57,-24.7"/>
+<polygon fill="white" stroke="transparent" points="300.57,-24.7 212.76,-24.7 212.76,-0.1 300.57,-0.1 300.57,-24.7"></polygon>
 <text text-anchor="middle" x="256.67" y="-8.2" font-family="Times,serif" font-size="14.00">free memory</text>
 </g>
 <!-- heap1&#45;&gt;alloc -->
 <g id="edge4" class="edge">
-<title>heap1:s&#45;&gt;alloc:n</title>
-<path fill="none" stroke="black" stroke-dasharray="1,5" d="M256.67,-50.67C256.67,-42.05 256.67,-36.8 256.67,-24.8"/>
-<polygon fill="black" stroke="black" points="253.17,-50.8 256.67,-60.8 260.17,-50.8 253.17,-50.8"/>
+<title>heap1:s-&gt;alloc:n</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M256.67,-50.67C256.67,-42.05 256.67,-36.8 256.67,-24.8"></path>
+<polygon fill="black" stroke="black" points="253.17,-50.8 256.67,-60.8 260.17,-50.8 253.17,-50.8"></polygon>
 </g>
 <!-- heap2 -->
 <g id="node2" class="node">
 <title>heap2</title>
-<polygon fill="white" stroke="black" points="322.89,-61.3 322.89,-86.1 538.44,-86.1 538.44,-61.3 322.89,-61.3"/>
+<polygon fill="white" stroke="black" points="322.89,-61.3 322.89,-86.1 538.44,-86.1 538.44,-61.3 322.89,-61.3"></polygon>
 <text text-anchor="middle" x="352.67" y="-69.5" font-family="Times,serif" font-size="14.00">HALF2</text>
-<polyline fill="none" stroke="black" points="382.44,-61.3 382.44,-86.1 "/>
+<polyline fill="none" stroke="black" points="382.44,-61.3 382.44,-86.1"></polyline>
 <text text-anchor="middle" x="392.19" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="401.94,-61.3 401.94,-86.1 "/>
+<polyline fill="none" stroke="black" points="401.94,-61.3 401.94,-86.1"></polyline>
 <text text-anchor="middle" x="411.69" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="421.44,-61.3 421.44,-86.1 "/>
+<polyline fill="none" stroke="black" points="421.44,-61.3 421.44,-86.1"></polyline>
 <text text-anchor="middle" x="431.19" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="440.94,-61.3 440.94,-86.1 "/>
+<polyline fill="none" stroke="black" points="440.94,-61.3 440.94,-86.1"></polyline>
 <text text-anchor="middle" x="450.69" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="460.44,-61.3 460.44,-86.1 "/>
+<polyline fill="none" stroke="black" points="460.44,-61.3 460.44,-86.1"></polyline>
 <text text-anchor="middle" x="470.19" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="479.94,-61.3 479.94,-86.1 "/>
+<polyline fill="none" stroke="black" points="479.94,-61.3 479.94,-86.1"></polyline>
 <text text-anchor="middle" x="489.69" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="499.44,-61.3 499.44,-86.1 "/>
+<polyline fill="none" stroke="black" points="499.44,-61.3 499.44,-86.1"></polyline>
 <text text-anchor="middle" x="509.19" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="518.94,-61.3 518.94,-86.1 "/>
+<polyline fill="none" stroke="black" points="518.94,-61.3 518.94,-86.1"></polyline>
 <text text-anchor="middle" x="528.69" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- stack -->
 <g id="node4" class="node">
 <title>stack</title>
-<polygon fill="white" stroke="black" points="83.72,-123.1 83.72,-147.9 301.61,-147.9 301.61,-123.1 83.72,-123.1"/>
+<polygon fill="white" stroke="black" points="83.72,-123.1 83.72,-147.9 301.61,-147.9 301.61,-123.1 83.72,-123.1"></polygon>
 <text text-anchor="middle" x="114.67" y="-131.3" font-family="Times,serif" font-size="14.00">STACK</text>
-<polyline fill="none" stroke="black" points="145.61,-123.1 145.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="145.61,-123.1 145.61,-147.9"></polyline>
 <text text-anchor="middle" x="155.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="165.11,-123.1 165.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="165.11,-123.1 165.11,-147.9"></polyline>
 <text text-anchor="middle" x="174.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="184.61,-123.1 184.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="184.61,-123.1 184.61,-147.9"></polyline>
 <text text-anchor="middle" x="194.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="204.11,-123.1 204.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="204.11,-123.1 204.11,-147.9"></polyline>
 <text text-anchor="middle" x="213.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="223.61,-123.1 223.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="223.61,-123.1 223.61,-147.9"></polyline>
 <text text-anchor="middle" x="233.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="243.11,-123.1 243.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="243.11,-123.1 243.11,-147.9"></polyline>
 <text text-anchor="middle" x="252.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="262.61,-123.1 262.61,-147.9 "/>
+<polyline fill="none" stroke="black" points="262.61,-123.1 262.61,-147.9"></polyline>
 <text text-anchor="middle" x="272.36" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="282.11,-123.1 282.11,-147.9 "/>
+<polyline fill="none" stroke="black" points="282.11,-123.1 282.11,-147.9"></polyline>
 <text text-anchor="middle" x="291.86" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- stack&#45;&gt;heap1 -->
 <g id="edge5" class="edge">
-<title>stack:f1&#45;&gt;heap1:f2</title>
-<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M174.67,-122.6C174.67,-102.33 146.67,-106.87 146.67,-86.6"/>
+<title>stack:f1-&gt;heap1:f2</title>
+<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M174.67,-122.6C174.67,-102.33 146.67,-106.87 146.67,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap1 -->
 <g id="edge6" class="edge">
-<title>stack:f2&#45;&gt;heap1:f4</title>
-<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M194.67,-122.6C194.67,-102.05 223.67,-107.15 223.67,-86.6"/>
+<title>stack:f2-&gt;heap1:f4</title>
+<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M194.67,-122.6C194.67,-102.05 223.67,-107.15 223.67,-86.6"></path>
 </g>
 </g>
 </svg>
@@ -965,7 +960,7 @@ the graph of references, highlighted red below:</p>
 </center>
 </div>
 <div class="paragraph">
-<p>Here, we can see that <code>foo</code> is not referenced ("garbage"), <code>qux</code> and <code>new1</code> are referenced directly from the
+<p>Here, we can see that <code>foo</code> is not referenced (&quot;garbage&quot;), <code>qux</code> and <code>new1</code> are referenced directly from the
 <code>STACK</code>, and <code>baz</code> is referenced indirectly from <code>qux</code>. <code>bar</code> is referenced by <code>foo</code>, but
 because <code>foo</code> is itself garbage we can count <code>bar</code> as garbage as well.</p>
 </div>
@@ -975,104 +970,103 @@ appropriately. Now <code>HALF2</code> is the half of the heap in use, and <code>
 </div>
 <div class="paragraph">
 <center>
-<svg width="518px" height="156px"
- viewBox="0.00 0.00 517.67 156.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="518px" height="156px" viewBox="0.00 0.00 517.67 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 513.67,-152.4 513.67,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 513.67,-152.4 513.67,4 -4,4"></polygon>
 <!-- heap1 -->
 <g id="node1" class="node">
 <title>heap1</title>
-<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 215.55,-86.1 215.55,-61.3 0,-61.3"/>
+<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 215.55,-86.1 215.55,-61.3 0,-61.3"></polygon>
 <text text-anchor="middle" x="29.77" y="-69.5" font-family="Times,serif" font-size="14.00">HALF1</text>
-<polyline fill="none" stroke="black" points="59.55,-61.3 59.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="59.55,-61.3 59.55,-86.1"></polyline>
 <text text-anchor="middle" x="69.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="79.05,-61.3 79.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="79.05,-61.3 79.05,-86.1"></polyline>
 <text text-anchor="middle" x="88.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="98.55,-61.3 98.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="98.55,-61.3 98.55,-86.1"></polyline>
 <text text-anchor="middle" x="108.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="118.05,-61.3 118.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="118.05,-61.3 118.05,-86.1"></polyline>
 <text text-anchor="middle" x="127.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="137.55,-61.3 137.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="137.55,-61.3 137.55,-86.1"></polyline>
 <text text-anchor="middle" x="147.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="157.05,-61.3 157.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="157.05,-61.3 157.05,-86.1"></polyline>
 <text text-anchor="middle" x="166.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="176.55,-61.3 176.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="176.55,-61.3 176.55,-86.1"></polyline>
 <text text-anchor="middle" x="186.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="196.05,-61.3 196.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="196.05,-61.3 196.05,-86.1"></polyline>
 <text text-anchor="middle" x="205.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- heap2 -->
 <g id="node2" class="node">
 <title>heap2</title>
-<polygon fill="white" stroke="black" points="233.87,-61.3 233.87,-86.1 509.67,-86.1 509.67,-61.3 233.87,-61.3"/>
+<polygon fill="white" stroke="black" points="233.87,-61.3 233.87,-86.1 509.67,-86.1 509.67,-61.3 233.87,-61.3"></polygon>
 <text text-anchor="middle" x="263.65" y="-69.5" font-family="Times,serif" font-size="14.00">HALF2</text>
-<polyline fill="none" stroke="black" points="293.42,-61.3 293.42,-86.1 "/>
+<polyline fill="none" stroke="black" points="293.42,-61.3 293.42,-86.1"></polyline>
 <text text-anchor="middle" x="311.92" y="-69.5" font-family="Times,serif" font-size="14.00">qux</text>
-<polyline fill="none" stroke="black" points="330.42,-61.3 330.42,-86.1 "/>
+<polyline fill="none" stroke="black" points="330.42,-61.3 330.42,-86.1"></polyline>
 <text text-anchor="middle" x="348.14" y="-69.5" font-family="Times,serif" font-size="14.00">baz</text>
-<polyline fill="none" stroke="black" points="365.85,-61.3 365.85,-86.1 "/>
+<polyline fill="none" stroke="black" points="365.85,-61.3 365.85,-86.1"></polyline>
 <text text-anchor="middle" x="389.01" y="-69.5" font-family="Times,serif" font-size="14.00">new1</text>
-<polyline fill="none" stroke="black" points="412.17,-61.3 412.17,-86.1 "/>
+<polyline fill="none" stroke="black" points="412.17,-61.3 412.17,-86.1"></polyline>
 <text text-anchor="middle" x="421.92" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="431.67,-61.3 431.67,-86.1 "/>
+<polyline fill="none" stroke="black" points="431.67,-61.3 431.67,-86.1"></polyline>
 <text text-anchor="middle" x="441.42" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="451.17,-61.3 451.17,-86.1 "/>
+<polyline fill="none" stroke="black" points="451.17,-61.3 451.17,-86.1"></polyline>
 <text text-anchor="middle" x="460.92" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="470.67,-61.3 470.67,-86.1 "/>
+<polyline fill="none" stroke="black" points="470.67,-61.3 470.67,-86.1"></polyline>
 <text text-anchor="middle" x="480.42" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="490.17,-61.3 490.17,-86.1 "/>
+<polyline fill="none" stroke="black" points="490.17,-61.3 490.17,-86.1"></polyline>
 <text text-anchor="middle" x="499.92" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- heap2&#45;&gt;heap2 -->
 <g id="edge1" class="edge">
-<title>heap2:s&#45;&gt;heap2:s</title>
-<path fill="none" stroke="red" stroke-width="3" d="M311.77,-61.7C302.77,-50.8 302.77,-30.8 329.77,-30.8 350.24,-30.8 355.19,-42.29 352.47,-52.59"/>
-<polygon fill="red" stroke="red" stroke-width="3" points="349.25,-51.21 347.77,-61.7 355.47,-54.42 349.25,-51.21"/>
+<title>heap2:s-&gt;heap2:s</title>
+<path fill="none" stroke="red" stroke-width="3" d="M311.77,-61.7C302.77,-50.8 302.77,-30.8 329.77,-30.8 350.24,-30.8 355.19,-42.29 352.47,-52.59"></path>
+<polygon fill="red" stroke="red" stroke-width="3" points="349.25,-51.21 347.77,-61.7 355.47,-54.42 349.25,-51.21"></polygon>
 </g>
 <!-- alloc -->
 <g id="node3" class="node">
 <title>alloc</title>
-<polygon fill="white" stroke="transparent" points="432.68,-24.7 344.87,-24.7 344.87,-0.1 432.68,-0.1 432.68,-24.7"/>
+<polygon fill="white" stroke="transparent" points="432.68,-24.7 344.87,-24.7 344.87,-0.1 432.68,-0.1 432.68,-24.7"></polygon>
 <text text-anchor="middle" x="388.77" y="-8.2" font-family="Times,serif" font-size="14.00">free memory</text>
 </g>
 <!-- heap2&#45;&gt;alloc -->
 <g id="edge2" class="edge">
-<title>heap2:s&#45;&gt;alloc:n</title>
-<path fill="none" stroke="black" stroke-dasharray="1,5" d="M388.77,-50.67C388.77,-42.05 388.77,-36.8 388.77,-24.8"/>
-<polygon fill="black" stroke="black" points="385.27,-50.8 388.77,-60.8 392.27,-50.8 385.27,-50.8"/>
+<title>heap2:s-&gt;alloc:n</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M388.77,-50.67C388.77,-42.05 388.77,-36.8 388.77,-24.8"></path>
+<polygon fill="black" stroke="black" points="385.27,-50.8 388.77,-60.8 392.27,-50.8 385.27,-50.8"></polygon>
 </g>
 <!-- stack -->
 <g id="node4" class="node">
 <title>stack</title>
-<polygon fill="white" stroke="black" points="268.83,-123.1 268.83,-147.9 486.72,-147.9 486.72,-123.1 268.83,-123.1"/>
+<polygon fill="white" stroke="black" points="268.83,-123.1 268.83,-147.9 486.72,-147.9 486.72,-123.1 268.83,-123.1"></polygon>
 <text text-anchor="middle" x="299.77" y="-131.3" font-family="Times,serif" font-size="14.00">STACK</text>
-<polyline fill="none" stroke="black" points="330.72,-123.1 330.72,-147.9 "/>
+<polyline fill="none" stroke="black" points="330.72,-123.1 330.72,-147.9"></polyline>
 <text text-anchor="middle" x="340.47" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="350.22,-123.1 350.22,-147.9 "/>
+<polyline fill="none" stroke="black" points="350.22,-123.1 350.22,-147.9"></polyline>
 <text text-anchor="middle" x="359.97" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="369.72,-123.1 369.72,-147.9 "/>
+<polyline fill="none" stroke="black" points="369.72,-123.1 369.72,-147.9"></polyline>
 <text text-anchor="middle" x="379.47" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="389.22,-123.1 389.22,-147.9 "/>
+<polyline fill="none" stroke="black" points="389.22,-123.1 389.22,-147.9"></polyline>
 <text text-anchor="middle" x="398.97" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="408.72,-123.1 408.72,-147.9 "/>
+<polyline fill="none" stroke="black" points="408.72,-123.1 408.72,-147.9"></polyline>
 <text text-anchor="middle" x="418.47" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="428.22,-123.1 428.22,-147.9 "/>
+<polyline fill="none" stroke="black" points="428.22,-123.1 428.22,-147.9"></polyline>
 <text text-anchor="middle" x="437.97" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="447.72,-123.1 447.72,-147.9 "/>
+<polyline fill="none" stroke="black" points="447.72,-123.1 447.72,-147.9"></polyline>
 <text text-anchor="middle" x="457.47" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="467.22,-123.1 467.22,-147.9 "/>
+<polyline fill="none" stroke="black" points="467.22,-123.1 467.22,-147.9"></polyline>
 <text text-anchor="middle" x="476.97" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- stack&#45;&gt;heap2 -->
 <g id="edge3" class="edge">
-<title>stack:f0&#45;&gt;heap2:f0</title>
-<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M340.77,-122.6C340.77,-102.05 311.77,-107.15 311.77,-86.6"/>
+<title>stack:f0-&gt;heap2:f0</title>
+<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M340.77,-122.6C340.77,-102.05 311.77,-107.15 311.77,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap2 -->
 <g id="edge4" class="edge">
-<title>stack:f1&#45;&gt;heap2:f2</title>
-<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M359.77,-122.6C359.77,-102.05 388.77,-107.15 388.77,-86.6"/>
+<title>stack:f1-&gt;heap2:f2</title>
+<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M359.77,-122.6C359.77,-102.05 388.77,-107.15 388.77,-86.6"></path>
 </g>
 </g>
 </svg>
@@ -1085,126 +1079,125 @@ appropriately. Now <code>HALF2</code> is the half of the heap in use, and <code>
 </div>
 <div class="paragraph">
 <center>
-<svg width="659px" height="156px"
- viewBox="0.00 0.00 658.73 156.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="659px" height="156px" viewBox="0.00 0.00 658.73 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 654.73,-152.4 654.73,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 654.73,-152.4 654.73,4 -4,4"></polygon>
 <!-- heap1 -->
 <g id="node1" class="node">
 <title>heap1</title>
-<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 215.55,-86.1 215.55,-61.3 0,-61.3"/>
+<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 215.55,-86.1 215.55,-61.3 0,-61.3"></polygon>
 <text text-anchor="middle" x="29.77" y="-69.5" font-family="Times,serif" font-size="14.00">HALF1</text>
-<polyline fill="none" stroke="black" points="59.55,-61.3 59.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="59.55,-61.3 59.55,-86.1"></polyline>
 <text text-anchor="middle" x="69.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="79.05,-61.3 79.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="79.05,-61.3 79.05,-86.1"></polyline>
 <text text-anchor="middle" x="88.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="98.55,-61.3 98.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="98.55,-61.3 98.55,-86.1"></polyline>
 <text text-anchor="middle" x="108.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="118.05,-61.3 118.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="118.05,-61.3 118.05,-86.1"></polyline>
 <text text-anchor="middle" x="127.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="137.55,-61.3 137.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="137.55,-61.3 137.55,-86.1"></polyline>
 <text text-anchor="middle" x="147.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="157.05,-61.3 157.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="157.05,-61.3 157.05,-86.1"></polyline>
 <text text-anchor="middle" x="166.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="176.55,-61.3 176.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="176.55,-61.3 176.55,-86.1"></polyline>
 <text text-anchor="middle" x="186.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="196.05,-61.3 196.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="196.05,-61.3 196.05,-86.1"></polyline>
 <text text-anchor="middle" x="205.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- heap2 -->
 <g id="node2" class="node">
 <title>heap2</title>
-<polygon fill="white" stroke="black" points="233.23,-61.3 233.23,-86.1 616.32,-86.1 616.32,-61.3 233.23,-61.3"/>
+<polygon fill="white" stroke="black" points="233.23,-61.3 233.23,-86.1 616.32,-86.1 616.32,-61.3 233.23,-61.3"></polygon>
 <text text-anchor="middle" x="263.01" y="-69.5" font-family="Times,serif" font-size="14.00">HALF2</text>
-<polyline fill="none" stroke="black" points="292.78,-61.3 292.78,-86.1 "/>
+<polyline fill="none" stroke="black" points="292.78,-61.3 292.78,-86.1"></polyline>
 <text text-anchor="middle" x="311.28" y="-69.5" font-family="Times,serif" font-size="14.00">qux</text>
-<polyline fill="none" stroke="black" points="329.78,-61.3 329.78,-86.1 "/>
+<polyline fill="none" stroke="black" points="329.78,-61.3 329.78,-86.1"></polyline>
 <text text-anchor="middle" x="347.5" y="-69.5" font-family="Times,serif" font-size="14.00">baz</text>
-<polyline fill="none" stroke="black" points="365.21,-61.3 365.21,-86.1 "/>
+<polyline fill="none" stroke="black" points="365.21,-61.3 365.21,-86.1"></polyline>
 <text text-anchor="middle" x="388.37" y="-69.5" font-family="Times,serif" font-size="14.00">new1</text>
-<polyline fill="none" stroke="black" points="411.53,-61.3 411.53,-86.1 "/>
+<polyline fill="none" stroke="black" points="411.53,-61.3 411.53,-86.1"></polyline>
 <text text-anchor="middle" x="434.69" y="-69.5" font-family="Times,serif" font-size="14.00">new2</text>
-<polyline fill="none" stroke="black" points="457.85,-61.3 457.85,-86.1 "/>
+<polyline fill="none" stroke="black" points="457.85,-61.3 457.85,-86.1"></polyline>
 <text text-anchor="middle" x="481.01" y="-69.5" font-family="Times,serif" font-size="14.00">new3</text>
-<polyline fill="none" stroke="black" points="504.17,-61.3 504.17,-86.1 "/>
+<polyline fill="none" stroke="black" points="504.17,-61.3 504.17,-86.1"></polyline>
 <text text-anchor="middle" x="527.33" y="-69.5" font-family="Times,serif" font-size="14.00">new4</text>
-<polyline fill="none" stroke="black" points="550.49,-61.3 550.49,-86.1 "/>
+<polyline fill="none" stroke="black" points="550.49,-61.3 550.49,-86.1"></polyline>
 <text text-anchor="middle" x="573.66" y="-69.5" font-family="Times,serif" font-size="14.00">new5</text>
-<polyline fill="none" stroke="black" points="596.82,-61.3 596.82,-86.1 "/>
+<polyline fill="none" stroke="black" points="596.82,-61.3 596.82,-86.1"></polyline>
 <text text-anchor="middle" x="606.57" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- heap2&#45;&gt;heap2 -->
 <g id="edge1" class="edge">
-<title>heap2:s&#45;&gt;heap2:s</title>
-<path fill="none" stroke="black" d="M311.77,-61.7C302.77,-50.8 302.77,-30.8 329.77,-30.8 350.24,-30.8 355.19,-42.29 352.47,-52.59"/>
-<polygon fill="black" stroke="black" points="349.25,-51.21 347.77,-61.7 355.47,-54.42 349.25,-51.21"/>
+<title>heap2:s-&gt;heap2:s</title>
+<path fill="none" stroke="black" d="M311.77,-61.7C302.77,-50.8 302.77,-30.8 329.77,-30.8 350.24,-30.8 355.19,-42.29 352.47,-52.59"></path>
+<polygon fill="black" stroke="black" points="349.25,-51.21 347.77,-61.7 355.47,-54.42 349.25,-51.21"></polygon>
 </g>
 <!-- heap2&#45;&gt;heap2 -->
 <g id="edge2" class="edge">
-<title>heap2:n&#45;&gt;heap2:n</title>
-<path fill="none" stroke="green" stroke-width="3" d="M434.77,-85.7C425.77,-96.6 425.77,-116.6 457.77,-116.6 482.02,-116.6 487.9,-105.11 485.4,-94.81"/>
-<polygon fill="green" stroke="green" stroke-width="3" points="488.43,-93.03 480.77,-85.7 482.18,-96.2 488.43,-93.03"/>
+<title>heap2:n-&gt;heap2:n</title>
+<path fill="none" stroke="green" stroke-width="3" d="M434.77,-85.7C425.77,-96.6 425.77,-116.6 457.77,-116.6 482.02,-116.6 487.9,-105.11 485.4,-94.81"></path>
+<polygon fill="green" stroke="green" stroke-width="3" points="488.43,-93.03 480.77,-85.7 482.18,-96.2 488.43,-93.03"></polygon>
 </g>
 <!-- heap2&#45;&gt;heap2 -->
 <g id="edge3" class="edge">
-<title>heap2:s&#45;&gt;heap2:s</title>
-<path fill="none" stroke="green" stroke-width="3" d="M480.77,-61.7C471.77,-50.8 471.77,-30.8 504.27,-30.8 528.9,-30.8 534.87,-42.29 532.4,-52.59"/>
-<polygon fill="green" stroke="green" stroke-width="3" points="529.18,-51.2 527.77,-61.7 535.42,-54.37 529.18,-51.2"/>
+<title>heap2:s-&gt;heap2:s</title>
+<path fill="none" stroke="green" stroke-width="3" d="M480.77,-61.7C471.77,-50.8 471.77,-30.8 504.27,-30.8 528.9,-30.8 534.87,-42.29 532.4,-52.59"></path>
+<polygon fill="green" stroke="green" stroke-width="3" points="529.18,-51.2 527.77,-61.7 535.42,-54.37 529.18,-51.2"></polygon>
 </g>
 <!-- alloc -->
 <g id="node3" class="node">
 <title>alloc</title>
-<polygon fill="white" stroke="transparent" points="650.68,-24.7 562.87,-24.7 562.87,-0.1 650.68,-0.1 650.68,-24.7"/>
+<polygon fill="white" stroke="transparent" points="650.68,-24.7 562.87,-24.7 562.87,-0.1 650.68,-0.1 650.68,-24.7"></polygon>
 <text text-anchor="middle" x="606.77" y="-8.2" font-family="Times,serif" font-size="14.00">free memory</text>
 </g>
 <!-- heap2&#45;&gt;alloc -->
 <g id="edge4" class="edge">
-<title>heap2:s&#45;&gt;alloc:n</title>
-<path fill="none" stroke="black" stroke-dasharray="1,5" d="M606.77,-50.67C606.77,-42.05 606.77,-36.8 606.77,-24.8"/>
-<polygon fill="black" stroke="black" points="603.27,-50.8 606.77,-60.8 610.27,-50.8 603.27,-50.8"/>
+<title>heap2:s-&gt;alloc:n</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M606.77,-50.67C606.77,-42.05 606.77,-36.8 606.77,-24.8"></path>
+<polygon fill="black" stroke="black" points="603.27,-50.8 606.77,-60.8 610.27,-50.8 603.27,-50.8"></polygon>
 </g>
 <!-- stack -->
 <g id="node4" class="node">
 <title>stack</title>
-<polygon fill="white" stroke="black" points="310.83,-123.1 310.83,-147.9 528.72,-147.9 528.72,-123.1 310.83,-123.1"/>
+<polygon fill="white" stroke="black" points="310.83,-123.1 310.83,-147.9 528.72,-147.9 528.72,-123.1 310.83,-123.1"></polygon>
 <text text-anchor="middle" x="341.77" y="-131.3" font-family="Times,serif" font-size="14.00">STACK</text>
-<polyline fill="none" stroke="black" points="372.72,-123.1 372.72,-147.9 "/>
+<polyline fill="none" stroke="black" points="372.72,-123.1 372.72,-147.9"></polyline>
 <text text-anchor="middle" x="382.47" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="392.22,-123.1 392.22,-147.9 "/>
+<polyline fill="none" stroke="black" points="392.22,-123.1 392.22,-147.9"></polyline>
 <text text-anchor="middle" x="401.97" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="411.72,-123.1 411.72,-147.9 "/>
+<polyline fill="none" stroke="black" points="411.72,-123.1 411.72,-147.9"></polyline>
 <text text-anchor="middle" x="421.47" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="431.22,-123.1 431.22,-147.9 "/>
+<polyline fill="none" stroke="black" points="431.22,-123.1 431.22,-147.9"></polyline>
 <text text-anchor="middle" x="440.97" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="450.72,-123.1 450.72,-147.9 "/>
+<polyline fill="none" stroke="black" points="450.72,-123.1 450.72,-147.9"></polyline>
 <text text-anchor="middle" x="460.47" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="470.22,-123.1 470.22,-147.9 "/>
+<polyline fill="none" stroke="black" points="470.22,-123.1 470.22,-147.9"></polyline>
 <text text-anchor="middle" x="479.97" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="489.72,-123.1 489.72,-147.9 "/>
+<polyline fill="none" stroke="black" points="489.72,-123.1 489.72,-147.9"></polyline>
 <text text-anchor="middle" x="499.47" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="509.22,-123.1 509.22,-147.9 "/>
+<polyline fill="none" stroke="black" points="509.22,-123.1 509.22,-147.9"></polyline>
 <text text-anchor="middle" x="518.97" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- stack&#45;&gt;heap2 -->
 <g id="edge5" class="edge">
-<title>stack:f0&#45;&gt;heap2:f0</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M382.77,-122.6C382.77,-87.22 311.77,-121.98 311.77,-86.6"/>
+<title>stack:f0-&gt;heap2:f0</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M382.77,-122.6C382.77,-87.22 311.77,-121.98 311.77,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap2 -->
 <g id="edge6" class="edge">
-<title>stack:f1&#45;&gt;heap2:f2</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M401.77,-122.6C401.77,-105.59 388.77,-103.61 388.77,-86.6"/>
+<title>stack:f1-&gt;heap2:f2</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M401.77,-122.6C401.77,-105.59 388.77,-103.61 388.77,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap2 -->
 <g id="edge7" class="edge">
-<title>stack:f2&#45;&gt;heap2:f3</title>
-<path fill="none" stroke="green" stroke-width="3" stroke-dasharray="5,2" d="M421.77,-122.6C421.77,-105.59 434.77,-103.61 434.77,-86.6"/>
+<title>stack:f2-&gt;heap2:f3</title>
+<path fill="none" stroke="green" stroke-width="3" stroke-dasharray="5,2" d="M421.77,-122.6C421.77,-105.59 434.77,-103.61 434.77,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap2 -->
 <g id="edge8" class="edge">
-<title>stack:f6&#45;&gt;heap2:f6</title>
-<path fill="none" stroke="green" stroke-width="3" stroke-dasharray="5,2" d="M499.77,-122.6C499.77,-86.03 573.77,-123.17 573.77,-86.6"/>
+<title>stack:f6-&gt;heap2:f6</title>
+<path fill="none" stroke="green" stroke-width="3" stroke-dasharray="5,2" d="M499.77,-122.6C499.77,-86.03 573.77,-123.17 573.77,-86.6"></path>
 </g>
 </g>
 </svg>
@@ -1214,7 +1207,7 @@ appropriately. Now <code>HALF2</code> is the half of the heap in use, and <code>
 <div class="paragraph">
 <p>You may notice that the objects <code>foo</code> and <code>bar</code> disappeared. This is because <code>foo</code> and <code>bar</code>
 were not referenced directly or indirectly by any GC roots: they were unreachable, and thus
-considered "garbage". These garbage objects were
+considered &quot;garbage&quot;. These garbage objects were
 not explicitly deleted, but  simply did not get copied over from <code>HALF1</code> to <code>HALF2</code>
 during collection, and thus were wiped out when <code>HALF1</code> was cleared.</p>
 </div>
@@ -1225,121 +1218,120 @@ stop referencing <code>qux</code>, which also means that <code>baz</code> is now
 </div>
 <div class="paragraph">
 <center>
-<svg width="659px" height="156px"
- viewBox="0.00 0.00 658.73 156.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="659px" height="156px" viewBox="0.00 0.00 658.73 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 654.73,-152.4 654.73,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 654.73,-152.4 654.73,4 -4,4"></polygon>
 <!-- heap1 -->
 <g id="node1" class="node">
 <title>heap1</title>
-<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 215.55,-86.1 215.55,-61.3 0,-61.3"/>
+<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 215.55,-86.1 215.55,-61.3 0,-61.3"></polygon>
 <text text-anchor="middle" x="29.77" y="-69.5" font-family="Times,serif" font-size="14.00">HALF1</text>
-<polyline fill="none" stroke="black" points="59.55,-61.3 59.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="59.55,-61.3 59.55,-86.1"></polyline>
 <text text-anchor="middle" x="69.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="79.05,-61.3 79.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="79.05,-61.3 79.05,-86.1"></polyline>
 <text text-anchor="middle" x="88.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="98.55,-61.3 98.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="98.55,-61.3 98.55,-86.1"></polyline>
 <text text-anchor="middle" x="108.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="118.05,-61.3 118.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="118.05,-61.3 118.05,-86.1"></polyline>
 <text text-anchor="middle" x="127.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="137.55,-61.3 137.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="137.55,-61.3 137.55,-86.1"></polyline>
 <text text-anchor="middle" x="147.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="157.05,-61.3 157.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="157.05,-61.3 157.05,-86.1"></polyline>
 <text text-anchor="middle" x="166.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="176.55,-61.3 176.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="176.55,-61.3 176.55,-86.1"></polyline>
 <text text-anchor="middle" x="186.3" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="196.05,-61.3 196.05,-86.1 "/>
+<polyline fill="none" stroke="black" points="196.05,-61.3 196.05,-86.1"></polyline>
 <text text-anchor="middle" x="205.8" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- heap2 -->
 <g id="node2" class="node">
 <title>heap2</title>
-<polygon fill="white" stroke="black" points="233.23,-61.3 233.23,-86.1 616.32,-86.1 616.32,-61.3 233.23,-61.3"/>
+<polygon fill="white" stroke="black" points="233.23,-61.3 233.23,-86.1 616.32,-86.1 616.32,-61.3 233.23,-61.3"></polygon>
 <text text-anchor="middle" x="263.01" y="-69.5" font-family="Times,serif" font-size="14.00">HALF2</text>
-<polyline fill="none" stroke="black" points="292.78,-61.3 292.78,-86.1 "/>
+<polyline fill="none" stroke="black" points="292.78,-61.3 292.78,-86.1"></polyline>
 <text text-anchor="middle" x="311.28" y="-69.5" font-family="Times,serif" font-size="14.00">qux</text>
-<polyline fill="none" stroke="black" points="329.78,-61.3 329.78,-86.1 "/>
+<polyline fill="none" stroke="black" points="329.78,-61.3 329.78,-86.1"></polyline>
 <text text-anchor="middle" x="347.5" y="-69.5" font-family="Times,serif" font-size="14.00">baz</text>
-<polyline fill="none" stroke="black" points="365.21,-61.3 365.21,-86.1 "/>
+<polyline fill="none" stroke="black" points="365.21,-61.3 365.21,-86.1"></polyline>
 <text text-anchor="middle" x="388.37" y="-69.5" font-family="Times,serif" font-size="14.00">new1</text>
-<polyline fill="none" stroke="black" points="411.53,-61.3 411.53,-86.1 "/>
+<polyline fill="none" stroke="black" points="411.53,-61.3 411.53,-86.1"></polyline>
 <text text-anchor="middle" x="434.69" y="-69.5" font-family="Times,serif" font-size="14.00">new2</text>
-<polyline fill="none" stroke="black" points="457.85,-61.3 457.85,-86.1 "/>
+<polyline fill="none" stroke="black" points="457.85,-61.3 457.85,-86.1"></polyline>
 <text text-anchor="middle" x="481.01" y="-69.5" font-family="Times,serif" font-size="14.00">new3</text>
-<polyline fill="none" stroke="black" points="504.17,-61.3 504.17,-86.1 "/>
+<polyline fill="none" stroke="black" points="504.17,-61.3 504.17,-86.1"></polyline>
 <text text-anchor="middle" x="527.33" y="-69.5" font-family="Times,serif" font-size="14.00">new4</text>
-<polyline fill="none" stroke="black" points="550.49,-61.3 550.49,-86.1 "/>
+<polyline fill="none" stroke="black" points="550.49,-61.3 550.49,-86.1"></polyline>
 <text text-anchor="middle" x="573.66" y="-69.5" font-family="Times,serif" font-size="14.00">new5</text>
-<polyline fill="none" stroke="black" points="596.82,-61.3 596.82,-86.1 "/>
+<polyline fill="none" stroke="black" points="596.82,-61.3 596.82,-86.1"></polyline>
 <text text-anchor="middle" x="606.57" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- heap2&#45;&gt;heap2 -->
 <g id="edge1" class="edge">
-<title>heap2:s&#45;&gt;heap2:s</title>
-<path fill="none" stroke="black" d="M311.77,-61.7C302.77,-50.8 302.77,-30.8 329.77,-30.8 350.24,-30.8 355.19,-42.29 352.47,-52.59"/>
-<polygon fill="black" stroke="black" points="349.25,-51.21 347.77,-61.7 355.47,-54.42 349.25,-51.21"/>
+<title>heap2:s-&gt;heap2:s</title>
+<path fill="none" stroke="black" d="M311.77,-61.7C302.77,-50.8 302.77,-30.8 329.77,-30.8 350.24,-30.8 355.19,-42.29 352.47,-52.59"></path>
+<polygon fill="black" stroke="black" points="349.25,-51.21 347.77,-61.7 355.47,-54.42 349.25,-51.21"></polygon>
 </g>
 <!-- heap2&#45;&gt;heap2 -->
 <g id="edge3" class="edge">
-<title>heap2:n&#45;&gt;heap2:n</title>
-<path fill="none" stroke="black" d="M434.77,-85.7C425.77,-96.6 425.77,-116.6 457.77,-116.6 482.02,-116.6 487.9,-105.11 485.4,-94.81"/>
-<polygon fill="black" stroke="black" points="488.43,-93.03 480.77,-85.7 482.18,-96.2 488.43,-93.03"/>
+<title>heap2:n-&gt;heap2:n</title>
+<path fill="none" stroke="black" d="M434.77,-85.7C425.77,-96.6 425.77,-116.6 457.77,-116.6 482.02,-116.6 487.9,-105.11 485.4,-94.81"></path>
+<polygon fill="black" stroke="black" points="488.43,-93.03 480.77,-85.7 482.18,-96.2 488.43,-93.03"></polygon>
 </g>
 <!-- heap2&#45;&gt;heap2 -->
 <g id="edge4" class="edge">
-<title>heap2:s&#45;&gt;heap2:s</title>
-<path fill="none" stroke="black" d="M480.77,-61.7C471.77,-50.8 471.77,-30.8 504.27,-30.8 528.9,-30.8 534.87,-42.29 532.4,-52.59"/>
-<polygon fill="black" stroke="black" points="529.18,-51.2 527.77,-61.7 535.42,-54.37 529.18,-51.2"/>
+<title>heap2:s-&gt;heap2:s</title>
+<path fill="none" stroke="black" d="M480.77,-61.7C471.77,-50.8 471.77,-30.8 504.27,-30.8 528.9,-30.8 534.87,-42.29 532.4,-52.59"></path>
+<polygon fill="black" stroke="black" points="529.18,-51.2 527.77,-61.7 535.42,-54.37 529.18,-51.2"></polygon>
 </g>
 <!-- alloc -->
 <g id="node3" class="node">
 <title>alloc</title>
-<polygon fill="white" stroke="transparent" points="650.68,-24.7 562.87,-24.7 562.87,-0.1 650.68,-0.1 650.68,-24.7"/>
+<polygon fill="white" stroke="transparent" points="650.68,-24.7 562.87,-24.7 562.87,-0.1 650.68,-0.1 650.68,-24.7"></polygon>
 <text text-anchor="middle" x="606.77" y="-8.2" font-family="Times,serif" font-size="14.00">free memory</text>
 </g>
 <!-- heap2&#45;&gt;alloc -->
 <g id="edge2" class="edge">
-<title>heap2:s&#45;&gt;alloc:n</title>
-<path fill="none" stroke="black" stroke-dasharray="1,5" d="M606.77,-50.67C606.77,-42.05 606.77,-36.8 606.77,-24.8"/>
-<polygon fill="black" stroke="black" points="603.27,-50.8 606.77,-60.8 610.27,-50.8 603.27,-50.8"/>
+<title>heap2:s-&gt;alloc:n</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M606.77,-50.67C606.77,-42.05 606.77,-36.8 606.77,-24.8"></path>
+<polygon fill="black" stroke="black" points="603.27,-50.8 606.77,-60.8 610.27,-50.8 603.27,-50.8"></polygon>
 </g>
 <!-- stack -->
 <g id="node4" class="node">
 <title>stack</title>
-<polygon fill="white" stroke="black" points="323.83,-123.1 323.83,-147.9 541.72,-147.9 541.72,-123.1 323.83,-123.1"/>
+<polygon fill="white" stroke="black" points="323.83,-123.1 323.83,-147.9 541.72,-147.9 541.72,-123.1 323.83,-123.1"></polygon>
 <text text-anchor="middle" x="354.77" y="-131.3" font-family="Times,serif" font-size="14.00">STACK</text>
-<polyline fill="none" stroke="black" points="385.72,-123.1 385.72,-147.9 "/>
+<polyline fill="none" stroke="black" points="385.72,-123.1 385.72,-147.9"></polyline>
 <text text-anchor="middle" x="395.47" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="405.22,-123.1 405.22,-147.9 "/>
+<polyline fill="none" stroke="black" points="405.22,-123.1 405.22,-147.9"></polyline>
 <text text-anchor="middle" x="414.97" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="424.72,-123.1 424.72,-147.9 "/>
+<polyline fill="none" stroke="black" points="424.72,-123.1 424.72,-147.9"></polyline>
 <text text-anchor="middle" x="434.47" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="444.22,-123.1 444.22,-147.9 "/>
+<polyline fill="none" stroke="black" points="444.22,-123.1 444.22,-147.9"></polyline>
 <text text-anchor="middle" x="453.97" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="463.72,-123.1 463.72,-147.9 "/>
+<polyline fill="none" stroke="black" points="463.72,-123.1 463.72,-147.9"></polyline>
 <text text-anchor="middle" x="473.47" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="483.22,-123.1 483.22,-147.9 "/>
+<polyline fill="none" stroke="black" points="483.22,-123.1 483.22,-147.9"></polyline>
 <text text-anchor="middle" x="492.97" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="502.72,-123.1 502.72,-147.9 "/>
+<polyline fill="none" stroke="black" points="502.72,-123.1 502.72,-147.9"></polyline>
 <text text-anchor="middle" x="512.47" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="522.22,-123.1 522.22,-147.9 "/>
+<polyline fill="none" stroke="black" points="522.22,-123.1 522.22,-147.9"></polyline>
 <text text-anchor="middle" x="531.97" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- stack&#45;&gt;heap2 -->
 <g id="edge5" class="edge">
-<title>stack:f1&#45;&gt;heap2:f2</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M414.77,-122.6C414.77,-102.86 388.77,-106.34 388.77,-86.6"/>
+<title>stack:f1-&gt;heap2:f2</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M414.77,-122.6C414.77,-102.86 388.77,-106.34 388.77,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap2 -->
 <g id="edge6" class="edge">
-<title>stack:f2&#45;&gt;heap2:f3</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M434.77,-122.6C434.77,-106.6 434.77,-102.6 434.77,-86.6"/>
+<title>stack:f2-&gt;heap2:f3</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M434.77,-122.6C434.77,-106.6 434.77,-102.6 434.77,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap2 -->
 <g id="edge7" class="edge">
-<title>stack:f6&#45;&gt;heap2:f6</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M512.77,-122.6C512.77,-91.12 573.77,-118.08 573.77,-86.6"/>
+<title>stack:f6-&gt;heap2:f6</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M512.77,-122.6C512.77,-91.12 573.77,-118.08 573.77,-86.6"></path>
 </g>
 </g>
 </svg>
@@ -1347,7 +1339,7 @@ stop referencing <code>qux</code>, which also means that <code>baz</code> is now
 </center>
 </div>
 <div class="paragraph">
-<p>Although <code>qux</code> and <code>baz</code> are now "garbage", they still take up space in the heap. Thus, if we want
+<p>Although <code>qux</code> and <code>baz</code> are now &quot;garbage&quot;, they still take up space in the heap. Thus, if we want
 to allocate two new objects (e.g. <code>new6</code> and <code>new7</code>), and there is only one slot left on the heap (above),
 we need to repeat the garbage collection process: tracing
 the objects transitively reachable (<code>new1</code>, <code>new2</code>, <code>new3</code>, <code>new4</code>, <code>new5</code>), copying them
@@ -1357,126 +1349,125 @@ behind in <code>HALF2</code>. This then gives us enough space to allocate <code>
 </div>
 <div class="paragraph">
 <center>
-<svg width="644px" height="156px"
- viewBox="0.00 0.00 644.42 156.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="644px" height="156px" viewBox="0.00 0.00 644.42 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 640.42,-152.4 640.42,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 640.42,-152.4 640.42,4 -4,4"></polygon>
 <!-- heap1 -->
 <g id="node1" class="node">
 <title>heap1</title>
-<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 403.3,-86.1 403.3,-61.3 0,-61.3"/>
+<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 403.3,-86.1 403.3,-61.3 0,-61.3"></polygon>
 <text text-anchor="middle" x="29.77" y="-69.5" font-family="Times,serif" font-size="14.00">HALF1</text>
-<polyline fill="none" stroke="black" points="59.55,-61.3 59.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="59.55,-61.3 59.55,-86.1"></polyline>
 <text text-anchor="middle" x="82.71" y="-69.5" font-family="Times,serif" font-size="14.00">new1</text>
-<polyline fill="none" stroke="black" points="105.87,-61.3 105.87,-86.1 "/>
+<polyline fill="none" stroke="black" points="105.87,-61.3 105.87,-86.1"></polyline>
 <text text-anchor="middle" x="129.03" y="-69.5" font-family="Times,serif" font-size="14.00">new2</text>
-<polyline fill="none" stroke="black" points="152.19,-61.3 152.19,-86.1 "/>
+<polyline fill="none" stroke="black" points="152.19,-61.3 152.19,-86.1"></polyline>
 <text text-anchor="middle" x="175.35" y="-69.5" font-family="Times,serif" font-size="14.00">new3</text>
-<polyline fill="none" stroke="black" points="198.51,-61.3 198.51,-86.1 "/>
+<polyline fill="none" stroke="black" points="198.51,-61.3 198.51,-86.1"></polyline>
 <text text-anchor="middle" x="221.67" y="-69.5" font-family="Times,serif" font-size="14.00">new4</text>
-<polyline fill="none" stroke="black" points="244.83,-61.3 244.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="244.83,-61.3 244.83,-86.1"></polyline>
 <text text-anchor="middle" x="267.99" y="-69.5" font-family="Times,serif" font-size="14.00">new5</text>
-<polyline fill="none" stroke="black" points="291.15,-61.3 291.15,-86.1 "/>
+<polyline fill="none" stroke="black" points="291.15,-61.3 291.15,-86.1"></polyline>
 <text text-anchor="middle" x="314.31" y="-69.5" font-family="Times,serif" font-size="14.00">new6</text>
-<polyline fill="none" stroke="black" points="337.48,-61.3 337.48,-86.1 "/>
+<polyline fill="none" stroke="black" points="337.48,-61.3 337.48,-86.1"></polyline>
 <text text-anchor="middle" x="360.64" y="-69.5" font-family="Times,serif" font-size="14.00">new7</text>
-<polyline fill="none" stroke="black" points="383.8,-61.3 383.8,-86.1 "/>
+<polyline fill="none" stroke="black" points="383.8,-61.3 383.8,-86.1"></polyline>
 <text text-anchor="middle" x="393.55" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- heap1&#45;&gt;heap1 -->
 <g id="edge1" class="edge">
-<title>heap1:n&#45;&gt;heap1:n</title>
-<path fill="none" stroke="red" stroke-width="3" d="M128.65,-85.7C119.65,-96.6 119.65,-116.6 152.15,-116.6 176.78,-116.6 182.74,-105.11 180.27,-94.81"/>
-<polygon fill="red" stroke="red" stroke-width="3" points="183.29,-93.03 175.65,-85.7 177.05,-96.2 183.29,-93.03"/>
+<title>heap1:n-&gt;heap1:n</title>
+<path fill="none" stroke="red" stroke-width="3" d="M128.65,-85.7C119.65,-96.6 119.65,-116.6 152.15,-116.6 176.78,-116.6 182.74,-105.11 180.27,-94.81"></path>
+<polygon fill="red" stroke="red" stroke-width="3" points="183.29,-93.03 175.65,-85.7 177.05,-96.2 183.29,-93.03"></polygon>
 </g>
 <!-- heap1&#45;&gt;heap1 -->
 <g id="edge2" class="edge">
-<title>heap1:s&#45;&gt;heap1:s</title>
-<path fill="none" stroke="red" stroke-width="3" d="M175.65,-61.7C166.65,-50.8 166.65,-30.8 198.65,-30.8 222.9,-30.8 228.77,-42.29 226.28,-52.59"/>
-<polygon fill="red" stroke="red" stroke-width="3" points="223.06,-51.2 221.65,-61.7 229.3,-54.37 223.06,-51.2"/>
+<title>heap1:s-&gt;heap1:s</title>
+<path fill="none" stroke="red" stroke-width="3" d="M175.65,-61.7C166.65,-50.8 166.65,-30.8 198.65,-30.8 222.9,-30.8 228.77,-42.29 226.28,-52.59"></path>
+<polygon fill="red" stroke="red" stroke-width="3" points="223.06,-51.2 221.65,-61.7 229.3,-54.37 223.06,-51.2"></polygon>
 </g>
 <!-- heap1&#45;&gt;heap1 -->
 <g id="edge3" class="edge">
-<title>heap1:s&#45;&gt;heap1:s</title>
-<path fill="none" stroke="green" stroke-width="3" d="M314.65,-61.7C305.65,-50.8 305.65,-30.8 337.65,-30.8 361.9,-30.8 367.77,-42.29 365.28,-52.59"/>
-<polygon fill="green" stroke="green" stroke-width="3" points="362.06,-51.2 360.65,-61.7 368.3,-54.37 362.06,-51.2"/>
+<title>heap1:s-&gt;heap1:s</title>
+<path fill="none" stroke="green" stroke-width="3" d="M314.65,-61.7C305.65,-50.8 305.65,-30.8 337.65,-30.8 361.9,-30.8 367.77,-42.29 365.28,-52.59"></path>
+<polygon fill="green" stroke="green" stroke-width="3" points="362.06,-51.2 360.65,-61.7 368.3,-54.37 362.06,-51.2"></polygon>
 </g>
 <!-- alloc -->
 <g id="node4" class="node">
 <title>alloc</title>
-<polygon fill="white" stroke="transparent" points="437.56,-24.7 349.74,-24.7 349.74,-0.1 437.56,-0.1 437.56,-24.7"/>
+<polygon fill="white" stroke="transparent" points="437.56,-24.7 349.74,-24.7 349.74,-0.1 437.56,-0.1 437.56,-24.7"></polygon>
 <text text-anchor="middle" x="393.65" y="-8.2" font-family="Times,serif" font-size="14.00">free memory</text>
 </g>
 <!-- heap1&#45;&gt;alloc -->
 <g id="edge8" class="edge">
-<title>heap1:s&#45;&gt;alloc:n</title>
-<path fill="none" stroke="black" stroke-dasharray="1,5" d="M393.65,-50.67C393.65,-42.05 393.65,-36.8 393.65,-24.8"/>
-<polygon fill="black" stroke="black" points="390.15,-50.8 393.65,-60.8 397.15,-50.8 390.15,-50.8"/>
+<title>heap1:s-&gt;alloc:n</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M393.65,-50.67C393.65,-42.05 393.65,-36.8 393.65,-24.8"></path>
+<polygon fill="black" stroke="black" points="390.15,-50.8 393.65,-60.8 397.15,-50.8 390.15,-50.8"></polygon>
 </g>
 <!-- heap2 -->
 <g id="node2" class="node">
 <title>heap2</title>
-<polygon fill="white" stroke="black" points="420.87,-61.3 420.87,-86.1 636.42,-86.1 636.42,-61.3 420.87,-61.3"/>
+<polygon fill="white" stroke="black" points="420.87,-61.3 420.87,-86.1 636.42,-86.1 636.42,-61.3 420.87,-61.3"></polygon>
 <text text-anchor="middle" x="450.65" y="-69.5" font-family="Times,serif" font-size="14.00">HALF2</text>
-<polyline fill="none" stroke="black" points="480.42,-61.3 480.42,-86.1 "/>
+<polyline fill="none" stroke="black" points="480.42,-61.3 480.42,-86.1"></polyline>
 <text text-anchor="middle" x="490.17" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="499.92,-61.3 499.92,-86.1 "/>
+<polyline fill="none" stroke="black" points="499.92,-61.3 499.92,-86.1"></polyline>
 <text text-anchor="middle" x="509.67" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="519.42,-61.3 519.42,-86.1 "/>
+<polyline fill="none" stroke="black" points="519.42,-61.3 519.42,-86.1"></polyline>
 <text text-anchor="middle" x="529.17" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="538.92,-61.3 538.92,-86.1 "/>
+<polyline fill="none" stroke="black" points="538.92,-61.3 538.92,-86.1"></polyline>
 <text text-anchor="middle" x="548.67" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="558.42,-61.3 558.42,-86.1 "/>
+<polyline fill="none" stroke="black" points="558.42,-61.3 558.42,-86.1"></polyline>
 <text text-anchor="middle" x="568.17" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="577.92,-61.3 577.92,-86.1 "/>
+<polyline fill="none" stroke="black" points="577.92,-61.3 577.92,-86.1"></polyline>
 <text text-anchor="middle" x="587.67" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="597.42,-61.3 597.42,-86.1 "/>
+<polyline fill="none" stroke="black" points="597.42,-61.3 597.42,-86.1"></polyline>
 <text text-anchor="middle" x="607.17" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="616.92,-61.3 616.92,-86.1 "/>
+<polyline fill="none" stroke="black" points="616.92,-61.3 616.92,-86.1"></polyline>
 <text text-anchor="middle" x="626.67" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- stack -->
 <g id="node3" class="node">
 <title>stack</title>
-<polygon fill="white" stroke="black" points="37.71,-123.1 37.71,-147.9 255.59,-147.9 255.59,-123.1 37.71,-123.1"/>
+<polygon fill="white" stroke="black" points="37.71,-123.1 37.71,-147.9 255.59,-147.9 255.59,-123.1 37.71,-123.1"></polygon>
 <text text-anchor="middle" x="68.65" y="-131.3" font-family="Times,serif" font-size="14.00">STACK</text>
-<polyline fill="none" stroke="black" points="99.59,-123.1 99.59,-147.9 "/>
+<polyline fill="none" stroke="black" points="99.59,-123.1 99.59,-147.9"></polyline>
 <text text-anchor="middle" x="109.34" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="119.09,-123.1 119.09,-147.9 "/>
+<polyline fill="none" stroke="black" points="119.09,-123.1 119.09,-147.9"></polyline>
 <text text-anchor="middle" x="128.84" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="138.59,-123.1 138.59,-147.9 "/>
+<polyline fill="none" stroke="black" points="138.59,-123.1 138.59,-147.9"></polyline>
 <text text-anchor="middle" x="148.34" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="158.09,-123.1 158.09,-147.9 "/>
+<polyline fill="none" stroke="black" points="158.09,-123.1 158.09,-147.9"></polyline>
 <text text-anchor="middle" x="167.84" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="177.59,-123.1 177.59,-147.9 "/>
+<polyline fill="none" stroke="black" points="177.59,-123.1 177.59,-147.9"></polyline>
 <text text-anchor="middle" x="187.34" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="197.09,-123.1 197.09,-147.9 "/>
+<polyline fill="none" stroke="black" points="197.09,-123.1 197.09,-147.9"></polyline>
 <text text-anchor="middle" x="206.84" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="216.59,-123.1 216.59,-147.9 "/>
+<polyline fill="none" stroke="black" points="216.59,-123.1 216.59,-147.9"></polyline>
 <text text-anchor="middle" x="226.34" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="236.09,-123.1 236.09,-147.9 "/>
+<polyline fill="none" stroke="black" points="236.09,-123.1 236.09,-147.9"></polyline>
 <text text-anchor="middle" x="245.84" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- stack&#45;&gt;heap1 -->
 <g id="edge4" class="edge">
-<title>stack:f0&#45;&gt;heap1:f0</title>
-<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M109.65,-122.6C109.65,-102.6 82.65,-106.6 82.65,-86.6"/>
+<title>stack:f0-&gt;heap1:f0</title>
+<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M109.65,-122.6C109.65,-102.6 82.65,-106.6 82.65,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap1 -->
 <g id="edge5" class="edge">
-<title>stack:f1&#45;&gt;heap1:f1</title>
-<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M128.65,-122.6C128.65,-106.6 128.65,-102.6 128.65,-86.6"/>
+<title>stack:f1-&gt;heap1:f1</title>
+<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M128.65,-122.6C128.65,-106.6 128.65,-102.6 128.65,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap1 -->
 <g id="edge6" class="edge">
-<title>stack:f4&#45;&gt;heap1:f4</title>
-<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M187.65,-122.6C187.65,-83.61 267.65,-125.59 267.65,-86.6"/>
+<title>stack:f4-&gt;heap1:f4</title>
+<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M187.65,-122.6C187.65,-83.61 267.65,-125.59 267.65,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap1 -->
 <g id="edge7" class="edge">
-<title>stack:f5&#45;&gt;heap1:f5</title>
-<path fill="none" stroke="green" stroke-width="3" stroke-dasharray="5,2" d="M206.65,-122.6C206.65,-72 314.65,-137.2 314.65,-86.6"/>
+<title>stack:f5-&gt;heap1:f5</title>
+<path fill="none" stroke="green" stroke-width="3" stroke-dasharray="5,2" d="M206.65,-122.6C206.65,-72 314.65,-137.2 314.65,-86.6"></path>
 </g>
 </g>
 </svg>
@@ -1485,9 +1476,9 @@ behind in <code>HALF2</code>. This then gives us enough space to allocate <code>
 </div>
 <div class="paragraph">
 <p>This process can repeat as many times as necessary: as long as there are <em>some</em> objects
-that are unreachable, you can run a collection and copy the "live" objects to the other
+that are unreachable, you can run a collection and copy the &quot;live&quot; objects to the other
 half of the heap, freeing up some space to allocate new objects. The only reason this
-may fail is that if you run a collection and there <em>still</em> isn&#8217;t enough space to allocate
+may fail is that if you run a collection and there <em>still</em> isn’t enough space to allocate
 the objects you want; that means your program  has run out of memory, and will fail with
 an <code>OutOfMemoryError</code> or similar.</p>
 </div>
@@ -1552,109 +1543,108 @@ from left-to-right:</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="507px" height="156px"
- viewBox="0.00 0.00 506.65 156.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="507px" height="156px" viewBox="0.00 0.00 506.65 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 502.65,-152.4 502.65,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-152.4 502.65,-152.4 502.65,4 -4,4"></polygon>
 <!-- heap1 -->
 <g id="node1" class="node">
 <title>heap1</title>
-<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 498.65,-86.1 498.65,-61.3 0,-61.3"/>
+<polygon fill="white" stroke="black" points="0,-61.3 0,-86.1 498.65,-86.1 498.65,-61.3 0,-61.3"></polygon>
 <text text-anchor="middle" x="26.27" y="-69.5" font-family="Times,serif" font-size="14.00">HEAP</text>
-<polyline fill="none" stroke="black" points="52.55,-61.3 52.55,-86.1 "/>
+<polyline fill="none" stroke="black" points="52.55,-61.3 52.55,-86.1"></polyline>
 <text text-anchor="middle" x="75.71" y="-69.5" font-family="Times,serif" font-size="14.00">new1</text>
-<polyline fill="none" stroke="black" points="98.87,-61.3 98.87,-86.1 "/>
+<polyline fill="none" stroke="black" points="98.87,-61.3 98.87,-86.1"></polyline>
 <text text-anchor="middle" x="122.03" y="-69.5" font-family="Times,serif" font-size="14.00">new2</text>
-<polyline fill="none" stroke="black" points="145.19,-61.3 145.19,-86.1 "/>
+<polyline fill="none" stroke="black" points="145.19,-61.3 145.19,-86.1"></polyline>
 <text text-anchor="middle" x="168.35" y="-69.5" font-family="Times,serif" font-size="14.00">new3</text>
-<polyline fill="none" stroke="black" points="191.51,-61.3 191.51,-86.1 "/>
+<polyline fill="none" stroke="black" points="191.51,-61.3 191.51,-86.1"></polyline>
 <text text-anchor="middle" x="214.67" y="-69.5" font-family="Times,serif" font-size="14.00">new4</text>
-<polyline fill="none" stroke="black" points="237.83,-61.3 237.83,-86.1 "/>
+<polyline fill="none" stroke="black" points="237.83,-61.3 237.83,-86.1"></polyline>
 <text text-anchor="middle" x="260.99" y="-69.5" font-family="Times,serif" font-size="14.00">new5</text>
-<polyline fill="none" stroke="black" points="284.15,-61.3 284.15,-86.1 "/>
+<polyline fill="none" stroke="black" points="284.15,-61.3 284.15,-86.1"></polyline>
 <text text-anchor="middle" x="293.9" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="303.65,-61.3 303.65,-86.1 "/>
+<polyline fill="none" stroke="black" points="303.65,-61.3 303.65,-86.1"></polyline>
 <text text-anchor="middle" x="313.4" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="323.15,-61.3 323.15,-86.1 "/>
+<polyline fill="none" stroke="black" points="323.15,-61.3 323.15,-86.1"></polyline>
 <text text-anchor="middle" x="332.9" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="342.65,-61.3 342.65,-86.1 "/>
+<polyline fill="none" stroke="black" points="342.65,-61.3 342.65,-86.1"></polyline>
 <text text-anchor="middle" x="352.4" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="362.15,-61.3 362.15,-86.1 "/>
+<polyline fill="none" stroke="black" points="362.15,-61.3 362.15,-86.1"></polyline>
 <text text-anchor="middle" x="371.9" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="381.65,-61.3 381.65,-86.1 "/>
+<polyline fill="none" stroke="black" points="381.65,-61.3 381.65,-86.1"></polyline>
 <text text-anchor="middle" x="391.4" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="401.15,-61.3 401.15,-86.1 "/>
+<polyline fill="none" stroke="black" points="401.15,-61.3 401.15,-86.1"></polyline>
 <text text-anchor="middle" x="410.9" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="420.65,-61.3 420.65,-86.1 "/>
+<polyline fill="none" stroke="black" points="420.65,-61.3 420.65,-86.1"></polyline>
 <text text-anchor="middle" x="430.4" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="440.15,-61.3 440.15,-86.1 "/>
+<polyline fill="none" stroke="black" points="440.15,-61.3 440.15,-86.1"></polyline>
 <text text-anchor="middle" x="449.9" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="459.65,-61.3 459.65,-86.1 "/>
+<polyline fill="none" stroke="black" points="459.65,-61.3 459.65,-86.1"></polyline>
 <text text-anchor="middle" x="469.4" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="479.15,-61.3 479.15,-86.1 "/>
+<polyline fill="none" stroke="black" points="479.15,-61.3 479.15,-86.1"></polyline>
 <text text-anchor="middle" x="488.9" y="-69.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- heap1&#45;&gt;heap1 -->
 <g id="edge3" class="edge">
-<title>heap1:n&#45;&gt;heap1:n</title>
-<path fill="none" stroke="black" d="M122.33,-85.7C113.33,-96.6 113.33,-116.6 145.33,-116.6 169.58,-116.6 175.45,-105.11 172.96,-94.81"/>
-<polygon fill="black" stroke="black" points="175.98,-93.03 168.33,-85.7 169.74,-96.2 175.98,-93.03"/>
+<title>heap1:n-&gt;heap1:n</title>
+<path fill="none" stroke="black" d="M122.33,-85.7C113.33,-96.6 113.33,-116.6 145.33,-116.6 169.58,-116.6 175.45,-105.11 172.96,-94.81"></path>
+<polygon fill="black" stroke="black" points="175.98,-93.03 168.33,-85.7 169.74,-96.2 175.98,-93.03"></polygon>
 </g>
 <!-- heap1&#45;&gt;heap1 -->
 <g id="edge4" class="edge">
-<title>heap1:s&#45;&gt;heap1:s</title>
-<path fill="none" stroke="black" d="M168.33,-61.7C159.33,-50.8 159.33,-30.8 191.33,-30.8 215.58,-30.8 221.45,-42.29 218.96,-52.59"/>
-<polygon fill="black" stroke="black" points="215.74,-51.2 214.33,-61.7 221.98,-54.37 215.74,-51.2"/>
+<title>heap1:s-&gt;heap1:s</title>
+<path fill="none" stroke="black" d="M168.33,-61.7C159.33,-50.8 159.33,-30.8 191.33,-30.8 215.58,-30.8 221.45,-42.29 218.96,-52.59"></path>
+<polygon fill="black" stroke="black" points="215.74,-51.2 214.33,-61.7 221.98,-54.37 215.74,-51.2"></polygon>
 </g>
 <!-- alloc -->
 <g id="node3" class="node">
 <title>alloc</title>
-<polygon fill="white" stroke="transparent" points="338.23,-24.7 250.42,-24.7 250.42,-0.1 338.23,-0.1 338.23,-24.7"/>
+<polygon fill="white" stroke="transparent" points="338.23,-24.7 250.42,-24.7 250.42,-0.1 338.23,-0.1 338.23,-24.7"></polygon>
 <text text-anchor="middle" x="294.33" y="-8.2" font-family="Times,serif" font-size="14.00">free memory</text>
 </g>
 <!-- heap1&#45;&gt;alloc -->
 <g id="edge6" class="edge">
-<title>heap1:s&#45;&gt;alloc:n</title>
-<path fill="none" stroke="black" stroke-dasharray="1,5" d="M294.33,-50.67C294.33,-42.05 294.33,-36.8 294.33,-24.8"/>
-<polygon fill="black" stroke="black" points="290.83,-50.8 294.33,-60.8 297.83,-50.8 290.83,-50.8"/>
+<title>heap1:s-&gt;alloc:n</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M294.33,-50.67C294.33,-42.05 294.33,-36.8 294.33,-24.8"></path>
+<polygon fill="black" stroke="black" points="290.83,-50.8 294.33,-60.8 297.83,-50.8 290.83,-50.8"></polygon>
 </g>
 <!-- stack -->
 <g id="node2" class="node">
 <title>stack</title>
-<polygon fill="white" stroke="black" points="31.38,-123.1 31.38,-147.9 249.27,-147.9 249.27,-123.1 31.38,-123.1"/>
+<polygon fill="white" stroke="black" points="31.38,-123.1 31.38,-147.9 249.27,-147.9 249.27,-123.1 31.38,-123.1"></polygon>
 <text text-anchor="middle" x="62.33" y="-131.3" font-family="Times,serif" font-size="14.00">STACK</text>
-<polyline fill="none" stroke="black" points="93.27,-123.1 93.27,-147.9 "/>
+<polyline fill="none" stroke="black" points="93.27,-123.1 93.27,-147.9"></polyline>
 <text text-anchor="middle" x="103.02" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="112.77,-123.1 112.77,-147.9 "/>
+<polyline fill="none" stroke="black" points="112.77,-123.1 112.77,-147.9"></polyline>
 <text text-anchor="middle" x="122.52" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="132.27,-123.1 132.27,-147.9 "/>
+<polyline fill="none" stroke="black" points="132.27,-123.1 132.27,-147.9"></polyline>
 <text text-anchor="middle" x="142.02" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="151.77,-123.1 151.77,-147.9 "/>
+<polyline fill="none" stroke="black" points="151.77,-123.1 151.77,-147.9"></polyline>
 <text text-anchor="middle" x="161.52" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="171.27,-123.1 171.27,-147.9 "/>
+<polyline fill="none" stroke="black" points="171.27,-123.1 171.27,-147.9"></polyline>
 <text text-anchor="middle" x="181.02" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="190.77,-123.1 190.77,-147.9 "/>
+<polyline fill="none" stroke="black" points="190.77,-123.1 190.77,-147.9"></polyline>
 <text text-anchor="middle" x="200.52" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="210.27,-123.1 210.27,-147.9 "/>
+<polyline fill="none" stroke="black" points="210.27,-123.1 210.27,-147.9"></polyline>
 <text text-anchor="middle" x="220.02" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="229.77,-123.1 229.77,-147.9 "/>
+<polyline fill="none" stroke="black" points="229.77,-123.1 229.77,-147.9"></polyline>
 <text text-anchor="middle" x="239.52" y="-131.3" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- stack&#45;&gt;heap1 -->
 <g id="edge1" class="edge">
-<title>stack:f0&#45;&gt;heap1:f0</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M103.33,-122.6C103.33,-102.33 75.33,-106.87 75.33,-86.6"/>
+<title>stack:f0-&gt;heap1:f0</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M103.33,-122.6C103.33,-102.33 75.33,-106.87 75.33,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap1 -->
 <g id="edge2" class="edge">
-<title>stack:f1&#45;&gt;heap1:f1</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M122.33,-122.6C122.33,-106.6 122.33,-102.6 122.33,-86.6"/>
+<title>stack:f1-&gt;heap1:f1</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M122.33,-122.6C122.33,-106.6 122.33,-102.6 122.33,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap1 -->
 <g id="edge5" class="edge">
-<title>stack:f4&#45;&gt;heap1:f4</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M181.33,-122.6C181.33,-83.61 261.33,-125.59 261.33,-86.6"/>
+<title>stack:f4-&gt;heap1:f4</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M181.33,-122.6C181.33,-83.61 261.33,-125.59 261.33,-86.6"></path>
 </g>
 </g>
 </svg>
@@ -1668,97 +1658,96 @@ and the allocated objects jumbled up in no particular order</p>
 </div>
 <div class="paragraph">
 <center>
-<svg width="507px" height="126px"
- viewBox="0.00 0.00 506.65 125.60" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="507px" height="126px" viewBox="0.00 0.00 506.65 125.60" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 121.6)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-121.6 502.65,-121.6 502.65,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-121.6 502.65,-121.6 502.65,4 -4,4"></polygon>
 <!-- heap -->
 <g id="node1" class="node">
 <title>heap</title>
-<polygon fill="white" stroke="black" points="0,-30.5 0,-55.3 498.65,-55.3 498.65,-30.5 0,-30.5"/>
+<polygon fill="white" stroke="black" points="0,-30.5 0,-55.3 498.65,-55.3 498.65,-30.5 0,-30.5"></polygon>
 <text text-anchor="middle" x="26.27" y="-38.7" font-family="Times,serif" font-size="14.00">HEAP</text>
-<polyline fill="none" stroke="black" points="52.55,-30.5 52.55,-55.3 "/>
+<polyline fill="none" stroke="black" points="52.55,-30.5 52.55,-55.3"></polyline>
 <text text-anchor="middle" x="75.71" y="-38.7" font-family="Times,serif" font-size="14.00">new2</text>
-<polyline fill="none" stroke="black" points="98.87,-30.5 98.87,-55.3 "/>
+<polyline fill="none" stroke="black" points="98.87,-30.5 98.87,-55.3"></polyline>
 <text text-anchor="middle" x="122.03" y="-38.7" font-family="Times,serif" font-size="14.00">new3</text>
-<polyline fill="none" stroke="black" points="145.19,-30.5 145.19,-55.3 "/>
+<polyline fill="none" stroke="black" points="145.19,-30.5 145.19,-55.3"></polyline>
 <text text-anchor="middle" x="154.94" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="164.69,-30.5 164.69,-55.3 "/>
+<polyline fill="none" stroke="black" points="164.69,-30.5 164.69,-55.3"></polyline>
 <text text-anchor="middle" x="174.44" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="184.19,-30.5 184.19,-55.3 "/>
+<polyline fill="none" stroke="black" points="184.19,-30.5 184.19,-55.3"></polyline>
 <text text-anchor="middle" x="207.35" y="-38.7" font-family="Times,serif" font-size="14.00">new1</text>
-<polyline fill="none" stroke="black" points="230.51,-30.5 230.51,-55.3 "/>
+<polyline fill="none" stroke="black" points="230.51,-30.5 230.51,-55.3"></polyline>
 <text text-anchor="middle" x="253.67" y="-38.7" font-family="Times,serif" font-size="14.00">new4</text>
-<polyline fill="none" stroke="black" points="276.83,-30.5 276.83,-55.3 "/>
+<polyline fill="none" stroke="black" points="276.83,-30.5 276.83,-55.3"></polyline>
 <text text-anchor="middle" x="299.99" y="-38.7" font-family="Times,serif" font-size="14.00">new5</text>
-<polyline fill="none" stroke="black" points="323.15,-30.5 323.15,-55.3 "/>
+<polyline fill="none" stroke="black" points="323.15,-30.5 323.15,-55.3"></polyline>
 <text text-anchor="middle" x="332.9" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="342.65,-30.5 342.65,-55.3 "/>
+<polyline fill="none" stroke="black" points="342.65,-30.5 342.65,-55.3"></polyline>
 <text text-anchor="middle" x="352.4" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="362.15,-30.5 362.15,-55.3 "/>
+<polyline fill="none" stroke="black" points="362.15,-30.5 362.15,-55.3"></polyline>
 <text text-anchor="middle" x="371.9" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="381.65,-30.5 381.65,-55.3 "/>
+<polyline fill="none" stroke="black" points="381.65,-30.5 381.65,-55.3"></polyline>
 <text text-anchor="middle" x="391.4" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="401.15,-30.5 401.15,-55.3 "/>
+<polyline fill="none" stroke="black" points="401.15,-30.5 401.15,-55.3"></polyline>
 <text text-anchor="middle" x="410.9" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="420.65,-30.5 420.65,-55.3 "/>
+<polyline fill="none" stroke="black" points="420.65,-30.5 420.65,-55.3"></polyline>
 <text text-anchor="middle" x="430.4" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="440.15,-30.5 440.15,-55.3 "/>
+<polyline fill="none" stroke="black" points="440.15,-30.5 440.15,-55.3"></polyline>
 <text text-anchor="middle" x="449.9" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="459.65,-30.5 459.65,-55.3 "/>
+<polyline fill="none" stroke="black" points="459.65,-30.5 459.65,-55.3"></polyline>
 <text text-anchor="middle" x="469.4" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="479.15,-30.5 479.15,-55.3 "/>
+<polyline fill="none" stroke="black" points="479.15,-30.5 479.15,-55.3"></polyline>
 <text text-anchor="middle" x="488.9" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge3" class="edge">
-<title>heap:n&#45;&gt;heap:n</title>
-<path fill="none" stroke="black" d="M75.33,-54.9C66.33,-65.8 66.33,-85.8 98.83,-85.8 123.46,-85.8 129.42,-74.31 126.95,-64.01"/>
-<polygon fill="black" stroke="black" points="129.97,-62.23 122.33,-54.9 123.73,-65.4 129.97,-62.23"/>
+<title>heap:n-&gt;heap:n</title>
+<path fill="none" stroke="black" d="M75.33,-54.9C66.33,-65.8 66.33,-85.8 98.83,-85.8 123.46,-85.8 129.42,-74.31 126.95,-64.01"></path>
+<polygon fill="black" stroke="black" points="129.97,-62.23 122.33,-54.9 123.73,-65.4 129.97,-62.23"></polygon>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge4" class="edge">
-<title>heap:s&#45;&gt;heap:s</title>
-<path fill="none" stroke="black" d="M122.33,-30.9C113.33,-20 113.33,0 187.83,0 243.7,0 257.67,-11.25 257.37,-21.47"/>
-<polygon fill="black" stroke="black" points="254.05,-20.33 253.33,-30.9 260.48,-23.09 254.05,-20.33"/>
+<title>heap:s-&gt;heap:s</title>
+<path fill="none" stroke="black" d="M122.33,-30.9C113.33,-20 113.33,0 187.83,0 243.7,0 257.67,-11.25 257.37,-21.47"></path>
+<polygon fill="black" stroke="black" points="254.05,-20.33 253.33,-30.9 260.48,-23.09 254.05,-20.33"></polygon>
 </g>
 <!-- stack -->
 <g id="node2" class="node">
 <title>stack</title>
-<polygon fill="white" stroke="black" points="135.38,-92.3 135.38,-117.1 353.27,-117.1 353.27,-92.3 135.38,-92.3"/>
+<polygon fill="white" stroke="black" points="135.38,-92.3 135.38,-117.1 353.27,-117.1 353.27,-92.3 135.38,-92.3"></polygon>
 <text text-anchor="middle" x="166.33" y="-100.5" font-family="Times,serif" font-size="14.00">STACK</text>
-<polyline fill="none" stroke="black" points="197.27,-92.3 197.27,-117.1 "/>
+<polyline fill="none" stroke="black" points="197.27,-92.3 197.27,-117.1"></polyline>
 <text text-anchor="middle" x="207.02" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="216.77,-92.3 216.77,-117.1 "/>
+<polyline fill="none" stroke="black" points="216.77,-92.3 216.77,-117.1"></polyline>
 <text text-anchor="middle" x="226.52" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="236.27,-92.3 236.27,-117.1 "/>
+<polyline fill="none" stroke="black" points="236.27,-92.3 236.27,-117.1"></polyline>
 <text text-anchor="middle" x="246.02" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="255.77,-92.3 255.77,-117.1 "/>
+<polyline fill="none" stroke="black" points="255.77,-92.3 255.77,-117.1"></polyline>
 <text text-anchor="middle" x="265.52" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="275.27,-92.3 275.27,-117.1 "/>
+<polyline fill="none" stroke="black" points="275.27,-92.3 275.27,-117.1"></polyline>
 <text text-anchor="middle" x="285.02" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="294.77,-92.3 294.77,-117.1 "/>
+<polyline fill="none" stroke="black" points="294.77,-92.3 294.77,-117.1"></polyline>
 <text text-anchor="middle" x="304.52" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="314.27,-92.3 314.27,-117.1 "/>
+<polyline fill="none" stroke="black" points="314.27,-92.3 314.27,-117.1"></polyline>
 <text text-anchor="middle" x="324.02" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="333.77,-92.3 333.77,-117.1 "/>
+<polyline fill="none" stroke="black" points="333.77,-92.3 333.77,-117.1"></polyline>
 <text text-anchor="middle" x="343.52" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- stack&#45;&gt;heap -->
 <g id="edge1" class="edge">
-<title>stack:f0&#45;&gt;heap:f4</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M207.33,-91.8C207.33,-75.8 207.33,-71.8 207.33,-55.8"/>
+<title>stack:f0-&gt;heap:f4</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M207.33,-91.8C207.33,-75.8 207.33,-71.8 207.33,-55.8"></path>
 </g>
 <!-- stack&#45;&gt;heap -->
 <g id="edge2" class="edge">
-<title>stack:f1&#45;&gt;heap:f0</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M226.33,-91.8C226.33,-22.81 75.33,-124.79 75.33,-55.8"/>
+<title>stack:f1-&gt;heap:f0</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M226.33,-91.8C226.33,-22.81 75.33,-124.79 75.33,-55.8"></path>
 </g>
 <!-- stack&#45;&gt;heap -->
 <g id="edge5" class="edge">
-<title>stack:f4&#45;&gt;heap:f6</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M285.33,-91.8C285.33,-74.47 300.33,-73.13 300.33,-55.8"/>
+<title>stack:f4-&gt;heap:f6</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M285.33,-91.8C285.33,-74.47 300.33,-73.13 300.33,-55.8"></path>
 </g>
 </g>
 </svg>
@@ -1800,99 +1789,98 @@ additional edge from <code>bar</code> to <code>foo</code> (green), and with the 
 </div>
 <div class="paragraph">
 <center>
-<svg width="436px" height="126px"
- viewBox="0.00 0.00 435.51 125.60" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="436px" height="126px" viewBox="0.00 0.00 435.51 125.60" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 121.6)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-121.6 431.51,-121.6 431.51,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-121.6 431.51,-121.6 431.51,4 -4,4"></polygon>
 <!-- heap -->
 <g id="node1" class="node">
 <title>heap</title>
-<polygon fill="white" stroke="black" points="0,-30.5 0,-55.3 427.51,-55.3 427.51,-30.5 0,-30.5"/>
+<polygon fill="white" stroke="black" points="0,-30.5 0,-55.3 427.51,-55.3 427.51,-30.5 0,-30.5"></polygon>
 <text text-anchor="middle" x="26.27" y="-38.7" font-family="Times,serif" font-size="14.00">HEAP</text>
-<polyline fill="none" stroke="black" points="52.55,-30.5 52.55,-55.3 "/>
+<polyline fill="none" stroke="black" points="52.55,-30.5 52.55,-55.3"></polyline>
 <text text-anchor="middle" x="69.88" y="-38.7" font-family="Times,serif" font-size="14.00">foo</text>
-<polyline fill="none" stroke="black" points="87.21,-30.5 87.21,-55.3 "/>
+<polyline fill="none" stroke="black" points="87.21,-30.5 87.21,-55.3"></polyline>
 <text text-anchor="middle" x="104.15" y="-38.7" font-family="Times,serif" font-size="14.00">bar</text>
-<polyline fill="none" stroke="black" points="121.08,-30.5 121.08,-55.3 "/>
+<polyline fill="none" stroke="black" points="121.08,-30.5 121.08,-55.3"></polyline>
 <text text-anchor="middle" x="139.58" y="-38.7" font-family="Times,serif" font-size="14.00">qux</text>
-<polyline fill="none" stroke="black" points="158.08,-30.5 158.08,-55.3 "/>
+<polyline fill="none" stroke="black" points="158.08,-30.5 158.08,-55.3"></polyline>
 <text text-anchor="middle" x="175.8" y="-38.7" font-family="Times,serif" font-size="14.00">baz</text>
-<polyline fill="none" stroke="black" points="193.51,-30.5 193.51,-55.3 "/>
+<polyline fill="none" stroke="black" points="193.51,-30.5 193.51,-55.3"></polyline>
 <text text-anchor="middle" x="203.26" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="213.01,-30.5 213.01,-55.3 "/>
+<polyline fill="none" stroke="black" points="213.01,-30.5 213.01,-55.3"></polyline>
 <text text-anchor="middle" x="222.76" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="232.51,-30.5 232.51,-55.3 "/>
+<polyline fill="none" stroke="black" points="232.51,-30.5 232.51,-55.3"></polyline>
 <text text-anchor="middle" x="242.26" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="252.01,-30.5 252.01,-55.3 "/>
+<polyline fill="none" stroke="black" points="252.01,-30.5 252.01,-55.3"></polyline>
 <text text-anchor="middle" x="261.76" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="271.51,-30.5 271.51,-55.3 "/>
+<polyline fill="none" stroke="black" points="271.51,-30.5 271.51,-55.3"></polyline>
 <text text-anchor="middle" x="281.26" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="291.01,-30.5 291.01,-55.3 "/>
+<polyline fill="none" stroke="black" points="291.01,-30.5 291.01,-55.3"></polyline>
 <text text-anchor="middle" x="300.76" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="310.51,-30.5 310.51,-55.3 "/>
+<polyline fill="none" stroke="black" points="310.51,-30.5 310.51,-55.3"></polyline>
 <text text-anchor="middle" x="320.26" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="330.01,-30.5 330.01,-55.3 "/>
+<polyline fill="none" stroke="black" points="330.01,-30.5 330.01,-55.3"></polyline>
 <text text-anchor="middle" x="339.76" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="349.51,-30.5 349.51,-55.3 "/>
+<polyline fill="none" stroke="black" points="349.51,-30.5 349.51,-55.3"></polyline>
 <text text-anchor="middle" x="359.26" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="369.01,-30.5 369.01,-55.3 "/>
+<polyline fill="none" stroke="black" points="369.01,-30.5 369.01,-55.3"></polyline>
 <text text-anchor="middle" x="378.76" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="388.51,-30.5 388.51,-55.3 "/>
+<polyline fill="none" stroke="black" points="388.51,-30.5 388.51,-55.3"></polyline>
 <text text-anchor="middle" x="398.26" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="408.01,-30.5 408.01,-55.3 "/>
+<polyline fill="none" stroke="black" points="408.01,-30.5 408.01,-55.3"></polyline>
 <text text-anchor="middle" x="417.76" y="-38.7" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge1" class="edge">
-<title>heap:s&#45;&gt;heap:s</title>
-<path fill="none" stroke="black" d="M69.76,-30.9C60.76,-20 60.76,0 86.76,0 106.46,0 111.23,-11.49 108.47,-21.79"/>
-<polygon fill="black" stroke="black" points="105.25,-20.41 103.76,-30.9 111.46,-23.63 105.25,-20.41"/>
+<title>heap:s-&gt;heap:s</title>
+<path fill="none" stroke="black" d="M69.76,-30.9C60.76,-20 60.76,0 86.76,0 106.46,0 111.23,-11.49 108.47,-21.79"></path>
+<polygon fill="black" stroke="black" points="105.25,-20.41 103.76,-30.9 111.46,-23.63 105.25,-20.41"></polygon>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge2" class="edge">
-<title>heap:n&#45;&gt;heap:n</title>
-<path fill="none" stroke="green" stroke-width="3" d="M103.76,-54.9C112.76,-65.8 112.76,-85.8 86.76,-85.8 67.05,-85.8 62.28,-74.31 65.04,-64.01"/>
-<polygon fill="green" stroke="green" stroke-width="3" points="68.27,-65.39 69.76,-54.9 62.05,-62.17 68.27,-65.39"/>
+<title>heap:n-&gt;heap:n</title>
+<path fill="none" stroke="green" stroke-width="3" d="M103.76,-54.9C112.76,-65.8 112.76,-85.8 86.76,-85.8 67.05,-85.8 62.28,-74.31 65.04,-64.01"></path>
+<polygon fill="green" stroke="green" stroke-width="3" points="68.27,-65.39 69.76,-54.9 62.05,-62.17 68.27,-65.39"></polygon>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge3" class="edge">
-<title>heap:s&#45;&gt;heap:s</title>
-<path fill="none" stroke="black" d="M69.76,-30.9C60.76,-20 60.76,0 104.76,0 138.1,0 146.18,-11.49 144.21,-21.79"/>
-<polygon fill="black" stroke="black" points="141.01,-20.38 139.76,-30.9 147.3,-23.46 141.01,-20.38"/>
+<title>heap:s-&gt;heap:s</title>
+<path fill="none" stroke="black" d="M69.76,-30.9C60.76,-20 60.76,0 104.76,0 138.1,0 146.18,-11.49 144.21,-21.79"></path>
+<polygon fill="black" stroke="black" points="141.01,-20.38 139.76,-30.9 147.3,-23.46 141.01,-20.38"></polygon>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge4" class="edge">
-<title>heap:n&#45;&gt;heap:n</title>
-<path fill="none" stroke="red" stroke-width="3" d="M139.76,-54.9C130.76,-65.8 130.76,-85.8 157.76,-85.8 178.22,-85.8 183.17,-74.31 180.46,-64.01"/>
-<polygon fill="red" stroke="red" stroke-width="3" points="183.45,-62.18 175.76,-54.9 177.23,-65.39 183.45,-62.18"/>
+<title>heap:n-&gt;heap:n</title>
+<path fill="none" stroke="red" stroke-width="3" d="M139.76,-54.9C130.76,-65.8 130.76,-85.8 157.76,-85.8 178.22,-85.8 183.17,-74.31 180.46,-64.01"></path>
+<polygon fill="red" stroke="red" stroke-width="3" points="183.45,-62.18 175.76,-54.9 177.23,-65.39 183.45,-62.18"></polygon>
 </g>
 <!-- stack -->
 <g id="node2" class="node">
 <title>stack</title>
-<polygon fill="white" stroke="black" points="48.81,-92.3 48.81,-117.1 266.7,-117.1 266.7,-92.3 48.81,-92.3"/>
+<polygon fill="white" stroke="black" points="48.81,-92.3 48.81,-117.1 266.7,-117.1 266.7,-92.3 48.81,-92.3"></polygon>
 <text text-anchor="middle" x="79.76" y="-100.5" font-family="Times,serif" font-size="14.00">STACK</text>
-<polyline fill="none" stroke="black" points="110.7,-92.3 110.7,-117.1 "/>
+<polyline fill="none" stroke="black" points="110.7,-92.3 110.7,-117.1"></polyline>
 <text text-anchor="middle" x="120.45" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="130.2,-92.3 130.2,-117.1 "/>
+<polyline fill="none" stroke="black" points="130.2,-92.3 130.2,-117.1"></polyline>
 <text text-anchor="middle" x="139.95" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="149.7,-92.3 149.7,-117.1 "/>
+<polyline fill="none" stroke="black" points="149.7,-92.3 149.7,-117.1"></polyline>
 <text text-anchor="middle" x="159.45" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="169.2,-92.3 169.2,-117.1 "/>
+<polyline fill="none" stroke="black" points="169.2,-92.3 169.2,-117.1"></polyline>
 <text text-anchor="middle" x="178.95" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="188.7,-92.3 188.7,-117.1 "/>
+<polyline fill="none" stroke="black" points="188.7,-92.3 188.7,-117.1"></polyline>
 <text text-anchor="middle" x="198.45" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="208.2,-92.3 208.2,-117.1 "/>
+<polyline fill="none" stroke="black" points="208.2,-92.3 208.2,-117.1"></polyline>
 <text text-anchor="middle" x="217.95" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="227.7,-92.3 227.7,-117.1 "/>
+<polyline fill="none" stroke="black" points="227.7,-92.3 227.7,-117.1"></polyline>
 <text text-anchor="middle" x="237.45" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
-<polyline fill="none" stroke="black" points="247.2,-92.3 247.2,-117.1 "/>
+<polyline fill="none" stroke="black" points="247.2,-92.3 247.2,-117.1"></polyline>
 <text text-anchor="middle" x="256.95" y="-100.5" font-family="Times,serif" font-size="14.00"> </text>
 </g>
 <!-- stack&#45;&gt;heap -->
 <g id="edge5" class="edge">
-<title>stack:f1&#45;&gt;heap:f2</title>
-<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M139.76,-91.8C139.76,-75.8 139.76,-71.8 139.76,-55.8"/>
+<title>stack:f1-&gt;heap:f2</title>
+<path fill="none" stroke="red" stroke-width="3" stroke-dasharray="5,2" d="M139.76,-91.8C139.76,-75.8 139.76,-71.8 139.76,-55.8"></path>
 </g>
 </g>
 </svg>
@@ -1903,7 +1891,7 @@ additional edge from <code>bar</code> to <code>foo</code> (green), and with the 
 <ul>
 <li>
 <p>With reference counting, even though <code>foo</code> and <code>bar</code> cannot be reached by any external reference -
-they are "garbage" - each one still has a reference pointing at it from the other. Thus
+they are &quot;garbage&quot; - each one still has a reference pointing at it from the other. Thus
 they will never get collected</p>
 </li>
 <li>
@@ -1949,11 +1937,11 @@ collecting garbage. Lower is better</p>
 <ul>
 <li>
 <p><strong>Some programs only care about throughput</strong>, e.g. if you only care about how long a big batch
-analysis takes to complete, and don&#8217;t care if it pauses in the middle to GC: you just want
+analysis takes to complete, and don’t care if it pauses in the middle to GC: you just want
 it to finish as soon as possible</p>
 </li>
 <li>
-<p><strong>Other programs only care about pause times</strong>, e.g. someone playing a videogame doesn&#8217;t care if
+<p><strong>Other programs only care about pause times</strong>, e.g. someone playing a videogame doesn’t care if
 it can run faster than their eye can perceive, but they do care that it does not freeze or
 pause for noticeable amounts of time while you are playing it</p>
 </li>
@@ -1981,7 +1969,7 @@ they simply all disappeared when their half of the heap was wiped out following 
 </li>
 <li>
 <p><strong>Interval between collections is inversely proportional to free memory</strong>.
-We only need to run a collection when the garbage we allocate fills up the "extra" heap memory
+We only need to run a collection when the garbage we allocate fills up the &quot;extra&quot; heap memory
 our program has on top of what is necessary to store the live-set.</p>
 </li>
 <li>
@@ -2039,7 +2027,7 @@ of the memory you would expect to need to allocate all the objects in your progr
 </div>
 <div class="paragraph">
 <p>Even from this theoretical analysis, we have already found a number of surprising results
-in how GCs perform over time. Let&#8217;s now see how this applies to some real-world garbage
+in how GCs perform over time. Let’s now see how this applies to some real-world garbage
 collectors included with the Java Virtual Machine</p>
 </div>
 </div>
@@ -2049,8 +2037,8 @@ collectors included with the Java Virtual Machine</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Now that we have run through a theoretical introduction and analysis of how GCs work
-and how we would expect them to perform, let&#8217;s look at some small Java programs and
-monitor how garbage collection happens when using them. For this benchmark, we&#8217;ll
+and how we would expect them to perform, let’s look at some small Java programs and
+monitor how garbage collection happens when using them. For this benchmark, we’ll
 be using the following Java program:</p>
 </div>
 <div class="ulist">
@@ -2127,12 +2115,12 @@ range of inputs to collect the numbers shown below:</p>
 </div>
 <table class="tableblock frame-all grid-all fit-content stretch">
 <colgroup>
-<col>
-<col>
-<col>
-<col>
-<col>
-<col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
 </colgroup>
 <tbody>
 <tr>
@@ -2190,12 +2178,12 @@ range of inputs to collect the numbers shown below:</p>
 </div>
 <table class="tableblock frame-all grid-all fit-content stretch">
 <colgroup>
-<col>
-<col>
-<col>
-<col>
-<col>
-<col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
 </colgroup>
 <tbody>
 <tr>
@@ -2281,8 +2269,8 @@ heap.</p>
 <div class="sect2">
 <h3 id="_generational_optimizations"><a class="anchor" href="#_generational_optimizations"></a>Generational Optimizations</h3>
 <div class="paragraph">
-<p>One additional GC behavior worth discussing is the "Generational Hypothesis".
-The idea is that <em>"most"</em> objects do not live a long time, e.g. objects allocated within a method are often
+<p>One additional GC behavior worth discussing is the &quot;Generational Hypothesis&quot;.
+The idea is that <em>&quot;most&quot;</em> objects do not live a long time, e.g. objects allocated within a method are often
 collect when the method returns.Given that assumption, many GCs have made optimizations
 for the collection of objects that become garbage quickly, such that collecting them is
 much cheaper.Practically, that means that the same <code>live-set</code> and <code>heap-size</code> can have
@@ -2291,17 +2279,17 @@ vastly different performance depending on how the allocations are structured:</p
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>"Least Recently Used" garbage collections, where the <em>oldest</em> objects are the ones that
+<p>&quot;Least Recently Used&quot; garbage collections, where the <em>oldest</em> objects are the ones that
 get collected, will perform the worst</p>
 </li>
 <li>
-<p>"Most Recently Used" garbage collections, where the <em>newest</em> objects are the ones that
+<p>&quot;Most Recently Used&quot; garbage collections, where the <em>newest</em> objects are the ones that
 get collected, will perform the best</p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
-<p>Notable, "LRU" is one of the most common caching strategies, which it is possible
+<p>Notable, &quot;LRU&quot; is one of the most common caching strategies, which it is possible
 for in-memory caches with LRU cache eviction to make GC problems worse!</p>
 </div>
 <div class="paragraph">
@@ -2313,7 +2301,7 @@ randomly adjacent to the left or right of the previously-assigned allocation, me
 that recently allocated objects are likely to be over-written (becoming unreachable and
 eligible for garbage collection) more quickly by newer allocations
 in the same part of <code>liveSet</code>, while older objects in other parts of <code>liveSet</code> are less
-likely to be become unreachable. This lets us emulate the "generational" behavior that
+likely to be become unreachable. This lets us emulate the &quot;generational&quot; behavior that
 is common in real-world programs:</p>
 </div>
 <div class="listingblock">
@@ -2332,12 +2320,12 @@ we get the following:</p>
 </div>
 <table class="tableblock frame-all grid-all fit-content stretch">
 <colgroup>
-<col>
-<col>
-<col>
-<col>
-<col>
-<col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
 </colgroup>
 <tbody>
 <tr>
@@ -2395,12 +2383,12 @@ we get the following:</p>
 </div>
 <table class="tableblock frame-all grid-all fit-content stretch">
 <colgroup>
-<col>
-<col>
-<col>
-<col>
-<col>
-<col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
 </colgroup>
 <tbody>
 <tr>
@@ -2455,15 +2443,15 @@ we get the following:</p>
 </table>
 <div class="paragraph">
 <p>Where the previous random-allocation benchmark has pause times of 10s to 100s to 1000s of
-milliseconds, this "generational" benchmark has pause times in the 1s to 10s.The program
+milliseconds, this &quot;generational&quot; benchmark has pause times in the 1s to 10s.The program
 throughput is also significantly higher.
 This demonstrates that the default G1 garbage collector does in fact have optimizations that
-make it perform better for "generational" workloads.</p>
+make it perform better for &quot;generational&quot; workloads.</p>
 </div>
 <div class="paragraph">
 <p>Most GCs have some kind of optimization to make collecting recently-allocated objects
 cheaper than collecting long-lived objects; these are often called <em>generational</em>
-garbage collectors.Java&#8217;s G1GC is no different, and we can see that even with
+garbage collectors.Java’s G1GC is no different, and we can see that even with
 the same live-set size and heap sizes, shorter-lived objects are dramatically
 cheaper to collect than long-lived objects.</p>
 </div>
@@ -2482,12 +2470,12 @@ even without the <a href="#_generational_optimizations">Generational Optimizatio
 </div>
 <table class="tableblock frame-all grid-all fit-content stretch">
 <colgroup>
-<col>
-<col>
-<col>
-<col>
-<col>
-<col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
 </colgroup>
 <tbody>
 <tr>
@@ -2545,12 +2533,12 @@ even without the <a href="#_generational_optimizations">Generational Optimizatio
 </div>
 <table class="tableblock frame-all grid-all fit-content stretch">
 <colgroup>
-<col>
-<col>
-<col>
-<col>
-<col>
-<col>
+<col />
+<col />
+<col />
+<col />
+<col />
+<col />
 </colgroup>
 <tbody>
 <tr>
@@ -2614,7 +2602,7 @@ has worse pause times than the default G1GC (10s to 100s of milliseconds) but
 and worse throughput (<code>2300-2600 mb/s</code> rather than the <code>2800-3100 mb/s</code> of G1GC)</p>
 </li>
 <li>
-<p>For larger <code>heap-size</code>s - 4 times the <code>live-set</code> and above - ZGC&#8217;s pause times drop to
+<p>For larger <code>heap-size</code>s - 4 times the <code>live-set</code> and above - ZGC’s pause times drop to
 single-digit milliseconds (1-10 ms), much lower than those of G1GC</p>
 </li>
 </ol>
@@ -2633,7 +2621,7 @@ more memory than the default G1GC requires, perhaps twice as much, you can get y
 pause times from 10-100s of milliseconds down to 1-2 milliseconds. These pause times
 remain low for a wide range of heap sizes and live set sizes, and can be beneficial
 for a lot of applications that cannot afford to just randomly stop for 100ms at a time.
-But the extra memory requirement means it&#8217;s not a strict improvement, and it really
+But the extra memory requirement means it’s not a strict improvement, and it really
 depends on your use case whether the tradeoff is worth it.</p>
 </div>
 </div>
@@ -2643,7 +2631,7 @@ depends on your use case whether the tradeoff is worth it.</p>
 <h2 id="_gc_performance_takeaways"><a class="anchor" href="#_gc_performance_takeaways"></a>GC Performance Takeaways</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Now that we&#8217;ve studied garbage collections in theory, and looked at some concrete
+<p>Now that we’ve studied garbage collections in theory, and looked at some concrete
 numbers, there are some interesting conclusions. First, the unintuitive things:</p>
 </div>
 <div class="olist arabic">
@@ -2659,7 +2647,7 @@ and we verified that empirically in benchmarks.</p>
 <p><strong>Caching data <em>in-process</em> can make garbage collection pause times <em>worse</em>!</strong> If
 you have problems with GC pause times then caching things in-memory will
 increase the size of your <em>live-set</em> and therefore make your pause times even worse!
-"LRU" caches in particular are the worst case for garbage collectors, which are typically
+&quot;LRU&quot; caches in particular are the worst case for garbage collectors, which are typically
 optimized for collecting recently-allocated short-lived objects.
 In contrast, caching things <em>out of process</em>
 does not have this problem. Caching can be worthwhile to reduce redundant computation,
@@ -2694,7 +2682,7 @@ needs to trace and copy every collection, and reduce the pause times</p>
 <p><strong>Shorter-lived objects are faster to collect</strong>, due to most GCs being <em>generational</em>. This
 also ties into (1) above: caches tend to keep lots of long-lived objects in memory, which
 apart from slowing down collections due to the size of the live-set, <em>also</em> slows them down
-by missing out on the GC&#8217;s optimizations for short-lived objects.</p>
+by missing out on the GC’s optimizations for short-lived objects.</p>
 </li>
 <li>
 <p><strong>Switch to the Z garbage collector lets you trade off memory for pause times.</strong>
@@ -2719,7 +2707,7 @@ take-aways of what you need to know to understand garbage collector performance.
 <div class="paragraph">
 <p>Garbage collectors can be complicated, differing in design
 and implementation between languages (Python, Java, Go, etc.) and even within the same
-language (Java&#8217;s <a href="https://docs.oracle.com/en/java/javase/11/gctuning/parallel-collector1.html">ParallelGC</a>,
+language (Java’s <a href="https://docs.oracle.com/en/java/javase/11/gctuning/parallel-collector1.html">ParallelGC</a>,
 <a href="https://docs.oracle.com/en/java/javase/17/gctuning/garbage-first-g1-garbage-collector1.html">G1GC</a>,
 the newer <a href="https://docs.oracle.com/en/java/javase/21/gctuning/z-garbage-collector.html">ZGC</a>, etc.).
 There are endless clever optimizations for the language designers to implement and knobs
@@ -2742,9 +2730,9 @@ next time you need to do something with your GC you have a solid understanding t
 </main>
 </div>
 <script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
-<script async src="../_/js/vendor/highlight.js"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
 <script src="../_/js/vendor/lunr.js"></script>
 <script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
-<script async src="../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>

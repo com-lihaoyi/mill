@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>The Output Directory :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/out-dir.html" />
-    <link rel="prev" href="modules.html" />
-    <link rel="next" href="library-deps.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/out-dir.html">
+    <link rel="prev" href="modules.html">
+    <link rel="next" href="library-deps.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -664,7 +663,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -679,9 +678,9 @@
 </div>
 <div class="paragraph">
 <p>The <code>out/</code> folder contains all the generated files &amp; metadata for your build.
-It holds some files needed to manage Mill’s longer running server instances
+It holds some files needed to manage Mill&#8217;s longer running server instances
 (<code>out/mill-daemon/*</code>) as well as a directory and file structure resembling the
-project’s module structure.</p>
+project&#8217;s module structure.</p>
 </div>
 <div class="paragraph">
 <p>For the purposes of this page, we will be using the following minimal Mill build</p>
@@ -699,7 +698,7 @@ object foo extends JavaModule {}</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.compile # compile once
 
-&gt; echo &quot;&quot; &gt;&gt; foo/src/foo/Foo.java
+&gt; echo "" &gt;&gt; foo/src/foo/Foo.java
 
 &gt; ./mill foo.compile # compile again after editing a file
 
@@ -781,7 +780,7 @@ rebuilt, e.g. by deleting the <code>out/main/</code> or <code>out/main/compile.*
 </div>
 <div class="admonitionblock warning">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-warning" title="Warning"></i>
 </td>
@@ -794,7 +793,7 @@ rebuilt, e.g. by deleting the <code>out/main/</code> or <code>out/main/compile.*
 </div>
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 </div>
 </div>
@@ -833,25 +832,25 @@ were cached, and if not whether their outputs changed as a result of them being 
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat out/mill-profile.json
 [
   {
-    &quot;label&quot;: &quot;mill.javalib.JvmWorkerModule.internalWorker&quot;,
-    &quot;millis&quot;: 0,
-    &quot;cached&quot;: true,
-    &quot;valueHashChanged&quot;: false,
-    &quot;dependencies&quot;: [
+    "label": "mill.javalib.JvmWorkerModule.internalWorker",
+    "millis": 0,
+    "cached": true,
+    "valueHashChanged": false,
+    "dependencies": [
       ...
     ],
-    &quot;inputsHash&quot;: ...
+    "inputsHash": ...
   },
   {
-    &quot;label&quot;: &quot;foo.compile&quot;,
-    &quot;millis&quot;: ...,
-    &quot;cached&quot;: false,
-    &quot;valueHashChanged&quot;: false,
-    &quot;dependencies&quot;: [
+    "label": "foo.compile",
+    "millis": ...,
+    "cached": false,
+    "valueHashChanged": false,
+    "dependencies": [
       ...
     ],
-    &quot;inputsHash&quot;: ...,
-    &quot;previousInputsHash&quot;: ...
+    "inputsHash": ...,
+    "previousInputsHash": ...
   }
 ]</code></pre>
 </div>
@@ -867,7 +866,7 @@ understanding the performance of large parallel Mill builds</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/ChromeTracing.png" alt="ChromeTracing.png" />
+<img src="../_images/basic/ChromeTracing.png" alt="ChromeTracing.png">
 </div>
 </div>
 <div class="paragraph">
@@ -895,17 +894,17 @@ that hsows how <code>foo.compile</code> depends on <code>foo.allSourceFiles</cod
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat out/mill-dependency-tree.json
 {
-  &quot;foo.compile&quot;: {
-    &quot;foo.allSourceFiles&quot;: {
-      &quot;foo.allSources&quot;: {
-        &quot;foo.sources&quot;: {},
-        &quot;foo.generatedSources&quot;: {}
+  "foo.compile": {
+    "foo.allSourceFiles": {
+      "foo.allSources": {
+        "foo.sources": {},
+        "foo.generatedSources": {}
       }
     },
-    &quot;foo.compileClasspath&quot;: {
-      &quot;foo.localCompileClasspath&quot;: {
-        &quot;foo.unmanagedClasspath&quot;: {},
-        &quot;foo.compileResources&quot;: {}
+    "foo.compileClasspath": {
+      "foo.localCompileClasspath": {
+        "foo.unmanagedClasspath": {},
+        "foo.compileResources": {}
       }
     },
     ...
@@ -935,10 +934,10 @@ a second time, and thus this file shows how <code>foo.sources</code> invalidated
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat out/mill-invalidation-tree.json
 {
-  &quot;foo.sources&quot;: {
-    &quot;foo.allSources&quot;: {
-      &quot;foo.allSourceFiles&quot;: {
-        &quot;foo.compile&quot;: {}
+  "foo.sources": {
+    "foo.allSources": {
+      "foo.allSourceFiles": {
+        "foo.compile": {}
       }
     }
   }
@@ -954,7 +953,7 @@ one path is chosen arbitrarily to be shown in the spanning tree</p>
 <h3 id="_codesignatures_spanninginvalidationtree"><a class="anchor" href="#_codesignatures_spanninginvalidationtree"></a><code>codeSignatures spanningInvalidationTree</code></h3>
 <div class="paragraph">
 <p>Sometimes invalidation can be caused by a code change in your <code>build.mill</code>/<code>package.mill</code>
-files, rather than by a change in the project’s source files or inputs. In such cases,
+files, rather than by a change in the project&#8217;s source files or inputs. In such cases,
 the root tasks in <code>mill-invalidation-tree.json</code> may not necessarily be inputs. In such
 cases, you can look at <code>out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json</code>
 to see an invalidation tree for how code changes in specfic methods propagate throughout
@@ -969,11 +968,11 @@ the <code>build.mill</code> codebase.</p>
 &gt; cat out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json
 {
 ...
-    &quot;def build_.package_$foo$#&lt;init&gt;(build_.package_)void&quot;: {
-      &quot;call build_.package_$foo$!&lt;init&gt;(build_.package_)void&quot;: {
-        &quot;def build_.package_#foo$lzyINIT1()java.lang.Object&quot;: {
-          &quot;call build_.package_!foo$lzyINIT1()java.lang.Object&quot;: {
-            &quot;def build_.package_#foo()build_.package_$foo$&quot;: {}
+    "def build_.package_$foo$#&lt;init&gt;(build_.package_)void": {
+      "call build_.package_$foo$!&lt;init&gt;(build_.package_)void": {
+        "def build_.package_#foo$lzyINIT1()java.lang.Object": {
+          "call build_.package_!foo$lzyINIT1()java.lang.Object": {
+            "def build_.package_#foo()build_.package_$foo$": {}
           }
         }
       }
@@ -989,7 +988,7 @@ to invalidation, and ends up invalidating <code>def build_.package_#foo()</code>
 representing the <code>build.foo</code> task that will thus need to be re-evaluated.</p>
 </div>
 <div class="paragraph">
-<p>Mill’s code-change invalidation analysis is <em>approximate</em> and <em>conservative</em>. That means
+<p>Mill&#8217;s code-change invalidation analysis is <em>approximate</em> and <em>conservative</em>. That means
 that it invalidates each task when any method it calls (transitively) is changed. This may
 sometimes invalidate <em>too many</em> tasks, but it generally does not invalidate <em>too few</em> tasks,
 except in code using Java Reflection or similar techniques which the code-change analysis
@@ -1001,7 +1000,7 @@ does not understand.</p>
 <div class="paragraph">
 <p>Contains the files related ot the <a href="../extending/meta-build.html" class="xref page">The Mill Meta-Build</a>. It contains many
 of thd same task-related and Mill-related files as the top-level <code>out/</code> folder, but
-related for compiling your <code>build.mill</code> rather than compiling your project’s source files.</p>
+related for compiling your <code>build.mill</code> rather than compiling your project&#8217;s source files.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1017,8 +1016,8 @@ Deleting it will also terminate the associated server instance, if it is still r
 <h2 id="_using_another_location_than_the_out_directory"><a class="anchor" href="#_using_another_location_than_the_out_directory"></a>Using another location than the <code>out/</code> directory</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The default location for Mill’s output directory is <code>out/</code> under the project workspace.
-If you’d rather use another location than <code>out/</code>, that lives
+<p>The default location for Mill&#8217;s output directory is <code>out/</code> under the project workspace.
+If you&#8217;d rather use another location than <code>out/</code>, that lives
 in a faster or a writable filesystem for example, you can change the output directory
 via the <code>MILL_OUTPUT_DIR</code> environment variable.</p>
 </div>
@@ -1054,9 +1053,9 @@ object foo extends Module {
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>

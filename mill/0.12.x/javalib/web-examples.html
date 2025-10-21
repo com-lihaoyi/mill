@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Java Web Project Examples :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/javalib/web-examples.html" />
-    <link rel="prev" href="build-examples.html" />
-    <link rel="next" href="../scalalib/intro.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/javalib/web-examples.html">
+    <link rel="prev" href="build-examples.html">
+    <link rel="next" href="../scalalib/intro.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -652,7 +651,7 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -679,8 +678,8 @@ import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   def ivyDeps = Agg(
-    ivy&quot;org.eclipse.jetty:jetty-server:9.4.43.v20210629&quot;,
-    ivy&quot;javax.servlet:javax.servlet-api:4.0.1&quot;
+    ivy"org.eclipse.jetty:jetty-server:9.4.43.v20210629",
+    ivy"javax.servlet:javax.servlet-api:4.0.1"
   )
 
   object test extends JavaTests with TestModule.Junit4
@@ -717,13 +716,13 @@ import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   def ivyDeps = Agg(
-    ivy&quot;org.springframework.boot:spring-boot-starter-web:2.5.6&quot;,
-    ivy&quot;org.springframework.boot:spring-boot-starter-actuator:2.5.6&quot;
+    ivy"org.springframework.boot:spring-boot-starter-web:2.5.6",
+    ivy"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
   )
 
   object test extends JavaTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
+      ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }
 }</code></pre>
@@ -759,35 +758,35 @@ import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   def ivyDeps = Agg(
-    ivy&quot;org.springframework.boot:spring-boot-starter-data-jpa:2.5.4&quot;,
-    ivy&quot;org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4&quot;,
-    ivy&quot;org.springframework.boot:spring-boot-starter-validation:2.5.4&quot;,
-    ivy&quot;org.springframework.boot:spring-boot-starter-web:2.5.4&quot;,
-    ivy&quot;javax.xml.bind:jaxb-api:2.3.1&quot;,
-    ivy&quot;org.webjars:webjars-locator:0.41&quot;,
-    ivy&quot;org.webjars.npm:todomvc-common:1.0.5&quot;,
-    ivy&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;
+    ivy"org.springframework.boot:spring-boot-starter-data-jpa:2.5.4",
+    ivy"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",
+    ivy"org.springframework.boot:spring-boot-starter-validation:2.5.4",
+    ivy"org.springframework.boot:spring-boot-starter-web:2.5.4",
+    ivy"javax.xml.bind:jaxb-api:2.3.1",
+    ivy"org.webjars:webjars-locator:0.41",
+    ivy"org.webjars.npm:todomvc-common:1.0.5",
+    ivy"org.webjars.npm:todomvc-app-css:2.4.1"
   )
 
   trait HelloTests extends JavaTests with TestModule.Junit5 {
-    def mainClass = Some(&quot;com.example.TodomvcApplication&quot;)
+    def mainClass = Some("com.example.TodomvcApplication")
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
+      ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }
 
   object test extends HelloTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;com.h2database:h2:2.3.230&quot;
+      ivy"com.h2database:h2:2.3.230"
     )
   }
 
   object integration extends HelloTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;org.testcontainers:testcontainers:1.18.0&quot;,
-      ivy&quot;org.testcontainers:junit-jupiter:1.18.0&quot;,
-      ivy&quot;org.testcontainers:postgresql:1.18.0&quot;,
-      ivy&quot;org.postgresql:postgresql:42.6.0&quot;
+      ivy"org.testcontainers:testcontainers:1.18.0",
+      ivy"org.testcontainers:junit-jupiter:1.18.0",
+      ivy"org.testcontainers:postgresql:1.18.0",
+      ivy"org.postgresql:postgresql:42.6.0"
     )
   }
 }</code></pre>
@@ -847,19 +846,19 @@ this example also demonstrates:</p>
 import mill._, javalib._
 
 object `package` extends RootModule with MicronautModule {
-  def micronautVersion = &quot;4.5.3&quot;
+  def micronautVersion = "4.5.3"
   def ivyDeps = Agg(
-    ivy&quot;io.micronaut:micronaut-http-server-netty:$micronautVersion&quot;,
-    ivy&quot;io.micronaut.serde:micronaut-serde-jackson:2.10.1&quot;,
-    ivy&quot;ch.qos.logback:logback-classic:1.5.3&quot;
+    ivy"io.micronaut:micronaut-http-server-netty:$micronautVersion",
+    ivy"io.micronaut.serde:micronaut-serde-jackson:2.10.1",
+    ivy"ch.qos.logback:logback-classic:1.5.3"
   )
 
   object test extends MavenTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;io.micronaut:micronaut-http-client:$micronautVersion&quot;,
-      ivy&quot;io.micronaut.test:micronaut-test-junit5:4.4.0&quot;,
-      ivy&quot;org.junit.jupiter:junit-jupiter-api:5.8.1&quot;,
-      ivy&quot;org.junit.jupiter:junit-jupiter-engine:5.8.1&quot;
+      ivy"io.micronaut:micronaut-http-client:$micronautVersion",
+      ivy"io.micronaut.test:micronaut-test-junit5:4.4.0",
+      ivy"org.junit.jupiter:junit-jupiter-api:5.8.1",
+      ivy"org.junit.jupiter:junit-jupiter-engine:5.8.1"
     )
   }
 }
@@ -870,23 +869,23 @@ trait MicronautModule extends MavenModule {
   def processors = Task {
     defaultResolver().classpath(
       Agg(
-        ivy&quot;io.micronaut.data:micronaut-data-processor:4.7.0&quot;,
-        ivy&quot;io.micronaut:micronaut-http-validation:$micronautVersion&quot;,
-        ivy&quot;io.micronaut.serde:micronaut-serde-processor:2.9.0&quot;,
-        ivy&quot;io.micronaut.validation:micronaut-validation-processor:4.5.0&quot;,
-        ivy&quot;io.micronaut:micronaut-inject-java:$micronautVersion&quot;
+        ivy"io.micronaut.data:micronaut-data-processor:4.7.0",
+        ivy"io.micronaut:micronaut-http-validation:$micronautVersion",
+        ivy"io.micronaut.serde:micronaut-serde-processor:2.9.0",
+        ivy"io.micronaut.validation:micronaut-validation-processor:4.5.0",
+        ivy"io.micronaut:micronaut-inject-java:$micronautVersion"
       )
     )
   }
 
   def javacOptions = Seq(
-    &quot;-processorpath&quot;,
-    processors().map(_.path).mkString(&quot;:&quot;),
-    &quot;-parameters&quot;,
-    &quot;-Amicronaut.processing.incremental=true&quot;,
-    &quot;-Amicronaut.processing.group=example.micronaut&quot;,
-    &quot;-Amicronaut.processing.module=todo&quot;,
-    &quot;-Amicronaut.processing.annotations=example.micronaut.*&quot;
+    "-processorpath",
+    processors().map(_.path).mkString(":"),
+    "-parameters",
+    "-Amicronaut.processing.incremental=true",
+    "-Amicronaut.processing.group=example.micronaut",
+    "-Amicronaut.processing.module=todo",
+    "-Amicronaut.processing.annotations=example.micronaut.*"
   )
 }</code></pre>
 </div>
@@ -937,32 +936,32 @@ extended with more features as necessary.</p>
 import mill._, javalib._
 
 object `package` extends RootModule with MicronautModule {
-  def micronautVersion = &quot;4.4.3&quot;
+  def micronautVersion = "4.4.3"
   def runIvyDeps = Agg(
-    ivy&quot;ch.qos.logback:logback-classic:1.5.3&quot;,
-    ivy&quot;com.h2database:h2:2.2.224&quot;
+    ivy"ch.qos.logback:logback-classic:1.5.3",
+    ivy"com.h2database:h2:2.2.224"
   )
 
   def ivyDeps = Agg(
-    ivy&quot;io.micronaut:micronaut-http-server-netty:$micronautVersion&quot;,
-    ivy&quot;io.micronaut.serde:micronaut-serde-jackson:2.9.0&quot;,
-    ivy&quot;io.micronaut.data:micronaut-data-jdbc:4.7.0&quot;,
-    ivy&quot;io.micronaut.sql:micronaut-jdbc-hikari:5.6.0&quot;,
-    ivy&quot;io.micronaut.validation:micronaut-validation:4.5.0&quot;,
-    ivy&quot;io.micronaut.views:micronaut-views-htmx:5.2.0&quot;,
-    ivy&quot;io.micronaut.views:micronaut-views-thymeleaf:5.2.0&quot;,
-    ivy&quot;org.webjars.npm:todomvc-common:1.0.5&quot;,
-    ivy&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;,
-    ivy&quot;org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10&quot;
+    ivy"io.micronaut:micronaut-http-server-netty:$micronautVersion",
+    ivy"io.micronaut.serde:micronaut-serde-jackson:2.9.0",
+    ivy"io.micronaut.data:micronaut-data-jdbc:4.7.0",
+    ivy"io.micronaut.sql:micronaut-jdbc-hikari:5.6.0",
+    ivy"io.micronaut.validation:micronaut-validation:4.5.0",
+    ivy"io.micronaut.views:micronaut-views-htmx:5.2.0",
+    ivy"io.micronaut.views:micronaut-views-thymeleaf:5.2.0",
+    ivy"org.webjars.npm:todomvc-common:1.0.5",
+    ivy"org.webjars.npm:todomvc-app-css:2.4.1",
+    ivy"org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10"
   )
 
   object test extends MavenTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;com.h2database:h2:2.2.224&quot;,
-      ivy&quot;io.micronaut:micronaut-http-client:$micronautVersion&quot;,
-      ivy&quot;io.micronaut.test:micronaut-test-junit5:4.4.0&quot;,
-      ivy&quot;org.junit.jupiter:junit-jupiter-api:5.8.1&quot;,
-      ivy&quot;org.junit.jupiter:junit-jupiter-engine:5.8.1&quot;
+      ivy"com.h2database:h2:2.2.224",
+      ivy"io.micronaut:micronaut-http-client:$micronautVersion",
+      ivy"io.micronaut.test:micronaut-test-junit5:4.4.0",
+      ivy"org.junit.jupiter:junit-jupiter-api:5.8.1",
+      ivy"org.junit.jupiter:junit-jupiter-engine:5.8.1"
     )
   }
 }
@@ -973,23 +972,23 @@ trait MicronautModule extends MavenModule {
   def processors = Task {
     defaultResolver().classpath(
       Agg(
-        ivy&quot;io.micronaut.data:micronaut-data-processor:4.7.0&quot;,
-        ivy&quot;io.micronaut:micronaut-http-validation:$micronautVersion&quot;,
-        ivy&quot;io.micronaut.serde:micronaut-serde-processor:2.9.0&quot;,
-        ivy&quot;io.micronaut.validation:micronaut-validation-processor:4.5.0&quot;,
-        ivy&quot;io.micronaut:micronaut-inject-java:$micronautVersion&quot;
+        ivy"io.micronaut.data:micronaut-data-processor:4.7.0",
+        ivy"io.micronaut:micronaut-http-validation:$micronautVersion",
+        ivy"io.micronaut.serde:micronaut-serde-processor:2.9.0",
+        ivy"io.micronaut.validation:micronaut-validation-processor:4.5.0",
+        ivy"io.micronaut:micronaut-inject-java:$micronautVersion"
       )
     )
   }
 
   def javacOptions = Seq(
-    &quot;-processorpath&quot;,
-    processors().map(_.path).mkString(&quot;:&quot;),
-    &quot;-parameters&quot;,
-    &quot;-Amicronaut.processing.incremental=true&quot;,
-    &quot;-Amicronaut.processing.group=example.micronaut&quot;,
-    &quot;-Amicronaut.processing.module=todo&quot;,
-    &quot;-Amicronaut.processing.annotations=example.micronaut.*&quot;
+    "-processorpath",
+    processors().map(_.path).mkString(":"),
+    "-parameters",
+    "-Amicronaut.processing.incremental=true",
+    "-Amicronaut.processing.group=example.micronaut",
+    "-Amicronaut.processing.module=todo",
+    "-Amicronaut.processing.annotations=example.micronaut.*"
   )
 }</code></pre>
 </div>
@@ -998,7 +997,7 @@ trait MicronautModule extends MavenModule {
 <p>This example is a more complete example using Micronaut, adapted from
 <a href="https://github.com/sdelamo/todomvc" class="bare">https://github.com/sdelamo/todomvc</a>. On top of the <code>MicronautModule</code> and
 annotation processing demonstrated by the previous example, this example
-shows how a &quot;full stack&quot; web application using Micronaut looks like:</p>
+shows how a "full stack" web application using Micronaut looks like:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1024,7 +1023,7 @@ shows how a &quot;full stack&quot; web application using Micronaut looks like:</
 </div>
 <div class="paragraph">
 <p>Again, the example <code>MicronautModule</code> is by no means complete, but it demonstrates
-how Mill can be integrated with Micronaut’s annotation processors and configuration,
+how Mill can be integrated with Micronaut&#8217;s annotation processors and configuration,
 and can be extended to cover additional functionality in future</p>
 </div>
 <div class="listingblock">
@@ -1055,9 +1054,9 @@ and can be extended to cover additional functionality in future</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>
