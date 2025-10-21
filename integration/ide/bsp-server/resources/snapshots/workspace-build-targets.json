@@ -567,6 +567,206 @@
     },
     {
       "id": {
+        "uri": "file:///workspace/scripts/folder1/script.scala"
+      },
+      "displayName": "scripts.folder1.script.scala",
+      "baseDirectory": "file:///workspace/scripts/folder1",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java",
+        "scala"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "scala",
+      "data": {
+        "scalaOrganization": "org.scala-lang",
+        "scalaVersion": "<scala3-version>",
+        "scalaBinaryVersion": "3",
+        "platform": 1,
+        "jars": [
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/<scala3-version>/scala3-compiler_3-<scala3-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/<scala3-version>/scala3-interfaces-<scala3-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/<scala3-version>/tasty-core_3-<scala3-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/<scala-asm-version>/scala-asm-<scala-asm-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/<compiler-interface-version>/compiler-interface-<compiler-interface-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline-reader/<jline-reader-version>/jline-reader-<jline-reader-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline-terminal/<jline-terminal-version>/jline-terminal-<jline-terminal-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/<jline-terminal-jni-version>/jline-terminal-jni-<jline-terminal-jni-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/<util-interface-version>/util-interface-<util-interface-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline-native/<jline-native-version>/jline-native-<jline-native-version>.jar"
+        ],
+        "jvmBuildTarget": {
+          "javaHome": "java-home",
+          "javaVersion": "21.0.8"
+        }
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///workspace/scripts/folder2/Foo.java"
+      },
+      "displayName": "scripts.folder2.Foo.java",
+      "baseDirectory": "file:///workspace/scripts/folder2",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "java-home",
+        "javaVersion": "21.0.8"
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///workspace/scripts/folder3/script.kt"
+      },
+      "displayName": "scripts.folder3.script.kt",
+      "baseDirectory": "file:///workspace/scripts/folder3",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java",
+        "kotlin"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "java-home",
+        "javaVersion": "21.0.8"
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///workspace/scripts/foldershared/Foo.java"
+      },
+      "displayName": "scripts.foldershared.Foo.java",
+      "baseDirectory": "file:///workspace/scripts/foldershared",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "java-home",
+        "javaVersion": "21.0.8"
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///workspace/scripts/foldershared/script.kt"
+      },
+      "displayName": "scripts.foldershared.script.kt",
+      "baseDirectory": "file:///workspace/scripts/foldershared",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java",
+        "kotlin"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "java-home",
+        "javaVersion": "21.0.8"
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///workspace/scripts/foldershared/script.scala"
+      },
+      "displayName": "scripts.foldershared.script.scala",
+      "baseDirectory": "file:///workspace/scripts/foldershared",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java",
+        "scala"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "scala",
+      "data": {
+        "scalaOrganization": "org.scala-lang",
+        "scalaVersion": "<scala3-version>",
+        "scalaBinaryVersion": "3",
+        "platform": 1,
+        "jars": [
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/<scala3-version>/scala3-compiler_3-<scala3-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/<scala3-version>/scala3-interfaces-<scala3-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/<scala3-version>/tasty-core_3-<scala3-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/<scala-asm-version>/scala-asm-<scala-asm-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/<compiler-interface-version>/compiler-interface-<compiler-interface-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline-reader/<jline-reader-version>/jline-reader-<jline-reader-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline-terminal/<jline-terminal-version>/jline-terminal-<jline-terminal-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/<jline-terminal-jni-version>/jline-terminal-jni-<jline-terminal-jni-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/<util-interface-version>/util-interface-<util-interface-version>.jar",
+          "file:///coursier-cache/https/repo1.maven.org/maven2/org/jline/jline-native/<jline-native-version>/jline-native-<jline-native-version>.jar"
+        ],
+        "jvmBuildTarget": {
+          "javaHome": "java-home",
+          "javaVersion": "21.0.8"
+        }
+      }
+    },
+    {
+      "id": {
         "uri": "file:///workspace/sourcesNeedCompile"
       },
       "displayName": "sourcesNeedCompile",

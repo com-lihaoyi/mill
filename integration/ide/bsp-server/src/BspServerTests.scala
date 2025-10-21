@@ -279,28 +279,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
           .buildTargetScalacOptions(new b.ScalacOptionsParams(targetIds))
           .get()
 
-        val expectedScalaSemDbs = Map(
-          os.sub / "hello-scala" -> Seq(
-            os.sub / "hello-scala/src/Hello.scala.semanticdb"
-          ),
-          os.sub / "hello-scala/test" -> Seq(
-            os.sub / "hello-scala/test/src/HelloTest.scala.semanticdb"
-          ),
-          os.sub / "mill-build" -> Seq(
-            os.sub / "build.mill.semanticdb"
-          ),
-          os.sub / "mill-build/mill-build" -> Seq(
-            os.sub / "mill-build/build.mill.semanticdb"
-          ),
-          os.sub / "diag" -> Seq(
-            os.sub / "diag/src/DiagCheck.scala.semanticdb"
-          ),
-          os.sub / "errored/exception" -> Nil,
-          os.sub / "errored/compilation-error" -> Nil,
-          os.sub / "delayed" -> Nil,
-          os.sub / "diag/many" -> Nil,
-          os.sub / "sourcesNeedCompile" -> Nil
-        )
 
         {
           // check that semanticdbs are generated for Scala modules
@@ -317,11 +295,24 @@ object BspServerTests extends UtestIntegrationTestSuite {
               shortId -> semDbs
             }
             .toMap
-          if (expectedScalaSemDbs != semDbs) {
-            pprint.err.log(expectedScalaSemDbs)
-            pprint.err.log(semDbs)
-          }
-          assert(expectedScalaSemDbs == semDbs)
+
+          assertGoldenLiteral(
+            semDbs.map{case (k, vs) => (k.toString, vs.map(_.toString))},
+            Map(
+              "diag/many" -> List(),
+              "mill-build" -> Seq("build.mill.semanticdb"),
+              "hello-scala/test" -> Seq("hello-scala/test/src/HelloTest.scala.semanticdb"),
+              "scripts/folder1/script.scala" -> Seq("scripts/folder1/script.scala.semanticdb"),
+              "errored/exception" -> List(),
+              "hello-scala" -> Seq("hello-scala/src/Hello.scala.semanticdb"),
+              "diag" -> Seq("diag/src/DiagCheck.scala.semanticdb"),
+              "delayed" -> List(),
+              "mill-build/mill-build" -> Seq("mill-build/build.mill.semanticdb"),
+              "errored/compilation-error" -> List(),
+              "scripts/foldershared/script.scala" -> List(),
+              "sourcesNeedCompile" -> Seq()
+            )
+          )
         }
 
         {
@@ -342,23 +333,34 @@ object BspServerTests extends UtestIntegrationTestSuite {
               shortId -> semDbs
             }
             .toMap
-          val expectedJavaSemDbs = expectedScalaSemDbs ++ Seq(
-            os.sub / "app" -> Seq(
-              os.sub / "app/src/App.java.semanticdb"
-            ),
-            os.sub / "app/test" -> Nil,
-            os.sub / "hello-kotlin" -> Nil,
-            os.sub / "lib" -> Nil,
-            os.sub / "hello-java" -> Nil,
-            os.sub / "hello-java/test" -> Seq(
-              os.sub / "hello-java/test/src/HelloJavaTest.java.semanticdb"
+
+          assertGoldenLiteral(
+            semDbs.map{case (k, vs) => (k.toString, vs.map(_.toString))},
+            Map(
+              "scripts/folder3/script.kt" -> List(),
+              "mill-build" -> Seq("build.mill.semanticdb"),
+              "hello-java" -> Seq(),
+              "hello-java/test" -> Seq("hello-java/test/src/HelloJavaTest.java.semanticdb"),
+              "app" -> Seq("app/src/App.java.semanticdb"),
+              "hello-scala/test" -> Seq("hello-scala/test/src/HelloTest.scala.semanticdb"),
+              "scripts/folder1/script.scala" -> Seq("scripts/folder1/script.scala.semanticdb"),
+              "errored/exception" -> List(),
+              "app/test" -> Seq(),
+              "hello-scala" -> Seq("hello-scala/src/Hello.scala.semanticdb"),
+              "scripts/folder2/Foo.java" -> Seq("scripts/folder2/Foo.java.semanticdb"),
+              "diag/many" -> List(),
+              "diag" -> Seq("diag/src/DiagCheck.scala.semanticdb"),
+              "delayed" -> List(),
+              "scripts/foldershared/script.kt" -> List(),
+              "hello-kotlin" -> Seq(),
+              "lib" -> Seq(),
+              "scripts/foldershared/Foo.java" -> Seq("scripts/foldershared/Foo.java.semanticdb"),
+              "mill-build/mill-build" -> Seq("mill-build/build.mill.semanticdb"),
+              "errored/compilation-error" -> List(),
+              "scripts/foldershared/script.scala" -> List(),
+              "sourcesNeedCompile" -> Seq()
             )
           )
-          if (expectedJavaSemDbs != semDbs) {
-            pprint.err.log(expectedJavaSemDbs)
-            pprint.err.log(semDbs)
-          }
-          assert(expectedJavaSemDbs == semDbs)
         }
       }
     }

@@ -92,6 +92,42 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts/folder1/script.scala"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder2/Foo.java"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder3/script.kt"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/Foo.java"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/script.kt"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/script.scala"
+      },
+      "resources": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/sourcesNeedCompile"
       },
       "resources": []

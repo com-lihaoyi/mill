@@ -196,6 +196,328 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts/folder1/script.scala"
+      },
+      "modules": [
+        {
+          "name": "com.lihaoyi:pprint_3",
+          "version": "0.9.3"
+        },
+        {
+          "name": "com.lihaoyi:os-lib_3",
+          "version": "0.11.5"
+        },
+        {
+          "name": "com.lihaoyi:upickle_3",
+          "version": "4.4.0"
+        },
+        {
+          "name": "com.lihaoyi:requests_3",
+          "version": "0.9.0"
+        },
+        {
+          "name": "com.lihaoyi:mainargs_3",
+          "version": "0.7.6"
+        },
+        {
+          "name": "org.scala-lang:scala3-library_3",
+          "version": "<scala3-version>"
+        },
+        {
+          "name": "com.lihaoyi:scalatags_3",
+          "version": "0.12.0"
+        },
+        {
+          "name": "com.lihaoyi:fansi_3",
+          "version": "0.5.1"
+        },
+        {
+          "name": "com.lihaoyi:sourcecode_3",
+          "version": "0.4.3-M5"
+        },
+        {
+          "name": "org.scala-lang:scala3-library_3",
+          "version": "<scala3-version>"
+        },
+        {
+          "name": "com.lihaoyi:geny_3",
+          "version": "1.1.1"
+        },
+        {
+          "name": "com.lihaoyi:os-zip",
+          "version": "0.11.5"
+        },
+        {
+          "name": "com.lihaoyi:ujson_3",
+          "version": "4.4.0"
+        },
+        {
+          "name": "com.lihaoyi:upack_3",
+          "version": "4.4.0"
+        },
+        {
+          "name": "com.lihaoyi:upickle-implicits_3",
+          "version": "4.4.0"
+        },
+        {
+          "name": "org.scala-lang.modules:scala-collection-compat_3",
+          "version": "2.12.0"
+        },
+        {
+          "name": "org.scala-lang:scala-library",
+          "version": "<scala-version>"
+        },
+        {
+          "name": "com.lihaoyi:upickle-core_3",
+          "version": "4.4.0"
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder2/Foo.java"
+      },
+      "modules": [
+        {
+          "name": "net.sourceforge.argparse4j:argparse4j",
+          "version": "0.9.0"
+        },
+        {
+          "name": "org.thymeleaf:thymeleaf",
+          "version": "3.1.1.RELEASE"
+        },
+        {
+          "name": "ognl:ognl",
+          "version": "3.3.4"
+        },
+        {
+          "name": "org.attoparser:attoparser",
+          "version": "2.0.6.RELEASE"
+        },
+        {
+          "name": "org.unbescape:unbescape",
+          "version": "1.1.6.RELEASE"
+        },
+        {
+          "name": "org.slf4j:slf4j-api",
+          "version": "2.0.5"
+        },
+        {
+          "name": "org.javassist:javassist",
+          "version": "3.29.0-GA"
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder3/script.kt"
+      },
+      "modules": [
+        {
+          "name": "org.jetbrains.kotlin:kotlin-stdlib",
+          "version": "2.0.20"
+        },
+        {
+          "name": "com.github.ajalt.clikt:clikt",
+          "version": "4.4.0"
+        },
+        {
+          "name": "org.jetbrains.kotlinx:kotlinx-html",
+          "version": "0.11.0"
+        },
+        {
+          "name": "org.jetbrains:annotations",
+          "version": "13.0"
+        },
+        {
+          "name": "com.github.ajalt.clikt:clikt-jvm",
+          "version": "4.4.0"
+        },
+        {
+          "name": "org.jetbrains.kotlinx:kotlinx-html-jvm",
+          "version": "0.11.0"
+        },
+        {
+          "name": "com.github.ajalt.mordant:mordant",
+          "version": "2.5.0"
+        },
+        {
+          "name": "com.github.ajalt.mordant:mordant-jvm",
+          "version": "2.5.0"
+        },
+        {
+          "name": "com.github.ajalt.colormath:colormath",
+          "version": "3.5.0"
+        },
+        {
+          "name": "com.github.ajalt.colormath:colormath-jvm",
+          "version": "3.5.0"
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/Foo.java"
+      },
+      "modules": [
+        {
+          "name": "net.sourceforge.argparse4j:argparse4j",
+          "version": "0.9.0"
+        },
+        {
+          "name": "org.thymeleaf:thymeleaf",
+          "version": "3.1.1.RELEASE"
+        },
+        {
+          "name": "ognl:ognl",
+          "version": "3.3.4"
+        },
+        {
+          "name": "org.attoparser:attoparser",
+          "version": "2.0.6.RELEASE"
+        },
+        {
+          "name": "org.unbescape:unbescape",
+          "version": "1.1.6.RELEASE"
+        },
+        {
+          "name": "org.slf4j:slf4j-api",
+          "version": "2.0.5"
+        },
+        {
+          "name": "org.javassist:javassist",
+          "version": "3.29.0-GA"
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/script.kt"
+      },
+      "modules": [
+        {
+          "name": "org.jetbrains.kotlin:kotlin-stdlib",
+          "version": "2.0.20"
+        },
+        {
+          "name": "com.github.ajalt.clikt:clikt",
+          "version": "4.4.0"
+        },
+        {
+          "name": "org.jetbrains.kotlinx:kotlinx-html",
+          "version": "0.11.0"
+        },
+        {
+          "name": "org.jetbrains:annotations",
+          "version": "13.0"
+        },
+        {
+          "name": "com.github.ajalt.clikt:clikt-jvm",
+          "version": "4.4.0"
+        },
+        {
+          "name": "org.jetbrains.kotlinx:kotlinx-html-jvm",
+          "version": "0.11.0"
+        },
+        {
+          "name": "com.github.ajalt.mordant:mordant",
+          "version": "2.5.0"
+        },
+        {
+          "name": "com.github.ajalt.mordant:mordant-jvm",
+          "version": "2.5.0"
+        },
+        {
+          "name": "com.github.ajalt.colormath:colormath",
+          "version": "3.5.0"
+        },
+        {
+          "name": "com.github.ajalt.colormath:colormath-jvm",
+          "version": "3.5.0"
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/script.scala"
+      },
+      "modules": [
+        {
+          "name": "com.lihaoyi:pprint_3",
+          "version": "0.9.3"
+        },
+        {
+          "name": "com.lihaoyi:os-lib_3",
+          "version": "0.11.5"
+        },
+        {
+          "name": "com.lihaoyi:upickle_3",
+          "version": "4.4.0"
+        },
+        {
+          "name": "com.lihaoyi:requests_3",
+          "version": "0.9.0"
+        },
+        {
+          "name": "com.lihaoyi:mainargs_3",
+          "version": "0.7.6"
+        },
+        {
+          "name": "org.scala-lang:scala3-library_3",
+          "version": "<scala3-version>"
+        },
+        {
+          "name": "com.lihaoyi:scalatags_3",
+          "version": "0.12.0"
+        },
+        {
+          "name": "com.lihaoyi:fansi_3",
+          "version": "0.5.1"
+        },
+        {
+          "name": "com.lihaoyi:sourcecode_3",
+          "version": "0.4.3-M5"
+        },
+        {
+          "name": "org.scala-lang:scala3-library_3",
+          "version": "<scala3-version>"
+        },
+        {
+          "name": "com.lihaoyi:geny_3",
+          "version": "1.1.1"
+        },
+        {
+          "name": "com.lihaoyi:os-zip",
+          "version": "0.11.5"
+        },
+        {
+          "name": "com.lihaoyi:ujson_3",
+          "version": "4.4.0"
+        },
+        {
+          "name": "com.lihaoyi:upack_3",
+          "version": "4.4.0"
+        },
+        {
+          "name": "com.lihaoyi:upickle-implicits_3",
+          "version": "4.4.0"
+        },
+        {
+          "name": "org.scala-lang.modules:scala-collection-compat_3",
+          "version": "2.12.0"
+        },
+        {
+          "name": "org.scala-lang:scala-library",
+          "version": "<scala-version>"
+        },
+        {
+          "name": "com.lihaoyi:upickle-core_3",
+          "version": "4.4.0"
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/sourcesNeedCompile"
       },
       "modules": [
