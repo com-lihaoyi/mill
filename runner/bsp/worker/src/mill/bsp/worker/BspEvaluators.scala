@@ -78,7 +78,7 @@ private[mill] class BspEvaluators(
   lazy val bspIdByModule: Map[BspModuleApi, BuildTargetIdentifier] =
     bspModulesById.view.mapValues(_._1).map(_.swap).toMap
   lazy val syntheticRootBspBuildTarget: Option[SyntheticRootBspBuildTargetData] =
-    SyntheticRootBspBuildTargetData.makeIfNeeded(bspModulesById.values.map(_._1), workspaceDir)
+    SyntheticRootBspBuildTargetData.makeIfNeeded(workspaceDir)
 
   def filterNonSynthetic(input: java.util.List[BuildTargetIdentifier])
       : java.util.List[BuildTargetIdentifier] = {
