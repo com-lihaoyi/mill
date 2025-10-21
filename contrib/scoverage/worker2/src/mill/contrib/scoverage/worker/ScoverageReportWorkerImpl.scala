@@ -7,8 +7,7 @@ import _root_.scoverage.reporter.{
   ScoverageXmlWriter
 }
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2
-import ScoverageReportWorkerApi2.ReportType
-import ScoverageReportWorkerApi2.Ctx
+import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.{Ctx, ReportType}
 import scoverage.domain.Coverage
 
 import java.lang
@@ -19,7 +18,26 @@ import java.nio.file.Path
  */
 class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi2 {
 
-  
+  /**
+   * Validates whether the project's code coverage meets specified minimum thresholds for both statement and branch
+   * coverage.
+   *
+   *  This method processes coverage data from specified directories to ensure that both statement and branch coverage
+   *  meet or exceed the provided thresholds. It aggregates coverage metrics using Scoverage's CoverageAggregator and
+   *  checks each metric against its respective minimum.
+   *
+   * If either coverage threshold is not met, a RuntimeException is thrown with detailed error messages indicating
+   * which thresholds were violated.
+   *
+   * If no coverage data is found in the specified directories, a warning is logged but no exception is thrown.
+   *
+   * @param sources              Array of paths representing the source files or directories being analyzed.
+   * @param dataDirs             Array of paths pointing to directories containing Scoverage coverage data.
+   * @param sourceRoot           The root directory from which relative paths are determined, typically the project's workspace root.
+   * @param statementCoverageMin The minimum acceptable percentage for statement coverage. If not met, an exception is thrown.
+   * @param branchCoverageMin    The minimum acceptable percentage for branch coverage. If not met, an exception is thrown.
+   * @param ctx                  A context object providing logging and destination directory information for the worker's operations.
+   */
   override def validateCoverageMinimums(
       dataDirs: Array[Path],
       sourceRoot: Path,
