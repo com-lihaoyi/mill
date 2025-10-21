@@ -49,36 +49,23 @@ private[mill] class BspEvaluators(
       outDir: os.Path,
       eval: EvaluatorApi
   ): Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
-    import mill.script.ScriptFileDiscovery
+    // Reflectively load and call `ScriptModuleInit.discoverAndInstantiateScriptModules`
+    // from the evaluator's classloader
+    val scriptModuleInitClass = eval
+      .rootModule
+      .getClass
+      .getClassLoader
+      .loadClass("mill.script.ScriptModuleInit")
 
-    // Get the evaluator's classloader to ensure script modules are loaded in the same context
-    val evalClassLoader = eval.rootModule.getClass.getClassLoader
+    val result = scriptModuleInitClass
+      .getMethod("discoverAndInstantiateScriptModules")
+      .invoke(null, workspaceDir, outDir)
+      .asInstanceOf[Seq[(java.nio.file.Path, mill.api.Result[mill.api.ExternalModule])]]
 
-    // For now, we don't resolve moduleDeps as that would require access to other modules
-    val resolveModuleDep: String => Option[mill.Module] = _ => None
-
-    ScriptFileDiscovery
-      .discoverScriptFiles(workspaceDir, outDir)
-      .flatMap { scriptPath =>
-        // Reflectively load `ScriptModuleInit` from the evaluator's classloader
-        // and invoke `resolveScriptModule`
-        val scriptModuleInitClass = evalClassLoader.loadClass("mill.script.ScriptModuleInit$")
-        val scriptModuleInit = scriptModuleInitClass.getField("MODULE$").get(null)
-        val resolveScriptModuleMethod = scriptModuleInitClass.getMethods
-          .find(m => m.getName == "resolveScriptModule")
-          .getOrElse(throw new NoSuchMethodException("resolveScriptModule not found"))
-
-        val result = resolveScriptModuleMethod
-          .invoke(scriptModuleInit, scriptPath.toString, resolveModuleDep)
-          .asInstanceOf[Option[mill.api.Result[Any]]]
-
-        result.map {
-          case mill.api.Result.Success(module: BspModuleApi) =>
-            val uri = Utils.sanitizeUri(scriptPath.toNIO)
-            val id = new BuildTargetIdentifier(uri)
-            (id, (module, eval))
-        }
-      }
+    result.map {
+      case (scriptPath: java.nio.file.Path, mill.api.Result.Success(module: BspModuleApi)) =>
+        (new BuildTargetIdentifier(Utils.sanitizeUri(scriptPath)), (module, eval))
+    }
   }
   lazy val bspModulesById: Map[BuildTargetIdentifier, (BspModuleApi, EvaluatorApi)] = {
     val map = bspModulesIdList.toMap

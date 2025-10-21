@@ -74,6 +74,59 @@ object ScriptModuleInit
     }
   }
 
+  /**
+   * Discovers and instantiates script modules for BSP integration.
+   * This method must be called reflectively from the evaluator's classloader.
+   */
+  def discoverAndInstantiateScriptModules(): Seq[(java.nio.file.Path, Result[ExternalModule])] = {
+    // For now, we don't resolve moduleDeps as that would require access to other modules
+    val resolveModuleDep: String => Option[mill.Module] = _ => None
+
+    discoverScriptFiles(mill.api.BuildCtx.workspaceRoot, os.Path(mill.constants.OutFiles.out))
+      .flatMap { scriptPath =>
+        resolveScriptModule(scriptPath.toString, resolveModuleDep).map { result =>
+          (scriptPath.toNIO, result)
+        }
+      }
+  }
+
+  private val scriptExtensions = Set("scala", "java", "kt")
+
+  /**
+   * Discovers all script files in the given workspace directory.
+   *
+   * @param workspaceDir The root workspace directory to search
+   * @param outDir The output directory to exclude (typically `workspaceDir / "out"`)
+   * @return A sequence of paths to script files
+   */
+  def discoverScriptFiles(workspaceDir: os.Path, outDir: os.Path): Seq[os.Path] = {
+    if (!os.exists(workspaceDir)) return Seq.empty
+
+    os.walk(workspaceDir)
+      .filter { path =>
+        // Check if it's a file with the right extension
+        os.isFile(path) &&
+          scriptExtensions.contains(path.ext) &&
+          // Exclude files in the out/ directory
+          !path.startsWith(outDir) &&
+          // Check if file starts with //| header
+          hasScriptHeader(path)
+      }
+  }
+
+  /**
+   * Checks if a file starts with a `//|` build header comment.
+   */
+  private def hasScriptHeader(path: os.Path): Boolean = {
+    try {
+      val lines = os.read.lines(path)
+      lines.headOption.exists(_.startsWith("//|"))
+    } catch {
+      case _: Exception => false
+    }
+  }
+  
+
   def apply(
       millFileString: String,
       resolveModuleDep: String => Option[mill.Module],
