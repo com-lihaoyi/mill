@@ -305,7 +305,7 @@
       },
       "sources": [
         {
-          "uri": "file:///workspace/scripts/folder1",
+          "uri": "file:///workspace/scripts/folder2",
           "kind": 2,
           "generated": false
         }
@@ -317,7 +317,7 @@
       },
       "sources": [
         {
-          "uri": "file:///workspace/scripts/folder1",
+          "uri": "file:///workspace/scripts/foldershared",
           "kind": 2,
           "generated": false
         }
@@ -329,7 +329,7 @@
       },
       "sources": [
         {
-          "uri": "file:///workspace/scripts/folder1",
+          "uri": "file:///workspace/scripts/foldershared",
           "kind": 2,
           "generated": false
         }
