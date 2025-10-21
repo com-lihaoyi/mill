@@ -56,10 +56,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
    */
   def scoverageVersion: T[String]
 
-  def branchCoverageMin: T[Option[Double]] = T[Option.empty[Double]]
-  def statementCoverageMin: T[Option[Double]] = T[Option.empty[Double]]
-
-
+  def branchCoverageMin: T[Option[Double]] = Task { None }
+  def statementCoverageMin: T[Option[Double]] = Task { None }
 
   private def isScala3: Task[Boolean] = Task.Anon { JvmWorkerUtil.isScala3(outer.scalaVersion()) }
 
@@ -141,13 +139,21 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
         .report(reportType, allSources().map(_.path), Seq(data().path), BuildCtx.workspaceRoot)
     }
 
-    def validateCoverageMin(statementCoverageMin: Option[Double], branchCoverageMin: Option[Double]): Task[Unit] = Task.Anon {
+    def validateCoverageMin(
+        statementCoverageMin: Option[Double],
+        branchCoverageMin: Option[Double]
+    ): Task[Unit] = Task.Anon {
       ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(scoverageToolsClasspath())
-        .validateCoverageMinimums(allSources().map(_.path), Seq(data().path), statementCoverageMin.getOrElse(0.0), branchCoverageMin..getOrElse(0.0), BuildCtx.workspaceRoot)
+        .validateCoverageMinimums(
+          allSources().map(_.path),
+          Seq(data().path),
+          BuildCtx.workspaceRoot,
+          statementCoverageMin.getOrElse(0.0),
+          branchCoverageMin.getOrElse(0.0)
+        )
     }
-
 
     /**
      * The persistent data dir used to store scoverage coverage data.
@@ -201,15 +207,12 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def xmlReport(): Command[Unit] = Task.Command { doReport(ReportType.Xml)() }
     def xmlCoberturaReport(): Command[Unit] = Task.Command { doReport(ReportType.XmlCobertura)() }
     def consoleReport(): Command[Unit] = Task.Command { doReport(ReportType.Console)() }
-    def validateCoverageMinimums: Command[Unit] = Task.Command {
+    def validateCoverageMinimums(): Command[Unit] = Task.Command {
       List(statementCoverageMin(), branchCoverageMin()).exists(_.isDefined) match {
         case true => validateCoverageMin(statementCoverageMin(), branchCoverageMin())
-        case _ => //TODO: Throw exception
+        case _ => Result.Failure("Either statementCoverageMin or branchCoverageMin must be set in order to call the validateCoverageMinimums task.")
       }
-
     }
-    //TODO: Add the task of validating coverage minimums
-    //TODO: Hook into the test to fail if it falls too low
 
     override def skipIdea = true
   }
