@@ -147,7 +147,6 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
         .scoverageReportWorker()
         .bridge(scoverageToolsClasspath())
         .validateCoverageMinimums(
-          allSources().map(_.path),
           Seq(data().path),
           BuildCtx.workspaceRoot,
           statementCoverageMin.getOrElse(0.0),
