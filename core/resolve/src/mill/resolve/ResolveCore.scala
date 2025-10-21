@@ -50,7 +50,10 @@ private object ResolveCore {
    * same module
    */
   class Cache(
-      val instantiatedModules: collection.mutable.Map[(RootModule0, Segments), mill.api.Result[Module]] =
+      val instantiatedModules: collection.mutable.Map[
+        (RootModule0, Segments),
+        mill.api.Result[Module]
+      ] =
         collection.mutable.Map(),
       decodedNames: collection.mutable.Map[String, String] = collection.mutable.Map(),
       methods: collection.mutable.Map[(Class[?], Boolean, Class[?]), Array[(
