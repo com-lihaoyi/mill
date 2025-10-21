@@ -342,7 +342,7 @@ class GenIdeaImpl(
         os.sub / "modules.xml",
         allModulesXmlTemplate(
           (modules.map { case (segments = segments) => moduleName(segments) } ++
-           scriptFiles.map(scriptModuleName)).sorted
+            scriptFiles.map(scriptModuleName)).sorted
         )
       ),
       Tuple2(

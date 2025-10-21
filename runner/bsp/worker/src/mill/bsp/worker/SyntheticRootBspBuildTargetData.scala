@@ -6,7 +6,7 @@ import mill.api.daemon.internal.bsp.BspModuleApi.Tag
 
 import scala.jdk.CollectionConverters._
 import ch.epfl.scala.bsp4j.BuildTarget
-import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
+import mill.api.daemon.internal.bsp.BspBuildTarget
 
 /**
  * Synthesised [[BspBuildTarget]] to handle exclusions.
@@ -38,6 +38,6 @@ class SyntheticRootBspBuildTargetData(topLevelProjectRoot: os.Path) {
   ) // intellijBSP does not create contentRootData for module with only outputPaths (this is probably a bug)
 }
 object SyntheticRootBspBuildTargetData {
-  def makeIfNeeded(workspaceDir: os.Path): Option[SyntheticRootBspBuildTargetData] = 
+  def makeIfNeeded(workspaceDir: os.Path): Option[SyntheticRootBspBuildTargetData] =
     Some(new SyntheticRootBspBuildTargetData(workspaceDir))
 }

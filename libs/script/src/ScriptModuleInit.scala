@@ -107,11 +107,11 @@ object ScriptModuleInit
       .filter { path =>
         // Check if it's a file with the right extension
         os.isFile(path) &&
-          scriptExtensions.contains(path.ext) &&
-          // Exclude files in the out/ directory
-          !path.startsWith(outDir) &&
-          // Check if file starts with //| header
-          hasScriptHeader(path)
+        scriptExtensions.contains(path.ext) &&
+        // Exclude files in the out/ directory
+        !path.startsWith(outDir) &&
+        // Check if file starts with //| header
+        hasScriptHeader(path)
       }
   }
 
@@ -126,7 +126,6 @@ object ScriptModuleInit
       case _: Exception => false
     }
   }
-
 
   def apply(
       millFileString: String,
@@ -143,7 +142,9 @@ object ScriptModuleInit
           case Some(n) => resolveScriptModule((millFile0 / n).toString, resolveModuleDep).toSeq
           case None =>
             if (!os.isDir(millFile0)) Nil
-            else os.list(millFile0).filter(os.isDir).flatMap(p => resolveScriptModule(p.toString, resolveModuleDep))
+            else os.list(millFile0).filter(os.isDir).flatMap(p =>
+              resolveScriptModule(p.toString, resolveModuleDep)
+            )
         }
       } else resolveScriptModule(millFileString, resolveModuleDep).toSeq
     }

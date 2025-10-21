@@ -279,7 +279,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
           .buildTargetScalacOptions(new b.ScalacOptionsParams(targetIds))
           .get()
 
-
         {
           // check that semanticdbs are generated for Scala modules
           val semDbs = scalacOptionsResult
@@ -297,7 +296,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
             .toMap
 
           assertGoldenLiteral(
-            semDbs.map{case (k, vs) => (k.toString, vs.map(_.toString))},
+            semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
             Map(
               "diag/many" -> List(),
               "mill-build" -> Seq("build.mill.semanticdb"),
@@ -309,7 +308,9 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "delayed" -> List(),
               "mill-build/mill-build" -> Seq("mill-build/build.mill.semanticdb"),
               "errored/compilation-error" -> List(),
-              "scripts/foldershared/script.scala" -> Seq("scripts/foldershared/script.scala.semanticdb"),
+              "scripts/foldershared/script.scala" -> Seq(
+                "scripts/foldershared/script.scala.semanticdb"
+              ),
               "sourcesNeedCompile" -> Seq()
             )
           )
@@ -335,7 +336,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
             .toMap
 
           assertGoldenLiteral(
-            semDbs.map{case (k, vs) => (k.toString, vs.map(_.toString))},
+            semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
             Map(
               "mill-build" -> Seq("build.mill.semanticdb"),
               "hello-kotlin" -> Seq(),
@@ -355,7 +356,9 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "scripts/foldershared/Foo.java" -> Seq("scripts/foldershared/Foo.java.semanticdb"),
               "mill-build/mill-build" -> Seq("mill-build/build.mill.semanticdb"),
               "errored/compilation-error" -> List(),
-              "scripts/foldershared/script.scala" -> Seq("scripts/foldershared/script.scala.semanticdb"),
+              "scripts/foldershared/script.scala" -> Seq(
+                "scripts/foldershared/script.scala.semanticdb"
+              ),
               "sourcesNeedCompile" -> Seq()
             )
           )

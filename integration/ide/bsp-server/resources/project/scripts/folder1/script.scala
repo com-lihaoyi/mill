@@ -8,6 +8,5 @@ def main(args: Array[String]): Unit = {
       h1("Hello"),
       p("World")
     ).render
-
   )
 }

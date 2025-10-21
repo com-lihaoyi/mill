@@ -5,7 +5,6 @@ import mill.api.Discover
 import mill.api.daemon.Segments
 import mill.javalib.*
 import mill.api.ModuleCtx.HeaderData
-import mill.javalib.bsp.BspModule
 trait ScriptModule extends ExternalModule {
   def scriptConfig: ScriptModule.Config
 
