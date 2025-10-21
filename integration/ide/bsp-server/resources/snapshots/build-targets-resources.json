@@ -104,19 +104,7 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/scripts/folder3/script.kt"
-      },
-      "resources": []
-    },
-    {
-      "target": {
         "uri": "file:///workspace/scripts/foldershared/Foo.java"
-      },
-      "resources": []
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/scripts/foldershared/script.kt"
       },
       "resources": []
     },

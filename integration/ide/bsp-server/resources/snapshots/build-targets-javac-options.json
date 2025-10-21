@@ -210,22 +210,6 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/scripts/folder3/script.kt"
-      },
-      "options": [],
-      "classpath": [
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.0.20/kotlin-stdlib-2.0.20.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/annotations/<annotations-version>/annotations-<annotations-version>.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/github/ajalt/clikt/clikt-jvm/4.4.0/clikt-jvm-4.4.0.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-html-jvm/0.11.0/kotlinx-html-jvm-0.11.0.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/github/ajalt/mordant/mordant-jvm/2.5.0/mordant-jvm-2.5.0.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/github/ajalt/colormath/colormath-jvm/3.5.0/colormath-jvm-3.5.0.jar",
-        "file:///workspace/scripts/folder3/compile-resources"
-      ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/folder3/script.kt/compiledClassesAndSemanticDbFiles.dest"
-    },
-    {
-      "target": {
         "uri": "file:///workspace/scripts/foldershared/Foo.java"
       },
       "options": [],
@@ -240,22 +224,6 @@
         "file:///workspace/scripts/foldershared/compile-resources"
       ],
       "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/foldershared/Foo.java/compiledClassesAndSemanticDbFiles.dest"
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/scripts/foldershared/script.kt"
-      },
-      "options": [],
-      "classpath": [
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.0.20/kotlin-stdlib-2.0.20.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/annotations/<annotations-version>/annotations-<annotations-version>.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/github/ajalt/clikt/clikt-jvm/4.4.0/clikt-jvm-4.4.0.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-html-jvm/0.11.0/kotlinx-html-jvm-0.11.0.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/github/ajalt/mordant/mordant-jvm/2.5.0/mordant-jvm-2.5.0.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/github/ajalt/colormath/colormath-jvm/3.5.0/colormath-jvm-3.5.0.jar",
-        "file:///workspace/scripts/foldershared/compile-resources"
-      ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/foldershared/script.kt/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {

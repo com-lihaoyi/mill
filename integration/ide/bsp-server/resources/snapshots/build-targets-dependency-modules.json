@@ -310,53 +310,6 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/scripts/folder3/script.kt"
-      },
-      "modules": [
-        {
-          "name": "org.jetbrains.kotlin:kotlin-stdlib",
-          "version": "2.0.20"
-        },
-        {
-          "name": "com.github.ajalt.clikt:clikt",
-          "version": "4.4.0"
-        },
-        {
-          "name": "org.jetbrains.kotlinx:kotlinx-html",
-          "version": "0.11.0"
-        },
-        {
-          "name": "org.jetbrains:annotations",
-          "version": "13.0"
-        },
-        {
-          "name": "com.github.ajalt.clikt:clikt-jvm",
-          "version": "4.4.0"
-        },
-        {
-          "name": "org.jetbrains.kotlinx:kotlinx-html-jvm",
-          "version": "0.11.0"
-        },
-        {
-          "name": "com.github.ajalt.mordant:mordant",
-          "version": "2.5.0"
-        },
-        {
-          "name": "com.github.ajalt.mordant:mordant-jvm",
-          "version": "2.5.0"
-        },
-        {
-          "name": "com.github.ajalt.colormath:colormath",
-          "version": "3.5.0"
-        },
-        {
-          "name": "com.github.ajalt.colormath:colormath-jvm",
-          "version": "3.5.0"
-        }
-      ]
-    },
-    {
-      "target": {
         "uri": "file:///workspace/scripts/foldershared/Foo.java"
       },
       "modules": [
@@ -387,53 +340,6 @@
         {
           "name": "org.javassist:javassist",
           "version": "3.29.0-GA"
-        }
-      ]
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/scripts/foldershared/script.kt"
-      },
-      "modules": [
-        {
-          "name": "org.jetbrains.kotlin:kotlin-stdlib",
-          "version": "2.0.20"
-        },
-        {
-          "name": "com.github.ajalt.clikt:clikt",
-          "version": "4.4.0"
-        },
-        {
-          "name": "org.jetbrains.kotlinx:kotlinx-html",
-          "version": "0.11.0"
-        },
-        {
-          "name": "org.jetbrains:annotations",
-          "version": "13.0"
-        },
-        {
-          "name": "com.github.ajalt.clikt:clikt-jvm",
-          "version": "4.4.0"
-        },
-        {
-          "name": "org.jetbrains.kotlinx:kotlinx-html-jvm",
-          "version": "0.11.0"
-        },
-        {
-          "name": "com.github.ajalt.mordant:mordant",
-          "version": "2.5.0"
-        },
-        {
-          "name": "com.github.ajalt.mordant:mordant-jvm",
-          "version": "2.5.0"
-        },
-        {
-          "name": "com.github.ajalt.colormath:colormath",
-          "version": "3.5.0"
-        },
-        {
-          "name": "com.github.ajalt.colormath:colormath-jvm",
-          "version": "3.5.0"
         }
       ]
     },
