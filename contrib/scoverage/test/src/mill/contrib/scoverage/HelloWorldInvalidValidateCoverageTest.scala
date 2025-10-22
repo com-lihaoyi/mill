@@ -1,15 +1,17 @@
 package mill.contrib.scoverage
 
-import mill._
-import mill.api.ExecResult
+import mill.*
+import mill.api.Discover
+import mill.api.daemon.ExecResult.Failure
 import mill.contrib.buildinfo.BuildInfo
-import mill.testkit.UnitTester
-import mill.testkit.TestRootModule
+import mill.scalalib.{DepSyntax, ScalaModule, TestModule}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
 trait HelloWorldInvalidValidateCoverageTest extends utest.TestSuite {
   def testScalaVersion: String
   def testScoverageVersion: String
+  def testScalatestVersion: String = "3.2.13"
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world"
 
@@ -23,6 +25,15 @@ trait HelloWorldInvalidValidateCoverageTest extends utest.TestSuite {
       def branchCoverageMin = None
 
       override def moduleDeps = Seq.empty
+
+      def buildInfoPackageName = "bar"
+
+      override def buildInfoMembers = Seq(
+        BuildInfo.Value("scoverageVersion", scoverageVersion())
+      )
+      object test extends ScoverageTests with TestModule.ScalaTest {
+        override def mvnDeps = Seq(mvn"org.scalatest::scalatest:${testScalatestVersion}")
+      }
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -32,11 +43,10 @@ trait HelloWorldInvalidValidateCoverageTest extends utest.TestSuite {
     test("HelloWorldInvalidValidateCoverageTest") {
       test("core") {
         test("validateCoverageMinimums fails with no minimums") - UnitTester(InvalidCoverageCheck, resourcePath).scoped { eval =>
-          val Left(ExecResult.Failure(msg)) =
-            eval.apply(InvalidCoverageCheck.core.scoverage.validateCoverageMinimums): @unchecked
+          val Left(Failure(msg)) = eval.apply(InvalidCoverageCheck.core.scoverage.validateCoverageMinimums()): @unchecked
+
           assert(
-            msg.contains("No coverage minimums defined"),
-            "validateCoverageMinimums should fail when no minimums are provided"
+            msg.equals("Either statementCoverageMin or branchCoverageMin must be set in order to call the validateCoverageMinimums task.")
           )
         }
       }
