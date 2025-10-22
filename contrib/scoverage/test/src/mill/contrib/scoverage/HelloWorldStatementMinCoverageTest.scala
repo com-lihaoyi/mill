@@ -2,7 +2,6 @@ package mill.contrib.scoverage
 
 import mill.*
 import mill.api.Discover
-import mill.api.daemon.ExecResult
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.{DepSyntax, ScalaModule, TestModule}
 import mill.testkit.{TestRootModule, UnitTester}
@@ -19,7 +18,7 @@ trait HelloWorldStatementMinCoverageTest extends utest.TestSuite {
     object core extends ScoverageModule with BuildInfo {
       def scalaVersion = testScalaVersion
       def scoverageVersion = testScoverageVersion
-      
+
       // Set statement coverage minimum to 15%
       def statementCoverageMin = Some(15.0)
       def branchCoverageMin = None
@@ -41,8 +40,12 @@ trait HelloWorldStatementMinCoverageTest extends utest.TestSuite {
   def tests: utest.Tests = utest.Tests {
     test("HelloWorldStatementMinCoverageTest") {
       test("core") {
-        test("validateCoverageMinimums passes with statementCoverageMin set") - UnitTester(ValidCoverageCheck, resourcePath).scoped { eval =>
-          val Right(result) = eval.apply(ValidCoverageCheck.core.scoverage.validateCoverageMinimums()): @unchecked
+        test("validateCoverageMinimums passes with statementCoverageMin set") - UnitTester(
+          ValidCoverageCheck,
+          resourcePath
+        ).scoped { eval =>
+          val Right(result) =
+            eval.apply(ValidCoverageCheck.core.scoverage.validateCoverageMinimums()): @unchecked
 
           // The task should pass since we've set the minimum coverage
           assert(result.evalCount > 0)
