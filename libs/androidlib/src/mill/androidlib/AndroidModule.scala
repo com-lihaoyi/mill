@@ -210,8 +210,11 @@ trait AndroidModule extends JavaModule { outer =>
    * This does not include direct dependencies, meaning
    * these are only the dependencies of the dependencies.
    */
-  def androidTransitiveModuleDeps: Seq[JavaModule] =
-    transitiveModuleRunModuleDeps.filterNot(moduleDepsChecked.toSet)
+  def androidTransitiveModuleDeps: Seq[JavaModule] = {
+    val moduleDepsCheckedSet = moduleDepsChecked.toSet
+    val isDirectDependency = (m: JavaModule) => moduleDepsCheckedSet.contains(m)
+    transitiveModuleRunModuleDeps.filterNot(isDirectDependency)
+  }
 
   /**
    * Gets all the transitive compiled Android resources (typically in res/ directory)
