@@ -380,8 +380,7 @@ object MillMain0 {
                               bspIdByModule,
                               buildClient
                             )
-                          },
-                          extraEnv = Seq("MILL_JVM_WORKER_REQUIRE_REPORTER" -> "true")
+                          }
                         )
 
                         for (err <- watchRes.error)
