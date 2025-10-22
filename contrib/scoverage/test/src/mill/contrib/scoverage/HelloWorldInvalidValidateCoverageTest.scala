@@ -19,7 +19,7 @@ trait HelloWorldInvalidValidateCoverageTest extends utest.TestSuite {
     object core extends ScoverageModule with BuildInfo {
       def scalaVersion = testScalaVersion
       def scoverageVersion = testScoverageVersion
-      
+
       // Intentionally leave coverage minimums empty
       def statementCoverageMin = None
       def branchCoverageMin = None
@@ -42,11 +42,17 @@ trait HelloWorldInvalidValidateCoverageTest extends utest.TestSuite {
   def tests: utest.Tests = utest.Tests {
     test("HelloWorldInvalidValidateCoverageTest") {
       test("core") {
-        test("validateCoverageMinimums fails with no minimums") - UnitTester(InvalidCoverageCheck, resourcePath).scoped { eval =>
-          val Left(Failure(msg)) = eval.apply(InvalidCoverageCheck.core.scoverage.validateCoverageMinimums()): @unchecked
+        test("validateCoverageMinimums fails with no minimums") - UnitTester(
+          InvalidCoverageCheck,
+          resourcePath
+        ).scoped { eval =>
+          val Left(Failure(msg)) =
+            eval.apply(InvalidCoverageCheck.core.scoverage.validateCoverageMinimums()): @unchecked
 
           assert(
-            msg.equals("Either statementCoverageMin or branchCoverageMin must be set in order to call the validateCoverageMinimums task.")
+            msg.equals(
+              "Either statementCoverageMin or branchCoverageMin must be set in order to call the validateCoverageMinimums task."
+            )
           )
         }
       }
