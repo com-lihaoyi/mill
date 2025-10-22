@@ -2273,6 +2273,94 @@ node35 -> node0;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="androidDepCompiledResources-0" data-f-inherited="AndroidModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidKotlinModule.html#androidDepCompiledResources-0" t="n" class="documentableName ">androidDepCompiledResources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Gets the <a href="AndroidModule.html#androidCompiledModuleResources-0">androidCompiledModuleResources</a> from from dependencies based on <a href="AndroidModule.html#androidNonTransitiveRClass-0">androidNonTransitiveRClass</a> setting.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Gets the <a href="AndroidModule.html#androidCompiledModuleResources-0">androidCompiledModuleResources</a> from from dependencies based on <a href="AndroidModule.html#androidNonTransitiveRClass-0">androidNonTransitiveRClass</a> setting.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="AndroidModule.html#androidDepCompiledResources-0">AndroidModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/androidlib/src/mill/androidlib/AndroidModule.scala" target="_blank">AndroidModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="androidDirectCompiledResources-0" data-f-inherited="AndroidModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidKotlinModule.html#androidDirectCompiledResources-0" t="n" class="documentableName ">androidDirectCompiledResources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Gets all the direct compiled android resources (typically in res/ directory) from the <a href="AndroidModule.html#moduleDepsChecked-0">moduleDepsChecked</a></p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Gets all the direct compiled android resources (typically in res/ directory) from the <a href="AndroidModule.html#moduleDepsChecked-0">moduleDepsChecked</a></p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a sequence of PathRef to the compiled resources</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="AndroidModule.html#androidDirectCompiledResources-0">AndroidModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/androidlib/src/mill/androidlib/AndroidModule.scala" target="_blank">AndroidModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="androidIsDebug-0" data-f-inherited="AndroidModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -2731,6 +2819,49 @@ node35 -> node0;
               </dt>
               <dd class="body-medium">
                <a href="AndroidModule.html#androidMinSdk-0">AndroidModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/androidlib/src/mill/androidlib/AndroidModule.scala" target="_blank">AndroidModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="androidNonTransitiveRClass-0" data-f-inherited="AndroidModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidKotlinModule.html#androidNonTransitiveRClass-0" t="n" class="documentableName ">androidNonTransitiveRClass</a>: <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>If true, only direct module dependencies will be used to compile android resources for R class generation. Corresponds to <code>android.nonTransitiveRClass</code> in Gradle.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>If true, only direct module dependencies will be used to compile android resources for R class generation. Corresponds to <code>android.nonTransitiveRClass</code> in Gradle.</p>
+              <p>Default is true.</p>
+              <p>When overridden, make sure to override all modules in the project to have consistent behavior.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="AndroidModule.html#androidNonTransitiveRClass-0">AndroidModule</a>
               </dd>
               <dt class="body-small">
                Source
@@ -3340,11 +3471,11 @@ node35 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Gets all the compiled Android resources (typically in res/ directory) from the <a href="AndroidModule.html#transitiveModuleRunModuleDeps-0">transitiveModuleRunModuleDeps</a></p>
+             <p>Gets all the transitive compiled Android resources (typically in res/ directory) from the <a href="AndroidModule.html#androidTransitiveModuleDeps-0">androidTransitiveModuleDeps</a></p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Gets all the compiled Android resources (typically in res/ directory) from the <a href="AndroidModule.html#transitiveModuleRunModuleDeps-0">transitiveModuleRunModuleDeps</a></p>
+              <p>Gets all the transitive compiled Android resources (typically in res/ directory) from the <a href="AndroidModule.html#androidTransitiveModuleDeps-0">androidTransitiveModuleDeps</a></p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -3395,6 +3526,47 @@ node35 -> node0;
               </dt>
               <dd class="body-medium">
                <a href="AndroidModule.html#androidTransitiveLibRClasspath-0">AndroidModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/androidlib/src/mill/androidlib/AndroidModule.scala" target="_blank">AndroidModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="androidTransitiveModuleDeps-0" data-f-inherited="AndroidModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidKotlinModule.html#androidTransitiveModuleDeps-0" t="n" class="documentableName ">androidTransitiveModuleDeps</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/JavaModule.html" t="t">JavaModule</a>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The transitive module dependencies of this module. This does not include direct dependencies, meaning these are only the dependencies of the dependencies.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The transitive module dependencies of this module. This does not include direct dependencies, meaning these are only the dependencies of the dependencies.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="AndroidModule.html#androidTransitiveModuleDeps-0">AndroidModule</a>
               </dd>
               <dt class="body-small">
                Source
