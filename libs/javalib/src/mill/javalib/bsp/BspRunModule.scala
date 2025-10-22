@@ -21,7 +21,7 @@ private[mill] object BspRunModule extends ExternalModule {
       extends mill.api.Module {
     // We act in the context of the module
     override def moduleCtx: ModuleCtx = runModule.moduleCtx
-    override def moduleNestedCtx: ModuleCtx = runModule.moduleNestedCtx
+    override def moduleNestedCtx: ModuleCtx.Nested = runModule.moduleNestedCtx
 
     // We keep all BSP-related tasks/state in this sub-module
     @internal
