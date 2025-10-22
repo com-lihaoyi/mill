@@ -19,7 +19,7 @@ private[mill] class BspEvaluators(
     Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
   }
 
-  lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
+  lazy val bspModulesIdList0: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))]  = {
     val modules: Seq[(ModuleApi, Seq[ModuleApi], EvaluatorApi)] = evaluators
       .map(ev => (ev.rootModule, transitiveModules(ev.rootModule), ev))
 
@@ -34,14 +34,17 @@ private[mill] class BspEvaluators(
             (new BuildTargetIdentifier(uri), (m, eval))
         }
       }
+    regularModules
+  }
 
+  lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
     // Add script modules
     val scriptModules = evaluators.headOption.map { eval =>
       val outDir = os.Path(eval.outPathJava)
       discoverAndInstantiateScriptModules(workspaceDir, outDir, eval)
     }.getOrElse(Seq.empty)
 
-    regularModules ++ scriptModules
+    bspModulesIdList0 ++ scriptModules
   }
 
   private def discoverAndInstantiateScriptModules(

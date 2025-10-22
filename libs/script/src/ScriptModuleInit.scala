@@ -33,9 +33,9 @@ object ScriptModuleInit
   ) = {
     val className = extendsConfig.getOrElse {
       millFile.ext match {
-        case "java" => "mill.script.ScriptModule$JavaModule"
-        case "scala" => "mill.script.ScriptModule$ScalaModule"
-        case "kt" => "mill.script.ScriptModule$KotlinModule"
+        case "java" => "mill.script.JavaModule"
+        case "scala" => "mill.script.ScalaModule"
+        case "kt" => "mill.script.KotlinModule"
       }
     }
 
@@ -81,11 +81,8 @@ object ScriptModuleInit
   def discoverAndInstantiateScriptModules(): Seq[(java.nio.file.Path, Result[ExternalModule])] = {
     // For now, we don't resolve moduleDeps as that would require access to other modules
     val resolveModuleDep: String => Option[mill.Module] = _ => None
-
-    discoverScriptFiles(
-      mill.api.BuildCtx.workspaceRoot,
-      os.Path(mill.constants.OutFiles.out, mill.api.BuildCtx.workspaceRoot)
-    )
+    import mill.api.BuildCtx.workspaceRoot
+    discoverScriptFiles(workspaceRoot, os.Path(mill.constants.OutFiles.out, workspaceRoot))
       .flatMap { scriptPath =>
         resolveScriptModule(scriptPath.toString, resolveModuleDep).map { result =>
           (scriptPath.toNIO, result)
@@ -105,13 +102,9 @@ object ScriptModuleInit
   def discoverScriptFiles(workspaceDir: os.Path, outDir: os.Path): Seq[os.Path] = {
     os.walk(workspaceDir)
       .filter { path =>
-        // Check if it's a file with the right extension
         os.isFile(path) &&
-        scriptExtensions.contains(path.ext) &&
-        // Exclude files in the out/ directory
-        !path.startsWith(outDir) &&
-        // Check if file starts with //| header
-        hasScriptHeader(path)
+        scriptExtensions.contains(path.ext) && // Check if it's a file with the right extension
+        !path.startsWith(outDir) // Exclude files in the out/ directory
       }
   }
 
