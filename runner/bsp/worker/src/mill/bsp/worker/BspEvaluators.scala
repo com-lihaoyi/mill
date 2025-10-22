@@ -47,7 +47,7 @@ private[mill] class BspEvaluators(
     ev.executeApi(bspSourceTasks)
       .values
       .get
-      .flatMap { case (sources: Seq[Path], generatedSources: Seq[Path]) => sources }
+      .flatMap { case (sources: Seq[Path], _: Seq[Path]) => sources }
   }
 
   lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {

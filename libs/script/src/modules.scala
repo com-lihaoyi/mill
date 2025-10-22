@@ -3,9 +3,7 @@ package mill.script
 import mill.*
 import mill.api.ExternalModule
 import mill.api.Discover
-import mill.api.daemon.Segments
 import mill.javalib.*
-import mill.api.ModuleCtx.HeaderData
 
 class JavaModule(val scriptConfig: ScriptModule.Config) extends JavaModuleBase {
   override lazy val millDiscover = Discover[this.type]

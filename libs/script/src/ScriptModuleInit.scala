@@ -114,14 +114,6 @@ object ScriptModuleInit
   /**
    * Checks if a file starts with a `//|` build header comment.
    */
-  private def hasScriptHeader(path: os.Path): Boolean = {
-    try {
-      val lines = os.read.lines(path)
-      lines.headOption.exists(_.startsWith("//|"))
-    } catch {
-      case _: Exception => false
-    }
-  }
 
   def apply(
       millFileString: String,
