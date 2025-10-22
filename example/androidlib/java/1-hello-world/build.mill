@@ -17,7 +17,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 }
 
 // Actual android application
-object app extends AndroidAppModule {
+trait App extends AndroidAppModule {
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
@@ -37,11 +37,11 @@ object app extends AndroidAppModule {
 
   override def androidVirtualDeviceIdentifier: String = "java-test"
 
-  object test extends AndroidAppTests, TestModule.Junit4 {
+  trait Test extends AndroidAppTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
   }
 
-  object it extends AndroidAppInstrumentedTests {
+  trait It extends AndroidAppInstrumentedTests {
 
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
@@ -57,14 +57,18 @@ object app extends AndroidAppModule {
     )
   }
 
+  object test extends Cross[Test](AndroidBuildVariant.Debug)
+  object it extends Cross[It](AndroidBuildVariant.Debug)
+
 }
+object app extends Cross[App](AndroidBuildVariant.Debug, AndroidBuildVariant.Release)
 
 ////SNIPPET:END
 
 /** Usage
 
-> ./mill show app.androidApk
-".../out/app/androidApk.dest/app.apk"
+> ./mill show app[debug].androidApk
+".../out/app/debug/androidApk.dest/app.apk"
 
 */
 
@@ -98,10 +102,10 @@ object app extends AndroidAppModule {
 
 /** Usage
 
-> ./mill show app.test
+> ./mill show app[debug].test[debug]
 ...compiling 1 Java source...
 
-> cat out/app/test/testForked.dest/out.json
+> cat out/app/debug/test/debug/testForked.dest/out.json
 ["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.textSize_isCorrect","selector":"com.helloworld.ExampleUnitTest.textSize_isCorrect","duration":...,"status":"Success"}]]
 
 */
@@ -110,15 +114,15 @@ object app extends AndroidAppModule {
 
 /** Usage
 
-> ./mill show app.createAndroidVirtualDevice
+> ./mill show app[debug].createAndroidVirtualDevice
 ...Name: java-test, DeviceId: medium_phone...
 
-> ./mill show app.startAndroidEmulator
+> ./mill show app[debug].startAndroidEmulator
 
-> ./mill show app.adbDevices
+> ./mill show app[debug].adbDevices
 ...emulator-5554...device...
 
-> ./mill show app.it
+> ./mill show app[debug].it[debug]
 ...
 {
   "msg": "",
@@ -133,7 +137,7 @@ object app extends AndroidAppModule {
 }
 ...
 
-> cat out/app/it/testForked.dest/test-report.xml
+> cat out/app/debug/it/debug/testForked.dest/test-report.xml
 ...
 <?xml version='1.0' encoding='UTF-8'?>
 <testsuites tests="1" failures="0" errors="0" skipped="0" time="...">
@@ -146,9 +150,9 @@ object app extends AndroidAppModule {
       </testsuites>
 ...
 
-> ./mill show app.stopAndroidEmulator
+> ./mill show app[debug].stopAndroidEmulator
 
-> ./mill show app.deleteAndroidVirtualDevice
+> ./mill show app[debug].deleteAndroidVirtualDevice
 
 */
 

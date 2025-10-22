@@ -6,7 +6,7 @@ import coursier.params.ResolutionParams
 import mill.T
 import mill.androidlib.manifestmerger.AndroidManifestMerger
 import mill.api.daemon.internal.bsp.BspBuildTarget
-import mill.api.{ModuleRef, PathRef, Task}
+import mill.api.{ModuleRef, PathRef, Task, Cross}
 import mill.javalib.*
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
@@ -14,7 +14,8 @@ import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 import scala.collection.immutable
 import scala.xml.*
 
-trait AndroidModule extends JavaModule { outer =>
+trait AndroidModule extends JavaModule, Cross.Module[AndroidBuildVariant] { outer =>
+  def buildVariant: AndroidBuildVariant = crossValue
 
   // https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/D8BundleMainDexListTask.kt;l=210-223;drc=66ab6bccb85ce3ed7b371535929a69f494d807f0
   val mainDexPlatformRules = Seq(
@@ -84,8 +85,8 @@ trait AndroidModule extends JavaModule { outer =>
    *
    * This option will probably go away in the future once build variants are supported.
    */
-  def androidIsDebug: T[Boolean] = {
-    true
+  def androidIsDebug: T[Boolean] = Task {
+    buildVariant == AndroidBuildVariant.Debug
   }
 
   /**
