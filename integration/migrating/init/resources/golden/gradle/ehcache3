@@ -1,3 +1,117 @@
+Module dependencies of clustered.ehcache-client:
+  ehcache-impl
+  clustered.ehcache-common
+  ehcache-xml.ehcache-xml-spi (compile)
+Module dependencies of clustered.ehcache-client.test:
+  clustered.ehcache-client
+  clustered.test-utils
+  clustered.server.ehcache-service
+  ehcache-xml
+  ehcache-transactions
+  clustered.server.ehcache-entity
+Module dependencies of clustered.ehcache-clustered:
+Module dependencies of clustered.ehcache-common:
+  ehcache-api
+  clustered.ehcache-common-api
+Module dependencies of clustered.ehcache-common.test:
+  clustered.ehcache-common
+  clustered.test-utils
+Module dependencies of clustered.ehcache-common-api:
+Module dependencies of clustered.ehcache-common-api.test:
+  clustered.ehcache-common-api
+Module dependencies of clustered.integration-test:
+Module dependencies of clustered.integration-test.test:
+  clustered.integration-test
+  ehcache-107
+  ehcache-impl
+  clustered.ehcache-common
+  clustered.ehcache-client
+  ehcache-xml
+  ehcache-management
+Module dependencies of clustered.ops-tool:
+Module dependencies of clustered.ops-tool.test:
+  clustered.ops-tool
+Module dependencies of clustered.osgi-test:
+Module dependencies of clustered.osgi-test.test:
+  clustered.osgi-test
+  osgi-test
+Module dependencies of clustered.server.ehcache-entity:
+  clustered.ehcache-common
+Module dependencies of clustered.server.ehcache-entity.test:
+  clustered.server.ehcache-entity
+  clustered.test-utils
+  clustered.server.ehcache-service
+Module dependencies of clustered.server.ehcache-service:
+  clustered.ehcache-common
+Module dependencies of clustered.server.ehcache-service.test:
+  clustered.server.ehcache-service
+  clustered.test-utils
+Module dependencies of clustered.server.ehcache-service-api:
+  clustered.ehcache-common-api
+Module dependencies of clustered.server.ehcache-service-api.test:
+  clustered.server.ehcache-service-api
+Module dependencies of clustered.test-utils:
+  clustered.ehcache-common
+Module dependencies of core-spi-test:
+  ehcache-impl
+  ehcache-core
+  spi-tester
+Module dependencies of demos.00-NoCache:
+  ehcache-impl
+Module dependencies of demos.01-CacheAside:
+  ehcache-impl
+Module dependencies of docs:
+Module dependencies of ehcache:
+Module dependencies of ehcache-107:
+  ehcache-xml
+Module dependencies of ehcache-107.test:
+  ehcache-107
+  ehcache-xml
+Module dependencies of ehcache-api:
+Module dependencies of ehcache-api.test:
+  ehcache-api
+Module dependencies of ehcache-core:
+  ehcache-api
+Module dependencies of ehcache-core.test:
+  ehcache-core
+  spi-tester
+Module dependencies of ehcache-impl:
+  ehcache-core
+Module dependencies of ehcache-impl.test:
+  ehcache-impl
+  core-spi-test
+Module dependencies of ehcache-management:
+  ehcache-impl
+  ehcache-core
+  clustered.ehcache-client (compile)
+  ehcache-xml.ehcache-xml-spi (compile)
+Module dependencies of ehcache-management.test:
+  ehcache-management
+  ehcache-xml
+Module dependencies of ehcache-transactions:
+  ehcache
+Module dependencies of ehcache-transactions.test:
+  ehcache-transactions
+  core-spi-test
+  ehcache-xml
+Module dependencies of ehcache-xml.ehcache-xml-spi:
+  ehcache-api
+  ehcache-core
+Module dependencies of ehcache-xml.ehcache-xml-spi.test:
+  ehcache-xml.ehcache-xml-spi
+Module dependencies of ehcache-xml:
+Module dependencies of ehcache-xml.test:
+  ehcache-xml
+Module dependencies of integration-test:
+Module dependencies of integration-test.test:
+  integration-test
+  ehcache-107
+  ehcache-impl
+  ehcache-transactions
+Module dependencies of osgi-test:
+Module dependencies of osgi-test.test:
+  osgi-test
+Module dependencies of spi-tester:
 {
   "clustered.ehcache-client.repositories": [
     "https://repo.terracotta.org/maven2"
@@ -685,120 +799,6 @@
   "osgi-test.test.bomMvnDeps": [],
   "spi-tester.bomMvnDeps": []
 }
-Module dependencies of clustered.ehcache-client:
-  ehcache-impl
-  clustered.ehcache-common
-  ehcache-xml.ehcache-xml-spi (compile)
-Module dependencies of clustered.ehcache-client.test:
-  clustered.ehcache-client
-  clustered.test-utils
-  clustered.server.ehcache-service
-  ehcache-xml
-  ehcache-transactions
-  clustered.server.ehcache-entity
-Module dependencies of clustered.ehcache-clustered:
-Module dependencies of clustered.ehcache-common:
-  ehcache-api
-  clustered.ehcache-common-api
-Module dependencies of clustered.ehcache-common.test:
-  clustered.ehcache-common
-  clustered.test-utils
-Module dependencies of clustered.ehcache-common-api:
-Module dependencies of clustered.ehcache-common-api.test:
-  clustered.ehcache-common-api
-Module dependencies of clustered.integration-test:
-Module dependencies of clustered.integration-test.test:
-  clustered.integration-test
-  ehcache-107
-  ehcache-impl
-  clustered.ehcache-common
-  clustered.ehcache-client
-  ehcache-xml
-  ehcache-management
-Module dependencies of clustered.ops-tool:
-Module dependencies of clustered.ops-tool.test:
-  clustered.ops-tool
-Module dependencies of clustered.osgi-test:
-Module dependencies of clustered.osgi-test.test:
-  clustered.osgi-test
-  osgi-test
-Module dependencies of clustered.server.ehcache-entity:
-  clustered.ehcache-common
-Module dependencies of clustered.server.ehcache-entity.test:
-  clustered.server.ehcache-entity
-  clustered.test-utils
-  clustered.server.ehcache-service
-Module dependencies of clustered.server.ehcache-service:
-  clustered.ehcache-common
-Module dependencies of clustered.server.ehcache-service.test:
-  clustered.server.ehcache-service
-  clustered.test-utils
-Module dependencies of clustered.server.ehcache-service-api:
-  clustered.ehcache-common-api
-Module dependencies of clustered.server.ehcache-service-api.test:
-  clustered.server.ehcache-service-api
-Module dependencies of clustered.test-utils:
-  clustered.ehcache-common
-Module dependencies of core-spi-test:
-  ehcache-impl
-  ehcache-core
-  spi-tester
-Module dependencies of demos.00-NoCache:
-  ehcache-impl
-Module dependencies of demos.01-CacheAside:
-  ehcache-impl
-Module dependencies of docs:
-Module dependencies of ehcache:
-Module dependencies of ehcache-107:
-  ehcache-xml
-Module dependencies of ehcache-107.test:
-  ehcache-107
-  ehcache-xml
-Module dependencies of ehcache-api:
-Module dependencies of ehcache-api.test:
-  ehcache-api
-Module dependencies of ehcache-core:
-  ehcache-api
-Module dependencies of ehcache-core.test:
-  ehcache-core
-  spi-tester
-Module dependencies of ehcache-impl:
-  ehcache-core
-Module dependencies of ehcache-impl.test:
-  ehcache-impl
-  core-spi-test
-Module dependencies of ehcache-management:
-  ehcache-impl
-  ehcache-core
-  clustered.ehcache-client (compile)
-  ehcache-xml.ehcache-xml-spi (compile)
-Module dependencies of ehcache-management.test:
-  ehcache-management
-  ehcache-xml
-Module dependencies of ehcache-transactions:
-  ehcache
-Module dependencies of ehcache-transactions.test:
-  ehcache-transactions
-  core-spi-test
-  ehcache-xml
-Module dependencies of ehcache-xml.ehcache-xml-spi:
-  ehcache-api
-  ehcache-core
-Module dependencies of ehcache-xml.ehcache-xml-spi.test:
-  ehcache-xml.ehcache-xml-spi
-Module dependencies of ehcache-xml:
-Module dependencies of ehcache-xml.test:
-  ehcache-xml
-Module dependencies of integration-test:
-Module dependencies of integration-test.test:
-  integration-test
-  ehcache-107
-  ehcache-impl
-  ehcache-transactions
-Module dependencies of osgi-test:
-Module dependencies of osgi-test.test:
-  osgi-test
-Module dependencies of spi-tester:
 {
   "clustered.ehcache-client.javacOptions": [
     "-source",

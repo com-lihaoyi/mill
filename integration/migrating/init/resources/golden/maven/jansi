@@ -1,3 +1,5 @@
+Module dependencies of :
+Module dependencies of test:
 {
   "repositories": [
     "https://oss.sonatype.org/content/repositories/snapshots"
@@ -25,8 +27,6 @@
   "bomMvnDeps": [],
   "test.bomMvnDeps": []
 }
-Module dependencies of :
-Module dependencies of test:
 {
   "javacOptions": [
     "--release",

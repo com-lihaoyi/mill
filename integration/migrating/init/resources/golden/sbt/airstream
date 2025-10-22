@@ -1,3 +1,9 @@
+Module dependencies of [2.13.16]:
+Module dependencies of [2.13.16].test:
+  [2.13.16]
+Module dependencies of [3.3.3]:
+Module dependencies of [3.3.3].test:
+  [3.3.3]
 {
   "[2.13.16].repositories": [
     "https://oss.sonatype.org/content/repositories/public",
@@ -50,12 +56,6 @@
   "[3.3.3].bomMvnDeps": [],
   "[3.3.3].test.bomMvnDeps": []
 }
-Module dependencies of [2.13.16]:
-Module dependencies of [2.13.16].test:
-  [2.13.16]
-Module dependencies of [3.3.3]:
-Module dependencies of [3.3.3].test:
-  [3.3.3]
 {
   "[2.13.16].javacOptions": [],
   "[2.13.16].test.javacOptions": [],

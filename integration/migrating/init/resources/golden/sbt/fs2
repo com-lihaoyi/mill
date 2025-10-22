@@ -1,3 +1,153 @@
+Module dependencies of benchmark[2.12.20]:
+  io.jvm[2.12.20]
+Module dependencies of benchmark[2.13.16]:
+  io.jvm[2.13.16]
+Module dependencies of benchmark[3.3.5]:
+  io.jvm[3.3.5]
+Module dependencies of core.js[2.12.20]:
+Module dependencies of core.js[2.12.20].test:
+  core.js[2.12.20]
+Module dependencies of core.js[2.13.16]:
+Module dependencies of core.js[2.13.16].test:
+  core.js[2.13.16]
+Module dependencies of core.js[3.3.5]:
+Module dependencies of core.js[3.3.5].test:
+  core.js[3.3.5]
+Module dependencies of core.jvm[2.12.20]:
+Module dependencies of core.jvm[2.12.20].test:
+  core.jvm[2.12.20]
+Module dependencies of core.jvm[2.13.16]:
+Module dependencies of core.jvm[2.13.16].test:
+  core.jvm[2.13.16]
+Module dependencies of core.jvm[3.3.5]:
+Module dependencies of core.jvm[3.3.5].test:
+  core.jvm[3.3.5]
+Module dependencies of core.native[2.12.20]:
+Module dependencies of core.native[2.12.20].test:
+  core.native[2.12.20]
+Module dependencies of core.native[2.13.16]:
+Module dependencies of core.native[2.13.16].test:
+  core.native[2.13.16]
+Module dependencies of core.native[3.3.5]:
+Module dependencies of core.native[3.3.5].test:
+  core.native[3.3.5]
+Module dependencies of integration[2.12.20]:
+  core.jvm[2.12.20]
+Module dependencies of integration[2.12.20].test:
+  integration[2.12.20]
+Module dependencies of integration[2.13.16]:
+  core.jvm[2.13.16]
+Module dependencies of integration[2.13.16].test:
+  integration[2.13.16]
+Module dependencies of integration[3.3.5]:
+  core.jvm[3.3.5]
+Module dependencies of integration[3.3.5].test:
+  integration[3.3.5]
+Module dependencies of io.js[2.12.20]:
+  core.js[2.12.20]
+Module dependencies of io.js[2.13.16]:
+  core.js[2.13.16]
+Module dependencies of io.js[3.3.5]:
+  core.js[3.3.5]
+Module dependencies of io.jvm[2.12.20]:
+  core.jvm[2.12.20]
+Module dependencies of io.jvm[2.13.16]:
+  core.jvm[2.13.16]
+Module dependencies of io.jvm[3.3.5]:
+  core.jvm[3.3.5]
+Module dependencies of io.native[2.12.20]:
+  core.native[2.12.20]
+Module dependencies of io.native[2.13.16]:
+  core.native[2.13.16]
+Module dependencies of io.native[3.3.5]:
+  core.native[3.3.5]
+Module dependencies of mdoc[2.12.20]:
+  core.jvm[2.12.20]
+  io.jvm[2.12.20]
+  reactive-streams[2.12.20]
+  scodec.jvm[2.12.20]
+Module dependencies of mdoc[2.13.16]:
+  core.jvm[2.13.16]
+  io.jvm[2.13.16]
+  reactive-streams[2.13.16]
+  scodec.jvm[2.13.16]
+Module dependencies of mdoc[3.3.5]:
+  core.jvm[3.3.5]
+  io.jvm[3.3.5]
+  reactive-streams[3.3.5]
+  scodec.jvm[3.3.5]
+Module dependencies of protocols.js[2.12.20]:
+  core.js[2.12.20]
+  scodec.js[2.12.20]
+  io.js[2.12.20]
+Module dependencies of protocols.js[2.13.16]:
+  core.js[2.13.16]
+  scodec.js[2.13.16]
+  io.js[2.13.16]
+Module dependencies of protocols.js[3.3.5]:
+  core.js[3.3.5]
+  scodec.js[3.3.5]
+  io.js[3.3.5]
+Module dependencies of protocols.jvm[2.12.20]:
+  core.jvm[2.12.20]
+  scodec.jvm[2.12.20]
+  io.jvm[2.12.20]
+Module dependencies of protocols.jvm[2.13.16]:
+  core.jvm[2.13.16]
+  scodec.jvm[2.13.16]
+  io.jvm[2.13.16]
+Module dependencies of protocols.jvm[3.3.5]:
+  core.jvm[3.3.5]
+  scodec.jvm[3.3.5]
+  io.jvm[3.3.5]
+Module dependencies of protocols.native[2.12.20]:
+  core.native[2.12.20]
+  scodec.native[2.12.20]
+  io.native[2.12.20]
+Module dependencies of protocols.native[2.13.16]:
+  core.native[2.13.16]
+  scodec.native[2.13.16]
+  io.native[2.13.16]
+Module dependencies of protocols.native[3.3.5]:
+  core.native[3.3.5]
+  scodec.native[3.3.5]
+  io.native[3.3.5]
+Module dependencies of reactive-streams[2.12.20]:
+  core.jvm[2.12.20]
+Module dependencies of reactive-streams[2.12.20].test:
+  reactive-streams[2.12.20]
+  core.jvm[2.12.20].test
+Module dependencies of reactive-streams[2.13.16]:
+  core.jvm[2.13.16]
+Module dependencies of reactive-streams[2.13.16].test:
+  reactive-streams[2.13.16]
+  core.jvm[2.13.16].test
+Module dependencies of reactive-streams[3.3.5]:
+  core.jvm[3.3.5]
+Module dependencies of reactive-streams[3.3.5].test:
+  reactive-streams[3.3.5]
+  core.jvm[3.3.5].test
+Module dependencies of scodec.js[2.12.20]:
+  core.js[2.12.20]
+Module dependencies of scodec.js[2.13.16]:
+  core.js[2.13.16]
+Module dependencies of scodec.js[3.3.5]:
+  core.js[3.3.5]
+Module dependencies of scodec.jvm[2.12.20]:
+  core.jvm[2.12.20]
+Module dependencies of scodec.jvm[2.13.16]:
+  core.jvm[2.13.16]
+Module dependencies of scodec.jvm[3.3.5]:
+  core.jvm[3.3.5]
+Module dependencies of scodec.native[2.12.20]:
+  core.native[2.12.20]
+Module dependencies of scodec.native[2.13.16]:
+  core.native[2.13.16]
+Module dependencies of scodec.native[3.3.5]:
+  core.native[3.3.5]
+Module dependencies of unidocs[2.12.20]:
+Module dependencies of unidocs[2.13.16]:
+Module dependencies of unidocs[3.3.5]:
 {
   "benchmark[2.12.20].repositories": [],
   "benchmark[2.13.16].repositories": [],
@@ -739,156 +889,6 @@
   "unidocs[2.13.16].bomMvnDeps": [],
   "unidocs[3.3.5].bomMvnDeps": []
 }
-Module dependencies of benchmark[2.12.20]:
-  io.jvm[2.12.20]
-Module dependencies of benchmark[2.13.16]:
-  io.jvm[2.13.16]
-Module dependencies of benchmark[3.3.5]:
-  io.jvm[3.3.5]
-Module dependencies of core.js[2.12.20]:
-Module dependencies of core.js[2.12.20].test:
-  core.js[2.12.20]
-Module dependencies of core.js[2.13.16]:
-Module dependencies of core.js[2.13.16].test:
-  core.js[2.13.16]
-Module dependencies of core.js[3.3.5]:
-Module dependencies of core.js[3.3.5].test:
-  core.js[3.3.5]
-Module dependencies of core.jvm[2.12.20]:
-Module dependencies of core.jvm[2.12.20].test:
-  core.jvm[2.12.20]
-Module dependencies of core.jvm[2.13.16]:
-Module dependencies of core.jvm[2.13.16].test:
-  core.jvm[2.13.16]
-Module dependencies of core.jvm[3.3.5]:
-Module dependencies of core.jvm[3.3.5].test:
-  core.jvm[3.3.5]
-Module dependencies of core.native[2.12.20]:
-Module dependencies of core.native[2.12.20].test:
-  core.native[2.12.20]
-Module dependencies of core.native[2.13.16]:
-Module dependencies of core.native[2.13.16].test:
-  core.native[2.13.16]
-Module dependencies of core.native[3.3.5]:
-Module dependencies of core.native[3.3.5].test:
-  core.native[3.3.5]
-Module dependencies of integration[2.12.20]:
-  core.jvm[2.12.20]
-Module dependencies of integration[2.12.20].test:
-  integration[2.12.20]
-Module dependencies of integration[2.13.16]:
-  core.jvm[2.13.16]
-Module dependencies of integration[2.13.16].test:
-  integration[2.13.16]
-Module dependencies of integration[3.3.5]:
-  core.jvm[3.3.5]
-Module dependencies of integration[3.3.5].test:
-  integration[3.3.5]
-Module dependencies of io.js[2.12.20]:
-  core.js[2.12.20]
-Module dependencies of io.js[2.13.16]:
-  core.js[2.13.16]
-Module dependencies of io.js[3.3.5]:
-  core.js[3.3.5]
-Module dependencies of io.jvm[2.12.20]:
-  core.jvm[2.12.20]
-Module dependencies of io.jvm[2.13.16]:
-  core.jvm[2.13.16]
-Module dependencies of io.jvm[3.3.5]:
-  core.jvm[3.3.5]
-Module dependencies of io.native[2.12.20]:
-  core.native[2.12.20]
-Module dependencies of io.native[2.13.16]:
-  core.native[2.13.16]
-Module dependencies of io.native[3.3.5]:
-  core.native[3.3.5]
-Module dependencies of mdoc[2.12.20]:
-  core.jvm[2.12.20]
-  io.jvm[2.12.20]
-  reactive-streams[2.12.20]
-  scodec.jvm[2.12.20]
-Module dependencies of mdoc[2.13.16]:
-  core.jvm[2.13.16]
-  io.jvm[2.13.16]
-  reactive-streams[2.13.16]
-  scodec.jvm[2.13.16]
-Module dependencies of mdoc[3.3.5]:
-  core.jvm[3.3.5]
-  io.jvm[3.3.5]
-  reactive-streams[3.3.5]
-  scodec.jvm[3.3.5]
-Module dependencies of protocols.js[2.12.20]:
-  core.js[2.12.20]
-  scodec.js[2.12.20]
-  io.js[2.12.20]
-Module dependencies of protocols.js[2.13.16]:
-  core.js[2.13.16]
-  scodec.js[2.13.16]
-  io.js[2.13.16]
-Module dependencies of protocols.js[3.3.5]:
-  core.js[3.3.5]
-  scodec.js[3.3.5]
-  io.js[3.3.5]
-Module dependencies of protocols.jvm[2.12.20]:
-  core.jvm[2.12.20]
-  scodec.jvm[2.12.20]
-  io.jvm[2.12.20]
-Module dependencies of protocols.jvm[2.13.16]:
-  core.jvm[2.13.16]
-  scodec.jvm[2.13.16]
-  io.jvm[2.13.16]
-Module dependencies of protocols.jvm[3.3.5]:
-  core.jvm[3.3.5]
-  scodec.jvm[3.3.5]
-  io.jvm[3.3.5]
-Module dependencies of protocols.native[2.12.20]:
-  core.native[2.12.20]
-  scodec.native[2.12.20]
-  io.native[2.12.20]
-Module dependencies of protocols.native[2.13.16]:
-  core.native[2.13.16]
-  scodec.native[2.13.16]
-  io.native[2.13.16]
-Module dependencies of protocols.native[3.3.5]:
-  core.native[3.3.5]
-  scodec.native[3.3.5]
-  io.native[3.3.5]
-Module dependencies of reactive-streams[2.12.20]:
-  core.jvm[2.12.20]
-Module dependencies of reactive-streams[2.12.20].test:
-  reactive-streams[2.12.20]
-  core.jvm[2.12.20].test
-Module dependencies of reactive-streams[2.13.16]:
-  core.jvm[2.13.16]
-Module dependencies of reactive-streams[2.13.16].test:
-  reactive-streams[2.13.16]
-  core.jvm[2.13.16].test
-Module dependencies of reactive-streams[3.3.5]:
-  core.jvm[3.3.5]
-Module dependencies of reactive-streams[3.3.5].test:
-  reactive-streams[3.3.5]
-  core.jvm[3.3.5].test
-Module dependencies of scodec.js[2.12.20]:
-  core.js[2.12.20]
-Module dependencies of scodec.js[2.13.16]:
-  core.js[2.13.16]
-Module dependencies of scodec.js[3.3.5]:
-  core.js[3.3.5]
-Module dependencies of scodec.jvm[2.12.20]:
-  core.jvm[2.12.20]
-Module dependencies of scodec.jvm[2.13.16]:
-  core.jvm[2.13.16]
-Module dependencies of scodec.jvm[3.3.5]:
-  core.jvm[3.3.5]
-Module dependencies of scodec.native[2.12.20]:
-  core.native[2.12.20]
-Module dependencies of scodec.native[2.13.16]:
-  core.native[2.13.16]
-Module dependencies of scodec.native[3.3.5]:
-  core.native[3.3.5]
-Module dependencies of unidocs[2.12.20]:
-Module dependencies of unidocs[2.13.16]:
-Module dependencies of unidocs[3.3.5]:
 {
   "benchmark[2.12.20].javacOptions": [
     "-encoding",
