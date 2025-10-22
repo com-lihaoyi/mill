@@ -12,7 +12,7 @@ class JavaModule(val scriptConfig: ScriptModule.Config) extends JavaModuleBase {
 }
 
 trait JavaModuleBase extends ScriptModule with mill.javalib.JavaModule
-  with mill.javalib.NativeImageModule {
+    with mill.javalib.NativeImageModule {
   private[mill] def isScript: Boolean = true
 
   override def moduleDeps = scriptConfig.moduleDeps.map(_.asInstanceOf[mill.javalib.JavaModule])

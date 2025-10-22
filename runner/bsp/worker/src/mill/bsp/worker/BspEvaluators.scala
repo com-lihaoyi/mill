@@ -21,7 +21,7 @@ private[mill] class BspEvaluators(
     Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
   }
 
-  lazy val bspModulesIdList0: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))]  = {
+  lazy val bspModulesIdList0: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
     val modules: Seq[(ModuleApi, Seq[ModuleApi], EvaluatorApi)] = evaluators
       .map(ev => (ev.rootModule, transitiveModules(ev.rootModule), ev))
 
@@ -39,15 +39,15 @@ private[mill] class BspEvaluators(
     regularModules
   }
 
-  val nonScriptSources = evaluators.flatMap{ev =>
+  val nonScriptSources = evaluators.flatMap { ev =>
     val bspSourceTasks: Seq[TaskApi[(sources: Seq[Path], generatedSources: Seq[Path])]] =
       transitiveModules(ev.rootModule)
-        .collect{ case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetSources }
+        .collect { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetSources }
 
     ev.executeApi(bspSourceTasks)
       .values
       .get
-      .flatMap{case (sources: Seq[Path], generatedSources: Seq[Path]) => sources}
+      .flatMap { case (sources: Seq[Path], generatedSources: Seq[Path]) => sources }
   }
 
   lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
