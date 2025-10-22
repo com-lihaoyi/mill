@@ -40,7 +40,8 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       build.runner.client,
       build.core.api.daemon,
       build.core.internal,
-      build.libs.javalib
+      build.libs.javalib,
+      build.libs.script
     ) ++ build.libs.javalib.compileModuleDeps
     def mvnDeps = Seq(
       Deps.bsp4j.exclude(Deps.gson.organization -> Deps.gson.name),

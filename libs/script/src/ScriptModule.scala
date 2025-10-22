@@ -8,9 +8,7 @@ import mill.api.ModuleCtx.HeaderData
 trait ScriptModule extends ExternalModule {
   def scriptConfig: ScriptModule.Config
 
-  override def moduleDir =
-    if (os.isDir(scriptConfig.simpleModulePath)) scriptConfig.simpleModulePath
-    else scriptConfig.simpleModulePath / os.up
+  override def moduleDir = scriptConfig.simpleModulePath / os.up
 
   private[mill] def allowNestedExternalModule = true
 
@@ -45,6 +43,8 @@ object ScriptModule {
 
   trait JavaModuleBase extends ScriptModule with mill.javalib.JavaModule
       with mill.javalib.NativeImageModule {
+    private[mill] def isScript: Boolean = true
+
     override def moduleDeps = scriptConfig.moduleDeps.map(_.asInstanceOf[mill.javalib.JavaModule])
 
     override def sources =
