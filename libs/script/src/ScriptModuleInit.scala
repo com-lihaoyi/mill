@@ -33,9 +33,9 @@ object ScriptModuleInit
   ) = {
     val className = extendsConfig.getOrElse {
       millFile.ext match {
-        case "java" => "mill.script.ScriptModule$JavaModule"
-        case "scala" => "mill.script.ScriptModule$ScalaModule"
-        case "kt" => "mill.script.ScriptModule$KotlinModule"
+        case "java" => "mill.script.JavaModule"
+        case "scala" => "mill.script.ScalaModule"
+        case "kt" => "mill.script.KotlinModule"
       }
     }
 
@@ -78,14 +78,14 @@ object ScriptModuleInit
    * Discovers and instantiates script modules for BSP integration.
    * This method must be called reflectively from the evaluator's classloader.
    */
-  def discoverAndInstantiateScriptModules(): Seq[(java.nio.file.Path, Result[ExternalModule])] = {
+  def discoverAndInstantiateScriptModules(nonScriptSourceFolders0: Seq[java.nio.file.Path])
+      : Seq[(java.nio.file.Path, Result[ExternalModule])] = {
     // For now, we don't resolve moduleDeps as that would require access to other modules
     val resolveModuleDep: String => Option[mill.Module] = _ => None
-
-    discoverScriptFiles(
-      mill.api.BuildCtx.workspaceRoot,
-      os.Path(mill.constants.OutFiles.out, mill.api.BuildCtx.workspaceRoot)
-    )
+    import mill.api.BuildCtx.workspaceRoot
+    val nonScriptSourceFolders = nonScriptSourceFolders0.map(os.Path(_))
+    discoverScriptFiles(workspaceRoot, os.Path(mill.constants.OutFiles.out, workspaceRoot))
+      .filter(p => !nonScriptSourceFolders.exists(p.startsWith(_)))
       .flatMap { scriptPath =>
         resolveScriptModule(scriptPath.toString, resolveModuleDep).map { result =>
           (scriptPath.toNIO, result)
@@ -105,27 +105,15 @@ object ScriptModuleInit
   def discoverScriptFiles(workspaceDir: os.Path, outDir: os.Path): Seq[os.Path] = {
     os.walk(workspaceDir)
       .filter { path =>
-        // Check if it's a file with the right extension
         os.isFile(path) &&
-        scriptExtensions.contains(path.ext) &&
-        // Exclude files in the out/ directory
-        !path.startsWith(outDir) &&
-        // Check if file starts with //| header
-        hasScriptHeader(path)
+        scriptExtensions.contains(path.ext) && // Check if it's a file with the right extension
+        !path.startsWith(outDir) // Exclude files in the out/ directory
       }
   }
 
   /**
    * Checks if a file starts with a `//|` build header comment.
    */
-  private def hasScriptHeader(path: os.Path): Boolean = {
-    try {
-      val lines = os.read.lines(path)
-      lines.headOption.exists(_.startsWith("//|"))
-    } catch {
-      case _: Exception => false
-    }
-  }
 
   def apply(
       millFileString: String,
