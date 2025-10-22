@@ -95,21 +95,21 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 
 [source,console]
 ----
-> ./mill "example.javalib.basic[1-simple].local.daemon"
+> ./mill "example.javalib.basic[3-simple].local.daemon"
 ----
 
 **Manual Test**
 
 [source,console]
 ----
-> ./mill dist.run example/javalib/basic/1-simple foo.run --text hello
+> ./mill dist.run example/javalib/basic/3-simple foo.run --text hello
 ----
 
 **Manual Test using Launcher Script**
 
 [source,console]
 ----
-> ./mill dist.launcher && (cd example/javalib/basic/1-simple && ../../../../out/dist/launcher.dest/run foo.run --text hello)
+> ./mill dist.launcher && (cd example/javalib/basic/3-simple && ../../../../out/dist/launcher.dest/run foo.run --text hello)
 ----
 
 === Sub-Process Tests *with* Packaging/Publishing
@@ -125,7 +125,7 @@ You can reproduce these tests manually using `dist.installLocal`:
 
 [source,console]
 ----
-> ./mill dist.installLocal && (cd example/javalib/basic/1-simple && ../../../../mill-assembly.jar run --text hello)
+> ./mill dist.installLocal && (cd example/javalib/basic/3-simple && ../../../../mill-assembly.jar run --text hello)
 ----
 
 You can also use `dist.native.installLocal` for a Graal Native Image executable,

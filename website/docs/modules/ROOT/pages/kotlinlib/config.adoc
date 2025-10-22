@@ -23,8 +23,3 @@ include::partial$example/kotlinlib/config/4-custom-class.adoc[]
 
 include::partial$example/kotlinlib/config/5-mixed-module-deps.adoc[]
 
-== Single-File Scripts
-
-include::partial$example/kotlinlib/config/6-script.adoc[]
-
-

@@ -6,11 +6,13 @@ import mill.api.daemon.internal.bsp.BspModuleApi.Tag
 
 import scala.jdk.CollectionConverters._
 import ch.epfl.scala.bsp4j.BuildTarget
-import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
+import mill.api.daemon.internal.bsp.BspBuildTarget
 
 /**
  * Synthesised [[BspBuildTarget]] to handle exclusions.
- * Intellij-Bsp doesn't provide a way to exclude files outside of module,so if there is no module having content root of [[topLevelProjectRoot]], [[SyntheticRootBspBuildTargetData]] will be created
+ * Intellij-Bsp doesn't provide a way to exclude files outside of module,so if there is no
+ * module having content root of [[topLevelProjectRoot]], [[SyntheticRootBspBuildTargetData]]
+ * will be created
  */
 class SyntheticRootBspBuildTargetData(topLevelProjectRoot: os.Path) {
   val id: BuildTargetIdentifier = new BuildTargetIdentifier(
@@ -36,16 +38,6 @@ class SyntheticRootBspBuildTargetData(topLevelProjectRoot: os.Path) {
   ) // intellijBSP does not create contentRootData for module with only outputPaths (this is probably a bug)
 }
 object SyntheticRootBspBuildTargetData {
-  def makeIfNeeded(
-      existingModules: Iterable[BspModuleApi],
-      workspaceDir: os.Path
-  ): Option[SyntheticRootBspBuildTargetData] = {
-    def containsWorkspaceDir(path: Option[os.Path]) = path.exists(workspaceDir.startsWith)
-    if (
-      existingModules.exists { m =>
-        containsWorkspaceDir(m.bspBuildTarget.baseDirectory.map(os.Path(_)))
-      }
-    ) None
-    else Some(new SyntheticRootBspBuildTargetData(workspaceDir))
-  }
+  def makeIfNeeded(workspaceDir: os.Path): Option[SyntheticRootBspBuildTargetData] =
+    Some(new SyntheticRootBspBuildTargetData(workspaceDir))
 }

@@ -85,7 +85,11 @@ case class MillCliConfig(
     // ==================== ADVANCED CLI FLAGS ====================
     @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
     allowPositional: Flag = Flag(),
-    @arg(hidden = true, doc = """Enable BSP server mode.""")
+    @arg(
+      hidden = true,
+      doc =
+        """Enable BSP server mode. Typically used by a BSP client when starting the Mill BSP server."""
+    )
     bsp: Flag,
     @arg(hidden = true, doc = """Create mill-bsp.json with Mill details under .bsp/""")
     bspInstall: Flag,
@@ -135,7 +139,7 @@ case class MillCliConfig(
         Implies options `--meta-level 1` and `--no-server`."""
     )
     repl: Flag = Flag(),
-    @arg(hidden = true, doc = "Deprecated, but kept for compatibility")
+    @arg(hidden = true, doc = "Deprecated, use `--no-deamon` instead")
     noServer: Flag = Flag(),
     @arg(hidden = true, short = 's', doc = "Unsupported, but kept for compatibility")
     silent: Flag = Flag(),
@@ -145,7 +149,7 @@ case class MillCliConfig(
     disablePrompt: Flag = Flag(),
     @arg(hidden = true, doc = "Unsupported, but kept for compatibility")
     enableTicker: Option[Boolean] = None,
-    @arg(hidden = true, doc = "Deprecated, but kept for compatibility")
+    @arg(hidden = true, doc = "Deprecated, use `--ticker false` instead")
     disableTicker: Flag,
     @arg(
       doc = """Open a JShell REPL with the classpath of the meta-level 1 build module (mill-build/).
@@ -172,7 +176,7 @@ import mainargs.ParserForClass
 // see https://github.com/com-lihaoyi/mill/issues/2315
 object MillCliConfig {
   val customName: String = s"Mill Build Tool, version ${mill.util.BuildInfo.millVersion}"
-  val customDoc = """
+  val usageDoc = """
 Usage: mill [options] task [task-options] [+ task ...]
 """
   val cheatSheet =
@@ -203,6 +207,11 @@ Task cheat sheet:
 
 Options:
 """
+  val advancedInfo = """
+Advanced and internal command-line flags not intended for common usage. Use at your own risk!
+
+Advanced Options:
+"""
 
   lazy val parser: ParserForClass[MillCliConfig] = mainargs.ParserForClass[MillCliConfig]
 
@@ -222,12 +231,12 @@ Options:
 
   lazy val shortUsageText: String =
     "Please specify a task to evaluate\n" +
-      customDoc +
+      usageDoc +
       "\nRun `mill --help` for more details"
 
   lazy val longUsageText: String =
     customName +
-      customDoc +
+      usageDoc +
       cheatSheet +
       parser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
       "\nPlease see the documentation at https://mill-build.org for more details,\n" +
@@ -235,9 +244,9 @@ Options:
 
   lazy val helpAdvancedUsageText: String =
     customName +
-      customDoc +
-      helpAdvancedParser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
-      "\nAdvanced or internal command-line flags not intended for common usage. Use at your own risk!"
+      usageDoc +
+      advancedInfo +
+      helpAdvancedParser.helpText(customName = "", totalWidth = 100).stripPrefix("\n")
 
   def parse(args: Array[String]): mill.api.Result[MillCliConfig] = {
     mill.api.Result.fromEither(parser.constructEither(
@@ -245,7 +254,7 @@ Options:
       allowRepeats = true,
       autoPrintHelpAndExit = None,
       customName = customName,
-      customDoc = customDoc
+      customDoc = usageDoc
     ))
   }
 
