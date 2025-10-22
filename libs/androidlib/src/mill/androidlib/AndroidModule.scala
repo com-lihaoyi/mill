@@ -192,12 +192,12 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   /**
-   * Gets all the compiled Android resources (typically in res/ directory)
-   * from the [[transitiveModuleRunModuleDeps]]
+   * Gets all the direct compiled android resources (typically in res/ directory)
+   * from the [[moduleDepsChecked]]
    * @return a sequence of PathRef to the compiled resources
    */
-  def androidTransitiveCompiledResources: T[Seq[PathRef]] = Task {
-    Task.traverse(transitiveModuleRunModuleDeps) {
+  def androidDirectCompiledResources: T[Seq[PathRef]] = Task {
+    Task.traverse(moduleDepsChecked) {
       case m: AndroidModule =>
         m.androidCompiledModuleResources
       case _ =>
@@ -205,8 +205,21 @@ trait AndroidModule extends JavaModule { outer =>
     }().flatten.distinct
   }
 
-  def androidDirectCompiledResources: T[Seq[PathRef]] = Task {
-    Task.traverse(moduleDepsChecked) {
+  /**
+   * The transitive module dependencies of this module.
+   * This does not include direct dependencies, meaning
+   * these are only the dependencies of the dependencies.
+   */
+  def androidTransitiveModuleDeps: Seq[JavaModule] =
+    transitiveModuleRunModuleDeps.filterNot(moduleDepsChecked.toSet)
+
+  /**
+   * Gets all the transitive compiled Android resources (typically in res/ directory)
+   * from the [[androidTransitiveModuleDeps]]
+   * @return a sequence of PathRef to the compiled resources
+   */
+  def androidTransitiveCompiledResources: T[Seq[PathRef]] = Task {
+    Task.traverse(androidTransitiveModuleDeps) {
       case m: AndroidModule =>
         m.androidCompiledModuleResources
       case _ =>
@@ -598,14 +611,15 @@ trait AndroidModule extends JavaModule { outer =>
 
   /**
    * Gets the [[androidCompiledModuleResources]] from
-   * either direct or transitive module dependencies
-   * depending on the value of [[androidNonTransitiveRClass]]
+   * from dependencies based on
+   * [[androidNonTransitiveRClass]] setting.
    * @return
    */
   def androidDepCompiledResources: T[Seq[PathRef]] =
     androidNonTransitiveRClass match {
       case true => Task { androidDirectCompiledResources() }
-      case false => Task { androidTransitiveCompiledResources() }
+      case false =>
+        Task { androidDirectCompiledResources() ++ androidTransitiveCompiledResources() }
     }
 
   /**
