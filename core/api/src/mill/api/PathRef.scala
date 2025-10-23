@@ -38,15 +38,20 @@ case class PathRef private[mill] (
   def withRevalidate(revalidate: PathRef.Revalidate): PathRef = copy(revalidate = revalidate)
   def withRevalidateOnce: PathRef = copy(revalidate = PathRef.Revalidate.Once)
 
-  override def toString: String = {
+  private def toStringPrefix = {
     val quick = if (this.quick) "qref:" else "ref:"
+
     val valid = revalidate match {
       case PathRef.Revalidate.Never => "v0:"
       case PathRef.Revalidate.Once => "v1:"
       case PathRef.Revalidate.Always => "vn:"
     }
     val sig = String.format("%08x", this.sig: Integer)
-    quick + valid + sig + ":" + path.toString()
+    quick + valid + sig + ":"
+  }
+
+  override def toString: String = {
+    toStringPrefix + path.toString()
   }
 }
 
@@ -189,13 +194,41 @@ object PathRef {
     }
   }
 
+  private[api] val outPathOverride: DynamicVariable[Option[os.Path]] = DynamicVariable(None)
+
+  // TODO: avoid recomputations
+  private[api] def knownRoots = LazyList(
+    outPathOverride.value.getOrElse(Evaluator.currentEvaluator.outPath) -> "$MILL_OUT",
+    BuildCtx.workspaceRoot -> "$WORKSPACE",
+    // TODO: add coursier here
+    os.home -> "$HOME"
+  )
+
+  private[api] def encodeKnownRoots(pr: PathRef): String =
+    // TODO: Do we need to check for '$' and mask it ?
+    knownRoots.collectFirst {
+      case (root, replacement) if pr.path.startsWith(root) =>
+        pr.toStringPrefix + replacement + (
+          if (pr.path != root) {
+            "/" + pr.path.subRelativeTo(root).toString()
+          } else ""
+        )
+    }.getOrElse(pr.toString)
+
+  private[api] def decodeKnownRoots(encoded: String): String = {
+    knownRoots.collectFirst {
+      case (root, replacement) if encoded.containsSlice(replacement) =>
+        encoded.replace(replacement, root.toString())
+    }.getOrElse(encoded)
+  }
+
   /**
    * Default JSON formatter for [[PathRef]].
    */
   implicit def jsonFormatter: RW[PathRef] = upickle.readwriter[String].bimap[PathRef](
     p => {
       storeSerializedPaths(p)
-      p.toString()
+      encodeKnownRoots(p)
     },
     {
       case s"$prefix:$valid0:$hex:$pathString" if prefix == "ref" || prefix == "qref" =>
@@ -219,7 +252,7 @@ object PathRef {
         pr
       case s =>
         mill.api.BuildCtx.withFilesystemCheckerDisabled(
-          PathRef(os.Path(s, currentOverrideModulePath.value))
+          PathRef(os.Path(decodeKnownRoots(s), currentOverrideModulePath.value))
         )
     }
   )
