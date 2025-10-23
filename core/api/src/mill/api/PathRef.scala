@@ -204,18 +204,18 @@ object PathRef {
     os.home -> "$HOME"
   )
 
-  private[api] def encodeKnownRoots(pr: PathRef): String =
+  private[api] def encodeKnownRootsInPath(p: os.Path): String =
     // TODO: Do we need to check for '$' and mask it ?
     knownRoots.collectFirst {
-      case (root, replacement) if pr.path.startsWith(root) =>
-        pr.toStringPrefix + replacement + (
-          if (pr.path != root) {
-            "/" + pr.path.subRelativeTo(root).toString()
+      case (root, replacement) if p.startsWith(root) =>
+        replacement + (
+          if (p != root) {
+            "/" + p.subRelativeTo(root).toString()
           } else ""
         )
-    }.getOrElse(pr.toString)
+    }.getOrElse(p.toString)
 
-  private[api] def decodeKnownRoots(encoded: String): String = {
+  private[api] def decodeKnownRootsInPath(encoded: String): String = {
     knownRoots.collectFirst {
       case (root, replacement) if encoded.containsSlice(replacement) =>
         encoded.replace(replacement, root.toString())
@@ -228,7 +228,7 @@ object PathRef {
   implicit def jsonFormatter: RW[PathRef] = upickle.readwriter[String].bimap[PathRef](
     p => {
       storeSerializedPaths(p)
-      encodeKnownRoots(p)
+      p.toStringPrefix + encodeKnownRootsInPath(p.path)
     },
     {
       case s"$prefix:$valid0:$hex:$pathString" if prefix == "ref" || prefix == "qref" =>
@@ -252,7 +252,7 @@ object PathRef {
         pr
       case s =>
         mill.api.BuildCtx.withFilesystemCheckerDisabled(
-          PathRef(os.Path(decodeKnownRoots(s), currentOverrideModulePath.value))
+          PathRef(os.Path(decodeKnownRootsInPath(s), currentOverrideModulePath.value))
         )
     }
   )

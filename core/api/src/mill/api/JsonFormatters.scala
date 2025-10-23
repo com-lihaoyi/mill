@@ -23,8 +23,8 @@ trait JsonFormatters {
 
   implicit val pathReadWrite: RW[os.Path] = upickle.readwriter[String]
     .bimap[os.Path](
-      _.toString,
-      os.Path(_)
+      p => PathRef.encodeKnownRootsInPath(p),
+      s => os.Path(PathRef.decodeKnownRootsInPath(s))
     )
 
   implicit val relPathRW: RW[os.RelPath] = upickle.readwriter[String]
