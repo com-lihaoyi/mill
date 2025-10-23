@@ -36,11 +36,12 @@
 // These bundled libraries are only available in single-file scripts for convenience; in
 // config-based modules or programmatic modules, you would need to add them to `mvnDeps` explicitly.
 // You can also disable use of these libraries in scripts via `//| includDefaultScriptMvnDeps: false`.
+// And as we saw earlier, you can include any other libraries you with using `//| mvnDeps`.
 //
-//// SNIPPET:FILE
+//// SNIPPET:END
 //
 // While initially single-file {language} programs may be a bit more verbose than the equivalent
 // Bash script containing `cp` or `curl` commands, as the script grows in complexity the value
 // of IDE support, typechecking, and JVM libraries makes writing them in {language} an attractive
 // proposition. This is especially true if you already have developers fluent in {language} which
-// may not be as familiar with the intricacies of maintaining large Bash codebases.
+// may not be as familiar with the intricacies of writing robust and maintainable Bash code.
