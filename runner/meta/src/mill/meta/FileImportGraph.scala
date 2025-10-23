@@ -30,7 +30,7 @@ object FileImportGraph {
   implicit val readWriter: upickle.ReadWriter[FileImportGraph] = upickle.macroRW
 
   /**
-   * We perform a depth-first traversal of the import graph of `.mill` files,
+   * We perform a depth-first traversal of the import graph of `.sc` files,
    * starting from `build.mill`, collecting the information necessary to
    * instantiate the [[MillRootModule]]
    */
