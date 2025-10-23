@@ -2,7 +2,7 @@
 // easily from the command-line, even those that contain third-party dependencies, specific
 // JVM versions, or other such configuration. These can be useful for several purposes:
 //
-// - A replacement for Bash scripts, letting you write small scripts or programs
+// - A replacement for Bash scripts: Mill instead lets you write small {language} scripts or programs
 //   in {language} with full access to third-party libraries that run in a deterministic way
 //   across different dev, test, or prod environments
 //

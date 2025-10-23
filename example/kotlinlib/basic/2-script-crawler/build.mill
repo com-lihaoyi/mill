@@ -1,12 +1,15 @@
-// Mill Kotlin scripts can make it more convenient to script simple command-line workflows
-// interacting with files, subprocesses, and HTTP endpoints. For example, below is a simple
-// script using these libraries to crawl wikipedia and save the crawl results to a file:
+//// SNIPPET:CUSTOM
+//
+// For example, below is
+// a simple script using https://github.com/Kotlin/kotlinx.serialization[KotlinX-Serialization],
+// https://square.github.io/okhttp/[OkHttp], and https://github.com/ajalt/clikt[Clikt], to write a
+// program that crawls wikipedia and saves the crawl results to a file:
 
 //// SNIPPET:FILE
 /** See Also: Crawler.kt */
 
 /** Usage
-> ./mill Crawler.kt --startArticle singapore --depth 2
+> ./mill Crawler.kt --start-article singapore --depth 2
 
 > cat fetched.json
 [

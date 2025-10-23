@@ -1,9 +1,13 @@
 //| mvnDeps:
-//| - org.jetbrains.kotlinx:kotlinx-cli:0.3.6
+//| - com.github.ajalt.clikt:clikt:5.0.3
 //| - com.squareup.okhttp3:okhttp:4.12.0
 //| - org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3
 
-import kotlinx.cli.*
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.main
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.types.int
 import kotlinx.serialization.json.*
 import okhttp3.*
 import java.nio.file.*
@@ -38,22 +42,24 @@ fun fetchLinks(title: String): List<String> {
     }
 }
 
-fun main(args: Array<String>) {
-    val parser = ArgParser("wiki-fetcher")
-    val startArticle by parser.option(ArgType.String, description = "Starting Wikipedia article").required()
-    val depth by parser.option(ArgType.Int, description = "Depth of link traversal").required()
-    parser.parse(args)
+class Crawler : CliktCommand(name = "wiki-fetcher") {
+    val startArticle by option(help = "Starting Wikipedia article").required()
+    val depth by option(help = "Depth of link traversal").int().required()
 
-    var seen = mutableSetOf(startArticle)
-    var current = mutableSetOf(startArticle)
+    override fun run() {
+        var seen = mutableSetOf(startArticle)
+        var current = mutableSetOf(startArticle)
 
-    repeat(depth) {
-        val next = current.flatMap { fetchLinks(it) }.toSet()
-        current = (next - seen).toMutableSet()
-        seen += current
+        repeat(depth) {
+            val next = current.flatMap { fetchLinks(it) }.toSet()
+            current = (next - seen).toMutableSet()
+            seen += current
+        }
+
+        val jsonOut = Json { prettyPrint = true }
+            .encodeToString(JsonElement.serializer(), JsonArray(seen.map { JsonPrimitive(it) }))
+        Files.writeString(Paths.get("fetched.json"), jsonOut)
     }
-
-    val jsonOut = Json { prettyPrint = true }
-        .encodeToString(JsonElement.serializer(), JsonArray(seen.map { JsonPrimitive(it) }))
-    Files.writeString(Paths.get("fetched.json"), jsonOut)
 }
+
+fun main(args: Array<String>) = Crawler().main(args)

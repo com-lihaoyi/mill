@@ -1,4 +1,8 @@
-// Mill Scala scripts come with a number of bundled libraries for convenience. These
+// Mill Single-file {language} programs can make it more convenient to script simple command-line
+// workflows interacting with files, subprocesses, and HTTP endpoints.
+//
+//// SNIPPET:CUSTOM
+// Mill Scala scripts come with a number of bundled libraries for these use cases. These
 // are largely the same as the xref:fundamentals/bundled-libraries.adoc[libraries available in Mill build files]:
 //
 // - https://github.com/com-lihaoyi/os-lib[OS-Lib]
@@ -32,3 +36,11 @@
 // These bundled libraries are only available in single-file scripts for convenience; in
 // config-based modules or programmatic modules, you would need to add them to `mvnDeps` explicitly.
 // You can also disable use of these libraries in scripts via `//| includDefaultScriptMvnDeps: false`.
+//
+//// SNIPPET:FILE
+//
+// While initially single-file {language} programs may be a bit more verbose than the equivalent
+// Bash script containing `cp` or `curl` commands, as the script grows in complexity the value
+// of IDE support, typechecking, and JVM libraries makes writing them in {language} an attractive
+// proposition. This is especially true if you already have developers fluent in {language} which
+// may not be as familiar with the intricacies of maintaining large Bash codebases.
