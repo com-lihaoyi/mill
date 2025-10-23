@@ -9,7 +9,7 @@ object MissingBuildFileTests extends UtestIntegrationTestSuite {
       val res = tester.eval(("resolve", "_"))
       assert(!res.isSuccess)
 
-      val s"${prefix}No build file (build.mill.yaml, build.mill, build.mill.scala, build.sc) found in $msg. Are you in a Mill project directory?" =
+      val s"${prefix}No build file (build.mill.yaml, build.mill) found in $msg. Are you in a Mill project directory?" =
         res.err: @unchecked
       // Silence unused variable warning
       val _ = prefix
