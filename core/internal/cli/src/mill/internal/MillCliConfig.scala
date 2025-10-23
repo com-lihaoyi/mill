@@ -169,7 +169,6 @@ case class MillCliConfig(
     ).count(_.value)
 }
 
-
 // We want this in a separate source file, but to avoid stale --help output due
 // to under-compilation, we have it in this file
 // see https://github.com/com-lihaoyi/mill/issues/2315
