@@ -22,8 +22,7 @@ public class CodeGenConstants {
   /**
    * The name of the root build file
    */
-  public static final List<String> rootBuildFileNames =
-      List.of("build.mill.yaml", "build.mill");
+  public static final List<String> rootBuildFileNames = List.of("build.mill.yaml", "build.mill");
 
   /**
    * The name of any sub-folder build files
@@ -34,8 +33,7 @@ public class CodeGenConstants {
   /**
    * The extensions used by build files
    */
-  public static final List<String> buildFileExtensions =
-      List.of("mill.yaml", "mill");
+  public static final List<String> buildFileExtensions = List.of("mill.yaml", "mill");
 
   /**
    * The user-facing name for the root of the module tree.
