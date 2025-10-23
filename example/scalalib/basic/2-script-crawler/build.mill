@@ -43,7 +43,7 @@
 // These bundled libraries are only available in single-file scripts for convenience; in
 // config-based modules or programmatic modules, you would need to add them to `mvnDeps` explicitly.
 // You can also disable use of these libraries in scripts via `//| includDefaultScriptMvnDeps: false`.
-// And as we saw earlier, you can include any other libraries you with using `//| mvnDeps`.
+// And as we saw earlier, you can include any other libraries you wish using `//| mvnDeps`.
 //
 //// SNIPPET:END
 //
