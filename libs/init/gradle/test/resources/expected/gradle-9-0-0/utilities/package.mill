@@ -1,0 +1,13 @@
+package build.utilities
+
+import mill.javalib.*
+import mill.javalib.publish.*
+import millbuild.*
+
+object `package` extends ProjectPublishModule {
+
+  def moduleDeps = super.moduleDeps ++ Seq(build.list)
+
+  def artifactName = "utilities"
+
+}
