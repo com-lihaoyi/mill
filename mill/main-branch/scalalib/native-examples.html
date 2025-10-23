@@ -705,7 +705,7 @@ as well as example of two modules with a scala-native application.</p>
 <h2 id="_simple"><a class="anchor" href="#_simple"></a>Simple</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-50-2b141a/mill-dist-1.0.6-50-2b141a-example-scalalib-native-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/native/1-simple">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-51-c36b3c/mill-dist-1.0.6-51-c36b3c-example-scalalib-native-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/native/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, scalanativelib.*
@@ -716,7 +716,7 @@ object `package` extends ScalaNativeModule {
 
   // You can have arbitrary numbers of third-party dependencies
   def mvnDeps = Seq(
-    mvn&quot;com.lihaoyi::mainargs::0.7.6&quot;
+    mvn&quot;com.lihaoyi::mainargs::0.7.7&quot;
   )
 
   object test extends ScalaNativeTests, TestModule.Utest {
@@ -749,7 +749,7 @@ Native for native integration and <code>mainargs</code> for command-line argumen
 <h2 id="_interop"><a class="anchor" href="#_interop"></a>Interop</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-50-2b141a/mill-dist-1.0.6-50-2b141a-example-scalalib-native-2-interop.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/native/2-interop">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-51-c36b3c/mill-dist-1.0.6-51-c36b3c-example-scalalib-native-2-interop.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/native/2-interop">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, scalanativelib.*
@@ -817,7 +817,7 @@ Tests: 1, Passed: 1, Failed: 0</code></pre>
 <h2 id="_multi_module"><a class="anchor" href="#_multi_module"></a>Multi-Module</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-50-2b141a/mill-dist-1.0.6-50-2b141a-example-scalalib-native-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/native/3-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-51-c36b3c/mill-dist-1.0.6-51-c36b3c-example-scalalib-native-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/native/3-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, scalanativelib.*
@@ -835,7 +835,7 @@ trait MyModule extends ScalaNativeModule {
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
 
-  def mvnDeps = Seq(mvn&quot;com.lihaoyi::mainargs::0.7.6&quot;)
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::mainargs::0.7.7&quot;)
 }
 
 object bar extends MyModule</code></pre>
@@ -906,7 +906,7 @@ Bar.value: The string length of 'hello' is 5</code></pre>
 <h2 id="_common_config"><a class="anchor" href="#_common_config"></a>Common Config</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-50-2b141a/mill-dist-1.0.6-50-2b141a-example-scalalib-native-4-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/native/4-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-51-c36b3c/mill-dist-1.0.6-51-c36b3c-example-scalalib-native-4-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/native/4-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, scalanativelib.*, scalanativelib.api.*
