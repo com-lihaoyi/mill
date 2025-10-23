@@ -149,7 +149,7 @@ object `package` extends Module {
 
     def testRepoRoot = Task {
       os.copy(super.testRepoRoot().path, Task.dest, mergeFolders = true)
-      for (suffix <- Seq("build.sc", "build.mill", "build.mill.scala")) {
+      for (suffix <- Seq("build.mill")) {
         for (lines <- buildScLines() if os.exists(Task.dest / suffix)) {
           os.write.over(Task.dest / suffix, lines.mkString("\n"))
         }
@@ -162,7 +162,7 @@ object `package` extends Module {
       case Some(upstream) => Task {
           os.copy.over(super.testRepoRoot().path, Task.dest)
           val upstreamRoot = upstream.testRepoRoot().path
-          val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
+          val suffix = Seq("build.mill").find(s => os.exists(upstreamRoot / s)).head
           for (lines <- buildScLines()) {
             os.write.over(Task.dest / suffix, lines.mkString("\n"))
           }
@@ -174,7 +174,7 @@ object `package` extends Module {
       case Some(upstream) => Task {
           Some {
             val upstreamRoot = upstream.testRepoRoot().path
-            val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
+            val suffix = Seq("build.mill").find(s => os.exists(upstreamRoot / s)).head
             val upstreamLines = os.read.lines(upstream.testRepoRoot().path / suffix)
             val lines = os.read.lines(super.testRepoRoot().path / suffix)
 
@@ -352,7 +352,6 @@ $txt
       )
       os.remove.all(Task.dest / ".mill-version")
 
-      os.remove.all(Task.dest / "build.sc")
       PathRef(Task.dest)
     }
   }
