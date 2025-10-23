@@ -1,6 +1,6 @@
 package foo
 import scalatags.Text.all.*
-import mainargs.{main, ParserForMethods}
+import mainargs.{main, Parser}
 
 object Foo {
   def generateHtml(text: String) = {
@@ -12,5 +12,5 @@ object Foo {
     println(generateHtml(text))
   }
 
-  def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
+  def main(args: Array[String]): Unit = Parser(this).runOrExit(args)
 }

@@ -25,5 +25,5 @@ import mill.api.daemon.internal.internal
     }
   }
 
-  def main(args: Array[String]): Unit = mainargs.ParserForMethods(this).runOrExit(args.toSeq)
+  def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args.toSeq)
 }

@@ -169,7 +169,6 @@ case class MillCliConfig(
     ).count(_.value)
 }
 
-import mainargs.ParserForClass
 
 // We want this in a separate source file, but to avoid stale --help output due
 // to under-compilation, we have it in this file
@@ -213,21 +212,22 @@ Advanced and internal command-line flags not intended for common usage. Use at y
 Advanced Options:
 """
 
-  lazy val parser: ParserForClass[MillCliConfig] = mainargs.ParserForClass[MillCliConfig]
+  lazy val parser: mainargs.ParserForClass[MillCliConfig] = mainargs.Parser[MillCliConfig]
 
-  private lazy val helpAdvancedParser: ParserForClass[MillCliConfig] = new ParserForClass(
-    parser.main.copy(argSigs0 = parser.main.argSigs0.collect {
-      case a if !isUnsupported(a) && a.hidden =>
-        a.copy(
-          hidden = false,
-          // Hack to work around `a.copy` not propagating the name mapping correctly, so we have
-          // to manually map the name ourselves. Doesn't affect runtime behavior since this is
-          // just used for --help-advanced printing and not for argument parsing
-          unMappedName = a.mappedName(mainargs.Util.kebabCaseNameMapper)
-        )
-    }),
-    parser.companion
-  )
+  private lazy val helpAdvancedParser: mainargs.ParserForClass[MillCliConfig] =
+    new mainargs.ParserForClass(
+      parser.main.copy(argSigs0 = parser.main.argSigs0.collect {
+        case a if !isUnsupported(a) && a.hidden =>
+          a.copy(
+            hidden = false,
+            // Hack to work around `a.copy` not propagating the name mapping correctly, so we have
+            // to manually map the name ourselves. Doesn't affect runtime behavior since this is
+            // just used for --help-advanced printing and not for argument parsing
+            unMappedName = a.mappedName(mainargs.Util.kebabCaseNameMapper)
+          )
+      }),
+      parser.companion
+    )
 
   lazy val shortUsageText: String =
     "Please specify a task to evaluate\n" +
