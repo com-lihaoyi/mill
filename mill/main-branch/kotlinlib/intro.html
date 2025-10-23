@@ -749,7 +749,7 @@ JVM versions, or other such configuration. These can be useful for several purpo
 <div class="ulist">
 <ul>
 <li>
-<p>A replacement for Bash scripts, letting you write small scripts or programs
+<p>A replacement for Bash scripts: Mill instead lets you write small Kotlin scripts or programs
 in Kotlin with full access to third-party libraries that run in a deterministic way
 across different dev, test, or prod environments</p>
 </li>
@@ -873,6 +873,110 @@ fun main(args: Array&lt;String&gt;) {
 <div class="paragraph">
 <p>For scripts that grow larger than a single file, you should convert them
 to <a href="#_simple_config_based_modules">Simple Config-Based Modules</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_script_use_cases"><a class="anchor" href="#_script_use_cases"></a>Script Use Cases</h3>
+<div class="paragraph">
+<p>Mill Single-file Kotlin programs can make it more convenient to script simple command-line
+workflows interacting with files, subprocesses, and HTTP endpoints.</p>
+</div>
+<div class="paragraph">
+<p>For example, below is
+a simple script using <a href="https://github.com/Kotlin/kotlinx.serialization">KotlinX-Serialization</a>,
+<a href="https://square.github.io/okhttp/">OkHttp</a>, and <a href="https://github.com/ajalt/clikt">Clikt</a>, to write a
+program that crawls wikipedia and saves the crawl results to a file:</p>
+</div>
+<div class="listingblock">
+<div class="title">Crawler.kt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/2-script-crawler/Crawler.kt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| mvnDeps:
+//| - com.github.ajalt.clikt:clikt:5.0.3
+//| - com.squareup.okhttp3:okhttp:4.12.0
+//| - org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3
+
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.main
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.types.int
+import kotlinx.serialization.json.*
+import okhttp3.*
+import java.nio.file.*
+
+fun fetchLinks(title: String): List&lt;String&gt; {
+    val client = OkHttpClient()
+    val url = HttpUrl.Builder()
+        .scheme(&quot;https&quot;)
+        .host(&quot;en.wikipedia.org&quot;)
+        .addPathSegments(&quot;w/api.php&quot;)
+        .addQueryParameter(&quot;action&quot;, &quot;query&quot;)
+        .addQueryParameter(&quot;titles&quot;, title)
+        .addQueryParameter(&quot;prop&quot;, &quot;links&quot;)
+        .addQueryParameter(&quot;format&quot;, &quot;json&quot;)
+        .build()
+
+    val request = Request.Builder()
+        .url(url)
+        .header(&quot;User-Agent&quot;, &quot;WikiFetcherBot/1.0 (https://example.com; contact@example.com)&quot;)
+        .build()
+
+    client.newCall(request).execute().use { resp -&gt;
+        val body = resp.body?.string() ?: return emptyList()
+        val json = Json.parseToJsonElement(body).jsonObject
+        val pages = json[&quot;query&quot;]?.jsonObject?.get(&quot;pages&quot;)?.jsonObject ?: return emptyList()
+        return pages.values.flatMap { page -&gt;
+            page.jsonObject[&quot;links&quot;]
+                ?.jsonArray
+                ?.mapNotNull { it.jsonObject[&quot;title&quot;]?.jsonPrimitive?.content }
+                ?: emptyList()
+        }
+    }
+}
+
+class Crawler : CliktCommand(name = &quot;wiki-fetcher&quot;) {
+    val startArticle by option(help = &quot;Starting Wikipedia article&quot;).required()
+    val depth by option(help = &quot;Depth of link traversal&quot;).int().required()
+
+    override fun run() {
+        var seen = mutableSetOf(startArticle)
+        var current = mutableSetOf(startArticle)
+
+        repeat(depth) {
+            val next = current.flatMap { fetchLinks(it) }.toSet()
+            current = (next - seen).toMutableSet()
+            seen += current
+        }
+
+        val jsonOut = Json { prettyPrint = true }
+            .encodeToString(JsonElement.serializer(), JsonArray(seen.map { JsonPrimitive(it) }))
+        Files.writeString(Paths.get(&quot;fetched.json&quot;), jsonOut)
+    }
+}
+
+fun main(args: Array&lt;String&gt;) = Crawler().main(args)</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Crawler.kt --start-article singapore --depth 2
+
+&gt; cat fetched.json
+[
+    &quot;Calling code&quot;,
+    &quot;+65&quot;,
+    &quot;British Empire&quot;,
+    &quot;1st Parliament of Singapore&quot;,
+    ...
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>While initially single-file Kotlin programs may be a bit more verbose than the equivalent
+Bash script containing <code>cp</code> or <code>curl</code> commands, as the script grows in complexity the value
+of IDE support, typechecking, and JVM libraries makes writing them in Kotlin an attractive
+proposition. This is especially true if you already have developers fluent in Kotlin which
+may not be as familiar with the intricacies of writing robust and maintainable Bash code.</p>
 </div>
 </div>
 </div>
@@ -1340,7 +1444,7 @@ Compiling 1 Kotlin source...
 <h2 id="_programmatic_modules"><a class="anchor" href="#_programmatic_modules"></a>Programmatic Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-51-c36b3c/mill-dist-1.0.6-51-c36b3c-example-kotlinlib-basic-6-programmatic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/6-programmatic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-52-eb153d/mill-dist-1.0.6-52-eb153d-example-kotlinlib-basic-6-programmatic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/6-programmatic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1452,7 +1556,7 @@ single generated text file containing the line count of all the source files
 in that module</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-51-c36b3c/mill-dist-1.0.6-51-c36b3c-example-kotlinlib-basic-7-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/7-custom-build-logic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-52-eb153d/mill-dist-1.0.6-52-eb153d-example-kotlinlib-basic-7-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/7-custom-build-logic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1611,7 +1715,7 @@ maintainable even as the complexity of your project grows.</p>
 <div class="sect2">
 <h3 id="_programmatic_multi_module_project"><a class="anchor" href="#_programmatic_multi_module_project"></a>Programmatic Multi-Module Project</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-51-c36b3c/mill-dist-1.0.6-51-c36b3c-example-kotlinlib-basic-8-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/8-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-52-eb153d/mill-dist-1.0.6-52-eb153d-example-kotlinlib-basic-8-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/8-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1687,7 +1791,7 @@ the config-driven <code>build.mill.yaml</code> files, and can contain
 configuration</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-51-c36b3c/mill-dist-1.0.6-51-c36b3c-example-kotlinlib-basic-9-programmatic-compat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/9-programmatic-compat">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-52-eb153d/mill-dist-1.0.6-52-eb153d-example-kotlinlib-basic-9-programmatic-compat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/9-programmatic-compat">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1736,7 +1840,7 @@ and other topics covered in more detail in the Kotlin section of the Mill docs,
 and you can browse each respective page if you want to learn more.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-51-c36b3c/mill-dist-1.0.6-51-c36b3c-example-kotlinlib-basic-10-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/10-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-52-eb153d/mill-dist-1.0.6-52-eb153d-example-kotlinlib-basic-10-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/10-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*, publish.*

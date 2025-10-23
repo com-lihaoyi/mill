@@ -749,7 +749,7 @@ JVM versions, or other such configuration. These can be useful for several purpo
 <div class="ulist">
 <ul>
 <li>
-<p>A replacement for Bash scripts, letting you write small scripts or programs
+<p>A replacement for Bash scripts: Mill instead lets you write small Java scripts or programs
 in Java with full access to third-party libraries that run in a deterministic way
 across different dev, test, or prod environments</p>
 </li>
@@ -885,6 +885,148 @@ public class FooTest {
 <div class="paragraph">
 <p>For scripts that grow larger than a single file, you should convert them
 to <a href="#_simple_config_based_modules">Simple Config-Based Modules</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_script_use_cases"><a class="anchor" href="#_script_use_cases"></a>Script Use Cases</h3>
+<div class="paragraph">
+<p>Mill Single-file Java programs can make it more convenient to script simple command-line
+workflows interacting with files, subprocesses, and HTTP endpoints.</p>
+</div>
+<div class="paragraph">
+<p>For example, below is a simple script using <a href="https://github.com/FasterXML/jackson">Jackson</a>,
+<a href="https://square.github.io/okhttp/">OkHttp</a>, and <a href="https://picocli.info/">PicoCLI</a>, to write a
+program that crawls wikipedia and saves the crawl results to a file:</p>
+</div>
+<div class="listingblock">
+<div class="title">Crawler.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/2-script-crawler/Crawler.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps:
+//| - info.picocli:picocli:4.7.6
+//| - com.squareup.okhttp3:okhttp:4.12.0
+//| - com.fasterxml.jackson.core:jackson-databind:2.17.2
+
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import okhttp3.*;
+import picocli.CommandLine;
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+import java.util.concurrent.Callable;
+
+@CommandLine.Command(name = &quot;Crawler&quot;, mixinStandardHelpOptions = true)
+public class Crawler implements Callable&lt;Integer&gt; {
+
+  @CommandLine.Option(
+    names = {&quot;--start-article&quot;},
+    required = true,
+    description = &quot;Starting article title&quot;
+  )
+  private String startArticle;
+
+  @CommandLine.Option(
+    names = {&quot;--depth&quot;},
+    required = true,
+    description = &quot;Depth of crawl&quot;
+  )
+  private int depth;
+
+  private static final OkHttpClient client = new OkHttpClient();
+  private static final ObjectMapper mapper = new ObjectMapper();
+
+  public static List&lt;String&gt; fetchLinks(String title) throws IOException {
+    var url = new HttpUrl.Builder()
+      .scheme(&quot;https&quot;)
+      .host(&quot;en.wikipedia.org&quot;)
+      .addPathSegments(&quot;w/api.php&quot;)
+      .addQueryParameter(&quot;action&quot;, &quot;query&quot;)
+      .addQueryParameter(&quot;titles&quot;, title)
+      .addQueryParameter(&quot;prop&quot;, &quot;links&quot;)
+      .addQueryParameter(&quot;format&quot;, &quot;json&quot;)
+      .build();
+
+    var request = new Request.Builder()
+      .url(url)
+      .header(&quot;User-Agent&quot;, &quot;WikiFetcherBot/1.0 (https://example.com; contact@example.com)&quot;)
+      .build();
+    try (Response response = client.newCall(request).execute()) {
+      if (!response.isSuccessful())
+        throw new IOException(&quot;Unexpected code &quot; + response);
+
+      JsonNode root = mapper.readTree(response.body().byteStream());
+      JsonNode pages = root.path(&quot;query&quot;).path(&quot;pages&quot;);
+      List&lt;String&gt; links = new ArrayList&lt;&gt;();
+
+      for (Iterator&lt;JsonNode&gt; it = pages.elements(); it.hasNext();) {
+        JsonNode linkArr = it.next().get(&quot;links&quot;);
+        if (linkArr != null &amp;&amp; linkArr.isArray()) {
+          for (JsonNode link : linkArr) {
+            JsonNode titleNode = link.get(&quot;title&quot;);
+            if (titleNode != null) links.add(titleNode.asText());
+          }
+        }
+      }
+      return links;
+    }
+  }
+
+  @Override
+  public Integer call() throws Exception {
+    Set&lt;String&gt; seen = new HashSet&lt;&gt;();
+    Set&lt;String&gt; current = new HashSet&lt;&gt;();
+    seen.add(startArticle);
+    current.add(startArticle);
+
+    for (int i = 0; i &lt; depth; i++) {
+      Set&lt;String&gt; next = new HashSet&lt;&gt;();
+      for (String article : current) {
+        for (String link : fetchLinks(article)) {
+          if (!seen.contains(link)) next.add(link);
+        }
+      }
+      seen.addAll(next);
+      current = next;
+    }
+
+    Path output = Paths.get(&quot;fetched.json&quot;);
+    try (Writer w = Files.newBufferedWriter(output)) {
+      DefaultPrettyPrinter printer = new DefaultPrettyPrinter();
+      printer.indentArraysWith(new DefaultIndenter(&quot;    &quot;, &quot;\n&quot;));
+      printer.indentObjectsWith(new DefaultIndenter(&quot;    &quot;, &quot;\n&quot;));
+      mapper.writer(printer).writeValue(w, seen);
+    }
+    return 0;
+  }
+
+  public static void main(String[] args) {
+    int exitCode = new CommandLine(new Crawler()).execute(args);
+    System.exit(exitCode);
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Crawler.java --start-article=singapore --depth=2
+
+&gt; cat fetched.json
+[
+    &quot;Calling code&quot;,
+    &quot;+65&quot;,
+    &quot;British Empire&quot;,
+    &quot;1st Parliament of Singapore&quot;,
+    ...
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>While initially single-file Java programs may be a bit more verbose than the equivalent
+Bash script containing <code>cp</code> or <code>curl</code> commands, as the script grows in complexity the value
+of IDE support, typechecking, and JVM libraries makes writing them in Java an attractive
+proposition. This is especially true if you already have developers fluent in Java which
+may not be as familiar with the intricacies of writing robust and maintainable Bash code.</p>
 </div>
 </div>
 </div>
@@ -1348,7 +1490,7 @@ compiling 1 Java source...
 <h2 id="_programmatic_modules"><a class="anchor" href="#_programmatic_modules"></a>Programmatic Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-51-c36b3c/mill-dist-1.0.6-51-c36b3c-example-javalib-basic-6-programmatic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/6-programmatic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-52-eb153d/mill-dist-1.0.6-52-eb153d-example-javalib-basic-6-programmatic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/6-programmatic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1457,7 +1599,7 @@ single generated text file containing the line count of all the source files
 in that module</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-51-c36b3c/mill-dist-1.0.6-51-c36b3c-example-javalib-basic-7-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/7-custom-build-logic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-52-eb153d/mill-dist-1.0.6-52-eb153d-example-javalib-basic-7-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/7-custom-build-logic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1606,7 +1748,7 @@ maintainable even as the complexity of your project grows.</p>
 <div class="sect2">
 <h3 id="_programmatic_multi_module_project"><a class="anchor" href="#_programmatic_multi_module_project"></a>Programmatic Multi-Module Project</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-51-c36b3c/mill-dist-1.0.6-51-c36b3c-example-javalib-basic-8-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/8-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-52-eb153d/mill-dist-1.0.6-52-eb153d-example-javalib-basic-8-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/8-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1676,7 +1818,7 @@ the config-driven <code>build.mill.yaml</code> files, and can contain
 configuration</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-51-c36b3c/mill-dist-1.0.6-51-c36b3c-example-javalib-basic-9-programmatic-compat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/9-programmatic-compat">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-52-eb153d/mill-dist-1.0.6-52-eb153d-example-javalib-basic-9-programmatic-compat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/9-programmatic-compat">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1718,7 +1860,7 @@ and other topics covered in more detail in the Java section of the Mill docs,
 and you can browse each respective page if you want to learn more.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-51-c36b3c/mill-dist-1.0.6-51-c36b3c-example-javalib-basic-10-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/10-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-52-eb153d/mill-dist-1.0.6-52-eb153d-example-javalib-basic-10-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/basic/10-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*, publish.*
