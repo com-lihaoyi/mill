@@ -11,6 +11,10 @@ include::partial$Intro_Header.adoc[]
 
 include::partial$example/kotlinlib/basic/1-script.adoc[]
 
+=== Script Use Cases
+
+include::partial$example/kotlinlib/basic/2-script-crawler.adoc[]
+
 == Simple Config-Based Modules
 
 include::partial$example/kotlinlib/basic/3-simple.adoc[]

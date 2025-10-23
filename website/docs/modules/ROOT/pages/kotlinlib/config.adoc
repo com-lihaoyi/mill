@@ -15,7 +15,7 @@ include::partial$example/kotlinlib/config/1-common-config.adoc[]
 
 include::partial$example/kotlinlib/config/3-publish.adoc[]
 
-== Custom Script Module Classes
+== Custom Module Classes
 
 include::partial$example/kotlinlib/config/4-custom-class.adoc[]
 

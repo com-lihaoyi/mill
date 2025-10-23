@@ -1,6 +1,8 @@
-// Mill Single-file Java programs can make it more convenient to script simple command-line
-// workflows interacting with files, subprocesses, and HTTP endpoints. For example, below is
-// a simple script using these libraries to crawl wikipedia and save the crawl results to a file:
+//// SNIPPET:CUSTOM
+//
+// For example, below is a simple script using https://github.com/FasterXML/jackson[Jackson],
+// https://square.github.io/okhttp/[OkHttp], and https://picocli.info/[PicoCLI], to write a
+// program that crawls wikipedia and saves the crawl results to a file:
 
 //// SNIPPET:FILE
 /** See Also: Crawler.java */

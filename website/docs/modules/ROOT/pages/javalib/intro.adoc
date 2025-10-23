@@ -11,6 +11,10 @@ include::partial$Intro_Header.adoc[]
 
 include::partial$example/javalib/basic/1-script.adoc[]
 
+=== Script Use Cases
+
+include::partial$example/javalib/basic/2-script-crawler.adoc[]
+
 
 == Simple Config-Based Modules
 

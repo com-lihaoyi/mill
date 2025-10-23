@@ -17,7 +17,7 @@ include::partial$example/javalib/config/1-common-config.adoc[]
 
 include::partial$example/javalib/config/3-publish.adoc[]
 
-== Custom Script Module Classes
+== Custom Module Classes
 
 include::partial$example/javalib/config/4-custom-class.adoc[]
 

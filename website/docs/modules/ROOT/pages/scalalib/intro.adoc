@@ -11,9 +11,9 @@ include::partial$Intro_Header.adoc[]
 
 include::partial$example/scalalib/basic/1-script.adoc[]
 
-== Script Builtin Libraries
+=== Script Builtin Libraries
 
-include::partial$example/scalalib/basic/2-script-builtins.adoc[]
+include::partial$example/scalalib/basic/2-script-crawler.adoc[]
 
 == Simple Config-Based Modules
 
