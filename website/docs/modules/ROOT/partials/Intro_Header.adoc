@@ -10,8 +10,19 @@ Mill supports three main ways of defining {language} projects:
 * xref:#_programmatic_modules[]: these are necessary
   for scenarios which require custom logic, e.g. custom resource-file processing or code-generation
 
-This page contains a quick introduction to getting start with using Mill to build
-a simple {language} program. It walks through a series of Mill builds of increasing
+You can download these examples project using the *download* links above
+if you want to try out the commands below yourself, or browse the full sources
+of the example (including supporting files) via the *browse* link. the `./mill` script
+(`./mill.bat` on windows) takes care of downloading and caching any further dependencies,
+including downloading a JVM if you do not already have one. All examples
+in this documentation site are executable and are continually exercised as
+part of Mill's CI workflows, and they range from the simple hello-world
+projects on this page to more sophisticated
+xref:{language-small}lib/web-examples.adoc[web build examples] or
+xref:{language-small}lib/build-examples.adoc[example
+builds for real-world projects]
+
+This page walks through a series of Mill builds of increasing
 complexity to show you the key features and usage of the Mill build tool.
 The other pages of this section of the docs go into more depth into individual Mill features.
 These aren't intended to be read comprehensively top-to-bottom, but
