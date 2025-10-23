@@ -60,7 +60,7 @@ object ScriptModuleInit
           Class.forName(className.reverse.replaceFirst("\\.", "\\$").reverse)
       }
 
-    cls.getDeclaredConstructors.head.newInstance(args *).asInstanceOf[ExternalModule]
+    cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ExternalModule]
   }
 
   /**

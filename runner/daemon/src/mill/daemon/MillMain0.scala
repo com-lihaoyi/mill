@@ -601,21 +601,6 @@ object MillMain0 {
   /**
    * Determine, whether we need a `build.mill` or not.
    */
-  private def needBuildFile(config: MillCliConfig): Boolean = {
-    // Tasks, for which running Mill without an existing buildfile is allowed.
-    val noBuildFileTaskWhitelist = Seq(
-      "init",
-      "version",
-      "mill.scalalib.giter8.Giter8Module/init"
-    )
-    val tasksAndParams = config.leftoverArgs.value
-    val whitelistMatch =
-      tasksAndParams.nonEmpty && noBuildFileTaskWhitelist.exists(tasksAndParams.head == _)
-    // Has the user additional/extra imports
-    // (which could provide additional commands that could make sense without a build.mill)
-    val extraPlugins = config.imports.nonEmpty
-    !(whitelistMatch || extraPlugins)
-  }
 
   def readVersionFile(file: os.Path): Option[String] = file match {
     case f if os.exists(f) => os.read.lines(f).find(l => l.trim().nonEmpty)
