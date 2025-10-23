@@ -283,7 +283,6 @@ object MillMain0 {
                                 tasksAndParams = tasksAndParams,
                                 prevRunnerState = prevState.getOrElse(stateCache),
                                 logger = logger,
-                                needBuildFile = needBuildFile(config),
                                 requestedMetaLevel = config.metaLevel.orElse(metaLevelOverride),
                                 allowPositionalCommandArgs = config.allowPositional.value,
                                 systemExit = systemExit,
