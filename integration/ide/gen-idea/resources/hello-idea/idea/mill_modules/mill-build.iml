@@ -49,7 +49,7 @@
         <orderEntry type="library" scope="RUNTIME" name="jul-to-slf4j-1.7.30.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="logback-classic-1.5.18.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="logback-core-1.5.18.jar" level="project"/>
-        <orderEntry type="library" name="mainargs_3-0.7.6.jar" level="project"/>
+        <orderEntry type="library" name="mainargs_3-0.7.7.jar" level="project"/>
         <orderEntry type="library" name="mill-core-api-daemon_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-constants.jar" level="project"/>

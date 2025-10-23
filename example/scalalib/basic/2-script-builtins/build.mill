@@ -13,10 +13,10 @@
 // script using these libraries to crawl wikipedia and save the crawl results to a file:
 
 //// SNIPPET:FILE
-/** See Also: Foo.scala */
+/** See Also: Crawler.scala */
 
 /** Usage
-> ./mill Foo.scala --start-article singapore --depth 2
+> ./mill Crawler.scala --start-article singapore --depth 2
 
 > cat fetched.json
 [
