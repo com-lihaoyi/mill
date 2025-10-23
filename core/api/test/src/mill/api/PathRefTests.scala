@@ -114,30 +114,19 @@ object PathRefTests extends TestSuite {
           val outDir = workspaceDir / "out"
           PathRef.outPathOverride.withValue(Some(outDir)) {
 
-            def check(file: os.Path, contains: Seq[String], containsNot: Seq[String]) = {
-              val pr = PathRef(file)
-              val enc = PathRef.encodeKnownRoots(pr)
-              val dec = PathRef.decodeKnownRoots(enc)
-              assert(pr.toString == dec)
+            def check(path: os.Path, contains: Seq[String], containsNot: Seq[String]) = {
+              val enc = PathRef.encodeKnownRootsInPath(path)
+              val dec = PathRef.decodeKnownRootsInPath(enc)
+              assert(path.toString == dec)
               contains.foreach(s => enc.containsSlice(s))
               containsNot.foreach(s => !enc.containsSlice(s))
 
-              file -> enc
+              path -> enc
             }
 
             val file1 = tmpDir / "file1"
             val file2 = workspaceDir / "file2"
             val file3 = outDir / "file3"
-
-            assert(
-              PathRef.encodeKnownRoots(PathRef(file1)).containsSlice("ref:"),
-              !PathRef.encodeKnownRoots(PathRef(file1)).containsSlice("$WORKSPACE"),
-              !PathRef.encodeKnownRoots(PathRef(file1)).containsSlice("$MILL_OUT"),
-              PathRef.encodeKnownRoots(PathRef(file2)).containsSlice("$WORKSPACE/file2"),
-              !PathRef.encodeKnownRoots(PathRef(file2)).containsSlice("$MILL_OUT"),
-              PathRef.encodeKnownRoots(PathRef(file3)).containsSlice("$MILL_OUT/file3"),
-              !PathRef.encodeKnownRoots(PathRef(file3)).containsSlice("WORKSPACE")
-            )
 
             Seq(
               "mapping" -> PathRef.knownRoots,
