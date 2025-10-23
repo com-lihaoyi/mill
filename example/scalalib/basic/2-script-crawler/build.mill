@@ -21,7 +21,7 @@
 
 /** Usage
 > ./mill Crawler.scala --start-article singapore --depth 2
-Crawler.scala... seen: HashSet(
+... seen: HashSet(
   "Calling code",
   "+65",
   "British Empire",
