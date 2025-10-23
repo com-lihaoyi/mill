@@ -12,6 +12,45 @@ object ScriptModuleInit
             Option[String]
         ) => Seq[Result[mill.api.ExternalModule]]
     ) {
+
+  // Cache instantiated script modules on a per-classloader basis. This lets us avoid
+  // instantiating the same script twice, e.g. once directly and once when resolving a
+  // downstream script's `moduleDeps`. This is kept on the `ScriptModuleInit` object scoped
+  // to the build classloader and is garbage collected when the classloader is discarded.
+  val scriptModuleCache: collection.mutable.Map[os.Path, ExternalModule] =
+    collection.mutable.Map.empty
+
+  def moduleFor(
+      millFile: os.Path,
+      extendsConfig: Option[String],
+      moduleDeps: Seq[String],
+      compileModuleDeps: Seq[String],
+      runModuleDeps: Seq[String],
+      resolveModuleDep: String => Option[mill.Module]
+  ) = {
+    scriptModuleCache.synchronized {
+      scriptModuleCache.getOrElseUpdate(
+        millFile,
+        instantiate(
+          extendsConfig.getOrElse {
+            millFile.ext match {
+              case "java" => "mill.script.JavaModule"
+              case "kt" => "mill.script.KotlinModule"
+              case "scala" => "mill.script.ScalaModule"
+              case "sc" => "mill.script.ScalaScriptModule"
+            }
+          },
+          ScriptModule.Config(
+            millFile,
+            moduleDeps.flatMap(resolveModuleDep(_)),
+            compileModuleDeps.flatMap(resolveModuleDep(_)),
+            runModuleDeps.flatMap(resolveModuleDep(_))
+          )
+        )
+      )
+    }
+  }
+
   def instantiate(className: String, args: AnyRef*): ExternalModule = {
     val cls =
       try Class.forName(className)
@@ -22,32 +61,6 @@ object ScriptModuleInit
       }
 
     cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ExternalModule]
-  }
-  def moduleFor(
-      millFile: os.Path,
-      extendsConfig: Option[String],
-      moduleDeps: Seq[String],
-      compileModuleDeps: Seq[String],
-      runModuleDeps: Seq[String],
-      resolveModuleDep: String => Option[mill.Module]
-  ) = {
-    val className = extendsConfig.getOrElse {
-      millFile.ext match {
-        case "java" => "mill.script.JavaModule"
-        case "scala" => "mill.script.ScalaModule"
-        case "kt" => "mill.script.KotlinModule"
-      }
-    }
-
-    instantiate(
-      className,
-      ScriptModule.Config(
-        millFile,
-        moduleDeps.flatMap(resolveModuleDep(_)),
-        compileModuleDeps.flatMap(resolveModuleDep(_)),
-        runModuleDeps.flatMap(resolveModuleDep(_))
-      )
-    )
   }
 
   /**

@@ -52,7 +52,6 @@ class MillBuildBootstrap(
     tasksAndParams: Seq[String],
     prevRunnerState: RunnerState,
     logger: Logger,
-    needBuildFile: Boolean,
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,
     systemExit: Server.StopServer,
@@ -101,25 +100,17 @@ class MillBuildBootstrap(
 
       val nestedState =
         if (depth == 0) {
-          // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
-          // Unfortunately, some tasks also make sense without a `build.mill`, e.g. the `init` command.
-          // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
           lazy val state = evaluateRec(depth + 1)
           if (currentRootContainsBuildFile) state
           else {
             val msg =
               s"No build file (${rootBuildFileNames.asScala.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
-            val res =
-              if (needBuildFile) RunnerState(None, Nil, Some(msg), None)
-              else {
-                state match {
-                  case RunnerState(bootstrapModuleOpt, frames, Some(error), None) =>
-                    // Add a potential clue (missing build.mill) to the underlying error message
-                    RunnerState(bootstrapModuleOpt, frames, Some(msg + "\n" + error))
-                  case state => state
-                }
-              }
-            res
+            state match {
+              case RunnerState(bootstrapModuleOpt, frames, Some(error), None) =>
+                // Add a potential clue (missing build.mill) to the underlying error message
+                RunnerState(bootstrapModuleOpt, frames, Some(msg + "\n" + error))
+              case state => state
+            }
           }
         } else {
           val (useDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)

@@ -11,7 +11,7 @@ object `package` extends ScoverageModule {
   def scalaVersion = "3.7.1"
   def mvnDeps = Seq(
     mvn"com.lihaoyi::scalatags:0.13.1",
-    mvn"com.lihaoyi::mainargs:0.7.6"
+    mvn"com.lihaoyi::mainargs:0.7.7"
   )
 
   object test extends ScoverageTests /*with TestModule.Utest */ {

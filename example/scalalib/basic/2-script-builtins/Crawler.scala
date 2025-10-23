@@ -28,4 +28,4 @@ def main(startArticle: String, depth: Int) = {
   os.write(os.pwd / "fetched.json", upickle.stream(seen, indent = 4))
 }
 
-def main(args: Array[String]): Unit = mainargs.ParserForMethods(this).runOrExit(args)
+def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args)

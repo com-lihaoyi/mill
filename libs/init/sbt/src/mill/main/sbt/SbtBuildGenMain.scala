@@ -1,6 +1,6 @@
 package mill.main.sbt
 
-import mainargs.{ParserForClass, arg, main}
+import mainargs.{Parser, arg, main}
 import mill.api.daemon.internal.internal
 import mill.constants.Util
 import mill.main.buildgen.*
@@ -55,7 +55,7 @@ object SbtBuildGenMain
   override type C = Config
 
   def main(args: Array[String]): Unit = {
-    val cfg = ParserForClass[Config].constructOrExit(args.toSeq)
+    val cfg = Parser[Config].constructOrExit(args.toSeq)
     run(cfg)
   }
 
