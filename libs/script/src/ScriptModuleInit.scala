@@ -12,6 +12,14 @@ object ScriptModuleInit
             Option[String]
         ) => Seq[Result[mill.api.ExternalModule]]
     ) {
+
+  // Cache instantiated script modules on a per-classloader basis. This lets us avoid
+  // instantiating the same script twice, e.g. once directly and once when resolving a
+  // downstream script's `moduleDeps`. This is kept on the `ScriptModuleInit` object scoped
+  // to the build classloader and is garbage collected when the classloader is discarded.
+  val scriptModuleCache: collection.mutable.Map[String, ExternalModule] =
+    collection.mutable.Map.empty
+
   def instantiate(className: String, args: AnyRef*): ExternalModule = {
     val cls =
       try Class.forName(className)
@@ -21,8 +29,14 @@ object ScriptModuleInit
           Class.forName(className.reverse.replaceFirst("\\.", "\\$").reverse)
       }
 
-    cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ExternalModule]
+    scriptModuleCache.synchronized{
+      scriptModuleCache.getOrElseUpdate(
+        className,
+        cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ExternalModule]
+      )
+    }
   }
+
   def moduleFor(
       millFile: os.Path,
       extendsConfig: Option[String],
