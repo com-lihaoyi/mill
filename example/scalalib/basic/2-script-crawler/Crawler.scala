@@ -25,6 +25,7 @@ def main(startArticle: String, depth: Int) = {
     seen = seen ++ current
   }
 
+  pprint.log(seen)
   os.write(os.pwd / "fetched.json", upickle.stream(seen, indent = 4))
 }
 
