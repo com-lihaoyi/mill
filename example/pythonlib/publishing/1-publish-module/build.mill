@@ -44,10 +44,10 @@ object `package` extends PythonModule, PublishModule {
 
 /** Usage
 > ./mill show sdist
-".../out/sdist.dest/dist/testpkg_mill-0.0.2.tar.gz"
+"...$OUT/sdist.dest/dist/testpkg_mill-0.0.2.tar.gz"
 
 > ./mill show wheel
-".../out/wheel.dest/dist/testpkg_mill-0.0.2-py3-none-any.whl"
+"...$OUT/wheel.dest/dist/testpkg_mill-0.0.2-py3-none-any.whl"
 */
 
 // These files can then be `pip-installed` by other projects, or, if you're using Mill, you can

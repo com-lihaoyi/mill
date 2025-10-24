@@ -74,7 +74,7 @@ def taskPath = Task {
 /** Usage
 
 > ./mill show taskPath
-".../out/taskPath.dest/file.txt"
+"...$OUT/taskPath.dest/file.txt"
 
 */
 
@@ -92,7 +92,7 @@ def taskPathRef = Task {
 /** Usage
 
 > ./mill show taskPathRef
-"ref.../out/taskPathRef.dest/file.txt"
+"ref...$OUT/taskPathRef.dest/file.txt"
 
 */
 

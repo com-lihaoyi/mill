@@ -82,7 +82,7 @@ foo.run
 > ./mill foo.assembly # bundle classfiles and libraries into a jar for deployment
 
 > ./mill show foo.assembly # show the output of the assembly task
-".../out/foo/assembly.dest/out.jar"
+"...$OUT/foo/assembly.dest/out.jar"
 
 > java -jar ./out/foo/assembly.dest/out.jar --text hello
 <h1>hello</h1>

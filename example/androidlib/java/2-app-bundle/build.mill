@@ -37,7 +37,7 @@ object bundle extends AndroidAppBundle {
 /** Usage
 
 > ./mill show bundle.androidBundle
-".../out/bundle/androidBundle.dest/signedBundle.aab"
+"...$OUT/bundle/androidBundle.dest/signedBundle.aab"
 
 */
 

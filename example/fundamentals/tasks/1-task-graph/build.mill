@@ -55,7 +55,7 @@ def run(args: String*) = Task.Command {
 /** Usage
 
 > ./mill show assembly
-".../out/assembly.dest/assembly.jar"
+"...$OUT/assembly.dest/assembly.jar"
 
 > java -jar out/assembly.dest/assembly.jar i am cow
 Foo.value: 31337

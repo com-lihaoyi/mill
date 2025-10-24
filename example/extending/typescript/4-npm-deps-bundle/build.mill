@@ -117,7 +117,7 @@ object qux extends TypeScriptModule {
 Hello James Bond Professor
 
 > ./mill show qux.bundle
-".../out/qux/bundle.dest/bundle.js"
+"...$OUT/qux/bundle.dest/bundle.js"
 
 > node out/qux/bundle.dest/bundle.js James Bond prof
 Hello James Bond Professor

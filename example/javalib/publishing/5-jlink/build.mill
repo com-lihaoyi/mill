@@ -47,7 +47,7 @@ object foo extends JavaModule, JlinkModule {
 > ./mill foo.jlinkAppImage
 
 > ./mill show foo.jlinkAppImage
-".../out/foo/jlinkAppImage.dest/jlink-runtime"
+"...$OUT/foo/jlinkAppImage.dest/jlink-runtime"
 
 > ./out/foo/jlinkAppImage.dest/jlink-runtime/bin/jlink
 ... foo.Bar main
