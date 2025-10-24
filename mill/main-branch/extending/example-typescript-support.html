@@ -141,10 +141,14 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+    <a class="nav-link" href="../javalib/script.html">Java Single-File Scripts</a>
   </li>
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
   </li>
 
@@ -180,10 +184,14 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
   </li>
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
@@ -227,10 +235,14 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
   </li>
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
@@ -721,7 +733,7 @@ tool and package repository</p>
 library necessary for accessing Node.js APIs:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-extending-typescript-1-hello-typescript.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/1-hello-typescript">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-extending-typescript-1-hello-typescript.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/1-hello-typescript">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -854,7 +866,7 @@ Again we return a <code>PathRef</code> to the <code>Task.dest</code> folder we o
 the <code>.ts</code> files in out <code>src/</code> folder:</p>
 </div>
 <div class="listingblock">
-<div class="title">src/hello.ts (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-extending-typescript-1-hello-typescript.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/1-hello-typescript/src/hello.ts">browse</a>)</div>
+<div class="title">src/hello.ts (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-extending-typescript-1-hello-typescript.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/1-hello-typescript/src/hello.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-ts hljs" data-lang="ts">interface User {
     firstName: string
@@ -1016,7 +1028,7 @@ we wrote above, and turn it into a re-usable <code>TypeScriptModule</code>.</p>
 <code>trait TypeScriptModule extends Module</code> wrapper:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-extending-typescript-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/2-typescript-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-extending-typescript-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/2-typescript-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -1060,7 +1072,7 @@ object qux extends TypeScriptModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.ts (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-extending-typescript-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/2-typescript-modules/foo/src/foo.ts">browse</a>)</div>
+<div class="title">foo/src/foo.ts (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-extending-typescript-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/2-typescript-modules/foo/src/foo.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-ts hljs" data-lang="ts">interface User { firstName: string }
 
@@ -1070,7 +1082,7 @@ console.log(&quot;Hello &quot; + user.firstName + &quot; Foo&quot;)</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/bar/src/bar.ts (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-extending-typescript-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/2-typescript-modules/foo/bar/src/bar.ts">browse</a>)</div>
+<div class="title">foo/bar/src/bar.ts (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-extending-typescript-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/2-typescript-modules/foo/bar/src/bar.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-ts hljs" data-lang="ts">interface User { firstName: string }
 
@@ -1080,7 +1092,7 @@ console.log(&quot;Hello &quot; + user.firstName + &quot; Bar&quot;)</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/src/qux.ts (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-extending-typescript-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/2-typescript-modules/qux/src/qux.ts">browse</a>)</div>
+<div class="title">qux/src/qux.ts (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-extending-typescript-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/2-typescript-modules/qux/src/qux.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-ts hljs" data-lang="ts">interface User { firstName: string }
 
@@ -1363,7 +1375,7 @@ use in <code>compile</code>, and <code>compiledJavascript</code> for use in <cod
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-extending-typescript-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/3-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-extending-typescript-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/3-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -1448,7 +1460,7 @@ object qux extends TypeScriptModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.ts (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-extending-typescript-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/3-module-deps/foo/src/foo.ts">browse</a>)</div>
+<div class="title">foo/src/foo.ts (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-extending-typescript-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/3-module-deps/foo/src/foo.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-ts hljs" data-lang="ts">interface User {
     firstName: string
@@ -1460,14 +1472,14 @@ export {User}</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/bar/src/bar.ts (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-extending-typescript-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/3-module-deps/foo/bar/src/bar.ts">browse</a>)</div>
+<div class="title">foo/bar/src/bar.ts (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-extending-typescript-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/3-module-deps/foo/bar/src/bar.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-ts hljs" data-lang="ts">const defaultRole = &quot;Professor&quot;
 export {defaultRole}</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/src/qux.ts (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-extending-typescript-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/3-module-deps/qux/src/qux.ts">browse</a>)</div>
+<div class="title">qux/src/qux.ts (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-extending-typescript-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/3-module-deps/qux/src/qux.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-ts hljs" data-lang="ts">import {User} from &quot;foo/foo.js&quot;
 import {defaultRole} from &quot;foo/bar/bar.js&quot;
@@ -1759,7 +1771,7 @@ into a <code>def prepareRun</code> task.</p>
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-extending-typescript-4-npm-deps-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/4-npm-deps-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-extending-typescript-4-npm-deps-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/extending/typescript/4-npm-deps-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
