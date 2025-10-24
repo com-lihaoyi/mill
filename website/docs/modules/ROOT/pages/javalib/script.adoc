@@ -8,6 +8,10 @@
 
 include::partial$example/javalib/script/2-crawler.adoc[]
 
-== Relative and Absolute Script Imports
+== Relative and Absolute Script moduleDeps
 
 include::partial$example/javalib/script/3-relative-imports.adoc[]
+
+== Custom Script Module Classes
+
+include::partial$example/javalib/script/4-custom-class.adoc[]
