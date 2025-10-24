@@ -1,28 +1,20 @@
 Mill supports three main ways of defining {language} projects:
 
-* xref:#_single_file_scripts[]:
-  these are useful for small self-contained programs with both the code and
-  configuration contained within a single file
+* xref:#_single_file_scripts[]: small programs with both code and build configuration
+  contained within a single file
 
-* xref:#_simple_config_based_modules[]: these are a good fit for most simple projects, where you
-  may just need to configure a few dependencies or compile/execution flags without any custom logic
+* xref:#_simple_config_based_modules[]: simple projects that require basic setting
+  of dependencies and versions
 
-* xref:#_programmatic_modules[]: these are necessary
-  for scenarios which require custom logic, e.g. custom resource-file processing or code-generation
+* xref:#_programmatic_modules[]: builds which require custom logic, e.g.
+  code generation or resource processing
 
-This page contains a quick introduction to getting start with using Mill to build
-a simple {language} program. It walks through a series of Mill builds of increasing
+This page walks through a series of Mill builds of increasing
 complexity to show you the key features and usage of the Mill build tool.
-The other pages of this section of the docs go into more depth into individual Mill features.
-These aren't intended to be read comprehensively top-to-bottom, but
-rather looked up when you have a particular interest e.g. in
+The other pages of this section of the docs go into more depth into individual Mill features:
 xref:{language-small}lib/testing.adoc[testing],
-xref:{language-small}lib/publishing.adoc[publishing], and so on.
+xref:{language-small}lib/publishing.adoc[publishing], and so on. Every example
+can be downloaded to try it yourself.
 
-The API reference for Mill's {language} toolchain can be found at:
-
-* {mill-doc-url}/api/latest/mill/{language-small}lib.html[mill.{language-small}lib]
-
-If you aren't sure why you would use Mill, see xref:comparisons/why-mill.adoc[] for
-a discussion on the motivations of the project. If you are migrating an existing project,
-see xref:migrating/migrating.adoc[Migrating to Mill].
+The API reference for Mill's {language} toolchain can be found at
+{mill-doc-url}/api/latest/mill/{language-small}lib.html[mill.{language-small}lib]

@@ -245,7 +245,9 @@ object `package` extends Module {
       val examplePath = moduleDir.subRelativeTo(BuildCtx.workspaceRoot)
       val frontMatter = parsed().takeWhile(_._1 == "yaml").map(_._2).mkString("\n")
       val withoutFrontMatter = parsed().dropWhile(_._1 == "yaml")
-
+      val exampleDashed = examplePath.segments.mkString("-")
+      val download =
+        s"{mill-download-url}/mill-dist-${build.millVersion()}-$exampleDashed.zip[download]"
       os.write(
         Task.dest / "example.adoc",
         withoutFrontMatter
@@ -258,7 +260,7 @@ object `package` extends Module {
                 case s => s
               }
               s"""
-.$path ({mill-example-url}/$examplePath/$path[browse])
+.$path ($download, {mill-example-url}/$examplePath/$path[browse])
 [source,$lang,subs="attributes,verbatim"]
 ----
 $txt
@@ -267,11 +269,7 @@ $txt
               val title =
                 if (seenCode) ""
                 else {
-                  val exampleDashed = examplePath.segments.mkString("-")
-                  val download =
-                    s"{mill-download-url}/mill-dist-${build.millVersion()}-$exampleDashed.zip[download]"
-                  val browse = s"{mill-example-url}/$examplePath[browse]"
-                  s".build.mill ($download, $browse)"
+                  s".build.mill ($download, {mill-example-url}/$examplePath[browse])"
                 }
               seenCode = true
               // avoid .stripMargin, as the embedded content may contain the margin symbol
