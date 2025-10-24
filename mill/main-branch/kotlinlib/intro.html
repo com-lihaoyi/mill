@@ -697,44 +697,30 @@
 <div class="ulist">
 <ul>
 <li>
-<p><a href="#_single_file_scripts">Single-File Scripts</a>:
-these are useful for small self-contained programs with both the code and
-configuration contained within a single file</p>
+<p><a href="#_single_file_scripts">Single-File Scripts</a>: small programs with both code and build configuration
+contained within a single file</p>
 </li>
 <li>
-<p><a href="#_simple_config_based_modules">Simple Config-Based Modules</a>: these are a good fit for most simple projects, where you
-may just need to configure a few dependencies or compile/execution flags without any custom logic</p>
+<p><a href="#_simple_config_based_modules">Simple Config-Based Modules</a>: simple projects that require basic setting
+of dependencies and versions</p>
 </li>
 <li>
-<p><a href="#_programmatic_modules">Programmatic Modules</a>: these are necessary
-for scenarios which require custom logic, e.g. custom resource-file processing or code-generation</p>
+<p><a href="#_programmatic_modules">Programmatic Modules</a>: builds which require custom logic, e.g.
+code generation or resource processing</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>This page contains a quick introduction to getting start with using Mill to build
-a simple Kotlin program. It walks through a series of Mill builds of increasing
+<p>This page walks through a series of Mill builds of increasing
 complexity to show you the key features and usage of the Mill build tool.
-The other pages of this section of the docs go into more depth into individual Mill features.
-These aren’t intended to be read comprehensively top-to-bottom, but
-rather looked up when you have a particular interest e.g. in
+The other pages of this section of the docs go into more depth into individual Mill features:
 <a href="testing.html" class="xref page">testing</a>,
-<a href="publishing.html" class="xref page">publishing</a>, and so on.</p>
+<a href="publishing.html" class="xref page">publishing</a>, and so on. Every example
+can be downloaded to try it yourself.</p>
 </div>
 <div class="paragraph">
-<p>The API reference for Mill’s Kotlin toolchain can be found at:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="https://mill-build.org/api/latest/mill/kotlinlib.html">mill.kotlinlib</a></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>If you aren’t sure why you would use Mill, see <a href="../comparisons/why-mill.html" class="xref page">Why Use Mill?</a> for
-a discussion on the motivations of the project. If you are migrating an existing project,
-see <a href="../migrating/migrating.html" class="xref page">Migrating to Mill</a>.</p>
+<p>The API reference for Mill’s Kotlin toolchain can be found at
+<a href="https://mill-build.org/api/latest/mill/kotlinlib.html">mill.kotlinlib</a></p>
 </div>
 </div>
 </div>
@@ -744,14 +730,18 @@ see <a href="../migrating/migrating.html" class="xref page">Migrating to Mill</a
 <div class="paragraph">
 <p>Mill allows you to run single-file Kotlin programs
 easily from the command-line, even those that contain third-party dependencies, specific
-JVM versions, or other such configuration. These can be useful for several purposes:</p>
+JVM versions, or other such configuration. Unlike Kotlin programs built with other
+tools, Mill scripts run  via a <code>./mill</code>
+<a href="../cli/installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a> work
+<a href="../../../blog/16-zero-setup.html" class="xref page">without needing any prior installation or setup</a>.
+This can be useful for several purposes:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
 <p>A replacement for Bash scripts: Mill instead lets you write small Kotlin scripts or programs
 in Kotlin with full access to third-party libraries that run in a deterministic way
-across different dev, test, or prod environments</p>
+across different dev/test/prod environments</p>
 </li>
 <li>
 <p>Self-contained examples or issue reproductions, as you can include both the code and
@@ -761,10 +751,11 @@ installation</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>For example, given the Kotlin program below, it can be run directly using Mill:</p>
+<p>For example the Kotlin program below can be run directly using Mill, which will
+automatically download and cache the specified third-party dependencies as necessary:</p>
 </div>
 <div class="listingblock">
-<div class="title">Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/1-script/Foo.kt">browse</a>)</div>
+<div class="title">Foo.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-kotlinlib-basic-1-script.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/1-script/Foo.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| jvmId: 11.0.28
 //| mvnDeps:
@@ -834,7 +825,7 @@ to those of the upstream script. The test script can then exercise functions fro
 script as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">FooTest.kt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/1-script/FooTest.kt">browse</a>)</div>
+<div class="title">FooTest.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-kotlinlib-basic-1-script.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/1-script/FooTest.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| moduleDeps: [Foo.kt]
 //| mvnDeps:
@@ -888,7 +879,7 @@ a simple script using <a href="https://github.com/Kotlin/kotlinx.serialization">
 program that crawls wikipedia and saves the crawl results to a file:</p>
 </div>
 <div class="listingblock">
-<div class="title">Crawler.kt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/2-script-crawler/Crawler.kt">browse</a>)</div>
+<div class="title">Crawler.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-kotlinlib-basic-2-script-crawler.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/2-script-crawler/Crawler.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| mvnDeps:
 //| - com.github.ajalt.clikt:clikt:5.0.3
@@ -985,7 +976,7 @@ may not be as familiar with the intricacies of writing robust and maintainable B
 <h2 id="_simple_config_based_modules"><a class="anchor" href="#_simple_config_based_modules"></a>Simple Config-Based Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/3-simple/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-kotlinlib-basic-3-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/3-simple/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinModule]
 kotlinVersion: &quot;2.0.20&quot;
@@ -995,7 +986,7 @@ mvnDeps:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/3-simple/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-kotlinlib-basic-3-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/3-simple/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.KotlinTests, mill.javalib.TestModule.Junit5]
 mvnDeps:
@@ -1009,19 +1000,6 @@ third-party dependencies and a test suite using the JUnit framework.
 This example project uses two third-party dependencies - Clikt for CLI
 argument parsing, Apache Commons Text for HTML escaping - and uses them to wrap a
 given input string in HTML templates with proper escaping.</p>
-</div>
-<div class="paragraph">
-<p>You can download this example project using the <strong>download</strong> link above
-if you want to try out the commands below yourself, or browse the full sources
-of the example (including supporting files) via the <strong>browse</strong> link. the <code>./mill</code> script
-(<code>./mill.bat</code> on windows) takes care of downloading and caching any further dependencies,
-including downloading a JVM if you do not already have one. All examples
-in this documentation site are executable and are continually exercised as
-part of Mill’s CI workflows, and they range from the simple hello-world
-projects on this page to more sophisticated
-<a href="web-examples.html" class="xref page">web build examples</a> or
-<a href="build-examples.html" class="xref page">example
-builds for real-world projects</a></p>
 </div>
 <div class="sect2">
 <h3 id="_basic_folder_layout"><a class="anchor" href="#_basic_folder_layout"></a>Basic Folder Layout</h3>
@@ -1187,7 +1165,7 @@ for:</p>
 <div class="sect2">
 <h3 id="_multi_module_projects"><a class="anchor" href="#_multi_module_projects"></a>Multi-Module Projects</h3>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/4-module-deps/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-kotlinlib-basic-4-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/4-module-deps/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinModule]
 moduleDeps: [build.bar]
@@ -1197,7 +1175,7 @@ mvnDeps:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/package.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/4-module-deps/bar/package.mill.yaml">browse</a>)</div>
+<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-kotlinlib-basic-4-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/4-module-deps/bar/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinModule]
 kotlinVersion: 2.0.20
@@ -1206,7 +1184,7 @@ mvnDeps:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/test/package.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/4-module-deps/bar/test/package.mill.yaml">browse</a>)</div>
+<div class="title">bar/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-kotlinlib-basic-4-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/4-module-deps/bar/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.bar.KotlinTests, mill.javalib.TestModule.Junit5]
 mvnDeps:
@@ -1351,7 +1329,7 @@ migrating an existing codebase, you can use Mill’s <code>KotlinMavenModule</co
 Maven or Gradle build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/5-compat-modules/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-kotlinlib-basic-5-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/5-compat-modules/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinMavenModule]
 kotlinVersion: &quot;2.0.20&quot;
@@ -1444,7 +1422,7 @@ Compiling 1 Kotlin source...
 <h2 id="_programmatic_modules"><a class="anchor" href="#_programmatic_modules"></a>Programmatic Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-54-b3ae46/mill-dist-1.0.6-54-b3ae46-example-kotlinlib-basic-6-programmatic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/6-programmatic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-kotlinlib-basic-6-programmatic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/6-programmatic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1556,7 +1534,7 @@ single generated text file containing the line count of all the source files
 in that module</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-54-b3ae46/mill-dist-1.0.6-54-b3ae46-example-kotlinlib-basic-7-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/7-custom-build-logic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-kotlinlib-basic-7-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/7-custom-build-logic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1715,7 +1693,7 @@ maintainable even as the complexity of your project grows.</p>
 <div class="sect2">
 <h3 id="_programmatic_multi_module_project"><a class="anchor" href="#_programmatic_multi_module_project"></a>Programmatic Multi-Module Project</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-54-b3ae46/mill-dist-1.0.6-54-b3ae46-example-kotlinlib-basic-8-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/8-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-kotlinlib-basic-8-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/8-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1791,7 +1769,7 @@ the config-driven <code>build.mill.yaml</code> files, and can contain
 configuration</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-54-b3ae46/mill-dist-1.0.6-54-b3ae46-example-kotlinlib-basic-9-programmatic-compat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/9-programmatic-compat">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-kotlinlib-basic-9-programmatic-compat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/9-programmatic-compat">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1840,7 +1818,7 @@ and other topics covered in more detail in the Kotlin section of the Mill docs,
 and you can browse each respective page if you want to learn more.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-54-b3ae46/mill-dist-1.0.6-54-b3ae46-example-kotlinlib-basic-10-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/10-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-55-1950b2/mill-dist-1.0.6-55-1950b2-example-kotlinlib-basic-10-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/basic/10-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*, publish.*
