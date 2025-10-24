@@ -1,16 +1,23 @@
 Mill supports three main ways of defining {language} projects:
 
-* xref:#_single_file_scripts[]:
-  these are useful for small self-contained programs with both the code and
-  configuration contained within a single file
+* xref:#_single_file_scripts[]: small programs with both code and build configuration
+  contained within a single file
 
-* xref:#_simple_config_based_modules[]: these are a good fit for most simple projects, where you
-  may just need to configure a few dependencies or compile/execution flags without any custom logic
+* xref:#_simple_config_based_modules[]: simple projects that require basic setting
+  of dependencies and versions
 
-* xref:#_programmatic_modules[]: these are necessary
-  for scenarios which require custom logic, e.g. custom resource-file processing or code-generation
+* xref:#_programmatic_modules[]: builds which require custom logic, e.g.
+  code generation or resource processing
 
-You can download these examples project using the *download* links above
+This page walks through a series of Mill builds of increasing
+complexity to show you the key features and usage of the Mill build tool.
+The other pages of this section of the docs go into more depth into individual Mill features.
+These aren't intended to be read comprehensively top-to-bottom, but
+rather looked up when you have a particular interest e.g. in
+xref:{language-small}lib/testing.adoc[testing],
+xref:{language-small}lib/publishing.adoc[publishing], and so on.
+
+You can download these example projects using the *download* links below
 if you want to try out the commands below yourself, or browse the full sources
 of the example (including supporting files) via the *browse* link. the `./mill` script
 (`./mill.bat` on windows) takes care of downloading and caching any further dependencies,
@@ -21,14 +28,6 @@ projects on this page to more sophisticated
 xref:{language-small}lib/web-examples.adoc[web build examples] or
 xref:{language-small}lib/build-examples.adoc[example
 builds for real-world projects]
-
-This page walks through a series of Mill builds of increasing
-complexity to show you the key features and usage of the Mill build tool.
-The other pages of this section of the docs go into more depth into individual Mill features.
-These aren't intended to be read comprehensively top-to-bottom, but
-rather looked up when you have a particular interest e.g. in
-xref:{language-small}lib/testing.adoc[testing],
-xref:{language-small}lib/publishing.adoc[publishing], and so on.
 
 The API reference for Mill's {language} toolchain can be found at:
 
