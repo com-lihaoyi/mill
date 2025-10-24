@@ -29,7 +29,8 @@ object ScriptModuleInit
       resolveModuleDep: String => Option[mill.Module]
   ) = {
     def relativize(s: String) = {
-      if (s.startsWith(".")) (scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot) / os.up / os.RelPath(s)).toString
+      if (s.startsWith("."))
+        (scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot) / os.up / os.RelPath(s)).toString
       else s
     }
 

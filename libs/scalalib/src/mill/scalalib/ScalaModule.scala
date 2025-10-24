@@ -670,7 +670,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 object ScalaModule {
   // Keep in sync with ScalaModule#ScalaTests, duplicated due to binary compatibility concerns
   trait ScalaTests0 extends JavaModule.JavaTests0 with ScalaModule {
-    private val outer = moduleDeps.head.asInstanceOf[ScalaModule] 
+    private val outer = moduleDeps.head.asInstanceOf[ScalaModule]
     override def scalaOrganization: T[String] = outer.scalaOrganization()
     override def scalaVersion: T[String] = outer.scalaVersion()
     override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
