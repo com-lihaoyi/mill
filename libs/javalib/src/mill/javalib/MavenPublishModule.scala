@@ -6,7 +6,8 @@ import mill.api.*
 import mill.javalib.PublishModule.PublishData
 import mill.util.Tasks
 
-trait MavenPublishModule extends PublishModule, MavenWorkerSupport, SonatypeCredentialsModule, MavenPublish {
+trait MavenPublishModule extends PublishModule, MavenWorkerSupport, SonatypeCredentialsModule,
+      MavenPublish {
 
   def mavenReleaseUri: T[String]
 
@@ -37,7 +38,8 @@ trait MavenPublishModule extends PublishModule, MavenWorkerSupport, SonatypeCred
 
 }
 
-object MavenPublishModule extends ExternalModule, DefaultTaskModule, MavenWorkerSupport, SonatypeCredentialsModule, MavenPublish {
+object MavenPublishModule extends ExternalModule, DefaultTaskModule, MavenWorkerSupport,
+      SonatypeCredentialsModule, MavenPublish {
 
   def defaultTask(): String = "publishAll"
 
