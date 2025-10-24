@@ -1,14 +1,7 @@
-//| mvnDeps:
-//| - org.thymeleaf:thymeleaf:3.1.1.RELEASE
 package bar;
-
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
 
 public class Bar {
   public static String generateHtml(String text) {
-    Context context = new Context();
-    context.setVariable("text", text);
-    return new TemplateEngine().process("<h1 th:text=\"${text}\"></h1>", context);
+    return "<h1>" + text + "</h1>";
   }
 }
