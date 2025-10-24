@@ -1,0 +1,12 @@
+
+/** See Also: bar/Bar.java */
+/** See Also: bar/BarTests.java */
+/** See Also: foo/Foo.java */
+
+/** Usage
+> ./mill bar/Bar.java:compile
+> ./mill bar/BarTests.java:compile
+> ./mill foo.Foo.java:compile
+
+
+*/
