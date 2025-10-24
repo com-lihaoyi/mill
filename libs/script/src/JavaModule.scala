@@ -1,7 +1,7 @@
 package mill.script
 import mill.*
 import mill.api.{Discover, ExternalModule}
-import mill.javalib.*
+import mill.javalib.{TestModule, DepSyntax, Dep}
 
 class JavaModule(val scriptConfig: ScriptModule.Config) extends JavaModule.Base {
   override lazy val millDiscover = Discover[this.type]

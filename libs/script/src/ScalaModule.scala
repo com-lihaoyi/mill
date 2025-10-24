@@ -1,7 +1,7 @@
 package mill.script
 import mill.*
 import mill.api.{Discover, ExternalModule}
-import mill.javalib.*
+import mill.javalib.{TestModule, DepSyntax, Dep}
 
 
 class ScalaModule(val scriptConfig: ScriptModule.Config) extends ScalaModule.Base {

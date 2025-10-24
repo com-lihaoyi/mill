@@ -3,7 +3,7 @@ package mill.script
 import mill.*
 import mill.api.ExternalModule
 import mill.api.Discover
-import mill.javalib.*
+import mill.javalib.{TestModule, DepSyntax}
 
 class KotlinModule(val scriptConfig: ScriptModule.Config) extends KotlinModule.Base {
   override lazy val millDiscover = Discover[this.type]
