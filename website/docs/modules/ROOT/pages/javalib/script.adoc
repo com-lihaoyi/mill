@@ -1,0 +1,9 @@
+= Java Single-File Scripts
+
+== Script Use Cases
+
+include::partial$example/javalib/script/2-crawler.adoc[]
+
+== Relative and Absolute Script Imports
+
+include::partial$example/javalib/script/3-relative-imports.adoc[]

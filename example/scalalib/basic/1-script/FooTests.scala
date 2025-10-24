@@ -1,13 +1,21 @@
+//| extends: [mill.script.ScalaModule.Utest]
 //| moduleDeps: [Foo.scala]
 //| mvnDeps:
-//| - "com.google.guava:guava:33.3.0-jre"
-import com.google.common.html.HtmlEscapers.htmlEscaper
-def main(args: Array[String]): Unit = {
-  val result = generateHtml("hello")
-  assert(result == "<h1>hello</h1>")
-  println(result)
-  val result2 = generateHtml("<hello>")
-  val expected2 = "<h1>" + htmlEscaper().escape("<hello>") + "</h1>"
-  assert(result2 == expected2)
-  println(result2)
+//| - "com.lihaoyi::utest:0.9.1"
+
+import utest.*
+
+object FooTests extends TestSuite {
+  def tests = Tests {
+    test("simple") {
+      val result = generateHtml("hello")
+      assert(result == "<h1>hello</h1>")
+      result
+    }
+    test("escaping") {
+      val result = generateHtml("<hello>")
+      assert(result == "<h1>&lt;hello&gt;</h1>")
+      result
+    }
+  }
 }
