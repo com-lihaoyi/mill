@@ -14,7 +14,8 @@
 //   dependencies necessary in a self-contained file that doesn't require manual setup or
 //   installation
 //
-// For example, given the {language} program below, it can be run directly using Mill:
+// For example the {language} program below can be run directly using Mill, which will
+// automatically download and cache the specified third-party dependencies as necessary:
 
 //// SNIPPET:FILE
 /** See Also: Foo.scala */
