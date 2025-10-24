@@ -194,7 +194,7 @@ object PathRef {
     }
   }
 
-  private[api] val outPathOverride: DynamicVariable[Option[os.Path]] = DynamicVariable(None)
+  private[mill] val outPathOverride: DynamicVariable[Option[os.Path]] = DynamicVariable(None)
 
   // TODO: avoid recomputations
   private[api] def knownRoots = LazyList(

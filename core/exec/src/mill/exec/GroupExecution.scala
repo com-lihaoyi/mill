@@ -60,7 +60,7 @@ trait GroupExecution {
       executionContext: mill.api.TaskCtx.Fork.Api,
       exclusive: Boolean,
       upstreamPathRefs: Seq[PathRef]
-  ): GroupExecution.Results = {
+  ): GroupExecution.Results = PathRef.outPathOverride.withValue(Some(outPath)) {
 
     val externalInputsHash = MurmurHash3.orderedHash(
       group.flatMap(_.inputs).filter(!group.contains(_))
