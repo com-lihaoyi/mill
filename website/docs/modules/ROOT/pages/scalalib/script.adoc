@@ -1,5 +1,9 @@
 = Scala Single-File Scripts
 
+:language: Scala
+:language-small: scala
+:language-ext: scala
+
 == Script Builtins
 
 include::partial$example/scalalib/script/2-crawler.adoc[]

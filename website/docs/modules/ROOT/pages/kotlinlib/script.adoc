@@ -1,5 +1,9 @@
 = Kotlin Single-File Scripts
 
+:language: Kotlin
+:language-small: kotlin
+:language-ext: kt
+
 == Script Use Cases
 
 include::partial$example/kotlinlib/script/2-crawler.adoc[]

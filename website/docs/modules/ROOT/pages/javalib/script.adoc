@@ -1,5 +1,9 @@
 = Java Single-File Scripts
 
+:language: Java
+:language-small: java
+:language-ext: java
+
 == Script Use Cases
 
 include::partial$example/javalib/script/2-crawler.adoc[]
