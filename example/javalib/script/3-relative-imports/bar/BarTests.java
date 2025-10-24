@@ -1,3 +1,4 @@
+//| extends: [mill.script.JavaModule.Junit4]
 //| moduleDeps: [./Bar.scala]
 //| mvnDeps:
 //| - com.google.guava:guava:33.3.0-jre

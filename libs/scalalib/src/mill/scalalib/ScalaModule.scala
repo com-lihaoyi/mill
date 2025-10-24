@@ -24,7 +24,7 @@ import scala.util.Using
  */
 trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     with ScalaModuleApi { outer =>
-
+  // Keep in sync with ScalaModule.ScalaTests0, duplicated due to binary compatibility concerns
   trait ScalaTests extends JavaTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
     override def scalaVersion: T[String] = outer.scalaVersion()
@@ -665,4 +665,18 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     // This is the same as `super.semanticDbData()`, but we can't call it directly
     // because then it generates a forwarder which breaks binary compatibility.
     Task { semanticDbDataDetailed().semanticDbFiles }
+}
+
+object ScalaModule {
+  // Keep in sync with ScalaModule#ScalaTests, duplicated due to binary compatibility concerns
+  trait ScalaTests0 extends JavaModule.JavaTests0 with ScalaModule {
+    private val outer = moduleDeps.head.asInstanceOf[ScalaModule] 
+    override def scalaOrganization: T[String] = outer.scalaOrganization()
+    override def scalaVersion: T[String] = outer.scalaVersion()
+    override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
+    override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
+    override def scalacOptions: T[Seq[String]] = outer.scalacOptions()
+    override def mandatoryScalacOptions: T[Seq[String]] =
+      Task { super.mandatoryScalacOptions() }
+  }
 }
