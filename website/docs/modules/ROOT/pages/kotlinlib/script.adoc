@@ -2,4 +2,8 @@
 
 == Script Use Cases
 
-include::partial$example/kotlinlib/basic/2-script-crawler.adoc[]
+include::partial$example/kotlinlib/script/2-crawler.adoc[]
+
+== Relative and Absolute Script Imports
+
+include::partial$example/kotlinlib/script/3-relative-imports.adoc[]

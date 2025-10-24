@@ -2,4 +2,8 @@
 
 == Script Builtins
 
-include::partial$example/kotlinlib/basic/2-script-crawler.adoc[]
+include::partial$example/scalalib/script/2-crawler.adoc[]
+
+== Relative and Absolute Script Imports
+
+include::partial$example/scalalib/script/3-relative-imports.adoc[]

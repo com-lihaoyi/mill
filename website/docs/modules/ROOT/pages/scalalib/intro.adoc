@@ -25,10 +25,6 @@ include::partial$example/scalalib/basic/5-compat-modules.adoc[]
 
 include::partial$example/scalalib/basic/1-script.adoc[]
 
-=== Script Builtin Libraries
-
-include::partial$example/scalalib/basic/2-script-crawler.adoc[]
-
 
 == Programmatic Modules
 

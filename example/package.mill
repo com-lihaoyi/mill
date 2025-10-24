@@ -144,6 +144,7 @@ object `package` extends Module {
       case "module" => Some(scalalib.module)
       case "web" => Some(scalalib.web)
       case "publishing" => Some(scalalib.publishing)
+      case "script" => Some(scalalib.script)
       case "config" => Some(scalalib.config)
       case _ => None
     }
