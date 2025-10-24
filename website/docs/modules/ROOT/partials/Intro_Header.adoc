@@ -17,18 +17,6 @@ rather looked up when you have a particular interest e.g. in
 xref:{language-small}lib/testing.adoc[testing],
 xref:{language-small}lib/publishing.adoc[publishing], and so on.
 
-You can download these example projects using the *download* links below
-if you want to try out the commands below yourself, or browse the full sources
-of the example (including supporting files) via the *browse* link. the `./mill` script
-(`./mill.bat` on windows) takes care of downloading and caching any further dependencies,
-including downloading a JVM if you do not already have one. All examples
-in this documentation site are executable and are continually exercised as
-part of Mill's CI workflows, and they range from the simple hello-world
-projects on this page to more sophisticated
-xref:{language-small}lib/web-examples.adoc[web build examples] or
-xref:{language-small}lib/build-examples.adoc[example
-builds for real-world projects]
-
 The API reference for Mill's {language} toolchain can be found at:
 
 * {mill-doc-url}/api/latest/mill/{language-small}lib.html[mill.{language-small}lib]
