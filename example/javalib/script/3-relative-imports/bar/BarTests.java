@@ -1,5 +1,5 @@
 //| extends: [mill.script.JavaModule.Junit4]
-//| moduleDeps: [./Bar.scala]
+//| moduleDeps: [./Bar.java]
 //| mvnDeps:
 //| - com.google.guava:guava:33.3.0-jre
 package bar;

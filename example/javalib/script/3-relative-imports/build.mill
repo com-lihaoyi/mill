@@ -5,8 +5,8 @@
 
 /** Usage
 > ./mill bar/Bar.java:compile
-> ./mill bar/BarTests.java:compile
-> ./mill foo.Foo.java:compile
+> ./mill bar/BarTests.java
+> ./mill foo/Foo.java --text hello
 
 
 */

@@ -28,9 +28,10 @@ object ScriptModuleInit
       runModuleDeps: Seq[String],
       resolveModuleDep: String => Option[mill.Module]
   ) = {
-    def relativize(s: String) =
-      if (s.startsWith(".")) (scriptFile / os.up / os.RelPath(s)).toString
+    def relativize(s: String) = {
+      if (s.startsWith(".")) (scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot) / os.up / os.RelPath(s)).toString
       else s
+    }
 
     scriptModuleCache.synchronized {
       scriptModuleCache.getOrElseUpdate(

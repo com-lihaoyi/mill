@@ -1,0 +1,12 @@
+
+/** See Also: bar/Bar.scala */
+/** See Also: bar/BarTests.scala */
+/** See Also: foo/Foo.scala */
+
+/** Usage
+> ./mill bar/Bar.scala:compile
+> ./mill bar/BarTests.scala
+> ./mill foo/Foo.scala --text hello
+
+
+*/

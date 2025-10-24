@@ -1,0 +1,12 @@
+
+/** See Also: bar/Bar.kt */
+/** See Also: bar/BarTests.kt */
+/** See Also: foo/Foo.kt */
+
+/** Usage
+> ./mill bar/Bar.kt:compile
+> ./mill bar/BarTests.kt
+> ./mill foo/Foo.kt --text hello
+
+
+*/
