@@ -700,7 +700,7 @@
 <h2 id="_hello_spark"><a class="anchor" href="#_hello_spark"></a>Hello Spark</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-53-0feb2b/mill-dist-1.0.6-53-0feb2b-example-scalalib-spark-1-hello-spark.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/spark/1-hello-spark">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-54-b3ae46/mill-dist-1.0.6-54-b3ae46-example-scalalib-spark-1-hello-spark.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/spark/1-hello-spark">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -750,32 +750,20 @@ object foo extends ScalaModule {
 <h2 id="_hello_pyspark"><a class="anchor" href="#_hello_pyspark"></a>Hello Pyspark</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-53-0feb2b/mill-dist-1.0.6-53-0feb2b-example-scalalib-spark-1-hello-spark.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/spark/1-hello-spark">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-54-b3ae46/mill-dist-1.0.6-54-b3ae46-example-scalalib-spark-2-hello-pyspark.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/spark/2-hello-pyspark">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, scalalib.*
+import mill.*, pythonlib.*
 
-object foo extends ScalaModule {
-  def scalaVersion = &quot;2.12.20&quot;
-  def mvnDeps = Seq(
-    mvn&quot;org.apache.spark::spark-core:3.5.4&quot;,
-    mvn&quot;org.apache.spark::spark-sql:3.5.4&quot;
-  )
+object foo extends PythonModule {
 
-  def forkArgs = Seq(&quot;--add-opens&quot;, &quot;java.base/sun.nio.ch=ALL-UNNAMED&quot;)
+  def mainScript = Task.Source(&quot;src/foo.py&quot;)
+  def pythonDeps = Seq(&quot;pyspark==3.5.4&quot;)
 
-  object test extends ScalaTests {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.9.1&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
-
-    def forkArgs = Seq(&quot;--add-opens&quot;, &quot;java.base/sun.nio.ch=ALL-UNNAMED&quot;)
-  }
+  object test extends PythonTests, TestModule.Unittest
 
 }</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>This examples demonstrates running spark using mill.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -790,7 +778,11 @@ object foo extends ScalaModule {
 
 &gt; ./mill foo.test
 ...
-+ foo.FooTests.helloWorld should create a DataFrame with one row containing 'Hello, World!'...
+test_hello_world...
+...
+Ran 1 test...
+...
+OK
 ...</code></pre>
 </div>
 </div>
@@ -800,7 +792,7 @@ object foo extends ScalaModule {
 <h2 id="_semi_realistic_spark_project_with_spark_submit"><a class="anchor" href="#_semi_realistic_spark_project_with_spark_submit"></a>Semi realistic spark project with spark submit</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-53-0feb2b/mill-dist-1.0.6-53-0feb2b-example-scalalib-spark-3-semi-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/spark/3-semi-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-54-b3ae46/mill-dist-1.0.6-54-b3ae46-example-scalalib-spark-3-semi-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/spark/3-semi-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
