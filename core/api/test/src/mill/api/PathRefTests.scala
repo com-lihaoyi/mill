@@ -131,8 +131,8 @@ object PathRefTests extends TestSuite {
             Seq(
               "mapping" -> PathRef.knownRoots,
               check(file1, Seq("ref:v0:", file1.toString), Seq("$WORKSPACE", "$MILL_OUT")),
-                check (file2, Seq("ref:v0:", "$WORKSPACE/file2"), Seq("$MILL_OUT")),
-                check (file3, Seq("ref:v0:", "$MILL_OUT/file3"), Seq("$WORKSPACE")),
+              check(file2, Seq("ref:v0:", "$WORKSPACE/file2"), Seq("$MILL_OUT")),
+              check(file3, Seq("ref:v0:", "$MILL_OUT/file3"), Seq("$WORKSPACE"))
             )
           }
         }
