@@ -1,0 +1,5 @@
+= Scala Single-File Scripts
+
+== Script Builtins
+
+include::partial$example/kotlinlib/basic/2-script-crawler.adoc[]

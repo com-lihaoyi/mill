@@ -21,30 +21,33 @@ object ScriptModuleInit
     collection.mutable.Map.empty
 
   def moduleFor(
-      millFile: os.Path,
+      scriptFile: os.Path,
       extendsConfig: Option[String],
       moduleDeps: Seq[String],
       compileModuleDeps: Seq[String],
       runModuleDeps: Seq[String],
       resolveModuleDep: String => Option[mill.Module]
   ) = {
+    def relativize(s: String) =
+      if (s.startsWith(".")) (scriptFile / os.up / os.RelPath(s)).toString
+      else s
+
     scriptModuleCache.synchronized {
       scriptModuleCache.getOrElseUpdate(
-        millFile,
+        scriptFile,
         instantiate(
           extendsConfig.getOrElse {
-            millFile.ext match {
+            scriptFile.ext match {
               case "java" => "mill.script.JavaModule"
               case "kt" => "mill.script.KotlinModule"
               case "scala" => "mill.script.ScalaModule"
-              case "sc" => "mill.script.ScalaScriptModule"
             }
           },
           ScriptModule.Config(
-            millFile,
-            moduleDeps.flatMap(resolveModuleDep(_)),
-            compileModuleDeps.flatMap(resolveModuleDep(_)),
-            runModuleDeps.flatMap(resolveModuleDep(_))
+            scriptFile,
+            moduleDeps.flatMap(s => resolveModuleDep(relativize(s))),
+            compileModuleDeps.flatMap(s => resolveModuleDep(relativize(s))),
+            runModuleDeps.flatMap(s => resolveModuleDep(relativize(s)))
           )
         )
       )
@@ -68,15 +71,15 @@ object ScriptModuleInit
    * Exposed for use in BSP integration.
    */
   def resolveScriptModule(
-      millFile0: String,
+      scriptFile0: String,
       resolveModuleDep: String => Option[mill.Module]
   ): Option[Result[ExternalModule]] = {
-    val millFile = os.Path(millFile0, mill.api.BuildCtx.workspaceRoot)
-    Option.when(os.isFile(millFile)) {
+    val scriptFile = os.Path(scriptFile0, mill.api.BuildCtx.workspaceRoot)
+    Option.when(os.isFile(scriptFile)) {
       Result.create {
-        val parsedHeaderData = parseHeaderData(millFile)
+        val parsedHeaderData = parseHeaderData(scriptFile)
         moduleFor(
-          millFile,
+          scriptFile,
           parsedHeaderData.`extends`.headOption,
           parsedHeaderData.moduleDeps,
           parsedHeaderData.compileModuleDeps,
@@ -129,7 +132,7 @@ object ScriptModuleInit
    */
 
   def apply(
-      millFileString: String,
+      scriptFileString: String,
       resolveModuleDep: String => Option[mill.Module],
       resolveChildren: Boolean,
       nameOpt: Option[String]
@@ -137,17 +140,17 @@ object ScriptModuleInit
     val workspace = mill.api.BuildCtx.workspaceRoot
 
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      val millFile0 = os.Path(millFileString, workspace)
+      val scriptFile0 = os.Path(scriptFileString, workspace)
       if (resolveChildren) {
         nameOpt match {
-          case Some(n) => resolveScriptModule((millFile0 / n).toString, resolveModuleDep).toSeq
+          case Some(n) => resolveScriptModule((scriptFile0 / n).toString, resolveModuleDep).toSeq
           case None =>
-            if (!os.isDir(millFile0)) Nil
-            else os.list(millFile0).filter(os.isDir).flatMap(p =>
+            if (!os.isDir(scriptFile0)) Nil
+            else os.list(scriptFile0).filter(os.isDir).flatMap(p =>
               resolveScriptModule(p.toString, resolveModuleDep)
             )
         }
-      } else resolveScriptModule(millFileString, resolveModuleDep).toSeq
+      } else resolveScriptModule(scriptFileString, resolveModuleDep).toSeq
     }
   }
 }

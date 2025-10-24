@@ -32,6 +32,7 @@ object `package` extends Module {
     object linting extends Cross[ExampleCrossModuleJava](build.listCross)
     object publishing extends Cross[ExampleCrossModuleJava](build.listCross)
     object config extends Cross[ExampleCrossModuleJava](build.listCross)
+    object script extends Cross[ExampleCrossModuleJava](build.listCross)
     object web extends Cross[ExampleCrossModule](build.listCross)
   }
   object kotlinlib extends Module {
@@ -42,6 +43,7 @@ object `package` extends Module {
     object linting extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object publishing extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object config extends Cross[ExampleCrossModuleKotlin](build.listCross)
+    object script extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object web extends Cross[ExampleCrossModuleKotlin](build.listCross)
   }
   object scalalib extends Module {
@@ -52,6 +54,7 @@ object `package` extends Module {
     object linting extends Cross[ExampleCrossModule](build.listCross)
     object publishing extends Cross[ExampleCrossModule](build.listCross)
     object config extends Cross[ExampleCrossModule](build.listCross)
+    object script extends Cross[ExampleCrossModule](build.listCross)
     object web extends Cross[ExampleCrossModule](build.listCross)
     object native extends Cross[ExampleCrossModule](build.listCross)
     object spark extends Cross[ExampleCrossModule](build.listCross)

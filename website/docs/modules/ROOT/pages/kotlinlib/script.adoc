@@ -1,0 +1,5 @@
+= Kotlin Single-File Scripts
+
+== Script Use Cases
+
+include::partial$example/kotlinlib/basic/2-script-crawler.adoc[]

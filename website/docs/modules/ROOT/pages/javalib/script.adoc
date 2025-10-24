@@ -1,0 +1,5 @@
+= Java Single-File Scripts
+
+== Script Use Cases
+
+include::partial$example/javalib/basic/2-script-crawler.adoc[]
