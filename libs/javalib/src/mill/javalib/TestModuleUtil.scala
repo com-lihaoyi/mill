@@ -1,7 +1,6 @@
 package mill.javalib
 
-import mill.api.{PathRef, TaskCtx}
-import mill.api.Result
+import mill.api.{BuildCtx, Evaluator, Logger, PathRef, Result, TaskCtx}
 import mill.api.daemon.internal.TestReporter
 import mill.util.Jvm
 import mill.api.internal.Util
@@ -13,10 +12,7 @@ import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDateTime, ZoneId}
 import scala.xml.Elem
 import scala.collection.mutable
-import mill.api.Logger
-
 import java.util.concurrent.ConcurrentHashMap
-import mill.api.BuildCtx
 import mill.javalib.testrunner.{GetTestTasksMain, TestArgs, TestResult, TestRunnerUtils}
 import os.Path
 
@@ -162,7 +158,7 @@ final class TestModuleUtil(
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
         env = (if (propagateEnv) Task.env else Map()) ++ forkEnv,
-        mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
+        mainArgs = Seq(testRunnerClasspathArg, argsFile.toString, PathRef.outPathOverride.value.get.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         cpPassingJarPath = Option.when(useArgsFile)(
           os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)

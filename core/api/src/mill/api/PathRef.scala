@@ -196,30 +196,39 @@ object PathRef {
 
   private[mill] val outPathOverride: DynamicVariable[Option[os.Path]] = DynamicVariable(None)
 
-  // TODO: avoid recomputations
-  private[api] def knownRoots = LazyList(
-    outPathOverride.value.getOrElse(Evaluator.currentEvaluator.outPath) -> "$MILL_OUT",
-    BuildCtx.workspaceRoot -> "$WORKSPACE",
-    // TODO: add coursier here
-    os.home -> "$HOME"
-  )
+  private[api] type KnownRoots = Seq[(replacement: String, root: os.Path)]
 
-  private[api] def encodeKnownRootsInPath(p: os.Path): String =
+  private[api] def knownRoots: KnownRoots = {
+    // order is important!
+    Seq(
+      ("$MILL_OUT", outPathOverride.value.getOrElse(Evaluator.currentEvaluator.outPath)),
+      ("$WORKSPACE", BuildCtx.workspaceRoot),
+      // TODO: add coursier here
+      ("$HOME", os.home)
+    )
+  }
+
+  private[api] def encodeKnownRootsInPath(p: os.Path): String = {
     // TODO: Do we need to check for '$' and mask it ?
     knownRoots.collectFirst {
-      case (root, replacement) if p.startsWith(root) =>
-        replacement + (
-          if (p != root) {
-            "/" + p.subRelativeTo(root).toString()
-          } else ""
-        )
+      case rep if p.startsWith(rep.root) =>
+        s"${rep.replacement}${
+            if (p != rep.root) {
+              s"/${p.subRelativeTo(rep.root).toString()}"
+            } else ""
+          }"
     }.getOrElse(p.toString)
+  }
 
   private[api] def decodeKnownRootsInPath(encoded: String): String = {
-    knownRoots.collectFirst {
-      case (root, replacement) if encoded.containsSlice(replacement) =>
-        encoded.replace(replacement, root.toString())
-    }.getOrElse(encoded)
+    if (encoded.startsWith("$")) {
+      knownRoots.collectFirst {
+        case rep if encoded.startsWith(rep.replacement) =>
+          s"${rep.root.toString}${encoded.substring(rep.replacement.length)}"
+      }.getOrElse(encoded)
+    } else {
+      encoded
+    }
   }
 
   /**
