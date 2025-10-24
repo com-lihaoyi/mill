@@ -75,7 +75,7 @@ MY_CUSTOM_ENV: my-env-value
 ...
 
 > ./mill show foo.bundle
-".../out/foo/bundle.dest/bundle.pex"
+"...$OUT/foo/bundle.dest/bundle.pex"
 
 > out/foo/bundle.dest/bundle.pex
 ...

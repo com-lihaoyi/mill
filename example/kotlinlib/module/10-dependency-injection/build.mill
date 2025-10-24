@@ -47,8 +47,8 @@ object dagger extends KspModule {
 
 > ./mill show dagger.generatedSources
 [
-  "ref:v0:.../out/dagger/generatedSourcesWithKsp2.dest/generated/java",
-  "ref:v0:.../out/dagger/generatedSourcesWithKsp2.dest/generated/kotlin"
+  "ref:v0:...$OUT/dagger/generatedSourcesWithKsp2.dest/generated/java",
+  "ref:v0:...$OUT/dagger/generatedSourcesWithKsp2.dest/generated/kotlin"
 ]
 
 > ls out/dagger/generatedSourcesWithKsp2.dest/generated/java/com/example/dagger/
