@@ -16,7 +16,7 @@ private[mill] trait MavenPublish {
       taskDest: os.Path,
       log: Logger,
       env: Map[String, String],
-      worker: InternalMavenWorkerSupport.Api,
+      worker: InternalMavenWorkerSupport.Api
   ): Unit = {
     val dryRun = env.get("MILL_TESTS_PUBLISH_DRY_RUN").contains("1")
 
@@ -62,7 +62,9 @@ private[mill] trait MavenPublish {
     )
 
     if (isSnapshot) {
-      log.info(s"Detected a 'SNAPSHOT' version for ${publishData.meta}, publishing to Maven Repository at '$uri'")
+      log.info(
+        s"Detected a 'SNAPSHOT' version for ${publishData.meta}, publishing to Maven Repository at '$uri'"
+      )
     }
 
     /** Maven uses this as a workspace for file manipulation. */
