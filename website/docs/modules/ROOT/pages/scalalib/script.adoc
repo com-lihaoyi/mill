@@ -1,9 +1,17 @@
 = Scala Single-File Scripts
 
+:language: Scala
+:language-small: scala
+:language-ext: scala
+
 == Script Builtins
 
 include::partial$example/scalalib/script/2-crawler.adoc[]
 
-== Relative and Absolute Script Imports
+== Relative and Absolute Script moduleDeps
 
 include::partial$example/scalalib/script/3-relative-imports.adoc[]
+
+== Custom Script Module Classes
+
+include::partial$example/scalalib/script/4-custom-class.adoc[]

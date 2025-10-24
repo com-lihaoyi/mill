@@ -17,9 +17,9 @@ include::partial$example/javalib/config/1-common-config.adoc[]
 
 include::partial$example/javalib/config/3-publish.adoc[]
 
-== Custom Module Classes
+== Custom Module Traits
 
-include::partial$example/javalib/config/4-custom-class.adoc[]
+include::partial$example/javalib/config/4-custom-trait.adoc[]
 
 == Depending on Programmatic Modules from Simple Modules
 
