@@ -704,7 +704,7 @@
 <h2 id="_script_use_cases"><a class="anchor" href="#_script_use_cases"></a>Script Use Cases</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill Single-file {language} programs can make it more convenient to script simple command-line
+<p>Mill Single-file Kotlin programs can make it more convenient to script simple command-line
 workflows interacting with files, subprocesses, and HTTP endpoints.</p>
 </div>
 <div class="paragraph">
@@ -714,7 +714,7 @@ a simple script using <a href="https://github.com/Kotlin/kotlinx.serialization">
 program that crawls wikipedia and saves the crawl results to a file:</p>
 </div>
 <div class="listingblock">
-<div class="title">Crawler.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-kotlinlib-script-2-crawler.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/2-crawler/Crawler.kt">browse</a>)</div>
+<div class="title">Crawler.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-kotlinlib-script-2-crawler.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/2-crawler/Crawler.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| mvnDeps:
 //| - com.github.ajalt.clikt:clikt:5.0.3
@@ -798,23 +798,23 @@ fun main(args: Array&lt;String&gt;) = Crawler().main(args)</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>While initially single-file {language} programs may be a bit more verbose than the equivalent
+<p>While initially single-file Kotlin programs may be a bit more verbose than the equivalent
 Bash script containing <code>cp</code> or <code>curl</code> commands, as the script grows in complexity the value
-of IDE support, typechecking, and JVM libraries makes writing them in {language} an attractive
-proposition. This is especially true if you already have developers fluent in {language} which
+of IDE support, typechecking, and JVM libraries makes writing them in Kotlin an attractive
+proposition. This is especially true if you already have developers fluent in Kotlin which
 may not be as familiar with the intricacies of writing robust and maintainable Bash code.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_relative_and_absolute_script_imports"><a class="anchor" href="#_relative_and_absolute_script_imports"></a>Relative and Absolute Script Imports</h2>
+<h2 id="_relative_and_absolute_script_moduledeps"><a class="anchor" href="#_relative_and_absolute_script_moduledeps"></a>Relative and Absolute Script moduleDeps</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill single-file scripts can import each other via either relative or absolute imports.
 For example, given a <code>bar/Bar.scala</code> file such as below:</p>
 </div>
 <div class="listingblock">
-<div class="title">bar/Bar.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-kotlinlib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/3-relative-imports/bar/Bar.kt">browse</a>)</div>
+<div class="title">bar/Bar.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-kotlinlib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/3-relative-imports/bar/Bar.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| kotlinVersion: 2.0.20
 package bar
@@ -823,12 +823,12 @@ fun generateHtml(text: String): String = &quot;&lt;h1&gt;&quot; + text + &quot;&
 </div>
 </div>
 <div class="paragraph">
-<p>It can be imported via a <code>./Bar.{language-ext}</code> import relative to its own enclosing folder
-(in this case <code>bar/</code>), as shown below where it is imported from the <code>bar/BarTests.{language-ext}</code>
+<p>It can be imported via a <code>./Bar.kt</code> import relative to its own enclosing folder
+(in this case <code>bar/</code>), as shown below where it is imported from the <code>bar/BarTests.kt</code>
 test suite in the same folder:</p>
 </div>
 <div class="listingblock">
-<div class="title">bar/BarTests.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-kotlinlib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/3-relative-imports/bar/BarTests.kt">browse</a>)</div>
+<div class="title">bar/BarTests.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-kotlinlib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/3-relative-imports/bar/BarTests.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| extends: [mill.script.KotlinModule.Junit5]
 //| moduleDeps: [./Bar.kt]
@@ -849,11 +849,11 @@ class BarTests :
 </div>
 </div>
 <div class="paragraph">
-<p>Or it can be imported via <code>bar/Bar.{language-ext}</code> absolute import, as shown below where it
+<p>Or it can be imported via <code>bar/Bar.kt</code> absolute import, as shown below where it
 is imported from the <code>foo/Foo.{language-exr}</code></p>
 </div>
 <div class="listingblock">
-<div class="title">foo/Foo.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-kotlinlib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/3-relative-imports/foo/Foo.kt">browse</a>)</div>
+<div class="title">foo/Foo.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-kotlinlib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/3-relative-imports/foo/Foo.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| moduleDeps: [bar/Bar.kt]
 //| kotlinVersion: 2.0.20
@@ -870,6 +870,84 @@ fun main(args: Array&lt;String&gt;) = println(bar.generateHtml(args[0]))</code><
 &gt; ./mill bar/BarTests.kt
 &gt; ./mill foo/Foo.kt hello</code></pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_custom_script_module_classes"><a class="anchor" href="#_custom_script_module_classes"></a>Custom Script Module Classes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, single-file Mill script modules inherit their behavior from the builtin
+<code>mill.script.KotlinModule</code>.
+However, you can also customize them to inherit from a custom <code>Module</code> class that you define
+as part of your meta-build in <code>mill-build/src/</code>. For example, if we want to add a resource
+file generated by processing the source file of the script, this can be done in a custom
+<code>LineCountKotlinModule</code> as shown below:</p>
+</div>
+<div class="listingblock">
+<div class="title">Qux.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-kotlinlib-script-4-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/4-custom-class/Qux.kt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| extends: [millbuild.LineCountKotlinModule]
+//| kotlinVersion: 2.0.20
+package qux
+
+import java.io.IOException
+
+fun getLineCount(): String? = try {
+    ::main.javaClass.classLoader
+        .getResourceAsStream(&quot;line-count.txt&quot;)
+        .readAllBytes()
+        .toString(Charsets.UTF_8)
+} catch (e: IOException) {
+    null
+}
+
+fun main() {
+    var msg = &quot;Line Count: &quot; + getLineCount()
+    println(msg)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">mill-build/src/LineCountKotlinModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-kotlinlib-script-4-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/4-custom-class/mill-build/src/LineCountKotlinModule.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
+import mill.*, kotlinlib.*, script.*
+
+class LineCountKotlinModule(scriptConfig: ScriptModule.Config)
+    extends mill.script.KotlinModule(scriptConfig) {
+
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f =&gt; os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resources using lineCount of sources */
+  override def resources = Task {
+    os.write(Task.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Qux.kt
+...
+Line Count: 19
+
+&gt; ./mill show Qux.kt:lineCount
+19</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Your custom <code>LineCountKotlinModule</code> must be a <code>class</code> take a <code>mill.script.ScriptModule.Config</code>
+as a parameter that is passed to the <code>mill.script.KotlinModule</code>.
+Custom script module classes allows you to customize the semantics of your Java, Scala, or Kotlin
+single-file script modules. If you have a large number of scripts with a similar configuration,
+or you need customizations that cannot be done in the YAML build header, placing these
+customizations in a custom script module class can let you centrally define the behavior
+and standardize it across all scripts that inherit it via <code>extends.</code></p>
 </div>
 </div>
 </div>

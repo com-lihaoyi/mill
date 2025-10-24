@@ -704,7 +704,7 @@
 <h2 id="_script_builtins"><a class="anchor" href="#_script_builtins"></a>Script Builtins</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill Single-file {language} programs can make it more convenient to script simple command-line
+<p>Mill Single-file Scala programs can make it more convenient to script simple command-line
 workflows interacting with files, subprocesses, and HTTP endpoints.</p>
 </div>
 <div class="paragraph">
@@ -736,7 +736,7 @@ interacting with files, subprocesses, and HTTP endpoints. For example, below is 
 script using these libraries to crawl wikipedia and save the crawl results to a file:</p>
 </div>
 <div class="listingblock">
-<div class="title">Crawler.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-scalalib-script-2-crawler.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/script/2-crawler/Crawler.scala">browse</a>)</div>
+<div class="title">Crawler.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-scalalib-script-2-crawler.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/script/2-crawler/Crawler.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def fetchLinks(title: String): Seq[String] = {
   val resp = requests.get.stream(
@@ -800,23 +800,23 @@ You can also disable use of these libraries in scripts via <code>//| includDefau
 And as we saw earlier, you can include any other libraries you wish using <code>//| mvnDeps</code>.</p>
 </div>
 <div class="paragraph">
-<p>While initially single-file {language} programs may be a bit more verbose than the equivalent
+<p>While initially single-file Scala programs may be a bit more verbose than the equivalent
 Bash script containing <code>cp</code> or <code>curl</code> commands, as the script grows in complexity the value
-of IDE support, typechecking, and JVM libraries makes writing them in {language} an attractive
-proposition. This is especially true if you already have developers fluent in {language} which
+of IDE support, typechecking, and JVM libraries makes writing them in Scala an attractive
+proposition. This is especially true if you already have developers fluent in Scala which
 may not be as familiar with the intricacies of writing robust and maintainable Bash code.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_relative_and_absolute_script_imports"><a class="anchor" href="#_relative_and_absolute_script_imports"></a>Relative and Absolute Script Imports</h2>
+<h2 id="_relative_and_absolute_script_moduledeps"><a class="anchor" href="#_relative_and_absolute_script_moduledeps"></a>Relative and Absolute Script moduleDeps</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill single-file scripts can import each other via either relative or absolute imports.
 For example, given a <code>bar/Bar.scala</code> file such as below:</p>
 </div>
 <div class="listingblock">
-<div class="title">bar/Bar.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-scalalib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/script/3-relative-imports/bar/Bar.scala">browse</a>)</div>
+<div class="title">bar/Bar.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-scalalib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/script/3-relative-imports/bar/Bar.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| scalaVersion: 3.7.1
 package bar
@@ -825,12 +825,12 @@ def generateHtml(text: String) = &quot;&lt;h1&gt;&quot; + text + &quot;&lt;/h1&g
 </div>
 </div>
 <div class="paragraph">
-<p>It can be imported via a <code>./Bar.{language-ext}</code> import relative to its own enclosing folder
-(in this case <code>bar/</code>), as shown below where it is imported from the <code>bar/BarTests.{language-ext}</code>
+<p>It can be imported via a <code>./Bar.scala</code> import relative to its own enclosing folder
+(in this case <code>bar/</code>), as shown below where it is imported from the <code>bar/BarTests.scala</code>
 test suite in the same folder:</p>
 </div>
 <div class="listingblock">
-<div class="title">bar/BarTests.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-scalalib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/script/3-relative-imports/bar/BarTests.scala">browse</a>)</div>
+<div class="title">bar/BarTests.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-scalalib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/script/3-relative-imports/bar/BarTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| extends: [mill.script.ScalaModule.Utest]
 //| moduleDeps: [./Bar.scala]
@@ -846,11 +846,11 @@ object BarTests extends TestSuite {
 </div>
 </div>
 <div class="paragraph">
-<p>Or it can be imported via <code>bar/Bar.{language-ext}</code> absolute import, as shown below where it
+<p>Or it can be imported via <code>bar/Bar.scala</code> absolute import, as shown below where it
 is imported from the <code>foo/Foo.{language-exr}</code></p>
 </div>
 <div class="listingblock">
-<div class="title">foo/Foo.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-56-2a1b65/mill-dist-1.0.6-56-2a1b65-example-scalalib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/script/3-relative-imports/foo/Foo.scala">browse</a>)</div>
+<div class="title">foo/Foo.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-scalalib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/script/3-relative-imports/foo/Foo.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| moduleDeps: [bar/Bar.scala]
 //| scalaVersion: 3.7.1
@@ -869,6 +869,84 @@ def main(args: Array[String]): Unit = println(bar.generateHtml(args(0)))</code><
 &gt; ./mill bar/BarTests.scala
 &gt; ./mill foo/Foo.scala --text hello</code></pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_custom_script_module_classes"><a class="anchor" href="#_custom_script_module_classes"></a>Custom Script Module Classes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, single-file Mill script modules inherit their behavior from the builtin
+<code>mill.script.ScalaModule</code>.
+However, you can also customize them to inherit from a custom <code>Module</code> class that you define
+as part of your meta-build in <code>mill-build/src/</code>. For example, if we want to add a resource
+file generated by processing the source file of the script, this can be done in a custom
+<code>LineCountScalaModule</code> as shown below:</p>
+</div>
+<div class="listingblock">
+<div class="title">Qux.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-scalalib-script-4-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/script/4-custom-class/Qux.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| extends: [millbuild.LineCountScalaModule]
+//| scalaVersion: 3.7.3
+package qux
+
+object Qux {
+
+  def getLineCount() = {
+    scala.io.Source
+      .fromResource(&quot;line-count.txt&quot;)
+      .mkString
+  }
+
+  val lineCount = getLineCount()
+
+  def main(args: Array[String]): Unit = {
+    println(s&quot;Line Count: $lineCount&quot;)
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">mill-build/src/LineCountScalaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-scalalib-script-4-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/script/4-custom-class/mill-build/src/LineCountScalaModule.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
+import mill.*, scalalib.*, script.*
+
+class LineCountScalaModule(scriptConfig: ScriptModule.Config)
+    extends mill.script.ScalaModule(scriptConfig) {
+
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f =&gt; os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resources using lineCount of sources */
+  override def resources = Task {
+    os.write(Task.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Qux.scala
+...
+Line Count: 19
+
+&gt; ./mill show Qux.scala:lineCount
+19</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Your custom <code>LineCountScalaModule</code> must be a <code>class</code> take a <code>mill.script.ScriptModule.Config</code>
+as a parameter that is passed to the <code>mill.script.ScalaModule</code>.
+Custom script module classes allows you to customize the semantics of your Java, Scala, or Kotlin
+single-file script modules. If you have a large number of scripts with a similar configuration,
+or you need customizations that cannot be done in the YAML build header, placing these
+customizations in a custom script module class can let you centrally define the behavior
+and standardize it across all scripts that inherit it via <code>extends.</code></p>
 </div>
 </div>
 </div>
