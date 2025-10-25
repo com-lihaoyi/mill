@@ -11,12 +11,9 @@
 > ./mill Crawler.java --start-article=singapore --depth=2
 
 > cat fetched.json
-[
-    "Calling code",
-    "+65",
-    "British Empire",
-    "1st Parliament of Singapore",
-    ...
-]
+..."Calling code",...
+..."+65",...
+..."British Empire",...
+..."1st Parliament of Singapore",...
 
 */

@@ -6,9 +6,9 @@
 
 > ./mill Qux.kt
 ...
-Line Count: 19
+Line Count: 13
 
 > ./mill show Qux.kt:lineCount
-19
+13
 */
 //// SNIPPET:END

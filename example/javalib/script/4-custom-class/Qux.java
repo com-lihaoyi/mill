@@ -2,18 +2,12 @@
 package qux;
 
 public class Qux {
-
-  public static String getLineCount() {
-    try {
-      return new String(
-          Qux.class.getClassLoader().getResourceAsStream("line-count.txt").readAllBytes());
-    } catch (java.io.IOException e) {
-      return null;
-    }
+  public static String getLineCount() throws Exception {
+    return new String(
+        Qux.class.getClassLoader().getResourceAsStream("line-count.txt").readAllBytes());
   }
 
   public static void main(String[] args) throws Exception {
-    String lineCount = getLineCount();
-    System.out.println("Line Count: " + lineCount);
+    System.out.println("Line Count: " + getLineCount());
   }
 }

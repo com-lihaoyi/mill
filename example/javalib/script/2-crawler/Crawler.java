@@ -1,12 +1,10 @@
 //| mvnDeps:
 //| - info.picocli:picocli:4.7.6
-//| - com.squareup.okhttp3:okhttp:4.12.0
+//| - com.konghq:unirest-java:3.14.5
 //| - com.fasterxml.jackson.core:jackson-databind:2.17.2
 
 import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.core.util.DefaultIndenter;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import okhttp3.*;
+import kong.unirest.Unirest;
 import picocli.CommandLine;
 import java.io.*;
 import java.nio.file.*;
@@ -16,70 +14,50 @@ import java.util.concurrent.Callable;
 @CommandLine.Command(name = "Crawler", mixinStandardHelpOptions = true)
 public class Crawler implements Callable<Integer> {
 
-  @CommandLine.Option(
-    names = {"--start-article"},
-    required = true,
-    description = "Starting article title"
-  )
+  @CommandLine.Option(names = {"--start-article"}, required = true, description = "Starting title")
   private String startArticle;
 
-  @CommandLine.Option(
-    names = {"--depth"},
-    required = true,
-    description = "Depth of crawl"
-  )
+  @CommandLine.Option(names = {"--depth"}, required = true, description = "Depth of crawl")
   private int depth;
 
-  private static final OkHttpClient client = new OkHttpClient();
   private static final ObjectMapper mapper = new ObjectMapper();
 
-  public static List<String> fetchLinks(String title) throws IOException {
-    var url = new HttpUrl.Builder()
-      .scheme("https")
-      .host("en.wikipedia.org")
-      .addPathSegments("w/api.php")
-      .addQueryParameter("action", "query")
-      .addQueryParameter("titles", title)
-      .addQueryParameter("prop", "links")
-      .addQueryParameter("format", "json")
-      .build();
-
-    var request = new Request.Builder()
-      .url(url)
+  public static List<String> fetchLinks(String title) throws Exception {
+    var response = Unirest.get("https://en.wikipedia.org/w/api.php")
+      .queryString("action", "query")
+      .queryString("titles", title)
+      .queryString("prop", "links")
+      .queryString("format", "json")
       .header("User-Agent", "WikiFetcherBot/1.0 (https://example.com; contact@example.com)")
-      .build();
-    try (Response response = client.newCall(request).execute()) {
-      if (!response.isSuccessful())
-        throw new IOException("Unexpected code " + response);
+      .asString();
 
-      JsonNode root = mapper.readTree(response.body().byteStream());
-      JsonNode pages = root.path("query").path("pages");
-      List<String> links = new ArrayList<>();
+    if (!response.isSuccess())
+      throw new IOException("Unexpected code " + response.getStatus());
 
-      for (Iterator<JsonNode> it = pages.elements(); it.hasNext();) {
-        JsonNode linkArr = it.next().get("links");
-        if (linkArr != null && linkArr.isArray()) {
-          for (JsonNode link : linkArr) {
-            JsonNode titleNode = link.get("title");
-            if (titleNode != null) links.add(titleNode.asText());
-          }
+    var root = mapper.readTree(response.getBody());
+    var pages = root.path("query").path("pages");
+    var links = new ArrayList<String>();
+
+    for (var it = pages.elements(); it.hasNext();) {
+      var linkArr = it.next().get("links");
+      if (linkArr != null && linkArr.isArray()) {
+        for (var link : linkArr) {
+          var titleNode = link.get("title");
+          if (titleNode != null) links.add(titleNode.asText());
         }
       }
-      return links;
     }
+    return links;
   }
 
-  @Override
   public Integer call() throws Exception {
-    Set<String> seen = new HashSet<>();
-    Set<String> current = new HashSet<>();
-    seen.add(startArticle);
-    current.add(startArticle);
+    var seen = new HashSet<>(Set.of(startArticle));
+    var current = new HashSet<>(Set.of(startArticle));
 
     for (int i = 0; i < depth; i++) {
-      Set<String> next = new HashSet<>();
-      for (String article : current) {
-        for (String link : fetchLinks(article)) {
+      var next = new HashSet<String>();
+      for (var article : current) {
+        for (var link : fetchLinks(article)) {
           if (!seen.contains(link)) next.add(link);
         }
       }
@@ -87,18 +65,13 @@ public class Crawler implements Callable<Integer> {
       current = next;
     }
 
-    Path output = Paths.get("fetched.json");
-    try (Writer w = Files.newBufferedWriter(output)) {
-      DefaultPrettyPrinter printer = new DefaultPrettyPrinter();
-      printer.indentArraysWith(new DefaultIndenter("    ", "\n"));
-      printer.indentObjectsWith(new DefaultIndenter("    ", "\n"));
-      mapper.writer(printer).writeValue(w, seen);
+    try (var w = Files.newBufferedWriter(Paths.get("fetched.json"))) {
+      mapper.writerWithDefaultPrettyPrinter().writeValue(w, seen);
     }
     return 0;
   }
 
   public static void main(String[] args) {
-    int exitCode = new CommandLine(new Crawler()).execute(args);
-    System.exit(exitCode);
+    System.exit(new CommandLine(new Crawler()).execute(args));
   }
 }
