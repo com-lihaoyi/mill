@@ -10,7 +10,7 @@ import coursier.maven.{MavenRepository, MavenRepositoryLike}
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.util.Task
-import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
+import coursier.{Artifacts, Classifier, Dependency, Fetch, Repository, Resolution, Resolve, Type}
 import mill.api.*
 
 import java.io.{BufferedOutputStream, File}
@@ -480,6 +480,45 @@ object Jvm {
       checkGradleModules: Boolean = false,
       @unroll config: CoursierConfig = CoursierConfig.default()
   ): Result[coursier.Artifacts.Result] = {
+    val fetched = fetchArtifacts(
+      repositories,
+      deps,
+      force,
+      sources,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      artifactTypes,
+      resolutionParams,
+      checkGradleModules,
+      config
+    )
+    fetched.map { fr =>
+      val artifacts = fr.detailedArtifacts0.map { case (dep, pub, artifact, file) =>
+        (dep, pub, artifact, Some(file))
+      }
+      coursier.Artifacts.Result(artifacts, fr.fullExtraArtifacts)
+    }
+  }
+
+  /**
+   * Resolve dependencies including the project info using Coursier, and return very detailed info about their artifacts.
+   */
+  def fetchArtifacts(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency] = Nil,
+      sources: Boolean = false,
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[Resolution => Resolution] = None,
+      ctx: Option[mill.api.TaskCtx] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      artifactTypes: Option[Set[Type]] = None,
+      resolutionParams: ResolutionParams = ResolutionParams(),
+      checkGradleModules: Boolean = false,
+      @unroll config: CoursierConfig = CoursierConfig.default()
+  ): Result[coursier.Fetch.Result] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
       deps,
@@ -518,8 +557,12 @@ object Jvm {
           Result.Failure(
             s"Failed to load ${if (sources) "source " else ""}dependencies" + errorDetails
           )
-        case Right(res) =>
-          Result.Success(res)
+        case Right(artifacts) =>
+          Result.Success(Fetch.Result(
+            resolution,
+            artifacts.fullDetailedArtifacts0,
+            artifacts.fullExtraArtifacts
+          ))
       }
     }
   }
@@ -545,7 +588,7 @@ object Jvm {
       checkGradleModules: Boolean = false,
       @unroll config: CoursierConfig = CoursierConfig.default()
   ): Result[Seq[PathRef]] =
-    getArtifacts(
+    fetchArtifacts(
       repositories,
       deps,
       force,
@@ -558,9 +601,9 @@ object Jvm {
       resolutionParams,
       checkGradleModules = checkGradleModules,
       config = config
-    ).map { res =>
+    ).map { artifacts =>
       BuildCtx.withFilesystemCheckerDisabled {
-        res.files
+        artifacts.files
           .map(os.Path(_))
           .map(PathRef(_, quick = true))
       }
