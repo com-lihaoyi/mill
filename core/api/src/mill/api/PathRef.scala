@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.annotation.nowarn
 import scala.language.implicitConversions
 import scala.util.DynamicVariable
+import scala.util.hashing.MurmurHash3
 
 /**
  * A wrapper around `os.Path` that calculates it's hashcode based
@@ -23,6 +24,8 @@ case class PathRef private[mill] (
     revalidate: PathRef.Revalidate
 ) extends PathRefApi {
   private[mill] def javaPath = path.toNIO
+
+  val pathVal: String = PathRef.encodeKnownRootsInPath(path)
 
   def recomputeSig(): Int = PathRef.apply(path, quick).sig
   def validate(): Boolean = recomputeSig() == sig
@@ -53,6 +56,18 @@ case class PathRef private[mill] (
   override def toString: String = {
     toStringPrefix + path.toString()
   }
+
+  // Instead of using `path` we need to use `pathVal`, to make the hashcode stable as cache key
+  override def hashCode(): Int = {
+    var h = MurmurHash3.productSeed
+    h = MurmurHash3.mix(h, "PathRef".hashCode)
+    h = MurmurHash3.mix(h, pathVal.hashCode)
+    h = MurmurHash3.mix(h, quick.##)
+    h = MurmurHash3.mix(h, sig.##)
+    h = MurmurHash3.mix(h, revalidate.##)
+    MurmurHash3.finalizeHash(h, 4)
+  }
+
 }
 
 object PathRef {
@@ -242,12 +257,12 @@ object PathRef {
   implicit def jsonFormatter: RW[PathRef] = upickle.readwriter[String].bimap[PathRef](
     p => {
       storeSerializedPaths(p)
-      p.toStringPrefix + encodeKnownRootsInPath(p.path)
+      p.toStringPrefix + p.pathVal
     },
     {
-      case s"$prefix:$valid0:$hex:$pathString" if prefix == "ref" || prefix == "qref" =>
+      case s"$prefix:$valid0:$hex:$pathVal" if prefix == "ref" || prefix == "qref" =>
 
-        val path = os.Path(pathString)
+        val path = os.Path(decodeKnownRootsInPath(pathVal))
         val quick = prefix match {
           case "qref" => true
           case "ref" => false
