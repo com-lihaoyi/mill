@@ -74,7 +74,7 @@ Test foo.FooTest.testSimple finished, ...
 0 failed, 0 ignored, 2 total, ...
 
 > ./mill show foo.assembly
-".../out/foo/assembly.dest/out.jar"
+"...$OUT/foo/assembly.dest/out.jar"
 
 > ./out/foo/assembly.dest/out.jar --text hello
 <h1>hello</h1>

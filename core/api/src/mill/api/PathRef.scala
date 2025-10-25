@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.annotation.nowarn
 import scala.language.implicitConversions
 import scala.util.DynamicVariable
+import scala.util.hashing.MurmurHash3
 
 /**
  * A wrapper around `os.Path` that calculates it's hashcode based
@@ -23,6 +24,8 @@ case class PathRef private[mill] (
     revalidate: PathRef.Revalidate
 ) extends PathRefApi {
   private[mill] def javaPath = path.toNIO
+
+  val pathVal: String = PathRef.encodeKnownRootsInPath(path)
 
   def recomputeSig(): Int = PathRef.apply(path, quick).sig
   def validate(): Boolean = recomputeSig() == sig
@@ -38,16 +41,33 @@ case class PathRef private[mill] (
   def withRevalidate(revalidate: PathRef.Revalidate): PathRef = copy(revalidate = revalidate)
   def withRevalidateOnce: PathRef = copy(revalidate = PathRef.Revalidate.Once)
 
-  override def toString: String = {
+  private def toStringPrefix = {
     val quick = if (this.quick) "qref:" else "ref:"
+
     val valid = revalidate match {
       case PathRef.Revalidate.Never => "v0:"
       case PathRef.Revalidate.Once => "v1:"
       case PathRef.Revalidate.Always => "vn:"
     }
     val sig = String.format("%08x", this.sig: Integer)
-    quick + valid + sig + ":" + path.toString()
+    quick + valid + sig + ":"
   }
+
+  override def toString: String = {
+    toStringPrefix + path.toString()
+  }
+
+  // Instead of using `path` we need to use `pathVal`, to make the hashcode stable as cache key
+  override def hashCode(): Int = {
+    var h = MurmurHash3.productSeed
+    h = MurmurHash3.mix(h, "PathRef".hashCode)
+    h = MurmurHash3.mix(h, pathVal.hashCode)
+    h = MurmurHash3.mix(h, quick.##)
+    h = MurmurHash3.mix(h, sig.##)
+    h = MurmurHash3.mix(h, revalidate.##)
+    MurmurHash3.finalizeHash(h, 4)
+  }
+
 }
 
 object PathRef {
@@ -189,18 +209,60 @@ object PathRef {
     }
   }
 
+  private[mill] val outPathOverride: DynamicVariable[Option[os.Path]] = DynamicVariable(None)
+
+  private[api] type KnownRoots = Seq[(replacement: String, root: os.Path)]
+
+  private[api] def knownRoots: KnownRoots = {
+    // order is important!
+    Seq(
+      (
+        "$MILL_OUT",
+        outPathOverride.value.getOrElse(
+          throw RuntimeException("Can't substitute $MILL_OUT, output path is not configured.")
+        )
+      ),
+      ("$WORKSPACE", BuildCtx.workspaceRoot),
+      // TODO: add coursier here
+      ("$HOME", os.home)
+    )
+  }
+
+  private[api] def encodeKnownRootsInPath(p: os.Path): String = {
+    // TODO: Do we need to check for '$' and mask it ?
+    knownRoots.collectFirst {
+      case rep if p.startsWith(rep.root) =>
+        s"${rep.replacement}${
+            if (p != rep.root) {
+              s"/${p.subRelativeTo(rep.root).toString()}"
+            } else ""
+          }"
+    }.getOrElse(p.toString)
+  }
+
+  private[api] def decodeKnownRootsInPath(encoded: String): String = {
+    if (encoded.startsWith("$")) {
+      knownRoots.collectFirst {
+        case rep if encoded.startsWith(rep.replacement) =>
+          s"${rep.root.toString}${encoded.substring(rep.replacement.length)}"
+      }.getOrElse(encoded)
+    } else {
+      encoded
+    }
+  }
+
   /**
    * Default JSON formatter for [[PathRef]].
    */
   implicit def jsonFormatter: RW[PathRef] = upickle.readwriter[String].bimap[PathRef](
     p => {
       storeSerializedPaths(p)
-      p.toString()
+      p.toStringPrefix + p.pathVal
     },
     {
-      case s"$prefix:$valid0:$hex:$pathString" if prefix == "ref" || prefix == "qref" =>
+      case s"$prefix:$valid0:$hex:$pathVal" if prefix == "ref" || prefix == "qref" =>
 
-        val path = os.Path(pathString)
+        val path = os.Path(decodeKnownRootsInPath(pathVal))
         val quick = prefix match {
           case "qref" => true
           case "ref" => false
@@ -219,7 +281,7 @@ object PathRef {
         pr
       case s =>
         mill.api.BuildCtx.withFilesystemCheckerDisabled(
-          PathRef(os.Path(s, currentOverrideModulePath.value))
+          PathRef(os.Path(decodeKnownRootsInPath(s), currentOverrideModulePath.value))
         )
     }
   )

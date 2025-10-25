@@ -44,7 +44,7 @@ Bar.value: <p>world</p>
 Qux.value: 31337
 
 > ./mill show foo.repackagedJar
-".../out/foo/repackagedJar.dest/out.jar"
+"...$OUT/foo/repackagedJar.dest/out.jar"
 
 > ./out/foo/repackagedJar.dest/out.jar
 Foo.value: <h1>hello</h1>

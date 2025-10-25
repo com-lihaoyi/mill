@@ -50,7 +50,7 @@ object foo extends JavaModule, JpackageModule {
 > ./mill foo.jpackageAppImage
 
 > ./mill show foo.jpackageAppImage
-".../out/foo/jpackageAppImage.dest/image"
+"...$OUT/foo/jpackageAppImage.dest/image"
 */
 
 //

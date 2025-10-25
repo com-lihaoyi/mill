@@ -14,6 +14,11 @@ import java.util.stream.Stream;
  * nested classloaders.
  */
 public class TestRunnerMain {
+  /**
+   *
+   * @param args arg1: classpath, arg2 testArgs-file, arg2 Mill out path
+   * @throws Exception
+   */
   public static void main(String[] args) throws Exception {
     URL[] testRunnerClasspath = Stream.of(args[0].split(","))
         .map(s -> {

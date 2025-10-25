@@ -87,7 +87,7 @@ OK
 ...
 
 > ./mill show foo.bundle # Creates Bundle for the python file
-".../out/foo/bundle.dest/bundle.pex"
+"...$OUT/foo/bundle.dest/bundle.pex"
 
 > out/foo/bundle.dest/bundle.pex --text "Hello Mill" # running the PEX binary outside of Mill
 <h1>Hello Mill</h1>

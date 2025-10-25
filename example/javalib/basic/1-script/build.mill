@@ -16,7 +16,7 @@ compiling 1 Java source to...
 
 /** Usage
 > ./mill show Foo.java:assembly # show the output of the assembly task
-".../out/Foo.java/assembly.dest/out.jar"
+"...$OUT/Foo.java/assembly.dest/out.jar"
 
 > java -jar ./out/Foo.java/assembly.dest/out.jar --text hello
 <h1>hello</h1>

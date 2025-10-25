@@ -72,7 +72,7 @@ object app extends AndroidAppKotlinModule {
 /** Usage
 
 > ./mill show app.androidApk
-".../out/app/androidApk.dest/app.apk"
+"...$OUT/app/androidApk.dest/app.apk"
 
 */
 
