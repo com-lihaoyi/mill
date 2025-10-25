@@ -48,19 +48,20 @@ public class Crawler implements Callable<Integer> {
       .url(url)
       .header("User-Agent", "WikiFetcherBot/1.0 (https://example.com; contact@example.com)")
       .build();
-    try (Response response = client.newCall(request).execute()) {
+
+    try (var response = client.newCall(request).execute()) {
       if (!response.isSuccessful())
         throw new IOException("Unexpected code " + response);
 
-      JsonNode root = mapper.readTree(response.body().byteStream());
-      JsonNode pages = root.path("query").path("pages");
-      List<String> links = new ArrayList<>();
+      var root = mapper.readTree(response.body().byteStream());
+      var pages = root.path("query").path("pages");
+      var links = new ArrayList<String>();
 
-      for (Iterator<JsonNode> it = pages.elements(); it.hasNext();) {
-        JsonNode linkArr = it.next().get("links");
+      for (var it = pages.elements(); it.hasNext();) {
+        var linkArr = it.next().get("links");
         if (linkArr != null && linkArr.isArray()) {
-          for (JsonNode link : linkArr) {
-            JsonNode titleNode = link.get("title");
+          for (var link : linkArr) {
+            var titleNode = link.get("title");
             if (titleNode != null) links.add(titleNode.asText());
           }
         }
@@ -71,15 +72,15 @@ public class Crawler implements Callable<Integer> {
 
   @Override
   public Integer call() throws Exception {
-    Set<String> seen = new HashSet<>();
-    Set<String> current = new HashSet<>();
+    var seen = new HashSet<String>();
+    var current = new HashSet<String>();
     seen.add(startArticle);
     current.add(startArticle);
 
     for (int i = 0; i < depth; i++) {
-      Set<String> next = new HashSet<>();
-      for (String article : current) {
-        for (String link : fetchLinks(article)) {
+      var next = new HashSet<String>();
+      for (var article : current) {
+        for (var link : fetchLinks(article)) {
           if (!seen.contains(link)) next.add(link);
         }
       }
@@ -87,9 +88,9 @@ public class Crawler implements Callable<Integer> {
       current = next;
     }
 
-    Path output = Paths.get("fetched.json");
-    try (Writer w = Files.newBufferedWriter(output)) {
-      DefaultPrettyPrinter printer = new DefaultPrettyPrinter();
+    var output = Paths.get("fetched.json");
+    try (var w = Files.newBufferedWriter(output)) {
+      var printer = new DefaultPrettyPrinter();
       printer.indentArraysWith(new DefaultIndenter("    ", "\n"));
       printer.indentObjectsWith(new DefaultIndenter("    ", "\n"));
       mapper.writer(printer).writeValue(w, seen);
@@ -98,7 +99,6 @@ public class Crawler implements Callable<Integer> {
   }
 
   public static void main(String[] args) {
-    int exitCode = new CommandLine(new Crawler()).execute(args);
-    System.exit(exitCode);
+    System.exit(new CommandLine(new Crawler()).execute(args));
   }
 }

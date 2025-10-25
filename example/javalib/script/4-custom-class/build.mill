@@ -6,9 +6,9 @@
 
 > ./mill Qux.java
 ...
-Line Count: 19
+Line Count: 13
 
 > ./mill show Qux.java:lineCount
-19
+13
 */
 //// SNIPPET:END
