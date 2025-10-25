@@ -1,3 +1,8 @@
+// Config-based modules can depend on programmatic modules, and vice versa. This
+// allows you to use simple config-based `build.mill.yaml` files for modules without any special
+// requirements, use programmatic `build.mill` files for modules with custom tasks or other
+// more advanced customizations, and have them inter-operate with each other seamlessly.
+
 //// SNIPPET:BUILD
 package build
 import mill.*, scalalib.*
@@ -8,10 +13,12 @@ object bar extends ScalaModule {
 }
 
 /** See Also: foo/package.mill.yaml */
-/** See Also: bar/src/Bar.scala */
+
 /** Usage
 
 > ./mill foo.run --text hello
 <h1>hello</h1>
 
 */
+
+//// SNIPPET:END

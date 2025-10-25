@@ -1,5 +1,5 @@
 package mill.androidlib.keytool
-import mainargs.{ParserForMethods, arg, main, TokensReader, Flag}
+import mainargs.{Parser, arg, main, TokensReader, Flag}
 import scala.concurrent.duration.*
 
 @mill.api.experimental
@@ -49,5 +49,5 @@ object Keytool {
     )
     Keystore.saveKeystore(ks = keystore, filePath = keystorePath, password = storePassword)
   }
-  def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
+  def main(args: Array[String]): Unit = Parser(this).runOrExit(args)
 }

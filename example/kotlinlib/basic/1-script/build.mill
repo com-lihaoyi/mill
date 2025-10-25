@@ -34,17 +34,17 @@ Compiling 1 Kotlin sources to...
 
 /** Usage
 > ./mill FooTest.kt
-<h1>hello</h1>
-<h1>&lt;hello&gt;</h1>
+Test FooTest testSimple started
+Test FooTest testEscaping started
 
 */
 
-// Again, you can pass the name of the task explicitly via `:`, e.g. `:run` below
+// Again, you can pass the name of the task explicitly via `:`, e.g. `:testForked` below
 
 /** Usage
-> ./mill FooTest.kt:run # specifying the test task explicitly
-<h1>hello</h1>
-<h1>&lt;hello&gt;</h1>
+> ./mill FooTest.kt:testForked # specifying the test task explicitly
+Test FooTest testSimple started
+Test FooTest testEscaping started
 */
 
 //// SNIPPET:END

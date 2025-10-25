@@ -217,7 +217,7 @@
         },
         {
           "name": "com.lihaoyi:mainargs_3",
-          "version": "0.7.6"
+          "version": "0.7.7"
         },
         {
           "name": "org.scala-lang:scala3-library_3",
@@ -366,7 +366,7 @@
         },
         {
           "name": "com.lihaoyi:mainargs_3",
-          "version": "0.7.6"
+          "version": "0.7.7"
         },
         {
           "name": "org.scala-lang:scala3-library_3",

@@ -20,12 +20,12 @@ def main(startArticle: String, depth: Int) = {
   var seen = Set(startArticle)
   var current = Set(startArticle)
   for (i <- Range(0, depth)) {
-    val nextTitleLists = current.flatMap(fetchLinks(_))
-    current = nextTitleLists.filter(!seen.contains(_))
+    current = current.flatMap(fetchLinks(_)).filter(!seen.contains(_))
     seen = seen ++ current
   }
 
+  pprint.log(seen)
   os.write(os.pwd / "fetched.json", upickle.stream(seen, indent = 4))
 }
 
-def main(args: Array[String]): Unit = mainargs.ParserForMethods(this).runOrExit(args)
+def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args)

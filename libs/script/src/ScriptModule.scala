@@ -29,7 +29,9 @@ object ScriptModule {
 
   private[mill] def parseHeaderData(millSimplePath: os.Path) = {
     val headerData = mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      mill.constants.Util.readBuildHeader(millSimplePath.toNIO, millSimplePath.last, true)
+      // If the module file got deleted, handle that gracefully
+      if (!os.exists(millSimplePath)) ""
+      else mill.constants.Util.readBuildHeader(millSimplePath.toNIO, millSimplePath.last, true)
     }
 
     upickle.read[HeaderData](mill.internal.Util.parsedHeaderData(headerData))
