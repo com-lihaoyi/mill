@@ -10,7 +10,7 @@ object bar extends KotlinModule {
 }
 
 /** See Also: foo/package.mill.yaml */
-/** See Also: bar/src/bar/Bar.kt */
+
 /** Usage
 
 > ./mill foo.run --text hello

@@ -14,7 +14,7 @@ import mill.*, scalalib.*
 
 object `package` extends ScalaModule {
   def scalaVersion = "3.7.1"
-  def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.7.6")
+  def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.7.7")
 
   def generatedSources: T[Seq[PathRef]] = Task {
     val prettyMvnDeps = for (ivyDep <- mvnDeps()) yield {
@@ -97,7 +97,7 @@ object `package` extends ScalaModule {
 
 > ./mill run --text hello
 text: hello
-MyDeps.value: List((com.lihaoyi,mainargs,0.7.6))
+MyDeps.value: List((com.lihaoyi,mainargs,0.7.7))
 my.line.count: 14
 
 > ./mill show lineCount

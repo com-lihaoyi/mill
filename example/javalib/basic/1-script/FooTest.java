@@ -1,17 +1,21 @@
+//| extends: [mill.script.JavaModule.Junit4]
 //| moduleDeps: [Foo.java]
 //| mvnDeps:
 //| - "com.google.guava:guava:33.3.0-jre"
 
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 public class FooTest {
-  public static void main(String[] args) {
-    var result = Foo.generateHtml("hello");
-    assert(result == "<h1>hello</h1>");
-    System.out.println(result);
-    var result2 = Foo.generateHtml("<hello>");
-    var expected2 = "<h1>" + htmlEscaper().escape("<hello>") + "</h1>";
-    assert(result2 == expected2);
-    System.out.println(result2);
+  @Test
+  public void testSimple() {
+    assertEquals(Foo.generateHtml("hello"), "<h1>hello</h1>");
+  }
+
+  @Test
+  public void testEscaping() {
+    assertEquals(Foo.generateHtml("<hello>"), "<h1>" + htmlEscaper().escape("<hello>") + "</h1>");
   }
 }

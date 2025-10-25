@@ -555,7 +555,7 @@ object BuildGenUtil {
       merge: Flag = Flag()
   )
   object BasicConfig {
-    implicit def parser: mainargs.ParserForClass[BasicConfig] = mainargs.ParserForClass[BasicConfig]
+    implicit def parser: mainargs.ParserForClass[BasicConfig] = mainargs.Parser[BasicConfig]
   }
   // TODO alternative names: `MavenAndGradleConfig`, `MavenAndGradleSharedConfig`
   @mainargs.main
@@ -566,6 +566,6 @@ object BuildGenUtil {
   )
 
   object Config {
-    implicit def configParser: mainargs.ParserForClass[Config] = mainargs.ParserForClass[Config]
+    implicit def configParser: mainargs.ParserForClass[Config] = mainargs.Parser[Config]
   }
 }
