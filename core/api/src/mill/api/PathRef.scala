@@ -201,7 +201,12 @@ object PathRef {
   private[api] def knownRoots: KnownRoots = {
     // order is important!
     Seq(
-      ("$MILL_OUT", outPathOverride.value.getOrElse(Evaluator.currentEvaluator.outPath)),
+      (
+        "$MILL_OUT",
+        outPathOverride.value.getOrElse(
+          throw RuntimeException("Can't substitute $MILL_OUT, output path is not configured.")
+        )
+      ),
       ("$WORKSPACE", BuildCtx.workspaceRoot),
       // TODO: add coursier here
       ("$HOME", os.home)
