@@ -10,14 +10,16 @@ object PathRefTests extends TestSuite {
   val tests: Tests = Tests {
     test("sig") {
       def check(quick: Boolean) = withTmpDir { tmpDir =>
-        val file = tmpDir / "foo.txt"
-        os.write.over(file, "hello")
-        val sig1 = PathRef(file, quick).sig
-        val sig1b = PathRef(file, quick).sig
-        assert(sig1 == sig1b)
-        os.write.over(file, "hello world")
-        val sig2 = PathRef(file, quick).sig
-        assert(sig1 != sig2)
+        PathRef.outPathOverride.withValue(Some(tmpDir / "out")) {
+          val file = tmpDir / "foo.txt"
+          os.write.over(file, "hello")
+          val sig1 = PathRef(file, quick).sig
+          val sig1b = PathRef(file, quick).sig
+          assert(sig1 == sig1b)
+          os.write.over(file, "hello world")
+          val sig2 = PathRef(file, quick).sig
+          assert(sig1 != sig2)
+        }
       }
       test("qref") - check(quick = true)
       test("ref") - check(quick = false)
@@ -25,13 +27,15 @@ object PathRefTests extends TestSuite {
 
     test("same-sig-other-file") {
       def check(quick: Boolean) = withTmpDir { tmpDir =>
-        val file = tmpDir / "foo.txt"
-        os.write.over(file, "hello")
-        val sig1 = PathRef(file, quick).sig
-        val file2 = tmpDir / "bar.txt"
-        os.copy(file, file2)
-        val sig1b = PathRef(file2, quick).sig
-        assert(sig1 == sig1b)
+        PathRef.outPathOverride.withValue(Some(tmpDir / "out")) {
+          val file = tmpDir / "foo.txt"
+          os.write.over(file, "hello")
+          val sig1 = PathRef(file, quick).sig
+          val file2 = tmpDir / "bar.txt"
+          os.copy(file, file2)
+          val sig1b = PathRef(file2, quick).sig
+          assert(sig1 == sig1b)
+        }
       }
 //      test("qref") - check(quick = true)
       test("ref") - check(quick = false)
@@ -40,18 +44,26 @@ object PathRefTests extends TestSuite {
     test("perms") {
       def check(quick: Boolean) =
         if (isPosixFs()) withTmpDir { tmpDir =>
-          val file = tmpDir / "foo.txt"
-          val content = "hello"
-          os.write.over(file, content)
-          Files.setPosixFilePermissions(file.wrapped, PosixFilePermissions.fromString("rw-rw----"))
-          val rwSig = PathRef(file, quick).sig
-          val rwSigb = PathRef(file, quick).sig
-          assert(rwSig == rwSigb)
+          PathRef.outPathOverride.withValue(Some(tmpDir / "out")) {
+            val file = tmpDir / "foo.txt"
+            val content = "hello"
+            os.write.over(file, content)
+            Files.setPosixFilePermissions(
+              file.wrapped,
+              PosixFilePermissions.fromString("rw-rw----")
+            )
+            val rwSig = PathRef(file, quick).sig
+            val rwSigb = PathRef(file, quick).sig
+            assert(rwSig == rwSigb)
 
-          Files.setPosixFilePermissions(file.wrapped, PosixFilePermissions.fromString("rwxrw----"))
-          val rwxSig = PathRef(file, quick).sig
+            Files.setPosixFilePermissions(
+              file.wrapped,
+              PosixFilePermissions.fromString("rwxrw----")
+            )
+            val rwxSig = PathRef(file, quick).sig
 
-          assert(rwSig != rwxSig)
+            assert(rwSig != rwxSig)
+          }
         }
         else "Test Skipped on non-POSIX host"
 
@@ -61,20 +73,22 @@ object PathRefTests extends TestSuite {
 
     test("symlinks") {
       def check(quick: Boolean) = withTmpDir { tmpDir =>
-        // invalid symlink
-        os.symlink(tmpDir / "nolink", tmpDir / "nonexistant")
+        PathRef.outPathOverride.withValue(Some(tmpDir / "out")) {
+          // invalid symlink
+          os.symlink(tmpDir / "nolink", tmpDir / "nonexistant")
 
-        // symlink to empty dir
-        os.symlink(tmpDir / "emptylink", tmpDir / "empty")
-        os.makeDir(tmpDir / "empty")
+          // symlink to empty dir
+          os.symlink(tmpDir / "emptylink", tmpDir / "empty")
+          os.makeDir(tmpDir / "empty")
 
-        // recursive symlinks
-        os.symlink(tmpDir / "rlink1", tmpDir / "rlink2")
-        os.symlink(tmpDir / "rlink2", tmpDir / "rlink1")
+          // recursive symlinks
+          os.symlink(tmpDir / "rlink1", tmpDir / "rlink2")
+          os.symlink(tmpDir / "rlink2", tmpDir / "rlink1")
 
-        val sig1 = PathRef(tmpDir, quick).sig
-        val sig2 = PathRef(tmpDir, quick).sig
-        assert(sig1 == sig2)
+          val sig1 = PathRef(tmpDir, quick).sig
+          val sig2 = PathRef(tmpDir, quick).sig
+          assert(sig1 == sig2)
+        }
       }
       test("qref") - check(quick = true)
       test("ref") - check(quick = false)
@@ -87,7 +101,8 @@ object PathRefTests extends TestSuite {
             val file = tmpDir / "foo.txt"
             os.write(file, "hello")
             val pr = PathRef(file, quick)
-            val prFile = pr.path.toString().replace("\\", "\\\\")
+            val prFile =
+              pr.path.toString().replace(outDir.toString(), "$MILL_OUT").replace("\\", "\\\\")
             val json = upickle.write(pr)
             if (quick) {
               assert(json.startsWith(""""qref:v0:"""))
