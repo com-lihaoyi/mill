@@ -50,7 +50,6 @@ public class Crawler implements Callable<Integer> {
     return links;
   }
 
-  @Override
   public Integer call() throws Exception {
     var seen = new HashSet<>(Set.of(startArticle));
     var current = new HashSet<>(Set.of(startArticle));
@@ -73,7 +72,6 @@ public class Crawler implements Callable<Integer> {
   }
 
   public static void main(String[] args) {
-    System.out.println("XXX");
     System.exit(new CommandLine(new Crawler()).execute(args));
   }
 }
