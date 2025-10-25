@@ -213,10 +213,11 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def validateCoverageMinimums(): Command[Unit] = Task.Command {
       List(statementCoverageMin(), branchCoverageMin()).exists(_.isDefined) match {
         case true => validateCoverageMin(statementCoverageMin(), branchCoverageMin())
-        case _ => Task.fail("Either statementCoverageMin or branchCoverageMin must be set in order to call the validateCoverageMinimums task.")
+        case _ => Task.fail(
+            "Either statementCoverageMin or branchCoverageMin must be set in order to call the validateCoverageMinimums task."
+          )
       }
     }
-
 
     override def skipIdea = true
   }
