@@ -713,17 +713,15 @@ workflows interacting with files, subprocesses, and HTTP endpoints.</p>
 program that crawls wikipedia and saves the crawl results to a file:</p>
 </div>
 <div class="listingblock">
-<div class="title">Crawler.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-javalib-script-2-crawler.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/script/2-crawler/Crawler.java">browse</a>)</div>
+<div class="title">Crawler.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-58-a841a8/mill-dist-1.0.6-58-a841a8-example-javalib-script-2-crawler.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/script/2-crawler/Crawler.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps:
 //| - info.picocli:picocli:4.7.6
-//| - com.squareup.okhttp3:okhttp:4.12.0
+//| - com.konghq:unirest-java:3.14.5
 //| - com.fasterxml.jackson.core:jackson-databind:2.17.2
 
 import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.core.util.DefaultIndenter;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import okhttp3.*;
+import kong.unirest.Unirest;
 import picocli.CommandLine;
 import java.io.*;
 import java.nio.file.*;
@@ -733,70 +731,50 @@ import java.util.concurrent.Callable;
 @CommandLine.Command(name = &quot;Crawler&quot;, mixinStandardHelpOptions = true)
 public class Crawler implements Callable&lt;Integer&gt; {
 
-  @CommandLine.Option(
-    names = {&quot;--start-article&quot;},
-    required = true,
-    description = &quot;Starting article title&quot;
-  )
+  @CommandLine.Option(names = {&quot;--start-article&quot;}, required = true, description = &quot;Starting title&quot;)
   private String startArticle;
 
-  @CommandLine.Option(
-    names = {&quot;--depth&quot;},
-    required = true,
-    description = &quot;Depth of crawl&quot;
-  )
+  @CommandLine.Option(names = {&quot;--depth&quot;}, required = true, description = &quot;Depth of crawl&quot;)
   private int depth;
 
-  private static final OkHttpClient client = new OkHttpClient();
   private static final ObjectMapper mapper = new ObjectMapper();
 
-  public static List&lt;String&gt; fetchLinks(String title) throws IOException {
-    var url = new HttpUrl.Builder()
-      .scheme(&quot;https&quot;)
-      .host(&quot;en.wikipedia.org&quot;)
-      .addPathSegments(&quot;w/api.php&quot;)
-      .addQueryParameter(&quot;action&quot;, &quot;query&quot;)
-      .addQueryParameter(&quot;titles&quot;, title)
-      .addQueryParameter(&quot;prop&quot;, &quot;links&quot;)
-      .addQueryParameter(&quot;format&quot;, &quot;json&quot;)
-      .build();
-
-    var request = new Request.Builder()
-      .url(url)
+  public static List&lt;String&gt; fetchLinks(String title) throws Exception {
+    var response = Unirest.get(&quot;https://en.wikipedia.org/w/api.php&quot;)
+      .queryString(&quot;action&quot;, &quot;query&quot;)
+      .queryString(&quot;titles&quot;, title)
+      .queryString(&quot;prop&quot;, &quot;links&quot;)
+      .queryString(&quot;format&quot;, &quot;json&quot;)
       .header(&quot;User-Agent&quot;, &quot;WikiFetcherBot/1.0 (https://example.com; contact@example.com)&quot;)
-      .build();
-    try (Response response = client.newCall(request).execute()) {
-      if (!response.isSuccessful())
-        throw new IOException(&quot;Unexpected code &quot; + response);
+      .asString();
 
-      JsonNode root = mapper.readTree(response.body().byteStream());
-      JsonNode pages = root.path(&quot;query&quot;).path(&quot;pages&quot;);
-      List&lt;String&gt; links = new ArrayList&lt;&gt;();
+    if (!response.isSuccess())
+      throw new IOException(&quot;Unexpected code &quot; + response.getStatus());
 
-      for (Iterator&lt;JsonNode&gt; it = pages.elements(); it.hasNext();) {
-        JsonNode linkArr = it.next().get(&quot;links&quot;);
-        if (linkArr != null &amp;&amp; linkArr.isArray()) {
-          for (JsonNode link : linkArr) {
-            JsonNode titleNode = link.get(&quot;title&quot;);
-            if (titleNode != null) links.add(titleNode.asText());
-          }
+    var root = mapper.readTree(response.getBody());
+    var pages = root.path(&quot;query&quot;).path(&quot;pages&quot;);
+    var links = new ArrayList&lt;String&gt;();
+
+    for (var it = pages.elements(); it.hasNext();) {
+      var linkArr = it.next().get(&quot;links&quot;);
+      if (linkArr != null &amp;&amp; linkArr.isArray()) {
+        for (var link : linkArr) {
+          var titleNode = link.get(&quot;title&quot;);
+          if (titleNode != null) links.add(titleNode.asText());
         }
       }
-      return links;
     }
+    return links;
   }
 
-  @Override
   public Integer call() throws Exception {
-    Set&lt;String&gt; seen = new HashSet&lt;&gt;();
-    Set&lt;String&gt; current = new HashSet&lt;&gt;();
-    seen.add(startArticle);
-    current.add(startArticle);
+    var seen = new HashSet&lt;&gt;(Set.of(startArticle));
+    var current = new HashSet&lt;&gt;(Set.of(startArticle));
 
     for (int i = 0; i &lt; depth; i++) {
-      Set&lt;String&gt; next = new HashSet&lt;&gt;();
-      for (String article : current) {
-        for (String link : fetchLinks(article)) {
+      var next = new HashSet&lt;String&gt;();
+      for (var article : current) {
+        for (var link : fetchLinks(article)) {
           if (!seen.contains(link)) next.add(link);
         }
       }
@@ -804,19 +782,14 @@ public class Crawler implements Callable&lt;Integer&gt; {
       current = next;
     }
 
-    Path output = Paths.get(&quot;fetched.json&quot;);
-    try (Writer w = Files.newBufferedWriter(output)) {
-      DefaultPrettyPrinter printer = new DefaultPrettyPrinter();
-      printer.indentArraysWith(new DefaultIndenter(&quot;    &quot;, &quot;\n&quot;));
-      printer.indentObjectsWith(new DefaultIndenter(&quot;    &quot;, &quot;\n&quot;));
-      mapper.writer(printer).writeValue(w, seen);
+    try (var w = Files.newBufferedWriter(Paths.get(&quot;fetched.json&quot;))) {
+      mapper.writerWithDefaultPrettyPrinter().writeValue(w, seen);
     }
     return 0;
   }
 
   public static void main(String[] args) {
-    int exitCode = new CommandLine(new Crawler()).execute(args);
-    System.exit(exitCode);
+    System.exit(new CommandLine(new Crawler()).execute(args));
   }
 }</code></pre>
 </div>
@@ -826,13 +799,10 @@ public class Crawler implements Callable&lt;Integer&gt; {
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Crawler.java --start-article=singapore --depth=2
 
 &gt; cat fetched.json
-[
-    &quot;Calling code&quot;,
-    &quot;+65&quot;,
-    &quot;British Empire&quot;,
-    &quot;1st Parliament of Singapore&quot;,
-    ...
-]</code></pre>
+...&quot;Calling code&quot;,...
+...&quot;+65&quot;,...
+...&quot;British Empire&quot;,...
+...&quot;1st Parliament of Singapore&quot;,...</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -852,7 +822,7 @@ may not be as familiar with the intricacies of writing robust and maintainable B
 For example, given a <code>bar/Bar.scala</code> file such as below:</p>
 </div>
 <div class="listingblock">
-<div class="title">bar/Bar.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-javalib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/script/3-relative-imports/bar/Bar.java">browse</a>)</div>
+<div class="title">bar/Bar.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-58-a841a8/mill-dist-1.0.6-58-a841a8-example-javalib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/script/3-relative-imports/bar/Bar.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package bar;
 
@@ -869,7 +839,7 @@ public class Bar {
 test suite in the same folder:</p>
 </div>
 <div class="listingblock">
-<div class="title">bar/BarTests.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-javalib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/script/3-relative-imports/bar/BarTests.java">browse</a>)</div>
+<div class="title">bar/BarTests.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-58-a841a8/mill-dist-1.0.6-58-a841a8-example-javalib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/script/3-relative-imports/bar/BarTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| extends: [mill.script.JavaModule.Junit4]
 //| moduleDeps: [./Bar.java]
@@ -891,7 +861,7 @@ public class BarTests {
 is imported from the <code>foo/Foo.{language-exr}</code></p>
 </div>
 <div class="listingblock">
-<div class="title">foo/Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-javalib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/script/3-relative-imports/foo/Foo.java">browse</a>)</div>
+<div class="title">foo/Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-58-a841a8/mill-dist-1.0.6-58-a841a8-example-javalib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/script/3-relative-imports/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| moduleDeps: [bar/Bar.java]
 package foo;
@@ -927,31 +897,25 @@ file generated by processing the source file of the script, this can be done in 
 <code>LineCountJavaModule</code> as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">Qux.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-javalib-script-4-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/script/4-custom-class/Qux.java">browse</a>)</div>
+<div class="title">Qux.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-58-a841a8/mill-dist-1.0.6-58-a841a8-example-javalib-script-4-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/script/4-custom-class/Qux.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| extends: [millbuild.LineCountJavaModule]
 package qux;
 
 public class Qux {
-
-  public static String getLineCount() {
-    try {
-      return new String(
-          Qux.class.getClassLoader().getResourceAsStream(&quot;line-count.txt&quot;).readAllBytes());
-    } catch (java.io.IOException e) {
-      return null;
-    }
+  public static String getLineCount() throws Exception {
+    return new String(
+        Qux.class.getClassLoader().getResourceAsStream(&quot;line-count.txt&quot;).readAllBytes());
   }
 
   public static void main(String[] args) throws Exception {
-    String lineCount = getLineCount();
-    System.out.println(&quot;Line Count: &quot; + lineCount);
+    System.out.println(&quot;Line Count: &quot; + getLineCount());
   }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/src/LineCountJavaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-javalib-script-4-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/script/4-custom-class/mill-build/src/LineCountJavaModule.scala">browse</a>)</div>
+<div class="title">mill-build/src/LineCountJavaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-58-a841a8/mill-dist-1.0.6-58-a841a8-example-javalib-script-4-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/script/4-custom-class/mill-build/src/LineCountJavaModule.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
 import mill.*, javalib.*, script.*
@@ -976,10 +940,10 @@ class LineCountJavaModule(scriptConfig: ScriptModule.Config)
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Qux.java
 ...
-Line Count: 19
+Line Count: 13
 
 &gt; ./mill show Qux.java:lineCount
-19</code></pre>
+13</code></pre>
 </div>
 </div>
 <div class="paragraph">

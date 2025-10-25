@@ -714,49 +714,39 @@ a simple script using <a href="https://github.com/Kotlin/kotlinx.serialization">
 program that crawls wikipedia and saves the crawl results to a file:</p>
 </div>
 <div class="listingblock">
-<div class="title">Crawler.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-kotlinlib-script-2-crawler.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/2-crawler/Crawler.kt">browse</a>)</div>
+<div class="title">Crawler.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-58-a841a8/mill-dist-1.0.6-58-a841a8-example-kotlinlib-script-2-crawler.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/2-crawler/Crawler.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| mvnDeps:
 //| - com.github.ajalt.clikt:clikt:5.0.3
-//| - com.squareup.okhttp3:okhttp:4.12.0
+//| - com.konghq:unirest-java:3.14.5
 //| - org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.int
 import kotlinx.serialization.json.*
-import okhttp3.*
+import kong.unirest.Unirest
 import java.nio.file.*
 
 fun fetchLinks(title: String): List&lt;String&gt; {
-    val client = OkHttpClient()
-    val url = HttpUrl.Builder()
-        .scheme(&quot;https&quot;)
-        .host(&quot;en.wikipedia.org&quot;)
-        .addPathSegments(&quot;w/api.php&quot;)
-        .addQueryParameter(&quot;action&quot;, &quot;query&quot;)
-        .addQueryParameter(&quot;titles&quot;, title)
-        .addQueryParameter(&quot;prop&quot;, &quot;links&quot;)
-        .addQueryParameter(&quot;format&quot;, &quot;json&quot;)
-        .build()
-
-    val request = Request.Builder()
-        .url(url)
+    val response = Unirest.get(&quot;https://en.wikipedia.org/w/api.php&quot;)
+        .queryString(&quot;action&quot;, &quot;query&quot;)
+        .queryString(&quot;titles&quot;, title)
+        .queryString(&quot;prop&quot;, &quot;links&quot;)
+        .queryString(&quot;format&quot;, &quot;json&quot;)
         .header(&quot;User-Agent&quot;, &quot;WikiFetcherBot/1.0 (https://example.com; contact@example.com)&quot;)
-        .build()
+        .asString()
 
-    client.newCall(request).execute().use { resp -&gt;
-        val body = resp.body?.string() ?: return emptyList()
-        val json = Json.parseToJsonElement(body).jsonObject
-        val pages = json[&quot;query&quot;]?.jsonObject?.get(&quot;pages&quot;)?.jsonObject ?: return emptyList()
-        return pages.values.flatMap { page -&gt;
-            page.jsonObject[&quot;links&quot;]
-                ?.jsonArray
-                ?.mapNotNull { it.jsonObject[&quot;title&quot;]?.jsonPrimitive?.content }
-                ?: emptyList()
-        }
+    if (!response.isSuccess) return emptyList()
+
+    val json = Json.parseToJsonElement(response.body).jsonObject
+    val pages = json[&quot;query&quot;]?.jsonObject?.get(&quot;pages&quot;)?.jsonObject ?: return emptyList()
+    return pages.values.flatMap { page -&gt;
+        page.jsonObject[&quot;links&quot;]
+            ?.jsonArray
+            ?.mapNotNull { it.jsonObject[&quot;title&quot;]?.jsonPrimitive?.content }
+            ?: emptyList()
     }
 }
 
@@ -814,7 +804,7 @@ may not be as familiar with the intricacies of writing robust and maintainable B
 For example, given a <code>bar/Bar.scala</code> file such as below:</p>
 </div>
 <div class="listingblock">
-<div class="title">bar/Bar.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-kotlinlib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/3-relative-imports/bar/Bar.kt">browse</a>)</div>
+<div class="title">bar/Bar.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-58-a841a8/mill-dist-1.0.6-58-a841a8-example-kotlinlib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/3-relative-imports/bar/Bar.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| kotlinVersion: 2.0.20
 package bar
@@ -828,7 +818,7 @@ fun generateHtml(text: String): String = &quot;&lt;h1&gt;&quot; + text + &quot;&
 test suite in the same folder:</p>
 </div>
 <div class="listingblock">
-<div class="title">bar/BarTests.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-kotlinlib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/3-relative-imports/bar/BarTests.kt">browse</a>)</div>
+<div class="title">bar/BarTests.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-58-a841a8/mill-dist-1.0.6-58-a841a8-example-kotlinlib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/3-relative-imports/bar/BarTests.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| extends: [mill.script.KotlinModule.Junit5]
 //| moduleDeps: [./Bar.kt]
@@ -853,7 +843,7 @@ class BarTests :
 is imported from the <code>foo/Foo.{language-exr}</code></p>
 </div>
 <div class="listingblock">
-<div class="title">foo/Foo.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-kotlinlib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/3-relative-imports/foo/Foo.kt">browse</a>)</div>
+<div class="title">foo/Foo.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-58-a841a8/mill-dist-1.0.6-58-a841a8-example-kotlinlib-script-3-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/3-relative-imports/foo/Foo.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| moduleDeps: [bar/Bar.kt]
 //| kotlinVersion: 2.0.20
@@ -885,31 +875,25 @@ file generated by processing the source file of the script, this can be done in 
 <code>LineCountKotlinModule</code> as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">Qux.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-kotlinlib-script-4-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/4-custom-class/Qux.kt">browse</a>)</div>
+<div class="title">Qux.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-58-a841a8/mill-dist-1.0.6-58-a841a8-example-kotlinlib-script-4-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/4-custom-class/Qux.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">//| extends: [millbuild.LineCountKotlinModule]
 //| kotlinVersion: 2.0.20
 package qux
 
-import java.io.IOException
-
-fun getLineCount(): String? = try {
+fun getLineCount(): String =
     ::main.javaClass.classLoader
         .getResourceAsStream(&quot;line-count.txt&quot;)
         .readAllBytes()
         .toString(Charsets.UTF_8)
-} catch (e: IOException) {
-    null
-}
 
 fun main() {
-    var msg = &quot;Line Count: &quot; + getLineCount()
-    println(msg)
+    println(&quot;Line Count: &quot; + getLineCount())
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/src/LineCountKotlinModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-57-7d663e/mill-dist-1.0.6-57-7d663e-example-kotlinlib-script-4-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/4-custom-class/mill-build/src/LineCountKotlinModule.scala">browse</a>)</div>
+<div class="title">mill-build/src/LineCountKotlinModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-58-a841a8/mill-dist-1.0.6-58-a841a8-example-kotlinlib-script-4-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/script/4-custom-class/mill-build/src/LineCountKotlinModule.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
 import mill.*, kotlinlib.*, script.*
@@ -934,10 +918,10 @@ class LineCountKotlinModule(scriptConfig: ScriptModule.Config)
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Qux.kt
 ...
-Line Count: 19
+Line Count: 13
 
 &gt; ./mill show Qux.kt:lineCount
-19</code></pre>
+13</code></pre>
 </div>
 </div>
 <div class="paragraph">
