@@ -20,8 +20,7 @@ public class Crawler implements Callable<Integer> {
   @CommandLine.Option(names = {"--depth"}, required = true, description = "Depth of crawl")
   private int depth;
 
-  private static final ObjectMapper mapper = new ObjectMapper()
-    .enable(SerializationFeature.INDENT_OUTPUT);
+  private static final ObjectMapper mapper = new ObjectMapper();
 
   public static List<String> fetchLinks(String title) throws Exception {
     var response = Unirest.get("https://en.wikipedia.org/w/api.php")
