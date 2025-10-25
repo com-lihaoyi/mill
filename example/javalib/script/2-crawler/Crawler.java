@@ -4,8 +4,6 @@
 //| - com.fasterxml.jackson.core:jackson-databind:2.17.2
 
 import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.core.util.DefaultIndenter;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import okhttp3.*;
 import picocli.CommandLine;
 import java.io.*;
@@ -16,22 +14,15 @@ import java.util.concurrent.Callable;
 @CommandLine.Command(name = "Crawler", mixinStandardHelpOptions = true)
 public class Crawler implements Callable<Integer> {
 
-  @CommandLine.Option(
-    names = {"--start-article"},
-    required = true,
-    description = "Starting article title"
-  )
+  @CommandLine.Option(names = {"--start-article"}, required = true, description = "Starting title")
   private String startArticle;
 
-  @CommandLine.Option(
-    names = {"--depth"},
-    required = true,
-    description = "Depth of crawl"
-  )
+  @CommandLine.Option(names = {"--depth"}, required = true, description = "Depth of crawl")
   private int depth;
 
   private static final OkHttpClient client = new OkHttpClient();
-  private static final ObjectMapper mapper = new ObjectMapper();
+  private static final ObjectMapper mapper = new ObjectMapper()
+    .enable(SerializationFeature.INDENT_OUTPUT);
 
   public static List<String> fetchLinks(String title) throws IOException {
     var url = new HttpUrl.Builder()
@@ -72,10 +63,8 @@ public class Crawler implements Callable<Integer> {
 
   @Override
   public Integer call() throws Exception {
-    var seen = new HashSet<String>();
-    var current = new HashSet<String>();
-    seen.add(startArticle);
-    current.add(startArticle);
+    var seen = new HashSet<>(Set.of(startArticle));
+    var current = new HashSet<>(Set.of(startArticle));
 
     for (int i = 0; i < depth; i++) {
       var next = new HashSet<String>();
@@ -88,17 +77,14 @@ public class Crawler implements Callable<Integer> {
       current = next;
     }
 
-    var output = Paths.get("fetched.json");
-    try (var w = Files.newBufferedWriter(output)) {
-      var printer = new DefaultPrettyPrinter();
-      printer.indentArraysWith(new DefaultIndenter("    ", "\n"));
-      printer.indentObjectsWith(new DefaultIndenter("    ", "\n"));
-      mapper.writer(printer).writeValue(w, seen);
+    try (var w = Files.newBufferedWriter(Paths.get("fetched.json"))) {
+      mapper.writerWithDefaultPrettyPrinter().writeValue(w, seen);
     }
     return 0;
   }
 
   public static void main(String[] args) {
+    System.out.println("XXX");
     System.exit(new CommandLine(new Crawler()).execute(args));
   }
 }
