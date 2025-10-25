@@ -33,7 +33,7 @@ object HelloJavaMinimalCacheTests extends TestSuite {
           result1.value == result2.value,
           result1.evalCount != 0,
           result2.evalCount == 0,
-          result3.evalCount == 0,
+          result3.evalCount == 0
         )
       }
     }
