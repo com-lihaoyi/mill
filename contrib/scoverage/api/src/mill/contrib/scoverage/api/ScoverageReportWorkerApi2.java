@@ -90,6 +90,13 @@ public interface ScoverageReportWorkerApi2 {
 
   void report(ReportType reportType, Path[] sources, Path[] dataDirs, Path sourceRoot, Ctx ctx);
 
+  void validateCoverageMinimums(
+      Path[] dataDirs,
+      Path sourceRoot,
+      Double statementCoverageMin,
+      Double branchCoverageMin,
+      Ctx ctx);
+
   static void makeAllDirs(Path path) throws IOException {
     // Replicate behavior of `os.makeDir.all(path)`
     if (Files.isDirectory(path) && Files.isSymbolicLink(path)) {
