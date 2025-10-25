@@ -50,8 +50,6 @@ import mill.util.BuildInfo
  * The measurement data by default is available at `out/foo/scoverage/dataDir.dest/`,
  * the html report is saved in `out/foo/scoverage/htmlReport.dest/`,
  * and the xml report is saved in `out/foo/scoverage/xmlReport.dest/`.
- *
- *
  */
 trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
