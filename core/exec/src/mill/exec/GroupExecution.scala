@@ -214,8 +214,8 @@ trait GroupExecution {
                   newEvaluated.toSeq,
                   cached = if (labelled.isInstanceOf[Task.Input[?]]) null else false,
                   inputsHash,
-                  cached.map(_._1).getOrElse(-1),
-                  !cached.map(_._3).contains(valueHash),
+                  cached.map(_.inputHash).getOrElse(-1),
+                  !cached.map(_.valueHash).contains(valueHash),
                   serializedPaths
                 )
             }
@@ -424,7 +424,7 @@ trait GroupExecution {
       inputsHash: Int,
       labelled: Task.Named[?],
       paths: ExecutionPaths
-  ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
+  ): Option[(inputHash: Int, valOpt: Option[(Val, Seq[PathRef])], valueHash: Int)] = {
     for {
       cached <-
         try Some(upickle.read[Cached](paths.meta.toIO, trace = false))
@@ -589,7 +589,7 @@ object GroupExecution {
       classLoader: ClassLoader
   )(t: => T): T = {
     // Tasks must be allowed to write to upstream worker's dest folders, because
-    // the point of workers is to manualy manage long-lived state which includes
+    // the point of workers is to manually manage long-lived state which includes
     // state on disk.
     val validWriteDests =
       deps.collect { case n: Task.Worker[?] =>
