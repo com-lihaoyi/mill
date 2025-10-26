@@ -3,11 +3,10 @@ package mill.daemon
 import ch.epfl.scala.bsp4j.BuildClient
 import mill.api.daemon.internal.bsp.BspServerHandle
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
-import mill.api.{Logger, MillException, Result, SystemStreams}
+import mill.api.{BuildCtx, Logger, MillException, PathRef, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
-import mill.constants.{DaemonFiles, OutFiles, OutFolderMode}
-import mill.api.BuildCtx
+import mill.constants.{DaemonFiles, OutFiles}
 import mill.internal.{
   Colors,
   JsonArrayLogger,
@@ -65,12 +64,12 @@ object MillMain0 {
 
   private def withStreams[T](
       bspMode: Boolean,
-      streams: SystemStreams
+      streams: SystemStreams,
+      outDir: os.Path
   )(thunk: SystemStreams => T): T =
     if (bspMode) {
       // In BSP mode, don't let anything other than the BSP server write to stdout and read from stdin
 
-      val outDir = BuildCtx.workspaceRoot / os.RelPath(OutFiles.outFor(OutFolderMode.BSP))
       val outFileStream = os.write.outputStream(
         outDir / "mill-bsp/out.log",
         createFolders = true
@@ -109,8 +108,9 @@ object MillMain0 {
       initialSystemProperties: Map[String, String],
       systemExit: Server.StopServer,
       daemonDir: os.Path,
-      outLock: Lock
-  ): (Boolean, RunnerState) =
+      outLock: Lock,
+      outDir: os.Path
+  ): (Boolean, RunnerState) = PathRef.outPathOverride.withValue(Some(outDir)) {
     mill.api.daemon.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
       os.SubProcess.env.withValue(env) {
         val parserResult = MillCliConfig.parse(args)
@@ -121,7 +121,7 @@ object MillMain0 {
         // This is especially helpful if anything unexpectedly goes wrong
         // early on, when developing on Mill or debugging things for example.
         val bspMode = parserResult.toOption.exists(_.bsp.value)
-        withStreams(bspMode, streams0) { streams =>
+        withStreams(bspMode, streams0, outDir) { streams =>
           parserResult match {
             // Cannot parse args
             case Result.Failure(msg) =>
@@ -178,7 +178,7 @@ object MillMain0 {
 
               // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
               val bspMode = config.bsp.value && config.leftoverArgs.value.isEmpty
-              val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR
+
               val bspInstallModeJobCountOpt = {
                 def defaultJobCount =
                   maybeThreadCount.toOption.getOrElse(BSP.defaultJobCount)
@@ -241,7 +241,6 @@ object MillMain0 {
                     if (threadCount == 1) None
                     else Some(mill.exec.ExecutionContexts.createExecutor(threadCount))
 
-                  val out = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
                   Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                     def runMillBootstrap(
                         skipSelectiveExecution: Boolean,
@@ -257,7 +256,7 @@ object MillMain0 {
                     ): Watching.Result[RunnerState] = MillDaemonServer.withOutLock(
                       noBuildLock = config.noBuildLock.value,
                       noWaitForBuildLock = config.noWaitForBuildLock.value,
-                      out = out,
+                      out = outDir,
                       millActiveCommandMessage = millActiveCommandMessage,
                       streams = streams,
                       outLock = outLock,
@@ -270,7 +269,8 @@ object MillMain0 {
                         // Do this by removing the file rather than disabling selective execution,
                         // because we still want to generate the selective execution metadata json
                         // for subsequent runs that may use it
-                        if (skipSelectiveExecution) os.remove(out / OutFiles.millSelectiveExecution)
+                        if (skipSelectiveExecution)
+                          os.remove(outDir / OutFiles.millSelectiveExecution)
                         mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                           mill.api.FilesystemCheckerEnabled.withValue(
                             !config.noFilesystemChecker.value
@@ -278,7 +278,7 @@ object MillMain0 {
                             tailManager.withOutErr(logger.streams.out, logger.streams.err) {
                               new MillBuildBootstrap(
                                 projectRoot = BuildCtx.workspaceRoot,
-                                output = out,
+                                output = outDir,
                                 // In BSP server, we want to evaluate as many tasks as possible,
                                 // in order to give as many results as available in BSP responses
                                 keepGoing = bspMode || config.keepGoing.value,
@@ -313,7 +313,7 @@ object MillMain0 {
                             daemonDir = daemonDir,
                             colored = colored,
                             colors = colors,
-                            out = out
+                            out = outDir
                           )) { logger =>
                             proceed(logger)
                           }
@@ -358,7 +358,7 @@ object MillMain0 {
                       val bspLogger = getBspLogger(streams, config)
                       var prevRunnerStateOpt = Option.empty[RunnerState]
                       val (bspServerHandle, buildClient) =
-                        startBspServer(streams0, outLock, bspLogger)
+                        startBspServer(streams0, outLock, bspLogger, outDir)
                       var keepGoing = true
                       var errored = false
                       val initCommandLogger = new PrefixLogger(bspLogger, Seq("init"))
@@ -510,6 +510,7 @@ object MillMain0 {
                   }
                 }
               }
+
               if (config.ringBell.value) {
                 if (success) println("\u0007")
                 else {
@@ -524,6 +525,7 @@ object MillMain0 {
         }
       }
     }
+  }
 
   /**
    * Starts the BSP server
@@ -533,13 +535,13 @@ object MillMain0 {
   def startBspServer(
       bspStreams: SystemStreams,
       outLock: Lock,
-      bspLogger: Logger
+      bspLogger: Logger,
+      outDir: os.Path
   ): (BspServerHandle, BuildClient) = {
     bspLogger.info("Trying to load BSP server...")
 
-    val wsRoot = BuildCtx.workspaceRoot
-    val outFolder = wsRoot / os.RelPath(OutFiles.outFor(OutFolderMode.BSP))
-    val logDir = outFolder / "mill-bsp"
+    BuildCtx.workspaceRoot
+    val logDir = outDir / "mill-bsp"
     os.makeDir.all(logDir)
 
     val bspServerHandleRes =
@@ -550,7 +552,7 @@ object MillMain0 {
         true,
         outLock,
         bspLogger,
-        outFolder
+        outDir
       ).get
 
     bspLogger.info("BSP server started")

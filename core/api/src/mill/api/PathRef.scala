@@ -25,7 +25,7 @@ case class PathRef private[mill] (
 ) extends PathRefApi {
   private[mill] def javaPath = path.toNIO
 
-  val pathVal: String = PathRef.encodeKnownRootsInPath(path)
+  private[mill] val pathVal: String = PathRef.encodeKnownRootsInPath(path)
 
   def recomputeSig(): Int = PathRef.apply(path, quick).sig
   def validate(): Boolean = recomputeSig() == sig
