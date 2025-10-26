@@ -4,13 +4,23 @@ import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}
 import mill.client.lock.*
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava, ZincCompileMixed, ZincScaladocJar}
+import mill.javalib.api.internal.{
+  JavaCompilerOptions,
+  ZincCompileJava,
+  ZincCompileMixed,
+  ZincScaladocJar
+}
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mill.javalib.internal.ZincCompilerBridgeProvider
 import mill.javalib.internal.ZincCompilerBridgeProvider.AcquireResult
 import mill.javalib.worker.*
 import mill.javalib.zinc.ZincWorker.*
-import mill.util.{CachedFactory, CachedFactoryWithInitData, FailingClassLoader, RefCountedClassLoaderCache}
+import mill.util.{
+  CachedFactory,
+  CachedFactoryWithInitData,
+  FailingClassLoader,
+  RefCountedClassLoaderCache
+}
 import sbt.internal.inc
 import sbt.internal.inc.*
 import sbt.internal.inc.classpath.ClasspathUtil

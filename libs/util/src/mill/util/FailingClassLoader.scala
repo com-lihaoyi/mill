@@ -44,8 +44,19 @@ class FailingClassLoader extends ClassLoader {
   override def getResourceAsStream(name: String): InputStream =
     throw UnsupportedOperationException(s"getResourceAsStream(name=$name)")
 
-  override def definePackage(name: String, specTitle: String, specVersion: String, specVendor: String, implTitle: String, implVersion: String, implVendor: String, sealBase: URL): Package =
-    throw UnsupportedOperationException(s"definePackage(name=$name, specTitle=$specTitle, specVersion=$specVersion, specVendor=$specVendor, implTitle=$implTitle, implVersion=$implVersion, implVendor=$implVendor, sealBase=$sealBase)")
+  override def definePackage(
+      name: String,
+      specTitle: String,
+      specVersion: String,
+      specVendor: String,
+      implTitle: String,
+      implVersion: String,
+      implVendor: String,
+      sealBase: URL
+  ): Package =
+    throw UnsupportedOperationException(
+      s"definePackage(name=$name, specTitle=$specTitle, specVersion=$specVersion, specVendor=$specVendor, implTitle=$implTitle, implVersion=$implVersion, implVendor=$implVendor, sealBase=$sealBase)"
+    )
 
   override def getPackage(name: String): Package =
     throw UnsupportedOperationException(s"getPackage(name=$name)")
@@ -60,10 +71,14 @@ class FailingClassLoader extends ClassLoader {
     throw UnsupportedOperationException(s"setDefaultAssertionStatus(enabled=$enabled)")
 
   override def setPackageAssertionStatus(packageName: String, enabled: Boolean): Unit =
-    throw UnsupportedOperationException(s"setPackageAssertionStatus(packageName=$packageName, enabled=$enabled)")
+    throw UnsupportedOperationException(
+      s"setPackageAssertionStatus(packageName=$packageName, enabled=$enabled)"
+    )
 
   override def setClassAssertionStatus(className: String, enabled: Boolean): Unit =
-    throw UnsupportedOperationException(s"setClassAssertionStatus(className=$className, enabled=$enabled)")
+    throw UnsupportedOperationException(
+      s"setClassAssertionStatus(className=$className, enabled=$enabled)"
+    )
 
   override def clearAssertionStatus(): Unit =
     throw UnsupportedOperationException(s"clearAssertionStatus()")

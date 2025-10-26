@@ -364,7 +364,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
               )
           catch {
             case NonFatal(e) =>
-              log.error(s"Compilation failed with an exception, debug data:\n  ${debugInfos.mkString("\n  ")}")
+              log.error(
+                s"Compilation failed with an exception, debug data:\n  ${debugInfos.mkString("\n  ")}"
+              )
               throw e
           }
 
