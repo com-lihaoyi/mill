@@ -3,10 +3,10 @@
 [1-buildInitialize] Entered buildInitialize
 [1-buildInitialize] Got client semanticdbVersion: * Enabling SemanticDB support.
 [1-buildInitialize] buildInitialize took * msec
-[bsp-init-mill-build/build.mill-59] [info] compiling * Scala sources to * ...
-[bsp-init-mill-build/build.mill-59] [info] done compiling
-[bsp-init-build.mill-59] [info] compiling * Scala sources to * ...
-[bsp-init-build.mill-59] [info] done compiling
+[bsp-init-mill-build/build.mill-70] [info] compiling * Scala sources to * ...
+[bsp-init-mill-build/build.mill-70] [info] done compiling
+[bsp-init-build.mill-70] [info] compiling * Scala sources to * ...
+[bsp-init-build.mill-70] [info] done compiling
 [bsp-init] SNAPSHOT
 [2-workspaceBuildTargets] Entered workspaceBuildTargets
 [2-workspaceBuildTargets] Evaluating * tasks
@@ -27,16 +27,24 @@
 [3-loggingTest] loggingTest took * msec
 [4-compile] Entered buildTargetCompile
 [4-compile] Evaluating 1 task
-[4-compile] Done
+[4-compile-60] errored.exception.compile task failed
+[4-compile] 1 tasks failed
+[4-compile] errored.exception.compile java.lang.RuntimeException: nope
+[4-compile]     scala.sys.package$.error(package.scala:27)
+[4-compile]     build_.package_.build_$package_$errored$exception$$$_$compile$$anonfun$1$$anonfun$1(build.mill:75)
+[4-compile]     mill.api.Task$Named.evaluate(Task.scala:338)
+[4-compile]     mill.api.Task$Named.evaluate$(Task.scala:323)
+[4-compile]     mill.api.Task$Computed.evaluate(Task.scala:349)
+[4-compile] Failed
 [4-compile] buildTargetCompile took * msec
 [5-compile] Entered buildTargetCompile
 [5-compile] Evaluating 1 task
-[5-compile-55] [info] compiling * Scala source to * ...
-[5-compile-55] [error] *:2:3: not found: value nope
-[5-compile-55] [error]   nope
-[5-compile-55] [error]   ^
-[5-compile-55] [error] one error found
-[5-compile-55] errored.compilation-error.semanticDbDataDetailed task failed
+[5-compile-59] [info] compiling * Scala source to * ...
+[5-compile-59] [error] *:2:3: not found: value nope
+[5-compile-59] [error]   nope
+[5-compile-59] [error]   ^
+[5-compile-59] [error] one error found
+[5-compile-59] errored.compilation-error.compile task failed
 [5-compile] Done
 [5-compile] buildTargetCompile took * msec
 [6-compile] Entered buildTargetCompile

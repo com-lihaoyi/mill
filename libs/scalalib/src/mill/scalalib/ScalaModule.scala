@@ -273,7 +273,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   /**
    * Keep the return paths in sync with [[bspCompileClassesPath]].
    */
-  override private[mill] def compileInternal(compileSemanticDb: Boolean) = {
+  override private[mill] def compileInternalLazy(compileSemanticDb: Boolean): Task[() => Result[CompilationResult]] = {
     val (
       semanticDbJavacOptionsTask,
       semanticDbEnablePluginScalacOptionsTask,
@@ -313,17 +313,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
       val compileClasspath = this.compileClasspath() ++ semanticDbJavaPluginMvnDepsTask()
 
-      val compileTo = Task.dest
-
-      Task.log.debug(s"compiling to: $compileTo")
-      Task.log.debug(s"semantic db enabled: $compileSemanticDb")
-      Task.log.debug(s"effective scalac options: $scalacOptions")
-      Task.log.debug(s"effective javac options: ${jOpts.compiler}")
-      Task.log.debug(s"effective java runtime options: ${jOpts.runtime}")
-
       val sources = allSourceFiles().map(_.path)
       val compileMixedOp = ZincCompileMixed(
-        compileTo = compileTo,
+        compileTo = Task.dest,
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = sources,
         compileClasspath = compileClasspath.map(_.path),
@@ -337,24 +329,37 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
       )
 
-      val compileMixedResult = jvmWorker()
-        .internalWorker()
-        .compileMixed(
-          compileMixedOp,
-          javaHome = javaHome().map(_.path),
-          javaRuntimeOptions = jOpts.runtime,
-          reporter = Task.reporter.apply(hashCode),
-          reportCachedProblems = zincReportCachedProblems()
-        )
+      def debugInfos = Vector(
+        s"compiling to: ${compileMixedOp.compileTo}",
+        s"semantic db enabled: $compileSemanticDb",
+        s"effective scalac options: $scalacOptions",
+        s"effective javac options: ${jOpts.compiler}",
+        s"effective java runtime options: ${jOpts.runtime}",
+      )
 
-      compileMixedResult.map { compilationResult =>
-        if (compileSemanticDb) SemanticDbJavaModule.enhanceCompilationResultWithSemanticDb(
-          compileTo = compileMixedOp.compileTo,
-          sources = sources,
-          workerClasspath = SemanticDbJavaModule.workerClasspath().map(_.path),
-          compilationResult = compilationResult
-        )
-        else compilationResult
+      () => {
+        val log = Task.log
+        if (log.debugEnabled) debugInfos.foreach(log.debug)
+
+        val compileMixedResult = jvmWorker()
+          .internalWorker()
+          .compileMixed(
+            compileMixedOp,
+            javaHome = javaHome().map(_.path),
+            javaRuntimeOptions = jOpts.runtime,
+            reporter = Task.reporter.apply(hashCode),
+            reportCachedProblems = zincReportCachedProblems()
+          )
+
+        compileMixedResult.map { compilationResult =>
+          if (compileSemanticDb) SemanticDbJavaModule.enhanceCompilationResultWithSemanticDb(
+              compileTo = compileMixedOp.compileTo,
+              sources = sources,
+              workerClasspath = SemanticDbJavaModule.workerClasspath().map(_.path),
+              compilationResult = compilationResult
+            )
+          else compilationResult
+        }
       }
     }
   }

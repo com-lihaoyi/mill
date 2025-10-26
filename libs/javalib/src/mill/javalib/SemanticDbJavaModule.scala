@@ -45,7 +45,11 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
    */
   def compile: Task.Simple[mill.javalib.api.CompilationResult]
 
-  private[mill] def compileInternal(compileSemanticDb: Boolean) = {
+  private[mill] final def compileInternal(compileSemanticDb: Boolean): Task[CompilationResult] = Task.Anon {
+    compileInternalLazy(compileSemanticDb).apply().apply()
+  }
+
+  private[mill] def compileInternalLazy(compileSemanticDb: Boolean): Task[() => Result[CompilationResult]] = {
     val (semanticDbJavacOptionsTask, semanticDbJavaPluginMvnDepsTask) =
       if (compileSemanticDb) (
         Task.Anon { SemanticDbJavaModule.javacOptionsTask(semanticDbJavaVersion()) },
@@ -78,29 +82,36 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
         incrementalCompilation = zincIncrementalCompilation()
       )
 
-      Task.log.debug(s"compiling to: ${compileJavaOp.compileTo}")
-      Task.log.debug(s"semantic db enabled: $compileSemanticDb")
-      Task.log.debug(s"effective javac options: ${jOpts.compiler}")
-      Task.log.debug(s"effective java runtime options: ${jOpts.runtime}")
+      def debugInfos = Vector(
+        s"compiling to: ${compileJavaOp.compileTo}",
+        s"semantic db enabled: $compileSemanticDb",
+        s"effective javac options: ${jOpts.compiler}",
+        s"effective java runtime options: ${jOpts.runtime}",
+      )
 
-      val compileJavaResult = jvmWorker()
-        .internalWorker()
-        .compileJava(
-          compileJavaOp,
-          javaHome = javaHome().map(_.path),
-          javaRuntimeOptions = jOpts.runtime,
-          reporter = Task.reporter.apply(hashCode),
-          reportCachedProblems = zincReportCachedProblems()
-        )
+      () => {
+        val log = Task.log
+        if (log.debugEnabled) debugInfos.foreach(log.debug)
 
-      compileJavaResult.map { compilationResult =>
-        if (compileSemanticDb) SemanticDbJavaModule.enhanceCompilationResultWithSemanticDb(
-          compileTo = compileJavaOp.compileTo,
-          sources = sources,
-          workerClasspath = SemanticDbJavaModule.workerClasspath().map(_.path),
-          compilationResult = compilationResult
-        )
-        else compilationResult
+        val compileJavaResult = jvmWorker()
+          .internalWorker()
+          .compileJava(
+            compileJavaOp,
+            javaHome = javaHome().map(_.path),
+            javaRuntimeOptions = jOpts.runtime,
+            reporter = Task.reporter.apply(hashCode),
+            reportCachedProblems = zincReportCachedProblems()
+          )
+
+        compileJavaResult.map { compilationResult =>
+          if (compileSemanticDb) SemanticDbJavaModule.enhanceCompilationResultWithSemanticDb(
+            compileTo = compileJavaOp.compileTo,
+            sources = sources,
+            workerClasspath = SemanticDbJavaModule.workerClasspath().map(_.path),
+            compilationResult = compilationResult
+          )
+          else compilationResult
+        }
       }
     }
   }

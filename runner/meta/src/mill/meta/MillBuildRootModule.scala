@@ -1,21 +1,17 @@
 package mill.meta
 
-import java.nio.file.Path
-import mill.api.BuildCtx
 import mill.*
-import mill.api.Result
-import mill.api.daemon.internal.internal
+import mill.api.JsonFormatters.given
+import mill.api.daemon.internal.{MillScalaParser, internal}
+import mill.api.internal.RootModule
+import mill.api.{BuildCtx, Discover, PathRef, Result, Task}
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.constants.OutFiles.*
-import mill.api.{Discover, PathRef, Task}
-import mill.api.internal.RootModule
-import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.javalib.api.{CompilationResult, Versions}
+import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.{BuildInfo, MainRootModule}
-import mill.api.daemon.internal.MillScalaParser
-import mill.api.JsonFormatters.given
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileMixed}
 
+import java.nio.file.Path
 import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
@@ -282,44 +278,21 @@ trait MillBuildRootModule()(using
       os.write(prevMillVersionFile, mv)
     }
 
-    // copied from `ScalaModule`
-    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
-    jvmWorker()
-      .internalWorker()
-      .compileMixed(
-        ZincCompileMixed(
-          compileTo = Task.dest,
-          upstreamCompileOutput = upstreamCompileOutput(),
-          sources = Seq.from(allSourceFiles().map(_.path)),
-          compileClasspath = compileClasspath().map(_.path),
-          javacOptions = jOpts.compiler,
-          scalaVersion = scalaVersion(),
-          scalaOrganization = scalaOrganization(),
-          scalacOptions = allScalacOptions(),
-          compilerClasspath = scalaCompilerClasspath(),
-          scalacPluginClasspath = scalacPluginClasspath(),
-          incrementalCompilation = zincIncrementalCompilation(),
-          auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
-        ),
-        javaHome = javaHome().map(_.path),
-        javaRuntimeOptions = jOpts.runtime,
-        reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
-      ).map {
-        res =>
-          // Perform the line-number updating in a copy of the classfiles, because
-          // mangling the original class files messes up zinc incremental compilation
-          val transformedClasses = Task.dest / "transformed-classes"
-          os.remove.all(transformedClasses)
-          os.copy(res.classes.path, transformedClasses)
+    this.compileInternalLazy(compileSemanticDb = bspAnyClientNeedsSemanticDb).apply().apply().map {
+      res =>
+        // Perform the line-number updating in a copy of the classfiles, because
+        // mangling the original class files messes up zinc incremental compilation
+        val transformedClasses = Task.dest / "transformed-classes"
+        os.remove.all(transformedClasses)
+        os.copy(res.classes.path, transformedClasses)
 
-          MillBuildRootModule.updateLineNumbers(
-            transformedClasses,
-            generatedScriptSources().wrapped.head.path
-          )
+        MillBuildRootModule.updateLineNumbers(
+          transformedClasses,
+          generatedScriptSources().wrapped.head.path
+        )
 
-          res.copy(classes = PathRef(transformedClasses))
-      }
+        res.copy(classes = PathRef(transformedClasses))
+    }
   }
 }
 
