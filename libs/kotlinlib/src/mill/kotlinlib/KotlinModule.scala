@@ -8,21 +8,17 @@ package kotlinlib
 
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import mill.api.Result
-import mill.api.ModuleRef
-import mill.kotlinlib.worker.api.KotlinWorkerTarget
-import mill.javalib.api.CompilationResult
-import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
-import mill.javalib.api.internal.JvmWorkerApi
-import mill.api.daemon.internal.{CompileProblemReporter, KotlinModuleApi, internal}
-import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
-import mill.util.{Jvm, Version}
+import mainargs.Flag
 import mill.*
+import mill.api.{ModuleRef, Result}
+import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
+import mill.api.daemon.internal.{KotlinModuleApi, internal}
+import mill.javalib.api.CompilationResult
+import mill.javalib.{JavaModule, JvmWorkerModule, Lib, SemanticDbJavaModule}
+import mill.kotlinlib.worker.api.KotlinWorkerTarget
+import mill.util.{Jvm, Version}
 
 import java.io.File
-import mainargs.Flag
-import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 
 /**
  * Core configuration required to compile a single Kotlin module
@@ -314,23 +310,11 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val isMixed = isKotlin && isJava
 
       val compileCp = compileClasspath().map(_.path).filter(os.exists)
-      val updateCompileOutput = upstreamCompileOutput()
 
-      def compileJava: Result[CompilationResult] = {
-        ctx.log.info(
-          s"Compiling ${javaSourceFiles.size} Java sources to ${classes} ..."
-        )
+      def compileJava(): Result[CompilationResult] = {
+        ctx.log.info(s"Compiling ${javaSourceFiles.size} Java sources to ${classes} ...")
         // The compile step is lazy, but its dependencies are not!
-        internalCompileJavaFiles(
-          worker = jvmWorkerRef().internalWorker(),
-          upstreamCompileOutput = updateCompileOutput,
-          javaSourceFiles = javaSourceFiles,
-          compileCp = compileCp,
-          javaHome = javaHome().map(_.path),
-          javacOptions = javacOptions(),
-          compileProblemReporter = ctx.reporter(hashCode),
-          reportOldProblems = internalReportOldProblems()
-        )
+        SemanticDbJavaModule.compile(this)()
       }
 
       if (isMixed || isKotlin) {
@@ -378,13 +362,13 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
               cr
             } else {
               // also run Java compiler and use it's returned result
-              compileJava
+              compileJava()
             }
           case Result.Failure(reason) => Result.Failure(reason)
         }
       } else {
         // it's Java only
-        compileJava
+        compileJava()
       }
     }
 
@@ -424,35 +408,6 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   def allKotlincOptions: T[Seq[String]] = Task {
     mandatoryKotlincOptions() ++ kotlincOptions()
   }
-
-  private[kotlinlib] def internalCompileJavaFiles(
-      worker: JvmWorkerApi,
-      upstreamCompileOutput: Seq[CompilationResult],
-      javaSourceFiles: Seq[os.Path],
-      compileCp: Seq[os.Path],
-      javaHome: Option[os.Path],
-      javacOptions: Seq[String],
-      compileProblemReporter: Option[CompileProblemReporter],
-      reportOldProblems: Boolean
-  )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
-    val jOpts = JavaCompilerOptions(javacOptions)
-    worker.compileJava(
-      ZincCompileJava(
-        compileTo = Task.dest,
-        upstreamCompileOutput = upstreamCompileOutput,
-        sources = javaSourceFiles,
-        compileClasspath = compileCp,
-        javacOptions = jOpts.compiler,
-        incrementalCompilation = true
-      ),
-      javaHome = javaHome,
-      javaRuntimeOptions = jOpts.runtime,
-      reporter = compileProblemReporter,
-      reportCachedProblems = reportOldProblems
-    )
-  }
-
-  private[kotlinlib] def internalReportOldProblems: Task[Boolean] = zincReportCachedProblems
 
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(

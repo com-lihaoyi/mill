@@ -334,6 +334,7 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
 
   /** @note extracted code to be invoked from multiple places for binary compatibility reasons. */
   private[mill] def semanticDbDataDetailed(mod: SemanticDbJavaModule): Task[SemanticDbData] = {
+    val bspAnyClientNeedsSemanticDb = mod.bspAnyClientNeedsSemanticDb
 
     /**
      * If any of the clients needs semanticdb, regular [[compile]] will produce that, so let's reuse the tasks output
@@ -346,9 +347,28 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
     Task.Anon {
       val compilationResult = task()
       val semanticDbData =
-        compilationResult.semanticDbFiles.getOrElse(throw IllegalStateException(
-          "SemanticDB files were not produced, this is a bug in Mill."
-        ))
+        compilationResult.semanticDbFiles.getOrElse {
+          val taskInfo = task match {
+            case task: Task.Named[?] =>
+              val ctx = task.ctx
+              s"""{
+                 |    task = $task
+                 |    file = ${ctx.fileName}:${ctx.lineNum}
+                 |    enclosing = ${ctx.enclosing}
+                 |  }
+                 |""".stripMargin
+            case _ => task.toString
+          }
+
+          throw IllegalStateException(
+            s"""SemanticDB files were not produced, this is a bug in Mill.
+               |
+               |Debug data:
+               |  bspAnyClientNeedsSemanticDb = $bspAnyClientNeedsSemanticDb
+               |  compile task = $taskInfo
+               |""".stripMargin
+          )
+        }
       SemanticDbData(compilationResult, semanticDbData)
     }
   }
