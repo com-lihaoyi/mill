@@ -93,7 +93,7 @@ object MillMain0 {
         outFileStream.close()
       }
     } else {
-      val outDir = BuildCtx.workspaceRoot / os.RelPath(OutFiles.outFor(OutFolderMode.REGULAR))
+      BuildCtx.workspaceRoot / os.RelPath(OutFiles.outFor(OutFolderMode.REGULAR))
       mill.api.SystemStreamsUtils.withStreams(streams) {
         thunk(streams)
       }
@@ -525,7 +525,7 @@ object MillMain0 {
   ): (BspServerHandle, BuildClient) = {
     bspLogger.info("Trying to load BSP server...")
 
-    val wsRoot = BuildCtx.workspaceRoot
+    BuildCtx.workspaceRoot
     val logDir = outDir / "mill-bsp"
     os.makeDir.all(logDir)
 

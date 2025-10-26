@@ -61,7 +61,8 @@ public class MillProcessLauncher {
     }
   }
 
-  static Process launchMillDaemon(Path daemonDir, OutFolderMode outMode, File outDir, String[] runnerClasspath)
+  static Process launchMillDaemon(
+      Path daemonDir, OutFolderMode outMode, File outDir, String[] runnerClasspath)
       throws Exception {
     List<String> l = new ArrayList<>(millLaunchJvmCommand(outMode, runnerClasspath));
     l.add("mill.daemon.MillDaemonMain");
@@ -282,7 +283,7 @@ public class MillProcessLauncher {
   }
 
   static String[] cachedComputedValue(
-    OutFolderMode outMode, String name, String key, Supplier<String[]> block) {
+      OutFolderMode outMode, String name, String key, Supplier<String[]> block) {
     return cachedComputedValue0(outMode, name, key, block, arr -> true);
   }
 

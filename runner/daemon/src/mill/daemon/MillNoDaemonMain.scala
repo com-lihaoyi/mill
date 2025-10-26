@@ -2,7 +2,6 @@ package mill.daemon
 
 import mill.constants.{DaemonFiles, OutFiles, Util}
 import mill.daemon.MillMain0.{handleMillException, main0}
-import mill.api.BuildCtx
 import mill.server.Server
 
 import scala.jdk.CollectionConverters.*

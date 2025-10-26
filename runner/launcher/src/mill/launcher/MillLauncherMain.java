@@ -89,8 +89,8 @@ public class MillLauncherMain {
     if (runNoDaemon) {
       String mainClass = bspMode ? "mill.daemon.MillBspMain" : "mill.daemon.MillNoDaemonMain";
       // start in no-server mode
-      int exitCode =
-          MillProcessLauncher.launchMillNoDaemon(args, outMode, outPath, runnerClasspath, mainClass);
+      int exitCode = MillProcessLauncher.launchMillNoDaemon(
+          args, outMode, outPath, runnerClasspath, mainClass);
       System.exit(exitCode);
     } else {
       var logs = new java.util.ArrayList<String>();
@@ -109,9 +109,9 @@ public class MillLauncherMain {
                 Optional.empty(),
                 -1) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
-                return new LaunchedServer.OsProcess(
-                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode, outPath, runnerClasspath)
-                        .toHandle());
+                return new LaunchedServer.OsProcess(MillProcessLauncher.launchMillDaemon(
+                        daemonDir, outMode, outPath, runnerClasspath)
+                    .toHandle());
               }
             };
 

@@ -24,12 +24,11 @@ public abstract class MillServerLauncher extends ServerLauncher {
   final int forceFailureForTestingMillisDelay;
 
   public MillServerLauncher(
-    Streams streams,
-    Map<String, String> env,
-    String[] args,
-    Optional<Locks> memoryLock,
-    int forceFailureForTestingMillisDelay
-  ) {
+      Streams streams,
+      Map<String, String> env,
+      String[] args,
+      Optional<Locks> memoryLock,
+      int forceFailureForTestingMillisDelay) {
     this.streams = streams;
     this.env = env;
     this.args = args;
@@ -48,13 +47,12 @@ public abstract class MillServerLauncher extends ServerLauncher {
     Files.createDirectories(daemonDir);
 
     var initData = new ClientInitData(
-      /* interactive */ Util.hasConsole(),
-      BuildInfo.millVersion,
-      javaHome,
-      args,
-      env,
-      ClientUtil.getUserSetProperties()
-    );
+        /* interactive */ Util.hasConsole(),
+        BuildInfo.millVersion,
+        javaHome,
+        args,
+        env,
+        ClientUtil.getUserSetProperties());
 
     Locks locks;
     if (memoryLock.isPresent()) {
@@ -64,8 +62,7 @@ public abstract class MillServerLauncher extends ServerLauncher {
     }
     log.accept("launchOrConnectToServer: " + locks);
 
-    try (
-      var launched = launchOrConnectToServer(
+    try (var launched = launchOrConnectToServer(
         locks,
         daemonDir,
         serverInitWaitMillis,
@@ -76,30 +73,27 @@ public abstract class MillServerLauncher extends ServerLauncher {
           System.exit(1);
         },
         log,
-        true /*openSocket*/
-      )
-    ) {
+        true /*openSocket*/)) {
       log.accept("runWithConnection: " + launched);
       var result = runWithConnection(
-        launched.socket,
-        streams,
-        false,
-        rawServerStdin -> {
-          log.accept("Sending init data: " + initData);
-          try {
-            initData.write(rawServerStdin);
-            log.accept("Init data sent.");
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        },
-        () -> {
-          log.accept("running client logic");
-          forceTestFailure(daemonDir, log);
-        },
-        "MillServerLauncher[" + launched.socket.getLocalSocketAddress() + " -> "
-          + launched.socket.getRemoteSocketAddress() + "]"
-      );
+          launched.socket,
+          streams,
+          false,
+          rawServerStdin -> {
+            log.accept("Sending init data: " + initData);
+            try {
+              initData.write(rawServerStdin);
+              log.accept("Init data sent.");
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+          },
+          () -> {
+            log.accept("running client logic");
+            forceTestFailure(daemonDir, log);
+          },
+          "MillServerLauncher[" + launched.socket.getLocalSocketAddress() + " -> "
+              + launched.socket.getRemoteSocketAddress() + "]");
       log.accept("runWithConnection exit code: " + result);
       return result;
     }
@@ -108,7 +102,7 @@ public abstract class MillServerLauncher extends ServerLauncher {
   private void forceTestFailure(Path daemonDir, Consumer<String> log) {
     if (forceFailureForTestingMillisDelay > 0) {
       log.accept(
-        "Force failure for testing in " + forceFailureForTestingMillisDelay + "ms: " + daemonDir);
+          "Force failure for testing in " + forceFailureForTestingMillisDelay + "ms: " + daemonDir);
       try {
         Thread.sleep(forceFailureForTestingMillisDelay);
       } catch (InterruptedException e) {
