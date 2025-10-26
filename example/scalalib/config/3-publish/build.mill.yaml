@@ -1,0 +1,13 @@
+extends: [mill.scalalib.ScalaModule, mill.scalalib.PublishModule, mill.scalalib.NativeImageModule]
+scalaVersion: 3.7.3
+jvmId: "graalvm-community:24"
+nativeImageOptions: ["--no-fallback"]
+publishVersion: "0.0.1"
+artifactName: "example"
+pomSettings:
+  description: "Example"
+  organization: "com.lihaoyi"
+  url: "https://github.com/com.lihaoyi/example"
+  licenses: ["MIT"]
+  versionControl: "https://github.com/com.lihaoyi/example"
+  developers: [{"name": "Li Haoyi", "email": "example@example.com"}]

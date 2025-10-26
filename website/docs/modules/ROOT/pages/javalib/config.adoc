@@ -1,0 +1,27 @@
+= Config-Based Java Modules
+:language: Java
+:language-small: java
+
+This page documents the usage of simple config-based Java modules defined by
+`build.mill.yaml` and `package.mill.yaml` files. These are less flexible but easier to get started with than the
+full `build.mill` or `package.mill` build files, which makes them ideal for small
+projects which do not need additional flexibility.
+
+
+== Common Configuration Overrides for Simple Modules
+
+include::partial$example/javalib/config/1-common-config.adoc[]
+
+
+== Packaging and Publishing Simple Modules
+
+include::partial$example/javalib/config/3-publish.adoc[]
+
+== Custom Module Traits
+
+include::partial$example/javalib/config/4-custom-trait.adoc[]
+
+== Depending on Programmatic Modules from Simple Modules
+
+include::partial$example/javalib/config/5-mixed-module-deps.adoc[]
+

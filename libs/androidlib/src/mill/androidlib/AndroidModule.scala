@@ -192,14 +192,39 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   /**
-   * Gets all the compiled Android resources (typically in res/ directory)
-   * from the [[transitiveModuleCompileModuleDeps]]
+   * Gets all the direct compiled android resources (typically in res/ directory)
+   * from the [[moduleDepsChecked]]
+   * @return a sequence of PathRef to the compiled resources
+   */
+  def androidDirectCompiledResources: T[Seq[PathRef]] = Task {
+    Task.traverse(moduleDepsChecked) {
+      case m: AndroidModule =>
+        m.androidCompiledModuleResources
+      case _ =>
+        Task.Anon(Seq.empty)
+    }().flatten.distinct
+  }
+
+  /**
+   * The transitive module dependencies of this module.
+   * This does not include direct dependencies, meaning
+   * these are only the dependencies of the dependencies.
+   */
+  def androidTransitiveModuleDeps: Seq[JavaModule] = {
+    val moduleDepsCheckedSet = moduleDepsChecked.toSet
+    val isDirectDependency = (m: JavaModule) => moduleDepsCheckedSet.contains(m)
+    transitiveModuleRunModuleDeps.filterNot(isDirectDependency)
+  }
+
+  /**
+   * Gets all the transitive compiled Android resources (typically in res/ directory)
+   * from the [[androidTransitiveModuleDeps]]
    * @return a sequence of PathRef to the compiled resources
    */
   def androidTransitiveCompiledResources: T[Seq[PathRef]] = Task {
-    Task.traverse(transitiveModuleCompileModuleDeps) {
+    Task.traverse(androidTransitiveModuleDeps) {
       case m: AndroidModule =>
-        Task.Anon(m.androidCompiledModuleResources())
+        m.androidCompiledModuleResources
       case _ =>
         Task.Anon(Seq.empty)
     }().flatten.distinct
@@ -264,7 +289,7 @@ trait AndroidModule extends JavaModule { outer =>
   override def compileClasspath: T[Seq[PathRef]] = Task {
     // TODO process metadata shipped with Android libs. It can have some rules with Target SDK, for example.
     // TODO support baseline profiles shipped with Android libs.
-    androidDepsClasspath() ++ androidTransitiveLibRClasspath()
+    androidDepsClasspath() ++ androidTransitiveLibRClasspath() ++ androidTransitiveModuleRClasspath()
   }
 
   /**
@@ -517,7 +542,25 @@ trait AndroidModule extends JavaModule { outer =>
   def androidTransitiveLibRClasspath: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleDeps) {
       case m: AndroidModule =>
-        Task.Anon(m.androidLibRClasspath())
+        m.androidLibRClasspath
+      case _ =>
+        Task.Anon(Seq.empty[PathRef])
+    }().flatten
+  }
+
+  def androidTransitiveModuleRClasspath: T[Seq[PathRef]] = Task {
+    Task.traverse(compileModuleDepsChecked) {
+      case m: AndroidModule =>
+        Task.Anon(Seq(m.androidProcessedResources()))
+      case _ =>
+        Task.Anon(Seq.empty[PathRef])
+    }().flatten
+  }
+
+  def androidTransitiveCompileOnlyClasspath: T[Seq[PathRef]] = Task {
+    Task.traverse(compileModuleDepsChecked) {
+      case m: AndroidModule =>
+        Task.Anon(Seq(m.compile().classes))
       case _ =>
         Task.Anon(Seq.empty[PathRef])
     }().flatten
@@ -559,9 +602,34 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   /**
+   * If true, only direct module dependencies will be used to
+   * compile android resources for R class generation.
+   * Corresponds to `android.nonTransitiveRClass` in Gradle.
+   *
+   * Default is true.
+   *
+   * When overridden, make sure to override all modules
+   * in the project to have consistent behavior.
+   */
+  def androidNonTransitiveRClass: Boolean = true
+
+  /**
+   * Gets the [[androidCompiledModuleResources]] from
+   * from dependencies based on
+   * [[androidNonTransitiveRClass]] setting.
+   * @return
+   */
+  def androidDepCompiledResources: T[Seq[PathRef]] =
+    androidNonTransitiveRClass match {
+      case true => Task { androidDirectCompiledResources() }
+      case false =>
+        Task { androidDirectCompiledResources() ++ androidTransitiveCompiledResources() }
+    }
+
+  /**
    * Gets all the android resources from this module,
    * compiles them into flata files and collects
-   * transitive compiled resources from dependencies.
+   * compiled resources from dependencies.
    * @return a sequence of PathRef to the compiled resources
    */
   def androidCompiledModuleResources: T[Seq[PathRef]] = Task {
@@ -585,7 +653,8 @@ trait AndroidModule extends JavaModule { outer =>
 
       os.call(aapt2Compile ++ aapt2Args)
     }
-    androidTransitiveCompiledResources() ++ Seq(PathRef(Task.dest))
+
+    Seq(PathRef(Task.dest))
   }
 
   /**
@@ -596,7 +665,7 @@ trait AndroidModule extends JavaModule { outer =>
    */
   def androidLinkedResources: T[PathRef] = Task {
     val compiledLibResDir = androidCompiledLibResources().path
-    val moduleResDirs = androidCompiledModuleResources()
+    val moduleResDirs = (androidCompiledModuleResources() ++ androidDepCompiledResources())
       .map(_.path)
 
     val filesToLink = os.walk(compiledLibResDir).filter(os.isFile(_)) ++

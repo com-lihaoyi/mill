@@ -2,7 +2,7 @@ package build
 import mill.*, scalalib.*
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.15"
+  def scalaVersion = "2.12.20"
   def semanticDbVersion = "4.9.0" // last version to support this Scala
 
   def mvnDeps = Seq(
@@ -13,7 +13,7 @@ object foo extends ScalaModule {
   def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
 
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
     def testFramework = "utest.runner.Framework"
 
     def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")

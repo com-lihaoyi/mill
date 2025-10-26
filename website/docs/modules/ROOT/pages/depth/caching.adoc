@@ -71,7 +71,7 @@ this file groups together the un-cached files in a tree structure according to t
 task dependencies. It is useful to find the "root" uncached tasks, which are the cause
 of downstream tasks having their caches invalidated.
 
-* xref:fundamentals/out-dir.adoc#_codeSignatures_spanninginvalidationtree[codeSignatures spanningInvalidationTree]:
+* xref:fundamentals/out-dir.adoc#_codesignatures_spanninginvalidationtree[codeSignatures spanningInvalidationTree]:
 this file contains information about tasks whose caches were invalidated due to
 __code changes in the `build.mill` or `package.mill` files__, and again shows a tree
 of invalidated method signatures organized into a tree using their call graph dependenceis.

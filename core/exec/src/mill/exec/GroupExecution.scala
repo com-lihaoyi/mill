@@ -37,41 +37,7 @@ trait GroupExecution {
   def systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
-  def headerData: String
   def offline: Boolean
-
-  lazy val parsedHeaderData: Map[String, ujson.Value] = {
-    import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
-    val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
-    // recursively convert java data structure to ujson.Value
-    val envWithPwd = env ++ Seq(
-      "PWD" -> workspace.toString,
-      "PWD_URI" -> workspace.toURI.toString,
-      "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
-      "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
-    )
-    def rec(x: Any): ujson.Value = {
-      import scala.jdk.CollectionConverters._
-      x match {
-        case d: java.util.Date => ujson.Str(d.toString)
-        case s: String => ujson.Str(mill.constants.Util.interpolateEnvVars(s, envWithPwd.asJava))
-        case d: Double => ujson.Num(d)
-        case d: Int => ujson.Num(d)
-        case d: Long => ujson.Num(d)
-        case true => ujson.True
-        case false => ujson.False
-        case null => ujson.Null
-        case m: java.util.Map[Object, Object] =>
-          val scalaMap = m.asScala
-          ujson.Obj.from(scalaMap.map { case (k, v) => (k.toString, rec(v)) })
-        case l: java.util.List[Object] =>
-          val scalaList: collection.Seq[Object] = l.asScala
-          ujson.Arr.from(scalaList.map(rec))
-      }
-    }
-
-    rec(loaded).objOpt.getOrElse(Map.empty[String, ujson.Value]).toMap
-  }
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
@@ -125,13 +91,32 @@ trait GroupExecution {
     terminal match {
 
       case labelled: Task.Named[_] =>
-        labelled.ctx.segments.value match {
-          case Seq(Segment.Label(single)) if parsedHeaderData.contains(single) =>
-            val jsonData = parsedHeaderData(single)
+
+        // recursively convert java data structure to ujson.Value
+        val envWithPwd = env ++ Seq(
+          "PWD" -> workspace.toString,
+          "PWD_URI" -> workspace.toURI.toString,
+          "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
+          "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
+        )
+
+        labelled.ctx.segments.last.value match {
+          case single if labelled.ctx.enclosingModule.buildOverrides.contains(single) =>
+            val jsonData = labelled.ctx.enclosingModule.buildOverrides(single)
+
+            import collection.JavaConverters._
+            def rec(x: ujson.Value): ujson.Value = x match {
+              case ujson.Str(s) => mill.constants.Util.interpolateEnvVars(s, envWithPwd.asJava)
+              case ujson.Arr(xs) => ujson.Arr(xs.map(rec))
+              case ujson.Obj(kvs) => ujson.Obj.from(kvs.map((k, v) => (k, rec(v))))
+              case v => v
+            }
             val (resultData, serializedPaths) = PathRef.withSerializedPaths {
-              upickle.read[Any](jsonData)(
-                using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
-              )
+              PathRef.currentOverrideModulePath.withValue(labelled.ctx.millSourcePath) {
+                upickle.read[Any](rec(jsonData))(
+                  using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
+                )
+              }
             }
             GroupExecution.Results(
               Map(labelled -> ExecResult.Success(Val(resultData), resultData.##)),
@@ -442,7 +427,7 @@ trait GroupExecution {
   ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
     for {
       cached <-
-        try Some(upickle.read[Cached](paths.meta.toIO))
+        try Some(upickle.read[Cached](paths.meta.toIO, trace = false))
         catch {
           case NonFatal(_) => None
         }
@@ -452,7 +437,9 @@ trait GroupExecution {
         _ <- Option.when(cached.inputsHash == inputsHash)(())
         reader <- labelled.readWriterOpt
         (parsed, serializedPaths) <-
-          try Some(PathRef.withSerializedPaths(upickle.read(cached.value)(using reader)))
+          try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
+              reader
+            )))
           catch {
             case e: PathRef.PathRefValidationException =>
               logger.debug(

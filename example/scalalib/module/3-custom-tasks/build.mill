@@ -1,0 +1,138 @@
+// This example shows how to define task that depend on other tasks:
+//
+// 1. For `generatedSources`, we override the task and make it depend
+//    directly on `mvnDeps` to generate its source files. In this example,
+//    to include the list of dependencies as tuples within a static `object`
+//
+// 2. For `lineCount`, we define a brand new task that depends on `sources`,
+//    and then override `forkArgs` to use it. That lets us access the line
+//    count at runtime using `sys.props` and print it when the program runs
+
+//// SNIPPET:BUILD
+package build
+import mill.*, scalalib.*
+
+object `package` extends ScalaModule {
+  def scalaVersion = "3.7.1"
+  def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.7.7")
+
+  def generatedSources: T[Seq[PathRef]] = Task {
+    val prettyMvnDeps = for (ivyDep <- mvnDeps()) yield {
+      val org = ivyDep.organization
+      val name = ivyDep.name
+      val version = ivyDep.version
+      s"""("$org", "$name", "$version")"""
+    }
+    os.write(
+      Task.dest / s"MyDeps.scala",
+      s"""
+         |package foo
+         |object MyDeps {
+         |  val value = List(
+         |    ${prettyMvnDeps.mkString(",\n")}
+         |  )
+         |}
+      """.stripMargin
+    )
+
+    Seq(PathRef(Task.dest))
+  }
+
+  def lineCount: T[Int] = Task {
+    sources()
+      .flatMap(pathRef => os.walk(pathRef.path))
+      .filter(_.ext == "scala")
+      .map(os.read.lines(_).size)
+      .sum
+  }
+
+  def forkArgs: T[Seq[String]] = Seq(s"-Dmy.line.count=${lineCount()}")
+
+  def printLineCount() = Task.Command { println(lineCount()) }
+}
+
+//// SNIPPET:END
+
+// The above build defines the customizations to the Mill task graph shown below,
+// with the boxes representing tasks defined or overridden above and the un-boxed
+// labels representing existing Mill tasks:
+//
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0]
+//   mvnDeps -> generatedSources -> compile -> "..."
+//
+//   sources -> lineCount -> forkArgs -> "..." -> run
+//   lineCount -> printLineCount
+//
+//   sources [color=white]
+//   run [color=white]
+//
+//   compile [color=white]
+//   "..." [color=white]
+// }
+// ....
+//
+// Mill lets you define new cached Tasks using the `Task {...}` syntax,
+// depending on existing Tasks e.g. `foo.sources` via the `foo.sources()`
+// syntax to extract their current value, as shown in `lineCount` above. The
+// return-type of a Task has to be JSON-serializable (using
+// https://github.com/lihaoyi/upickle[uPickle], one of Mill's xref:fundamentals/bundled-libraries.adoc[Bundled Libraries])
+// and the Task is cached when first run until its inputs change (in this case, if
+// someone edits the `foo.sources` files which live in `foo/src`). Cached Tasks
+// cannot take parameters.
+//
+// Note that depending on a task requires use of parentheses after the task
+// name, e.g. `mvnDeps()`, `sources()` and `lineCount()`. This converts the
+// task of type `T[V]` into a value of type `V` you can make use in your task
+// implementation.
+//
+// This example can be run as follows:
+
+//// SNIPPET:COMMANDS
+
+/** Usage
+
+> ./mill run --text hello
+text: hello
+MyDeps.value: List((com.lihaoyi,mainargs,0.7.7))
+my.line.count: 14
+
+> ./mill show lineCount
+14
+
+> ./mill printLineCount
+14
+*/
+
+//// SNIPPET:END
+
+// Custom tasks can contain arbitrary code. Whether you want to
+// download files using `requests.get`, shell-out to Webpack
+// to compile some Javascript, generate sources to feed into a compiler, or
+// create some custom jar/zip assembly with the files you want , all of these
+// can simply be custom tasks with your code running in the `Task {...}` block.
+// You can also import arbitrary Java or Scala libraries from Maven Central via
+// xref:extending/import-mvn-plugins.adoc[//| mvnDeps] to use in your build.
+//
+// You can create arbitrarily long chains of dependent tasks, and Mill will
+// handle the re-evaluation and caching of the tasks' output for you.
+// Mill also provides you a `Task.dest` folder for you to use as scratch space or
+// to store files you want to return:
+//
+// * Any files a task creates should live
+//   within `Task.dest`
+//
+// * Any files a task modifies should be copied into
+//   `Task.dest` before being modified.
+//
+// * Any files that a task returns should be returned as a `PathRef` to a path
+//   within `Task.dest`
+//
+// That ensures that the files belonging to a
+// particular task all live in one place, avoiding file-name conflicts,
+// preventing race conditions when tasks evaluate in parallel, and
+// letting Mill automatically invalidate the files when the task's inputs
+// change.

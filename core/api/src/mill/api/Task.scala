@@ -289,6 +289,57 @@ object Task {
     ): Simple[T] = ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
+  // The extra `(x: T) = null` parameter list is necessary to make type inference work
+  // right, ensuring that `T` is fully inferred before implicit resolution starts
+  def Literal[T](s: String)(using
+      x: T = null.asInstanceOf[T]
+  )(using li: LiteralImplicit[T]): Task.Simple[T] = {
+    assert(li.ctx != null, "Unable to resolve context")
+    assert(li.writer != null, "Unable to resolve JSON writer")
+    assert(li.reader != null, "Unable to resolve JSON reader")
+    new Task.Input[T](
+      (_, _) =>
+        PathRef
+          .currentOverrideModulePath
+          .withValue(li.ctx.enclosingModule.moduleCtx.millSourcePath) {
+            Result.Success(upickle.default.read[T](s)(using li.reader))
+          },
+      li.ctx,
+      li.writer,
+      None
+    )
+  }
+
+  class LiteralImplicit[T](
+      val reader: upickle.default.Reader[T],
+      val writer: upickle.default.Writer[T],
+      val ctx: ModuleCtx
+  )
+  object LiteralImplicit {
+    // Use a custom macro to perform the implicit lookup so we have more control over implicit
+    // resolution failures. In this case, we want to fall back to `null` if an implicit search
+    // fails so we can provide a good error message
+    implicit inline def create[T]: LiteralImplicit[T] = ${ createImpl[T] }
+
+    private def createImpl[T: Type](using Quotes): Expr[LiteralImplicit[T]] = {
+      import quotes.reflect.*
+
+      def summonOrNull[U: Type]: Expr[U] = {
+        Implicits.search(TypeRepr.of[U]) match {
+          case s: ImplicitSearchSuccess => s.tree.asExprOf[U] // Use the found given
+          case _: ImplicitSearchFailure =>
+            '{ null.asInstanceOf[U] } // Includes both NoMatchingImplicits and AmbiguousImplicits
+        }
+      }
+
+      val readerExpr = summonOrNull[upickle.default.Reader[T]]
+      val writerExpr = summonOrNull[upickle.default.Writer[T]]
+      val ctxExpr = summonOrNull[ModuleCtx]
+
+      '{ new LiteralImplicit[T]($readerExpr, $writerExpr, $ctxExpr) }
+    }
+  }
+
   abstract class Ops[+T] { this: Task[T] =>
     def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
     def filter(f: T => Boolean): Task[T] = this

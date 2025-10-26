@@ -7,6 +7,8 @@
 [bsp-init-mill-build/build.mill-70] [info] done compiling
 [bsp-init-build.mill-70] [info] compiling * Scala sources to * ...
 [bsp-init-build.mill-70] [info] done compiling
+[bsp-init-109] [info] compiling * Scala source to * ...
+[bsp-init-109] [info] done compiling
 [bsp-init] SNAPSHOT
 [2-workspaceBuildTargets] Entered workspaceBuildTargets
 [2-workspaceBuildTargets] Evaluating * tasks
@@ -32,9 +34,9 @@
 [4-compile] errored.exception.compile java.lang.RuntimeException: nope
 [4-compile]     scala.sys.package$.error(package.scala:27)
 [4-compile]     build_.package_.build_$package_$errored$exception$$$_$compile$$anonfun$1$$anonfun$1(build.mill:75)
-[4-compile]     mill.api.Task$Named.evaluate(Task.scala:338)
-[4-compile]     mill.api.Task$Named.evaluate$(Task.scala:323)
-[4-compile]     mill.api.Task$Computed.evaluate(Task.scala:349)
+[4-compile]     mill.api.Task$Named.evaluate(Task.scala:389)
+[4-compile]     mill.api.Task$Named.evaluate$(Task.scala:374)
+[4-compile]     mill.api.Task$Computed.evaluate(Task.scala:400)
 [4-compile] Failed
 [4-compile] buildTargetCompile took * msec
 [5-compile] Entered buildTargetCompile

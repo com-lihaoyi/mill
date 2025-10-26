@@ -3,27 +3,43 @@
 :page-aliases: Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc, Java_Intro_to_Mill.adoc
 :language: Java
 :language-small: java
+:language-ext: java
 
 include::partial$Intro_Header.adoc[]
 
-== Simple Java Module
+== Simple Config-Based Modules
 
-include::partial$example/javalib/basic/1-simple.adoc[]
+include::partial$example/javalib/basic/3-simple.adoc[]
 
-[#_custom_build_logic]
-== Custom Build Logic
+=== Multi-Module Projects
 
-include::partial$example/javalib/basic/2-custom-build-logic.adoc[]
+include::partial$example/javalib/basic/4-module-deps.adoc[]
 
-== Multi-Module Project
+=== Maven Compatible Modules
 
-include::partial$example/javalib/basic/3-multi-module.adoc[]
+include::partial$example/javalib/basic/5-compat-modules.adoc[]
 
-== Maven-Compatible Modules
 
-include::partial$example/javalib/basic/4-compat-modules.adoc[]
+== Single-File Scripts
 
+include::partial$example/javalib/basic/1-script.adoc[]
+
+== Programmatic Modules
+
+include::partial$example/javalib/basic/6-programmatic.adoc[]
+
+=== Custom Build Logic
+
+include::partial$example/javalib/basic/7-custom-build-logic.adoc[]
+
+=== Programmatic Multi-Module Project
+
+include::partial$example/javalib/basic/8-multi-module.adoc[]
+
+=== Programmatic Compatibility Modules
+
+include::partial$example/javalib/basic/9-programmatic-compat.adoc[]
 
 == Realistic Java Example Project
 
-include::partial$example/javalib/basic/6-realistic.adoc[]
+include::partial$example/javalib/basic/10-realistic.adoc[]

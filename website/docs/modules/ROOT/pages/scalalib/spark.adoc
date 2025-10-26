@@ -10,7 +10,7 @@ include::partial$example/scalalib/spark/1-hello-spark.adoc[]
 
 == Hello Pyspark
 
-include::partial$example/scalalib/spark/1-hello-spark.adoc[]
+include::partial$example/scalalib/spark/2-hello-pyspark.adoc[]
 
 == Semi realistic spark project with spark submit
 

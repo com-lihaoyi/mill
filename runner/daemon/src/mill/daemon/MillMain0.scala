@@ -132,6 +132,10 @@ object MillMain0 {
               streams.out.println(MillCliConfig.longUsageText)
               (true, RunnerState.empty)
 
+            case Result.Success(config) if config.helpAdvanced.value =>
+              streams.out.println(MillCliConfig.helpAdvancedUsageText)
+              (true, RunnerState.empty)
+
             case Result.Success(config) if config.showVersion.value =>
               def prop(k: String) = System.getProperty(k, s"<unknown $k>")
 
@@ -213,14 +217,12 @@ object MillMain0 {
                 .getOrElse(true)
 
               val (success, nextStateCache) = {
-                if (config.repl.value) {
-                  streams.err.println("The --repl mode is no longer supported.")
-                  (false, stateCache)
-
-                } else if (bspInstallModeJobCountOpt.isDefined) {
+                if (bspInstallModeJobCountOpt.isDefined) {
                   BSP.install(bspInstallModeJobCountOpt.get, config.debugLog.value, streams.err)
                   (true, stateCache)
-                } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
+                } else if (
+                  !bspMode && !config.jshell.value && !config.repl.value && config.leftoverArgs.value.isEmpty
+                ) {
                   println(MillCliConfig.shortUsageText)
 
                   (true, stateCache)
@@ -242,7 +244,7 @@ object MillMain0 {
                   val out = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
                   Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                     def runMillBootstrap(
-                        enterKeyPressed: Boolean,
+                        skipSelectiveExecution: Boolean,
                         prevState: Option[RunnerState],
                         tasksAndParams: Seq[String],
                         streams: SystemStreams,
@@ -250,7 +252,8 @@ object MillMain0 {
                         loggerOpt: Option[Logger] = None,
                         reporter: EvaluatorApi => Int => Option[CompileProblemReporter] =
                           _ => _ => None,
-                        extraEnv: Seq[(String, String)] = Nil
+                        extraEnv: Seq[(String, String)] = Nil,
+                        metaLevelOverride: Option[Int] = None
                     ) = MillDaemonServer.withOutLock(
                       config.noBuildLock.value,
                       config.noWaitForBuildLock.value,
@@ -262,7 +265,7 @@ object MillMain0 {
                       def proceed(logger: Logger): Watching.Result[RunnerState] = {
                         // Enter key pressed, removing mill-selective-execution.json to
                         // ensure all tasks re-run even though no inputs may have changed
-                        if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
+
                         mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                           mill.api.FilesystemCheckerEnabled.withValue(
                             !config.noFilesystemChecker.value
@@ -280,14 +283,14 @@ object MillMain0 {
                                 tasksAndParams = tasksAndParams,
                                 prevRunnerState = prevState.getOrElse(stateCache),
                                 logger = logger,
-                                needBuildFile = needBuildFile(config),
-                                requestedMetaLevel = config.metaLevel,
-                                config.allowPositional.value,
+                                requestedMetaLevel = config.metaLevel.orElse(metaLevelOverride),
+                                allowPositionalCommandArgs = config.allowPositional.value,
                                 systemExit = systemExit,
                                 streams0 = streams,
                                 selectiveExecution = config.watch.value,
                                 offline = config.offline.value,
                                 reporter = reporter,
+                                skipSelectiveExecution = skipSelectiveExecution,
                                 enableTicker = enableTicker
                               ).evaluate()
                             }
@@ -313,9 +316,31 @@ object MillMain0 {
                       }
                     }
 
-                    if (config.tabComplete.value) {
+                    if (config.jshell.value) {
                       val bootstrapped = runMillBootstrap(
-                        enterKeyPressed = false,
+                        skipSelectiveExecution = false,
+                        Some(stateCache),
+                        Seq("jshell") ++ config.leftoverArgs.value,
+                        streams,
+                        "jshell",
+                        metaLevelOverride = Some(1)
+                      )
+
+                      (true, bootstrapped.result)
+                    } else if (config.repl.value) {
+                      val bootstrapped = runMillBootstrap(
+                        skipSelectiveExecution = false,
+                        Some(stateCache),
+                        Seq("console") ++ config.leftoverArgs.value,
+                        streams,
+                        "repl",
+                        metaLevelOverride = Some(1)
+                      )
+
+                      (true, bootstrapped.result)
+                    } else if (config.tabComplete.value) {
+                      val bootstrapped = runMillBootstrap(
+                        skipSelectiveExecution = false,
                         Some(stateCache),
                         Seq(
                           "mill.tabcomplete.TabCompleteModule/complete"
@@ -354,8 +379,7 @@ object MillMain0 {
                               bspIdByModule,
                               buildClient
                             )
-                          },
-                          extraEnv = Seq("MILL_JVM_WORKER_REQUIRE_REPORTER" -> "true")
+                          }
                         )
 
                         for (err <- watchRes.error)
@@ -443,11 +467,6 @@ object MillMain0 {
                       ).run()
                       (true, RunnerState(None, Nil, None))
                     } else {
-                      // When starting a --watch, clear the `mill-selective-execution.json`
-                      // file, so that the first run always selects everything and only
-                      // subsequent re-runs are selective depending on what changed.
-                      if (config.watch.value)
-                        os.remove(out / OutFiles.millSelectiveExecution)
                       Watching.watchLoop(
                         ringBell = config.ringBell.value,
                         watch = Option.when(config.watch.value)(Watching.WatchArgs(
@@ -457,16 +476,17 @@ object MillMain0 {
                           daemonDir = daemonDir
                         )),
                         streams = streams,
-                        evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
-                          adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
-                          runMillBootstrap(
-                            enterKeyPressed,
-                            prevState,
-                            config.leftoverArgs.value,
-                            streams,
-                            config.leftoverArgs.value.mkString(" ")
-                          )
-                        }
+                        evaluate =
+                          (skipSelectiveExecution: Boolean, prevState: Option[RunnerState]) => {
+                            adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
+                            runMillBootstrap(
+                              skipSelectiveExecution,
+                              prevState,
+                              config.leftoverArgs.value,
+                              streams,
+                              config.leftoverArgs.value.mkString(" ")
+                            )
+                          }
                       )
                     }
                   }
@@ -581,21 +601,6 @@ object MillMain0 {
   /**
    * Determine, whether we need a `build.mill` or not.
    */
-  private def needBuildFile(config: MillCliConfig): Boolean = {
-    // Tasks, for which running Mill without an existing buildfile is allowed.
-    val noBuildFileTaskWhitelist = Seq(
-      "init",
-      "version",
-      "mill.scalalib.giter8.Giter8Module/init"
-    )
-    val tasksAndParams = config.leftoverArgs.value
-    val whitelistMatch =
-      tasksAndParams.nonEmpty && noBuildFileTaskWhitelist.exists(tasksAndParams.head == _)
-    // Has the user additional/extra imports
-    // (which could provide additional commands that could make sense without a build.mill)
-    val extraPlugins = config.imports.nonEmpty
-    !(whitelistMatch || extraPlugins)
-  }
 
   def readVersionFile(file: os.Path): Option[String] = file match {
     case f if os.exists(f) => os.read.lines(f).find(l => l.trim().nonEmpty)

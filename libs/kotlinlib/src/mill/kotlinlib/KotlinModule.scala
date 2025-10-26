@@ -433,7 +433,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
   trait KotlinTests extends JavaTests with KotlinModule {
-
+    // Keep in sync with KotlinModule.KotlinTests0, duplicated due to binary compatibility concerns
     override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
     override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
     override def kotlinExplicitApi: T[Boolean] = false
@@ -453,7 +453,24 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 }
 
 object KotlinModule {
-
+  // Keep in sync with KotlinModule#KotlinTests, duplicated due to binary compatibility concerns
+  trait KotlinTests0 extends JavaModule.JavaTests0 with KotlinModule {
+    private val outer: KotlinModule = moduleDeps.head.asInstanceOf[KotlinModule]
+    override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
+    override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
+    override def kotlinExplicitApi: T[Boolean] = false
+    override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
+    override def kotlincPluginMvnDeps: T[Seq[Dep]] =
+      Task { outer.kotlincPluginMvnDeps() }
+    // TODO: make Xfriend-path an explicit setting
+    override def kotlincOptions: T[Seq[String]] = Task {
+      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
+        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+    }
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
+      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+    override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
+  }
   private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
     params.addVariantAttributes(
       "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),

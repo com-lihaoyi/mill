@@ -49,7 +49,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     ),
     BuildInfo.Value(
       "millCmdlineToolsVersion",
-      Deps.AndroidDeps.millCmdlineToolsVersion,
+      Deps.AndroidDeps.cmdlineToolsVersion,
       "Version of Internal CommandLineTools"
     )
   )

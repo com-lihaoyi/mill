@@ -3,34 +3,45 @@
 :page-aliases: Kotlin_Intro_to_Mill.adoc
 :language: Kotlin
 :language-small: kotlin
+:language-ext: kt
 
 include::partial$Intro_Header.adoc[]
 
-NOTE: Mill Kotlin support is currently focused on the JVM, with a lot of APIs
-still under active development. It is expected to continue evolving over time
-as Android and Multiplatform support is fleshed out. Try it out, but please be aware of its
-limitations!
+== Simple Config-Based Modules
 
-== Simple Kotlin Module
+include::partial$example/kotlinlib/basic/3-simple.adoc[]
 
-include::partial$example/kotlinlib/basic/1-simple.adoc[]
+=== Multi-Module Projects
 
-== Custom Build Logic
+include::partial$example/kotlinlib/basic/4-module-deps.adoc[]
 
-include::partial$example/kotlinlib/basic/2-custom-build-logic.adoc[]
+=== Maven Compatible Modules
 
-== Multi-Module Project
+include::partial$example/kotlinlib/basic/5-compat-modules.adoc[]
 
-include::partial$example/kotlinlib/basic/3-multi-module.adoc[]
+== Single-File Scripts
 
-== Maven-Compatible Modules
+include::partial$example/kotlinlib/basic/1-script.adoc[]
 
-include::partial$example/kotlinlib/basic/4-compat-modules.adoc[]
+== Programmatic Modules
 
+include::partial$example/kotlinlib/basic/6-programmatic.adoc[]
 
-== Realistic Kotlin Example Project
+=== Custom Build Logic
 
-include::partial$example/kotlinlib/basic/6-realistic.adoc[]
+include::partial$example/kotlinlib/basic/7-custom-build-logic.adoc[]
+
+=== Programmatic Multi-Module Project
+
+include::partial$example/kotlinlib/basic/8-multi-module.adoc[]
+
+=== Programmatic Compatibility Modules
+
+include::partial$example/kotlinlib/basic/9-programmatic-compat.adoc[]
+
+== Realistic Java Example Project
+
+include::partial$example/kotlinlib/basic/10-realistic.adoc[]
 
 
 == History

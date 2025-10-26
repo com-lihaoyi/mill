@@ -3,29 +3,45 @@
 :page-aliases: Intro_to_Mill_for_Scala.adoc, Scala_Intro_to_Mill.adoc
 :language: Scala
 :language-small: scala
+:language-ext: scala
 
 include::partial$Intro_Header.adoc[]
 
-== Simple Scala Module
+== Simple Config-Based Modules
 
-include::partial$example/scalalib/basic/1-simple.adoc[]
+include::partial$example/scalalib/basic/3-simple.adoc[]
 
-== Custom Build Logic
+=== Multi-Module Projects
 
-include::partial$example/scalalib/basic/2-custom-build-logic.adoc[]
-
-== Multi-Module Project
-
-include::partial$example/scalalib/basic/3-multi-module.adoc[]
+include::partial$example/scalalib/basic/4-module-deps.adoc[]
 
 
-== `sbt`-Compatible Modules
+=== SBT Compatible Modules
 
-include::partial$example/scalalib/basic/4-compat-modules.adoc[]
-
-
-== Realistic Scala Example Project
-
-include::partial$example/scalalib/basic/6-realistic.adoc[]
+include::partial$example/scalalib/basic/5-compat-modules.adoc[]
 
 
+== Single-File Scripts
+
+include::partial$example/scalalib/basic/1-script.adoc[]
+
+
+== Programmatic Modules
+
+include::partial$example/scalalib/basic/6-programmatic.adoc[]
+
+=== Custom Build Logic
+
+include::partial$example/scalalib/basic/7-custom-build-logic.adoc[]
+
+=== Programmatic Multi-Module Project
+
+include::partial$example/scalalib/basic/8-multi-module.adoc[]
+
+=== Programmatic Compatibility Modules
+
+include::partial$example/scalalib/basic/9-programmatic-compat.adoc[]
+
+== Realistic Java Example Project
+
+include::partial$example/scalalib/basic/10-realistic.adoc[]

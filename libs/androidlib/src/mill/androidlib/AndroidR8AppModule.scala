@@ -54,7 +54,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
   }
 
   def androidLibraryProguardConfigs: Task[Seq[PathRef]] = Task {
-    androidUnpackArchives()
+    androidUnpackRunArchives()
       // TODO need also collect rules from other modules,
       // but Android lib module doesn't yet exist
       .flatMap(_.proguardRules)
@@ -69,6 +69,27 @@ trait AndroidR8AppModule extends AndroidAppModule {
   /** ProGuard/R8 rules configuration files for release target (user-provided and generated) */
   def androidProguardConfigs: T[Seq[PathRef]] = Task {
     androidDefaultProguardFiles() ++ androidProjectProguardFiles() ++ androidLibraryProguardConfigs()
+  }
+
+  /**
+   * Creates a file for letting know R8 that [[compileModuleDeps]] and
+   * [[compileMvnDeps]] are in compile classpath only and not packaged with the apps.
+   * Useful for dependencies that are provided in devices and compile only module deps
+   * such as for avoiding to package main sources in the androidTest apk.
+   */
+  def androidR8CompileOnlyClasspath: T[Option[PathRef]] = Task {
+    val resolvedCompileMvnDeps =
+      androidResolvedCompileMvnDeps() ++ androidTransitiveCompileOnlyClasspath() ++ androidTransitiveModuleRClasspath()
+    if (!resolvedCompileMvnDeps.isEmpty) {
+      val compiledMvnDepsFile = Task.dest / "compile-only-classpath.txt"
+      os.write.over(
+        compiledMvnDepsFile,
+        resolvedCompileMvnDeps.map(_.path.toString()).mkString("\n")
+      )
+      Some(PathRef(compiledMvnDepsFile))
+    } else
+      None
+
   }
 
   /** Concatenates all rules into one file */
@@ -96,14 +117,6 @@ trait AndroidR8AppModule extends AndroidAppModule {
     AndroidBuildTypeSettings(
       isMinifyEnabled = true
     )
-  }
-
-  /**
-   * File names that are provided by the Android SDK in `androidSdkModule().androidProguardPath().path`
-   * @return
-   */
-  def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
-    Seq.empty[String]
   }
 
   private def androidDefaultProguardFiles: Task[Seq[PathRef]] = Task.Anon {
@@ -242,18 +255,14 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
     r8ArgsBuilder ++= pgArgs
 
-    val resolvedCompileMvnDeps = androidResolvedCompileMvnDeps()
-    if (!resolvedCompileMvnDeps.isEmpty) {
-      val compiledMvnDepsFile = Task.dest / "compiled-mvndeps.txt"
-      os.write.over(
-        compiledMvnDepsFile,
-        androidResolvedCompileMvnDeps().map(_.path.toString()).mkString("\n")
-      )
-      r8ArgsBuilder ++= Seq(
+    val compileOnlyClasspath = androidR8CompileOnlyClasspath()
+
+    r8ArgsBuilder ++= compileOnlyClasspath.toSeq.flatMap(compiledMvnDepsFile =>
+      Seq(
         "--classpath",
-        "@" + compiledMvnDepsFile.toString
+        "@" + compiledMvnDepsFile.path.toString
       )
-    }
+    )
 
     r8ArgsBuilder ++= androidR8Args()
 

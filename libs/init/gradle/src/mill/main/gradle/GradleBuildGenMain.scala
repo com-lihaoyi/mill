@@ -1,6 +1,6 @@
 package mill.main.gradle
 
-import mainargs.{ParserForClass, arg, main}
+import mainargs.{Parser, arg, main}
 import mill.api.daemon.internal.internal
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
@@ -46,7 +46,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
   override type C = Config
 
   def main(args: Array[String]): Unit = {
-    val cfg = ParserForClass[Config].constructOrExit(args.toSeq)
+    val cfg = Parser[Config].constructOrExit(args.toSeq)
     run(cfg)
   }
 

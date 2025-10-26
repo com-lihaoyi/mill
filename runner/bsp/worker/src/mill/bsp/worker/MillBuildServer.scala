@@ -898,6 +898,8 @@ private class MillBuildServer(
         }
     }
 
+  // Make this a daemon thread so if the main thread exits this doesn't keep the process alive
+  evaluatorRequestsThread.setDaemon(true)
   evaluatorRequestsThread.start()
 
   protected def handlerEvaluators[V](

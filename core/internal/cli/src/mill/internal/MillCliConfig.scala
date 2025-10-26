@@ -1,6 +1,6 @@
 package mill.internal
 
-import mainargs.{Flag, Leftover, arg}
+import mainargs.{ArgSig, Flag, Leftover, arg}
 import mill.api.JsonFormatters.*
 
 case class MillCliConfig(
@@ -85,7 +85,11 @@ case class MillCliConfig(
     // ==================== ADVANCED CLI FLAGS ====================
     @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
     allowPositional: Flag = Flag(),
-    @arg(hidden = true, doc = """Enable BSP server mode.""")
+    @arg(
+      hidden = true,
+      doc =
+        """Enable BSP server mode. Typically used by a BSP client when starting the Mill BSP server."""
+    )
     bsp: Flag,
     @arg(hidden = true, doc = """Create mill-bsp.json with Mill details under .bsp/""")
     bspInstall: Flag,
@@ -118,7 +122,7 @@ case class MillCliConfig(
     offline: Flag = Flag(),
     @arg(
       doc = """
-        Globally disables the checks that prevent you from reading and writing to disallowed 
+        Globally disables the checks that prevent you from reading and writing to disallowed
         files or folders during evaluation. Useful as an escape hatch in case you desperately
         need to do something unusual and you are willing to take the risk
       """
@@ -128,42 +132,54 @@ case class MillCliConfig(
       doc = """Runs Mill in tab-completion mode"""
     )
     tabComplete: Flag = Flag(),
-
-    // ==================== DEPRECATED CLI FLAGS ====================
-    @arg(hidden = true, short = 'h', doc = "Unsupported")
+    @arg(hidden = true, short = 'h', doc = "Unsupported, but kept for compatibility")
     home: os.Path = os.home,
-    @arg(hidden = true, doc = "Unsupported")
+    @arg(doc =
+      """Open a Scala REPL with the classpath of the meta-level 1 build module (mill-build/).
+        Implies options `--meta-level 1` and `--no-server`."""
+    )
     repl: Flag = Flag(),
-    @arg(hidden = true, doc = "Unsupported")
+    @arg(hidden = true, doc = "Deprecated, use `--no-deamon` instead")
     noServer: Flag = Flag(),
-    @arg(short = 's', doc = "Unsupported")
+    @arg(hidden = true, short = 's', doc = "Unsupported, but kept for compatibility")
     silent: Flag = Flag(),
-    @arg(name = "disable-callgraph", doc = "Unsupported")
+    @arg(hidden = true, name = "disable-callgraph", doc = "Unsupported, but kept for compatibility")
     disableCallgraph: Flag = Flag(),
-    @arg(hidden = true, doc = "Unsupported")
+    @arg(hidden = true, doc = "Unsupported, but kept for compatibility")
     disablePrompt: Flag = Flag(),
-    @arg(hidden = true, doc = "Unsupported")
+    @arg(hidden = true, doc = "Unsupported, but kept for compatibility")
     enableTicker: Option[Boolean] = None,
-    @arg(hidden = true, doc = "Unsupported")
-    disableTicker: Flag
+    @arg(hidden = true, doc = "Deprecated, use `--ticker false` instead")
+    disableTicker: Flag,
+    @arg(
+      doc = """Open a JShell REPL with the classpath of the meta-level 1 build module (mill-build/).
+               This is useful for interactively testing and debugging your build logic.
+               Implies options `--meta-level 1` and `--no-server`."""
+    )
+    jshell: Flag = Flag()
 ) {
   def noDaemonEnabled =
-    Seq(interactive.value, noDaemon.value, noServer.value, bsp.value).count(identity)
+    Seq(
+      interactive,
+      jshell,
+      repl,
+      noDaemon,
+      noServer,
+      bsp
+    ).count(_.value)
 }
-
-import mainargs.ParserForClass
 
 // We want this in a separate source file, but to avoid stale --help output due
 // to under-compilation, we have it in this file
 // see https://github.com/com-lihaoyi/mill/issues/2315
 object MillCliConfig {
   val customName: String = s"Mill Build Tool, version ${mill.util.BuildInfo.millVersion}"
-  val customDoc = """
+  val usageDoc = """
 Usage: mill [options] task [task-options] [+ task ...]
 """
   val cheatSheet =
     """
-task cheat sheet:
+Task cheat sheet:
   mill resolve _                 # see all top-level tasks and modules
   mill resolve __.compile        # see all `compile` tasks in any module (recursively)
 
@@ -187,33 +203,39 @@ task cheat sheet:
   mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
   mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
 
-options:
+Options:
+"""
+  val advancedInfo = """
+Advanced and internal command-line flags not intended for common usage. Use at your own risk!
+
+Advanced Options:
 """
 
-  lazy val parser: ParserForClass[MillCliConfig] = mainargs.ParserForClass[MillCliConfig]
+  lazy val parser: mainargs.ParserForClass[MillCliConfig] = mainargs.Parser[MillCliConfig]
 
-  private lazy val helpAdvancedParser: ParserForClass[MillCliConfig] = new ParserForClass(
-    parser.main.copy(argSigs0 = parser.main.argSigs0.collect {
-      case a if !a.doc.contains("Unsupported") && a.hidden =>
-        a.copy(
-          hidden = false,
-          // Hack to work around `a.copy` not propagating the name mapping correctly, so we have
-          // to manually map the name ourselves. Doesn't affect runtime behavior since this is
-          // just used for --help-advanced printing and not for argument parsing
-          unMappedName = a.mappedName(mainargs.Util.kebabCaseNameMapper)
-        )
-    }),
-    parser.companion
-  )
+  private lazy val helpAdvancedParser: mainargs.ParserForClass[MillCliConfig] =
+    new mainargs.ParserForClass(
+      parser.main.copy(argSigs0 = parser.main.argSigs0.collect {
+        case a if !isUnsupported(a) && a.hidden =>
+          a.copy(
+            hidden = false,
+            // Hack to work around `a.copy` not propagating the name mapping correctly, so we have
+            // to manually map the name ourselves. Doesn't affect runtime behavior since this is
+            // just used for --help-advanced printing and not for argument parsing
+            unMappedName = a.mappedName(mainargs.Util.kebabCaseNameMapper)
+          )
+      }),
+      parser.companion
+    )
 
   lazy val shortUsageText: String =
     "Please specify a task to evaluate\n" +
-      customDoc +
+      usageDoc +
       "\nRun `mill --help` for more details"
 
   lazy val longUsageText: String =
     customName +
-      customDoc +
+      usageDoc +
       cheatSheet +
       parser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
       "\nPlease see the documentation at https://mill-build.org for more details,\n" +
@@ -221,9 +243,9 @@ options:
 
   lazy val helpAdvancedUsageText: String =
     customName +
-      customDoc +
-      helpAdvancedParser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
-      "\nAdvanced or internal command-line flags not intended for common usage. Use at your own risk!"
+      usageDoc +
+      advancedInfo +
+      helpAdvancedParser.helpText(customName = "", totalWidth = 100).stripPrefix("\n")
 
   def parse(args: Array[String]): mill.api.Result[MillCliConfig] = {
     mill.api.Result.fromEither(parser.constructEither(
@@ -231,8 +253,12 @@ options:
       allowRepeats = true,
       autoPrintHelpAndExit = None,
       customName = customName,
-      customDoc = customDoc
+      customDoc = usageDoc
     ))
   }
+
+  def isUnsupported(arg: ArgSig): Boolean = arg.doc.exists(_.startsWith("Unsupported"))
+
+  def isDeprecated(arg: ArgSig): Boolean = arg.doc.exists(_.startsWith("Deprecated"))
 
 }

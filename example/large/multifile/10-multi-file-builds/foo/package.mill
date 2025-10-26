@@ -3,5 +3,5 @@ import mill.*, scalalib.*
 
 object `package` extends build.MyModule {
   def moduleDeps = Seq(build.bar.qux.mymodule)
-  def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.4.0")
+  def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.7.7")
 }

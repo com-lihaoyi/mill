@@ -50,14 +50,21 @@ private object ResolveCore {
    * same module
    */
   class Cache(
-      val instantiatedModules: collection.mutable.Map[Segments, mill.api.Result[Module]] =
+      val instantiatedModules: collection.mutable.Map[
+        (RootModule0, Segments),
+        mill.api.Result[Module]
+      ] =
         collection.mutable.Map(),
       decodedNames: collection.mutable.Map[String, String] = collection.mutable.Map(),
       methods: collection.mutable.Map[(Class[?], Boolean, Class[?]), Array[(
           java.lang.reflect.Method,
           String
       )]] =
-        collection.mutable.Map()
+        collection.mutable.Map(),
+      val scriptModuleChildResolver: (
+          String,
+          Option[String]
+      ) => Seq[mill.api.Result[mill.api.ExternalModule]]
   ) {
     def decode(s: String): String = {
       decodedNames.getOrElseUpdate(s, scala.reflect.NameTransformer.decode(s))
@@ -261,7 +268,7 @@ private object ResolveCore {
       segments: Segments,
       cache: Cache
   ): mill.api.Result[Module] = cache.instantiatedModules.getOrElseUpdate(
-    segments, {
+    (rootModule, segments), {
       segments.value.foldLeft[mill.api.Result[Module]](mill.api.Result.Success(rootModule)) {
         case (mill.api.Result.Success(current), Segment.Label(s)) =>
           assert(s != "_", s)
@@ -443,7 +450,17 @@ private object ResolveCore {
           }
           .toSeq
 
-        reflectMemberObjects
+        val simpleModuleObjects =
+          if (!segments.value.forall(_.isInstanceOf[Segment.Label])) Nil
+          else {
+            val scriptKey = segments.value.flatMap(_.pathSegments).mkString("/")
+            val resolvedScript = cache.scriptModuleChildResolver(scriptKey, nameOpt)
+            for (mod <- resolvedScript) yield {
+              val newSegments = Segments.labels(mod.get.moduleSegments.last.value)
+              (Resolved.Module(newSegments, mod.get.getClass), Some((_: Module) => mod))
+            }
+          }
+        reflectMemberObjects ++ simpleModuleObjects
       }
     }
 
