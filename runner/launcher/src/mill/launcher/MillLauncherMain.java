@@ -1,5 +1,6 @@
 package mill.launcher;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -54,6 +55,7 @@ public class MillLauncherMain {
     var outMode = bspMode ? OutFolderMode.BSP : OutFolderMode.REGULAR;
     exitInTestsAfterBspCheck();
     var outDir = OutFiles.outFor(outMode);
+    var outPath = new File(outDir).getAbsoluteFile();
 
     if (outMode == OutFolderMode.BSP) {
       System.err.println(
@@ -88,7 +90,7 @@ public class MillLauncherMain {
       String mainClass = bspMode ? "mill.daemon.MillBspMain" : "mill.daemon.MillNoDaemonMain";
       // start in no-server mode
       int exitCode =
-          MillProcessLauncher.launchMillNoDaemon(args, outMode, runnerClasspath, mainClass);
+          MillProcessLauncher.launchMillNoDaemon(args, outMode, outPath, runnerClasspath, mainClass);
       System.exit(exitCode);
     } else {
       var logs = new java.util.ArrayList<String>();
@@ -108,7 +110,7 @@ public class MillLauncherMain {
                 -1) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
                 return new LaunchedServer.OsProcess(
-                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode, runnerClasspath)
+                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode, outPath, runnerClasspath)
                         .toHandle());
               }
             };

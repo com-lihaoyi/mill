@@ -9,6 +9,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 object MillNoDaemonMain {
+
   def main(args0: Array[String]): Unit = mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
     val initialSystemStreams = mill.api.SystemStreams.original
 
@@ -28,9 +29,8 @@ object MillNoDaemonMain {
       .fold(err => throw IllegalArgumentException(err), identity)
 
     val processId = Server.computeProcessId()
-    val out = os.Path(OutFiles.outFor(args.outMode), BuildCtx.workspaceRoot)
     Server.watchProcessIdFile(
-      out / OutFiles.millNoDaemon / s"pid-$processId" / DaemonFiles.processId,
+      args.outDir / OutFiles.millNoDaemon / s"pid-$processId" / DaemonFiles.processId,
       processId,
       running = () => true,
       exit = msg => {
@@ -39,7 +39,7 @@ object MillNoDaemonMain {
       }
     )
 
-    val outLock = MillMain0.doubleLock(out)
+    val outLock = MillMain0.doubleLock(args.outDir)
 
     val (result, _) =
       try main0(
@@ -53,7 +53,8 @@ object MillNoDaemonMain {
           initialSystemProperties = sys.props.toMap,
           systemExit = ( /*reason*/ _, exitCode) => sys.exit(exitCode),
           daemonDir = args.daemonDir,
-          outLock = outLock
+          outLock = outLock,
+          outDir = args.outDir
         )
       catch handleMillException(initialSystemStreams.err, ())
 

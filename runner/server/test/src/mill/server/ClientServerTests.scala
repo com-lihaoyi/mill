@@ -26,16 +26,15 @@ object ClientServerTests extends TestSuite {
       testLogEvenWhenServerIdWrong: Boolean,
       commandSleepMillis: Int = 0
   ) extends MillDaemonServer[Option[Int]](
-        daemonDir,
-        1000.millis,
-        locks,
-        testLogEvenWhenServerIdWrong
+        daemonDir = daemonDir,
+        acceptTimeout = 1000.millis,
+        locks = locks,
+        outDir = os.temp.dir(),
+        testLogEvenWhenServerIdWrong = testLogEvenWhenServerIdWrong
       )
       with Runnable {
 
     override def outLock = mill.client.lock.Lock.memory()
-
-    override def out = os.temp.dir()
 
     def stateCache0 = None
 
