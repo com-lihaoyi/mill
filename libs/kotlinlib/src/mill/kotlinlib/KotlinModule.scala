@@ -314,7 +314,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       def compileJava(): Result[CompilationResult] = {
         ctx.log.info(s"Compiling ${javaSourceFiles.size} Java sources to ${classes} ...")
         // The compile step is lazy, but its dependencies are not!
-        compileInternalLazy(compileSemanticDb = bspAnyClientNeedsSemanticDb).apply().apply()
+        val compile = compileInternalJavaLazy(compileSemanticDb = bspAnyClientNeedsSemanticDb)()
+        compile(CompileInternalJavaLazyArgs(sources = javaSourceFiles))
       }
 
       if (isMixed || isKotlin) {

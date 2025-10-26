@@ -4,18 +4,13 @@ import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}
 import mill.client.lock.*
-import mill.javalib.api.internal.{
-  JavaCompilerOptions,
-  ZincCompileJava,
-  ZincCompileMixed,
-  ZincScaladocJar
-}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava, ZincCompileMixed, ZincScaladocJar}
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mill.javalib.internal.ZincCompilerBridgeProvider
 import mill.javalib.internal.ZincCompilerBridgeProvider.AcquireResult
 import mill.javalib.worker.*
 import mill.javalib.zinc.ZincWorker.*
-import mill.util.{CachedFactory, CachedFactoryWithInitData, RefCountedClassLoaderCache}
+import mill.util.{CachedFactory, CachedFactoryWithInitData, FailingClassLoader, RefCountedClassLoaderCache}
 import sbt.internal.inc
 import sbt.internal.inc.*
 import sbt.internal.inc.classpath.ClasspathUtil
@@ -140,15 +135,16 @@ class ZincWorker(
         /*filterLibrary*/ false
       )
 
+      val dummyClassloader = FailingClassLoader()
       val dummyFile = new java.io.File("")
       // Zinc does not have an entry point for Java-only compilation, so we need
       // to make up a dummy ScalaCompiler instance.
       val scalac = ZincUtil.scalaCompiler(
         new inc.ScalaInstance(
           version = "",
-          loader = null,
-          loaderCompilerOnly = null,
-          loaderLibraryOnly = null,
+          loader = dummyClassloader,
+          loaderCompilerOnly = dummyClassloader,
+          loaderLibraryOnly = dummyClassloader,
           libraryJars = Array(dummyFile),
           compilerJars = Array(dummyFile),
           allJars = new Array(0),

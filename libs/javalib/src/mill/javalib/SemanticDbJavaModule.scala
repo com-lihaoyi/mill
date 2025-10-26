@@ -11,6 +11,7 @@ import mill.{T, Task}
 
 import java.nio.file.NoSuchFileException
 import scala.jdk.CollectionConverters.*
+import scala.util.control.NonFatal
 
 @experimental
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
@@ -31,7 +32,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   def transitiveModuleCompileModuleDeps: Seq[SemanticDbJavaModule]
   def zincReportCachedProblems: T[Boolean]
   def zincIncrementalCompilation: T[Boolean]
-  def allSourceFiles: T[Seq[PathRef]]
+  def allSourceFiles: Task.Simple[Seq[PathRef]]
 
   /**
    * Compiles the current module to generate compiled classfiles/bytecode.
@@ -51,7 +52,16 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     }
 
   private[mill] def compileInternalLazy(compileSemanticDb: Boolean)
-      : Task[() => Result[CompilationResult]] = {
+      : Task[() => Result[CompilationResult]] =
+    Task.Anon {
+      val args = CompileInternalJavaLazyArgs(sources = allSourceFiles().map(_.path))
+      val compile = compileInternalJavaLazy(compileSemanticDb)()
+      () => compile(args)
+    }
+
+  case class CompileInternalJavaLazyArgs(sources: Seq[os.Path])
+  private[mill] final def compileInternalJavaLazy(compileSemanticDb: Boolean)
+      : Task[CompileInternalJavaLazyArgs => Result[CompilationResult]] = {
     val (semanticDbJavacOptionsTask, semanticDbJavaPluginMvnDepsTask) =
       if (compileSemanticDb) (
         Task.Anon { SemanticDbJavaModule.javacOptionsTask(semanticDbJavaVersion()) },
@@ -73,42 +83,49 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
         compileGeneratedSources().toString
       ) ++ javacOptions() ++ mandatoryJavacOptions() ++ semanticDbJavacOptionsTask())
 
-      val sources = allSourceFiles().map(_.path)
+      (args: CompileInternalJavaLazyArgs) => {
+        val compileJavaOp = ZincCompileJava(
+          compileTo = Task.dest,
+          upstreamCompileOutput = upstreamCompileOutput(),
+          sources = args.sources,
+          compileClasspath = (compileClasspath() ++ semanticDbJavaPluginMvnDepsTask()).map(_.path),
+          javacOptions = jOpts.compiler,
+          incrementalCompilation = zincIncrementalCompilation()
+        )
 
-      val compileJavaOp = ZincCompileJava(
-        compileTo = Task.dest,
-        upstreamCompileOutput = upstreamCompileOutput(),
-        sources = sources,
-        compileClasspath = (compileClasspath() ++ semanticDbJavaPluginMvnDepsTask()).map(_.path),
-        javacOptions = jOpts.compiler,
-        incrementalCompilation = zincIncrementalCompilation()
-      )
+        def debugInfos = Vector(
+          s"compiling to: ${compileJavaOp.compileTo}",
+          s"semantic db enabled: $compileSemanticDb",
+          s"effective javac options: ${jOpts.compiler}",
+          s"effective java runtime options: ${jOpts.runtime}",
+          s"sources=${args.sources}"
+        )
 
-      def debugInfos = Vector(
-        s"compiling to: ${compileJavaOp.compileTo}",
-        s"semantic db enabled: $compileSemanticDb",
-        s"effective javac options: ${jOpts.compiler}",
-        s"effective java runtime options: ${jOpts.runtime}"
-      )
-
-      () => {
         val log = Task.log
         if (log.debugEnabled) debugInfos.foreach(log.debug)
 
-        val compileJavaResult = jvmWorker()
-          .internalWorker()
-          .compileJava(
-            compileJavaOp,
-            javaHome = javaHome().map(_.path),
-            javaRuntimeOptions = jOpts.runtime,
-            reporter = Task.reporter.apply(hashCode),
-            reportCachedProblems = zincReportCachedProblems()
-          )
+        val compileJavaResult =
+          try jvmWorker()
+              .internalWorker()
+              .compileJava(
+                compileJavaOp,
+                javaHome = javaHome().map(_.path),
+                javaRuntimeOptions = jOpts.runtime,
+                reporter = Task.reporter.apply(hashCode),
+                reportCachedProblems = zincReportCachedProblems()
+              )
+          catch {
+            case NonFatal(e) =>
+              log.error(
+                s"Compilation failed with an exception, debug data:\n  ${debugInfos.mkString("\n  ")}"
+              )
+              throw e
+          }
 
         compileJavaResult.map { compilationResult =>
           if (compileSemanticDb) SemanticDbJavaModule.enhanceCompilationResultWithSemanticDb(
             compileTo = compileJavaOp.compileTo,
-            sources = sources,
+            sources = args.sources,
             workerClasspath = SemanticDbJavaModule.workerClasspath().map(_.path),
             compilationResult = compilationResult
           )

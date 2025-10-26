@@ -11,6 +11,8 @@ import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mill.javalib.dependency.versions.{ValidVersion, Version}
 import mill.util.{BuildInfo, JarManifest, Jvm}
 
+import scala.util.control.NonFatal
+
 // this import requires scala-reflect library to be on the classpath
 // it was duplicated to scala3-compiler, but is that too powerful to add as a dependency?
 import scala.reflect.internal.util.ScalaClassLoader
@@ -275,6 +277,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   override private[mill] def compileInternalLazy(compileSemanticDb: Boolean)
       : Task[() => Result[CompilationResult]] = {
+    compileInternalScalaLazy(compileSemanticDb)
+  }
+
+  /**
+   * Keep the return paths in sync with [[bspCompileClassesPath]].
+   */
+  private[mill] final def compileInternalScalaLazy(compileSemanticDb: Boolean)
+      : Task[() => Result[CompilationResult]] = {
     val (
       semanticDbJavacOptionsTask,
       semanticDbEnablePluginScalacOptionsTask,
@@ -342,15 +352,21 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         val log = Task.log
         if (log.debugEnabled) debugInfos.foreach(log.debug)
 
-        val compileMixedResult = jvmWorker()
-          .internalWorker()
-          .compileMixed(
-            compileMixedOp,
-            javaHome = javaHome().map(_.path),
-            javaRuntimeOptions = jOpts.runtime,
-            reporter = Task.reporter.apply(hashCode),
-            reportCachedProblems = zincReportCachedProblems()
-          )
+        val compileMixedResult =
+          try jvmWorker()
+              .internalWorker()
+              .compileMixed(
+                compileMixedOp,
+                javaHome = javaHome().map(_.path),
+                javaRuntimeOptions = jOpts.runtime,
+                reporter = Task.reporter.apply(hashCode),
+                reportCachedProblems = zincReportCachedProblems()
+              )
+          catch {
+            case NonFatal(e) =>
+              log.error(s"Compilation failed with an exception, debug data:\n  ${debugInfos.mkString("\n  ")}")
+              throw e
+          }
 
         compileMixedResult.map { compilationResult =>
           if (compileSemanticDb) SemanticDbJavaModule.enhanceCompilationResultWithSemanticDb(
