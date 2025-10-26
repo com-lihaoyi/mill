@@ -273,7 +273,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   /**
    * Keep the return paths in sync with [[bspCompileClassesPath]].
    */
-  override private[mill] def compileInternalLazy(compileSemanticDb: Boolean): Task[() => Result[CompilationResult]] = {
+  override private[mill] def compileInternalLazy(compileSemanticDb: Boolean)
+      : Task[() => Result[CompilationResult]] = {
     val (
       semanticDbJavacOptionsTask,
       semanticDbEnablePluginScalacOptionsTask,
@@ -334,7 +335,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         s"semantic db enabled: $compileSemanticDb",
         s"effective scalac options: $scalacOptions",
         s"effective javac options: ${jOpts.compiler}",
-        s"effective java runtime options: ${jOpts.runtime}",
+        s"effective java runtime options: ${jOpts.runtime}"
       )
 
       () => {
@@ -353,11 +354,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
         compileMixedResult.map { compilationResult =>
           if (compileSemanticDb) SemanticDbJavaModule.enhanceCompilationResultWithSemanticDb(
-              compileTo = compileMixedOp.compileTo,
-              sources = sources,
-              workerClasspath = SemanticDbJavaModule.workerClasspath().map(_.path),
-              compilationResult = compilationResult
-            )
+            compileTo = compileMixedOp.compileTo,
+            sources = sources,
+            workerClasspath = SemanticDbJavaModule.workerClasspath().map(_.path),
+            compilationResult = compilationResult
+          )
           else compilationResult
         }
       }

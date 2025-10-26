@@ -45,11 +45,13 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
    */
   def compile: Task.Simple[mill.javalib.api.CompilationResult]
 
-  private[mill] final def compileInternal(compileSemanticDb: Boolean): Task[CompilationResult] = Task.Anon {
-    compileInternalLazy(compileSemanticDb).apply().apply()
-  }
+  private[mill] final def compileInternal(compileSemanticDb: Boolean): Task[CompilationResult] =
+    Task.Anon {
+      compileInternalLazy(compileSemanticDb).apply().apply()
+    }
 
-  private[mill] def compileInternalLazy(compileSemanticDb: Boolean): Task[() => Result[CompilationResult]] = {
+  private[mill] def compileInternalLazy(compileSemanticDb: Boolean)
+      : Task[() => Result[CompilationResult]] = {
     val (semanticDbJavacOptionsTask, semanticDbJavaPluginMvnDepsTask) =
       if (compileSemanticDb) (
         Task.Anon { SemanticDbJavaModule.javacOptionsTask(semanticDbJavaVersion()) },
@@ -86,7 +88,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
         s"compiling to: ${compileJavaOp.compileTo}",
         s"semantic db enabled: $compileSemanticDb",
         s"effective javac options: ${jOpts.compiler}",
-        s"effective java runtime options: ${jOpts.runtime}",
+        s"effective java runtime options: ${jOpts.runtime}"
       )
 
       () => {
