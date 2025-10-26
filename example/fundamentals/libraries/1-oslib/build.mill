@@ -35,9 +35,9 @@ def command = Task {
 /** Usage
 
 > ./mill command # mac/linux
-...$OUT/task1.dest/file.txt
+...$MILL_OUT/task1.dest/file.txt
 hello
-...$OUT/task2.dest/file.txt
+...$MILL_OUT/task2.dest/file.txt
 world
 
 */

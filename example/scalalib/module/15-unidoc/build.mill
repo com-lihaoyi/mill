@@ -34,7 +34,7 @@ object foo extends ScalaModule, UnidocModule {
 /** Usage
 
 > ./mill show foo.unidocLocal
-"...$OUT/foo/unidocLocal.dest"
+"...$MILL_OUT/foo/unidocLocal.dest"
 
 > cat out/foo/unidocLocal.dest/foo/Foo.html
 ...

@@ -167,7 +167,7 @@ Generating classfiles
 Generating jar
 
 > ./mill show jar
-"...$OUT/jar.dest/foo.jar"
+"...$MILL_OUT/jar.dest/foo.jar"
 
 */
 

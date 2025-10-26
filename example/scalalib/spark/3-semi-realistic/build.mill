@@ -46,7 +46,7 @@ Summary Statistics by Category:
 > chmod +x spark-submit.sh
 
 > ./mill show assembly # prepare for spark-submit
-"...$OUT/assembly.dest/out.jar"
+"...$MILL_OUT/assembly.dest/out.jar"
 
 > ./spark-submit.sh out/assembly.dest/out.jar foo.Foo resources/transactions.csv
 ...

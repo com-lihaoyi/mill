@@ -37,7 +37,7 @@ Jvm Version: 11.0.28
 
 /** Usage
 > ./mill show Foo.scala:assembly # show the output of the assembly task
-"...$OUT/Foo.scala/assembly.dest/out.jar"
+"...$MILL_OUT/Foo.scala/assembly.dest/out.jar"
 
 > java -jar ./out/Foo.scala/assembly.dest/out.jar --text hello
 <h1>hello</h1>

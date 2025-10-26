@@ -107,7 +107,7 @@ outside of the build tool:
 [source,console]
 ----
 $ ./mill show foo.assembly
-"...$OUT/foo/assembly.dest/out.jar"
+"...$MILL_OUT/foo/assembly.dest/out.jar"
 
 $ out/foo/assembly.dest/out.jar --text "hello world"
 <h1>hello world</h1>
@@ -159,7 +159,7 @@ Now, we can use build a native image using `foo.nativeImage`:
 [source,console]
 ----
 $ ./mill show foo.nativeImage
-"...$OUT/foo/nativeImage.dest/native-executable"
+"...$MILL_OUT/foo/nativeImage.dest/native-executable"
 
 $ out/foo/nativeImage.dest/native-executable --text "hello world"
 <h1>hello world</h1>
@@ -229,7 +229,7 @@ _Executable Assembly_
 ----
 $ time ./mill show foo.assembly
 [1-41] [info] compiling 1 Java source...
-"...$OUT/foo/assembly.dest/out.jar"
+"...$MILL_OUT/foo/assembly.dest/out.jar"
 ./mill show foo.assembly  0.12s user 0.06s system 21% cpu 0.818 total
 ----
 
@@ -243,7 +243,7 @@ $ time ./mill show foo.nativeImage
 [1-50] [2/8] Performing analysis...  [****]                                                                     (7.9s @ 0.77GB)
 ...
 [1-50] Finished generating 'native-executable' in 26.0s.
-"...$OUT/foo/nativeImage.dest/native-executable"
+"...$MILL_OUT/foo/nativeImage.dest/native-executable"
 ./mill show foo.nativeImage  0.70s user 1.11s system 7% cpu 24.762 total
 ----
 

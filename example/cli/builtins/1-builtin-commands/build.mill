@@ -146,8 +146,8 @@ Inputs:
 
 > ./mill show foo.compile
 {
-  "analysisFile": "...$OUT/foo/compile.dest/...",
-  "classes": "...$OUT/foo/compile.dest/classes"
+  "analysisFile": "...$MILL_OUT/foo/compile.dest/...",
+  "classes": "...$MILL_OUT/foo/compile.dest/classes"
 }
 */
 
@@ -287,11 +287,11 @@ foo.compileClasspath
 /** Usage
 > ./mill visualize foo._
 [
-  "...$OUT/visualize.dest/out.dot",
-  "...$OUT/visualize.dest/out.json",
-  "...$OUT/visualize.dest/out.png",
-  "...$OUT/visualize.dest/out.svg",
-  "...$OUT/visualize.dest/out.txt"
+  "...$MILL_OUT/visualize.dest/out.dot",
+  "...$MILL_OUT/visualize.dest/out.json",
+  "...$MILL_OUT/visualize.dest/out.png",
+  "...$MILL_OUT/visualize.dest/out.svg",
+  "...$MILL_OUT/visualize.dest/out.txt"
 ]
 */
 //
@@ -342,11 +342,11 @@ graph ["rankdir"="LR"]
 /** Usage
 > ./mill visualizePlan foo.run
 [
-  "...$OUT/visualizePlan.dest/out.dot",
-  "...$OUT/visualizePlan.dest/out.json",
-  "...$OUT/visualizePlan.dest/out.png",
-  "...$OUT/visualizePlan.dest/out.svg",
-  "...$OUT/visualizePlan.dest/out.txt"
+  "...$MILL_OUT/visualizePlan.dest/out.dot",
+  "...$MILL_OUT/visualizePlan.dest/out.json",
+  "...$MILL_OUT/visualizePlan.dest/out.png",
+  "...$MILL_OUT/visualizePlan.dest/out.svg",
+  "...$MILL_OUT/visualizePlan.dest/out.txt"
 ]
 */
 //

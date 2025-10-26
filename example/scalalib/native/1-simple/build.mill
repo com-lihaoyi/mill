@@ -26,7 +26,7 @@ object `package` extends ScalaNativeModule {
 <h1>hello</h1>
 
 > ./mill show nativeLink  # Build and link native binary
-"...$OUT/nativeLink.dest/out"
+"...$MILL_OUT/nativeLink.dest/out"
 
 > ./out/nativeLink.dest/out --text hello  # Run the executable
 <h1>hello</h1>

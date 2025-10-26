@@ -105,7 +105,7 @@ compiling 1 Scala source to...
 > ./mill assembly # bundle classfiles and libraries into a jar for deployment
 
 > ./mill show assembly # show the output of the assembly task
-"...$OUT/assembly.dest/out.jar"
+"...$MILL_OUT/assembly.dest/out.jar"
 
 > java -jar ./out/assembly.dest/out.jar --text hello
 <h1>hello</h1>
