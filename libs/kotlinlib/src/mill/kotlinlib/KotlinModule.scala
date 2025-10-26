@@ -14,7 +14,7 @@ import mill.api.{ModuleRef, Result}
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 import mill.api.daemon.internal.{KotlinModuleApi, internal}
 import mill.javalib.api.CompilationResult
-import mill.javalib.{JavaModule, JvmWorkerModule, Lib, SemanticDbJavaModule}
+import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.util.{Jvm, Version}
 
