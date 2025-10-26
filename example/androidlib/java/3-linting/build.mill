@@ -53,7 +53,7 @@ object app extends AndroidAppModule {
 // The `lint.xml` file shown above ignores the `MissingApplicationIcon` error in the code as
 // the project is for demostration. There are no icons for the demo project.
 
-////SNIPPET:END
+//// SNIPPET:END
 
 /** Usage
 

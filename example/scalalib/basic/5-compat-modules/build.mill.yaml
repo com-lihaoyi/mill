@@ -2,7 +2,7 @@ extends: [mill.scalalib.SbtModule]
 scalaVersion: 3.7.2
 mvnDeps:
 - "com.lihaoyi::scalatags:0.13.1"
-- "com.lihaoyi::mainargs:0.7.6"
+- "com.lihaoyi::mainargs:0.7.7"
 
 object test:
   extends: [build.SbtTests, mill.javalib.TestModule.Utest]

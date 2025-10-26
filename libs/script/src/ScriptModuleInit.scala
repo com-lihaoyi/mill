@@ -12,6 +12,50 @@ object ScriptModuleInit
             Option[String]
         ) => Seq[Result[mill.api.ExternalModule]]
     ) {
+
+  // Cache instantiated script modules on a per-classloader basis. This lets us avoid
+  // instantiating the same script twice, e.g. once directly and once when resolving a
+  // downstream script's `moduleDeps`. This is kept on the `ScriptModuleInit` object scoped
+  // to the build classloader and is garbage collected when the classloader is discarded.
+  val scriptModuleCache: collection.mutable.Map[os.Path, ExternalModule] =
+    collection.mutable.Map.empty
+
+  def moduleFor(
+      scriptFile: os.Path,
+      extendsConfig: Option[String],
+      moduleDeps: Seq[String],
+      compileModuleDeps: Seq[String],
+      runModuleDeps: Seq[String],
+      resolveModuleDep: String => Option[mill.Module]
+  ) = {
+    def relativize(s: String) = {
+      if (s.startsWith("."))
+        (scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot) / os.up / os.RelPath(s)).toString
+      else s
+    }
+
+    scriptModuleCache.synchronized {
+      scriptModuleCache.getOrElseUpdate(
+        scriptFile,
+        instantiate(
+          extendsConfig.getOrElse {
+            scriptFile.ext match {
+              case "java" => "mill.script.JavaModule"
+              case "kt" => "mill.script.KotlinModule"
+              case "scala" => "mill.script.ScalaModule"
+            }
+          },
+          ScriptModule.Config(
+            scriptFile,
+            moduleDeps.flatMap(s => resolveModuleDep(relativize(s))),
+            compileModuleDeps.flatMap(s => resolveModuleDep(relativize(s))),
+            runModuleDeps.flatMap(s => resolveModuleDep(relativize(s)))
+          )
+        )
+      )
+    }
+  }
+
   def instantiate(className: String, args: AnyRef*): ExternalModule = {
     val cls =
       try Class.forName(className)
@@ -23,47 +67,21 @@ object ScriptModuleInit
 
     cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ExternalModule]
   }
-  def moduleFor(
-      millFile: os.Path,
-      extendsConfig: Option[String],
-      moduleDeps: Seq[String],
-      compileModuleDeps: Seq[String],
-      runModuleDeps: Seq[String],
-      resolveModuleDep: String => Option[mill.Module]
-  ) = {
-    val className = extendsConfig.getOrElse {
-      millFile.ext match {
-        case "java" => "mill.script.JavaModule"
-        case "scala" => "mill.script.ScalaModule"
-        case "kt" => "mill.script.KotlinModule"
-      }
-    }
-
-    instantiate(
-      className,
-      ScriptModule.Config(
-        millFile,
-        moduleDeps.flatMap(resolveModuleDep(_)),
-        compileModuleDeps.flatMap(resolveModuleDep(_)),
-        runModuleDeps.flatMap(resolveModuleDep(_))
-      )
-    )
-  }
 
   /**
    * Resolves a single script file to a module instance.
    * Exposed for use in BSP integration.
    */
   def resolveScriptModule(
-      millFile0: String,
+      scriptFile0: String,
       resolveModuleDep: String => Option[mill.Module]
   ): Option[Result[ExternalModule]] = {
-    val millFile = os.Path(millFile0, mill.api.BuildCtx.workspaceRoot)
-    Option.when(os.isFile(millFile)) {
+    val scriptFile = os.Path(scriptFile0, mill.api.BuildCtx.workspaceRoot)
+    Option.when(os.isFile(scriptFile)) {
       Result.create {
-        val parsedHeaderData = parseHeaderData(millFile)
+        val parsedHeaderData = parseHeaderData(scriptFile)
         moduleFor(
-          millFile,
+          scriptFile,
           parsedHeaderData.`extends`.headOption,
           parsedHeaderData.moduleDeps,
           parsedHeaderData.compileModuleDeps,
@@ -116,7 +134,7 @@ object ScriptModuleInit
    */
 
   def apply(
-      millFileString: String,
+      scriptFileString: String,
       resolveModuleDep: String => Option[mill.Module],
       resolveChildren: Boolean,
       nameOpt: Option[String]
@@ -124,17 +142,17 @@ object ScriptModuleInit
     val workspace = mill.api.BuildCtx.workspaceRoot
 
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      val millFile0 = os.Path(millFileString, workspace)
+      val scriptFile0 = os.Path(scriptFileString, workspace)
       if (resolveChildren) {
         nameOpt match {
-          case Some(n) => resolveScriptModule((millFile0 / n).toString, resolveModuleDep).toSeq
+          case Some(n) => resolveScriptModule((scriptFile0 / n).toString, resolveModuleDep).toSeq
           case None =>
-            if (!os.isDir(millFile0)) Nil
-            else os.list(millFile0).filter(os.isDir).flatMap(p =>
+            if (!os.isDir(scriptFile0)) Nil
+            else os.list(scriptFile0).filter(os.isDir).flatMap(p =>
               resolveScriptModule(p.toString, resolveModuleDep)
             )
         }
-      } else resolveScriptModule(millFileString, resolveModuleDep).toSeq
+      } else resolveScriptModule(scriptFileString, resolveModuleDep).toSeq
     }
   }
 }
