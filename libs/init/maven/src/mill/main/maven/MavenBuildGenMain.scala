@@ -1,6 +1,5 @@
 package mill.main.maven
 
-import mainargs.{Flag, ParserForClass, arg, main}
 import mill.main.buildgen.*
 import mill.main.buildgen.ModuleConfig.*
 import org.apache.maven.model.{Developer as MvnDeveloper, License as MvnLicense, *}
@@ -12,20 +11,17 @@ import scala.jdk.CollectionConverters.*
  */
 object MavenBuildGenMain {
 
-  /**
-   * @see [[runImport]]
-   */
-  def main(args: Array[String]): Unit = {
-    val args0 = summon[ParserForClass[MavenBuildGenArgs]].constructOrExit(args.toSeq)
-    runImport(args0)
-  }
+  def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args.toSeq)
 
-  /**
-   * Imports a Maven project located in the current working directory.
-   * @param args Command line arguments
-   */
-  def runImport(args: MavenBuildGenArgs): Unit = {
-    import args.*
+  @mainargs.main(doc = "Imports a Maven build located in the current working directory.")
+  def runImport(
+      @mainargs.arg(doc = "extract properties for publish")
+      publishProperties: mainargs.Flag,
+      @mainargs.arg(doc = "merge generated build files")
+      merge: mainargs.Flag,
+      @mainargs.arg(doc = "disable generating meta-build files")
+      noMeta: mainargs.Flag
+  ): Unit = {
     println("converting Maven build")
 
     val modelBuildingResults = Modeler().buildAll()
@@ -217,17 +213,4 @@ object MavenBuildGenMain {
       organizationUrl = Option(getOrganizationUrl)
     )
   }
-}
-
-@mainargs.main
-case class MavenBuildGenArgs(
-    @mainargs.arg(doc = "extract properties for publish")
-    publishProperties: mainargs.Flag,
-    @mainargs.arg(doc = "merge generated build files")
-    merge: mainargs.Flag,
-    @mainargs.arg(doc = "disable generating meta-build files")
-    noMeta: mainargs.Flag
-)
-object MavenBuildGenArgs {
-  given ParserForClass[MavenBuildGenArgs] = ParserForClass.apply
 }

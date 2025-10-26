@@ -1,6 +1,5 @@
 package mill.main.sbt
 
-import mainargs.ParserForClass
 import mill.constants.Util.isWindows
 import mill.main.buildgen.*
 import mill.main.buildgen.ModuleConfig.*
@@ -14,20 +13,17 @@ import scala.util.Using
  */
 object SbtBuildGenMain {
 
-  /**
-   * @see [[runImport]]
-   */
-  def main(args: Array[String]): Unit = {
-    val args0 = summon[ParserForClass[SbtBuildGenArgs]].constructOrExit(args.toSeq)
-    runImport(args0)
-  }
+  def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args.toSeq)
 
-  /**
-   * Imports an SBT project located in the current working directory.
-   * @param args Command line arguments
-   */
-  def runImport(args: SbtBuildGenArgs): Unit = {
-    import args.*
+  @mainargs.main(doc = "Imports an SBT build located in the current working directory.")
+  def runImport(
+      @mainargs.arg(doc = "merge generated build files")
+      merge: mainargs.Flag,
+      @mainargs.arg(doc = "disable generating meta-build files")
+      noMeta: mainargs.Flag,
+      @mainargs.arg(doc = "path to sbt executable")
+      customSbt: Option[String]
+  ): Unit = {
     println("converting sbt build")
 
     val sbtCmd = customSbt.getOrElse(defaultSbt.fold(sys.error, identity))
@@ -199,17 +195,4 @@ object SbtBuildGenMain {
     if (platformedDeps.isEmpty) packages
     else packages.map(pkg => pkg.copy(module = updatedSpec(pkg.module)))
   }
-}
-
-@mainargs.main
-case class SbtBuildGenArgs(
-    @mainargs.arg(doc = "merge generated build files")
-    merge: mainargs.Flag,
-    @mainargs.arg(doc = "disable generating meta-build files")
-    noMeta: mainargs.Flag,
-    @mainargs.arg(doc = "path to sbt executable")
-    customSbt: Option[String]
-)
-object SbtBuildGenArgs {
-  given ParserForClass[SbtBuildGenArgs] = ParserForClass.apply
 }

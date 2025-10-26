@@ -1,6 +1,5 @@
 package mill.main.gradle
 
-import mainargs.ParserForClass
 import mill.main.buildgen.*
 import mill.main.gradle.BuildInfo.exportpluginAssemblyResource
 import mill.util.{CoursierConfig, Jvm}
@@ -17,20 +16,18 @@ import scala.util.Using
  */
 object GradleBuildGenMain {
 
-  /**
-   * @see [[runImport]]
-   */
-  def main(args: Array[String]): Unit = {
-    val args0 = summon[ParserForClass[GradleBuildGenArgs]].constructOrExit(args.toSeq)
-    runImport(args0)
-  }
+  def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args.toSeq)
 
-  /**
-   * Imports a Gradle project located in the current working directory.
-   * @param args Command line arguments
-   */
-  def runImport(args: GradleBuildGenArgs): Unit = {
-    import args.*
+  @mainargs.main(doc = "Imports a Gradle build located in the current working directory.")
+  def runImport(
+      @mainargs.arg(doc = "merge generated build files")
+      merge: mainargs.Flag,
+      @mainargs.arg(doc = "disable generating meta-build files")
+      noMeta: mainargs.Flag,
+      @mainargs.arg(doc = "JDK to use to run the Gradle daemon")
+      // The JDK used to run the daemon may be used to configure certain settings.
+      gradleJvmId: String = "system"
+  ): Unit = {
     println("converting Gradle build")
 
     val gradleWrapperProperties = {
@@ -82,18 +79,4 @@ object GradleBuildGenMain {
     if (!noMeta.value) build = build.withDefaultMetaBuild
     BuildWriter(build).writeFiles()
   }
-}
-
-@mainargs.arg
-case class GradleBuildGenArgs(
-    @mainargs.arg(doc = "merge generated build files")
-    merge: mainargs.Flag,
-    @mainargs.arg(doc = "disable generating meta-build files")
-    noMeta: mainargs.Flag,
-    @mainargs.arg(doc = "JDK to use to run the Gradle daemon")
-    // The JDK used to run the daemon may be used to configure certain settings.
-    gradleJvmId: String = "system"
-)
-object GradleBuildGenArgs {
-  given ParserForClass[GradleBuildGenArgs] = ParserForClass.apply
 }
