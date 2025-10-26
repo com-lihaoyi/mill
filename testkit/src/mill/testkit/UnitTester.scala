@@ -1,12 +1,10 @@
 package mill.testkit
 
 import mill.Task
-import mill.api.{BuildCtx, DummyInputStream, ExecResult, Result, SystemStreams, Val}
+import mill.api.{BuildCtx, DummyInputStream, Evaluator, ExecResult, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.api.ExecResult.OuterStack
 import mill.constants.OutFiles.millChromeProfile
 import mill.constants.OutFiles.millProfile
-import mill.api.Evaluator
-import mill.api.SelectMode
 import mill.internal.JsonArrayLogger
 import mill.resolve.Resolve
 
@@ -229,7 +227,9 @@ class UnitTester(
   def scoped[T](tester: UnitTester => T): T = {
     try {
       BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
-        tester(this)
+        PathRef.outPathOverride.withValue(Some(outPath)) {
+          tester(this)
+        }
       }
     } finally close()
   }
