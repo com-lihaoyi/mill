@@ -124,7 +124,7 @@ to build an assembly that we can run using `java -jar`:
 [source,console]
 ----
 > ./mill show assembly
-"...$OUT/assembly.dest/out.jar"
+"...$MILL_OUT/assembly.dest/out.jar"
 Total time: 27s
 
 $ ls -lh out/assembly.dest/out.jar
@@ -325,7 +325,7 @@ the code and re-build the assembly:
 > echo "class dummy" >> src/main/scala/foo/Foo.scala
 
 > ./mill show assembly
-"...$OUT/assembly.dest/out.jar"
+"...$MILL_OUT/assembly.dest/out.jar"
 Total time: 1s
 
 > sbt assembly

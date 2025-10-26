@@ -101,7 +101,7 @@ Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
 ...
 
 > ./mill show foo.assembly # mac/linux
-"...$OUT/foo/assembly.dest/out.jar"
+"...$MILL_OUT/foo/assembly.dest/out.jar"
 
 > ./out/foo/assembly.dest/out.jar # mac/linux
 foo version 0.0.1

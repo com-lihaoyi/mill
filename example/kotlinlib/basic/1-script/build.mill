@@ -18,7 +18,7 @@ Compiling 1 Kotlin sources to...
 
 /** Usage
 > ./mill show Foo.kt:assembly # show the output of the assembly task
-"...$OUT/Foo.kt/assembly.dest/out.jar"
+"...$MILL_OUT/Foo.kt/assembly.dest/out.jar"
 
 > java -jar ./out/Foo.kt/assembly.dest/out.jar --text hello
 <h1>hello</h1>

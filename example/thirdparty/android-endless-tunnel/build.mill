@@ -53,7 +53,7 @@ object `endless-tunnel` extends mill.api.Module {
 /** Usage
 
 > ./mill show endless-tunnel.app.androidApk
-"...$OUT/endless-tunnel/app/androidApk.dest/app.apk"
+"...$MILL_OUT/endless-tunnel/app/androidApk.dest/app.apk"
 
 > ./mill show endless-tunnel.app.createAndroidVirtualDevice
 ...Name: cpp-test, DeviceId: medium_phone...

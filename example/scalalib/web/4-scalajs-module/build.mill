@@ -41,7 +41,7 @@ stringifiedJsObject: ["hello","world","!"]
 {
 ...
 ..."jsFileName": "main.js",
-  "dest": "...$OUT/foo/fullLinkJS.dest"
+  "dest": "...$MILL_OUT/foo/fullLinkJS.dest"
 }
 
 > node out/foo/fullLinkJS.dest/main.js # mac/linux

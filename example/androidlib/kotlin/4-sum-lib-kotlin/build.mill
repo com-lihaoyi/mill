@@ -131,7 +131,7 @@ Publish ... to /home/.../.m2/repository/...
   },
   "payload": [
     [
-      "...$OUT/lib/androidAar.dest/library.aar",
+      "...$MILL_OUT/lib/androidAar.dest/library.aar",
       "lib-0.0.1.aar"
     ],
 ...

@@ -150,7 +150,7 @@ object qux extends DiyJavaModule {
 }
 
 > ./mill show qux.assembly
-"...$OUT/qux/assembly.dest/assembly.jar"
+"...$MILL_OUT/qux/assembly.dest/assembly.jar"
 
 > java -jar out/qux/assembly.dest/assembly.jar
 Foo.value: 31337
@@ -158,7 +158,7 @@ Bar.value: 271828
 Qux.value: 9000
 
 > ./mill show foo.assembly
-"...$OUT/foo/assembly.dest/assembly.jar"
+"...$MILL_OUT/foo/assembly.dest/assembly.jar"
 
 > java -jar out/foo/assembly.dest/assembly.jar
 Foo.value: 31337

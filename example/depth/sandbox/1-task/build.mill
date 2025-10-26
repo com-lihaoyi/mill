@@ -14,7 +14,7 @@ object foo extends Module {
 
 /** Usage
 > ./mill foo.tDestTask
-...$OUT/foo/tDestTask.dest
+...$MILL_OUT/foo/tDestTask.dest
 */
 
 // If you really need to reference paths outside of the `Task.dest`, you can do
@@ -95,7 +95,7 @@ def osPwdTask = Task { println(os.pwd.toString) }
 
 /** Usage
 > ./mill osPwdTask
-...$OUT/osPwdTask.dest
+...$MILL_OUT/osPwdTask.dest
 */
 
 // The redirection of `os.pwd` applies to `os.proc`, `os.call`, and `os.spawn` methods
@@ -108,7 +108,7 @@ def osProcTask = Task {
 
 /** Usage
 > ./mill osProcTask
-...$OUT/osProcTask.dest
+...$MILL_OUT/osProcTask.dest
 */
 
 // === Non-task `os.pwd` redirection
@@ -122,5 +122,5 @@ def externalPwdTask = Task { println(externalPwd.toString) }
 
 /** Usage
 > ./mill externalPwdTask
-...$OUT/mill-daemon/sandbox
+...$MILL_OUT/mill-daemon/sandbox
 */

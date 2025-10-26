@@ -60,7 +60,7 @@ object app extends AndroidAppKotlinModule {
 /** Usage
 
 > ./mill show app.androidApk
-"...$OUT/app/androidApk.dest/app.apk"
+"...$MILL_OUT/app/androidApk.dest/app.apk"
 
 
 > ./mill show app.createAndroidVirtualDevice

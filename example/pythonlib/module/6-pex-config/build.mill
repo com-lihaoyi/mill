@@ -44,7 +44,7 @@ object foo extends PythonModule {
 /** Usage
 
 > ./mill show foo.bundle
-"...$OUT/foo/bundle.dest/bundle.pex"
+"...$MILL_OUT/foo/bundle.dest/bundle.pex"
 
 > out/foo/bundle.dest/bundle.pex
 ...

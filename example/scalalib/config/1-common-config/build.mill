@@ -14,7 +14,7 @@ my.custom.property: my-prop-value
 MY_CUSTOM_ENV: my-env-value
 
 > ./mill show assembly
-"...$OUT/assembly.dest/out.jar"
+"...$MILL_OUT/assembly.dest/out.jar"
 
 > ./out/assembly.dest/out.jar # mac/linux
 Foo2.value: <h1>hello2</h1>

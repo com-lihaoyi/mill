@@ -48,7 +48,7 @@ Build-time HTML snippet: <h1>hello</h1>
 Run-time HTML snippet: <p>world</p>
 
 > ./mill show assembly
-"...$OUT/assembly.dest/out.jar"
+"...$MILL_OUT/assembly.dest/out.jar"
 
 > ./out/assembly.dest/out.jar # mac/linux
 Build-time HTML snippet: <h1>hello</h1>
