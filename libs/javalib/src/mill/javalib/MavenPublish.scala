@@ -55,7 +55,7 @@ private[mill] trait MavenPublish {
       log: Logger,
       worker: InternalMavenWorkerSupport.Api
   ): Unit = {
-    val uri = if (isSnapshot) releaseUri else snapshotUri
+    val uri = if (isSnapshot) snapshotUri else releaseUri
     val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
       publishData.meta,
       publishData.payloadAsMap
