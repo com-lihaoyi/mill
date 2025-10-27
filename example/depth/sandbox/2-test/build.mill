@@ -47,8 +47,8 @@ object bar extends MyModule
 /** Usage
 
 > find . | grep generated.html
-...$MILL_OUT/foo/test/testForked.dest/sandbox/generated.html
-...$MILL_OUT/bar/test/testForked.dest/sandbox/generated.html
+./out/foo/test/testForked.dest/sandbox/generated.html
+./out/bar/test/testForked.dest/sandbox/generated.html
 
 > cat out/foo/test/testForked.dest/sandbox/generated.html
 <h1>hello</h1>
@@ -81,7 +81,7 @@ object qux extends JavaModule {
 
 > find . | grep .html
 ...
-...$MILL_OUT/qux/test/testForked.dest/sandbox/foo.html
+./out/qux/test/testForked.dest/sandbox/foo.html
 
 > cat out/qux/test/testForked.dest/sandbox/foo.html
 <h1>foo</h1>
