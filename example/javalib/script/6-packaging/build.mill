@@ -1,14 +1,16 @@
 //// SNIPPET:LAST
-
+/** See Also: Bar.java */
 /** Usage
 
 > ./mill Bar.java:assembly
 
 > ./out/Bar.java/assembly.dest/out.jar # mac/linux
+Hello World
 
 > ./mill Bar.java:nativeImage
 
 > ./out/Bar.java/nativeImage.dest/native-executable
+Hello World
 
 */
 

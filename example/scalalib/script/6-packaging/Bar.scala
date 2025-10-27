@@ -2,5 +2,5 @@
 //| jvmId: "graalvm-community:17"
 //| nativeImageOptions: ["--no-fallback"]
 def main(args: Array[String]): Unit = {
-  println("Hello Graal Native: " + System.getProperty("java.version"))
+  println("Hello World")
 }

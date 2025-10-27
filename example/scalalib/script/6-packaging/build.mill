@@ -5,16 +5,18 @@
 //
 //
 //// SNIPPET:LAST
-
+/** See Also: Bar.scala */
 /** Usage
 
 > ./mill Bar.scala:assembly
 
 > ./out/Bar.scala/assembly.dest/out.jar # mac/linux
+Hello World
 
 > ./mill Bar.scala:nativeImage
 
 > ./out/Bar.scala/nativeImage.dest/native-executable
+Hello World
 
 */
 
