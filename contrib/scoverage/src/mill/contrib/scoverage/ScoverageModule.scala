@@ -211,6 +211,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def xmlCoberturaReport(): Command[Unit] = Task.Command { doReport(ReportType.XmlCobertura)() }
     def consoleReport(): Command[Unit] = Task.Command { doReport(ReportType.Console)() }
     def validateCoverageMinimums(): Command[Unit] = Task.Command {
+      Task.log.info("Validating the coverage minimums")
       List(statementCoverageMin(), branchCoverageMin()).exists(_.isDefined) match {
         case true => validateCoverageMin(statementCoverageMin(), branchCoverageMin())
         case _ => Task.fail(
