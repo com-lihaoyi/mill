@@ -16,7 +16,10 @@ public class Database {
       var ctx = DSL.using(conn, SQLDialect.SQLITE);
 
       // Populate database from SQL file - execute using raw JDBC connection
-      String sql = java.nio.file.Files.readString(java.nio.file.Path.of("sqlite-customers.sql"));
+      String sql = java.nio.file.Files.readString(
+        java.nio.file.Path.of("sqlite-customers.sql"),
+        java.nio.charset.StandardCharsets.UTF_8
+      );
       try (java.sql.Statement stmt = conn.createStatement()) {
         for (String statement : sql.split(";")) {
           String trimmed = statement.trim();

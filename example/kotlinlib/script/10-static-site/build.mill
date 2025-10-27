@@ -11,13 +11,12 @@
 <html>
   <body>
     <h1>Blog / My First Post</h1>
-    <div><p>Sometimes you want numbered lists:</p>
+<p>Sometimes you want numbered lists:</p>
 <ol>
 <li>One</li>
 <li>Two</li>
 <li>Three</li>
 </ol>
-</div>
   </body>
 </html>
 

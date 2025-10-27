@@ -14,7 +14,7 @@ fun main(args: Array<String>) {
 
     val postInfo = File("post").listFiles { f -> f.extension == "md" }!!
         .map { f ->
-            val match = Regex("""(\d+)\s*-\s*(.+)\.md""").matchEntire(f.name)
+            val match = Regex("""(\d+) - (.+)\.md""").matchEntire(f.name)
                 ?: error("Invalid post filename: ${f.name}")
             val (prefix, suffix) = match.destructured
             Triple(prefix.toInt(), suffix, f)
@@ -25,15 +25,7 @@ fun main(args: Array<String>) {
     outPostDir.mkdirs()
 
     fun writeHtml(path: File, pageTitle: String, bodyContent: FlowContent.() -> Unit) {
-        path.writer().use { w ->
-            w.appendLine("<!DOCTYPE html>")
-            w.appendHTML().html {
-                body {
-                    h1 { +pageTitle }
-                    bodyContent()
-                }
-            }
-        }
+
     }
 
     val parser = Parser.builder().build()
@@ -45,18 +37,16 @@ fun main(args: Array<String>) {
 
         val slug = suffix.replace(" ", "-").lowercase()
         val outputFile = outPostDir.resolve("$slug.html")
-
-        writeHtml(outputFile, "Blog / $suffix") {
-            div{
-                unsafe {
-                    +htmlContent
+        outputFile.writer().use { w ->
+            w.appendLine("<!DOCTYPE html>")
+            w.appendHTML().html {
+                body {
+                    h1 { +"Blog / $suffix" }
+                    unsafe{
+                        +htmlContent
+                    }
                 }
             }
         }
-    }
-
-    val indexFile = outDir.resolve("index.html")
-    writeHtml(indexFile, "Blog") {
-        for ((_, suffix, _) in postInfo) {  h2 { +suffix }  }
     }
 }

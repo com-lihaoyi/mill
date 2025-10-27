@@ -8,16 +8,10 @@
 
 > cat site-out/post/my-first-post.html
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>
-            Blog / My First Post
-        </title>
-    </head>
+<html>
     <body>
         <h1>
-            Blog /My First Post
+            Blog / My First Post
         </h1>
         <div>
             <p>Sometimes you want numbered lists:</p>

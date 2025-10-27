@@ -1,4 +1,4 @@
-//// === Static Site Generator
+// === Static Site Generator
 // This example is a small static site generator written as a single-file {language} script.
 // It lists markdown files in a `post/` folder, converts them to HTML using the
 // https://github.com/commonmark/commonmark-java[Commonmark-Java] library, wraps them in
