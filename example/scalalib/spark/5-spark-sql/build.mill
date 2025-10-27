@@ -135,7 +135,7 @@ object foo extends ScalaModule {
 //
 // ### Common Pitfalls
 //
-// - **Cartesian joins**: Missing JOIN condition causes explosivegrowth (every row × every row)
+// - **Cartesian joins**: Missing JOIN condition causes explosive growth (every row × every row)
 // - **Collecting large results**: SQL queries can return billions of rows - use LIMIT or write to files
 // - **Type mismatches**: CSV infers strings - cast to proper types
 // - **NULL handling**: SQL NULL behaves differently than programming nulls (use COALESCE)
