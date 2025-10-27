@@ -44,24 +44,23 @@ object ScriptModuleInit
       mill.api.Result.Failure(
         "Unable to resolve modules: " + allErrors.map(pprint.Util.literalize(_)).mkString(", ")
       )
-    } else scriptModuleCache.synchronized {
-      scriptModuleCache.getOrElseUpdate(
-        scriptFile,
-        instantiate(
-          extendsConfigStrings.getOrElse {
-            scriptFile.ext match {
-              case "java" => "mill.script.JavaModule"
-              case "kt" => "mill.script.KotlinModule"
-              case "scala" => "mill.script.ScalaModule"
-            }
-          },
-          ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps)
-        )
-      )
-    }
+    } else instantiate(
+      scriptFile,
+      extendsConfigStrings.getOrElse {
+        scriptFile.ext match {
+          case "java" => "mill.script.JavaModule"
+          case "kt" => "mill.script.KotlinModule"
+          case "scala" => "mill.script.ScalaModule"
+        }
+      },
+      ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps)
+    )
+
   }
 
-  def instantiate(className: String, args: AnyRef*): ExternalModule = {
+  def instantiate(scriptFile: os.Path,
+                  className: String,
+                  args: AnyRef*): mill.api.Result[ExternalModule] = {
     val cls =
       try Class.forName(className)
       catch {
@@ -70,7 +69,12 @@ object ScriptModuleInit
           Class.forName(className.reverse.replaceFirst("\\.", "\\$").reverse)
       }
 
-    cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ExternalModule]
+    mill.api.ExecResult.catchWrapException(
+      scriptModuleCache.getOrElseUpdate(
+        scriptFile,
+        cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ExternalModule]
+      )
+    )
   }
 
   /**

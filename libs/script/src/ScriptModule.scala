@@ -17,6 +17,14 @@ trait ScriptModule extends ExternalModule {
   }
   private[mill] override def buildOverrides: Map[String, ujson.Value] =
     ScriptModule.parseHeaderData(scriptConfig.simpleModulePath).rest
+
+  private val invalidBuildOverrides =
+    buildOverrides.keySet.filter(!millDiscover.allTaskNames.contains(_))
+
+  if (invalidBuildOverrides.nonEmpty) {
+    val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
+    throw new Exception("invalid build config does not override any task: " + pretty)
+  }
 }
 
 object ScriptModule {

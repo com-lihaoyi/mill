@@ -79,16 +79,6 @@ private object ResolveCore {
     }
   }
 
-  def catchWrapException[T](t: => T): mill.api.Result[T] = {
-    try mill.api.Result.Success(t)
-    catch {
-      case e: InvocationTargetException =>
-        mill.api.Result.Failure(makeResultException(e.getCause, new java.lang.Exception()).left.get)
-      case e: Exception =>
-        mill.api.Result.Failure(makeResultException(e, new java.lang.Exception()).left.get)
-    }
-  }
-
   def makeResultException(e: Throwable, base: Exception): Left[String, Nothing] =
     mill.api.ExecResult.makeResultException(e, base)
 
@@ -231,7 +221,7 @@ private object ResolveCore {
             if (classOf[Cross[?]].isAssignableFrom(m.cls)) {
               instantiateModule(rootModule, current.segments, cache).flatMap {
                 case c: Cross[_] =>
-                  catchWrapException(
+                  mill.api.ExecResult.catchWrapException(
                     if (cross == Seq("__")) for ((_, v) <- c.valuesToModules.toSeq) yield v
                     else if (cross.contains("_")) {
                       for {
@@ -291,7 +281,7 @@ private object ResolveCore {
         case (mill.api.Result.Success(current), Segment.Cross(vs)) =>
           assert(!vs.contains("_"), vs)
 
-          catchWrapException(
+          mill.api.ExecResult.catchWrapException(
             current
               .asInstanceOf[Cross[?]]
               .segmentsToModules(vs.toList)
@@ -445,7 +435,7 @@ private object ResolveCore {
           .collect {
             case (name, memberCls, getter) =>
               val resolved = Resolved.Module(Segments.labels(cache.decode(name)), memberCls)
-              val getter2 = Some((mod: Module) => catchWrapException(getter(mod)))
+              val getter2 = Some((mod: Module) => mill.api.ExecResult.catchWrapException(getter(mod)))
               (resolved, getter2)
           }
           .toSeq
