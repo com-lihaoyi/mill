@@ -73,11 +73,12 @@ dlrow olleh
 
 */
 //// SNIPPET:END
-// === Database
+// === Database Queries
 // This example shows populating and querying a simple database using a {language} script.
 // While you often want to query databases using SQL directly, sometimes it is useful to be
 // be able to query them programmatically from {language}, possibly making use of the {language}
-// libraries and application code you use in the rest of your codebase.
+// libraries and application code you use in the rest of your codebase. It uses a local
+// Sqlite database populated by the contents of a local `sqlite-customers.sql` file.
 //
 //
 //// SNIPPET:DATABASE
@@ -94,6 +95,36 @@ James Bond
 
 */
 //// SNIPPET:END
+//
+//// === Static Site Generator
+// This example is a small static site generator written as a single-file {language} script.
+// It lists markdown files in a `post/` folder, converts them to HTML using the
+// https://github.com/commonmark/commonmark-java[Commonmark-Java] library, wraps them in
+// a HTML template and writes them to HTML files in an `out/` folder along with an `index.html`
+// page that links to them:
+//
+//
+//// SNIPPET:STATICSITE
+//
+
+/** See Also: StaticSite.scala */
+
+/** Usage
+> ./mill -i StaticSite.scala
+
+> cat site-out/post/my-first-post.html
+<!DOCTYPE html><html><body><h1><a>Blog</a> / My First Post</h1><p>Sometimes you want numbered lists:</p>
+<ol>
+<li>One</li>
+<li>Two</li>
+<li>Three</li>
+</ol>
+</body></html>
+
+*/
+//// SNIPPET:END
+//
+// '''
 //
 // While initially single-file {language} programs may be a bit more verbose than the equivalent
 // Bash script containing `cp` or `curl` commands, as the script grows in complexity the value
