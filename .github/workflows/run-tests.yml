@@ -205,8 +205,8 @@ jobs:
 
           - java-version: 11
             # turn of parallelism since it sometimes causes issues with concurrent migrations
-            millargs: '--jobs=1 "example.migrating.javalib.__.packaged.daemon"'
-
+            millargs: '"example.migrating.javalib.__.packaged.daemon"'
+            extra: "--jobs=1"
           - java-version: 11
             millargs: '"libs.{util,javalib,androidlib,graphviz}.__.test"'
 
@@ -224,6 +224,7 @@ jobs:
       os: windows-latest
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
+      extra: ${{ matrix.extra | "" }}
       shell: powershell
 
   itest:
