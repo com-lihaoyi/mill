@@ -1,0 +1,7 @@
+date,product,category,quantity,price,region
+2023-01-01,Widget A,Electronics,10,29.99,North
+2023-01-01,Widget B,Electronics,5,49.99,South
+2023-01-02,Gadget X,Home,8,19.99,North
+2023-01-02,Widget A,Electronics,12,29.99,East
+2023-01-03,Widget B,Electronics,7,49.99,West
+2023-01-03,Gadget X,Home,15,19.99,South

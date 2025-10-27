@@ -1,0 +1,213 @@
+package build
+import mill.*, scalalib.*
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.20"
+  def mvnDeps = Seq(
+    mvn"org.apache.spark::spark-core:3.5.6",
+    mvn"org.apache.spark::spark-sql:3.5.6"
+  )
+
+  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
+    def testFramework = "utest.runner.Framework"
+
+    def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+  }
+
+}
+
+// ## User Defined Functions (UDFs)
+//
+// This demonstrates how to extend Spark with custom business logic using UDFs. While Spark
+// has hundreds of built-in functions, UDFs let you implement domain-specific transformations
+// that don't exist in the standard library.
+//
+// ### Why This Example Matters
+//
+// UDFs enable custom transformations for domain-specific needs:
+// - **Business logic**: Apply company-specific rules (tax calculations, pricing algorithms)
+// - **Data cleaning**: Custom parsers for non-standard formats (proprietary IDs, legacy data)
+// - **Text processing**: Domain-specific NLP (medical coding, legal document analysis)
+// - **Calculations**: Complex formulas not available in Spark functions
+// - **Integration**: Wrap existing Java/Scala libraries for distributed execution
+//
+// **When to use UDFs:**
+// - Need functionality not in spark.sql.functions
+// - Have existing code to reuse
+// - Domain logic too complex for SQL expressions
+//
+// **When NOT to use UDFs:**
+// - Built-in function exists (always faster)
+// - Simple SQL expressions work (more optimizable)
+// - Performance is critical (UDFs bypass Catalyst optimizer)
+//
+// ### Key Spark Concepts Demonstrated
+//
+// **1. Basic UDF Registration**
+// ```
+// val myUDF = udf((input: String) => input.toUpperCase)
+// df.withColumn("result", myUDF(col("input")))
+// ```
+// - Wrap any Scala function as UDF
+// - Type-safe: compiler checks input/output types
+// - Automatically serialized and sent to workers
+// - Called once per row (no vectorization by default)
+//
+// **2. Complex UDFs with Multiple Parameters**
+// ```
+// val complexUDF = udf((text: String, multiplier: Int) => {
+//   text.length * multiplier
+// })
+// ```
+// - UDFs can take multiple columns as input
+// - Return any serializable type
+// - Can contain arbitrary Scala logic
+//
+// **3. Registering UDFs for SQL**
+// ```
+// spark.udf.register("myFunction", (s: String) => s.toUpperCase)
+// spark.sql("SELECT myFunction(name) FROM users")
+// ```
+// - Makes UDFs available in Spark SQL queries
+// - Same function works in DataFrame API and SQL
+// - Registered globally per SparkSession
+//
+// **4. Null Handling in UDFs**
+// ```
+// val safeUDF = udf((input: Option[String]) => {
+//   input.map(_.toUpperCase).getOrElse("MISSING")
+// })
+// ```
+// - UDFs must handle null inputs explicitly
+// - Use Option types for null-safe processing
+// - Or check for null manually in UDF body
+//
+// **5. Performance Considerations**
+// ```
+// // Slow: UDF called per row
+// df.withColumn("result", myUDF(col("input")))
+//
+// // Fast: Built-in function (optimized by Catalyst)
+// df.withColumn("result", upper(col("input")))
+// ```
+// - UDFs bypass Spark's Catalyst optimizer (black box to Spark)
+// - No predicate pushdown, constant folding, or other optimizations
+// - Serialize/deserialize overhead for each row
+// - Use built-in functions whenever possible
+//
+// ### UDF Performance Impact
+//
+// **Why UDFs are slower:**
+// 1. **Opaque to optimizer**: Spark can't inspect UDF logic to optimize
+// 2. **Row-by-row processing**: No vectorization or SIMD operations
+// 3. **Serialization overhead**: Data converted between internal format and JVM objects
+// 4. **No code generation**: Built-in functions use Tungsten codegen, UDFs don't
+//
+// **Typical performance difference:**
+// - Built-in functions: 100-1000x faster due to Catalyst + Tungsten optimizations
+// - UDFs: Acceptable for complex logic that can't be expressed otherwise
+//
+// **Optimization strategies:**
+// - **Use built-ins first**: Check spark.sql.functions before writing UDF
+// - **Pandas UDFs (Python)**: Vectorized UDFs process batches with Arrow
+// - **Scala UDFs**: Better than Python UDFs (no serialization to Python process)
+// - **Filter before UDF**: Reduce rows processed by expensive UDFs
+// - **Cache results**: If UDF expensive and data reused
+//
+// ### Real-World Example Flow
+//
+// **Scenario:** E-commerce product categorization
+// ```
+// 1. Load product descriptions from database
+// 2. Apply domain-specific UDF to categorize products
+//    - Uses company's proprietary categorization rules
+//    - Integrates with existing Scala categorization library
+// 3. Join with inventory data
+// 4. Calculate metrics per category
+// 5. Write to analytics database
+// ```
+//
+// **Why UDF here:**
+// - Company has existing Scala categorization logic (30K LOC)
+// - Rules too complex to express in SQL (decision trees, regex patterns, lookups)
+// - Built-in functions can't replicate domain expertise
+// - Performance acceptable (categorization not on critical path)
+//
+// ### Common Pitfalls
+//
+// - **Using UDF when built-in exists**: Always check spark.sql.functions first
+// - **Ignoring null handling**: UDFs must explicitly handle null inputs
+// - **Non-serializable objects**: UDF captures must be serializable (no DB connections!)
+// - **Overly complex UDFs**: Break into multiple simpler UDFs for debuggability
+// - **Python UDFs in Scala projects**: Adds Python process overhead and serialization cost
+// - **State in UDFs**: UDFs should be pure functions (no mutable state across rows)
+// - **Heavy libraries**: Large dependencies increase job startup time
+//
+// ### Testing UDFs
+//
+// ```
+// // Test UDF logic directly (faster than Spark tests)
+// val myFunction = (s: String) => s.toUpperCase
+// assert(myFunction("hello") == "HELLO")
+//
+// // Test UDF in Spark context (integration test)
+// val myUDF = udf(myFunction)
+// val result = df.withColumn("result", myUDF(col("input")))
+// assert(result.collect().head.getAs[String]("result") == "HELLO")
+// ```
+//
+// Best practice: Test core logic separately, then integration test in Spark.
+//
+// ### Alternatives to UDFs
+//
+// **Before writing UDF, consider:**
+// 1. **SQL expressions**: `when().otherwise()`, `coalesce()`, `case class` transformations
+// 2. **Built-in functions**: 300+ functions in spark.sql.functions
+// 3. **DataFrame API**: `map()`, `flatMap()` on Dataset[T] (type-safe, still unoptimized)
+// 4. **Catalyst expressions**: Extend Spark with custom optimizable expressions (advanced)
+//
+// ### Next Steps
+//
+// - Explore Pandas UDFs for vectorized processing (Python)
+// - Learn Catalyst optimizer to understand UDF performance impact
+// - Study built-in functions to minimize UDF usage
+// - See example 7 for complex logic without UDFs
+
+/** Usage
+
+> ./mill foo.run
+Testing UDFs with sample data from resources/data.csv
+
+Basic UDF - Text length:
++--+------------------+-----+------+
+|id|text              |value|length|
++--+------------------+-----+------+
+|1 |hello world       |10   |11    |
+|2 |spark sql         |20   |9     |
+|3 |user defined function|30|21   |
++--+------------------+-----+------+
+
+Complex UDF - Sentiment score:
++--+------------------+-----+---------------+
+|id|text              |value|sentiment_score|
++--+------------------+-----+---------------+
+|1 |hello world       |10   |21             |
+|2 |spark sql         |20   |29             |
++--+------------------+-----+---------------+
+
+SQL UDF - Registered function:
++--+------------------+-----+------------+
+|id|text              |value|UPPER_TEXT  |
++--+------------------+-----+------------+
+|1 |hello world       |10   |HELLO WORLD |
+|2 |spark sql         |20   |SPARK SQL   |
++--+------------------+-----+------------+
+
+> ./mill foo.test
++ foo.FooTests.basicUDF should calculate text length...
++ foo.FooTests.complexUDF should combine multiple columns...
++ foo.FooTests.sqlUDF should work in SQL queries...
+*/

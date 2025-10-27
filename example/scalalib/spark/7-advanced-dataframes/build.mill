@@ -1,0 +1,171 @@
+package build
+import mill.*, scalalib.*
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.20"
+  def mvnDeps = Seq(
+    mvn"org.apache.spark::spark-core:3.5.6",
+    mvn"org.apache.spark::spark-sql:3.5.6"
+  )
+
+  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
+    def testFramework = "utest.runner.Framework"
+
+    def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+  }
+
+}
+
+// ## Advanced DataFrame Operations
+//
+// This demonstrates the power of Spark's DataFrame API beyond basic filters and selects.
+// These operations are what make Spark the industry standard for data analytics at scale.
+//
+// ### Why This Example Matters
+//
+// Advanced DataFrame operations handle the complex transformations that real analytics require:
+// - **Business analytics**: Pivot sales data by region/product, calculate running totals
+// - **Financial reporting**: Multi-dimensional aggregations, period-over-period comparisons
+// - **Data warehouse ETL**: Complex reshaping, null handling, conditional logic
+// - **Ad-hoc analysis**: Interactive data exploration with SQL-like operations
+//
+// These operations run distributedly across clusters but use familiar SQL concepts.
+//
+// ### Key Spark Concepts Demonstrated
+//
+// **1. Pivot Tables**
+// ```
+// df.groupBy("region").pivot("product").sum("quantity")
+// ```
+// - Rotates rows into columns (like Excel pivot tables)
+// - Creates cross-tabulation for multi-dimensional analysis
+// - Automatically aggregates values at intersections
+// - Common for dashboards showing metrics across dimensions
+//
+// **2. Window Functions**
+// ```
+// Window.partitionBy("region").orderBy("date")
+// sum("quantity").over(window).alias("running_total")
+// ```
+// - Calculate aggregates within partitions without collapsing rows
+// - Running totals, rankings, moving averages
+// - Essential for time-series analysis and percentile calculations
+// - More powerful than standard GROUP BY
+//
+// **3. Complex Aggregations**
+// ```
+// groupBy("region", "category")
+//   .agg(sum("revenue"), avg("price"), count("*"))
+// ```
+// - Multiple grouping columns (drill-down analysis)
+// - Multiple aggregation functions in single pass
+// - More efficient than separate queries
+// - Foundation for OLAP cubes and data warehouses
+//
+// **4. Null Handling**
+// ```
+// df.na.fill(Map("column1" -> 0, "column2" -> "unknown"))
+// df.na.drop()  // Remove rows with nulls
+// coalesce(col("optional"), lit("default"))
+// ```
+// - Critical for data quality in production pipelines
+// - Replace missing values with defaults
+// - Remove incomplete records
+// - Handle optional fields in schemas
+//
+// **5. Conditional Logic**
+// ```
+// when(col("price") > 100, "high")
+//   .when(col("price") > 50, "medium")
+//   .otherwise("low")
+// ```
+// - SQL CASE statements as DataFrame operations
+// - Build derived columns with business logic
+// - Categorization and bucketing
+// - Type-safe compared to SQL strings
+//
+// ### How This Scales to Production
+//
+// **Development (this example):**
+// - Small CSV file with sales data
+// - Local mode on laptop
+// - Interactive exploration
+//
+// **Production Deployment:**
+// - Billions of rows across distributed storage (S3, HDFS)
+// - Cluster with hundreds of cores
+// - Same DataFrame code - Spark handles distribution
+// - Results written to data warehouse (Snowflake, Redshift, BigQuery)
+//
+// **Performance Characteristics:**
+// - Pivot operations can be memory-intensive (lots of unique values)
+// - Window functions sorted within partitions (not globally)
+// - Multiple aggregations done in single pass (efficient)
+// - Null handling happens at column level (cheap operation)
+//
+// ### Real-World Example Flow
+//
+// **Scenario:** E-commerce sales dashboard
+// ```
+// 1. Load sales data from S3 (millions of transactions)
+// 2. Add derived columns (price tiers, date parts)
+// 3. Pivot by region × product (cross-tab for heatmap)
+// 4. Calculate running totals by region (time-series chart)
+// 5. Aggregate by multiple dimensions (drill-down capability)
+// 6. Write results to dashboard database
+// ```
+//
+// ### Common Pitfalls
+//
+// - **Pivot with too many values**: 10,000 unique products creates 10,000 columns (memory explosion)
+// - **Window without partition**: Calculates across entire dataset (expensive, often unintended)
+// - **Multiple window definitions**: Reuse window specs to avoid redundant sorting
+// - **Null semantics**: SQL nulls propagate through expressions (5 + null = null)
+// - **String column names**: Typos cause runtime errors - use strong typing when possible
+// - **Over-aggregation**: Too many groupBy columns creates too many partitions (overhead)
+//
+// ### Performance Tips
+//
+// - **Cache intermediate results** if reusing DataFrame multiple times
+// - **Partition data** by commonly filtered columns (date, region)
+// - **Broadcast small tables** in joins (< 100MB)
+// - **Limit pivot cardinality** or use custom aggregation logic
+// - **Push filters early** to reduce data volume before expensive operations
+//
+// ### Next Steps
+//
+// - Explore join strategies (broadcast, sort-merge, shuffle hash)
+// - Add UDFs for custom business logic (example 8)
+// - Use SQL directly with temporary views (example 5)
+// - Optimize with partitioning and bucketing
+
+/** Usage
+
+> ./mill foo.run
+Sales data loaded from resources/sales.csv
+
+Pivot table - Revenue by Region and Product:
++------+--------+-------+
+|region|Laptop  |Phone  |
++------+--------+-------+
+|East  |1200.00 |600.00 |
+|West  |1500.00 |700.00 |
++------+--------+-------+
+
+Running totals by region:
++----------+-------+--------+--------------+
+|date      |region |revenue |running_total |
++----------+-------+--------+--------------+
+|2024-01-01|East   |1200.00 |1200.00       |
+|2024-01-02|East   |600.00  |1800.00       |
+|2024-01-01|West   |1500.00 |1500.00       |
++----------+-------+--------+--------------+
+
+> ./mill foo.test
++ foo.FooTests.pivotTable should create cross-tabulation...
++ foo.FooTests.windowFunctions should calculate running totals...
++ foo.FooTests.multiLevelGroupBy should aggregate by multiple dimensions...
+*/
