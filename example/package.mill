@@ -32,6 +32,7 @@ object `package` extends Module {
     object linting extends Cross[ExampleCrossModuleJava](build.listCross)
     object publishing extends Cross[ExampleCrossModuleJava](build.listCross)
     object config extends Cross[ExampleCrossModuleJava](build.listCross)
+    object script extends Cross[ExampleCrossModuleJava](build.listCross)
     object web extends Cross[ExampleCrossModule](build.listCross)
   }
   object kotlinlib extends Module {
@@ -42,6 +43,7 @@ object `package` extends Module {
     object linting extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object publishing extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object config extends Cross[ExampleCrossModuleKotlin](build.listCross)
+    object script extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object web extends Cross[ExampleCrossModuleKotlin](build.listCross)
   }
   object scalalib extends Module {
@@ -52,6 +54,7 @@ object `package` extends Module {
     object linting extends Cross[ExampleCrossModule](build.listCross)
     object publishing extends Cross[ExampleCrossModule](build.listCross)
     object config extends Cross[ExampleCrossModule](build.listCross)
+    object script extends Cross[ExampleCrossModule](build.listCross)
     object web extends Cross[ExampleCrossModule](build.listCross)
     object native extends Cross[ExampleCrossModule](build.listCross)
     object spark extends Cross[ExampleCrossModule](build.listCross)
@@ -141,6 +144,7 @@ object `package` extends Module {
       case "module" => Some(scalalib.module)
       case "web" => Some(scalalib.web)
       case "publishing" => Some(scalalib.publishing)
+      case "script" => Some(scalalib.script)
       case "config" => Some(scalalib.config)
       case _ => None
     }
@@ -245,7 +249,9 @@ object `package` extends Module {
       val examplePath = moduleDir.subRelativeTo(BuildCtx.workspaceRoot)
       val frontMatter = parsed().takeWhile(_._1 == "yaml").map(_._2).mkString("\n")
       val withoutFrontMatter = parsed().dropWhile(_._1 == "yaml")
-
+      val exampleDashed = examplePath.segments.mkString("-")
+      val download =
+        s"{mill-download-url}/mill-dist-${build.millVersion()}-$exampleDashed.zip[download]"
       os.write(
         Task.dest / "example.adoc",
         withoutFrontMatter
@@ -258,7 +264,7 @@ object `package` extends Module {
                 case s => s
               }
               s"""
-.$path ({mill-example-url}/$examplePath/$path[browse])
+.$path ($download, {mill-example-url}/$examplePath/$path[browse])
 [source,$lang,subs="attributes,verbatim"]
 ----
 $txt
@@ -267,11 +273,7 @@ $txt
               val title =
                 if (seenCode) ""
                 else {
-                  val exampleDashed = examplePath.segments.mkString("-")
-                  val download =
-                    s"{mill-download-url}/mill-dist-${build.millVersion()}-$exampleDashed.zip[download]"
-                  val browse = s"{mill-example-url}/$examplePath[browse]"
-                  s".build.mill ($download, $browse)"
+                  s".build.mill ($download, {mill-example-url}/$examplePath[browse])"
                 }
               seenCode = true
               // avoid .stripMargin, as the embedded content may contain the margin symbol

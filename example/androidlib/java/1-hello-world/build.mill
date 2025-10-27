@@ -59,7 +59,7 @@ object app extends AndroidAppModule {
 
 }
 
-////SNIPPET:END
+//// SNIPPET:END
 
 /** Usage
 

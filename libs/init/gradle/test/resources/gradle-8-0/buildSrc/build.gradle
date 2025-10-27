@@ -1,0 +1,9 @@
+plugins {
+    id 'groovy-gradle-plugin'
+}
+repositories {
+    gradlePluginPortal()
+}
+dependencies {
+    implementation 'net.ltgt.errorprone:net.ltgt.errorprone.gradle.plugin:4.3.0'
+}

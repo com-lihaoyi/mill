@@ -1,0 +1,2 @@
+rootProject.name = 'gradle-8-0'
+include('app', 'list', 'utilities')

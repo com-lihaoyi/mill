@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+repositories {
+    jcenter()
+}
+dependencies {
+    implementation 'com.google.guava:guava:28.0-jre'
+    testImplementation 'org.testng:testng:6.14.3'
+}
+application {
+    mainClassName = 'gradle.App'
+}
+test {
+    useTestNG()
+}
