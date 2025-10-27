@@ -8,7 +8,7 @@ import mill.api.daemon.internal.{TestReporter, internal}
     try {
       val millOutPath = os.Path(args(2))
       val testArgs =
-        PathRef.outPathOverride.withValue(Some(millOutPath)) {
+        PathRef.mappedRoots.withMillDefaults(millOutPath) {
           upickle.read[TestArgs](os.read(os.Path(args(1))))
         }
       testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }

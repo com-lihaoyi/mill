@@ -39,7 +39,7 @@ object MillDaemonMain {
     val args =
       Args(getClass.getName, args0).fold(err => throw IllegalArgumentException(err), identity)
 
-    PathRef.outPathOverride.withValue(Some(args.outDir)) {
+    PathRef.mappedRoots.withMillDefaults(args.outDir) {
       if (Properties.isWin)
         // temporarily disabling FFM use by coursier, which has issues with the way
         // Mill manages class loaders, throwing things like

@@ -237,7 +237,7 @@ class UnitTester(
   def scoped[T](tester: UnitTester => T): T = {
     try {
       BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
-        PathRef.outPathOverride.withValue(Some(outPath)) {
+        PathRef.mappedRoots.withMillDefaults(outPath) {
           tester(this)
         }
       }

@@ -10,16 +10,14 @@ object PathRefTests extends TestSuite {
   val tests: Tests = Tests {
     test("sig") {
       def check(quick: Boolean) = withTmpDir { tmpDir =>
-        PathRef.outPathOverride.withValue(Some(tmpDir / "out")) {
-          val file = tmpDir / "foo.txt"
-          os.write.over(file, "hello")
-          val sig1 = PathRef(file, quick).sig
-          val sig1b = PathRef(file, quick).sig
-          assert(sig1 == sig1b)
-          os.write.over(file, "hello world")
-          val sig2 = PathRef(file, quick).sig
-          assert(sig1 != sig2)
-        }
+        val file = tmpDir / "foo.txt"
+        os.write.over(file, "hello")
+        val sig1 = PathRef(file, quick).sig
+        val sig1b = PathRef(file, quick).sig
+        assert(sig1 == sig1b)
+        os.write.over(file, "hello world")
+        val sig2 = PathRef(file, quick).sig
+        assert(sig1 != sig2)
       }
       test("qref") - check(quick = true)
       test("ref") - check(quick = false)
@@ -27,15 +25,13 @@ object PathRefTests extends TestSuite {
 
     test("same-sig-other-file") {
       def check(quick: Boolean) = withTmpDir { tmpDir =>
-        PathRef.outPathOverride.withValue(Some(tmpDir / "out")) {
-          val file = tmpDir / "foo.txt"
-          os.write.over(file, "hello")
-          val sig1 = PathRef(file, quick).sig
-          val file2 = tmpDir / "bar.txt"
-          os.copy(file, file2)
-          val sig1b = PathRef(file2, quick).sig
-          assert(sig1 == sig1b)
-        }
+        val file = tmpDir / "foo.txt"
+        os.write.over(file, "hello")
+        val sig1 = PathRef(file, quick).sig
+        val file2 = tmpDir / "bar.txt"
+        os.copy(file, file2)
+        val sig1b = PathRef(file2, quick).sig
+        assert(sig1 == sig1b)
       }
 //      test("qref") - check(quick = true)
       test("ref") - check(quick = false)
@@ -44,26 +40,24 @@ object PathRefTests extends TestSuite {
     test("perms") {
       def check(quick: Boolean) =
         if (isPosixFs()) withTmpDir { tmpDir =>
-          PathRef.outPathOverride.withValue(Some(tmpDir / "out")) {
-            val file = tmpDir / "foo.txt"
-            val content = "hello"
-            os.write.over(file, content)
-            Files.setPosixFilePermissions(
-              file.wrapped,
-              PosixFilePermissions.fromString("rw-rw----")
-            )
-            val rwSig = PathRef(file, quick).sig
-            val rwSigb = PathRef(file, quick).sig
-            assert(rwSig == rwSigb)
+          val file = tmpDir / "foo.txt"
+          val content = "hello"
+          os.write.over(file, content)
+          Files.setPosixFilePermissions(
+            file.wrapped,
+            PosixFilePermissions.fromString("rw-rw----")
+          )
+          val rwSig = PathRef(file, quick).sig
+          val rwSigb = PathRef(file, quick).sig
+          assert(rwSig == rwSigb)
 
-            Files.setPosixFilePermissions(
-              file.wrapped,
-              PosixFilePermissions.fromString("rwxrw----")
-            )
-            val rwxSig = PathRef(file, quick).sig
+          Files.setPosixFilePermissions(
+            file.wrapped,
+            PosixFilePermissions.fromString("rwxrw----")
+          )
+          val rwxSig = PathRef(file, quick).sig
 
-            assert(rwSig != rwxSig)
-          }
+          assert(rwSig != rwxSig)
         }
         else "Test Skipped on non-POSIX host"
 
@@ -73,22 +67,20 @@ object PathRefTests extends TestSuite {
 
     test("symlinks") {
       def check(quick: Boolean) = withTmpDir { tmpDir =>
-        PathRef.outPathOverride.withValue(Some(tmpDir / "out")) {
-          // invalid symlink
-          os.symlink(tmpDir / "nolink", tmpDir / "nonexistant")
+        // invalid symlink
+        os.symlink(tmpDir / "nolink", tmpDir / "nonexistant")
 
-          // symlink to empty dir
-          os.symlink(tmpDir / "emptylink", tmpDir / "empty")
-          os.makeDir(tmpDir / "empty")
+        // symlink to empty dir
+        os.symlink(tmpDir / "emptylink", tmpDir / "empty")
+        os.makeDir(tmpDir / "empty")
 
-          // recursive symlinks
-          os.symlink(tmpDir / "rlink1", tmpDir / "rlink2")
-          os.symlink(tmpDir / "rlink2", tmpDir / "rlink1")
+        // recursive symlinks
+        os.symlink(tmpDir / "rlink1", tmpDir / "rlink2")
+        os.symlink(tmpDir / "rlink2", tmpDir / "rlink1")
 
-          val sig1 = PathRef(tmpDir, quick).sig
-          val sig2 = PathRef(tmpDir, quick).sig
-          assert(sig1 == sig2)
-        }
+        val sig1 = PathRef(tmpDir, quick).sig
+        val sig2 = PathRef(tmpDir, quick).sig
+        assert(sig1 == sig2)
       }
       test("qref") - check(quick = true)
       test("ref") - check(quick = false)
@@ -96,25 +88,23 @@ object PathRefTests extends TestSuite {
 
     test("json") {
       def check(quick: Boolean) = withTmpDir { outDir =>
-        PathRef.outPathOverride.withValue(Some(outDir)) {
-          withTmpDir { tmpDir =>
-            val file = tmpDir / "foo.txt"
-            os.write(file, "hello")
-            val pr = PathRef(file, quick)
-            val prFile =
-              pr.path.toString().replace(outDir.toString(), "$MILL_OUT").replace("\\", "\\\\")
-            val json = upickle.write(pr)
-            if (quick) {
-              assert(json.startsWith(""""qref:v0:"""))
-              assert(json.endsWith(s""":${prFile}""""))
-            } else {
-              val hash = if (Properties.isWin) "86df6a6a" else "4c7ef487"
-              val expected = s""""ref:v0:${hash}:${prFile}""""
-              assert(json == expected)
-            }
-            val pr1 = upickle.read[PathRef](json)
-            assert(pr == pr1)
+        withTmpDir { tmpDir =>
+          val file = tmpDir / "foo.txt"
+          os.write(file, "hello")
+          val pr = PathRef(file, quick)
+          val prFile =
+            pr.path.toString().replace(outDir.toString(), "$MILL_OUT").replace("\\", "\\\\")
+          val json = upickle.write(pr)
+          if (quick) {
+            assert(json.startsWith(""""qref:v0:"""))
+            assert(json.endsWith(s""":${prFile}""""))
+          } else {
+            val hash = if (Properties.isWin) "86df6a6a" else "4c7ef487"
+            val expected = s""""ref:v0:${hash}:${prFile}""""
+            assert(json == expected)
           }
+          val pr1 = upickle.read[PathRef](json)
+          assert(pr == pr1)
         }
       }
 
@@ -125,31 +115,28 @@ object PathRefTests extends TestSuite {
     test("encode") {
       withTmpDir { tmpDir =>
         val workspaceDir = tmpDir / "workspace"
-        BuildCtx.workspaceRoot0.withValue(workspaceDir) {
-          val outDir = workspaceDir / "out"
-          PathRef.outPathOverride.withValue(Some(outDir)) {
+        val outDir = workspaceDir / "out"
+        PathRef.mappedRoots.withMillDefaults(outPath = outDir, workspacePath = workspaceDir) {
+          def check(path: os.Path, contains: Seq[String], containsNot: Seq[String]) = {
+            val enc = PathRef.encodeKnownRootsInPath(path)
+            val dec = PathRef.decodeKnownRootsInPath(enc)
+            assert(path.toString == dec)
+            contains.foreach(s => enc.containsSlice(s))
+            containsNot.foreach(s => !enc.containsSlice(s))
 
-            def check(path: os.Path, contains: Seq[String], containsNot: Seq[String]) = {
-              val enc = PathRef.encodeKnownRootsInPath(path)
-              val dec = PathRef.decodeKnownRootsInPath(enc)
-              assert(path.toString == dec)
-              contains.foreach(s => enc.containsSlice(s))
-              containsNot.foreach(s => !enc.containsSlice(s))
-
-              path -> enc
-            }
-
-            val file1 = tmpDir / "file1"
-            val file2 = workspaceDir / "file2"
-            val file3 = outDir / "file3"
-
-            Seq(
-              "mapping" -> PathRef.knownRoots,
-              check(file1, Seq("ref:v0:", file1.toString), Seq("$WORKSPACE", "$MILL_OUT")),
-              check(file2, Seq("ref:v0:", "$WORKSPACE/file2"), Seq("$MILL_OUT")),
-              check(file3, Seq("ref:v0:", "$MILL_OUT/file3"), Seq("$WORKSPACE"))
-            )
+            path -> enc
           }
+
+          val file1 = tmpDir / "file1"
+          val file2 = workspaceDir / "file2"
+          val file3 = outDir / "file3"
+
+          Seq(
+            "mapping" -> PathRef.mappedRoots.get,
+            check(file1, Seq("ref:v0:", file1.toString), Seq("$WORKSPACE", "$MILL_OUT")),
+            check(file2, Seq("ref:v0:", "$WORKSPACE/file2"), Seq("$MILL_OUT")),
+            check(file3, Seq("ref:v0:", "$MILL_OUT/file3"), Seq("$WORKSPACE"))
+          )
         }
       }
     }

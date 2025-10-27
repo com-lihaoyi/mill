@@ -114,7 +114,7 @@ object MillMain0 {
       outLock: Lock,
       outDir: os.Path
   ): (Boolean, RunnerState) = {
-    PathRef.outPathOverride.withValue(Some(outDir)) {
+    PathRef.mappedRoots.withMillDefaults(outPath = outDir) {
       mill.api.daemon.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
         os.SubProcess.env.withValue(env) {
           val parserResult = MillCliConfig.parse(args)
