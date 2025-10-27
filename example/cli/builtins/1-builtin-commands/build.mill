@@ -287,11 +287,11 @@ foo.compileClasspath
 /** Usage
 > ./mill visualize foo._
 [
-  "...$MILL_OUT/visualize.dest/out.dot",
-  "...$MILL_OUT/visualize.dest/out.json",
-  "...$MILL_OUT/visualize.dest/out.png",
-  "...$MILL_OUT/visualize.dest/out.svg",
-  "...$MILL_OUT/visualize.dest/out.txt"
+  ".../out/visualize.dest/out.dot",
+  ".../out/visualize.dest/out.json",
+  ".../out/visualize.dest/out.png",
+  ".../out/visualize.dest/out.svg",
+  ".../out/visualize.dest/out.txt"
 ]
 */
 //
@@ -342,11 +342,11 @@ graph ["rankdir"="LR"]
 /** Usage
 > ./mill visualizePlan foo.run
 [
-  "...$MILL_OUT/visualizePlan.dest/out.dot",
-  "...$MILL_OUT/visualizePlan.dest/out.json",
-  "...$MILL_OUT/visualizePlan.dest/out.png",
-  "...$MILL_OUT/visualizePlan.dest/out.svg",
-  "...$MILL_OUT/visualizePlan.dest/out.txt"
+  ".../out/visualizePlan.dest/out.dot",
+  ".../out/visualizePlan.dest/out.json",
+  ".../out/visualizePlan.dest/out.png",
+  ".../out/visualizePlan.dest/out.svg",
+  ".../out/visualizePlan.dest/out.txt"
 ]
 */
 //
