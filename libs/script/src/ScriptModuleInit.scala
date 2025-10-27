@@ -58,25 +58,28 @@ object ScriptModuleInit
 
   }
 
-  def instantiate(scriptFile: os.Path,
-                  className: String,
-                  args: AnyRef*): mill.api.Result[ExternalModule] = {
+  def instantiate(
+      scriptFile: os.Path,
+      className: String,
+      args: AnyRef*
+  ): mill.api.Result[ExternalModule] = {
     val clsOrErr =
       try Result.Success(Class.forName(className))
       catch {
         case _: Throwable =>
           // Hack to try and pick up classes nested within package objects
           try Result.Success(Class.forName(className.reverse.replaceFirst("\\.", "\\$").reverse))
-          catch{ case e: java.lang.ClassNotFoundException =>
-            val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
-            Result.Failure(
-              s"Script $relPath extends invalid class ${pprint.Util.literalize(className)}"
-            )
+          catch {
+            case _: java.lang.ClassNotFoundException =>
+              val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
+              Result.Failure(
+                s"Script $relPath extends invalid class ${pprint.Util.literalize(className)}"
+              )
           }
       }
 
     clsOrErr.flatMap(cls =>
-      mill.api.ExecResult.catchWrapException{
+      mill.api.ExecResult.catchWrapException {
         scriptModuleCache.getOrElseUpdate(
           scriptFile,
           cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ExternalModule]
@@ -95,14 +98,15 @@ object ScriptModuleInit
   ): Option[Result[ExternalModule]] = {
     val scriptFile = os.Path(scriptFile0, mill.api.BuildCtx.workspaceRoot)
     Option.when(os.isFile(scriptFile)) {
-      val parsedHeaderData = parseHeaderData(scriptFile)
-      moduleFor(
-        scriptFile,
-        parsedHeaderData.`extends`.headOption,
-        parsedHeaderData.moduleDeps,
-        parsedHeaderData.compileModuleDeps,
-        parsedHeaderData.runModuleDeps,
-        resolveModuleDep
+      parseHeaderData(scriptFile).flatMap(parsedHeaderData =>
+        moduleFor(
+          scriptFile,
+          parsedHeaderData.`extends`.headOption,
+          parsedHeaderData.moduleDeps,
+          parsedHeaderData.compileModuleDeps,
+          parsedHeaderData.runModuleDeps,
+          resolveModuleDep
+        )
       )
     }
   }

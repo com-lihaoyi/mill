@@ -1,6 +1,7 @@
 package mill.script
 import mill.*
 import mill.api.ExternalModule
+import mill.api.Result
 import mill.api.daemon.Segments
 import mill.api.ModuleCtx.HeaderData
 trait ScriptModule extends ExternalModule {
@@ -16,7 +17,7 @@ trait ScriptModule extends ExternalModule {
     )
   }
   private[mill] override def buildOverrides: Map[String, ujson.Value] =
-    ScriptModule.parseHeaderData(scriptConfig.simpleModulePath).rest
+    ScriptModule.parseHeaderData(scriptConfig.simpleModulePath).get.rest
 
   private val invalidBuildOverrides =
     buildOverrides.keySet.filter(!millDiscover.allTaskNames.contains(_))
@@ -35,13 +36,19 @@ object ScriptModule {
       runModuleDeps: Seq[mill.Module]
   )
 
-  private[mill] def parseHeaderData(millSimplePath: os.Path) = {
+  private[mill] def parseHeaderData(millSimplePath: os.Path): Result[HeaderData] = {
     val headerData = mill.api.BuildCtx.withFilesystemCheckerDisabled {
       // If the module file got deleted, handle that gracefully
       if (!os.exists(millSimplePath)) ""
       else mill.constants.Util.readBuildHeader(millSimplePath.toNIO, millSimplePath.last, true)
     }
-
-    upickle.read[HeaderData](mill.internal.Util.parsedHeaderData(headerData))
+    try Result.Success(upickle.read[HeaderData](mill.internal.Util.parsedHeaderData(headerData)))
+    catch {
+      case e: upickle.core.TraceVisitor.TraceException =>
+        val relativePath = millSimplePath.relativeTo(mill.api.BuildCtx.workspaceRoot)
+        Result.Failure(
+          s"Failed de-serializing config key ${e.jsonPath} in $relativePath: ${e.getCause.getMessage}"
+        )
+    }
   }
 }

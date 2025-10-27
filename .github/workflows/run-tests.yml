@@ -204,6 +204,7 @@ jobs:
             millargs: "'integration.invalidation.__.packaged.daemon'"
 
           - java-version: 11
+            # turn of parallelism since it sometimes causes issues with concurrent migrations
             millargs: '--jobs=1 "example.migrating.javalib.__.packaged.daemon"'
 
           - java-version: 11

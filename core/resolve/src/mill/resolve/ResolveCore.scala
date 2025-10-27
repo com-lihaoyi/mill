@@ -3,7 +3,6 @@ package mill.resolve
 import mill.api.*
 import mill.api.internal.{Reflect, Resolved, RootModule0}
 
-import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
 /**
@@ -435,7 +434,8 @@ private object ResolveCore {
           .collect {
             case (name, memberCls, getter) =>
               val resolved = Resolved.Module(Segments.labels(cache.decode(name)), memberCls)
-              val getter2 = Some((mod: Module) => mill.api.ExecResult.catchWrapException(getter(mod)))
+              val getter2 =
+                Some((mod: Module) => mill.api.ExecResult.catchWrapException(getter(mod)))
               (resolved, getter2)
           }
           .toSeq
