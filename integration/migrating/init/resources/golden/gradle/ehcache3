@@ -1,0 +1,1746 @@
+Module dependencies of clustered.ehcache-client:
+  ehcache-impl
+  clustered.ehcache-common
+  ehcache-xml.ehcache-xml-spi (compile)
+Module dependencies of clustered.ehcache-client.test:
+  clustered.ehcache-client
+  clustered.test-utils
+  clustered.server.ehcache-service
+  ehcache-xml
+  ehcache-transactions
+  clustered.server.ehcache-entity
+Module dependencies of clustered.ehcache-clustered:
+Module dependencies of clustered.ehcache-common:
+  ehcache-api
+  clustered.ehcache-common-api
+Module dependencies of clustered.ehcache-common.test:
+  clustered.ehcache-common
+  clustered.test-utils
+Module dependencies of clustered.ehcache-common-api:
+Module dependencies of clustered.ehcache-common-api.test:
+  clustered.ehcache-common-api
+Module dependencies of clustered.integration-test:
+Module dependencies of clustered.integration-test.test:
+  clustered.integration-test
+  ehcache-107
+  ehcache-impl
+  clustered.ehcache-common
+  clustered.ehcache-client
+  ehcache-xml
+  ehcache-management
+Module dependencies of clustered.ops-tool:
+Module dependencies of clustered.ops-tool.test:
+  clustered.ops-tool
+Module dependencies of clustered.osgi-test:
+Module dependencies of clustered.osgi-test.test:
+  clustered.osgi-test
+  osgi-test
+Module dependencies of clustered.server.ehcache-entity:
+  clustered.ehcache-common
+Module dependencies of clustered.server.ehcache-entity.test:
+  clustered.server.ehcache-entity
+  clustered.test-utils
+  clustered.server.ehcache-service
+Module dependencies of clustered.server.ehcache-service:
+  clustered.ehcache-common
+Module dependencies of clustered.server.ehcache-service.test:
+  clustered.server.ehcache-service
+  clustered.test-utils
+Module dependencies of clustered.server.ehcache-service-api:
+  clustered.ehcache-common-api
+Module dependencies of clustered.server.ehcache-service-api.test:
+  clustered.server.ehcache-service-api
+Module dependencies of clustered.test-utils:
+  clustered.ehcache-common
+Module dependencies of core-spi-test:
+  ehcache-impl
+  ehcache-core
+  spi-tester
+Module dependencies of demos.00-NoCache:
+  ehcache-impl
+Module dependencies of demos.01-CacheAside:
+  ehcache-impl
+Module dependencies of docs:
+Module dependencies of ehcache:
+Module dependencies of ehcache-107:
+  ehcache-xml
+Module dependencies of ehcache-107.test:
+  ehcache-107
+  ehcache-xml
+Module dependencies of ehcache-api:
+Module dependencies of ehcache-api.test:
+  ehcache-api
+Module dependencies of ehcache-core:
+  ehcache-api
+Module dependencies of ehcache-core.test:
+  ehcache-core
+  spi-tester
+Module dependencies of ehcache-impl:
+  ehcache-core
+Module dependencies of ehcache-impl.test:
+  ehcache-impl
+  core-spi-test
+Module dependencies of ehcache-management:
+  ehcache-impl
+  ehcache-core
+  clustered.ehcache-client (compile)
+  ehcache-xml.ehcache-xml-spi (compile)
+Module dependencies of ehcache-management.test:
+  ehcache-management
+  ehcache-xml
+Module dependencies of ehcache-transactions:
+  ehcache
+Module dependencies of ehcache-transactions.test:
+  ehcache-transactions
+  core-spi-test
+  ehcache-xml
+Module dependencies of ehcache-xml.ehcache-xml-spi:
+  ehcache-api
+  ehcache-core
+Module dependencies of ehcache-xml.ehcache-xml-spi.test:
+  ehcache-xml.ehcache-xml-spi
+Module dependencies of ehcache-xml:
+Module dependencies of ehcache-xml.test:
+  ehcache-xml
+Module dependencies of integration-test:
+Module dependencies of integration-test.test:
+  integration-test
+  ehcache-107
+  ehcache-impl
+  ehcache-transactions
+Module dependencies of osgi-test:
+Module dependencies of osgi-test.test:
+  osgi-test
+Module dependencies of spi-tester:
+{
+  "clustered.ehcache-client.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "clustered.ehcache-client.test.repositories": [],
+  "clustered.ehcache-clustered.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "clustered.ehcache-common.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "clustered.ehcache-common.test.repositories": [],
+  "clustered.ehcache-common-api.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "clustered.ehcache-common-api.test.repositories": [],
+  "clustered.integration-test.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "clustered.integration-test.test.repositories": [],
+  "clustered.ops-tool.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "clustered.ops-tool.test.repositories": [],
+  "clustered.osgi-test.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "clustered.osgi-test.test.repositories": [],
+  "clustered.server.ehcache-entity.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "clustered.server.ehcache-entity.test.repositories": [],
+  "clustered.server.ehcache-service.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "clustered.server.ehcache-service.test.repositories": [],
+  "clustered.server.ehcache-service-api.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "clustered.server.ehcache-service-api.test.repositories": [],
+  "clustered.test-utils.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "core-spi-test.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "demos.00-NoCache.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "demos.01-CacheAside.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "docs.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "ehcache.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "ehcache-107.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "ehcache-107.test.repositories": [],
+  "ehcache-api.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "ehcache-api.test.repositories": [],
+  "ehcache-core.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "ehcache-core.test.repositories": [],
+  "ehcache-impl.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "ehcache-impl.test.repositories": [],
+  "ehcache-management.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "ehcache-management.test.repositories": [],
+  "ehcache-transactions.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "ehcache-transactions.test.repositories": [],
+  "ehcache-xml.ehcache-xml-spi.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "ehcache-xml.ehcache-xml-spi.test.repositories": [],
+  "ehcache-xml.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "ehcache-xml.test.repositories": [],
+  "integration-test.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "integration-test.test.repositories": [],
+  "osgi-test.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ],
+  "osgi-test.test.repositories": [],
+  "spi-tester.repositories": [
+    "https://repo.terracotta.org/maven2"
+  ]
+}
+{
+  "clustered.ehcache-client.jvmId": "zulu:11",
+  "clustered.ehcache-clustered.jvmId": "",
+  "clustered.ehcache-common.jvmId": "zulu:11",
+  "clustered.ehcache-common-api.jvmId": "zulu:11",
+  "clustered.integration-test.jvmId": "zulu:11",
+  "clustered.ops-tool.jvmId": "zulu:11",
+  "clustered.osgi-test.jvmId": "zulu:11",
+  "clustered.server.ehcache-entity.jvmId": "zulu:11",
+  "clustered.server.ehcache-service.jvmId": "zulu:11",
+  "clustered.server.ehcache-service-api.jvmId": "zulu:11",
+  "clustered.test-utils.jvmId": "zulu:11",
+  "core-spi-test.jvmId": "zulu:11",
+  "demos.00-NoCache.jvmId": "zulu:11",
+  "demos.01-CacheAside.jvmId": "zulu:11",
+  "docs.jvmId": "",
+  "ehcache.jvmId": "",
+  "ehcache-107.jvmId": "zulu:11",
+  "ehcache-api.jvmId": "zulu:11",
+  "ehcache-core.jvmId": "zulu:11",
+  "ehcache-impl.jvmId": "zulu:11",
+  "ehcache-management.jvmId": "zulu:11",
+  "ehcache-transactions.jvmId": "zulu:11",
+  "ehcache-xml.ehcache-xml-spi.jvmId": "zulu:11",
+  "ehcache-xml.jvmId": "zulu:11",
+  "integration-test.jvmId": "zulu:11",
+  "osgi-test.jvmId": "zulu:11",
+  "spi-tester.jvmId": "zulu:11"
+}
+{
+  "clustered.ehcache-client.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36",
+    "org.terracotta:entity-client-api:1.8.2",
+    "org.terracotta.dynamic-config.entities:dynamic-config-topology-entity-client:5.9.16",
+    "org.terracotta:runnel:5.9.16",
+    "org.terracotta:lease-api:5.9.16",
+    "org.terracotta:connection-api:1.8.2"
+  ],
+  "clustered.ehcache-client.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.terracotta.internal:common-spi:5.9.5",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:passthrough-leased-connection-api:5.9.16",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:passthrough-server:1.8.4",
+    "org.codehaus.btm:btm:2.1.4;exclude=org.slf4j:slf4j-api",
+    "org.terracotta:statistics:2.1.2",
+    "org.terracotta:entity-test-lib:1.8.4",
+    "org.terracotta:client-message-tracker:5.9.16"
+  ],
+  "clustered.ehcache-clustered.mvnDeps": [],
+  "clustered.ehcache-common.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36",
+    "org.terracotta:runnel:5.9.16",
+    "org.terracotta:entity-common-api:1.8.2"
+  ],
+  "clustered.ehcache-common.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "clustered.ehcache-common-api.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36",
+    "org.terracotta:entity-common-api:1.8.2"
+  ],
+  "clustered.ehcache-common-api.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "clustered.integration-test.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36"
+  ],
+  "clustered.integration-test.test.mvnDeps": [
+    "org.terracotta.management:nms-entity-client:5.9.16",
+    "org.hamcrest:hamcrest:2.2",
+    "org.terracotta.internal:client-runtime:5.9.5",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.terracotta:galvan-platform-support:5.9.16;exclude=org.terracotta:terracotta-utilities-port-chooser",
+    "javax.cache:cache-tests:1.1.0;exclude=junit:junit",
+    "org.terracotta:lease-api:5.9.16",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta.management:nms-agent-entity-client:5.9.16",
+    "javax.cache:cache-tests:1.1.0;classifier=tests;exclude=junit:junit",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "javax.cache:cache-api:1.1.0",
+    "org.terracotta:runnel:5.9.16",
+    "org.terracotta:terracotta-utilities-port-chooser:0.0.15",
+    "com.fasterxml.jackson.core:jackson-databind:"
+  ],
+  "clustered.ops-tool.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36",
+    "com.beust:jcommander:1.47"
+  ],
+  "clustered.ops-tool.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "clustered.osgi-test.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36"
+  ],
+  "clustered.osgi-test.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "clustered.server.ehcache-entity.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36",
+    "org.terracotta:offheap-store:2.5.3",
+    "org.terracotta:runnel:5.9.16",
+    "org.terracotta:client-message-tracker:5.9.16"
+  ],
+  "clustered.server.ehcache-entity.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "clustered.server.ehcache-service.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36",
+    "org.terracotta:offheap-store:2.5.3"
+  ],
+  "clustered.server.ehcache-service.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:passthrough-server:1.8.4",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.terracotta.management:monitoring-service-api:5.9.16",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "clustered.server.ehcache-service-api.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36"
+  ],
+  "clustered.server.ehcache-service-api.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "clustered.test-utils.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36",
+    "org.hamcrest:hamcrest-core:2.2"
+  ],
+  "core-spi-test.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36",
+    "junit:junit:4.13.1",
+    "org.hamcrest:hamcrest-library:2.2",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "demos.00-NoCache.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36",
+    "javax.servlet:javax.servlet-api:3.1.0"
+  ],
+  "demos.01-CacheAside.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36",
+    "javax.servlet:javax.servlet-api:3.1.0"
+  ],
+  "docs.mvnDeps": [],
+  "ehcache.mvnDeps": [],
+  "ehcache-107.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36"
+  ],
+  "ehcache-107.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "ehcache-api.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36"
+  ],
+  "ehcache-api.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "ehcache-core.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36",
+    "org.terracotta:statistics:2.1.2"
+  ],
+  "ehcache-core.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "ehcache-impl.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36",
+    "org.terracotta:terracotta-utilities-tools:0.0.15",
+    "org.ehcache:sizeof:0.4.3",
+    "org.terracotta:offheap-store:2.5.3"
+  ],
+  "ehcache-impl.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.ow2.asm:asm-commons:6.2",
+    "org.terracotta:statistics:2.1.2",
+    "org.ow2.asm:asm:6.2",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "ehcache-management.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36",
+    "org.terracotta:statistics:2.1.2"
+  ],
+  "ehcache-management.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.terracotta.management:management-registry:5.9.16",
+    "org.mockito:mockito-core:4.3.1",
+    "com.fasterxml.jackson.core:jackson-databind:"
+  ],
+  "ehcache-transactions.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36"
+  ],
+  "ehcache-transactions.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "ehcache-xml.ehcache-xml-spi.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36"
+  ],
+  "ehcache-xml.ehcache-xml-spi.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "ehcache-xml.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36",
+    "javax.xml.bind:jaxb-api:[2.2,3)"
+  ],
+  "ehcache-xml.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "integration-test.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36"
+  ],
+  "integration-test.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.codehaus.btm:btm:2.1.4;exclude=org.slf4j:slf4j-api",
+    "javax.cache:cache-api:1.1.0",
+    "org.terracotta:statistics:2.1.2",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "osgi-test.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36",
+    "org.ops4j.pax.exam:pax-exam-junit4:4.13.5;exclude=org.slf4j:slf4j-api",
+    "org.apache.felix:org.apache.felix.framework:7.0.3"
+  ],
+  "osgi-test.test.mvnDeps": [
+    "org.hamcrest:hamcrest:2.2",
+    "junit:junit:4.13.1",
+    "org.assertj:assertj-core:3.22.0",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.mockito:mockito-core:4.3.1"
+  ],
+  "spi-tester.mvnDeps": [
+    "org.slf4j:slf4j-api:1.7.36"
+  ]
+}
+{
+  "clustered.ehcache-client.compileMvnDeps": [
+    "org.osgi:org.osgi.service.component.annotations:1.3.0",
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.ehcache-client.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.ehcache-clustered.compileMvnDeps": [],
+  "clustered.ehcache-common.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.ehcache-common.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.ehcache-common-api.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.ehcache-common-api.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.integration-test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.integration-test.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.ops-tool.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.ops-tool.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.osgi-test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.osgi-test.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.server.ehcache-entity.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.server.ehcache-entity.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.server.ehcache-service.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.server.ehcache-service.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.server.ehcache-service-api.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.server.ehcache-service-api.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "clustered.test-utils.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "core-spi-test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "demos.00-NoCache.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "demos.01-CacheAside.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "docs.compileMvnDeps": [],
+  "ehcache.compileMvnDeps": [],
+  "ehcache-107.compileMvnDeps": [
+    "org.osgi:org.osgi.service.component.annotations:1.3.0",
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "ehcache-107.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "ehcache-api.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "ehcache-api.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "ehcache-core.compileMvnDeps": [
+    "org.osgi:org.osgi.service.component.annotations:1.3.0",
+    "com.github.spotbugs:spotbugs-annotations:4.2.3",
+    "org.osgi:osgi.core:6.0.0"
+  ],
+  "ehcache-core.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "ehcache-impl.compileMvnDeps": [
+    "org.osgi:org.osgi.service.component.annotations:1.3.0",
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "ehcache-impl.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "ehcache-management.compileMvnDeps": [
+    "org.terracotta:entity-client-api:1.8.2",
+    "org.terracotta.management:nms-agent-entity-client:5.9.16;exclude=org.terracotta:statistics",
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "ehcache-management.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "ehcache-transactions.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "ehcache-transactions.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "ehcache-xml.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "ehcache-xml.ehcache-xml-spi.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "ehcache-xml.ehcache-xml-spi.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "ehcache-xml.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "integration-test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "integration-test.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "osgi-test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "osgi-test.test.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ],
+  "spi-tester.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+  ]
+}
+{
+  "clustered.ehcache-client.runMvnDeps": [],
+  "clustered.ehcache-client.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.ehcache-clustered.runMvnDeps": [],
+  "clustered.ehcache-common.runMvnDeps": [],
+  "clustered.ehcache-common.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.ehcache-common-api.runMvnDeps": [],
+  "clustered.ehcache-common-api.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.integration-test.runMvnDeps": [],
+  "clustered.integration-test.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.ops-tool.runMvnDeps": [],
+  "clustered.ops-tool.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.osgi-test.runMvnDeps": [],
+  "clustered.osgi-test.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.server.ehcache-entity.runMvnDeps": [],
+  "clustered.server.ehcache-entity.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.server.ehcache-service.runMvnDeps": [],
+  "clustered.server.ehcache-service.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.server.ehcache-service-api.runMvnDeps": [],
+  "clustered.server.ehcache-service-api.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "clustered.test-utils.runMvnDeps": [],
+  "core-spi-test.runMvnDeps": [],
+  "demos.00-NoCache.runMvnDeps": [
+    "com.h2database:h2:1.4.196",
+    "ch.qos.logback:logback-classic:1.2.11"
+  ],
+  "demos.01-CacheAside.runMvnDeps": [
+    "com.h2database:h2:1.4.196",
+    "ch.qos.logback:logback-classic:1.2.11"
+  ],
+  "docs.runMvnDeps": [],
+  "ehcache.runMvnDeps": [],
+  "ehcache-107.runMvnDeps": [],
+  "ehcache-107.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "ehcache-api.runMvnDeps": [],
+  "ehcache-api.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "ehcache-core.runMvnDeps": [],
+  "ehcache-core.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "ehcache-impl.runMvnDeps": [],
+  "ehcache-impl.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "ehcache-management.runMvnDeps": [],
+  "ehcache-management.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "ehcache-transactions.runMvnDeps": [],
+  "ehcache-transactions.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "ehcache-xml.ehcache-xml-spi.runMvnDeps": [],
+  "ehcache-xml.ehcache-xml-spi.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "ehcache-xml.runMvnDeps": [
+    "org.glassfish.jaxb:jaxb-runtime:[2.2,3)"
+  ],
+  "ehcache-xml.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "integration-test.runMvnDeps": [],
+  "integration-test.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "osgi-test.runMvnDeps": [
+    "org.ops4j.pax.url:pax-url-wrap:2.6.11;exclude=org.slf4j:slf4j-api",
+    "org.ops4j.pax.exam:pax-exam-container-native:4.13.5;exclude=org.slf4j:slf4j-api",
+    "org.ops4j.pax.exam:pax-exam-link-mvn:4.13.5;exclude=org.slf4j:slf4j-api"
+  ],
+  "osgi-test.test.runMvnDeps": [
+    "org.slf4j:slf4j-simple:1.7.36"
+  ],
+  "spi-tester.runMvnDeps": []
+}
+{
+  "clustered.ehcache-client.bomMvnDeps": [],
+  "clustered.ehcache-client.test.bomMvnDeps": [],
+  "clustered.ehcache-clustered.bomMvnDeps": [],
+  "clustered.ehcache-common.bomMvnDeps": [],
+  "clustered.ehcache-common.test.bomMvnDeps": [],
+  "clustered.ehcache-common-api.bomMvnDeps": [],
+  "clustered.ehcache-common-api.test.bomMvnDeps": [],
+  "clustered.integration-test.bomMvnDeps": [],
+  "clustered.integration-test.test.bomMvnDeps": [
+    "com.fasterxml.jackson:jackson-bom:2.13.4"
+  ],
+  "clustered.ops-tool.bomMvnDeps": [],
+  "clustered.ops-tool.test.bomMvnDeps": [],
+  "clustered.osgi-test.bomMvnDeps": [],
+  "clustered.osgi-test.test.bomMvnDeps": [],
+  "clustered.server.ehcache-entity.bomMvnDeps": [],
+  "clustered.server.ehcache-entity.test.bomMvnDeps": [],
+  "clustered.server.ehcache-service.bomMvnDeps": [],
+  "clustered.server.ehcache-service.test.bomMvnDeps": [],
+  "clustered.server.ehcache-service-api.bomMvnDeps": [],
+  "clustered.server.ehcache-service-api.test.bomMvnDeps": [],
+  "clustered.test-utils.bomMvnDeps": [],
+  "core-spi-test.bomMvnDeps": [],
+  "demos.00-NoCache.bomMvnDeps": [],
+  "demos.01-CacheAside.bomMvnDeps": [],
+  "docs.bomMvnDeps": [],
+  "ehcache.bomMvnDeps": [],
+  "ehcache-107.bomMvnDeps": [],
+  "ehcache-107.test.bomMvnDeps": [],
+  "ehcache-api.bomMvnDeps": [],
+  "ehcache-api.test.bomMvnDeps": [],
+  "ehcache-core.bomMvnDeps": [],
+  "ehcache-core.test.bomMvnDeps": [],
+  "ehcache-impl.bomMvnDeps": [],
+  "ehcache-impl.test.bomMvnDeps": [],
+  "ehcache-management.bomMvnDeps": [],
+  "ehcache-management.test.bomMvnDeps": [
+    "com.fasterxml.jackson:jackson-bom:2.13.4"
+  ],
+  "ehcache-transactions.bomMvnDeps": [],
+  "ehcache-transactions.test.bomMvnDeps": [],
+  "ehcache-xml.bomMvnDeps": [],
+  "ehcache-xml.ehcache-xml-spi.bomMvnDeps": [],
+  "ehcache-xml.ehcache-xml-spi.test.bomMvnDeps": [],
+  "ehcache-xml.test.bomMvnDeps": [],
+  "integration-test.bomMvnDeps": [],
+  "integration-test.test.bomMvnDeps": [],
+  "osgi-test.bomMvnDeps": [],
+  "osgi-test.test.bomMvnDeps": [],
+  "spi-tester.bomMvnDeps": []
+}
+{
+  "clustered.ehcache-client.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.ehcache-client.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.ehcache-clustered.javacOptions": [],
+  "clustered.ehcache-common.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.ehcache-common.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.ehcache-common-api.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.ehcache-common-api.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.integration-test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.integration-test.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.ops-tool.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.ops-tool.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.osgi-test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.osgi-test.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.server.ehcache-entity.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.server.ehcache-entity.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.server.ehcache-service.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.server.ehcache-service.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.server.ehcache-service-api.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.server.ehcache-service-api.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "clustered.test-utils.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "core-spi-test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "demos.00-NoCache.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "demos.01-CacheAside.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "docs.javacOptions": [],
+  "ehcache.javacOptions": [],
+  "ehcache-107.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-107.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-api.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-api.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-core.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-core.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-impl.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-impl.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-management.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-management.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-transactions.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-transactions.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-xml.ehcache-xml-spi.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-xml.ehcache-xml-spi.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-xml.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "ehcache-xml.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "integration-test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "integration-test.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "osgi-test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "osgi-test.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ],
+  "spi-tester.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8",
+    "-encoding",
+    "UTF-8",
+    "-Werror",
+    "-Xlint:all"
+  ]
+}
+{
+  "clustered.ehcache-client.pomParentProject": null,
+  "clustered.ehcache-clustered.pomParentProject": null,
+  "clustered.ehcache-common.pomParentProject": null,
+  "clustered.ehcache-common-api.pomParentProject": null,
+  "clustered.server.ehcache-entity.pomParentProject": null,
+  "clustered.server.ehcache-service.pomParentProject": null,
+  "clustered.server.ehcache-service-api.pomParentProject": null,
+  "ehcache.pomParentProject": null,
+  "ehcache-107.pomParentProject": null,
+  "ehcache-api.pomParentProject": null,
+  "ehcache-core.pomParentProject": null,
+  "ehcache-impl.pomParentProject": null,
+  "ehcache-management.pomParentProject": null,
+  "ehcache-transactions.pomParentProject": null,
+  "ehcache-xml.ehcache-xml-spi.pomParentProject": null,
+  "ehcache-xml.pomParentProject": null
+}
+{
+  "clustered.ehcache-client.pomSettings": {
+    "description": "The Client Side Clustering module of Ehcache 3",
+    "organization": "org.ehcache.modules.clustered",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "clustered.ehcache-clustered.pomSettings": {
+    "description": "Ehcache 3 Clustered: Defines the client jar and the kit containing the Terracotta server",
+    "organization": "org.ehcache",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "clustered.ehcache-common.pomSettings": {
+    "description": "The Common Clustering module of Ehcache 3",
+    "organization": "org.ehcache.modules.clustered",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "clustered.ehcache-common-api.pomSettings": {
+    "description": "The Common Clustering API module of Ehcache 3",
+    "organization": "org.ehcache.modules.clustered",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "clustered.server.ehcache-entity.pomSettings": {
+    "description": "The Server Entity module of Ehcache 3",
+    "organization": "org.ehcache.modules.clustered",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "clustered.server.ehcache-service.pomSettings": {
+    "description": "The Server Storage Implementation module of Ehcache 3",
+    "organization": "org.ehcache.modules.clustered",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "clustered.server.ehcache-service-api.pomSettings": {
+    "description": "The Server Storage API module of Ehcache 3",
+    "organization": "org.ehcache.modules.clustered",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache.pomSettings": {
+    "description": "End-user ehcache3 jar artifact",
+    "organization": "org.ehcache",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-107.pomSettings": {
+    "description": "The JSR-107 compatibility module of Ehcache 3",
+    "organization": "org.ehcache.modules",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-api.pomSettings": {
+    "description": "The API module of Ehcache 3",
+    "organization": "org.ehcache.modules",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-core.pomSettings": {
+    "description": "The Core module of Ehcache 3",
+    "organization": "org.ehcache.modules",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-impl.pomSettings": {
+    "description": "The implementation module of Ehcache 3",
+    "organization": "org.ehcache.modules",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-management.pomSettings": {
+    "description": "The Management and Monitoring module of Ehcache 3",
+    "organization": "org.ehcache.modules",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-transactions.pomSettings": {
+    "description": "The transactions module of Ehcache 3",
+    "organization": "org.ehcache",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-xml.ehcache-xml-spi.pomSettings": {
+    "description": "This module contains the XML parsing SPI for Ehcache 3. This allows Ehcache extension services to provide XML configuration capabilities.",
+    "organization": "org.ehcache.modules",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  },
+  "ehcache-xml.pomSettings": {
+    "description": "The module containing all XML parsing logic Ehcache 3",
+    "organization": "org.ehcache.modules",
+    "url": "http://ehcache.org",
+    "licenses": [
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+        "distribution": "repo"
+      }
+    ],
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3",
+      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
+      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
+    },
+    "developers": [
+      {
+        "name": "Terracotta Engineers",
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
+        "organizationUrl": "http://ehcache.org"
+      }
+    ]
+  }
+}
+{
+  "clustered.ehcache-client.publishVersion": "3.10.8",
+  "clustered.ehcache-clustered.publishVersion": "3.10.8",
+  "clustered.ehcache-common.publishVersion": "3.10.8",
+  "clustered.ehcache-common-api.publishVersion": "3.10.8",
+  "clustered.server.ehcache-entity.publishVersion": "3.10.8",
+  "clustered.server.ehcache-service.publishVersion": "3.10.8",
+  "clustered.server.ehcache-service-api.publishVersion": "3.10.8",
+  "ehcache.publishVersion": "3.10.8",
+  "ehcache-107.publishVersion": "3.10.8",
+  "ehcache-api.publishVersion": "3.10.8",
+  "ehcache-core.publishVersion": "3.10.8",
+  "ehcache-impl.publishVersion": "3.10.8",
+  "ehcache-management.publishVersion": "3.10.8",
+  "ehcache-transactions.publishVersion": "3.10.8",
+  "ehcache-xml.ehcache-xml-spi.publishVersion": "3.10.8",
+  "ehcache-xml.publishVersion": "3.10.8"
+}
+{
+  "clustered.ehcache-client.versionScheme": null,
+  "clustered.ehcache-clustered.versionScheme": null,
+  "clustered.ehcache-common.versionScheme": null,
+  "clustered.ehcache-common-api.versionScheme": null,
+  "clustered.server.ehcache-entity.versionScheme": null,
+  "clustered.server.ehcache-service.versionScheme": null,
+  "clustered.server.ehcache-service-api.versionScheme": null,
+  "ehcache.versionScheme": null,
+  "ehcache-107.versionScheme": null,
+  "ehcache-api.versionScheme": null,
+  "ehcache-core.versionScheme": null,
+  "ehcache-impl.versionScheme": null,
+  "ehcache-management.versionScheme": null,
+  "ehcache-transactions.versionScheme": null,
+  "ehcache-xml.ehcache-xml-spi.versionScheme": null,
+  "ehcache-xml.versionScheme": null
+}
+{
+  "clustered.ehcache-client.publishProperties": {},
+  "clustered.ehcache-clustered.publishProperties": {},
+  "clustered.ehcache-common.publishProperties": {},
+  "clustered.ehcache-common-api.publishProperties": {},
+  "clustered.server.ehcache-entity.publishProperties": {},
+  "clustered.server.ehcache-service.publishProperties": {},
+  "clustered.server.ehcache-service-api.publishProperties": {},
+  "ehcache.publishProperties": {},
+  "ehcache-107.publishProperties": {},
+  "ehcache-api.publishProperties": {},
+  "ehcache-core.publishProperties": {},
+  "ehcache-impl.publishProperties": {},
+  "ehcache-management.publishProperties": {},
+  "ehcache-transactions.publishProperties": {},
+  "ehcache-xml.ehcache-xml-spi.publishProperties": {},
+  "ehcache-xml.publishProperties": {}
+}
+
+
+
+
+
+
+
+
+
+
+{
+  "clustered.ehcache-client.test.testParallelism": false,
+  "clustered.ehcache-common.test.testParallelism": false,
+  "clustered.ehcache-common-api.test.testParallelism": false,
+  "clustered.integration-test.test.testParallelism": false,
+  "clustered.ops-tool.test.testParallelism": false,
+  "clustered.osgi-test.test.testParallelism": false,
+  "clustered.server.ehcache-entity.test.testParallelism": false,
+  "clustered.server.ehcache-service.test.testParallelism": false,
+  "clustered.server.ehcache-service-api.test.testParallelism": false,
+  "ehcache-107.test.testParallelism": false,
+  "ehcache-api.test.testParallelism": false,
+  "ehcache-core.test.testParallelism": false,
+  "ehcache-impl.test.testParallelism": false,
+  "ehcache-management.test.testParallelism": false,
+  "ehcache-transactions.test.testParallelism": false,
+  "ehcache-xml.ehcache-xml-spi.test.testParallelism": false,
+  "ehcache-xml.test.testParallelism": false,
+  "integration-test.test.testParallelism": false,
+  "osgi-test.test.testParallelism": false
+}
+{
+  "clustered.ehcache-client.test.testSandboxWorkingDir": false,
+  "clustered.ehcache-common.test.testSandboxWorkingDir": false,
+  "clustered.ehcache-common-api.test.testSandboxWorkingDir": false,
+  "clustered.integration-test.test.testSandboxWorkingDir": false,
+  "clustered.ops-tool.test.testSandboxWorkingDir": false,
+  "clustered.osgi-test.test.testSandboxWorkingDir": false,
+  "clustered.server.ehcache-entity.test.testSandboxWorkingDir": false,
+  "clustered.server.ehcache-service.test.testSandboxWorkingDir": false,
+  "clustered.server.ehcache-service-api.test.testSandboxWorkingDir": false,
+  "ehcache-107.test.testSandboxWorkingDir": false,
+  "ehcache-api.test.testSandboxWorkingDir": false,
+  "ehcache-core.test.testSandboxWorkingDir": false,
+  "ehcache-impl.test.testSandboxWorkingDir": false,
+  "ehcache-management.test.testSandboxWorkingDir": false,
+  "ehcache-transactions.test.testSandboxWorkingDir": false,
+  "ehcache-xml.ehcache-xml-spi.test.testSandboxWorkingDir": false,
+  "ehcache-xml.test.testSandboxWorkingDir": false,
+  "integration-test.test.testSandboxWorkingDir": false,
+  "osgi-test.test.testSandboxWorkingDir": false
+}

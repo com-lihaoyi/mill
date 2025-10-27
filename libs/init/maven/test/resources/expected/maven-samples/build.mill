@@ -1,13 +1,15 @@
 //| mill-version: SNAPSHOT
 package build
 
-import mill._
-import mill.javalib._
-import mill.javalib.publish._
+import mill.javalib.*
+import mill.javalib.publish.*
+import millbuild.*
 
-object `package` extends PublishModule with MavenModule {
+object `package` extends MavenSamplesBaseModule {
 
   def artifactName = "parent"
+
+  def pomPackagingType = "pom"
 
   def pomSettings = PomSettings(
     "Just a pom that makes it easy to build both projects at the same time.",
@@ -17,9 +19,5 @@ object `package` extends PublishModule with MavenModule {
     VersionControl(None, None, None, None),
     Seq()
   )
-
-  def publishVersion = "1.0-SNAPSHOT"
-
-  def pomPackagingType = PackagingType.Pom
 
 }
