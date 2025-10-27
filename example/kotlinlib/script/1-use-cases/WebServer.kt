@@ -2,7 +2,7 @@
 import spark.Spark.*
 
 fun main() {
-    post("/do-thing") { req, res ->
+    post("/reverse-string") { req, res ->
         req.body().reversed()
     }
 }

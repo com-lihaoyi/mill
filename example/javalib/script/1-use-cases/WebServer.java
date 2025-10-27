@@ -3,9 +3,7 @@ import static spark.Spark.*;
 
 public class WebServer {
   public static void main(String[] args) {
-    // Define a POST route at /do-thing
-    post("/do-thing", (request, response) -> {
-      // Reverse the request body text and return it
+    post("/reverse-string", (request, response) -> {
       String body = request.body();
       return new StringBuilder(body).reverse().toString();
     });

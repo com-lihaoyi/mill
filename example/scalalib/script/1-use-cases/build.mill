@@ -67,7 +67,7 @@ Scraper.scala:21 seen: HashSet(
 /** Usage
 > ./mill WebServer.scala:runBackground
 
-> curl -d 'hello world' localhost:8080/do-thing
+> curl -d 'hello world' localhost:8080/reverse-string
 dlrow olleh
 
 */

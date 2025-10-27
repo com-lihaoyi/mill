@@ -35,7 +35,7 @@ Government_of_Singapore
 /** Usage
 > ./mill WebServer.java:runBackground
 
-> curl -d 'hello world' localhost:8080/do-thing
+> curl -d 'hello world' localhost:8080/reverse-string
 dlrow olleh
 
 */
