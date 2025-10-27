@@ -29,3 +29,13 @@ Government_of_Singapore
 ...
 
 */
+//// SNIPPET:WEBSERVER
+/** See Also: WebServer.java */
+
+/** Usage
+> ./mill WebServer.java:runBackground
+
+> curl -d 'hello world' localhost:8080/do-thing
+dlrow olleh
+
+*/
