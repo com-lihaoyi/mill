@@ -30,7 +30,7 @@ Jvm Version: 11.0.28
 //// SNIPPET:END
 
 // The `./mill Foo.{language-ext}` syntax is shorthand for `./mill Foo.{language-ext}:run`.
-// You can also call other tasks on your script modules, such as `Foo.{langauge-ext}:assembly`
+// You can also call other tasks on your script modules, such as `Foo.{language-ext}:assembly`
 // below:
 
 //// SNIPPET:MORE
