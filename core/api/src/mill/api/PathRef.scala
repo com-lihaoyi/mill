@@ -2,6 +2,7 @@ package mill.api
 
 import mill.api.DummyOutputStream
 import mill.api.daemon.internal.PathRefApi
+import mill.constants.PathVars
 import upickle.ReadWriter as RW
 
 import java.nio.file as jnio
@@ -25,7 +26,13 @@ case class PathRef private[mill] (
 ) extends PathRefApi {
   private[mill] def javaPath = path.toNIO
 
-  private[mill] val pathVal: String = PathRef.encodeKnownRootsInPath(path)
+  private[mill] val mappedPath: String = PathRef.encodeKnownRootsInPath(path)
+
+  /**
+   * Apply the current contextual path mapping to this PathRef.
+   * Updates [[mappedPath]] but does not recalculate the sig`.
+   */
+  def remap: PathRef = PathRef(path, quick, sig, revalidate)
 
   def recomputeSig(): Int = PathRef.apply(path, quick).sig
   def validate(): Boolean = recomputeSig() == sig
@@ -41,7 +48,13 @@ case class PathRef private[mill] (
   def withRevalidate(revalidate: PathRef.Revalidate): PathRef = copy(revalidate = revalidate)
   def withRevalidateOnce: PathRef = copy(revalidate = PathRef.Revalidate.Once)
 
-  private def toStringPrefix = {
+  /**
+   * Renders a toString represntation.
+   * @param map if `true`, the rendered path may contain placeholders for configured root paths.
+   *            See [[PathRef.mappedRoots]].
+   *            If `false`, the path is local and absolute.
+   */
+  private def renderToString(map: Boolean): String = {
     val quick = if (this.quick) "qref:" else "ref:"
 
     val valid = revalidate match {
@@ -50,18 +63,19 @@ case class PathRef private[mill] (
       case PathRef.Revalidate.Always => "vn:"
     }
     val sig = String.format("%08x", this.sig: Integer)
-    quick + valid + sig + ":"
+    val p = if (map) mappedPath else path.toString()
+    s"${quick}${valid}${sig}:${p}"
   }
 
   override def toString: String = {
-    toStringPrefix + path.toString()
+    renderToString(false)
   }
 
   // Instead of using `path` we need to use `pathVal`, to make the hashcode stable as cache key
   override def hashCode(): Int = {
     var h = MurmurHash3.productSeed
     h = MurmurHash3.mix(h, "PathRef".hashCode)
-    h = MurmurHash3.mix(h, pathVal.hashCode)
+    h = MurmurHash3.mix(h, mappedPath.hashCode)
     h = MurmurHash3.mix(h, quick.##)
     h = MurmurHash3.mix(h, sig.##)
     h = MurmurHash3.mix(h, revalidate.##)
@@ -209,42 +223,59 @@ object PathRef {
     }
   }
 
-  private[mill] val outPathOverride: DynamicVariable[Option[os.Path]] = DynamicVariable(None)
+  private[api] type MappedRoots = Seq[(key: String, path: os.Path)]
 
-  private[api] type KnownRoots = Seq[(replacement: String, root: os.Path)]
+  object mappedRoots {
+    private[PathRef] val rootMapping: DynamicVariable[MappedRoots] = DynamicVariable(Seq())
 
-  private[api] def knownRoots: KnownRoots = {
-    // order is important!
-    Seq(
-      (
-        "$MILL_OUT",
-        outPathOverride.value.getOrElse(
-          throw RuntimeException("Can't substitute $MILL_OUT, output path is not configured.")
-        )
-      ),
-      ("$WORKSPACE", BuildCtx.workspaceRoot),
-      // TODO: add coursier here
-      ("$HOME", os.home)
-    )
+    def get: MappedRoots = rootMapping.value
+
+    def toMap: Map[String, os.Path] = get.map(m => (m.key, m.path)).toMap
+
+    def withMillDefaults[T](
+        outPath: os.Path,
+        workspacePath: os.Path = BuildCtx.workspaceRoot,
+        homePath: os.Path = os.home
+    )(thunk: => T): T = withMapping(
+      Seq(
+        ("MILL_OUT", outPath),
+        ("$WORKSPACE", workspacePath),
+        // TODO: add coursier here
+        ("$HOME", homePath)
+      )
+    )(thunk)
+
+    def withMapping[T](mapping: MappedRoots)(thunk: => T): T = withMapping(_ => mapping)(thunk)
+
+    def withMapping[T](mapping: MappedRoots => MappedRoots)(thunk: => T): T = {
+      val newMapping = mapping(rootMapping.value)
+      newMapping.foreach { case m =>
+        require(!m.key.startsWith("$"), "Key must not start with a `$`.")
+        require(m.key != PathVars.ROOT, s"Invalid key, '${PathVars.ROOT}' is a reserved key name.")
+      }
+      rootMapping.withValue(newMapping)(thunk)
+    }
   }
 
   private[api] def encodeKnownRootsInPath(p: os.Path): String = {
     // TODO: Do we need to check for '$' and mask it ?
-    knownRoots.collectFirst {
-      case rep if p.startsWith(rep.root) =>
-        s"${rep.replacement}${
-            if (p != rep.root) {
-              s"/${p.subRelativeTo(rep.root).toString()}"
+    mappedRoots.get.collectFirst {
+      case rep if p.startsWith(rep.path) =>
+        s"$$${rep.key}${
+            if (p != rep.path) {
+              s"/${p.subRelativeTo(rep.path).toString()}"
             } else ""
           }"
     }.getOrElse(p.toString)
   }
 
   private[api] def decodeKnownRootsInPath(encoded: String): String = {
+    pprint.err.log(encoded)
     if (encoded.startsWith("$")) {
-      knownRoots.collectFirst {
-        case rep if encoded.startsWith(rep.replacement) =>
-          s"${rep.root.toString}${encoded.substring(rep.replacement.length)}"
+      val offset = 1 // "$".length
+      mappedRoots.get.collectFirst {
+        case mapping if encoded.startsWith(mapping.key, offset) =>
+          s"${mapping.path.toString}${encoded.substring(mapping.key.length + offset)}"
       }.getOrElse(encoded)
     } else {
       encoded
@@ -257,7 +288,7 @@ object PathRef {
   implicit def jsonFormatter: RW[PathRef] = upickle.readwriter[String].bimap[PathRef](
     p => {
       storeSerializedPaths(p)
-      p.toStringPrefix + p.pathVal
+      p.renderToString(true)
     },
     {
       case s"$prefix:$valid0:$hex:$pathVal" if prefix == "ref" || prefix == "qref" =>

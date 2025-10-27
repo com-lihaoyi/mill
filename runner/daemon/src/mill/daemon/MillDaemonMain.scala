@@ -40,7 +40,7 @@ object MillDaemonMain {
     val args =
       Args(getClass.getName, args0).fold(err => throw IllegalArgumentException(err), identity)
 
-    PathRef.outPathOverride.withValue(Some(args.outDir)) {
+    PathRef.mappedRoots.withMillDefaults(args.outDir) {
       // temporarily disabling FFM use by coursier, which has issues with the way
       // Mill manages class loaders, throwing things like
       // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader

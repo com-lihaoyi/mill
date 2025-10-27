@@ -5,6 +5,7 @@ import mill.api.daemon.internal.TestReporter
 import mill.util.Jvm
 import mill.api.internal.Util
 import mill.Task
+import mill.constants.PathVars
 import sbt.testing.Status
 
 import java.time.format.DateTimeFormatter
@@ -148,7 +149,7 @@ final class TestModuleUtil(
         mainArgs = Seq(
           testRunnerClasspathArg,
           argsFile.toString,
-          PathRef.outPathOverride.value.get.toString
+          PathRef.mappedRoots.toMap(PathVars.MILL_OUT).toString
         ),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         cpPassingJarPath = Option.when(useArgsFile)(

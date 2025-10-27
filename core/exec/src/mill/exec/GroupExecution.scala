@@ -83,7 +83,7 @@ trait GroupExecution {
       executionContext: mill.api.TaskCtx.Fork.Api,
       exclusive: Boolean,
       upstreamPathRefs: Seq[PathRef]
-  ): GroupExecution.Results = PathRef.outPathOverride.withValue(Some(outPath)) {
+  ): GroupExecution.Results = {
 
     val inputsHash = {
       val externalInputsHash = MurmurHash3.orderedHash(

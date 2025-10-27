@@ -70,7 +70,7 @@ class MillBuildBootstrap(
     val runnerState = evaluateRec(0)
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
-      PathRef.outPathOverride.withValue(Some(output)) {
+      PathRef.mappedRoots.withMillDefaults(output) {
         os.write.over(
           recOut(output, depth) / millRunnerState,
           upickle.write(frame.loggedData, indent = 4),
