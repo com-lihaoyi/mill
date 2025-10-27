@@ -12,13 +12,17 @@ include::partial$example/javalib/script/1-crawler.adoc[]
 
 include::partial$example/javalib/script/2-packaging.adoc[]
 
-== Opening a Script Console or REPL
+== Opening a Script REPL
 
-To open a REPL with your script loaded and available, you can use the following command
+To open a Java REPL with your script loaded and available, you can use the following command.
+This can be useful to interactively exercise and experiment with the code defined in
+your script.
 
 ```scala
 ./mill -i Foo.java:jshell
 ```
+
+
 
 
 == Custom Script Module Classes
