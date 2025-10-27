@@ -4,9 +4,6 @@
 :language-small: java
 :language-ext: java
 
-== Script Use Cases
-
-include::partial$example/javalib/script/1-use-cases.adoc[]
 
 == Packaging Assemblies and Native Binaries
 
@@ -37,3 +34,10 @@ include::partial$example/javalib/script/4-relative-imports.adoc[]
 
 include::partial$example/javalib/script/5-programmatic-module-deps.adoc[]
 
+== Script Use Cases
+
+include::partial$example/javalib/script/6-json-api-client.adoc[]
+include::partial$example/javalib/script/7-html-scraper.adoc[]
+include::partial$example/javalib/script/8-web-server.adoc[]
+include::partial$example/javalib/script/9-database.adoc[]
+include::partial$example/javalib/script/10-static-site.adoc[]

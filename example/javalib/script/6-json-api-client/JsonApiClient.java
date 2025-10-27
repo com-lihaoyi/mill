@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "Crawler", mixinStandardHelpOptions = true)
-public class Crawler implements Callable<Integer> {
+public class JsonApiClient implements Callable<Integer> {
 
   @CommandLine.Option(names = {"--start-article"}, required = true, description = "Starting title")
   private String startArticle;
@@ -72,6 +72,6 @@ public class Crawler implements Callable<Integer> {
   }
 
   public static void main(String[] args) {
-    System.exit(new CommandLine(new Crawler()).execute(args));
+    System.exit(new CommandLine(new JsonApiClient()).execute(args));
   }
 }

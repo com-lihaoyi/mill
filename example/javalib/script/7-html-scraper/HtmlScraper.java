@@ -6,7 +6,7 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.*;
 
-public class Scraper {
+public class HtmlScraper {
   static List<String> fetchLinks(String title) throws IOException {
     String url = "https://en.wikipedia.org/wiki/" + title;
     Document doc = Jsoup.connect(url)

@@ -1,0 +1,25 @@
+
+//// SNIPPET:STATICSITE
+//
+
+/** See Also: StaticSite.kt */
+
+/** Usage
+> ./mill StaticSite.kt
+
+> cat site-out/post/my-first-post.html
+<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Blog / My First Post</h1>
+    <div><p>Sometimes you want numbered lists:</p>
+<ol>
+<li>One</li>
+<li>Two</li>
+<li>Three</li>
+</ol>
+</div>
+  </body>
+</html>
+
+*/

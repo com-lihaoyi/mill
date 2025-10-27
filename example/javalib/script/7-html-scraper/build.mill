@@ -1,0 +1,13 @@
+
+//// SNIPPET:SCRAPER
+/** See Also: HtmlScraper.java */
+
+/** Usage
+> ./mill HtmlScraper.java singapore 1
+Hokkien
+Conscription_in_Singapore
+Malaysia_Agreement
+Government_of_Singapore
+...
+
+*/

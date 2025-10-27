@@ -1,0 +1,22 @@
+
+// === Web Server
+// This example shows off running a simple webserver in a single-file script. While
+// a production-quality website is a lot more complex and would need a proper `build.mill`
+// file, sometimes you just need a simple webserver running for local testing or experimentation.
+// In these scenarios, writing a single-file script in {language} to run the server is a great
+// way to start, and it can always grow into a more full-featured project later if necessary.
+//
+//
+//// SNIPPET:WEBSERVER
+// In this example, the webserver script uses of the https://github.com/com-lihaoyi/cask[Cask] framework
+// to run the web server
+/** See Also: WebServer.scala */
+
+/** Usage
+> ./mill WebServer.scala:runBackground
+
+> curl -d 'hello world' localhost:8080/reverse-string
+dlrow olleh
+
+*/
+//// SNIPPET:END

@@ -24,9 +24,6 @@ You can also disable use of these libraries in scripts via `//| includDefaultScr
 And as we saw earlier, you can include any other libraries you wish using `//| mvnDeps`.
 
 
-== Script Use Cases
-
-include::partial$example/scalalib/script/1-use-cases.adoc[]
 
 == Packaging Assemblies and Native Binaries
 
@@ -56,3 +53,10 @@ include::partial$example/scalalib/script/4-relative-imports.adoc[]
 
 include::partial$example/scalalib/script/5-programmatic-module-deps.adoc[]
 
+== Script Use Cases
+
+include::partial$example/scalalib/script/6-json-api-client.adoc[]
+include::partial$example/scalalib/script/7-html-scraper.adoc[]
+include::partial$example/scalalib/script/8-web-server.adoc[]
+include::partial$example/scalalib/script/9-database.adoc[]
+include::partial$example/scalalib/script/10-static-site.adoc[]
