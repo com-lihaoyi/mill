@@ -1,6 +1,6 @@
 package mill.javalib.zinc
 
-import mill.api.SystemStreamsUtils
+import mill.api.{PathRef, SystemStreamsUtils}
 import mill.api.daemon.{DummyInputStream, SystemStreams}
 import mill.client.lock.Locks
 import mill.rpc.MillRpcWireTransport
@@ -63,7 +63,16 @@ object ZincWorkerMain {
       Using.Manager { use =>
         val stdin = use(BufferedReader(InputStreamReader(connectionData.clientToServer)))
         val stdout = use(PrintStream(connectionData.serverToClient))
-        val transport = MillRpcWireTransport(serverName, stdin, stdout, writeSynchronizer)
+        class Transport()
+            extends MillRpcWireTransport(serverName, stdin, stdout, writeSynchronizer) {
+          override def writeSerialized[A: upickle.Writer](message: A, log: String => Unit): Unit = {
+            // RPC communication is local and uncached, so we don't want to use any root mapping
+            PathRef.mappedRoots.withMapping(Seq()) {
+              super.writeSerialized(message, log)
+            }
+          }
+        }
+        val transport = Transport()
         val server = ZincWorkerRpcServer(worker, serverName, transport, setIdle, serverLog)
 
         // Make sure stdout and stderr is sent to the client
