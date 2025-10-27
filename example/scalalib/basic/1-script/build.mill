@@ -1,18 +1,18 @@
 // Mill allows you to run single-file {language} programs
 // easily from the command-line, even those that contain third-party dependencies, specific
-// JVM versions, or other such configuration. Unlike {language} programs built with other
+// JVM versions, or other such build configuration. Unlike {language} programs built with other
 // tools, Mill scripts run  via a `./mill`
 // xref:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script] run reproducibly
 // xref:blog::16-zero-setup.adoc[without needing any prior installation or setup].
 // This can be useful for several purposes:
 //
 // - A replacement for Bash scripts: Mill instead lets you write small {language} scripts or programs
-//   in {language} with full access to third-party libraries that run in a deterministic way
-//   across different dev/test/prod environments
+//   in {language} with full access to third-party libraries that run in a reproducible way
+//   across diverse dev/test/prod environments
 //
 // - Self-contained examples or issue reproductions, as you can include both the code and
-//   dependencies necessary in a self-contained file that doesn't require manual setup or
-//   installation
+//   dependencies necessary in a self-contained file that can be run using `./mill` without
+//   manual setup or installation
 //
 // For example the {language} program below can be run directly using Mill, which will
 // automatically download and cache the specified third-party dependencies as necessary:
