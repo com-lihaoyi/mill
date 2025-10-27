@@ -740,7 +740,7 @@ can be downloaded to try it yourself.</p>
 <h2 id="_simple_config_based_modules"><a class="anchor" href="#_simple_config_based_modules"></a>Simple Config-Based Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-63-e72f1d/mill-dist-1.0.6-63-e72f1d-example-scalalib-basic-3-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/3-simple/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-64-8f8d97/mill-dist-1.0.6-64-8f8d97-example-scalalib-basic-3-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/3-simple/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.scalalib.ScalaModule]
 scalaVersion: 3.7.2
@@ -750,7 +750,7 @@ mvnDeps:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-63-e72f1d/mill-dist-1.0.6-63-e72f1d-example-scalalib-basic-3-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/3-simple/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-64-8f8d97/mill-dist-1.0.6-64-8f8d97-example-scalalib-basic-3-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/3-simple/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.ScalaTests, mill.javalib.TestModule.Utest]
 mvnDeps:
@@ -870,7 +870,7 @@ compiling 1 Scala source to...</code></pre>
 &gt; ./out/assembly.dest/out.jar --text hello # mac/linux
 &lt;h1&gt;hello&lt;/h1&gt;
 
-&gt; # Note that on windows you need to rename `out.jar` to `out.bat` to run it
+&gt; # Note that on windows you need to rename `out.jar` to `out.bat` to run it without `java -jar`
 &gt; cp ./out/assembly.dest/out.jar out.bat # windows
 
 &gt; ./out.bat --text hello # windows
@@ -892,15 +892,15 @@ the task itself (docs, source location, etc.)</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __ # recursively list all tasks and modules that are available
 
-&gt; ./mill foo.runBackground # run the main method in the background
+&gt; ./mill runBackground # run the main method in the background
 
 &gt; ./mill clean &lt;task&gt;  # delete the cached output of a task, terminate any runBackground
 
-&gt; ./mill foo.launcher      # prepares a out/launcher.dest/run you can run later
+&gt; ./mill launcher      # prepares a out/launcher.dest/run you can run later
 
-&gt; ./mill foo.jar           # bundle the classfiles into a jar suitable for publishing
+&gt; ./mill jar           # bundle the classfiles into a jar suitable for publishing
 
-&gt; ./mill -w foo.compile    # watch input files and re-compile whenever a file changes</code></pre>
+&gt; ./mill -w compile    # watch input files and re-compile whenever a file changes</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -908,9 +908,9 @@ the task itself (docs, source location, etc.)</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill -i foo.console    # start a Scala console within your project
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill -i console    # start a Scala console within your project
 
-&gt; ./mill -i foo.repl       # start an Ammonite Scala REPL within your project</code></pre>
+&gt; ./mill -i repl       # start an Ammonite Scala REPL within your project</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -946,18 +946,24 @@ for:</p>
 </div>
 <div class="sect2">
 <h3 id="_multi_module_projects"><a class="anchor" href="#_multi_module_projects"></a>Multi-Module Projects</h3>
+<div class="paragraph">
+<p>This example contains a simple Mill build with two modules, <code>foo</code> and <code>bar</code>,
+defined by their respective <code>foo/package.mill.yaml</code> and <code>bar/package.mill.yaml</code> config
+files, and on which you can run tasks on such as <code>foo.run</code> or
+<code>bar.run</code>. There is also a <code>bar.test</code> module defined by <code>bar/test/package.mill.yaml</code>.</p>
+</div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-63-e72f1d/mill-dist-1.0.6-63-e72f1d-example-scalalib-basic-4-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/4-module-deps/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-64-8f8d97/mill-dist-1.0.6-64-8f8d97-example-scalalib-basic-4-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/4-module-deps/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.scalalib.ScalaModule]
-moduleDeps: [build.bar]
+moduleDeps: [bar]
 scalaVersion: 3.7.1
 mvnDeps:
 - com.lihaoyi::mainargs:0.7.7</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-63-e72f1d/mill-dist-1.0.6-63-e72f1d-example-scalalib-basic-4-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/4-module-deps/bar/package.mill.yaml">browse</a>)</div>
+<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-64-8f8d97/mill-dist-1.0.6-64-8f8d97-example-scalalib-basic-4-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/4-module-deps/bar/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.scalalib.ScalaModule]
 scalaVersion: 3.7.1
@@ -966,7 +972,7 @@ mvnDeps:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-63-e72f1d/mill-dist-1.0.6-63-e72f1d-example-scalalib-basic-4-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/4-module-deps/bar/test/package.mill.yaml">browse</a>)</div>
+<div class="title">bar/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-64-8f8d97/mill-dist-1.0.6-64-8f8d97-example-scalalib-basic-4-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/4-module-deps/bar/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.bar.ScalaTests, mill.javalib.TestModule.Utest]
 mvnDeps:
@@ -974,11 +980,7 @@ mvnDeps:
 </div>
 </div>
 <div class="paragraph">
-<p>This example contains a simple Mill build with two modules, <code>foo</code> and <code>bar</code>,
-defined by their respective <code>foo/package.mill.yaml</code> and <code>bar/package.mill.yaml</code> config
-files, and on which you can run tasks on such as <code>foo.run</code> or
-<code>bar.run</code>. There is also a <code>bar.test</code> module defined by <code>bar/test/package.mill.yaml</code>.
-Inter-module dependencies are defined by the <code>moduleDeps</code> key, and modules
+<p>Inter-module dependencies are defined by the <code>moduleDeps</code> key, and modules
 can also be nested within each other, as <code>bar.test</code> is nested
 within <code>bar</code>.</p>
 </div>
@@ -1015,11 +1017,14 @@ out/
 </div>
 </div>
 <div class="paragraph">
-<p>Typically, both source code and output files in Mill follow the module
+<p>Typically, source, output files, and task names in Mill follow the module
 hierarchy, so e.g. input to the <code>foo</code> module lives in <code>foo/src/</code> and
-compiled output files live in <code>out/foo/compile.dest</code>. You can use
-<code>mill resolve</code> to list out what tasks you can run, e.g. <code>mill resolve __.run</code>
-below which lists out all the <code>run</code> tasks:</p>
+compiled output files live in <code>out/foo/compile.dest</code>, and that module is
+run via <code>foo.run</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can use <code>mill resolve</code> to list out what tasks you can run, e.g.
+<code>mill resolve __.run</code> below which lists out all the <code>run</code> tasks:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1037,11 +1042,11 @@ bar.run
 </div>
 </div>
 <div class="paragraph">
-<p>Mill’s evaluator will ensure that the modules are compiled in the right
-order, and recompiled as necessary when source code in each module changes.
-The unique path on disk that Mill automatically assigns each task also ensures
-you do not need to worry about choosing a path on disk to cache outputs, or
-filesystem collisions if multiple tasks write to the same path.</p>
+<p>In general, for multi-module builds, every task is prefixed by its module
+name: <code>foo.run</code>, <code>bar.assembly</code>, <code>bar.test.compile</code>, etc.
+Mill will ensure that the specified tasks and their upstream dependencies are
+executed in the right order, and re-executed as necessary when source code
+in each module changes.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1110,7 +1115,7 @@ migrating an existing codebase from <code>sbt</code>, you can use Mill’s <code
 <code>sbt</code> build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-63-e72f1d/mill-dist-1.0.6-63-e72f1d-example-scalalib-basic-5-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/5-compat-modules/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-64-8f8d97/mill-dist-1.0.6-64-8f8d97-example-scalalib-basic-5-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/5-compat-modules/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.scalalib.SbtModule]
 scalaVersion: 3.7.2
@@ -1119,12 +1124,12 @@ mvnDeps:
 - &quot;com.lihaoyi::mainargs:0.7.7&quot;
 
 object test:
-  extends: [build.SbtTests, mill.javalib.TestModule.Utest]
+  extends: [SbtTests, mill.javalib.TestModule.Utest]
   mvnDeps:
   - &quot;com.lihaoyi::utest:0.9.1&quot;
 
 object integration:
-  extends: [build.SbtTests, mill.javalib.TestModule.Utest]
+  extends: [SbtTests, mill.javalib.TestModule.Utest]
   mvnDeps:
   - &quot;com.lihaoyi::utest:0.9.1&quot;</code></pre>
 </div>
@@ -1136,13 +1141,13 @@ that use the more verbose folder layout of <code>sbt</code>, Maven, and other to
 <div class="ulist">
 <ul>
 <li>
-<p><code>foo/src/main/scala</code></p>
+<p><code>src/main/scala/</code></p>
 </li>
 <li>
-<p><code>foo/src/test/scala</code></p>
+<p><code>src/test/scala/</code></p>
 </li>
 <li>
-<p><code>foo/src/integration/scala</code></p>
+<p><code>src/integration/scala/</code></p>
 </li>
 </ul>
 </div>
@@ -1152,23 +1157,26 @@ that use the more verbose folder layout of <code>sbt</code>, Maven, and other to
 <div class="ulist">
 <ul>
 <li>
-<p><code>foo/src</code></p>
+<p><code>src/</code></p>
 </li>
 <li>
-<p><code>foo/src-2.12</code></p>
+<p><code>test/src/</code></p>
 </li>
 <li>
-<p><code>foo/src-2.13</code></p>
-</li>
-<li>
-<p><code>foo/test/src</code></p>
+<p><code>integration/src/</code></p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>This is especially useful if you are migrating from <code>sbt</code> to Mill (or vice
-versa), during which a particular module may be built using both <code>sbt</code> and
-Mill at the same time</p>
+<p>This is especially useful if you are migrating to Mill, as during the migration a
+particular module may be built using both <code>sbt</code> and Mill at the
+same time. That means that during migration, you can leave all your source files
+in place while setting up your Mill build, and do not need to invasively move them
+around to match the Mill default module layout.</p>
+</div>
+<div class="paragraph">
+<p>Although the source layout of these compatibility modules is different from the
+default <code>ScalaModule</code>, the command-line usage is the same:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1200,9 +1208,9 @@ compiling 1 Scala source...
 <div class="paragraph">
 <p>Mill allows you to run single-file Scala programs
 easily from the command-line, even those that contain third-party dependencies, specific
-JVM versions, or other such configuration. Unlike Scala programs built with other
+JVM versions, or other such build configuration. Unlike Scala programs built with other
 tools, Mill scripts run  via a <code>./mill</code>
-<a href="../cli/installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a> work
+<a href="../cli/installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a> run reproducibly
 <a href="../../../blog/16-zero-setup.html" class="xref page">without needing any prior installation or setup</a>.
 This can be useful for several purposes:</p>
 </div>
@@ -1210,13 +1218,13 @@ This can be useful for several purposes:</p>
 <ul>
 <li>
 <p>A replacement for Bash scripts: Mill instead lets you write small Scala scripts or programs
-in Scala with full access to third-party libraries that run in a deterministic way
-across different dev/test/prod environments</p>
+in Scala with full access to third-party libraries that run in a reproducible way
+across diverse dev/test/prod environments</p>
 </li>
 <li>
 <p>Self-contained examples or issue reproductions, as you can include both the code and
-dependencies necessary in a self-contained file that doesn’t require manual setup or
-installation</p>
+dependencies necessary in a self-contained file that can be run using <code>./mill</code> without
+manual setup or installation</p>
 </li>
 </ul>
 </div>
@@ -1225,7 +1233,7 @@ installation</p>
 automatically download and cache the specified third-party dependencies as necessary:</p>
 </div>
 <div class="listingblock">
-<div class="title">Foo.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-63-e72f1d/mill-dist-1.0.6-63-e72f1d-example-scalalib-basic-1-script.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/1-script/Foo.scala">browse</a>)</div>
+<div class="title">Foo.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-64-8f8d97/mill-dist-1.0.6-64-8f8d97-example-scalalib-basic-1-script.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/1-script/Foo.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| jvmId: 11.0.28
 //| mvnDeps:
@@ -1246,6 +1254,22 @@ def main(text: String) = {
 def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args)</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Apart from the <code>mvnDeps</code> config that allows you to use third-party libraries in
+your script, the <code>jvmId</code> config lets you specify exactly what JVM version you wish
+to use in this script. Like other Mill modules, Mill scripts will default to a Mill’s
+own default JVM version of <code>zulu:21</code> if a <code>jvmId</code> is not provided.
+If you want to use the environmentally installed <code>java</code> command available on your path,
+you must explicitly set <code>jvmId: system</code>.</p>
+</div>
+<div class="paragraph">
+<p>Mill will automatically download and cache these artifacts
+on your behalf, allowing you run these scripts via <code>./mill</code> and have them behave
+the same regardless of what environment it is running in without needing any setup.</p>
+</div>
+<div class="paragraph">
+<p>This script can be run as shown below:</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.scala --text hello
@@ -1256,7 +1280,7 @@ Jvm Version: 11.0.28</code></pre>
 </div>
 <div class="paragraph">
 <p>The <code>./mill Foo.scala</code> syntax is shorthand for <code>./mill Foo.scala:run</code>.
-You can also call other tasks on your script modules, such as <code>Foo.{langauge-ext}:assembly</code>
+You can also call other tasks on your script modules, such as <code>Foo.scala:assembly</code>
 below:</p>
 </div>
 <div class="listingblock">
@@ -1291,7 +1315,7 @@ to those of the upstream script. The test script can then exercise functions fro
 script as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">FooTests.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-63-e72f1d/mill-dist-1.0.6-63-e72f1d-example-scalalib-basic-1-script.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/1-script/FooTests.scala">browse</a>)</div>
+<div class="title">FooTests.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-64-8f8d97/mill-dist-1.0.6-64-8f8d97-example-scalalib-basic-1-script.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/1-script/FooTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| extends: [mill.script.ScalaModule.Utest]
 //| moduleDeps: [Foo.scala]
@@ -1334,6 +1358,13 @@ object FooTests extends TestSuite {
 </div>
 </div>
 <div class="paragraph">
+<p>The testing framework used in a script is defined by the class specified in the
+<code>extends</code> clause. The different testing frameworks supported in <a href="testing.html" class="xref page">Testing Scala Projects</a>
+can be used for your scripts: <code>Junit4</code>, <code>Junit5</code>, <code>TestNg</code>, <code>Munit</code>, <code>ScalaTest</code>, <code>Specs2</code>,
+<code>Utest</code>, <code>Weaver</code>, <code>ZioTest</code>. If you need something not on this list, you can define
+a <a href="script.html#_custom_script_module_classes" class="xref page">Custom Script Module Class</a>.</p>
+</div>
+<div class="paragraph">
 <p>For scripts that grow larger than a single file, you should convert them
 to <a href="#_simple_config_based_modules">Simple Config-Based Modules</a>.</p>
 </div>
@@ -1344,7 +1375,7 @@ to <a href="#_simple_config_based_modules">Simple Config-Based Modules</a>.</p>
 <h2 id="_programmatic_modules"><a class="anchor" href="#_programmatic_modules"></a>Programmatic Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-63-e72f1d/mill-dist-1.0.6-63-e72f1d-example-scalalib-basic-6-programmatic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/6-programmatic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-64-8f8d97/mill-dist-1.0.6-64-8f8d97-example-scalalib-basic-6-programmatic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/6-programmatic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1454,7 +1485,7 @@ single generated text file containing the line count of all the source files
 in that module</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-63-e72f1d/mill-dist-1.0.6-63-e72f1d-example-scalalib-basic-7-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/7-custom-build-logic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-64-8f8d97/mill-dist-1.0.6-64-8f8d97-example-scalalib-basic-7-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/7-custom-build-logic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1604,7 +1635,7 @@ maintainable even as the complexity of your project grows.</p>
 <div class="sect2">
 <h3 id="_programmatic_multi_module_project"><a class="anchor" href="#_programmatic_multi_module_project"></a>Programmatic Multi-Module Project</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-63-e72f1d/mill-dist-1.0.6-63-e72f1d-example-scalalib-basic-8-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/8-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-64-8f8d97/mill-dist-1.0.6-64-8f8d97-example-scalalib-basic-8-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/8-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1672,7 +1703,7 @@ the config-driven <code>build.mill.yaml</code> files, and additionally allows us
 such as <code>CrossSbtModule</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-63-e72f1d/mill-dist-1.0.6-63-e72f1d-example-scalalib-basic-9-programmatic-compat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/9-programmatic-compat">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-64-8f8d97/mill-dist-1.0.6-64-8f8d97-example-scalalib-basic-9-programmatic-compat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/9-programmatic-compat">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1777,7 +1808,7 @@ and other topics covered in more detail in the Scala section of the Mill docs,
 and you can browse each respective page if you want to learn more.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-63-e72f1d/mill-dist-1.0.6-63-e72f1d-example-scalalib-basic-10-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/10-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-64-8f8d97/mill-dist-1.0.6-64-8f8d97-example-scalalib-basic-10-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/scalalib/basic/10-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, publish.*
