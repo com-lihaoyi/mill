@@ -111,15 +111,29 @@ trait GroupExecution {
               case ujson.Obj(kvs) => ujson.Obj.from(kvs.map((k, v) => (k, rec(v))))
               case v => v
             }
-            val (resultData, serializedPaths) = PathRef.withSerializedPaths {
-              PathRef.currentOverrideModulePath.withValue(labelled.ctx.millSourcePath) {
-                upickle.read[Any](rec(jsonData))(
-                  using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
-                )
+
+            val (execRes, serializedPaths) =
+              try {
+                val (resultData, serializedPaths) = PathRef.withSerializedPaths {
+                  PathRef.currentOverrideModulePath.withValue(labelled.ctx.millSourcePath) {
+                    upickle.read[Any](rec(jsonData))(
+                      using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
+                    )
+                  }
+                }
+                (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
+              } catch {
+                case e: upickle.core.TraceVisitor.TraceException =>
+                  (
+                    ExecResult.Failure(
+                      s"Failed de-serializing config override: ${e.getCause.getMessage}"
+                    ),
+                    Nil
+                  )
               }
-            }
+
             GroupExecution.Results(
-              Map(labelled -> ExecResult.Success(Val(resultData), resultData.##)),
+              Map(labelled -> execRes),
               Nil,
               cached = true,
               inputsHash,
