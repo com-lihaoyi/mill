@@ -1,0 +1,59 @@
+// Mill Single-file {language} programs can make it more convenient to script simple command-line
+// workflows interacting with files, subprocesses, and HTTP endpoints.
+//
+// === JSON API Crawler
+//// SNIPPET:CRAWLER
+// Below is a simple script using the bundled libraries to write a
+// program that crawls wikipedia's JSON API and saves the crawl results to a file:
+
+/** See Also: Crawler.scala */
+
+/** Usage
+> ./mill Crawler.scala --start-article singapore --depth 2
+... seen: HashSet(
+  "Calling code",
+  "+65",
+  "British Empire",
+  "1st Parliament of Singapore",
+...
+)
+
+> cat fetched.json
+[
+    "Calling code",
+    "+65",
+    "British Empire",
+    "1st Parliament of Singapore",
+    ...
+]
+
+*/
+
+//// SNIPPET:END
+//
+// === HTML Web Scraper
+// Below is another web crawler, but instead of interacting with Wikipedia via a JSON API
+// it scrapes the website's HTML pages using JSoup. JSoup is not bundled with Mill, but
+// can be included easily via `mvnDeps` header declaration:
+//// SNIPPET:SCRAPER
+/** See Also: Scraper.scala */
+
+/** Usage
+> ./mill Scraper.scala --start-article singapore --depth 1
+Scraper.scala:21 seen: HashSet(
+  "Hokkien",
+  "Conscription_in_Singapore",
+  "Malaysia_Agreement",
+  "Government_of_Singapore",
+...
+*/
+
+
+//// SNIPPET:END
+
+//
+// While initially single-file {language} programs may be a bit more verbose than the equivalent
+// Bash script containing `cp` or `curl` commands, as the script grows in complexity the value
+// of IDE support, typechecking, and JVM libraries makes writing them in {language} an attractive
+// proposition. This is especially true if you already have developers fluent in {language} which
+// may not be as familiar with the intricacies of writing robust and maintainable Bash code.

@@ -6,7 +6,7 @@
 
 == Script Use Cases
 
-include::partial$example/javalib/script/1-crawler.adoc[]
+include::partial$example/javalib/script/1-use-cases.adoc[]
 
 == Packaging Assemblies and Native Binaries
 

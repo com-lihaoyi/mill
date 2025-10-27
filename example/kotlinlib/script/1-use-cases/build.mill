@@ -1,11 +1,11 @@
-//// SNIPPET:CUSTOM
+//// SNIPPET:CRAWLER
 //
 // For example, below is
 // a simple script using https://github.com/Kotlin/kotlinx.serialization[KotlinX-Serialization],
 // https://github.com/Kong/unirest-java[Unirest-Java], and https://github.com/ajalt/clikt[Clikt], to write a
 // program that crawls wikipedia and saves the crawl results to a file:
 
-//// SNIPPET:FILE
+
 /** See Also: Crawler.kt */
 
 /** Usage
@@ -19,5 +19,18 @@
     "1st Parliament of Singapore",
     ...
 ]
+
+*/
+
+//// SNIPPET:SCRAPER
+/** See Also: Scraper.kt */
+
+/** Usage
+> ./mill Scraper.kt singapore 1
+Hokkien
+Conscription_in_Singapore
+Malaysia_Agreement
+Government_of_Singapore
+...
 
 */
