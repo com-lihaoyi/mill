@@ -54,7 +54,7 @@ case class PathRef private[mill] (
    *            See [[PathRef.mappedRoots]].
    *            If `false`, the path is local and absolute.
    */
-  private def renderToString(map: Boolean): String = {
+  private def toStringPrefix: String = {
     val quick = if (this.quick) "qref:" else "ref:"
 
     val valid = revalidate match {
@@ -63,12 +63,11 @@ case class PathRef private[mill] (
       case PathRef.Revalidate.Always => "vn:"
     }
     val sig = String.format("%08x", this.sig: Integer)
-    val p = if (map) mappedPath else path.toString()
-    s"${quick}${valid}${sig}:${p}"
+    s"${quick}${valid}${sig}:"
   }
 
   override def toString: String = {
-    renderToString(false)
+    toStringPrefix + path.toString()
   }
 
   // Instead of using `path` we need to use `mappedPath` to make the hashcode stable as cache key
@@ -299,7 +298,7 @@ object PathRef {
   implicit def jsonFormatter: RW[PathRef] = upickle.readwriter[String].bimap[PathRef](
     p => {
       storeSerializedPaths(p)
-      p.renderToString(true)
+      p.toStringPrefix + encodeKnownRootsInPath(p.path)
     },
     {
       case s"$prefix:$valid0:$hex:$pathVal" if prefix == "ref" || prefix == "qref" =>
