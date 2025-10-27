@@ -61,19 +61,27 @@ object ScriptModuleInit
   def instantiate(scriptFile: os.Path,
                   className: String,
                   args: AnyRef*): mill.api.Result[ExternalModule] = {
-    val cls =
-      try Class.forName(className)
+    val clsOrErr =
+      try Result.Success(Class.forName(className))
       catch {
         case _: Throwable =>
           // Hack to try and pick up classes nested within package objects
-          Class.forName(className.reverse.replaceFirst("\\.", "\\$").reverse)
+          try Result.Success(Class.forName(className.reverse.replaceFirst("\\.", "\\$").reverse))
+          catch{ case e: java.lang.ClassNotFoundException =>
+            val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
+            Result.Failure(
+              s"Script $relPath extends invalid class ${pprint.Util.literalize(className)}"
+            )
+          }
       }
 
-    mill.api.ExecResult.catchWrapException(
-      scriptModuleCache.getOrElseUpdate(
-        scriptFile,
-        cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ExternalModule]
-      )
+    clsOrErr.flatMap(cls =>
+      mill.api.ExecResult.catchWrapException{
+        scriptModuleCache.getOrElseUpdate(
+          scriptFile,
+          cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ExternalModule]
+        )
+      }
     )
   }
 

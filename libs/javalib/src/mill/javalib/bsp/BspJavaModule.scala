@@ -11,7 +11,6 @@ import mill.api.JsonFormatters.given
 
 trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
   private[mill] def isScript: Boolean = false
-  if (isScript) mill.constants.DebugLog.println("moduleSegments " + moduleSegments)
 
   def javaModuleRef: mill.api.ModuleRef[JavaModule & BspModule]
   val jm = javaModuleRef()
