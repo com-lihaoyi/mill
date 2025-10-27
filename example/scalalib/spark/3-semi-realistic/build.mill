@@ -34,7 +34,7 @@ object `package` extends ScalaModule {
 // **Real-World Applications:**
 // - Revenue reporting: Total sales by region/product/time period
 // - User analytics: Active users by cohort/feature/platform
-// - IoT monitoring: Sensor metrics by device/location/timewindow
+// - IoT monitoring: Sensor metrics by device/location/time window
 // - Financial analysis: Transaction volumes by account/type/period
 //
 // **Why It's Fundamental:**
