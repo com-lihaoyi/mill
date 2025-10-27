@@ -53,6 +53,25 @@ Scraper.scala:21 seen: HashSet(
 
 //// SNIPPET:END
 
+// === Web Server
+// This example shows off running a simple webserver in a single-file script. While
+// a production-quality website is a lot more complex and would need a proper `build.mill`
+// file, sometimes you just need a simple webserver running for local testing or experimentation.
+// In these scenarios, writing a single-file script in {language} to run the server is a great
+// way to start, and it can always grow into a more full-featured project later if necessary.
+//
+//
+//// SNIPPET:WEBSERVER
+/** See Also: WebServer.scala */
+
+/** Usage
+> ./mill WebServer.scala:runBackground
+
+> curl -d 'hello world' localhost:8080/do-thing
+dlrow olleh
+
+*/
+//// SNIPPET:END
 //
 // While initially single-file {language} programs may be a bit more verbose than the equivalent
 // Bash script containing `cp` or `curl` commands, as the script grows in complexity the value
