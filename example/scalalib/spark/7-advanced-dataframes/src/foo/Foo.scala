@@ -39,8 +39,8 @@ object Foo {
     // Pivot: regions as rows, products as columns, sum revenue
     withRevenue
       .groupBy("region")
-      .pivot("product")  // Creates column per unique product
-      .sum("revenue")    // Aggregate function at intersections
+      .pivot("product") // Creates column per unique product
+      .sum("revenue") // Aggregate function at intersections
   }
 
   /**
@@ -148,7 +148,8 @@ object Foo {
       .csv(getClass.getResource("/sales.csv").getPath)
 
     salesDF
-      .withColumn("price_tier",
+      .withColumn(
+        "price_tier",
         when(col("price") > 1000, "premium")
           .when(col("price") > 500, "standard")
           .otherwise("budget")

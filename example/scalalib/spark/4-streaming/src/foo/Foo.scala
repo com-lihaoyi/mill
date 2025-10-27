@@ -32,35 +32,35 @@ object Foo {
    * @return StreamingQuery that can be monitored and stopped
    */
   def processStream(
-    spark: SparkSession,
-    sourcePath: String,
-    checkpointPath: String
+      spark: SparkSession,
+      sourcePath: String,
+      checkpointPath: String
   ): StreamingQuery = {
 
     // Read streaming DataFrame from text files
     // Spark monitors sourcePath and processes new files as they arrive
     val streamDF = spark.readStream
-      .format("text")  // Each line becomes a row
-      .option("maxFilesPerTrigger", 1)  // Process 1 file per micro-batch (rate limiting)
+      .format("text") // Each line becomes a row
+      .option("maxFilesPerTrigger", 1) // Process 1 file per micro-batch (rate limiting)
       .load(sourcePath)
     // Note: This creates a streaming DataFrame with schema: value: string
 
     // Transform streaming data (same API as batch DataFrames)
     // Add processing timestamp and convert to uppercase
     val transformedDF = streamDF
-      .withColumn("processed_time", current_timestamp())  // Add processing timestamp
-      .withColumn("upper_value", upper(col("value")))     // Transform to uppercase
-      .filter(length(col("value")) > 0)                    // Filter empty lines
+      .withColumn("processed_time", current_timestamp()) // Add processing timestamp
+      .withColumn("upper_value", upper(col("value"))) // Transform to uppercase
+      .filter(length(col("value")) > 0) // Filter empty lines
     // Transformations are lazy - don't execute until we start the query
 
     // Write stream to console output (for demonstration)
     // In production: write to Parquet, Delta Lake, Kafka, database, etc.
     val query = transformedDF.writeStream
-      .format("console")                                   // Output sink type
-      .outputMode("append")                                // Only output new rows
-      .option("checkpointLocation", checkpointPath)        // Fault tolerance
-      .option("truncate", false)                           // Don't truncate long strings
-      .trigger(Trigger.ProcessingTime("5 seconds"))        // Micro-batch every 5 seconds
+      .format("console") // Output sink type
+      .outputMode("append") // Only output new rows
+      .option("checkpointLocation", checkpointPath) // Fault tolerance
+      .option("truncate", false) // Don't truncate long strings
+      .trigger(Trigger.ProcessingTime("5 seconds")) // Micro-batch every 5 seconds
       .start()
     // query.start() returns immediately - query runs in background
 
@@ -79,9 +79,9 @@ object Foo {
    * @return StreamingQuery with aggregations
    */
   def streamingAggregation(
-    spark: SparkSession,
-    sourcePath: String,
-    checkpointPath: String
+      spark: SparkSession,
+      sourcePath: String,
+      checkpointPath: String
   ): StreamingQuery = {
 
     // Read streaming data
@@ -93,17 +93,19 @@ object Foo {
     // This demonstrates streaming aggregations
     val statsDF = streamDF
       .withColumn("line_length", length(col("value")))
-      .groupBy()  // Global aggregation (no grouping key)
+      .groupBy() // Global aggregation (no grouping key)
       .agg(
-        count("*").alias("total_lines"),           // Total lines processed
-        avg("line_length").alias("avg_length"),    // Average line length
-        max("line_length").alias("max_length")     // Maximum line length
+        count("*").alias("total_lines"), // Total lines processed
+        avg("line_length").alias("avg_length"), // Average line length
+        max("line_length").alias("max_length") // Maximum line length
       )
     // Note: Streaming aggregations require "complete" or "update" output mode
 
     val query = statsDF.writeStream
       .format("console")
-      .outputMode("complete")  // Output entire result table (required for aggregations without watermark)
+      .outputMode(
+        "complete"
+      ) // Output entire result table (required for aggregations without watermark)
       .option("checkpointLocation", checkpointPath)
       .trigger(Trigger.ProcessingTime("10 seconds"))
       .start()
@@ -115,7 +117,7 @@ object Foo {
     // Initialize SparkSession for streaming
     val spark = SparkSession.builder()
       .appName("StreamingExample")
-      .master("local[*]")  // Use all cores for parallel processing
+      .master("local[*]") // Use all cores for parallel processing
       .getOrCreate()
 
     // Determine source path (command-line arg or resources)
@@ -130,12 +132,14 @@ object Foo {
 
       // Create sample data file
       val sampleFile = sourceDir.resolve("sample1.txt")
-      java.nio.file.Files.write(sampleFile,
+      java.nio.file.Files.write(
+        sampleFile,
         java.util.Arrays.asList(
           "Sample streaming data from file 1",
           "Processing real-time events",
           "Spark Structured Streaming is powerful"
-        ))
+        )
+      )
 
       println(s"Using temporary source directory: $sourceDir")
       sourceDir.toString

@@ -66,8 +66,7 @@ object Foo {
       }
     })
 
-    data.withColumn("sentiment_score",
-      calculateSentiment(col("text"), col("value")))
+    data.withColumn("sentiment_score", calculateSentiment(col("text"), col("value")))
   }
 
   /**
@@ -86,10 +85,13 @@ object Foo {
       .csv(getClass.getResource("/data.csv").getPath)
 
     // Register UDF with a name
-    spark.udf.register("toUpperCase", (text: String) => {
-      if (text == null) ""
-      else text.toUpperCase
-    })
+    spark.udf.register(
+      "toUpperCase",
+      (text: String) => {
+        if (text == null) ""
+        else text.toUpperCase
+      }
+    )
 
     // Create temporary view for SQL
     data.createOrReplaceTempView("data")
@@ -154,8 +156,11 @@ object Foo {
     })
 
     data.withColumn("analysis", analyzeText(col("text")))
-      .select(col("text"), col("analysis._1").alias("char_count"),
-        col("analysis._2").alias("word_count"))
+      .select(
+        col("text"),
+        col("analysis._1").alias("char_count"),
+        col("analysis._2").alias("word_count")
+      )
   }
 
   def main(args: Array[String]): Unit = {

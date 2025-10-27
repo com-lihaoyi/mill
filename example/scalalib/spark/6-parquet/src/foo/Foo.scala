@@ -14,8 +14,8 @@ object Foo {
       .option("header", "true")
       .option("inferSchema", "true")
       .csv(csvPath)
-    df.cache()  // Cache to measure read time accurately
-    val csvCount = df.count()  // Force evaluation
+    df.cache() // Cache to measure read time accurately
+    val csvCount = df.count() // Force evaluation
     val csvTime = System.currentTimeMillis() - start
     println(s"CSV read: $csvCount rows in ${csvTime}ms")
 
@@ -23,7 +23,7 @@ object Foo {
     val writeStart = System.currentTimeMillis()
     df.write
       .mode(SaveMode.Overwrite)
-      .option("compression", "snappy")  // Balanced compression
+      .option("compression", "snappy") // Balanced compression
       .parquet(parquetPath)
     val writeTime = System.currentTimeMillis() - writeStart
     println(s"Parquet write: ${writeTime}ms")
@@ -41,7 +41,7 @@ object Foo {
       .csv(csvPath)
       .filter("age > 30")
       .select("name", "department")
-    val csvResult = csvDF.collect()  // Force execution
+    val csvResult = csvDF.collect() // Force execution
     val csvTime = System.currentTimeMillis() - csvStart
 
     // Query Parquet (should be faster)

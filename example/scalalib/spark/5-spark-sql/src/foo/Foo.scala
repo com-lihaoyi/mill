@@ -28,8 +28,8 @@ object Foo {
   def loadTables(spark: SparkSession, customersPath: String, ordersPath: String): Unit = {
     // Read customers CSV into DataFrame
     val customersDF = spark.read
-      .option("header", "true")        // First row is column names
-      .option("inferSchema", "true")   // Auto-detect types
+      .option("header", "true") // First row is column names
+      .option("inferSchema", "true") // Auto-detect types
       .csv(customersPath)
 
     // Register as temporary view for SQL queries
@@ -186,7 +186,8 @@ object Foo {
         .getOrElse(throw new RuntimeException("customers.csv not found"))
     )
 
-    val ordersPath = if (args.length > 1) args(1) else {
+    val ordersPath = if (args.length > 1) args(1)
+    else {
       Option(getClass.getResource("/orders.csv")).map(_.getPath)
         .getOrElse(throw new RuntimeException("orders.csv not found"))
     }

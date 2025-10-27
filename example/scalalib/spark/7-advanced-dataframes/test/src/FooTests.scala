@@ -20,6 +20,7 @@ object FooTests extends TestSuite {
     .getOrCreate()
 
   def tests = Tests {
+
     /**
      * Verify pivot table creates cross-tabulation correctly.
      */

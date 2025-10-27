@@ -16,14 +16,15 @@ object FooTests extends TestSuite {
   // Initialize SparkSession once for all tests
   // Reusing the same session across tests is much faster than creating new sessions
   val spark = SparkSession.builder()
-    .appName("SimpleRealisticTests")  // Identifies tests in Spark UI
-    .master("local[*]")               // Run locally using all CPU cores
+    .appName("SimpleRealisticTests") // Identifies tests in Spark UI
+    .master("local[*]") // Run locally using all CPU cores
     .getOrCreate()
 
   // Import implicits for Dataset conversions (.toDS())
   import spark.implicits._
 
   def tests = Tests {
+
     /**
      * Verify computeSummary correctly aggregates by category.
      *
@@ -74,24 +75,24 @@ object FooTests extends TestSuite {
       }.toMap
 
       // Verify Food category aggregations
-      println(results.get("Food"))  // Debug output for troubleshooting
+      println(results.get("Food")) // Debug output for troubleshooting
       results.get("Food").foreach { case (total, average, count) =>
-        assert(approxEqual(total, 70.5))           // 20.5 + 35.0 + 15.0
-        assert(approxEqual(average, 70.5 / 3))     // 23.5
+        assert(approxEqual(total, 70.5)) // 20.5 + 35.0 + 15.0
+        assert(approxEqual(average, 70.5 / 3)) // 23.5
         assert(count == 3)
       }
 
       // Verify Electronics category aggregations
       results.get("Electronics").foreach { case (total, average, count) =>
-        assert(approxEqual(total, 375.0))          // 250.0 + 125.0
-        assert(approxEqual(average, 375.0 / 2))    // 187.5
+        assert(approxEqual(total, 375.0)) // 250.0 + 125.0
+        assert(approxEqual(average, 375.0 / 2)) // 187.5
         assert(count == 2)
       }
 
       // Verify Clothing category aggregations
       results.get("Clothing").foreach { case (total, average, count) =>
-        assert(approxEqual(total, 120.5))          // 45.5 + 75.0
-        assert(approxEqual(average, 120.5 / 2))    // 60.25
+        assert(approxEqual(total, 120.5)) // 45.5 + 75.0
+        assert(approxEqual(average, 120.5 / 2)) // 60.25
         assert(count == 2)
       }
 

@@ -50,11 +50,11 @@ object Foo {
    */
   def computeSummary(transactions: Dataset[Transaction]): DataFrame = {
     transactions
-      .groupBy("category")  // Partition by category (creates one group per unique category)
+      .groupBy("category") // Partition by category (creates one group per unique category)
       .agg(
-        sum("amount").alias("total_amount"),        // Sum of all amounts in this category
-        avg("amount").alias("average_amount"),      // Mean amount per transaction
-        count("amount").alias("transaction_count")  // Number of transactions in category
+        sum("amount").alias("total_amount"), // Sum of all amounts in this category
+        avg("amount").alias("average_amount"), // Mean amount per transaction
+        count("amount").alias("transaction_count") // Number of transactions in category
       )
     // Note: All three aggregations execute in a single pass over the data (efficient!)
   }
@@ -73,9 +73,9 @@ object Foo {
   def main(args: Array[String]): Unit = {
     // Initialize SparkSession - the entry point to Spark functionality
     val spark = SparkSession.builder()
-      .appName("SparkExample")  // Name appears in Spark UI and logs
-      .master("local[*]")       // Run locally using all CPU cores
-      .getOrCreate()            // Reuse existing session if available
+      .appName("SparkExample") // Name appears in Spark UI and logs
+      .master("local[*]") // Run locally using all CPU cores
+      .getOrCreate() // Reuse existing session if available
 
     // Flexible file path handling: command-line arg → resources → error
     // Development: Use resources/transactions.csv
@@ -93,7 +93,7 @@ object Foo {
     // Read CSV with schema inference
     // Production tip: Replace inferSchema with explicit schema for better performance
     val df = spark.read
-      .option("header", "true")      // First row contains column names
+      .option("header", "true") // First row contains column names
       .option("inferSchema", "true") // Auto-detect types (Int, Double, String)
       .csv(resourcePath)
 

@@ -10,8 +10,8 @@ object FooTests extends TestSuite {
       // Using local mode means tests run fast without cluster setup
       val spark = SparkSession.builder()
         .appName("HelloWorldTest")
-        .master("local[*]")      // Use all cores for parallel test execution
-        .getOrCreate()           // Important: reuse session if one exists
+        .master("local[*]") // Use all cores for parallel test execution
+        .getOrCreate() // Important: reuse session if one exists
 
       // Test the helloWorld function
       val df = Foo.helloWorld(spark)

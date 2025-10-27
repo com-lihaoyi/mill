@@ -20,10 +20,11 @@ object FooTests extends TestSuite {
   // Initialize SparkSession once for all tests
   val spark = SparkSession.builder()
     .appName("StreamingTests")
-    .master("local[2]")  // Need at least 2 threads: one for streaming, one for driver
+    .master("local[2]") // Need at least 2 threads: one for streaming, one for driver
     .getOrCreate()
 
   def tests = Tests {
+
     /**
      * Verify basic streaming file processing works.
      *
@@ -55,17 +56,19 @@ object FooTests extends TestSuite {
         // Write test data to source directory
         // Streaming query will pick this up in next micro-batch
         val testFile = tempSource.resolve("test-data.txt")
-        java.nio.file.Files.write(testFile,
+        java.nio.file.Files.write(
+          testFile,
           java.util.Arrays.asList(
             "Line 1: Test data",
             "Line 2: More test data",
             "Line 3: Streaming is working"
-          ))
+          )
+        )
         println(s"Wrote test file: $testFile")
 
         // Wait for query to process the file
         // In production tests, use query.processAllAvailable() for deterministic testing
-        Thread.sleep(8000)  // Wait for at least one micro-batch (5s trigger + processing time)
+        Thread.sleep(8000) // Wait for at least one micro-batch (5s trigger + processing time)
 
         // Verify query is still active and processed data
         assert(query.isActive)
@@ -78,7 +81,7 @@ object FooTests extends TestSuite {
           val lastBatch = progress.last
           println(s"Processed batches: ${progress.length}")
           println(s"Last batch: ${lastBatch.batchId}, rows: ${lastBatch.numInputRows}")
-          assert(lastBatch.numInputRows > 0)  // Should have processed our test file
+          assert(lastBatch.numInputRows > 0) // Should have processed our test file
         } else {
           // Query might not have completed first batch yet
           println("Warning: No progress yet, query may need more time")
@@ -109,12 +112,14 @@ object FooTests extends TestSuite {
       try {
         // Write initial test data
         val testFile = tempSource.resolve("initial-data.txt")
-        java.nio.file.Files.write(testFile,
+        java.nio.file.Files.write(
+          testFile,
           java.util.Arrays.asList(
             "Short",
             "Medium length line",
             "This is a longer line of text"
-          ))
+          )
+        )
 
         // Start streaming aggregation query
         val query = Foo.streamingAggregation(
@@ -126,7 +131,7 @@ object FooTests extends TestSuite {
         assert(query.isActive)
 
         // Wait for processing
-        Thread.sleep(12000)  // 10s trigger + processing time
+        Thread.sleep(12000) // 10s trigger + processing time
 
         // Verify query processed data
         val progress = query.recentProgress

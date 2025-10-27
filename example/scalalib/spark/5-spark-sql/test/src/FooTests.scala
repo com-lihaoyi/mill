@@ -19,6 +19,7 @@ object FooTests extends TestSuite {
     .getOrCreate()
 
   def tests = Tests {
+
     /**
      * Verify customer order summary query produces correct aggregations.
      */
@@ -90,8 +91,8 @@ object FooTests extends TestSuite {
 
       // Verify running totals
       assert(results(0).getAs[Double]("running_total") == 100.0)
-      assert(results(1).getAs[Double]("running_total") == 300.0)  // 100 + 200
-      assert(results(2).getAs[Double]("running_total") == 450.0)  // 300 + 150
+      assert(results(1).getAs[Double]("running_total") == 300.0) // 100 + 200
+      assert(results(2).getAs[Double]("running_total") == 450.0) // 300 + 150
     }
 
     /**
@@ -107,9 +108,9 @@ object FooTests extends TestSuite {
       ).toDF("customer_id", "name", "city")
 
       val orders = Seq(
-        (101, 1, "Laptop", 1500.0),  // Alice: 1500 (high value)
-        (102, 2, "Mouse", 50.0),      // Bob: 50 (low value)
-        (103, 3, "Monitor", 800.0),   // Carol: 1100 (high value)
+        (101, 1, "Laptop", 1500.0), // Alice: 1500 (high value)
+        (102, 2, "Mouse", 50.0), // Bob: 50 (low value)
+        (103, 3, "Monitor", 800.0), // Carol: 1100 (high value)
         (104, 3, "Keyboard", 300.0)
       ).toDF("order_id", "customer_id", "product", "amount")
 
@@ -140,9 +141,9 @@ object FooTests extends TestSuite {
       ).toDF("customer_id", "name", "city")
 
       val orders = Seq(
-        (101, 1, "Item1", 100.0),  // Alice: 2 orders (frequent)
+        (101, 1, "Item1", 100.0), // Alice: 2 orders (frequent)
         (102, 1, "Item2", 200.0),
-        (103, 2, "Item3", 150.0)   // Bob: 1 order (not frequent)
+        (103, 2, "Item3", 150.0) // Bob: 1 order (not frequent)
       ).toDF("order_id", "customer_id", "product", "amount")
 
       customers.createOrReplaceTempView("customers")

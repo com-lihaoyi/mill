@@ -19,6 +19,7 @@ object FooTests extends TestSuite {
     .getOrCreate()
 
   def tests = Tests {
+
     /**
      * Verify basic UDF calculates text length correctly.
      */
