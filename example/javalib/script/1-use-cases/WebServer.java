@@ -1,7 +1,7 @@
 //| mvnDeps: [com.sparkjava:spark-core:2.9.4]
 import static spark.Spark.*;
 
-public class MinimalApplication {
+public class WebServer {
   public static void main(String[] args) {
     // Define a POST route at /do-thing
     post("/do-thing", (request, response) -> {
