@@ -1,5 +1,7 @@
 // Mill Single-file {language} programs can make it more convenient to script simple command-line
-// workflows interacting with files, subprocesses, and HTTP endpoints.
+// workflows interacting with files, subprocesses, and HTTP endpoints. This section walks through
+// a few examples where one-off single-file {language} programs can be useful in day-to-day
+// development.
 //
 // === JSON API Crawler
 //// SNIPPET:CRAWLER
