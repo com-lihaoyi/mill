@@ -1,0 +1,195 @@
+package build
+import mill.*, scalalib.*
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.20"
+  def mvnDeps = Seq(
+    mvn"org.apache.spark::spark-core:3.5.6",
+    mvn"org.apache.spark::spark-sql:3.5.6"
+  )
+
+  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
+    def testFramework = "utest.runner.Framework"
+
+    def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+  }
+
+}
+
+// ## Spark SQL Complex Queries Example
+//
+// This demonstrates Spark SQL - the most popular way to interact with Spark. While DataFrame
+// API is powerful, SQL remains the universal language for data analysis. Spark SQL brings
+// ANSI SQL to distributed computing, allowing analysts familiar with PostgreSQL/MySQL to
+// work with petabyte-scale datasets using the same queries.
+//
+// ### Why This Example Matters
+//
+// Spark SQL powers analytics at massive scale:
+// - **Business intelligence**: Ad-hoc queries on data warehouses (Databricks, EMR, Synapse)
+// - **Data exploration**: Analysts query massive datasets without writing Scala/Python
+// - **ETL pipelines**: SQL-based transformations are more readable than code
+// - **Migration from databases**: Move PostgreSQL/MySQL queries to distributed processing
+// - **BI tool integration**: Tableau, Power BI, Looker connect via SQL
+//
+// **Real-world adoption:**
+// - 70%+ of Spark users primarily use SQL (not DataFrame API)
+// - Databricks SQL serves millions of queries daily
+// - Spark SQL is ANSI SQL compliant (familiar to all data professionals)
+// - Catalyst optimizer makes SQL as fast or faster than hand-written code
+//
+// ### Key Spark Concepts Demonstrated
+//
+// **1. Temporary Views - Bridge Between DataFrames and SQL**
+// ```
+// df.createOrReplaceTempView("customers")
+// spark.sql("SELECT * FROM customers")
+// ```
+// - Views are session-scoped (disappear when SparkSession stops)
+// - Same data, two interfaces: DataFrame API or SQL
+// - Zero copy - view is just a reference to underlying DataFrame
+// - Multiple views can reference same DataFrame
+//
+// **2. SQL Catalog - Spark's Metadata Store**
+// ```
+// spark.catalog.listTables()
+// spark.catalog.listDatabases()
+// ```
+// - Stores metadata about tables, views, functions, databases
+// - Persistent tables stored in Hive metastore or Delta Lake
+// - Temporary views exist only in current session
+// - Essential for data governance and discovery
+//
+// **3. Complex Joins - Multi-Table Queries**
+// ```
+// SELECT c.name, COUNT(o.order_id) as order_count
+// FROM customers c
+// JOIN orders o ON c.customer_id = o.customer_id
+// GROUP BY c.name
+// ```
+// - Broadcast joins for small tables (<10MB) - fast
+// - Shuffle joins for large tables - expensive but scalable
+// - Spark auto-detects join strategy via statistics
+// - Same syntax as PostgreSQL/MySQL
+//
+// **4. Window Functions - Advanced Analytics**
+// ```
+// ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date)
+// ```
+// - Rank, running totals, moving averages, lag/lead
+// - Critical for time-series analysis and cohort studies
+// - More efficient than self-joins
+// - Executes in parallel across partitions
+//
+// **5. Common Table Expressions (CTEs)**
+// ```
+// WITH monthly_sales AS (
+//   SELECT month, SUM(amount) as total
+//   FROM orders GROUP BY month
+// )
+// SELECT * FROM monthly_sales WHERE total > 10000
+// ```
+// - Makes complex queries readable
+// - Breaks logic into named steps
+// - Catalyst optimizer merges CTEs automatically (no performance penalty)
+// - Same as WITH clause in PostgreSQL
+//
+// ### Spark SQL vs Traditional Databases
+//
+// **Similarities:**
+// - ANSI SQL syntax (SELECT, JOIN, GROUP BY, window functions)
+// - Query planner and optimizer (Catalyst = Postgres planner)
+// - Indexes and statistics for optimization
+// - ACID transactions (with Delta Lake/Iceberg)
+//
+// **Differences:**
+// - **Scale**: PostgreSQL = single server, Spark = 1000+ nodes
+// - **Speed**: Postgres = seconds, Spark = minutes (but processing PBs)
+// - **Updates**: Postgres = row-level updates, Spark = append-only (usually)
+// - **OLTP vs OLAP**: Postgres = transactional, Spark = analytical
+//
+// ### How This Scales to Production
+//
+// **Development (this example):**
+// - Load CSV files into DataFrames
+// - Create temporary views
+// - Run SQL queries
+// - Display results to console
+//
+// **Production Deployment:**
+// - Connect to Hive metastore or Delta Lake catalog
+// - Query external tables (S3, HDFS, databases)
+// - Register persistent tables
+// - BI tools query via JDBC/ODBC
+// - Results written to warehouses
+//
+// **Production Pattern:**
+// ```scala
+// spark.read.parquet("s3://warehouse/customers").createOrReplaceTempView("customers")
+// val results = spark.sql("SELECT * FROM customers WHERE city = 'NYC'")
+// results.write.parquet("s3://output/nyc_customers")
+// ```
+//
+// ### Common Pitfalls
+//
+// - **Cartesian joins**: Missing JOIN condition causes explosivegrowth (every row × every row)
+// - **Collecting large results**: SQL queries can return billions of rows - use LIMIT or write to files
+// - **Type mismatches**: CSV infers strings - cast to proper types
+// - **NULL handling**: SQL NULL behaves differently than programming nulls (use COALESCE)
+// - **Case sensitivity**: Table names are case-insensitive but column names may be
+// - **View dependencies**: Dropping underlying DataFrame invalidates views
+//
+// ### Optimization Tips
+//
+// **Use broadcast joins for small tables:**
+// ```sql
+// SELECT /*+ BROADCAST(small_table) */ *
+// FROM large_table JOIN small_table
+// ```
+//
+// **Filter early:**
+// ```sql
+// -- Good: Filter before join
+// SELECT * FROM large WHERE year = 2023 JOIN small
+// -- Bad: Join then filter
+// SELECT * FROM large JOIN small WHERE year = 2023
+// ```
+//
+// **Partition pruning:**
+// ```sql
+// -- If table partitioned by date, this only scans one partition
+// SELECT * FROM orders WHERE order_date = '2023-06-01'
+// ```
+//
+// ### Next Steps
+//
+// - Add Delta Lake for ACID transactions and time travel
+// - Explore Spark SQL functions (date, string, math, collection)
+// - Learn query optimization with EXPLAIN
+// - Connect BI tools via JDBC/ODBC
+// - See example/scalalib/spark/3-semi-realistic for DataFrame aggregations
+
+/** Usage
+
+> ./mill foo.run
+...
+Customer Order Summary:
++-------------+-----------+-------------+
+|         name|order_count|total_spent  |
++-------------+-----------+-------------+
+|Alice Johnson|          2|      1225.00|
+|    Bob Smith|          2|       225.00|
+|  Carol White|          2|       375.00|
+|  David Brown|          1|      1200.00|
+|    Eve Davis|          1|        25.00|
++-------------+-----------+-------------+
+
+> ./mill foo.test
+...
++ foo.FooTests.sqlQuery should execute joins correctly...
++ foo.FooTests.windowFunctions should calculate rankings...
+...
+*/

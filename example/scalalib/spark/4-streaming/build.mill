@@ -1,0 +1,191 @@
+package build
+import mill.*, scalalib.*
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.20"
+  def mvnDeps = Seq(
+    mvn"org.apache.spark::spark-core:3.5.6",
+    mvn"org.apache.spark::spark-sql:3.5.6"
+  )
+
+  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
+    def testFramework = "utest.runner.Framework"
+
+    def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+  }
+
+}
+
+// ## Spark Structured Streaming Example
+//
+// This demonstrates real-time data processing with Spark Structured Streaming. Streaming is
+// the foundation of modern data pipelines: processing data as it arrives rather than in
+// massive batch jobs. This example uses file-based streaming (simpler than Kafka) to show
+// core streaming concepts that apply to all streaming sources.
+//
+// ### Why This Example Matters
+//
+// Structured Streaming powers real-time use cases across industries:
+// - **IoT monitoring**: Process sensor data as devices transmit it
+// - **Fraud detection**: Analyze transactions in real-time to block suspicious activity
+// - **Log analysis**: Monitor application logs for errors and anomalies as they occur
+// - **ETL pipelines**: Continuously ingest data from sources into data warehouses
+// - **Real-time dashboards**: Update metrics and KPIs as new data arrives
+//
+// **Why file-based streaming?**
+// - Demonstrates streaming concepts without Kafka infrastructure
+// - Common pattern for processing log files, exports, data dumps
+// - Same code works with Kafka/Kinesis by changing .readStream() source
+// - Ideal for learning before tackling complex message queues
+//
+// ### Key Spark Concepts Demonstrated
+//
+// **1. Structured Streaming API**
+// ```
+// spark.readStream
+//   .format("text")
+//   .load("path/to/directory")
+// ```
+// - Unified API for batch and streaming (same DataFrame operations)
+// - Processes data in micro-batches (typically 1-10 seconds)
+// - Fault-tolerant with exactly-once semantics
+// - Automatically handles late data and out-of-order events
+//
+// **2. Streaming DataFrame vs Batch DataFrame**
+// ```
+// val staticDF = spark.read.csv(...)      // All data at once
+// val streamDF = spark.readStream.csv(...) // Continuous processing
+// ```
+// - Streaming DataFrames are "unbounded" - no end to the data
+// - Same transformations work on both (filter, groupBy, join, etc.)
+// - Actions differ: .writeStream() instead of .write()
+// - Query runs continuously until stopped
+//
+// **3. Triggers and Micro-batches**
+// ```
+// .trigger(Trigger.ProcessingTime("10 seconds"))
+// ```
+// - Controls how often Spark processes new data
+// - Default: As soon as previous batch completes
+// - ProcessingTime: Fixed interval (10s, 1m, etc.)
+// - Once: Process available data then stop (testing)
+// - Continuous: Experimental low-latency mode (<100ms)
+//
+// **4. Checkpointing for Fault Tolerance**
+// ```
+// .option("checkpointLocation", "/path/to/checkpoint")
+// ```
+// - Stores progress information (which files/offsets processed)
+// - Enables exactly-once processing guarantees
+// - Allows recovery after failures - resumes from last checkpoint
+// - Critical for production - never skip checkpointing
+// - Checkpoint directory persists between restarts
+//
+// **5. Output Modes**
+// ```
+// .outputMode("append")  // Only new rows (default)
+// .outputMode("complete") // Entire result table each time
+// .outputMode("update")   // Only rows that changed
+// ```
+// - Append: Works with all queries, only outputs new data
+// - Complete: Only for aggregations, outputs full results
+// - Update: For aggregations, outputs changed rows only
+//
+// ### How This Scales to Production
+//
+// **Development (this example):**
+// - Reads text files from local directory
+// - Processes on laptop with local[*] mode
+// - Outputs to console for debugging
+//
+// **Production Deployment:**
+// - Replace file source with Kafka/Kinesis/EventHub
+// - Deploy to cluster (YARN, K8s, Databricks)
+// - Write to data warehouse (Parquet, Delta Lake, database)
+// - Add monitoring and alerting
+// - Configure backpressure and resource limits
+//
+// **Same Code Pattern:**
+// ```
+// spark.readStream
+//   .format("kafka")  // Only line that changes
+//   .option("kafka.bootstrap.servers", "...")
+//   .load()
+// ```
+// All other transformations and logic remain identical.
+//
+// ### How File Streaming Works
+//
+// 1. **Spark monitors directory** for new files (or file modifications)
+// 2. **Each micro-batch processes new files** since last checkpoint
+// 3. **Transformations execute** on new data (filter, map, groupBy)
+// 4. **Results written** to output sink (console, files, tables)
+// 5. **Checkpoint updated** to track processed files
+// 6. **Repeat** - next micro-batch processes next set of new files
+//
+// **File Discovery:**
+// - Spark checks directory every trigger interval
+// - Only processes files that are "complete" (not being written)
+// - Tracks processed files in checkpoint to avoid duplicates
+// - Deleting checkpoint causes reprocessing of all files
+//
+// ### Common Pitfalls
+//
+// - **Missing checkpointLocation**: Causes reprocessing of all data on every restart
+// - **Incomplete files**: Spark may process partially-written files (use atomic writes)
+// - **Too many small files**: Creates overhead - better to batch into larger files
+// - **Memory accumulation**: Stateful operations (groupBy with time) need watermarks
+// - **Checkpoint corruption**: Backup checkpoint directory, can't recover if corrupted
+// - **Schema evolution**: Changing input schema breaks checkpoint (plan schema carefully)
+//
+// ### Real-World Example Flow
+//
+// **Scenario:** Processing application log files
+// ```
+// 1. App writes logs to /logs/ directory (rotated hourly)
+// 2. Spark streaming job monitors /logs/
+// 3. Every 5 minutes, processes new log files
+// 4. Extracts errors, calculates metrics
+// 5. Writes results to monitoring dashboard
+// 6. Checkpoints progress to S3
+// ```
+//
+// ### Next Steps
+//
+// - Add window functions for time-based aggregations
+// - Integrate with Kafka for message queue streaming
+// - Add watermarks for late data handling
+// - Explore stateful operations (sessionization, deduplication)
+// - See example/scalalib/spark/3-semi-realistic for batch aggregations
+
+/** Usage
+
+> ./mill foo.run
+...
+-------------------------------------------
+Batch: 0
+-------------------------------------------
++--------------------+
+|               value|
++--------------------+
+|Sample streaming ...|
++--------------------+
+
+-------------------------------------------
+Batch: 1
+-------------------------------------------
++--------------------+
+|               value|
++--------------------+
+|More streaming data!|
++--------------------+
+...
+
+> ./mill foo.test
+...
++ foo.FooTests.processStream should read and transform streaming data...
+...
+*/
