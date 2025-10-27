@@ -61,6 +61,8 @@ Scraper.scala:21 seen: HashSet(
 //
 //
 //// SNIPPET:WEBSERVER
+// In this example, the webserver script uses of the https://github.com/com-lihaoyi/cask[Cask] framework
+// to run the web server
 /** See Also: WebServer.scala */
 
 /** Usage
@@ -68,6 +70,27 @@ Scraper.scala:21 seen: HashSet(
 
 > curl -d 'hello world' localhost:8080/reverse-string
 dlrow olleh
+
+*/
+//// SNIPPET:END
+// === Database
+// This example shows populating and querying a simple database using a {language} script.
+// While you often want to query databases using SQL directly, sometimes it is useful to be
+// be able to query them programmatically from {language}, possibly making use of the {language}
+// libraries and application code you use in the rest of your codebase.
+//
+//
+//// SNIPPET:DATABASE
+//
+// In this case, we make use of the popular https://github.com/com-lihaoyi/scalasql[ScalaSql]
+// library to perform the queries:
+
+/** See Also: Database.scala */
+
+/** Usage
+> ./mill Database.scala 2011-01-01
+James Bond
+叉烧包
 
 */
 //// SNIPPET:END

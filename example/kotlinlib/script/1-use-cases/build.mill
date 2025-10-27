@@ -34,6 +34,8 @@ Government_of_Singapore
 
 */
 //// SNIPPET:WEBSERVER
+// In this example, the webserver script uses of the https://sparkjava.com/[Spark] framework
+// to run the web server
 /** See Also: WebServer.kt */
 
 /** Usage
@@ -41,5 +43,16 @@ Government_of_Singapore
 
 > curl -d 'hello world' localhost:8080/reverse-string
 dlrow olleh
+
+*/
+//// SNIPPET:DATABASE
+// In this case, we make use of the popular
+// https://github.com/JetBrains/Exposed[Jetbrains/Exposed] library to perform the queries:
+/** See Also: Database.kt */
+
+/** Usage
+> ./mill Database.kt 2011-01-01
+James Bond
+叉烧包
 
 */
