@@ -346,13 +346,22 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
             (in, out) => {
               val serverToClient = use(BufferedReader(InputStreamReader(in)))
               val clientToServer = use(PrintStream(out))
-              val wireTransport =
-                MillRpcWireTransport.ViaStreams(
+
+              class Transport()
+                extends MillRpcWireTransport.ViaStreams(
                   debugName,
                   serverToClient,
                   clientToServer,
                   writeSynchronizer = clientToServer
-                )
+                ){
+                override def writeSerialized[A: upickle.Writer](message: A, log: String => Unit): Unit = {
+                  // RPC communication is local and uncached, so we don't want to use any root mapping
+                  PathRef.mappedRoots.withMapping(Seq()) {
+                    super.writeSerialized(message, log)
+                  }
+                }
+              }
+              val wireTransport = Transport()
 
               val init =
                 ZincWorkerRpcServer.Initialize(compilerBridgeWorkspace = compilerBridge.workspace)
