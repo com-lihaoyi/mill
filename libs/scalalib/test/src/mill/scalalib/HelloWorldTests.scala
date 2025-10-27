@@ -159,101 +159,121 @@ object HelloWorldTests extends TestSuite {
 
     test("compile") {
       test("fromScratch") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorld.core.compile): @unchecked
+        if (scala.util.Properties.isJavaAtLeast(21))
+          "Skipping on Java 21+ due to too old Scala version"
+        else {
+          val Right(result) = eval.apply(HelloWorld.core.compile): @unchecked
 
-        val classesPath = eval.outPath / "core/compile.dest/classes"
-        val analysisFile = result.value.analysisFile
-        val outputFiles = os.walk(result.value.classes.path)
-        val expectedClassfiles = compileClassfiles.map(classesPath / _)
-        assert(
-          result.value.classes.path == classesPath,
-          os.exists(analysisFile),
-          outputFiles.nonEmpty,
-          outputFiles.forall(expectedClassfiles.contains),
-          result.evalCount > 0
-        )
+          val classesPath = eval.outPath / "core/compile.dest/classes"
+          val analysisFile = result.value.analysisFile
+          val outputFiles = os.walk(result.value.classes.path)
+          val expectedClassfiles = compileClassfiles.map(classesPath / _)
+          assert(
+            result.value.classes.path == classesPath,
+            os.exists(analysisFile),
+            outputFiles.nonEmpty,
+            outputFiles.forall(expectedClassfiles.contains),
+            result.evalCount > 0
+          )
 
-        // don't recompile if nothing changed
-        val Right(result2) = eval.apply(HelloWorld.core.compile): @unchecked
+          // don't recompile if nothing changed
+          val Right(result2) = eval.apply(HelloWorld.core.compile): @unchecked
 
-        assert(result2.evalCount == 0)
+          assert(result2.evalCount == 0)
 
-        // Make sure we *do not* end up compiling the compiler bridge, since
-        // it's using a pre-compiled bridge value
-        assert(!os.exists(
-          eval.outPath / "mill/scalalib/JvmWorkerModule/internalWorker.dest" / s"zinc-${zincVersion}"
-        ))
+          // Make sure we *do not* end up compiling the compiler bridge, since
+          // it's using a pre-compiled bridge value
+          assert(!os.exists(
+            eval.outPath / "mill/scalalib/JvmWorkerModule/internalWorker.dest" / s"zinc-${zincVersion}"
+          ))
+        }
       }
 
       test("nonPreCompiledBridge") - UnitTester(
         HelloWorldNonPrecompiledBridge,
         sourceRoot = resourcePath
       ).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile): @unchecked
+        if (scala.util.Properties.isJavaAtLeast(21))
+          "Skipping on Java 21+ due to too old Scala version"
+        else {
+          val Right(result) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile): @unchecked
 
-        val classesPath = eval.outPath / "core/compile.dest/classes"
+          val classesPath = eval.outPath / "core/compile.dest/classes"
 
-        val analysisFile = result.value.analysisFile
-        val outputFiles = os.walk(result.value.classes.path)
-        val expectedClassfiles = compileClassfiles.map(classesPath / _)
-        assert(
-          result.value.classes.path == classesPath,
-          os.exists(analysisFile),
-          outputFiles.nonEmpty,
-          outputFiles.forall(expectedClassfiles.contains),
-          result.evalCount > 0
-        )
+          val analysisFile = result.value.analysisFile
+          val outputFiles = os.walk(result.value.classes.path)
+          val expectedClassfiles = compileClassfiles.map(classesPath / _)
+          assert(
+            result.value.classes.path == classesPath,
+            os.exists(analysisFile),
+            outputFiles.nonEmpty,
+            outputFiles.forall(expectedClassfiles.contains),
+            result.evalCount > 0
+          )
 
-        // don't recompile if nothing changed
-        val Right(result2) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile): @unchecked
+          // don't recompile if nothing changed
+          val Right(result2) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile): @unchecked
 
-        assert(result2.evalCount == 0)
+          assert(result2.evalCount == 0)
 
-        // Make sure we *do* end up compiling the compiler bridge, since it's
-        // *not* using a pre-compiled bridge value
-        assert(os.exists(
-          eval.outPath / "mill.javalib.JvmWorkerModule/internalWorker.dest" / s"zinc-${zincVersion}"
-        ))
+          // Make sure we *do* end up compiling the compiler bridge, since it's
+          // *not* using a pre-compiled bridge value
+          assert(os.exists(
+            eval.outPath / "mill.javalib.JvmWorkerModule/internalWorker.dest" / s"zinc-${zincVersion}"
+          ))
+        }
       }
 
       test("recompileOnChange") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorld.core.compile): @unchecked
-        assert(result.evalCount > 0)
+        if (scala.util.Properties.isJavaAtLeast(21))
+          "Skipping on Java 21+ due to too old Scala version"
+        else {
+          val Right(result) = eval.apply(HelloWorld.core.compile): @unchecked
+          assert(result.evalCount > 0)
 
-        os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "\n")
+          os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "\n")
 
-        val Right(result2) = eval.apply(HelloWorld.core.compile): @unchecked
-        assert(result2.evalCount > 0, result2.evalCount < result.evalCount)
+          val Right(result2) = eval.apply(HelloWorld.core.compile): @unchecked
+          assert(result2.evalCount > 0, result2.evalCount < result.evalCount)
+        }
       }
       test("failOnError") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
-        os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "val x: ")
+        if (scala.util.Properties.isJavaAtLeast(21))
+          "Skipping on Java 21+ due to too old Scala version"
+        else {
+          os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "val x: ")
 
-        val Left(ExecResult.Failure("Compilation failed")) =
-          eval.apply(HelloWorld.core.compile): @unchecked
+          val Left(ExecResult.Failure("Compilation failed")) =
+            eval.apply(HelloWorld.core.compile): @unchecked
 
-        val paths = ExecutionPaths.resolve(eval.outPath, HelloWorld.core.compile)
+          val paths = ExecutionPaths.resolve(eval.outPath, HelloWorld.core.compile)
 
-        assert(
-          os.walk(paths.dest / "classes").isEmpty,
-          !os.exists(paths.meta)
-        )
-        // Works when fixed
-        os.write.over(
-          HelloWorld.moduleDir / "core/src/Main.scala",
-          os.read(HelloWorld.moduleDir / "core/src/Main.scala").dropRight(
-            "val x: ".length
+          assert(
+            os.walk(paths.dest / "classes").isEmpty,
+            !os.exists(paths.meta)
           )
-        )
+          // Works when fixed
+          os.write.over(
+            HelloWorld.moduleDir / "core/src/Main.scala",
+            os.read(HelloWorld.moduleDir / "core/src/Main.scala").dropRight(
+              "val x: ".length
+            )
+          )
 
-        val Right(_) = eval.apply(HelloWorld.core.compile): @unchecked
+          val Right(_) = eval.apply(HelloWorld.core.compile): @unchecked
+        }
       }
       test("passScalacOptions") - UnitTester(
         HelloWorldFatalWarnings,
         sourceRoot = resourcePath
       ).scoped { eval =>
-        // compilation fails because of "-Xfatal-warnings" flag
-        val Left(ExecResult.Failure("Compilation failed")) =
-          eval.apply(HelloWorldFatalWarnings.core.compile): @unchecked
+        if (scala.util.Properties.isJavaAtLeast(21))
+          "Skipping on Java 21+ due to too old Scala version"
+        else {
+          // compilation fails because of "-Xfatal-warnings" flag
+          val Left(ExecResult.Failure("Compilation failed")) =
+            eval.apply(HelloWorldFatalWarnings.core.compile): @unchecked
+        }
       }
     }
 
@@ -266,39 +286,47 @@ object HelloWorldTests extends TestSuite {
 
     test("jar") {
       test("nonEmpty") - UnitTester(HelloWorldWithMain, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldWithMain.core.jar): @unchecked
-
-        assert(
-          os.exists(result.value.path),
-          result.evalCount > 0
-        )
-
-        Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
-          val entries = jarFile.entries().asScala.map(_.getName).toSeq.sorted
-
-          val otherFiles = Seq(
-            "META-INF/",
-            "META-INF/MANIFEST.MF",
-            "reference.conf"
-          )
-          val expectedFiles = (compileClassfiles.map(_.toString()) ++ otherFiles).sorted
+        if (scala.util.Properties.isJavaAtLeast(21))
+          "Skipping on Java 21+ due to too old Scala version"
+        else {
+          val Right(result) = eval.apply(HelloWorldWithMain.core.jar): @unchecked
 
           assert(
-            entries.nonEmpty,
-            entries == expectedFiles
+            os.exists(result.value.path),
+            result.evalCount > 0
           )
 
-          val mainClass = jarMainClass(jarFile)
-          assert(mainClass.contains("Main"))
+          Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
+            val entries = jarFile.entries().asScala.map(_.getName).toSeq.sorted
+
+            val otherFiles = Seq(
+              "META-INF/",
+              "META-INF/MANIFEST.MF",
+              "reference.conf"
+            )
+            val expectedFiles = (compileClassfiles.map(_.toString()) ++ otherFiles).sorted
+
+            assert(
+              entries.nonEmpty,
+              entries == expectedFiles
+            )
+
+            val mainClass = jarMainClass(jarFile)
+            assert(mainClass.contains("Main"))
+          }
         }
       }
 
       test("logOutputToFile") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
-        val outPath = eval.outPath
-        eval.apply(HelloWorld.core.compile)
+        if (scala.util.Properties.isJavaAtLeast(21))
+          "Skipping on Java 21+ due to too old Scala version"
+        else {
+          val outPath = eval.outPath
+          eval.apply(HelloWorld.core.compile)
 
-        val logFile = outPath / "core/compile.log"
-        assert(os.exists(logFile))
+          val logFile = outPath / "core/compile.log"
+          assert(os.exists(logFile))
+        }
       }
     }
   }
