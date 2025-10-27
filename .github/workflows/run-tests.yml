@@ -224,7 +224,7 @@ jobs:
       os: windows-latest
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
-      extra: ${{ matrix.extra | "" }}
+      extra: ${{ matrix.extra || "" }}
       shell: powershell
 
   itest:
