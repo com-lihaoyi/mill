@@ -23,3 +23,11 @@ include::partial$example/javalib/script/5-programmatic-module-deps.adoc[]
 == Packaging Assemblies and Native Binaries
 
 include::partial$example/javalib/script/6-packaging.adoc[]
+
+== Opening a Script Console or REPL
+
+To open a REPL with your script loaded and available, you can use the following command
+
+```scala
+./mill -i Foo.java:jshell
+```
