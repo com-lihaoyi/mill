@@ -5,7 +5,6 @@ import mill.api.daemon.internal.TestReporter
 import mill.util.Jvm
 import mill.api.internal.Util
 import mill.Task
-import mill.constants.PathVars
 import sbt.testing.Status
 
 import java.time.format.DateTimeFormatter
@@ -136,7 +135,10 @@ final class TestModuleUtil(
 
     val argsFile = baseFolder / "testargs"
     val sandbox = baseFolder / "sandbox"
-    os.write(argsFile, upickle.write(testArgs), createFolders = true)
+    PathRef.mappedRoots.withMapping(Seq()) {
+      // Don't use placeholders, so we only have local absolute paths
+      os.write(argsFile, upickle.write(testArgs), createFolders = true)
+    }
 
     os.makeDir.all(sandbox)
 
@@ -146,11 +148,7 @@ final class TestModuleUtil(
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
         env = (if (propagateEnv) Task.env else Map()) ++ forkEnv,
-        mainArgs = Seq(
-          testRunnerClasspathArg,
-          argsFile.toString,
-          PathRef.mappedRoots.toMap(PathVars.MILL_OUT).toString
-        ),
+        mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         cpPassingJarPath = Option.when(useArgsFile)(
           os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)

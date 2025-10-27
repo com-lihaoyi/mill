@@ -1,16 +1,11 @@
 package mill.javalib.testrunner
 
-import mill.api.PathRef
 import mill.api.daemon.internal.{TestReporter, internal}
 
 @internal object TestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {
     try {
-      val millOutPath = os.Path(args(2))
-      val testArgs =
-        PathRef.mappedRoots.withMillDefaults(millOutPath) {
-          upickle.read[TestArgs](os.read(os.Path(args(1))))
-        }
+      val testArgs = upickle.read[TestArgs](os.read(os.Path(args(1))))
       testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }
 
       val result = testArgs.globSelectors match {

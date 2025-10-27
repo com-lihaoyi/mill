@@ -16,8 +16,7 @@ import java.util.stream.Stream;
 public class TestRunnerMain {
   /**
    *
-   * @param args arg1: classpath, arg2 testArgs-file, arg2 Mill out path
-   * @throws Exception
+   * @param args arg1: classpath, arg2 testArgs-file
    */
   public static void main(String[] args) throws Exception {
     URL[] testRunnerClasspath = Stream.of(args[0].split(","))

@@ -195,7 +195,10 @@ trait TestModule
       )
 
       val argsFile = Task.dest / "testargs"
-      os.write(argsFile, upickle.write(testArgs))
+      PathRef.mappedRoots.withMapping(Seq()) {
+        // Don't use placeholders, so we only have local absolute paths
+        os.write(argsFile, upickle.write(testArgs))
+      }
 
       val testRunnerClasspathArg =
         jvmWorker().scalalibClasspath()
