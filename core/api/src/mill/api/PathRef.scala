@@ -71,7 +71,7 @@ case class PathRef private[mill] (
     renderToString(false)
   }
 
-  // Instead of using `path` we need to use `pathVal`, to make the hashcode stable as cache key
+  // Instead of using `path` we need to use `mappedPath` to make the hashcode stable as cache key
   override def hashCode(): Int = {
     var h = MurmurHash3.productSeed
     h = MurmurHash3.mix(h, "PathRef".hashCode)
@@ -282,7 +282,6 @@ object PathRef {
   }
 
   private[api] def decodeKnownRootsInPath(encoded: String): String = {
-    pprint.err.log(encoded)
     if (encoded.startsWith("$")) {
       val offset = 1 // "$".length
       mappedRoots.get.collectFirst {
