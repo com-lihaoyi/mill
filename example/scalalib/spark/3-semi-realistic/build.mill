@@ -21,8 +21,138 @@ object `package` extends ScalaModule {
 
 }
 
-// This examples demonstrates a semi realistic example calculating summary statics
-// from a transactions.csv passed in as argument, defaulting to resources if not present.
+// ## Semi-Realistic Spark Analytics Example
+//
+// This demonstrates a production-like analytics workflow: reading CSV data, performing
+// aggregations (GROUP BY), and displaying summary statistics. This pattern is the
+// foundation of 80% of business intelligence and reporting workloads.
+//
+// ### Why This Example Matters - The GroupBy/Aggregate Pattern
+//
+// This example shows the most common Spark operation: GROUP BY + AGGREGATE.
+//
+// **Real-World Applications:**
+// - Revenue reporting: Total sales by region/product/time period
+// - User analytics: Active users by cohort/feature/platform
+// - IoT monitoring: Sensor metrics by device/location/timewindow
+// - Financial analysis: Transaction volumes by account/type/period
+//
+// **Why It's Fundamental:**
+// - Reduces TB of data → MB of insights (massive data reduction)
+// - Parallelizes automatically across cluster nodes
+// - Mirrors SQL GROUP BY (familiar to analysts and data engineers)
+// - Scales from thousands → billions of rows with same code
+//
+// ### Key Spark Concepts Demonstrated
+//
+// **1. Reading CSV with Schema Inference**
+// ```
+// .option("header", "true")        // First row is column names
+// .option("inferSchema", "true")   // Auto-detect column types (Int, Double, String)
+// ```
+// Production tip: Explicit schemas are faster and safer than inferSchema.
+// inferSchema reads the file twice: once to infer types, once to load data.
+//
+// **2. Datasets vs DataFrames**
+// ```
+// val df: DataFrame = spark.read.csv(...)          // Untyped (flexible but less safe)
+// val ds: Dataset[Transaction] = df.as[Transaction]  // Typed (compile-time safety)
+// ```
+// - DataFrame = Dataset[Row] with dynamic column access
+// - Dataset[T] = Type-safe with case class mapping
+// - Choose Datasets for production pipelines (catch errors at compile time)
+//
+// **3. Aggregation Functions**
+// ```
+// .agg(
+//   sum("amount"),              // Total across group
+//   avg("amount"),              // Average within group
+//   count("amount")             // Count of rows in group
+// )
+// ```
+// - Executed in parallel across data partitions
+// - Optimized by Catalyst query optimizer (like SQL database query planner)
+// - 100+ built-in aggregation functions available
+//
+// **4. Resource Path Handling**
+// ```
+// args.headOption.orElse(resourcePath)
+// ```
+// - Development: Use resources/ folder for bundled test data
+// - Production: Pass file path as command-line argument
+// - Flexible pattern for both testing and deployment
+//
+// ### Local Development → Production Deployment
+//
+// **Three Ways to Run This Example:**
+//
+// 1. **Local Development** (fastest iteration)
+//    ```
+//    ./mill run
+//    ```
+//    - Runs in local[*] mode on your laptop
+//    - Uses bundled test CSV from resources/
+//    - Instant feedback for development
+//
+// 2. **Local with Custom Data**
+//    ```
+//    ./mill run /path/to/your/data.csv
+//    ```
+//    - Test with real data shapes and volumes
+//    - Verify aggregation logic before cluster deployment
+//
+// 3. **Production Deployment** (spark-submit)
+//    ```
+//    ./mill show assembly
+//    ./spark-submit.sh out/assembly.dest/out.jar foo.Foo hdfs://data.csv
+//    ```
+//    - Packages all dependencies in assembly jar (uber-jar)
+//    - Runs on YARN/Standalone/K8s cluster
+//    - Same code, different scale (laptop → 1000 nodes)
+//
+// ### The spark-submit Pattern
+//
+// spark-submit is Spark's universal deployment tool:
+// - Uploads jar to cluster master node
+// - Distributes code to worker nodes
+// - Manages resource allocation (memory, cores)
+// - Collects logs and metrics from distributed execution
+//
+// Mill's `assembly` task creates the "uber-jar" spark-submit needs,
+// bundling your code + all dependencies in a single deployable artifact.
+//
+// ### How This Scales to Big Data
+//
+// **On Your Laptop:**
+// - Processes 7 transactions in milliseconds
+// - Uses ~200MB RAM
+// - Single JVM process
+//
+// **On a 100-Node Cluster:**
+// - Same code processes 1 billion transactions
+// - Partitions data across 1000+ cores
+// - Distributes CSV reading, grouping, aggregation in parallel
+// - Results combined automatically
+//
+// **Magic:** You write code once. Spark handles:
+// - Data partitioning across nodes
+// - Task distribution and scheduling
+// - Fault tolerance (retries failed tasks)
+// - Result aggregation from all nodes
+//
+// ### Common Pitfalls
+//
+// - **Schema inference cost**: Reads file twice - use explicit schema in production
+// - **Small files problem**: Millions of small CSVs kill performance (combine first)
+// - **Too many groups**: Distinct groups must fit in memory (can cause OutOfMemoryError)
+// - **CSV vs Parquet**: CSV parsing is 10x slower than Parquet (use columnar formats in production)
+//
+// ### Next Steps
+//
+// - Add joins: Combine multiple datasets (transactions + customers + products)
+// - Add window functions: Running totals, moving averages, rankings
+// - Add partitioning: Write results partitioned by category for efficient querying
+// - Productionize: Use Parquet format, explicit schemas, proper error handling
 
 /** Usage
 

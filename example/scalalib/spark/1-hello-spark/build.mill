@@ -18,7 +18,66 @@ object foo extends ScalaModule {
   }
 
 }
-// This examples demonstrates running spark using mill.
+
+// ## Apache Spark "Hello World" Example
+//
+// This is the absolute simplest Apache Spark application: creating a DataFrame with a single
+// value and displaying it. While trivial, it demonstrates the fundamental pattern of every
+// Spark application: initialize SparkSession, create/transform data, perform action, stop session.
+//
+// ### Why This Example Matters
+//
+// Real-world Spark applications follow this same pattern:
+// - ETL pipelines: Read CSV → Transform → Write Parquet
+// - Analytics: Load data → Aggregate → Display results
+// - ML Training: Load features → Train model → Save model
+//
+// Understanding this "Hello World" provides the template for complex workflows.
+//
+// ### Key Spark Concepts Demonstrated
+//
+// **SparkSession** - The entry point to all Spark functionality
+// - Replaces the older SparkContext and SQLContext APIs
+// - Manages cluster resources (even in local mode)
+// - Required for all DataFrame and Dataset operations
+// - In this example: `SparkSession.builder().appName(...).master(...).getOrCreate()`
+//
+// **local[*] Master** - Run Spark on your laptop for development
+// - `local[*]` means use all available CPU cores
+// - Perfect for development, testing, and learning
+// - Same code runs on 1000-node clusters (just change the master URL)
+// - No cluster setup needed for learning Spark
+//
+// **DataFrames** - Spark's distributed table abstraction
+// - Similar to pandas DataFrame but distributed across cluster
+// - Optimized by Catalyst query optimizer
+// - Type-safe in Scala (compile-time checking)
+// - Can hold billions of rows across thousands of machines
+//
+// **forkArgs Configuration** - Java module system workaround
+// - `--add-opens java.base/sun.nio.ch=ALL-UNNAMED` required for Spark 3.x on Java 11+
+// - Opens internal Java modules that Spark needs to access
+// - Mill handles this automatically in the build configuration
+// - Without this, you'll see cryptic reflection access warnings
+//
+// ### How This Scales to Production
+//
+// This exact code works unchanged on:
+// - Your laptop (local mode) - demonstrated here
+// - Spark standalone cluster
+// - Apache YARN clusters (Hadoop ecosystem)
+// - Kubernetes clusters
+// - Cloud platforms (AWS EMR, Azure Databricks, Google Dataproc)
+//
+// Only the `.master()` URL changes. All DataFrame operations remain identical whether
+// processing 10 rows locally or 10 billion rows on a cluster.
+//
+// ### Common Pitfalls
+//
+// - **Forgetting spark.stop()**: Leads to resource leaks, especially in test suites
+// - **Wrong Scala version**: Spark 3.5.x requires Scala 2.12 or 2.13 (we use 2.12.20)
+// - **Missing forkArgs**: Causes cryptic IllegalAccessError on Java 11+
+// - **Not using getOrCreate()**: Creates multiple SparkSessions in tests (use getOrCreate)
 
 /** Usage
 
@@ -35,4 +94,10 @@ object foo extends ScalaModule {
 ...
 + foo.FooTests.helloWorld should create a DataFrame with one row containing 'Hello, World!'...
 ...
+
+### Next Steps
+
+- See example/scalalib/spark/2-hello-pyspark for the Python equivalent
+- See example/scalalib/spark/3-semi-realistic for real data processing patterns
+- Mill docs: https://mill-build.org/mill/scalalib/testing.html
 */

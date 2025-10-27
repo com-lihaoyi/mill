@@ -10,6 +10,74 @@ object foo extends PythonModule {
 
 }
 
+// ## Apache Spark with Python (PySpark) Example
+//
+// This demonstrates running Apache Spark from Python using PySpark. This is the same
+// "Hello World" as example/scalalib/spark/1-hello-spark, but shows how Python developers
+// can leverage Spark's distributed computing without learning Scala or the JVM.
+//
+// ### Why This Example Matters
+//
+// PySpark enables:
+// - Python data scientists to use Spark without learning JVM languages
+// - Integration with the Python ML ecosystem (scikit-learn, pandas, numpy)
+// - Rapid prototyping with familiar Python syntax
+// - 70%+ of Spark users choose PySpark over Scala
+//
+// **Common Use Cases:**
+// - Data science teams using Python-first workflows
+// - Integrating Spark with existing Python applications
+// - Quick data exploration and analysis
+// - Prototyping before production Scala implementation
+//
+// ### When to Choose PySpark vs Scala Spark
+//
+// **Choose PySpark when:**
+// - Team expertise is primarily Python
+// - Integrating with Python ML libraries (scikit-learn, TensorFlow, PyTorch)
+// - Rapid prototyping and exploratory data analysis
+// - Working with data scientists who know Python but not Scala
+//
+// **Choose Scala Spark when:**
+// - Need maximum performance (no Python interpreter overhead)
+// - Building production data pipelines requiring highest throughput
+// - Leveraging advanced Spark internals and custom optimizations
+// - Team has strong JVM/Scala expertise
+//
+// **Performance Note:** For most workloads, PySpark performance is nearly identical to
+// Scala because DataFrame operations execute in the JVM. Only heavy UDF (user-defined function)
+// workloads show significant differences. Built-in Spark functions are equally fast.
+//
+// ### Mill PythonModule Integration
+//
+// Mill's PythonModule provides:
+// - Automatic virtual environment management (no manual venv setup)
+// - Dependency installation via pythonDeps (like requirements.txt)
+// - Test framework integration (unittest, pytest support)
+// - Consistent build patterns across Scala and Python
+//
+// This means you can manage polyglot Spark projects (Scala + Python) with unified
+// build tooling. The same `./mill run` and `./mill test` commands work for both.
+//
+// ### Key Differences from Scala Version
+//
+// **Syntax:**
+// - Builder pattern uses `\` for line continuation in Python
+// - Type hints are optional but recommended: `def hello_world(spark: SparkSession) -> DataFrame`
+// - Python lists vs Scala Seq: `[("Hello, World!",)]` vs `Seq("Hello, World!")`
+//
+// **Testing:**
+// - Uses Python's unittest framework (also supports pytest)
+// - setUpClass/tearDownClass manage SparkSession lifecycle
+// - Reuses single SparkSession across test methods (more efficient)
+//
+// ### Common Pitfalls
+//
+// - **Wrong PySpark version**: Must match Spark cluster version in production
+// - **Python 2 vs 3**: PySpark 3.x requires Python 3.7+ (Python 2 is no longer supported)
+// - **UDF performance**: Python UDFs are slower than built-in functions (use built-ins when possible)
+// - **collect() on large data**: Same warning as Scala - causes OutOfMemoryError with big datasets
+
 /** Usage
 
 > ./mill foo.run
@@ -29,4 +97,10 @@ Ran 1 test...
 ...
 OK
 ...
+
+### Next Steps
+
+- See example/scalalib/spark/1-hello-spark for Scala comparison
+- See example/scalalib/spark/3-semi-realistic for data processing patterns
+- PySpark docs: https://spark.apache.org/docs/latest/api/python/
 */
