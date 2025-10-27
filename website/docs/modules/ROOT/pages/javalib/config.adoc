@@ -21,7 +21,7 @@ include::partial$example/javalib/config/3-publish.adoc[]
 
 include::partial$example/javalib/config/4-custom-trait.adoc[]
 
-== Depending on Programmatic Modules
+== Programmatic `moduleDeps`
 
-include::partial$example/javalib/config/5-mixed-module-deps.adoc[]
+include::partial$example/javalib/config/5-programmatic-module-deps.adoc[]
 

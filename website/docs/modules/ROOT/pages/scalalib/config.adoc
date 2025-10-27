@@ -20,7 +20,7 @@ include::partial$example/scalalib/config/3-publish.adoc[]
 
 include::partial$example/scalalib/config/4-custom-trait.adoc[]
 
-== Depending on Programmatic Modules
+== Programmatic `moduleDeps`
 
-include::partial$example/scalalib/config/5-mixed-module-deps.adoc[]
+include::partial$example/scalalib/config/5-programmatic-module-deps.adoc[]
 

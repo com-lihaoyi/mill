@@ -15,3 +15,7 @@ include::partial$example/scalalib/script/3-relative-imports.adoc[]
 == Custom Script Module Classes
 
 include::partial$example/scalalib/script/4-custom-class.adoc[]
+
+== Programmatic `moduleDeps`
+
+include::partial$example/scalalib/script/5-programmatic-module-deps.adoc[]
