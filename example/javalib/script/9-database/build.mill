@@ -1,4 +1,3 @@
-
 //// SNIPPET:DATABASE
 // In this case, we make use of the popular https://www.jooq.org/[JOOQ]
 // library to perform the queries:

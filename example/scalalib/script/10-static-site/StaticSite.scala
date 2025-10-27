@@ -6,7 +6,7 @@ import scalatags.Text.all._
 def main(args: Array[String]): Unit = {
   val postInfo = os
     .list(os.pwd / "post")
-    .map{ p =>
+    .map { p =>
       val s"$prefix - $suffix.md" = p.last
       (prefix, suffix, p)
     }

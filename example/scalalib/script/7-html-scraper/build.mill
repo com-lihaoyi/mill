@@ -1,4 +1,3 @@
-
 // === HTML Web Scraper
 // Below is another web crawler, but instead of interacting with Wikipedia via a JSON API
 // it scrapes the website's HTML pages using JSoup. JSoup is not bundled with Mill, but
