@@ -1,6 +1,6 @@
 //| mvnDeps: [com.lihaoyi::cask:0.9.1]
-package app
-object MinimalApplication extends cask.MainRoutes{
+
+object WebServer extends cask.MainRoutes{
   @cask.post("/do-thing")
   def doThing(request: cask.Request) = {
     request.text().reverse
