@@ -46,7 +46,6 @@ public class Database {
         .where(shipDate.ge(LocalDate.parse(args[0])))
         .fetchInto(String.class);
 
-      System.out.println("NAMES " + names);
       names.forEach(System.out::println);
     }
   }

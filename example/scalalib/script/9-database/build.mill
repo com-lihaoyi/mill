@@ -16,7 +16,7 @@
 /** Usage
 > ./mill Database.scala 2011-01-01
 James Bond
-叉烧包
+John Doe
 
 */
 //// SNIPPET:END

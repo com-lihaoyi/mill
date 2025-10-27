@@ -35,7 +35,7 @@ CREATE TABLE purchase
 
 INSERT INTO buyer (name, date_of_birth)
 VALUES ('James Bond', '2001-02-03'),
-       ('叉烧包', '1923-11-12'),
+       ('John Doe', '1923-11-12'),
        ('Li Haoyi', '1965-08-09');
 
 INSERT INTO product (kebab_case_name, name, price)
