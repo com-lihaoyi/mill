@@ -1,20 +1,13 @@
-//| mill-version: 1.0.6
 package build
 
 import mill.*
 import mill.javalib.*
-import mill.javalib.TestModule.{Junit4, Junit5}
-import mill.javalib.publish.*
 
 object `package` extends MavenModule {
 
   def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-web:3.5.6")
 
-  def pomParentProject = Some(
-    Artifact("org.springframework.boot", "spring-boot-starter-parent", "3.5.6")
-  )
-
-  object test extends MavenTests, Junit5 {
+  object test extends MavenTests, TestModule.Junit5 {
 
     override def junitPlatformVersion: T[String] = "6.0.0"
 
@@ -22,3 +15,35 @@ object `package` extends MavenModule {
       Seq(mvn"org.springframework.boot:spring-boot-starter-test:3.5.6")
   }
 }
+
+// This example demonstrates how to configure mill for a simple initializr project,
+// using https://start.spring.io/[https://start.spring.io/] by choosing:
+//
+//* Project: maven
+//* Language: Java
+//* Dependencies: Spring Web,
+//
+// The structure of this project follows the MavenModule structure (i.e. the same structure
+// as generated from the initialzr tool).
+//
+// For more information visit https://spring.io/quickstart[https://spring.io/quickstart]
+
+/** Usage
+
+> ./mill test
+...Test com.example.demo.DemoApplicationTests#contextLoads() finished...
+
+> ./mill runBackground
+
+> curl http://localhost:8096/hello
+...Hello, World!...
+
+> curl http://localhost:8096/hello?name=Mill
+...Hello, Mill!...
+
+> ./mill clean runBackground
+
+> ./mill show assembly
+.../out/assembly.dest/out.jar...
+
+*/
