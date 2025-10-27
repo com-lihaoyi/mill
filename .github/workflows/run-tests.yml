@@ -204,7 +204,7 @@ jobs:
             millargs: "'integration.invalidation.__.packaged.daemon'"
 
           - java-version: 11
-            millargs: '"example.migrating.javalib.__.packaged.daemon"'
+            millargs: '--jobs=1 "example.migrating.javalib.__.packaged.daemon"'
 
           - java-version: 11
             millargs: '"libs.{util,javalib,androidlib,graphviz}.__.test"'
