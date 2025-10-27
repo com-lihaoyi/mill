@@ -249,9 +249,21 @@ object PathRef {
 
     def withMapping[T](mapping: MappedRoots => MappedRoots)(thunk: => T): T = {
       val newMapping = mapping(rootMapping.value)
+      var seenKeys = Set[String]()
+      var seenPaths = Set[os.Path]()
       newMapping.foreach { case m =>
         require(!m.key.startsWith("$"), "Key must not start with a `$`.")
         require(m.key != PathVars.ROOT, s"Invalid key, '${PathVars.ROOT}' is a reserved key name.")
+        require(
+          !seenKeys.contains(m.key),
+          s"Key must be unique, but '${m.key}' was given multiple times."
+        )
+        require(
+          !seenPaths.contains(m.path),
+          s"Paths must be unique, but '${m.path}' was given multiple times."
+        )
+        seenKeys += m.key
+        seenPaths += m.path
       }
       rootMapping.withValue(newMapping)(thunk)
     }
