@@ -1,5 +1,7 @@
 //// SNIPPET:FILE
 /** See Also: Foo.java */
+//// SNIPPET:END
+//// SNIPPET:CMD
 /** Usage
 > ./mill Foo.java --text hello
 compiling 1 Java source to...

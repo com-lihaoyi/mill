@@ -1,5 +1,7 @@
 //// SNIPPET:FILE
 /** See Also: Foo.kt */
+//// SNIPPET:END
+//// SNIPPET:CMD
 /** Usage
 > ./mill Foo.kt --text hello
 Compiling 1 Kotlin sources to...
