@@ -23,9 +23,9 @@
 // Apart from the `mvnDeps` config that allows you to use third-party libraries in
 // your script, the `jvmId` config lets you specify exactly what JVM version you wish
 // to use in this script. Like other Mill modules, Mill scripts will default to a Mill's
-// own default JVM version if a `jvmId` is not provided. If you want to use the
-// environmentally installed `java` command available on your path, you must explicitly
-// set `jvmId: system`.
+// own default JVM version of `{default-mill-jvm-version}` if a `jvmId` is not provided.
+// If you want to use the environmentally installed `java` command available on your path,
+// you must explicitly set `jvmId: system`.
 //
 // Mill will automatically download and cache these artifacts
 // on your behalf, allowing you run these scripts via `./mill` and have them behave
