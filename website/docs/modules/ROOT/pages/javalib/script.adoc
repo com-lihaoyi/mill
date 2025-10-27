@@ -6,23 +6,11 @@
 
 == Script Use Cases
 
-include::partial$example/javalib/script/2-crawler.adoc[]
-
-== Relative and Absolute Script moduleDeps
-
-include::partial$example/javalib/script/3-relative-imports.adoc[]
-
-== Custom Script Module Classes
-
-include::partial$example/javalib/script/4-custom-class.adoc[]
-
-== Programmatic `moduleDeps`
-
-include::partial$example/javalib/script/5-programmatic-module-deps.adoc[]
+include::partial$example/javalib/script/1-crawler.adoc[]
 
 == Packaging Assemblies and Native Binaries
 
-include::partial$example/javalib/script/6-packaging.adoc[]
+include::partial$example/javalib/script/2-packaging.adoc[]
 
 == Opening a Script Console or REPL
 
@@ -31,3 +19,17 @@ To open a REPL with your script loaded and available, you can use the following 
 ```scala
 ./mill -i Foo.java:jshell
 ```
+
+
+== Custom Script Module Classes
+
+include::partial$example/javalib/script/3-custom-class.adoc[]
+
+== Relative and Absolute Script moduleDeps
+
+include::partial$example/javalib/script/4-relative-imports.adoc[]
+
+== Programmatic `moduleDeps`
+
+include::partial$example/javalib/script/5-programmatic-module-deps.adoc[]
+

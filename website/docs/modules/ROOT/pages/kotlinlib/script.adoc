@@ -6,20 +6,23 @@
 
 == Script Use Cases
 
-include::partial$example/kotlinlib/script/2-crawler.adoc[]
+include::partial$example/kotlinlib/script/1-crawler.adoc[]
 
-== Relative and Absolute Script moduleDeps
 
-include::partial$example/kotlinlib/script/3-relative-imports.adoc[]
+== Packaging Assemblies and Native Binaries
+
+include::partial$example/kotlinlib/script/2-packaging.adoc[]
+
 
 == Custom Script Module Classes
 
-include::partial$example/kotlinlib/script/4-custom-class.adoc[]
+include::partial$example/kotlinlib/script/3-custom-class.adoc[]
+
+
+== Relative and Absolute Script moduleDeps
+
+include::partial$example/kotlinlib/script/4-relative-imports.adoc[]
 
 == Programmatic `moduleDeps`
 
 include::partial$example/kotlinlib/script/5-programmatic-module-deps.adoc[]
-
-== Packaging Assemblies and Native Binaries
-
-include::partial$example/kotlinlib/script/6-packaging.adoc[]

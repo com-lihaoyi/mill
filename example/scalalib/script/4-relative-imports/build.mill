@@ -14,7 +14,7 @@
 //// SNIPPET:END
 
 // Or it can be imported via `bar/Bar.{language-ext}` absolute import, as shown below where it
-// is imported from the `foo/Foo.{language-exr}`
+// is imported from the `foo/Foo.{language-ext}`
 
 //// SNIPPET:FOO
 /** See Also: foo/Foo.scala */

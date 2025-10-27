@@ -95,8 +95,8 @@ Jvm Version: 11.0.28
 // The testing framework used in a script is defined by the class specified in the
 // `extends` clause. The different testing frameworks supported in xref:{language-small}lib/testing.adoc[]
 // can be used for your scripts: `Junit4`, `Junit5`, `TestNg`, `Munit`, `ScalaTest`, `Specs2`,
-// `Utest`, `Weaver`, `ZioTest`. If you need something not on this list, you can do it yourself
-// by defining a xref:{language-small}lib/script.adoc#_custom_script_module_classes[Custom Script Module Class].
+// `Utest`, `Weaver`, `ZioTest`. If you need something not on this list, you can define
+// a xref:{language-small}lib/script.adoc#_custom_script_module_classes[Custom Script Module Class].
 //
 // For scripts that grow larger than a single file, you should convert them
 // to xref:#_simple_config_based_modules[].
