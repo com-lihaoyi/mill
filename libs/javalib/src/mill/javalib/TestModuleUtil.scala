@@ -5,7 +5,6 @@ import mill.api.daemon.internal.TestReporter
 import mill.util.Jvm
 import mill.api.internal.Util
 import mill.Task
-import mill.constants.PathVars
 import sbt.testing.Status
 
 import java.time.format.DateTimeFormatter
