@@ -112,15 +112,18 @@ object CodeGen {
 
           val moduleDepsSnippet =
             if (data.moduleDeps.isEmpty) ""
-            else s"override def moduleDeps = Seq(${data.moduleDeps.map("build." + _).mkString(", ")})"
+            else
+              s"override def moduleDeps = Seq(${data.moduleDeps.map("build." + _).mkString(", ")})"
 
           val compileModuleDepsSnippet =
             if (data.compileModuleDeps.isEmpty) ""
-            else s"override def compileModuleDeps = Seq(${data.compileModuleDeps.map("build." + _).mkString(", ")})"
+            else
+              s"override def compileModuleDeps = Seq(${data.compileModuleDeps.map("build." + _).mkString(", ")})"
 
           val runModuleDepsSnippet =
             if (data.runModuleDeps.isEmpty) ""
-            else s"override def runModuleDeps = Seq(${data.runModuleDeps.map("build." + _).mkString(", ")})"
+            else
+              s"override def runModuleDeps = Seq(${data.runModuleDeps.map("build." + _).mkString(", ")})"
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}"

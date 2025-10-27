@@ -36,13 +36,16 @@ object ScriptModuleInit
 
     def resolveOrErr(s: String) = resolveModuleDep(relativize(s)).toRight(s)
     val (moduleDepsErrors, moduleDeps) = moduleDepsStrings.partitionMap(resolveOrErr)
-    val (compileModuleDepsErrors, compileModuleDeps) = compileModuleDepsStrings.partitionMap(resolveOrErr)
+    val (compileModuleDepsErrors, compileModuleDeps) =
+      compileModuleDepsStrings.partitionMap(resolveOrErr)
     val (runModuleDepsErrors, runModuleDeps) = runModuleDepsStrings.partitionMap(resolveOrErr)
     val allErrors = moduleDepsErrors ++ compileModuleDepsErrors ++ runModuleDepsErrors
-    if (allErrors.nonEmpty){
-      mill.api.Result.Failure("Unable to resolve modules: " + allErrors.map(pprint.Util.literalize(_)).mkString(", "))
+    if (allErrors.nonEmpty) {
+      mill.api.Result.Failure(
+        "Unable to resolve modules: " + allErrors.map(pprint.Util.literalize(_)).mkString(", ")
+      )
     } else scriptModuleCache.synchronized {
-       scriptModuleCache.getOrElseUpdate(
+      scriptModuleCache.getOrElseUpdate(
         scriptFile,
         instantiate(
           extendsConfigStrings.getOrElse {
