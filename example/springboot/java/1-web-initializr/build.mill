@@ -1,0 +1,24 @@
+//| mill-version: 1.0.6
+package build
+
+import mill.*
+import mill.javalib.*
+import mill.javalib.TestModule.{Junit4, Junit5}
+import mill.javalib.publish.*
+
+object `package` extends MavenModule {
+
+  def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-web:3.5.6")
+
+  def pomParentProject = Some(
+    Artifact("org.springframework.boot", "spring-boot-starter-parent", "3.5.6")
+  )
+
+  object test extends MavenTests, Junit5 {
+
+    override def junitPlatformVersion: T[String] = "6.0.0"
+
+    def mvnDeps =
+      Seq(mvn"org.springframework.boot:spring-boot-starter-test:3.5.6")
+  }
+}

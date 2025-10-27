@@ -150,6 +150,9 @@ jobs:
           - java-version: 21
             millargs: "example.javalib.__.local.daemon"
 
+          - java-version: 21
+            millargs: "example.springboot.__.local.daemon"
+
           - java-version: 17
             millargs: "'example.androidlib.__.local.daemon'"
             setup-android: true
