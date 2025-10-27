@@ -239,9 +239,9 @@ object PathRef {
     )(thunk: => T): T = withMapping(
       Seq(
         ("MILL_OUT", outPath),
-        ("$WORKSPACE", workspacePath),
+        ("WORKSPACE", workspacePath),
         // TODO: add coursier here
-        ("$HOME", homePath)
+        ("HOME", homePath)
       )
     )(thunk)
 
