@@ -6,7 +6,7 @@
 /** Usage
 > ./mill WebServer.kt:runBackground
 
-> curl -d 'hello world' localhost:8080/reverse-string
+> curl -d 'hello world' localhost:4567/reverse-string
 dlrow olleh
 
 */

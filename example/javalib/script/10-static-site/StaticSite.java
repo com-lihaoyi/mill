@@ -58,7 +58,7 @@ public class StaticSite {
     }
   }
 
-  private static void deleteRecursively(Path root) throws IOException {
+  private static void deleteRecursively(Path root) throws Exception {
     if (!Files.exists(root)) return;
     try (var walk = Files.walk(root)) {
       var paths = walk.sorted(Comparator.reverseOrder()).collect(Collectors.toList());
