@@ -19,3 +19,7 @@ include::partial$example/javalib/script/4-custom-class.adoc[]
 == Programmatic `moduleDeps`
 
 include::partial$example/javalib/script/5-programmatic-module-deps.adoc[]
+
+== Packaging Assemblies and Native Binaries
+
+include::partial$example/javalib/script/6-packaging.adoc[]

@@ -1,4 +1,4 @@
-//| moduleDeps: [build.bar]
+//| moduleDeps: [bar]
 package foo;
 
 public class Foo {

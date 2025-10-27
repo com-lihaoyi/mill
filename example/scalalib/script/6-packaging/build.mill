@@ -1,0 +1,20 @@
+// Mill Single-File Scripts can be packaged into executable assemblies or Graal
+// native images for convenient distribution or deployment. Note that to create
+// Graal native image binaries, you need to define your `jvmId` to be a `graalvm`
+// version
+//
+//
+//// SNIPPET:LAST
+
+/** Usage
+
+> ./mill Bar.scala:assembly
+
+> ./out/Bar.scala/assembly.dest/out.jar # mac/linux
+
+> ./mill Bar.scala:nativeImage
+
+> ./out/Bar.scala/nativeImage.dest/native-executable
+
+*/
+

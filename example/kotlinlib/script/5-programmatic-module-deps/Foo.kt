@@ -1,5 +1,5 @@
-//| moduleDeps: [build.bar]
+//| moduleDeps: [bar]
 
 fun main(args: Array<String>){
-    bar.generateHtml(args[0])
+    println(bar.generateHtml(args[0]))
 }

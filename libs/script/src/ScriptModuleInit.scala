@@ -22,35 +22,37 @@ object ScriptModuleInit
 
   def moduleFor(
       scriptFile: os.Path,
-      extendsConfig: Option[String],
-      moduleDeps: Seq[String],
-      compileModuleDeps: Seq[String],
-      runModuleDeps: Seq[String],
+      extendsConfigStrings: Option[String],
+      moduleDepsStrings: Seq[String],
+      compileModuleDepsStrings: Seq[String],
+      runModuleDepsStrings: Seq[String],
       resolveModuleDep: String => Option[mill.Module]
-  ) = {
+  ): mill.api.Result[mill.api.ExternalModule] = {
     def relativize(s: String) = {
       if (s.startsWith("."))
         (scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot) / os.up / os.RelPath(s)).toString
       else s
     }
 
-    scriptModuleCache.synchronized {
-      scriptModuleCache.getOrElseUpdate(
+    def resolveOrErr(s: String) = resolveModuleDep(relativize(s)).toRight(s)
+    val (moduleDepsErrors, moduleDeps) = moduleDepsStrings.partitionMap(resolveOrErr)
+    val (compileModuleDepsErrors, compileModuleDeps) = compileModuleDepsStrings.partitionMap(resolveOrErr)
+    val (runModuleDepsErrors, runModuleDeps) = runModuleDepsStrings.partitionMap(resolveOrErr)
+    val allErrors = moduleDepsErrors ++ compileModuleDepsErrors ++ runModuleDepsErrors
+    if (allErrors.nonEmpty){
+      mill.api.Result.Failure("Unable to resolve modules: " + allErrors.map(pprint.Util.literalize(_)).mkString(", "))
+    } else scriptModuleCache.synchronized {
+       scriptModuleCache.getOrElseUpdate(
         scriptFile,
         instantiate(
-          extendsConfig.getOrElse {
+          extendsConfigStrings.getOrElse {
             scriptFile.ext match {
               case "java" => "mill.script.JavaModule"
               case "kt" => "mill.script.KotlinModule"
               case "scala" => "mill.script.ScalaModule"
             }
           },
-          ScriptModule.Config(
-            scriptFile,
-            moduleDeps.flatMap(s => resolveModuleDep(relativize(s))),
-            compileModuleDeps.flatMap(s => resolveModuleDep(relativize(s))),
-            runModuleDeps.flatMap(s => resolveModuleDep(relativize(s)))
-          )
+          ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps)
         )
       )
     }
@@ -78,17 +80,15 @@ object ScriptModuleInit
   ): Option[Result[ExternalModule]] = {
     val scriptFile = os.Path(scriptFile0, mill.api.BuildCtx.workspaceRoot)
     Option.when(os.isFile(scriptFile)) {
-      Result.create {
-        val parsedHeaderData = parseHeaderData(scriptFile)
-        moduleFor(
-          scriptFile,
-          parsedHeaderData.`extends`.headOption,
-          parsedHeaderData.moduleDeps,
-          parsedHeaderData.compileModuleDeps,
-          parsedHeaderData.runModuleDeps,
-          resolveModuleDep
-        )
-      }
+      val parsedHeaderData = parseHeaderData(scriptFile)
+      moduleFor(
+        scriptFile,
+        parsedHeaderData.`extends`.headOption,
+        parsedHeaderData.moduleDeps,
+        parsedHeaderData.compileModuleDeps,
+        parsedHeaderData.runModuleDeps,
+        resolveModuleDep
+      )
     }
   }
 
