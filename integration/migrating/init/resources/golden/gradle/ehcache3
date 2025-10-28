@@ -1701,7 +1701,6 @@ Module dependencies of spi-tester:
 
 
 
-
 {
   "clustered.ehcache-client.test.testParallelism": false,
   "clustered.ehcache-common.test.testParallelism": false,
