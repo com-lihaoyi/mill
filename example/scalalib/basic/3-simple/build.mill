@@ -1,13 +1,20 @@
 /** See Also: build.mill.yaml */
 /** See Also: test/package.mill.yaml */
 
+// This is a basic Mill build for a single `{language}Module`, with two
+// third-party dependencies and a test suite using the JUnit framework.
+// This uses Mill's config-based `.mill.yaml` files for defining the
+// modules:
+//
+// - `build.mill.yaml` defines the configuration for the root module
+// - `test/package.mill.yaml` defines the submodule `test/` containing the test suites.
+//
 //// SNIPPET:DEPENDENCIES
 //
-// This is a basic Mill build for a single `ScalaModule`, with two
-// third-party dependencies and a test suite using the uTest framework.
-// This example project uses two third-party dependencies - MainArgs for CLI
-// argument parsing, Scalatags for HTML generation - and uses them to wrap a
-// given input string in HTML templates with proper escaping.
+// This example project uses `mvnDeps` to include two third-party dependencies - MainArgs for
+// CLI argument parsing, Scalatags for HTML generation - and uses them to wrap a given input
+// string in HTML templates with proper escaping. The `test/` submodule contains its own `mvnDeps`
+// for dependencies that are only used in the test suite.
 //
 //// SNIPPET:END
 //
@@ -48,7 +55,7 @@
 //
 // === Typical Usage
 //
-// Typical usage from the command line is shown below:
+// Typical usage of this example project from the command line is shown below:
 //
 /** Usage
 
@@ -121,7 +128,7 @@ compiling 1 Scala source to...
 //
 // [source,console]
 // ----
-// > ./mill resolve __ # recursively list all tasks and modules that are available
+// > ./mill resolve __    # recursively list all tasks and modules that are available
 //
 // > ./mill runBackground # run the main method in the background
 //
@@ -136,11 +143,12 @@ compiling 1 Scala source to...
 //
 //// SNIPPET:REPL
 //
-// You can start a Scala REPL attached to your `foo` module via
+// You can start a Scala REPL attached to your root module or the test submodule via
 //
 // [source,console]
 // ----
 // > ./mill -i console    # start a Scala console within your project
+// > ./mill -i test.console
 //
 // > ./mill -i repl       # start an Ammonite Scala REPL within your project
 // ----

@@ -49,11 +49,12 @@ object foo extends ScalaModule {
 //// SNIPPET:END
 //
 
-// This example places the `ScalaModule` in the `foo/` subfolder, but you can also use
+// This example places the `{language}Module` in the `foo/` subfolder, but you can also use
 // define a xref:fundamentals/modules.adoc#_root_modules[Root Module] to place it at the
-// root of your repository.
+// root of your repository similar to the `build.mill.yaml` examples discussed in
+// xref:#_config_based_modules[]
 //
-// Usage of programmatic Mill builds is similar to usage of simple configuration-based
+// Usage of programmatic Mill builds is similar to usage of simple config-based
 // Mill builds:
 
 /** Usage

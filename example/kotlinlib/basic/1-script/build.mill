@@ -30,6 +30,18 @@ Compiling 1 Kotlin sources to...
 
 //// SNIPPET:END
 
+//// SNIPPET:RESOLVE
+/** Usage
+
+> ./mill resolve Foo.kt:_
+run
+runMain
+compile
+assembly
+...
+
+*/
+//// SNIPPET:END
 //// SNIPPET:TEST
 
 /** See Also: FooTest.kt */

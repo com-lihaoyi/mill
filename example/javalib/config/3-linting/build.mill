@@ -35,7 +35,7 @@ public class Foo {
 // xref:javalib/linting.adoc#_auto_formatting_with_spotless[mill.javalib.spotless.SpotlessModule]
 // that can also be used
 
-// === Autofixing
+// === Linting
 
 // To lint your code with https://errorprone.info/index[ErrorProne], you can
 // make yor module extend `mill.javalib.errorprone.ErrorProneModule`, which will
@@ -56,5 +56,7 @@ public class Foo {
 
 // See xref:javalib/linting.adoc#_linting_with_errorprone[Linting with ErrorProne] for more
 // details on how ErrorProne can be configured. Apart from ErrorProne, Mill also comes with
-// xref:javalib/linting.adoc#_linting_with_checkstyle[mill.contrib.checkstyle.CheckstyleModule] and
-// xref:javalib/linting.adoc#_static_analysis_with_pmd[mill.javalib.pmd.PmdModule]
+// support for other linters via:
+//
+// - xref:javalib/linting.adoc#_linting_with_checkstyle[mill.contrib.checkstyle.CheckstyleModule]
+// - xref:javalib/linting.adoc#_static_analysis_with_pmd[mill.javalib.pmd.PmdModule]

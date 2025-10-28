@@ -31,6 +31,18 @@ compiling 1 Java source to...
 
 //// SNIPPET:END
 
+//// SNIPPET:RESOLVE
+/** Usage
+
+> ./mill resolve Foo.java:_
+run
+runMain
+compile
+assembly
+...
+
+*/
+//// SNIPPET:END
 //// SNIPPET:TEST
 
 /** See Also: FooTest.java */
