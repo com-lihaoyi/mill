@@ -4,6 +4,8 @@
 :language-small: scala
 :language-ext: scala
 
+include::partial$Script_Header.adoc[]
+
 == Bundled Libraries
 
 Mill Scala scripts come with a number of bundled libraries for these use cases. These

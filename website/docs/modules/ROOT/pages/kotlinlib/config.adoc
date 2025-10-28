@@ -2,26 +2,23 @@
 :language: Kotlin
 :language-small: kotlin
 
-This page documents the usage of simple config-based Kotlin modules defined by
-`build.mill.yaml` and `package.mill.yaml` files. These are less flexible but easier to get started with than the
-full `build.mill` or `package.mill` build files, which makes them ideal for small
-projects which do not need additional flexibility.
+include::partial$Config_Header.adoc[]
 
-== Common Configuration Overrides
+== Common Config Overrides
 
 include::partial$example/kotlinlib/config/1-common-config.adoc[]
 
-== Testing
+== Unit & Integration Testing
 
 include::partial$example/kotlinlib/config/2-testing.adoc[]
 
-== Linting
+== Linting & Autoformatting
 
 include::partial$example/kotlinlib/config/3-linting.adoc[]
 
-== Packaging and Publishing
+== Packaging & Publishing
 
-include::partial$example/kotlinlib/config/4-publish.adoc[]
+include::partial$example/kotlinlib/config/4-publishing.adoc[]
 
 == Example Web Project
 

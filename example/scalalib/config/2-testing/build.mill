@@ -32,7 +32,7 @@
 > ./mill __.testForked # run all test suites of any kind
 
 */
-//// SNIPPET:TEST
+//// SNIPPET:END
 
 // For more details on testing in Mill, see
 // xref:{language-small}lib/testing.adoc[Testing {language} Projects]
