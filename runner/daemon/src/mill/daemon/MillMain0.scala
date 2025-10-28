@@ -6,7 +6,7 @@ import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{BuildCtx, Logger, MillException, PathRef, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
-import mill.constants.{DaemonFiles, OutFiles, OutFolderMode}
+import mill.constants.{DaemonFiles, OutFiles}
 import mill.internal.{
   Colors,
   JsonArrayLogger,
