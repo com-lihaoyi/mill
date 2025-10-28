@@ -17,6 +17,11 @@ include::partial$example/javalib/config/1-common-config.adoc[]
 
 include::partial$example/javalib/config/3-publish.adoc[]
 
+
+== Linting
+
+include::partial$example/javalib/config/6-lint-autofix.adoc[]
+
 == Custom Module Traits
 
 include::partial$example/javalib/config/4-custom-trait.adoc[]
@@ -24,7 +29,3 @@ include::partial$example/javalib/config/4-custom-trait.adoc[]
 == Programmatic `moduleDeps`
 
 include::partial$example/javalib/config/5-programmatic-module-deps.adoc[]
-
-== Linting
-
-include::partial$example/javalib/config/6-lint-autofix.adoc[]

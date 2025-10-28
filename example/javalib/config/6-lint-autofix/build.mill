@@ -31,6 +31,11 @@ public class Foo {
 
 */
 
+// See xref:javalib/linting.adoc#_autoformatting_with_palantir_java_format[Autoformatting with Palantir Java Format] for more information.
+// Apart from Palantir Format, Mill also comes with
+// xref:javalib/linting.adoc#_auto_formatting_with_spotless[mill.javalib.spotless.SpotlessModule]
+// that can also be used
+
 // === Autofixing
 
 // To lint your code with https://errorprone.info/index[ErrorProne], you can
@@ -49,3 +54,8 @@ public class Foo {
 [warn]                                         ^
 
 */
+
+// See xref:javalib/linting.adoc#_linting_with_errorprone[Linting with ErrorProne] for more
+// details on how ErrorProne can be configured. Apart from ErrorProne, Mill also comes with
+// xref:javalib/linting.adoc#_linting_with_checkstyle[mill.contrib.checkstyle.CheckstyleModule] and
+// xref:javalib/linting.adoc#_static_analysis_with_pmd[mill.javalib.pmd.PmdModule]

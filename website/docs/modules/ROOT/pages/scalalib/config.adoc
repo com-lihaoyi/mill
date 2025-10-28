@@ -15,6 +15,9 @@ include::partial$example/scalalib/config/1-common-config.adoc[]
 
 include::partial$example/scalalib/config/3-publish.adoc[]
 
+== Linting
+
+include::partial$example/scalalib/config/6-lint-autofix.adoc[]
 
 == Custom Module Traits
 
@@ -23,7 +26,3 @@ include::partial$example/scalalib/config/4-custom-trait.adoc[]
 == Programmatic `moduleDeps`
 
 include::partial$example/scalalib/config/5-programmatic-module-deps.adoc[]
-
-== Linting
-
-include::partial$example/scalalib/config/6-lint-autofix.adoc[]
