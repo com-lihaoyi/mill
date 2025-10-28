@@ -7,7 +7,7 @@
 
 include::partial$Intro_Header.adoc[]
 
-== Simple Config-Based Modules
+== Config-Based Modules
 
 include::partial$example/scalalib/basic/3-simple.adoc[]
 

@@ -68,7 +68,7 @@ Jvm Version: 11.0.28
 //// SNIPPET:END
 
 // {language} scripts support of the same configuration keys as
-// xref:#_simple_config_based_modules[] as part of their `//|` header comment, and support most
+// xref:#_config_based_modules[] as part of their `//|` header comment, and support most
 // of the same tasks via the `:run` `:assembly` etc. command-line syntax.
 //
 // === Testing Scripts
@@ -104,4 +104,4 @@ Jvm Version: 11.0.28
 // a xref:{language-small}lib/script.adoc#_custom_script_module_classes[Custom Script Module Class].
 //
 // For scripts that grow larger than a single file, you should convert them
-// to xref:#_simple_config_based_modules[].
+// to xref:#_config_based_modules[].

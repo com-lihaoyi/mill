@@ -11,4 +11,5 @@ object Args {
    * Constructs an [[Args]] object from `os.Shellable`s
    */
   def apply(chunks: os.Shellable*) = new Args(chunks.flatMap(_.value))
+  scala.Ordering.Int
 }
