@@ -22,6 +22,10 @@ include::partial$example/javalib/config/3-publish.adoc[]
 
 include::partial$example/javalib/config/6-lint-autofix.adoc[]
 
+== Web Development
+
+include::partial$example/javalib/config/7-web-server.adoc[]
+
 == Custom Module Traits
 
 include::partial$example/javalib/config/4-custom-trait.adoc[]

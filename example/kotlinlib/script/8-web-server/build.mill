@@ -1,5 +1,5 @@
 //// SNIPPET:WEBSERVER
-// In this example, the webserver script uses of the https://sparkjava.com/[Spark] framework
+// In this example, the webserver script uses the https://sparkjava.com/[Spark] framework
 // to run the web server
 /** See Also: WebServer.kt */
 

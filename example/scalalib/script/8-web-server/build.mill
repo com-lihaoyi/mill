@@ -7,7 +7,7 @@
 //
 //
 //// SNIPPET:WEBSERVER
-// In this example, the webserver script uses of the https://github.com/com-lihaoyi/cask[Cask] framework
+// In this example, the webserver script uses the https://github.com/com-lihaoyi/cask[Cask] framework
 // to run the web server
 /** See Also: WebServer.scala */
 

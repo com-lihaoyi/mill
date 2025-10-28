@@ -19,6 +19,10 @@ include::partial$example/scalalib/config/3-publish.adoc[]
 
 include::partial$example/scalalib/config/6-lint-autofix.adoc[]
 
+== Web Development
+
+include::partial$example/scalalib/config/7-web-server.adoc[]
+
 == Custom Module Traits
 
 include::partial$example/scalalib/config/4-custom-trait.adoc[]

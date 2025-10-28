@@ -15,10 +15,13 @@ include::partial$example/kotlinlib/config/1-common-config.adoc[]
 
 include::partial$example/kotlinlib/config/3-publish.adoc[]
 
-
 == Linting
 
 include::partial$example/kotlinlib/config/6-lint-autofix.adoc[]
+
+== Web Development
+
+include::partial$example/kotlinlib/config/7-web-server.adoc[]
 
 == Custom Module Traits
 
