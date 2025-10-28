@@ -19,7 +19,7 @@ include::partial$example/scalalib/config/3-publish.adoc[]
 
 include::partial$example/scalalib/config/6-lint-autofix.adoc[]
 
-== Web Development
+== Web Projects
 
 include::partial$example/scalalib/config/7-web-server.adoc[]
 

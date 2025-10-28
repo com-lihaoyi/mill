@@ -19,7 +19,7 @@ include::partial$example/kotlinlib/config/3-publish.adoc[]
 
 include::partial$example/kotlinlib/config/6-lint-autofix.adoc[]
 
-== Web Development
+== Web Projects
 
 include::partial$example/kotlinlib/config/7-web-server.adoc[]
 
