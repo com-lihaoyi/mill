@@ -6,7 +6,23 @@
 /** Usage
 > ./mill runBackground
 
-> curl -d 'hello world' localhost:8080/reverse-string
-dlrow olleh
+> curl -d 'helloworld' localhost:8080/reverse-string
+dlrowolleh
+
+> ./mill clean runBackground # shut down webserver
 
 */
+
+//// SNIPPET:END
+
+
+
+//// SNIPPET:TEST
+/** Usage
+
+> ./mill test
+Test example.WebServerTests#testReverseString() finished...
+
+*/
+
+//// SNIPPET:END

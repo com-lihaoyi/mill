@@ -22,7 +22,7 @@ public class WebServerTests {
 
   @Test
   public void testReverseString() throws Exception {
-    var body = RequestBody.create("hello world", MediaType.parse("text/plain"));
+    var body = RequestBody.create("helloworld", MediaType.parse("text/plain"));
 
     var request = new Request.Builder()
       .url("http://localhost:8080/reverse-string")
@@ -31,7 +31,7 @@ public class WebServerTests {
 
     try (var response = client.newCall(request).execute()) {
       assertTrue(response.isSuccessful());
-      assertEquals("dlrow olleh", response.body().string());
+      assertEquals("dlrowolleh", response.body().string());
     }
   }
 }

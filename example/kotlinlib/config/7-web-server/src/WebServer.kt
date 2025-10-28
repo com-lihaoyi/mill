@@ -1,3 +1,4 @@
+package example
 import io.ktor.server.engine.*
 import io.ktor.server.cio.*
 import io.ktor.server.application.*

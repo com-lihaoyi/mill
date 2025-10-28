@@ -17,9 +17,9 @@ object WebServerTests extends TestSuite {
     test("reverseString") - withServer(WebServer) {
       val response = requests.post(
         "http://localhost:8080/reverse-string",
-        data = "hello world"
+        data = "helloworld"
       )
-      assert(response.text() == "dlrow olleh")
+      assert(response.text() == "dlrowolleh")
     }
   }
 }
