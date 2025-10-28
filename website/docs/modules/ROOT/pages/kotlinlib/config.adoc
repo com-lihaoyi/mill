@@ -11,22 +11,26 @@ projects which do not need additional flexibility.
 
 include::partial$example/kotlinlib/config/1-common-config.adoc[]
 
-== Packaging and Publishing
+== Testing
 
-include::partial$example/kotlinlib/config/3-publish.adoc[]
+include::partial$example/kotlinlib/config/2-testing.adoc[]
 
 == Linting
 
-include::partial$example/kotlinlib/config/6-lint-autofix.adoc[]
+include::partial$example/kotlinlib/config/3-linting.adoc[]
 
-== Web Projects
+== Packaging and Publishing
 
-include::partial$example/kotlinlib/config/7-web-server.adoc[]
+include::partial$example/kotlinlib/config/4-publish.adoc[]
+
+== Example Web Project
+
+include::partial$example/kotlinlib/config/5-web-example.adoc[]
 
 == Custom Module Traits
 
-include::partial$example/kotlinlib/config/4-custom-trait.adoc[]
+include::partial$example/kotlinlib/config/6-custom-trait.adoc[]
 
 == Programmatic `moduleDeps`
 
-include::partial$example/kotlinlib/config/5-programmatic-module-deps.adoc[]
+include::partial$example/kotlinlib/config/7-programmatic-module-deps.adoc[]
