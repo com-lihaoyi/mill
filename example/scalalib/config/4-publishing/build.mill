@@ -30,3 +30,7 @@ Publishing Artifact(com.lihaoyi,example...,0.0.1) to ivy repo ...
 // most tasks and commands can also be used as well. This gives you a lot of flexibility
 // in working with your project until it becomes complex enough to need
 // a dedicated `build.mill` file.
+//
+//
+// For more details on packaging and publishing in Mill, see
+// xref:{language-small}lib/publishing.adoc[{language} Packaging & Publishing]

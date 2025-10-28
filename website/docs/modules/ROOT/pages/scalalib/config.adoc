@@ -2,25 +2,32 @@
 :language: Scala
 :language-small: scala
 
-This page documents the usage of simple config-based Scala modules defined by
-`build.mill.yaml` and `package.mill.yaml` files. These are less flexible but easier to get started with than the
-full `build.mill` or `package.mill` build files, which makes them ideal for small
-projects which do not need additional flexibility.
+include::partial$Config_Header.adoc[]
 
-== Common Configuration Overrides
+== Common Config Overrides
 
 include::partial$example/scalalib/config/1-common-config.adoc[]
 
-== Packaging and Publishing
+== Unit & Integration Testing
 
-include::partial$example/scalalib/config/3-publish.adoc[]
+include::partial$example/scalalib/config/2-testing.adoc[]
 
+== Linting & Autoformatting
+
+include::partial$example/scalalib/config/3-linting.adoc[]
+
+== Packaging & Publishing
+
+include::partial$example/scalalib/config/4-publishing.adoc[]
+
+== Example Web Project
+
+include::partial$example/scalalib/config/5-web-example.adoc[]
 
 == Custom Module Traits
 
-include::partial$example/scalalib/config/4-custom-trait.adoc[]
+include::partial$example/scalalib/config/6-custom-trait.adoc[]
 
 == Programmatic `moduleDeps`
 
-include::partial$example/scalalib/config/5-programmatic-module-deps.adoc[]
-
+include::partial$example/scalalib/config/7-programmatic-module-deps.adoc[]

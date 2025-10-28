@@ -1,12 +1,12 @@
 //// SNIPPET:WEBSERVER
-// In this example, the webserver script uses of the https://sparkjava.com/[Spark] framework
+// In this example, the webserver script uses the https://spring.io/projects/spring-boot[Spring Boot] framework
 // to run the web server
 /** See Also: WebServer.java */
 
 /** Usage
 > ./mill WebServer.java:runBackground
 
-> curl -d 'hello world' localhost:4567/reverse-string
-dlrow olleh
+> curl -d 'helloworld' localhost:8080/reverse-string
+dlrowolleh
 
 */

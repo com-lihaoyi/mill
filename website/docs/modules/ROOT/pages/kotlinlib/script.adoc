@@ -4,6 +4,7 @@
 :language-small: kotlin
 :language-ext: kt
 
+include::partial$Script_Header.adoc[]
 
 == Packaging Assemblies and Native Binaries
 
