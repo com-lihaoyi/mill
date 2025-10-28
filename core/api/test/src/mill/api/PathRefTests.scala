@@ -89,25 +89,22 @@ object PathRefTests extends TestSuite {
     }
 
     test("json") {
-      def check(quick: Boolean) = withTmpDir { outDir =>
-        withTmpDir { tmpDir =>
-          val file = tmpDir / "foo.txt"
-          os.write(file, "hello")
-          val pr = PathRef(file, quick)
-          val prFile =
-            pr.path.toString().replace(outDir.toString(), "$MILL_OUT").replace("\\", "\\\\")
-          val json = upickle.write(pr)
-          if (quick) {
-            assert(json.startsWith(""""qref:v0:"""))
-            assert(json.endsWith(s""":${prFile}""""))
-          } else {
-            val hash = if (Properties.isWin) "86df6a6a" else "4c7ef487"
-            val expected = s""""ref:v0:${hash}:${prFile}""""
-            assert(json == expected)
-          }
-          val pr1 = upickle.read[PathRef](json)
-          assert(pr == pr1)
+      def check(quick: Boolean) = withTmpDir { tmpDir =>
+        val file = tmpDir / "foo.txt"
+        os.write(file, "hello")
+        val pr = PathRef(file, quick)
+        val prFile = pr.path.toString().replace("\\", "\\\\")
+        val json = upickle.write(pr)
+        if (quick) {
+          assert(json.startsWith(""""qref:v0:"""))
+          assert(json.endsWith(s""":${prFile}""""))
+        } else {
+          val hash = if (Properties.isWin) "86df6a6a" else "4c7ef487"
+          val expected = s""""ref:v0:${hash}:${prFile}""""
+          assert(json == expected)
         }
+        val pr1 = upickle.read[PathRef](json)
+        assert(pr == pr1)
       }
 
       test("qref") - check(quick = true)
