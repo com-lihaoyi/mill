@@ -92,11 +92,8 @@ object MillMain0 {
         errFileStream.close()
         outFileStream.close()
       }
-    } else {
-      BuildCtx.workspaceRoot / os.RelPath(OutFiles.outFor(OutFolderMode.REGULAR))
-      mill.api.SystemStreamsUtils.withStreams(streams) {
-        thunk(streams)
-      }
+    } else mill.api.SystemStreamsUtils.withStreams(streams) {
+      thunk(streams)
     }
   }
 
