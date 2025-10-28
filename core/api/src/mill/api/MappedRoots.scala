@@ -1,7 +1,9 @@
 package mill.api
 
+import mill.api.internal.NamedParameterOnlyDummy
 import mill.constants.PathVars
 
+import scala.annotation.unused
 import scala.util.DynamicVariable
 
 type MappedRoots = Seq[(key: String, path: os.Path)]
@@ -17,6 +19,7 @@ trait MappedRootsImpl {
   def toMap: Map[String, os.Path] = get.map(m => (m.key, m.path)).toMap
 
   def withMillDefaults[T](
+      @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       outPath: os.Path,
       workspacePath: os.Path = BuildCtx.workspaceRoot,
       homePath: os.Path = os.home
