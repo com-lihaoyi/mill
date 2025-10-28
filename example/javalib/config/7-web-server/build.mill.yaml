@@ -1,2 +1,2 @@
 extends: [mill.javalib.JavaModule]
-mvnDeps: [com.sparkjava:spark-core:2.9.4]
+mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]

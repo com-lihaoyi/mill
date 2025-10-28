@@ -1,12 +1,12 @@
 //// SNIPPET:WEBSERVER
-// In this example, the webserver script uses the https://sparkjava.com/[Spark] framework
+// In this example, the webserver script uses the https://ktor.io/[Ktor] framework
 // to run the web server
 /** See Also: src/WebServer.kt */
 
 /** Usage
 > ./mill runBackground
 
-> curl -d 'hello world' localhost:4567/reverse-string
+> curl -d 'hello world' localhost:8080/reverse-string
 dlrow olleh
 
 */

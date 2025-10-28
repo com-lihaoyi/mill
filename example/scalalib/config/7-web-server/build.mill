@@ -1,9 +1,11 @@
 // This example shows off running a simple webserver in a module configured via `build.mill.yaml`
-//
+
+/** See Also: build.mill.yaml */
+
 //// SNIPPET:WEBSERVER
 // This small webserver uses the https://github.com/com-lihaoyi/cask[Cask] framework
 // to run the web server
-/** See Also: build.mill.yaml */
+
 /** See Also: src/WebServer.scala */
 
 /** Usage
