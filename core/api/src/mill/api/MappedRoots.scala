@@ -4,9 +4,11 @@ import mill.constants.PathVars
 
 import scala.util.DynamicVariable
 
-trait MappedRoots {
+type MappedRoots = Seq[(key: String, path: os.Path)]
 
-  private type MappedRoots = Seq[(key: String, path: os.Path)]
+object MappedRoots extends MappedRootsImpl
+
+trait MappedRootsImpl {
 
   private val rootMapping: DynamicVariable[MappedRoots] = DynamicVariable(Seq())
 
@@ -74,5 +76,3 @@ trait MappedRoots {
   }
 
 }
-
-object MappedRoots extends MappedRoots
