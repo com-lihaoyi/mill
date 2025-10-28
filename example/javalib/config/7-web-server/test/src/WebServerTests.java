@@ -1,10 +1,11 @@
 package example;
-import org.junit.jupiter.api.*;
-import okhttp3.*;
-import org.springframework.boot.SpringApplication;
-import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import okhttp3.*;
+import org.junit.jupiter.api.*;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 public class WebServerTests {
   private static ConfigurableApplicationContext server;
@@ -12,7 +13,7 @@ public class WebServerTests {
 
   @BeforeAll
   public static void startServer() {
-    server = SpringApplication.run(WebServer.class, new String[]{});
+    server = SpringApplication.run(WebServer.class, new String[] {});
   }
 
   @AfterAll
@@ -25,9 +26,9 @@ public class WebServerTests {
     var body = RequestBody.create("helloworld", MediaType.parse("text/plain"));
 
     var request = new Request.Builder()
-      .url("http://localhost:8080/reverse-string")
-      .post(body)
-      .build();
+        .url("http://localhost:8080/reverse-string")
+        .post(body)
+        .build();
 
     try (var response = client.newCall(request).execute()) {
       assertTrue(response.isSuccessful());

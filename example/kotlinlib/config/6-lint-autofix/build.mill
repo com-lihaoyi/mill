@@ -5,7 +5,6 @@
 // https://github.com/facebook/ktfmt[KtFmt], you
 // can run `./mill mill.kotlinlib.ktfmt/` as shown below:
 
-
 /** Usage
 
 > cat src/foo/Foo.kt

@@ -5,7 +5,6 @@
 // https://github.com/palantir/palantir-java-format[Palantir Java Format], you
 // can run `./mill mill.javalib.palantirformat/` as shown below:
 
-
 /** Usage
 
 > cat src/foo/Foo.java

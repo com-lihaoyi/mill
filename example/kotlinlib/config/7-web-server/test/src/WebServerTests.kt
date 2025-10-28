@@ -1,19 +1,19 @@
 package example
 
 import io.ktor.client.*
-import io.ktor.client.engine.cio.CIO as ClientCIO
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.engine.*
-import io.ktor.server.cio.CIO as ServerCIO
 import io.ktor.server.application.*
+import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import kotlinx.coroutines.runBlocking
+import io.ktor.client.engine.cio.CIO as ClientCIO
+import io.ktor.server.cio.CIO as ServerCIO
 
 class WebServerTests {
     companion object {
