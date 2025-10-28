@@ -48,8 +48,8 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
     compileJava(
       ZincCompileJava(
         upstreamCompileOutput = upstreamCompileOutput,
-        sources = sources,
-        compileClasspath = compileClasspath,
+        sources = sources.map(LocalPath.apply),
+        compileClasspath = compileClasspath.map(LocalPath.apply),
         javacOptions = jOpts.compiler,
         incrementalCompilation = incrementalCompilation
       ),
@@ -81,14 +81,14 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
     compileMixed(
       ZincCompileMixed(
         upstreamCompileOutput = upstreamCompileOutput,
-        sources = sources,
-        compileClasspath = compileClasspath,
+        sources = sources.map(LocalPath.apply),
+        compileClasspath = compileClasspath.map(LocalPath.apply),
         javacOptions = jOpts.compiler,
         scalaVersion = scalaVersion,
         scalaOrganization = scalaOrganization,
         scalacOptions = scalacOptions,
-        compilerClasspath = compilerClasspath,
-        scalacPluginClasspath = scalacPluginClasspath,
+        compilerClasspath = compilerClasspath.map(LocalPathRef.apply),
+        scalacPluginClasspath = scalacPluginClasspath.map(LocalPathRef.apply),
         incrementalCompilation = incrementalCompilation,
         auxiliaryClassFileExtensions = auxiliaryClassFileExtensions
       ),
@@ -112,8 +112,8 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       ZincScaladocJar(
         scalaVersion = scalaVersion,
         scalaOrganization = scalaOrganization,
-        compilerClasspath = compilerClasspath,
-        scalacPluginClasspath = scalacPluginClasspath,
+        compilerClasspath = compilerClasspath.map(LocalPathRef.apply),
+        scalacPluginClasspath = scalacPluginClasspath.map(LocalPathRef.apply),
         args = args
       ),
       javaHome = javaHome

@@ -4,7 +4,7 @@ import mill.api.JsonFormatters.*
 import mill.api.daemon.{Logger, Result}
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.CompilationResult
-import mill.javalib.api.internal.{ZincCompileJava, ZincCompileMixed, ZincScaladocJar}
+import mill.javalib.api.internal.{LocalPath, ZincCompileJava, ZincCompileMixed, ZincScaladocJar}
 import mill.javalib.internal.{RpcCompileProblemReporterMessage, ZincCompilerBridgeProvider}
 import mill.rpc.*
 import mill.server.Server
@@ -36,6 +36,7 @@ class ZincWorkerRpcServer(
       serverToClient: MillRpcChannel[ServerToClient]
   ): MillRpcChannel[ClientToServer] = setIdle.doWork {
     val result = Timed {
+      
       // This is an ugly hack. `ConsoleOut` is sealed, but we need to provide a way to send these logs to the Mill server
       // over RPC, so we hijack `PrintStream` by overriding the methods that `ConsoleOut` uses.
       //
@@ -52,7 +53,7 @@ class ZincWorkerRpcServer(
 
       def makeCompilerBridge(clientRequestId: MillRpcRequestId) =
         ZincCompilerBridgeProvider(
-          workspace = initialize.compilerBridgeWorkspace,
+          workspace = initialize.compilerBridgeWorkspace.toOsPath,
           logInfo = log.info,
           acquire = (scalaVersion, scalaOrganization) =>
             serverToClient(
@@ -139,13 +140,14 @@ class ZincWorkerRpcServer(
     result.result
   }
 }
+
 object ZincWorkerRpcServer {
 
   /**
    * @param compilerBridgeWorkspace The workspace to use for the compiler bridge.
    */
   case class Initialize(
-      compilerBridgeWorkspace: os.Path
+      compilerBridgeWorkspace: LocalPath,
   ) derives ReadWriter
 
   sealed trait ReporterMode derives ReadWriter {

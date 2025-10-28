@@ -1,16 +1,10 @@
 package mill.javalib.zinc
 
-import mill.api.JsonFormatters.*
 import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}
 import mill.client.lock.*
-import mill.javalib.api.internal.{
-  JavaCompilerOptions,
-  ZincCompileJava,
-  ZincCompileMixed,
-  ZincScaladocJar
-}
+import mill.javalib.api.internal.{JavaCompilerOptions, LocalPath, LocalPathRef, ZincCompileJava, ZincCompileMixed, ZincScaladocJar}
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mill.javalib.internal.ZincCompilerBridgeProvider
 import mill.javalib.internal.ZincCompilerBridgeProvider.AcquireResult
@@ -91,22 +85,22 @@ class ZincWorker(
       ): ScalaCompilerCached = {
         import key.*
 
-        val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
+        val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toOsPath.toIO).toArray
 
         val compiledCompilerBridge = compileBridgeIfNeeded(
           scalaVersion,
           scalaOrganization,
-          compilerClasspath.map(_.path),
+          compilerClasspath.map(_.path.toOsPath),
           compilerBridge
         )
-        val classLoader = classloaderCache.get(key.combinedCompilerClasspath)
+        val classLoader = classloaderCache.get(key.combinedCompilerClasspath.map(_.toPathRef))
         val scalaInstance = new inc.ScalaInstance(
           version = key.scalaVersion,
           loader = classLoader,
           loaderCompilerOnly = classLoader,
           loaderLibraryOnly = ClasspathUtil.rootLoader,
           libraryJars = Array(libraryJarNameGrep(
-            compilerClasspath,
+            compilerClasspath.map(_.toPathRef),
             // if Dotty or Scala 3.0 - 3.7, use the 2.13 version of the standard library
             if (JvmWorkerUtil.enforceScala213Library(key.scalaVersion)) "2.13."
             // otherwise use the library matching the Scala version
@@ -124,7 +118,7 @@ class ZincWorker(
       }
 
       override def teardown(key: ScalaCompilerCacheKey, value: ScalaCompilerCached): Unit = {
-        classloaderCache.release(key.combinedCompilerClasspath)
+        classloaderCache.release(key.combinedCompilerClasspath.map(_.toPathRef))
       }
     }
 
@@ -216,7 +210,7 @@ class ZincWorker(
     ) { compilers =>
       compileInternal(
         upstreamCompileOutput = upstreamCompileOutput,
-        sources = sources,
+        sources = sources.map(_.toOsPath),
         compileClasspath = compileClasspath,
         javacOptions = javacOptions,
         scalacOptions = scalacOptions,
@@ -315,8 +309,8 @@ class ZincWorker(
   private def withScalaCompilers[T](
       scalaVersion: String,
       scalaOrganization: String,
-      compilerClasspath: Seq[PathRef],
-      scalacPluginClasspath: Seq[PathRef],
+      compilerClasspath: Seq[LocalPathRef],
+      scalacPluginClasspath: Seq[LocalPathRef],
       javacOptions: JavaCompilerOptions,
       compilerBridge: ZincCompilerBridgeProvider
   )(f: Compilers => T) = {
@@ -334,8 +328,8 @@ class ZincWorker(
 
   private def compileInternal(
       upstreamCompileOutput: Seq[CompilationResult],
-      sources: Seq[os.Path],
-      compileClasspath: Seq[os.Path],
+      sources: Seq[LocalPath],
+      compileClasspath: Seq[LocalPath],
       javacOptions: JavaCompilerOptions,
       scalacOptions: Seq[String],
       compilers: Compilers,
@@ -349,7 +343,7 @@ class ZincWorker(
       deps: ZincWorker.InvocationDependencies
   ): Result[CompilationResult] = {
 
-    os.makeDir.all(ctx.dest)
+    os.makeDir.all(ctx.dest.toOsPath)
 
     val classesDir = ctx.dest / "classes"
 
@@ -405,7 +399,7 @@ class ZincWorker(
 
     val lookup = MockedLookup(analysisMap)
 
-    val store = fileAnalysisStore(ctx.dest / zincCache)
+    val store = fileAnalysisStore(ctx.dest.toOsPath / zincCache)
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
@@ -504,7 +498,7 @@ class ZincWorker(
           newResult.setup()
         )
       )
-      Result.Success(CompilationResult(ctx.dest / zincCache, PathRef(classesDir)))
+      Result.Success(CompilationResult(ctx.dest.toOsPath / zincCache, PathRef(classesDir)))
     } catch {
       case e: CompileFailed =>
         Result.Failure(e.toString)
@@ -576,6 +570,7 @@ class ZincWorker(
     } finally doubleLock.close()
   }
 }
+
 object ZincWorker {
 
   /**
@@ -593,7 +588,7 @@ object ZincWorker {
   /** The invocation context, always comes from the Mill's process. */
   case class InvocationContext(
       env: Map[String, String],
-      dest: os.Path,
+      dest: LocalPath,
       logDebugEnabled: Boolean,
       logPromptColored: Boolean,
       zincLogDebug: Boolean
@@ -601,12 +596,12 @@ object ZincWorker {
 
   private case class ScalaCompilerCacheKey(
       scalaVersion: String,
-      compilerClasspath: Seq[PathRef],
-      scalacPluginClasspath: Seq[PathRef],
+      compilerClasspath: Seq[LocalPathRef],
+      scalacPluginClasspath: Seq[LocalPathRef],
       scalaOrganization: String,
       javacOptions: JavaCompilerOptions
   ) {
-    val combinedCompilerClasspath: Seq[PathRef] = compilerClasspath ++ scalacPluginClasspath
+    val combinedCompilerClasspath: Seq[LocalPathRef] = compilerClasspath ++ scalacPluginClasspath
   }
 
   private case class ScalaCompilerCached(classLoader: URLClassLoader, compilers: Compilers)
