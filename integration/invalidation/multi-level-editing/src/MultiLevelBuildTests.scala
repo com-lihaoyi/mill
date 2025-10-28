@@ -1,6 +1,6 @@
 package mill.integration
 
-import mill.api.PathRef
+import mill.api.MappedRoots
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
 import mill.constants.OutFiles.*
 import mill.daemon.RunnerState
@@ -50,7 +50,7 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
         val path =
           tester.workspacePath / "out" / Seq.fill(depth)(millBuild) / millRunnerState
         if (os.exists(path))
-          PathRef.mappedRoots.withMillDefaults(
+          MappedRoots.withMillDefaults(
             outPath = tester.workspacePath / "out",
             workspacePath = tester.workspacePath
           ) {

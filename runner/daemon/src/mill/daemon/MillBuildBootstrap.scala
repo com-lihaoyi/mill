@@ -1,18 +1,11 @@
 package mill.daemon
 
-import mill.api.daemon.internal.{
-  BuildFileApi,
-  CompileProblemReporter,
-  EvaluatorApi,
-  PathRefApi,
-  RootModuleApi
-}
-import mill.api.{Logger, Result, SystemStreams, Val}
+import mill.api.daemon.internal.{BuildFileApi, CompileProblemReporter, EvaluatorApi, PathRefApi, RootModuleApi}
+import mill.api.{BuildCtx, Logger, MappedRoots, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.{millBuild, millRunnerState}
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
-import mill.api.{BuildCtx, PathRef, SelectMode}
 import mill.internal.PrefixLogger
 import mill.meta.MillBuildRootModule
 import mill.meta.CliImports
@@ -71,7 +64,7 @@ class MillBuildBootstrap(
     val runnerState = evaluateRec(0)
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
-      PathRef.mappedRoots.withMillDefaults(output) {
+      MappedRoots.withMillDefaults(output) {
         os.write.over(
           recOut(output, depth) / millRunnerState,
           upickle.write(frame.loggedData, indent = 4),

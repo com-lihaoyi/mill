@@ -1,6 +1,6 @@
 package mill.daemon
 
-import mill.api.{PathRef, SystemStreams}
+import mill.api.{MappedRoots, PathRef, SystemStreams}
 import mill.client.ClientUtil
 import mill.client.lock.{Lock, Locks}
 import mill.constants.OutFolderMode
@@ -39,7 +39,7 @@ object MillDaemonMain {
     val args =
       Args(getClass.getName, args0).fold(err => throw IllegalArgumentException(err), identity)
 
-    PathRef.mappedRoots.withMillDefaults(args.outDir) {
+    MappedRoots.withMillDefaults(args.outDir) {
       if (Properties.isWin)
         // temporarily disabling FFM use by coursier, which has issues with the way
         // Mill manages class loaders, throwing things like

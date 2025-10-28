@@ -359,7 +359,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
                     log: String => Unit
                 ): Unit = {
                   // RPC communication is local and uncached, so we don't want to use any root mapping
-                  PathRef.mappedRoots.withMapping(Seq()) {
+                  MappedRoots.withMapping(Seq()) {
                     super.writeSerialized(message, log)
                   }
                 }
