@@ -48,7 +48,6 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
           "publishProperties",
           "errorProneVersion",
           "errorProneDeps",
-          "errorProneJavacEnableOptions",
           "errorProneOptions",
           "scalaVersion",
           "scalacOptions",

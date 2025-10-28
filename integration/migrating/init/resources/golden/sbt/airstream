@@ -129,7 +129,6 @@ Module dependencies of [3.3.3].test:
 
 
 
-
 {
   "[2.13.16].scalaVersion": "2.13.16",
   "[2.13.16].test.scalaVersion": "2.13.16",
