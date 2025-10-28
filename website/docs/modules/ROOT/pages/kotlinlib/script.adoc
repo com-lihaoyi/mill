@@ -4,14 +4,30 @@
 :language-small: kotlin
 :language-ext: kt
 
-== Script Use Cases
+include::partial$Script_Header.adoc[]
 
-include::partial$example/kotlinlib/script/2-crawler.adoc[]
+== Packaging Assemblies and Native Binaries
 
-== Relative and Absolute Script moduleDeps
+include::partial$example/kotlinlib/script/2-packaging.adoc[]
 
-include::partial$example/kotlinlib/script/3-relative-imports.adoc[]
 
 == Custom Script Module Classes
 
-include::partial$example/kotlinlib/script/4-custom-class.adoc[]
+include::partial$example/kotlinlib/script/3-custom-class.adoc[]
+
+
+== Relative and Absolute Script moduleDeps
+
+include::partial$example/kotlinlib/script/4-relative-imports.adoc[]
+
+== Programmatic `moduleDeps`
+
+include::partial$example/kotlinlib/script/5-programmatic-module-deps.adoc[]
+
+== Script Use Cases
+
+include::partial$example/kotlinlib/script/6-json-api-client.adoc[]
+include::partial$example/kotlinlib/script/7-html-scraper.adoc[]
+include::partial$example/kotlinlib/script/8-web-server.adoc[]
+include::partial$example/kotlinlib/script/9-database.adoc[]
+include::partial$example/kotlinlib/script/10-static-site.adoc[]

@@ -54,13 +54,13 @@ object TabCompleteTests extends TestSuite {
       test("empty-bash") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", ""),
-          Set("bar", "foo", "qux", "task1")
+          HashSet("qux", "file2.txt", "out", "bar", "file1.txt", "task1", "foo")
         )
       }
       test("empty-zsh") {
         assertGoldenLiteral(
           evalComplete("1", "./mill"),
-          Set("bar", "foo", "qux", "task1")
+          HashSet("qux", "file2.txt", "out", "bar", "file1.txt", "task1", "foo")
         )
       }
       test("task") {
@@ -184,14 +184,14 @@ object TabCompleteTests extends TestSuite {
       test("emptyAfterFlag") {
         assertGoldenLiteral(
           evalComplete("2", "./mill", "-v"),
-          Set("bar", "foo", "qux", "task1")
+          HashSet("qux", "file2.txt", "out", "bar", "file1.txt", "task1", "foo")
         )
 
       }
       test("filterAfterFlag") {
         assertGoldenLiteral(
           evalComplete("2", "./mill", "-v", "f"),
-          Set("foo")
+          Set("foo", "file2.txt", "file1.txt")
         )
       }
       test("filterAfterFlagAfterTask") {
