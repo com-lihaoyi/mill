@@ -703,7 +703,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>This page documents the usage of simple config-based Kotlin modules defined by
+<p>This page documents the usage of config-based Kotlin modules defined by
 <code>build.mill.yaml</code> and <code>package.mill.yaml</code> files. These are less flexible but easier
 to get started with than the full <code>build.mill</code> or <code>package.mill</code> build files,
 which makes them ideal for small projects which do not need additional flexibility.</p>
@@ -725,7 +725,7 @@ sources/resources, and setting compilation/run
 options.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-67-770c07/mill-dist-1.0.6-67-770c07-example-kotlinlib-config-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/1-common-config/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-68-4397dc/mill-dist-1.0.6-68-4397dc-example-kotlinlib-config-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/1-common-config/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinModule]
 kotlinVersion: 1.9.24
@@ -772,19 +772,17 @@ my.custom.property: my-prop-value</code></pre>
 <p>Paths such as <code>./custom-src</code> or <code>./custom-resources</code> are relative to the
 <a href="../fundamentals/modules.html#_moduledir" class="xref page">moduleDir</a> of the module being configured.
 In the example above this is the root folder of your codebase, but in multi-module
-projects this may be a subfolder containing the current <code>build.mill.yaml</code> file.</p>
+projects this may be a subfolder containing the current <code>package.mill.yaml</code> file.</p>
 </div>
 <div class="paragraph">
-<p>Most <code>Task`s that you can define programmatically in a `build.mill</code> file can be specified
+<p>Most <code>Task</code>s that you can define programmatically in a <code>build.mill</code> file can be specified
 in a <code>build.mill.yaml</code>, as long as they involve simple configuration (strings, lists, maps, etc.)
-and do not need custom code. For example, you can use the various configuration methods
-discussed in <a href="dependencies.html" class="xref page">Kotlin Library Dependencies</a>: <code>runMvnDeps</code>, <code>compileMvnDeps</code>,
-<code>unmanagedClasspath</code>, etc.</p>
-</div>
-<div class="paragraph">
-<p>Note that the <code>.build.yaml</code> config files only let you set simple configuration keys,
-and do not let you extend your build with code e.g. to generate sources. For more flexibility,
-see <a href="intro.html#_programmatic_modules" class="xref page">Programmatic Modules</a>.</p>
+and do not need <a href="intro.html#_custom_build_logic" class="xref page">Custom Build Logic</a>.
+For example, you can use the various configuration methods discussed in
+<a href="dependencies.html" class="xref page">Kotlin Library Dependencies</a>: <code>runMvnDeps</code>, <code>compileMvnDeps</code>,
+<code>unmanagedClasspath</code>, etc.
+For more flexibility, e.g. if you need to generate sources or resource files at build time,
+you can instead use <a href="intro.html#_programmatic_modules" class="xref page">Programmatic Modules</a>.</p>
 </div>
 </div>
 </div>
@@ -794,30 +792,22 @@ see <a href="intro.html#_programmatic_modules" class="xref page">Programmatic Mo
 <div class="paragraph">
 <p>This example demonstrates more details about testing in Mill:</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>The ability to have multiple test suites, e.g. unit tests in <code>test/</code> and integration
-tests in <code>integration/</code></p>
-</li>
-</ul>
-</div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-67-770c07/mill-dist-1.0.6-67-770c07-example-kotlinlib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/2-testing/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-68-4397dc/mill-dist-1.0.6-68-4397dc-example-kotlinlib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/2-testing/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinModule]
 kotlinVersion: 1.9.24</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-67-770c07/mill-dist-1.0.6-67-770c07-example-kotlinlib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/2-testing/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-68-4397dc/mill-dist-1.0.6-68-4397dc-example-kotlinlib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/2-testing/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.KotlinTests, mill.kotlinlib.TestModule.Junit5]
 mvnDeps: [io.kotest:kotest-runner-junit5:5.9.1]</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">integration/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-67-770c07/mill-dist-1.0.6-67-770c07-example-kotlinlib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/2-testing/integration/package.mill.yaml">browse</a>)</div>
+<div class="title">integration/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-68-4397dc/mill-dist-1.0.6-68-4397dc-example-kotlinlib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/2-testing/integration/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.KotlinTests, mill.kotlinlib.TestModule.Junit5]
 mvnDeps: [io.kotest:kotest-runner-junit5:5.9.1]
@@ -826,6 +816,10 @@ moduleDeps: [test]</code></pre>
 </div>
 <div class="ulist">
 <ul>
+<li>
+<p>The ability to have multiple test suites, e.g. unit tests in <code>test/</code> and integration
+tests in <code>integration/</code></p>
+</li>
 <li>
 <p>Each test suite having its own set of <code>mvnDeps</code> to define the third-party
 libraries that it needs</p>
@@ -868,7 +862,7 @@ Test qux.QuxIntegrationTests helloworld finished...
 <p>Mill config-based <code>build.mill.yaml</code> modules support all the same linting
 features as the more flexible programmatic module definitions, as described
 in <a href="linting.html" class="xref page">Linting Kotlin Projects</a>. This section covers two
-common workflows: autoformatting and auto-fixing your Kotlin module.</p>
+common workflows: autoformatting and linting your Kotlin module.</p>
 </div>
 <div class="sect2">
 <h3 id="_autoformatting"><a class="anchor" href="#_autoformatting"></a>Autoformatting</h3>
@@ -919,14 +913,14 @@ fun main() {
 </div>
 </div>
 <div class="sect2">
-<h3 id="_autofixing"><a class="anchor" href="#_autofixing"></a>Autofixing</h3>
+<h3 id="_linting"><a class="anchor" href="#_linting"></a>Linting</h3>
 <div class="paragraph">
 <p>To lint your code with <a href="https://github.com/detekt/detekt">Detekt</a>, you can
 make yor module extend <code>mill.javalib.errorprone.ErrorProneModule</code>, which will
 allow you to run checks via <code>./mill __.detekt</code></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-67-770c07/mill-dist-1.0.6-67-770c07-example-kotlinlib-config-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/3-linting/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-68-4397dc/mill-dist-1.0.6-68-4397dc-example-kotlinlib-config-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/3-linting/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinModule, kotlinlib.detekt.DetektModule]
 kotlinVersion: &quot;2.2.20&quot;</code></pre>
@@ -944,17 +938,51 @@ error: ...NestedBlockDepth - 5/4 - [Function main is nested too deeply.] at .../
 <div class="sect1">
 <h2 id="_packaging_publishing"><a class="anchor" href="#_packaging_publishing"></a>Packaging &amp; Publishing</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_graal_native_image"><a class="anchor" href="#_graal_native_image"></a>Graal Native Image</h3>
 <div class="paragraph">
 <p>This example demonstrates how to define a Mill project with a <code>build.mill.yaml</code>
-that can be packaged into a Graal native executable or published to Maven Central:</p>
+that can be packaged into a Graal native executable. To do so, your module must extend
+<code>mill.scalalib.NativeImageModule</code>, and set your <code>jvmId</code> to a GraalVM distribution as
+shown below. You can pass native-image specific command-line flags via <code>nativeImageOptions</code></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-67-770c07/mill-dist-1.0.6-67-770c07-example-kotlinlib-config-4-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/4-publishing/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-68-4397dc/mill-dist-1.0.6-68-4397dc-example-kotlinlib-config-4-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/4-native-image/build.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinModule, mill.kotlinlib.PublishModule, mill.kotlinlib.NativeImageModule]
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinModule, mill.kotlinlib.NativeImageModule]
 kotlinVersion: 2.0.20
 jvmId: &quot;graalvm-community:24&quot;
-nativeImageOptions: [&quot;--no-fallback&quot;]
+nativeImageOptions: [&quot;--no-fallback&quot;]</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill nativeImage
+
+&gt; out/nativeImage.dest/native-executable
+Hello Graal Native: 24...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This generates an <code>out/nativeImage.dest/native-executable</code> binary that you can run later.
+These native binaries do not need a JVM installed in order to run, but they do require
+that the OS/CPU architecture that they are run on is the same as that on which they were built.
+See <a href="../javalib/publishing.html#_building_native_image_binaries_with_graal_vm" class="xref page">Building
+Native Image Binaries with Graal VM</a> for more details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_publishing"><a class="anchor" href="#_publishing"></a>Publishing</h3>
+<div class="paragraph">
+<p>This example demonstrates how to publish a Mill project to to Maven Central. To
+do so, your module must extend <code>mill.scalalib.PublishModule</code>, and configure the
+publishing metadata shown below:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-68-4397dc/mill-dist-1.0.6-68-4397dc-example-kotlinlib-config-5-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/5-publishing/build.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinModule, mill.kotlinlib.PublishModule]
+kotlinVersion: 2.0.20
 publishVersion: &quot;0.0.1&quot;
 artifactName: &quot;example&quot;
 pomSettings:
@@ -966,13 +994,8 @@ pomSettings:
   developers: [{&quot;name&quot;: &quot;Li Haoyi&quot;, &quot;email&quot;: &quot;example@example.com&quot;}]</code></pre>
 </div>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill nativeImage
-
-&gt; out/nativeImage.dest/native-executable
-Hello Graal Native: 24...</code></pre>
-</div>
+<div class="paragraph">
+<p>You can publish this locally to your <code>~/.ivy2</code> filesystem artifact repository via:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -990,14 +1013,9 @@ Sonatype Maven Central via:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Most configuration <code>def</code>s in Mill can be used to configure projects, and
-most tasks and commands can also be used as well. This gives you a lot of flexibility
-in working with your project until it becomes complex enough to need
-a dedicated <code>build.mill</code> file.</p>
-</div>
-<div class="paragraph">
 <p>For more details on packaging and publishing in Mill, see
 <a href="publishing.html" class="xref page">Kotlin Packaging &amp; Publishing</a></p>
+</div>
 </div>
 </div>
 </div>
@@ -1008,7 +1026,7 @@ a dedicated <code>build.mill</code> file.</p>
 <p>This example shows off running a simple webserver in a module configured via <code>build.mill.yaml</code></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-67-770c07/mill-dist-1.0.6-67-770c07-example-kotlinlib-config-5-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/5-web-example/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-68-4397dc/mill-dist-1.0.6-68-4397dc-example-kotlinlib-config-6-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/6-web-example/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinModule]
 kotlinVersion: 2.0.20
@@ -1020,7 +1038,7 @@ mvnDeps: [io.ktor:ktor-server-core:2.3.7, io.ktor:ktor-server-cio:2.3.7]</code><
 to run the web server</p>
 </div>
 <div class="listingblock">
-<div class="title">src/WebServer.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-67-770c07/mill-dist-1.0.6-67-770c07-example-kotlinlib-config-5-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/5-web-example/src/WebServer.kt">browse</a>)</div>
+<div class="title">src/WebServer.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-68-4397dc/mill-dist-1.0.6-68-4397dc-example-kotlinlib-config-6-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/6-web-example/src/WebServer.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package example
 import io.ktor.server.application.*
@@ -1070,7 +1088,7 @@ configured by <code>test/package.mill.yaml</code>. This test suite spins up the 
 makes a single HTTP reqeust against and checks it behaves as expected.</p>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-67-770c07/mill-dist-1.0.6-67-770c07-example-kotlinlib-config-5-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/5-web-example/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-68-4397dc/mill-dist-1.0.6-68-4397dc-example-kotlinlib-config-6-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/6-web-example/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.KotlinTests, mill.javalib.TestModule.Junit5]
 mvnDeps:
@@ -1101,14 +1119,14 @@ Test example.WebServerTests#testReverseString() finished...</code></pre>
 and are not limited to the builtin <code>trait</code>s provided by Mill:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-67-770c07/mill-dist-1.0.6-67-770c07-example-kotlinlib-config-6-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/6-custom-trait/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-68-4397dc/mill-dist-1.0.6-68-4397dc-example-kotlinlib-config-7-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/7-custom-trait/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [millbuild.LineCountKotlinModule]
 kotlinVersion: 2.0.20</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/src/LineCountKotlinModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-67-770c07/mill-dist-1.0.6-67-770c07-example-kotlinlib-config-6-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/6-custom-trait/mill-build/src/LineCountKotlinModule.scala">browse</a>)</div>
+<div class="title">mill-build/src/LineCountKotlinModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-68-4397dc/mill-dist-1.0.6-68-4397dc-example-kotlinlib-config-7-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/7-custom-trait/mill-build/src/LineCountKotlinModule.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
 import mill.*, kotlinlib.*
@@ -1150,7 +1168,7 @@ requirements, use programmatic <code>build.mill</code> files for modules with cu
 more advanced customizations, and have them inter-operate with each other seamlessly.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-67-770c07/mill-dist-1.0.6-67-770c07-example-kotlinlib-config-7-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/7-programmatic-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-68-4397dc/mill-dist-1.0.6-68-4397dc-example-kotlinlib-config-8-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/8-programmatic-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1164,7 +1182,7 @@ object bar extends KotlinModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-67-770c07/mill-dist-1.0.6-67-770c07-example-kotlinlib-config-7-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/7-programmatic-module-deps/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-68-4397dc/mill-dist-1.0.6-68-4397dc-example-kotlinlib-config-8-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/kotlinlib/config/8-programmatic-module-deps/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinModule]
 moduleDeps: [bar]
