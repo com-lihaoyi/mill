@@ -14,8 +14,8 @@
 /** Usage
 > ./mill WebServer.scala:runBackground
 
-> curl -d 'hello world' localhost:8080/reverse-string
-dlrow olleh
+> curl -d 'helloworld' localhost:8080/reverse-string
+dlrowolleh
 
 */
 //// SNIPPET:END
