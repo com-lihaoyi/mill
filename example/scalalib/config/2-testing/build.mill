@@ -17,9 +17,13 @@
 // `integration/` folders respectively. You can use Mill's task query syntax to select
 // the test modules which you want to run
 
+//// SNIPPET:USAGE
 /** Usage
 
 > ./mill '{test,integration}' # run both test suites
++ qux.QuxTests.hello...
++ qux.QuxTests.world...
++ qux.QuxIntegrationTests.helloworld...
 
 > ./mill __.integration # run all integration test suites
 
@@ -28,7 +32,7 @@
 > ./mill __.testForked # run all test suites of any kind
 
 */
-
+//// SNIPPET:TEST
 
 // For more details on testing in Mill, see
 // xref:{language-small}lib/testing.adoc[Testing {language} Projects]
