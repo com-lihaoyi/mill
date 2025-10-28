@@ -6,15 +6,23 @@ import org.junit.jupiter.api.Test;
 
 public class QuxTests {
 
+  public static void assertHello(String result) {
+    assertTrue(result.startsWith("Hello"));
+  }
+
+  public static void assertWorld(String result) {
+    assertTrue(result.endsWith("World"));
+  }
+
   @Test
   public void hello() {
     String result = Qux.hello();
-    assertTrue(result.startsWith("Hello"));
+    assertHello(result);
   }
 
   @Test
   public void world() {
     String result = Qux.hello();
-    assertTrue(result.endsWith("World"));
+    assertWorld(result);
   }
 }
