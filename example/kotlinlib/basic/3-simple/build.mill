@@ -1,10 +1,10 @@
 //// SNIPPET:DEPENDENCIES
 //
-// This is a basic Mill build for a single `KotlinModule`, with two
-// third-party dependencies and a test suite using the JUnit framework.
 // This example project uses two third-party dependencies - Clikt for CLI
 // argument parsing, Apache Commons Text for HTML escaping - and uses them to wrap a
 // given input string in HTML templates with proper escaping.
+// The `test/` submodule contains its own `mvnDeps`
+// for dependencies that are only used in the test suite.
 //
 //// SNIPPET:TREE
 // ----

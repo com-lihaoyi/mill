@@ -1,14 +1,7 @@
-//// SNIPPET:ALL
-// Mill's default folder layout of `foo/src/` and `foo/test/src` differs from that
-// of Maven or Gradle's `foo/src/main/kotlin/` and `foo/src/test/kotlin/`. If you are
-// migrating an existing codebase, you can use Mill's `KotlinMavenModule` and
-// `KotlinMavenTests` as shown below to preserve filesystem compatibility with an existing
-// Maven or Gradle build:
-
-/** See Also: build.mill.yaml */
+//// SNIPPET:FIRST
 
 // `KotlinMavenModule` is a variant of `KotlinModule`
-// that uses the more verbose folder layout of Maven, `sbt`, and other tools:
+// that uses the more verbose folder layout of Maven, SBT, and other tools:
 //
 // - `src/main/java`
 // - `src/main/kotlin`
@@ -22,15 +15,8 @@
 // - `src`
 // - `test/src`
 //
-// This is especially useful if you are migrating to Mill, as during the migration a
-// particular module may be built using both Maven/Gradle and Mill at the
-// same time. That means that during migration, you can leave all your source files
-// in place while setting up your Mill build, and do not need to invasively move them
-// around to match the Mill default module layout.
-//
-// Although the source layout of these compatibility modules is different from the
-// default `KotlinModule`, the command-line usage is the same:
-
+//// SNIPPET:END
+//// SNIPPET:SECOND
 /** Usage
 
 > ./mill compile
@@ -50,4 +36,4 @@ Compiling 1 Kotlin source...
 
 */
 
-// For more details on migrating from other build tools, see xref:migrating/migrating.adoc[]
+//// SNIPPET:END

@@ -1,7 +1,7 @@
 // Mill config-based `build.mill.yaml` modules support all the same linting
 // features as the more flexible programmatic module definitions, as described
 // in xref:{language-small}lib/linting.adoc[Linting {language} Projects]. This section covers two
-// common workflows: autoformatting and auto-fixing your {language} module.
+// common workflows: autoformatting and linting your {language} module.
 //
 //// SNIPPET:LINT
 // === Autoformatting
@@ -35,7 +35,7 @@ object Foo {
 
 */
 
-// === Autofixing
+// === Linting
 
 // To autofix your code with https://scalacenter.github.io/scalafix/[ScalaFix], you
 // need to include the https://github.com/joan38/mill-scalafix[third-party mill-scalafix plugin]

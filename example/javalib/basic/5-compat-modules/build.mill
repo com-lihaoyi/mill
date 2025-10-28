@@ -1,32 +1,20 @@
-//// SNIPPET:ALL
-// Mill's default folder layout of `foo/src/` and `foo/test/src` differs from that
-// of Maven or Gradle's `foo/src/main/java/` and `foo/src/test/java/`. If you are
-// migrating an existing codebase, you can use Mill's `MavenModule` and
-// `MavenTests` as shown below to preserve filesystem compatibility with an existing
-// Maven or Gradle build:
-
-/** See Also: build.mill.yaml */
+//// SNIPPET:FIRST
 
 // `MavenModule` is a variant of `JavaModule`
-// that uses the more verbose folder layout of Maven, `sbt`, and other tools:
+// that uses the more verbose folder layout of Maven, SBT, and other tools:
 //
-// - `foo/src/main/java/`
-// - `foo/src/test/java/`
+// - `src/main/java/`
+// - `src/test/java/`
 //
 // Rather than Mill's
 //
-// - `foo/src/`
-// - `foo/test/src/`
+// - `src/`
+// - `test/src/`
 //
 
-// This is especially useful if you are migrating to Mill, as during the migration a
-// particular module may be built using both Maven/Gradle and Mill at the
-// same time. That means that during migration, you can leave all your source files
-// in place while setting up your Mill build, and do not need to invasively move them
-// around to match the Mill default module layout.
-//
-// Although the source layout of these compatibility modules is different from the
-// default `JavaModule`, the command-line usage is the same:
+//// SNIPPET:END
+
+//// SNIPPET:SECOND
 
 /** Usage
 
@@ -46,5 +34,3 @@ compiling 1 Java source...
 ...foo.FooIntegrationTests.hello ...
 
 */
-
-// For more details on migrating from other build tools, see xref:migrating/migrating.adoc[]

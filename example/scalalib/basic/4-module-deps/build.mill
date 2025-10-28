@@ -1,5 +1,5 @@
 // This example contains a simple Mill build with two modules, `foo` and `bar`,
-// defined by their respective `foo/package.mill.yaml` and `bar/package.mill.yaml` config
+// defined by their respective `package.mill.yaml` config
 // files, and on which you can run tasks on such as `foo.run` or
 // `bar.run`. There is also a `bar.test` module defined by `bar/test/package.mill.yaml`.
 
@@ -13,7 +13,7 @@
 //
 // ==== Multi-Module Folder Layout
 //
-// The above builds expect the following project layout:
+// This multi-module example build expects the following folder layout:
 //
 //// SNIPPET:TREE
 //
@@ -46,9 +46,9 @@
 //// SNIPPET:END
 
 // Typically, source, output files, and task names in Mill follow the module
-// hierarchy, so e.g. input to the `foo` module lives in `foo/src/` and
-// compiled output files live in `out/foo/compile.dest`, and that module is
-// run via `foo.run`.
+// hierarchy, so e.g. input to the `foo` module lives in `foo/src/`, can be
+// compiled via `foo.compile` and, and its compiled output files live in
+// `out/foo/compile.dest`.
 //
 // You can use `mill resolve` to list out what tasks you can run, e.g.
 // `mill resolve __.run` below which lists out all the `run` tasks:
@@ -69,19 +69,20 @@ bar.run
 
 */
 
-// In general, for multi-module builds, every task is prefixed by its module
-// name: `foo.run`, `bar.assembly`, `bar.test.compile`, etc.
-// Mill will ensure that the specified tasks and their upstream dependencies are
-// executed in the right order, and re-executed as necessary when source code
-// in each module changes.
+// In general, Mill will ensure that the specified tasks and their upstream
+// dependencies are executed in the right order, and re-executed as necessary when
+// source code in each module changes. For example if you run `foo.compile`:
+//
+// - Mill will automatically run `bar.compile` and any other upstream tasks first if they have not
+//   been executed yet, or are out of date
+// - Mill will automatically re-use the cached output for `bar.compile` if it was executed earlier
+//   and its upstream source files have not changed
 //
 // ==== Task Query Syntax
 //
 // You can use wildcards and brace-expansion to select
-// multiple tasks at once or to shorten the path to deeply nested tasks. If
-// you provide optional task arguments and your wildcard or brace-expansion is
-// resolved to multiple tasks, the arguments will be applied to each of the
-// tasks.
+// multiple tasks at once or to shorten the path to deeply nested tasks,
+// as we saw with `__.run` above. Some more examples of this are shown below:
 //
 // .Wildcards and brace-expansion
 // |==========================================================
@@ -98,14 +99,17 @@ bar.run
 //
 
 /** Usage
-> ./mill bar._.compile # Runs `compile` for all direct sub-modules of `foo`
+> ./mill bar._.compile            # Runs `compile` for all direct sub-modules of `foo`
 
-> ./mill bar.__.test # Runs `test` for all transitive sub-modules of `foo`
+> ./mill bar.__.test              # Runs `test` for all transitive sub-modules of `foo`
 
-> ./mill {foo,bar}.compile # Runs `compile` for `foo` and `bar`
+> ./mill {foo,bar}.compile        # Runs `compile` for `foo` and `bar`
 
 > ./mill __.compile + bar.__.test # Runs all `compile` tasks and all tests under `foo`.
 */
 
-// For more details on the query syntax, check out the
-// xref:cli/query-syntax.adoc[query syntax documentation]
+// If you provide optional task arguments and your wildcard or brace-expansion is
+// resolved to multiple tasks, the arguments will be applied to each of the
+// tasks.
+// For more details on the query syntax, see the page
+// xref:cli/query-syntax.adoc[Task Query Syntax]

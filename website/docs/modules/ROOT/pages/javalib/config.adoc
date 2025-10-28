@@ -18,16 +18,22 @@ include::partial$example/javalib/config/3-linting.adoc[]
 
 == Packaging & Publishing
 
-include::partial$example/javalib/config/4-publishing.adoc[]
+=== Graal Native Image
+
+include::partial$example/javalib/config/4-native-image.adoc[]
+
+=== Publishing
+
+include::partial$example/javalib/config/5-publishing.adoc[]
 
 == Example Web Project
 
-include::partial$example/javalib/config/5-web-example.adoc[]
+include::partial$example/javalib/config/6-web-example.adoc[]
 
 == Custom Module Traits
 
-include::partial$example/javalib/config/6-custom-trait.adoc[]
+include::partial$example/javalib/config/7-custom-trait.adoc[]
 
 == Programmatic `moduleDeps`
 
-include::partial$example/javalib/config/7-programmatic-module-deps.adoc[]
+include::partial$example/javalib/config/8-programmatic-module-deps.adoc[]

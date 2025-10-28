@@ -1,10 +1,10 @@
 //// SNIPPET:DEPENDENCIES
 //
-// This is a basic Mill build for a single `JavaModule`, with two
-// third-party dependencies and a test suite using the JUnit framework.
 // This example project uses two third-party dependencies - https://argparse4j.github.io/[ArgParse4J] for CLI
-// argument parsing, https://www.thymeleaf.org//[Thymeleaf] for HTML rendering - and uses them to wrap a
+// argument parsing, https://www.thymeleaf.org/[Thymeleaf] for HTML rendering - and uses them to wrap a
 // given input string in HTML templates with proper escaping.
+// The `test/` submodule contains its own `mvnDeps`
+// for dependencies that are only used in the test suite.
 //
 //// SNIPPET:TREE
 // ----
@@ -27,9 +27,9 @@
 //         ...
 // ----
 //
-// NOTE: The default Mill source folder layout `src/` differs from that of Maven/Gradle's
-// `src/main/java/`.
-// If you wish to use the Maven source folder layout, e.g. for migrating
+// NOTE: The default Mill source folder layout `src/` and `test/src/` differs from that of
+// Maven/Gradle's `src/main/java/` and `src/test/java/`.
+// If you wish to use the Maven source folder layout, e.g. for compatibility with
 // an existing codebase, you should use
 // xref:#_maven_compatible_modules[Maven-Compatible Modules]
 //
@@ -58,11 +58,12 @@ Test foo.FooTest.testEscaping finished...
 //// SNIPPET:END
 //// SNIPPET:REPL
 //
-// You can start a JShell REPL attached to your `foo` module via:
+// You can start a JShell REPL attached to your root module or the `test` submodule via:
 //
 // [source,console]
 // ----
 // > ./mill -i jshell
+// > ./mill -i test.jshell
 // ----
 //
 // You can also start a standalone JShell console
