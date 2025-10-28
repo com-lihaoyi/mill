@@ -4,6 +4,8 @@
 :language: Scala
 :language-small: scala
 :language-ext: scala
+:compat-module: SbtModule
+:compat-test-module: SbtTests
 
 include::partial$Intro_Header.adoc[]
 

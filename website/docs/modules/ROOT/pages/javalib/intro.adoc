@@ -4,6 +4,8 @@
 :language: Java
 :language-small: java
 :language-ext: java
+:compat-module: MavenModule
+:compat-test-module: MavenTests
 
 include::partial$Intro_Header.adoc[]
 

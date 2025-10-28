@@ -4,6 +4,8 @@
 :language: Kotlin
 :language-small: kotlin
 :language-ext: kt
+:compat-module: KotlinMavenModule
+:compat-test-module: KotlinMavenTests
 
 include::partial$Intro_Header.adoc[]
 

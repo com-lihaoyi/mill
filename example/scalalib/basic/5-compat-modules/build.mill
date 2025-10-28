@@ -1,14 +1,22 @@
-//// SNIPPET:ALL
-// Mill's default folder layout of `foo/src/` and `foo/test/src` differs from that
-// of `sbt`'s `foo/src/main/scala/` and `foo/src/test/scala/`. If you are
-// migrating an existing codebase from `sbt`, you can use Mill's `SbtModule` and
-// `SbtTests` as shown below to preserve filesystem compatibility with an existing
-// `sbt` build:
+// Mill's default folder layout of `src/` and `test/src` differs from the `src/main/scala/`
+// and `src/test/scala/` common in Maven, Gradle, or SBT. If you are
+// adopting Mill in an existing codebase, you can use Mill's `{compat-module}` and
+// `{compat-test-module}` as shown below to preserve filesystem compatibility with an existing
+// build:
 
 /** See Also: build.mill.yaml */
 
+// Note the `object test:` and `object integration:` keys in the above file: these allow
+// you to define submodules in the same `build.mill.yaml` file as the parent module without
+// needing a separate `package.mill.yaml` in a subfolder. This is necessary  in scenarios
+// like this one where we want `test` and `integration` submodules but the filesystem layout
+// means we do not have `test/` or `integration/` folders to put a `package.mill.yaml` in.
+
+//// SNIPPET:FIRST
+
+
 // `SbtModule`/`CrossSbtModule` are variants of `ScalaModule`/`CrossScalaModule`
-// that use the more verbose folder layout of `sbt`, Maven, and other tools:
+// that use the more verbose folder layout of SBT, Maven, and other tools:
 //
 // - `src/main/scala/`
 // - `src/test/scala/`
@@ -20,15 +28,16 @@
 // - `test/src/`
 // - `integration/src/`
 //
-//
-// This is especially useful if you are migrating to Mill, as during the migration a
-// particular module may be built using both `sbt` and Mill at the
-// same time. That means that during migration, you can leave all your source files
+//// SNIPPET:END
+// One use case of these compatibility modules is migrations: while migrating to Mill, a
+// project may be built using your previous build tool and Mill at the  same time. Using
+// ``{compat-module}``s means that during migration, you can leave all your source files
 // in place while setting up your Mill build, and do not need to invasively move them
 // around to match the Mill default module layout.
 //
 // Although the source layout of these compatibility modules is different from the
-// default `ScalaModule`, the command-line usage is the same:
+// default `{language}Module`, the command-line usage is the same:
+//// SNIPPET:SECOND
 
 /** Usage
 
@@ -48,5 +57,5 @@ compiling 1 Scala source...
 + foo.FooIntegrationTests.hello ...
 
 */
-
+//// SNIPPET:END
 // For more details on migrating from other build tools, see xref:migrating/migrating.adoc[]
