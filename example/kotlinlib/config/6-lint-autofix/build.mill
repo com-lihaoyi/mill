@@ -1,0 +1,51 @@
+//// SNIPPET:LINT
+// === Autoformatting
+//
+// To autoformat your Java code with
+// https://github.com/palantir/palantir-java-format[Palantir Java Format], you
+// can run `./mill mill.javalib.palantirformat/` as shown below:
+
+
+/** Usage
+
+> cat src/foo/Foo.kt
+package foo;
+public class Foo {
+public static void main(String[] args) {
+System.out.println("Hello World");
+new java.util.HashSet<Short>().remove(1);
+}
+}
+
+> ./mill mill.javalib.palantirformat/
+formatting 1 java sources ...
+
+> cat src/foo/Foo.java
+package foo;
+public class Foo {
+  public static void main(String[] args) {
+    System.out.println("Hello World");
+    new java.util.HashSet<Short>().remove(1);
+  }
+}
+
+*/
+
+// === Autofixing
+
+// To lint your code with https://errorprone.info/index[ErrorProne], you can
+// make yor module extend `mill.javalib.errorprone.ErrorProneModule`, which will
+// run errorprone lint checks every time you `compile` that module.
+
+/** See Also: build.mill.yaml */
+/** Usage
+
+> ./mill compile
+.../src/foo/Foo.java:6:42: [CollectionIncompatibleType]...
+...Argument '1' should not be passed to this method...
+...its type int is not compatible with its collection's type argument Short
+[warn]     (see https://errorprone.info/bugpattern/CollectionIncompatibleType)
+[warn] new java.util.HashSet<Short>().remove(1)
+[warn]                                         ^
+
+*/

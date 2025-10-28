@@ -23,3 +23,6 @@ include::partial$example/kotlinlib/config/4-custom-trait.adoc[]
 
 include::partial$example/kotlinlib/config/5-programmatic-module-deps.adoc[]
 
+== Linting
+
+include::partial$example/kotlinlib/config/6-linting.adoc[]
