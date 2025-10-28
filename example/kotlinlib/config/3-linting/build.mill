@@ -46,7 +46,7 @@ fun main() {
 
 */
 
-// === Autofixing
+// === Linting
 
 // To lint your code with https://github.com/detekt/detekt[Detekt], you can
 // make yor module extend `mill.javalib.errorprone.ErrorProneModule`, which will
