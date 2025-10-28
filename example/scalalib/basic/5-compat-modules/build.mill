@@ -10,20 +10,25 @@
 // `SbtModule`/`CrossSbtModule` are variants of `ScalaModule`/`CrossScalaModule`
 // that use the more verbose folder layout of `sbt`, Maven, and other tools:
 //
-// - `foo/src/main/scala`
-// - `foo/src/test/scala`
-// - `foo/src/integration/scala`
+// - `src/main/scala/`
+// - `src/test/scala/`
+// - `src/integration/scala/`
 //
 // Rather than Mill's
 //
-// - `foo/src`
-// - `foo/src-2.12`
-// - `foo/src-2.13`
-// - `foo/test/src`
+// - `src/`
+// - `test/src/`
+// - `integration/src/`
 //
-// This is especially useful if you are migrating from `sbt` to Mill (or vice
-// versa), during which a particular module may be built using both `sbt` and
-// Mill at the same time
+//
+// This is especially useful if you are migrating to Mill, as during the migration a
+// particular module may be built using both `sbt` and Mill at the
+// same time. That means that during migration, you can leave all your source files
+// in place while setting up your Mill build, and do not need to invasively move them
+// around to match the Mill default module layout.
+//
+// Although the source layout of these compatibility modules is different from the
+// default `ScalaModule`, the command-line usage is the same:
 
 /** Usage
 

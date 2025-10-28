@@ -1,8 +1,8 @@
 package mill.javalib
 
-import java.nio.file.Path
-
 import mill.Task
+
+import java.nio.file.Path
 
 /**
  * A [[JavaModule]] with a Maven compatible directory layout.
@@ -12,10 +12,14 @@ import mill.Task
  */
 trait MavenModule extends JavaModule { outer =>
 
-  override def sources = Task.Sources("src/main/java")
+  // Bincompat stub
+  private[mill] def sourcesFolders0 = Seq(os.sub / "src/main/java")
+  override def sourcesFolders = sourcesFolders0
+  // Bincompat stub
+  override def sources = Task.Sources(sourcesFolders*)
   override def resources = Task.Sources("src/main/resources")
 
-  trait MavenTests extends JavaTests {
+  trait MavenTests extends JavaTests with MavenModule {
     override def moduleDir = outer.moduleDir
 
     /**
@@ -27,7 +31,11 @@ trait MavenModule extends JavaModule { outer =>
     private[mill] override def intellijModulePathJava: Path =
       (outer.moduleDir / "src" / testModuleName).toNIO
 
-    override def sources = Task.Sources(moduleDir / "src" / testModuleName / "java")
+    // Bincompat stub
+    private[mill] override def sourcesFolders0 = Seq(os.sub / "src" / testModuleName / "java")
+    override def sourcesFolders = sourcesFolders0
+    // Bincompat stub
+    override def sources = Task.Sources(sourcesFolders*)
     override def resources = Task.Sources(moduleDir / "src" / testModuleName / "resources")
   }
 }

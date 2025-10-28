@@ -130,7 +130,7 @@ object ExecResult {
     catch {
       case e: InvocationTargetException =>
         Result.Failure(makeResultException(e.getCause, new java.lang.Exception()).left.get)
-      case e: Exception =>
+      case e: java.lang.Exception =>
         Result.Failure(makeResultException(e, new java.lang.Exception()).left.get)
     }
   }

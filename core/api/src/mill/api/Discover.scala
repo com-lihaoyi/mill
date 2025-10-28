@@ -16,6 +16,7 @@ import scala.collection.mutable
  * can then be used later to look up the `MainData` for any module.
  */
 final class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
+  private[mill] val allTaskNames = classInfo.values.flatMap(_.declaredTaskNameSet).toSet
   private[mill] def resolveEntrypoint(cls: Class[?], name: String) = {
     val res = for {
       (cls2, node) <- classInfo

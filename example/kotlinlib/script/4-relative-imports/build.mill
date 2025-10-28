@@ -1,0 +1,19 @@
+//// SNIPPET:BAR
+/** See Also: bar/Bar.kt */
+//// SNIPPET:END
+
+//// SNIPPET:BARTESTS
+/** See Also: bar/BarTests.kt */
+//// SNIPPET:END
+
+//// SNIPPET:FOO
+/** See Also: foo/Foo.kt */
+//// SNIPPET:END
+
+//// SNIPPET:USAGE
+/** Usage
+> ./mill bar/Bar.kt:compile
+> ./mill bar/BarTests.kt
+> ./mill foo/Foo.kt hello
+*/
+//// SNIPPET:END

@@ -1,0 +1,7 @@
+//| mill-version: SNAPSHOT
+//| mill-jvm-opts: ["-Xmx2g", "-XX:MaxMetaspaceSize=512m"]
+package build
+
+import mill.*
+
+object `package` extends Module {}

@@ -62,7 +62,7 @@ Test foo.FooTest.testEscaping finished...
 //
 // [source,console]
 // ----
-// > ./mill -i foo.jshell
+// > ./mill -i jshell
 // ----
 //
 // You can also start a standalone JShell console

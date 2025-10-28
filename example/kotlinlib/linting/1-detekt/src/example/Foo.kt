@@ -1,6 +1,6 @@
 package example
 
-import java.util.Random
+import kotlin.random.Random
 
 fun main() {
     if (Random.nextBoolean()) {
@@ -8,9 +8,7 @@ fun main() {
             if (Random.nextBoolean()) {
                 if (Random.nextBoolean()) {
                     if (Random.nextBoolean()) {
-                        if (Random.nextBoolean()) {
-                            println("Hello World")
-                        }
+                        println("Hello World")
                     }
                 }
             }

@@ -67,7 +67,7 @@ object app extends AndroidAppKotlinModule {
   }
 }
 
-////SNIPPET:END
+//// SNIPPET:END
 
 /** Usage
 

@@ -1,0 +1,18 @@
+//// SNIPPET:CRAWLER
+//
+// For example, below is a simple script using https://github.com/FasterXML/jackson[Jackson],
+// https://github.com/Kong/unirest-java[Unirest-Java], and https://picocli.info/[PicoCLI], to write a
+// program that crawls wikipedia and saves the crawl results to a file:
+
+/** See Also: JsonApiClient.java */
+
+/** Usage
+> ./mill JsonApiClient.java --start-article=singapore --depth=2
+
+> cat fetched.json
+..."Calling code",...
+..."+65",...
+..."British Empire",...
+..."1st Parliament of Singapore",...
+
+*/

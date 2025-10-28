@@ -10,21 +10,26 @@
 // `KotlinMavenModule` is a variant of `KotlinModule`
 // that uses the more verbose folder layout of Maven, `sbt`, and other tools:
 //
-// - `foo/src/main/java`
-// - `foo/src/main/kotlin`
-// - `foo/src/test/java`
-// - `foo/src/test/kotlin`
-// - `foo/src/integration/java`
-// - `foo/src/integration/kotlin`
+// - `src/main/java`
+// - `src/main/kotlin`
+// - `src/test/java`
+// - `src/test/kotlin`
+// - `src/integration/java`
+// - `src/integration/kotlin`
 //
 // Rather than Mill's
 //
-// - `foo/src`
-// - `foo/test/src`
+// - `src`
+// - `test/src`
 //
-// This is especially useful if you are migrating from Maven to Mill (or vice
-// versa), during which a particular module may be built using both Maven and
-// Mill at the same time
+// This is especially useful if you are migrating to Mill, as during the migration a
+// particular module may be built using both Maven/Gradle and Mill at the
+// same time. That means that during migration, you can leave all your source files
+// in place while setting up your Mill build, and do not need to invasively move them
+// around to match the Mill default module layout.
+//
+// Although the source layout of these compatibility modules is different from the
+// default `KotlinModule`, the command-line usage is the same:
 
 /** Usage
 

@@ -5,6 +5,7 @@
 
 * xref:javalib/intro.adoc[]
 ** xref:javalib/config.adoc[]
+** xref:javalib/script.adoc[]
 ** xref:javalib/module-config.adoc[]
 ** xref:javalib/dependencies.adoc[]
 ** xref:javalib/testing.adoc[]
@@ -14,6 +15,7 @@
 ** xref:javalib/web-examples.adoc[]
 * xref:scalalib/intro.adoc[]
 ** xref:scalalib/config.adoc[]
+** xref:scalalib/script.adoc[]
 ** xref:scalalib/module-config.adoc[]
 ** xref:scalalib/dependencies.adoc[]
 ** xref:scalalib/testing.adoc[]
@@ -25,6 +27,7 @@
 ** xref:scalalib/spark.adoc[]
 * xref:kotlinlib/intro.adoc[]
 ** xref:kotlinlib/config.adoc[]
+** xref:kotlinlib/script.adoc[]
 ** xref:kotlinlib/module-config.adoc[]
 ** xref:kotlinlib/dependencies.adoc[]
 ** xref:kotlinlib/testing.adoc[]

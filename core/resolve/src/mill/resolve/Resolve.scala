@@ -193,7 +193,7 @@ private[mill] object Resolve {
       )
       .head
 
-    ResolveCore.catchWrapException(
+    mill.api.ExecResult.catchWrapException(
       definition.invoke(p).asInstanceOf[Task.Named[?]]
     )
   }
@@ -206,7 +206,7 @@ private[mill] object Resolve {
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
   ) = {
-    ResolveCore.catchWrapException {
+    mill.api.ExecResult.catchWrapException {
       val invoked = invokeCommand0(
         p,
         r.segments.last.value,

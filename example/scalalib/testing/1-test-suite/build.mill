@@ -55,7 +55,7 @@ compiling 2 ... source...
 // * `TestModule.ScalaTest`, using https://github.com/scalatest/scalatest[ScalaTest]
 // * `TestModule.Specs2`, using https://github.com/etorreborre/specs2[Specs2]
 // * `TestModule.Utest`, using https://github.com/com-lihaoyi/utest[uTest]
-// * `TestModule.Waever`, using https://github.com/disneystreaming/weaver-test[Weaver]
+// * `TestModule.Weaver`, using https://github.com/disneystreaming/weaver-test[Weaver]
 // * `TestModule.ZioTest`, using https://zio.dev/reference/test/[ZioTest]
 //
 // Each testing framework has their own flags and configuration options that are

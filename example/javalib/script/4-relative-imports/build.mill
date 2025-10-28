@@ -1,0 +1,19 @@
+//// SNIPPET:BAR
+/** See Also: bar/Bar.java */
+//// SNIPPET:END
+
+//// SNIPPET:BARTESTS
+/** See Also: bar/BarTests.java */
+//// SNIPPET:END
+
+//// SNIPPET:FOO
+/** See Also: foo/Foo.java */
+//// SNIPPET:END
+
+//// SNIPPET:USAGE
+/** Usage
+> ./mill bar/Bar.java:compile
+> ./mill bar/BarTests.java
+> ./mill foo/Foo.java hello
+*/
+//// SNIPPET:END

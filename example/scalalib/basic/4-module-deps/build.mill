@@ -1,11 +1,12 @@
-/** See Also: foo/package.mill.yaml */
-/** See Also: bar/package.mill.yaml */
-/** See Also: bar/test/package.mill.yaml */
-
 // This example contains a simple Mill build with two modules, `foo` and `bar`,
 // defined by their respective `foo/package.mill.yaml` and `bar/package.mill.yaml` config
 // files, and on which you can run tasks on such as `foo.run` or
 // `bar.run`. There is also a `bar.test` module defined by `bar/test/package.mill.yaml`.
+
+/** See Also: foo/package.mill.yaml */
+/** See Also: bar/package.mill.yaml */
+/** See Also: bar/test/package.mill.yaml */
+
 // Inter-module dependencies are defined by the `moduleDeps` key, and modules
 // can also be nested within each other, as `bar.test` is nested
 // within `bar`.
@@ -43,11 +44,14 @@
 // ----
 //
 //// SNIPPET:END
-// Typically, both source code and output files in Mill follow the module
+
+// Typically, source, output files, and task names in Mill follow the module
 // hierarchy, so e.g. input to the `foo` module lives in `foo/src/` and
-// compiled output files live in `out/foo/compile.dest`. You can use
-// `mill resolve` to list out what tasks you can run, e.g. `mill resolve __.run`
-// below which lists out all the `run` tasks:
+// compiled output files live in `out/foo/compile.dest`, and that module is
+// run via `foo.run`.
+//
+// You can use `mill resolve` to list out what tasks you can run, e.g.
+// `mill resolve __.run` below which lists out all the `run` tasks:
 
 /** Usage
 
@@ -65,11 +69,11 @@ bar.run
 
 */
 
-// Mill's evaluator will ensure that the modules are compiled in the right
-// order, and recompiled as necessary when source code in each module changes.
-// The unique path on disk that Mill automatically assigns each task also ensures
-// you do not need to worry about choosing a path on disk to cache outputs, or
-// filesystem collisions if multiple tasks write to the same path.
+// In general, for multi-module builds, every task is prefixed by its module
+// name: `foo.run`, `bar.assembly`, `bar.test.compile`, etc.
+// Mill will ensure that the specified tasks and their upstream dependencies are
+// executed in the right order, and re-executed as necessary when source code
+// in each module changes.
 //
 // ==== Task Query Syntax
 //

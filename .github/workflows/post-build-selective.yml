@@ -16,6 +16,9 @@ on:
       os:
         default: 'ubuntu-latest'
         type: string
+      extra:
+        default: ''
+        type: string
       timeout-minutes:
         default: 60
         type: number
@@ -64,3 +67,4 @@ jobs:
         with:
           millargs: ${{ inputs.millargs }}
           shell: ${{ inputs.shell }}
+          extra: ${{ inputs.extra }}

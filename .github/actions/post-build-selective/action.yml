@@ -4,6 +4,10 @@ inputs:
     default: ''
     type: string
 
+  extra:
+    default: ''
+    type: string
+
   shell:
     required: true
     type: string
@@ -43,7 +47,7 @@ runs:
     #- run: ./mill -i -k selective.resolveChanged ${{ inputs.millargs }}
     #  shell: ${{ inputs.shell }}
 
-    - run: ./mill -i -k selective.run ${{ inputs.millargs }}
+    - run: ./mill -i -k ${{ inputs.extra }} selective.run ${{ inputs.millargs }}
       shell: ${{ inputs.shell }}
 
     - name: Clean-up Test Reports

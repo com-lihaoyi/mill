@@ -1,0 +1,101 @@
+package build.dummy
+
+import mill.*
+import mill.javalib.*
+import mill.javalib.publish.*
+import mill.scalajslib.*
+import mill.scalajslib.api.*
+import mill.scalalib.*
+import mill.scalanativelib.*
+import millbuild.*
+
+object `package` extends Module {
+
+  object js extends ScalaJSModule with CrossprojectBaseModule {
+
+    def scalaJSVersion = "1.16.0"
+
+    def artifactName = "dummy"
+
+    def pomSettings = PomSettings(
+      "dummy",
+      "dummy",
+      "",
+      Seq(),
+      VersionControl(None, None, None, None),
+      Seq()
+    )
+
+    object test
+        extends ScalaJSTests
+        with SbtPlatformTests
+        with SbtTests
+        with TestModule.Utest {
+
+      def mvnDeps = super.mvnDeps() ++ Seq(Deps.utest)
+
+      def testParallelism = false
+
+      def testSandboxWorkingDir = false
+
+    }
+
+  }
+
+  object jvm extends CrossprojectBaseModule {
+
+    def artifactName = "dummy"
+
+    def pomSettings = PomSettings(
+      "dummy",
+      "dummy",
+      "",
+      Seq(),
+      VersionControl(None, None, None, None),
+      Seq()
+    )
+
+    object test extends SbtPlatformTests with SbtTests with TestModule.Utest {
+
+      def mvnDeps = super.mvnDeps() ++ Seq(Deps.utest)
+
+      def testParallelism = false
+
+      def testSandboxWorkingDir = false
+
+    }
+
+  }
+
+  object native extends ScalaNativeModule with CrossprojectBaseModule {
+
+    def scalaNativeVersion = "0.5.4"
+
+    def artifactName = "dummy"
+
+    def pomSettings = PomSettings(
+      "dummy",
+      "dummy",
+      "",
+      Seq(),
+      VersionControl(None, None, None, None),
+      Seq()
+    )
+
+    object test
+        extends ScalaNativeTests
+        with SbtPlatformTests
+        with SbtTests
+        with TestModule.Utest {
+
+      def mvnDeps = super.mvnDeps() ++ Seq(Deps.utest)
+
+      def testParallelism = false
+
+      def testSandboxWorkingDir = false
+
+    }
+
+  }
+
+}

@@ -2,6 +2,8 @@
 
 https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=stable-version&versionSuffix={mill-version}[d]]
 https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=unstable-dev-version[Maven Central Version]]
+https://github.com/com-lihaoyi/mill[image:https://img.shields.io/github/stars/com-lihaoyi/mill[GitHub Repo stars]]
+
 
 Mill is a build tool that tries to improve upon the tools traditionally used
 in the JVM ecosystem:
