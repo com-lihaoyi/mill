@@ -50,15 +50,14 @@ trait MappedRoots {
     rootMapping.withValue(newMapping)(thunk)
   }
 
-
   def encodeKnownRootsInPath(p: os.Path): String = {
     MappedRoots.get.collectFirst {
       case rep if p.startsWith(rep.path) =>
         s"$$${rep.key}${
-          if (p != rep.path) {
-            s"/${p.subRelativeTo(rep.path).toString()}"
-          } else ""
-        }"
+            if (p != rep.path) {
+              s"/${p.subRelativeTo(rep.path).toString()}"
+            } else ""
+          }"
     }.getOrElse(p.toString)
   }
 

@@ -1,6 +1,6 @@
 package mill.daemon
 
-import mill.api.{MappedRoots, PathRef, SystemStreams}
+import mill.api.{MappedRoots, SystemStreams}
 import mill.client.ClientUtil
 import mill.client.lock.{Lock, Locks}
 import mill.constants.OutFolderMode
