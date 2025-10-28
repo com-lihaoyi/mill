@@ -80,7 +80,7 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with DefaultTaskM
    */
   def formatAll(
       @mainargs.arg ktfmtArgs: KtfmtArgs,
-      @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]]
+      @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources")
   ): Command[Unit] = Task.Command {
     val _sources = Task.sequence(sources.value)().iterator.flatten
     ktfmtAction(

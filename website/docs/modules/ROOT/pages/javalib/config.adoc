@@ -27,4 +27,4 @@ include::partial$example/javalib/config/5-programmatic-module-deps.adoc[]
 
 == Linting
 
-include::partial$example/javalib/config/6-linting.adoc[]
+include::partial$example/javalib/config/6-lint-autofix.adoc[]

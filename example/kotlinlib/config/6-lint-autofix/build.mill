@@ -1,51 +1,62 @@
 //// SNIPPET:LINT
 // === Autoformatting
 //
-// To autoformat your Java code with
-// https://github.com/palantir/palantir-java-format[Palantir Java Format], you
-// can run `./mill mill.javalib.palantirformat/` as shown below:
+// To autoformat your Kotlin code with
+// https://github.com/facebook/ktfmt[KtFmt], you
+// can run `./mill mill.kotlinlib.ktfmt/` as shown below:
 
 
 /** Usage
 
 > cat src/foo/Foo.kt
-package foo;
-public class Foo {
-public static void main(String[] args) {
-System.out.println("Hello World");
-new java.util.HashSet<Short>().remove(1);
+package example
+import kotlin.random.Random
+fun main() {
+if (Random.nextBoolean()) {
+if (Random.nextBoolean()) {
+if (Random.nextBoolean()) {
+if (Random.nextBoolean()) {
+if (Random.nextBoolean()) {
+println("Hello World")
+}
+}
+}
+}
 }
 }
 
-> ./mill mill.javalib.palantirformat/
-formatting 1 java sources ...
+> ./mill mill.kotlinlib.ktfmt/
+Done formatting .../src/foo/Foo.kt
 
-> cat src/foo/Foo.java
-package foo;
-public class Foo {
-  public static void main(String[] args) {
-    System.out.println("Hello World");
-    new java.util.HashSet<Short>().remove(1);
-  }
+> cat src/foo/Foo.kt
+package example
+import kotlin.random.Random
+fun main() {
+    if (Random.nextBoolean()) {
+        if (Random.nextBoolean()) {
+            if (Random.nextBoolean()) {
+                if (Random.nextBoolean()) {
+                    if (Random.nextBoolean()) {
+                        println("Hello World")
+                    }
+                }
+            }
+        }
+    }
 }
 
 */
 
 // === Autofixing
 
-// To lint your code with https://errorprone.info/index[ErrorProne], you can
+// To lint your code with https://github.com/detekt/detekt[Detekt], you can
 // make yor module extend `mill.javalib.errorprone.ErrorProneModule`, which will
-// run errorprone lint checks every time you `compile` that module.
+// allow you to run checks via `./mill __.detekt`
 
 /** See Also: build.mill.yaml */
 /** Usage
 
-> ./mill compile
-.../src/foo/Foo.java:6:42: [CollectionIncompatibleType]...
-...Argument '1' should not be passed to this method...
-...its type int is not compatible with its collection's type argument Short
-[warn]     (see https://errorprone.info/bugpattern/CollectionIncompatibleType)
-[warn] new java.util.HashSet<Short>().remove(1)
-[warn]                                         ^
+> ./mill __.detekt
+error: ...NestedBlockDepth - 5/4 - [Function main is nested too deeply.] at .../src/foo/Foo.kt:5:5
 
 */
