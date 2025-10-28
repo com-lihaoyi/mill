@@ -224,7 +224,7 @@ object `package` extends Module {
         .filter(os.isFile)
         .filterNot(p =>
           (p.ext == "java" || p.ext == "kt") &&
-            (p.segments.contains("linting") || p.segments.contains("10-external-module-aliases"))
+            (p.segments.contains("linting") || p.segments.contains("10-external-module-aliases") || p.segments.contains("6-lint-autofix"))
         )
         .map(PathRef(_))
     }
