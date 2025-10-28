@@ -18,7 +18,13 @@ include::partial$example/javalib/config/3-linting.adoc[]
 
 == Packaging & Publishing
 
-include::partial$example/javalib/config/4-publishing.adoc[]
+=== Graal Native Image
+
+include::partial$example/javalib/config/4-native-image.adoc[]
+
+=== Publishing
+
+include::partial$example/javalib/config/5-publishing.adoc[]
 
 == Example Web Project
 

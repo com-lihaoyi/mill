@@ -1,7 +1,5 @@
-extends: [mill.kotlinlib.KotlinModule, mill.kotlinlib.PublishModule, mill.kotlinlib.NativeImageModule]
+extends: [mill.kotlinlib.KotlinModule, mill.kotlinlib.PublishModule]
 kotlinVersion: 2.0.20
-jvmId: "graalvm-community:24"
-nativeImageOptions: ["--no-fallback"]
 publishVersion: "0.0.1"
 artifactName: "example"
 pomSettings:

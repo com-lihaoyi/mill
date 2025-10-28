@@ -1,6 +1,4 @@
-extends: [mill.javalib.JavaModule, mill.javalib.PublishModule, mill.javalib.NativeImageModule]
-jvmId: "graalvm-community:24"
-nativeImageOptions: ["--no-fallback"]
+extends: [mill.javalib.JavaModule, mill.javalib.PublishModule]
 publishVersion: "0.0.1"
 artifactName: "example"
 pomSettings:

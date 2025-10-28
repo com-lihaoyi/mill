@@ -16,18 +16,22 @@ include::partial$example/scalalib/config/2-testing.adoc[]
 
 include::partial$example/scalalib/config/3-linting.adoc[]
 
-== Packaging & Publishing
+=== Graal Native Image
 
-include::partial$example/scalalib/config/4-publishing.adoc[]
+include::partial$example/scalalib/config/4-native-image.adoc[]
+
+=== Publishing
+
+include::partial$example/scalalib/config/5-publishing.adoc[]
 
 == Example Web Project
 
-include::partial$example/scalalib/config/5-web-example.adoc[]
+include::partial$example/scalalib/config/6-web-example.adoc[]
 
 == Custom Module Traits
 
-include::partial$example/scalalib/config/6-custom-trait.adoc[]
+include::partial$example/scalalib/config/7-custom-trait.adoc[]
 
 == Programmatic `moduleDeps`
 
-include::partial$example/scalalib/config/7-programmatic-module-deps.adoc[]
+include::partial$example/scalalib/config/8-programmatic-module-deps.adoc[]
