@@ -1,6 +1,5 @@
 // This example demonstrates more details about testing in Mill:
 
-
 /** See Also: build.mill.yaml */
 /** See Also: test/package.mill.yaml */
 /** See Also: integration/package.mill.yaml */

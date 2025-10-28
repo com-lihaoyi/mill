@@ -14,7 +14,6 @@
 
 //// SNIPPET:FIRST
 
-
 // `SbtModule`/`CrossSbtModule` are variants of `ScalaModule`/`CrossScalaModule`
 // that use the more verbose folder layout of SBT, Maven, and other tools:
 //
