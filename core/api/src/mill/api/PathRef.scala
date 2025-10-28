@@ -48,12 +48,6 @@ case class PathRef private[mill] (
   def withRevalidate(revalidate: PathRef.Revalidate): PathRef = copy(revalidate = revalidate)
   def withRevalidateOnce: PathRef = copy(revalidate = PathRef.Revalidate.Once)
 
-  /**
-   * Renders a toString represntation.
-   * @param map if `true`, the rendered path may contain placeholders for configured root paths.
-   *            See [[PathRef.mappedRoots]].
-   *            If `false`, the path is local and absolute.
-   */
   private def toStringPrefix: String = {
     val quick = if (this.quick) "qref:" else "ref:"
 
