@@ -17,24 +17,19 @@ public class WebServerTests {
 
   @AfterAll
   public static void stopServer() {
-    if (server != null) {
-      server.close();
-    }
+    if (server != null) server.close();
   }
 
   @Test
   public void testReverseString() throws Exception {
-    RequestBody body = RequestBody.create(
-      "hello world",
-      MediaType.parse("text/plain")
-    );
+    var body = RequestBody.create("hello world", MediaType.parse("text/plain"));
 
-    Request request = new Request.Builder()
+    var request = new Request.Builder()
       .url("http://localhost:8080/reverse-string")
       .post(body)
       .build();
 
-    try (Response response = client.newCall(request).execute()) {
+    try (var response = client.newCall(request).execute()) {
       assertTrue(response.isSuccessful());
       assertEquals("dlrow olleh", response.body().string());
     }
