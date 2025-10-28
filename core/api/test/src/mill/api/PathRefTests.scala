@@ -19,6 +19,7 @@ object PathRefTests extends TestSuite {
         val sig2 = PathRef(file, quick).sig
         assert(sig1 != sig2)
       }
+
       test("qref") - check(quick = true)
       test("ref") - check(quick = false)
     }
@@ -82,6 +83,7 @@ object PathRefTests extends TestSuite {
         val sig2 = PathRef(tmpDir, quick).sig
         assert(sig1 == sig2)
       }
+
       test("qref") - check(quick = true)
       test("ref") - check(quick = false)
     }
@@ -110,35 +112,6 @@ object PathRefTests extends TestSuite {
 
       test("qref") - check(quick = true)
       test("ref") - check(quick = false)
-    }
-
-    test("encode") {
-      withTmpDir { tmpDir =>
-        val workspaceDir = tmpDir / "workspace"
-        val outDir = workspaceDir / "out"
-        PathRef.mappedRoots.withMillDefaults(outPath = outDir, workspacePath = workspaceDir) {
-          def check(path: os.Path, contains: Seq[String], containsNot: Seq[String]) = {
-            val enc = PathRef.encodeKnownRootsInPath(path)
-            val dec = PathRef.decodeKnownRootsInPath(enc)
-            assert(path.toString == dec)
-            contains.foreach(s => enc.containsSlice(s))
-            containsNot.foreach(s => !enc.containsSlice(s))
-
-            path -> enc
-          }
-
-          val file1 = tmpDir / "file1"
-          val file2 = workspaceDir / "file2"
-          val file3 = outDir / "file3"
-
-          Seq(
-            "mapping" -> PathRef.mappedRoots.get,
-            check(file1, Seq("ref:v0:", file1.toString), Seq("$WORKSPACE", "$MILL_OUT")),
-            check(file2, Seq("ref:v0:", "$WORKSPACE/file2"), Seq("$MILL_OUT")),
-            check(file3, Seq("ref:v0:", "$MILL_OUT/file3"), Seq("$WORKSPACE"))
-          )
-        }
-      }
     }
   }
 

@@ -1,14 +1,10 @@
 package mill.javalib
 
 import mill.T
-import mill.api.Result
+import mill.api.{DefaultTaskModule, MappedRoots, PathRef, Result, Task, TaskCtx}
 import mill.api.daemon.internal.TestModuleApi
 import mill.api.daemon.internal.TestReporter
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
-import mill.api.PathRef
-import mill.api.Task
-import mill.api.TaskCtx
-import mill.api.DefaultTaskModule
 import mill.javalib.bsp.BspModule
 import mill.api.JsonFormatters.given
 import mill.constants.EnvVars
@@ -195,7 +191,7 @@ trait TestModule
       )
 
       val argsFile = Task.dest / "testargs"
-      PathRef.mappedRoots.withMapping(Seq()) {
+      MappedRoots.withMapping(Seq()) {
         // Don't use placeholders, so we only have local absolute paths
         os.write(argsFile, upickle.write(testArgs))
       }

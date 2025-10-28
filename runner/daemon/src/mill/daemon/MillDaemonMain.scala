@@ -1,7 +1,7 @@
 package mill.daemon
 
 import mill.api.{BuildCtx, SystemStreams}
-import mill.api.{PathRef, SystemStreams}
+import mill.api.{MappedRoots, SystemStreams}
 import mill.client.ClientUtil
 import mill.client.lock.{Lock, Locks}
 import mill.constants.OutFolderMode
@@ -40,7 +40,7 @@ object MillDaemonMain {
     val args =
       Args(getClass.getName, args0).fold(err => throw IllegalArgumentException(err), identity)
 
-    PathRef.mappedRoots.withMillDefaults(args.outDir) {
+    MappedRoots.withMillDefaults(args.outDir) {
       // temporarily disabling FFM use by coursier, which has issues with the way
       // Mill manages class loaders, throwing things like
       // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader

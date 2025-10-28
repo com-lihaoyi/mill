@@ -1,4 +1,4 @@
-import mill.api.{BuildCtx, PathRef}
+import mill.api.{BuildCtx, MappedRoots, PathRef}
 import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 
@@ -6,7 +6,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
 
   val tests: Tests = Tests {
     test("test") - integrationTest { tester =>
-      PathRef.mappedRoots.withMapping(Seq(
+      MappedRoots.withMapping(Seq(
         "HOME" -> os.home,
         "WORKSPACE" -> tester.workspacePath
       )) {

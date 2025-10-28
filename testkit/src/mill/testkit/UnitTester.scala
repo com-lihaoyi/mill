@@ -6,7 +6,7 @@ import mill.api.{
   DummyInputStream,
   Evaluator,
   ExecResult,
-  PathRef,
+  MappedRoots,
   Result,
   SelectMode,
   SystemStreams,
@@ -237,7 +237,7 @@ class UnitTester(
   def scoped[T](tester: UnitTester => T): T = {
     try {
       BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
-        PathRef.mappedRoots.withMillDefaults(outPath) {
+        MappedRoots.withMillDefaults(outPath) {
           tester(this)
         }
       }

@@ -3,7 +3,7 @@ package mill.daemon
 import ch.epfl.scala.bsp4j.BuildClient
 import mill.api.daemon.internal.bsp.BspServerHandle
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
-import mill.api.{BuildCtx, Logger, MillException, PathRef, Result, SystemStreams}
+import mill.api.{BuildCtx, Logger, MappedRoots, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
 import mill.constants.{DaemonFiles, OutFiles}
@@ -110,7 +110,7 @@ object MillMain0 {
       daemonDir: os.Path,
       outLock: Lock,
       outDir: os.Path
-  ): (Boolean, RunnerState) = PathRef.mappedRoots.withMillDefaults(outPath = outDir) {
+  ): (Boolean, RunnerState) = MappedRoots.withMillDefaults(outPath = outDir) {
     mill.api.daemon.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
       os.SubProcess.env.withValue(env) {
         val parserResult = MillCliConfig.parse(args)

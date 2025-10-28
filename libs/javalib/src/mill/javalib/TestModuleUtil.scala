@@ -1,6 +1,6 @@
 package mill.javalib
 
-import mill.api.{BuildCtx, Logger, PathRef, Result, TaskCtx}
+import mill.api.{BuildCtx, Logger, MappedRoots, PathRef, Result, TaskCtx}
 import mill.api.daemon.internal.TestReporter
 import mill.util.Jvm
 import mill.api.internal.Util
@@ -135,7 +135,7 @@ final class TestModuleUtil(
 
     val argsFile = baseFolder / "testargs"
     val sandbox = baseFolder / "sandbox"
-    PathRef.mappedRoots.withMapping(Seq()) {
+    MappedRoots.withMapping(Seq()) {
       // Don't use placeholders, so we only have local absolute paths
       os.write(argsFile, upickle.write(testArgs), createFolders = true)
     }
