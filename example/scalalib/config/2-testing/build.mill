@@ -1,0 +1,34 @@
+// This example demonstrates more details about testing in Mill:
+//
+// - The ability to have multiple test suites, e.g. unit tests in `test/` and integration
+//   tests in `integration/`
+
+/** See Also: build.mill.yaml */
+/** See Also: test/package.mill.yaml */
+/** See Also: integration/package.mill.yaml */
+
+// - Each test suite having its own set of `mvnDeps` to define the third-party
+//   libraries that it needs
+//
+// - Test-module dependencies, here the `integration` module has a `moduleDeps` on `test`,
+//   giving access to code and utilities defined in `test/src/`
+
+// These two test modules will expect their sources to be in their respective `test/` and
+// `integration/` folders respectively. You can use Mill's task query syntax to select
+// the test modules which you want to run
+
+/** Usage
+
+> ./mill '{test,integration}' # run both test suites
+
+> ./mill __.integration # run all integration test suites
+
+> ./mill __.test # run all normal test suites
+
+> ./mill __.testForked # run all test suites of any kind
+
+*/
+
+
+// For more details on testing in Mill, see
+// xref:{language-small}lib/testing.adoc[Testing {language} Projects]
