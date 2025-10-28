@@ -3,10 +3,13 @@
 // to run the web server
 /** See Also: src/WebServer.java */
 
-/** Usage
-> ./mill runBackground
+//// SNIPPET:END
 
-> curl -d 'hello world' localhost:8080/reverse-string
-dlrow olleh
+//// SNIPPET:TEST
+/** Usage
+
+> ./mill test
+???
 
 */
+//// SNIPPET:END

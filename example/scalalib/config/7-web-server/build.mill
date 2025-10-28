@@ -8,6 +8,8 @@
 
 /** See Also: src/WebServer.scala */
 
+//// SNIPPET:END
+
 /** Usage
 > ./mill runBackground
 
@@ -17,7 +19,7 @@ dlrow olleh
 > ./mill clean runBackground # shut down webserver
 
 */
-//// SNIPPET:END
+
 // === Testing Web Projects
 //
 // This example web project comes with a small test suite in the `test/` folder,
