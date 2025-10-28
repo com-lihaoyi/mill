@@ -16,6 +16,8 @@ include::partial$example/scalalib/config/2-testing.adoc[]
 
 include::partial$example/scalalib/config/3-linting.adoc[]
 
+== Packaging & Publishing
+
 === Graal Native Image
 
 include::partial$example/scalalib/config/4-native-image.adoc[]

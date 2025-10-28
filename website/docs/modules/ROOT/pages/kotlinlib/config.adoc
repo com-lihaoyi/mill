@@ -16,6 +16,8 @@ include::partial$example/kotlinlib/config/2-testing.adoc[]
 
 include::partial$example/kotlinlib/config/3-linting.adoc[]
 
+== Packaging & Publishing
+
 === Graal Native Image
 
 include::partial$example/kotlinlib/config/4-native-image.adoc[]
