@@ -360,7 +360,7 @@ object CodeGen {
               .take(objectData.parent.text.length)
               .padTo(objectData.parent.text.length, ' ')
 
-            generatedStub = s"class $stub extends $newParent$sep${objectData.parent.text}"
+            generatedStub = s"trait $stub extends $newParent$sep${objectData.parent.text}"
 
             stub
           }
