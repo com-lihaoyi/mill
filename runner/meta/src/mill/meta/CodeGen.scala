@@ -83,8 +83,6 @@ object CodeGen {
 
       val markerComment = s"///SOURCE_CODE_START:$scriptPath" + strippedPackageStatementComment
 
-
-
       val siblingScripts = scriptSources
         .filter(_ != scriptPath)
         .filter(p => (p / os.up) == (scriptPath / os.up))

@@ -39,7 +39,7 @@ trait MillBuildRootModule()(using
   override def moduleDir: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
   private[mill] override def intellijModulePathJava: Path = (moduleDir / os.up).toNIO
 
-  override def scalaVersion: T[String] = BuildInfo.scalaVersion
+  override def scalaVersion: T[String] = "3.7.4-RC2"
 
   val scriptSourcesPaths = BuildCtx.watchValue {
     BuildCtx.withFilesystemCheckerDisabled {
@@ -248,7 +248,7 @@ trait MillBuildRootModule()(using
   )
 
   override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(
-    mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
+    mvn"com.lihaoyi:scalac-mill-moduledefs-plugin_3.7.3:${Versions.millModuledefsVersion}"
       .exclude("com.lihaoyi" -> "sourcecode_3")
   )
 
