@@ -375,7 +375,7 @@ object CodeGen {
            |$markerComment$newScriptCode
            |
            |$generatedStub
-           |""".stripMargin
+           |""".stripMargin.replaceAll("\r\n", "\n")
 
       case None =>
         s"""$headerCode
@@ -383,7 +383,7 @@ object CodeGen {
            |    extends $newParent { this: ${CGConst.wrapperObjectName}.type =>
            |$markerComment
            |$scriptCode
-           |}""".stripMargin
+           |}""".stripMargin.replaceAll("\r\n", "\n")
 
     }
   }
