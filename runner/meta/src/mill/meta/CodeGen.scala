@@ -161,7 +161,7 @@ object CodeGen {
              |  $runModuleDepsSnippet
              |  ${definitions.mkString("\n  ")}
              |}
-             |""".stripMargin.replaceAll("\r\n", "\n")
+             |""".stripMargin
         }
 
         os.write.over(
@@ -176,7 +176,7 @@ object CodeGen {
              |  $childAliases
              |}
              |${renderTemplate("trait package_", parsedHeaderData)}
-             |""".stripMargin.replaceAll("\r\n", "\n"),
+             |""".stripMargin,
           createFolders = true
         )
 
@@ -219,7 +219,7 @@ object CodeGen {
                   |}
                   |
                   |export $wrapperName._
-                  |""".stripMargin.replaceAll("\r\n", "\n")
+                  |""".stripMargin
             } else {
               generateBuildScript(
                 projectRoot = projectRoot,
@@ -266,7 +266,7 @@ object CodeGen {
         |$header
         |
         |$body
-        |""".stripMargin.replaceAll("\r\n", "\n")
+        |""".stripMargin
   }
 
   def generateBuildFileImpl(pkg: String) = {
@@ -274,7 +274,7 @@ object CodeGen {
         |package $pkg
         |
         |object BuildFileImpl extends mill.api.internal.BuildFileCls(${CGConst.wrapperObjectName})
-        |""".stripMargin.replaceAll("\r\n", "\n")
+        |""".stripMargin
   }
 
   private def generateBuildScript(
@@ -300,7 +300,7 @@ object CodeGen {
       s"""|import MillMiscInfo._
           |import _root_.mill.util.TokenReaders.given
           |import _root_.mill.api.JsonFormatters.given
-          |""".stripMargin.replaceAll("\r\n", "\n")
+          |""".stripMargin
 
     val objectData = parser.parseObjectData(scriptCode)
 
@@ -320,7 +320,7 @@ object CodeGen {
           |  ${exportSiblingScripts.linesWithSeparators.mkString("  ")}
           |  ${millDiscover(segments.nonEmpty)}
           |}
-          |""".stripMargin.replaceAll("\r\n", "\n")
+          |""".stripMargin
 
     val newParent =
       if (segments.isEmpty) "_root_.mill.util.MainRootModule"
@@ -375,7 +375,7 @@ object CodeGen {
            |$markerComment$newScriptCode
            |
            |$generatedStub
-           |""".stripMargin.replaceAll("\r\n", "\n")
+           |""".stripMargin
 
       case None =>
         s"""$headerCode
@@ -383,7 +383,7 @@ object CodeGen {
            |    extends $newParent { this: ${CGConst.wrapperObjectName}.type =>
            |$markerComment
            |$scriptCode
-           |}""".stripMargin.replaceAll("\r\n", "\n")
+           |}""".stripMargin
 
     }
   }
@@ -397,7 +397,7 @@ object CodeGen {
         |  millSourcePath0 = os.Path(${literalize(scriptFolderPath.toString)}),
         |  segments = _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
         |)
-        |""".stripMargin.replaceAll("\r\n", "\n")
+        |""".stripMargin
   }
 
   def millDiscover(segmentsNonEmpty: Boolean): String = {
@@ -420,7 +420,7 @@ object CodeGen {
         |  output0 = ${literalize(output.toString)},
         |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}
         |)
-        |""".stripMargin.replaceAll("\r\n", "\n")
+        |""".stripMargin
   }
 
 }
