@@ -16,7 +16,7 @@ object CircularTasksTests extends UtestIntegrationTestSuite {
           |module.nested.taskA
           |depends on: module.taskB
           |depends on: taskC
-          |depends on: module.nested.taskA""".stripMargin
+          |depends on: module.nested.taskA""".stripMargin.replace("\r\n", "\n")
       ))
     }
   }
