@@ -104,44 +104,6 @@ null
   ]
 }
 {
-  "lib.errorProneJavacEnableOptions": [
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
-    "-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
-    "-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
-    "-XDcompilePolicy=simple",
-    "-processorpath",
-    "/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_core/2.38.0/error_prone_core-2.38.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/uber/nullaway/nullaway/0.12.7/nullaway-0.12.7.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotation/2.38.0/error_prone_annotation-2.38.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_check_api/2.38.0/error_prone_check_api-2.38.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/googlejavaformat/google-java-format/1.24.0/google-java-format-1.24.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/org/pcollections/pcollections/4.0.1/pcollections-4.0.1.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/guava/guava/33.4.6-jre/guava-33.4.6-jre.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/auto/auto-common/1.2.2/auto-common-1.2.2.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/io/github/eisop/dataflow-errorprone/3.41.0-eisop1/dataflow-errorprone-3.41.0-eisop1.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/auto/value/auto-value-annotations/1.9/auto-value-annotations-1.9.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.38.0/error_prone_annotations-2.38.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.25.5/protobuf-java-3.25.5.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/auto/service/auto-service-annotations/1.0.1/auto-service-annotations-1.0.1.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/org/checkerframework/dataflow-nullaway/3.49.2/dataflow-nullaway-3.49.2.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.12/java-diff-utils-4.12.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/github/kevinstern/software-and-algorithms/1.0/software-and-algorithms-1.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/3.0.5/caffeine-3.0.5.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.49.2/checker-qual-3.49.2.jar",
-    "-Xplugin:ErrorProne -Xep:NullAway:ERROR -XepOpt:NullAway:AnnotatedPackages=de.siegmar.fastcsv",
-    "-XDshould-stop.ifError=FLOW",
-    "-XDshouldStopPolicyIfError=FLOW"
-  ],
-  "lib.test.errorProneJavacEnableOptions": [
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
-    "-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
-    "-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
-    "-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
-    "-XDcompilePolicy=simple",
-    "-processorpath",
-    "/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_core/2.38.0/error_prone_core-2.38.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/uber/nullaway/nullaway/0.12.7/nullaway-0.12.7.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotation/2.38.0/error_prone_annotation-2.38.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_check_api/2.38.0/error_prone_check_api-2.38.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/googlejavaformat/google-java-format/1.24.0/google-java-format-1.24.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/org/pcollections/pcollections/4.0.1/pcollections-4.0.1.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/guava/guava/33.4.6-jre/guava-33.4.6-jre.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/auto/auto-common/1.2.2/auto-common-1.2.2.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/io/github/eisop/dataflow-errorprone/3.41.0-eisop1/dataflow-errorprone-3.41.0-eisop1.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/auto/value/auto-value-annotations/1.9/auto-value-annotations-1.9.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.38.0/error_prone_annotations-2.38.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.25.5/protobuf-java-3.25.5.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/auto/service/auto-service-annotations/1.0.1/auto-service-annotations-1.0.1.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/org/checkerframework/dataflow-nullaway/3.49.2/dataflow-nullaway-3.49.2.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.12/java-diff-utils-4.12.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/github/kevinstern/software-and-algorithms/1.0/software-and-algorithms-1.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/3.0.5/caffeine-3.0.5.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar:/home/aj/.cache/coursier/v1/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.49.2/checker-qual-3.49.2.jar",
-    "-Xplugin:ErrorProne -XepCompilingTestOnlyCode -Xep:NullAway:OFF",
-    "-XDshould-stop.ifError=FLOW",
-    "-XDshouldStopPolicyIfError=FLOW"
-  ]
-}
-{
   "lib.errorProneOptions": [
     "-Xep:NullAway:ERROR",
     "-XepOpt:NullAway:AnnotatedPackages=de.siegmar.fastcsv"
