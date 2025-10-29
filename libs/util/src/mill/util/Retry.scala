@@ -69,7 +69,7 @@ case class Retry(
 object Retry {
 
   /** Use this logger to log from a Mill task */
-  def ctxLogger(implicit ctx: TaskCtx.Log): String => Unit =
+  def ctxLogger(using ctx: TaskCtx.Log): String => Unit =
     ctx.log.warn(_)
 
   /** Use this logger to log with a `PrintStream`, such as `System.err` */

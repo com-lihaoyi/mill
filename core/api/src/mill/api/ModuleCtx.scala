@@ -41,7 +41,17 @@ object ModuleCtx extends LowPriCtx {
   trait Wrapper {
     def moduleCtx: ModuleCtx
     private[mill] def moduleLinearized: Seq[Class[?]]
+    private[mill] def buildOverrides: Map[String, ujson.Value] = Map()
   }
+
+  private[mill] case class HeaderData(
+      `extends`: Seq[String] = Nil,
+      moduleDeps: Seq[String] = Nil,
+      compileModuleDeps: Seq[String] = Nil,
+      runModuleDeps: Seq[String] = Nil,
+      @upickle.implicits.flatten rest: Map[String, ujson.Value]
+  ) derives upickle.ReadWriter
+
   private case class Impl(
       enclosing: String,
       lineNum: Int,

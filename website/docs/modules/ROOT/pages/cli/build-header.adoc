@@ -1,12 +1,31 @@
 = Build Header Config
 
-Mill supports a YAML comment block at the top of the `build.mill` file to configure
-your project. This must be at the very top of the `build.mill` file in YAML 1.2
-syntax, with every line prepended with ``//| ``, with YAML comments and newlines
-allowed. This contains Mill configuration that needs to take effect before the
-body of the `build.mill` file has been compiled and loaded.
+Mill supports storing metadata configuring the tool in the top of your build file.
+This contains Mill configuration that needs to take effect before the body of the
+`build.mill` or `build.mill.yaml` file has been compiled and loaded.
 
-For example, a build header may look something like:
+For `build.mill.yaml` files, these build headers are keys prefixed by `mill-`:
+
+[source,yaml]
+----
+mill-version: {mill-version}
+mill-opts: ["--jobs=0.5C"]
+mill-jvm-version: temurin:11
+mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
+
+mill-build: # configuration for the Mill meta-build
+  repositories:
+  - https://oss.sonatype.org/content/repositories/snapshots
+  mvnDeps:
+  - com.goyeau::mill-scalafix::0.5.1-14-4d3f5ea-SNAPSHOT
+
+...rest of build.mill.yaml config...
+----
+
+
+For `build.mill` files, build headers are written in a YAML comment block at the
+top of the `build.mill` with every line prepended with ``//| ``, with YAML comments
+and newlines allowed:
 
 [source,scala]
 ----
@@ -17,6 +36,7 @@ For example, a build header may look something like:
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| # newlines are allowed too
 //|
+//| # configuration for the Mill meta-build
 //| repositories:
 //| - https://oss.sonatype.org/content/repositories/snapshots
 //| mvnDeps:
@@ -33,7 +53,7 @@ Mill's build headers can contain the following keys:
    project. If not provided, Mill will launch using the version of your `./mill` or
    `./mill.bat` bootstrap script.
 
-2. xref:#_mill_opts[]: flags to pass to Mill by default, useful for flags that you want
+2. xref:_mill_opts[]: flags to pass to Mill by default, useful for flags that you want
    everyone to use so they don't need to always remember to type them at the command line
 
 3. xref:_mill_jvm_version[]: specifies an explicit JVM version to use, useful to help
@@ -91,11 +111,20 @@ _build.mill_
 //| mill-jvm-version: temurin:17.0.6
 ----
 
+For projects using a `build.mill.yaml` file, you can specify the JVM version as a top-level
+YAML key:
+
+include::partial$example/cli/header/3-jvm-version-yaml.adoc[]
+
 An explicit `mill-jvm-version` can help ensure your project uses a consistent JVM version and
 behaves identically regardless of what the developer may have installed on their laptop
-or dev environment. If `mill-jvm-version` is not provided, Mill uses the globally-installed
-`java` installation if there is one present on your `PATH`, and otherwise will download and
-cache a default version of Java for usage.
+or dev environment. If `mill-jvm-version` is not provided, Mill uses the default version
+`{default-mill-jvm-version}`.
+
+If you wish to use your system `java` installation, you can set `mill-jvm-version: system`.
+Note that this is not recommended as it means your codebase may use different JVM versions
+on different developer, CI, and production machines, potentially resulting in hard-to-debug
+crashes and errors.
 
 For configuring different JVM versions for individual modules within your build, see
 xref:fundamentals/configuring-jvm-versions.adoc[Configuring JVM Versions].
@@ -134,3 +163,11 @@ Missing environment variables are converted to the empty string.
 == Meta-build Task Overrides
 
 include::partial$example/cli/header/1-tasks.adoc[]
+include::partial$example/cli/header/2-tasks-yaml.adoc[]
+
+== Single-File Project Build Headers
+
+Build Header configuration is also used for
+xref:javalib/intro.adoc#_single_file_scripts[Configuring Single-File Scripts],
+as a lightweight syntax for embedding configuration values within the single Java, Scala, or Kotlin
+file.

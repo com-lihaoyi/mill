@@ -82,7 +82,7 @@ object app extends AndroidAppKotlinModule {
   }
 }
 
-////SNIPPET:END
+//// SNIPPET:END
 
 // This command triggers the build process, which create the library AAR and publish it locally at ~/.m2/repository
 //

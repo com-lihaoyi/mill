@@ -27,6 +27,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-core-api-daemon_3.jar",
             "mill-core-api_3.jar",
             "mill-core-constants.jar",
+            "mill-libs-androidlib-databinding_3.jar",
             "mill-libs-androidlib_3.jar",
             "mill-libs-daemon-client.jar",
             "mill-libs-daemon-server_3.jar",
@@ -45,6 +46,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-libs-scalalib_3.jar",
             "mill-libs-scalanativelib-api_3.jar",
             "mill-libs-scalanativelib_3.jar",
+            "mill-libs-script_3.jar",
             "mill-libs-util_3.jar",
             "mill-libs_3.jar",
             "mill-moduledefs_3-0.11.10.jar"

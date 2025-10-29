@@ -6,7 +6,7 @@ package build
 import mill.*, scalalib.*
 
 object foo extends ScalaModule {
-  def scalaVersion = "3.1.3"
+  def scalaVersion = "3.3.6"
 
   def scalaDocOptions = Seq("-siteroot", "mydocs", "-no-link-warnings")
 }
@@ -39,7 +39,7 @@ object foo extends ScalaModule {
 // project called `bar`:
 
 object bar extends ScalaModule {
-  def scalaVersion = "3.1.3"
+  def scalaVersion = "3.3.6"
 }
 
 // Your project structure for this would look something like this:

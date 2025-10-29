@@ -15,7 +15,7 @@ class KotlinWorkerImpl extends KotlinWorker {
       useBtApi: Boolean,
       args: Seq[String],
       sources: Seq[os.Path]
-  )(implicit
+  )(using
       ctx: TaskCtx
   ): Result[Unit] = {
     ctx.log.debug(s"Using Kotlin compiler arguments: " +

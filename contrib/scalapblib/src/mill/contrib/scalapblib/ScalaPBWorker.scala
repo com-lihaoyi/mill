@@ -1,30 +1,30 @@
-package mill
-package contrib.scalapblib
+package mill.contrib.scalapblib
+
+import mill.api.PathRef
 
 import java.io.File
 
-import mill.api.PathRef
-import mill.api.{Discover, ExternalModule}
-
 class ScalaPBWorker {
 
-  private def scalaPB(scalaPBClasspath: Seq[PathRef])(implicit ctx: mill.api.TaskCtx) = {
+  private def scalaPB(scalaPBClasspath: Seq[PathRef])(using ctx: mill.api.TaskCtx) = {
     val instance = new ScalaPBWorkerApi {
       override def compileScalaPB(
           roots: Seq[File],
           sources: Seq[File],
           scalaPBOptions: String,
           generatedDirectory: File,
-          otherArgs: Seq[String]
+          otherArgs: Seq[String],
+          generators: Seq[Generator]
       ): Unit = {
         val pbcClasspath = scalaPBClasspath.map(_.path).toVector
         mill.util.Jvm.withClassLoader(pbcClasspath, null) { cl =>
           val scalaPBCompilerClass = cl.loadClass("scalapb.ScalaPBC")
           val mainMethod = scalaPBCompilerClass.getMethod("main", classOf[Array[java.lang.String]])
-          val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
-          val args = otherArgs ++ Seq(
-            s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}"
-          ) ++ roots.map(root => s"--proto_path=${root.getCanonicalPath}") ++ sources.map(
+          val args = otherArgs ++ generators.map { gen =>
+            val opts = if (scalaPBOptions.isEmpty || !gen.supportsScalaPbOptions) ""
+            else scalaPBOptions + ":"
+            s"${gen.generator}=$opts${generatedDirectory.getCanonicalPath}"
+          } ++ roots.map(root => s"--proto_path=${root.getCanonicalPath}") ++ sources.map(
             _.getCanonicalPath
           )
           ctx.log.debug(s"ScalaPBC args: ${args.mkString(" ")}")
@@ -62,6 +62,7 @@ class ScalaPBWorker {
    * @param scalaPBOptions option string specific for scala generator. (the options in `--scala_out=<options>:output_path`)
    * @param dest output path
    * @param scalaPBCExtraArgs extra arguments other than `--scala_out=<options>:output_path`, `--proto_path=source_parent`, `source`
+   * @oaram generators At least on generators to use. See [[Generator]] for available generators.
    *
    * @return execute result with path ref to `dest`
    */
@@ -70,8 +71,9 @@ class ScalaPBWorker {
       scalaPBSources: Seq[os.Path],
       scalaPBOptions: String,
       dest: os.Path,
-      scalaPBCExtraArgs: Seq[String]
-  )(implicit ctx: mill.api.TaskCtx): mill.api.Result[PathRef] = {
+      scalaPBCExtraArgs: Seq[String],
+      generators: Seq[Generator]
+  )(using ctx: mill.api.TaskCtx): mill.api.Result[PathRef] = {
     val compiler = scalaPB(scalaPBClasspath)
     val sources = scalaPBSources.flatMap {
       path =>
@@ -86,22 +88,14 @@ class ScalaPBWorker {
           Seq(ioFile)
     }
     val roots = scalaPBSources.map(_.toIO).filter(_.isDirectory)
-    compiler.compileScalaPB(roots, sources, scalaPBOptions, dest.toIO, scalaPBCExtraArgs)
+    compiler.compileScalaPB(
+      roots,
+      sources,
+      scalaPBOptions,
+      dest.toIO,
+      scalaPBCExtraArgs,
+      generators
+    )
     mill.api.Result.Success(PathRef(dest))
   }
-}
-
-trait ScalaPBWorkerApi {
-  def compileScalaPB(
-      roots: Seq[File],
-      source: Seq[File],
-      scalaPBOptions: String,
-      generatedDirectory: File,
-      otherArgs: Seq[String]
-  ): Unit
-}
-
-object ScalaPBWorkerApi extends ExternalModule {
-  def scalaPBWorker: Worker[ScalaPBWorker] = Task.Worker { new ScalaPBWorker() }
-  lazy val millDiscover = Discover[this.type]
 }

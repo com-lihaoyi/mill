@@ -45,21 +45,13 @@ object NoJavaBootstrapTests extends UtestIntegrationTestSuite {
       //
       // Force Mill client to ignore any system `java` installation, to make sure
       // this tests works reliably regardless of what is installed on the system
-      val res1 = eval(
-        "foo",
-        env = Map("MILL_TEST_SUITE_IGNORE_SYSTEM_JAVA" -> "true"),
-        stderr = os.Inherit
-      )
+      val res1 = eval("foo", stderr = os.Inherit)
 
       assert(res1.out == expectedJavaVersion)
 
       // Any `JavaModule`s run from the Mill server should also inherit
       // the default Mill Java version from it
-      val res2 = eval(
-        "bar.run",
-        env = Map("MILL_TEST_SUITE_IGNORE_SYSTEM_JAVA" -> "true"),
-        stderr = os.Inherit
-      )
+      val res2 = eval("bar.run", stderr = os.Inherit)
 
       assert(res2.out == s"Hello World! $expectedJavaVersion")
     }

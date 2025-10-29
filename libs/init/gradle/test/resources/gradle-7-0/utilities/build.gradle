@@ -1,0 +1,6 @@
+plugins {
+    id 'gradle.java-library-conventions'
+}
+dependencies {
+    api project(':list')
+}

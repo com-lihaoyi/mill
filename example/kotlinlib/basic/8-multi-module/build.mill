@@ -1,0 +1,36 @@
+//// SNIPPET:BUILD
+package build
+import mill.*, kotlinlib.*
+
+trait MyModule extends KotlinModule {
+  def kotlinVersion = "1.9.24"
+
+  object test extends KotlinTests, TestModule.Junit5 {
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
+    )
+  }
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+  def mvnDeps = Seq(
+    mvn"com.github.ajalt.clikt:clikt:4.4.0"
+  )
+}
+
+object bar extends MyModule {
+  def mainClass = Some("bar.BarKt")
+  def mvnDeps = Seq(
+    mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
+  )
+}
+
+//// SNIPPET:TEST
+/** Usage
+
+> ./mill bar.test
+Test bar.BarTests simple finished...
+Test bar.BarTests escaping finished...
+*/
+//// SNIPPET:END

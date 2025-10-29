@@ -1,0 +1,1 @@
+//| moduleDeps: [doesntExist]

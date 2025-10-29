@@ -1,6 +1,6 @@
 package mill.javalib.checkstyle
 
-import mainargs.{Leftover, ParserForClass, main}
+import mainargs.{Leftover, Parser, main}
 
 /**
  * Arguments for [[CheckstyleModule.checkstyle]].
@@ -17,5 +17,5 @@ case class CheckstyleArgs(
 )
 object CheckstyleArgs {
 
-  implicit val PFC: ParserForClass[CheckstyleArgs] = ParserForClass[CheckstyleArgs]
+  implicit val PFC: mainargs.ParserForClass[CheckstyleArgs] = Parser[CheckstyleArgs]
 }

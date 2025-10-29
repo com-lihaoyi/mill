@@ -7,6 +7,8 @@
 [bsp-init-mill-build/build.mill-59] [info] done compiling
 [bsp-init-build.mill-59] [info] compiling * Scala sources to * ...
 [bsp-init-build.mill-59] [info] done compiling
+[bsp-init-098] [info] compiling * Scala source to * ...
+[bsp-init-098] [info] done compiling
 [bsp-init] SNAPSHOT
 [2-workspaceBuildTargets] Entered workspaceBuildTargets
 [2-workspaceBuildTargets] Evaluating * tasks

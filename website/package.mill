@@ -11,6 +11,10 @@ import mill.api.BuildCtx
 
 /** Generates the mill documentation with Antora. */
 object `package` extends mill.Module {
+
+  /**
+   * API documentation generated with ScalaDoc.
+   */
   object apidocs extends UnidocModule {
     def unidocDocumentTitle = Task { "Mill" }
 
@@ -24,8 +28,9 @@ object `package` extends mill.Module {
       }
     def scalaVersion = Deps.scalaVersion
     def moduleDeps = build.moduleInternal.modules.collect {
-      case m: MillStableScalaModule => m
-      case m: JavaModule if m eq build.libs.kotlinlib => m
+      // we exclude maven-worker module to workaround issue
+      // https://github.com/com-lihaoyi/mill/pull/5977/#issuecomment-3407301062
+      case m: MillPublishScalaModule if m != build.libs.javalib.`maven-worker` => m
     }
     def unidocSourceUrl = Task {
       val sha = "main" // VcsVersion.vcsState().currentRevision
@@ -52,7 +57,7 @@ object `package` extends mill.Module {
     )
   }
 
-  def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
+  def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(using
       ctx: mill.api.TaskCtx.Log
   ) = {
 
@@ -111,7 +116,7 @@ object `package` extends mill.Module {
     PathRef(Task.dest)
   }
 
-  def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Seq[os.Path])(implicit
+  def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Seq[os.Path])(using
       ctx: mill.api.TaskCtx
   ) = {
 
@@ -198,7 +203,8 @@ object `package` extends mill.Module {
       "main-branch",
       "main-branch",
       build.millLastTag(),
-      build.millDownloadUrlCurrent()
+      build.millDownloadUrlCurrent(),
+      build.defaultMillJvmVersion()
     )
     PathRef(dest)
   }
@@ -208,7 +214,8 @@ object `package` extends mill.Module {
       version: String,
       displayVersion: String,
       millVersion: String,
-      millDownloadUrl: String
+      millDownloadUrl: String,
+      defaultMillJvmVersion: String
   ): Unit = {
     val isPreRelease = version == "main-branch" || Seq("-M", "-RC").exists(version.contains)
     val preReleaseSuffix = if (isPreRelease) "\nprerelease: true" else ""
@@ -217,12 +224,16 @@ object `package` extends mill.Module {
         s"version: '$version'\ndisplay-version: '$displayVersion'$preReleaseSuffix"
       case s"    mill-version:$_" => s"    mill-version: '$millVersion'"
       case s"    mill-last-tag:$_" => s"    mill-last-tag: '$millVersion'" // for older branches
+      case s"    android-cmdline-tools-version:$_" =>
+        s"    android-cmdline-tools-version: '${Deps.AndroidDeps.cmdlineToolsVersion}'"
+
       case l => l
     }
 
     val newLines = Seq(
       s"    mill-download-url: $millDownloadUrl",
-      s"    mill-example-url: ${Settings.projectUrl}/blob/$millVersion"
+      s"    mill-example-url: ${Settings.projectUrl}/blob/$millVersion",
+      s"    default-mill-jvm-version: $defaultMillJvmVersion"
     )
 
     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
@@ -365,7 +376,14 @@ object `package` extends mill.Module {
           if (useOldDownloadUrl) s"${Settings.projectUrl}/releases/download/$millVersion"
           else s"${build.millDownloadPrefix()}/$millVersion"
 
-        sanitizeAntoraYml(outputFolder, antoraVersion, displayVersion, millVersion, millDownloadUrl)
+        sanitizeAntoraYml(
+          outputFolder,
+          antoraVersion,
+          displayVersion,
+          millVersion,
+          millDownloadUrl,
+          build.defaultMillJvmVersion()
+        )
         PathRef(outputFolder)
       }
     }
@@ -593,7 +611,6 @@ object `package` extends mill.Module {
           path,
           localLinks
             .filter(_._2 != "#")
-            .filter(_._2.startsWith("///"))
             .flatMap { case (elementString, url) =>
               val (baseUrl, anchorOpt) = url match {
                 case s"#$anchor" => (path.toString, Some(anchor))

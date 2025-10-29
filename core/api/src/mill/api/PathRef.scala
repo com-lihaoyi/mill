@@ -197,28 +197,33 @@ object PathRef {
       storeSerializedPaths(p)
       p.toString()
     },
-    s => {
-      val Array(prefix, valid0, hex, pathString) = s.split(":", 4)
+    {
+      case s"$prefix:$valid0:$hex:$pathString" if prefix == "ref" || prefix == "qref" =>
 
-      val path = os.Path(pathString)
-      val quick = prefix match {
-        case "qref" => true
-        case "ref" => false
-      }
-      val validOrig = valid0 match {
-        case "v0" => Revalidate.Never
-        case "v1" => Revalidate.Once
-        case "vn" => Revalidate.Always
-      }
-      // Parsing to a long and casting to an int is the only way to make
-      // round-trip handling of negative numbers work =(
-      val sig = java.lang.Long.parseLong(hex, 16).toInt
-      val pr = PathRef(path, quick, sig, revalidate = validOrig)
-      validatedPaths.value.revalidateIfNeededOrThrow(pr)
-      storeSerializedPaths(pr)
-      pr
+        val path = os.Path(pathString)
+        val quick = prefix match {
+          case "qref" => true
+          case "ref" => false
+        }
+        val validOrig = valid0 match {
+          case "v0" => Revalidate.Never
+          case "v1" => Revalidate.Once
+          case "vn" => Revalidate.Always
+        }
+        // Parsing to a long and casting to an int is the only way to make
+        // round-trip handling of negative numbers work =(
+        val sig = java.lang.Long.parseLong(hex, 16).toInt
+        val pr = PathRef(path, quick, sig, revalidate = validOrig)
+        validatedPaths.value.revalidateIfNeededOrThrow(pr)
+        storeSerializedPaths(pr)
+        pr
+      case s =>
+        mill.api.BuildCtx.withFilesystemCheckerDisabled(
+          PathRef(os.Path(s, currentOverrideModulePath.value))
+        )
     }
   )
+  private[mill] val currentOverrideModulePath = DynamicVariable[os.Path](null)
 
   // scalafix:off; we want to hide the unapply method
   @nowarn("msg=unused")

@@ -8,7 +8,7 @@ import scala.quoted.*
  */
 final case class EnclosingClass(value: Class[?])
 object EnclosingClass {
-  def apply()(implicit c: EnclosingClass) = c.value
+  def apply()(using c: EnclosingClass) = c.value
   inline given generate: EnclosingClass = ${ impl }
 
   def impl(using quotes: Quotes): Expr[EnclosingClass] =

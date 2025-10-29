@@ -40,5 +40,5 @@ object MvnDepsTreeArgs {
   ) = new MvnDepsTreeArgs(inverse, withCompile, withRuntime, whatDependsOn)
 
   implicit val argsReader: mainargs.ParserForClass[MvnDepsTreeArgs] =
-    mainargs.ParserForClass[MvnDepsTreeArgs]
+    mainargs.Parser[MvnDepsTreeArgs]
 }

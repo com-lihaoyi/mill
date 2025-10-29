@@ -23,7 +23,7 @@ object ExecutionContexts {
     def close(): Unit = () // do nothing
 
     def blocking[T](t: => T): T = t
-    def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit
+    def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(using
         ctx: mill.api.TaskCtx
     ): Future[T] =
       Future.successful(t(ctx.log))
@@ -105,7 +105,7 @@ object ExecutionContexts {
      * folder [[dest]] and duplicates the logging streams to [[dest]].log while evaluating
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
-    def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit
+    def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(using
         ctx: mill.api.TaskCtx
     ): Future[T] = {
       val logger = new MultiLogger(

@@ -16,7 +16,7 @@ parallelizing and caching your build at all levels.
 * **Extensibility**: Mill makes customizing the build tool much easier than Maven. Projects usually
 grow beyond just compiling a single language: needing custom
 code generation, linting workflows, tool integrations, output artifacts, or support for
-additional languages. Mill's xref:comparisons/maven.adoc#_extensibility_ide_experience[extensibility and IDE experience]
+additional languages. Mill's xref:#_extensibility[extensibility] and xref:#_ide_support[IDE support]
 makes doing this yourself easy and safe, with type-checked code and
 xref:depth/sandboxing.adoc[sandboxed tasks].
 

@@ -331,13 +331,18 @@ class GenIdeaImpl(
           r + (key -> (r.getOrElse(key, Vector()) :+ q.module))
       }
 
+    // Discover script files
+    val outDir = evaluators.headOption.map(e => os.Path(e.outPathJava)).getOrElse(workDir / "out")
+    val scriptFiles = mill.script.ScriptModuleInit.discoverScriptFiles(workDir, outDir)
+
     val fixedFiles: Seq[(os.SubPath, Elem)] = Seq(
       Tuple2(os.sub / "misc.xml", miscXmlTemplate(jdkInfo)),
       Tuple2(os.sub / "scala_settings.xml", scalaSettingsTemplate()),
       Tuple2(
         os.sub / "modules.xml",
         allModulesXmlTemplate(
-          modules.map { case (segments = segments) => moduleName(segments) }.sorted
+          (modules.map { case (segments = segments) => moduleName(segments) } ++
+            scriptFiles.map(scriptModuleName)).sorted
         )
       ),
       Tuple2(
@@ -508,7 +513,17 @@ class GenIdeaImpl(
       }
     }
 
-    fixedFiles ++ ideaWholeConfigFiles ++ fileComponentContributions ++ libraries ++ moduleFiles
+    // Generate module files for script files
+    val scriptModuleFiles: Seq[(os.SubPath, Elem)] = scriptFiles.map { scriptPath =>
+      val moduleXml = scriptModuleXmlTemplate(scriptPath)
+      val moduleFile = Tuple2(
+        os.sub / "mill_modules" / s"${scriptModuleName(scriptPath)}.iml",
+        moduleXml
+      )
+      moduleFile
+    }
+
+    fixedFiles ++ ideaWholeConfigFiles ++ fileComponentContributions ++ libraries ++ moduleFiles ++ scriptModuleFiles
   }
 
   def relify(p: os.Path): String = {
@@ -794,6 +809,33 @@ class GenIdeaImpl(
     }
       </component>
     </project>
+  }
+
+  /**
+   * Generate module name for a script file.
+   */
+  def scriptModuleName(scriptPath: os.Path): String = {
+    s"script-${scriptPath.baseName}".toLowerCase()
+  }
+
+  /**
+   * Generate IntelliJ module XML for a script file.
+   * The source root is the path of the file itself.
+   */
+  def scriptModuleXmlTemplate(scriptPath: os.Path): Elem = {
+    val relUrl = "file://$MODULE_DIR$/" + relify(scriptPath)
+
+    <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
+      <component name="NewModuleRootManager">
+        <output url="file://$MODULE_DIR$/../../out/script/{scriptPath.baseName}/compile.dest"/>
+        <exclude-output />
+        <content url={relUrl}>
+          <sourceFolder url={relUrl} isTestSource="false"/>
+        </content>
+        <orderEntry type="inheritedJdk" />
+        <orderEntry type="sourceFolder" forTests="false" />
+      </component>
+    </module>
   }
 }
 

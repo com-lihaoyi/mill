@@ -47,7 +47,7 @@ final class TestModuleUtil(
     testParallelism: Boolean,
     testLogLevel: TestReporter.LogLevel,
     propagateEnv: Boolean = true
-)(implicit ctx: mill.api.TaskCtx) {
+)(using ctx: mill.api.TaskCtx) {
 
   private val (jvmArgs, props) = TestModuleUtil.loadArgsAndProps(useArgsFile, forkArgs)
 
@@ -132,7 +132,7 @@ final class TestModuleUtil(
       //     - first test class to run, folder containing test classes for test runner to claim from, and the worker's base folder.
       selector: Either[Seq[String], (Option[String], os.Path, os.Path)],
       poll: () => Unit
-  )(implicit ctx: mill.api.TaskCtx) = {
+  )(using ctx: mill.api.TaskCtx) = {
     if (!os.exists(baseFolder)) os.makeDir.all(baseFolder)
 
     val outputPath = baseFolder / "out.json"
@@ -201,7 +201,7 @@ final class TestModuleUtil(
 
   def runTestQueueScheduler(
       filteredClassLists: Seq[Seq[String]]
-  )(implicit ctx: mill.api.TaskCtx) = {
+  )(using ctx: mill.api.TaskCtx) = {
 
     val filteredClassCount: Int = filteredClassLists.map(_.size).sum
 

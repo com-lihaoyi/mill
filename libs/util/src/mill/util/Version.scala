@@ -17,15 +17,15 @@ class Version private (
     qualifierWithSep.map(q => q._2 + q._1)
   ).flatten.mkString
 
-  def isNewerThan(other: Version)(implicit ordering: Ordering[Version]): Boolean =
+  def isNewerThan(other: Version)(using ordering: Ordering[Version]): Boolean =
     ordering.compare(this, other) > 0
 
-  def chooseNewest(versions: Version*)(implicit ordering: Ordering[Version]): Version =
+  def chooseNewest(versions: Version*)(using ordering: Ordering[Version]): Version =
     versions.foldLeft(this)((best, next) =>
       if (next.isNewerThan(best)) next else best
     )
 
-  def isAtLeast(other: Version)(implicit ordering: Ordering[Version]): Boolean =
+  def isAtLeast(other: Version)(using ordering: Ordering[Version]): Boolean =
     ordering.compare(this, other) >= 0
 
   def asMaven: MavenVersion = new MavenVersion(this)
@@ -142,7 +142,7 @@ object Version {
   def chooseNewest(
       version: String,
       versions: String*
-  )(implicit
+  )(using
       ordering: Ordering[Version]
   ): String =
     chooseNewest(parse(version), versions.map(parse)*).toString()
@@ -150,14 +150,14 @@ object Version {
   def chooseNewest(
       version: Version,
       versions: Version*
-  )(implicit
+  )(using
       ordering: Ordering[Version]
   ): Version =
     versions.foldLeft(version)((best, next) =>
       if (next.isNewerThan(best)) next else best
     )
 
-  def isAtLeast(version: String, atLeast: String)(implicit ordering: Ordering[Version]): Boolean =
+  def isAtLeast(version: String, atLeast: String)(using ordering: Ordering[Version]): Boolean =
     Version.parse(version).isAtLeast(Version.parse(atLeast))
 
 }

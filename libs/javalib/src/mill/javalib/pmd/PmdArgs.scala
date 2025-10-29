@@ -1,6 +1,6 @@
 package mill.javalib.pmd
 
-import mainargs.{Leftover, ParserForClass, arg, main}
+import mainargs.{Leftover, Parser, arg, main}
 import mill.api.experimental
 
 @main(doc = "Arguments for PmdModule")
@@ -18,5 +18,5 @@ case class PmdArgs(
 
 @experimental
 object PmdArgs {
-  implicit val PFC: ParserForClass[PmdArgs] = ParserForClass[PmdArgs]
+  implicit val PFC: mainargs.ParserForClass[PmdArgs] = Parser[PmdArgs]
 }

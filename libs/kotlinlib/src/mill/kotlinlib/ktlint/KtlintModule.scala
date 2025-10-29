@@ -103,7 +103,7 @@ object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskMod
       config: Option[PathRef],
       options: Seq[String],
       classPath: Seq[PathRef]
-  )(implicit ctx: mill.api.TaskCtx): Unit = {
+  )(using ctx: mill.api.TaskCtx): Unit = {
     if (ktlintArgs.check) {
       ctx.log.info("checking format in kotlin sources ...")
     } else {

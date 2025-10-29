@@ -45,6 +45,36 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts/folder1/script.scala"
+      },
+      "classes": [
+        {
+          "class": "build.script$package",
+          "arguments": [],
+          "jvmOptions": [],
+          "environmentVariables": [
+            "MILL_WORKSPACE_ROOT\u003d/workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/script.scala"
+      },
+      "classes": [
+        {
+          "class": "build.script$package",
+          "arguments": [],
+          "jvmOptions": [],
+          "environmentVariables": [
+            "MILL_WORKSPACE_ROOT\u003d/workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/sourcesNeedCompile"
       },
       "classes": []

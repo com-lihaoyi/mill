@@ -8,6 +8,7 @@ import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.annotation.unused
+import scala.collection.immutable.HashSet
 
 object TabCompleteTests extends TestSuite {
   object mainModule extends TestRootModule {
@@ -53,13 +54,13 @@ object TabCompleteTests extends TestSuite {
       test("empty-bash") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", ""),
-          Set("bar", "foo", "qux", "task1")
+          HashSet("qux", "file2.txt", "out", "bar", "file1.txt", "task1", "foo")
         )
       }
       test("empty-zsh") {
         assertGoldenLiteral(
           evalComplete("1", "./mill"),
-          Set("bar", "foo", "qux", "task1")
+          HashSet("qux", "file2.txt", "out", "bar", "file1.txt", "task1", "foo")
         )
       }
       test("task") {
@@ -183,14 +184,14 @@ object TabCompleteTests extends TestSuite {
       test("emptyAfterFlag") {
         assertGoldenLiteral(
           evalComplete("2", "./mill", "-v"),
-          Set("bar", "foo", "qux", "task1")
+          HashSet("qux", "file2.txt", "out", "bar", "file1.txt", "task1", "foo")
         )
 
       }
       test("filterAfterFlag") {
         assertGoldenLiteral(
           evalComplete("2", "./mill", "-v", "f"),
-          Set("foo")
+          Set("foo", "file2.txt", "file1.txt")
         )
       }
       test("filterAfterFlagAfterTask") {
@@ -203,8 +204,7 @@ object TabCompleteTests extends TestSuite {
       test("long") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "--"),
-          Set(
-            "--bsp                     Enable BSP server mode.",
+          HashSet(
             "--debug                   Show debug output on STDOUT",
             "--bell                    Ring the bell once if the run completes successfully, twice if it fails.",
             "--interactive             Run Mill in interactive mode, suitable for opening REPLs and taking user input. Identical to --no-daemon. Must be the first argument.",
@@ -215,13 +215,14 @@ object TabCompleteTests extends TestSuite {
             "--allow-positional        Allows command args to be passed positionally without `--arg` by default",
             "--watch                   Watch and re-run the given tasks when when their inputs change.",
             "--no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands.",
-            "--help-advanced           Print a internal or advanced command flags not intended for common usage",
+            "--bsp                     Enable BSP server mode. Typically used by a BSP client when starting the Mill BSP server.",
             "--offline                 Try to work offline. This tells modules that support it to work offline and avoid any access to the internet. This is on a best effort basis. There are currently no guarantees that modules don't attempt to fetch remote sources.",
             "--keep-going              Continue build, even after build failures.",
             "--define                  <k=v> Define (or overwrite) a system property.",
             "--no-filesystem-checker   Globally disables the checks that prevent you from reading and writing to disallowed files or folders during evaluation. Useful as an escape hatch in case you desperately need to do something unusual and you are willing to take the risk",
             "--notify-watch            <bool> Use filesystem based file watching instead of polling based one (defaults to true).",
             "--bsp-watch               <bool> Automatically reload the build when its sources change when running the BSP server (defaults to true).",
+            "--repl                    Open a Scala REPL with the classpath of the meta-level 1 build module (mill-build/). Implies options `--meta-level 1` and `--no-server`.",
             "--bsp-install             Create mill-bsp.json with Mill details under .bsp/",
             "--meta-level              <int> Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc.",
             "--help                    Print this help message and exit.",
@@ -229,7 +230,9 @@ object TabCompleteTests extends TestSuite {
             "--ticker                  <bool> Enable or disable the ticker log, which provides information on running tasks and where each log line came from",
             "--color                   <bool> Toggle colored output; by default enabled only if the console is interactive and NO_COLOR environment variable is not set",
             "--version                 Show mill version information and exit.",
-            "--task                    <str> The name or a query of the tasks(s) you want to build."
+            "--task                    <str> The name or a query of the tasks(s) you want to build.",
+            "--help-advanced           Print a internal or advanced command flags not intended for common usage",
+            "--jshell                  Open a JShell REPL with the classpath of the meta-level 1 build module (mill-build/). This is useful for interactively testing and debugging your build logic. Implies options `--meta-level 1` and `--no-server`."
           )
         )
       }

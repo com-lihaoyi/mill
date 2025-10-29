@@ -1,0 +1,47 @@
+//| mill-version: SNAPSHOT
+package build
+
+import mill.javalib.*
+import mill.javalib.errorprone.*
+import mill.javalib.publish.*
+import millbuild.*
+
+object `package` extends MavenModule with ErrorProneModule with PublishModule {
+
+  def javacOptions = super.javacOptions() ++ Seq("-source", "8", "-target", "8")
+
+  def artifactName = "maven-3-9-11"
+
+  def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
+    Seq("-XDshould-stop=ifError=FLOW")
+
+  def jvmId = "zulu:11"
+
+  def pomSettings = PomSettings(
+    "",
+    "com.mycompany.app",
+    "http://www.example.com",
+    Seq(),
+    VersionControl(None, None, None, None),
+    Seq()
+  )
+
+  def publishVersion = "1.0-SNAPSHOT"
+
+  object test extends MavenTests with ErrorProneModule with TestModule.Junit5 {
+
+    def mvnDeps = super.mvnDeps() ++
+      Seq(Deps.junitJupiterApi, Deps.junitJupiterParams)
+
+    def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
+      Seq("-XDshould-stop=ifError=FLOW")
+
+    def forkWorkingDir = moduleDir
+
+    def testParallelism = false
+
+    def testSandboxWorkingDir = false
+
+  }
+
+}

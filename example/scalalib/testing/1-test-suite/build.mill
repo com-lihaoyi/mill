@@ -5,7 +5,7 @@ import mill.*, scalalib.*
 object foo extends ScalaModule {
   def scalaVersion = "3.7.1"
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -55,7 +55,7 @@ compiling 2 ... source...
 // * `TestModule.ScalaTest`, using https://github.com/scalatest/scalatest[ScalaTest]
 // * `TestModule.Specs2`, using https://github.com/etorreborre/specs2[Specs2]
 // * `TestModule.Utest`, using https://github.com/com-lihaoyi/utest[uTest]
-// * `TestModule.Waever`, using https://github.com/disneystreaming/weaver-test[Weaver]
+// * `TestModule.Weaver`, using https://github.com/disneystreaming/weaver-test[Weaver]
 // * `TestModule.ZioTest`, using https://zio.dev/reference/test/[ZioTest]
 //
 // Each testing framework has their own flags and configuration options that are

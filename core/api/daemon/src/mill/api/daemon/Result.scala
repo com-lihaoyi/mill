@@ -6,7 +6,7 @@ import scala.util.boundary
 /**
  * Represents a computation that either succeeds with a value [[T]] or
  * fails. Basically equivalent to `Either[String, T]`, with converters
- * back and forther via [[Result.toEither]] or [[Result.fromEither]]
+ * back and forth via [[Result.toEither]] or [[Result.fromEither]]
  */
 sealed trait Result[+T] {
   def map[V](f: T => V): Result[V]

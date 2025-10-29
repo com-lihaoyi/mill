@@ -74,7 +74,7 @@ object Jvm {
       shutdownGracePeriod: Long = 100,
       destroyOnExit: Boolean = true,
       check: Boolean = true
-  )(implicit ctx: TaskCtx): os.CommandResult = {
+  )(using ctx: TaskCtx): os.CommandResult = {
     val cp = cpPassingJarPath match {
       case Some(passingJarPath) if classPath.nonEmpty =>
         createClasspathPassingJar(passingJarPath, classPath.toSeq)
@@ -225,7 +225,7 @@ object Jvm {
       sharedLoader: ClassLoader = getClass.getClassLoader,
       sharedPrefixes: Iterable[String] = Seq(),
       label: String = null
-  )(implicit e: sourcecode.Enclosing): MillURLClassLoader = MillURLClassLoader(
+  )(using e: sourcecode.Enclosing): MillURLClassLoader = MillURLClassLoader(
     classPath.map(_.toNIO),
     parent,
     sharedLoader,
@@ -400,7 +400,7 @@ object Jvm {
            |  JAVACMD="$$JAVA_HOME/bin/java"
            |fi
            |
-           |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" $mainClass "$$@"
+           |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" '$mainClass' "$$@"
            |""".stripMargin
       },
       cmdCommands = {
@@ -410,7 +410,7 @@ object Jvm {
            |set "JAVACMD=java.exe"
            |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
            |
-           |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $mainClass %*
+           |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" "$mainClass" %*
            |
            |endlocal
            |""".stripMargin

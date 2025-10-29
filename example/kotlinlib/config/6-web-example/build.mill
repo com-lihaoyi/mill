@@ -1,0 +1,26 @@
+//// SNIPPET:WEBSERVER
+// In this example, the webserver script uses the https://ktor.io/[Ktor] framework
+// to run the web server
+/** See Also: src/WebServer.kt */
+
+/** Usage
+> ./mill runBackground
+
+> curl -d 'helloworld' localhost:8080/reverse-string
+dlrowolleh
+
+> ./mill clean runBackground # shut down webserver
+
+*/
+
+//// SNIPPET:END
+
+//// SNIPPET:TEST
+/** Usage
+
+> ./mill test
+Test example.WebServerTests#testReverseString() finished...
+
+*/
+
+//// SNIPPET:END

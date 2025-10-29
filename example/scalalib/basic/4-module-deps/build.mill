@@ -1,0 +1,115 @@
+// This example contains a simple Mill build with two modules, `foo` and `bar`,
+// defined by their respective `package.mill.yaml` config
+// files, and on which you can run tasks on such as `foo.run` or
+// `bar.run`. There is also a `bar.test` module defined by `bar/test/package.mill.yaml`.
+
+/** See Also: foo/package.mill.yaml */
+/** See Also: bar/package.mill.yaml */
+/** See Also: bar/test/package.mill.yaml */
+
+// Inter-module dependencies are defined by the `moduleDeps` key, and modules
+// can also be nested within each other, as `bar.test` is nested
+// within `bar`.
+//
+// ==== Multi-Module Folder Layout
+//
+// This multi-module example build expects the following folder layout:
+//
+//// SNIPPET:TREE
+//
+// ----
+// build.mill
+// foo/
+//     src/
+//         Foo.scala
+// bar/
+//     src/
+//         Bar.scala
+//     test/
+//         src/
+//             BarTests.scala
+// out/
+//     foo/
+//         compile.json
+//         compile.dest/
+//         ...
+//     bar/
+//         compile.json
+//         compile.dest/
+//         ...
+//         test/
+//             compile.json
+//             compile.dest/
+//             ...
+// ----
+//
+//// SNIPPET:END
+
+// Typically, source, output files, and task names in Mill follow the module
+// hierarchy, so e.g. input to the `foo` module lives in `foo/src/`, can be
+// compiled via `foo.compile` and, and its compiled output files live in
+// `out/foo/compile.dest`.
+//
+// You can use `mill resolve` to list out what tasks you can run, e.g.
+// `mill resolve __.run` below which lists out all the `run` tasks:
+
+/** Usage
+
+> ./mill resolve __.run
+foo.run
+bar.run
+
+> ./mill foo.run --text "hello-world"
+<h1>hello-world</h1>
+
+> ./mill bar.test
+...
+...bar.BarTests...simple...
+...bar.BarTests...escaping...
+
+*/
+
+// In general, Mill will ensure that the specified tasks and their upstream
+// dependencies are executed in the right order, and re-executed as necessary when
+// source code in each module changes. For example if you run `foo.compile`:
+//
+// - Mill will automatically run `bar.compile` and any other upstream tasks first if they have not
+//   been executed yet, or are out of date
+// - Mill will automatically re-use the cached output for `bar.compile` if it was executed earlier
+//   and its upstream source files have not changed
+//
+// ==== Task Query Syntax
+//
+// You can use wildcards and brace-expansion to select
+// multiple tasks at once or to shorten the path to deeply nested tasks,
+// as we saw with `__.run` above. Some more examples of this are shown below:
+//
+// .Wildcards and brace-expansion
+// |==========================================================
+// | Wildcard | Function
+// | `_`      | matches a single segment of the task path
+// | `__`     | matches arbitrary segments of the task path
+// | `{a,b}`  | is equal to specifying two tasks `a` and `b`
+// |==========================================================
+//
+//
+// You can use the + symbol to add another task with optional arguments.
+// If you need to feed a + as argument to your task, you can mask it by
+// preceding it with a backslash (`\`).
+//
+
+/** Usage
+> ./mill bar._.compile            # Runs `compile` for all direct sub-modules of `foo`
+
+> ./mill bar.__.test              # Runs `test` for all transitive sub-modules of `foo`
+
+> ./mill {foo,bar}.compile        # Runs `compile` for `foo` and `bar`
+
+> ./mill __.compile + bar.__.test # Runs all `compile` tasks and all tests under `foo`.
+*/
+
+// If you provide optional task arguments and your wildcard or brace-expansion is
+// resolved to multiple tasks, the arguments will be applied to each of the
+// tasks.
+// For more details on the query syntax, see the page
+// xref:cli/query-syntax.adoc[Task Query Syntax]

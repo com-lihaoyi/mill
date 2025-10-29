@@ -1,5 +1,8 @@
 = ScalaPB
 :page-aliases: Plugin_ScalaPB.adoc
+:mill-api-url: {mill-doc-url}/api/latest
+:mill-api-scalapb-url: {mill-api-url}/mill/contrib/scalapblib
+
 
 This module allows https://scalapb.github.io[ScalaPB] to be used in Mill builds. ScalaPB is a https://developers.google.com/protocol-buffers/[Protocol Buffers] compiler plugin that generates Scala case classes, encoders and decoders for protobuf messages.
 
@@ -34,25 +37,7 @@ example/
 
 == Configuration options
 
-* scalaPBVersion (mandatory) - The ScalaPB version `String` e.g. `"0.7.4"`
-
-* scalaPBSources - paths to search for `.proto` files and generate scala case classes for. Defaults to `moduleDir / "protobuf"`
-
-* scalaPBFlatPackage - A `Boolean` option which determines whether the `.proto` file name should be appended as the final segment of the package name in the generated sources.
-
-* scalaPBJavaConversions - A `Boolean` option which determines whether methods for converting between the generated Scala classes and the Protocol Buffers Java API classes should be generated.
-
-* scalaPBGrpc - A `Boolean` option which determines whether https://grpc.io[grpc] stubs should be generated.
-
-* scalaPBSingleLineToProtoString - A `Boolean` option which determines whether the generated `.toString` methods should use a single line format.
-
-* scalaPBProtocPath - A `Option[Path]` option which determines the protoc compiler to use. If `None`, a java embedded protoc will be used, if set to `Some` path, the given binary is used.
-
-* scalaPBSearchDeps - A `Boolean` option which determines whether to search for `.proto` files in dependencies and add them to `scalaPBIncludePath`. Defaults to `false`.
-
-* scalaPBScala3Sources - Generate the sources with scala 3 syntax (i. e. use `?` instead of `_` in types)
-
-* scalaPBIncludePath - Additional paths to include `.proto` files when compiling.
+Please inspect the {mill-api-scalapb-url}/ScalaPBModule.html[API docs of `ScalaPBModule`] for all available tasks.
 
 If you'd like to configure the https://scalapb.github.io/docs/scalapbc#passing-generator-parameters[options] that are passed to the ScalaPB compiler directly, you can override the `scalaPBOptions` task, for example:
 

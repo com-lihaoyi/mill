@@ -20,13 +20,13 @@ case class ExternalSummary(
  */
 object ExternalSummary {
 
-  implicit def rw(implicit st: SymbolTable): upickle.ReadWriter[ExternalSummary] =
+  implicit def rw(using st: SymbolTable): upickle.ReadWriter[ExternalSummary] =
     upickle.macroRW
 
   def apply(
       localSummary: LocalSummary,
       upstreamClasspath: Seq[os.Path]
-  )(implicit st: SymbolTable): ExternalSummary = {
+  )(using st: SymbolTable): ExternalSummary = {
     def createUpstreamClassloader() = mill.util.Jvm.createClassLoader(
       upstreamClasspath,
       getClass.getClassLoader
@@ -73,7 +73,7 @@ object ExternalSummary {
     ExternalSummary(methodsPerCls.toMap, ancestorsPerCls.toMap, directSuperclasses.toMap)
   }
 
-  class MyClassVisitor(implicit st: SymbolTable) extends ClassVisitor(Opcodes.ASM9) {
+  class MyClassVisitor(using st: SymbolTable) extends ClassVisitor(Opcodes.ASM9) {
     var methods: Map[MethodSig, Boolean] = Map()
     var ancestors: Set[JCls] = null
     var superclass: JCls = null

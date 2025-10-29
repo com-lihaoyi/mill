@@ -19,16 +19,16 @@ case class ResolvedCalls(
  * call graph
  */
 object ResolvedCalls {
-  implicit def rw(implicit st: SymbolTable): ReadWriter[ResolvedCalls] = macroRW
+  implicit def rw(using st: SymbolTable): ReadWriter[ResolvedCalls] = macroRW
   case class MethodCallInfo(localDests: Set[MethodDef], externalDests: Set[JCls])
   object MethodCallInfo {
-    implicit def rw(implicit st: SymbolTable): ReadWriter[MethodCallInfo] = macroRW
+    implicit def rw(using st: SymbolTable): ReadWriter[MethodCallInfo] = macroRW
   }
 
   def apply(
       localSummary: LocalSummary,
       externalSummary: ExternalSummary
-  )(implicit st: SymbolTable): ResolvedCalls = {
+  )(using st: SymbolTable): ResolvedCalls = {
 
     val allDirectAncestors =
       localSummary.mapValues(_.directAncestors) ++ externalSummary.directAncestors

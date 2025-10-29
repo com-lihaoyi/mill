@@ -24,7 +24,7 @@ object Deps {
   object Scalajs_1 {
     val scalaJsVersion = "1.19.0"
     val scalajsEnvJsdomNodejs =
-      mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0".withDottyCompat(scalaVersion)
+      mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvExoegoJsdomNodejs =
       mvn"net.exoego::scalajs-env-jsdom-nodejs:2.1.0".withDottyCompat(scalaVersion)
     val scalajsEnvNodejs = mvn"org.scala-js::scalajs-env-nodejs:1.4.0".withDottyCompat(scalaVersion)
@@ -32,6 +32,8 @@ object Deps {
       mvn"org.scala-js::scalajs-env-phantomjs:1.0.0".withDottyCompat(scalaVersion)
     val scalajsEnvSelenium =
       mvn"org.scala-js::scalajs-env-selenium:1.1.1".withDottyCompat(scalaVersion)
+    val scalajsEnvPlaywright =
+      mvn"io.github.thijsbroersen::scala-js-env-playwright:0.2.3"
     val scalajsSbtTestAdapter =
       mvn"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}".withDottyCompat(scalaVersion)
     val scalajsLinker =
@@ -105,7 +107,7 @@ object Deps {
   val cask = mvn"com.lihaoyi::cask:0.9.4"
   val castor = mvn"com.lihaoyi::castor:0.3.0"
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
-  val flywayCore = mvn"org.flywaydb:flyway-core:8.5.13"
+  val flywayCore = mvn"org.flywaydb:flyway-core:11.8.2"
   val graphvizJava = Seq(
     mvn"guru.nidi:graphviz-java-min-deps:0.18.1",
     mvn"org.webjars.npm:viz.js-graphviz-java:2.1.3",
@@ -139,7 +141,7 @@ object Deps {
   val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
   val pprint = mvn"com.lihaoyi::pprint:0.9.3"
-  val mainargs = mvn"com.lihaoyi::mainargs:0.7.6"
+  val mainargs = mvn"com.lihaoyi::mainargs:0.7.7"
   val millModuledefsVersion = "0.11.10"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
@@ -174,18 +176,18 @@ object Deps {
   val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
   val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
-  val upickle = mvn"com.lihaoyi::upickle:4.3.0"
+  val upickle = mvn"com.lihaoyi::upickle:4.4.0"
   val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.3.0"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
   val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
-  val zinc = mvn"org.scala-sbt::zinc:1.10.8".withDottyCompat(scalaVersion)
+  val zinc = mvn"org.scala-sbt::zinc:1.11.0".withDottyCompat(scalaVersion)
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
-  val gson = mvn"com.google.code.gson:gson:2.10.1"
+  // https://github.com/google/gson/releases/tag/gson-parent-2.13.2
+  val gson = mvn"com.google.code.gson:gson:2.13.2"
   val fansi = mvn"com.lihaoyi::fansi:0.5.0"
-  val jarjarabrams =
-    mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.15.0".withDottyCompat(scalaVersion)
+  val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
   val requests = mvn"com.lihaoyi::requests:0.9.0"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.18"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"
@@ -194,6 +196,7 @@ object Deps {
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
   val kotlinBuildToolsApi = mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinVersion"
   val kotlinBuildToolsImpl = mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kotlinVersion"
+  val kotlinStdlib = mvn"org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
   /** Used for the `mill init` from a Maven project. */
   object MavenInit {
@@ -216,6 +219,9 @@ object Deps {
   val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
+  val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:8.13.0"
+  val androidDataBindingCompilerCommon =
+    mvn"androidx.databinding:databinding-compiler-common:8.13.0"
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
   val sbt = mvn"org.scala-sbt:sbt:1.10.10"
@@ -310,7 +316,9 @@ object Deps {
     val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
     val screenshotValidationJunitEngine =
       mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
-    val millCmdlineToolsVersion = "19.0"
+    // https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
+    // https://developer.android.com/studio?hl=de#command-tools
+    val cmdlineToolsVersion = "19.0"
     // TODO: uiTooling is needed for screenshot tests
     // so we handle it diferrently.
     // Removed it from updaetable for now

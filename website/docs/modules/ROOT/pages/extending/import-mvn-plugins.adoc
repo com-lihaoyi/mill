@@ -71,20 +71,20 @@ following techniques:
 to substitute the currently used Mill version.
 This is typical required for Mill contrib modules, which are developed in the Mill repository and highly bound to the current Mill version.
 
-.Example: Use `mill-contrib-bloop` plugin matching the current Mill version
+.Example: Use `mill-contrib-buildinfo` plugin matching the current Mill version
 [source,scala]
 ----
-//| mvnDeps: ["com.lihaoyi::mill-contrib-bloop:$MILL_VERSION"]
+//| mvnDeps: ["com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION"]
 ----
 
 // There is the even more convenient option to leave the version completely empty.
 // Mill will substitute it with its current version.
 // But don't forget to provide the trailing colon!
 
-// .Example: Use `mill-contrib-bloop` plugin matching the current Mill version
+// .Example: Use `mill-contrib-buildinfo` plugin matching the current Mill version
 // [source,scala]
 // ----
-// //| mvnDeps: ["com.lihaoyi::mill-contrib-bloop:$MILL_VERSION"]
+// //| mvnDeps: ["com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION"]
 // ----
 --
 

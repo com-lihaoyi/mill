@@ -1,0 +1,100 @@
+//// SNIPPET:BUILD
+
+package build
+import mill.*, scalalib.*
+
+object foo extends ScalaModule {
+  def scalaVersion = "3.7.1"
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::scalatags:0.13.1",
+    mvn"com.lihaoyi::mainargs:0.7.7"
+  )
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
+    def testFramework = "utest.runner.Framework"
+  }
+}
+
+//// SNIPPET:END
+
+// This is an example of Mill's programmatic configuration syntax.
+// This is slightly more verbose than the YAML syntax shown above, but
+// in exchange allows more flexibility in how tasks are defined and their
+// values are computed. Keys such as `mvnDeps:` in the YAML syntax correspond
+// directly to the `def mvnDeps` methods in the programmatic syntax.
+
+//// SNIPPET:TREE
+// ----
+// build.mill
+// foo/
+//     src/
+//         Foo.scala
+//     resources/
+//         ...
+//     test/
+//         src/
+//             FooTests.scala
+// out/foo/
+//     compile.json
+//     compile.dest/
+//     ...
+//     test/
+//         compile.json
+//         compile.dest/
+//         ...
+// ----
+//
+//
+//// SNIPPET:END
+//
+
+// This example places the `{language}Module` in the `foo/` subfolder, but you can also use
+// define a xref:fundamentals/modules.adoc#_root_modules[Root Module] to place it at the
+// root of your repository similar to the `build.mill.yaml` examples discussed in
+// xref:#_config_based_modules[]
+//
+// Usage of programmatic Mill builds is similar to usage of simple config-based
+// Mill builds:
+
+/** Usage
+
+> ./mill resolve foo._ # List what tasks are available to run
+foo.assembly
+...
+foo.compile
+...
+foo.run
+...
+*/
+/** Usage
+> ./mill foo.run --text hello
+<h1>hello</h1>
+*/
+//// SNIPPET:TEST
+/** Usage
+> ./mill foo.test
+...
++ foo.FooTests...simple ...  <h1>hello</h1>
++ foo.FooTests...escaping ...  <h1>&lt;hello&gt;</h1>
+*/
+//// SNIPPET:END
+/** Usage
+> ./mill foo.assembly # bundle classfiles and libraries into a jar for deployment
+
+> ./mill show foo.assembly # show the output of the assembly task
+".../out/foo/assembly.dest/out.jar"
+
+> java -jar ./out/foo/assembly.dest/out.jar --text hello
+<h1>hello</h1>
+*/
+
+//// SNIPPET:END
+
+//
+// Programmatic Mill build files are xref:depth/why-scala.adoc[written in Scala], but you do
+// not need to have prior experience in Scala to read or write them. Like Gradle Groovy or Maven
+// XML, anyone can learn enough Scala for Mill without needing to become an expert in
+// the language. For simpler builds that do not need the flexibility that programmatic builds
+// provide, YAML-based xref:{language-small}lib/config.adoc[Config-Based Module definitions]
+// are a great alternative.

@@ -13,7 +13,7 @@ import ScoverageReportWorkerApi2.{Ctx => ApiCtx}
 class ScoverageReportWorker {
 
   def bridge(classpath: Seq[PathRef]): ScoverageReportWorkerApiBridge = {
-    def ctx0(implicit ctx: TaskCtx): ApiCtx = {
+    def ctx0(using ctx: TaskCtx): ApiCtx = {
       val logger = new ApiLogger {
         def error(msg: String): Unit = ctx.log.error(msg)
         def warn(msg: String): Unit = ctx.log.warn(msg)
@@ -32,7 +32,7 @@ class ScoverageReportWorker {
           sources: Seq[os.Path],
           dataDirs: Seq[os.Path],
           sourceRoot: os.Path
-      )(implicit
+      )(using
           ctx: TaskCtx
       ): Unit = {
         mill.util.Jvm.withClassLoader(
@@ -70,7 +70,7 @@ object ScoverageReportWorker extends ExternalModule {
         sources: Seq[os.Path],
         dataDirs: Seq[os.Path],
         sourceRoot: os.Path
-    )(implicit
+    )(using
         ctx: TaskCtx
     ): Unit
   }

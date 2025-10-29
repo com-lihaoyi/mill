@@ -254,7 +254,7 @@ object PythonModule {
         command: String = null,
         env: Map[String, String] = null,
         workingDir: os.Path = null
-    )(implicit ctx: TaskCtx): Unit
+    )(using ctx: TaskCtx): Unit
   }
 
   private class RunnerImpl(
@@ -268,7 +268,7 @@ object PythonModule {
         command: String = null,
         env: Map[String, String] = null,
         workingDir: os.Path = null
-    )(implicit ctx: TaskCtx): Unit = {
+    )(using ctx: TaskCtx): Unit = {
       os.call(
         cmd = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
         env = Option(env).getOrElse(env0),

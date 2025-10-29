@@ -1,0 +1,17 @@
+extends: [mill.kotlinlib.KotlinMavenModule]
+kotlinVersion: "2.0.20"
+mvnDeps:
+- "com.github.ajalt.clikt:clikt:4.4.0"
+- "org.jetbrains.kotlinx:kotlinx-html:0.11.0"
+
+object test:
+  extends: [KotlinMavenTests, mill.javalib.TestModule.Junit5]
+  mvnDeps:
+  - "io.kotest:kotest-runner-junit5:5.9.1"
+  - "com.github.sbt.junit:jupiter-interface:0.11.2"
+
+object integration:
+  extends: [KotlinMavenTests, mill.javalib.TestModule.Junit5]
+  mvnDeps:
+  - "io.kotest:kotest-runner-junit5:5.9.1"
+  - "com.github.sbt.junit:jupiter-interface:0.11.2"

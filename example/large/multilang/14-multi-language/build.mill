@@ -1,3 +1,5 @@
+//| mill-jvm-version: 17
+
 // This example demonstrates a simple multi-langauge project,
 // running a `spring boot webserver` serving a `react client` and interacting with a `python binary`
 // through the web-server api.
