@@ -57,7 +57,7 @@ object MillScalaParserImpl extends MillScalaParser {
           if (!trees.head.startPos.exists) ""
           else new String(source.file.toByteArray).take(trees.head.startPos.start)
       }
-      mill.constants.DebugLog.println("pkgs " + pprint.apply(pkgs))
+
       (prefix, pkgs, stmts)
     }
   }
