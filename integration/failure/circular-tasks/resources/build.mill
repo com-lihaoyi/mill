@@ -9,4 +9,3 @@ object module extends Module {
   def taskB: T[String] = Task { taskC() }
 }
 def taskC: T[String] = Task { module.nested.taskA() }
-

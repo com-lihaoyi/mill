@@ -13,9 +13,9 @@ trait Cacher extends mill.moduledefs.Cacher {
       sys.error(
         "Circular task dependency detected:\n" +
           (Cacher.taskEvaluationStack.value.toList ++ Seq((c, this)))
-            .map{case (c, o) =>
+            .map { case (c, o) =>
               val taskName = c.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
-              o.toString match{
+              o.toString match {
                 case "" => taskName
                 case s => s + "." + taskName
               }
@@ -27,7 +27,7 @@ trait Cacher extends mill.moduledefs.Cacher {
     try {
       Cacher.taskEvaluationStack.value.add((c, this))
       cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
-    } finally{
+    } finally {
       Cacher.taskEvaluationStack.value.remove((c, this))
     }
   }
