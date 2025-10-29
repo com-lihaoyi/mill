@@ -12,71 +12,67 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
 
       assert(!res.isSuccess)
 
-      locally {
-        // For now these error messages still show generated/mangled code; not ideal, but it'll do
-        assert(res.err.contains("""build.mill:7:67"""))
-        assert(res.err.contains("""Not found: type UnknownRootModule"""))
-        assert(res.err.contains(
-          """abstract class package_  extends _root_.mill.util.MainRootModule, UnknownRootModule {"""
-        ))
-        assert(
-          res.err.contains("""                                                 ^^^^^^^^^^^^^^^^^""")
+      val normalizedError = res.err
+        .replace(workspacePath.toString, "<workspace-path>")
+        .linesIterator
+        .filter(_.startsWith("[error] "))
+        .toVector
+
+      // For now some error messages still show generated/mangled code; not ideal, but it'll do
+      assertGoldenLiteral(
+        normalizedError,
+        Vector(
+          "[error] -- [E006] Not Found Error: <workspace-path>/out/mill-build/generatedScriptSources.dest/wrapped/build_/build.mill:17:65 ",
+          "[error] 17 |class _MillRootModulePa extends _root_.mill.util.MainRootModule, UnknownRootModule",
+          "[error]    |                                                                 ^^^^^^^^^^^^^^^^^",
+          "[error]    |                                       Not found: type UnknownRootModule",
+          "[error]    |",
+          "[error]    | longer explanation available when compiling with `-explain`",
+          "[error] -- [E006] Not Found Error: <workspace-path>/out/mill-build/generatedScriptSources.dest/wrapped/build_/foo/package.mill:17:93 ",
+          "[error] 17 |class _MillRootModuleP extends _root_.mill.api.internal.SubfolderModule(build.millDiscover), UnknownFooModule",
+          "[error]    |                                                                                             ^^^^^^^^^^^^^^^^",
+          "[error]    |                                        Not found: type UnknownFooModule",
+          "[error]    |",
+          "[error]    | longer explanation available when compiling with `-explain`",
+          "[error] -- [E006] Not Found Error: <workspace-path>/build.mill:5:22 ",
+          "[error] 5 |object before extends UnknownBeforeModule",
+          "[error]   |                      ^^^^^^^^^^^^^^^^^^^",
+          "[error]   |                      Not found: type UnknownBeforeModule",
+          "[error]   |",
+          "[error]   | longer explanation available when compiling with `-explain`",
+          "[error] -- [E006] Not Found Error: <workspace-path>/build.mill:8:21 ",
+          "[error] 8 |  def scalaVersion = unknownRootInternalDef",
+          "[error]   |                     ^^^^^^^^^^^^^^^^^^^^^^",
+          "[error]   |                     Not found: unknownRootInternalDef",
+          "[error]   |",
+          "[error]   | longer explanation available when compiling with `-explain`",
+          "[error] -- [E006] Not Found Error: <workspace-path>/build.mill:11:21 ",
+          "[error] 11 |object after extends UnknownAfterModule",
+          "[error]    |                     ^^^^^^^^^^^^^^^^^^",
+          "[error]    |                     Not found: type UnknownAfterModule",
+          "[error]    |",
+          "[error]    | longer explanation available when compiling with `-explain`",
+          "[error] -- [E006] Not Found Error: <workspace-path>/foo/package.mill:4:22 ",
+          "[error] 4 |object before extends UnknownBeforeFooModule",
+          "[error]   |                      ^^^^^^^^^^^^^^^^^^^^^^",
+          "[error]   |                      Not found: type UnknownBeforeFooModule",
+          "[error]   |",
+          "[error]   | longer explanation available when compiling with `-explain`",
+          "[error] -- [E006] Not Found Error: <workspace-path>/foo/package.mill:7:21 ",
+          "[error] 7 |  def scalaVersion = unknownFooInternalDef",
+          "[error]   |                     ^^^^^^^^^^^^^^^^^^^^^",
+          "[error]   |                     Not found: unknownFooInternalDef",
+          "[error]   |",
+          "[error]   | longer explanation available when compiling with `-explain`",
+          "[error] -- [E006] Not Found Error: <workspace-path>/foo/package.mill:10:21 ",
+          "[error] 10 |object after extends UnknownAfterFooModule",
+          "[error]    |                     ^^^^^^^^^^^^^^^^^^^^^",
+          "[error]    |                     Not found: type UnknownAfterFooModule",
+          "[error]    |",
+          "[error]    | longer explanation available when compiling with `-explain`",
+          "[error] 8 errors found"
         )
-      }
-
-      locally {
-        // For now these error messages still show generated/mangled code; not ideal, but it'll do
-        assert(res.err.replace('\\', '/').contains("""foo/package.mill:6:96"""))
-        assert(res.err.contains("""Not found: type UnknownFooModule"""))
-        assert(res.err.contains(
-          """abstract class package_  extends _root_.mill.api.internal.SubfolderModule(build.millDiscover), UnknownFooModule {"""
-        ))
-        assert(res.err.contains(
-          """                                                                                           ^^^^^^^^^^^^^^^^"""
-        ))
-      }
-
-      locally {
-        assert(res.err.contains("""build.mill:8:22"""))
-        assert(res.err.contains("""Not found: unknownRootInternalDef"""))
-        assert(res.err.contains("""def scalaVersion = unknownRootInternalDef"""))
-        assert(res.err.contains("""                   ^^^^^^^^^^^^^^^^^^^^^^"""))
-      }
-
-      locally {
-        assert(res.err.contains("""build.mill:5:23"""))
-        assert(res.err.contains("""Not found: type UnknownBeforeModule"""))
-        assert(res.err.contains("""object before extends UnknownBeforeModule"""))
-        assert(res.err.contains("""                      ^^^^^^^^^^^^^^^^^^^"""))
-      }
-
-      locally {
-        assert(res.err.contains("""build.mill:12:22"""))
-        assert(res.err.contains("""Not found: type UnknownAfterModule"""))
-        assert(res.err.contains("""object after extends UnknownAfterModule"""))
-        assert(res.err.contains("""                     ^^^^^^^^^^^^^^^^^^"""))
-      }
-
-      locally {
-        assert(res.err.replace('\\', '/').contains("""foo/package.mill:7:22"""))
-        assert(res.err.contains("""Not found: unknownFooInternalDef"""))
-        assert(res.err.contains("""def scalaVersion = unknownFooInternalDef"""))
-        assert(res.err.contains("""                   ^^^^^^^^^^^^^^^^^^^^^"""))
-      }
-
-      locally {
-        assert(res.err.replace('\\', '/').contains("""foo/package.mill:4:23"""))
-        assert(res.err.contains("""Not found: type UnknownBeforeFooModule"""))
-        assert(res.err.contains("""object before extends UnknownBeforeFooModule"""))
-        assert(res.err.contains("""                      ^^^^^^^^^^^^^^^^^^^^^^"""))
-      }
-
-      locally {
-        assert(res.err.replace('\\', '/').contains("""foo/package.mill:11:22"""))
-        assert(res.err.contains("""Not found: type UnknownAfterFooModule"""))
-        assert(res.err.contains("""object after extends UnknownAfterFooModule"""))
-        assert(res.err.contains("""                     ^^^^^^^^^^^^^^^^^^^^^"""))
-      }
+      )
     }
   }
 }
