@@ -370,8 +370,10 @@ object CodeGen {
         newScriptCode = objectData.obj.applyTo(newScriptCode, "class")
 
         s"""$headerCode
-           |$generatedStub
+           |
            |$markerComment$newScriptCode
+           |
+           |$generatedStub
            |""".stripMargin
 
       case None =>
