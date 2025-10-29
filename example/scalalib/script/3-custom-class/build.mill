@@ -1,4 +1,4 @@
-// By default, single-file Mill script modules inherit their behavior from the builtin
+// By default, Mill single-file {language} modules inherit their behavior from the builtin
 // `mill.script.{language}Module`.
 // However, you can also customize them to inherit from a custom `Module` class that you define
 // as part of your meta-build in `mill-build/src/`. For example, if we want to add a resource
