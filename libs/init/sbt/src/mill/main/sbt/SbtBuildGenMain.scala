@@ -4,6 +4,7 @@ import mill.constants.Util.isWindows
 import mill.main.buildgen.*
 import mill.main.buildgen.ModuleConfig.*
 import mill.main.sbt.BuildInfo.*
+import mill.util.Jvm
 import pprint.Util.literalize
 
 import scala.util.Using
@@ -22,7 +23,9 @@ object SbtBuildGenMain {
       @mainargs.arg(doc = "disable generating meta-build files")
       noMeta: mainargs.Flag,
       @mainargs.arg(doc = "path to sbt executable")
-      customSbt: Option[String]
+      customSbt: Option[String],
+      @mainargs.arg(doc = "JDK to use to run sbt")
+      sbtJvmId: String = "system"
   ): Unit = {
     println("converting sbt build")
 
@@ -30,9 +33,14 @@ object SbtBuildGenMain {
     addExportPlugin()
     val exportDir = os.temp.dir()
     try {
-      // Run task with cross-build prefix to export data for all cross Scala versions.
-      os.proc(sbtCmd, s"-DmillInitExportDir=$exportDir", "+millInitExportBuild")
-        .call(stdout = os.Inherit)
+      os.proc(
+        sbtCmd,
+        "-java-home",
+        Jvm.resolveJavaHome(sbtJvmId).get,
+        s"-DmillInitExportDir=$exportDir",
+        // Run task with cross-build prefix to export data for all cross Scala versions.
+        "+millInitExportBuild"
+      ).call(stdout = os.Inherit)
     } catch {
       case e: os.SubprocessException => throw RuntimeException(
           "The sbt command to run the `millInitExportBuild` sbt task has failed, " +
