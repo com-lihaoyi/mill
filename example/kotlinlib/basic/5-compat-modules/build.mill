@@ -1,0 +1,39 @@
+//// SNIPPET:FIRST
+
+// `KotlinMavenModule` is a variant of `KotlinModule`
+// that uses the more verbose folder layout of Maven, SBT, and other tools:
+//
+// - `src/main/java`
+// - `src/main/kotlin`
+// - `src/test/java`
+// - `src/test/kotlin`
+// - `src/integration/java`
+// - `src/integration/kotlin`
+//
+// Rather than Mill's
+//
+// - `src`
+// - `test/src`
+//
+//// SNIPPET:END
+//// SNIPPET:SECOND
+/** Usage
+
+> ./mill compile
+Compiling 1 Kotlin source...
+
+> ./mill test.compile
+Compiling 1 Kotlin source...
+
+> ./mill test.testForked
+...foo.FooTests hello ...
+
+> ./mill test
+...foo.FooTests hello ...
+
+> ./mill integration
+...foo.FooIntegrationTests hello ...
+
+*/
+
+//// SNIPPET:END

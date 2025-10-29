@@ -21,6 +21,9 @@ ktlint_standard_no-wildcard-imports = disabled
 [example/kotlinlib/linting/**/*]
 ktlint = disabled
 
+[example/kotlinlib/config/3-linting/**/*]
+ktlint = disabled
+
 [kotlinlib/test/resources/contrib/ktfmt/**/*]
 ktlint = disabled
 

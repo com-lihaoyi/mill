@@ -95,7 +95,8 @@ private object TabCompleteModule extends ExternalModule {
           // This is the task I need to autocomplete, or the next incomplete flag
           else if (index == parsedArgCount) {
             findMatchingArgs(args.lift(index), argSigs)
-              .getOrElse(completeTasks(ev, index, args))
+              .getOrElse(completeTasks(ev, index, args)) ++
+              delegateToBash(args, index)
 
           } else ???
 
@@ -108,8 +109,8 @@ private object TabCompleteModule extends ExternalModule {
           // In this case, we cannot really identify any tokens in the argument list
           // which are task selectors, since the last flag is incomplete and prior
           // flags are all completed. So just delegate to bash completion
-          findMatchingArgs(args.lift(index), argSigs)
-            .getOrElse(delegateToBash(args, index))
+          findMatchingArgs(args.lift(index), argSigs).getOrElse(Nil) ++
+            delegateToBash(args, index)
 
       }
 
@@ -156,7 +157,11 @@ private object TabCompleteModule extends ExternalModule {
             case _ => ""
           }
 
-          for (name <- nameField(arg) if !arg.doc.contains("Unsupported")) yield {
+          for (
+            name <- nameField(arg)
+            // We don't want complete outdated args, although we still support them
+            if !MillCliConfig.isUnsupported(arg) && !MillCliConfig.isDeprecated(arg)
+          ) yield {
             val suffix =
               val docLine = oneLine(arg.doc.getOrElse(""))
               s"$typeStringPrefix$docLine"

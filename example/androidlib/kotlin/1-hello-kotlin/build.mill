@@ -52,7 +52,7 @@ object app extends AndroidAppKotlinModule {
     // TODO currently instrumented tests debug mode
     // is coupled with the app debug mode. Fix so
     // that instrumented tests can be built with debug
-    // configuration but the apk signature will match
+    // configuration but the apk signature will not match
     // the app apk
     override def androidIsDebug: T[Boolean] = Task {
       false
@@ -67,7 +67,7 @@ object app extends AndroidAppKotlinModule {
   }
 }
 
-////SNIPPET:END
+//// SNIPPET:END
 
 /** Usage
 

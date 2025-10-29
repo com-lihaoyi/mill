@@ -1,0 +1,64 @@
+//// SNIPPET:FILE
+/** See Also: Foo.kt */
+//// SNIPPET:END
+//// SNIPPET:CMD
+/** Usage
+> ./mill Foo.kt --text hello
+Compiling 1 Kotlin sources to...
+<h1>hello</h1>
+*/
+
+//// SNIPPET:END
+//// SNIPPET:MORE
+
+/** Usage
+> ./mill Foo.kt:run --text hello
+<h1>hello</h1>
+*/
+
+/** Usage
+> ./mill show Foo.kt:assembly # show the output of the assembly task
+".../out/Foo.kt/assembly.dest/out.jar"
+
+> java -jar ./out/Foo.kt/assembly.dest/out.jar --text hello
+<h1>hello</h1>
+
+> ./out/Foo.kt/assembly.dest/out.jar --text hello # mac/linux
+<h1>hello</h1>
+
+*/
+
+//// SNIPPET:END
+
+//// SNIPPET:RESOLVE
+/** Usage
+
+> ./mill resolve Foo.kt:_
+run
+runMain
+compile
+assembly
+...
+
+*/
+//// SNIPPET:END
+//// SNIPPET:TEST
+
+/** See Also: FooTest.kt */
+
+/** Usage
+> ./mill FooTest.kt
+Test FooTest testSimple started
+Test FooTest testEscaping started
+
+*/
+
+// Again, you can pass the name of the task explicitly via `:`, e.g. `:testForked` below
+
+/** Usage
+> ./mill FooTest.kt:testForked # specifying the test task explicitly
+Test FooTest testSimple started
+Test FooTest testEscaping started
+*/
+
+//// SNIPPET:END

@@ -2,8 +2,10 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 import mill.api.daemon.internal.bsp.BspModuleApi
-import mill.api.daemon.internal.{BaseModuleApi, EvaluatorApi, ModuleApi}
+import mill.api.daemon.internal.{BaseModuleApi, EvaluatorApi, JavaModuleApi, ModuleApi, TaskApi}
 import mill.api.daemon.Watchable
+
+import java.nio.file.Path
 
 private[mill] class BspEvaluators(
     workspaceDir: os.Path,
@@ -19,11 +21,11 @@ private[mill] class BspEvaluators(
     Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
   }
 
-  lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
+  lazy val bspModulesIdList0: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
     val modules: Seq[(ModuleApi, Seq[ModuleApi], EvaluatorApi)] = evaluators
       .map(ev => (ev.rootModule, transitiveModules(ev.rootModule), ev))
 
-    modules
+    val regularModules = modules
       .flatMap { case (rootModule, modules, eval) =>
         modules.collect {
           case m: BspModuleApi =>
@@ -34,6 +36,54 @@ private[mill] class BspEvaluators(
             (new BuildTargetIdentifier(uri), (m, eval))
         }
       }
+    regularModules
+  }
+
+  val nonScriptSources = evaluators.flatMap { ev =>
+    val bspSourceTasks: Seq[TaskApi[(sources: Seq[Path], generatedSources: Seq[Path])]] =
+      transitiveModules(ev.rootModule)
+        .collect { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetSources }
+
+    ev.executeApi(bspSourceTasks)
+      .values
+      .get
+      .flatMap { case (sources: Seq[Path], _: Seq[Path]) => sources }
+  }
+
+  lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
+    // Add script modules
+    val scriptModules = evaluators
+      .headOption.map { eval =>
+        val outDir = os.Path(eval.outPathJava)
+        discoverAndInstantiateScriptModules(workspaceDir, outDir, eval)
+      }
+      .getOrElse(Seq.empty)
+
+    bspModulesIdList0 ++ scriptModules
+  }
+
+  private def discoverAndInstantiateScriptModules(
+      workspaceDir: os.Path,
+      outDir: os.Path,
+      eval: EvaluatorApi
+  ): Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
+    // Reflectively load and call `ScriptModuleInit.discoverAndInstantiateScriptModules`
+    // from the evaluator's classloader
+    val scriptModuleInitClass = eval
+      .rootModule
+      .getClass
+      .getClassLoader
+      .loadClass("mill.script.ScriptModuleInit")
+
+    val result = scriptModuleInitClass
+      .getMethod("discoverAndInstantiateScriptModules", classOf[Seq[java.nio.file.Path]])
+      .invoke(null, nonScriptSources)
+      .asInstanceOf[Seq[(java.nio.file.Path, mill.api.Result[BspModuleApi])]]
+
+    result.map {
+      case (scriptPath: java.nio.file.Path, mill.api.Result.Success(module: BspModuleApi)) =>
+        (new BuildTargetIdentifier(Utils.sanitizeUri(scriptPath)), (module, eval))
+    }
   }
   lazy val bspModulesById: Map[BuildTargetIdentifier, (BspModuleApi, EvaluatorApi)] = {
     val map = bspModulesIdList.toMap
@@ -46,11 +96,12 @@ private[mill] class BspEvaluators(
   lazy val bspIdByModule: Map[BspModuleApi, BuildTargetIdentifier] =
     bspModulesById.view.mapValues(_._1).map(_.swap).toMap
   lazy val syntheticRootBspBuildTarget: Option[SyntheticRootBspBuildTargetData] =
-    SyntheticRootBspBuildTargetData.makeIfNeeded(bspModulesById.values.map(_._1), workspaceDir)
+    SyntheticRootBspBuildTargetData.makeIfNeeded(workspaceDir)
 
   def filterNonSynthetic(input: java.util.List[BuildTargetIdentifier])
       : java.util.List[BuildTargetIdentifier] = {
     import scala.jdk.CollectionConverters.*
-    input.asScala.filterNot(syntheticRootBspBuildTarget.map(_.id).contains).toList.asJava
+    val syntheticIds = syntheticRootBspBuildTarget.map(_.id).toSet
+    input.asScala.filterNot(syntheticIds.contains).toList.asJava
   }
 }

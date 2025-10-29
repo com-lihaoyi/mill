@@ -1,0 +1,16 @@
+// Config-based {language} modules can inherit from user-defined ``trait``s via `extends`,
+// and are not limited to the builtin ``trait``s provided by Mill:
+
+/** See Also: build.mill.yaml */
+//// SNIPPET:USAGE
+/** See Also: mill-build/src/LineCountScalaModule.scala */
+//// SNIPPET:END
+/** Usage
+
+> ./mill run
+...
+Line Count: 17
+
+> ./mill show lineCount
+17
+*/

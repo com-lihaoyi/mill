@@ -132,6 +132,10 @@ object MillMain0 {
               streams.out.println(MillCliConfig.longUsageText)
               (true, RunnerState.empty)
 
+            case Result.Success(config) if config.helpAdvanced.value =>
+              streams.out.println(MillCliConfig.helpAdvancedUsageText)
+              (true, RunnerState.empty)
+
             case Result.Success(config) if config.showVersion.value =>
               def prop(k: String) = System.getProperty(k, s"<unknown $k>")
 
@@ -213,14 +217,12 @@ object MillMain0 {
                 .getOrElse(true)
 
               val (success, nextStateCache) = {
-                if (config.repl.value) {
-                  streams.err.println("The --repl mode is no longer supported.")
-                  (false, stateCache)
-
-                } else if (bspInstallModeJobCountOpt.isDefined) {
+                if (bspInstallModeJobCountOpt.isDefined) {
                   BSP.install(bspInstallModeJobCountOpt.get, config.debugLog.value, streams.err)
                   (true, stateCache)
-                } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
+                } else if (
+                  !bspMode && !config.jshell.value && !config.repl.value && config.leftoverArgs.value.isEmpty
+                ) {
                   println(MillCliConfig.shortUsageText)
 
                   (true, stateCache)
@@ -250,7 +252,8 @@ object MillMain0 {
                         loggerOpt: Option[Logger] = None,
                         reporter: EvaluatorApi => Int => Option[CompileProblemReporter] =
                           _ => _ => None,
-                        extraEnv: Seq[(String, String)] = Nil
+                        extraEnv: Seq[(String, String)] = Nil,
+                        metaLevelOverride: Option[Int] = None
                     ) = MillDaemonServer.withOutLock(
                       config.noBuildLock.value,
                       config.noWaitForBuildLock.value,
@@ -280,8 +283,7 @@ object MillMain0 {
                                 tasksAndParams = tasksAndParams,
                                 prevRunnerState = prevState.getOrElse(stateCache),
                                 logger = logger,
-                                needBuildFile = needBuildFile(config),
-                                requestedMetaLevel = config.metaLevel,
+                                requestedMetaLevel = config.metaLevel.orElse(metaLevelOverride),
                                 allowPositionalCommandArgs = config.allowPositional.value,
                                 systemExit = systemExit,
                                 streams0 = streams,
@@ -314,7 +316,29 @@ object MillMain0 {
                       }
                     }
 
-                    if (config.tabComplete.value) {
+                    if (config.jshell.value) {
+                      val bootstrapped = runMillBootstrap(
+                        skipSelectiveExecution = false,
+                        Some(stateCache),
+                        Seq("jshell") ++ config.leftoverArgs.value,
+                        streams,
+                        "jshell",
+                        metaLevelOverride = Some(1)
+                      )
+
+                      (true, bootstrapped.result)
+                    } else if (config.repl.value) {
+                      val bootstrapped = runMillBootstrap(
+                        skipSelectiveExecution = false,
+                        Some(stateCache),
+                        Seq("console") ++ config.leftoverArgs.value,
+                        streams,
+                        "repl",
+                        metaLevelOverride = Some(1)
+                      )
+
+                      (true, bootstrapped.result)
+                    } else if (config.tabComplete.value) {
                       val bootstrapped = runMillBootstrap(
                         skipSelectiveExecution = false,
                         Some(stateCache),
@@ -355,8 +379,7 @@ object MillMain0 {
                               bspIdByModule,
                               buildClient
                             )
-                          },
-                          extraEnv = Seq("MILL_JVM_WORKER_REQUIRE_REPORTER" -> "true")
+                          }
                         )
 
                         for (err <- watchRes.error)
@@ -578,21 +601,6 @@ object MillMain0 {
   /**
    * Determine, whether we need a `build.mill` or not.
    */
-  private def needBuildFile(config: MillCliConfig): Boolean = {
-    // Tasks, for which running Mill without an existing buildfile is allowed.
-    val noBuildFileTaskWhitelist = Seq(
-      "init",
-      "version",
-      "mill.scalalib.giter8.Giter8Module/init"
-    )
-    val tasksAndParams = config.leftoverArgs.value
-    val whitelistMatch =
-      tasksAndParams.nonEmpty && noBuildFileTaskWhitelist.exists(tasksAndParams.head == _)
-    // Has the user additional/extra imports
-    // (which could provide additional commands that could make sense without a build.mill)
-    val extraPlugins = config.imports.nonEmpty
-    !(whitelistMatch || extraPlugins)
-  }
 
   def readVersionFile(file: os.Path): Option[String] = file match {
     case f if os.exists(f) => os.read.lines(f).find(l => l.trim().nonEmpty)

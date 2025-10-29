@@ -27,8 +27,8 @@ public class MillLauncherMain {
   public static void main(String[] args) throws Exception {
     var needParsedConfig = Arrays.stream(args)
         .anyMatch(f -> f.startsWith("-") && !f.startsWith("--") && f.contains("i"));
-    for (var token :
-        Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", "--bsp", "--help")) {
+    for (var token : Arrays.asList(
+        "--interactive", "--no-server", "--no-daemon", "--jshell", "--repl", "--bsp", "--help")) {
       if (Arrays.stream(args).anyMatch(f -> f.equals(token))) needParsedConfig = true;
     }
 
@@ -40,9 +40,7 @@ public class MillLauncherMain {
     if (needParsedConfig) {
       var config = MillCliConfig.parse(args).toOption();
       if (config.exists(c -> c.bsp().value())) bspMode = true;
-      if (config.exists(
-          c -> c.interactive().value() || c.noServer().value() || c.noDaemon().value()))
-        runNoDaemon = true;
+      if (config.exists(c -> c.noDaemonEnabled() > 0)) runNoDaemon = true;
     }
 
     // Ensure that if we're running in BSP mode we don't start a daemon.
@@ -71,6 +69,8 @@ public class MillLauncherMain {
                   + "' environment variable. This will reduce the CPU usage of the BSP server but"
                   + " make it less responsive.");
     }
+
+    coursier.Resolve.proxySetup();
 
     String[] runnerClasspath = MillProcessLauncher.cachedComputedValue0(
         outMode,

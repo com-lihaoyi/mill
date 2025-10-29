@@ -1,0 +1,16 @@
+package build.utilities
+
+import mill.javalib.*
+import mill.javalib.errorprone.*
+import millbuild.*
+
+object `package` extends ErrorProneModule with ProjectBaseModule {
+
+  def moduleDeps = super.moduleDeps ++ Seq(build.list)
+
+  def errorProneVersion = "2.28.0"
+
+  def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
+    Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
+
+}

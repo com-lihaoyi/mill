@@ -10,13 +10,13 @@ flags or options:
    These are configured using xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation and Execution Flags]
 
 3. The Mill build tool process, e.g. `./mill --jobs 10`. These can be passed directly after the
-   `./mill` executable name, or set in your xref:cli/build-header.adoc[] or `.mill-opts` file as shown below in
-   xref:cli/build-header.adoc#_repo_level_mill_options[Repo-Level Mill Options]
+   `./mill` executable name, or set in your xref:cli/build-header.adoc[] or `.mill-opts` file as shown  in
+   xref:cli/build-header.adoc#_mill_opts[Repo-Level Mill Options]
 
 4. The JVM running the Mill build tool process, which may take flags. e.g.
    `java -Xss10m -Xmx10G`. These are passed via `JAVA_OPTs`, your  xref:cli/build-header.adoc[]
    or via a `.mill-jvm-opts` file
-   as shown below in xref:cli/build-header.adoc#_running_mill_with_custom_jvm_options[Mill with custom JVM options]
+   as shown in xref:cli/build-header.adoc#_mill_jvm_opts[Mill with custom JVM options]
 
 This can get confusing, so when you want to pass some flags to a Mill task, to Mill, or to
 the JVM (which one?) be clear who you want to pass the flags to so you can ensure they go
@@ -26,13 +26,13 @@ to the right place.
 
 To see a cheat sheet of all the command line flags that Mill supports, you can use `./mill --help`:
 
-[source]
+[,console]
 ----
-$ ./mill --help
-Mill Build Tool, version 0.13.0-M1
+> mill --help
+Mill Build Tool, version 1.1.0-SNAPSHOT
 Usage: mill [options] task [task-options] [+ task ...]
 
-task cheat sheet:
+Task cheat sheet:
   mill resolve _                 # see all top-level tasks and modules
   mill resolve __.compile        # see all `compile` tasks in any module (recursively)
 
@@ -56,39 +56,52 @@ task cheat sheet:
   mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
   mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
 
-options:
-  -D --define <k=v>    Define (or overwrite) a system property.
-  --allow-positional   Allows command args to be passed positionally without `--arg` by default
-  -b --bell            Ring the bell once if the run completes successfully, twice if it fails.
-  --bsp                Enable BSP server mode.
-  --color <bool>       Toggle colored output; by default enabled only if the console is interactive
-                       and NO_COLOR environment variable is not set
-  -d --debug           Show debug output on STDOUT
-  --disable-callgraph  Disables fine-grained invalidation of tasks based on analyzing code changes.
-                       If passed, you need to manually run `clean` yourself after build changes.
-  --help               Print this help message and exit.
-  -i --interactive     Run Mill in interactive mode, suitable for opening REPLs and taking user
-                       input. This implies --no-server. Must be the first argument.
-  --import <str>       Additional ivy dependencies to load into mill, e.g. plugins.
-  -j --jobs <str>      The number of parallel threads. It can be an integer e.g. `5` meaning 5
-                       threads, an expression e.g. `0.5C` meaning half as many threads as available
-                       cores, or `C-2` meaning 2 threads less than the number of cores. `1` disables
-                       parallelism and `0` (the default) uses 1 thread per core.
-  -k --keep-going      Continue build, even after build failures.
-  --meta-level <int>   Select a meta-level to run the given tasks. Level 0 is the main project in
-                       `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc.
-  --no-server          Run without a background daemon. Must be the first argument.
-  --offline            Try to work offline. This tells modules that support it to work offline and
-                       avoid any access to the internet. This is on a best effort basis. There are
-                       currently no guarantees that modules don't attempt to fetch remote sources.
-  -s --silent          Make ivy logs during script import resolution go silent instead of printing
-  --ticker <bool>      Enable ticker log (e.g. short-lived prints of stages and progress bars).
-  -v --version         Show mill version information and exit.
-  -w --watch           Watch and re-run the given tasks when when their inputs change.
-  task <str>...        The name or a pattern of the tasks(s) you want to build.
+Options:
+  -D --define <k=v>        Define (or overwrite) a system property.
+  --allow-positional       Allows command args to be passed positionally without `--arg` by default
+  -b --bell                Ring the bell once if the run completes successfully, twice if it fails.
+  --color <bool>           Toggle colored output; by default enabled only if the console is
+                           interactive and NO_COLOR environment variable is not set
+  -d --debug               Show debug output on STDOUT
+  --help                   Print this help message and exit.
+  --help-advanced          Print a internal or advanced command flags not intended for common usage
+  -i --interactive         Run Mill in interactive mode, suitable for opening REPLs and taking user
+                           input. Identical to --no-daemon. Must be the first argument.
+  --import <str>           Additional ivy dependencies to load into mill, e.g. plugins.
+  -j --jobs <str>          The number of parallel threads. It can be an integer e.g. `5` meaning 5
+                           threads, an expression e.g. `0.5C` meaning half as many threads as
+                           available cores, or `C-2` meaning 2 threads less than the number of
+                           cores. `1` disables parallelism and `0` (the default) uses 1 thread per
+                           core.
+  --jshell                 Open a JShell REPL with the classpath of the meta-level 1 build module
+                           (mill-build/). This is useful for interactively testing and debugging
+                           your build logic. Implies options `--meta-level 1` and `--no-server`.
+  -k --keep-going          Continue build, even after build failures.
+  --meta-level <int>       Select a meta-level to run the given tasks. Level 0 is the main project
+                           in `build.mill`, level 1 the first meta-build in `mill-build/build.mill`,
+                           etc.
+  --no-daemon              Run without a long-lived background daemon. Must be the first argument.
+  --no-filesystem-checker  Globally disables the checks that prevent you from reading and writing to
+                           disallowed files or folders during evaluation. Useful as an escape hatch
+                           in case you desperately need to do something unusual and you are willing
+                           to take the risk
+  --notify-watch <bool>    Use filesystem based file watching instead of polling based one (defaults
+                           to true).
+  --offline                Try to work offline. This tells modules that support it to work offline
+                           and avoid any access to the internet. This is on a best effort basis.
+                           There are currently no guarantees that modules don't attempt to fetch
+                           remote sources.
+  --repl                   Open a Scala REPL with the classpath of the meta-level 1 build module
+                           (mill-build/). Implies options `--meta-level 1` and `--no-server`.
+  --tab-complete           Runs Mill in tab-completion mode
+  --ticker <bool>          Enable or disable the ticker log, which provides information on running
+                           tasks and where each log line came from
+  -v --version             Show mill version information and exit.
+  -w --watch               Watch and re-run the given tasks when when their inputs change.
+  task <str>...            The name or a query of the tasks(s) you want to build.
 
-Please see the documentation at https://mill-build.org for more details
-
+Please see the documentation at https://mill-build.org for more details,
+or `./mill --help-advanced` for a list of advanced flags
 ----
 
 == Notable Flags
@@ -157,6 +170,6 @@ Example: Use up to 4 parallel threads to compile all modules:
 
 You can also set Mill's parallelism to some multiple of the number of cores, e.g.
 `-j0.5C` to use half as many threads as cores, or `-j2C` to use twice as many threads as cores.
-These can be useful as xref:cli/build-header.adoc#_repo_level_mill_options[] to configure an appropriate level
+These can be useful as xref:cli/build-header.adoc#_mill_opts[] to configure an appropriate level
 of parallelism that scales based on the number of cores available (which might differ
 between e.g. developer laptops and CI machines)
