@@ -17,6 +17,7 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
         .linesIterator
         .filter(_.startsWith("[error] "))
         .toVector
+        .map(_.replace('\\', '/'))
 
       // For now some error messages still show generated/mangled code; not ideal, but it'll do
       assertGoldenLiteral(
