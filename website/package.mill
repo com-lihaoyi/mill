@@ -16,6 +16,7 @@ object `package` extends mill.Module {
    * API documentation generated with ScalaDoc.
    */
   object apidocs extends UnidocModule {
+    def dummy = Task{PathRef(Task.dest)}
     def unidocDocumentTitle = Task { "Mill" }
 
     def unidocCompileClasspath =
@@ -389,25 +390,25 @@ object `package` extends mill.Module {
     }
   }
   def githubPages: T[PathRef] = Task {
-    generatePages(authorMode = false).apply().apply(oldDocSources().map(_.path))
+    generatePages(false, apidocs.unidocSite).apply().apply(oldDocSources().map(_.path))
   }
 
   def localPages: T[PathRef] = Task {
-    val pages = generatePages(authorMode = true).apply().apply(oldDocSources().map(_.path))
+    val pages = generatePages(true, apidocs.unidocLocal).apply().apply(oldDocSources().map(_.path))
     Task.log.streams.out.println(
       s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
     pages
   }
   def fastPages: T[PathRef] = Task {
-    val pages = generatePages(authorMode = true).apply().apply(Nil)
+    val pages = generatePages(true, apidocs.dummy).apply().apply(Nil)
     Task.log.streams.out.println(
       s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
     pages
   }
 
-  def generatePages(authorMode: Boolean) = Task.Anon { (extraSources: Seq[os.Path]) =>
+  def generatePages(authorMode: Boolean, apiDocTask: Task[PathRef]) = Task.Anon { (extraSources: Seq[os.Path]) =>
     Task.log.streams.err.println("Creating Antora playbook ...")
     // dependency to sources
     source()
@@ -450,7 +451,7 @@ object `package` extends mill.Module {
     }
 
     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
-    val unidocSrc = if (authorMode) apidocs.unidocLocal().path else apidocs.unidocSite().path
+    val unidocSrc = apiDocTask().path
     Task.log.streams.err.println(s"Copying API docs from ${unidocSrc} ...")
     os.copy(unidocSrc, siteDir / "api/latest", createFolders = true)
 
