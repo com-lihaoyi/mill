@@ -16,7 +16,7 @@ object `package` extends mill.Module {
    * API documentation generated with ScalaDoc.
    */
   object apidocs extends UnidocModule {
-    def dummy = Task{PathRef(Task.dest)}
+    def dummy = Task { PathRef(Task.dest) }
     def unidocDocumentTitle = Task { "Mill" }
 
     def unidocCompileClasspath =
@@ -394,7 +394,7 @@ object `package` extends mill.Module {
   }
 
   def localPages: T[PathRef] = Task {
-    val pages = generatePages(true, apidocs.unidocLocal).apply().apply(oldDocSources().map(_.path))
+    val pages = generatePages(true, apidocs.unidocLocal).apply().apply(Nil)
     Task.log.streams.out.println(
       s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
@@ -408,55 +408,56 @@ object `package` extends mill.Module {
     pages
   }
 
-  def generatePages(authorMode: Boolean, apiDocTask: Task[PathRef]) = Task.Anon { (extraSources: Seq[os.Path]) =>
-    Task.log.streams.err.println("Creating Antora playbook ...")
-    // dependency to sources
-    source()
-    val docSite = Task.dest
-    val playbook = docSite / "antora-playbook.yml"
-    val siteDir = docSite / "site"
-    os.write(
-      target = playbook,
-      data = githubPagesPlaybookText(authorMode).apply().apply(extraSources),
-      createFolders = true
-    )
-    Task.log.streams.err.println("Running Antora ...")
-    runAntora(
-      npmDir = npmBase(),
-      workDir = docSite,
-      args = Seq(
-        playbook.last,
-        "--to-dir",
-        siteDir.toString(),
-        "--attribute",
-        "page-pagination"
-      ) ++
-        Option.when(!authorMode)("--fetch").toSeq
-    )
-    os.write(siteDir / ".nojekyll", "")
+  def generatePages(authorMode: Boolean, apiDocTask: Task[PathRef]) =
+    Task.Anon { (extraSources: Seq[os.Path]) =>
+      Task.log.streams.err.println("Creating Antora playbook ...")
+      // dependency to sources
+      source()
+      val docSite = Task.dest
+      val playbook = docSite / "antora-playbook.yml"
+      val siteDir = docSite / "site"
+      os.write(
+        target = playbook,
+        data = githubPagesPlaybookText(authorMode).apply().apply(extraSources),
+        createFolders = true
+      )
+      Task.log.streams.err.println("Running Antora ...")
+      runAntora(
+        npmDir = npmBase(),
+        workDir = docSite,
+        args = Seq(
+          playbook.last,
+          "--to-dir",
+          siteDir.toString(),
+          "--attribute",
+          "page-pagination"
+        ) ++
+          Option.when(!authorMode)("--fetch").toSeq
+      )
+      os.write(siteDir / ".nojekyll", "")
 
-    // sanitize devAntora source URLs
-    Task.log.streams.err.println("Sanitizing links ...")
-    sanitizeDevUrls(
-      siteDir,
-      devAntoraSources().path,
-      BuildCtx.workspaceRoot / "docs",
-      mill.api.BuildCtx.workspaceRoot
-    )
+      // sanitize devAntora source URLs
+      Task.log.streams.err.println("Sanitizing links ...")
+      sanitizeDevUrls(
+        siteDir,
+        devAntoraSources().path,
+        BuildCtx.workspaceRoot / "docs",
+        mill.api.BuildCtx.workspaceRoot
+      )
 
-    for (p <- os.walk(siteDir) if p.ext == "html") {
-      // Manually un-substitute ellipses in normal text to reverse the antora unicode
-      // substitution, because the font for the unicode ellipses looks very bad
-      os.write.over(p, os.read(p).replace("…", "..."))
+      for (p <- os.walk(siteDir) if p.ext == "html") {
+        // Manually un-substitute ellipses in normal text to reverse the antora unicode
+        // substitution, because the font for the unicode ellipses looks very bad
+        os.write.over(p, os.read(p).replace("…", "..."))
+      }
+
+      // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
+      val unidocSrc = apiDocTask().path
+      Task.log.streams.err.println(s"Copying API docs from ${unidocSrc} ...")
+      os.copy(unidocSrc, siteDir / "api/latest", createFolders = true)
+
+      PathRef(siteDir)
     }
-
-    // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
-    val unidocSrc = apiDocTask().path
-    Task.log.streams.err.println(s"Copying API docs from ${unidocSrc} ...")
-    os.copy(unidocSrc, siteDir / "api/latest", createFolders = true)
-
-    PathRef(siteDir)
-  }
 
   def sanitizeDevUrls(
       dir: os.Path,
@@ -501,7 +502,7 @@ object `package` extends mill.Module {
 
   def allLinksAndAnchors
       : T[IndexedSeq[(os.Path, Seq[(String, String)], Seq[(String, String)], Set[String])]] = Task {
-    val base = fastPages().path
+    val base = localPages().path
     val validExtensions = Set("html", "scala")
     for (path <- os.walk(base) if validExtensions(path.ext))
       yield {
