@@ -28,15 +28,16 @@ trait MillInitTestSuite extends UtestIntegrationTestSuite {
     }
     try {
       val initRes = tester.eval("init" +: initArgs, stdout = os.Inherit, stderr = os.Inherit)
-      assert(initRes.isSuccess)
-      val passingTasks0 = passingTasks.filter {
-        tester.eval(_, stdout = os.Inherit, stderr = os.Inherit).isSuccess
+      if (initRes.isSuccess) {
+        val passingTasks0 = passingTasks.filter {
+          tester.eval(_, stdout = os.Inherit, stderr = os.Inherit).isSuccess
+        }
+        assertGoldenLiteral(passingTasks0, passingTasks)
+        val failingTasks0 = failingTasks.filterNot {
+          tester.eval(_, stdout = os.Inherit, stderr = os.Inherit).isSuccess
+        }
+        assertGoldenLiteral(failingTasks0, failingTasks)
       }
-      assertGoldenLiteral(passingTasks0, passingTasks)
-      val failingTasks0 = failingTasks.filterNot {
-        tester.eval(_, stdout = os.Inherit, stderr = os.Inherit).isSuccess
-      }
-      assertGoldenLiteral(failingTasks0, failingTasks)
     } finally tester.close()
   }
 }

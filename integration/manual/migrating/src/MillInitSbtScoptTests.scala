@@ -5,11 +5,12 @@ import utest.*
 object MillInitSbtScoptTests extends MillInitTestSuite {
   def tests = Tests {
     test - checkImport(
+      // sbt 1.5.2
       "https://github.com/scopt/scopt.git",
       "v4.1.0",
-      passingTasks = Seq("native[2.13.8].compile"),
-      // no test module since verify framework is unsupported
-      failingTasks = Seq("native[2.13.8].test")
+      initArgs = Seq("--sbt-jvm-id", "11"),
+      passingTasks = Seq("jvm[2.11.12].compile"),
+      failingTasks = Seq("jvm[2.12.16].compile", "jvm[2.13.8].compile", "jvm[3.1.3].compile")
     )
   }
 }
