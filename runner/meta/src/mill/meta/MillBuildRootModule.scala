@@ -120,6 +120,7 @@ trait MillBuildRootModule()(using
       CodeGen.generateWrappedAndSupportSources(
         rootModuleInfo.projectRoot / os.up,
         parsed.seenScripts,
+        parsed.seenPkgStatements,
         wrapped,
         support,
         rootModuleInfo.topLevelProjectRoot,
@@ -131,11 +132,7 @@ trait MillBuildRootModule()(using
   }
 
   def millBuildRootModuleResult = Task {
-    Tuple3(
-      runClasspath(),
-      compile().classes,
-      codeSignatures()
-    )
+    Tuple3(runClasspath(), compile().classes, codeSignatures())
   }
 
   def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {

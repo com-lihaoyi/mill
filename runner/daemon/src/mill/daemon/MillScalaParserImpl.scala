@@ -35,6 +35,7 @@ object MillScalaParserImpl extends MillScalaParser {
       rawCode: String,
       fileName: String
   ): Either[String, (String, Seq[String], Seq[String])] = {
+    mill.constants.DebugLog.println("rawCode " + pprint.apply(rawCode))
     val source = SourceFile.virtual(fileName, rawCode)
     def mergeErrors(errors: List[String]): String =
       s"$fileName failed to parse:" + System.lineSeparator + errors.mkString(System.lineSeparator)
@@ -56,7 +57,7 @@ object MillScalaParserImpl extends MillScalaParser {
           if (!trees.head.startPos.exists) ""
           else new String(source.file.toByteArray).take(trees.head.startPos.start)
       }
-
+      mill.constants.DebugLog.println("pkgs " + pprint.apply(pkgs))
       (prefix, pkgs, stmts)
     }
   }

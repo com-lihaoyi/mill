@@ -18,6 +18,7 @@ object CodeGen {
   def generateWrappedAndSupportSources(
       projectRoot: os.Path,
       allScriptCode: Map[os.Path, String],
+      allPackageStatements: Map[os.Path, String],
       wrappedDest: os.Path,
       supportDest: os.Path,
       millTopLevelProjectRoot: os.Path,
@@ -66,8 +67,6 @@ object CodeGen {
         }
         .mkString("\n  ")
 
-      val pkg = pkgSelector0(Some(CGConst.globalPackagePrefix), None)
-
       val aliasImports = Seq(
         // Provide `build` as an alias to the root `build_.package_`, since from the user's
         // perspective it looks like they're writing things that live in `package build`,
@@ -75,9 +74,16 @@ object CodeGen {
         "import build_.{package_ => build}"
       ).mkString("\n")
 
-      val scriptCode = allScriptCode(scriptPath)
+      val strippedPackageStatementComment = allPackageStatements.get(scriptPath) match {
+        // Add another comment after the marker comment to substitute any package statement
+        // that was stripped during codegen and ensure the offsets line up properly
+        case Some(s) => "\n//" + s.drop(2)
+        case None => ""
+      }
 
-      val markerComment = s"///SOURCE_CODE_START:$scriptPath"
+      val markerComment = s"///SOURCE_CODE_START:$scriptPath" + strippedPackageStatementComment
+
+
 
       val siblingScripts = scriptSources
         .filter(_ != scriptPath)
@@ -195,19 +201,6 @@ object CodeGen {
           ) break()
 
           val scriptCode = allScriptCode(scriptPath)
-
-          val markerComment =
-            s"""//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
-               |//SOURCECODE_ORIGINAL_CODE_START_MARKER""".stripMargin
-
-          val siblingScripts = scriptSources
-            .filter(_ != scriptPath)
-            .filter(p => (p / os.up) == (scriptPath / os.up))
-            .map(_.last.split('.').head + "_")
-
-          val importSiblingScripts = siblingScripts
-            .filter(s => s != "build_" && s != "package_")
-            .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
 
           if (isBuildScript) {
             os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
