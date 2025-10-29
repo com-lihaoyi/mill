@@ -347,6 +347,7 @@ object CodeGen {
           case None => ()
         }
 
+        var generatedStub: String = ""
         newScriptCode = objectData.parent.applyTo(
           newScriptCode,
           if (objectData.parent.text == null) {
@@ -366,14 +367,21 @@ object CodeGen {
               else ", " // no separator found, just use `,` by default
             }
 
-            newParent + sep + objectData.parent.text
+            val stub = "_MillRootModuleParents"
+              .take(objectData.parent.text.length)
+              .padTo(objectData.parent.text.length, ' ')
+
+            generatedStub = s"class $stub extends $newParent$sep${objectData.parent.text}"
+
+            stub
           }
         )
 
         newScriptCode = objectData.name.applyTo(newScriptCode, CGConst.wrapperObjectName)
-        newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
+        newScriptCode = objectData.obj.applyTo(newScriptCode, "class")
 
         s"""$headerCode
+           |$generatedStub
            |$markerComment
            |$newScriptCode
            |""".stripMargin
