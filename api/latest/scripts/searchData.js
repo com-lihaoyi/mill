@@ -3711,7 +3711,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/main/sbt/BuildInfo$.html#sbtVersion-0","e":false,"i":"","n":"sbtVersion","t":"sbtVersion: String","d":"mill.main.sbt.BuildInfo","k":"val","x":""},
 {"l":"mill/main/sbt/SbtBuildGenMain$.html#","e":false,"i":"","n":"SbtBuildGenMain","t":"SbtBuildGenMain","d":"mill.main.sbt","k":"object","x":""},
 {"l":"mill/main/sbt/SbtBuildGenMain$.html#main-913","e":false,"i":"","n":"main","t":"main(args: Array[String]): Unit","d":"mill.main.sbt.SbtBuildGenMain","k":"def","x":""},
-{"l":"mill/main/sbt/SbtBuildGenMain$.html#runImport-9c9","e":false,"i":"","n":"runImport","t":"runImport(merge: Flag, noMeta: Flag, customSbt: Option[String]): Unit","d":"mill.main.sbt.SbtBuildGenMain","k":"def","x":""},
+{"l":"mill/main/sbt/SbtBuildGenMain$.html#runImport-bee","e":false,"i":"","n":"runImport","t":"runImport(merge: Flag, noMeta: Flag, customSbt: Option[String], sbtJvmId: String): Unit","d":"mill.main.sbt.SbtBuildGenMain","k":"def","x":""},
 {"l":"mill/main/sbt/SbtModuleSpec.html#","e":false,"i":"","n":"SbtModuleSpec","t":"SbtModuleSpec(moduleType: SbtModuleType, module: ModuleSpec)","d":"mill.main.sbt","k":"class","x":""},
 {"l":"mill/main/sbt/SbtModuleSpec$.html#","e":false,"i":"","n":"SbtModuleSpec","t":"SbtModuleSpec","d":"mill.main.sbt","k":"object","x":""},
 {"l":"mill/main/sbt/SbtModuleSpec$.html#rw-0","e":false,"i":"","n":"rw","t":"rw: ReadWriter[SbtModuleSpec]","d":"mill.main.sbt.SbtModuleSpec","k":"val","x":""},
