@@ -1,17 +1,42 @@
 package mill.api.internal
 
+import collection.mutable.LinkedHashSet
 import scala.collection.mutable
+import scala.util.DynamicVariable
 import scala.quoted.*
 
 trait Cacher extends mill.moduledefs.Cacher {
   private lazy val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Any]
 
   protected def cachedTask[T](t: => T)(using c: sourcecode.Enclosing): T = synchronized {
-    cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
+    if (Cacher.taskEvaluationStack.value.contains((c, this))) {
+      sys.error(
+        "Circular task dependency detected:\n" +
+          (Cacher.taskEvaluationStack.value.toList ++ Seq((c, this)))
+            .map{case (c, o) =>
+              val taskName = c.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
+              o.toString match{
+                case "" => taskName
+                case s => s + "." + taskName
+              }
+            }
+            .mkString("\ndepends on: ")
+      )
+    }
+
+    try {
+      Cacher.taskEvaluationStack.value.add((c, this))
+      cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
+    } finally{
+      Cacher.taskEvaluationStack.value.remove((c, this))
+    }
   }
 }
 
 private[mill] object Cacher {
+  // Use a LinkedHashSet for fast contains checking while preserving insertion order
+  private[mill] val taskEvaluationStack =
+    DynamicVariable[LinkedHashSet[(sourcecode.Enclosing, Any)]](LinkedHashSet())
   private[mill] def withMacroOwner[T](using Quotes)(op: quotes.reflect.Symbol => T): T = {
     import quotes.reflect.*
     // In Scala 3, the top level splice of a macro is owned by a symbol called "macro" with the macro flag set,
