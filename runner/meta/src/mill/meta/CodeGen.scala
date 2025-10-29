@@ -76,6 +76,7 @@ object CodeGen {
       val strippedPackageStatementComment = allPackageStatements.get(scriptPath) match {
         // Add another comment after the marker comment to substitute any package statement
         // that was stripped during codegen and ensure the offsets line up properly
+        case None => "\n"
         case Some("package ") => "\n"
         case Some(s) => "\n//" + s.drop(2)
       }
