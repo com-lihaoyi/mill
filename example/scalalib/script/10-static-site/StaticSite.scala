@@ -3,7 +3,7 @@
 //| - com.atlassian.commonmark:commonmark:0.13.1
 import scalatags.Text.all._
 
-def main(args: Array[String]): Unit = {
+@mainargs.main def main() = {
   val postInfo = os
     .list(os.pwd / "post")
     .map { p =>

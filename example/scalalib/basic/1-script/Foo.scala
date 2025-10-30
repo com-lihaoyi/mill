@@ -13,5 +13,3 @@ def main(text: String) = {
   println("Jvm Version: " + System.getProperty("java.version"))
   println(generateHtml(text))
 }
-
-def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args)

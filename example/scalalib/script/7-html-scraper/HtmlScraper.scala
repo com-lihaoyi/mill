@@ -21,4 +21,3 @@ def main(startArticle: String, depth: Int) = {
   pprint.log(seen)
 }
 
-def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args)

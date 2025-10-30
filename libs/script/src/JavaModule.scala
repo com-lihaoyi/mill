@@ -26,15 +26,12 @@ object JavaModule {
 
     override def moduleDeps = scriptConfig.moduleDeps.map(_.asInstanceOf[mill.javalib.JavaModule])
 
-    override def sources =
-      if (os.isDir(scriptConfig.simpleModulePath)) super.sources else Task.Sources()
+    override def sources = Task.Sources()
 
     /** The script file itself */
     def scriptSource = Task.Source(scriptConfig.simpleModulePath)
 
-    override def allSources =
-      if (os.isDir(scriptConfig.simpleModulePath)) super.allSources()
-      else sources() ++ Seq(scriptSource())
+    override def allSources = Seq(scriptSource())
 
     /**
      * Whether or not to include the default `mvnDeps` that are bundled with single-file scripts.

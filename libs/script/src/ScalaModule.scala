@@ -13,6 +13,26 @@ class ScalaModule(val scriptConfig: ScriptModule.Config) extends ScalaModule.Bas
     mvn"com.lihaoyi::requests:${mill.script.BuildInfo.requestsVersion}",
     mvn"com.lihaoyi::mainargs:${mill.script.BuildInfo.mainargsVersion}"
   )
+
+  override def allSourceFiles = Task{
+    val original = scriptSource().path
+    val modified = Task.dest / original.last
+    os.write(
+      modified,
+       os.read(original) +
+         System.lineSeparator +
+         """def millScriptMainSelf = this; object MillScriptMain {; def main(args: Array[String]): Unit = mainargs.Parser(millScriptMainSelf).runOrExit(args)}""".stripMargin
+    )
+
+    Seq(PathRef(modified))
+  }
+
+  override def allLocalMainClasses = Task{
+    super.allLocalMainClasses() match{
+      case Seq(single) => Seq(single)
+      case multiple => multiple.filter(!_.endsWith("MillScriptMain"))
+    }
+  }
 }
 
 object ScalaModule {

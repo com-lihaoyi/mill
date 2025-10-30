@@ -1,3 +1,5 @@
 //| moduleDeps: [bar]
 
-def main(args: Array[String]): Unit = println(bar.Bar.generateHtml(args(0)))
+def main(args: Array[String]) = {
+  println(bar.Bar.generateHtml(args(0)))
+}

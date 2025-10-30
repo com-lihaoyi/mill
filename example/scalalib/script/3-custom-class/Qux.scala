@@ -8,6 +8,6 @@ def getLineCount() = {
     .mkString
 }
 
-def main(args: Array[String]): Unit = {
+@mainargs.main def main() = {
   println(s"Line Count: ${getLineCount()}")
 }
