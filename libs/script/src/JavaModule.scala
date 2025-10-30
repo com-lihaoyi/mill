@@ -1,7 +1,7 @@
 package mill.script
 import mill.*
 import mill.api.{Discover, ExternalModule}
-import mill.javalib.{TestModule, Dep}
+import mill.javalib.TestModule
 
 class JavaModule(val scriptConfig: ScriptModule.Config) extends JavaModule.Base {
   override lazy val millDiscover = Discover[this.type]
@@ -26,33 +26,11 @@ object JavaModule {
 
     override def moduleDeps = scriptConfig.moduleDeps.map(_.asInstanceOf[mill.javalib.JavaModule])
 
-    override def sources =
-      if (os.isDir(scriptConfig.simpleModulePath)) super.sources else Task.Sources()
+    override def sources = Task.Sources()
 
     /** The script file itself */
     def scriptSource = Task.Source(scriptConfig.simpleModulePath)
 
-    override def allSources =
-      if (os.isDir(scriptConfig.simpleModulePath)) super.allSources()
-      else sources() ++ Seq(scriptSource())
-
-    /**
-     * Whether or not to include the default `mvnDeps` that are bundled with single-file scripts.
-     */
-    def includDefaultScriptMvnDeps: T[Boolean] = true
-
-    /**
-     * The default `mvnDeps` for single-file scripts. For Scala scripts that means MainArgs,
-     * uPickle, Requests-Scala, OS-Lib, and PPrint. For Java and Kotlin scripts it is currently
-     * empty
-     */
-    def defaultScriptMvnDeps = Task {
-      Seq.empty[Dep]
-    }
-
-    override def mandatoryMvnDeps = Task {
-      super.mandatoryMvnDeps() ++
-        (if (includDefaultScriptMvnDeps()) defaultScriptMvnDeps() else Seq.empty[Dep])
-    }
+    override def allSources = Seq(scriptSource())
   }
 }

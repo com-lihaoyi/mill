@@ -3,56 +3,79 @@ import mill.*
 import mill.api.{Discover, ExternalModule}
 import mill.javalib.{TestModule, DepSyntax, Dep}
 
-class ScalaModule(val scriptConfig: ScriptModule.Config) extends ScalaModule.Base {
+class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig) {
   override lazy val millDiscover = Discover[this.type]
 
-  override def defaultScriptMvnDeps = Seq(
+  override def mandatoryMvnDeps = super.mandatoryMvnDeps() ++ Seq(
     mvn"com.lihaoyi::pprint:${mill.script.BuildInfo.pprintVersion}",
     mvn"com.lihaoyi::os-lib:${mill.script.BuildInfo.osLibVersion}",
     mvn"com.lihaoyi::upickle:${mill.script.BuildInfo.upickleVersion}",
     mvn"com.lihaoyi::requests:${mill.script.BuildInfo.requestsVersion}",
     mvn"com.lihaoyi::mainargs:${mill.script.BuildInfo.mainargsVersion}"
   )
+
+  override def allSourceFiles = Task {
+    val original = scriptSource().path
+    val modified = Task.dest / original.last
+    os.write(
+      modified,
+      os.read(original) +
+        System.lineSeparator +
+        """type main = mainargs.main; def _millScriptMainSelf = this; object _MillScriptMain { def main(args: Array[String]): Unit = mainargs.Parser(_millScriptMainSelf).runOrExit(args)}""".stripMargin
+    )
+
+    Seq(PathRef(modified))
+  }
+
+  override def allLocalMainClasses = Task {
+    super.allLocalMainClasses() match {
+      case Seq(single) => Seq(single)
+      case multiple => multiple.filter(!_.endsWith("_MillScriptMain"))
+    }
+  }
 }
 
 object ScalaModule {
-  class TestNg(scriptConfig: ScriptModule.Config) extends ScalaModule(scriptConfig)
+  class Raw(val scriptConfig: ScriptModule.Config) extends ScalaModule.Base {
+    override lazy val millDiscover = Discover[this.type]
+  }
+  class TestNg(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig)
       with TestModule.TestNg with mill.scalalib.ScalaModule.ScalaTests0 {
     override lazy val millDiscover = Discover[this.type]
   }
-  class Junit4(scriptConfig: ScriptModule.Config) extends ScalaModule(scriptConfig)
+  class Junit4(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig)
       with TestModule.Junit4 with mill.scalalib.ScalaModule.ScalaTests0 {
     override lazy val millDiscover = Discover[this.type]
   }
-  class Junit5(scriptConfig: ScriptModule.Config) extends ScalaModule(scriptConfig)
+  class Junit5(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig)
       with TestModule.Junit5 with mill.scalalib.ScalaModule.ScalaTests0 {
     override lazy val millDiscover = Discover[this.type]
   }
-  class ScalaTest(scriptConfig: ScriptModule.Config) extends ScalaModule(scriptConfig)
+  class ScalaTest(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig)
       with TestModule.ScalaTest with mill.scalalib.ScalaModule.ScalaTests0 {
     override lazy val millDiscover = Discover[this.type]
   }
-  class Specs2(scriptConfig: ScriptModule.Config) extends ScalaModule(scriptConfig)
+  class Specs2(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig)
       with TestModule.Specs2 with mill.scalalib.ScalaModule.ScalaTests0 {
     override lazy val millDiscover = Discover[this.type]
   }
-  class Utest(scriptConfig: ScriptModule.Config) extends ScalaModule(scriptConfig)
+  class Utest(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig)
       with TestModule.Utest with mill.scalalib.ScalaModule.ScalaTests0 {
     override lazy val millDiscover = Discover[this.type]
   }
-  class Munit(scriptConfig: ScriptModule.Config) extends ScalaModule(scriptConfig)
+  class Munit(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig)
       with TestModule.Munit with mill.scalalib.ScalaModule.ScalaTests0 {
     override lazy val millDiscover = Discover[this.type]
   }
-  class Weaver(scriptConfig: ScriptModule.Config) extends ScalaModule(scriptConfig)
+  class Weaver(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig)
       with TestModule.Weaver with mill.scalalib.ScalaModule.ScalaTests0 {
     override lazy val millDiscover = Discover[this.type]
   }
-  class ZioTest(scriptConfig: ScriptModule.Config) extends ScalaModule(scriptConfig)
+  class ZioTest(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig)
       with TestModule.ZioTest with mill.scalalib.ScalaModule.ScalaTests0 {
     override lazy val millDiscover = Discover[this.type]
   }
-  class ScalaCheck(scriptConfig: ScriptModule.Config) extends ScalaModule(scriptConfig)
+  class ScalaCheck(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig)
       with TestModule.ScalaCheck with mill.scalalib.ScalaModule.ScalaTests0 {
     override lazy val millDiscover = Discover[this.type]
   }

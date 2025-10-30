@@ -13,10 +13,10 @@
 
 > ./mill Qux.scala
 ...
-Line Count: 13
+Line Count: 15
 
 > ./mill show Qux.scala:lineCount
-13
+15
 */
 //// SNIPPET:END
 

@@ -200,6 +200,10 @@
       },
       "modules": [
         {
+          "name": "org.scala-lang:scala3-library_3",
+          "version": "<scala3-version>"
+        },
+        {
           "name": "com.lihaoyi:pprint_3",
           "version": "0.9.3"
         },
@@ -220,12 +224,12 @@
           "version": "0.7.7"
         },
         {
-          "name": "org.scala-lang:scala3-library_3",
-          "version": "<scala3-version>"
-        },
-        {
           "name": "com.lihaoyi:scalatags_3",
           "version": "0.12.0"
+        },
+        {
+          "name": "org.scala-lang:scala-library",
+          "version": "<scala-version>"
         },
         {
           "name": "com.lihaoyi:fansi_3",
@@ -262,10 +266,6 @@
         {
           "name": "org.scala-lang.modules:scala-collection-compat_3",
           "version": "2.12.0"
-        },
-        {
-          "name": "org.scala-lang:scala-library",
-          "version": "<scala-version>"
         },
         {
           "name": "com.lihaoyi:upickle-core_3",
@@ -349,6 +349,10 @@
       },
       "modules": [
         {
+          "name": "org.scala-lang:scala3-library_3",
+          "version": "<scala3-version>"
+        },
+        {
           "name": "com.lihaoyi:pprint_3",
           "version": "0.9.3"
         },
@@ -369,12 +373,12 @@
           "version": "0.7.7"
         },
         {
-          "name": "org.scala-lang:scala3-library_3",
-          "version": "<scala3-version>"
-        },
-        {
           "name": "com.lihaoyi:scalatags_3",
           "version": "0.12.0"
+        },
+        {
+          "name": "org.scala-lang:scala-library",
+          "version": "<scala-version>"
         },
         {
           "name": "com.lihaoyi:fansi_3",
@@ -411,10 +415,6 @@
         {
           "name": "org.scala-lang.modules:scala-collection-compat_3",
           "version": "2.12.0"
-        },
-        {
-          "name": "org.scala-lang:scala-library",
-          "version": "<scala-version>"
         },
         {
           "name": "com.lihaoyi:upickle-core_3",

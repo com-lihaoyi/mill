@@ -15,7 +15,7 @@ def fetchLinks(title: String): Seq[String] = {
   } yield link("title").str
 }
 
-@mainargs.main
+@main
 def main(startArticle: String, depth: Int) = {
   var seen = Set(startArticle)
   var current = Set(startArticle)
@@ -27,5 +27,3 @@ def main(startArticle: String, depth: Int) = {
   pprint.log(seen)
   os.write(os.pwd / "fetched.json", upickle.stream(seen, indent = 4))
 }
-
-def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args)
