@@ -50,7 +50,7 @@ final class EvaluatorImpl private[mill] (
     scriptModuleResolver
   )
 
-  private[mill] def resolveSingleModule(s: String): Option[mill.Module] = {
+  override private[mill] def resolveScriptModuleDep(s: String): Option[mill.Module] = {
     resolveModulesOrTasks(Seq(s), SelectMode.Multi)
       .toOption
       .toSeq
@@ -75,7 +75,7 @@ final class EvaluatorImpl private[mill] (
         selectMode,
         allowPositionalCommandArgs,
         resolveToModuleTasks,
-        scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule, _, _)
+        scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep, _, _)
       )
     }
   }
@@ -92,7 +92,7 @@ final class EvaluatorImpl private[mill] (
         selectMode,
         allowPositionalCommandArgs,
         resolveToModuleTasks,
-        scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule, _, _)
+        scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep, _, _)
       )
     }
   }
@@ -115,7 +115,7 @@ final class EvaluatorImpl private[mill] (
           selectMode,
           allowPositionalCommandArgs,
           resolveToModuleTasks,
-          scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule, _, _)
+          scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep, _, _)
         )
       }
     }
@@ -134,7 +134,7 @@ final class EvaluatorImpl private[mill] (
           selectMode,
           allowPositionalCommandArgs,
           resolveToModuleTasks,
-          scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule, _, _)
+          scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep, _, _)
         )
       }
     }
@@ -296,7 +296,7 @@ final class EvaluatorImpl private[mill] (
             scriptArgs,
             selectMode,
             allowPositionalCommandArgs,
-            scriptModuleResolver = scriptModuleResolver(_, resolveSingleModule, _, _)
+            scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep, _, _)
           )
         }
       }
