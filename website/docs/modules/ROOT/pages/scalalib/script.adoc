@@ -41,7 +41,7 @@ include::partial$example/scalalib/script/7-custom-class.adoc[]
 include::partial$example/scalalib/script/8-relative-imports.adoc[]
 
 
-== Programmatic `moduleDeps`
+== Project `moduleDeps`
 
 include::partial$example/scalalib/script/9-programmatic-module-deps.adoc[]
 

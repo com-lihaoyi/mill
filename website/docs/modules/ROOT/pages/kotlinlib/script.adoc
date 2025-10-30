@@ -29,6 +29,6 @@ include::partial$example/kotlinlib/script/7-custom-class.adoc[]
 
 include::partial$example/kotlinlib/script/8-relative-imports.adoc[]
 
-== Programmatic `moduleDeps`
+== Project `moduleDeps`
 
 include::partial$example/kotlinlib/script/9-programmatic-module-deps.adoc[]

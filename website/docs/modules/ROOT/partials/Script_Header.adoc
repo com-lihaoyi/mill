@@ -2,8 +2,8 @@ This page documents the use cases and features of Mill's single-file {language} 
 These are {language} modules with a single source file, with build configuration included
 in a header comment block at the top of the file.
 
-{language} scripts can be standalone or part of a larger Mill project. They can be run via
-`./mill Foo.{language-ext}` from the command line, or have other tasks on them executed
-via `./mill Foo.{language-ext}:compile` or `./mill Foo.{language-ext}:assembly`. 
+{language} scripts can be standalone or xref:#_project_moduledeps[part of a larger Mill project].
+They can be run via `./mill Foo.{language-ext}` from the command line, or have other tasks on
+them executed via `./mill Foo.{language-ext}:compile` or `./mill Foo.{language-ext}:assembly`.
 Apart from being limited to a single source file, single-file script modules otherwise
 support all the same tasks that normal ``{language}Module``s do.

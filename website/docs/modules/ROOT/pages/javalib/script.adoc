@@ -41,6 +41,6 @@ include::partial$example/javalib/script/7-custom-class.adoc[]
 
 include::partial$example/javalib/script/8-relative-imports.adoc[]
 
-== Programmatic `moduleDeps`
+== Project `moduleDeps`
 
 include::partial$example/javalib/script/9-programmatic-module-deps.adoc[]
