@@ -134,6 +134,8 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
    * APIs related to selective execution
    */
   def selective: SelectiveExecution
+
+  private[mill] def resolveScriptModuleDep(s: String): Option[mill.api.Module]
 }
 object Evaluator {
   // This needs to be a ThreadLocal because we need to pass it into the body of

@@ -76,7 +76,13 @@ private[mill] class BspEvaluators(
       .loadClass("mill.script.ScriptModuleInit")
 
     val result = scriptModuleInitClass
-      .getMethod("discoverAndInstantiateScriptModules", classOf[Seq[java.nio.file.Path]])
+      .getMethod(
+        "discoverAndInstantiateScriptModules",
+        classOf[Seq[java.nio.file.Path]],
+        eval.getClass
+          .getClassLoader
+          .loadClass("mill.api.Evaluator")
+      )
       .invoke(null, nonScriptSources)
       .asInstanceOf[Seq[(java.nio.file.Path, mill.api.Result[BspModuleApi])]]
 
