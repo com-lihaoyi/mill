@@ -50,7 +50,7 @@ final class EvaluatorImpl private[mill] (
     scriptModuleResolver
   )
 
-  private[mill] def resolveScriptModuleDep(s: String): Option[mill.Module] = {
+  override private[mill] def resolveScriptModuleDep(s: String): Option[mill.Module] = {
     resolveModulesOrTasks(Seq(s), SelectMode.Multi)
       .toOption
       .toSeq
