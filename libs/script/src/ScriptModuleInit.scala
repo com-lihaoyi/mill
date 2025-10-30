@@ -126,9 +126,11 @@ object ScriptModuleInit
     discoverScriptFiles(workspaceRoot, os.Path(mill.constants.OutFiles.out, workspaceRoot))
       .filter(p => !nonScriptSourceFolders.exists(p.startsWith(_)))
       .flatMap { scriptPath =>
-        resolveScriptModule(scriptPath.toString, eval.resolveScriptModuleDep).map { result =>
-          (scriptPath.toNIO, result)
-        }
+        try {
+          resolveScriptModule(scriptPath.toString, eval.resolveScriptModuleDep).map { result =>
+            (scriptPath.toNIO, result)
+          }
+        } catch { case _: Exception => None }
       }
   }
 
