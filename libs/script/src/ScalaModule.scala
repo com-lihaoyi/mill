@@ -14,21 +14,21 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     mvn"com.lihaoyi::mainargs:${mill.script.BuildInfo.mainargsVersion}"
   )
 
-  override def allSourceFiles = Task{
+  override def allSourceFiles = Task {
     val original = scriptSource().path
     val modified = Task.dest / original.last
     os.write(
       modified,
-       os.read(original) +
-         System.lineSeparator +
-         """type main = mainargs.main; def _millScriptMainSelf = this; object _MillScriptMain { def main(args: Array[String]): Unit = mainargs.Parser(_millScriptMainSelf).runOrExit(args)}""".stripMargin
+      os.read(original) +
+        System.lineSeparator +
+        """type main = mainargs.main; def _millScriptMainSelf = this; object _MillScriptMain { def main(args: Array[String]): Unit = mainargs.Parser(_millScriptMainSelf).runOrExit(args)}""".stripMargin
     )
 
     Seq(PathRef(modified))
   }
 
-  override def allLocalMainClasses = Task{
-    super.allLocalMainClasses() match{
+  override def allLocalMainClasses = Task {
+    super.allLocalMainClasses() match {
       case Seq(single) => Seq(single)
       case multiple => multiple.filter(!_.endsWith("_MillScriptMain"))
     }

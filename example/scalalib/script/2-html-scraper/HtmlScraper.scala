@@ -20,4 +20,3 @@ def main(startArticle: String, depth: Int) = {
 
   pprint.log(seen)
 }
-

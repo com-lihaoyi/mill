@@ -1,4 +1,3 @@
-// == Bundled Libraries
 //
 // Mill Scala scripts come with a number of bundled libraries for these use cases. These
 // are largely the same as the xref:fundamentals/bundled-libraries.adoc[libraries available in Mill build files]:
