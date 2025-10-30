@@ -8,6 +8,6 @@ def getLineCount() = {
     .mkString
 }
 
-@mainargs.main def main() = {
+@main def main() = {
   println(s"Line Count: ${getLineCount()}")
 }

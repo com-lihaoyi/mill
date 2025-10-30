@@ -1,6 +1,6 @@
 //| scalaVersion: 3.7.3
 //| jvmId: "graalvm-community:17"
 //| nativeImageOptions: ["--no-fallback"]
-@mainargs.main def main() = {
+@main def main() = {
   println("Hello World")
 }

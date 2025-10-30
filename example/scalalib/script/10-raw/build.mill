@@ -1,0 +1,48 @@
+// == Bundled Libraries
+//
+// Mill Scala scripts come with a number of bundled libraries for these use cases. These
+// are largely the same as the xref:fundamentals/bundled-libraries.adoc[libraries available in Mill build files]:
+//
+// - https://github.com/com-lihaoyi/os-lib[OS-Lib]
+// - https://github.com/com-lihaoyi/upickle[uPickle]
+// - https://github.com/com-lihaoyi/requests-scala[Requests-Scala]
+// - https://github.com/com-lihaoyi/mainargs[MainArgs]
+// - https://github.com/com-lihaoyi/PPrint[PPrint]
+//
+// These libraries can make it more convenient to script simple command-line workflows
+// interacting with files, subprocesses, and HTTP endpoints.
+// These bundled libraries are only available in single-file scripts for convenience; in
+// config-based modules or programmatic modules, you would need to add them to `mvnDeps` explicitly.
+// Furthermore, `@main` in Mill scala scripts is aliased to `@mainargs.main`.
+// And as we saw earlier, you can include any other libraries you wish using `//| mvnDeps`.
+//
+// If you do not want these default bundled libraries, you can make your script extend
+// `mill.script.ScalaModule.Raw`:
+/** See Also: Foo.scala */
+
+/** Usage
+> ./mill Foo.scala
+error: ...Not found: os
+
+*/
+
+// If your script extends `mill.script.ScalaModule.Raw`, you no longer have access to
+// these libraries by default. You can instead use classes from the Java standard library:
+
+/** See Also: Bar.scala */
+
+/** Usage
+> ./mill Bar.scala
+hello
+
+*/
+
+// Or you can include the libraries you need explicitly via `mvnDeps`:
+
+/** See Also: Qux.scala */
+
+/** Usage
+> ./mill Qux.scala
+hello
+
+*/

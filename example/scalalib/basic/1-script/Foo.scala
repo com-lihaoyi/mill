@@ -8,7 +8,7 @@ def generateHtml(text: String) = {
   h1(text).toString
 }
 
-@mainargs.main
+@main
 def main(text: String) = {
   println("Jvm Version: " + System.getProperty("java.version"))
   println(generateHtml(text))
