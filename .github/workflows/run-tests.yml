@@ -9,7 +9,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  debug:
+  debug-linux:
+    runs-on: ubuntu-latest
+#    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 1 }
+
+      - run: "echo temurin:11 > .mill-jvm-version"
+
+      - uses: sbt/setup-sbt@v1
+
+
+      - run: ./mill 'integration.failure[compile-error].packaged.nodaemon'
+  debug-win:
 #    runs-on: ubuntu-latest
     runs-on: windows-latest
     steps:
