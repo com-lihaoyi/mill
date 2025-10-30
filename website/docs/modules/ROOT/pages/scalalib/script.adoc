@@ -6,6 +6,9 @@
 
 include::partial$Script_Header.adoc[]
 
+Mill Scala scripts typically make use of their xref:#_bundled_libraries[Bundled Libraries]
+to provide an easy-to-get-started experience writing Scala scripts.
+
 == Script Use Cases
 
 include::partial$example/scalalib/script/1-json-api-client.adoc[]
