@@ -120,7 +120,7 @@ object CodeGen {
         val prelude =
           s"""|import MillMiscInfo._
               |import _root_.mill.util.TokenReaders.given
-              |""".stripMargin.replaceAll("\r\n", "\n")
+              |"""
 
         os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
 
