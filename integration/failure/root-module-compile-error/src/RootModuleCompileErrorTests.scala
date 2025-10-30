@@ -15,7 +15,7 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
       val normalizedError = res.err
         .replace(workspacePath.toString, "<workspace-path>")
         .linesIterator
-        .filter(s => s.startsWith("[error] ") && !s.contains("|               "))
+        .filter(s => s.startsWith("[error] "))
         .toVector
         .map(_.replace('\\', '/'))
 

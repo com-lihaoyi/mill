@@ -214,8 +214,7 @@ object CodeGen {
                   |$importSiblingScripts
                   |
                   |object $wrapperName {
-                  |$markerComment
-                  |$scriptCode
+                  |$markerComment$scriptCode
                   |}
                   |
                   |export $wrapperName._
@@ -381,8 +380,7 @@ object CodeGen {
         s"""$headerCode
            |abstract class ${CGConst.wrapperObjectName}
            |    extends $newParent { this: ${CGConst.wrapperObjectName}.type =>
-           |$markerComment
-           |$scriptCode
+           |$markerComment$scriptCode
            |}""".stripMargin
 
     }
