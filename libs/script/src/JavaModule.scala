@@ -32,24 +32,5 @@ object JavaModule {
     def scriptSource = Task.Source(scriptConfig.simpleModulePath)
 
     override def allSources = Seq(scriptSource())
-
-    /**
-     * Whether or not to include the default `mvnDeps` that are bundled with single-file scripts.
-     */
-    def includDefaultScriptMvnDeps: T[Boolean] = true
-
-    /**
-     * The default `mvnDeps` for single-file scripts. For Scala scripts that means MainArgs,
-     * uPickle, Requests-Scala, OS-Lib, and PPrint. For Java and Kotlin scripts it is currently
-     * empty
-     */
-    def defaultScriptMvnDeps = Task {
-      Seq.empty[Dep]
-    }
-
-    override def mandatoryMvnDeps = Task {
-      super.mandatoryMvnDeps() ++
-        (if (includDefaultScriptMvnDeps()) defaultScriptMvnDeps() else Seq.empty[Dep])
-    }
   }
 }

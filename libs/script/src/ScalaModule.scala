@@ -3,10 +3,10 @@ import mill.*
 import mill.api.{Discover, ExternalModule}
 import mill.javalib.{TestModule, DepSyntax, Dep}
 
-class ScalaModule(val scriptConfig: ScriptModule.Config) extends ScalaModule.Base {
+class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig) {
   override lazy val millDiscover = Discover[this.type]
 
-  override def defaultScriptMvnDeps = Seq(
+  override def mandatoryMvnDeps = super.mandatoryMvnDeps() ++ Seq(
     mvn"com.lihaoyi::pprint:${mill.script.BuildInfo.pprintVersion}",
     mvn"com.lihaoyi::os-lib:${mill.script.BuildInfo.osLibVersion}",
     mvn"com.lihaoyi::upickle:${mill.script.BuildInfo.upickleVersion}",
@@ -21,7 +21,7 @@ class ScalaModule(val scriptConfig: ScriptModule.Config) extends ScalaModule.Bas
       modified,
        os.read(original) +
          System.lineSeparator +
-         """def millScriptMainSelf = this; object MillScriptMain {; def main(args: Array[String]): Unit = mainargs.Parser(millScriptMainSelf).runOrExit(args)}""".stripMargin
+         """def _millScriptMainSelf = this; object _MillScriptMain {; def main(args: Array[String]): Unit = mainargs.Parser(millScriptMainSelf).runOrExit(args)}""".stripMargin
     )
 
     Seq(PathRef(modified))
@@ -30,12 +30,15 @@ class ScalaModule(val scriptConfig: ScriptModule.Config) extends ScalaModule.Bas
   override def allLocalMainClasses = Task{
     super.allLocalMainClasses() match{
       case Seq(single) => Seq(single)
-      case multiple => multiple.filter(!_.endsWith("MillScriptMain"))
+      case multiple => multiple.filter(!_.endsWith("_MillScriptMain"))
     }
   }
 }
 
 object ScalaModule {
+  class Raw(val scriptConfig: ScriptModule.Config) extends ScalaModule.Base {
+    override lazy val millDiscover = Discover[this.type]
+  }
   class TestNg(scriptConfig: ScriptModule.Config) extends ScalaModule(scriptConfig)
       with TestModule.TestNg with mill.scalalib.ScalaModule.ScalaTests0 {
     override lazy val millDiscover = Discover[this.type]
