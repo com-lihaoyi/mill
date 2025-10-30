@@ -119,13 +119,14 @@
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "sources": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.3/pprint_3-0.9.3-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/0.11.5/os-lib_3-0.11.5-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/4.4.0/upickle_3-4.4.0-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/requests_3/0.9.0/requests_3-0.9.0-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/mainargs_3/0.7.7/mainargs_3-0.7.7-sources.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_3/0.12.0/scalatags_3-0.12.0-sources.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/0.5.1/fansi_3-0.5.1-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.3-M5/sourcecode_3-0.4.3-M5-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.1/geny_3-1.1.1-sources.jar",
@@ -134,7 +135,6 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/4.4.0/upack_3-4.4.0-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.4.0/upickle-implicits_3-4.4.0-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0-sources.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.0/upickle-core_3-4.4.0-sources.jar"
       ]
     },
@@ -171,13 +171,14 @@
         "uri": "file:///workspace/scripts/foldershared/script.scala"
       },
       "sources": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.3/pprint_3-0.9.3-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/0.11.5/os-lib_3-0.11.5-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/4.4.0/upickle_3-4.4.0-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/requests_3/0.9.0/requests_3-0.9.0-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/mainargs_3/0.7.7/mainargs_3-0.7.7-sources.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_3/0.12.0/scalatags_3-0.12.0-sources.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/0.5.1/fansi_3-0.5.1-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.3-M5/sourcecode_3-0.4.3-M5-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.1/geny_3-1.1.1-sources.jar",
@@ -186,7 +187,6 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/4.4.0/upack_3-4.4.0-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.4.0/upickle-implicits_3-4.4.0-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0-sources.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>-sources.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.0/upickle-core_3-4.4.0-sources.jar"
       ]
     },
