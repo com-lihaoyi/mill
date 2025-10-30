@@ -1,6 +1,5 @@
 package mill.api.internal
 
-import collection.mutable.LinkedHashSet
 import scala.collection.immutable.VectorMap
 import scala.collection.mutable
 import scala.util.DynamicVariable
@@ -26,7 +25,7 @@ trait Cacher extends mill.moduledefs.Cacher {
       )
     }
 
-    Cacher.taskEvaluationStack.withValue(Cacher.taskEvaluationStack.value ++ Seq((c, this) -> ())){
+    Cacher.taskEvaluationStack.withValue(Cacher.taskEvaluationStack.value ++ Seq((c, this) -> ())) {
       cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
     }
   }
