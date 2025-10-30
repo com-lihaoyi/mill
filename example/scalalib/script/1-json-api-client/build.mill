@@ -3,6 +3,12 @@
 // a few examples where one-off single-file {language} programs can be useful in day-to-day
 // development.
 //
+// While initially single-file {language} programs may be a bit more verbose than the equivalent
+// Bash script containing `cp` or `curl` commands, as the script grows in complexity the value
+// of IDE support, typechecking, and JVM libraries makes writing them in {language} an attractive
+// proposition. This is especially true if you already have developers fluent in {language} which
+// may not be as familiar with the intricacies of writing robust and maintainable Bash code.
+//
 // === JSON API Client
 //// SNIPPET:CRAWLER
 // Below is a simple script using the bundled libraries to write a
