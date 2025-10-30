@@ -371,10 +371,11 @@ object CodeGen {
 
         s"""$headerCode
            |
-           |$markerComment$newScriptCode
-           |
-           |$generatedStub
-           |""".stripMargin
+           |$markerComment$newScriptCode""".stripMargin +
+          // Not sure why we need to mix System.lineSeparator and \n here, but it seems to
+          // result in the correct error position reporting for the following code on both
+          // windows and mac
+          System.lineSeparator + "\n" + generatedStub
 
       case None =>
         s"""$headerCode
