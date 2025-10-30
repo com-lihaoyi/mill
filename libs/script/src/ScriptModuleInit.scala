@@ -115,8 +115,10 @@ object ScriptModuleInit
    * Discovers and instantiates script modules for BSP integration.
    * This method must be called reflectively from the evaluator's classloader.
    */
-  def discoverAndInstantiateScriptModules(nonScriptSourceFolders0: Seq[java.nio.file.Path],
-                                          eval: mill.api.Evaluator)
+  def discoverAndInstantiateScriptModules(
+      nonScriptSourceFolders0: Seq[java.nio.file.Path],
+      eval: mill.api.Evaluator
+  )
       : Seq[(java.nio.file.Path, Result[ExternalModule])] = {
     // For now, we don't resolve moduleDeps as that would require access to other modules
     import mill.api.BuildCtx.workspaceRoot
