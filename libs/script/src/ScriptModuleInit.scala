@@ -151,7 +151,7 @@ object ScriptModuleInit
       scriptFileString: String,
       resolveModuleDep: String => Option[mill.Module]
   ) = {
-    val workspace = mill.api.BuildCtx.workspaceRoot
+    mill.api.BuildCtx.workspaceRoot
 
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
       resolveScriptModule(scriptFileString, resolveModuleDep).toSeq
