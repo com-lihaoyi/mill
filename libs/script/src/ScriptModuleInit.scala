@@ -115,17 +115,29 @@ object ScriptModuleInit
    * Discovers and instantiates script modules for BSP integration.
    * This method must be called reflectively from the evaluator's classloader.
    */
-  def discoverAndInstantiateScriptModules(nonScriptSourceFolders0: Seq[java.nio.file.Path])
+  def discoverAndInstantiateScriptModules(
+      nonScriptSourceFolders0: Seq[java.nio.file.Path],
+      eval: mill.api.Evaluator
+  )
       : Seq[(java.nio.file.Path, Result[ExternalModule])] = {
     // For now, we don't resolve moduleDeps as that would require access to other modules
-    val resolveModuleDep: String => Option[mill.Module] = _ => None
     import mill.api.BuildCtx.workspaceRoot
     val nonScriptSourceFolders = nonScriptSourceFolders0.map(os.Path(_))
     discoverScriptFiles(workspaceRoot, os.Path(mill.constants.OutFiles.out, workspaceRoot))
       .filter(p => !nonScriptSourceFolders.exists(p.startsWith(_)))
       .flatMap { scriptPath =>
-        resolveScriptModule(scriptPath.toString, resolveModuleDep).map { result =>
-          (scriptPath.toNIO, result)
+        try {
+          resolveScriptModule(scriptPath.toString, eval.resolveScriptModuleDep).map { result =>
+            (scriptPath.toNIO, result)
+          }
+        } catch {
+          case e: Exception =>
+            // If resolving a script module fails, just log it and ignore
+            // it rather than blowing up the whole BSP import process
+            println("Failed to instantiate script during BSP import and discovery: " + scriptPath)
+            println(e)
+            e.printStackTrace()
+            None
         }
       }
   }
