@@ -4,14 +4,7 @@ import mill.api.{ExternalModule, Result}
 import mill.script.ScriptModule.parseHeaderData
 
 object ScriptModuleInit
-    extends (
-        (
-            String,
-            String => Option[mill.Module],
-            Boolean,
-            Option[String]
-        ) => Seq[Result[mill.api.ExternalModule]]
-    ) {
+    extends ((String, String => Option[mill.Module]) => Seq[Result[mill.api.ExternalModule]]) {
 
   // Cache instantiated script modules on a per-classloader basis. This lets us avoid
   // instantiating the same script twice, e.g. once directly and once when resolving a
@@ -156,24 +149,12 @@ object ScriptModuleInit
 
   def apply(
       scriptFileString: String,
-      resolveModuleDep: String => Option[mill.Module],
-      resolveChildren: Boolean,
-      nameOpt: Option[String]
+      resolveModuleDep: String => Option[mill.Module]
   ) = {
-    val workspace = mill.api.BuildCtx.workspaceRoot
+    mill.api.BuildCtx.workspaceRoot
 
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      val scriptFile0 = os.Path(scriptFileString, workspace)
-      if (resolveChildren) {
-        nameOpt match {
-          case Some(n) => resolveScriptModule((scriptFile0 / n).toString, resolveModuleDep).toSeq
-          case None =>
-            if (!os.isDir(scriptFile0)) Nil
-            else os.list(scriptFile0).filter(os.isDir).flatMap(p =>
-              resolveScriptModule(p.toString, resolveModuleDep)
-            )
-        }
-      } else resolveScriptModule(scriptFileString, resolveModuleDep).toSeq
+      resolveScriptModule(scriptFileString, resolveModuleDep).toSeq
     }
   }
 }

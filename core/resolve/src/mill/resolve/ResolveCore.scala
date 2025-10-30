@@ -59,11 +59,7 @@ private object ResolveCore {
           java.lang.reflect.Method,
           String
       )]] =
-        collection.mutable.Map(),
-      val scriptModuleChildResolver: (
-          String,
-          Option[String]
-      ) => Seq[mill.api.Result[mill.api.ExternalModule]]
+        collection.mutable.Map()
   ) {
     def decode(s: String): String = {
       decodedNames.getOrElseUpdate(s, scala.reflect.NameTransformer.decode(s))
@@ -429,7 +425,7 @@ private object ResolveCore {
               )
         }
       } else mill.api.Result.Success {
-        val reflectMemberObjects = Reflect
+        Reflect
           .reflectNestedObjects02[Module](cls, namePred, cache.getMethods)
           .collect {
             case (name, memberCls, getter) =>
@@ -439,18 +435,6 @@ private object ResolveCore {
               (resolved, getter2)
           }
           .toSeq
-
-        val simpleModuleObjects =
-          if (!segments.value.forall(_.isInstanceOf[Segment.Label])) Nil
-          else {
-            val scriptKey = segments.value.flatMap(_.pathSegments).mkString("/")
-            val resolvedScript = cache.scriptModuleChildResolver(scriptKey, nameOpt)
-            for (mod <- resolvedScript) yield {
-              val newSegments = Segments.labels(mod.get.moduleSegments.last.value)
-              (Resolved.Module(newSegments, mod.get.getClass), Some((_: Module) => mod))
-            }
-          }
-        reflectMemberObjects ++ simpleModuleObjects
       }
     }
 

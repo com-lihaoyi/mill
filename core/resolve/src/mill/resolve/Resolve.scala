@@ -310,14 +310,10 @@ private[mill] trait Resolve[T] {
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false,
-      scriptModuleResolver: (
-          String,
-          Boolean,
-          Option[String]
-      ) => Seq[Result[mill.api.ExternalModule]]
+      scriptModuleResolver: String => Seq[Result[mill.api.ExternalModule]]
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
-    val cache = new ResolveCore.Cache(scriptModuleChildResolver = scriptModuleResolver(_, true, _))
+    val cache = new ResolveCore.Cache()
     def handleScriptModule(args: Seq[String], fallback: => Result[Seq[T]]): Result[Seq[T]] = {
       val (first, selector, remaining) = args match {
         case Seq(s"$prefix:$suffix", rest*) => (prefix, Some(suffix), rest)
@@ -336,21 +332,14 @@ private[mill] trait Resolve[T] {
             Segments.labels(segments*),
             nullCommandDefaults,
             allowPositionalCommandArgs,
-            resolveToModuleTasks,
-            scriptModuleResolver
+            resolveToModuleTasks
           )
         )
       }
 
-      scriptModuleResolver(first, false, None) match {
+      scriptModuleResolver(first) match {
         case Seq(resolved) => handleResolved(resolved, selector.toSeq, remaining)
-        case Nil =>
-          if (selector.isEmpty) { // if the `:selector` is empty, try treating the `first` as a selector
-            scriptModuleResolver(".", false, None) match {
-              case Seq(resolved) => handleResolved(resolved, Seq(first), remaining)
-              case Nil => fallback
-            }
-          } else fallback
+        case Nil => fallback
       }
     }
     val resolvedGroups = ParseArgs.separate(scriptArgs).map { group =>
@@ -392,14 +381,9 @@ private[mill] trait Resolve[T] {
       sel: Segments,
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean,
-      resolveToModuleTasks: Boolean,
-      scriptModuleResolver: (
-          String,
-          Boolean,
-          Option[String]
-      ) => Seq[Result[mill.api.ExternalModule]]
+      resolveToModuleTasks: Boolean
   ): Result[Seq[T]] = {
-    val cache = new ResolveCore.Cache(scriptModuleChildResolver = scriptModuleResolver(_, true, _))
+    val cache = new ResolveCore.Cache()
     resolveNonEmptyAndHandle2(
       rootModule,
       args,
