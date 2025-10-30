@@ -126,18 +126,8 @@ object ScriptModuleInit
     discoverScriptFiles(workspaceRoot, os.Path(mill.constants.OutFiles.out, workspaceRoot))
       .filter(p => !nonScriptSourceFolders.exists(p.startsWith(_)))
       .flatMap { scriptPath =>
-        try {
-          resolveScriptModule(scriptPath.toString, eval.resolveScriptModuleDep).map { result =>
-            (scriptPath.toNIO, result)
-          }
-        } catch {
-          case e: Exception =>
-            // If resolving a script module fails, just log it and ignore
-            // it rather than blowing up the whole BSP import process
-            println("Failed to instantiate script during BSP import and discovery: " + scriptPath)
-            println(e)
-            e.printStackTrace()
-            None
+        resolveScriptModule(scriptPath.toString, eval.resolveScriptModuleDep).map { result =>
+          (scriptPath.toNIO, result)
         }
       }
   }

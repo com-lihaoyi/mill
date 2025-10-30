@@ -86,9 +86,12 @@ private[mill] class BspEvaluators(
       .invoke(null, nonScriptSources, eval)
       .asInstanceOf[Seq[(java.nio.file.Path, mill.api.Result[BspModuleApi])]]
 
-    result.map {
+    result.flatMap {
       case (scriptPath: java.nio.file.Path, mill.api.Result.Success(module: BspModuleApi)) =>
-        (new BuildTargetIdentifier(Utils.sanitizeUri(scriptPath)), (module, eval))
+        Some((new BuildTargetIdentifier(Utils.sanitizeUri(scriptPath)), (module, eval)))
+      case (scriptPath: java.nio.file.Path, mill.api.Result.Failure(msg: String)) =>
+        println(s"Failed to instantiate script module for BSP: $scriptPath failed with $msg")
+        None
     }
   }
   lazy val bspModulesById: Map[BuildTargetIdentifier, (BspModuleApi, EvaluatorApi)] = {
