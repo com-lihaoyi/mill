@@ -1,0 +1,11 @@
+= Spring Framework / Spring Boot Projects
+:page-aliases: Spring_Boot_Kotlin.adoc
+
+include::partial$Spring_Header.adoc[]
+
+
+// This page contains examples of providing Mill as a build tool for Spring Boot applications, adapting the official Spring Boot documentation in increasing complexity.
+
+== Spring Boot Web with Initializr
+
+include::partial$example/springboot/kotlin/1-web-initializr.adoc[]
