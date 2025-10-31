@@ -15,10 +15,6 @@ private[mill] class BspEvaluators(
     val watched: Seq[Watchable]
 ) {
 
-  private val transitiveDependencyModules0 = new ConcurrentHashMap[ModuleApi, Seq[ModuleApi]]
-  private val transitiveModulesEnableBsp0 =
-    new ConcurrentHashMap[ModuleApi, Option[Seq[BspModuleApi]]]
-
   /**
    * Compute all transitive modules from module children via moduleDirectChildren
    */
@@ -26,10 +22,12 @@ private[mill] class BspEvaluators(
     Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
   }
 
-  /**
-   * Compute all transitive dependency modules via moduleDeps + compileModuleDeps
-   */
-  def transitiveDependencyModules(module: ModuleApi): Seq[ModuleApi] = {
+  private val transitiveDependencyModules0 = new ConcurrentHashMap[ModuleApi, Seq[ModuleApi]]
+  private val transitiveModulesEnableBsp0 =
+    new ConcurrentHashMap[ModuleApi, Option[Seq[BspModuleApi]]]
+
+  // Compute all transitive dependency modules via moduleDeps + compileModuleDeps
+  private def transitiveDependencyModules(module: ModuleApi): Seq[ModuleApi] = {
     if (!transitiveDependencyModules0.contains(module)) {
       val directDependencies = module match {
         case jm: JavaModuleApi => jm.recursiveModuleDeps ++ jm.compileModuleDepsChecked
