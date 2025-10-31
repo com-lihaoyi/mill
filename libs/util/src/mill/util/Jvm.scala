@@ -10,7 +10,16 @@ import coursier.maven.{MavenRepository, MavenRepositoryLike}
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.util.Task
-import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
+import coursier.{
+  Artifacts,
+  BomDependency,
+  Classifier,
+  Dependency,
+  Repository,
+  Resolution,
+  Resolve,
+  Type
+}
 import mill.api.*
 
 import java.io.{BufferedOutputStream, File}
@@ -478,6 +487,7 @@ object Jvm {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       checkGradleModules: Boolean = false,
+      boms: IterableOnce[BomDependency] = Nil,
       @unroll config: CoursierConfig = CoursierConfig.default()
   ): Result[coursier.Artifacts.Result] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
@@ -490,7 +500,8 @@ object Jvm {
       coursierCacheCustomizer,
       resolutionParams,
       checkGradleModules = checkGradleModules,
-      config = config
+      config = config,
+      boms = boms
     )
 
     resolutionRes.flatMap { resolution =>
@@ -543,6 +554,7 @@ object Jvm {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       checkGradleModules: Boolean = false,
+      boms: IterableOnce[BomDependency] = Nil,
       @unroll config: CoursierConfig = CoursierConfig.default()
   ): Result[Seq[PathRef]] =
     getArtifacts(
@@ -557,6 +569,7 @@ object Jvm {
       artifactTypes,
       resolutionParams,
       checkGradleModules = checkGradleModules,
+      boms = boms,
       config = config
     ).map { res =>
       BuildCtx.withFilesystemCheckerDisabled {

@@ -1,5 +1,6 @@
 package mill.androidlib
 
+import coursier.core as cs
 import coursier.params.ResolutionParams
 import mill.*
 import mill.androidlib.keytool.KeytoolModule
@@ -1085,13 +1086,47 @@ trait AndroidAppModule extends AndroidModule { outer =>
         .map(PathRef(_))
     }
 
-    /**
-     * Excludes the dependencies already packaged in the main app apk
-     */
-    override def androidPackagedDeps: T[Seq[PathRef]] = Task {
-      val parentPackagedDeps = outer.androidPackagedDeps().filter(p => p.quick)
-      super.androidPackagedDeps()
-        .filterNot(parentPackagedDeps.contains)
+    def androidPackagableDepsExclusionRules: Task[Seq[(String, String)]] = Task.Anon {
+      val baseResolvedDependencies = defaultResolver().resolution(
+        outer.mvnDeps(),
+        boms = allBomDeps()
+      )
+      baseResolvedDependencies.dependencies
+        .map(d => d.module.organization.value -> d.module.name.value).toSeq
+    }
+
+    def androidPackagableMvnDeps: Task.Simple[Seq[Dep]] = Task {
+      mvnDeps().map(_.exclude(androidPackagableDepsExclusionRules()*))
+    }
+
+    def androidResolvedPackagableMvnDeps: Task.Simple[Seq[PathRef]] = Task {
+      defaultResolver().classpath(
+        androidPackagableMvnDeps(),
+        artifactTypes = Some(artifactTypes()),
+        resolutionParamsMapOpt =
+          Some { params =>
+            params
+              .withDefaultConfiguration(coursier.core.Configuration.runtime)
+              .withDefaultVariantAttributes(
+                cs.VariantSelector.AttributesBased(
+                  params.defaultVariantAttributes.map(_.matchers).getOrElse(Map()) ++ Seq(
+                    "org.gradle.usage" -> cs.VariantSelector.VariantMatcher.Runtime
+                  )
+                )
+              )
+          },
+        boms = allBomDeps()
+      )
+    }
+
+    override def androidPackagedDeps: Task.Simple[Seq[PathRef]] = Task {
+      val deps = androidResolvedPackagableMvnDeps()
+      val dest = Task.dest
+      val aarDeps = extractAarFiles(deps.map(_.path), dest)
+      val jarDeps = deps.filter(pr => pr.path.ext == "jar")
+      val aarClassJars = aarDeps.flatMap(_.classesJar)
+      val repackaged = aarDeps.flatMap(_.repackagedJars)
+      jarDeps ++ aarClassJars ++ repackaged
     }
 
     /**

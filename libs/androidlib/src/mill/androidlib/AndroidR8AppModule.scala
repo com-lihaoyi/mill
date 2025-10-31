@@ -72,15 +72,20 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
   }
 
   /**
-   * Creates a file for letting know R8 that [[compileModuleDeps]] and
+   * The list to let know R8 that [[compileModuleDeps]] and
    * [[compileMvnDeps]] are in compile classpath only and not packaged with the apps.
    * Useful for dependencies that are provided in devices and compile only module deps
    * such as for avoiding to package main sources in the androidTest apk.
    */
-  def androidR8CompileOnlyClasspath: T[Option[PathRef]] = Task {
-    val resolvedCompileMvnDeps =
-      androidResolvedCompileMvnDeps() ++ androidTransitiveCompileOnlyClasspath() ++ androidTransitiveModuleRClasspath()
-    if (!resolvedCompileMvnDeps.isEmpty) {
+  def androidR8CompileOnlyClasspath: T[Seq[PathRef]] =
+    androidResolvedCompileMvnDeps() ++ androidTransitiveCompileOnlyClasspath() ++ androidTransitiveModuleRClasspath()
+
+  /**
+   * Creates a file of [[androidR8CompileOnlyClasspath]] for CLI compatibility reasons (e.g. windows arg limit)
+   */
+  def androidR8CompileOnlyClasspathFile: T[Option[PathRef]] = Task {
+    val resolvedCompileMvnDeps = androidR8CompileOnlyClasspath()
+    if (resolvedCompileMvnDeps.nonEmpty) {
       val compiledMvnDepsFile = Task.dest / "compile-only-classpath.txt"
       os.write.over(
         compiledMvnDepsFile,
@@ -255,7 +260,7 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
 
     r8ArgsBuilder ++= pgArgs
 
-    val compileOnlyClasspath = androidR8CompileOnlyClasspath()
+    val compileOnlyClasspath = androidR8CompileOnlyClasspathFile()
 
     r8ArgsBuilder ++= compileOnlyClasspath.toSeq.flatMap(compiledMvnDepsFile =>
       Seq(
@@ -350,17 +355,9 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
     }
   }
 
-  trait AndroidR8InstrumentedTests extends AndroidAppInstrumentedTests, AndroidR8AppModule {
-    override def androidR8CompileOnlyClasspath: T[Option[PathRef]] = Task {
-      val file = super.androidR8CompileOnlyClasspath()
-      val compiledMvnDepsFile = Task.dest / "compile-only-classpath.txt"
-      file.foreach(f => os.copy(f.path, compiledMvnDepsFile))
-      val parentPackagedDeps = outer.androidPackagedDeps().filter(p => p.quick)
-      os.write.over(
-        compiledMvnDepsFile,
-        parentPackagedDeps.map(_.path.toString()).mkString("\n")
-      )
-      Some(PathRef(compiledMvnDepsFile))
+  trait AndroidR8InstrumentedTestsModule extends AndroidAppInstrumentedTests, AndroidR8AppModule {
+    override def androidR8CompileOnlyClasspath: T[Seq[PathRef]] = Task {
+      outer.androidPackagedDeps() ++ outer.androidPackagedCompiledClasses()
     }
   }
 
