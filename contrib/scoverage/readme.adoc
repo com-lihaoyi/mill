@@ -41,6 +41,8 @@ modules introduce a few new tasks and changes the behavior of an existing one.
 > mill foo.scoverage.htmlReport           # uses the metrics collected by a previous test run to generate a coverage report in html format
 > mill foo.scoverage.xmlReport            # uses the metrics collected by a previous test run to generate a coverage report in xml format
 > mill foo.scoverage.xmlCoberturaReport   # uses the metrics collected by a previous test run to generate a coverage report in Cobertura's xml format
+> mill foo.scoverage.validateCoverageMinimums # This allows for you to use the metrics collected by a previous test run to validate if the coverage minimums have been set. To use this, define the functions `branchCoverageMin` and/or `statementCoverageMin` in the ScoverageModule.
+
 ----
 
 The measurement data is by default available at `out/foo/scoverage/data/dest`,
