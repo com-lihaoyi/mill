@@ -885,6 +885,25 @@ trait AndroidAppModule extends AndroidModule { outer =>
     )
   }
 
+  trait AndroidAppVariantModule extends AndroidVariantModule, AndroidAppModule {
+    override def androidApplicationId: String = outer.androidApplicationId
+    override def androidApplicationNamespace: String = outer.androidApplicationNamespace
+  }
+
+  trait AndroidReleaseModule extends AndroidAppVariantModule, AndroidAppModule {
+    override def androidReleaseKeyAlias: T[Option[String]] = outer.androidReleaseKeyAlias()
+
+    override def androidReleaseKeyName: Option[String] = outer.androidReleaseKeyName
+
+    override def androidReleaseKeyPass: T[Option[String]] = outer.androidReleaseKeyPass()
+
+    override def androidReleaseKeyStorePass: T[Option[String]] = outer.androidReleaseKeyStorePass()
+
+    override def androidReleaseKeyPath: T[Seq[PathRef]] = outer.androidReleaseKeyPath()
+
+    override def androidIsDebug: T[Boolean] = Task { false }
+  }
+
   trait AndroidAppTests extends AndroidTestModule, AndroidAppModule {
     override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
     override def androidApplicationNamespace: String = s"${outer.androidApplicationNamespace}.test"
@@ -901,12 +920,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
     override def androidApplicationNamespace: String = s"${outer.androidApplicationNamespace}.test"
-
-    override def androidReleaseKeyAlias: T[Option[String]] = outer.androidReleaseKeyAlias()
-    override def androidReleaseKeyName: Option[String] = outer.androidReleaseKeyName
-    override def androidReleaseKeyPass: T[Option[String]] = outer.androidReleaseKeyPass()
-    override def androidReleaseKeyStorePass: T[Option[String]] = outer.androidReleaseKeyStorePass()
-    override def androidReleaseKeyPath: T[Seq[PathRef]] = outer.androidReleaseKeyPath()
 
     override def androidEmulatorPort: String = outer.androidEmulatorPort
 

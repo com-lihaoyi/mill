@@ -43,7 +43,6 @@ object app extends AndroidR8AppModule { // <2>
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   override def androidVirtualDeviceIdentifier: String = "java-test"
-  override def androidIsDebug: T[Boolean] = Task { false }
 
   def androidProjectProguardFiles = Task.Sources(
     "proguard-rules.pro"
@@ -60,10 +59,6 @@ object app extends AndroidR8AppModule { // <2>
   object it extends AndroidAppInstrumentedTests, AndroidR8AppModule {
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
-    override def androidIsDebug: T[Boolean] = Task {
-      false
-    }
-
     override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(isMinifyEnabled = false)
     }
@@ -79,6 +74,8 @@ object app extends AndroidR8AppModule { // <2>
       mvn"junit:junit:4.13.2"
     )
   }
+
+  object release extends AndroidR8ReleaseModule
 
 }
 

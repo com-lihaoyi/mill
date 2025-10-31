@@ -5,7 +5,7 @@ import mill.api.{PathRef, Task}
 import scala.xml.*
 
 @mill.api.experimental
-trait AndroidR8AppModule extends AndroidAppModule {
+trait AndroidR8AppModule extends AndroidAppModule { outer =>
 
   override def androidPackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] =
     androidR8PackageMetaInfoFiles()
@@ -348,6 +348,10 @@ trait AndroidR8AppModule extends AndroidAppModule {
       val xml = XML.loadFile(xmlFile.toIO)
       collectClasses(xml)
     }
+  }
+
+  trait AndroidR8ReleaseModule extends AndroidReleaseModule, AndroidR8AppModule {
+    override def androidProguard: T[PathRef] = outer.androidProguard()
   }
 
 }

@@ -333,4 +333,11 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
 
   }
 
+  trait AndroidAppKotlinVariantModule extends AndroidAppVariantModule, AndroidKotlinVariantModule,
+        AndroidAppKotlinModule {
+    override def sources: T[Seq[PathRef]] = outer.sources
+  }
+
+  trait AndroidKotlinReleaseModule extends AndroidAppKotlinVariantModule {}
+
 }
