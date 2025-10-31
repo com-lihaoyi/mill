@@ -797,7 +797,7 @@ private class MillBuildServer(
       val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala
       val tasksSeq = ids.flatMap { id =>
         // If modules or scripts are removed or moved, just ignore them rather than blowing up
-        state.bspModulesById.get(id).flatMap{ (m, ev) =>
+        state.bspModulesById.get(id).flatMap { (m, ev) =>
           tasks.lift.apply(m).map(ts => (ts, (ev, id, m)))
         }
       }
