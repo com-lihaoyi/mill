@@ -135,7 +135,7 @@
         "file:///workspace/scripts/folder2/compile-resources",
         "file:///workspace/scripts/folder2/resources",
         "file:///workspace/out/mill-bsp-out/scripts/folder2/FooTest.java/compile.dest/classes",
-        "file:///mill-workspace/out/dist/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar",
+        "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-javalib-testrunner-entrypoint.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
       "jvmOptions": [],
