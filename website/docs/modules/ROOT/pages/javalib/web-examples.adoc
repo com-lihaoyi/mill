@@ -16,11 +16,10 @@ include::partial$example/javalib/web/1-hello-jetty.adoc[]
 
 This section was moved to the xref:javalib/spring-boot.adoc#_spring_boot_hello_world_app[Spring Boot page].
 
-include::partial$example/javalib/web/2-hello-spring-boot.adoc[]
 
 == Spring Boot TodoMvc App
 
-This section was moved to the xref:javalib/spring-boot.adoc#_spring_boot_todomvc_app_[Spring Boot page].
+This section was moved to the xref:javalib/spring-boot.adoc#_spring_boot_todomvc_app[Spring Boot page].
 
 [#_micronaut_hello_world_app]
 == Micronaut Hello World App

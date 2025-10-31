@@ -18,6 +18,7 @@ include::partial$example/springboot/java/1-web-initializr.adoc[]
 include::partial$example/javalib/web/2-hello-spring-boot.adoc[]
 
 
+[#_spring_boot_todomvc_app]
 == Spring Boot TodoMvc App
 
 
