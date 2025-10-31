@@ -11,7 +11,7 @@ trait BspModuleApi extends ModuleApi {
    * Set this to false to make the Mill BSP server hide / ignore that module
    *
    * Beware that if a module depends via `moduleDeps` or `compileModuleDeps` on modules
-   * that have `enableBsp` set to false, the Mill BSP server will ignore that module too
+   * that have `enableBsp` set to false, it will be ignored by the Mill BSP server too
    */
   def enableBsp: Boolean = true
 }
