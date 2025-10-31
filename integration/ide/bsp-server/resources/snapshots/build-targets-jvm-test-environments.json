@@ -129,11 +129,8 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA.jar",
-        "file:///workspace/scripts/folder2/compile-resources",
-        "file:///workspace/scripts/folder2/resources",
         "file:///workspace/out/mill-bsp-out/scripts/folder2/Foo.java/compile.dest/classes",
-        "file:///workspace/scripts/folder2/compile-resources",
-        "file:///workspace/scripts/folder2/resources",
+        "file:///workspace/scripts/folder2/FooTest.java/resources",
         "file:///workspace/out/mill-bsp-out/scripts/folder2/FooTest.java/compile.dest/classes",
         "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-javalib-testrunner-entrypoint.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
@@ -142,7 +139,7 @@
       "workingDirectory": "/workspace",
       "environmentVariables": {
         "MILL_WORKSPACE_ROOT": "/workspace",
-        "MILL_TEST_RESOURCE_DIR": "/workspace/scripts/folder2/resources"
+        "MILL_TEST_RESOURCE_DIR": "/workspace/scripts/folder2/FooTest.java/resources"
       },
       "mainClasses": [
         {

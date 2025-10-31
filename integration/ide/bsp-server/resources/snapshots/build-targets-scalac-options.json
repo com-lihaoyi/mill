@@ -109,8 +109,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/4.4.0/upack_3-4.4.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.4.0/upickle-implicits_3-4.4.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.0/upickle-core_3-4.4.0.jar",
-        "file:///workspace/scripts/folder1/compile-resources"
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.0/upickle-core_3-4.4.0.jar"
       ],
       "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/folder1/script.scala/compiledClassesAndSemanticDbFiles.dest"
     },
@@ -136,8 +135,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/4.4.0/upack_3-4.4.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.4.0/upickle-implicits_3-4.4.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.0/upickle-core_3-4.4.0.jar",
-        "file:///workspace/scripts/foldershared/compile-resources"
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.0/upickle-core_3-4.4.0.jar"
       ],
       "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/foldershared/script.scala/compiledClassesAndSemanticDbFiles.dest"
     },
