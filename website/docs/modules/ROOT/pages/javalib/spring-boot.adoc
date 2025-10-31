@@ -4,10 +4,10 @@
 
 include::partial$Spring_Header.adoc[]
 
+// This page contains examples of providing Mill as a build tool for Spring Boot applications, adapting the official Spring Boot documentation in increasing complexity.
+
 
 == Spring Boot Web with Initializr
-
-// of providing Mill as a build tool for Spring Boot applications, adapting the official Spring Boot documentation in increasing complexity.
 
 include::partial$example/springboot/java/1-web-initializr.adoc[]
 
