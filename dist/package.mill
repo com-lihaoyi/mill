@@ -78,25 +78,29 @@ trait DistModule extends Module {
    */
   def installLocal(binFile: String = localBinName) = {
     val binFile0 = os.Path(binFile, BuildCtx.workspaceRoot)
-    val task = installIvyLocalTask(binFile0)
-    Task.Command {
-      task()
-      PathRef(binFile0)
+    Task.Command[Unit] {
+      installIvyLocalTask(Task.Anon(binFile0))()
     }
   }
 
   val batExt = if (scala.util.Properties.isWin) ".bat" else ""
 
-  def installLocalCachePath(suffixTask: Task[String]) = Task.Anon {
-    (os.home / ".cache/mill/download" / (build.millVersion() + suffixTask() + batExt)).toString()
-  }
+  def installLocalCache() = {
 
-  def installLocalCache() = Task.Command {
-    val path = installLocalTask(installLocalCachePath(build.dist.cacheBinarySuffix))()
-    val path2 = installLocalTask(installLocalCachePath(build.dist.native.cacheBinarySuffix))()
+    def launcherPathTask(suffix: Task[String]) =
+      Task.Anon {
+        os.home / ".cache/mill/download" / (build.millVersion() + suffix() + batExt)
+      }
 
-    Task.log.streams.out.println(path.toString())
-    PathRef(path)
+    val jarLauncherPathTask = launcherPathTask(build.dist.cacheBinarySuffix)
+    val nativeLauncherPathTask = launcherPathTask(build.dist.native.cacheBinarySuffix)
+
+    Task.Command {
+      val Seq(jarLauncherPath, _*) =
+        installIvyLocalTask(jarLauncherPathTask, nativeLauncherPathTask)()
+      Task.log.streams.out.println(jarLauncherPath.path.toString())
+      jarLauncherPath
+    }
   }
 
   def installLocalTask(binFile: Task[String]): Task[os.Path] =
@@ -111,15 +115,19 @@ trait DistModule extends Module {
       targetFile
     }
 
-  def installIvyLocalTask(targetFile: os.Path): Task[Unit] =
-    Task.Anon {
-      if (os.exists(targetFile))
-        Task.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
+  def installIvyLocalTask(targetFiles: Task[os.Path]*) =
+    Task.Anon[Seq[PathRef]] {
       Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
-      os.copy.over(executableRaw().path, targetFile, createFolders = true)
+      val targetFiles0 = Task.sequence(targetFiles)()
+      for (targetFile <- targetFiles0) {
+        if (os.exists(targetFile))
+          Task.log.info(s"Overwriting existing local Mill binary at $targetFile")
+        os.copy.over(executableRaw().path, targetFile, createFolders = true)
+      }
       Task.log.info(
-        s"Published ${build.dist.allPublishModules.size} modules under ~/.ivy2/local and installed ${targetFile}"
+        s"Published ${build.dist.allPublishModules.size} modules under ~/.ivy2/local and installed ${targetFiles0.mkString(", ")}"
       )
+      targetFiles0.map(PathRef(_))
     }
 
   def artifactName: T[String]
