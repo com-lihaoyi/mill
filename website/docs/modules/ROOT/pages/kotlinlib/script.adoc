@@ -26,9 +26,13 @@ include::partial$example/kotlinlib/script/7-custom-class.adoc[]
 
 
 == Relative and Absolute Script moduleDeps
-M
+
 include::partial$example/kotlinlib/script/8-relative-imports.adoc[]
 
 == Project `moduleDeps`
 
 include::partial$example/kotlinlib/script/9-programmatic-module-deps.adoc[]
+
+== Script Resources
+
+include::partial$example/kotlinlib/script/10-resources.adoc[]

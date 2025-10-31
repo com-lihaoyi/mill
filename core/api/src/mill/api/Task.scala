@@ -504,7 +504,9 @@ object Task {
         ctx0,
         upickle.readwriter[Seq[PathRef]],
         isPrivate
-      ) {}
+      ) {
+    override def readWriterOpt = Some(upickle.readwriter[Seq[PathRef]])
+  }
 
   class Source(
       evaluate0: (Seq[Any], mill.api.TaskCtx) => Result[PathRef],
@@ -515,7 +517,9 @@ object Task {
         ctx0,
         upickle.readwriter[PathRef],
         isPrivate
-      ) {}
+      ) {
+    override def readWriterOpt = Some(upickle.readwriter[PathRef])
+  }
 
   private object Macros {
     def appImpl[M[_]: Type, T: Type](using
