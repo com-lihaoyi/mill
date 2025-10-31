@@ -22,6 +22,7 @@ abstract class MillDaemonServer[State](
     daemonDir: os.Path,
     acceptTimeout: FiniteDuration,
     locks: Locks,
+    outDir: os.Path,
     testLogEvenWhenServerIdWrong: Boolean = false
 ) extends ProxyStreamServer(Server.Args(
       daemonDir = daemonDir,
@@ -31,7 +32,6 @@ abstract class MillDaemonServer[State](
       bufferSize = 4 * 1024
     )) {
   def outLock: mill.client.lock.Lock
-  def out: os.Path
 
   private var stateCache: State = stateCache0
 
@@ -71,7 +71,7 @@ abstract class MillDaemonServer[State](
       MillDaemonServer.withOutLock(
         noBuildLock = false,
         noWaitForBuildLock = false,
-        out = out,
+        out = outDir,
         millActiveCommandMessage = "checking server mill version and java version",
         streams = new mill.api.daemon.SystemStreams(
           new PrintStream(mill.api.daemon.DummyOutputStream),

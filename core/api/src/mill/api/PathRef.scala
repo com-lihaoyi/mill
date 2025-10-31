@@ -10,11 +10,12 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.annotation.nowarn
 import scala.language.implicitConversions
 import scala.util.DynamicVariable
+import scala.util.hashing.MurmurHash3
 
 /**
- * A wrapper around `os.Path` that calculates it's hashcode based
- * on the contents of the filesystem underneath it. Used to ensure filesystem
- * changes can bust caches which are keyed off hashcodes.
+ * A wrapper around `os.Path` that calculates a `sig` (which ends up in the [[hashCode]])
+ * based on the contents of the filesystem underneath it.
+ * Used to ensure filesystem changes can bust caches which are keyed off hashcodes.
  */
 case class PathRef private[mill] (
     path: os.Path,
@@ -23,6 +24,18 @@ case class PathRef private[mill] (
     revalidate: PathRef.Revalidate
 ) extends PathRefApi {
   private[mill] def javaPath = path.toNIO
+
+  /**
+   * The path with common mapped path roots replaced, to make it relocatable.
+   * See [[MappedRoots]].
+   */
+  private val mappedPath: String = MappedRoots.encodeKnownRootsInPath(path)
+
+  /**
+   * Apply the current contextual path mapping to this PathRef.
+   * Updates [[mappedPath]] but does not recalculate the [[sig]].
+   */
+  def remap: PathRef = PathRef(path, quick, sig, revalidate)
 
   def recomputeSig(): Int = PathRef.apply(path, quick).sig
   def validate(): Boolean = recomputeSig() == sig
@@ -38,16 +51,33 @@ case class PathRef private[mill] (
   def withRevalidate(revalidate: PathRef.Revalidate): PathRef = copy(revalidate = revalidate)
   def withRevalidateOnce: PathRef = copy(revalidate = PathRef.Revalidate.Once)
 
-  override def toString: String = {
+  private def toStringPrefix: String = {
     val quick = if (this.quick) "qref:" else "ref:"
+
     val valid = revalidate match {
       case PathRef.Revalidate.Never => "v0:"
       case PathRef.Revalidate.Once => "v1:"
       case PathRef.Revalidate.Always => "vn:"
     }
     val sig = String.format("%08x", this.sig: Integer)
-    quick + valid + sig + ":" + path.toString()
+    s"${quick}${valid}${sig}:"
   }
+
+  override def toString: String = {
+    toStringPrefix + path.toString()
+  }
+
+  // Instead of using `path` we need to use `mappedPath` to make the hashcode stable as cache key
+  override def hashCode(): Int = {
+    var h = MurmurHash3.productSeed
+    h = MurmurHash3.mix(h, "PathRef".hashCode)
+    h = MurmurHash3.mix(h, mappedPath.hashCode)
+    h = MurmurHash3.mix(h, quick.##)
+    h = MurmurHash3.mix(h, sig.##)
+    h = MurmurHash3.mix(h, revalidate.##)
+    MurmurHash3.finalizeHash(h, 4)
+  }
+
 }
 
 object PathRef {
@@ -195,12 +225,12 @@ object PathRef {
   implicit def jsonFormatter: RW[PathRef] = upickle.readwriter[String].bimap[PathRef](
     p => {
       storeSerializedPaths(p)
-      p.toString()
+      p.toStringPrefix + MappedRoots.encodeKnownRootsInPath(p.path)
     },
     {
-      case s"$prefix:$valid0:$hex:$pathString" if prefix == "ref" || prefix == "qref" =>
+      case s"$prefix:$valid0:$hex:$pathVal" if prefix == "ref" || prefix == "qref" =>
 
-        val path = os.Path(pathString)
+        val path = os.Path(MappedRoots.decodeKnownRootsInPath(pathVal))
         val quick = prefix match {
           case "qref" => true
           case "ref" => false
@@ -219,7 +249,7 @@ object PathRef {
         pr
       case s =>
         mill.api.BuildCtx.withFilesystemCheckerDisabled(
-          PathRef(os.Path(s, currentOverrideModulePath.value))
+          PathRef(os.Path(MappedRoots.decodeKnownRootsInPath(s), currentOverrideModulePath.value))
         )
     }
   )
