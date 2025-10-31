@@ -6,6 +6,7 @@ import mill.api.daemon.internal.{BaseModuleApi, EvaluatorApi, JavaModuleApi, Mod
 import mill.api.daemon.Watchable
 
 import java.nio.file.Path
+import java.util.concurrent.ConcurrentHashMap
 
 private[mill] class BspEvaluators(
     workspaceDir: os.Path,
@@ -15,29 +16,71 @@ private[mill] class BspEvaluators(
 ) {
 
   /**
-   * Compute all transitive modules from module children and via moduleDeps + compileModuleDeps
+   * Compute all transitive modules from module children via moduleDirectChildren
    */
   def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
     Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
   }
 
-  lazy val bspModulesIdList0: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
-    val modules: Seq[(ModuleApi, Seq[ModuleApi], EvaluatorApi)] = evaluators
-      .map(ev => (ev.rootModule, transitiveModules(ev.rootModule), ev))
+  private val transitiveDependencyModules0 = new ConcurrentHashMap[ModuleApi, Seq[ModuleApi]]
+  private val transitiveModulesEnableBsp0 =
+    new ConcurrentHashMap[ModuleApi, Option[Seq[BspModuleApi]]]
 
-    val regularModules = modules
-      .flatMap { case (rootModule, modules, eval) =>
-        modules.collect {
-          case m: BspModuleApi =>
-            val uri = Utils.sanitizeUri(
-              (os.Path(rootModule.moduleDirJava) / m.moduleSegments.parts).toNIO
-            )
+  // Compute all transitive dependency modules via moduleDeps + compileModuleDeps
+  private def transitiveDependencyModules(module: ModuleApi): Seq[ModuleApi] = {
+    if (!transitiveDependencyModules0.contains(module)) {
+      val directDependencies = module match {
+        case jm: JavaModuleApi => jm.recursiveModuleDeps ++ jm.compileModuleDepsChecked
+        case _ => Nil
+      }
+      val value = Seq(module) ++ directDependencies.flatMap(transitiveDependencyModules)
+      transitiveDependencyModules0.putIfAbsent(module, value)
+    }
 
-            (new BuildTargetIdentifier(uri), (m, eval))
+    transitiveDependencyModules0.get(module)
+  }
+
+  private def transitiveModulesEnableBsp(module: ModuleApi): Option[Seq[BspModuleApi]] = {
+    if (!transitiveModulesEnableBsp0.contains(module)) {
+      val disabledTransitiveModules = transitiveDependencyModules(module).collect {
+        case b: BspModuleApi if !b.enableBsp => b
+      }
+      val value =
+        if (disabledTransitiveModules.isEmpty) None
+        else Some(disabledTransitiveModules)
+      transitiveModulesEnableBsp0.putIfAbsent(module, value)
+    }
+
+    transitiveModulesEnableBsp0.get(module)
+  }
+
+  private def moduleUri(rootModule: ModuleApi, module: ModuleApi) = Utils.sanitizeUri(
+    (os.Path(rootModule.moduleDirJava) / module.moduleSegments.parts).toNIO
+  )
+
+  lazy val bspModulesIdList0: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] =
+    for {
+      eval <- evaluators
+      bspModule <- transitiveModules(eval.rootModule).collect { case m: BspModuleApi => m }
+      uri = moduleUri(eval.rootModule, bspModule)
+      if {
+        if (bspModule.enableBsp)
+          transitiveModulesEnableBsp(bspModule) match {
+            case Some(disabledTransitiveModules) =>
+              val uris = disabledTransitiveModules.map(moduleUri(eval.rootModule, _))
+              eval.baseLogger.warn(
+                s"BSP disabled for target $uri because of its dependencies ${uris.mkString(", ")}"
+              )
+              false
+            case None =>
+              true
+          }
+        else {
+          eval.baseLogger.info(s"BSP disabled for target $uri via BspModuleApi#enableBsp")
+          false
         }
       }
-    regularModules
-  }
+    } yield (new BuildTargetIdentifier(uri), (bspModule, eval))
 
   val nonScriptSources = evaluators.flatMap { ev =>
     val bspSourceTasks: Seq[TaskApi[(sources: Seq[Path], generatedSources: Seq[Path])]] =

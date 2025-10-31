@@ -420,9 +420,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
         delayedCompileFuture.get()
       }
 
+      val workspaceUri = tester.workspacePath.toURI.toASCIIString.stripSuffix("/") + "/"
       val logs = stderr.toString
         .linesWithSeparators
         .filter(_.startsWith("["))
+        .map(_.replace(workspaceUri, "file:///workspace/"))
         .mkString
 
       val expectedCancelledLine = "[7-compile] buildTargetCompile was cancelled"
