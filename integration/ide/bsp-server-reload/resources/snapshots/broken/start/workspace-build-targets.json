@@ -5,7 +5,7 @@
         "uri": "file:///workspace/app/src/milltests/TheApp.scala"
       },
       "displayName": "app.src.milltests.TheApp.scala",
-      "baseDirectory": "file:///workspace/app/src/milltests",
+      "baseDirectory": "file:///workspace/app/src/milltests/TheApp.scala",
       "tags": [
         "library",
         "application"
@@ -52,7 +52,7 @@
         "uri": "file:///workspace/lib/src/milltests/Lib.scala"
       },
       "displayName": "lib.src.milltests.Lib.scala",
-      "baseDirectory": "file:///workspace/lib/src/milltests",
+      "baseDirectory": "file:///workspace/lib/src/milltests/Lib.scala",
       "tags": [
         "library",
         "application"
