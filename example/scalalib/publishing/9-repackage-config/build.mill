@@ -2,6 +2,7 @@
 // Instead of copying and merging dependencies classes and resources into a flat jar file, it embeds all dependencies as-is in the final jar.
 // One of the pros of this approach is, that all dependency archives are kept unextracted, which makes later introspection for checksums, authorship and copyright questions easier.
 
+//// SNIPPET:BUILD
 package build
 
 import mill.*, scalalib.*, publish.*
@@ -65,6 +66,7 @@ Qux.value: 31337
 ...BOOT-INF/lib/bar_3-0.0.1.jar
 
 */
+//// SNIPPET:END
 
 // *Futher notes:*
 //

@@ -1,5 +1,6 @@
 = Spring Framework / Spring Boot Projects
 :page-aliases: Spring_Boot_Scala.adoc
+:language-small: scala
 
 include::partial$Spring_Header.adoc[]
 

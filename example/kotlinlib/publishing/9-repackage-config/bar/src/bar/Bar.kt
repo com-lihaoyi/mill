@@ -6,10 +6,10 @@ import org.thymeleaf.context.Context
 class Bar {
   companion object {
     @JvmStatic
-    fun value() {
+    fun value(): String {
       val context = Context()
       context.setVariable("text", "world")
-      TemplateEngine().process("<p th:text=\"\${text}\"></p>", context)
+      return TemplateEngine().process("<p th:text=\"\${text}\"></p>", context)
     }
   }
 }

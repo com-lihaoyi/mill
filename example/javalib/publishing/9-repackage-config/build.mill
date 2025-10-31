@@ -1,7 +1,4 @@
-// An alternative way to produce self-executable assemblies is the `RepackageModule` which used the https://docs.spring.io/spring-boot/build-tool-plugin/index.html[Spring Boot Tools suite].
-// Instead of copying and merging dependencies classes and resources into a flat jar file, it embeds all dependencies as-is in the final jar.
-// One of the pros of this approach is, that all dependency archives are kept unextracted, which makes later introspection for checksums, authorship and copyright questions easier.
-
+//// SNIPPET:BUILD
 package build
 
 import mill.*, javalib.*, publish.*
@@ -62,15 +59,4 @@ Qux.value: 31337
 ...BOOT-INF/lib/bar-0.0.1.jar
 
 */
-
-// *Futher notes:*
-//
-// * a small wrapper application needs to be added, which is run as entry point and transparently manages loading the embedded jars and running your `main` method.
-// This works for all Java (also Scala or Kotlin) applications.
-// * It's not necessary to use the Spring Framework in the application.
-// * The resulting jar is a self-executable application, but it might not suitable to be used on the classpath of other applications.
-
-// * Since the final jar produced with the `RepackageModule.repackagedJar` task often contains significantly less ZIP entries
-// then the jar file produced with `.assembly`, it's possible to workaround
-// an https://github.com/com-lihaoyi/mill/issues/2650[issue where `JavaModule.assembly` cannot produce executable assemblies]
-// due to some JVM limitations in ZIP file handling of large files.
+////SNIPPED:END
