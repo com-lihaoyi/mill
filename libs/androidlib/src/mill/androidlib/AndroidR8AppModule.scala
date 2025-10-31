@@ -260,12 +260,16 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
 
     r8ArgsBuilder ++= pgArgs
 
-    val compileOnlyClasspath = androidR8CompileOnlyClasspathFile()
+    val compileOnlyClasspath = androidR8CompileOnlyClasspath()
 
-    r8ArgsBuilder ++= compileOnlyClasspath.toSeq.flatMap(compiledMvnDepsFile =>
+    /*
+     * FIXME on windows this will not work if it has too many files. Windows support will have to wait
+     * until we use R8 from its java API as the @file trick is not working as expected
+     */
+    r8ArgsBuilder ++= compileOnlyClasspath.filter(_.path.ext == "jar").flatMap(compiledMvnDeps =>
       Seq(
         "--classpath",
-        "@" + compiledMvnDepsFile.path.toString
+        compiledMvnDeps.path.toString
       )
     )
 
@@ -357,7 +361,7 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
 
   trait AndroidR8InstrumentedTestsModule extends AndroidAppInstrumentedTests, AndroidR8AppModule {
     override def androidR8CompileOnlyClasspath: T[Seq[PathRef]] = Task {
-      outer.androidPackagedDeps() ++ outer.androidPackagedCompiledClasses()
+      outer.androidPackagedDeps() ++ outer.androidPackagedCompiledClasses() ++ androidPackagedClassfiles()
     }
   }
 
