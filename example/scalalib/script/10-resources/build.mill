@@ -7,7 +7,26 @@
 
 /** Usage
 > ./mill Foo.scala
-???
+Hello World Resource File
+
+*/
+
+//// SNIPPET:END
+
+// Classpath resources are useful because unlike files or disk, they get included when
+// a script is packaged into an assembly or executable. This means that you can distribute
+// the final assembly with access to the classpath resources without needing to worry about
+// also distributing loose files used by it.
+
+//// SNIPPET:ALL2
+
+/** Usage
+
+> ./mill show Foo.scala:assembly
+".../out/Foo.scala/assembly.dest/out.jar"
+
+> out/Foo.scala/assembly.dest/out.jar
+Hello World Resource File
 
 */
 

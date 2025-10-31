@@ -1,9 +1,9 @@
+//| resources: ["./resources"]
 package foo
 
-object Foo {
-    fun classpathResourceText(): String {
-        return Foo::class.java.classLoader.getResourceAsStream("file.txt").use {
-            it.readAllBytes().toString(Charsets.UTF_8)
-        }
+fun main() {
+    val msg = object {}::class.java.classLoader.getResourceAsStream("file.txt")!!.use {
+        it.readAllBytes().toString(Charsets.UTF_8)
     }
+    println(msg)
 }

@@ -30,9 +30,6 @@ your script.
 ./mill -i Foo.java:jshell
 ```
 
-
-
-
 == Custom Script Module Classes
 
 include::partial$example/javalib/script/7-custom-class.adoc[]
@@ -44,3 +41,7 @@ include::partial$example/javalib/script/8-relative-imports.adoc[]
 == Project `moduleDeps`
 
 include::partial$example/javalib/script/9-programmatic-module-deps.adoc[]
+
+== Script Resources
+
+include::partial$example/javalib/script/10-resources.adoc[]

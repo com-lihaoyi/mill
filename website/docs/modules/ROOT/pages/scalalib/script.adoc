@@ -45,6 +45,10 @@ include::partial$example/scalalib/script/8-relative-imports.adoc[]
 
 include::partial$example/scalalib/script/9-programmatic-module-deps.adoc[]
 
+== Script Resources
+
+include::partial$example/scalalib/script/10-resources.adoc[]
+
 == Bundled Libraries
 
-include::partial$example/scalalib/script/10-raw.adoc[]
+include::partial$example/scalalib/script/11-raw.adoc[]

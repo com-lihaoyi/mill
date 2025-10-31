@@ -1,4 +1,4 @@
-//| resources: ["./resources"]
+//| resources: ["resources"]
 
 package foo
 
