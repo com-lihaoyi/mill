@@ -26,9 +26,18 @@ object JavaModule {
 
     override def moduleDeps = scriptConfig.moduleDeps.map(_.asInstanceOf[mill.javalib.JavaModule])
 
+    /** Scripts default to having no source folders */
     override def sources = Task.Sources()
     override def resources = Task.Sources()
     override def sourcesFolders = Nil
+    override def compileResources = Task.Sources()
+
+    /** Scripts default to having no resource folders */
+    override def resources = Task.Sources()
+
+    override def sourcesFolders = Nil
+
+    /** Scripts default to having no compile-time resource folders */
     override def compileResources = Task.Sources()
 
     /** The script file itself */
