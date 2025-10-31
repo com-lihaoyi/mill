@@ -158,6 +158,10 @@ jobs:
             setup-android: true
 
           - java-version: 17
+            millargs: "'example.groovylib.__.local.daemon'"
+            setup-android: true
+
+          - java-version: 17
             millargs: "'example.thirdparty[androidtodo].packaged.daemon'"
             setup-android: true
 
