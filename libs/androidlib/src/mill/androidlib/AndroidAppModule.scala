@@ -12,13 +12,14 @@ import mill.javalib.*
 import os.{Path, RelPath, zip}
 import os.RelPath.stringRelPathValidated
 import upickle.*
-import scala.concurrent.duration.*
 
+import scala.concurrent.duration.*
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.daemon.internal.EvaluatorApi
 import mill.javalib.testrunner.TestResult
+
 import scala.util.Properties.isWin
 
 /**
@@ -1084,8 +1085,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
         .map(PathRef(_))
     }
 
+    /**
+     * Excludes the dependencies already packaged in the main app apk
+     */
     override def androidPackagedDeps: T[Seq[PathRef]] = Task {
-      androidResolvedRunMvnDeps()
+      val parentPackagedDeps = outer.androidPackagedDeps().filter(p => p.quick)
+      super.androidPackagedDeps()
+        .filterNot(parentPackagedDeps.contains)
     }
 
     /**

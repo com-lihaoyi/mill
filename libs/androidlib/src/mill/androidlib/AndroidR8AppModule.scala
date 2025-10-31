@@ -5,7 +5,7 @@ import mill.api.{PathRef, Task}
 import scala.xml.*
 
 @mill.api.experimental
-trait AndroidR8AppModule extends AndroidAppModule {
+trait AndroidR8AppModule extends AndroidAppModule { outer =>
 
   override def androidPackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] =
     androidR8PackageMetaInfoFiles()
@@ -347,6 +347,20 @@ trait AndroidR8AppModule extends AndroidAppModule {
     layoutXmls.flatMap { xmlFile =>
       val xml = XML.loadFile(xmlFile.toIO)
       collectClasses(xml)
+    }
+  }
+
+  trait AndroidR8InstrumentedTests extends AndroidAppInstrumentedTests, AndroidR8AppModule {
+    override def androidR8CompileOnlyClasspath: T[Option[PathRef]] = Task {
+      val file = super.androidR8CompileOnlyClasspath()
+      val compiledMvnDepsFile = Task.dest / "compile-only-classpath.txt"
+      file.foreach(f => os.copy(f.path, compiledMvnDepsFile))
+      val parentPackagedDeps = outer.androidPackagedDeps().filter(p => p.quick)
+      os.write.over(
+        compiledMvnDepsFile,
+        parentPackagedDeps.map(_.path.toString()).mkString("\n")
+      )
+      Some(PathRef(compiledMvnDepsFile))
     }
   }
 
