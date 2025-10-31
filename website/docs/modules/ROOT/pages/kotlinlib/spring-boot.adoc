@@ -9,3 +9,12 @@ include::partial$Spring_Header.adoc[]
 == Spring Boot Web with Initializr
 
 include::partial$example/springboot/kotlin/1-web-initializr.adoc[]
+
+== Spring Boot Hello World App
+
+include::partial$example/kotlinlib/web/6-hello-spring-boot.adoc[]
+
+== Spring Boot TodoMvc App
+
+include::partial$example/kotlinlib/web/7-todo-spring-boot.adoc[]
+
