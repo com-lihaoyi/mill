@@ -521,6 +521,7 @@ trait AndroidModule extends JavaModule { outer =>
       .internalWorker()
       .compileJava(
         ZincCompileJava(
+          compileTo = Task.dest,
           upstreamCompileOutput = upstreamCompileOutput(),
           sources = androidLibsRClasses().map(_.path),
           compileClasspath = Seq.empty,
@@ -734,6 +735,7 @@ trait AndroidModule extends JavaModule { outer =>
       .internalWorker()
       .compileJava(
         ZincCompileJava(
+          compileTo = Task.dest,
           upstreamCompileOutput = upstreamCompileOutput(),
           sources = sources.map(_.path),
           compileClasspath = androidTransitiveLibRClasspath().map(_.path),

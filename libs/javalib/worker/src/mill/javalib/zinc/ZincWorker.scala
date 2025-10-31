@@ -1,6 +1,5 @@
 package mill.javalib.zinc
 
-import mill.api.JsonFormatters.*
 import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}
@@ -16,7 +15,12 @@ import mill.javalib.internal.ZincCompilerBridgeProvider
 import mill.javalib.internal.ZincCompilerBridgeProvider.AcquireResult
 import mill.javalib.worker.*
 import mill.javalib.zinc.ZincWorker.*
-import mill.util.{CachedFactory, CachedFactoryWithInitData, RefCountedClassLoaderCache}
+import mill.util.{
+  CachedFactory,
+  CachedFactoryWithInitData,
+  FailingClassLoader,
+  RefCountedClassLoaderCache
+}
 import sbt.internal.inc
 import sbt.internal.inc.*
 import sbt.internal.inc.classpath.ClasspathUtil
@@ -141,15 +145,16 @@ class ZincWorker(
         /*filterLibrary*/ false
       )
 
+      val dummyClassloader = FailingClassLoader()
       val dummyFile = new java.io.File("")
       // Zinc does not have an entry point for Java-only compilation, so we need
       // to make up a dummy ScalaCompiler instance.
       val scalac = ZincUtil.scalaCompiler(
         new inc.ScalaInstance(
           version = "",
-          loader = null,
-          loaderCompilerOnly = null,
-          loaderLibraryOnly = null,
+          loader = dummyClassloader,
+          loaderCompilerOnly = dummyClassloader,
+          loaderLibraryOnly = dummyClassloader,
           libraryJars = Array(dummyFile),
           compilerJars = Array(dummyFile),
           allJars = new Array(0),
@@ -182,6 +187,7 @@ class ZincWorker(
     val cacheKey = JavaCompilerCacheKey(javacOptions)
     javaOnlyCompilerCache.withValue(cacheKey) { compilers =>
       compileInternal(
+        compileTo = compileTo,
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
         compileClasspath = compileClasspath,
@@ -215,6 +221,7 @@ class ZincWorker(
       deps.compilerBridge
     ) { compilers =>
       compileInternal(
+        compileTo = compileTo,
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
         compileClasspath = compileClasspath,
@@ -333,6 +340,7 @@ class ZincWorker(
   }
 
   private def compileInternal(
+      compileTo: os.Path,
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
       compileClasspath: Seq[os.Path],
@@ -349,9 +357,9 @@ class ZincWorker(
       deps: ZincWorker.InvocationDependencies
   ): Result[CompilationResult] = {
 
-    os.makeDir.all(ctx.dest)
+    os.makeDir.all(compileTo)
 
-    val classesDir = ctx.dest / "classes"
+    val classesDir = compileTo / "classes"
 
     if (ctx.logDebugEnabled) {
       deps.log.debug(
@@ -405,7 +413,7 @@ class ZincWorker(
 
     val lookup = MockedLookup(analysisMap)
 
-    val store = fileAnalysisStore(ctx.dest / zincCache)
+    val store = fileAnalysisStore(compileTo / zincCache)
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
@@ -504,7 +512,7 @@ class ZincWorker(
           newResult.setup()
         )
       )
-      Result.Success(CompilationResult(ctx.dest / zincCache, PathRef(classesDir)))
+      Result.Success(CompilationResult(compileTo / zincCache, PathRef(classesDir)))
     } catch {
       case e: CompileFailed =>
         Result.Failure(e.toString)
@@ -593,7 +601,6 @@ object ZincWorker {
   /** The invocation context, always comes from the Mill's process. */
   case class InvocationContext(
       env: Map[String, String],
-      dest: os.Path,
       logDebugEnabled: Boolean,
       logPromptColored: Boolean,
       zincLogDebug: Boolean
