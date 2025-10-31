@@ -6,8 +6,8 @@ import org.junit.Test
 
 class FooTests {
 
-    @Test
-    fun test() {
-        assertEquals(Foo.value, "<h1>hello</h1>")
-    }
+  @Test
+  def test() = {
+    assertEquals(Foo.value, "<h1>hello</h1>")
+  }
 }

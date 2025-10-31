@@ -6,8 +6,9 @@ import org.junit.Test
 
 class BarTests {
 
-    @Test
-    fun test() {
-        assertEquals(Bar.value(), "<p>world</p>")
-    }
+  @Test
+  def test() = {
+    assertEquals(Bar.value, "<p>world</p>")
+  }
+
 }

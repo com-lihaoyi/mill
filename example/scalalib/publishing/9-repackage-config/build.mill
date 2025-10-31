@@ -24,7 +24,7 @@ trait MyModule extends ScalaModule, PublishModule {
 
   def mvnDeps = Seq(mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE")
 
-  object test extends JavaTests, TestModule.Junit4
+  object test extends ScalaTests, TestModule.Junit4
 }
 
 object foo extends MyModule, RepackageModule { // <1>
@@ -45,6 +45,10 @@ object qux extends MyModule
 Foo.value: <h1>hello</h1>
 Bar.value: <p>world</p>
 Qux.value: 31337
+
+ > ./mill -j1 __.test
+...Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...s
+...Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...s
 
 > ./mill show foo.repackagedJar
 ".../out/foo/repackagedJar.dest/out.jar"
