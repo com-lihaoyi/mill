@@ -1,0 +1,14 @@
+// Mill single-file {language} modules do not have any classpath resources enabled by
+// default, but you can include them via a `resources` key in the build header:
+
+//// SNIPPET:ALL
+
+/** See Also: Foo.scala */
+
+/** Usage
+> ./mill Foo.scala
+???
+
+*/
+
+//// SNIPPET:END
