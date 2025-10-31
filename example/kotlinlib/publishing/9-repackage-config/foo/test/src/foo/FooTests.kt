@@ -1,7 +1,6 @@
 package foo
 
 import org.junit.Assert.assertEquals
-
 import org.junit.Test
 
 class FooTests {

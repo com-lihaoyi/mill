@@ -8,5 +8,5 @@ public class Qux {
         fun main(args: Array<String>) {
             println("Qux.value: " + Qux.value)
         }
-  }
+    }
 }

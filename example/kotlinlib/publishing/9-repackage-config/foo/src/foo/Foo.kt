@@ -11,6 +11,4 @@ public class Foo {
             println("Qux.value: " + qux.Qux.value)
         }
     }
-
 }
-
