@@ -18,7 +18,7 @@
         "file:///workspace/app/test/compile-resources",
         "file:///workspace/app/test/resources",
         "file:///workspace/out/mill-bsp-out/app/test/compile.dest/classes",
-        "file:///mill-workspace/out/dist/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar",
+        "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-javalib-testrunner-entrypoint.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
       "jvmOptions": [],
@@ -52,7 +52,7 @@
         "file:///workspace/hello-java/test/compile-resources",
         "file:///workspace/hello-java/test/resources",
         "file:///workspace/out/mill-bsp-out/hello-java/test/compile.dest/classes",
-        "file:///mill-workspace/out/dist/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar",
+        "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-javalib-testrunner-entrypoint.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
       "jvmOptions": [],
@@ -87,7 +87,7 @@
         "file:///workspace/hello-scala/test/compile-resources",
         "file:///workspace/hello-scala/test/resources",
         "file:///workspace/out/mill-bsp-out/hello-scala/test/compile.dest/classes",
-        "file:///mill-workspace/out/dist/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar",
+        "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-javalib-testrunner-entrypoint.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
       "jvmOptions": [],
@@ -102,6 +102,51 @@
           "arguments": [
             "",
             "/workspace/out/mill-bsp-out/hello-scala/test/getTestEnvironmentVars.dest/testargs"
+          ]
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder2/FooTest.java"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/github/sbt/junit-interface/0.13.2/junit-interface-0.13.2.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/guava/guava/33.3.0-jre/guava-33.3.0-jre.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/net/sourceforge/argparse4j/argparse4j/0.9.0/argparse4j-0.9.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/3.1.1.RELEASE/thymeleaf-3.1.1.RELEASE.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.43.0/checker-qual-3.43.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.28.0/error_prone_annotations-2.28.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/ognl/ognl/3.3.4/ognl-3.3.4.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/attoparser/attoparser/2.0.6.RELEASE/attoparser-2.0.6.RELEASE.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA.jar",
+        "file:///workspace/out/mill-bsp-out/scripts/folder2/Foo.java/compile.dest/classes",
+        "file:///workspace/scripts/folder2/FooTest.java/resources",
+        "file:///workspace/out/mill-bsp-out/scripts/folder2/FooTest.java/compile.dest/classes",
+        "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-javalib-testrunner-entrypoint.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+      ],
+      "jvmOptions": [],
+      "workingDirectory": "/workspace",
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace",
+        "MILL_TEST_RESOURCE_DIR": "/workspace/scripts/folder2/FooTest.java/resources"
+      },
+      "mainClasses": [
+        {
+          "className": "mill.javalib.testrunner.entrypoint.TestRunnerMain",
+          "arguments": [
+            "",
+            "/workspace/out/mill-bsp-out/scripts/folder2/FooTest.java/getTestEnvironmentVars.dest/testargs"
           ]
         }
       ]

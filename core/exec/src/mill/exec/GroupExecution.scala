@@ -123,7 +123,9 @@ trait GroupExecution {
             val (execRes, serializedPaths) =
               try {
                 val (resultData, serializedPaths) = PathRef.withSerializedPaths {
-                  PathRef.currentOverrideModulePath.withValue(labelled.ctx.millSourcePath) {
+                  PathRef.currentOverrideModulePath.withValue(
+                    labelled.ctx.enclosingModule.moduleCtx.millSourcePath
+                  ) {
                     upickle.read[Any](interpolateEnvVarsInJson(jsonData))(
                       using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
                     )

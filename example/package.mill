@@ -46,6 +46,10 @@ object `package` extends Module {
     object script extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object web extends Cross[ExampleCrossModuleKotlin](build.listCross)
   }
+  object springboot extends Module {
+    object java extends Cross[ExampleCrossModule](build.listCross)
+    object kotlin extends Cross[ExampleCrossModule](build.listCross)
+  }
   object scalalib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listCross)
     object module extends Cross[ExampleCrossModule](build.listCross)
@@ -135,6 +139,7 @@ object `package` extends Module {
   trait ExampleCrossModuleAndroid extends ExampleCrossModule {
     def testExclusive = true
   }
+
   trait ExampleCrossModuleJava extends ExampleCrossModule {
 
     def upstreamCross(s: String) = s match {

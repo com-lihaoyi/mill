@@ -4,14 +4,7 @@ import mill.api.{ExternalModule, Result}
 import mill.script.ScriptModule.parseHeaderData
 
 object ScriptModuleInit
-    extends (
-        (
-            String,
-            String => Option[mill.Module],
-            Boolean,
-            Option[String]
-        ) => Seq[Result[mill.api.ExternalModule]]
-    ) {
+    extends ((String, String => Option[mill.Module]) => Seq[Result[mill.api.ExternalModule]]) {
 
   // Cache instantiated script modules on a per-classloader basis. This lets us avoid
   // instantiating the same script twice, e.g. once directly and once when resolving a
@@ -115,16 +108,18 @@ object ScriptModuleInit
    * Discovers and instantiates script modules for BSP integration.
    * This method must be called reflectively from the evaluator's classloader.
    */
-  def discoverAndInstantiateScriptModules(nonScriptSourceFolders0: Seq[java.nio.file.Path])
+  def discoverAndInstantiateScriptModules(
+      nonScriptSourceFolders0: Seq[java.nio.file.Path],
+      eval: mill.api.Evaluator
+  )
       : Seq[(java.nio.file.Path, Result[ExternalModule])] = {
     // For now, we don't resolve moduleDeps as that would require access to other modules
-    val resolveModuleDep: String => Option[mill.Module] = _ => None
     import mill.api.BuildCtx.workspaceRoot
     val nonScriptSourceFolders = nonScriptSourceFolders0.map(os.Path(_))
     discoverScriptFiles(workspaceRoot, os.Path(mill.constants.OutFiles.out, workspaceRoot))
       .filter(p => !nonScriptSourceFolders.exists(p.startsWith(_)))
       .flatMap { scriptPath =>
-        resolveScriptModule(scriptPath.toString, resolveModuleDep).map { result =>
+        resolveScriptModule(scriptPath.toString, eval.resolveScriptModuleDep).map { result =>
           (scriptPath.toNIO, result)
         }
       }
@@ -154,24 +149,12 @@ object ScriptModuleInit
 
   def apply(
       scriptFileString: String,
-      resolveModuleDep: String => Option[mill.Module],
-      resolveChildren: Boolean,
-      nameOpt: Option[String]
+      resolveModuleDep: String => Option[mill.Module]
   ) = {
-    val workspace = mill.api.BuildCtx.workspaceRoot
+    mill.api.BuildCtx.workspaceRoot
 
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      val scriptFile0 = os.Path(scriptFileString, workspace)
-      if (resolveChildren) {
-        nameOpt match {
-          case Some(n) => resolveScriptModule((scriptFile0 / n).toString, resolveModuleDep).toSeq
-          case None =>
-            if (!os.isDir(scriptFile0)) Nil
-            else os.list(scriptFile0).filter(os.isDir).flatMap(p =>
-              resolveScriptModule(p.toString, resolveModuleDep)
-            )
-        }
-      } else resolveScriptModule(scriptFileString, resolveModuleDep).toSeq
+      resolveScriptModule(scriptFileString, resolveModuleDep).toSeq
     }
   }
 }
