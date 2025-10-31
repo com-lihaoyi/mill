@@ -264,7 +264,7 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
 
     /*
      * FIXME on windows this will not work if it has too many files. Windows support will have to wait
-     * until we use R8 from its java API as the @file trick is not working as expected
+     * until we use R8 from its java API as the @file trick is not working as initially expected
      */
     r8ArgsBuilder ++= compileOnlyClasspath.filter(_.path.ext == "jar").flatMap(compiledMvnDeps =>
       Seq(
