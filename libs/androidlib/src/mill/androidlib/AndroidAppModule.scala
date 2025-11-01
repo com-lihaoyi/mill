@@ -136,12 +136,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
   )
 
   /**
-   * Collect files from META-INF folder of classes.jar (not META-INF of aar in case of Android library).
+   * Collect files from META-INF folder of [[androidPackagedDeps]] (not META-INF of aar in case of Android library).
+   * to include in the apk
    */
   def androidLibsClassesJarMetaInf: T[Seq[PathRef]] = Task {
     // ^ not the best name for the method, but this is to distinguish between META-INF of aar and META-INF
     // of classes.jar included in aar
-    compileClasspath()
+    androidPackagedDeps()
       .filter(ref =>
         ref.path.ext == "jar" &&
           ref != androidSdkModule().androidJarPath()
@@ -180,7 +181,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
         }
       })
       .map(PathRef(_))
-      .toSeq
   }
 
   /**
@@ -191,7 +191,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] =
     Task { Seq.empty[AndroidPackageableExtraFile] }
 
-  def androidPackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
+  def androidPackagedMetaInfFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
     def metaInfRoot(p: os.Path): os.Path = {
       var current = p
       while (!current.endsWith(os.rel / "META-INF")) {
@@ -241,7 +241,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         (androidPackageableExtraFile.source.path, androidPackageableExtraFile.destination.asSubPath)
       )
 
-    val metaInf = androidPackageMetaInfoFiles().map(asZipSource)
+    val metaInf = androidPackagedMetaInfFiles().map(asZipSource)
 
     val nativeDeps = androidPackageableNativeDeps().map(asZipSource)
 
@@ -964,7 +964,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }
 
     private def androidxTestManifests: Task[Seq[PathRef]] = Task {
-      androidUnpackArchives().flatMap {
+      androidPackagableUnpackedDeps().flatMap {
         unpackedArchive =>
           unpackedArchive.manifest.map(_.path)
       }.filter {
@@ -1042,8 +1042,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
       val device = androidTestInstall().apply()
 
       val instrumentOutput = os.proc(
-        (
-          androidSdkModule().adbExe().path,
+        Seq(
+          androidSdkModule().adbExe().path.toString,
           "-s",
           device,
           "shell",
@@ -1095,8 +1095,25 @@ trait AndroidAppModule extends AndroidModule { outer =>
         .map(d => d.module.organization.value -> d.module.name.value).toSeq
     }
 
-    def androidPackagableMvnDeps: Task.Simple[Seq[Dep]] = Task {
+    def androidPackagableMvnDeps: T[Seq[Dep]] = Task {
       mvnDeps().map(_.exclude(androidPackagableDepsExclusionRules()*))
+    }
+
+    def androidPackagableUnpackedDeps: T[Seq[UnpackedDep]] = Task {
+      androidTransformAarFiles(androidResolvedPackagableMvnDeps)()
+    }
+
+    /**
+     * Native deps to package into apk but excluding dependencies that were packaged in the base apk
+     */
+    override def androidPackageableNativeDeps: T[Seq[AndroidPackageableExtraFile]] = Task {
+      androidPackagableUnpackedDeps().flatMap {
+        unpackedDep =>
+          unpackedDep.nativeLibs.toList.filter(pr => os.exists(pr.path))
+            .flatMap(lib => os.list(lib.path))
+      }.map(nativeLibDir =>
+        AndroidPackageableExtraFile(PathRef(nativeLibDir), "lib" / nativeLibDir.last)
+      )
     }
 
     def androidResolvedPackagableMvnDeps: Task.Simple[Seq[PathRef]] = Task {
@@ -1119,14 +1136,15 @@ trait AndroidAppModule extends AndroidModule { outer =>
       )
     }
 
+    override def androidUnpackRunArchives: T[Seq[UnpackedDep]] = androidPackagableUnpackedDeps()
+
     override def androidPackagedDeps: Task.Simple[Seq[PathRef]] = Task {
       val deps = androidResolvedPackagableMvnDeps()
-      val dest = Task.dest
-      val aarDeps = extractAarFiles(deps.map(_.path), dest)
+      val aarDeps = androidPackagableUnpackedDeps()
       val jarDeps = deps.filter(pr => pr.path.ext == "jar")
       val aarClassJars = aarDeps.flatMap(_.classesJar)
       val repackaged = aarDeps.flatMap(_.repackagedJars)
-      jarDeps ++ aarClassJars ++ repackaged
+      jarDeps ++ aarClassJars ++ repackaged ++ Seq(androidProcessedResources())
     }
 
     /**

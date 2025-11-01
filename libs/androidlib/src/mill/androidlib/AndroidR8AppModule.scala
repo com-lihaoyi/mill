@@ -8,7 +8,7 @@ import scala.xml.*
 @mill.api.experimental
 trait AndroidR8AppModule extends AndroidAppModule { outer =>
 
-  override def androidPackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] =
+  override def androidPackagedMetaInfFiles: T[Seq[AndroidPackageableExtraFile]] =
     androidR8PackageMetaInfoFiles()
 
   /**
