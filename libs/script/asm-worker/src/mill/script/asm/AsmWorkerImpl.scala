@@ -70,7 +70,9 @@ class AsmWorkerImpl {
   }
 
   private def generateSyntheticMainClass(classesDir: os.Path, methodName: String): Unit = {
-    val templateBytes = os.read.bytes(os.resource(getClass.getClassLoader) / "mill/script/asm/TemplateMainClass.class")
+    val templateBytes = os.read.bytes(
+      os.resource(getClass.getClassLoader) / "mill/script/asm/TemplateMainClass.class"
+    )
     val reader = new asm.ClassReader(templateBytes)
     val writer = new asm.ClassWriter(reader, 0)
 
