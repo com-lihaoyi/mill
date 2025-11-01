@@ -894,10 +894,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   trait AndroidAppInstrumentedTests extends AndroidTestModule, AndroidAppModule {
 
     override def androidIsDebug: T[Boolean] = Task { true }
-
-    override def moduleDeps: Seq[JavaModule] = Seq.empty
-    override def compileModuleDeps: Seq[JavaModule] = Seq(outer)
-
+    
     override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer.resolutionParams())
 
     override def androidApplicationId: String = s"${outer.androidApplicationId}.test"

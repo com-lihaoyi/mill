@@ -4,7 +4,7 @@ import coursier.core as cs
 import mill.*
 import mill.api.{PathRef, Task}
 import mill.PathRef.jsonFormatter
-import mill.javalib.Dep
+import mill.javalib.{Dep, JavaModule}
 import os.Path
 
 import scala.xml.*
@@ -409,7 +409,10 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
 
   trait AndroidR8InstrumentedTestsModule extends AndroidAppInstrumentedTests, AndroidR8AppModule {
 
-    def androidPackagableDepsExclusionRules: Task[Seq[(String, String)]] = Task.Anon {
+    def moduleDeps: Seq[JavaModule] = super.moduleDeps.filterNot(_ == outer)
+    def compileModuleDeps: Seq[JavaModule] = super.compileModuleDeps ++ Seq(outer)
+    
+    def androidPackagableDepsExclusionRules: T[Seq[(String, String)]] = Task {
       val baseResolvedDependencies = defaultResolver().resolution(
         Task.traverse(compileModuleDepsChecked)(_.mvnDeps)().flatten,
         boms = allBomDeps()
