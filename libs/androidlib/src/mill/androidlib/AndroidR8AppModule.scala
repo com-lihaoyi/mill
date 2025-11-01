@@ -411,7 +411,7 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
 
     def moduleDeps: Seq[JavaModule] = super.moduleDeps.filterNot(_ == outer)
     def compileModuleDeps: Seq[JavaModule] = super.compileModuleDeps ++ Seq(outer)
-    
+
     def androidPackagableDepsExclusionRules: T[Seq[(String, String)]] = Task {
       val baseResolvedDependencies = defaultResolver().resolution(
         Task.traverse(compileModuleDepsChecked)(_.mvnDeps)().flatten,

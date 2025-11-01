@@ -164,7 +164,6 @@ object app
     }
 
     override def androidProjectProguardFiles = Task.Sources(
-      "proguard-rules.pro",
       "proguardTest-rules.pro"
     )
     override def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
@@ -192,7 +191,16 @@ object app
       mvn"androidx.arch.core:core-testing:2.2.0",
       mvn"androidx.navigation:navigation-testing:2.8.5",
       mvn"androidx.test.espresso:espresso-core:3.6.1",
-      mvn"androidx.test.espresso:espresso-contrib:3.6.1",
+      // FIXME the excluded dependency causes an issue in aapt2 linking
+      // at compile time, but it's not needed at runtime. This is not
+      // necessary in gradle which seems to exclude it via other mechanisms.
+      // in this example it is not excluded because the base app does not depend on
+      // it. The issue it causes is because its linked resources depend on
+      // app compat resources, which exist in the base apk but the linking mechanism
+      // does not see it.
+      mvn"androidx.test.espresso:espresso-contrib:3.6.1".exclude(
+        "com.google.android.material" -> "material"
+      ),
       mvn"androidx.test.espresso:espresso-intents:3.6.1",
       mvn"androidx.test.espresso:espresso-idling-resource:3.6.1",
       mvn"androidx.test.espresso.idling:idling-concurrent:3.6.1",
