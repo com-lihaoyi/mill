@@ -1088,7 +1088,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     def androidPackagableDepsExclusionRules: Task[Seq[(String, String)]] = Task.Anon {
       val baseResolvedDependencies = defaultResolver().resolution(
-        outer.mvnDeps(),
+        Task.traverse(compileModuleDepsChecked)(_.mvnDeps)().flatten,
         boms = allBomDeps()
       )
       baseResolvedDependencies.dependencies

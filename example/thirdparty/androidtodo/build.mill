@@ -145,7 +145,7 @@ object app
 
   object androidTest
       extends AndroidAppKotlinInstrumentedTests,
-        AndroidR8AppModule,
+        AndroidR8InstrumentedTestsModule,
         AndroidHiltSupport {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
