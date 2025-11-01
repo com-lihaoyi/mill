@@ -49,7 +49,6 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     val method = workerClass.getMethod("generateSyntheticClasses", classOf[java.nio.file.Path])
     method.invoke(workerInstance, classesDir.toNIO)
 
-    // Return new CompilationResult with our modified classes
     CompilationResult(result.analysisFile, PathRef(classesDir))
   }
 

@@ -19,7 +19,6 @@ class AsmWorkerImpl {
     val millScriptMainClass = classesDir / "_MillScriptMain$.class"
 
     if (os.exists(millScriptMainClass)) {
-      mill.constants.DebugLog.println(s"Reading _MillScriptMain$$ class: $millScriptMainClass")
       val reader = new asm.ClassReader(os.read.bytes(millScriptMainClass))
 
       val visitor = new asm.ClassVisitor(asm.Opcodes.ASM9) {
@@ -30,17 +29,12 @@ class AsmWorkerImpl {
             signature: String,
             exceptions: Array[String]
         ): asm.MethodVisitor = {
-          mill.constants.DebugLog.println(s"Visiting method: $name")
-
-          // Look at all methods to capture string constants and method calls
           new asm.MethodVisitor(asm.Opcodes.ASM9) {
             private val stringsSinceLastCreate = collection.mutable.ArrayBuffer[String]()
 
             override def visitLdcInsn(value: Any): Unit = {
               value match {
-                case s: String =>
-                  mill.constants.DebugLog.println(s"  LDC string: $s")
-                  stringsSinceLastCreate += s
+                case s: String => stringsSinceLastCreate += s
                 case _ =>
               }
               super.visitLdcInsn(value)
@@ -53,15 +47,11 @@ class AsmWorkerImpl {
                 descriptor: String,
                 isInterface: Boolean
             ): Unit = {
-              mill.constants.DebugLog.println(s"  INVOKE: $owner.$methodName $descriptor")
-
               // Look for MainData.create calls which include the method name as first parameter
               if (owner.contains("MainData") && methodName == "create") {
                 // The first string constant before MainData.create is the method name
                 if (stringsSinceLastCreate.nonEmpty) {
                   val potentialMethodName = stringsSinceLastCreate.head
-                  mill.constants.DebugLog.println(s"  Found MainData.create, method name: $potentialMethodName")
-                  mill.constants.DebugLog.println(s"  All strings before create: ${stringsSinceLastCreate.mkString(", ")}")
                   mainMethods += potentialMethodName
                   stringsSinceLastCreate.clear()
                 }
@@ -74,11 +64,8 @@ class AsmWorkerImpl {
       }
 
       reader.accept(visitor, 0)
-    } else {
-      mill.constants.DebugLog.println(s"_MillScriptMain$$.class not found at: $millScriptMainClass")
     }
 
-    mill.constants.DebugLog.println(s"Found main methods: $mainMethods")
     mainMethods.toSeq.distinct
   }
 
