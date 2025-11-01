@@ -47,12 +47,12 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     asmWorkerClassloader()
       .loadClass("mill.script.asm.AsmWorkerImpl")
       .getMethod("generateSyntheticClasses", classOf[java.nio.file.Path], classOf[Array[String]])
-      .invoke(null, classesDir.toNIO, syntheticMainClasses().toArray)
+      .invoke(null, classesDir.toNIO, syntheticMainargsMainClasses().toArray)
 
     CompilationResult(result.analysisFile, PathRef(classesDir))
   }
 
-  def syntheticMainClasses = Task {
+  private def syntheticMainargsMainClasses = Task {
     asmWorkerClassloader()
       .loadClass("mill.script.asm.AsmWorkerImpl")
       .getMethod("findMainArgsMethods", classOf[java.nio.file.Path])
@@ -60,8 +60,14 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
       .asInstanceOf[Array[String]]
       .toSeq
   }
+
   override def allLocalMainClasses = Task {
-    super.allLocalMainClasses().filter(!syntheticMainClasses().contains(_)) match {
+    // Never consider the `syntheticMainargsMainClasses` when choosing a default main class,
+    // since those are purely for compatibility when run directly via `runMain`
+    //
+    // If multiple main methods are present, skip the synthetic `_MillScriptMain` one
+    // and use the user-provided main method instead
+    super.allLocalMainClasses().filter(!syntheticMainargsMainClasses().contains(_)) match {
       case Seq(single) => Seq(single)
       case multiple => multiple.filter(!_.endsWith("_MillScriptMain"))
     }
