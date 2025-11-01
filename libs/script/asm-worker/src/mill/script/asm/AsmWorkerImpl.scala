@@ -129,6 +129,6 @@ object AsmWorkerImpl {
 
     // Write the modified class file
     val classBytes = writer.toByteArray
-    os.write(classesDir / s"$methodName.class", classBytes)
+    os.write.over(classesDir / s"$methodName.class", classBytes)
   }
 }
