@@ -251,7 +251,7 @@ object CoursierModule {
         artifactTypes: Option[Set[coursier.Type]] = None,
         resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
         mapDependencies: Option[Dependency => Dependency] = null,
-        boms: IterableOnce[BomDependency] = Nil
+        @unroll boms: IterableOnce[BomDependency] = Nil
     )(using ctx: mill.api.TaskCtx): Seq[PathRef] =
       Lib.resolveDependencies(
         repositories = repositories,
@@ -275,7 +275,7 @@ object CoursierModule {
      */
     def resolution[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
-        boms: IterableOnce[BomDependency] = Nil
+        @unroll boms: IterableOnce[BomDependency] = Nil
     )(using ctx: mill.api.TaskCtx): coursier.core.Resolution = {
       val deps0 = deps
         .iterator

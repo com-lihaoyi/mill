@@ -6,7 +6,7 @@ import coursier.core.BomDependency
 import coursier.params.ResolutionParams
 import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
-import mill.api.{PathRef, TaskCtx}
+import mill.api.{TaskCtx, PathRef}
 import mill.api.Result
 import mill.javalib.api.JvmWorkerUtil
 
@@ -39,8 +39,8 @@ object Lib {
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      checkGradleModules: Boolean = false,
       boms: IterableOnce[BomDependency] = Nil,
+      checkGradleModules: Boolean = false,
       @unroll config: mill.util.CoursierConfig = mill.util.CoursierConfig.default()
   ): Result[Resolution] = {
     val depSeq = deps.iterator.toSeq
@@ -79,8 +79,8 @@ object Lib {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       checkGradleModules: Boolean = false,
-      boms: IterableOnce[BomDependency] = Nil,
-      @unroll config: mill.util.CoursierConfig = mill.util.CoursierConfig.default()
+      @unroll config: mill.util.CoursierConfig = mill.util.CoursierConfig.default(),
+      @unroll boms: IterableOnce[BomDependency] = Nil
   ): Result[Seq[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     val res = mill.util.Jvm.resolveDependencies(
@@ -95,8 +95,8 @@ object Lib {
       coursierCacheCustomizer = coursierCacheCustomizer,
       resolutionParams = resolutionParams,
       checkGradleModules = checkGradleModules,
-      boms = boms,
-      config = config
+      config = config,
+      boms = boms
     )
 
     res.map(_.map(_.withRevalidateOnce))
