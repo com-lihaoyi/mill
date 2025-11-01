@@ -1,11 +1,11 @@
 package mill.androidlib
 
 import coursier.core as cs
-
 import mill.*
 import mill.api.{PathRef, Task}
 import mill.PathRef.jsonFormatter
 import mill.javalib.Dep
+import os.Path
 
 import scala.xml.*
 
@@ -170,6 +170,14 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
     }
 
   /**
+   * The jdk-home to be used in r8 in case of building a
+   * jar (using --classfile) instead of a dex. Used in
+   * [[androidR8Jar]]
+   */
+  def androidR8JavaHome: T[PathRef] =
+    javaHome().getOrElse(PathRef(Path(sys.props("java.home")), quick = true))
+
+  /**
    * Prepares the R8 cli command to build this android app as a java class file (jar)!
    * Useful for building APKs that are dynamically linked to other apks (e.g. the test apk)
    */
@@ -258,11 +266,12 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
       }
 
       // R8 does not support --min-api when compiling to class files
-      if (buildType() == "--dex")
+      if (buildType() == "--dex") {
         r8ArgsBuilder ++= Seq(
           "--min-api",
           androidMinSdk().toString
         )
+      }
 
       r8ArgsBuilder ++= Seq(
         buildType()
@@ -279,6 +288,13 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
       val libArgs = libraryClassesPaths().flatMap(ref => Seq("--lib", ref.path.toString))
 
       r8ArgsBuilder ++= libArgs
+
+      if (buildType() == "--classfile") {
+        r8ArgsBuilder ++= Seq(
+          "--lib",
+          androidR8JavaHome().path.toString
+        )
+      }
 
       // ProGuard configuration files: add our extra rules file,
       // all provided config files and the common rules.
