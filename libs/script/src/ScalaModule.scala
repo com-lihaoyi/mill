@@ -38,7 +38,7 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     Jvm.createClassLoader(classPath = asmWorkerClasspath().map(_.path), parent = null)
   }
 
-  override def compile: T[CompilationResult] = Task(persistent = true) {
+  override def compile: T[CompilationResult] = Task {
     val result = super.compile()
 
     val classesDir = Task.dest / "classes"
