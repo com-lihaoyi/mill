@@ -16,6 +16,7 @@ import java.io.File
 import javax.inject.Inject
 import scala.jdk.CollectionConverters.*
 import scala.reflect.TypeTest
+import scala.util.Try
 
 class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends ToolingModelBuilder {
 
@@ -89,11 +90,6 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
       task[JavaCompile]("compileJava").fold(Nil)(javacOptionsFromTask),
       errorProneDeps
     )
-    val javaPluginExtension = Option(getExtensions.findByType(classOf[JavaPluginExtension]))
-    val mainJavaHomeModule =
-      javaPluginExtension.flatMap(ext =>
-        JavaHomeModule.find(ctx.javaVersion(ext), mainJavacOptions)
-      )
     val mavenPublication = Option(getExtensions.findByType(classOf[PublishingExtension]))
       .flatMap(ext => ext.getPublications.withType(classOf[MavenPublication]).asScala.headOption)
     val mainJavaModule = Option.when(getPluginManager.hasPlugin("java")) {
@@ -111,7 +107,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
     }
     val mainPublishModule = mavenPublication.map { pub =>
       PublishModule(
-        pomPackagingType = PublishModule.pomPackagingTypeOverride(pub.getPom.getPackaging),
+        pomPackagingType = toPomPackagingType(pub.getPom),
         pomSettings = toPomSettings(pub.getPom, pub.getGroupId),
         publishVersion = getVersion.toString
       )
@@ -133,11 +129,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
           runModuleDeps = moduleDeps("testRuntimeOnly"),
           javacOptions = inheritedOptions(testJavacOptions, mainJavacOptions)
         )
-        val testModule = TestModule(
-          testParallelism = "false",
-          testSandboxWorkingDir = "false"
-        )
-        val testConfigs = Seq(testJavaModule) ++ testErrorProneModule ++ Seq(testModule)
+        val testConfigs = testJavaModule +: testErrorProneModule.toSeq
         val testSupertypes = "MavenTests" +: testConfigs.collect {
           case _: ErrorProneModule => "ErrorProneModule"
         }
@@ -145,7 +137,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
           name = "test",
           supertypes = testSupertypes,
           mixins = Seq(testModuleMixin),
-          configs = testConfigs
+          configs = testConfigs ++ defaultTestConfigs
         )
       }
     } else None
@@ -153,7 +145,6 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
     val mainConfigs = Seq(
       mainJavaModule,
       mainErrorProneModule,
-      mainJavaHomeModule,
       mainPublishModule,
       mainCoursierModule
     ).flatten
@@ -166,13 +157,21 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
       ModuleSpec(
         name = moduleDir.last,
         supertypes = mainSupertypes,
-        configs = mainConfigs,
+        configs = JavaHomeModule.system +: mainConfigs,
         nestedModules = testModule.toSeq
       )
     }
 
     PackageSpec(segments, mainModule)
   }
+
+  private val defaultTestConfigs = Seq(
+    // reproduce Gradle behavior
+    TestModule(
+      testParallelism = "false",
+      testSandboxWorkingDir = "false"
+    )
+  )
 
   private val toRepositoryUrlString: PartialFunction[ArtifactRepository, String] = {
     case repo: UrlArtifactRepository => repo.getUrl.toURL.toExternalForm
@@ -199,6 +198,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
     ModuleDep(
       os.Path(ctx.project(dep).getProjectDir).subRelativeTo(workspace).segments
     )
+
+  private def toPomPackagingType(pom: MavenPom): String =
+    Try(PublishModule.pomPackagingTypeOverride(pom.getPackaging)).getOrElse(null)
 
   private def toPomSettings(pom: MavenPom, groupId: String): PomSettings = {
     import pom.*

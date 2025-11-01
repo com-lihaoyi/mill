@@ -1,4 +1,5 @@
 //| mill-version: SNAPSHOT
+//| mill-jvm-version: zulu:21
 package build
 
 import mill.javalib.*
@@ -11,7 +12,7 @@ object `package` extends MavenModule with PublishModule {
 
   def artifactName = "demo"
 
-  def jvmId = "zulu:17"
+  def jvmId = "zulu:11"
 
   def pomParentProject = Some(
     Artifact("org.springframework.boot", "spring-boot-starter-parent", "3.5.6")

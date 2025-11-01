@@ -68,20 +68,30 @@ object `package` extends MillPublishScalaModule {
     PathRef(Task.dest)
   }
 
-  object buildgen extends MillPublishScalaModule {
+  object buildgen extends MillPublishScalaModule with BuildInfo {
     def moduleDeps =
       Seq(api(Deps.scalaVersion), build.libs.init, build.core.internal, build.libs.util)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
+    def buildInfoPackageName = "mill.main.buildgen"
+    def buildInfoMembers = Seq(BuildInfo.Value("millJvmVersion", "zulu:21"))
 
     object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
     trait ApiModule extends MillPublishCrossScalaModule {
-      def mvnDeps = Seq(Deps.upickle)
+      def mvnDeps = Seq(Deps.osLib, Deps.upickle)
+    }
+
+    trait MainModule extends MillPublishScalaModule {
+      def moduleDeps = Seq(buildgen)
+      def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
+      def prependShellScript = ""
+      def testForkEnv = super.testForkEnv() ++ Map(
+        "TEST_MAIN_ASSEMBLY" -> assembly().path.toString
+      )
     }
   }
-  object gradle extends MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(api, buildgen)
+  object gradle extends buildgen.MainModule with BuildInfo {
+    def moduleDeps = super.moduleDeps ++ Seq(api)
     def mvnDeps = Seq(Deps.gradleApi)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
     def buildInfoPackageName = "mill.main.gradle"
     def buildInfoMembers = Seq(
       BuildInfo.Value("exportpluginAssemblyResource", "/exportplugin-assembly.jar")
@@ -96,13 +106,11 @@ object `package` extends MillPublishScalaModule {
 
     object exportplugin extends ScalaModule {
       def scalaVersion = Deps.scalaVersion
-      def mvnDeps = Seq(Deps.osLib)
       def moduleDeps = Seq(api, buildgen.api(Deps.scalaVersion))
       def compileMvnDeps = Seq(Deps.gradleApi)
     }
   }
-  object maven extends MillPublishScalaModule {
-    def moduleDeps = Seq(buildgen)
+  object maven extends buildgen.MainModule {
     override def mvnDeps = Seq(
       Deps.MavenInit.mavenEmbedder,
       Deps.MavenInit.mavenResolverConnectorBasic,
@@ -111,17 +119,15 @@ object `package` extends MillPublishScalaModule {
       Deps.MavenInit.mavenResolverTransportHttp,
       Deps.MavenInit.mavenResolverTransportWagon
     )
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
   }
 
-  object sbt extends MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(api(Deps.scalaVersion), buildgen)
+  object sbt extends buildgen.MainModule with BuildInfo {
+    def moduleDeps = super.moduleDeps ++ Seq(api(Deps.scalaVersion))
     def sbtPluginJarResource = Task {
       os.copy(exportplugin.assembly().path, Task.dest / "exportplugin-assembly.jar")
       PathRef(Task.dest)
     }
     def resources = Task { super.resources() ++ Seq(sbtPluginJarResource()) }
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
     def buildInfoPackageName = "mill.main.sbt"
     def buildInfoMembers = Seq(
       BuildInfo.Value("exportpluginAssemblyResource", "/exportplugin-assembly.jar"),
@@ -134,7 +140,6 @@ object `package` extends MillPublishScalaModule {
     }
     object exportplugin extends ScalaModule {
       def scalaVersion = Deps.sbtScalaVersion212
-      def mvnDeps = Seq(Deps.osLib)
       def moduleDeps = Seq(api(Deps.sbtScalaVersion212))
       def compileMvnDeps = Seq(Deps.sbt)
       def assemblyRules = Seq(Rule.ExcludePattern("scala\\.*"))

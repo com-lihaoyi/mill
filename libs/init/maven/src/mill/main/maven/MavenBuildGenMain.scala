@@ -59,7 +59,6 @@ object MavenBuildGenMain {
       val errorProneMvnDeps = plugins.javacAnnotationProcessorMvnDeps
       val (mainErrorProneModule, mainJavacOptions) =
         ErrorProneModule.find(plugins.javacOptions, errorProneMvnDeps)
-      val mainJavaHomeModule = JavaHomeModule.find(plugins.javaVersion, mainJavacOptions)
       val mainJavaModule = JavaModule(
         mvnDeps = mvnDeps("compile"),
         compileMvnDeps = mvnDeps("provided"),
@@ -98,17 +97,7 @@ object MavenBuildGenMain {
           )
           // ErrorProne is applied to test sources by default
           val testErrorProneModule = mainErrorProneModule
-          val testConfigs = Seq(testJavaModule) ++ testErrorProneModule ++
-            // reproduce Maven behavior
-            Seq(
-              RunModule(
-                forkWorkingDir = "moduleDir"
-              ),
-              TestModule(
-                testParallelism = "false",
-                testSandboxWorkingDir = "false"
-              )
-            )
+          val testConfigs = testJavaModule +: testErrorProneModule.toSeq
           val testSupertypes = "MavenTests" +: testConfigs.collect {
             case _: ErrorProneModule => "ErrorProneModule"
           }
@@ -116,16 +105,15 @@ object MavenBuildGenMain {
             name = "test",
             supertypes = testSupertypes,
             mixins = Seq(testModuleMixin),
-            configs = testConfigs
+            configs = testConfigs ++ defaultTestConfigs
           )
         }
       else None
 
-      val mainConfigs = mainJavaModule +: Seq(
-        mainErrorProneModule,
-        mainJavaHomeModule,
+      val mainConfigs = JavaHomeModule.system +: mainJavaModule +: Seq(
+        mainCoursierModule,
         mainPublishModule,
-        mainCoursierModule
+        mainErrorProneModule
       ).flatten
       val mainSupertypes = "MavenModule" +: mainConfigs.collect {
         case _: PublishModule => "PublishModule"
@@ -145,6 +133,17 @@ object MavenBuildGenMain {
     if (!noMeta.value) build = build.withDefaultMetaBuild
     BuildWriter(build).writeFiles()
   }
+
+  private val defaultTestConfigs = Seq(
+    // reproduce Maven behavior
+    RunModule(
+      forkWorkingDir = "moduleDir"
+    ),
+    TestModule(
+      testParallelism = "false",
+      testSandboxWorkingDir = "false"
+    )
+  )
 
   private def toGav(dep: Dependency): (String, String, String) =
     (dep.getGroupId, dep.getArtifactId, dep.getVersion)

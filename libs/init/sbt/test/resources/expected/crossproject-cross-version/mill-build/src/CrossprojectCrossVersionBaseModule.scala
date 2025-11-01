@@ -7,8 +7,6 @@ import mill.scalalib.*
 trait CrossprojectCrossVersionBaseModule
     extends PublishModule with CrossScalaModule {
 
-  def mvnDeps = super.mvnDeps() ++ Seq(Deps.upickle)
-
   def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
     (scalaVersion() match {
       case "2.12.20" => Seq(
@@ -20,6 +18,10 @@ trait CrossprojectCrossVersionBaseModule
       case "3.7.1"   => Seq("-Wunused")
       case _         => Nil
     })
+
+  def mvnDeps = super.mvnDeps() ++ Seq(Deps.upickle)
+
+  def jvmId = "zulu:11"
 
   def publishVersion = "0.1.0-SNAPSHOT"
 

@@ -1,14 +1,19 @@
 package mill.integration
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
+import mill.util.Jvm
 import utest.{assert, assertGoldenFile, assertGoldenLiteral}
+import java.io.File.pathSeparator
 trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
+  override def propagateJavaHome = false
+
   def checkImport(
       gitUrl: String,
       gitBranch: String,
       initArgs: Seq[String] = Nil,
       configsGoldenFile: os.SubPath = null,
       passingTasks: Seq[os.Shellable] = Nil,
-      failingTasks: Seq[os.Shellable] = Nil
+      failingTasks: Seq[os.Shellable] = Nil,
+      envJvmId: String = "zulu:11"
   ): Unit = {
     val tester = new IntegrationTester(
       daemonMode,
@@ -26,6 +31,15 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
         os.list(cwd).head
       }
       override def initWorkspace() = {}
+      override def millTestSuiteEnv = if (this.propagateJavaHome) super.millTestSuiteEnv
+      else {
+        val javaHome = Jvm.resolveJavaHome(envJvmId).get
+        val javaExe = Jvm.javaExe(Some(javaHome))
+        Map(
+          "JAVA_HOME" -> javaHome.toString,
+          "PATH" -> s"$javaExe$pathSeparator${System.getenv("PATH")}"
+        )
+      }
     }
     try {
       import tester.{eval, workspaceSourcePath as resources}

@@ -2,6 +2,8 @@ package mill.main.buildgen
 
 import upickle.default.{ReadWriter, macroRW}
 
+import scala.util.Properties.isWin
+
 /**
  * Data for configuring a Mill build module.
  *
@@ -144,25 +146,16 @@ object ModuleConfig {
   object JavaHomeModule {
     implicit val rw: ReadWriter[JavaHomeModule] = macroRW
 
-    def find(
-        javaVersion: Option[Int] = None,
-        javacOptions: Seq[String] = Nil,
-        scalacOptions: Seq[String] = Nil
-    ): Option[JavaHomeModule] = {
-      def versionIn(options: Seq[String], regex: String) =
-        options.indexWhere(_.matches(regex)) match {
-          case -1 => None
-          case i => options.lift(i + 1).map(_.stripPrefix("1.").toInt)
-        }
-      javaVersion
-        .orElse(versionIn(javacOptions, "--release|--?target"))
-        .orElse(versionIn(scalacOptions, "--?release"))
-        .map { version =>
-          // Mill requires Java 11+
-          val version0 = 11.max(version)
-          // use any distribution that supports all Java versions
-          JavaHomeModule(jvmId = s"zulu:$version0")
-        }
+    lazy val system: JavaHomeModule = {
+      val javaHome = os.Path(System.getenv("JAVA_HOME"))
+      val javaExe = javaHome / "bin" / os.SubPath(if (isWin) "java.exe" else "java")
+      val javaSpecVersion = """^\s*java\.specification\.version\s*=\s*(?:1\.)?(\d+)$""".r
+      val jvmId = os.proc(javaExe, "-XshowSettings:properties", "--version")
+        .call(stderr = os.Pipe, check = false)
+        .err.lines().collectFirst {
+          case javaSpecVersion(jvmId) => s"zulu:$jvmId"
+        }.getOrElse("system")
+      apply(jvmId)
     }
   }
   case class RunModule(forkWorkingDir: String = null) extends ModuleConfig {

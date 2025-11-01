@@ -6,18 +6,20 @@ object MillInitGradleTests extends MillInitImportTestSuite {
   def tests = Tests {
     test("FastCSV") - checkImport(
       gitUrl = "https://github.com/osiegmar/FastCSV.git",
-      gitBranch = "v4.0.0",
-      initArgs = Seq("--gradle-jvm-id", "24"),
+      gitBranch = "v4.1.0",
       configsGoldenFile = "golden/gradle/fast-csv",
-      failingTasks = Seq("lib.compile")
+      passingTasks = Seq(("resolve", "_")),
+      failingTasks = Seq("lib.compile"),
+      envJvmId = "zulu:24"
     )
 
     test("ehcache3") - checkImport(
       gitUrl = "https://github.com/ehcache/ehcache3.git",
-      gitBranch = "v3.10.8",
-      initArgs = Seq("--gradle-jvm-id", "11"),
+      gitBranch = "v3.11.1",
       configsGoldenFile = "golden/gradle/ehcache3",
-      failingTasks = Seq("ehcache-api.compile")
+      passingTasks = Seq(("resolve", "_")),
+      failingTasks = Seq("ehcache-api.compile"),
+      envJvmId = "zulu:17"
     )
   }
 }
