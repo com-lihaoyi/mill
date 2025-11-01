@@ -97,28 +97,27 @@ object MavenBuildGenMain {
           )
           // ErrorProne is applied to test sources by default
           val testErrorProneModule = mainErrorProneModule
-          val testConfigs = testJavaModule +: testErrorProneModule.toSeq
-          val testSupertypes = "MavenTests" +: testConfigs.collect {
-            case _: ErrorProneModule => "ErrorProneModule"
-          }
+
+          val testSupertypes = Seq("MavenTests") ++
+            Option.when(testErrorProneModule.nonEmpty)("ErrorProneModule")
+          val testConfigs = Seq(testJavaModule) ++ testErrorProneModule ++ defaultTestConfigs
           ModuleSpec(
             name = "test",
             supertypes = testSupertypes,
             mixins = Seq(testModuleMixin),
-            configs = testConfigs ++ defaultTestConfigs
+            configs = testConfigs
           )
         }
       else None
 
+      val mainSupertypes = Seq("MavenModule") ++
+        Option.when(mainPublishModule.nonEmpty)("PublishModule") ++
+        Option.when(mainErrorProneModule.nonEmpty)("ErrorProneModule")
       val mainConfigs = JavaHomeModule.system +: mainJavaModule +: Seq(
         mainCoursierModule,
         mainPublishModule,
         mainErrorProneModule
       ).flatten
-      val mainSupertypes = "MavenModule" +: mainConfigs.collect {
-        case _: PublishModule => "PublishModule"
-        case _: ErrorProneModule => "ErrorProneModule"
-      }
       val mainModule = ModuleSpec(
         name = segments.lastOption.getOrElse(os.pwd.last),
         supertypes = mainSupertypes,

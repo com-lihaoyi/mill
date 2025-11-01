@@ -129,15 +129,15 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
           runModuleDeps = moduleDeps("testRuntimeOnly"),
           javacOptions = inheritedOptions(testJavacOptions, mainJavacOptions)
         )
-        val testConfigs = testJavaModule +: testErrorProneModule.toSeq
-        val testSupertypes = "MavenTests" +: testConfigs.collect {
-          case _: ErrorProneModule => "ErrorProneModule"
-        }
+
+        val testSupertypes = Seq("MavenTests") ++
+          Option.when(testErrorProneModule.nonEmpty)("ErrorProneModule")
+        val testConfigs = Seq(testJavaModule) ++ testErrorProneModule ++ defaultTestConfigs
         ModuleSpec(
           name = "test",
           supertypes = testSupertypes,
           mixins = Seq(testModuleMixin),
-          configs = testConfigs ++ defaultTestConfigs
+          configs = testConfigs
         )
       }
     } else None
@@ -150,10 +150,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
     ).flatten
     val mainModule = if (mainConfigs.isEmpty && testModule.isEmpty) ModuleSpec(moduleDir.last)
     else {
-      val mainSupertypes = "MavenModule" +: mainConfigs.collect {
-        case _: PublishModule => "PublishModule"
-        case _: ErrorProneModule => "ErrorProneModule"
-      }
+      val mainSupertypes = Seq("MavenModule") ++
+        Option.when(mainPublishModule.nonEmpty)("PublishModule") ++
+        Option.when(mainErrorProneModule.nonEmpty)("ErrorProneModule")
       ModuleSpec(
         name = moduleDir.last,
         supertypes = mainSupertypes,
