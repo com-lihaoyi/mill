@@ -10,15 +10,7 @@ import coursier.maven.{MavenRepository, MavenRepositoryLike}
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.util.Task
-import coursier.{
-  Artifacts,
-  Classifier,
-  Dependency,
-  Repository,
-  Resolution,
-  Resolve,
-  Type
-}
+import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.*
 
 import java.io.{BufferedOutputStream, File}

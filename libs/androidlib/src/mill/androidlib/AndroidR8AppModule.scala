@@ -1,8 +1,12 @@
 package mill.androidlib
 
+import coursier.core as cs
+
 import mill.*
 import mill.api.{PathRef, Task}
 import mill.PathRef.jsonFormatter
+import mill.javalib.Dep
+
 import scala.xml.*
 
 @mill.api.experimental
@@ -388,6 +392,42 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
   }
 
   trait AndroidR8InstrumentedTestsModule extends AndroidAppInstrumentedTests, AndroidR8AppModule {
+
+    def androidPackagableDepsExclusionRules: Task[Seq[(String, String)]] = Task.Anon {
+      val baseResolvedDependencies = defaultResolver().resolution(
+        Task.traverse(compileModuleDepsChecked)(_.mvnDeps)().flatten,
+        boms = allBomDeps()
+      )
+      baseResolvedDependencies.dependencies
+        .map(d => d.module.organization.value -> d.module.name.value).toSeq
+    }
+
+    def androidPackagableMvnDeps: T[Seq[Dep]] = Task {
+      mvnDeps().map(_.exclude(androidPackagableDepsExclusionRules()*))
+    }
+
+    def androidResolvedPackagableMvnDeps: Task.Simple[Seq[PathRef]] = Task {
+      defaultResolver().classpath(
+        androidPackagableMvnDeps(),
+        artifactTypes = Some(artifactTypes()),
+        resolutionParamsMapOpt =
+          Some { params =>
+            params
+              .withDefaultConfiguration(coursier.core.Configuration.runtime)
+              .withDefaultVariantAttributes(
+                cs.VariantSelector.AttributesBased(
+                  params.defaultVariantAttributes.map(_.matchers).getOrElse(Map()) ++ Seq(
+                    "org.gradle.usage" -> cs.VariantSelector.VariantMatcher.Runtime
+                  )
+                )
+              )
+          },
+        boms = allBomDeps()
+      )
+    }
+
+    override def resolvedRunMvnDeps: Task.Simple[Seq[PathRef]] = androidResolvedPackagableMvnDeps()
+
     override def androidR8CompileOnlyClasspath: T[Seq[PathRef]] = Task {
       Seq(outer.androidR8Jar())
     }
