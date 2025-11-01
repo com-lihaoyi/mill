@@ -12,7 +12,6 @@ import coursier.parse.RepositoryParser
 import coursier.util.Task
 import coursier.{
   Artifacts,
-  BomDependency,
   Classifier,
   Dependency,
   Repository,
