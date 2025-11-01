@@ -12,3 +12,15 @@ def main(text: String) = {
   println("Jvm Version: " + System.getProperty("java.version"))
   println(generateHtml(text))
 }
+
+@main
+def main2(text: String) = {
+  println("Jvm Version: " + System.getProperty("java.version"))
+  println(generateHtml(text))
+}
+
+@main
+def lols(text: String) = {
+  println("Jvm Version: " + System.getProperty("java.version"))
+  println(generateHtml(text))
+}

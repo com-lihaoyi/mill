@@ -1,7 +1,9 @@
 package mill.script
 import mill.*
-import mill.api.{Discover, ExternalModule}
+import mill.api.{Discover, ExternalModule, PathRef}
 import mill.javalib.{TestModule, DepSyntax, Dep}
+import mill.javalib.api.CompilationResult
+import mill.util.Jvm
 
 class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig) {
   override lazy val millDiscover = Discover[this.type]
@@ -25,6 +27,30 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     )
 
     Seq(PathRef(modified))
+  }
+
+  private def asmWorkerClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(Seq(Dep.millProjectModule("mill-libs-script-asm-worker")))
+  }
+
+  private def asmWorkerClassloader: Task.Worker[ClassLoader] = Task.Worker {
+    Jvm.createClassLoader(classPath = asmWorkerClasspath().map(_.path), parent = null)
+  }
+
+  override def compile: T[CompilationResult] = Task(persistent = true) {
+    val result = super.compile()
+
+    val classesDir = Task.dest / "classes"
+    os.copy(result.classes.path, classesDir, createFolders = true)
+
+    val workerClass = asmWorkerClassloader().loadClass("mill.script.asm.AsmWorkerImpl")
+
+    val workerInstance = workerClass.getConstructor().newInstance()
+    val method = workerClass.getMethod("generateSyntheticClasses", classOf[java.nio.file.Path])
+    method.invoke(workerInstance, classesDir.toNIO)
+
+    // Return new CompilationResult with our modified classes
+    CompilationResult(result.analysisFile, PathRef(classesDir))
   }
 
   override def allLocalMainClasses = Task {
