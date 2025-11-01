@@ -18,4 +18,8 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     BuildInfo.Value("mainargsVersion", millbuild.Deps.mainargs.version)
   )
 
+  object `asm-worker` extends MillPublishScalaModule {
+    def moduleDeps = Seq(build.libs.util)
+    def mvnDeps = Seq(Deps.asmTree)
+  }
 }
