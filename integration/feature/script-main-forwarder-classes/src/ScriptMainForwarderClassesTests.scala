@@ -11,8 +11,14 @@ object ScriptMainForwarderClassesTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("test") - integrationTest { tester =>
       import tester._
-      // Multi-main script requires the forwarder class to pass the method name
-      // as the first parameter to disambiguate
+      // When using `run`, we ignore the synthetic main classes when picking a main method,
+      // so in this case we run the default `_MillScriptMain` method which delegates
+      // to the relevant method internally based on the first token
+      val res0 = eval(("Multi.scala:run", "main1", "--text", "HELLO"))
+      assert(res0.out == "HELLO123")
+
+      // Multi-main script have forwarder classes synthesized for each @mainargs.main method,
+      // which forward to `_MillScriptMain` but pass the name as the first param to disambiguate
       val res1 = eval(("Multi.scala:runMain", "main1", "--text", "hello"))
       assert(res1.out == "hello123")
 
