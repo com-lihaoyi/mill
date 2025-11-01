@@ -9,6 +9,10 @@ This page will discuss common topics around packaging and publishing your Scala 
 
 include::partial$example/scalalib/publishing/1-assembly-config.adoc[]
 
+== Building `Repackage` Assemblies
+
+include::partial$example/scalalib/publishing/9-repackage-config.adoc[]
+
 
 == Building Native Image Binaries with Graal VM
 

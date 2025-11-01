@@ -1,0 +1,25 @@
+= Spring Framework / Spring Boot Projects
+:page-aliases: Spring_Boot_Java.adoc
+:language-small: java
+
+include::partial$Spring_Header.adoc[]
+
+// This page contains examples of providing Mill as a build tool for Spring Boot applications, adapting the official Spring Boot documentation in increasing complexity.
+
+
+== Spring Boot Web with Initializr
+
+include::partial$example/springboot/java/1-web-initializr.adoc[]
+
+
+[#_spring_boot_hello_world_app]
+== Spring Boot Hello World App
+
+include::partial$example/javalib/web/2-hello-spring-boot.adoc[]
+
+
+[#_spring_boot_todomvc_app]
+== Spring Boot TodoMvc App
+
+
+include::partial$example/javalib/web/3-todo-spring-boot.adoc[]
