@@ -69,9 +69,11 @@ object AsmWorkerImpl {
     mainMethods.toSeq.distinct
   }
 
-  def generateSyntheticMainClass(classesDir: os.Path,
-                                 methodName: String,
-                                 multiMain: Boolean): Unit = {
+  def generateSyntheticMainClass(
+      classesDir: os.Path,
+      methodName: String,
+      multiMain: Boolean
+  ): Unit = {
     val templateClassName = if (multiMain) "TemplateMultiMainClass" else "TemplateSingleMainClass"
     val templateBytes = os.read.bytes(
       os.resource(getClass.getClassLoader) / os.SubPath(s"mill/script/asm/$templateClassName.class")
