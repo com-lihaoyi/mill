@@ -4,19 +4,17 @@ import org.objectweb.asm
 
 object AsmWorkerImpl {
 
-  def generateSyntheticClasses(classesDir: java.nio.file.Path): Unit = {
-    val mainMethods = findMainArgsMethods(os.Path(classesDir))
-
-    mainMethods.foreach { methodName => // Generate synthetic classes for each method
+  def generateSyntheticClasses(classesDir: java.nio.file.Path, mainMethods: Array[String]): Unit = {
+    mainMethods.foreach { methodName =>
       generateSyntheticMainClass(os.Path(classesDir), methodName, mainMethods.size > 1)
     }
   }
 
-  def findMainArgsMethods(classesDir: os.Path): Seq[String] = {
+  def findMainArgsMethods(classesDir: java.nio.file.Path): Array[String] = {
     val mainMethods = collection.mutable.ArrayBuffer[String]()
 
     // Look for _MillScriptMain$ class which contains the mainargs.Parser code
-    val millScriptMainClass = classesDir / "_MillScriptMain$.class"
+    val millScriptMainClass = os.Path(classesDir) / "_MillScriptMain$.class"
 
     if (os.exists(millScriptMainClass)) {
       val reader = new asm.ClassReader(os.read.bytes(millScriptMainClass))
@@ -66,7 +64,7 @@ object AsmWorkerImpl {
       reader.accept(visitor, 0)
     }
 
-    mainMethods.toSeq.distinct
+    mainMethods.toArray.distinct
   }
 
   def generateSyntheticMainClass(

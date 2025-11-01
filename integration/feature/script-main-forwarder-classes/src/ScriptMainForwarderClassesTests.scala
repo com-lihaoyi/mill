@@ -13,19 +13,27 @@ object ScriptMainForwarderClassesTests extends UtestIntegrationTestSuite {
       import tester._
       // Multi-main script requires the forwarder class to pass the method name
       // as the first parameter to disambiguate
-      val res1 = eval(("Foo.scala:runMain", "main1", "--text", "hello"))
+      val res1 = eval(("Multi.scala:runMain", "main1", "--text", "hello"))
       assert(res1.out == "hello123")
 
-      val res2 = eval(("Foo.scala:runMain", "main2", "--text", "world"))
+      val res2 = eval(("Multi.scala:runMain", "main2", "--text", "world"))
       assert(res2.out == "world456")
 
-      val res3 = eval(("Foo.scala:runMain", "main3", "--text", "moooo"))
+      val res3 = eval(("Multi.scala:runMain", "main3", "--text", "moooo"))
       assert(res3.out == "moooo789")
 
       // Single-main script, forwarder class must *not* pass the method name as
       // the first parameter
-      val res4 = eval(("Bar.scala:runMain", "main1", "--text", "iamcow"))
+      val res4 = eval(("Single.scala:runMain", "main1", "--text", "iamcow"))
       assert(res4.out == "iamcowXYZ")
+
+      // scala.main method takes priority over synthetic _MillScriptMain method
+      val res5 = eval(("ScalaMain.scala:run", "hearmemoo"))
+      assert(res5.out == "hearmemooABC")
+
+      // `def main(args: Array[String]): Unit` method takes priority over synthetic _MillScriptMain method
+      val res6 = eval(("RawMainSignature.scala:run", "iweightwiceasmuchasyou"))
+      assert(res6.out == "iweightwiceasmuchasyouOMG")
     }
   }
 }

@@ -44,17 +44,26 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     val classesDir = Task.dest / "classes"
     os.copy(result.classes.path, classesDir, createFolders = true)
 
-    val workerClass = asmWorkerClassloader().loadClass("mill.script.asm.AsmWorkerImpl")
-    val method = workerClass.getMethod("generateSyntheticClasses", classOf[java.nio.file.Path])
-    method.invoke(null, classesDir.toNIO)
+    asmWorkerClassloader()
+      .loadClass("mill.script.asm.AsmWorkerImpl")
+      .getMethod("generateSyntheticClasses", classOf[java.nio.file.Path], classOf[Array[String]])
+      .invoke(null, classesDir.toNIO, syntheticMainClasses().toArray)
 
     CompilationResult(result.analysisFile, PathRef(classesDir))
   }
 
+  def syntheticMainClasses = Task {
+    asmWorkerClassloader()
+      .loadClass("mill.script.asm.AsmWorkerImpl")
+      .getMethod("findMainArgsMethods", classOf[java.nio.file.Path])
+      .invoke(null, super.compile().classes.path.toNIO)
+      .asInstanceOf[Array[String]]
+      .toSeq
+  }
   override def allLocalMainClasses = Task {
-    super.allLocalMainClasses() match {
+    super.allLocalMainClasses().filter(!syntheticMainClasses().contains(_)) match {
       case Seq(single) => Seq(single)
-      case multiple => multiple.filter(_.endsWith("_MillScriptMain"))
+      case multiple => multiple.filter(!_.endsWith("_MillScriptMain"))
     }
   }
 }
