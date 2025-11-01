@@ -11,6 +11,8 @@ object ScriptMainForwarderClassesTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("test") - integrationTest { tester =>
       import tester._
+      // Multi-main script requires the forwarder class to pass the method name
+      // as the first parameter to disambiguate
       val res1 = eval(("Foo.scala:runMain", "main1", "--text", "hello"))
       assert(res1.out == "hello123")
 
@@ -19,6 +21,11 @@ object ScriptMainForwarderClassesTests extends UtestIntegrationTestSuite {
 
       val res3 = eval(("Foo.scala:runMain", "main3", "--text", "moooo"))
       assert(res3.out == "moooo789")
+
+      // Single-main script, forwarder class must *not* pass the method name as
+      // the first parameter
+      val res4 = eval(("Bar.scala:runMain", "main1", "--text", "iamcow"))
+      assert(res4.out == "iamcowXYZ")
     }
   }
 }

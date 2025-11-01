@@ -8,11 +8,11 @@ object AsmWorkerImpl {
     val mainMethods = findMainArgsMethods(os.Path(classesDir))
 
     mainMethods.foreach { methodName => // Generate synthetic classes for each method
-      generateSyntheticMainClass(os.Path(classesDir), methodName)
+      generateSyntheticMainClass(os.Path(classesDir), methodName, mainMethods.size > 1)
     }
   }
 
-  private def findMainArgsMethods(classesDir: os.Path): Seq[String] = {
+  def findMainArgsMethods(classesDir: os.Path): Seq[String] = {
     val mainMethods = collection.mutable.ArrayBuffer[String]()
 
     // Look for _MillScriptMain$ class which contains the mainargs.Parser code
@@ -69,9 +69,12 @@ object AsmWorkerImpl {
     mainMethods.toSeq.distinct
   }
 
-  private def generateSyntheticMainClass(classesDir: os.Path, methodName: String): Unit = {
+  def generateSyntheticMainClass(classesDir: os.Path,
+                                 methodName: String,
+                                 multiMain: Boolean): Unit = {
+    val templateClassName = if (multiMain) "TemplateMultiMainClass" else "TemplateSingleMainClass"
     val templateBytes = os.read.bytes(
-      os.resource(getClass.getClassLoader) / "mill/script/asm/TemplateMainClass.class"
+      os.resource(getClass.getClassLoader) / os.SubPath(s"mill/script/asm/$templateClassName.class")
     )
     val reader = new asm.ClassReader(templateBytes)
     val writer = new asm.ClassWriter(reader, 0)
@@ -100,11 +103,8 @@ object AsmWorkerImpl {
         new asm.MethodVisitor(asm.Opcodes.ASM9, mv) {
           override def visitLdcInsn(value: Any): Unit = {
             // Replace "TEMPLATE_METHOD_NAME" with actual method name
-            if (value == "TEMPLATE_METHOD_NAME") {
-              super.visitLdcInsn(methodName)
-            } else {
-              super.visitLdcInsn(value)
-            }
+            if (value == "TEMPLATE_METHOD_NAME") super.visitLdcInsn(methodName)
+            else super.visitLdcInsn(value)
           }
 
           override def visitMethodInsn(
@@ -115,7 +115,7 @@ object AsmWorkerImpl {
               isInterface: Boolean
           ): Unit = {
             // Replace TemplateMainClass.main call with _MillScriptMain$.main
-            if (owner == "mill/script/asm/TemplateMainClass" && name == "main") {
+            if (owner == s"mill/script/asm/$templateClassName" && name == "main") {
               super.visitMethodInsn(opcode, "_MillScriptMain", name, descriptor, isInterface)
             } else {
               super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
