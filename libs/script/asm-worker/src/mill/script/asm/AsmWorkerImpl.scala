@@ -2,7 +2,7 @@ package mill.script.asm
 
 import org.objectweb.asm
 
-class AsmWorkerImpl {
+object AsmWorkerImpl {
 
   def generateSyntheticClasses(classesDir: java.nio.file.Path): Unit = {
     val mainMethods = findMainArgsMethods(os.Path(classesDir))

@@ -45,10 +45,8 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     os.copy(result.classes.path, classesDir, createFolders = true)
 
     val workerClass = asmWorkerClassloader().loadClass("mill.script.asm.AsmWorkerImpl")
-
-    val workerInstance = workerClass.getConstructor().newInstance()
     val method = workerClass.getMethod("generateSyntheticClasses", classOf[java.nio.file.Path])
-    method.invoke(workerInstance, classesDir.toNIO)
+    method.invoke(null, classesDir.toNIO)
 
     CompilationResult(result.analysisFile, PathRef(classesDir))
   }
