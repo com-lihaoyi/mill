@@ -56,7 +56,7 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
   override def allLocalMainClasses = Task {
     super.allLocalMainClasses() match {
       case Seq(single) => Seq(single)
-      case multiple => multiple.filter(!_.endsWith("_MillScriptMain"))
+      case multiple => multiple.filter(_.endsWith("_MillScriptMain"))
     }
   }
 }

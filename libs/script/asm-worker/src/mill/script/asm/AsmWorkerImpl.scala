@@ -127,7 +127,7 @@ class AsmWorkerImpl {
           ): Unit = {
             // Replace TemplateMainClass.main call with _MillScriptMain$.main
             if (owner == "mill/script/asm/TemplateMainClass" && name == "main") {
-              super.visitMethodInsn(opcode, "_MillScriptMain$", name, descriptor, isInterface)
+              super.visitMethodInsn(opcode, "_MillScriptMain", name, descriptor, isInterface)
             } else {
               super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
             }
