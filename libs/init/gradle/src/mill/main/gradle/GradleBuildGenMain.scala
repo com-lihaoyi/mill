@@ -2,7 +2,7 @@ package mill.main.gradle
 
 import mill.main.buildgen.*
 import mill.main.gradle.BuildInfo.exportpluginAssemblyResource
-import mill.util.{CoursierConfig, Jvm}
+import mill.util.Jvm
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import pprint.Util.literalize
@@ -23,10 +23,7 @@ object GradleBuildGenMain {
       @mainargs.arg(doc = "merge generated build files")
       merge: mainargs.Flag,
       @mainargs.arg(doc = "disable generating meta-build files")
-      noMeta: mainargs.Flag,
-      @mainargs.arg(doc = "JDK to use to run the Gradle daemon")
-      // The JDK used to run the daemon may be used to configure certain settings.
-      gradleJvmId: String = "system"
+      noMeta: mainargs.Flag
   ): Unit = {
     println("converting Gradle build")
 
@@ -39,8 +36,7 @@ object GradleBuildGenMain {
     val gradleJvmArgs = Option(gradleWrapperProperties.getProperty("org.gradle.jvmargs"))
       .fold(Nil)(_.trim.split("\\s").toSeq)
 
-    val gradleJavaHome =
-      Jvm.resolveJavaHome(id = gradleJvmId, config = CoursierConfig.default()).get
+    val gradleJavaHome = Jvm.resolveJavaHome("system").get
     val exportPluginJar = Using.resource(
       GradleBuildGenMain.getClass.getResourceAsStream(exportpluginAssemblyResource)
     )(os.temp(_, suffix = ".jar"))

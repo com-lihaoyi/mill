@@ -27,10 +27,7 @@ object `package` extends Module {
     )
 
     object test
-        extends ScalaJSTests
-        with SbtPlatformTests
-        with SbtTests
-        with TestModule.Utest {
+        extends ScalaJSTests with SbtPlatformTests with TestModule.Utest {
 
       def mvnDeps = super.mvnDeps() ++ Seq(Deps.utest)
 
@@ -57,7 +54,7 @@ object `package` extends Module {
       Seq()
     )
 
-    object test extends SbtPlatformTests with SbtTests with TestModule.Utest {
+    object test extends SbtPlatformTests with TestModule.Utest {
 
       def mvnDeps = super.mvnDeps() ++ Seq(Deps.utest)
 
@@ -85,10 +82,7 @@ object `package` extends Module {
     )
 
     object test
-        extends ScalaNativeTests
-        with SbtPlatformTests
-        with SbtTests
-        with TestModule.Utest {
+        extends ScalaNativeTests with SbtPlatformTests with TestModule.Utest {
 
       def mvnDeps = super.mvnDeps() ++ Seq(Deps.utest)
 

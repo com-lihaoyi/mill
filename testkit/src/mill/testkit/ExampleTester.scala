@@ -51,14 +51,16 @@ object ExampleTester {
       workspaceSourcePath: os.Path,
       millExecutable: os.Path,
       bashExecutable: String = defaultBashExecutable(),
-      workspacePath: os.Path = os.pwd
+      workspacePath: os.Path = os.pwd,
+      propagateJavaHome: Boolean = true
   ): os.Path = {
     val tester = new ExampleTester(
       daemonMode,
       workspaceSourcePath,
       millExecutable,
       bashExecutable,
-      workspacePath
+      workspacePath,
+      propagateJavaHome
     )
     tester.run()
     tester.workspacePath

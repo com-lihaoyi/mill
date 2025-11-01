@@ -8,6 +8,7 @@ import scala.util.Using
 
 object ExportBuildPlugin extends AutoPlugin {
   object autoImport {
+    val millInitCheckExport = taskKey[Unit]("checks export compatibility")
     val millInitExportBuild = taskKey[Unit]("exports data for all projects")
   }
   import autoImport._
@@ -24,6 +25,7 @@ object ExportBuildPlugin extends AutoPlugin {
   override def requires = plugins.JvmPlugin
   override def trigger = allRequirements
   override def globalSettings = Seq(
+    millInitCheckExport := checkExport.value,
     millInitExportBuild := exportBuild.value,
     millInitExportDir := os.Path(System.getProperty("millInitExportDir"))
   )
@@ -51,6 +53,20 @@ object ExportBuildPlugin extends AutoPlugin {
     val manifest = new Manifest[AnyRef] { def runtimeClass = rt }
     val anyRefWriter = implicitly[util.OptJsonWriter[AnyRef]]
     SettingKey(id)(manifest, anyRefWriter).?
+  }
+
+  private def checkExport = Def.task {
+    val outDir = millInitExportDir.value
+    val projects = Project.structure(Keys.state.value).allProjects.filter(_.aggregate.isEmpty)
+    var errors = List.empty[String]
+    if (projects.exists(_.autoPlugins.exists(_.label == "sbtprojectmatrix.ProjectMatrixPlugin"))) {
+      errors ::= "projects that use the sbt-projectmatrix plugin cannot be converted"
+    }
+    if (projects.groupBy(_.base).exists(_._2.length > 1)) {
+      errors ::= "projects that share the same base directory cannot be converted"
+    }
+    errors.foreach(os.temp(_, dir = outDir, deleteOnExit = false))
+    require(errors.isEmpty, "sbt build must be export-compatible")
   }
 
   // this is required to export projects that are not aggregated by the root project
@@ -116,10 +132,6 @@ object ExportBuildPlugin extends AutoPlugin {
         case Nil => None
         case repositories => Some(CoursierModule(repositories))
       }
-      val mainJavaHomeModule = JavaHomeModule.find(
-        javacOptions = Keys.javacOptions.value,
-        scalacOptions = Keys.scalacOptions.value
-      )
       val mainJavaModule = JavaModule(
         mvnDeps = mvnDeps(cs => cs.isEmpty || cs.contains("compile")),
         compileMvnDeps = mvnDeps(_.exists(c => c == "provided" || c == "optional")),
@@ -174,17 +186,12 @@ object ExportBuildPlugin extends AutoPlugin {
           sourcesRootFolders = if (os.isDir(moduleDir / "shared")) Seq("shared") else Nil
         ))
       } else None
-      val mainConfigs = Seq(
-        mainScalaJSModule,
-        mainScalaNativeModule
-      ).flatten ++ Seq(
-        mainJavaModule,
-        mainScalaModule
-      ) ++ Seq(
-        mainJavaHomeModule,
-        mainSbtPlatformModule,
+      val mainConfigs = Seq(JavaHomeModule.system, mainJavaModule, mainScalaModule) ++ Seq(
+        mainCoursierModule,
         mainPublishModule,
-        mainCoursierModule
+        mainScalaJSModule,
+        mainScalaNativeModule,
+        mainSbtPlatformModule
       ).flatten
       val useVersionRanges = isCrossVersion && os.walk.stream(moduleDir).exists(path =>
         os.isDir(path) && path.last.matches("""^scala-\d+\.\d*(-.*|\+)$""")
@@ -206,20 +213,7 @@ object ExportBuildPlugin extends AutoPlugin {
             moduleDeps(_.exists(c => c == "provided" || c == "test->provided")),
           runModuleDeps = moduleDeps(_.exists(c => c == "provided" || c == "test->runtime"))
         )
-        val testScalaJSModule = if (mainScalaJSModule.isEmpty) None else Some(ScalaJSModule())
-        val testScalaNativeModule =
-          if (mainScalaJSModule.isEmpty) None else Some(ScalaNativeModule())
-        val testConfigs = Seq(
-          testJavaModule,
-          // reproduce SBT behavior
-          TestModule(
-            testParallelism = "false",
-            testSandboxWorkingDir = "false"
-          )
-        ) ++ Seq(
-          testScalaJSModule,
-          testScalaNativeModule
-        ).flatten
+        val testConfigs = testJavaModule +: defaultTestConfigs
         ModuleSpec(
           name = "test",
           supertypes = testSupertypes,
@@ -248,6 +242,14 @@ object ExportBuildPlugin extends AutoPlugin {
     })
   }
 
+  private val defaultTestConfigs = Seq(
+    // reproduce SBT behavior
+    TestModule(
+      testParallelism = "false",
+      testSandboxWorkingDir = "false"
+    )
+  )
+
   private def mainHierarchy(
       isCrossPlatform: Boolean,
       isCrossVersion: Boolean,
@@ -265,7 +267,7 @@ object ExportBuildPlugin extends AutoPlugin {
     if (isCrossVersion) {
       mixins += (if (isCrossPlatform) "CrossSbtPlatformModule" else "CrossSbtModule")
       if (useVersionRanges) mixins += "CrossScalaVersionRanges"
-    } else {
+    } else if (!isCrossPlatform) {
       supertypes += "SbtModule"
     }
     (supertypes.result(), mixins.result())

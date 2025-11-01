@@ -11,8 +11,6 @@ object `package` extends MavenSamplesBaseModule {
 
   def artifactName = "server"
 
-  def jvmId = "zulu:11"
-
   def pomParentProject = Some(
     Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
   )

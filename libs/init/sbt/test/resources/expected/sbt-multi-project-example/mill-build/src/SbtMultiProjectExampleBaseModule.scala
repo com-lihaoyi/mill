@@ -20,6 +20,8 @@ trait SbtMultiProjectExampleBaseModule extends PublishModule with SbtModule {
 
   def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++ Seq(Deps.wartremover)
 
+  def jvmId = "zulu:11"
+
   def publishVersion = "0.1.0-SNAPSHOT"
 
   def repositories = super.repositories() ++ Seq(

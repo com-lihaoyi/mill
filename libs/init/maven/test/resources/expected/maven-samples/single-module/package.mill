@@ -13,8 +13,6 @@ object `package` extends MavenSamplesBaseModule {
 
   def artifactName = "single-module-project"
 
-  def jvmId = "zulu:11"
-
   def pomSettings = PomSettings(
     "Sample single module Maven project with a working, deployable site.",
     "com.example.maven-samples",

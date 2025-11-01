@@ -17,8 +17,8 @@ Module dependencies of [3.3.3].test:
   "[3.3.3].test.repositories": []
 }
 {
-  "[2.13.16].jvmId": "",
-  "[3.3.3].jvmId": ""
+  "[2.13.16].jvmId": "zulu:17",
+  "[3.3.3].jvmId": "zulu:17"
 }
 {
   "[2.13.16].mvnDeps": [
