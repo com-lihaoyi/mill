@@ -234,7 +234,6 @@ public class MillProcessLauncher {
     // extra opts
     vmOptions.addAll(millJvmOpts(outMode));
 
-    vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
 
     vmOptions.add(String.join(File.pathSeparator, runnerClasspath));
