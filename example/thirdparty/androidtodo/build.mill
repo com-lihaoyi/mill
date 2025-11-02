@@ -256,35 +256,37 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
 <?xml version='1.0' encoding='UTF-8'?>
 <testsuites tests="46" failures="0" errors="0" skipped="0" time="...">
 ...
-
-> ./mill show app.createAndroidVirtualDevice
-...Name: test, DeviceId: medium_phone...
-
-> ./mill show app.startAndroidEmulator
-
-> ./mill show app.androidInstall
-...All files should be loaded. Notifying the device...
-
-> ./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
-[
-  "Starting: Intent { cmp=com.example.android.architecture.blueprints.main/com.example.android.architecture.blueprints.todoapp.TodoActivity }",
-  "Status: ok",
-  "LaunchState: COLD",
-  "Activity: com.example.android.architecture.blueprints.main/com.example.android.architecture.blueprints.todoapp.TodoActivity",
-  "TotalTime: ...",
-  "WaitTime: ...",
-  "Complete"
-]
-
-> ./mill app.androidTest
-
-> cat out/app/androidTest/testForked.dest/test-report.xml
-<?xml version='1.0' encoding='UTF-8'?>
-<testsuites tests="38" failures="0" errors="0" skipped="0" time="...">
-...
-
-> ./mill show app.stopAndroidEmulator
-
-> ./mill show app.deleteAndroidVirtualDevice
-
 */
+
+// ```console
+// > ./mill show app.createAndroidVirtualDevice
+// ...Name: test, DeviceId: medium_phone...
+//
+// > ./mill show app.startAndroidEmulator
+//
+// > ./mill show app.androidInstall
+// ...All files should be loaded. Notifying the device...
+//
+// > ./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
+// [
+//   "Starting: Intent { cmp=com.example.android.architecture.blueprints.main/com.example.android.architecture.blueprints.todoapp.TodoActivity }",
+//   "Status: ok",
+//   "LaunchState: COLD",
+//   "Activity: com.example.android.architecture.blueprints.main/com.example.android.architecture.blueprints.todoapp.TodoActivity",
+//   "TotalTime: ...",
+//   "WaitTime: ...",
+//   "Complete"
+// ]
+//
+// > ./mill app.androidTest
+//
+// > cat out/app/androidTest/testForked.dest/test-report.xml
+// <?xml version='1.0' encoding='UTF-8'?>
+// <testsuites tests="38" failures="0" errors="0" skipped="0" time="...">
+// ...
+//
+// > ./mill show app.stopAndroidEmulator
+//
+// > ./mill show app.deleteAndroidVirtualDevice
+//
+// ```
