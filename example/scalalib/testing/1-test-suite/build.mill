@@ -130,14 +130,14 @@ object bar extends ScalaModule {
 // xref:javalib/module-config.adoc#_classpath_and_filesystem_resources[Classpath and Filesystem Resources]
 // for more details.
 //
-// Note that `testOnly` only works at a class-level granularity. For finer-grained test-case
-// or method-level granularity, you need to pass parameters to the test framework at the
-// command line.
+// Note that `testOnly` only works at a class-level granularity. To select tests to run on a
+// finer-grained test-case or method-level granularity, you need to pass parameters to the
+// test framework at the command line.
 
 
 //// SNIPPET:RUNSINGLE
-// e.g. {utest-github-url}[uTest] lets you pass in a selector to decide which test to run
-// via:
+// e.g. {utest-github-url}[uTest framework] used in this example lets you pass in a
+// selector to decide which individual test case to run via:
 /** Usage
 
 > ./mill foo.test foo.FooMoreTests
@@ -150,4 +150,3 @@ object bar extends ScalaModule {
 
 //// SNIPPET:END
 
-// This command only runs the `hello` test case in the `bar.BarTests` test suite class.

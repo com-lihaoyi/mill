@@ -45,8 +45,9 @@ object bar extends KotlinModule {
 }
 
 //// SNIPPET:RUNSINGLE
-// e.g. the https://github.com/sbt/sbt-jupiter-interface[Junit5/Jupiter test interface] lets
-// you pass in a selector to decide which test to run via:
+// e.g. the https://github.com/sbt/sbt-jupiter-interface[Junit5/Jupiter test interface]
+// used in this example lets  you pass in a selector to decide which individual test
+// case to run via:
 
 /** Usage
 

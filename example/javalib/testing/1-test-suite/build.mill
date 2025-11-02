@@ -29,8 +29,8 @@ object bar extends JavaModule {
 }
 
 //// SNIPPET:RUNSINGLE
-// e.g. the https://github.com/sbt/junit-interface[Junit4] lets
-// you pass in a selector to decide which test to run via:
+// e.g. the https://github.com/sbt/junit-interface[Junit4 test interface]
+// used in this example lets you pass in a selector to decide which individual test to run via:
 
 /** Usage
 

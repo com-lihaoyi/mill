@@ -14,3 +14,21 @@ Test qux.QuxIntegrationTests#helloworld() finished...
 
 */
 //// SNIPPET:TEST
+
+//// SNIPPET:RUNSINGLE
+// e.g. the https://github.com/sbt/sbt-jupiter-interface[Junit5/Jupiter test interface]
+// used in this example lets  you pass in a selector to decide which individual test
+// case to run via:
+
+/** Usage
+
+> ./mill test --tests='qux.QuxTests.*'
+...qux.QuxTests...hello ...
+...qux.QuxTests...world ...
+
+> ./mill test --tests='qux.QuxTests.hello'
+...qux.QuxTests...hello ...
+
+*/
+
+//// SNIPPET:END
