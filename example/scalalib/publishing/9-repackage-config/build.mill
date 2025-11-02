@@ -5,8 +5,9 @@
 //// SNIPPET:BUILD
 package build
 
-import mill.*, scalalib.*, publish.*
+import mill.*, api.*, scalalib.*, publish.*
 import mill.javalib.repackage.RepackageModule
+import mill.javalib.spring.boot.SpringBootToolsModule
 
 trait MyModule extends ScalaModule, PublishModule {
   def scalaVersion = "3.7.3"
@@ -27,8 +28,15 @@ trait MyModule extends ScalaModule, PublishModule {
   object test extends ScalaTests, TestModule.Junit4
 }
 
+object SpringBootTools2 extends SpringBootToolsModule {
+  // Default version requires Java 17+, so downgrate to latest 2.x version
+  override def springBootToolsVersion = "2.7.18"
+  protected lazy val millDiscover = Discover[this.type]
+}
+
 object foo extends MyModule, RepackageModule { // <1>
   def moduleDeps = Seq(bar, qux)
+  override def springBootToolsModule = ModuleRef(SpringBootTools2)
 }
 
 object bar extends MyModule {
