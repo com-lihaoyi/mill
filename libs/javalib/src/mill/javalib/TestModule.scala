@@ -162,6 +162,9 @@ trait TestModule
         val (s, t) = args.splitAt(pos)
         (s, t.tail)
     }
+    mill.constants.DebugLog.println("args " + pprint.apply(args))
+    mill.constants.DebugLog.println("selector " + pprint.apply(selector))
+    mill.constants.DebugLog.println("testArgs " + pprint.apply(testArgs))
     Task.Command {
       testTask(Task.Anon { testArgs }, Task.Anon { selector })()
     }

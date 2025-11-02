@@ -51,10 +51,11 @@ object bar extends KotlinModule {
 
 /** Usage
 
-> ./mill foo.test --tests='foo.FooMoreTests.*'
+> ./mill foo.test.testOnly -- 'foo.FooTests.*'
 ...foo.FooMoreTests...hello ...
+???
 
-> ./mill bar.test --tests='bar.BarTests.hello'
+> ./mill bar.test -- bar.BarTests.hello
 ...bar.BarTests...hello ...
 
 */
