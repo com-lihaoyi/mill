@@ -26,3 +26,11 @@ object `package` extends MavenModule {
     )
   }
 }
+
+/** Usage
+
+> ./mill test
+...Test com.example.websocketdemo.WebsocketdemoApplicationTests#getMessage() finished...
+...Test com.example.websocketdemo.WebsocketdemoApplicationTests finished...
+
+*/
