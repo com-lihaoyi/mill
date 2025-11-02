@@ -10,20 +10,21 @@ object `package` extends KotlinMavenModule {
 
   override def kotlincOptions: T[Seq[String]] = super.kotlincOptions() ++ Seq("-jvm-target", "17")
 
+  def bomMvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
+  )
   def mvnDeps = Seq(
     mvn"com.fasterxml.jackson.module:jackson-module-kotlin:2.19.2",
     mvn"org.jetbrains.kotlin:kotlin-reflect:1.9.25",
     mvn"org.jetbrains.kotlin:kotlin-stdlib:1.9.25",
-    mvn"org.springframework.boot:spring-boot-starter-web:3.5.6"
+    mvn"org.springframework.boot:spring-boot-starter-web"
   )
 
   object test extends KotlinMavenTests, TestModule.Junit5 {
 
-    override def junitPlatformVersion: T[String] = "6.0.0"
-
     def mvnDeps = Seq(
       mvn"org.jetbrains.kotlin:kotlin-test-junit5:1.9.25",
-      mvn"org.springframework.boot:spring-boot-starter-test:3.5.6"
+      mvn"org.springframework.boot:spring-boot-starter-test"
     )
 
   }
