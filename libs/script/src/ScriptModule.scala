@@ -16,8 +16,9 @@ trait ScriptModule extends ExternalModule {
       scriptConfig.scriptFilePath.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*
     )
   }
-  private[mill] override def buildOverrides: Map[String, ujson.Value] =
-    ScriptModule.parseHeaderData(scriptConfig.scriptFilePath).get.rest
+
+  def loadBuildOverrides() = ScriptModule.parseHeaderData(scriptConfig.scriptFilePath).get.rest
+  private[mill] override lazy val buildOverrides: Map[String, ujson.Value] = loadBuildOverrides()
 
   private val invalidBuildOverrides =
     buildOverrides.keySet.filter(!millDiscover.allTaskNames.contains(_))

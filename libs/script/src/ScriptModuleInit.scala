@@ -10,7 +10,7 @@ object ScriptModuleInit
   // instantiating the same script twice, e.g. once directly and once when resolving a
   // downstream script's `moduleDeps`. This is kept on the `ScriptModuleInit` object scoped
   // to the build classloader and is garbage collected when the classloader is discarded.
-  val scriptModuleCache: collection.mutable.Map[os.Path, ExternalModule] =
+  val scriptModuleCache: collection.mutable.Map[os.Path, ScriptModule] =
     collection.mutable.Map.empty
 
   def moduleFor(
@@ -73,10 +73,16 @@ object ScriptModuleInit
 
     clsOrErr.flatMap(cls =>
       mill.api.ExecResult.catchWrapException {
-        scriptModuleCache.getOrElseUpdate(
-          scriptFile,
-          cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ExternalModule]
-        )
+        scriptModuleCache.get(scriptFile).filter(v =>
+          v.buildOverrides == v.loadBuildOverrides()
+        ) match {
+          case Some(v) => v
+          case None =>
+            val newScriptModule =
+              cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ScriptModule]
+            scriptModuleCache(scriptFile) = newScriptModule
+            newScriptModule
+        }
       }
     )
   }
