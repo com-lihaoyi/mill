@@ -719,7 +719,7 @@
 <h2 id="_spring_boot_web_with_initializr"><a class="anchor" href="#_spring_boot_web_with_initializr"></a>Spring Boot Web with Initializr</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-108-0e44d0/mill-dist-1.0.6-108-0e44d0-example-springboot-kotlin-1-web-initializr.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/springboot/kotlin/1-web-initializr">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-109-4255d2/mill-dist-1.0.6-109-4255d2-example-springboot-kotlin-1-web-initializr.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/springboot/kotlin/1-web-initializr">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -733,20 +733,21 @@ object `package` extends KotlinMavenModule {
 
   override def kotlincOptions: T[Seq[String]] = super.kotlincOptions() ++ Seq(&quot;-jvm-target&quot;, &quot;17&quot;)
 
+  def bomMvnDeps = Seq(
+    mvn&quot;org.springframework.boot:spring-boot-dependencies:3.5.7&quot;
+  )
   def mvnDeps = Seq(
     mvn&quot;com.fasterxml.jackson.module:jackson-module-kotlin:2.19.2&quot;,
     mvn&quot;org.jetbrains.kotlin:kotlin-reflect:1.9.25&quot;,
     mvn&quot;org.jetbrains.kotlin:kotlin-stdlib:1.9.25&quot;,
-    mvn&quot;org.springframework.boot:spring-boot-starter-web:3.5.6&quot;
+    mvn&quot;org.springframework.boot:spring-boot-starter-web&quot;
   )
 
   object test extends KotlinMavenTests, TestModule.Junit5 {
 
-    override def junitPlatformVersion: T[String] = &quot;6.0.0&quot;
-
     def mvnDeps = Seq(
       mvn&quot;org.jetbrains.kotlin:kotlin-test-junit5:1.9.25&quot;,
-      mvn&quot;org.springframework.boot:spring-boot-starter-test:3.5.6&quot;
+      mvn&quot;org.springframework.boot:spring-boot-starter-test&quot;
     )
 
   }
