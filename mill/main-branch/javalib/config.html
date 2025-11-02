@@ -734,7 +734,7 @@ sources/resources, and setting compilation/run
 options.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-101-75875b/mill-dist-1.0.6-101-75875b-example-javalib-config-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/1-common-config/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-102-9e8941/mill-dist-1.0.6-102-9e8941-example-javalib-config-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/1-common-config/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule]
 mvnDeps:
@@ -802,20 +802,24 @@ you can instead use <a href="intro.html#_programmatic_modules" class="xref page"
 <p>This example demonstrates more details about testing in Mill:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-101-75875b/mill-dist-1.0.6-101-75875b-example-javalib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/2-testing/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-102-9e8941/mill-dist-1.0.6-102-9e8941-example-javalib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/2-testing/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule]</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-101-75875b/mill-dist-1.0.6-101-75875b-example-javalib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/2-testing/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-102-9e8941/mill-dist-1.0.6-102-9e8941-example-javalib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/2-testing/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.JavaTests, mill.javalib.TestModule.Junit5]
-mvnDeps: [org.junit.jupiter:junit-jupiter:5.8.2]</code></pre>
+mvnDeps: [
+  org.junit.jupiter:junit-jupiter-api:5.14.1,
+  org.junit.platform:junit-platform-launcher:1.14.1,
+  com.github.sbt.junit:jupiter-interface:0.16.0
+]</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">integration/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-101-75875b/mill-dist-1.0.6-101-75875b-example-javalib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/2-testing/integration/package.mill.yaml">browse</a>)</div>
+<div class="title">integration/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-102-9e8941/mill-dist-1.0.6-102-9e8941-example-javalib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/2-testing/integration/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.JavaTests, mill.javalib.TestModule.Junit5]
 mvnDeps: [org.junit.jupiter:junit-jupiter:5.8.2]
@@ -857,9 +861,32 @@ Test qux.QuxIntegrationTests#helloworld() finished...
 &gt; ./mill __.testForked # run all test suites of any kind</code></pre>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_selecting_test_classes_or_test_cases"><a class="anchor" href="#_selecting_test_classes_or_test_cases"></a>Selecting Test Classes or Test Cases</h3>
 <div class="paragraph">
-<p>For more details on testing in Mill, see
-<a href="testing.html" class="xref page">Testing Java Projects</a></p>
+<p>To select tests to run on a class or test-case granularity, you can pass parameters
+to the test framework at the command line.</p>
+</div>
+<div class="paragraph">
+<p>e.g. the <a href="https://github.com/sbt/sbt-jupiter-interface">Junit5/Jupiter test interface</a>
+used in this example lets  you pass in a selector to decide which individual test
+case to run via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test 'qux.QuxTests.*'
+...qux.QuxTests...hello...
+...qux.QuxTests...world...
+Test run finished: 0 failed, 0 ignored, 2 total...
+
+&gt; ./mill test 'qux.QuxTests.hello*'
+...qux.QuxTests...hello...
+Test run finished: 0 failed, 0 ignored, 1 total...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note the trailing <code>*</code> that is necessary for the per-test selector to match.</p>
+</div>
 </div>
 </div>
 </div>
@@ -918,7 +945,7 @@ make yor module extend <code>mill.javalib.errorprone.ErrorProneModule</code>, wh
 run errorprone lint checks every time you <code>compile</code> that module.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-101-75875b/mill-dist-1.0.6-101-75875b-example-javalib-config-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/3-linting/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-102-9e8941/mill-dist-1.0.6-102-9e8941-example-javalib-config-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/3-linting/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule, mill.javalib.errorprone.ErrorProneModule]
 errorProneOptions: [-XepAllErrorsAsWarnings]</code></pre>
@@ -965,7 +992,7 @@ that can be packaged into a Graal native executable. To do so, your module must 
 shown below. You can pass native-image specific command-line flags via <code>nativeImageOptions</code></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-101-75875b/mill-dist-1.0.6-101-75875b-example-javalib-config-4-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/4-native-image/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-102-9e8941/mill-dist-1.0.6-102-9e8941-example-javalib-config-4-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/4-native-image/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule, mill.javalib.NativeImageModule]
 jvmId: &quot;graalvm-community:24&quot;
@@ -996,7 +1023,7 @@ do so, your module must extend <code>mill.scalalib.PublishModule</code>, and con
 publishing metadata shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-101-75875b/mill-dist-1.0.6-101-75875b-example-javalib-config-5-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/5-publishing/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-102-9e8941/mill-dist-1.0.6-102-9e8941-example-javalib-config-5-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/5-publishing/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule, mill.javalib.PublishModule]
 publishVersion: &quot;0.0.1&quot;
@@ -1042,7 +1069,7 @@ Sonatype Maven Central via:</p>
 <p>This example shows off running a simple webserver in a module configured via <code>build.mill.yaml</code></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-101-75875b/mill-dist-1.0.6-101-75875b-example-javalib-config-6-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/6-web-example/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-102-9e8941/mill-dist-1.0.6-102-9e8941-example-javalib-config-6-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/6-web-example/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule]
 mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]</code></pre>
@@ -1053,7 +1080,7 @@ mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]</code></pre>
 to run the web server</p>
 </div>
 <div class="listingblock">
-<div class="title">src/WebServer.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-101-75875b/mill-dist-1.0.6-101-75875b-example-javalib-config-6-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/6-web-example/src/WebServer.java">browse</a>)</div>
+<div class="title">src/WebServer.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-102-9e8941/mill-dist-1.0.6-102-9e8941-example-javalib-config-6-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/6-web-example/src/WebServer.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
@@ -1093,7 +1120,7 @@ configured by <code>test/package.mill.yaml</code>. This test suite spins up the 
 makes a single HTTP reqeust against and checks it behaves as expected.</p>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-101-75875b/mill-dist-1.0.6-101-75875b-example-javalib-config-6-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/6-web-example/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-102-9e8941/mill-dist-1.0.6-102-9e8941-example-javalib-config-6-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/6-web-example/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.JavaTests, mill.javalib.TestModule.Junit5]
 mvnDeps:
@@ -1123,13 +1150,13 @@ Test example.WebServerTests#testReverseString() finished...</code></pre>
 and are not limited to the builtin <code>trait</code>s provided by Mill:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-101-75875b/mill-dist-1.0.6-101-75875b-example-javalib-config-7-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/7-custom-trait/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-102-9e8941/mill-dist-1.0.6-102-9e8941-example-javalib-config-7-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/7-custom-trait/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [millbuild.LineCountJavaModule]</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/src/LineCountJavaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-101-75875b/mill-dist-1.0.6-101-75875b-example-javalib-config-7-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/7-custom-trait/mill-build/src/LineCountJavaModule.scala">browse</a>)</div>
+<div class="title">mill-build/src/LineCountJavaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-102-9e8941/mill-dist-1.0.6-102-9e8941-example-javalib-config-7-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/7-custom-trait/mill-build/src/LineCountJavaModule.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
 import mill.*, javalib.*
@@ -1171,7 +1198,7 @@ requirements, use programmatic <code>build.mill</code> files for modules with cu
 more advanced customizations, and have them inter-operate with each other seamlessly.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-101-75875b/mill-dist-1.0.6-101-75875b-example-javalib-config-8-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/8-programmatic-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-102-9e8941/mill-dist-1.0.6-102-9e8941-example-javalib-config-8-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/8-programmatic-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1182,7 +1209,7 @@ object bar extends JavaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-101-75875b/mill-dist-1.0.6-101-75875b-example-javalib-config-8-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/8-programmatic-module-deps/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-102-9e8941/mill-dist-1.0.6-102-9e8941-example-javalib-config-8-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/config/8-programmatic-module-deps/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule]
 moduleDeps: [bar]
