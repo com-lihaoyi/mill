@@ -45,19 +45,4 @@ object bar extends KotlinModule {
 }
 
 //// SNIPPET:RUNSINGLE
-// e.g. the https://github.com/sbt/sbt-jupiter-interface[Junit5/Jupiter test interface]
-// used in this example lets  you pass in a selector to decide which individual test
-// case to run via:
-
-/** Usage
-
-> ./mill foo.test.testOnly -- 'foo.FooTests.*'
-...foo.FooMoreTests...hello ...
-???
-
-> ./mill bar.test -- bar.BarTests.hello
-...bar.BarTests...hello ...
-
-*/
-
 //// SNIPPET:END

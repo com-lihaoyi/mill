@@ -34,7 +34,8 @@
 */
 //// SNIPPET:END
 
-// To select tests to run on a test-case or method-level granularity, you can pass parameters
+// === Selecting Test Classes or Test Cases
+// To select tests to run on a class or test-case granularity, you can pass parameters
 // to the test framework at the command line.
 
 //// SNIPPET:RUNSINGLE

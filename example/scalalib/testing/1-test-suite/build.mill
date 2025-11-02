@@ -46,6 +46,8 @@ compiling 2 ... source...
 
 */
 
+// === Common Test Framework Support
+//
 // For convenience, you can also use one of the predefined test frameworks:
 //
 // * `TestModule.Junit4`, using https://github.com/sbt/junit-interface[sbt/junit-interface]
@@ -94,6 +96,8 @@ object bar extends ScalaModule {
 
 */
 
+// === Running Tests
+//
 // Mill provides three ways of running tests
 /** Usage
 > ./mill foo.test
@@ -130,6 +134,7 @@ object bar extends ScalaModule {
 // xref:javalib/module-config.adoc#_classpath_and_filesystem_resources[Classpath and Filesystem Resources]
 // for more details.
 //
+// === Selecting Test Classes or Test Cases
 // Note that `testOnly` only works at a class-level granularity. To select tests to run on a
 // finer-grained test-case or method-level granularity, you need to pass parameters to the
 // test framework at the command line.
