@@ -15,7 +15,9 @@ object ScriptHeaderChangedToInvalid extends UtestIntegrationTestSuite {
 
       val res2 = tester.eval("./Foo.java")
       assert(!res2.isSuccess)
-      assert(res2.err.contains("invalid build config `Foo.java` key does not override any task: \"invalid\""))
+      assert(res2.err.contains(
+        "invalid build config `Foo.java` key does not override any task: \"invalid\""
+      ))
     }
   }
 }

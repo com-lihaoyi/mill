@@ -24,7 +24,9 @@ trait ScriptModule extends ExternalModule {
 
   if (invalidBuildOverrides.nonEmpty) {
     val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
-    throw new Exception(s"invalid build config `${scriptConfig.scriptFilePath.relativeTo(mill.api.BuildCtx.workspaceRoot)}` key does not override any task: $pretty")
+    throw new Exception(
+      s"invalid build config `${scriptConfig.scriptFilePath.relativeTo(mill.api.BuildCtx.workspaceRoot)}` key does not override any task: $pretty"
+    )
   }
 }
 
