@@ -36,8 +36,9 @@ trait RepackageModule extends mill.api.Module {
         val mainClass =
           if (
             mill.util.Version
-              .isAtLeast(springBootToolsModule().springBootToolsVersion(), "3.2.0-RC1")
-              (using mill.util.Version.MavenOrdering)
+              .isAtLeast(springBootToolsModule().springBootToolsVersion(), "3.2.0-RC1")(using
+                mill.util.Version.MavenOrdering
+              )
           ) {
             // See issue: https://github.com/spring-projects/spring-boot/issues/37667
             "org.springframework.boot.loader.launch.JarLauncher"
