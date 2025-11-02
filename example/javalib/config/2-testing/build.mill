@@ -33,4 +33,6 @@ Test run finished: 0 failed, 0 ignored, 1 total...
 
 */
 
+// Note the trailing `*` that is necessary for the per-test selector to match.
+
 //// SNIPPET:END
