@@ -3543,7 +3543,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/launcher/ConfigReader$.html#","e":false,"i":"","n":"ConfigReader","t":"ConfigReader","d":"mill.launcher","k":"object","x":""},
 {"l":"mill/launcher/ConfigReader$.html#readYaml-149","e":false,"i":"","n":"readYaml","t":"readYaml(buildFile: Path, errorFileName: String): Object","d":"mill.launcher.ConfigReader","k":"def","x":""},
 {"l":"mill/launcher/CoursierClient$.html#","e":false,"i":"","n":"CoursierClient","t":"CoursierClient","d":"mill.launcher","k":"object","x":""},
-{"l":"mill/launcher/CoursierClient$.html#resolveJavaHome-fffffc7d","e":false,"i":"","n":"resolveJavaHome","t":"resolveJavaHome(id: String): File","d":"mill.launcher.CoursierClient","k":"def","x":""},
+{"l":"mill/launcher/CoursierClient$.html#resolveJavaHome-fffff962","e":false,"i":"","n":"resolveJavaHome","t":"resolveJavaHome(id: String, jvmIndexVersion: String): File","d":"mill.launcher.CoursierClient","k":"def","x":""},
 {"l":"mill/launcher/CoursierClient$.html#resolveMillDaemon-c87","e":false,"i":"","n":"resolveMillDaemon","t":"resolveMillDaemon(): Array[String]","d":"mill.launcher.CoursierClient","k":"def","x":""},
 {"l":"mill/main.html#","e":false,"i":"","n":"mill.main","t":"mill.main","d":"","k":"package","x":""},
 {"l":"mill/main/buildgen.html#","e":false,"i":"","n":"mill.main.buildgen","t":"mill.main.buildgen","d":"","k":"package","x":""},

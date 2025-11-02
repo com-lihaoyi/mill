@@ -860,7 +860,7 @@ version used for any JVMs spawned by Mill to <code>run</code> or <code>test</cod
 YAML key:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-97-17d4e5/mill-dist-1.0.6-97-17d4e5-example-cli-header-3-jvm-version-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/cli/header/3-jvm-version-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-98-daa271/mill-dist-1.0.6-98-daa271-example-cli-header-3-jvm-version-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/cli/header/3-jvm-version-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: temurin:17.0.6
 
@@ -888,6 +888,55 @@ crashes and errors.</p>
 <div class="paragraph">
 <p>For configuring different JVM versions for individual modules within your build, see
 <a href="../fundamentals/configuring-jvm-versions.html" class="xref page">Configuring JVM Versions</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mill_jvm_index_version"><a class="anchor" href="#_mill_jvm_index_version"></a>mill-jvm-index-version</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill uses the <a href="https://github.com/coursier/jvm-index">Coursier JVM Index</a> to resolve JVM
+versions to their download location, as well as partially-qualified versions such as
+<code>temurin:11</code> to the specific point version such as <code>temurin:11.0.28</code>. The version of
+the JVM index is set by the version of Mill you are using, but you can override it
+to use a newer JVM index (e.g. if you want to use a newly-released JVM not yet included
+in Mill’s jvm index version) or an older JVM index.</p>
+</div>
+<div class="paragraph">
+<p>The list of JVM index versions can be seen here:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/">JVM Indices on Maven Central</a></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-98-daa271/mill-dist-1.0.6-98-daa271-example-cli-header-4-jvm-index-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/cli/header/4-jvm-index-version">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-index-version: 0.0.4-88-f9ba3d
+//| mill-jvm-version: temurin:11
+
+package build
+
+import mill._
+
+def printJavaVersion() = Task.Command {
+  println(&quot;Java version: &quot; + System.getProperty(&quot;java.version&quot;))
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example uses an older <code>mill-jvm-index-version</code> to ensure the resolved version
+of <code>temurin:11</code> gets appropriately downgraded from <code>11.0.28</code> (the most recent <code>11.x</code> version)
+to <code>11.0.26</code> (the version of <code>11.x</code> available when the JVM index <code>0.0.4-88-f9ba3d</code> was released)</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill printJavaVersion
+Java version: 11.0.26</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -943,7 +992,7 @@ you can also override other tasks such as <code>scalacOptions</code> which in th
 is used to turn on fatal warnings for unused private methods:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-97-17d4e5/mill-dist-1.0.6-97-17d4e5-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/cli/header/1-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-98-daa271/mill-dist-1.0.6-98-daa271-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/cli/header/1-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| scalacOptions: [&quot;-Wunused:privates&quot;, &quot;-Xfatal-warnings&quot;]
 
@@ -967,7 +1016,7 @@ For simple projects defined with a <code>build.mill.yaml</code> file, meta-build
 is put in the <code>mill-build:</code> key of the <code>build.mill.yaml</code> file:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-97-17d4e5/mill-dist-1.0.6-97-17d4e5-example-cli-header-2-tasks-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/cli/header/2-tasks-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-98-daa271/mill-dist-1.0.6-98-daa271-example-cli-header-2-tasks-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/cli/header/2-tasks-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-build:
   scalacOptions: [&quot;-verbose&quot;]</code></pre>
