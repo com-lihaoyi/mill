@@ -273,7 +273,6 @@ object Jetchat extends mill.api.Module {
       mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2",
       mvn"androidx.activity:activity-compose:1.10.1",
       mvn"androidx.core:core-ktx:1.16.0",
-      mvn"androidx.appcompat:appcompat:1.7.0",
       mvn"androidx.compose.runtime:runtime-livedata",
       mvn"androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0",
       mvn"androidx.lifecycle:lifecycle-runtime-compose:2.9.0",
@@ -288,8 +287,7 @@ object Jetchat extends mill.api.Module {
       mvn"androidx.databinding:viewbinding:8.13.0",
       mvn"androidx.compose.ui:ui-tooling",
       mvn"androidx.compose.ui:ui-tooling-preview",
-      mvn"androidx.compose.ui:ui-test-manifest",
-      mvn"com.google.android.material:material:1.6.0"
+      mvn"androidx.compose.ui:ui-test-manifest"
     )
 
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
@@ -298,12 +296,6 @@ object Jetchat extends mill.api.Module {
 
     def androidMinSdk = Versions.androidMinSdk
 
-    /*
-     * FIXME Currently broken with
-     * Message 2) profileScreen_back_conversationScreen(com.example.compose.jetchat.NavigationTest)
-     * android.content.res.Resources$NotFoundException: String resource ID #0x7f0c002b
-     * Message android.content.res.Resources$NotFoundException: String resource ID #0x7f0c002b
-     */
     object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule {
       override def bomMvnDeps = super.mvnDeps() ++ Seq(
         mvn"androidx.compose:compose-bom:2025.08.00"
@@ -326,7 +318,9 @@ object Jetchat extends mill.api.Module {
         mvn"androidx.test.ext:junit:1.2.1",
         mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2",
         mvn"androidx.compose.ui:ui-test",
-        mvn"androidx.compose.ui:ui-test-junit4"
+        mvn"androidx.compose.ui:ui-test-junit4",
+        // FIXME temporary workaround to avoid linking error
+        mvn"androidx.appcompat:appcompat:1.7.0"
       )
 
     }
