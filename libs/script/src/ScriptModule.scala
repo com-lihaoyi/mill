@@ -7,17 +7,17 @@ import mill.api.ModuleCtx.HeaderData
 trait ScriptModule extends ExternalModule {
   def scriptConfig: ScriptModule.Config
 
-  override def moduleDir = scriptConfig.simpleModulePath
+  override def moduleDir = mill.api.BuildCtx.watch(scriptConfig.scriptFilePath)
 
   private[mill] def allowNestedExternalModule = true
 
   override def moduleSegments: Segments = {
     Segments.labels(
-      scriptConfig.simpleModulePath.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*
+      scriptConfig.scriptFilePath.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*
     )
   }
   private[mill] override def buildOverrides: Map[String, ujson.Value] =
-    ScriptModule.parseHeaderData(scriptConfig.simpleModulePath).get.rest
+    ScriptModule.parseHeaderData(scriptConfig.scriptFilePath).get.rest
 
   private val invalidBuildOverrides =
     buildOverrides.keySet.filter(!millDiscover.allTaskNames.contains(_))
@@ -30,7 +30,7 @@ trait ScriptModule extends ExternalModule {
 
 object ScriptModule {
   case class Config(
-      simpleModulePath: os.Path,
+      scriptFilePath: os.Path,
       moduleDeps: Seq[mill.Module],
       compileModuleDeps: Seq[mill.Module],
       runModuleDeps: Seq[mill.Module]
