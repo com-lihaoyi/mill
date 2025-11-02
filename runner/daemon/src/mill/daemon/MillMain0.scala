@@ -393,29 +393,43 @@ object MillMain0 {
                           watched = watchRes.watched
                         )
 
-                        val res =
-                          if (config.bspWatch)
-                            Watching.watchAndWait(
-                              watchRes.watched,
-                              Watching.WatchArgs(
-                                setIdle = setIdle,
-                                colors = mill.internal.Colors.BlackWhite,
-                                useNotify = config.watchViaFsNotify,
-                                daemonDir = daemonDir
-                              ),
-                              () => sessionResultFuture.value,
-                              "",
-                              watchLogger.info(_)
-                            )
-                          else {
-                            watchLogger.info("Watching of build sources disabled")
-                            Some {
-                              try Success(Await.result(sessionResultFuture, Duration.Inf))
-                              catch {
-                                case NonFatal(ex) =>
-                                  Failure(ex)
-                              }
+                        def waitWithoutWatching() = {
+                          Some {
+                            try Success(Await.result(sessionResultFuture, Duration.Inf))
+                            catch {
+                              case NonFatal(ex) =>
+                                Failure(ex)
                             }
+                          }
+                        }
+
+                        val res =
+                          if (config.bspWatch) {
+                            try {
+                              Watching.watchAndWait(
+                                watchRes.watched,
+                                Watching.WatchArgs(
+                                  setIdle = setIdle,
+                                  colors = mill.internal.Colors.BlackWhite,
+                                  useNotify = config.watchViaFsNotify,
+                                  daemonDir = daemonDir
+                                ),
+                                () => sessionResultFuture.value,
+                                "",
+                                watchLogger.info(_)
+                              )
+                            } catch {
+                              case e: Exception =>
+                                val sw = new java.io.StringWriter
+                                e.printStackTrace(new java.io.PrintWriter(sw))
+                                watchLogger.info(
+                                  "Watching of build sources failed:" + e + "\n" + sw
+                                )
+                                waitWithoutWatching()
+                            }
+                          } else {
+                            watchLogger.info("Watching of build sources disabled")
+                            waitWithoutWatching()
                           }
 
                         // Suspend any BSP request until the next call to startSession

@@ -9,6 +9,9 @@ import mill.util.Jvm
 import millbuild.*
 import mill.api.BuildCtx
 import scala.util.Using
+import scala.util.Properties
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermission
 
 trait DistModule extends Module {
   // All modules that we want to aggregate as part of this `dev` assembly.
@@ -19,9 +22,49 @@ trait DistModule extends Module {
 
   def executableRaw: T[PathRef]
 
+  def localRepo: T[PathRef] = Task {
+    val dest = Task.dest
+    val repos = Task.traverse(allPublishModules)(m => m.publishLocalTestRepo)().map(_.path)
+    for (repo <- repos; elem <- os.list(repo))
+      os.copy.into(elem, dest, mergeFolders = true)
+    PathRef(dest)
+  }
+
   def executable = Task {
-    Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
-    executableRaw()
+    val rawExecutable = executableRaw()
+    if (Properties.isWin) {
+      val launcher = Task.dest / "mill.bat"
+      val launcherContent =
+        s"""@echo off
+           |set "NEW_COURSIER_REPOSITORIES=${localRepo().path.toNIO.toUri.toASCIIString}|ivy2Local|central"
+           |if defined COURSIER_REPOSITORIES (
+           |  set "NEW_COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%|%COURSIER_REPOSITORIES%"
+           |) else (
+           |  set "NEW_COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%|ivy2Local|central"
+           |)
+           |set "COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%"
+           |set NEW_COURSIER_REPOSITORIES=
+           |"${rawExecutable.path.toString.replace("\"", "\\\"")}" %*
+           |if errorlevel 1 exit /b %errorlevel%
+           |""".stripMargin
+      os.write(launcher, launcherContent)
+      PathRef(launcher)
+    } else {
+      val launcher = Task.dest / "mill"
+      val launcherContent =
+        s"""#!/usr/bin/env bash
+           |set -e
+           |export COURSIER_REPOSITORIES="${localRepo().path.toNIO.toUri.toASCIIString}|$${COURSIER_REPOSITORIES:-ivy2Local|central}"
+           |exec '${rawExecutable.path.toString.replace("'", "\\'")}' "$$@"
+           |""".stripMargin
+      os.write(launcher, launcherContent)
+      val perms = Files.getPosixFilePermissions(launcher.toNIO)
+      perms.add(PosixFilePermission.OWNER_EXECUTE)
+      perms.add(PosixFilePermission.GROUP_EXECUTE)
+      perms.add(PosixFilePermission.OTHERS_EXECUTE)
+      Files.setPosixFilePermissions(launcher.toNIO, perms)
+      PathRef(launcher)
+    }
   }
 
   def localBinName: String
@@ -32,37 +75,60 @@ trait DistModule extends Module {
    * Build and install Mill locally.
    *
    * @param binFile The location where the Mill binary should be installed
-   * @param ivyRepo The local Ivy repository where Mill modules should be published to
    */
-  def installLocal(binFile: String = localBinName, ivyRepo: String = null) =
-    Task.Command {
-      PathRef(installLocalTask(Task.Anon(binFile), ivyRepo)())
+  def installLocal(binFile: String = localBinName) = {
+    val binFile0 = os.Path(binFile, BuildCtx.workspaceRoot)
+    Task.Command[Unit] {
+      installIvyLocalTask(Task.Anon(binFile0))()
     }
+  }
 
   val batExt = if (scala.util.Properties.isWin) ".bat" else ""
 
-  def installLocalCachePath(suffixTask: Task[String]) = Task.Anon {
-    (os.home / ".cache/mill/download" / (build.millVersion() + suffixTask() + batExt)).toString()
+  def installLocalCache() = {
+
+    def launcherPathTask(suffix: Task[String]) =
+      Task.Anon {
+        os.home / ".cache/mill/download" / (build.millVersion() + suffix() + batExt)
+      }
+
+    val jarLauncherPathTask = launcherPathTask(build.dist.cacheBinarySuffix)
+    val nativeLauncherPathTask = launcherPathTask(build.dist.native.cacheBinarySuffix)
+
+    Task.Command {
+      val Seq(jarLauncherPath, _*) =
+        installIvyLocalTask(jarLauncherPathTask, nativeLauncherPathTask)()
+      Task.log.streams.out.println(jarLauncherPath.path.toString())
+      jarLauncherPath
+    }
   }
 
-  def installLocalCache() = Task.Command {
-    val path = installLocalTask(installLocalCachePath(build.dist.cacheBinarySuffix))()
-    val path2 = installLocalTask(installLocalCachePath(build.dist.native.cacheBinarySuffix))()
+  def installLocalTask(binFile: Task[String]): Task[os.Path] =
+    Task.Anon {
+      val targetFile = os.Path(binFile(), BuildCtx.workspaceRoot)
+      if (os.exists(targetFile))
+        Task.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
+      os.copy.over(executable().path, targetFile, createFolders = true)
+      Task.log.info(
+        s"Published ${build.dist.allPublishModules.size} modules under Mill sources local repo ${localRepo().path} and installed ${targetFile}"
+      )
+      targetFile
+    }
 
-    Task.log.streams.out.println(path.toString())
-    PathRef(path)
-  }
-
-  def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = Task.Anon {
-    val targetFile = os.Path(binFile(), BuildCtx.workspaceRoot)
-    if (os.exists(targetFile))
-      Task.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
-    os.copy.over(executable().path, targetFile, createFolders = true)
-    Task.log.info(
-      s"Published ${build.dist.allPublishModules.size} modules and installed ${targetFile}"
-    )
-    targetFile
-  }
+  def installIvyLocalTask(targetFiles: Task[os.Path]*) =
+    Task.Anon[Seq[PathRef]] {
+      Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
+      val targetFiles0 = Task.sequence(targetFiles)()
+      for (targetFile <- targetFiles0) {
+        if (os.exists(targetFile))
+          Task.log.info(s"Overwriting existing local Mill binary at $targetFile")
+        os.copy.over(executableRaw().path, targetFile, createFolders = true)
+      }
+      Task.log.info(
+        s"Published ${build.dist.allPublishModules.size} modules under ~/.ivy2/local and installed ${targetFiles0.mkString(", ")}"
+      )
+      targetFiles0.map(PathRef(_))
+    }
 
   def artifactName: T[String]
   def artifact = Task { Artifact(Settings.pomOrg, artifactName(), build.millVersion()) }
