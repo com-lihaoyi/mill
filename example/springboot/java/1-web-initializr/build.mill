@@ -5,14 +5,20 @@ import mill.javalib.*
 
 object `package` extends MavenModule {
 
-  def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-web:3.5.6")
+  def bomMvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
+  )
+
+  def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-web")
 
   object test extends MavenTests, TestModule.Junit5 {
 
-    override def junitPlatformVersion: T[String] = "6.0.0"
+    def bomMvnDeps = Seq(
+      mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
+    )
 
     def mvnDeps =
-      Seq(mvn"org.springframework.boot:spring-boot-starter-test:3.5.6")
+      Seq(mvn"org.springframework.boot:spring-boot-starter-test")
   }
 }
 
