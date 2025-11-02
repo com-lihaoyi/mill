@@ -422,7 +422,9 @@ object MillMain0 {
                               case e: Exception =>
                                 val sw = new java.io.StringWriter
                                 e.printStackTrace(new java.io.PrintWriter(sw))
-                                watchLogger.info("Watching of build sources failed:" + e + "\n" + sw)
+                                watchLogger.info(
+                                  "Watching of build sources failed:" + e + "\n" + sw
+                                )
                                 waitWithoutWatching()
                             }
                           } else {
