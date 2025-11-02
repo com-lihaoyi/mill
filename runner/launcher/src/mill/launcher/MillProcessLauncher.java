@@ -166,6 +166,12 @@ public class MillProcessLauncher {
     else return res.get(0);
   }
 
+  static String millJvmIndexVersion(OutFolderMode outMode) throws Exception {
+    List<String> res = loadMillConfig(outMode, "mill-jvm-index-version");
+    if (res.isEmpty()) return null;
+    else return res.get(0);
+  }
+
   static String millServerTimeout() {
     return System.getenv(EnvVars.MILL_SERVER_TIMEOUT_MILLIS);
   }
@@ -176,6 +182,7 @@ public class MillProcessLauncher {
 
   static String javaHome(OutFolderMode outMode) throws Exception {
     var jvmId = millJvmVersion(outMode);
+    var jvmIndexVersion = millJvmIndexVersion(outMode);
 
     String javaHome = null;
     if (jvmId == null) {
@@ -184,11 +191,16 @@ public class MillProcessLauncher {
 
     if (jvmId != null) {
       final String jvmIdFinal = jvmId;
+      final String jvmIndexVersionFinal = jvmIndexVersion;
+      // Include JVM index version in the cache key to invalidate cache when index version changes
+      String cacheKey = jvmIndexVersion != null ? jvmId + ":" + jvmIndexVersion : jvmId;
       javaHome = cachedComputedValue0(
           outMode,
           "java-home",
-          jvmId,
-          () -> new String[] {CoursierClient.resolveJavaHome(jvmIdFinal).getAbsolutePath()},
+          cacheKey,
+          () -> new String[] {
+            CoursierClient.resolveJavaHome(jvmIdFinal, jvmIndexVersionFinal).getAbsolutePath()
+          },
           // Make sure we check to see if the saved java home exists before using
           // it, since it may have been since uninstalled, or the `out/` folder
           // may have been transferred to a different machine

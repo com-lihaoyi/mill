@@ -1,0 +1,9 @@
+//| mill-jvm-index-version: 0.0.4-88-f9ba3d
+//| mill-jvm-version: temurin:11
+package build
+
+import mill._
+
+def printJavaVersion() = Task.Command {
+  println("Java version: " + System.getProperty("java.version"))
+}
