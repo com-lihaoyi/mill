@@ -1,0 +1,31 @@
+//| mill-jvm-index-version: 0.0.4-88-f9ba3d
+//| mill-jvm-version: temurin:11
+//
+// Mill uses the https://github.com/coursier/jvm-index[Coursier JVM Index] to resolve JVM
+// versions to their download location, as well as partially-qualified versions such as
+// `temurin:11` to the specific point version such as `temurin:11.0.28`. The version of
+// the JVM index is set by the version of Mill you are using, but you can override it
+// to use a newer JVM index (e.g. if you want to use a newly-released JVM not yet included
+// in Mill's jvm index version) or an older JVM index.
+//
+// The list of JVM index versions can be seen here:
+//
+// - https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/[JVM Indices on Maven Central]
+//
+package build
+
+import mill._
+
+def printJavaVersion() = Task.Command {
+  println("Java version: " + System.getProperty("java.version"))
+}
+
+// This example uses an older `mill-jvm-index-version` to ensure the resolved version
+// of `temurin:11` gets appropriately downgraded from `11.0.28` (the most recent `11.x` version)
+// to `11.0.26` (the version of `11.x` available when the JVM index `0.0.4-88-f9ba3d` was released)
+/** Usage
+
+> ./mill printJavaVersion
+Java version: 11.0.26
+
+*/
