@@ -722,7 +722,7 @@ that utilizes Hilt for dependency injection, based on the official
 <h2 id="_android_mill_setup_for_building_the_todo_app"><a class="anchor" href="#_android_mill_setup_for_building_the_todo_app"></a>Android Mill Setup for building the TODO App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-104-077bbf/mill-dist-1.0.6-104-077bbf-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/thirdparty/androidtodo">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6-105-581a43/mill-dist-1.0.6-105-581a43-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/thirdparty/androidtodo">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -803,7 +803,6 @@ object Versions {
 
   def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
     mvn&quot;androidx.core:core-ktx:1.15.0&quot;,
-    mvn&quot;androidx.appcompat:appcompat:1.7.0&quot;,
     mvn&quot;androidx.annotation:annotation:1.9.1&quot;,
     mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0&quot;,
     mvn&quot;com.jakewharton.timber:timber:5.0.1&quot;,
@@ -881,7 +880,7 @@ object Versions {
 
   object androidTest
       extends AndroidAppKotlinInstrumentedTests,
-        AndroidR8AppModule,
+        AndroidR8InstrumentedTestsModule,
         AndroidHiltSupport {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
@@ -900,7 +899,6 @@ object Versions {
     }
 
     override def androidProjectProguardFiles = Task.Sources(
-      &quot;proguard-rules.pro&quot;,
       &quot;proguardTest-rules.pro&quot;
     )
     override def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
@@ -920,6 +918,7 @@ object Versions {
       // Dependencies for Android unit tests
       mvn&quot;junit:junit:4.13.2&quot;,
       mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0&quot;,
+      mvn&quot;androidx.appcompat:appcompat:1.7.0&quot;,
       // AndroidX Test - Instrumented testing
       mvn&quot;androidx.test:core-ktx:1.6.1&quot;,
       mvn&quot;androidx.test.ext:junit-ktx:1.2.1&quot;,
