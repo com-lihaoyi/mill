@@ -29,3 +29,17 @@ object bar extends JavaModule {
 }
 
 //// SNIPPET:RUNSINGLE
+// e.g. the https://github.com/sbt/junit-interface[Junit4] lets
+// you pass in a selector to decide which test to run via:
+
+/** Usage
+
+> ./mill foo.test 'foo.FooMoreTests.*'
+...foo.FooMoreTests...hello ...
+
+> ./mill bar.test 'bar.BarTests.hello'
+...bar.BarTests...hello ...
+
+*/
+
+//// SNIPPET:END
