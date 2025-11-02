@@ -134,7 +134,6 @@ object bar extends ScalaModule {
 // finer-grained test-case or method-level granularity, you need to pass parameters to the
 // test framework at the command line.
 
-
 //// SNIPPET:RUNSINGLE
 // e.g. {utest-github-url}[uTest framework] used in this example lets you pass in a
 // selector to decide which individual test case to run via:
@@ -149,4 +148,3 @@ object bar extends ScalaModule {
 */
 
 //// SNIPPET:END
-
