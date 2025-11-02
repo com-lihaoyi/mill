@@ -14,3 +14,5 @@ Test qux.QuxIntegrationTests helloworld finished...
 
 */
 //// SNIPPET:TEST
+//// SNIPPET:RUNSINGLE
+//// SNIPPET:END
