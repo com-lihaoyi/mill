@@ -118,6 +118,7 @@ import scala.math.Ordering.Implicits.*
       cl: ClassLoader,
       testClassfilePath: Seq[Path]
   ): (Runner, Array[Array[Task]]) = {
+
     val runner = framework.runner(args.toArray, Array[String](), cl)
     val testClasses = discoverTests(cl, framework, testClassfilePath)
 
