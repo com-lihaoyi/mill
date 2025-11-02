@@ -7,30 +7,32 @@ import mill.api.ModuleCtx.HeaderData
 trait ScriptModule extends ExternalModule {
   def scriptConfig: ScriptModule.Config
 
-  override def moduleDir = scriptConfig.simpleModulePath
+  override def moduleDir = mill.api.BuildCtx.watch(scriptConfig.scriptFilePath)
 
   private[mill] def allowNestedExternalModule = true
 
   override def moduleSegments: Segments = {
     Segments.labels(
-      scriptConfig.simpleModulePath.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*
+      scriptConfig.scriptFilePath.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*
     )
   }
   private[mill] override def buildOverrides: Map[String, ujson.Value] =
-    ScriptModule.parseHeaderData(scriptConfig.simpleModulePath).get.rest
+    ScriptModule.parseHeaderData(scriptConfig.scriptFilePath).get.rest
 
   private val invalidBuildOverrides =
     buildOverrides.keySet.filter(!millDiscover.allTaskNames.contains(_))
 
   if (invalidBuildOverrides.nonEmpty) {
     val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
-    throw new Exception("invalid build config does not override any task: " + pretty)
+    throw new Exception(
+      s"invalid build config `${scriptConfig.scriptFilePath.relativeTo(mill.api.BuildCtx.workspaceRoot)}` key does not override any task: $pretty"
+    )
   }
 }
 
 object ScriptModule {
   case class Config(
-      simpleModulePath: os.Path,
+      scriptFilePath: os.Path,
       moduleDeps: Seq[mill.Module],
       compileModuleDeps: Seq[mill.Module],
       runModuleDeps: Seq[mill.Module]
