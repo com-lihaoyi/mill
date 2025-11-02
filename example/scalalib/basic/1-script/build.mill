@@ -24,9 +24,10 @@
 //// SNIPPET:FILE
 /** See Also: Foo.scala */
 
-// In this example we use the `@main` method from https://github.com/com-lihaoyi/mainargs[MainArgs],
-// one of the xref:scalalib/script.adoc#_bundled_libraries[Bundled Libraries], but you can define
-// an explicit `def main(args: Array[String]): Unit` as well.
+// In this example we use the `@mainargs.main` method from https://github.com/com-lihaoyi/mainargs[MainArgs],
+// one of the xref:scalalib/script.adoc#_bundled_libraries[Bundled Libraries] and is imported automatically
+// in scripts,  but you can define an explicit `def main(args: Array[String]): Unit` or `@scala.main def main`
+// method if you prefer.
 //
 //// SNIPPET:END
 //

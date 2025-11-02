@@ -114,7 +114,8 @@ trait GroupExecution {
     terminal match {
 
       case labelled: Task.Named[_] =>
-
+        val out = if (!labelled.ctx.external) outPath else externalOutPath
+        val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
         labelled.ctx.segments.last.value match {
           // apply build override
           case single if labelled.ctx.enclosingModule.buildOverrides.contains(single) =>
@@ -131,6 +132,9 @@ trait GroupExecution {
                     )
                   }
                 }
+
+                // Write build header override JSON to meta `.json` file to support `show`
+                writeCacheJson(paths.meta, jsonData, resultData.hashCode, inputsHash)
                 (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
               } catch {
                 case e: upickle.core.TraceVisitor.TraceException =>
@@ -154,8 +158,6 @@ trait GroupExecution {
 
           // no build overrides
           case _ =>
-            val out = if (!labelled.ctx.external) outPath else externalOutPath
-            val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
             val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
             // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
@@ -415,18 +417,19 @@ trait GroupExecution {
 
     terminalResult match {
       case Some((json, serializedPaths)) =>
-        os.write.over(
-          metaPath,
-          upickle.stream(
-            mill.api.Cached(json, hashCode, inputsHash),
-            indent = 4
-          ),
-          createFolders = true
-        )
+        writeCacheJson(metaPath, json, hashCode, inputsHash)
         serializedPaths
       case _ =>
         Nil
     }
+  }
+
+  def writeCacheJson(metaPath: os.Path, json: ujson.Value, hashCode: Int, inputsHash: Int) = {
+    os.write.over(
+      metaPath,
+      upickle.stream(mill.api.Cached(json, hashCode, inputsHash), indent = 4),
+      createFolders = true
+    )
   }
 
   def resolveLogger(

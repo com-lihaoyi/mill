@@ -47,19 +47,19 @@ object CoursierClient {
     artifactsResultOrError.artifacts.map(_._2.toString).toArray
   }
 
-  def resolveJavaHome(id: String): java.io.File = {
+  def resolveJavaHome(id: String, jvmIndexVersion: String = null): java.io.File = {
     val coursierCache0 = FileCache[Task]()
       .withLogger(coursier.cache.loggers.RefreshLogger.create())
+
+    val indexVersion =
+      if (jvmIndexVersion != null) jvmIndexVersion else mill.client.Versions.coursierJvmIndexVersion
     val jvmCache = JvmCache()
       .withArchiveCache(ArchiveCache().withCache(coursierCache0))
       .withIndex(
         JvmIndex.load(
           cache = coursierCache0,
           repositories = Resolve.defaultRepositories,
-          indexChannel = JvmChannel.module(
-            JvmChannel.centralModule(),
-            version = mill.client.Versions.coursierJvmIndexVersion
-          )
+          indexChannel = JvmChannel.module(JvmChannel.centralModule(), version = indexVersion)
         )
       )
 

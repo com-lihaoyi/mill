@@ -6,6 +6,14 @@ trait BspModuleApi extends ModuleApi {
   private[mill] def bspBuildTargetData: TaskApi[Option[(String, AnyRef)]]
   private[mill] def bspBuildTarget: BspBuildTarget
   private[mill] def bspDisplayName: String
+
+  /**
+   * Set this to false to make the Mill BSP server hide / ignore that module
+   *
+   * Beware that if a module depends via `moduleDeps` or `compileModuleDeps` on modules
+   * that have `enableBsp` set to false, it will be ignored by the Mill BSP server too
+   */
+  def enableBsp: Boolean = true
 }
 
 object BspModuleApi {

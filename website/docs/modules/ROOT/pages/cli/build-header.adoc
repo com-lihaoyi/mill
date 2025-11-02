@@ -129,6 +129,10 @@ crashes and errors.
 For configuring different JVM versions for individual modules within your build, see
 xref:fundamentals/configuring-jvm-versions.adoc[Configuring JVM Versions].
 
+== mill-jvm-index-version
+
+include::partial$example/cli/header/4-jvm-index-version.adoc[]
+
 == mill-jvm-opts
 
 Mill supports `mill-jvm-opts` to set JVM-level flags
