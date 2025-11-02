@@ -1,0 +1,29 @@
+//| mill-version: 1.0.6
+package build
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+
+object `package` extends MavenModule {
+
+  def bomMvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
+  )
+
+  def mvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-starter-websocket"
+  )
+
+  object test extends MavenTests with TestModule.Junit5 {
+
+    def bomMvnDeps = Seq(
+      mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
+    )
+
+    def mvnDeps = Seq(
+      mvn"org.springframework.boot:spring-boot-starter-webflux",
+      mvn"org.springframework.boot:spring-boot-starter-test"
+    )
+  }
+}
