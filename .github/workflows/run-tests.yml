@@ -158,7 +158,7 @@ jobs:
             setup-android: true
 
           - java-version: 17
-            millargs: "'example.thirdparty[androidtodo].packaged.daemon'"
+            millargs: "'example.thirdparty[android-compose-samples].packaged.daemon'"
             setup-android: true
 
           - java-version: 24
