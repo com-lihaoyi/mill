@@ -34,5 +34,26 @@
 */
 //// SNIPPET:END
 
+// === Selecting Test Classes or Test Cases
+// To select tests to run on a class or test-case granularity, you can pass parameters
+// to the test framework at the command line.
+
+//// SNIPPET:RUNSINGLE
+// e.g. {utest-github-url}[uTest framework] used in this example lets you pass in a
+// selector to decide which individual test case to run via:
+/** Usage
+
+> ./mill test qux.QuxTests
+...qux.QuxTests...hello ...
+...qux.QuxTests...world ...
+Tests: 2, Passed: 2, Failed: 0
+
+> ./mill test qux.QuxTests.hello
+...qux.QuxTests...hello ...
+Tests: 1, Passed: 1, Failed: 0
+
+*/
+
 // For more details on testing in Mill, see
 // xref:{language-small}lib/testing.adoc[Testing {language} Projects]
+//// SNIPPET:END

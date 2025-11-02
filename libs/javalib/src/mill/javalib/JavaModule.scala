@@ -80,6 +80,8 @@ trait JavaModule
       outer.repositoriesTask()
     }
 
+    override def enableBsp: Boolean = outer.enableBsp
+
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
 
@@ -834,9 +836,12 @@ trait JavaModule
     ).equalsIgnoreCase("true")
   }
 
-  def zincIncrementalCompilation: T[Boolean] = Task {
-    true
-  }
+  /**
+   * Whether to turn on zinc incremental compilation or not, as it can speed things up
+   * by skipping some source files but also adds some performance overhead. Defaults
+   * to turning it on if there is more than one source file being compiled
+   */
+  def zincIncrementalCompilation: T[Boolean] = Task { allSourceFiles().length > 1 }
 
   /**
    * Compiles the current module to generate compiled classfiles/bytecode.

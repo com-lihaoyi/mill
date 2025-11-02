@@ -162,6 +162,7 @@ trait TestModule
         val (s, t) = args.splitAt(pos)
         (s, t.tail)
     }
+
     Task.Command {
       testTask(Task.Anon { testArgs }, Task.Anon { selector })()
     }
