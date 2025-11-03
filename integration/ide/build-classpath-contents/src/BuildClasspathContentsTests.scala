@@ -56,10 +56,11 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
               "mill-libs_3-SNAPSHOT.jar",
               "mill-moduledefs_3-0.11.10.jar"
             )
-            assert(millLocalClasspath == Nil)
-          } else {
-            sys.error("This test must be run in `packaged` mode, not `local`")
-          }
+          )
+          assert(millLocalClasspath == Nil)
+        } else {
+          sys.error("This test must be run in `packaged` mode, not `local`")
+        }
       }
     }
   }
