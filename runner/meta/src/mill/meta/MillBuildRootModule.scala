@@ -328,11 +328,13 @@ trait MillBuildRootModule()(using
 
   def millDiscover: Discover
 
-  mill.internal.Util.validateBuildHeaderKeys(
-    buildOverrides.keySet,
-    millDiscover.allTaskNames,
-    scriptSourcesPaths.head.subRelativeTo(BuildCtx.workspaceRoot)
-  )
+  for (scriptSourcesPath <- scriptSourcesPaths.headOption) {
+    mill.internal.Util.validateBuildHeaderKeys(
+      buildOverrides.keySet,
+      millDiscover.allTaskNames,
+      scriptSourcesPath.subRelativeTo(BuildCtx.workspaceRoot)
+    )
+  }
 }
 
 object MillBuildRootModule {

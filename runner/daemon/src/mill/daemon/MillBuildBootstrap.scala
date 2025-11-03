@@ -124,7 +124,7 @@ class MillBuildBootstrap(
           val state =
             if (currentRootContainsBuildFile) evaluateRec(depth + 1)
             else {
-              mill.internal.Util.parseYaml(foundRootBuildFileName, headerData) match{
+              mill.internal.Util.parseYaml(foundRootBuildFileName, headerData) match {
                 case Result.Failure(msg) =>
                   RunnerState(None, Nil, Some(msg), Some(foundRootBuildFileName))
                 case Result.Success(parsedHeaderData) =>

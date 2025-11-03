@@ -1,7 +1,6 @@
 package mill.script
 import mill.*
 import mill.api.{ExternalModule, Result}
-import mill.internal.Util.parseHeaderData
 
 object ScriptModuleInit
     extends ((String, String => Option[mill.Module]) => Seq[Result[mill.api.ExternalModule]]) {
@@ -74,7 +73,9 @@ object ScriptModuleInit
     clsOrErr.flatMap(cls =>
       mill.api.ExecResult.catchWrapException {
         scriptModuleCache.get(scriptFile).filter(v =>
-          Result.Success(v.scriptConfig.headerData) == mill.internal.Util.parseHeaderData(scriptFile)
+          Result.Success(
+            v.scriptConfig.headerData
+          ) == mill.internal.Util.parseHeaderData(scriptFile)
         ) match {
           case Some(v) => v
           case None =>

@@ -69,7 +69,7 @@ private[mill] object Util {
 
     def relativePath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
 
-    parseYaml(relativePath.toString, headerData).flatMap{parsed =>
+    parseYaml(relativePath.toString, headerData).flatMap { parsed =>
       try Result.Success(upickle.read[HeaderData](parsed))
       catch {
         case e: upickle.core.TraceVisitor.TraceException =>
@@ -80,42 +80,44 @@ private[mill] object Util {
     }
   }
 
-  def parseYaml(fileName: String, headerData: String): Result[ujson.Value] = try Result.Success{
-    import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
-    val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
+  def parseYaml(fileName: String, headerData: String): Result[ujson.Value] =
+    try Result.Success {
+        import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
+        val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
 
-    // recursively convert java data structure to ujson.Value
-    def rec(x: Any): ujson.Value = {
-      x match {
-        case d: java.util.Date => ujson.Str(d.toString)
-        case s: String => ujson.Str(s)
-        case d: Double => ujson.Num(d)
-        case d: Int => ujson.Num(d)
-        case d: Long => ujson.Num(d)
-        case true => ujson.True
-        case false => ujson.False
-        case null => ujson.Null
-        case m: java.util.Map[Object, Object] =>
-          import scala.jdk.CollectionConverters._
-          val scalaMap = m.asScala
-          ujson.Obj.from(scalaMap.map { case (k, v) => (k.toString, rec(v)) })
-        case l: java.util.List[Object] =>
-          import scala.jdk.CollectionConverters._
-          val scalaList: collection.Seq[Object] = l.asScala
-          ujson.Arr.from(scalaList.map(rec))
+        // recursively convert java data structure to ujson.Value
+        def rec(x: Any): ujson.Value = {
+          x match {
+            case d: java.util.Date => ujson.Str(d.toString)
+            case s: String => ujson.Str(s)
+            case d: Double => ujson.Num(d)
+            case d: Int => ujson.Num(d)
+            case d: Long => ujson.Num(d)
+            case true => ujson.True
+            case false => ujson.False
+            case null => ujson.Null
+            case m: java.util.Map[Object, Object] =>
+              import scala.jdk.CollectionConverters._
+              val scalaMap = m.asScala
+              ujson.Obj.from(scalaMap.map { case (k, v) => (k.toString, rec(v)) })
+            case l: java.util.List[Object] =>
+              import scala.jdk.CollectionConverters._
+              val scalaList: collection.Seq[Object] = l.asScala
+              ujson.Arr.from(scalaList.map(rec))
+          }
+        }
+
+        // Treat a top-level `null` as an empty object, so that an empty YAML header
+        // block is treated gracefully rather than blowing up with a NPE
+        rec(loaded) match {
+          case ujson.Null => ujson.Obj()
+          case v => v
+        }
       }
+    catch {
+      case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
+        Result.Failure(s"Failed de-serializing build header in $fileName: " + e.getMessage)
     }
-
-    // Treat a top-level `null` as an empty object, so that an empty YAML header
-    // block is treated gracefully rather than blowing up with a NPE
-    rec(loaded) match {
-      case ujson.Null => ujson.Obj()
-      case v => v
-    }
-  }catch{
-    case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
-      Result.Failure(s"Failed de-serializing build header in $fileName: " + e.getMessage)
-  }
 
   def validateBuildHeaderKeys(
       buildOverridesKeys: Set[String],

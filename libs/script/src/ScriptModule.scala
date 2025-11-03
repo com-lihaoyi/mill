@@ -1,7 +1,6 @@
 package mill.script
 import mill.*
 import mill.api.ExternalModule
-import mill.api.Result
 import mill.api.daemon.Segments
 import mill.api.ModuleCtx.HeaderData
 trait ScriptModule extends ExternalModule {
