@@ -102,18 +102,31 @@ class MillBuildBootstrap(
           lazy val state = evaluateRec(depth + 1)
           if (currentRootContainsBuildFile) state
           else {
+            val rootFileNamesStr = rootBuildFileNames.asScala.mkString(", ")
             val msg =
-              s"No build file (${rootBuildFileNames.asScala.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
+              s"No build file ($rootFileNamesStr) found in $projectRoot. Are you in a Mill project directory?"
+
             state match {
-              case RunnerState(bootstrapModuleOpt, frames, Some(error), None) =>
+              case RunnerState(bootstrapModuleOpt, frames, Some(error), None, bootstrapEvalWatched) =>
                 // Add a potential clue (missing build.mill) to the underlying error message
-                RunnerState(bootstrapModuleOpt, frames, Some(msg + "\n" + error))
+                RunnerState(
+                  bootstrapModuleOpt,
+                  frames,
+                  Some(msg + "\n" + error),
+                  bootstrapEvalWatched = bootstrapEvalWatched
+                )
               case state => state
             }
           }
         } else {
           val (useDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
 
+          val bootstrapEvalWatched0 = PathRef(projectRoot / foundRootBuildFileName)
+          val bootstrapEvalWatched = Watchable.Path(
+            bootstrapEvalWatched0.path.toNIO,
+            bootstrapEvalWatched0.quick,
+            bootstrapEvalWatched0.sig
+          )
           val headerData =
             if (!os.exists(projectRoot / foundRootBuildFileName)) ""
             else mill.constants.Util.readBuildHeader(
@@ -126,7 +139,13 @@ class MillBuildBootstrap(
             else {
               mill.internal.Util.parseYaml(foundRootBuildFileName, headerData) match {
                 case Result.Failure(msg) =>
-                  RunnerState(None, Nil, Some(msg), Some(foundRootBuildFileName))
+                  RunnerState(
+                    None,
+                    Nil,
+                    Some(msg),
+                    Some(foundRootBuildFileName),
+                    Seq(bootstrapEvalWatched)
+                  )
                 case Result.Success(parsedHeaderData) =>
                   val metaBuildData =
                     if (
@@ -158,9 +177,21 @@ class MillBuildBootstrap(
                     )
                   } match {
                     case Result.Success(bootstrapModule) =>
-                      RunnerState(Some(bootstrapModule), Nil, None, Some(foundRootBuildFileName))
+                      RunnerState(
+                        Some(bootstrapModule),
+                        Nil,
+                        None,
+                        Some(foundRootBuildFileName),
+                        Seq(bootstrapEvalWatched)
+                      )
                     case Result.Failure(msg) =>
-                      RunnerState(None, Nil, Some(msg), Some(foundRootBuildFileName))
+                      RunnerState(
+                        None,
+                        Nil,
+                        Some(msg),
+                        Some(foundRootBuildFileName),
+                        Seq(bootstrapEvalWatched)
+                      )
                   }
               }
             }

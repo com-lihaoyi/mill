@@ -32,7 +32,8 @@ case class RunnerState(
     bootstrapModuleOpt: Option[RootModule],
     frames: Seq[RunnerState.Frame],
     errorOpt: Option[String],
-    buildFile: Option[String] = None
+    buildFile: Option[String] = None,
+    bootstrapEvalWatched: Seq[Watchable] = Nil
 ) {
   def add(
       frame: RunnerState.Frame = RunnerState.Frame.empty,
@@ -42,7 +43,7 @@ case class RunnerState(
   }
 
   def watched: Seq[Watchable] =
-    frames.flatMap(f => f.evalWatched ++ f.moduleWatched)
+    frames.flatMap(f => f.evalWatched ++ f.moduleWatched ++ bootstrapEvalWatched)
 }
 
 object RunnerState {
