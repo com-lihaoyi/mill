@@ -11,11 +11,10 @@ trait ScriptModule extends ExternalModule {
 
   private[mill] def allowNestedExternalModule = true
 
-  override def moduleSegments: Segments = {
-    Segments.labels(
-      scriptConfig.scriptFilePath.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*
-    )
-  }
+  private def relativeScriptFilePath =
+    scriptConfig.scriptFilePath.subRelativeTo(mill.api.BuildCtx.workspaceRoot)
+
+  override def moduleSegments: Segments = Segments.labels(s"./$relativeScriptFilePath")
 
   def loadBuildOverrides() = ScriptModule.parseHeaderData(scriptConfig.scriptFilePath).get.rest
   private[mill] override val buildOverrides = loadBuildOverrides()
@@ -26,10 +25,6 @@ trait ScriptModule extends ExternalModule {
 
   if (invalidBuildOverrides.nonEmpty) {
     val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
-    // If we fail the module initialization, make sure we watch the `scriptFilePath` so that
-    // if script file is updated `-w` will trigger. If we don't fail, we don't need to do this
-    // since the `scriptSource` will watch for changes
-    mill.api.BuildCtx.watch(scriptConfig.scriptFilePath)
     throw new Exception(
       s"invalid build config `$relativeScriptFilePath` key does not override any task: $pretty"
     )
