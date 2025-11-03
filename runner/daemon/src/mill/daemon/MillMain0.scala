@@ -265,7 +265,7 @@ object MillMain0 {
                       def proceed(logger: Logger): Watching.Result[RunnerState] = {
                         // Enter key pressed, removing mill-selective-execution.json to
                         // ensure all tasks re-run even though no inputs may have changed
-
+                        if (skipSelectiveExecution) os.remove(out / OutFiles.millSelectiveExecution)
                         mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                           mill.api.FilesystemCheckerEnabled.withValue(
                             !config.noFilesystemChecker.value
@@ -287,7 +287,7 @@ object MillMain0 {
                                 allowPositionalCommandArgs = config.allowPositional.value,
                                 systemExit = systemExit,
                                 streams0 = streams,
-                                selectiveExecution = config.watch.value && !skipSelectiveExecution,
+                                selectiveExecution = config.watch.value,
                                 offline = config.offline.value,
                                 reporter = reporter,
                                 enableTicker = enableTicker

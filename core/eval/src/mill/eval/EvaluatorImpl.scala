@@ -248,9 +248,7 @@ final class EvaluatorImpl private[mill] (
 
     maybeNewMetadata.foreach { newMetadata =>
       val allInputHashes = newMetadata.inputHashes
-      this.selective.saveMetadata(
-        SelectiveExecution.Metadata(allInputHashes, codeSignatures)
-      )
+      this.selective.saveMetadata(SelectiveExecution.Metadata(allInputHashes, codeSignatures))
     }
 
     val errorStr = ExecutionResultsApi.formatFailing(evaluated)
