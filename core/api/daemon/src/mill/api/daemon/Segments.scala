@@ -5,8 +5,10 @@ import scala.math.Ordering.Implicits.seqOrdering
 /**
  * Models a path with the Mill build hierarchy, e.g. `amm.util[2.11].test.compile`.
  *
- * `.`-separated segments are [[Segment.Label]]s,
- * while `[]`-delimited segments are [[Segment.Cross]]s
+ * - `.`-separated segments are [[Segment.Label]]s,
+ * - `[]`-delimited segments are [[Segment.Cross]]s
+ * - If the first segment starts with `./`, it refers to a single-file script
+ * - If the first segment ends with `/`, it refers to an external module
  */
 final case class Segments private (value: Seq[Segment]) {
 
@@ -30,7 +32,7 @@ final case class Segments private (value: Seq[Segment]) {
 
   def render: String = {
     def renderCross(cross: Segment.Cross): String = "[" + cross.value.mkString(",") + "]"
-    value.toList match {
+    def renderValue(valueList: List[Segment]) = valueList match {
       case Nil => ""
       case head :: rest =>
         val headSegment = head match
@@ -41,6 +43,15 @@ final case class Segments private (value: Seq[Segment]) {
           case c: Segment.Cross => renderCross(c)
         }
         headSegment + stringSegments.mkString
+    }
+
+    value.toList match {
+      // ScriptModule segments always starts with `./`
+      case Segment.Label(s"./$first") :: Nil => s"./$first"
+      case Segment.Label(s"./$first") :: next :: rest => s"./$first:${renderValue(next :: rest)}"
+      // ExternalModule segments always ends with '/'
+      case Segment.Label(s"$first/") :: next :: rest => s"$first/${renderValue(next :: rest)}"
+      case valueList => renderValue(valueList)
     }
   }
   override lazy val hashCode: Int = value.hashCode()
