@@ -35,21 +35,20 @@ object ScriptExternalTaskRendering extends UtestIntegrationTestSuite {
       val resolveExternalTask =
         eval(("resolve", "mill.scalalib.scalafmt.ScalafmtModule:reformatAll"))
       assert(resolveExternalTask.out.linesIterator.toSeq == Seq(
-        "mill.scalalib.scalafmt.ScalafmtModule:reformatAll"
+        "mill.scalalib.scalafmt.ScalafmtModule/reformatAll"
       ))
 
       val planExternalTask =
-        eval(("plan", "mill.scalalib.scalafmt.ScalafmtModule:scalafmtClasspath"))
+        eval(("plan", "mill.scalalib.scalafmt.ScalafmtModule/scalafmtClasspath"))
       assert(
         planExternalTask.out.linesIterator.toSeq ==
           Seq(
-            "mill.javalib.CoursierConfigModule:coursierEnv",
-            "mill.scalalib.scalafmt.ScalafmtModule:repositories",
-            "mill.scalalib.scalafmt.ScalafmtModule:checkGradleModules",
-            "mill.scalalib.scalafmt.ScalafmtModule:scalafmtClasspath"
+            "mill.javalib.CoursierConfigModule/coursierEnv",
+            "mill.scalalib.scalafmt.ScalafmtModule/repositories",
+            "mill.scalalib.scalafmt.ScalafmtModule/checkGradleModules",
+            "mill.scalalib.scalafmt.ScalafmtModule/scalafmtClasspath"
           )
       )
-
     }
   }
 }
