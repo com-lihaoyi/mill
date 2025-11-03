@@ -40,7 +40,7 @@ PMD found 1 violation(s)
 error: Running PMD ...
 error: Writing PMD output to .../out/mill.javalib.pmd.PmdModule/pmd.dest/pmd-output.text ...
 error: 1 tasks failed
-error: mill.javalib.pmd.PmdModule.pmd PMD found 1 violation(s)
+error: mill.javalib.pmd.PmdModule/pmd PMD found 1 violation(s)
 
 */
 // <1> `-s` shows the results on the console, `-v` does not fail the build
