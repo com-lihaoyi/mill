@@ -1,0 +1,11 @@
+package build
+import mill._
+
+object module extends Module {
+
+  object nested extends Module {
+    def taskA: T[String] = Task { taskB() }
+  }
+  def taskB: T[String] = Task { taskC() }
+}
+def taskC: T[String] = Task { module.nested.taskA() }

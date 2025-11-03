@@ -1,15 +1,19 @@
-//| moduleDeps: [Foo.kt]
+//| extends: [mill.script.KotlinModule.Junit5]
+//| moduleDeps: [./Foo.kt]
 //| mvnDeps:
-//| - "com.google.guava:guava:33.3.0-jre"
+//| - "io.kotest:kotest-runner-junit5:5.9.1"
+//| - "com.github.sbt.junit:jupiter-interface:0.11.2"
 
-import com.google.common.html.HtmlEscapers.htmlEscaper
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 
-fun main(args: Array<String>) {
-    val result = generateHtml("hello")
-    assert(result == "<h1>hello</h1>")
-    println(result)
-    val result2 = generateHtml("<hello>")
-    val expected2 = "<h1>" + htmlEscaper().escape("<hello>") + "</h1>"
-    assert(result2 == expected2)
-    println(result2)
-}
+class FooTest :
+    FunSpec({
+        test("testSimple") {
+            generateHtml("hello") shouldBe "<h1>hello</h1>"
+        }
+
+        test("testEscaping") {
+            generateHtml("<hello>") shouldBe "<h1>&lt;hello&gt;</h1>"
+        }
+    })

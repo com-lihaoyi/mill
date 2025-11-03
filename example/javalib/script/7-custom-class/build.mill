@@ -1,0 +1,14 @@
+//// SNIPPET:USAGE
+/** See Also: Qux.java */
+/** See Also: mill-build/src/LineCountJavaModule.scala */
+
+/** Usage
+
+> ./mill Qux.java
+...
+Line Count: 13
+
+> ./mill show Qux.java:lineCount
+13
+*/
+//// SNIPPET:END

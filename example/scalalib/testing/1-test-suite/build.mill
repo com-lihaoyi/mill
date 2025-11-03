@@ -46,6 +46,8 @@ compiling 2 ... source...
 
 */
 
+// === Common Test Framework Support
+//
 // For convenience, you can also use one of the predefined test frameworks:
 //
 // * `TestModule.Junit4`, using https://github.com/sbt/junit-interface[sbt/junit-interface]
@@ -55,7 +57,7 @@ compiling 2 ... source...
 // * `TestModule.ScalaTest`, using https://github.com/scalatest/scalatest[ScalaTest]
 // * `TestModule.Specs2`, using https://github.com/etorreborre/specs2[Specs2]
 // * `TestModule.Utest`, using https://github.com/com-lihaoyi/utest[uTest]
-// * `TestModule.Waever`, using https://github.com/disneystreaming/weaver-test[Weaver]
+// * `TestModule.Weaver`, using https://github.com/disneystreaming/weaver-test[Weaver]
 // * `TestModule.ZioTest`, using https://zio.dev/reference/test/[ZioTest]
 //
 // Each testing framework has their own flags and configuration options that are
@@ -94,6 +96,8 @@ object bar extends ScalaModule {
 
 */
 
+// === Running Tests
+//
 // Mill provides three ways of running tests
 /** Usage
 > ./mill foo.test
@@ -130,25 +134,22 @@ object bar extends ScalaModule {
 // xref:javalib/module-config.adoc#_classpath_and_filesystem_resources[Classpath and Filesystem Resources]
 // for more details.
 //
-// If you want to pass any arguments to the test framework, you can pass them after
-// `foo.test` in the command line. e.g. {utest-github-url}[uTest]
-// lets you pass in a selector to decide which test to run, which in Mill would be:
+// === Selecting Test Classes or Test Cases
+// Note that `testOnly` only works at a class-level granularity. To select tests to run on a
+// finer-grained test-case or method-level granularity, you need to pass parameters to the
+// test framework at the command line.
 
 //// SNIPPET:RUNSINGLE
+// e.g. {utest-github-url}[uTest framework] used in this example lets you pass in a
+// selector to decide which individual test case to run via:
 /** Usage
 
 > ./mill foo.test foo.FooMoreTests
 ...foo.FooMoreTests...hello ...
-
-*/
-
-//// SNIPPET:END
-
-/** Usage
 
 > ./mill bar.test bar.BarTests.hello
 ...bar.BarTests...hello ...
 
 */
 
-// This command only runs the `hello` test case in the `bar.BarTests` test suite class.
+//// SNIPPET:END

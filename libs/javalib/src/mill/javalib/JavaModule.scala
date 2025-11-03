@@ -69,6 +69,7 @@ trait JavaModule
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
 
+  // Keep in sync with JavaModule.JavaTests0, duplicated due to binary compatibility concerns
   trait JavaTests extends JavaModule with TestModule {
     // Run some consistence checks
     hierarchyChecks()
@@ -78,6 +79,8 @@ trait JavaModule
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
       outer.repositoriesTask()
     }
+
+    override def enableBsp: Boolean = outer.enableBsp
 
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
@@ -463,7 +466,7 @@ trait JavaModule
     cs.Dependency(
       cs.Module(
         JavaModule.internalOrg,
-        coursier.core.ModuleName(moduleSegments.parts.mkString("-")),
+        coursier.core.ModuleName(moduleSegments.parts.mkString("-").replace('/', '-')),
         Map.empty
       ),
       JavaModule.internalVersion
@@ -833,9 +836,12 @@ trait JavaModule
     ).equalsIgnoreCase("true")
   }
 
-  def zincIncrementalCompilation: T[Boolean] = Task {
-    true
-  }
+  /**
+   * Whether to turn on zinc incremental compilation or not, as it can speed things up
+   * by skipping some source files but also adds some performance overhead. Defaults
+   * to turning it on if there is more than one source file being compiled
+   */
+  def zincIncrementalCompilation: T[Boolean] = Task { allSourceFiles().length > 1 }
 
   /**
    * Compiles the current module to generate compiled classfiles/bytecode.
@@ -1537,6 +1543,53 @@ trait JavaModule
 }
 
 object JavaModule {
+  // Keep in sync with JavaModule#JavaTests, duplicated due to binary compatibility concerns
+  trait JavaTests0 extends JavaModule with TestModule {
+    private val outer: JavaModule = moduleDeps.head
+    // Run some consistence checks
+    hierarchyChecks()
+
+    override def resources = super[JavaModule].resources
+    override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+      outer.repositoriesTask()
+    }
+
+    override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
+      outer.resolutionCustomizer
+
+    override def javacOptions = outer.javacOptions()
+    override def jvmWorker = outer.jvmWorker
+
+    def jvmId = outer.jvmId
+
+    def jvmIndexVersion = outer.jvmIndexVersion
+
+    /**
+     * Optional custom Java Home for the JvmWorker to use
+     *
+     * If this value is None, then the JvmWorker uses the same Java used to run
+     * the current mill instance.
+     */
+    def javaHome = outer.javaHome
+
+    override def skipIdea = outer.skipIdea
+    override def runUseArgsFile = outer.runUseArgsFile()
+    override def sourcesFolders = outer.sourcesFolders
+
+    override def bomMvnDeps = super.bomMvnDeps() ++ outer.bomMvnDeps()
+
+    override def depManagement = super.depManagement() ++ outer.depManagement()
+
+    /**
+     * JavaModule and its derivatives define inner test modules.
+     * To avoid unexpected misbehavior due to the use of the wrong inner test trait
+     * we apply some hierarchy consistency checks.
+     * If, for some reason, those are too restrictive to you, you can override this method.
+     * @throws MillException
+     */
+    protected def hierarchyChecks(): Unit = JavaModule.hierarchyChecks(outer, this)
+  }
+
   private def hierarchyChecks(outer: JavaModule, self: JavaModule) = {
     val outerInnerSets = Seq(
       ("mill.scalajslib.ScalaJSModule", "ScalaJSTests"),

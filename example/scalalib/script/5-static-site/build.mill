@@ -1,0 +1,28 @@
+// === Static Site Generator
+// This example is a small static site generator written as a single-file {language} script.
+// It lists markdown files in a `post/` folder, converts them to HTML using the
+// https://github.com/commonmark/commonmark-java[Commonmark-Java] library, wraps them in
+// a HTML template and writes them to HTML files in an `out/` folder along with an `index.html`
+// page that links to them:
+//
+//
+//// SNIPPET:STATICSITE
+//
+
+/** See Also: StaticSite.scala */
+
+/** Usage
+> ./mill -i StaticSite.scala
+
+> cat site-out/post/my-first-post.html
+<!DOCTYPE html><html><body><h1><a>Blog</a> / My First Post</h1><p>Sometimes you want numbered lists:</p>
+<ol>
+<li>One</li>
+<li>Two</li>
+<li>Three</li>
+</ol>
+</body></html>
+
+*/
+//// SNIPPET:END
+//

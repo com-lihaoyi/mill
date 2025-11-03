@@ -478,7 +478,8 @@ object Jvm {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       checkGradleModules: Boolean = false,
-      @unroll config: CoursierConfig = CoursierConfig.default()
+      @unroll config: CoursierConfig = CoursierConfig.default(),
+      @unroll boms: IterableOnce[BomDependency] = Nil
   ): Result[coursier.Artifacts.Result] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
@@ -489,6 +490,7 @@ object Jvm {
       ctx,
       coursierCacheCustomizer,
       resolutionParams,
+      boms = boms,
       checkGradleModules = checkGradleModules,
       config = config
     )
@@ -543,7 +545,8 @@ object Jvm {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       checkGradleModules: Boolean = false,
-      @unroll config: CoursierConfig = CoursierConfig.default()
+      @unroll config: CoursierConfig = CoursierConfig.default(),
+      @unroll boms: IterableOnce[BomDependency] = Nil
   ): Result[Seq[PathRef]] =
     getArtifacts(
       repositories,
@@ -557,7 +560,8 @@ object Jvm {
       artifactTypes,
       resolutionParams,
       checkGradleModules = checkGradleModules,
-      config = config
+      config = config,
+      boms = boms
     ).map { res =>
       BuildCtx.withFilesystemCheckerDisabled {
         res.files

@@ -4,19 +4,12 @@
 :language: Java
 :language-small: java
 :language-ext: java
+:compat-module: MavenModule
+:compat-test-module: MavenTests
 
 include::partial$Intro_Header.adoc[]
 
-== Single-File Scripts
-
-include::partial$example/javalib/basic/1-script.adoc[]
-
-=== Script Use Cases
-
-include::partial$example/javalib/basic/2-script-crawler.adoc[]
-
-
-== Simple Config-Based Modules
+== Config-Based Modules
 
 include::partial$example/javalib/basic/3-simple.adoc[]
 
@@ -28,6 +21,10 @@ include::partial$example/javalib/basic/4-module-deps.adoc[]
 
 include::partial$example/javalib/basic/5-compat-modules.adoc[]
 
+
+== Single-File Scripts
+
+include::partial$example/javalib/basic/1-script.adoc[]
 
 == Programmatic Modules
 

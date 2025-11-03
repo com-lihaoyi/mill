@@ -32,6 +32,7 @@ object `package` extends Module {
     object linting extends Cross[ExampleCrossModuleJava](build.listCross)
     object publishing extends Cross[ExampleCrossModuleJava](build.listCross)
     object config extends Cross[ExampleCrossModuleJava](build.listCross)
+    object script extends Cross[ExampleCrossModuleJava](build.listCross)
     object web extends Cross[ExampleCrossModule](build.listCross)
   }
   object kotlinlib extends Module {
@@ -42,7 +43,12 @@ object `package` extends Module {
     object linting extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object publishing extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object config extends Cross[ExampleCrossModuleKotlin](build.listCross)
+    object script extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object web extends Cross[ExampleCrossModuleKotlin](build.listCross)
+  }
+  object springboot extends Module {
+    object java extends Cross[ExampleCrossModule](build.listCross)
+    object kotlin extends Cross[ExampleCrossModule](build.listCross)
   }
   object scalalib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listCross)
@@ -52,6 +58,7 @@ object `package` extends Module {
     object linting extends Cross[ExampleCrossModule](build.listCross)
     object publishing extends Cross[ExampleCrossModule](build.listCross)
     object config extends Cross[ExampleCrossModule](build.listCross)
+    object script extends Cross[ExampleCrossModule](build.listCross)
     object web extends Cross[ExampleCrossModule](build.listCross)
     object native extends Cross[ExampleCrossModule](build.listCross)
     object spark extends Cross[ExampleCrossModule](build.listCross)
@@ -132,6 +139,7 @@ object `package` extends Module {
   trait ExampleCrossModuleAndroid extends ExampleCrossModule {
     def testExclusive = true
   }
+
   trait ExampleCrossModuleJava extends ExampleCrossModule {
 
     def upstreamCross(s: String) = s match {
@@ -141,14 +149,15 @@ object `package` extends Module {
       case "module" => Some(scalalib.module)
       case "web" => Some(scalalib.web)
       case "publishing" => Some(scalalib.publishing)
+      case "script" => Some(scalalib.script)
       case "config" => Some(scalalib.config)
       case _ => None
     }
     val upstreamOpt = upstreamCross(this.moduleSegments.parts.dropRight(1).last)
       .flatMap(_.valuesToModules.get(List(crossValue)))
 
-    def testRepoRoot = Task {
-      os.copy(super.testRepoRoot().path, Task.dest, mergeFolders = true)
+    def testRepoSourceRoot = Task {
+      os.copy(super.testRepoSourceRoot().path, Task.dest, mergeFolders = true)
       for (suffix <- Seq("build.mill")) {
         for (lines <- buildScLines() if os.exists(Task.dest / suffix)) {
           os.write.over(Task.dest / suffix, lines.mkString("\n"))
@@ -173,10 +182,10 @@ object `package` extends Module {
       case None => Task { None }
       case Some(upstream) => Task {
           Some {
-            val upstreamRoot = upstream.testRepoRoot().path
+            val upstreamRoot = upstream.testRepoSourceRoot().path
             val suffix = Seq("build.mill").find(s => os.exists(upstreamRoot / s)).head
-            val upstreamLines = os.read.lines(upstream.testRepoRoot().path / suffix)
-            val lines = os.read.lines(super.testRepoRoot().path / suffix)
+            val upstreamLines = os.read.lines(upstream.testRepoSourceRoot().path / suffix)
+            val lines = os.read.lines(super.testRepoSourceRoot().path / suffix)
 
             import collection.mutable
             val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
@@ -220,7 +229,9 @@ object `package` extends Module {
         .filter(os.isFile)
         .filterNot(p =>
           (p.ext == "java" || p.ext == "kt") &&
-            (p.segments.contains("linting") || p.segments.contains("10-external-module-aliases"))
+            (p.segments.contains("linting") ||
+              p.segments.contains("10-external-module-aliases") ||
+              p.segments.contains("3-linting"))
         )
         .map(PathRef(_))
     }
@@ -236,7 +247,7 @@ object `package` extends Module {
      * Parses a `build.mill` for specific comments and return the split-by-type content
      */
     def parsed: T[Seq[(String, String)]] = Task {
-      mill.testkit.ExampleParser(testRepoRoot().path)
+      mill.testkit.ExampleParser(testRepoSourceRoot().path)
     }
 
     def rendered = Task {

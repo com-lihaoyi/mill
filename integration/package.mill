@@ -142,6 +142,7 @@ object `package` extends mill.Module {
   object failure extends Cross[IntegrationCrossModule](build.listCross)
   object feature extends Cross[IntegrationCrossModule](build.listCross)
   object invalidation extends Cross[IntegrationCrossModule](build.listCross)
+  object manual extends Cross[IntegrationCrossModule](build.listCross)
   object ide extends Cross[IdeIntegrationCrossModule](build.listCross)
   object bootstrap extends Cross[IdeIntegrationCrossModule](build.listCross)
   object migrating extends Cross[IdeIntegrationCrossModule](build.listCross)
@@ -149,6 +150,7 @@ object `package` extends mill.Module {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkArgs: T[Seq[String]] = Task(List.empty[String])
     def forkEnv = super.forkEnv() ++ Seq(
+      // "UTEST_UPDATE_GOLDEN_TESTS" -> "1",
       "MILL_PROJECT_ROOT" -> BuildCtx.workspaceRoot.toString,
       "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
       "TEST_KOTLIN_VERSION" -> Deps.kotlinCompiler.version
@@ -168,7 +170,10 @@ object `package` extends mill.Module {
   def testMill: T[PathRef] = {
     val name = if (scala.util.Properties.isWin) "mill.bat" else "mill"
     Task {
-      PathRef(build.dist.installLocalTask(binFile = Task.Anon((Task.dest / name).toString()))())
+      val executable = build.dist.executable().path
+      val dest = Task.dest / name
+      os.copy.over(executable, dest)
+      PathRef(dest)
     }
   }
 

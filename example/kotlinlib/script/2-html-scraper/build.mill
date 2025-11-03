@@ -1,0 +1,12 @@
+//// SNIPPET:SCRAPER
+/** See Also: HtmlScraper.kt */
+
+/** Usage
+> ./mill HtmlScraper.kt singapore 1
+Hokkien
+Conscription_in_Singapore
+Malaysia_Agreement
+Government_of_Singapore
+...
+
+*/

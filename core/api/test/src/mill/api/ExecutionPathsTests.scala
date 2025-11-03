@@ -16,9 +16,7 @@ object ExecutionPathsTests extends TestSuite {
           // do not collide with the applied `$`-masking character
           "a$colonb" -> "a$$colonb",
           // replace not just the first $
-          "a$$b" -> "a$$$$b",
-          // replace a forward slash,
-          "a/b" -> "a$slashb"
+          "a$$b" -> "a$$$$b"
         )
         val noReplace = Seq(
           "con10.json"

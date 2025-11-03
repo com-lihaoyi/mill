@@ -16,6 +16,9 @@ on:
       os:
         default: 'ubuntu-latest'
         type: string
+      extra:
+        default: ''
+        type: string
       timeout-minutes:
         default: 60
         type: number
@@ -37,7 +40,7 @@ jobs:
     steps:
       - uses: coursier/cache-action@v6
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           path: .
           name: ${{ inputs.os }}-artifact
@@ -64,3 +67,4 @@ jobs:
         with:
           millargs: ${{ inputs.millargs }}
           shell: ${{ inputs.shell }}
+          extra: ${{ inputs.extra }}

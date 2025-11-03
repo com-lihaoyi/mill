@@ -1,5 +1,7 @@
 //// SNIPPET:FILE
 /** See Also: Foo.kt */
+//// SNIPPET:END
+//// SNIPPET:CMD
 /** Usage
 > ./mill Foo.kt --text hello
 Compiling 1 Kotlin sources to...
@@ -28,23 +30,35 @@ Compiling 1 Kotlin sources to...
 
 //// SNIPPET:END
 
+//// SNIPPET:RESOLVE
+/** Usage
+
+> ./mill resolve Foo.kt:_
+./Foo.kt:run
+./Foo.kt:runMain
+./Foo.kt:compile
+./Foo.kt:assembly
+...
+
+*/
+//// SNIPPET:END
 //// SNIPPET:TEST
 
 /** See Also: FooTest.kt */
 
 /** Usage
 > ./mill FooTest.kt
-<h1>hello</h1>
-<h1>&lt;hello&gt;</h1>
+Test FooTest testSimple started
+Test FooTest testEscaping started
 
 */
 
-// Again, you can pass the name of the task explicitly via `:`, e.g. `:run` below
+// Again, you can pass the name of the task explicitly via `:`, e.g. `:testForked` below
 
 /** Usage
-> ./mill FooTest.kt:run # specifying the test task explicitly
-<h1>hello</h1>
-<h1>&lt;hello&gt;</h1>
+> ./mill FooTest.kt:testForked # specifying the test task explicitly
+Test FooTest testSimple started
+Test FooTest testEscaping started
 */
 
 //// SNIPPET:END

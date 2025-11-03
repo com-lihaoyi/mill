@@ -525,7 +525,7 @@ trait AndroidModule extends JavaModule { outer =>
           sources = androidLibsRClasses().map(_.path),
           compileClasspath = Seq.empty,
           javacOptions = jOpts.compiler,
-          incrementalCompilation = zincIncrementalCompilation()
+          incrementalCompilation = true
         ),
         javaHome = javaHome().map(_.path),
         javaRuntimeOptions = jOpts.runtime,

@@ -4,8 +4,8 @@
       "id": {
         "uri": "file:///workspace/app/src/milltests/TheApp.scala"
       },
-      "displayName": "app.src.milltests.TheApp.scala",
-      "baseDirectory": "file:///workspace/app/src/milltests",
+      "displayName": "./app/src/milltests/TheApp.scala",
+      "baseDirectory": "file:///workspace/app/src/milltests/TheApp.scala",
       "tags": [
         "library",
         "application"

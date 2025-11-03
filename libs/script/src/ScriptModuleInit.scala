@@ -4,14 +4,7 @@ import mill.api.{ExternalModule, Result}
 import mill.script.ScriptModule.parseHeaderData
 
 object ScriptModuleInit
-    extends (
-        (
-            String,
-            String => Option[mill.Module],
-            Boolean,
-            Option[String]
-        ) => Seq[Result[mill.api.ExternalModule]]
-    ) {
+    extends ((String, String => Option[mill.Module]) => Seq[Result[mill.api.ExternalModule]]) {
 
   // Cache instantiated script modules on a per-classloader basis. This lets us avoid
   // instantiating the same script twice, e.g. once directly and once when resolving a
@@ -21,46 +14,71 @@ object ScriptModuleInit
     collection.mutable.Map.empty
 
   def moduleFor(
-      millFile: os.Path,
-      extendsConfig: Option[String],
-      moduleDeps: Seq[String],
-      compileModuleDeps: Seq[String],
-      runModuleDeps: Seq[String],
+      scriptFile: os.Path,
+      extendsConfigStrings: Option[String],
+      moduleDepsStrings: Seq[String],
+      compileModuleDepsStrings: Seq[String],
+      runModuleDepsStrings: Seq[String],
       resolveModuleDep: String => Option[mill.Module]
-  ) = {
-    scriptModuleCache.synchronized {
-      scriptModuleCache.getOrElseUpdate(
-        millFile,
-        instantiate(
-          extendsConfig.getOrElse {
-            millFile.ext match {
-              case "java" => "mill.script.JavaModule"
-              case "kt" => "mill.script.KotlinModule"
-              case "scala" => "mill.script.ScalaModule"
-              case "sc" => "mill.script.ScalaScriptModule"
-            }
-          },
-          ScriptModule.Config(
-            millFile,
-            moduleDeps.flatMap(resolveModuleDep(_)),
-            compileModuleDeps.flatMap(resolveModuleDep(_)),
-            runModuleDeps.flatMap(resolveModuleDep(_))
-          )
-        )
-      )
+  ): mill.api.Result[mill.api.ExternalModule] = {
+    def relativize(s: String) = {
+      if (s.startsWith("."))
+        (scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot) / os.up / os.RelPath(s)).toString
+      else s
     }
+
+    def resolveOrErr(s: String) = resolveModuleDep(relativize(s)).toRight(s)
+    val (moduleDepsErrors, moduleDeps) = moduleDepsStrings.partitionMap(resolveOrErr)
+    val (compileModuleDepsErrors, compileModuleDeps) =
+      compileModuleDepsStrings.partitionMap(resolveOrErr)
+    val (runModuleDepsErrors, runModuleDeps) = runModuleDepsStrings.partitionMap(resolveOrErr)
+    val allErrors = moduleDepsErrors ++ compileModuleDepsErrors ++ runModuleDepsErrors
+    if (allErrors.nonEmpty) {
+      mill.api.Result.Failure(
+        "Unable to resolve modules: " + allErrors.map(pprint.Util.literalize(_)).mkString(", ")
+      )
+    } else instantiate(
+      scriptFile,
+      extendsConfigStrings.getOrElse {
+        scriptFile.ext match {
+          case "java" => "mill.script.JavaModule"
+          case "kt" => "mill.script.KotlinModule"
+          case "scala" => "mill.script.ScalaModule"
+        }
+      },
+      ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps)
+    )
+
   }
 
-  def instantiate(className: String, args: AnyRef*): ExternalModule = {
-    val cls =
-      try Class.forName(className)
+  def instantiate(
+      scriptFile: os.Path,
+      className: String,
+      args: AnyRef*
+  ): mill.api.Result[ExternalModule] = {
+    val clsOrErr =
+      try Result.Success(Class.forName(className))
       catch {
         case _: Throwable =>
           // Hack to try and pick up classes nested within package objects
-          Class.forName(className.reverse.replaceFirst("\\.", "\\$").reverse)
+          try Result.Success(Class.forName(className.reverse.replaceFirst("\\.", "\\$").reverse))
+          catch {
+            case _: java.lang.ClassNotFoundException =>
+              val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
+              Result.Failure(
+                s"Script $relPath extends invalid class ${pprint.Util.literalize(className)}"
+              )
+          }
       }
 
-    cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ExternalModule]
+    clsOrErr.flatMap(cls =>
+      mill.api.ExecResult.catchWrapException {
+        scriptModuleCache.getOrElseUpdate(
+          scriptFile,
+          cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ExternalModule]
+        )
+      }
+    )
   }
 
   /**
@@ -68,22 +86,21 @@ object ScriptModuleInit
    * Exposed for use in BSP integration.
    */
   def resolveScriptModule(
-      millFile0: String,
+      scriptFile0: String,
       resolveModuleDep: String => Option[mill.Module]
   ): Option[Result[ExternalModule]] = {
-    val millFile = os.Path(millFile0, mill.api.BuildCtx.workspaceRoot)
-    Option.when(os.isFile(millFile)) {
-      Result.create {
-        val parsedHeaderData = parseHeaderData(millFile)
+    val scriptFile = os.Path(scriptFile0, mill.api.BuildCtx.workspaceRoot)
+    Option.when(os.isFile(scriptFile)) {
+      parseHeaderData(scriptFile).flatMap(parsedHeaderData =>
         moduleFor(
-          millFile,
+          scriptFile,
           parsedHeaderData.`extends`.headOption,
           parsedHeaderData.moduleDeps,
           parsedHeaderData.compileModuleDeps,
           parsedHeaderData.runModuleDeps,
           resolveModuleDep
         )
-      }
+      )
     }
   }
 
@@ -91,16 +108,18 @@ object ScriptModuleInit
    * Discovers and instantiates script modules for BSP integration.
    * This method must be called reflectively from the evaluator's classloader.
    */
-  def discoverAndInstantiateScriptModules(nonScriptSourceFolders0: Seq[java.nio.file.Path])
+  def discoverAndInstantiateScriptModules(
+      nonScriptSourceFolders0: Seq[java.nio.file.Path],
+      eval: mill.api.Evaluator
+  )
       : Seq[(java.nio.file.Path, Result[ExternalModule])] = {
     // For now, we don't resolve moduleDeps as that would require access to other modules
-    val resolveModuleDep: String => Option[mill.Module] = _ => None
     import mill.api.BuildCtx.workspaceRoot
     val nonScriptSourceFolders = nonScriptSourceFolders0.map(os.Path(_))
     discoverScriptFiles(workspaceRoot, os.Path(mill.constants.OutFiles.out, workspaceRoot))
       .filter(p => !nonScriptSourceFolders.exists(p.startsWith(_)))
       .flatMap { scriptPath =>
-        resolveScriptModule(scriptPath.toString, resolveModuleDep).map { result =>
+        resolveScriptModule(scriptPath.toString, eval.resolveScriptModuleDep).map { result =>
           (scriptPath.toNIO, result)
         }
       }
@@ -129,25 +148,13 @@ object ScriptModuleInit
    */
 
   def apply(
-      millFileString: String,
-      resolveModuleDep: String => Option[mill.Module],
-      resolveChildren: Boolean,
-      nameOpt: Option[String]
+      scriptFileString: String,
+      resolveModuleDep: String => Option[mill.Module]
   ) = {
-    val workspace = mill.api.BuildCtx.workspaceRoot
+    mill.api.BuildCtx.workspaceRoot
 
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      val millFile0 = os.Path(millFileString, workspace)
-      if (resolveChildren) {
-        nameOpt match {
-          case Some(n) => resolveScriptModule((millFile0 / n).toString, resolveModuleDep).toSeq
-          case None =>
-            if (!os.isDir(millFile0)) Nil
-            else os.list(millFile0).filter(os.isDir).flatMap(p =>
-              resolveScriptModule(p.toString, resolveModuleDep)
-            )
-        }
-      } else resolveScriptModule(millFileString, resolveModuleDep).toSeq
+      resolveScriptModule(scriptFileString, resolveModuleDep).toSeq
     }
   }
 }

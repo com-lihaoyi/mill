@@ -218,11 +218,11 @@ private[mill] case class Execution(
                       testReporter = testReporter,
                       logger = contextLogger,
                       deps = deps,
-                      classToTransitiveClasses,
-                      allTransitiveClassMethods,
-                      forkExecutionContext,
-                      exclusive,
-                      upstreamPathRefs
+                      classToTransitiveClasses = classToTransitiveClasses,
+                      allTransitiveClassMethods = allTransitiveClassMethods,
+                      executionContext = forkExecutionContext,
+                      exclusive = exclusive,
+                      upstreamPathRefs = upstreamPathRefs
                     )
 
                     // Count new failures - if there are upstream failures, tasks should be skipped, not failed

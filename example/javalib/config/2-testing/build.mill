@@ -1,0 +1,38 @@
+//// SNIPPET:USAGE
+/** Usage
+
+> ./mill '{test,integration}' # run both test suites
+Test qux.QuxTests#hello() finished...
+Test qux.QuxTests#world() finished...
+Test qux.QuxIntegrationTests#helloworld() finished...
+
+> ./mill __.integration # run all integration test suites
+
+> ./mill __.test # run all normal test suites
+
+> ./mill __.testForked # run all test suites of any kind
+
+*/
+//// SNIPPET:TEST
+
+//// SNIPPET:RUNSINGLE
+// e.g. the https://github.com/sbt/sbt-jupiter-interface[Junit5/Jupiter test interface]
+// used in this example lets  you pass in a selector to decide which individual test
+// case to run via:
+
+/** Usage
+
+> ./mill test 'qux.QuxTests.*'
+...qux.QuxTests...hello...
+...qux.QuxTests...world...
+Test run finished: 0 failed, 0 ignored, 2 total...
+
+> ./mill test 'qux.QuxTests.hello*'
+...qux.QuxTests...hello...
+Test run finished: 0 failed, 0 ignored, 1 total...
+
+*/
+
+// Note the trailing `*` that is necessary for the per-test selector to match.
+
+//// SNIPPET:END

@@ -12,13 +12,14 @@ import mill.javalib.*
 import os.{Path, RelPath, zip}
 import os.RelPath.stringRelPathValidated
 import upickle.*
-import scala.concurrent.duration.*
 
+import scala.concurrent.duration.*
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.daemon.internal.EvaluatorApi
 import mill.javalib.testrunner.TestResult
+
 import scala.util.Properties.isWin
 
 /**
@@ -134,12 +135,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
   )
 
   /**
-   * Collect files from META-INF folder of classes.jar (not META-INF of aar in case of Android library).
+   * Collect files from META-INF folder of [[androidPackagedDeps]] (not META-INF of aar in case of Android library).
+   * to include in the apk
    */
   def androidLibsClassesJarMetaInf: T[Seq[PathRef]] = Task {
     // ^ not the best name for the method, but this is to distinguish between META-INF of aar and META-INF
     // of classes.jar included in aar
-    compileClasspath()
+    androidPackagedDeps()
       .filter(ref =>
         ref.path.ext == "jar" &&
           ref != androidSdkModule().androidJarPath()
@@ -178,7 +180,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
         }
       })
       .map(PathRef(_))
-      .toSeq
   }
 
   /**
@@ -189,7 +190,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] =
     Task { Seq.empty[AndroidPackageableExtraFile] }
 
-  def androidPackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
+  def androidPackagedMetaInfFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
     def metaInfRoot(p: os.Path): os.Path = {
       var current = p
       while (!current.endsWith(os.rel / "META-INF")) {
@@ -239,7 +240,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         (androidPackageableExtraFile.source.path, androidPackageableExtraFile.destination.asSubPath)
       )
 
-    val metaInf = androidPackageMetaInfoFiles().map(asZipSource)
+    val metaInf = androidPackagedMetaInfFiles().map(asZipSource)
 
     val nativeDeps = androidPackageableNativeDeps().map(asZipSource)
 
@@ -913,9 +914,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def androidIsDebug: T[Boolean] = Task { true }
 
-    override def moduleDeps: Seq[JavaModule] = Seq.empty
-    override def compileModuleDeps: Seq[JavaModule] = Seq(outer)
-
     override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer.resolutionParams())
 
     override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
@@ -975,7 +973,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }
 
     private def androidxTestManifests: Task[Seq[PathRef]] = Task {
-      androidUnpackArchives().flatMap {
+      androidUnpackRunArchives().flatMap {
         unpackedArchive =>
           unpackedArchive.manifest.map(_.path)
       }.filter {
@@ -1053,8 +1051,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
       val device = androidTestInstall().apply()
 
       val instrumentOutput = os.proc(
-        (
-          androidSdkModule().adbExe().path,
+        Seq(
+          androidSdkModule().adbExe().path.toString,
           "-s",
           device,
           "shell",
@@ -1095,10 +1093,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
         .filter(os.isFile)
         .filter(_.ext == "class")
         .map(PathRef(_))
-    }
-
-    override def androidPackagedDeps: T[Seq[PathRef]] = Task {
-      androidResolvedRunMvnDeps()
     }
 
     /**

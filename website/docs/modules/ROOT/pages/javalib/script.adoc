@@ -1,0 +1,47 @@
+= Java Single-File Scripts
+
+:language: Java
+:language-small: java
+:language-ext: java
+
+include::partial$Script_Header.adoc[]
+
+
+== Script Use Cases
+
+include::partial$example/javalib/script/1-json-api-client.adoc[]
+include::partial$example/javalib/script/2-html-scraper.adoc[]
+include::partial$example/javalib/script/3-web-server.adoc[]
+include::partial$example/javalib/script/4-database.adoc[]
+include::partial$example/javalib/script/5-static-site.adoc[]
+
+
+== Packaging Assemblies and Native Binaries
+
+include::partial$example/javalib/script/6-packaging.adoc[]
+
+== Opening a Script REPL
+
+To open a Java REPL with your script loaded and available, you can use the following command.
+This can be useful to interactively exercise and experiment with the code defined in
+your script.
+
+```scala
+./mill -i Foo.java:jshell
+```
+
+== Custom Script Module Classes
+
+include::partial$example/javalib/script/7-custom-class.adoc[]
+
+== Relative and Absolute Script moduleDeps
+
+include::partial$example/javalib/script/8-relative-imports.adoc[]
+
+== Project `moduleDeps`
+
+include::partial$example/javalib/script/9-programmatic-module-deps.adoc[]
+
+== Script Resources
+
+include::partial$example/javalib/script/10-resources.adoc[]
