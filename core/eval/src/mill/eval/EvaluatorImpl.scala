@@ -164,10 +164,9 @@ final class EvaluatorImpl private[mill] (
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
   ): Evaluator.Result[T] = {
-
     val selectiveExecutionEnabled = selectiveExecution && !tasks.exists(_.isExclusiveCommand)
 
-    val selectedTasksOrErr =
+    val (selectedTasks, selectiveResults, maybeNewMetadata) =
       if (!selectiveExecutionEnabled) (tasks, Map.empty, None)
       else {
         val (named, unnamed) =
@@ -197,73 +196,77 @@ final class EvaluatorImpl private[mill] (
         }
       }
 
-    selectedTasksOrErr match {
-      case (selectedTasks, selectiveResults, maybeNewMetadata) =>
-        val evaluated: ExecutionResults =
-          execution.executeTasks(
-            selectedTasks,
-            reporter,
-            testReporter,
-            logger,
-            serialCommandExec
+    val evaluated: ExecutionResults = execution.executeTasks(
+      selectedTasks,
+      reporter,
+      testReporter,
+      logger,
+      serialCommandExec
+    )
+
+    val scriptHeaderWatches =
+      tasks
+        .collect { case n: mill.api.Task.Named[_] => n.ctx.enclosingModule.buildOverridePaths }
+        .flatten
+        .map(PathRef(_))
+        .map(p => Watchable.Path(p.path.toNIO, p.quick, p.sig))
+
+    @scala.annotation.nowarn("msg=cannot be checked at runtime")
+    val evalWatches = (evaluated.transitiveResults.iterator ++ selectiveResults)
+      .collect {
+        case (_: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
+          ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
+        case (_: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
+          Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
+        case (t: Task.Input[_], result) =>
+
+          val ctx = new mill.api.TaskCtx.Impl(
+            args = Vector(),
+            dest0 = () => null,
+            log = logger,
+            env = this.execution.env,
+            reporter = reporter,
+            testReporter = testReporter,
+            workspace = workspace,
+            _systemExitWithReason = (reason, exitCode) =>
+              throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
+            fork = null,
+            jobs = execution.effectiveThreadCount,
+            offline = offline
           )
-        @scala.annotation.nowarn("msg=cannot be checked at runtime")
-        val watched = (evaluated.transitiveResults.iterator ++ selectiveResults)
-          .collect {
-            case (_: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
-              ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
-            case (_: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
-              Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
-            case (t: Task.Input[_], result) =>
+          val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
+          Seq(Watchable.Value(
+            () => t.evaluate(ctx).hashCode(),
+            result.map(_.value).hashCode(),
+            pretty
+          ))
+      }
+      .flatten
+      .toSeq
 
-              val ctx = new mill.api.TaskCtx.Impl(
-                args = Vector(),
-                dest0 = () => null,
-                log = logger,
-                env = this.execution.env,
-                reporter = reporter,
-                testReporter = testReporter,
-                workspace = workspace,
-                _systemExitWithReason = (reason, exitCode) =>
-                  throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
-                fork = null,
-                jobs = execution.effectiveThreadCount,
-                offline = offline
-              )
-              val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
-              Seq(Watchable.Value(
-                () => t.evaluate(ctx).hashCode(),
-                result.map(_.value).hashCode(),
-                pretty
-              ))
-          }
-          .flatten
-          .toSeq
+    val watched = evalWatches ++ scriptHeaderWatches
 
-        maybeNewMetadata.foreach { newMetadata =>
-          val allInputHashes = newMetadata.inputHashes
-          this.selective.saveMetadata(
-            SelectiveExecution.Metadata(allInputHashes, codeSignatures)
-          )
-        }
+    maybeNewMetadata.foreach { newMetadata =>
+      val allInputHashes = newMetadata.inputHashes
+      this.selective.saveMetadata(SelectiveExecution.Metadata(allInputHashes, codeSignatures))
+    }
 
-        val errorStr = ExecutionResultsApi.formatFailing(evaluated)
-        evaluated.transitiveFailing.size match {
-          case 0 =>
-            Evaluator.Result(
-              watched,
-              mill.api.Result.Success(evaluated.values.map(_._1.asInstanceOf[T])),
-              selectedTasks,
-              evaluated
-            )
-          case n =>
-            Evaluator.Result(
-              watched,
-              mill.api.Result.Failure(s"$n tasks failed\n$errorStr"),
-              selectedTasks,
-              evaluated
-            )
-        }
+    val errorStr = ExecutionResultsApi.formatFailing(evaluated)
+    evaluated.transitiveFailing.size match {
+      case 0 =>
+        Evaluator.Result(
+          watched,
+          mill.api.Result.Success(evaluated.values.map(_._1.asInstanceOf[T])),
+          selectedTasks,
+          evaluated
+        )
+      case n =>
+        Evaluator.Result(
+          watched,
+          mill.api.Result.Failure(s"$n tasks failed\n$errorStr"),
+          selectedTasks,
+          evaluated
+        )
     }
   }
 

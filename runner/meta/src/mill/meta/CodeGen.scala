@@ -87,9 +87,7 @@ object CodeGen {
         val newParent =
           if (segments.isEmpty) "_root_.mill.util.MainRootModule"
           else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
-        val parsedHeaderData = upickle.read[HeaderData](
-          mill.internal.Util.parsedHeaderData(allScriptCode(scriptPath))
-        )
+        val parsedHeaderData = mill.internal.Util.parseHeaderData(scriptPath).get
 
         val prelude =
           s"""|import MillMiscInfo._
