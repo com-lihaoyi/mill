@@ -3,6 +3,9 @@ package mill.integration
 import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
+// Make sure ScriptModules and ExternalModules which are not part of the `build.mill`
+// module hierarchy have their tasks rendered with the appropriate prefix so they are
+// distinct and copy-pasteable.
 object ScriptExternalTaskRendering extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("test") - integrationTest { tester =>
