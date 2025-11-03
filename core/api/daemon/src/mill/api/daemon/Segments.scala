@@ -5,8 +5,10 @@ import scala.math.Ordering.Implicits.seqOrdering
 /**
  * Models a path with the Mill build hierarchy, e.g. `amm.util[2.11].test.compile`.
  *
- * `.`-separated segments are [[Segment.Label]]s,
- * while `[]`-delimited segments are [[Segment.Cross]]s
+ * - `.`-separated segments are [[Segment.Label]]s,
+ * - `[]`-delimited segments are [[Segment.Cross]]s
+ * - If the first segment starts with `./`, it refers to a single-file script
+ * - If the first segment ends with `/`, it refers to an external module
  */
 final case class Segments private (value: Seq[Segment]) {
 
