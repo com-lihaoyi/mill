@@ -124,7 +124,9 @@ private[mill] object Util {
       allTaskNames: Set[String],
       relativeScriptFilePath: os.SubPath
   ) = {
-    val invalidBuildOverrides = buildOverridesKeys.filter(!allTaskNames.contains(_))
+    val invalidBuildOverrides = buildOverridesKeys
+      .filter(!allTaskNames.contains(_))
+      .filter(!_.contains('-'))
 
     if (invalidBuildOverrides.nonEmpty) {
       val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
