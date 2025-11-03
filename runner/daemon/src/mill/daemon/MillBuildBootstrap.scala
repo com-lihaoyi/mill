@@ -140,7 +140,7 @@ class MillBuildBootstrap(
                   // For non-YAML files (build.mill), use the entire parsed header data
                   parsedHeaderData
                 }
-              val bootstrapModule =
+              mill.api.ExecResult.catchWrapException {
                 new MillBuildRootModule.BootstrapModule()(
                   using
                   new RootModule.Info(
@@ -153,7 +153,13 @@ class MillBuildBootstrap(
                     ]](metaBuildData)
                   )
                 )
-              RunnerState(Some(bootstrapModule), Nil, None, Some(foundRootBuildFileName))
+              } match{
+                case Result.Success(bootstrapModule) =>
+                  RunnerState(Some(bootstrapModule), Nil, None, Some(foundRootBuildFileName))
+                case Result.Failure(msg) =>
+                  RunnerState(None, Nil, Some(msg), Some(foundRootBuildFileName))
+              }
+
             }
 
           state

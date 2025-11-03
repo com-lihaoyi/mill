@@ -91,4 +91,17 @@ private[mill] object Util {
       case v => v
     }
   }
+
+  def validateBuildHeaderKeys(buildOverridesKeys: Set[String],
+                              allTaskNames: Set[String],
+                              relativeScriptFilePath: os.SubPath) = {
+    val invalidBuildOverrides = buildOverridesKeys.filter(!allTaskNames.contains(_))
+
+    if (invalidBuildOverrides.nonEmpty) {
+      val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
+      throw new Exception(
+        s"invalid build config in `$relativeScriptFilePath`: key $pretty does not override any task"
+      )
+    }
+  }
 }

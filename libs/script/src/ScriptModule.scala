@@ -18,15 +18,11 @@ trait ScriptModule extends ExternalModule {
 
   private[mill] override def buildOverrides = scriptConfig.headerData.rest
 
-  private val invalidBuildOverrides =
-    buildOverrides.keySet.filter(!millDiscover.allTaskNames.contains(_))
-
-  if (invalidBuildOverrides.nonEmpty) {
-    val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
-    throw new Exception(
-      s"invalid build config `$relativeScriptFilePath` key does not override any task: $pretty"
-    )
-  }
+  mill.internal.Util.validateBuildHeaderKeys(
+    buildOverrides.keySet,
+    millDiscover.allTaskNames,
+    relativeScriptFilePath
+  )
 }
 
 object ScriptModule {

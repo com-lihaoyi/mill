@@ -44,20 +44,20 @@ object ScriptInvalidTests extends UtestIntegrationTestSuite {
       locally {
         val res = tester.eval("invalid-key/Foo.java")
         assert(res.err.contains(
-          "invalid build config `invalid-key/Foo.java` key does not override any task: \"moduleDep\""
+          "invalid build config in `invalid-key/Foo.java`: key \"moduleDep\" does not override any task"
         ))
         // make sure we truncate the exception to the relevant bits
         assert(res.err.linesIterator.toList.length < 20)
 
         val res2 = tester.eval("invalid-key/Foo.scala")
         assert(res2.err.contains(
-          "invalid build config `invalid-key/Foo.scala` key does not override any task: \"moduleDep\""
+          "invalid build config in `invalid-key/Foo.scala`: key \"moduleDep\" does not override any task"
         ))
         assert(res2.err.linesIterator.toList.length < 20)
 
         val res3 = tester.eval("invalid-key/Foo.kt")
         assert(res3.err.contains(
-          "invalid build config `invalid-key/Foo.kt` key does not override any task: \"moduleDep\""
+          "invalid build config in `invalid-key/Foo.kt`: key \"moduleDep\" does not override any task"
         ))
         assert(res3.err.linesIterator.toList.length < 20)
       }

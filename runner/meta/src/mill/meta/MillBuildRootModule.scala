@@ -325,6 +325,13 @@ trait MillBuildRootModule()(using
           res.copy(classes = PathRef(transformedClasses))
       }
   }
+
+  def millDiscover: Discover
+  mill.internal.Util.validateBuildHeaderKeys(
+    buildOverrides.keySet,
+    millDiscover.allTaskNames,
+    scriptSourcesPaths.head.subRelativeTo(BuildCtx.workspaceRoot)
+  )
 }
 
 object MillBuildRootModule {
