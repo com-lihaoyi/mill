@@ -6,7 +6,7 @@ private[mill] sealed trait Resolved {
   def rootModule: RootModule0
   def segments: Segments
   def cls: Class[?]
-  def fullSegments: Segments = rootModule.moduleSegments ++ segments 
+  def fullSegments: Segments = rootModule.moduleSegments ++ segments
 }
 
 private[mill] object Resolved {

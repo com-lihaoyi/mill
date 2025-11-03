@@ -385,9 +385,12 @@ private object ResolveCore {
 
     def expandSegments(direct: Seq[(Resolved, Option[Module => mill.api.Result[Module]])]) = {
       direct.map {
-        case (Resolved.Module(rootModule, s, cls), _) => Resolved.Module(rootModule, segments ++ s, cls)
-        case (Resolved.NamedTask(rootModule, s, enclosing), _) => Resolved.NamedTask(rootModule, segments ++ s, enclosing)
-        case (Resolved.Command(rootModule, s, enclosing), _) => Resolved.Command(rootModule, segments ++ s, enclosing)
+        case (Resolved.Module(rootModule, s, cls), _) =>
+          Resolved.Module(rootModule, segments ++ s, cls)
+        case (Resolved.NamedTask(rootModule, s, enclosing), _) =>
+          Resolved.NamedTask(rootModule, segments ++ s, enclosing)
+        case (Resolved.Command(rootModule, s, enclosing), _) =>
+          Resolved.Command(rootModule, segments ++ s, enclosing)
       }
     }
 
@@ -430,7 +433,8 @@ private object ResolveCore {
           .reflectNestedObjects02[Module](cls, namePred, cache.getMethods)
           .collect {
             case (name, memberCls, getter) =>
-              val resolved = Resolved.Module(rootModule, Segments.labels(cache.decode(name)), memberCls)
+              val resolved =
+                Resolved.Module(rootModule, Segments.labels(cache.decode(name)), memberCls)
               val getter2 =
                 Some((mod: Module) => mill.api.ExecResult.catchWrapException(getter(mod)))
               (resolved, getter2)

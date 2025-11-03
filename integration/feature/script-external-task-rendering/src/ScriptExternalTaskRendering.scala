@@ -32,18 +32,22 @@ object ScriptExternalTaskRendering extends UtestIntegrationTestSuite {
       assert(planScript.out.linesIterator.toSeq.contains("./Script.java:run"))
       assert(planScript.out.linesIterator.toSeq.contains("./Script.java:compile"))
 
-      val resolveExternalTask = eval(("resolve", "mill.scalalib.scalafmt.ScalafmtModule:reformatAll"))
-      assert(resolveExternalTask.out.linesIterator.toSeq == Seq("mill.scalalib.scalafmt.ScalafmtModule:reformatAll"))
+      val resolveExternalTask =
+        eval(("resolve", "mill.scalalib.scalafmt.ScalafmtModule:reformatAll"))
+      assert(resolveExternalTask.out.linesIterator.toSeq == Seq(
+        "mill.scalalib.scalafmt.ScalafmtModule:reformatAll"
+      ))
 
-      val planExternalTask = eval(("plan", "mill.scalalib.scalafmt.ScalafmtModule:scalafmtClasspath"))
+      val planExternalTask =
+        eval(("plan", "mill.scalalib.scalafmt.ScalafmtModule:scalafmtClasspath"))
       assert(
         planExternalTask.out.linesIterator.toSeq ==
-        Seq(
-          "mill.javalib.CoursierConfigModule:coursierEnv",
-          "mill.scalalib.scalafmt.ScalafmtModule:repositories",
-          "mill.scalalib.scalafmt.ScalafmtModule:checkGradleModules",
-          "mill.scalalib.scalafmt.ScalafmtModule:scalafmtClasspath",
-        )
+          Seq(
+            "mill.javalib.CoursierConfigModule:coursierEnv",
+            "mill.scalalib.scalafmt.ScalafmtModule:repositories",
+            "mill.scalalib.scalafmt.ScalafmtModule:checkGradleModules",
+            "mill.scalalib.scalafmt.ScalafmtModule:scalafmtClasspath"
+          )
       )
 
     }
