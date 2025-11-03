@@ -46,7 +46,6 @@ object ExecutionPaths {
     },
     // Step 3: Replace colon (:) with $colon
     s => Colon.replaceAllIn(s, Matcher.quoteReplacement("$colon"))
-    // Step 4: Replace slash (/) with $slash
   )
 
   def sanitizePathSegment(segment: String): os.PathChunk = {
