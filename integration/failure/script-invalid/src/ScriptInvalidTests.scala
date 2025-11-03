@@ -27,7 +27,7 @@ object ScriptInvalidTests extends UtestIntegrationTestSuite {
       locally {
         val res = tester.eval("./InvalidTaskType.java")
         assert(res.err.contains(
-          "InvalidTaskType.java.mvnDeps Failed de-serializing config override: expected sequence got string"
+          "./InvalidTaskType.java:mvnDeps Failed de-serializing config override: expected sequence got string"
         ))
         // make sure we truncate the exception to the relevant bits
         assert(res.err.linesIterator.toList.length < 20)

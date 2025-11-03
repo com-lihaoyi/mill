@@ -3,8 +3,10 @@ package mill.api.internal
 import mill.api.daemon.Segments
 
 private[mill] sealed trait Resolved {
+  def rootModule: RootModule0
   def segments: Segments
   def cls: Class[?]
+  def fullSegments: Segments = rootModule.moduleSegments ++ segments
 }
 
 private[mill] object Resolved {
@@ -23,7 +25,7 @@ private[mill] object Resolved {
     }
   }
 
-  case class Module(segments: Segments, cls: Class[?]) extends Resolved
-  case class Command(segments: Segments, cls: Class[?]) extends Resolved
-  case class NamedTask(segments: Segments, cls: Class[?]) extends Resolved
+  case class Module(rootModule: RootModule0, segments: Segments, cls: Class[?]) extends Resolved
+  case class Command(rootModule: RootModule0, segments: Segments, cls: Class[?]) extends Resolved
+  case class NamedTask(rootModule: RootModule0, segments: Segments, cls: Class[?]) extends Resolved
 }

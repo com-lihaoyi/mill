@@ -33,9 +33,22 @@ trait RepackageModule extends mill.api.Module {
    */
   def repackagePrependScript: T[Option[String]] = this match {
     case m: AssemblyModule => Task {
+        val mainClass =
+          if (
+            mill.util.Version
+              .isAtLeast(springBootToolsModule().springBootToolsVersion(), "3.2.0-RC1")(using
+                mill.util.Version.MavenOrdering
+              )
+          ) {
+            // See issue: https://github.com/spring-projects/spring-boot/issues/37667
+            "org.springframework.boot.loader.launch.JarLauncher"
+          } else {
+            "org.springframework.boot.loader.JarLauncher"
+          }
+
         Option(
           Jvm.launcherUniversalScript(
-            mainClass = "org.springframework.boot.loader.launch.JarLauncher",
+            mainClass = mainClass,
             shellClassPath = Seq("$0"),
             cmdClassPath = Seq("%~dpnx0"),
             shebang = false,

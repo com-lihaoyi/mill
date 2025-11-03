@@ -31,7 +31,7 @@ trait ScriptModule extends ExternalModule {
     // since the `scriptSource` will watch for changes
     mill.api.BuildCtx.watch(scriptConfig.scriptFilePath)
     throw new Exception(
-      s"invalid build config `${scriptConfig.scriptFilePath.relativeTo(mill.api.BuildCtx.workspaceRoot)}` key does not override any task: $pretty"
+      s"invalid build config `$relativeScriptFilePath` key does not override any task: $pretty"
     )
   }
 }
