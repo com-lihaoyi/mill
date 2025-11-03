@@ -117,13 +117,13 @@
         <orderEntry type="library" scope="RUNTIME" name="specification-level_3-1.8.5.jar" level="project"/>
         <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="tika-core-3.2.2.jar" level="project"/>
-        <orderEntry type="library" name="ujson_3-4.4.0.jar" level="project"/>
+        <orderEntry type="library" name="ujson_3-4.4.1.jar" level="project"/>
         <orderEntry type="library" name="unroll-annotation_3-0.2.0.jar" level="project"/>
-        <orderEntry type="library" name="upack_3-4.4.0.jar" level="project"/>
-        <orderEntry type="library" name="upickle-core_3-4.4.0.jar" level="project"/>
-        <orderEntry type="library" name="upickle-implicits-named-tuples_3-4.3.0.jar" level="project"/>
-        <orderEntry type="library" name="upickle-implicits_3-4.4.0.jar" level="project"/>
-        <orderEntry type="library" name="upickle_3-4.4.0.jar" level="project"/>
+        <orderEntry type="library" name="upack_3-4.4.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle-core_3-4.4.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle-implicits-named-tuples_3-4.4.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle-implicits_3-4.4.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle_3-4.4.1.jar" level="project"/>
         <orderEntry type="library" name="versions_2.13-0.5.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-ansi-0.0.6.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-jni-utils-0.3.3.jar" level="project"/>
