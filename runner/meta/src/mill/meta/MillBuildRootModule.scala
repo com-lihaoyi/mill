@@ -327,6 +327,7 @@ trait MillBuildRootModule()(using
   }
 
   def millDiscover: Discover
+
   mill.internal.Util.validateBuildHeaderKeys(
     buildOverrides.keySet,
     millDiscover.allTaskNames,

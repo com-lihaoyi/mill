@@ -1,6 +1,8 @@
 package mill.internal
 
 import scala.reflect.NameTransformer.encode
+import mill.api.Result
+import mill.api.ModuleCtx.HeaderData
 
 private[mill] object Util {
 
@@ -58,7 +60,27 @@ private[mill] object Util {
       else "`" + s + "`"
   }
 
-  def parseYaml(headerData: String): ujson.Value = {
+  private[mill] def parseHeaderData(scriptFile: os.Path): Result[HeaderData] = {
+    val headerData = mill.api.BuildCtx.withFilesystemCheckerDisabled {
+      // If the module file got deleted, handle that gracefully
+      if (!os.exists(scriptFile)) ""
+      else mill.constants.Util.readBuildHeader(scriptFile.toNIO, scriptFile.last, true)
+    }
+
+    def relativePath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
+
+    parseYaml(relativePath.toString, headerData).flatMap{parsed =>
+      try Result.Success(upickle.read[HeaderData](parsed))
+      catch {
+        case e: upickle.core.TraceVisitor.TraceException =>
+          Result.Failure(
+            s"Failed de-serializing config key ${e.jsonPath} in $relativePath: ${e.getCause.getMessage}"
+          )
+      }
+    }
+  }
+
+  def parseYaml(fileName: String, headerData: String): Result[ujson.Value] = try Result.Success{
     import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
     val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
 
@@ -90,6 +112,9 @@ private[mill] object Util {
       case ujson.Null => ujson.Obj()
       case v => v
     }
+  }catch{
+    case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
+      Result.Failure(s"Failed de-serializing build header in $fileName: " + e.getMessage)
   }
 
   def validateBuildHeaderKeys(

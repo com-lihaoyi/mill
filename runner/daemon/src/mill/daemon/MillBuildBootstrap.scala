@@ -124,42 +124,45 @@ class MillBuildBootstrap(
           val state =
             if (currentRootContainsBuildFile) evaluateRec(depth + 1)
             else {
-              val parsedHeaderData = mill.internal.Util.parseYaml(headerData)
-              val metaBuildData =
-                if (
-                  foundRootBuildFileName.endsWith(".yaml") || foundRootBuildFileName.endsWith(
-                    ".yml"
-                  )
-                ) {
-                  // For YAML files, extract the mill-build key if it exists, otherwise use empty map
-                  parsedHeaderData.obj.get("mill-build") match {
-                    case Some(millBuildValue: ujson.Obj) => millBuildValue
-                    case _ => ujson.Obj()
-                  }
-                } else {
-                  // For non-YAML files (build.mill), use the entire parsed header data
-                  parsedHeaderData
-                }
-              mill.api.ExecResult.catchWrapException {
-                new MillBuildRootModule.BootstrapModule()(
-                  using
-                  new RootModule.Info(
-                    currentRoot,
-                    output,
-                    projectRoot,
-                    upickle.read[Map[
-                      String,
-                      ujson.Value
-                    ]](metaBuildData)
-                  )
-                )
-              } match {
-                case Result.Success(bootstrapModule) =>
-                  RunnerState(Some(bootstrapModule), Nil, None, Some(foundRootBuildFileName))
+              mill.internal.Util.parseYaml(foundRootBuildFileName, headerData) match{
                 case Result.Failure(msg) =>
                   RunnerState(None, Nil, Some(msg), Some(foundRootBuildFileName))
+                case Result.Success(parsedHeaderData) =>
+                  val metaBuildData =
+                    if (
+                      foundRootBuildFileName.endsWith(".yaml") || foundRootBuildFileName.endsWith(
+                        ".yml"
+                      )
+                    ) {
+                      // For YAML files, extract the mill-build key if it exists, otherwise use empty map
+                      parsedHeaderData.obj.get("mill-build") match {
+                        case Some(millBuildValue: ujson.Obj) => millBuildValue
+                        case _ => ujson.Obj()
+                      }
+                    } else {
+                      // For non-YAML files (build.mill), use the entire parsed header data
+                      parsedHeaderData
+                    }
+                  mill.api.ExecResult.catchWrapException {
+                    new MillBuildRootModule.BootstrapModule()(
+                      using
+                      new RootModule.Info(
+                        currentRoot,
+                        output,
+                        projectRoot,
+                        upickle.read[Map[
+                          String,
+                          ujson.Value
+                        ]](metaBuildData)
+                      )
+                    )
+                  } match {
+                    case Result.Success(bootstrapModule) =>
+                      RunnerState(Some(bootstrapModule), Nil, None, Some(foundRootBuildFileName))
+                    case Result.Failure(msg) =>
+                      RunnerState(None, Nil, Some(msg), Some(foundRootBuildFileName))
+                  }
               }
-
             }
 
           state
