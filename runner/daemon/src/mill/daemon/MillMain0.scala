@@ -265,6 +265,10 @@ object MillMain0 {
                       def proceed(logger: Logger): Watching.Result[RunnerState] = {
                         // Enter key pressed, removing mill-selective-execution.json to
                         // ensure all tasks re-run even though no inputs may have changed
+                        //
+                        // Do this by removing the file rather than disabling selective execution,
+                        // because we still want to generate the selective execution metadata json
+                        // for subsequent runs that may use it
                         if (skipSelectiveExecution) os.remove(out / OutFiles.millSelectiveExecution)
                         mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                           mill.api.FilesystemCheckerEnabled.withValue(
