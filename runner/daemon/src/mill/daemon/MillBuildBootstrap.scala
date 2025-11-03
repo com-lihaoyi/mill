@@ -153,7 +153,7 @@ class MillBuildBootstrap(
                     ]](metaBuildData)
                   )
                 )
-              } match{
+              } match {
                 case Result.Success(bootstrapModule) =>
                   RunnerState(Some(bootstrapModule), Nil, None, Some(foundRootBuildFileName))
                 case Result.Failure(msg) =>

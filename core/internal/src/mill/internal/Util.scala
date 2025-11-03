@@ -92,9 +92,11 @@ private[mill] object Util {
     }
   }
 
-  def validateBuildHeaderKeys(buildOverridesKeys: Set[String],
-                              allTaskNames: Set[String],
-                              relativeScriptFilePath: os.SubPath) = {
+  def validateBuildHeaderKeys(
+      buildOverridesKeys: Set[String],
+      allTaskNames: Set[String],
+      relativeScriptFilePath: os.SubPath
+  ) = {
     val invalidBuildOverrides = buildOverridesKeys.filter(!allTaskNames.contains(_))
 
     if (invalidBuildOverrides.nonEmpty) {
