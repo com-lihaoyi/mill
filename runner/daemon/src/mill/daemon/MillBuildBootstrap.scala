@@ -124,7 +124,7 @@ class MillBuildBootstrap(
           val state =
             if (currentRootContainsBuildFile) evaluateRec(depth + 1)
             else {
-              val parsedHeaderData = mill.internal.Util.parsedHeaderData(headerData)
+              val parsedHeaderData = mill.internal.Util.parseYaml(headerData)
               val metaBuildData =
                 if (
                   foundRootBuildFileName.endsWith(".yaml") || foundRootBuildFileName.endsWith(

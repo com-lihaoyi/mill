@@ -47,13 +47,7 @@ object ScriptModule {
     }
 
     def relativePath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
-    try {
-      val read = mill.internal.Util.parsedHeaderData(headerData)
-      pprint.log(read)
-      val parsed = upickle.read[HeaderData](read)
-      pprint.log(parsed)
-      Result.Success(parsed)
-    }
+    try Result.Success(upickle.read[HeaderData](mill.internal.Util.parseYaml(headerData)))
     catch {
       case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
         Result.Failure(s"Failed de-serializing build header in $relativePath: " + e.getMessage)

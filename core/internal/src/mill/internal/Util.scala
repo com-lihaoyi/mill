@@ -58,7 +58,7 @@ private[mill] object Util {
       else "`" + s + "`"
   }
 
-  def parsedHeaderData(headerData: String): ujson.Value = {
+  def parseYaml(headerData: String): ujson.Value = {
     import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
     val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
 
@@ -84,6 +84,11 @@ private[mill] object Util {
       }
     }
 
-    rec(loaded)
+    // Treat a top-level `null` as an empty object, so that an empty YAML header
+    // block is treated gracefully rather than blowing up with a NPE
+    rec(loaded) match{
+      case ujson.Null => ujson.Obj()
+      case v => v
+    }
   }
 }
