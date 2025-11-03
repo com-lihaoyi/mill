@@ -125,7 +125,7 @@ out/mill-daemon
 > cat out/mill-profile.json
 [
   {
-    "label": "mill.javalib.JvmWorkerModule:internalWorker",
+    "label": "mill.javalib.JvmWorkerModule/internalWorker",
     "millis": 0,
     "cached": true,
     "valueHashChanged": false,
