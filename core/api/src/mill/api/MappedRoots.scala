@@ -78,4 +78,17 @@ trait MappedRootsImpl {
     }
   }
 
+  /**
+   * Use this to assert at runtime, that a root path with the given `key` is defined.
+   * @throws NoSuchElementException when no path was mapped under the given `key`.
+   */
+  def requireMappedPaths(key: String*): Unit = {
+    val map = toMap
+    for {
+      singleKey <- key
+    } {
+      if (!map.contains(singleKey)) throw new NoSuchElementException(s"No root path mapping defined for '${key}'")
+    }
+  }
+
 }

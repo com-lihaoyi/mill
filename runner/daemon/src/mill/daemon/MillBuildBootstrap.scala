@@ -86,6 +86,14 @@ class MillBuildBootstrap(
   }
 
   def evaluateRec(depth: Int): RunnerState = {
+
+    // We need relocatable PathRef for meta-builds for a stable classpathSig
+    MappedRoots.requireMappedPaths(
+      mill.constants.PathVars.WORKSPACE,
+      mill.constants.PathVars.HOME,
+      mill.constants.PathVars.MILL_OUT
+    )
+
     logger.withChromeProfile(s"meta-level $depth") {
       // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
       val currentRoot = recRoot(projectRoot, depth)
