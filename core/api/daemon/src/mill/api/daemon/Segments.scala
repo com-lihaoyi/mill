@@ -36,7 +36,6 @@ final case class Segments private (value: Seq[Segment]) {
         val headSegment = head match
           case Segment.Label(s) => s
           case c: Segment.Cross => renderCross(c)
-
         val stringSegments = rest.map {
           case Segment.Label(s) => "." + s
           case c: Segment.Cross => renderCross(c)
