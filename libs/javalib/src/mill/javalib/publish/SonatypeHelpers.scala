@@ -65,7 +65,6 @@ object SonatypeHelpers {
     }
     def mkCommand(args: Seq[String]) = "gpg" +: args :+ fileName
     val logCommand = mkCommand(logArgs)
-    println(s"Running `${logCommand.iterator.map(pprint.Util.literalize(_)).mkString(" ")}`")
     val command = mkCommand(args.asCommandArgs)
 
     os.call(
