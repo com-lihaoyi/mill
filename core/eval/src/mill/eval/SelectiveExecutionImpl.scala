@@ -27,11 +27,11 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
       .map { namedTask =>
         namedTask.ctx.segments.render -> CodeSigUtils
           .codeSigForTask(
-            namedTask,
-            classToTransitiveClasses,
-            allTransitiveClassMethods,
-            codeSignatures,
-            constructorHashSignatures
+            namedTask = namedTask,
+            classToTransitiveClasses = classToTransitiveClasses,
+            allTransitiveClassMethods = allTransitiveClassMethods,
+            codeSignatures = codeSignatures,
+            constructorHashSignatures = constructorHashSignatures
           )
           .sum
       }
