@@ -76,11 +76,8 @@ object ScriptModuleInit
         scriptModuleCache.get(scriptFile).filter(v =>
           Result.Success(v.scriptConfig.headerData) == parseHeaderData(scriptFile)
         ) match {
-          case Some(v) =>
-            println("Re-using " + scriptFile)
-            v
+          case Some(v) => v
           case None =>
-            println("Instantiating " + scriptFile)
             val newScriptModule =
               cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ScriptModule]
             scriptModuleCache(scriptFile) = newScriptModule
