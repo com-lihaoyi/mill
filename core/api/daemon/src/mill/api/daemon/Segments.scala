@@ -30,17 +30,27 @@ final case class Segments private (value: Seq[Segment]) {
 
   def render: String = {
     def renderCross(cross: Segment.Cross): String = "[" + cross.value.mkString(",") + "]"
-    value.toList match {
+    def renderValue(valueList: List[Segment]) = valueList match {
       case Nil => ""
       case head :: rest =>
         val headSegment = head match
           case Segment.Label(s) => s
           case c: Segment.Cross => renderCross(c)
+
         val stringSegments = rest.map {
           case Segment.Label(s) => "." + s
           case c: Segment.Cross => renderCross(c)
         }
         headSegment + stringSegments.mkString
+    }
+
+    value.toList match {
+      // ScriptModule segments always starts with `./`
+      case Segment.Label(s"./$first") :: next :: rest => s"./$first:${renderValue(next :: rest)}"
+      // ExternalModule segments always ends with ':'
+      case Segment.Label(s"$first:") :: next :: rest => s"$first:${renderValue(next :: rest)}"
+      case Segment.Label(s"./$first") :: Nil => s"./$first"
+      case valueList => renderValue(valueList)
     }
   }
   override lazy val hashCode: Int = value.hashCode()

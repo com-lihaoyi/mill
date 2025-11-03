@@ -11,11 +11,11 @@ trait ScriptModule extends ExternalModule {
 
   private[mill] def allowNestedExternalModule = true
 
-  override def moduleSegments: Segments = {
-    Segments.labels(
-      scriptConfig.scriptFilePath.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*
-    )
-  }
+  private def relativeScriptFilePath =
+    scriptConfig.scriptFilePath.subRelativeTo(mill.api.BuildCtx.workspaceRoot)
+
+  override def moduleSegments: Segments = Segments.labels(s"./$relativeScriptFilePath")
+  
   private[mill] override def buildOverrides: Map[String, ujson.Value] =
     ScriptModule.parseHeaderData(scriptConfig.scriptFilePath).get.rest
 
@@ -25,7 +25,7 @@ trait ScriptModule extends ExternalModule {
   if (invalidBuildOverrides.nonEmpty) {
     val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
     throw new Exception(
-      s"invalid build config `${scriptConfig.scriptFilePath.relativeTo(mill.api.BuildCtx.workspaceRoot)}` key does not override any task: $pretty"
+      s"invalid build config `$relativeScriptFilePath` key does not override any task: $pretty"
     )
   }
 }
