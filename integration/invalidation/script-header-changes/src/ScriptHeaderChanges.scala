@@ -4,7 +4,7 @@ import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object ScriptHeaderChangedToInvalid extends UtestIntegrationTestSuite {
+object ScriptHeaderChanges extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
       val res = tester.eval("./Foo.java")
@@ -18,6 +18,7 @@ object ScriptHeaderChangedToInvalid extends UtestIntegrationTestSuite {
       assert(res2.err.contains(
         "invalid build config `Foo.java` key does not override any task: \"invalid\""
       ))
+
     }
   }
 }

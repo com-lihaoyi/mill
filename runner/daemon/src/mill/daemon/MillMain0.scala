@@ -287,10 +287,9 @@ object MillMain0 {
                                 allowPositionalCommandArgs = config.allowPositional.value,
                                 systemExit = systemExit,
                                 streams0 = streams,
-                                selectiveExecution = config.watch.value,
+                                selectiveExecution = config.watch.value && !skipSelectiveExecution,
                                 offline = config.offline.value,
                                 reporter = reporter,
-                                skipSelectiveExecution = skipSelectiveExecution,
                                 enableTicker = enableTicker
                               ).evaluate()
                             }

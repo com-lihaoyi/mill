@@ -59,7 +59,6 @@ class MillBuildBootstrap(
     selectiveExecution: Boolean,
     offline: Boolean,
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
-    skipSelectiveExecution: Boolean,
     enableTicker: Boolean
 ) { outer =>
   import MillBuildBootstrap.*

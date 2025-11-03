@@ -18,7 +18,8 @@ trait ScriptModule extends ExternalModule {
   }
 
   def loadBuildOverrides() = ScriptModule.parseHeaderData(scriptConfig.scriptFilePath).get.rest
-  private[mill] override lazy val buildOverrides: Map[String, ujson.Value] = loadBuildOverrides()
+  private[mill] override val buildOverrides = loadBuildOverrides()
+  private[mill] override val buildOverridePaths = Seq(scriptConfig.scriptFilePath)
 
   private val invalidBuildOverrides =
     buildOverrides.keySet.filter(!millDiscover.allTaskNames.contains(_))
@@ -49,10 +50,12 @@ object ScriptModule {
       if (!os.exists(millSimplePath)) ""
       else mill.constants.Util.readBuildHeader(millSimplePath.toNIO, millSimplePath.last, true)
     }
+    def relativePath = millSimplePath.relativeTo(mill.api.BuildCtx.workspaceRoot)
     try Result.Success(upickle.read[HeaderData](mill.internal.Util.parsedHeaderData(headerData)))
     catch {
+      case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
+        Result.Failure(s"Failed de-serializing build header in $relativePath: " + e.getMessage)
       case e: upickle.core.TraceVisitor.TraceException =>
-        val relativePath = millSimplePath.relativeTo(mill.api.BuildCtx.workspaceRoot)
         Result.Failure(
           s"Failed de-serializing config key ${e.jsonPath} in $relativePath: ${e.getCause.getMessage}"
         )
