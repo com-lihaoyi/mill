@@ -107,7 +107,13 @@ class MillBuildBootstrap(
               s"No build file ($rootFileNamesStr) found in $projectRoot. Are you in a Mill project directory?"
 
             state match {
-              case RunnerState(bootstrapModuleOpt, frames, Some(error), None, bootstrapEvalWatched) =>
+              case RunnerState(
+                    bootstrapModuleOpt,
+                    frames,
+                    Some(error),
+                    None,
+                    bootstrapEvalWatched
+                  ) =>
                 // Add a potential clue (missing build.mill) to the underlying error message
                 RunnerState(
                   bootstrapModuleOpt,
