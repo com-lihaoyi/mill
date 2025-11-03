@@ -61,10 +61,6 @@ object ScriptInvalidTests extends UtestIntegrationTestSuite {
         ))
         assert(res3.err.linesIterator.toList.length < 20)
       }
-
-      locally{
-
-      }
     }
   }
 }

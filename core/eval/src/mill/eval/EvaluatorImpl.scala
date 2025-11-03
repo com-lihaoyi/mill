@@ -206,7 +206,7 @@ final class EvaluatorImpl private[mill] (
 
     val scriptHeaderWatches =
       tasks
-        .collect{ case n: mill.api.Task.Named[_] => n.ctx.enclosingModule.buildOverridePaths }
+        .collect { case n: mill.api.Task.Named[_] => n.ctx.enclosingModule.buildOverridePaths }
         .flatten
         .map(PathRef(_))
         .map(p => Watchable.Path(p.path.toNIO, p.quick, p.sig))

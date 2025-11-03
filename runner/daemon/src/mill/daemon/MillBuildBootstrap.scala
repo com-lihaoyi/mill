@@ -553,7 +553,8 @@ object MillBuildBootstrap {
     )
 
     evalTaskResult match {
-      case Result.Failure(msg) => (Result.Failure(msg), evalWatchedValues.toSeq, moduleWatchedValues)
+      case Result.Failure(msg) =>
+        (Result.Failure(msg), evalWatchedValues.toSeq, moduleWatchedValues)
       case Result.Success(res: EvaluatorApi.Result[Any]) =>
         res.values match {
           case Result.Failure(msg) =>

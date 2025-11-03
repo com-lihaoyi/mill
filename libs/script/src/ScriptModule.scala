@@ -7,7 +7,6 @@ import mill.api.ModuleCtx.HeaderData
 trait ScriptModule extends ExternalModule {
   def scriptConfig: ScriptModule.Config
 
-
   override def moduleDir = scriptConfig.scriptFile
 
   private[mill] def allowNestedExternalModule = true

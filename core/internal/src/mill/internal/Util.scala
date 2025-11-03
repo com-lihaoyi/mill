@@ -86,7 +86,7 @@ private[mill] object Util {
 
     // Treat a top-level `null` as an empty object, so that an empty YAML header
     // block is treated gracefully rather than blowing up with a NPE
-    rec(loaded) match{
+    rec(loaded) match {
       case ujson.Null => ujson.Obj()
       case v => v
     }
