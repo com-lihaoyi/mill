@@ -1171,7 +1171,12 @@
             <div class="cover">
              <div class="doc">
               <p>Models a path with the Mill build hierarchy, e.g. <code>amm.util[2.11].test.compile</code>.</p>
-              <p><code>.</code>-separated segments are <a href="daemon/Segment$$Label.html">Segment.Label</a>s, while <code>[]</code>-delimited segments are <a href="daemon/Segment$$Cross.html">Segment.Cross</a>s</p>
+              <ul>
+               <li><code>.</code>-separated segments are <a href="daemon/Segment$$Label.html">Segment.Label</a>s,</li>
+               <li><code>[]</code>-delimited segments are <a href="daemon/Segment$$Cross.html">Segment.Cross</a>s</li>
+               <li>If the first segment starts with <code>./</code>, it refers to a single-file script</li>
+               <li>If the first segment ends with <code>/</code>, it refers to an external module</li>
+              </ul>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
