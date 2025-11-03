@@ -134,7 +134,7 @@ trait GroupExecution {
                 }
 
                 // Write build header override JSON to meta `.json` file to support `show`
-                writeCacheJson(paths.meta, jsonData, resultData.hashCode, inputsHash)
+                writeCacheJson(paths.meta, jsonData, resultData.##, inputsHash)
                 (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
               } catch {
                 case e: upickle.core.TraceVisitor.TraceException =>

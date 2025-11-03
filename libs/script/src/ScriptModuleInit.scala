@@ -19,7 +19,8 @@ object ScriptModuleInit
       moduleDepsStrings: Seq[String],
       compileModuleDepsStrings: Seq[String],
       runModuleDepsStrings: Seq[String],
-      resolveModuleDep: String => Option[mill.Module]
+      resolveModuleDep: String => Option[mill.Module],
+      headerData: mill.api.ModuleCtx.HeaderData
   ): mill.api.Result[mill.api.ExternalModule] = {
     def relativize(s: String) = {
       if (s.startsWith("."))
@@ -46,9 +47,8 @@ object ScriptModuleInit
           case "scala" => "mill.script.ScalaModule"
         }
       },
-      ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps)
+      ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps, headerData)
     )
-
   }
 
   def instantiate(
@@ -74,10 +74,13 @@ object ScriptModuleInit
     clsOrErr.flatMap(cls =>
       mill.api.ExecResult.catchWrapException {
         scriptModuleCache.get(scriptFile).filter(v =>
-          v.buildOverrides == v.loadBuildOverrides()
+          Result.Success(v.scriptConfig.headerData) == parseHeaderData(scriptFile)
         ) match {
-          case Some(v) => v
+          case Some(v) =>
+            println("Re-using " + scriptFile)
+            v
           case None =>
+            println("Instantiating " + scriptFile)
             val newScriptModule =
               cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ScriptModule]
             scriptModuleCache(scriptFile) = newScriptModule
@@ -96,6 +99,10 @@ object ScriptModuleInit
       resolveModuleDep: String => Option[mill.Module]
   ): Option[Result[ExternalModule]] = {
     val scriptFile = os.Path(scriptFile0, mill.api.BuildCtx.workspaceRoot)
+    // Add a synthetic watch on `scriptFile`, representing the special handling
+    // of `buildOverrides` which is read from the script file build header
+    mill.api.BuildCtx.evalWatch(scriptFile)
+
     Option.when(os.isFile(scriptFile)) {
       parseHeaderData(scriptFile).flatMap(parsedHeaderData =>
         moduleFor(
@@ -104,7 +111,8 @@ object ScriptModuleInit
           parsedHeaderData.moduleDeps,
           parsedHeaderData.compileModuleDeps,
           parsedHeaderData.runModuleDeps,
-          resolveModuleDep
+          resolveModuleDep,
+          parsedHeaderData
         )
       )
     }

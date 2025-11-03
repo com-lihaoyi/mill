@@ -58,7 +58,7 @@ private[mill] object Util {
       else "`" + s + "`"
   }
 
-  def parsedHeaderData(headerData: String): Map[String, ujson.Value] = {
+  def parsedHeaderData(headerData: String): ujson.Value = {
     import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
     val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
 
@@ -84,6 +84,6 @@ private[mill] object Util {
       }
     }
 
-    rec(loaded).objOpt.getOrElse(Map.empty[String, ujson.Value]).toMap
+    rec(loaded)
   }
 }

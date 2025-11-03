@@ -7,18 +7,17 @@ import mill.api.ModuleCtx.HeaderData
 trait ScriptModule extends ExternalModule {
   def scriptConfig: ScriptModule.Config
 
-  override def moduleDir = scriptConfig.scriptFilePath
+
+  override def moduleDir = scriptConfig.scriptFile
 
   private[mill] def allowNestedExternalModule = true
 
   private def relativeScriptFilePath =
-    scriptConfig.scriptFilePath.subRelativeTo(mill.api.BuildCtx.workspaceRoot)
+    scriptConfig.scriptFile.subRelativeTo(mill.api.BuildCtx.workspaceRoot)
 
   override def moduleSegments: Segments = Segments.labels(s"./$relativeScriptFilePath")
 
-  def loadBuildOverrides() = ScriptModule.parseHeaderData(scriptConfig.scriptFilePath).get.rest
-  private[mill] override val buildOverrides = loadBuildOverrides()
-  private[mill] override val buildOverridePaths = Seq(scriptConfig.scriptFilePath)
+  private[mill] override def buildOverrides = scriptConfig.headerData.rest
 
   private val invalidBuildOverrides =
     buildOverrides.keySet.filter(!millDiscover.allTaskNames.contains(_))
@@ -33,20 +32,28 @@ trait ScriptModule extends ExternalModule {
 
 object ScriptModule {
   case class Config(
-      scriptFilePath: os.Path,
+      scriptFile: os.Path,
       moduleDeps: Seq[mill.Module],
       compileModuleDeps: Seq[mill.Module],
-      runModuleDeps: Seq[mill.Module]
+      runModuleDeps: Seq[mill.Module],
+      headerData: HeaderData
   )
 
-  private[mill] def parseHeaderData(millSimplePath: os.Path): Result[HeaderData] = {
+  private[mill] def parseHeaderData(scriptFile: os.Path): Result[HeaderData] = {
     val headerData = mill.api.BuildCtx.withFilesystemCheckerDisabled {
       // If the module file got deleted, handle that gracefully
-      if (!os.exists(millSimplePath)) ""
-      else mill.constants.Util.readBuildHeader(millSimplePath.toNIO, millSimplePath.last, true)
+      if (!os.exists(scriptFile)) ""
+      else mill.constants.Util.readBuildHeader(scriptFile.toNIO, scriptFile.last, true)
     }
-    def relativePath = millSimplePath.relativeTo(mill.api.BuildCtx.workspaceRoot)
-    try Result.Success(upickle.read[HeaderData](mill.internal.Util.parsedHeaderData(headerData)))
+
+    def relativePath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
+    try {
+      val read = mill.internal.Util.parsedHeaderData(headerData)
+      pprint.log(read)
+      val parsed = upickle.read[HeaderData](read)
+      pprint.log(parsed)
+      Result.Success(parsed)
+    }
     catch {
       case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
         Result.Failure(s"Failed de-serializing build header in $relativePath: " + e.getMessage)
