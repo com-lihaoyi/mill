@@ -21,7 +21,10 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
         "invalid build config in `Foo.java`: key \"invalid\" does not override any task"
       ))
 
-      tester.modifyFile(tester.workspacePath / "Foo.java", _.replace("invalid: key", "mvnDeps: key"))
+      tester.modifyFile(
+        tester.workspacePath / "Foo.java",
+        _.replace("invalid: key", "mvnDeps: key")
+      )
 
       val res3 = tester.eval("./Foo.java")
       assert(!res3.isSuccess)
@@ -34,7 +37,10 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
       assert(res4.out.contains("Hello"))
       assert(res4.isSuccess)
 
-      tester.modifyFile(tester.workspacePath / "Foo.java", _.replace("// mvnDeps: key", "//| mvnDeps: [key]"))
+      tester.modifyFile(
+        tester.workspacePath / "Foo.java",
+        _.replace("// mvnDeps: key", "//| mvnDeps: [key]")
+      )
 
       val res5 = tester.eval("./Foo.java")
       assert(!res5.isSuccess)
@@ -47,7 +53,10 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
       assert(res6.out.contains("Hello"))
       assert(res6.isSuccess)
 
-      tester.modifyFile(tester.workspacePath / "Foo.java", _.replace("// mvnDeps: [key]", "//| mvnDeps: []"))
+      tester.modifyFile(
+        tester.workspacePath / "Foo.java",
+        _.replace("// mvnDeps: [key]", "//| mvnDeps: []")
+      )
       val res7 = tester.eval("./Foo.java")
       assert(res7.out.contains("Hello"))
       assert(res7.isSuccess)
@@ -56,7 +65,10 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
       assert(res8.out.contains("[]"))
       assert(res8.isSuccess)
 
-      tester.modifyFile(tester.workspacePath / "Foo.java", _.replace("//| mvnDeps: []", "//| mvnDeps: [org.thymeleaf:thymeleaf:3.1.1.RELEASE]"))
+      tester.modifyFile(
+        tester.workspacePath / "Foo.java",
+        _.replace("//| mvnDeps: []", "//| mvnDeps: [org.thymeleaf:thymeleaf:3.1.1.RELEASE]")
+      )
 
       val res9 = tester.eval(("show", "./Foo.java:mvnDeps"))
       assert(res9.out.contains("\"org.thymeleaf:thymeleaf:3.1.1.RELEASE\""))
