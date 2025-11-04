@@ -130,26 +130,34 @@ class ExampleTester(
         "BASH_ENV" -> os.temp("export PATH=\"/c/Program Files/Git/usr/bin:$PATH\"").toString()
       )
 
-    val res = os.call(
-      (bashExecutable, "-c", commandStr),
-      stdout = os.Pipe,
-      stderr = os.Inherit,
-      cwd = workspacePath,
-      mergeErrIntoOut = true,
-      env = millTestSuiteEnv ++ windowsPathEnv,
-      check = false
-    )
+    try {
+      val res = os.call(
+        (bashExecutable, "-c", commandStr),
+        stdout = os.Pipe,
+        stderr = os.Inherit,
+        cwd = workspacePath,
+        mergeErrIntoOut = true,
+        env = millTestSuiteEnv ++ windowsPathEnv,
+        check = false
+      )
 
-    validateEval(
-      expectedSnippets,
-      IntegrationTester.EvalResult(
-        res.exitCode,
-        fansi.Str(res.out.text(), errorMode = fansi.ErrorMode.Strip).plainText,
-        fansi.Str(res.err.text(), errorMode = fansi.ErrorMode.Strip).plainText
-      ),
-      check,
-      debugCommandStr
-    )
+      validateEval(
+        expectedSnippets,
+        IntegrationTester.EvalResult(
+          res.exitCode,
+          fansi.Str(res.out.text(), errorMode = fansi.ErrorMode.Strip).plainText,
+          fansi.Str(res.err.text(), errorMode = fansi.ErrorMode.Strip).plainText
+        ),
+        check,
+        debugCommandStr
+      )
+
+    } catch {
+      case NonFatal(e) =>
+        Console.err.println("Failure:")
+        Console.err.println(debugCommandStr + "\n")
+        throw e
+    }
 
     Console.err.println("Success:")
     Console.err.println(debugCommandStr + "\n")
