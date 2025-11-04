@@ -2,7 +2,7 @@ package mill.api
 
 import mill.api.internal.OverrideMapping
 
-import scala.annotation.{compileTimeOnly, implicitNotFound}
+import scala.annotation.implicitNotFound
 
 /**
  * The contextual information provided to a [[mill.api.Module]] or [[mill.api.Task]]
@@ -42,6 +42,7 @@ object ModuleCtx extends LowPriCtx {
     def moduleCtx: ModuleCtx
     private[mill] def moduleLinearized: Seq[Class[?]]
     private[mill] def buildOverrides: Map[String, ujson.Value] = Map()
+    private[mill] def buildOverridePaths: Seq[os.Path] = Nil
   }
 
   private[mill] case class HeaderData(
@@ -162,11 +163,10 @@ object ModuleCtx extends LowPriCtx {
 }
 
 trait LowPriCtx {
-  // Dummy `Ctx` available in implicit scope but never actually used.
+  // Dummy `Ctx` available in implicit scope but must not be actually used.
   // as it is provided by the codegen. Defined for IDEs to think that one is available
   // and not show errors in build.mill/package.mill even though they can't see the codegen
-  @compileTimeOnly(
+  implicit def dummyInfo: ModuleCtx = sys.error(
     "Modules and Tasks can only be defined within a mill Module (in `build.mill` or `package.mill` files)"
   )
-  implicit def dummyInfo: ModuleCtx = sys.error("implicit Ctx must be provided")
 }

@@ -34,10 +34,10 @@ Compiling 1 Kotlin sources to...
 /** Usage
 
 > ./mill resolve Foo.kt:_
-run
-runMain
-compile
-assembly
+./Foo.kt:run
+./Foo.kt:runMain
+./Foo.kt:compile
+./Foo.kt:assembly
 ...
 
 */

@@ -27,7 +27,7 @@ private[mill] object Resolve {
         resolveToModuleTasks: Boolean,
         cache: ResolveCore.Cache
     ) = {
-      Result.Success(resolved.map(_.segments))
+      Result.Success(resolved.map(_.fullSegments))
     }
 
     private[mill] override def deduplicate(items: List[Segments]): List[Segments] = items.distinct
@@ -400,7 +400,7 @@ private[mill] trait Resolve[T] {
       sel: Segments,
       cache: ResolveCore.Cache
   ): ResolveCore.Result = {
-    val rootResolved = Resolved.Module(Segments(), rootModule.getClass)
+    val rootResolved = Resolved.Module(rootModule, Segments(), rootModule.getClass)
     ResolveCore.resolve(
       rootModule = rootModule,
       remainingQuery = sel.value.toList,

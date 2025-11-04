@@ -48,12 +48,6 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Resolved]] = {
-    // These are used in the overrides.
-    val _ = scriptArgs
-    val _ = selectMode
-    val _ = allowPositionalCommandArgs
-    val _ = resolveToModuleTasks
-
     mill.api.Result.Success(Nil)
   }
 

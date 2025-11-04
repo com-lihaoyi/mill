@@ -8,15 +8,6 @@ import scala.annotation.unused
 object MacroErrorTests extends TestSuite {
 
   val tests = Tests {
-
-    test("errors") {
-      val expectedMsg =
-        "Task{} members must be defs defined in a Module class/trait/object body"
-
-      val err = assertCompileError("object Foo extends TestRootModule{ val x = Task {1} }")
-      assert(err.msg == expectedMsg)
-    }
-
     test("badParameterSets") {
       test("command") {
         val e = assertCompileError("""
@@ -119,19 +110,7 @@ object MacroErrorTests extends TestSuite {
           lazy val millDiscover = Discover[this.type]
         }
       }
-      test("neg1") {
-        val e = assertCompileError("""def a = Task { 1 }""")
-        assert(e.msg.contains(
-          "Task{} members must be defs defined in a Module class/trait/object body"
-        ))
-      }
 
-      test("neg2") {
-        val e = assertCompileError("object foo extends TestRootModule{ val a = Task { 1 } }")
-        assert(e.msg.contains(
-          "Task{} members must be defs defined in a Module class/trait/object body"
-        ))
-      }
       test("neg3") {
 
         val expectedMsg =
