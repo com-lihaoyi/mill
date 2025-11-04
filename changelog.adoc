@@ -13,6 +13,176 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#1-1-0-RC1]
+=== 1.1.0-RC1
+:version: 1.1.0-RC1
+:milestone-name: 1.1.0-RC1
+:milestone: 132
+:prev-version: 1.0.6
+_2025-11-04_
+
+`1.1.0-RC1` is the first release candidate of the upcoming `1.1.0` release, due December 2025.
+`1.1.0` contains locally-breaking changes but preserves plugin compatibility: you may need to update
+your local builds to be compatible, but existing plugins published for 1.x can continue to be
+used unchanged. `1.1.0-RC1` is intended to give users a chance to try out the new Mill features,
+so any issues can be surfaced and resolved before being stabilized in Mill `1.1.0` final.
+
+The big feature of Mill `1.1.0` is support for config-based modules defined in `build.mill.yaml`
+files and single-file `.java`, `.scala`, or `.kt` scripts with a YAML build header. These
+are compatible with existing `.mill` module definitions, and are intended for simple projects
+or modules that do not need the flexibility of a full programming language to configure their
+build.
+
+==== Config-Based Module Definitions
+
+For example, you can define a simple `JavaModule` an it's test submodule via:
+
+`build.mill.yaml`
+
+```yaml
+extends: [mill.javalib.JavaModule]
+mvnDeps:
+- "net.sourceforge.argparse4j:argparse4j:0.9.0"
+- "org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+```
+
+`test/package.mill.yaml`
+```yaml
+extends: [build.JavaTests, mill.javalib.TestModule.Junit4]
+mvnDeps:
+- "com.google.guava:guava:33.3.0-jre"
+```
+
+This is equivalent to Mill's existing `object foo extends JavaModule{ def mvnDeps = ... }` syntax.
+All the normal Mill commands still apply: `./mill compile`, `./mill test`, `./mill assembly`, etc.
+
+We expect that config-based `build.mill.yaml` files will help simplify the use of Mill for
+small projects, where the user typically just needs to set some config keys and doesn't need
+custom tasks or custom build logic that programmatic module definitions allow. See the docs
+for https://mill-build.org/mill/main-branch/javalib/config.html[Config-Based Java Modules]
+for more information.
+
+==== Single-File Scripts
+
+Single-file script modules allow you to write simple programs in a single file with a `//|`
+build header comment specifying its configuration. These are useful in scenarios where a separate
+build complexity is overkill: student projects, small experiments, prototypes, or command-line
+scripts to replace the Bash and Python scripts common throughout the ecosystem.
+
+For example, a single-file script to spawn a simple
+https://spring.io/projects/spring-boot/[Spring-Boot] webserver can be defined as shown below:
+
+```java
+//| mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]
+package example;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.*;
+
+@SpringBootApplication
+@RestController
+public class WebServer {
+  public static void main(String[] args) throws Exception {
+    SpringApplication.run(WebServer.class, args);
+    Thread.sleep(Integer.MAX_VALUE);
+  }
+
+  @PostMapping("/reverse-string")
+  public String reverseString(@RequestBody String body) {
+    return new StringBuilder(body).reverse().toString();
+  }
+}
+```
+
+```console
+> ./mill WebServer.java:runBackground
+
+> curl -d 'helloworld' localhost:8080/reverse-string
+dlrowolleh
+```
+
+See the docs for https://mill-build.org/mill/main-branch/javalib/script.html[Java Single-File Scripts]
+for more information.
+
+Single-file scripts support the three main JVM languages: Java, Scala, and Kotlin. Below
+is an example single-file Scala script implementing a recursive web scraper with
+https://jsoup.org/[JSoup]:
+
+```scala
+//| mvnDeps: [org.jsoup:jsoup:1.7.2]
+import org.jsoup._
+import scala.collection.JavaConverters._
+
+def fetchLinks(title: String): Seq[String] = {
+  Jsoup.connect(s"https://en.wikipedia.org/wiki/$title")
+    .header("User-Agent", "Mozilla/5.0 (compatible; JsoupBot/1.0; +https://example.com/bot)")
+    .get().select("main p a").asScala.toSeq.map(_.attr("href"))
+    .collect { case s"/wiki/$rest" => rest }
+}
+
+@main
+def main(startArticle: String, depth: Int) = {
+  var seen = Set(startArticle)
+  var current = Set(startArticle)
+  for (i <- Range(0, depth)) {
+    current = current.flatMap(fetchLinks(_)).filter(!seen.contains(_))
+    seen = seen ++ current
+  }
+
+  pprint.log(seen)
+}
+```
+
+```console
+>  ./mill HtmlScraper.scala --start-article singapore --depth 1
+...
+  "Hokkien",
+  "Conscription_in_Singapore",
+  "Malaysia_Agreement",
+  "Government_of_Singapore",
+...
+```
+
+Mill's single-file Scala script modules are an alternative to
+http://scala-cli.virtuslab.org/[Scala-CLI] scripts. They are also a replacement for
+https://ammonite.io/[Ammonite Scala Scripts], and bundle a similar set of libraries
+(OS-Lib, uPickle, Requests-Scala, etc.). See the docs for
+https://mill-build.org/mill/main-branch/scalalib/script.html[Scala Single-File Scripts]
+for more information
+
+==== Other Breaking Changes
+
+* Cut down the number of Mill file suffixes to just `.mill`, and `.mill.yaml` ({link-pr}/6016[#6016])
+** This means `.sc` and `.mill.scala` will no longer be recognized as build files. Please rename
+   any build files using those suffixes to `.mill` instead
+
+* Avoid using system java unless explicitly specified, instead use latest LTS Java version unless
+  explicitly overridden with `system` ({link-pr}/6005[#6005]). This is intended to improve the
+  reproduce-ability of Mill projects built across different environments.
+** Mill instead uses a fixed default version `zulu:21` when no `mill-jvm-version` is specified.
+   Please set an explicit `//| mill-jvm-version:` in your build header to specify the version
+   you need, or revert to the old default of using the environmental `java` installation
+   via `//| mill-jvm-version: system`
+
+==== Other Changes
+
+* Add builtin support for `jshell` command on ``JavaModule``s and `./mill --jshell` flag to open
+  a Java REPL ({link-pr}/5984[#5984])
+* Re-enable `./mill --repl` to open a Scala REPL not connected to any specific module ({link-pr}/5983[#5983])
+* Add `mill-jvm-index-version` to build header keys ({link-pr}/6085[#6085])
+* Allow users to disable some modules in BSP via `def enableBsp = false` ({link-pr}/6065[#6065])
+* Fix Scala Native link logs in server-client mode ({link-pr}/6053[#6053])
+* Add proper error message when circular task dependency is detected ({link-pr}/6044[#6044])
+* Many improvements to `./mill init` build importer ({link-pr}/5428[#5428])
+* Repair CLI option --help-advanced ({link-pr}/5993[#5993])
+* Support for HTTP Proxy settings in the Coursier dependency downloader ({link-pr}/5971[#5971])
+* Start of a dedicated documentation page and examples for using Mill to build
+  Spring-Boot projects (https://mill-build.org/mill/main-branch/javalib/springboot-examples.html[link]).
+  This is currently pretty bare, but will get fleshed out as we move towards `1.1.0` final
+* Many improvements to Mill's Android build support ({link-pr}/5887[#5887], {link-pr}/5888[#5888],
+  {link-pr}/5926[#5926], {link-pr}/5963[#5963], {link-pr}/5997[#5997], {link-pr}/5980[#5980],
+  {link-pr}/6063[#6063], {link-pr}/6073[#6073])
+
 [#1-0-6]
 === 1.0.6
 :version: 1.0.6
