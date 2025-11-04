@@ -11,7 +11,7 @@ import utest.*
  * and see both the build configuration and the commands they themselves can
  * enter at the command line to exercise it.
  *
- * Implements a bash-like test DSL for educational purposes, parsed out from a
+ * Implements a bash-like test DSL for educational purposes, parsed out from an
  * `Example Usage` comment in the example's `build.mill` file. Someone should be
  * able to read the `Example Usage` comment and know roughly how to execute the
  * example themselves.
@@ -44,6 +44,13 @@ import utest.*
  * commands in the `bash` shell, and instead we implement a janky little
  * interpreter that reads the command lines and does things in-JVM in response
  * to each one.
+ *
+ * You can suffix command with a comment to restrict its applicability, e.g. `> echo "Windows" # windows`.
+ * The following comments are recognized (see [[incorrectPlatform]]):
+ * - 'mac/linux'        - Only run on Linux/Mac but not on Windows
+ * - 'windows'          - Only run on Windows but not on Linux/Mac
+ * - '--no-daemon'      - Only run in no-daemon test mode
+ * - 'not --no-daemon'  - Only run in daemon test mode
  */
 object ExampleTester {
   def run(
@@ -80,6 +87,13 @@ class ExampleTester(
     val cleanupProcessIdFile: Boolean = true
 ) extends IntegrationTesterBase {
 
+  def incorrectPlatform(commandComment: String): Boolean = {
+    (commandComment.exists(_.startsWith("windows")) && !isWindows) ||
+      (commandComment.exists(_.startsWith("mac/linux")) && isWindows) ||
+      (commandComment.exists(_.startsWith("--no-daemon")) && daemonMode) ||
+      (commandComment.exists(_.startsWith("not --no-daemon")) && !daemonMode)
+  }
+
   def processCommandBlock(commandBlock: String): Unit = {
     val commandBlockLines = commandBlock.linesIterator.toVector
 
@@ -89,13 +103,7 @@ class ExampleTester(
       case string => (string, None)
     }
 
-    val incorrectPlatform =
-      (comment.exists(_.startsWith("windows")) && !isWindows) ||
-        (comment.exists(_.startsWith("mac/linux")) && isWindows) ||
-        (comment.exists(_.startsWith("--no-daemon")) && daemonMode) ||
-        (comment.exists(_.startsWith("not --no-daemon")) && !daemonMode)
-
-    if (!incorrectPlatform) {
+    if (!incorrectPlatform(comment)) {
       processCommand(expectedSnippets, commandHead.trim)
     }
   }
