@@ -21,13 +21,13 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 :prev-version: 1.0.6
 _2025-11-04_
 
-1.1.0-RC1 is the first release candidate of the upcoming 1.1.0 release, due December 2025.
-1.1.0 is a locally-breaking change but preserves plugin compatibility: you may need to update
+`1.1.0-RC1` is the first release candidate of the upcoming `1.1.0` release, due December 2025.
+`1.1.0` is a locally-breaking change but preserves plugin compatibility: you may need to update
 your local builds to be compatible, but existing plugins published for 1.x can continue to be
-used unchanged. 1.1.0-RC1 is intended to give users a chance to try-out the new Mill features,
-so any issues can be surfaced and resolved before being stabilized in Mill 1.1.0 final.
+used unchanged. `1.1.0-RC1` is intended to give users a chance to try out the new Mill features,
+so any issues can be surfaced and resolved before being stabilized in Mill `1.1.0` final.
 
-The big feature of Mill 1.1.0 is support for config-based modules defined in `build.mill.yaml`
+The big feature of Mill `1.1.0` is support for config-based modules defined in `build.mill.yaml`
 files and single-file scripts with a YAML build header. These are compatible with existing
 `.mill` module definitions, and is intended for simple projects or modules that do not
 need the flexibility of a full programming language to configure their build.
@@ -153,7 +153,8 @@ for more information
    any build files using those suffixes to `.mill` instead
 
 * Avoid using system java unless explicitly specified, instead use latest LTS Java version unless
-  explicitly overridden with `system` ({link-pr}/6005[#6005])
+  explicitly overridden with `system` ({link-pr}/6005[#6005]). This is intended to improve the
+  reproduce-ability of Mill projects built across different environments.
 ** Mill instead uses a fixed default version `zulu:21` when no `mill-jvm-version` is specified.
    Please set an explicit `//| mill-jvm-version:` in your build header to specify the version
    you need, or revert to the old default of using the environmental `java` installation
