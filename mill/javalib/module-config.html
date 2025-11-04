@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Java Module Configuration :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/javalib/module-config.html">
-    <link rel="prev" href="intro.html">
+    <link rel="prev" href="script.html">
     <link rel="next" href="dependencies.html">
     <meta name="generator" content="Antora 3.1.12">
     <link rel="stylesheet" href="../../_/css/site.css">
@@ -135,15 +135,23 @@
     <a class="nav-link" href="intro.html">Building Java with Mill</a>
 <ul class="nav-list">
 
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="config.html">Config-Based Java Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="script.html">Java Single-File Scripts</a>
+  </li>
+
   <li class="nav-item is-current-page" data-depth="2">
     <a class="nav-link" href="module-config.html">Java Module Configuration</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="testing.html">Testing Java Projects</a>
   </li>
 
@@ -162,6 +170,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="web-examples.html">Java Web Project Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="spring-boot.html">Spring Framework / Spring Boot Projects</a>
+  </li>
 </ul>
   </li>
 
@@ -171,14 +183,22 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/config.html">Config-Based Scala Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
@@ -205,6 +225,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
+  </li>
 </ul>
   </li>
 
@@ -214,14 +238,22 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
@@ -235,6 +267,10 @@
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -254,10 +290,14 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+    <a class="nav-link" href="../android/android-release.html">Android Release Guide</a>
   </li>
 
   <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/java.html">Android Java Projects</a>
   </li>
 
@@ -309,7 +349,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
   </li>
 </ul>
   </li>
@@ -621,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.6</span>
+    <span class="version">1.1.0-RC1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -631,10 +671,10 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.6</a>
+          <a href="../index.html">1.1.0-RC1</a>
         </li>
         <li class="version">
-          <a href="../dev-1.0.6-81-9337cb/index.html">dev-1.0.6-81-9337cb</a>
+          <a href="../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.16</a>
@@ -696,12 +736,12 @@ for <code>JavaModule</code>.</p>
 <p>This example shows some of the common tasks you may want to override on a
 <code>JavaModule</code>: specifying the <code>mainClass</code>, adding additional
 sources/resources, generating resources, and setting compilation/run
-options. We also define it as a <a href="../fundamentals/modules.html#_rootmodule" class="xref page">RootModule</a>,
+options. We also define it as a <a href="../fundamentals/modules.html#_root_modules" class="xref page">RootModule</a>,
 so its sources will live in the top-level <code>src/</code> folder and its tasks can be
 called directly via <code>compile</code> or <code>run</code> without needing a <code>foo.</code> module prefix.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6/mill-dist-1.0.6-example-javalib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/module/1-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-module-2-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/module/2-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -830,418 +870,6 @@ my.custom.property: my-prop-value</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6/mill-dist-1.0.6-example-javalib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/module/4-compilation-execution-flags">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
-
-object `package` extends JavaModule {
-  def forkArgs = Seq("-Xmx4g", "-Dmy.jvm.property=hello")
-  def forkEnv = Map("MY_ENV_VAR" -&gt; "WORLD")
-  def javacOptions = Seq("-deprecation")
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can pass flags to the Java compiler via <code>javacOptions</code>.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill compile
-.../src/foo/Foo.java... stop() in java.lang.Thread has been deprecated
-
-&gt; ./mill run
-hello WORLD</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>By default,
-<code>run</code> runs the compiled code in a subprocess, and you can pass in JVM flags
-via <code>forkArgs</code> or environment-variables via <code>forkEnv</code>.</p>
-</div>
-<div class="paragraph">
-<p>You can also run your code via</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.runLocal</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Which runs it in-process within an isolated classloader. This may be faster
-since you avoid the JVM startup overhead, but does not support <code>forkArgs</code> or <code>forkEnv</code>.</p>
-</div>
-<div class="paragraph">
-<p>If you want to pass main-method arguments to <code>run</code> or <code>runLocal</code>, simply pass
-them after the <code>foo.run</code>/<code>foo.runLocal</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run arg1 arg2 arg3
-&gt; mill foo.runLocal arg1 arg2 arg3</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6/mill-dist-1.0.6-example-javalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/module/7-resources">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
-
-object foo extends JavaModule {
-  object test extends JavaTests, TestModule.Junit4 {
-    def otherFiles = Task.Source("other-files")
-
-    def forkEnv = super.forkEnv() ++ Map(
-      "OTHER_FILES_DIR" -&gt; otherFiles().path.toString
-    )
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
-... foo.FooTests...simple ...
-...</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This section discusses how tests can depend on resources locally on disk.
-Mill provides two ways to do this: via the JVM classpath resources, and via
-the resource folder which is made available as the environment variable
-<code>MILL_TEST_RESOURCE_DIR</code> available in test suites:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>The <strong>classpath resources</strong> are useful when you want to fetch individual files,
-and are bundled with the application by the <code>.assembly</code> step when constructing
-an assembly jar for deployment. But they do not allow you to list folders
-or perform other filesystem operations.</p>
-</li>
-<li>
-<p>The <strong>resource folder</strong>, available via <code>MILL_TEST_RESOURCE_DIR</code>, gives you
-access to the folder path of the resources on disk. This is useful in allowing
-you to list and otherwise manipulate the filesystem, which you cannot do with
-<strong>classpath resources</strong>. However, the <code>MILL_TEST_RESOURCE_DIR</code> <em>only</em> exists
-when running tests using Mill, and is <em>not</em> available when executing applications
-packaged for deployment via <code>.assembly</code></p>
-</li>
-<li>
-<p>Apart from <code>resources/</code>, you can provide additional folders to your test suite
-by defining a <code>Task.Source</code> (<code>otherFiles</code> above) and passing it to <code>forkEnv</code>. This
-provide the folder path as an environment variable that the test can make use of</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Example application code demonstrating the techniques above can be seen below:</p>
-</div>
-<div class="listingblock">
-<div class="title">foo/resources/file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/module/7-resources/foo/resources/file.txt">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Hello World Resource File</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/module/7-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File A</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/test/resources/test-file-b.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/module/7-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File B</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/test/other-files/other-file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/module/7-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Other Hello World File</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/src/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/module/7-resources/foo/src/Foo.java">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-public class Foo {
-
-  // Read `file.txt` from classpath
-  public static String classpathResourceText() throws IOException {
-    // Get the resource as an InputStream
-    try (InputStream inputStream = Foo.class.getClassLoader().getResourceAsStream("file.txt")) {
-      return new String(inputStream.readAllBytes());
-    }
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/test/src/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/module/7-resources/foo/test/src/FooTests.java">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
-
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import org.junit.Test;
-
-public class FooTests {
-
-  @Test
-  public void simple() throws IOException {
-    // Reference app module's `Foo` class which reads `file.txt` from classpath
-    String appClasspathResourceText = Foo.classpathResourceText();
-    assertEquals("Hello World Resource File", appClasspathResourceText);
-
-    // Read `test-file-a.txt` from classpath
-    String testClasspathResourceText;
-    try (InputStream inputStream =
-        Foo.class.getClassLoader().getResourceAsStream("test-file-a.txt")) {
-      testClasspathResourceText = new String(inputStream.readAllBytes());
-    }
-    assertEquals("Test Hello World Resource File A", testClasspathResourceText);
-
-    // Use `MILL_TEST_RESOURCE_DIR` to read `test-file-b.txt` from filesystem
-    Path testFileResourceDir = Paths.get(System.getenv("MILL_TEST_RESOURCE_DIR"));
-    String testFileResourceText = Files.readString(testFileResourceDir.resolve("test-file-b.txt"));
-    assertEquals("Test Hello World Resource File B", testFileResourceText);
-
-    // Use `MILL_TEST_RESOURCE_DIR` to list files available in resource folder
-    List&lt;Path&gt; actualFiles = new ArrayList&lt;&gt;(Files.list(testFileResourceDir).toList());
-    actualFiles.sort(Path::compareTo);
-    List&lt;Path&gt; expectedFiles = List.of(
-        testFileResourceDir.resolve("test-file-a.txt"),
-        testFileResourceDir.resolve("test-file-b.txt"));
-    assertEquals(expectedFiles, actualFiles);
-
-    // Use the `OTHER_FILES_DIR` configured in your build to access the
-    // files in `foo/test/other-files/`.
-    String otherFileText =
-        Files.readString(Paths.get(System.getenv("OTHER_FILES_DIR"), "other-file.txt"));
-    assertEquals("Other Hello World File", otherFileText);
-  }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Tests by default only have access to their <strong>classpath resources</strong> and
-<strong>resource folder</strong> as mentioned above. They cannot read random project files on disk,
-and require that you pass in any other
-files or folders that they require explicitly (e.g. <code>def otherFiles</code> above).
-This is necessary so that Mill can ensure the necessary files are in place
-before the test begins running, and so <code>-w</code>/<code>--watch</code> knows it needs to re-run
-the tests if those files changed. Thus your tests cannot just read project files
-direct off disk via <code>new FileInputStream("foo/resources/test-file-a.txt")</code>.</p>
-</div>
-<div class="paragraph">
-<p>Mill runs test processes in a <a href="../depth/sandboxing.html" class="xref page">sandbox/ folder</a>, rather
-than in your project root folder, to enforce this.
-If you have legacy tests that need to run in the project root folder to work, you
-can configure your test suite with <code>def testSandboxWorkingDir = false</code> to disable
-the sandbox and make the tests run in the project root.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_annotation_processors"><a class="anchor" href="#_annotation_processors"></a>Annotation Processors</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6/mill-dist-1.0.6-example-javalib-module-8-annotation-processors.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/module/8-annotation-processors">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
-import java.io.File
-
-object foo extends JavaModule {
-  def compileMvnDeps = Seq(mvn"org.projectlombok:lombok:1.18.34")
-
-  object test extends JavaTests, TestModule.Junit4
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This is an example of how to use Mill to build Java projects using Java annotations and
-annotation processors. In this case, we use the annotations provided by
-<a href="https://projectlombok.org">Project Lombok</a> to automatically generate getters and setters
-from class private fields</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
-Test foo.HelloWorldTest.testSimple started
-Test foo.HelloWorldTest.testSimple finished...
-...</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The Java compiler automatically discovers annotation processors based on the
-classes available during compilation, e.g. in <code>compileMvnDeps</code> or <code>mvnDeps</code>,
-which is what takes place in the example above.</p>
-</div>
-<div class="paragraph">
-<p>In some cases, you may need
-to pass in the annotation processors manually, e.g. if you need annotation
-processors that are not on the compilation classpath, or you need finer control
-over exactly which annotation processors are active. To do this, you can define
-a task to resolve the exact annotation processors you want, and pass
-those to <code>-processorpath</code> to <code>javacOptions</code> explicitly:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
-  def compileMvnDeps = Seq(mvn"org.projectlombok:lombok:1.18.34")
-
-  def processors = Task {
-    defaultResolver().classpath(Seq(mvn"org.projectlombok:lombok:1.18.34"))
-  }
-
-  def javacOptions = Seq(
-    "-processorpath",
-    processors().map(_.path).mkString(File.pathSeparator)
-  )
-
-  object test extends JavaTests, TestModule.Junit4
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar.test
-Test bar.HelloWorldTest.testSimple started
-Test bar.HelloWorldTest.testSimple finished...
-...</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Many Java frameworks and libraries such as <a href="web-examples.html#_micronaut_hello_world_app" class="xref page">Micronaut</a>
-or ErrorProne use annotation processors, and can be set up in this way.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_javadoc_config"><a class="anchor" href="#_javadoc_config"></a>Javadoc Config</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>To generate API documentation you can use the <code>docJar</code> task on the module you&#8217;d
-like to create the docs for, configured via <code>javadocOptions</code>:</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6/mill-dist-1.0.6-example-javalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/module/9-docjar">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
-
-object foo extends JavaModule {
-  def javadocOptions = Seq("-quiet")
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.docJar
-
-&gt; unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
-...
-...My Awesome Docs for class Foo...</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="specifying-main-class"><a class="anchor" href="#specifying-main-class"></a>Specifying the Main Class</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6/mill-dist-1.0.6-example-javalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/module/11-main-class">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
-
-object `package` extends JavaModule {
-  def mainClass = Some("foo.Qux")
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Mill&#8217;s <code>foo.run</code> by default will discover which main class to run from your
-compilation output, but if there is more than one or the main class comes from
-some library you can explicitly specify which one to use.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
-Hello Qux</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><code>def mainClass</code> also adds the
-main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_generated_sources"><a class="anchor" href="#_generated_sources"></a>Generated Sources</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6/mill-dist-1.0.6-example-javalib-module-3-generated-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/module/3-generated-sources">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
-
-object foo extends JavaModule {
-
-  def generatedSources = Task {
-    os.write(
-      Task.dest / "Foo.java",
-      """package foo;
-        |
-        |public class Foo {
-        |    public static void main(String[] args) {
-        |        System.out.println("Hello World");
-        |    }
-        |}
-      """.stripMargin
-    )
-    Seq(PathRef(Task.dest))
-  }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In Mill, you can override the <code>def generatedSources</code> task to write files to disk that
-will be added to the module&#8217;s source folders during compilation. The example above
-generates a simple <code>main</code> method during build time that can be compiled and then
-used at runtime, but you can write arbitrarily code inside <code>generatedSources</code> to
-generated the sources you need.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
-Hello World</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_custom_tasks"><a class="anchor" href="#_custom_tasks"></a>Custom Tasks</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1262,7 +890,7 @@ count at runtime using <code>sys.props</code> and print it when the program runs
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6/mill-dist-1.0.6-example-javalib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/module/2-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-module-3-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/module/3-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1499,6 +1127,418 @@ change.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_generated_sources"><a class="anchor" href="#_generated_sources"></a>Generated Sources</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-module-4-generated-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/module/4-generated-sources">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, javalib.*
+
+object foo extends JavaModule {
+
+  def generatedSources = Task {
+    os.write(
+      Task.dest / "Foo.java",
+      """package foo;
+        |
+        |public class Foo {
+        |    public static void main(String[] args) {
+        |        System.out.println("Hello World");
+        |    }
+        |}
+      """.stripMargin
+    )
+    Seq(PathRef(Task.dest))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In Mill, you can override the <code>def generatedSources</code> task to write files to disk that
+will be added to the module&#8217;s source folders during compilation. The example above
+generates a simple <code>main</code> method during build time that can be compiled and then
+used at runtime, but you can write arbitrarily code inside <code>generatedSources</code> to
+generated the sources you need.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
+Hello World</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-module-5-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/module/5-compilation-execution-flags">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, javalib.*
+
+object `package` extends JavaModule {
+  def forkArgs = Seq("-Xmx4g", "-Dmy.jvm.property=hello")
+  def forkEnv = Map("MY_ENV_VAR" -&gt; "WORLD")
+  def javacOptions = Seq("-deprecation")
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can pass flags to the Java compiler via <code>javacOptions</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill compile
+.../src/foo/Foo.java... stop() in java.lang.Thread has been deprecated...
+
+&gt; ./mill run
+hello WORLD</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default,
+<code>run</code> runs the compiled code in a subprocess, and you can pass in JVM flags
+via <code>forkArgs</code> or environment-variables via <code>forkEnv</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can also run your code via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.runLocal</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Which runs it in-process within an isolated classloader. This may be faster
+since you avoid the JVM startup overhead, but does not support <code>forkArgs</code> or <code>forkEnv</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you want to pass main-method arguments to <code>run</code> or <code>runLocal</code>, simply pass
+them after the <code>foo.run</code>/<code>foo.runLocal</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run arg1 arg2 arg3
+&gt; mill foo.runLocal arg1 arg2 arg3</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/module/7-resources">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, javalib.*
+
+object foo extends JavaModule {
+  object test extends JavaTests, TestModule.Junit4 {
+    def otherFiles = Task.Source("other-files")
+
+    def forkEnv = super.forkEnv() ++ Map(
+      "OTHER_FILES_DIR" -&gt; otherFiles().path.toString
+    )
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
+... foo.FooTests...simple ...
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This section discusses how tests can depend on resources locally on disk.
+Mill provides two ways to do this: via the JVM classpath resources, and via
+the resource folder which is made available as the environment variable
+<code>MILL_TEST_RESOURCE_DIR</code> available in test suites:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <strong>classpath resources</strong> are useful when you want to fetch individual files,
+and are bundled with the application by the <code>.assembly</code> step when constructing
+an assembly jar for deployment. But they do not allow you to list folders
+or perform other filesystem operations.</p>
+</li>
+<li>
+<p>The <strong>resource folder</strong>, available via <code>MILL_TEST_RESOURCE_DIR</code>, gives you
+access to the folder path of the resources on disk. This is useful in allowing
+you to list and otherwise manipulate the filesystem, which you cannot do with
+<strong>classpath resources</strong>. However, the <code>MILL_TEST_RESOURCE_DIR</code> <em>only</em> exists
+when running tests using Mill, and is <em>not</em> available when executing applications
+packaged for deployment via <code>.assembly</code></p>
+</li>
+<li>
+<p>Apart from <code>resources/</code>, you can provide additional folders to your test suite
+by defining a <code>Task.Source</code> (<code>otherFiles</code> above) and passing it to <code>forkEnv</code>. This
+provide the folder path as an environment variable that the test can make use of</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Example application code demonstrating the techniques above can be seen below:</p>
+</div>
+<div class="listingblock">
+<div class="title">foo/resources/file.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/module/7-resources/foo/resources/file.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Hello World Resource File</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/resources/test-file-a.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/module/7-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Test Hello World Resource File A</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/resources/test-file-b.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/module/7-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Test Hello World Resource File B</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/other-files/other-file.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/module/7-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Other Hello World File</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/src/Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/module/7-resources/foo/src/Foo.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package foo;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+public class Foo {
+
+  // Read `file.txt` from classpath
+  public static String classpathResourceText() throws IOException {
+    // Get the resource as an InputStream
+    try (InputStream inputStream = Foo.class.getClassLoader().getResourceAsStream("file.txt")) {
+      return new String(inputStream.readAllBytes());
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/src/FooTests.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/module/7-resources/foo/test/src/FooTests.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package foo;
+
+import static org.junit.Assert.*;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.Test;
+
+public class FooTests {
+
+  @Test
+  public void simple() throws IOException {
+    // Reference app module's `Foo` class which reads `file.txt` from classpath
+    String appClasspathResourceText = Foo.classpathResourceText();
+    assertEquals("Hello World Resource File", appClasspathResourceText);
+
+    // Read `test-file-a.txt` from classpath
+    String testClasspathResourceText;
+    try (InputStream inputStream =
+        Foo.class.getClassLoader().getResourceAsStream("test-file-a.txt")) {
+      testClasspathResourceText = new String(inputStream.readAllBytes());
+    }
+    assertEquals("Test Hello World Resource File A", testClasspathResourceText);
+
+    // Use `MILL_TEST_RESOURCE_DIR` to read `test-file-b.txt` from filesystem
+    Path testFileResourceDir = Paths.get(System.getenv("MILL_TEST_RESOURCE_DIR"));
+    String testFileResourceText = Files.readString(testFileResourceDir.resolve("test-file-b.txt"));
+    assertEquals("Test Hello World Resource File B", testFileResourceText);
+
+    // Use `MILL_TEST_RESOURCE_DIR` to list files available in resource folder
+    List&lt;Path&gt; actualFiles = new ArrayList&lt;&gt;(Files.list(testFileResourceDir).toList());
+    actualFiles.sort(Path::compareTo);
+    List&lt;Path&gt; expectedFiles = List.of(
+        testFileResourceDir.resolve("test-file-a.txt"),
+        testFileResourceDir.resolve("test-file-b.txt"));
+    assertEquals(expectedFiles, actualFiles);
+
+    // Use the `OTHER_FILES_DIR` configured in your build to access the
+    // files in `foo/test/other-files/`.
+    String otherFileText =
+        Files.readString(Paths.get(System.getenv("OTHER_FILES_DIR"), "other-file.txt"));
+    assertEquals("Other Hello World File", otherFileText);
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Tests by default only have access to their <strong>classpath resources</strong> and
+<strong>resource folder</strong> as mentioned above. They cannot read random project files on disk,
+and require that you pass in any other
+files or folders that they require explicitly (e.g. <code>def otherFiles</code> above).
+This is necessary so that Mill can ensure the necessary files are in place
+before the test begins running, and so <code>-w</code>/<code>--watch</code> knows it needs to re-run
+the tests if those files changed. Thus your tests cannot just read project files
+direct off disk via <code>new FileInputStream("foo/resources/test-file-a.txt")</code>.</p>
+</div>
+<div class="paragraph">
+<p>Mill runs test processes in a <a href="../depth/sandboxing.html" class="xref page">sandbox/ folder</a>, rather
+than in your project root folder, to enforce this.
+If you have legacy tests that need to run in the project root folder to work, you
+can configure your test suite with <code>def testSandboxWorkingDir = false</code> to disable
+the sandbox and make the tests run in the project root.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_annotation_processors"><a class="anchor" href="#_annotation_processors"></a>Annotation Processors</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-module-8-annotation-processors.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/module/8-annotation-processors">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, javalib.*
+import java.io.File
+
+object foo extends JavaModule {
+  def compileMvnDeps = Seq(mvn"org.projectlombok:lombok:1.18.34")
+
+  object test extends JavaTests, TestModule.Junit4
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is an example of how to use Mill to build Java projects using Java annotations and
+annotation processors. In this case, we use the annotations provided by
+<a href="https://projectlombok.org">Project Lombok</a> to automatically generate getters and setters
+from class private fields</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
+Test foo.HelloWorldTest.testSimple started
+Test foo.HelloWorldTest.testSimple finished...
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The Java compiler automatically discovers annotation processors based on the
+classes available during compilation, e.g. in <code>compileMvnDeps</code> or <code>mvnDeps</code>,
+which is what takes place in the example above.</p>
+</div>
+<div class="paragraph">
+<p>In some cases, you may need
+to pass in the annotation processors manually, e.g. if you need annotation
+processors that are not on the compilation classpath, or you need finer control
+over exactly which annotation processors are active. To do this, you can define
+a task to resolve the exact annotation processors you want, and pass
+those to <code>-processorpath</code> to <code>javacOptions</code> explicitly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
+  def compileMvnDeps = Seq(mvn"org.projectlombok:lombok:1.18.34")
+
+  def processors = Task {
+    defaultResolver().classpath(Seq(mvn"org.projectlombok:lombok:1.18.34"))
+  }
+
+  def javacOptions = Seq(
+    "-processorpath",
+    processors().map(_.path).mkString(File.pathSeparator)
+  )
+
+  object test extends JavaTests, TestModule.Junit4
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar.test
+Test bar.HelloWorldTest.testSimple started
+Test bar.HelloWorldTest.testSimple finished...
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Many Java frameworks and libraries such as <a href="web-examples.html#_micronaut_hello_world_app" class="xref page">Micronaut</a>
+or ErrorProne use annotation processors, and can be set up in this way.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_javadoc_config"><a class="anchor" href="#_javadoc_config"></a>Javadoc Config</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To generate API documentation you can use the <code>docJar</code> task on the module you&#8217;d
+like to create the docs for, configured via <code>javadocOptions</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/module/9-docjar">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, javalib.*
+
+object foo extends JavaModule {
+  def javadocOptions = Seq("-quiet")
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.docJar
+
+&gt; unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
+...
+...My Awesome Docs for class Foo...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_specifying_the_main_class"><a class="anchor" href="#_specifying_the_main_class"></a>Specifying the Main Class</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/module/11-main-class">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, javalib.*
+
+object `package` extends JavaModule {
+  def mainClass = Some("foo.Qux")
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill&#8217;s <code>foo.run</code> by default will discover which main class to run from your
+compilation output, but if there is more than one or the main class comes from
+some library you can explicitly specify which one to use.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
+Hello Qux</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>def mainClass</code> also adds the
+main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_native_c_code_with_jni"><a class="anchor" href="#_native_c_code_with_jni"></a>Native C Code with JNI</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1506,7 +1546,7 @@ change.</p>
 code using JNI.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6/mill-dist-1.0.6-example-javalib-module-15-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/module/15-jni">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-module-15-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/module/15-jni">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*, util.Jvm
@@ -1607,7 +1647,7 @@ Test foo.HelloWorldTest.testSimple finished...
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="intro.html">Building Java with Mill</a></span>
+  <span class="prev"><a href="script.html">Java Single-File Scripts</a></span>
   <span class="next"><a href="dependencies.html">Java Library Dependencies</a></span>
 </nav>
 </article>

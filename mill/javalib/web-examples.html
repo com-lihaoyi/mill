@@ -6,7 +6,7 @@
     <title>Java Web Project Examples :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/javalib/web-examples.html">
     <link rel="prev" href="build-examples.html">
-    <link rel="next" href="../scalalib/intro.html">
+    <link rel="next" href="spring-boot.html">
     <meta name="generator" content="Antora 3.1.12">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -136,14 +136,22 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="config.html">Config-Based Java Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="script.html">Java Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="module-config.html">Java Module Configuration</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="testing.html">Testing Java Projects</a>
   </li>
 
@@ -162,6 +170,10 @@
   <li class="nav-item is-current-page is-active" data-depth="2">
     <a class="nav-link" href="web-examples.html">Java Web Project Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="spring-boot.html">Spring Framework / Spring Boot Projects</a>
+  </li>
 </ul>
   </li>
 
@@ -171,14 +183,22 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/config.html">Config-Based Scala Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
@@ -205,6 +225,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
+  </li>
 </ul>
   </li>
 
@@ -214,14 +238,22 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
@@ -235,6 +267,10 @@
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -254,10 +290,14 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+    <a class="nav-link" href="../android/android-release.html">Android Release Guide</a>
   </li>
 
   <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/java.html">Android Java Projects</a>
   </li>
 
@@ -309,7 +349,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
   </li>
 </ul>
   </li>
@@ -621,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.6</span>
+    <span class="version">1.1.0-RC1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -631,10 +671,10 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.6</a>
+          <a href="../index.html">1.1.0-RC1</a>
         </li>
         <li class="version">
-          <a href="../dev-1.0.6-81-9337cb/index.html">dev-1.0.6-81-9337cb</a>
+          <a href="../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.16</a>
@@ -683,7 +723,7 @@ It covers setting up a basic backend server with a variety of server frameworks<
 <h2 id="_jetty_hello_world_app"><a class="anchor" href="#_jetty_hello_world_app"></a>Jetty Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6/mill-dist-1.0.6-example-javalib-web-1-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/web/1-hello-jetty">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-web-1-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/web/1-hello-jetty">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -720,131 +760,16 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <div class="sect1">
 <h2 id="_spring_boot_hello_world_app"><a class="anchor" href="#_spring_boot_hello_world_app"></a>Spring Boot Hello World App</h2>
 <div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6/mill-dist-1.0.6-example-javalib-web-2-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/web/2-hello-spring-boot">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
-
-object `package` extends JavaModule {
-  def mvnDeps = Seq(
-    mvn"org.springframework.boot:spring-boot-starter-web:2.5.6",
-    mvn"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
-  )
-
-  object test extends JavaTests, TestModule.Junit5 {
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
-    )
-  }
-}</code></pre>
-</div>
-</div>
 <div class="paragraph">
-<p>This example demonstrates how to set up a simple Spring Boot webserver,
-able to handle a single HTTP request at <code>/</code> and reply with a single response.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
-...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
-
-&gt; ./mill runBackground
-
-&gt; curl http://localhost:8086
-...&lt;h1&gt;Hello, World!&lt;/h1&gt;...
-
-&gt; ./mill clean runBackground</code></pre>
-</div>
+<p>This section was moved to the <a href="spring-boot.html#_spring_boot_hello_world_app" class="xref page">Spring Boot page</a>.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_spring_boot_todomvc_app"><a class="anchor" href="#_spring_boot_todomvc_app"></a>Spring Boot TodoMvc App</h2>
 <div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6/mill-dist-1.0.6-example-javalib-web-3-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/web/3-todo-spring-boot">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
-
-object `package` extends JavaModule {
-  def mvnDeps = Seq(
-    mvn"org.springframework.boot:spring-boot-starter-data-jpa:2.5.4",
-    mvn"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",
-    mvn"org.springframework.boot:spring-boot-starter-validation:2.5.4",
-    mvn"org.springframework.boot:spring-boot-starter-web:2.5.4",
-    mvn"javax.xml.bind:jaxb-api:2.3.1",
-    mvn"org.webjars:webjars-locator:0.41",
-    mvn"org.webjars.npm:todomvc-common:1.0.5",
-    mvn"org.webjars.npm:todomvc-app-css:2.4.1"
-  )
-
-  trait HelloTests extends JavaTests, TestModule.Junit5 {
-    def mainClass = Some("com.example.TodomvcApplication")
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
-    )
-  }
-
-  object test extends HelloTests {
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"com.h2database:h2:2.3.230"
-    )
-  }
-
-  object integration extends HelloTests {
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"org.testcontainers:testcontainers:1.18.0",
-      mvn"org.testcontainers:junit-jupiter:1.18.0",
-      mvn"org.testcontainers:postgresql:1.18.0",
-      mvn"org.postgresql:postgresql:42.6.0"
-    )
-  }
-}</code></pre>
-</div>
-</div>
 <div class="paragraph">
-<p>This is a larger example using Spring Boot, implementing the well known
-<a href="https://todomvc.com/">TodoMVC</a> example app. Apart from running a webserver,
-this example also demonstrates:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Serving HTML templates using Thymeleaf</p>
-</li>
-<li>
-<p>Serving static Javascript and CSS using Webjars</p>
-</li>
-<li>
-<p>Querying a SQL database using JPA and H2</p>
-</li>
-<li>
-<p>Unit testing using a H2 in-memory database</p>
-</li>
-<li>
-<p>Integration testing using Testcontainers Postgres in Docker</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
-...com.example.TodomvcTests#homePageLoads() finished...
-...com.example.TodomvcTests#addNewTodoItem() finished...
-
-&gt; ./mill integration
-...com.example.TodomvcIntegrationTests#homePageLoads() finished...
-...com.example.TodomvcIntegrationTests#addNewTodoItem() finished...
-
-&gt; ./mill test.runBackground
-
-&gt; curl http://localhost:8087
-...&lt;h1&gt;todos&lt;/h1&gt;...
-
-&gt; ./mill clean runBackground</code></pre>
-</div>
+<p>This section was moved to the <a href="spring-boot.html#_spring_boot_todomvc_app" class="xref page">Spring Boot page</a>.</p>
 </div>
 </div>
 </div>
@@ -852,7 +777,7 @@ this example also demonstrates:</p>
 <h2 id="_micronaut_hello_world_app"><a class="anchor" href="#_micronaut_hello_world_app"></a>Micronaut Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6/mill-dist-1.0.6-example-javalib-web-4-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/web/4-hello-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-web-4-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/web/4-hello-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -945,7 +870,7 @@ extended with more features as necessary.</p>
 <h2 id="_micronaut_todomvc_app"><a class="anchor" href="#_micronaut_todomvc_app"></a>Micronaut TodoMvc App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.6/mill-dist-1.0.6-example-javalib-web-5-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.6/example/javalib/web/5-todo-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-web-5-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/web/5-todo-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1065,7 +990,7 @@ and can be extended to cover additional functionality in future</p>
 </div>
 <nav class="pagination">
   <span class="prev"><a href="build-examples.html">Java Build Examples</a></span>
-  <span class="next"><a href="../scalalib/intro.html">Building Scala with Mill</a></span>
+  <span class="next"><a href="spring-boot.html">Spring Framework / Spring Boot Projects</a></span>
 </nav>
 </article>
   </div>

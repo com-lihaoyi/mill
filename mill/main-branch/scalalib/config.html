@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Config-Based Scala Modules :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/dev-1.0.6-81-9337cb/scalalib/config.html" />
+    <link rel="canonical" href="https://mill-build.org/mill/scalalib/config.html" />
     <link rel="prev" href="intro.html" />
     <link rel="next" href="script.html" />
     <meta name="generator" content="Antora 3.1.12" />
@@ -672,10 +672,10 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.0.6</a>
+          <a href="../../index.html">1.1.0-RC1</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.6-81-9337cb/index.html">dev-1.0.6-81-9337cb</a>
+          <a href="../../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version">
           <a href="../../0.12.x/index.html">0.12.16</a>
@@ -738,7 +738,7 @@ sources/resources, and setting compilation/run
 options.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/1-common-config/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/1-common-config/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.scalalib.ScalaModule]
 scalaVersion: 2.13.16
@@ -818,21 +818,21 @@ you can instead use <a href="intro.html#_programmatic_modules" class="xref page"
 <p>This example demonstrates more details about testing in Mill:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/2-testing/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/2-testing/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.scalalib.ScalaModule]
 scalaVersion: &quot;3.7.1&quot;</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/2-testing/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/2-testing/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.ScalaTests, mill.scalalib.TestModule.Utest]
 mvnDeps: [com.lihaoyi::utest:0.9.1]</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">integration/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/2-testing/integration/package.mill.yaml">browse</a>)</div>
+<div class="title">integration/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-2-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/2-testing/integration/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.ScalaTests, mill.scalalib.TestModule.Utest]
 mvnDeps: [com.lihaoyi::utest:0.9.1]
@@ -920,7 +920,7 @@ need to define a <code>.scalafmt.conf</code> file in the root of your project, a
 <code>./mill mill.scalalib.scalafmt/</code> as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">.scalafmt.conf (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/3-linting/.scalafmt.conf">browse</a>)</div>
+<div class="title">.scalafmt.conf (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/3-linting/.scalafmt.conf">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-conf hljs" data-lang="conf">version = &quot;3.7.15&quot;
 runner.dialect = scala213</code></pre>
@@ -960,7 +960,7 @@ make your module extend <code>com.goyeau.mill.scalafix.ScalafixModule</code>. Th
 example below removes the unused <code>val res</code> variable from the program:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/3-linting/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/3-linting/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-build:
   mvnDeps: [com.goyeau::mill-scalafix_mill1:0.6.0]
@@ -970,7 +970,7 @@ scalacOptions: [-Wunused:all]</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">.scalafix.conf (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/3-linting/.scalafix.conf">browse</a>)</div>
+<div class="title">.scalafix.conf (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/3-linting/.scalafix.conf">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-conf hljs" data-lang="conf">rules = [
     RemoveUnused,
@@ -1006,7 +1006,7 @@ that can be packaged into a Graal native executable. To do so, your module must 
 shown below. You can pass native-image specific command-line flags via <code>nativeImageOptions</code></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-4-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/4-native-image/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-4-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/4-native-image/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.scalalib.ScalaModule, mill.scalalib.NativeImageModule]
 scalaVersion: 3.7.3
@@ -1038,7 +1038,7 @@ do so, your module must extend <code>mill.scalalib.PublishModule</code>, and con
 publishing metadata shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-5-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/5-publishing/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-5-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/5-publishing/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.scalalib.ScalaModule, mill.scalalib.PublishModule]
 scalaVersion: 3.7.3
@@ -1085,7 +1085,7 @@ Sonatype Maven Central via:</p>
 <p>This example shows off running a simple webserver in a module configured via <code>build.mill.yaml</code></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-6-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/6-web-example/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-6-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/6-web-example/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.scalalib.ScalaModule]
 scalaVersion: 3.7.3
@@ -1097,7 +1097,7 @@ mvnDeps: [com.lihaoyi::cask:0.9.1]</code></pre>
 to run the web server</p>
 </div>
 <div class="listingblock">
-<div class="title">src/WebServer.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-6-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/6-web-example/src/WebServer.scala">browse</a>)</div>
+<div class="title">src/WebServer.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-6-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/6-web-example/src/WebServer.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package example
 object WebServer extends cask.MainRoutes {
@@ -1128,7 +1128,7 @@ configured by <code>test/package.mill.yaml</code>. This test suite spins up the 
 makes a single HTTP reqeust against and checks it behaves as expected.</p>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-6-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/6-web-example/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-6-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/6-web-example/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.ScalaTests, mill.javalib.TestModule.Utest]
 mvnDeps:
@@ -1157,14 +1157,14 @@ mvnDeps:
 and are not limited to the builtin <code>trait</code>s provided by Mill:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-7-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/7-custom-trait/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-7-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/7-custom-trait/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [millbuild.LineCountScalaModule]
 scalaVersion: 3.7.3</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/src/LineCountScalaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-7-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/7-custom-trait/mill-build/src/LineCountScalaModule.scala">browse</a>)</div>
+<div class="title">mill-build/src/LineCountScalaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-7-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/7-custom-trait/mill-build/src/LineCountScalaModule.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
 import mill.*, scalalib.*
@@ -1206,7 +1206,7 @@ requirements, use programmatic <code>build.mill</code> files for modules with cu
 more advanced customizations, and have them inter-operate with each other seamlessly.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-8-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/8-programmatic-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-8-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/8-programmatic-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1218,7 +1218,7 @@ object bar extends ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-config-8-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/8-programmatic-module-deps/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-2-7bb6c9/mill-dist-1.1.0-RC1-2-7bb6c9-example-scalalib-config-8-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/config/8-programmatic-module-deps/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.scalalib.ScalaModule]
 moduleDeps: [bar]
