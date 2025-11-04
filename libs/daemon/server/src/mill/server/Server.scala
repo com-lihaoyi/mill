@@ -1,6 +1,6 @@
 package mill.server
 
-import mill.client.lock.{Lock, Locks}
+import mill.client.lock.{Lock, Locks, TryLocked}
 import mill.constants.{DaemonFiles, SocketUtil}
 import sun.misc.{Signal, SignalHandler}
 
@@ -258,7 +258,7 @@ abstract class Server(args: Server.Args) {
           }
 
         } finally serverSocket.close()
-      }.getOrElse(throw new Exception("Mill server process already present"))
+      }
     } catch {
       case e: Throwable =>
         serverLog("server loop error: " + e)
@@ -521,28 +521,34 @@ object Server {
       beforeClose: () => Unit,
       afterClose: () => Unit
   )(block: AutoCloseable => T): Option[T] = {
-    lock.tryLock() match {
-      case null => None
-      case l =>
-        if (l.isLocked) {
-          val autoCloseable = new AutoCloseable {
-            @volatile private var closed = false
+    // Retry taking the daemon lock, because there is a small chance it might collide
+    // with the client taking the daemon lock when probing to check. But use `tryLock`
+    // rather than `lock` because if the lock is truly taken by another mill daemon
+    // process, we want to fail loudly rather than blocking and hanging forever
+    val l = mill.client.ServerLauncher.retryWithTimeout(
+      100,
+      "Mill server process already present",
+      () => {
+        val l = lock.tryLock()
+        if (l.isLocked) java.util.Optional.of[TryLocked](l)
+        else java.util.Optional.empty[TryLocked]()
+      }
+    )
 
-            override def close(): Unit = {
-              if (!closed) {
-                closed = true
-                beforeClose()
-                l.release()
-                afterClose()
-              }
-            }
-          }
+    val autoCloseable = new AutoCloseable {
+      @volatile private var closed = false
 
-          try Some(block(autoCloseable))
-          finally autoCloseable.close()
-        } else {
-          None
+      override def close(): Unit = {
+        if (!closed) {
+          closed = true
+          beforeClose()
+          l.release()
+          afterClose()
         }
+      }
     }
+
+    try Some(block(autoCloseable))
+    finally autoCloseable.close()
   }
 }

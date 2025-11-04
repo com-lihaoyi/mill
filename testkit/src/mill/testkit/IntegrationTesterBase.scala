@@ -44,7 +44,7 @@ trait IntegrationTesterBase {
    * Initializes the workspace in preparation for integration testing
    */
   def initWorkspace(): Unit = {
-    println(s"Copying integration test sources from $workspaceSourcePath to $workspacePath")
+    println(s"Preparing integration test in $workspacePath")
     os.makeDir.all(workspacePath)
     if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR"))
       Retry(logger = Retry.printStreamLogger(System.err)) {
