@@ -520,7 +520,7 @@ object Server {
       lock: Lock,
       beforeClose: () => Unit,
       afterClose: () => Unit
-  )(block: AutoCloseable => T): Option[T] = {
+  )(block: AutoCloseable => T): T = {
     // Retry taking the daemon lock, because there is a small chance it might collide
     // with the client taking the daemon lock when probing to check. But use `tryLock`
     // rather than `lock` because if the lock is truly taken by another mill daemon
@@ -548,7 +548,7 @@ object Server {
       }
     }
 
-    try Some(block(autoCloseable))
+    try block(autoCloseable)
     finally autoCloseable.close()
   }
 }
