@@ -796,8 +796,10 @@ private class MillBuildServer(
     handlerEvaluators() { (state, logger) =>
       val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala
       val tasksSeq = ids.flatMap { id =>
-        val (m, ev) = state.bspModulesById(id)
-        tasks.lift.apply(m).map(ts => (ts, (ev, id, m)))
+        // If modules or scripts are removed or moved, just ignore them rather than blowing up
+        state.bspModulesById.get(id).flatMap { (m, ev) =>
+          tasks.lift.apply(m).map(ts => (ts, (ev, id, m)))
+        }
       }
 
       // group by evaluator (different root module)

@@ -1,0 +1,64 @@
+package build
+
+import mill.*
+import mill.javalib.*
+import mill.kotlinlib.KotlinMavenModule
+
+object `package` extends KotlinMavenModule {
+
+  def kotlinVersion = "1.9.25"
+
+  override def kotlincOptions: T[Seq[String]] = super.kotlincOptions() ++ Seq("-jvm-target", "17")
+
+  def bomMvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
+  )
+  def mvnDeps = Seq(
+    mvn"com.fasterxml.jackson.module:jackson-module-kotlin:2.19.2",
+    mvn"org.jetbrains.kotlin:kotlin-reflect:1.9.25",
+    mvn"org.jetbrains.kotlin:kotlin-stdlib:1.9.25",
+    mvn"org.springframework.boot:spring-boot-starter-web"
+  )
+
+  object test extends KotlinMavenTests, TestModule.Junit5 {
+
+    def mvnDeps = Seq(
+      mvn"org.jetbrains.kotlin:kotlin-test-junit5:1.9.25",
+      mvn"org.springframework.boot:spring-boot-starter-test"
+    )
+
+  }
+}
+
+// This example demonstrates how to configure mill for a simple initializr project,
+// using https://start.spring.io/[https://start.spring.io/] by choosing:
+//
+//* Project: maven
+//* Language: Kotlin
+//* Dependencies: Spring Web,
+//
+// The structure of this project follows the MavenModule structure (i.e. the same structure
+// as generated from the initialzr tool).
+//
+// For more information visit https://spring.io/quickstart[quickstart]
+// and https://spring.io/guides/tutorials/spring-boot-kotlin[spring-boot-kotlin]
+
+/** Usage
+
+> ./mill test
+...Test com.example.demokotlin.DemoKotlinApplicationTests#contextLoads() finished...
+
+> ./mill runBackground
+
+> curl http://localhost:9096/hello
+...Hello, World!...
+
+> curl http://localhost:9096/hello?name=Mill
+...Hello, Mill!...
+
+> ./mill clean runBackground
+
+> ./mill show assembly
+.../out/assembly.dest/out.jar...
+
+*/

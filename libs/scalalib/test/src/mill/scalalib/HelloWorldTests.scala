@@ -212,7 +212,7 @@ object HelloWorldTests extends TestSuite {
         // Make sure we *do* end up compiling the compiler bridge, since it's
         // *not* using a pre-compiled bridge value
         assert(os.exists(
-          eval.outPath / "mill/javalib/JvmWorkerModule/internalWorker.dest" / s"zinc-${zincVersion}"
+          eval.outPath / "mill.javalib.JvmWorkerModule/internalWorker.dest" / s"zinc-${zincVersion}"
         ))
       }
 

@@ -2,26 +2,38 @@
 :language: Java
 :language-small: java
 
-This page documents the usage of simple config-based Java modules defined by
-`build.mill.yaml` and `package.mill.yaml` files. These are less flexible but easier to get started with than the
-full `build.mill` or `package.mill` build files, which makes them ideal for small
-projects which do not need additional flexibility.
+include::partial$Config_Header.adoc[]
 
-
-== Common Configuration Overrides for Simple Modules
+== Common Config Overrides
 
 include::partial$example/javalib/config/1-common-config.adoc[]
 
+== Unit & Integration Testing
 
-== Packaging and Publishing Simple Modules
+include::partial$example/javalib/config/2-testing.adoc[]
 
-include::partial$example/javalib/config/3-publish.adoc[]
+== Linting & Autoformatting
+
+include::partial$example/javalib/config/3-linting.adoc[]
+
+== Packaging & Publishing
+
+=== Graal Native Image
+
+include::partial$example/javalib/config/4-native-image.adoc[]
+
+=== Publishing
+
+include::partial$example/javalib/config/5-publishing.adoc[]
+
+== Example Web Project
+
+include::partial$example/javalib/config/6-web-example.adoc[]
 
 == Custom Module Traits
 
-include::partial$example/javalib/config/4-custom-trait.adoc[]
+include::partial$example/javalib/config/7-custom-trait.adoc[]
 
-== Depending on Programmatic Modules from Simple Modules
+== Programmatic `moduleDeps`
 
-include::partial$example/javalib/config/5-mixed-module-deps.adoc[]
-
+include::partial$example/javalib/config/8-programmatic-module-deps.adoc[]

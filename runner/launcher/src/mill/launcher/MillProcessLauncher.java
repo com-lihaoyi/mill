@@ -124,8 +124,16 @@ public class MillProcessLauncher {
               mill.constants.Util.readBuildHeader(
                   buildFile, buildFile.getFileName().toString()),
               () -> {
-                Object conf = mill.launcher.ConfigReader.readYaml(
-                    buildFile, buildFile.getFileName().toString());
+                Object conf = null;
+                try {
+                  conf = mill.launcher.ConfigReader.readYaml(
+                      buildFile, buildFile.getFileName().toString());
+                } catch (org.snakeyaml.engine.v2.exceptions.ParserException e) {
+                  System.err.println("Failed de-serializing build header in "
+                      + buildFile.getFileName() + ": " + e.getMessage());
+                  System.exit(1);
+                }
+
                 if (!(conf instanceof Map)) return new String[] {};
                 @SuppressWarnings("unchecked")
                 var conf2 = (Map<String, Object>) conf;
@@ -166,6 +174,12 @@ public class MillProcessLauncher {
     else return res.get(0);
   }
 
+  static String millJvmIndexVersion(OutFolderMode outMode) throws Exception {
+    List<String> res = loadMillConfig(outMode, "mill-jvm-index-version");
+    if (res.isEmpty()) return null;
+    else return res.get(0);
+  }
+
   static String millServerTimeout() {
     return System.getenv(EnvVars.MILL_SERVER_TIMEOUT_MILLIS);
   }
@@ -176,6 +190,7 @@ public class MillProcessLauncher {
 
   static String javaHome(OutFolderMode outMode) throws Exception {
     var jvmId = millJvmVersion(outMode);
+    var jvmIndexVersion = millJvmIndexVersion(outMode);
 
     String javaHome = null;
     if (jvmId == null) {
@@ -184,11 +199,16 @@ public class MillProcessLauncher {
 
     if (jvmId != null) {
       final String jvmIdFinal = jvmId;
+      final String jvmIndexVersionFinal = jvmIndexVersion;
+      // Include JVM index version in the cache key to invalidate cache when index version changes
+      String cacheKey = jvmIndexVersion != null ? jvmId + ":" + jvmIndexVersion : jvmId;
       javaHome = cachedComputedValue0(
           outMode,
           "java-home",
-          jvmId,
-          () -> new String[] {CoursierClient.resolveJavaHome(jvmIdFinal).getAbsolutePath()},
+          cacheKey,
+          () -> new String[] {
+            CoursierClient.resolveJavaHome(jvmIdFinal, jvmIndexVersionFinal).getAbsolutePath()
+          },
           // Make sure we check to see if the saved java home exists before using
           // it, since it may have been since uninstalled, or the `out/` folder
           // may have been transferred to a different machine
@@ -234,7 +254,6 @@ public class MillProcessLauncher {
     // extra opts
     vmOptions.addAll(millJvmOpts(outMode));
 
-    vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
 
     vmOptions.add(String.join(File.pathSeparator, runnerClasspath));

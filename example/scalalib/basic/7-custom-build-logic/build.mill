@@ -1,6 +1,6 @@
-// Mill makes it very easy to customize your build graph, overriding portions
+// Programmatic Mill builds make it very easy to customize your build graph, overriding portions
 // of it with custom logic. In this example, we override the JVM `resources` of
-// our `{language}Module` - normally the `resources/` folder - to instead contain a
+// our `{language}Module` - normally the `resources/` folder - to also contain a
 // single generated text file containing the line count of all the source files
 // in that module
 
@@ -53,6 +53,11 @@ object foo extends ScalaModule {
 //
 // * The `override` keyword is optional in Mill. It is shown above for clarity, but can
 // be elided for conciseness.
+//
+// In general, this use of method ``def``s, method calls, `override`, and `super` should be
+// very familiar to anyone with prior experience working in {language}. These are the same
+// concepts that have underpinned object-oriented programming for decades, and work exactly
+// the same here as they work anywhere else.
 //
 // This generated `line-count.txt` file can then be loaded and used at runtime, as see
 // in the output of `mill run` below.

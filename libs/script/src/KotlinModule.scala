@@ -24,6 +24,6 @@ object KotlinModule {
   }
 
   trait Base extends JavaModule.Base, mill.kotlinlib.KotlinModule {
-    def kotlinVersion = "2.0.20"
+    def kotlinVersion = "2.2.21"
   }
 }

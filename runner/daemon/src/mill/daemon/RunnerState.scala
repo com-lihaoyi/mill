@@ -29,10 +29,20 @@ import upickle.{ReadWriter, macroRW}
  */
 @internal
 case class RunnerState(
+    // Any bootstrap module that was instantiated directly and not bound to any frame
+    // or classloader. `None` if for some reason module instantiation failed
     bootstrapModuleOpt: Option[RootModule],
+    // Frames containing metadata for each --meta-level of the bootstrapping process:
+    // classloaders, worker caches, watches, etc.
     frames: Seq[RunnerState.Frame],
+    // Any error that has taken place, indicating that the bootstrap process has failed
     errorOpt: Option[String],
-    buildFile: Option[String] = None
+    // The name of the build file, used for error reporting
+    buildFile: Option[String] = None,
+    // Any watches that take place during bootstrap module instantiation. Necessary because
+    // if bootstrap instantiation fails, there are no `frames` to hold `evalWatches`, so we
+    // need to track them separately
+    bootstrapEvalWatched: Seq[Watchable] = Nil
 ) {
   def add(
       frame: RunnerState.Frame = RunnerState.Frame.empty,
@@ -42,7 +52,7 @@ case class RunnerState(
   }
 
   def watched: Seq[Watchable] =
-    frames.flatMap(f => f.evalWatched ++ f.moduleWatched)
+    frames.flatMap(f => f.evalWatched ++ f.moduleWatched ++ bootstrapEvalWatched)
 }
 
 object RunnerState {

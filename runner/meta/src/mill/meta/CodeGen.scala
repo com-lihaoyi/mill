@@ -87,9 +87,7 @@ object CodeGen {
         val newParent =
           if (segments.isEmpty) "_root_.mill.util.MainRootModule"
           else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
-        val parsedHeaderData = upickle.read[HeaderData](
-          mill.internal.Util.parsedHeaderData(allScriptCode(scriptPath))
-        )
+        val parsedHeaderData = mill.internal.Util.parseHeaderData(scriptPath).get
 
         val prelude =
           s"""|import MillMiscInfo._
@@ -112,15 +110,18 @@ object CodeGen {
 
           val moduleDepsSnippet =
             if (data.moduleDeps.isEmpty) ""
-            else s"override def moduleDeps = Seq(${data.moduleDeps.mkString(", ")})"
+            else
+              s"override def moduleDeps = Seq(${data.moduleDeps.map("build." + _).mkString(", ")})"
 
           val compileModuleDepsSnippet =
             if (data.compileModuleDeps.isEmpty) ""
-            else s"override def compileModuleDeps = Seq(${data.compileModuleDeps.mkString(", ")})"
+            else
+              s"override def compileModuleDeps = Seq(${data.compileModuleDeps.map("build." + _).mkString(", ")})"
 
           val runModuleDepsSnippet =
             if (data.runModuleDeps.isEmpty) ""
-            else s"override def runModuleDeps = Seq(${data.runModuleDeps.mkString(", ")})"
+            else
+              s"override def runModuleDeps = Seq(${data.runModuleDeps.map("build." + _).mkString(", ")})"
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}"

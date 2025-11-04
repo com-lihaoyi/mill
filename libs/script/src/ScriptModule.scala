@@ -6,34 +6,31 @@ import mill.api.ModuleCtx.HeaderData
 trait ScriptModule extends ExternalModule {
   def scriptConfig: ScriptModule.Config
 
-  override def moduleDir = scriptConfig.simpleModulePath / os.up
+  override def moduleDir = scriptConfig.scriptFile
 
   private[mill] def allowNestedExternalModule = true
 
-  override def moduleSegments: Segments = {
-    Segments.labels(
-      scriptConfig.simpleModulePath.subRelativeTo(mill.api.BuildCtx.workspaceRoot).segments*
-    )
-  }
-  private[mill] override def buildOverrides: Map[String, ujson.Value] =
-    ScriptModule.parseHeaderData(scriptConfig.simpleModulePath).rest
+  private def relativeScriptFilePath =
+    scriptConfig.scriptFile.subRelativeTo(mill.api.BuildCtx.workspaceRoot)
+
+  override def moduleSegments: Segments = Segments.labels(s"./$relativeScriptFilePath")
+
+  private[mill] override def buildOverrides = scriptConfig.headerData.rest
+
+  mill.internal.Util.validateBuildHeaderKeys(
+    buildOverrides.keySet,
+    millDiscover.allTaskNames,
+    relativeScriptFilePath
+  )
 }
 
 object ScriptModule {
   case class Config(
-      simpleModulePath: os.Path,
+      scriptFile: os.Path,
       moduleDeps: Seq[mill.Module],
       compileModuleDeps: Seq[mill.Module],
-      runModuleDeps: Seq[mill.Module]
+      runModuleDeps: Seq[mill.Module],
+      headerData: HeaderData
   )
 
-  private[mill] def parseHeaderData(millSimplePath: os.Path) = {
-    val headerData = mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      // If the module file got deleted, handle that gracefully
-      if (!os.exists(millSimplePath)) ""
-      else mill.constants.Util.readBuildHeader(millSimplePath.toNIO, millSimplePath.last, true)
-    }
-
-    upickle.read[HeaderData](mill.internal.Util.parsedHeaderData(headerData))
-  }
 }

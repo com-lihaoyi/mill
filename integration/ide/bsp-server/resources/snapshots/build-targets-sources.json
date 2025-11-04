@@ -293,8 +293,8 @@
       },
       "sources": [
         {
-          "uri": "file:///workspace/scripts/folder1",
-          "kind": 2,
+          "uri": "file:///workspace/scripts/folder1/script.scala",
+          "kind": 1,
           "generated": false
         }
       ]
@@ -305,8 +305,20 @@
       },
       "sources": [
         {
-          "uri": "file:///workspace/scripts/folder2",
-          "kind": 2,
+          "uri": "file:///workspace/scripts/folder2/Foo.java",
+          "kind": 1,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder2/FooTest.java"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/scripts/folder2/FooTest.java",
+          "kind": 1,
           "generated": false
         }
       ]
@@ -317,8 +329,8 @@
       },
       "sources": [
         {
-          "uri": "file:///workspace/scripts/foldershared",
-          "kind": 2,
+          "uri": "file:///workspace/scripts/foldershared/Foo.java",
+          "kind": 1,
           "generated": false
         }
       ]
@@ -329,8 +341,8 @@
       },
       "sources": [
         {
-          "uri": "file:///workspace/scripts/foldershared",
-          "kind": 2,
+          "uri": "file:///workspace/scripts/foldershared/script.scala",
+          "kind": 1,
           "generated": false
         }
       ]

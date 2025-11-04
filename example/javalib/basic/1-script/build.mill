@@ -1,5 +1,7 @@
 //// SNIPPET:FILE
 /** See Also: Foo.java */
+//// SNIPPET:END
+//// SNIPPET:CMD
 /** Usage
 > ./mill Foo.java --text hello
 compiling 1 Java source to...
@@ -29,6 +31,18 @@ compiling 1 Java source to...
 
 //// SNIPPET:END
 
+//// SNIPPET:RESOLVE
+/** Usage
+
+> ./mill resolve Foo.java:_
+./Foo.java:run
+./Foo.java:runMain
+./Foo.java:compile
+./Foo.java:assembly
+...
+
+*/
+//// SNIPPET:END
 //// SNIPPET:TEST
 
 /** See Also: FooTest.java */

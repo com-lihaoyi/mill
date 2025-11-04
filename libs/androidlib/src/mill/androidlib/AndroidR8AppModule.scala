@@ -1,13 +1,18 @@
 package mill.androidlib
 
+import coursier.core as cs
 import mill.*
 import mill.api.{PathRef, Task}
+import mill.PathRef.jsonFormatter
+import mill.javalib.{Dep, JavaModule}
+import os.Path
+
 import scala.xml.*
 
 @mill.api.experimental
-trait AndroidR8AppModule extends AndroidAppModule {
+trait AndroidR8AppModule extends AndroidAppModule { outer =>
 
-  override def androidPackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] =
+  override def androidPackagedMetaInfFiles: T[Seq[AndroidPackageableExtraFile]] =
     androidR8PackageMetaInfoFiles()
 
   /**
@@ -72,15 +77,20 @@ trait AndroidR8AppModule extends AndroidAppModule {
   }
 
   /**
-   * Creates a file for letting know R8 that [[compileModuleDeps]] and
+   * The list to let know R8 that [[compileModuleDeps]] and
    * [[compileMvnDeps]] are in compile classpath only and not packaged with the apps.
    * Useful for dependencies that are provided in devices and compile only module deps
    * such as for avoiding to package main sources in the androidTest apk.
    */
-  def androidR8CompileOnlyClasspath: T[Option[PathRef]] = Task {
-    val resolvedCompileMvnDeps =
-      androidResolvedCompileMvnDeps() ++ androidTransitiveCompileOnlyClasspath() ++ androidTransitiveModuleRClasspath()
-    if (!resolvedCompileMvnDeps.isEmpty) {
+  def androidR8CompileOnlyClasspath: T[Seq[PathRef]] =
+    androidResolvedCompileMvnDeps() ++ androidTransitiveCompileOnlyClasspath() ++ androidTransitiveModuleRClasspath()
+
+  /**
+   * Creates a file of [[androidR8CompileOnlyClasspath]] for CLI compatibility reasons (e.g. windows arg limit)
+   */
+  def androidR8CompileOnlyClasspathFile: T[Option[PathRef]] = Task {
+    val resolvedCompileMvnDeps = androidR8CompileOnlyClasspath()
+    if (resolvedCompileMvnDeps.nonEmpty) {
       val compiledMvnDepsFile = Task.dest / "compile-only-classpath.txt"
       os.write.over(
         compiledMvnDepsFile,
@@ -152,126 +162,169 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
   /**
    * Prepares the R8 cli command to build this android app!
-   * @return
    */
   private def androidR8Dex
-      : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] = Task {
-    val destDir = Task.dest / "minify"
-    os.makeDir.all(destDir)
-
-    val outputPath = destDir
-
-    Task.log.debug("outputPath: " + outputPath)
-
-    // Define diagnostic output file paths
-    val mappingOut = destDir / "mapping.txt"
-    val seedsOut = destDir / "seeds.txt"
-    val usageOut = destDir / "usage.txt"
-    val configOut = destDir / "configuration.txt"
-    destDir / "missing_rules.txt"
-    val baselineOutOpt = destDir / "baseline-profile-rewritten.txt"
-    destDir / "res"
-
-    // Extra ProGuard rules
-    val extraRules =
-      Seq(
-        // Instruct R8 to print seeds and usage.
-        s"-printseeds $seedsOut",
-        s"-printusage $usageOut"
-      ) ++
-        (if (androidBuildSettings().isMinifyEnabled) then androidGeneratedMinifyKeepRules()
-         else Seq())
-    // Create an extra ProGuard config file
-    val extraRulesFile = destDir / "extra-rules.pro"
-    val extraRulesContent = extraRules.mkString("\n")
-    os.write.over(extraRulesFile, extraRulesContent)
-
-    val classpathClassFiles: Seq[PathRef] = androidPackagedClassfiles()
-      .filter(_.path.ext == "class")
-
-    val appCompiledFiles: Seq[PathRef] = androidPackagedCompiledClasses()
-      .filter(_.path.ext == "class")
-
-    val allClassFilesPathRefs =
-      classpathClassFiles ++ appCompiledFiles ++ androidPackagedDeps()
-
-    val allClassFiles = allClassFilesPathRefs.map(_.path.toString)
-    val allClassFilesFile = Task.dest / "all-classes.txt"
-    os.write.over(allClassFilesFile, allClassFiles.mkString("\n"))
-
-    val r8ArgsBuilder = Seq.newBuilder[String]
-
-    r8ArgsBuilder += androidSdkModule().r8Exe().path.toString
-
-    if (androidIsDebug())
-      r8ArgsBuilder += "--debug"
-    else
-      r8ArgsBuilder += "--release"
-
-    r8ArgsBuilder ++= Seq(
-      "--output",
-      outputPath.toString,
-      "--pg-map-output",
-      mappingOut.toString,
-      "--pg-conf-output",
-      configOut.toString
-    )
-
-    if (!androidBuildSettings().enableDesugaring) {
-      r8ArgsBuilder += "--no-desugaring"
+      : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] =
+    Task.Anon {
+      androidR8Build(Task.Anon("--dex"))()
     }
 
-    if (!androidBuildSettings().isMinifyEnabled) {
-      r8ArgsBuilder ++= Seq("--no-minification", "--no-tree-shaking")
-    }
+  /**
+   * The jdk-home to be used in r8 in case of building a
+   * jar (using --classfile) instead of a dex. Used in
+   * [[androidR8Jar]]
+   */
+  def androidR8JavaHome: T[PathRef] =
+    javaHome().getOrElse(PathRef(Path(sys.props("java.home")), quick = true))
 
-    r8ArgsBuilder ++= Seq(
-      "--min-api",
-      androidMinSdk().toString,
-      "--dex"
+  /**
+   * Prepares the R8 cli command to build this android app as a java class file (jar)!
+   * Useful for building APKs that are dynamically linked to other apks (e.g. the test apk)
+   */
+  def androidR8Jar: T[PathRef] = Task {
+    val minifyDir = androidR8Build(Task.Anon("--classfile"))()
+    val cli = minifyDir.dexCliArgs
+    os.call(cli)
+    val jarDest = Task.dest / s"${moduleSegments.render}.jar"
+    val zipFiles = os.walk(minifyDir.outPath.path).map(p =>
+      os.zip.ZipSource.fromPathTuple(p -> p.subRelativeTo(minifyDir.outPath.path))
     )
-
-    // Baseline profile rewriting arguments, if a baseline profile is provided.
-    val baselineArgs = baselineProfile().map { bp =>
-      Seq("--art-profile", bp.path.toString, baselineOutOpt.toString)
-    }.getOrElse(Seq.empty)
-
-    r8ArgsBuilder ++= baselineArgs
-
-    // Library arguments: pass each bootclasspath and any additional library classes as --lib.
-    val libArgs = libraryClassesPaths().flatMap(ref => Seq("--lib", ref.path.toString))
-
-    r8ArgsBuilder ++= libArgs
-
-    // ProGuard configuration files: add our extra rules file,
-    // all provided config files and the common rules.
-    val pgArgs =
-      Seq(
-        "--pg-conf",
-        androidProguard().path.toString,
-        "--pg-conf",
-        extraRulesFile.toString
-      ) ++ androidCommonProguardFiles().flatMap(pgf => Seq("--pg-conf", pgf.path.toString))
-
-    r8ArgsBuilder ++= pgArgs
-
-    val compileOnlyClasspath = androidR8CompileOnlyClasspath()
-
-    r8ArgsBuilder ++= compileOnlyClasspath.toSeq.flatMap(compiledMvnDepsFile =>
-      Seq(
-        "--classpath",
-        "@" + compiledMvnDepsFile.path.toString
-      )
-    )
-
-    r8ArgsBuilder ++= androidR8Args()
-
-    r8ArgsBuilder += "@" + allClassFilesFile.toString
-
-    val r8Args = r8ArgsBuilder.result()
-
-    (PathRef(outputPath), r8Args, allClassFilesPathRefs)
+    os.zip.apply(jarDest, zipFiles)
+    PathRef(jarDest)
   }
+
+  private def androidR8Build(buildType: Task[String])
+      : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] =
+    Task.Anon {
+      val destDir = Task.dest / "minify"
+      os.makeDir.all(destDir)
+
+      val outputPath = destDir
+
+      Task.log.debug("outputPath: " + outputPath)
+
+      // Define diagnostic output file paths
+      val mappingOut = destDir / "mapping.txt"
+      val seedsOut = destDir / "seeds.txt"
+      val usageOut = destDir / "usage.txt"
+      val configOut = destDir / "configuration.txt"
+      destDir / "missing_rules.txt"
+      val baselineOutOpt = destDir / "baseline-profile-rewritten.txt"
+      destDir / "res"
+
+      // Extra ProGuard rules
+      val extraRules =
+        Seq(
+          // Instruct R8 to print seeds and usage.
+          s"-printseeds $seedsOut",
+          s"-printusage $usageOut"
+        ) ++
+          (if (androidBuildSettings().isMinifyEnabled) then androidGeneratedMinifyKeepRules()
+           else Seq())
+      // Create an extra ProGuard config file
+      val extraRulesFile = destDir / "extra-rules.pro"
+      val extraRulesContent = extraRules.mkString("\n")
+      os.write.over(extraRulesFile, extraRulesContent)
+
+      val classpathClassFiles: Seq[PathRef] = androidPackagedClassfiles()
+        .filter(_.path.ext == "class")
+
+      val appCompiledFiles: Seq[PathRef] = androidPackagedCompiledClasses()
+        .filter(_.path.ext == "class")
+
+      val allClassFilesPathRefs =
+        classpathClassFiles ++ appCompiledFiles ++ androidPackagedDeps()
+
+      val allClassFiles = allClassFilesPathRefs.map(_.path.toString)
+      val allClassFilesFile = Task.dest / "all-classes.txt"
+      os.write.over(allClassFilesFile, allClassFiles.mkString("\n"))
+
+      val r8ArgsBuilder = Seq.newBuilder[String]
+
+      r8ArgsBuilder += androidSdkModule().r8Exe().path.toString
+
+      if (androidIsDebug())
+        r8ArgsBuilder += "--debug"
+      else
+        r8ArgsBuilder += "--release"
+
+      r8ArgsBuilder ++= Seq(
+        "--output",
+        outputPath.toString,
+        "--pg-map-output",
+        mappingOut.toString,
+        "--pg-conf-output",
+        configOut.toString
+      )
+
+      if (!androidBuildSettings().enableDesugaring) {
+        r8ArgsBuilder += "--no-desugaring"
+      }
+
+      if (!androidBuildSettings().isMinifyEnabled) {
+        r8ArgsBuilder ++= Seq("--no-minification", "--no-tree-shaking")
+      }
+
+      // R8 does not support --min-api when compiling to class files
+      if (buildType() == "--dex") {
+        r8ArgsBuilder ++= Seq(
+          "--min-api",
+          androidMinSdk().toString
+        )
+      }
+
+      r8ArgsBuilder ++= Seq(
+        buildType()
+      )
+
+      // Baseline profile rewriting arguments, if a baseline profile is provided.
+      val baselineArgs = baselineProfile().map { bp =>
+        Seq("--art-profile", bp.path.toString, baselineOutOpt.toString)
+      }.getOrElse(Seq.empty)
+
+      r8ArgsBuilder ++= baselineArgs
+
+      // Library arguments: pass each bootclasspath and any additional library classes as --lib.
+      val libArgs = libraryClassesPaths().flatMap(ref => Seq("--lib", ref.path.toString))
+
+      r8ArgsBuilder ++= libArgs
+
+      if (buildType() == "--classfile") {
+        r8ArgsBuilder ++= Seq(
+          "--lib",
+          androidR8JavaHome().path.toString
+        )
+      }
+
+      // ProGuard configuration files: add our extra rules file,
+      // all provided config files and the common rules.
+      val pgArgs =
+        Seq(
+          "--pg-conf",
+          androidProguard().path.toString,
+          "--pg-conf",
+          extraRulesFile.toString
+        ) ++ androidCommonProguardFiles().flatMap(pgf => Seq("--pg-conf", pgf.path.toString))
+
+      r8ArgsBuilder ++= pgArgs
+
+      val compileOnlyClasspath = androidR8CompileOnlyClasspath()
+
+      r8ArgsBuilder ++= compileOnlyClasspath.filter(_.path.ext == "jar").flatMap(compiledMvnDeps =>
+        Seq(
+          "--classpath",
+          compiledMvnDeps.path.toString
+        )
+      )
+
+      r8ArgsBuilder ++= androidR8Args()
+
+      r8ArgsBuilder += "@" + allClassFilesFile.toString
+
+      val r8Args = r8ArgsBuilder.result()
+
+      (PathRef(outputPath), r8Args, allClassFilesPathRefs)
+    }
 
   /**
    * Generates ProGuard/R8 keep rules to keep classes that are referenced in the AndroidManifest.xml
@@ -347,6 +400,51 @@ trait AndroidR8AppModule extends AndroidAppModule {
     layoutXmls.flatMap { xmlFile =>
       val xml = XML.loadFile(xmlFile.toIO)
       collectClasses(xml)
+    }
+  }
+
+  trait AndroidR8InstrumentedTestsModule extends AndroidAppInstrumentedTests, AndroidR8AppModule {
+
+    def moduleDeps: Seq[JavaModule] = super.moduleDeps.filterNot(_ == outer)
+    def compileModuleDeps: Seq[JavaModule] = super.compileModuleDeps ++ Seq(outer)
+
+    def androidPackagableDepsExclusionRules: T[Seq[(String, String)]] = Task {
+      val baseResolvedDependencies = defaultResolver().resolution(
+        Task.traverse(compileModuleDepsChecked)(_.mvnDeps)().flatten,
+        boms = allBomDeps()
+      )
+      baseResolvedDependencies.dependencies
+        .map(d => d.module.organization.value -> d.module.name.value).toSeq
+    }
+
+    def androidPackagableMvnDeps: T[Seq[Dep]] = Task {
+      mvnDeps().map(_.exclude(androidPackagableDepsExclusionRules()*))
+    }
+
+    def androidResolvedPackagableMvnDeps: Task.Simple[Seq[PathRef]] = Task {
+      defaultResolver().classpath(
+        androidPackagableMvnDeps(),
+        artifactTypes = Some(artifactTypes()),
+        resolutionParamsMapOpt =
+          Some { params =>
+            params
+              .withDefaultConfiguration(coursier.core.Configuration.runtime)
+              .withDefaultVariantAttributes(
+                cs.VariantSelector.AttributesBased(
+                  params.defaultVariantAttributes.map(_.matchers).getOrElse(Map()) ++ Seq(
+                    "org.gradle.usage" -> cs.VariantSelector.VariantMatcher.Runtime
+                  )
+                )
+              )
+          },
+        boms = allBomDeps()
+      )
+    }
+
+    override def resolvedRunMvnDeps: Task.Simple[Seq[PathRef]] = androidResolvedPackagableMvnDeps()
+
+    override def androidR8CompileOnlyClasspath: T[Seq[PathRef]] = Task {
+      Seq(outer.androidR8Jar())
     }
   }
 

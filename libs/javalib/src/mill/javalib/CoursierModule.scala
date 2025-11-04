@@ -5,7 +5,7 @@ import coursier.cache.FileCache
 import coursier.core.Resolution
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import coursier.{Dependency, Repository}
+import coursier.{BomDependency, Dependency, Repository}
 import mill.api.{ModuleRef, PathRef, Result, Task}
 import mill.util.Jvm
 import mill.T
@@ -250,7 +250,8 @@ object CoursierModule {
         sources: Boolean = false,
         artifactTypes: Option[Set[coursier.Type]] = None,
         resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
-        mapDependencies: Option[Dependency => Dependency] = null
+        mapDependencies: Option[Dependency => Dependency] = null,
+        @unroll boms: IterableOnce[BomDependency] = Nil
     )(using ctx: mill.api.TaskCtx): Seq[PathRef] =
       Lib.resolveDependencies(
         repositories = repositories,
@@ -263,7 +264,8 @@ object CoursierModule {
         ctx = Some(ctx),
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams)),
         checkGradleModules = checkGradleModules,
-        config = config
+        config = config,
+        boms = boms
       ).get
 
     /**
@@ -272,7 +274,8 @@ object CoursierModule {
      * @param deps root dependencies
      */
     def resolution[T: CoursierModule.Resolvable](
-        deps: IterableOnce[T]
+        deps: IterableOnce[T],
+        @unroll boms: IterableOnce[BomDependency] = Nil
     )(using ctx: mill.api.TaskCtx): coursier.core.Resolution = {
       val deps0 = deps
         .iterator
@@ -286,7 +289,7 @@ object CoursierModule {
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = Some(ctx),
         resolutionParams = resolutionParams,
-        boms = Nil,
+        boms = boms,
         checkGradleModules = checkGradleModules,
         config = config
       ).get

@@ -4,10 +4,12 @@
 :language: Kotlin
 :language-small: kotlin
 :language-ext: kt
+:compat-module: KotlinMavenModule
+:compat-test-module: KotlinMavenTests
 
 include::partial$Intro_Header.adoc[]
 
-== Simple Config-Based Modules
+== Config-Based Modules
 
 include::partial$example/kotlinlib/basic/3-simple.adoc[]
 
