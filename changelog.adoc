@@ -29,7 +29,7 @@ so any issues can be surfaced and resolved before being stabilized in Mill `1.1.
 
 The big feature of Mill `1.1.0` is support for config-based modules defined in `build.mill.yaml`
 files and single-file scripts with a YAML build header. These are compatible with existing
-`.mill` module definitions, and is intended for simple projects or modules that do not
+`.mill` module definitions, and are intended for simple projects or modules that do not
 need the flexibility of a full programming language to configure their build.
 
 ==== Config-Based Module Definitions
@@ -55,10 +55,13 @@ mvnDeps:
 This is equivalent to Mill's existing `object foo extends JavaModule{ def mvnDeps = ... }` syntax.
 All the normal Mill commands still apply: `./mill compile`, `./mill test`, `./mill assembly`, etc.
 
-See the docs for https://mill-build.org/mill/main-branch/javalib/config.html[Config-Based Java Modules]
-for more information
+We expect that config-based `build.mill.yaml` files will help simplify the use of Mill for
+small projects, where the user typically just needs to set some config keys and doesn't need
+custom tasks or custom build logic that programmatic module definitions allow. See the docs
+for https://mill-build.org/mill/main-branch/javalib/config.html[Config-Based Java Modules]
+for more information.
 
-==== Single-File Script Modules
+==== Single-File Scripts
 
 Single-file script modules allow you to write simple programs in a single file with a `//|`
 build header comment specifying its configuration. These are useful in scenarios where a separate
