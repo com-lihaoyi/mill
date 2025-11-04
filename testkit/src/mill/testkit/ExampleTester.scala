@@ -3,6 +3,8 @@ package mill.testkit
 import mill.constants.Util.isWindows
 import utest.*
 
+import scala.util.control.NonFatal
+
 /**
  * A variant of [[IntegrationTester]], [[ExampleTester]] works the same way
  * except the commands used to test the project come from a `/** Usage ... */`
