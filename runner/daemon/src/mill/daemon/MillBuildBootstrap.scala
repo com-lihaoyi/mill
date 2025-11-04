@@ -262,24 +262,24 @@ class MillBuildBootstrap(
             case Result.Success((buildFileApi)) =>
 
               Using.resource(makeEvaluator(
-                projectRoot,
-                output,
-                keepGoing,
-                env,
-                logger,
-                ec,
-                allowPositionalCommandArgs,
-                systemExit,
-                streams0,
-                selectiveExecution,
-                offline,
-                newWorkerCache,
-                nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
-                buildFileApi.rootModule,
+                projectRoot = projectRoot,
+                output = output,
+                keepGoing = keepGoing,
+                env = env,
+                logger = logger,
+                ec = ec,
+                allowPositionalCommandArgs = allowPositionalCommandArgs,
+                systemExit = systemExit,
+                streams0 = streams0,
+                selectiveExecution = selectiveExecution,
+                offline = offline,
+                workerCache = newWorkerCache,
+                codeSignatures = nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
+                rootModule = buildFileApi.rootModule,
                 // We want to use the grandparent buildHash, rather than the parent
                 // buildHash, because the parent build changes are instead detected
                 // by analyzing the scriptImportGraph in a more fine-grained manner.
-                nestedState
+                millClassloaderSigHash = nestedState
                   .frames
                   .dropRight(1)
                   .headOption
@@ -287,13 +287,13 @@ class MillBuildBootstrap(
                   .getOrElse(millBootClasspathPathRefs)
                   .map(p => (os.Path(p.javaPath), p.sig))
                   .hashCode(),
-                nestedState
+                millClassloaderIdentityHash = nestedState
                   .frames
                   .headOption
                   .flatMap(_.classLoaderOpt)
                   .map(_.hashCode())
                   .getOrElse(0),
-                depth,
+                depth = depth,
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker
               )) { evaluator =>
