@@ -176,7 +176,8 @@ for more information
 * Repair CLI option --help-advanced ({link-pr}/5993[#5993])
 * Support for HTTP Proxy settings in the Coursier dependency downloader ({link-pr}/5971[#5971])
 * Start of a dedicated documentation page and examples for using Mill to build
-  Spring-Boot projects (https://mill-build.org/mill/main-branch/javalib/springboot-examples.html[link])
+  Spring-Boot projects (https://mill-build.org/mill/main-branch/javalib/springboot-examples.html[link]).
+  This is currently pretty bare, but will get fleshed out as we move towards `1.1.0` final
 * Many improvements to Mill's Android build support ({link-pr}/5887[#5887], {link-pr}/5888[#5888],
   {link-pr}/5926[#5926], {link-pr}/5963[#5963], {link-pr}/5997[#5997], {link-pr}/5980[#5980],
   {link-pr}/6063[#6063], {link-pr}/6073[#6073])
