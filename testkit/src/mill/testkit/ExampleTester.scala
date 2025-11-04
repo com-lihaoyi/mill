@@ -89,11 +89,12 @@ class ExampleTester(
     val cleanupProcessIdFile: Boolean = true
 ) extends IntegrationTesterBase {
 
-  def incorrectPlatform(commandComment: String): Boolean = {
-    (commandComment.exists(_.startsWith("windows")) && !isWindows) ||
-      (commandComment.exists(_.startsWith("mac/linux")) && isWindows) ||
-      (commandComment.exists(_.startsWith("--no-daemon")) && daemonMode) ||
-      (commandComment.exists(_.startsWith("not --no-daemon")) && !daemonMode)
+  def commandFilter(commandComment: String): Boolean = commandComment match {
+    case s"windows$_" => isWindows
+    case s"mac/linux$_" => !isWindows
+    case s"--no-daemon$_" => !daemonMode
+    case s"not --no-daemon$_" => daemonMode
+    case _ => true
   }
 
   def processCommandBlock(commandBlock: String): Unit = {
@@ -105,7 +106,9 @@ class ExampleTester(
       case string => (string, None)
     }
 
-    if (!incorrectPlatform(comment)) {
+    val commandAllowed = comment.forall(commandFilter)
+
+    if (commandAllowed) {
       processCommand(expectedSnippets, commandHead.trim)
     }
   }
