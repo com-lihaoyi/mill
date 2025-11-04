@@ -48,23 +48,23 @@ class Checker[T <: RootModule0](module: T) {
 
   def resolveTasks(selectorStrings: Seq[String]) = {
     Resolve.Tasks.resolve(
-      module,
-      selectorStrings,
-      SelectMode.Separated,
-      false,
-      false,
-      _ => Nil
+      rootModule = module,
+      scriptArgs = selectorStrings,
+      selectMode = SelectMode.Separated,
+      allowPositionalCommandArgs = false,
+      resolveToModuleTasks = false,
+      scriptModuleResolver = _ => Nil
     )
   }
 
   def resolveMetadata(selectorStrings: Seq[String]) = {
     Resolve.Segments.resolve(
-      module,
-      selectorStrings,
-      SelectMode.Separated,
-      false,
-      false,
-      _ => Nil
+      rootModule = module,
+      scriptArgs = selectorStrings,
+      selectMode = SelectMode.Separated,
+      allowPositionalCommandArgs = false,
+      resolveToModuleTasks = false,
+      scriptModuleResolver = _ => Nil
     ).map(_.map(_.render))
   }
 }

@@ -65,11 +65,11 @@ final class EvaluatorImpl private[mill] (
   ): mill.api.Result[List[Segments]] = {
     os.checker.withValue(ResolveChecker(workspace)) {
       Resolve.Segments.resolve(
-        rootModule,
-        scriptArgs,
-        selectMode,
-        allowPositionalCommandArgs,
-        resolveToModuleTasks,
+        rootModule = rootModule,
+        scriptArgs = scriptArgs,
+        selectMode = selectMode,
+        allowPositionalCommandArgs = allowPositionalCommandArgs,
+        resolveToModuleTasks = resolveToModuleTasks,
         scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
       )
     }
@@ -82,11 +82,11 @@ final class EvaluatorImpl private[mill] (
   ): mill.api.Result[List[Resolved]] = {
     os.checker.withValue(ResolveChecker(workspace)) {
       Resolve.Raw.resolve(
-        rootModule,
-        scriptArgs,
-        selectMode,
-        allowPositionalCommandArgs,
-        resolveToModuleTasks,
+        rootModule = rootModule,
+        scriptArgs = scriptArgs,
+        selectMode = selectMode,
+        allowPositionalCommandArgs = allowPositionalCommandArgs,
+        resolveToModuleTasks = resolveToModuleTasks,
         scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
       )
     }
@@ -105,11 +105,11 @@ final class EvaluatorImpl private[mill] (
     os.checker.withValue(ResolveChecker(workspace)) {
       Evaluator.withCurrentEvaluator(this) {
         Resolve.Tasks.resolve(
-          rootModule,
-          scriptArgs,
-          selectMode,
-          allowPositionalCommandArgs,
-          resolveToModuleTasks,
+          rootModule = rootModule,
+          scriptArgs = scriptArgs,
+          selectMode = selectMode,
+          allowPositionalCommandArgs = allowPositionalCommandArgs,
+          resolveToModuleTasks = resolveToModuleTasks,
           scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
         )
       }
@@ -124,11 +124,11 @@ final class EvaluatorImpl private[mill] (
     os.checker.withValue(ResolveChecker(workspace)) {
       Evaluator.withCurrentEvaluator(this) {
         Resolve.Inspect.resolve(
-          rootModule,
-          scriptArgs,
-          selectMode,
-          allowPositionalCommandArgs,
-          resolveToModuleTasks,
+          rootModule = rootModule,
+          scriptArgs = scriptArgs,
+          selectMode = selectMode,
+          allowPositionalCommandArgs = allowPositionalCommandArgs,
+          resolveToModuleTasks = resolveToModuleTasks,
           scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
         )
       }
@@ -197,11 +197,11 @@ final class EvaluatorImpl private[mill] (
       }
 
     val evaluated: ExecutionResults = execution.executeTasks(
-      selectedTasks,
-      reporter,
-      testReporter,
-      logger,
-      serialCommandExec
+      goals = selectedTasks,
+      reporter = reporter,
+      testReporter = testReporter,
+      logger = logger,
+      serialCommandExec = serialCommandExec
     )
 
     val scriptHeaderWatches =
@@ -290,10 +290,10 @@ final class EvaluatorImpl private[mill] (
       os.checker.withValue(ResolveChecker(workspace)) {
         Evaluator.withCurrentEvaluator(this) {
           Resolve.Tasks.resolve(
-            rootModule,
-            scriptArgs,
-            selectMode,
-            allowPositionalCommandArgs,
+            rootModule = rootModule,
+            scriptArgs = scriptArgs,
+            selectMode = selectMode,
+            allowPositionalCommandArgs = allowPositionalCommandArgs,
             scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
           )
         }
