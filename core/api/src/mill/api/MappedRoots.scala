@@ -87,7 +87,8 @@ trait MappedRootsImpl {
     for {
       singleKey <- key
     } {
-      if (!map.contains(singleKey)) throw new NoSuchElementException(s"No root path mapping defined for '${key}'")
+      if (!map.contains(singleKey))
+        throw new NoSuchElementException(s"No root path mapping defined for '${key}'")
     }
   }
 

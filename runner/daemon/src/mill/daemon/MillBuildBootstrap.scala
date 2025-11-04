@@ -274,7 +274,8 @@ class MillBuildBootstrap(
                 selectiveExecution = selectiveExecution,
                 offline = offline,
                 workerCache = newWorkerCache,
-                codeSignatures = nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
+                codeSignatures =
+                  nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
                 rootModule = buildFileApi.rootModule,
                 // We want to use the grandparent buildHash, rather than the parent
                 // buildHash, because the parent build changes are instead detected
