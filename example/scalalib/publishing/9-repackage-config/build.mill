@@ -1,0 +1,93 @@
+// An alternative way to produce self-executable assemblies is the `RepackageModule` which used the https://docs.spring.io/spring-boot/build-tool-plugin/index.html[Spring Boot Tools suite].
+// Instead of copying and merging dependencies classes and resources into a flat jar file, it embeds all dependencies as-is in the final jar.
+// One of the pros of this approach is, that all dependency archives are kept unextracted, which makes later introspection for checksums, authorship and copyright questions easier.
+
+//// SNIPPET:BUILD
+package build
+
+import mill.*, api.*, scalalib.*, publish.*
+import mill.javalib.repackage.RepackageModule
+import mill.javalib.spring.boot.SpringBootToolsModule
+
+trait MyModule extends ScalaModule, PublishModule {
+  def scalaVersion = "3.7.3"
+
+  def publishVersion = "0.0.1"
+
+  def pomSettings = PomSettings(
+    description = "Hello",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/example",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "example"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+  )
+
+  def mvnDeps = Seq(mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE")
+
+  object test extends ScalaTests, TestModule.Junit4
+}
+
+object SpringBootTools2 extends SpringBootToolsModule {
+  // Default version requires Java 17+, so downgrate to latest 2.x version
+  override def springBootToolsVersion = "2.7.18"
+  protected lazy val millDiscover = Discover[this.type]
+}
+
+object foo extends MyModule, RepackageModule { // <1>
+  def moduleDeps = Seq(bar, qux)
+  override def springBootToolsModule = ModuleRef(SpringBootTools2)
+}
+
+object bar extends MyModule {
+  def moduleDeps = Seq(qux)
+}
+
+object qux extends MyModule
+
+// <1> Add the `mill.javalib.repackage.RepackageModule` to the executable module.
+
+/** Usage
+
+> ./mill foo.run
+Foo.value: <h1>hello</h1>
+Bar.value: <p>world</p>
+Qux.value: 31337
+
+> ./mill __.test
+...Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...s
+...Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...s
+
+> ./mill show foo.repackagedJar
+".../out/foo/repackagedJar.dest/out.jar"
+
+> ./out/foo/repackagedJar.dest/out.jar
+Foo.value: <h1>hello</h1>
+Bar.value: <p>world</p>
+Qux.value: 31337
+
+> unzip -l ./out/foo/repackagedJar.dest/out.jar "BOOT-INF/lib*" # mac/linux
+...BOOT-INF/lib/scala3-library_3-3.7.3.jar
+...BOOT-INF/lib/thymeleaf-3.1.1.RELEASE.jar
+...BOOT-INF/lib/ognl-3.3.4.jar
+...BOOT-INF/lib/attoparser-2.0.6.RELEASE.jar
+...BOOT-INF/lib/unbescape-1.1.6.RELEASE.jar
+...BOOT-INF/lib/slf4j-api-2.0.5.jar
+...BOOT-INF/lib/javassist-3.29.0-GA.jar
+...BOOT-INF/lib/qux_3-0.0.1.jar
+...BOOT-INF/lib/bar_3-0.0.1.jar
+
+*/
+//// SNIPPET:END
+
+// *Futher notes:*
+//
+// * a small wrapper application needs to be added, which is run as entry point and transparently manages loading the embedded jars and running your `main` method.
+// This works for all Java (also Scala or Kotlin) applications.
+// * It's not necessary to use the Spring Framework in the application.
+// * The resulting jar is a self-executable application, but it might not suitable to be used on the classpath of other applications.
+
+// * Since the final jar produced with the `RepackageModule.repackagedJar` task often contains significantly less ZIP entries
+// then the jar file produced with `.assembly`, it's possible to workaround
+// an https://github.com/com-lihaoyi/mill/issues/2650[issue where `JavaModule.assembly` cannot produce executable assemblies]
+// due to some JVM limitations in ZIP file handling of large files.

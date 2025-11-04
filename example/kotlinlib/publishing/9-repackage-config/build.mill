@@ -1,10 +1,12 @@
 //// SNIPPET:BUILD
 package build
 
-import mill.*, javalib.*, publish.*
+import mill.*, kotlinlib.*, publish.*
 import mill.javalib.repackage.RepackageModule
 
-trait MyModule extends JavaModule, PublishModule {
+trait MyModule extends KotlinModule, PublishModule {
+  def kotlinVersion = "2.2.20"
+
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
@@ -18,7 +20,7 @@ trait MyModule extends JavaModule, PublishModule {
 
   def mvnDeps = Seq(mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE")
 
-  object test extends JavaTests, TestModule.Junit4
+  object test extends KotlinTests, TestModule.Junit4
 }
 
 object foo extends MyModule, RepackageModule { // <1>
@@ -40,7 +42,7 @@ Foo.value: <h1>hello</h1>
 Bar.value: <p>world</p>
 Qux.value: 31337
 
-> ./mill __.test
+> ./mill -j1 __.test
 ...Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...s
 ...Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...s
 
@@ -53,6 +55,7 @@ Bar.value: <p>world</p>
 Qux.value: 31337
 
 > unzip -l ./out/foo/repackagedJar.dest/out.jar "BOOT-INF/lib*"
+...BOOT-INF/lib/kotlin-stdlib-2.2.20.jar
 ...BOOT-INF/lib/thymeleaf-3.1.1.RELEASE.jar
 ...BOOT-INF/lib/ognl-3.3.4.jar
 ...BOOT-INF/lib/attoparser-2.0.6.RELEASE.jar
@@ -63,4 +66,4 @@ Qux.value: 31337
 ...BOOT-INF/lib/bar-0.0.1.jar
 
 */
-////SNIPPED:END
+//// SNIPPET:END
