@@ -163,7 +163,7 @@
             <div class="cover">
              <div class="doc">
               <p>A variant of <a href="testkit/IntegrationTester.html">IntegrationTester</a>, <a href="testkit/ExampleTester.html">ExampleTester</a> works the same way except the commands used to test the project come from a <code>/** Usage ... */</code> comment inside the project's <code>build.mill</code> file. This is intended to make the <code>build.mill</code> file usable as documentation, such that a reader can skim the <code>build.mill</code> and see both the build configuration and the commands they themselves can enter at the command line to exercise it.</p>
-              <p>Implements a bash-like test DSL for educational purposes, parsed out from a <code>Example Usage</code> comment in the example's <code>build.mill</code> file. Someone should be able to read the <code>Example Usage</code> comment and know roughly how to execute the example themselves.</p>
+              <p>Implements a bash-like test DSL for educational purposes, parsed out from an <code>Example Usage</code> comment in the example's <code>build.mill</code> file. Someone should be able to read the <code>Example Usage</code> comment and know roughly how to execute the example themselves.</p>
               <p>Each empty-line-separated block consists of one command (prefixed with <code>&gt;</code>) and zero or more output lines we expect to get from the command (either stdout or stderr):</p>
               <ol>
                <li>
@@ -177,6 +177,13 @@
               </ol>
               <p>For teaching purposes, the output lines do not show the entire output of every command, which can be verbose and confusing. They instead contain sub-strings of the command output, enough to convey the important points to a learner. This is not as strict as asserting the entire command output, but should be enough to catch most likely failure modes</p>
               <p>Because our CI needs to run on Windows, we cannot rely on just executing commands in the <code>bash</code> shell, and instead we implement a janky little interpreter that reads the command lines and does things in-JVM in response to each one.</p>
+              <p>You can suffix command with a comment to restrict its applicability, e.g. <code>&gt; echo "Windows" # windows</code>. The following comments are recognized (see <span data-unresolved-link="" title="Problem linking incorrectPlatform: Couldn't resolve a member for the given link query">incorrectPlatform</span>):</p>
+              <ul>
+               <li>'mac/linux' - Only run on Linux/Mac but not on Windows</li>
+               <li>'windows' - Only run on Windows but not on Linux/Mac</li>
+               <li>'--no-daemon' - Only run in no-daemon test mode</li>
+               <li>'not --no-daemon' - Only run in daemon test mode</li>
+              </ul>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
