@@ -25,7 +25,7 @@ object DockerModuleTest extends TestSuite {
     }
 
     object dockerAll extends DockerConfig {
-      override def baseImage = "docker.io/openjdk:11"
+      override def baseImage = "docker.io/eclipse-temurin:17"
       override def labels = Map("version" -> "1.0")
       override def exposedPorts = Seq(8080, 443)
       override def exposedUdpPorts = Seq(80)
@@ -126,7 +126,7 @@ object DockerModuleTest extends TestSuite {
         val Right(result) = eval(Docker.dockerAll.dockerfile): @unchecked
         val expected = multilineRegex.replaceAllIn(
           """
-            |FROM docker.io/openjdk:11
+            |FROM docker.io/eclipse-temurin:17
             |LABEL "version"="1.0"
             |EXPOSE 8080/tcp 443/tcp
             |EXPOSE 80/udp

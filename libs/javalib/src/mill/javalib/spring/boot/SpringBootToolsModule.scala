@@ -12,6 +12,7 @@ trait SpringBootToolsModule extends CoursierModule {
   /**
    * The Spring-Boot tools version to use.
    * Defaults to the version which was used at built-time of this Mill release.
+   * Versions since `3.x` require at least Java 17.
    */
   def springBootToolsVersion: T[String] = Task {
     Versions.springBuildToolsVersion

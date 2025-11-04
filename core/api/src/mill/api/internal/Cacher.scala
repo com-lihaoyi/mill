@@ -72,9 +72,9 @@ private[mill] object Cacher {
 
       val thisSel = This(owner.owner).asExprOf[Cacher]
       '{ $thisSel.cachedTask[T](${ t })(using $enclosingCtx) }
-    } else report.errorAndAbort(
-      "Task{} members must be defs defined in a Module class/trait/object body",
-      Position.ofMacroExpansion
-    )
+    } else '{
+      // Use a runtime exception to prevent false error highlighting in IntelliJ
+      throw new Exception("Task{} members must be defs defined in a Module class/trait/object body")
+    }
   }
 }
