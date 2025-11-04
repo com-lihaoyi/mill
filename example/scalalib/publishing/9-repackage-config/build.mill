@@ -66,7 +66,7 @@ Foo.value: <h1>hello</h1>
 Bar.value: <p>world</p>
 Qux.value: 31337
 
-> unzip -l ./out/foo/repackagedJar.dest/out.jar "BOOT-INF/lib*"
+> unzip -l ./out/foo/repackagedJar.dest/out.jar "BOOT-INF/lib*" # mac/linux
 ...BOOT-INF/lib/scala3-library_3-3.7.3.jar
 ...BOOT-INF/lib/thymeleaf-3.1.1.RELEASE.jar
 ...BOOT-INF/lib/ognl-3.3.4.jar
