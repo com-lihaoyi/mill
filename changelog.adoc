@@ -28,9 +28,10 @@ used unchanged. `1.1.0-RC1` is intended to give users a chance to try out the ne
 so any issues can be surfaced and resolved before being stabilized in Mill `1.1.0` final.
 
 The big feature of Mill `1.1.0` is support for config-based modules defined in `build.mill.yaml`
-files and single-file scripts with a YAML build header. These are compatible with existing
-`.mill` module definitions, and are intended for simple projects or modules that do not
-need the flexibility of a full programming language to configure their build.
+files and single-file `.java`, `.scala`, or `.kt` scripts with a YAML build header. These
+are compatible with existing `.mill` module definitions, and are intended for simple projects
+or modules that do not need the flexibility of a full programming language to configure their
+build.
 
 ==== Config-Based Module Definitions
 
