@@ -16,7 +16,7 @@ import java.security.MessageDigest
 import scala.util.Using
 private case class SubprocessCacheKey(
     javaHome: Option[os.Path],
-    runtimeOptions: JavaRuntimeOptions
+    runtimeOptions: Seq[String]
 ) {
   def debugStr = s"javaHome=$javaHome, runtimeOptions=$runtimeOptions"
 
@@ -62,7 +62,7 @@ private case class SubprocessCacheValue(
  */
 class SubprocessZincApi(
     javaHome: Option[os.Path],
-    runtimeOptions: JavaRuntimeOptions,
+    runtimeOptions: Seq[String],
     ctx: ZincWorker.InvocationContext,
     log: Logger,
     subprocessCache: CachedFactoryWithInitData[

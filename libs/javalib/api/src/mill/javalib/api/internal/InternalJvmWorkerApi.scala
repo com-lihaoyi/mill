@@ -8,16 +8,16 @@ import mill.javalib.api.JvmWorkerApi.Ctx
 import mill.javalib.api.internal.ZincOperation
 import os.Path
 
-trait JvmWorkerApi extends PublicJvmWorkerApi {
+trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
 
   /** Compile a Java-only project. */
   def apply(
       op: ZincOperation,
       javaHome: Option[os.Path],
-      javaRuntimeOptions: JavaRuntimeOptions = JavaRuntimeOptions(Nil),
+      javaRuntimeOptions: Seq[String] = Nil,
       reporter: Option[CompileProblemReporter] = None,
       reportCachedProblems: Boolean = false
-  )(using context: JvmWorkerApi.Ctx): op.Response
+  )(using context: InternalJvmWorkerApi.Ctx): op.Response
 
   // public API forwarder
   override def compileJava(
@@ -30,7 +30,7 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
   )(using ctx: Ctx): Result[CompilationResult] = {
-    val jOpts = JavaCompilerOptions(javacOptions)
+    val jOpts = JavaCompilerOptions.split(javacOptions)
     apply(
       ZincCompileJava(
         upstreamCompileOutput = upstreamCompileOutput,
@@ -63,7 +63,7 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String]
   )(using ctx: Ctx): Result[CompilationResult] = {
-    val jOpts = JavaCompilerOptions(javacOptions)
+    val jOpts = JavaCompilerOptions.split(javacOptions)
     apply(
       ZincCompileMixed(
         upstreamCompileOutput = upstreamCompileOutput,
@@ -103,12 +103,12 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
         args = args
       ),
       javaHome = javaHome,
-      javaRuntimeOptions = JavaRuntimeOptions(Nil),
+      javaRuntimeOptions = Nil,
       None,
       false
     )
   }
 }
-object JvmWorkerApi {
+object InternalJvmWorkerApi {
   type Ctx = PublicJvmWorkerApi.Ctx
 }

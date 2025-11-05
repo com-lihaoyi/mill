@@ -122,7 +122,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 
     Task.log.debug(s"effective javac options: ${javacOpts}")
 
-    val jOpts = JavaCompilerOptions(javacOpts)
+    val jOpts = JavaCompilerOptions.split(javacOpts)
 
     val worker = jvmWorker().internalWorker()
 

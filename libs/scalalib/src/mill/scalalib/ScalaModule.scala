@@ -278,7 +278,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin
     )
 
-    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
+    val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
 
     val worker = jvmWorker().internalWorker()
 
@@ -619,7 +619,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       Task.log.debug(s"effective scalac options: ${scalacOptions}")
       Task.log.debug(s"effective javac options: ${javacOpts}")
 
-      val jOpts = JavaCompilerOptions(javacOpts)
+      val jOpts = JavaCompilerOptions.split(javacOpts)
 
       val worker = jvmWorker().internalWorker()
       worker.apply(

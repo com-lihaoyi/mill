@@ -12,7 +12,7 @@ case class ZincCompileJava(
     upstreamCompileOutput: Seq[CompilationResult],
     sources: Seq[os.Path],
     compileClasspath: Seq[os.Path],
-    javacOptions: JavaCompilerOptions,
+    javacOptions: Seq[String],
     incrementalCompilation: Boolean
 ) extends ZincOperation {
   type Response = Result[CompilationResult]
@@ -23,7 +23,7 @@ case class ZincCompileMixed(
     upstreamCompileOutput: Seq[CompilationResult],
     sources: Seq[os.Path],
     compileClasspath: Seq[os.Path],
-    javacOptions: JavaCompilerOptions,
+    javacOptions: Seq[String],
     scalaVersion: String,
     scalaOrganization: String,
     scalacOptions: Seq[String],

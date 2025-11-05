@@ -235,7 +235,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       scalaOrganization,
       compilerClasspath,
       scalacPluginClasspath,
-      JavaCompilerOptions.empty,
+      Nil,
       compilerBridge
     ) { compilers =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
@@ -305,7 +305,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
-      javacOptions: JavaCompilerOptions,
+      javacOptions: Seq[String],
       compilerBridge: ZincCompilerBridgeProvider
   )(f: Compilers => T) = {
     val cacheKey = ScalaCompilerCacheKey(
@@ -324,7 +324,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
       compileClasspath: Seq[os.Path],
-      javacOptions: JavaCompilerOptions,
+      javacOptions: Seq[String],
       scalacOptions: Seq[String],
       compilers: Compilers,
       reporter: Option[CompileProblemReporter],
@@ -343,7 +343,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     if (ctx.logDebugEnabled) {
       deps.log.debug(
         s"""Compiling:
-           |  javacOptions: ${javacOptions.options.map("'" + _ + "'").mkString(" ")}
+           |  javacOptions: ${javacOptions.map("'" + _ + "'").mkString(" ")}
            |  scalacOptions: ${scalacOptions.map("'" + _ + "'").mkString(" ")}
            |  sources: ${sources.map("'" + _ + "'").mkString(" ")}
            |  classpath: ${compileClasspath.map("'" + _ + "'").mkString(" ")}
@@ -439,7 +439,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       classesDirectory = classesDir.toNIO,
       earlyJarPath = None,
       scalacOptions = finalScalacOptions.toArray,
-      javacOptions = javacOptions.options.toArray,
+      javacOptions = javacOptions.toArray,
       maxErrors = maxErrors,
       sourcePositionMappers = Array(),
       order = CompileOrder.Mixed,
@@ -627,14 +627,14 @@ object ZincWorker {
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
       scalaOrganization: String,
-      javacOptions: JavaCompilerOptions
+      javacOptions: Seq[String]
   ) {
     val combinedCompilerClasspath: Seq[PathRef] = compilerClasspath ++ scalacPluginClasspath
   }
 
   private case class ScalaCompilerCached(classLoader: URLClassLoader, compilers: Compilers)
 
-  private case class JavaCompilerCacheKey(javacOptions: JavaCompilerOptions)
+  private case class JavaCompilerCacheKey(javacOptions: Seq[String])
 
   private def getLocalOrCreateJavaTools(): JavaTools = {
     val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork())

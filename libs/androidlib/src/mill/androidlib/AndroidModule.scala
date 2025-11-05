@@ -516,7 +516,7 @@ trait AndroidModule extends JavaModule { outer =>
    * The Java compiled classes of [[androidResources]]
    */
   def androidCompiledRClasses: T[CompilationResult] = Task(persistent = true) {
-    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
+    val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
     val worker = jvmWorker().internalWorker()
     worker.apply(
       ZincCompileJava(
@@ -728,7 +728,7 @@ trait AndroidModule extends JavaModule { outer =>
 
     val rJar = Task.dest / "R.jar"
 
-    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
+    val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
     val worker = jvmWorker().internalWorker()
     val classesDest = worker
       .apply(

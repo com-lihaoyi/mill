@@ -13,7 +13,7 @@ import mill.api.ModuleRef
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
-import mill.javalib.api.internal.JvmWorkerApi
+import mill.javalib.api.internal.InternalJvmWorkerApi
 import mill.api.daemon.internal.{CompileProblemReporter, KotlinModuleApi, internal}
 import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.{Jvm, Version}
@@ -426,16 +426,16 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   }
 
   private[kotlinlib] def internalCompileJavaFiles(
-      worker: JvmWorkerApi,
-      upstreamCompileOutput: Seq[CompilationResult],
-      javaSourceFiles: Seq[os.Path],
-      compileCp: Seq[os.Path],
-      javaHome: Option[os.Path],
-      javacOptions: Seq[String],
-      compileProblemReporter: Option[CompileProblemReporter],
-      reportOldProblems: Boolean
+                                                   worker: InternalJvmWorkerApi,
+                                                   upstreamCompileOutput: Seq[CompilationResult],
+                                                   javaSourceFiles: Seq[os.Path],
+                                                   compileCp: Seq[os.Path],
+                                                   javaHome: Option[os.Path],
+                                                   javacOptions: Seq[String],
+                                                   compileProblemReporter: Option[CompileProblemReporter],
+                                                   reportOldProblems: Boolean
   )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
-    val jOpts = JavaCompilerOptions(javacOptions)
+    val jOpts = JavaCompilerOptions.split(javacOptions)
     worker.apply(
       ZincCompileJava(
         upstreamCompileOutput = upstreamCompileOutput,

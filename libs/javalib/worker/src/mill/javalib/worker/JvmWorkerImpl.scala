@@ -11,7 +11,7 @@ import mill.util.{CachedFactoryWithInitData, Jvm}
 import sbt.internal.util.ConsoleOut
 
 @internal
-class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable {
+class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoCloseable {
   import args.*
 
   /** The local Zinc instance which is used when we do not want to override Java home or runtime options. */
@@ -20,10 +20,10 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
   override def apply(
       op: ZincOperation,
       javaHome: Option[os.Path],
-      javaRuntimeOptions: JavaRuntimeOptions,
+      javaRuntimeOptions: Seq[String],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
-  )(using ctx: JvmWorkerApi.Ctx): op.Response = {
+  )(using ctx: InternalJvmWorkerApi.Ctx): op.Response = {
     zincApi(javaHome, javaRuntimeOptions)
       .apply(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
   }
@@ -40,9 +40,9 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
    */
   private def zincApi(
       javaHome: Option[os.Path],
-      javaRuntimeOptions: JavaRuntimeOptions
+      javaRuntimeOptions: Seq[String]
   )(using
-      ctx: JvmWorkerApi.Ctx
+      ctx: InternalJvmWorkerApi.Ctx
   ): ZincApi = {
     val log = ctx.log
     val zincCtx = ZincWorker.InvocationContext(
@@ -53,7 +53,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       zincLogDebug = zincLogDebug
     )
 
-    if (javaRuntimeOptions.options.isEmpty && javaHome.isEmpty) localZincApi(zincCtx, log)
+    if (javaRuntimeOptions.isEmpty && javaHome.isEmpty) localZincApi(zincCtx, log)
     else new SubprocessZincApi(
       javaHome,
       javaRuntimeOptions,
@@ -100,7 +100,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
 
       os.makeDir.all(daemonDir)
       os.write.over(workerDir / "java-home", key.javaHome.map(_.toString).getOrElse("<default>"))
-      os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.options.mkString("\n"))
+      os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
       val mainClass = "mill.javalib.zinc.ZincWorkerMain"
       val locks = {
@@ -124,7 +124,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
             mainClass = mainClass,
             mainArgs = Seq(daemonDir.toString, jobs.toString),
             javaHome = key.javaHome,
-            jvmArgs = key.runtimeOptions.options,
+            jvmArgs = key.runtimeOptions,
             classPath = classPath
           )
           LaunchedServer.OsProcess(process.wrapped.toHandle)
@@ -133,7 +133,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
           throw IllegalStateException(
             s"""Failed to launch '$mainClass' for:
                |  javaHome = ${key.javaHome}
-               |  runtimeOptions = ${key.runtimeOptions.options.mkString(",")}
+               |  runtimeOptions = ${key.runtimeOptions.mkString(",")}
                |  daemonDir = $daemonDir
                |
                |Failure:
