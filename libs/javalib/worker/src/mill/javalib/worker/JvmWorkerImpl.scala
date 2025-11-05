@@ -4,11 +4,14 @@ import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.client.lock.{DoubleLock, Locks, MemoryLock}
+import mill.constants.DaemonFiles
 import mill.javalib.api.internal.*
 import mill.javalib.internal.JvmWorkerArgs
 import mill.javalib.zinc.{ZincApi, ZincWorker}
 import mill.util.{CachedFactoryWithInitData, Jvm}
 import sbt.internal.util.ConsoleOut
+
+import java.nio.file.FileSystemException
 
 @internal
 class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoCloseable {
@@ -64,7 +67,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         key: SubprocessCacheKey,
         initData: => SubprocessCacheInitialize,
         value: SubprocessCacheValue
-    ): Boolean = value.isRunning()
+    ): Boolean = value.launchedServer.isAlive
 
     private var memoryLocksByDaemonDir = Map.empty[os.Path, MemoryLock]
     private def memLockFor(daemonDir: os.Path): MemoryLock = {
@@ -84,7 +87,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         init: SubprocessCacheInitialize
     ): SubprocessCacheValue = {
 
-      val workerDir = init.taskDest / "zinc-worker" / key.sha256
+      val workerDir = init.taskDest / "zinc-worker" / key.hashCode.toString
       val daemonDir = workerDir / "daemon"
 
       os.makeDir.all(daemonDir)
@@ -137,7 +140,21 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
     }
 
     override def teardown(key: SubprocessCacheKey, value: SubprocessCacheValue): Unit = {
-      value.killProcess()
+      os.remove(value.daemonDir / DaemonFiles.processId)
+      while (value.launchedServer.isAlive) Thread.sleep(1)
+
+      // On Windows it takes some time until the file handles are released, so we have 
+      // to wait for that as well.
+      if (scala.util.Properties.isWin) {
+        val daemonLock = value.daemonDir / DaemonFiles.daemonLock
+
+        def tryRemoving(): Boolean = {
+          try { os.remove(daemonLock); true }
+          catch { case _: FileSystemException => false }
+        }
+
+        while (!tryRemoving()) Thread.sleep(10)
+      }
     }
   }
 

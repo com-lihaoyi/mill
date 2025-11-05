@@ -2,59 +2,15 @@ package mill.javalib.worker
 import mill.api.*
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.client.{LaunchedServer, ServerLauncher}
-import mill.constants.DaemonFiles
 import mill.javalib.api.internal.*
 import mill.javalib.internal.{RpcCompileProblemReporterMessage, ZincCompilerBridgeProvider}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
-import mill.util.{CachedFactoryWithInitData, HexFormat}
+import mill.util.CachedFactoryWithInitData
 
 import java.io.*
-import java.nio.file.FileSystemException
-import java.security.MessageDigest
 import scala.util.Using
-private case class SubprocessCacheKey(
-    javaHome: Option[os.Path],
-    runtimeOptions: Seq[String]
-) {
-  def debugStr = s"javaHome=$javaHome, runtimeOptions=$runtimeOptions"
-
-  def sha256: String = {
-    val digest = MessageDigest.getInstance("sha256").digest(debugStr.getBytes("UTF-8"))
-    HexFormat.bytesToHex(digest)
-  }
-}
-private case class SubprocessCacheInitialize(
-    taskDest: os.Path,
-    log: Logger
-)
-private case class SubprocessCacheValue(
-    port: Int,
-    daemonDir: os.Path,
-    launchedServer: LaunchedServer
-) {
-  def isRunning(): Boolean =
-    launchedServer.isAlive
-
-  def killProcess(): Unit = {
-    os.remove(daemonDir / DaemonFiles.processId)
-    while (isRunning()) Thread.sleep(1)
-
-    // On Windows it takes some time until the file handles are released, so we have to wait for that as
-    // well.
-    if (scala.util.Properties.isWin) {
-      val daemonLock = daemonDir / DaemonFiles.daemonLock
-
-      def tryRemoving(): Boolean = {
-        try { os.remove(daemonLock); true }
-        catch { case _: FileSystemException => false }
-      }
-
-      while (!tryRemoving()) Thread.sleep(10)
-    }
-  }
-}
 
 /**
  * Spawns a [[ZincApi]] subprocess with the specified java version and runtime options and returns a [[ZincApi]]
@@ -82,10 +38,48 @@ class SubprocessZincApi(
     override def ticker(s: String): Unit = log.ticker(s)
   }
 
-  def withRpcClient[R](
-      handler: MillRpcChannel[ZincWorkerRpcServer.ServerToClient]
-  )(f: MillRpcClient[ZincWorkerRpcServer.Request, ZincWorkerRpcServer.ServerToClient] => R)
-      : R = {
+  /** Handles messages sent from the Zinc RPC server. */
+  private def serverRpcToClientHandler(
+      reporter: Option[CompileProblemReporter],
+      log: Logger,
+      cacheKey: SubprocessCacheKey
+  ): MillRpcChannel[ZincWorkerRpcServer.ServerToClient] = {
+    input =>
+      input match {
+        case msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge =>
+          compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization)
+            .asInstanceOf[input.Response]
+        case msg: ZincWorkerRpcServer.ServerToClient.ReportCompilationProblem =>
+          val res =
+            reporter match {
+              case Some(reporter) => msg.problem match {
+                  case RpcCompileProblemReporterMessage.Start => reporter.start()
+                  case RpcCompileProblemReporterMessage.LogError(problem) =>
+                    reporter.logError(problem)
+                  case RpcCompileProblemReporterMessage.LogWarning(problem) =>
+                    reporter.logWarning(problem)
+                  case RpcCompileProblemReporterMessage.LogInfo(problem) =>
+                    reporter.logInfo(problem)
+                  case RpcCompileProblemReporterMessage.FileVisited(file) =>
+                    reporter.fileVisited(file.toNIO)
+                  case RpcCompileProblemReporterMessage.PrintSummary => reporter.printSummary()
+                  case RpcCompileProblemReporterMessage.Finish => reporter.finish()
+                  case RpcCompileProblemReporterMessage.NotifyProgress(progress, total) =>
+                    reporter.notifyProgress(progress = progress, total = total)
+                }
+
+              case None =>
+            }
+          res.asInstanceOf[input.Response]
+      }
+
+  }
+
+  override def apply(
+      op: ZincOperation,
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean
+  ): op.Response = {
     subprocessCache.withValue(
       cacheKey,
       SubprocessCacheInitialize(compilerBridge.workspace, log)
@@ -116,70 +110,23 @@ class SubprocessZincApi(
               ZincWorkerRpcServer.Initialize,
               ZincWorkerRpcServer.Request,
               ZincWorkerRpcServer.ServerToClient
-            ](init, wireTransport, makeClientLogger())(handler)
+            ](init, wireTransport, makeClientLogger())(serverRpcToClientHandler(reporter, log, cacheKey))
 
-            f(client)
+            client.apply(ZincWorkerRpcServer.Request(
+              op,
+              reporter match {
+                case None => ReporterMode.NoReporter
+                case Some(reporter) => ReporterMode.Reporter(reportCachedProblems, reporter.maxErrors)
+              },
+              ctx
+            )).asInstanceOf[op.Response]
           }
         )
       }.get
     }
   }
-
-  /** Handles messages sent from the Zinc RPC server. */
-  private def serverRpcToClientHandler(
-      reporter: Option[CompileProblemReporter],
-      log: Logger,
-      cacheKey: SubprocessCacheKey
-  ): MillRpcChannel[ZincWorkerRpcServer.ServerToClient] = {
-    input => 
-      input match {
-        case msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge =>
-          compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization)
-            .asInstanceOf[input.Response]
-        case msg: ZincWorkerRpcServer.ServerToClient.ReportCompilationProblem =>
-          val res =
-            reporter match {
-              case Some(reporter) => msg.problem match {
-                case RpcCompileProblemReporterMessage.Start => reporter.start()
-                case RpcCompileProblemReporterMessage.LogError(problem) => reporter.logError(problem)
-                case RpcCompileProblemReporterMessage.LogWarning(problem) =>
-                  reporter.logWarning(problem)
-                case RpcCompileProblemReporterMessage.LogInfo(problem) => reporter.logInfo(problem)
-                case RpcCompileProblemReporterMessage.FileVisited(file) =>
-                  reporter.fileVisited(file.toNIO)
-                case RpcCompileProblemReporterMessage.PrintSummary => reporter.printSummary()
-                case RpcCompileProblemReporterMessage.Finish => reporter.finish()
-                case RpcCompileProblemReporterMessage.NotifyProgress(progress, total) =>
-                  reporter.notifyProgress(progress = progress, total = total)
-              }
-
-              case None =>
-                log.warn(
-                  s"Received compilation problem from JVM worker (${cacheKey.debugStr}), but no reporter was provided, " +
-                    s"this is a bug in Mill. Ignoring the compilation problem for now.\n\n" +
-                    s"Problem: ${pprint.apply(msg)}"
-                )
-            }
-          res.asInstanceOf[input.Response]
-      }
-
-  }
-
-  override def apply(
-      op: ZincOperation,
-      reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
-  ): op.Response = {
-    withRpcClient(serverRpcToClientHandler(reporter, log, cacheKey)) { rpcClient =>
-      val res = rpcClient(ZincWorkerRpcServer.Request(
-        op,
-        reporter match {
-          case None => ReporterMode.NoReporter
-          case Some(reporter) => ReporterMode.Reporter(reportCachedProblems, reporter.maxErrors)
-        },
-        ctx
-      ))
-      res.asInstanceOf[op.Response]
-    }
-  }
 }
+
+case class SubprocessCacheKey(javaHome: Option[os.Path], runtimeOptions: Seq[String])
+case class SubprocessCacheInitialize(taskDest: os.Path, log: Logger)
+case class SubprocessCacheValue(port: Int, daemonDir: os.Path, launchedServer: LaunchedServer)

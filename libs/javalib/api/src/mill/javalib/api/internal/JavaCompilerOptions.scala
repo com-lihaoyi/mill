@@ -8,4 +8,3 @@ object JavaCompilerOptions {
     (runtimeOptions, compilerOptions)
   }
 }
-

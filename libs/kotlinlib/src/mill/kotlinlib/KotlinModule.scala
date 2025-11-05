@@ -426,14 +426,14 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   }
 
   private[kotlinlib] def internalCompileJavaFiles(
-                                                   worker: InternalJvmWorkerApi,
-                                                   upstreamCompileOutput: Seq[CompilationResult],
-                                                   javaSourceFiles: Seq[os.Path],
-                                                   compileCp: Seq[os.Path],
-                                                   javaHome: Option[os.Path],
-                                                   javacOptions: Seq[String],
-                                                   compileProblemReporter: Option[CompileProblemReporter],
-                                                   reportOldProblems: Boolean
+      worker: InternalJvmWorkerApi,
+      upstreamCompileOutput: Seq[CompilationResult],
+      javaSourceFiles: Seq[os.Path],
+      compileCp: Seq[os.Path],
+      javaHome: Option[os.Path],
+      javacOptions: Seq[String],
+      compileProblemReporter: Option[CompileProblemReporter],
+      reportOldProblems: Boolean
   )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
     val jOpts = JavaCompilerOptions.split(javacOptions)
     worker.apply(
