@@ -50,5 +50,4 @@ object OptGroup {
 //  implicit def ArrayToOptGroup[T](s: Array[T])(using f: T => OptGroup): OptGroup =
 //    OptGroup(s.flatMap(f(_).value))
 
-
 }

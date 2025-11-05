@@ -287,7 +287,8 @@ trait MillBuildRootModule()(using
     }
 
     // copied from `ScalaModule`
-    val jOpts = JavaCompilerOptions.split(javacOptions().toStringSeq ++ mandatoryJavacOptions().toStringSeq)
+    val jOpts =
+      JavaCompilerOptions.split(javacOptions().toStringSeq ++ mandatoryJavacOptions().toStringSeq)
     val worker = jvmWorker().internalWorker()
     worker.apply(
       ZincCompileMixed(

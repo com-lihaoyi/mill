@@ -24,7 +24,9 @@ object ApplicativeTests extends TestSuite {
     test("selfContained") {
 
       test("simple") - assert(TestOpt("lol " + 1) == TestOpt.some("lol 1"))
-      test("singleSome") - assert(TestOpt("lol " + TestOpt.some("hello")()) == TestOpt.some("lol hello"))
+      test("singleSome") - assert(
+        TestOpt("lol " + TestOpt.some("hello")()) == TestOpt.some("lol hello")
+      )
       test("twoSomes") - assert(
         TestOpt(TestOpt.some("lol ")() + TestOpt.some("hello")()) == TestOpt.some("lol hello")
       )
@@ -35,27 +37,55 @@ object ApplicativeTests extends TestSuite {
           TestOpt(
             "lol " +
               TestOpt.none() + TestOpt.none() + TestOpt.none() + TestOpt.none() + TestOpt.none() +
-              TestOpt.none() + TestOpt.none() + TestOpt.none() + TestOpt.none() + TestOpt.some(" world")() +
+              TestOpt.none() + TestOpt.none() + TestOpt.none() + TestOpt.none() + TestOpt.some(
+                " world"
+              )() +
               TestOpt.none() + TestOpt.none() + TestOpt.none() + TestOpt.none() + TestOpt.none() +
               TestOpt.none() + TestOpt.none() + TestOpt.none() + TestOpt.none() + TestOpt.none() +
-              TestOpt.none() + TestOpt.none() + TestOpt.none() + TestOpt.none() + TestOpt.some(" moo")()
+              TestOpt.none() + TestOpt.none() + TestOpt.none() + TestOpt.none() + TestOpt.some(
+                " moo"
+              )()
           ) == TestOpt.none
         )
         assert(
           TestOpt(
             "lol " +
-              TestOpt.some("a")() + TestOpt.some("b")() + TestOpt.some("c")() + TestOpt.some("d")() +
-              TestOpt.some("e")() + TestOpt.some("a")() + TestOpt.some("b")() + TestOpt.some("c")() +
-              TestOpt.some("d")() + TestOpt.some("e")() + TestOpt.some("a")() + TestOpt.some("b")() +
-              TestOpt.some("c")() + TestOpt.some("d")() + TestOpt.some("e")() + TestOpt.some("a")() +
-              TestOpt.some("b")() + TestOpt.some("c")() + TestOpt.some("d")() + TestOpt.some("e")() +
-              TestOpt.some("a")() + TestOpt.some("b")() + TestOpt.some("c")() + TestOpt.some("d")() +
-              TestOpt.some("e")() + TestOpt.some("a")() + TestOpt.some("b")() + TestOpt.some("c")() +
-              TestOpt.some("d")() + TestOpt.some("e")() + TestOpt.some("a")() + TestOpt.some("b")() +
-              TestOpt.some("c")() + TestOpt.some("d")() + TestOpt.some("e")() + TestOpt.some("a")() +
-              TestOpt.some("b")() + TestOpt.some("c")() + TestOpt.some("d")() + TestOpt.some("e")() +
-              TestOpt.some("a")() + TestOpt.some("b")() + TestOpt.some("c")() + TestOpt.some("d")() +
-              TestOpt.some("e")() + TestOpt.some("a")() + TestOpt.some("b")() + TestOpt.some("c")() +
+              TestOpt.some("a")() + TestOpt.some("b")() + TestOpt.some("c")() + TestOpt.some(
+                "d"
+              )() +
+              TestOpt.some("e")() + TestOpt.some("a")() + TestOpt.some("b")() + TestOpt.some(
+                "c"
+              )() +
+              TestOpt.some("d")() + TestOpt.some("e")() + TestOpt.some("a")() + TestOpt.some(
+                "b"
+              )() +
+              TestOpt.some("c")() + TestOpt.some("d")() + TestOpt.some("e")() + TestOpt.some(
+                "a"
+              )() +
+              TestOpt.some("b")() + TestOpt.some("c")() + TestOpt.some("d")() + TestOpt.some(
+                "e"
+              )() +
+              TestOpt.some("a")() + TestOpt.some("b")() + TestOpt.some("c")() + TestOpt.some(
+                "d"
+              )() +
+              TestOpt.some("e")() + TestOpt.some("a")() + TestOpt.some("b")() + TestOpt.some(
+                "c"
+              )() +
+              TestOpt.some("d")() + TestOpt.some("e")() + TestOpt.some("a")() + TestOpt.some(
+                "b"
+              )() +
+              TestOpt.some("c")() + TestOpt.some("d")() + TestOpt.some("e")() + TestOpt.some(
+                "a"
+              )() +
+              TestOpt.some("b")() + TestOpt.some("c")() + TestOpt.some("d")() + TestOpt.some(
+                "e"
+              )() +
+              TestOpt.some("a")() + TestOpt.some("b")() + TestOpt.some("c")() + TestOpt.some(
+                "d"
+              )() +
+              TestOpt.some("e")() + TestOpt.some("a")() + TestOpt.some("b")() + TestOpt.some(
+                "c"
+              )() +
               TestOpt.some("d")() + TestOpt.some("e")()
           ) == TestOpt.some("lol abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcde")
         )
@@ -68,7 +98,9 @@ object ApplicativeTests extends TestSuite {
       val lol = "lol "
       def hell(o: String) = "hell" + o
       test("simple") - assert(TestOpt(lol + 1) == TestOpt.some("lol 1"))
-      test("singleSome") - assert(TestOpt(lol + TestOpt.some(hell("o"))()) == TestOpt.some("lol hello"))
+      test("singleSome") - assert(
+        TestOpt(lol + TestOpt.some(hell("o"))()) == TestOpt.some("lol hello")
+      )
       test("twoSomes") - assert(
         TestOpt(TestOpt.some(lol)() + TestOpt.some(hell("o"))()) == TestOpt.some("lol hello")
       )

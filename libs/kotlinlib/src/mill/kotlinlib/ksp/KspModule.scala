@@ -341,7 +341,9 @@ trait KspModule extends KotlinModule { outer =>
     val kspCachesDir = Task.dest / "caches"
 
     val processorOptionsValue =
-      kspProcessorOptions().map((key, value) => s"$key=${value.toString}").toSeq.mkString(File.pathSeparator)
+      kspProcessorOptions().map((key, value) => s"$key=${value.toString}").toSeq.mkString(
+        File.pathSeparator
+      )
 
     val processorOptions = if (processorOptionsValue.isEmpty)
       ""
@@ -448,7 +450,9 @@ trait KspModule extends KotlinModule { outer =>
     val kspCachesDir = Task.dest / "caches"
 
     val processorOptionsValue =
-      kspProcessorOptions().map((key, value) => s"$key=${value.toString()}").toSeq.mkString(File.pathSeparator)
+      kspProcessorOptions().map((key, value) => s"$key=${value.toString()}").toSeq.mkString(
+        File.pathSeparator
+      )
 
     val processorOptions = if (processorOptionsValue.isEmpty)
       ""

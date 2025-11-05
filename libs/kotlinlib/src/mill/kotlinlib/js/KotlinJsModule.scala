@@ -7,7 +7,7 @@ import mill.api.{PathRef, Result, Task}
 import mill.api.opt.*
 import mill.api.Task.Command
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
-import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager, KotlincOptions}
+import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
 import mill.javalib.Lib
 import mill.javalib.api.CompilationResult
 import mill.util.Jvm

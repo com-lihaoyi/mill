@@ -5,8 +5,7 @@ trait OptsApi {
   def value: Seq[OptGroupApi]
 }
 
-trait OptGroupApi {
-}
+trait OptGroupApi {}
 
 trait OptApi {
   def toString(): String

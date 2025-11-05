@@ -76,7 +76,8 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldFatalWarnings extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalacOptions = Task { Opts(ScalacOptions.`-Ywarn-unused`, ScalacOptions.`-Xfatal-warnings`) }
+      override def scalacOptions =
+        Task { Opts(ScalacOptions.`-Ywarn-unused`, ScalacOptions.`-Xfatal-warnings`) }
     }
     lazy val millDiscover = Discover[this.type]
   }

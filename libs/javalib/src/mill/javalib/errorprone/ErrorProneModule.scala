@@ -5,7 +5,6 @@ import mill.api.opt.*
 import mill.javalib.{Dep, DepSyntax, JavaModule}
 import mill.{T, Task}
 
-import java.io.File
 
 /**
  * Integrated Error Prone into a [[JavaModule]].

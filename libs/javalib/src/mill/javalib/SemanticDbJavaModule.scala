@@ -1,14 +1,6 @@
 package mill.javalib
 
-import mill.api.{
-  BuildCtx,
-  Discover,
-  ExternalModule,
-  ModuleRef,
-  PathRef,
-  Result,
-  experimental
-}
+import mill.api.{BuildCtx, Discover, ExternalModule, ModuleRef, PathRef, Result, experimental}
 import mill.api.daemon.internal.SemanticDbJavaModuleApi
 import mill.api.opt.*
 import mill.constants.CodeGenConstants

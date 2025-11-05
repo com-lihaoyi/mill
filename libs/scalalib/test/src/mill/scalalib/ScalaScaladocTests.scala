@@ -12,7 +12,8 @@ object ScalaScaladocTests extends TestSuite {
 
   object HelloWorldWithDocVersion extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalacOptions = Task { Opts(ScalacOptions.`-Ywarn-unused`, ScalacOptions.`-Xfatal-warnings`) }
+      override def scalacOptions =
+        Task { Opts(ScalacOptions.`-Ywarn-unused`, ScalacOptions.`-Xfatal-warnings`) }
       override def scalaDocOptions = super.scalaDocOptions() ++ Opts("-doc-version", "1.2.3")
     }
 
@@ -21,7 +22,8 @@ object ScalaScaladocTests extends TestSuite {
 
   object HelloWorldOnlyDocVersion extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalacOptions = Task { Opts(ScalacOptions.`-Ywarn-unused`, ScalacOptions.`-Xfatal-warnings`) }
+      override def scalacOptions =
+        Task { Opts(ScalacOptions.`-Ywarn-unused`, ScalacOptions.`-Xfatal-warnings`) }
       override def scalaDocOptions = Task { Opts("-doc-version", "1.2.3") }
     }
 

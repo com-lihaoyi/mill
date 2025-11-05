@@ -83,7 +83,6 @@ object Opt {
 //  implicit def IterableToOpt[T](s: Iterable[T])(using f: T => Opt): Opt =
 //    Opt(s.toSeq.flatMap(f(_).value))
 
-
   implicit def StringToOpt(s: String): Opt = Opt(s)
 
   implicit def OsPathToOpt(p: os.Path): Opt = Opt(p)

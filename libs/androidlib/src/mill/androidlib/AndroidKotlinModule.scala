@@ -6,7 +6,12 @@ import mill.api.opt.*
 import mill.javalib.{CoursierModule, Dep}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlincOptions}
 import mill.{T, Task}
-import mill.androidlib.databinding.{AndroidDataBindingWorker, AndroidDataBindingWorkerModule, GenerateBindingSourcesArgs, ProcessResourcesArgs}
+import mill.androidlib.databinding.{
+  AndroidDataBindingWorker,
+  AndroidDataBindingWorkerModule,
+  GenerateBindingSourcesArgs,
+  ProcessResourcesArgs
+}
 import mill.util.Jvm
 
 // TODO expose Compose configuration options

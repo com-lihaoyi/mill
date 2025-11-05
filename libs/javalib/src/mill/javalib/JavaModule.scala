@@ -7,10 +7,25 @@ import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
-import mill.api.{DefaultTaskModule, MillException, ModuleRef, PathRef, Result, Segment, Task, TaskCtx}
+import mill.api.{
+  DefaultTaskModule,
+  MillException,
+  ModuleRef,
+  PathRef,
+  Result,
+  Segment,
+  Task,
+  TaskCtx
+}
 import mill.api.opt.*
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
-import mill.api.daemon.internal.bsp.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, JvmBuildTarget}
+import mill.api.daemon.internal.bsp.{
+  BspBuildTarget,
+  BspJavaModuleApi,
+  BspModuleApi,
+  BspUri,
+  JvmBuildTarget
+}
 import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
