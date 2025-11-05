@@ -81,6 +81,7 @@ public class MillProcessLauncher {
     Files.createDirectories(sandbox);
 
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
+    builder.environment().put("MILL_ENABLE_STATIC_CHECKS", "true");
     if (System.getenv(EnvVars.MILL_EXECUTABLE_PATH) == null)
       builder.environment().put(EnvVars.MILL_EXECUTABLE_PATH, getExecutablePath());
 
