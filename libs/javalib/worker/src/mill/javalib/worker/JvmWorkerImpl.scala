@@ -24,26 +24,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   )(using ctx: InternalJvmWorkerApi.Ctx): op.Response = {
-    zincApi(javaHome, javaRuntimeOptions)
-      .apply(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
-  }
-
-  override def close(): Unit = {
-    zincLocalWorker.close()
-    subprocessCache.close()
-    close0() // make sure this is invoked last as it closes the classloader that we need for other `.close` calls
-  }
-
-  /**
-   * Returns the [[ZincApi]] for either the local Zinc instance or the remote Zinc instance depending on the java
-   * home and javac options.
-   */
-  private def zincApi(
-      javaHome: Option[os.Path],
-      javaRuntimeOptions: Seq[String]
-  )(using
-      ctx: InternalJvmWorkerApi.Ctx
-  ): ZincApi = {
     val log = ctx.log
     val zincCtx = ZincWorker.InvocationContext(
       env = ctx.env,
@@ -53,15 +33,24 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       zincLogDebug = zincLogDebug
     )
 
-    if (javaRuntimeOptions.isEmpty && javaHome.isEmpty) localZincApi(zincCtx, log)
-    else new SubprocessZincApi(
-      javaHome,
-      javaRuntimeOptions,
-      zincCtx,
-      log,
-      subprocessCache,
-      compilerBridge
-    )
+    val zincApi =
+      if (javaRuntimeOptions.isEmpty && javaHome.isEmpty) localZincApi(zincCtx, log)
+      else new SubprocessZincApi(
+        javaHome,
+        javaRuntimeOptions,
+        zincCtx,
+        log,
+        subprocessCache,
+        compilerBridge
+      )
+
+    zincApi.apply(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
+  }
+
+  override def close(): Unit = {
+    zincLocalWorker.close()
+    subprocessCache.close()
+    close0() // make sure this is invoked last as it closes the classloader that we need for other `.close` calls
   }
 
   private val subprocessCache = new CachedFactoryWithInitData[
