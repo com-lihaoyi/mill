@@ -17,6 +17,7 @@ import mill.api.Logger
 
 import java.util.concurrent.ConcurrentHashMap
 import mill.api.BuildCtx
+import mill.javalib.api.internal.ZincGetTestTasks
 import mill.javalib.testrunner.{GetTestTasksMain, TestArgs, TestResult, TestRunnerUtils}
 import os.Path
 
@@ -46,7 +47,8 @@ final class TestModuleUtil(
     javaHome: Option[os.Path],
     testParallelism: Boolean,
     testLogLevel: TestReporter.LogLevel,
-    propagateEnv: Boolean = true
+    propagateEnv: Boolean = true,
+    jvmWorker: mill.javalib.api.JvmWorkerApi
 )(using ctx: mill.api.TaskCtx) {
 
   private val (jvmArgs, props) = TestModuleUtil.loadArgsAndProps(useArgsFile, forkArgs)
@@ -78,32 +80,16 @@ final class TestModuleUtil(
         // test group requires spawning a JVM which can take 1+ seconds to realize there are no
         // tests to run and shut down
 
-        val discoveredTests = if (javaHome.isDefined) {
-          Jvm.callProcess(
-            mainClass = "mill.javalib.testrunner.GetTestTasksMain",
-            classPath = scalalibClasspath.map(_.path).toVector,
-            mainArgs =
-              (runClasspath ++ testrunnerEntrypointClasspath).flatMap(p =>
-                Seq("--runCp", p.path.toString)
-              ) ++
-                testClasspath.flatMap(p => Seq("--testCp", p.path.toString)) ++
-                Seq("--framework", testFramework) ++
-                selectors.flatMap(s => Seq("--selectors", s)) ++
-                args.flatMap(s => Seq("--args", s)),
-            javaHome = javaHome,
-            stdin = os.Inherit,
-            stdout = os.Pipe,
-            cwd = Task.dest
-          ).out.lines().toSet
-        } else {
-          GetTestTasksMain.main0(
+        val discoveredTests = jvmWorker.getTestTasks(
+          ZincGetTestTasks(
             (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
             testClasspath.map(_.path),
             testFramework,
             selectors,
             args
-          ).toSet
-        }
+          ),
+          javaHome
+        ).toSet
 
         filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
       }

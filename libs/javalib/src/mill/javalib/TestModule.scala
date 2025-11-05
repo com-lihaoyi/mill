@@ -13,14 +13,8 @@ import mill.javalib.bsp.BspModule
 import mill.util.Jvm
 import mill.api.JsonFormatters.given
 import mill.constants.EnvVars
-import mill.javalib.testrunner.{
-  DiscoverTestsMain,
-  Framework,
-  TestArgs,
-  TestResult,
-  TestRunner,
-  TestRunnerUtils
-}
+import mill.javalib.api.internal.ZincDiscoverTests
+import mill.javalib.testrunner.{DiscoverTestsMain, Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
 
 import java.nio.file.Path
 
@@ -67,27 +61,15 @@ trait TestModule
    * Test classes (often called test suites) discovered by the configured [[testFramework]].
    */
   def discoveredTestClasses: T[Seq[String]] = Task {
-    val classes = if (javaHome().isDefined) {
-      Jvm.callProcess(
-        mainClass = "mill.javalib.testrunner.DiscoverTestsMain",
-        classPath = jvmWorker().scalalibClasspath().map(_.path).toVector,
-        mainArgs =
-          runClasspath().flatMap(p => Seq("--runCp", p.path.toString())) ++
-            testClasspath().flatMap(p => Seq("--testCp", p.path.toString())) ++
-            Seq("--framework", testFramework()),
-        javaHome = javaHome().map(_.path),
-        stdin = os.Inherit,
-        stdout = os.Pipe,
-        cwd = Task.dest
-      ).out.lines()
-    } else {
-      DiscoverTestsMain.main0(
+    val discoveredTests = jvmWorker().worker().discoverTests(
+      ZincDiscoverTests(
         runClasspath().map(_.path),
         testClasspath().map(_.path),
         testFramework()
-      )
-    }
-    classes.sorted
+      ),
+      javaHome().map(_.path)
+    )
+    discoveredTests.sorted
   }
 
   /**
@@ -266,7 +248,8 @@ trait TestModule
         javaHome().map(_.path),
         testParallelism(),
         testLogLevel(),
-        propagateEnv()
+        propagateEnv(),
+        jvmWorker().worker()
       )
       testModuleUtil.runTests()
     }

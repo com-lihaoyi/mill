@@ -85,6 +85,26 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
     result.result
   }
 
+  def discoverTests(op: mill.javalib.api.internal.ZincDiscoverTests,
+                    javaHome: Option[os.Path])(using ctx: JvmWorkerApi.Ctx): Seq[String] = {
+    given RequestId = requestIds.next()
+
+    val zinc = zincApi(javaHome, JavaRuntimeOptions(Seq.empty))
+    val result = Timed(zinc.discoverTests(op))
+    fileLog(s"Scaladoc took ${result.durationPretty}")
+    result.result
+  }
+
+  def getTestTasks(op: mill.javalib.api.internal.ZincGetTestTasks,
+                   javaHome: Option[os.Path])(using ctx: JvmWorkerApi.Ctx): Seq[String] = {
+    given RequestId = requestIds.next()
+    
+    val zinc = zincApi(javaHome, JavaRuntimeOptions(Seq.empty))
+    val result = Timed(zinc.getTestTasks(op))
+    fileLog(s"Scaladoc took ${result.durationPretty}")
+    result.result
+  }
+
   override def close(): Unit = {
     zincLocalWorker.close()
     subprocessCache.close()
@@ -274,10 +294,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
   }
 
   /** Gives you API for the [[zincLocalWorker]] instance. */
-  private def localZincApi(
-      zincCtx: ZincWorker.InvocationContext,
-      log: Logger
-  ): ZincApi = {
+  private def localZincApi(zincCtx: ZincWorker.InvocationContext, log: Logger): ZincApi = {
     val zincDeps = ZincWorker.InvocationDependencies(
       log = log,
       consoleOut = ConsoleOut.printStreamOut(log.streams.err),
@@ -410,6 +427,20 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       override def scaladocJar(op: ZincScaladocJar): Boolean = {
         withRpcClient(serverRpcToClientHandler(reporter = None, log, cacheKey)) { rpcClient =>
           val msg = ZincWorkerRpcServer.ClientToServer.ScaladocJar(op)
+          rpcClient(msg)
+        }
+      }
+
+      override def discoverTests(op: mill.javalib.api.internal.ZincDiscoverTests): Seq[String] = {
+        withRpcClient(serverRpcToClientHandler(reporter = None, log, cacheKey)) { rpcClient =>
+          val msg = ZincWorkerRpcServer.ClientToServer.DiscoverTests(op)
+          rpcClient(msg)
+        }
+      }
+
+      override def getTestTasks(op: mill.javalib.api.internal.ZincGetTestTasks): Seq[String] = {
+        withRpcClient(serverRpcToClientHandler(reporter = None, log, cacheKey)) { rpcClient =>
+          val msg = ZincWorkerRpcServer.ClientToServer.GetTestTasks(op)
           rpcClient(msg)
         }
       }

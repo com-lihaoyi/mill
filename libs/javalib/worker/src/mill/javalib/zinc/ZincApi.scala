@@ -26,4 +26,8 @@ trait ZincApi {
   def scaladocJar(
       op: ZincScaladocJar
   ): Boolean
+
+  def discoverTests(value: mill.javalib.api.internal.ZincDiscoverTests): Seq[String]
+
+  def getTestTasks(value: mill.javalib.api.internal.ZincGetTestTasks): Seq[String]
 }

@@ -36,3 +36,15 @@ case class ZincScaladocJar(
     scalacPluginClasspath: Seq[PathRef],
     args: Seq[String]
 ) derives upickle.ReadWriter
+
+case class ZincDiscoverTests(runCp: Seq[os.Path], testCp: Seq[os.Path], framework: String)
+derives upickle.ReadWriter
+
+case class ZincGetTestTasks(
+                             runCp: Seq[os.Path],
+                             testCp: Seq[os.Path],
+                             framework: String,
+                             selectors: Seq[String],
+                             args: Seq[String]
+                           )
+  derives upickle.ReadWriter
