@@ -1,13 +1,11 @@
 package mill.rpc
 
-import pprint.TPrint
 import upickle.ReadWriter
 
 trait MillRpcMessage {
   type Response
 
   given responseRw: ReadWriter[Response] = compiletime.deferred
-  given responseTypeName: TPrint[Response] = compiletime.deferred
 }
 object MillRpcMessage {
 
