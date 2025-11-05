@@ -27,19 +27,19 @@ object ScriptTests extends TestSuite {
         "0.10.1",
         "https://github.com/com-lihaoyi/mill/releases/download/0.10.1/0.10.1-assembly",
         s"$home/.cache/mill/download/0.10.1",
-        s"$home\\.cache\\\\download\\0.10.1.bat"
+        s"$home\\.cache\\mill\\download\\0.10.1.bat"
       ),
       VersionPaths(
         "0.10.2",
         "https://github.com/com-lihaoyi/mill/releases/download/0.10.2/0.10.2-assembly",
         s"$home/.cache/mill/download/0.10.2",
-        s"$home\\.cache\\\\download\\0.10.2.bat"
+        s"$home\\.cache\\mill\\download\\0.10.2.bat"
       ),
       VersionPaths(
         "0.10.3",
         "https://github.com/com-lihaoyi/mill/releases/download/0.10.3/0.10.3-assembly",
         s"$home/.cache/mill/download/0.10.3",
-        s"$home\\.cache\\\\download\\0.10.3.bat"
+        s"$home\\.cache\\mill\\download\\0.10.3.bat"
       ),
       VersionPaths(
         "0.10.4",
