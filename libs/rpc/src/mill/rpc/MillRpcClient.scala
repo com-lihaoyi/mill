@@ -57,11 +57,8 @@ object MillRpcClient {
             handleServerMessage(data)
           case Some(MillRpcServerToClient.Response(either)) =>
             either match {
-              case Left(err) =>
-                throw err
-              case Right(responseJson) =>
-                val response = upickle.read[A](responseJson)
-                responseReceived = Some(response)
+              case Left(err) => throw err
+              case Right(responseJson) => responseReceived = Some(upickle.read[A](responseJson))
             }
           case Some(MillRpcServerToClient.Log(msg)) => handleServerLog(msg)
           case Some(MillRpcServerToClient.Stdout(msg)) => stdout(msg)
@@ -83,7 +80,7 @@ object MillRpcClient {
 
     wireTransport.writeSerialized(initialize, logDebug)
 
-    new {
+    new MillRpcClient[ClientToServer, ServerToClient]{
       override def apply(msg: ClientToServer): msg.Response = {
         wireTransport.writeSerialized(MillRpcClientToServer.Ask(msg), logDebug)
         awaitForResponse[msg.Response](using msg.responseRw)

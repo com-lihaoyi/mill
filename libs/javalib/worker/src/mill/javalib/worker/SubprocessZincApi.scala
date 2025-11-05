@@ -102,7 +102,7 @@ class SubprocessZincApi(
             val serverToClient = use(BufferedReader(InputStreamReader(in)))
             val clientToServer = use(PrintStream(out))
             val wireTransport =
-              MillRpcWireTransport.ViaStreams(
+              MillRpcWireTransport(
                 debugName,
                 serverToClient,
                 clientToServer,
