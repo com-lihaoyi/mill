@@ -37,12 +37,12 @@ trait ErrorProneModule extends JavaModule {
    * Options used to enable and configure the `error-prone` plugin in the Java compiler.
    */
   def errorProneJavacEnableOptions: T[Opts] = Task {
-    val processorPath: Seq[os.Path] = errorProneClasspath().map(_.path)
+    val processorPath: Opt = Opt.mkPath(errorProneClasspath().map(_.path), sep = java.io.File.pathSeparator)
 
     val enableOpts: Opts = Opts(
       "-XDcompilePolicy=simple",
-      "-processorpath",
-      processorPath,
+      OptGroup("-processorpath", processorPath),
+      // ErrorProne options are given as a single argument containing spaces
       (Seq("-Xplugin:ErrorProne") ++ errorProneOptions()).mkString(" ")
     )
     val java17Options: Seq[String] = Option.when(scala.util.Properties.isJavaAtLeast(16))(Seq(
