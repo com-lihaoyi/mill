@@ -21,6 +21,8 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 :prev-version: 1.0.6
 _2025-11-04_
 
+* https://github.com/com-lihaoyi/mill/discussions/6116[1.1.0-RC1 Discussion Thread]
+
 `1.1.0-RC1` is the first release candidate of the upcoming `1.1.0` release, due December 2025.
 `1.1.0` contains locally-breaking changes but preserves plugin compatibility: you may need to update
 your local builds to be compatible, but existing plugins published for 1.x can continue to be
