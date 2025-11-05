@@ -13,6 +13,7 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.api.Cross
 import mill.api.BuildCtx
+import mill.testkit.Chunk
 
 object `package` extends Module {
   def exampleModules: Seq[ExampleCrossModule] = moduleInternal
@@ -246,7 +247,7 @@ object `package` extends Module {
     /**
      * Parses a `build.mill` for specific comments and return the split-by-type content
      */
-    def parsed: T[Seq[(String, String)]] = Task {
+    def parsed: T[Seq[mill.testkit.Chunk]] = Task {
       mill.testkit.ExampleParser(testRepoSourceRoot().path)
     }
 
@@ -254,17 +255,18 @@ object `package` extends Module {
       var seenCode = false
       var seenFrontMatter = false
       val examplePath = moduleDir.subRelativeTo(BuildCtx.workspaceRoot)
-      val frontMatter = parsed().takeWhile(_._1 == "yaml").map(_._2).mkString("\n")
-      val withoutFrontMatter = parsed().dropWhile(_._1 == "yaml")
+      val frontMatter = parsed().takeWhile(_.isInstanceOf[Chunk.Yaml]).map {
+        case Chunk.Yaml(lines) => lines.mkString("\n")
+      }.mkString("\n")
+      val withoutFrontMatter = parsed().dropWhile(_.isInstanceOf[Chunk.Yaml])
       val exampleDashed = examplePath.segments.mkString("-")
       val download =
         s"{mill-download-url}/mill-dist-${build.millVersion()}-$exampleDashed.zip[download]"
       os.write(
         Task.dest / "example.adoc",
         withoutFrontMatter
-          .filter(_._2.nonEmpty)
           .map {
-            case (s"see:$path", txt) =>
+            case Chunk.See(path, lines) =>
               // avoid .stripMargin, as the embedded content may contain the margin symbol
               val lang = os.FilePath(path).ext match {
                 case "mill" => "scala"
@@ -274,9 +276,9 @@ object `package` extends Module {
 .$path ($download, {mill-example-url}/$examplePath/$path[browse])
 [source,$lang,subs="attributes,verbatim"]
 ----
-$txt
+${lines.mkString("\n")}
 ----"""
-            case ("scala", txt) =>
+            case Chunk.Scala(lines) =>
               val title =
                 if (seenCode) ""
                 else {
@@ -297,19 +299,18 @@ ${
                   }
                 }
 
-$txt
+${lines.mkString("\n")}
 ----
 """
-            case ("comment", txt) => txt + "\n"
-            case ("example", txt) =>
+            case Chunk.Comment(lines) => lines.mkString("\n") + "\n"
+            case Chunk.Example(lines) =>
               // avoid .stripMargin, as the embedded content may contain the margin symbol
               s"""
 [source,console,subs="attributes,verbatim"]
 ----
-$txt
+${lines.mkString("\n")}
 ----"""
-            case (kind, txt) =>
-              throw Exception(s"Unknown kind: $kind\n\nText: $txt")
+            case Chunk.Yaml(_) => ""
           }
           .mkString("\n")
       )
