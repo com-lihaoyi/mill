@@ -130,48 +130,39 @@ class SubprocessZincApi(
       reporter: Option[CompileProblemReporter],
       log: Logger,
       cacheKey: SubprocessCacheKey
-  )
-      : MillRpcChannel[ZincWorkerRpcServer.ServerToClient] = {
-    def acquireZincCompilerBridge(
-        msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge
-    ): msg.Response =
-      compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization)
-
-    def reportCompilationProblem(
-        msg: ZincWorkerRpcServer.ServerToClient.ReportCompilationProblem
-    ): msg.Response = {
-      reporter match {
-        case Some(reporter) => msg.problem match {
-            case RpcCompileProblemReporterMessage.Start => reporter.start()
-            case RpcCompileProblemReporterMessage.LogError(problem) => reporter.logError(problem)
-            case RpcCompileProblemReporterMessage.LogWarning(problem) =>
-              reporter.logWarning(problem)
-            case RpcCompileProblemReporterMessage.LogInfo(problem) => reporter.logInfo(problem)
-            case RpcCompileProblemReporterMessage.FileVisited(file) =>
-              reporter.fileVisited(file.toNIO)
-            case RpcCompileProblemReporterMessage.PrintSummary => reporter.printSummary()
-            case RpcCompileProblemReporterMessage.Finish => reporter.finish()
-            case RpcCompileProblemReporterMessage.NotifyProgress(progress, total) =>
-              reporter.notifyProgress(progress = progress, total = total)
-          }
-
-        case None =>
-          log.warn(
-            s"Received compilation problem from JVM worker (${cacheKey.debugStr}), but no reporter was provided, " +
-              s"this is a bug in Mill. Ignoring the compilation problem for now.\n\n" +
-              s"Problem: ${pprint.apply(msg)}"
-          )
-      }
-    }
-
-    input => {
+  ): MillRpcChannel[ZincWorkerRpcServer.ServerToClient] = {
+    input => 
       input match {
         case msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge =>
-          acquireZincCompilerBridge(msg).asInstanceOf[input.Response]
+          compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization)
+            .asInstanceOf[input.Response]
         case msg: ZincWorkerRpcServer.ServerToClient.ReportCompilationProblem =>
-          reportCompilationProblem(msg).asInstanceOf[input.Response]
+          val res =
+            reporter match {
+              case Some(reporter) => msg.problem match {
+                case RpcCompileProblemReporterMessage.Start => reporter.start()
+                case RpcCompileProblemReporterMessage.LogError(problem) => reporter.logError(problem)
+                case RpcCompileProblemReporterMessage.LogWarning(problem) =>
+                  reporter.logWarning(problem)
+                case RpcCompileProblemReporterMessage.LogInfo(problem) => reporter.logInfo(problem)
+                case RpcCompileProblemReporterMessage.FileVisited(file) =>
+                  reporter.fileVisited(file.toNIO)
+                case RpcCompileProblemReporterMessage.PrintSummary => reporter.printSummary()
+                case RpcCompileProblemReporterMessage.Finish => reporter.finish()
+                case RpcCompileProblemReporterMessage.NotifyProgress(progress, total) =>
+                  reporter.notifyProgress(progress = progress, total = total)
+              }
+
+              case None =>
+                log.warn(
+                  s"Received compilation problem from JVM worker (${cacheKey.debugStr}), but no reporter was provided, " +
+                    s"this is a bug in Mill. Ignoring the compilation problem for now.\n\n" +
+                    s"Problem: ${pprint.apply(msg)}"
+                )
+            }
+          res.asInstanceOf[input.Response]
       }
-    }
+
   }
 
   override def apply(
@@ -182,22 +173,13 @@ class SubprocessZincApi(
     withRpcClient(serverRpcToClientHandler(reporter, log, cacheKey)) { rpcClient =>
       val res = rpcClient(ZincWorkerRpcServer.Request(
         op,
-        toReporterMode(reporter, reportCachedProblems),
+        reporter match {
+          case None => ReporterMode.NoReporter
+          case Some(reporter) => ReporterMode.Reporter(reportCachedProblems, reporter.maxErrors)
+        },
         ctx
       ))
       res.asInstanceOf[op.Response]
     }
-  }
-
-  private def toReporterMode(
-      reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
-  ): ReporterMode = reporter match {
-    case None => ReporterMode.NoReporter
-    case Some(reporter) =>
-      ReporterMode.Reporter(
-        reportCachedProblems = reportCachedProblems,
-        maxErrors = reporter.maxErrors
-      )
   }
 }
