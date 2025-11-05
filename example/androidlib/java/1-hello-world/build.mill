@@ -56,7 +56,7 @@ object app extends AndroidAppModule {
     def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
     def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
     def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-    def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") } 
+    def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
   }
 }
 
