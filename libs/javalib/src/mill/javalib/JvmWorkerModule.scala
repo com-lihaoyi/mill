@@ -49,25 +49,21 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
   def worker: Worker[JvmWorkerApi] = internalWorker
+  def internalWorkerClassLoader = Task.Worker{
+    mill.util.Jvm.createClassLoader(classpath().map(_.path), getClass.getClassLoader)
+  }
 
   private[mill] def internalWorker: Worker[InternalJvmWorkerApi] = Task.Worker {
     val jobs = Task.ctx().jobs
 
-    val cl = mill.util.Jvm.createClassLoader(
-      classpath().map(_.path),
-      getClass.getClassLoader
-    )
+    val cl = internalWorkerClassLoader()
 
     val ctx = Task.ctx()
     val zincCompilerBridge = ZincCompilerBridgeProvider(
       workspace = ctx.dest,
       logInfo = ctx.log.info,
       acquire = (scalaVersion, scalaOrganization) =>
-        scalaCompilerBridgeJarV2(
-          scalaVersion = scalaVersion,
-          scalaOrganization = scalaOrganization,
-          defaultResolver()
-        ).map(_.path)
+        scalaCompilerBridgeJarV2(scalaVersion, scalaOrganization, defaultResolver()).map(_.path)
     )
 
     val args = JvmWorkerArgs(
@@ -79,7 +75,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     )
 
     cl.loadClass("mill.javalib.worker.JvmWorkerImpl")
-      .getConstructor()
+      .getConstructor(classOf[JvmWorkerArgs])
       .newInstance(args)
       .asInstanceOf[InternalJvmWorkerApi]
   }
