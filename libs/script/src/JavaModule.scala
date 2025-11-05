@@ -38,7 +38,7 @@ object JavaModule {
     override def compileResources = Task.Sources()
 
     /** The script file itself */
-    def scriptSource = Task.Source(scriptConfig.scriptFilePath)
+    def scriptSource = Task.Source(scriptConfig.scriptFile)
 
     override def allSources = Seq(scriptSource())
   }

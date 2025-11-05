@@ -1,14 +1,13 @@
 package mill.javalib.zinc
 
 import mill.api.JsonFormatters.*
-import mill.api.daemon.{Logger, Result}
+import mill.api.daemon.Logger
 import mill.api.daemon.internal.CompileProblemReporter
-import mill.javalib.api.CompilationResult
-import mill.javalib.api.internal.{ZincCompileJava, ZincCompileMixed, ZincScaladocJar}
+import mill.javalib.api.internal.*
 import mill.javalib.internal.{RpcCompileProblemReporterMessage, ZincCompilerBridgeProvider}
+import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.rpc.*
 import mill.server.Server
-import mill.util.Timed
 import org.apache.logging.log4j.core.util.NullOutputStream
 import sbt.internal.util.ConsoleOut
 import upickle.ReadWriter
@@ -21,9 +20,9 @@ class ZincWorkerRpcServer(
     transport: MillRpcWireTransport,
     setIdle: Server.SetIdle,
     writeToLocalLog: String => Unit
-) extends MillRpcServerImpl[
+) extends MillRpcServer[
       ZincWorkerRpcServer.Initialize,
-      ZincWorkerRpcServer.ClientToServer,
+      ZincWorkerRpcServer.Request,
       ZincWorkerRpcServer.ServerToClient
     ](serverName, transport, writeToLocalLog) {
   import ZincWorkerRpcServer.*
@@ -34,169 +33,87 @@ class ZincWorkerRpcServer(
       clientStdout: RpcConsole,
       clientStderr: RpcConsole,
       serverToClient: MillRpcChannel[ServerToClient]
-  ): MillRpcChannel[ClientToServer] = setIdle.doWork {
-    val result = Timed {
-      // This is an ugly hack. `ConsoleOut` is sealed, but we need to provide a way to send these logs to the Mill server
-      // over RPC, so we hijack `PrintStream` by overriding the methods that `ConsoleOut` uses.
-      //
-      // This is obviously extra fragile, but I couldn't find a better way to do it.
-      val consoleOut = ConsoleOut.printStreamOut(new PrintStream(NullOutputStream.getInstance()) {
-        override def print(s: String): Unit = clientStderr.print(s)
+  ): MillRpcChannel[ZincWorkerRpcServer.Request] = setIdle.doWork {
+    // This is an ugly hack. `ConsoleOut` is sealed, but we need to provide a way to send these logs to the Mill server
+    // over RPC, so we hijack `PrintStream` by overriding the methods that `ConsoleOut` uses.
+    //
+    // This is obviously extra fragile, but I couldn't find a better way to do it.
+    val consoleOut = ConsoleOut.printStreamOut(new PrintStream(NullOutputStream.getInstance()) {
+      override def print(s: String): Unit = clientStderr.print(s)
+      override def println(s: String): Unit = print(s + "\n")
+      override def println(): Unit = print("\n")
+      override def flush(): Unit = clientStderr.flush()
+    })
 
-        override def println(s: String): Unit = print(s + "\n")
+    def reporter(maxErrors: Int) = RpcCompileProblemReporter(
+      maxErrors = maxErrors,
+      send = msg => serverToClient(ServerToClient.ReportCompilationProblem(msg))
+    )
 
-        override def println(): Unit = print("\n")
+    def reporterAsOption(mode: ReporterMode): Option[CompileProblemReporter] = mode match {
+      case ReporterMode.NoReporter => None
+      case r: ReporterMode.Reporter => Some(reporter(maxErrors = r.maxErrors))
+    }
 
-        override def flush(): Unit = clientStderr.flush()
-      })
-
-      def makeCompilerBridge(clientRequestId: MillRpcRequestId) =
-        ZincCompilerBridgeProvider(
-          workspace = initialize.compilerBridgeWorkspace,
-          logInfo = log.info,
-          acquire = (scalaVersion, scalaOrganization) =>
-            serverToClient(
-              clientRequestId,
-              ServerToClient.AcquireZincCompilerBridge(
-                scalaVersion = scalaVersion,
-                scalaOrganization = scalaOrganization
+    new MillRpcChannel[ZincWorkerRpcServer.Request] {
+      override def apply(input: ZincWorkerRpcServer.Request): input.Response = {
+        val ZincWorkerRpcServer.Request(op, reporterMode, ctx) = input
+        setIdle.doWork {
+          worker.apply(
+            op = op,
+            reporter = reporterAsOption(reporterMode),
+            reportCachedProblems = reporterMode.reportCachedProblems,
+            ctx,
+            ZincWorker.InvocationDependencies(
+              log,
+              consoleOut,
+              ZincCompilerBridgeProvider(
+                workspace = initialize.compilerBridgeWorkspace,
+                logInfo = log.info,
+                acquire = (scalaVersion, scalaOrganization) =>
+                  serverToClient(
+                    ServerToClient.AcquireZincCompilerBridge(scalaVersion, scalaOrganization)
+                  )
               )
             )
-        )
-
-      def makeDeps(clientRequestId: MillRpcRequestId) = {
-        val compilerBridge = makeCompilerBridge(clientRequestId)
-        ZincWorker.InvocationDependencies(log, consoleOut, compilerBridge)
-      }
-
-      def reporter(clientRequestId: MillRpcRequestId, maxErrors: Int) = RpcCompileProblemReporter(
-        maxErrors = maxErrors,
-        send = msg =>
-          serverToClient(
-            clientRequestId,
-            ServerToClient.ReportCompilationProblem(clientRequestId, msg)
-          )
-      )
-
-      def reporterAsOption(
-          clientRequestId: MillRpcRequestId,
-          mode: ReporterMode
-      ): Option[CompileProblemReporter] = mode match {
-        case ReporterMode.NoReporter => None
-        case r: ReporterMode.Reporter =>
-          Some(reporter(clientRequestId = clientRequestId, maxErrors = r.maxErrors))
-      }
-
-      new MillRpcChannel[ClientToServer] {
-        override def apply(requestId: MillRpcRequestId, input: ClientToServer): input.Response =
-          setIdle.doWork {
-            val result = Timed {
-              input match {
-                case msg: ClientToServer.CompileJava =>
-                  compileJava(requestId, msg).asInstanceOf[input.Response]
-                case msg: ClientToServer.CompileMixed =>
-                  compileMixed(requestId, msg).asInstanceOf[input.Response]
-                case msg: ClientToServer.ScaladocJar =>
-                  docJar(requestId, msg).asInstanceOf[input.Response]
-              }
-            }
-            writeToLocalLog(s"$requestId with data $input processed in ${result.durationPretty}")
-            result.result
-          }
-
-        private def compileJava(
-            clientRequestId: MillRpcRequestId,
-            msg: ClientToServer.CompileJava
-        ): msg.Response = {
-          worker.compileJava(
-            op = msg.op,
-            reporter = reporterAsOption(clientRequestId, msg.reporterMode),
-            reportCachedProblems = msg.reporterMode.reportCachedProblems
-          )(using msg.ctx, makeDeps(clientRequestId))
-        }
-
-        private def compileMixed(
-            clientRequestId: MillRpcRequestId,
-            msg: ClientToServer.CompileMixed
-        ): msg.Response = {
-          worker.compileMixed(
-            msg.op,
-            reporter = reporterAsOption(clientRequestId, msg.reporterMode),
-            reportCachedProblems = msg.reporterMode.reportCachedProblems
-          )(using msg.ctx, makeDeps(clientRequestId))
-        }
-
-        private def docJar(
-            clientRequestId: MillRpcRequestId,
-            msg: ClientToServer.ScaladocJar
-        ): msg.Response = {
-          val compilerBridge = makeCompilerBridge(clientRequestId)
-          worker.scaladocJar(msg.op, compilerBridge)
+          ).asInstanceOf[input.Response]
         }
       }
     }
-    writeToLocalLog(s"Initialized in ${result.durationPretty}.")
-    result.result
   }
 }
+
 object ZincWorkerRpcServer {
 
   /**
    * @param compilerBridgeWorkspace The workspace to use for the compiler bridge.
    */
-  case class Initialize(
-      compilerBridgeWorkspace: os.Path
-  ) derives ReadWriter
+  case class Initialize(compilerBridgeWorkspace: os.Path) derives ReadWriter
 
-  sealed trait ReporterMode derives ReadWriter {
-    def reportCachedProblems: Boolean
-  }
-  object ReporterMode {
-    case object NoReporter extends ReporterMode {
-      override def reportCachedProblems: Boolean = false
-    }
-
-    case class Reporter(reportCachedProblems: Boolean, maxErrors: Int) extends ReporterMode
+  enum ReporterMode(val reportCachedProblems: Boolean) derives ReadWriter {
+    case NoReporter extends ReporterMode(false)
+    case Reporter(reportCachedProblems0: Boolean, maxErrors: Int)
+        extends ReporterMode(reportCachedProblems0)
   }
 
-  sealed trait ClientToServer extends MillRpcMessage derives ReadWriter
-  object ClientToServer {
-    case class CompileJava(
-        op: ZincCompileJava,
-        reporterMode: ReporterMode,
-        ctx: ZincWorker.InvocationContext
-    ) extends ClientToServer {
-      override type Response = Result[CompilationResult]
-    }
-
-    case class CompileMixed(
-        op: ZincCompileMixed,
-        reporterMode: ReporterMode,
-        ctx: ZincWorker.InvocationContext
-    ) extends ClientToServer {
-      override type Response = Result[CompilationResult]
-    }
-
-    case class ScaladocJar(
-        op: ZincScaladocJar
-    ) extends ClientToServer {
-      override type Response = Boolean
-    }
+  case class Request(
+      op: ZincOperation,
+      reporterMode: ReporterMode,
+      ctx: ZincWorker.InvocationContext
+  ) extends MillRpcChannel.Message derives upickle.ReadWriter {
+    type Response = op.Response
   }
 
-  sealed trait ServerToClient extends MillRpcMessage derives ReadWriter
+  sealed trait ServerToClient extends MillRpcChannel.Message derives ReadWriter
   object ServerToClient {
     case class AcquireZincCompilerBridge(scalaVersion: String, scalaOrganization: String)
         extends ServerToClient {
       override type Response = ZincCompilerBridgeProvider.AcquireResult[os.Path]
     }
 
-    /**
-     * @param compilationRequestId request id for the message requesting the compilation.
-     */
-    case class ReportCompilationProblem(
-        compilationRequestId: MillRpcRequestId,
-        problem: RpcCompileProblemReporterMessage
-    ) extends ServerToClient, MillRpcMessage.NoResponse
+    case class ReportCompilationProblem(problem: RpcCompileProblemReporterMessage)
+        extends ServerToClient, MillRpcChannel.Message {
+      type Response = Unit
+    }
   }
 }

@@ -466,7 +466,7 @@ trait JavaModule
     cs.Dependency(
       cs.Module(
         JavaModule.internalOrg,
-        coursier.core.ModuleName(moduleSegments.parts.mkString("-")),
+        coursier.core.ModuleName(moduleSegments.parts.mkString("-").replace('/', '-')),
         Map.empty
       ),
       JavaModule.internalVersion
@@ -860,26 +860,26 @@ trait JavaModule
       os.makeDir.all(compileGenSources)
     }
 
-    val jOpts = JavaCompilerOptions(Seq(
+    val jOpts = JavaCompilerOptions.split(Seq(
       "-s",
       compileGenSources.toString
     ) ++ javacOptions() ++ mandatoryJavacOptions())
 
-    jvmWorker()
-      .internalWorker()
-      .compileJava(
-        ZincCompileJava(
-          upstreamCompileOutput = upstreamCompileOutput(),
-          sources = allSourceFiles().map(_.path),
-          compileClasspath = compileClasspath().map(_.path),
-          javacOptions = jOpts.compiler,
-          incrementalCompilation = zincIncrementalCompilation()
-        ),
-        javaHome = javaHome().map(_.path),
-        javaRuntimeOptions = jOpts.runtime,
-        reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
-      )
+    val worker = jvmWorker().internalWorker()
+
+    worker.apply(
+      ZincCompileJava(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = allSourceFiles().map(_.path),
+        compileClasspath = compileClasspath().map(_.path),
+        javacOptions = jOpts.compiler,
+        incrementalCompilation = zincIncrementalCompilation()
+      ),
+      javaHome = javaHome().map(_.path),
+      javaRuntimeOptions = jOpts.runtime,
+      reporter = Task.reporter.apply(hashCode),
+      reportCachedProblems = zincReportCachedProblems()
+    )
   }
 
   /** Resolves paths relative to the `out` folder. */

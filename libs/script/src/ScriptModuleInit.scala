@@ -1,7 +1,6 @@
 package mill.script
 import mill.*
 import mill.api.{ExternalModule, Result}
-import mill.script.ScriptModule.parseHeaderData
 
 object ScriptModuleInit
     extends ((String, String => Option[mill.Module]) => Seq[Result[mill.api.ExternalModule]]) {
@@ -10,7 +9,7 @@ object ScriptModuleInit
   // instantiating the same script twice, e.g. once directly and once when resolving a
   // downstream script's `moduleDeps`. This is kept on the `ScriptModuleInit` object scoped
   // to the build classloader and is garbage collected when the classloader is discarded.
-  val scriptModuleCache: collection.mutable.Map[os.Path, ExternalModule] =
+  val scriptModuleCache: collection.mutable.Map[os.Path, ScriptModule] =
     collection.mutable.Map.empty
 
   def moduleFor(
@@ -19,7 +18,8 @@ object ScriptModuleInit
       moduleDepsStrings: Seq[String],
       compileModuleDepsStrings: Seq[String],
       runModuleDepsStrings: Seq[String],
-      resolveModuleDep: String => Option[mill.Module]
+      resolveModuleDep: String => Option[mill.Module],
+      headerData: mill.api.ModuleCtx.HeaderData
   ): mill.api.Result[mill.api.ExternalModule] = {
     def relativize(s: String) = {
       if (s.startsWith("."))
@@ -46,9 +46,8 @@ object ScriptModuleInit
           case "scala" => "mill.script.ScalaModule"
         }
       },
-      ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps)
+      ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps, headerData)
     )
-
   }
 
   def instantiate(
@@ -73,10 +72,18 @@ object ScriptModuleInit
 
     clsOrErr.flatMap(cls =>
       mill.api.ExecResult.catchWrapException {
-        scriptModuleCache.getOrElseUpdate(
-          scriptFile,
-          cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ExternalModule]
-        )
+        scriptModuleCache.get(scriptFile).filter(v =>
+          Result.Success(
+            v.scriptConfig.headerData
+          ) == mill.internal.Util.parseHeaderData(scriptFile)
+        ) match {
+          case Some(v) => v
+          case None =>
+            val newScriptModule =
+              cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ScriptModule]
+            scriptModuleCache(scriptFile) = newScriptModule
+            newScriptModule
+        }
       }
     )
   }
@@ -90,15 +97,20 @@ object ScriptModuleInit
       resolveModuleDep: String => Option[mill.Module]
   ): Option[Result[ExternalModule]] = {
     val scriptFile = os.Path(scriptFile0, mill.api.BuildCtx.workspaceRoot)
+    // Add a synthetic watch on `scriptFile`, representing the special handling
+    // of `buildOverrides` which is read from the script file build header
+    mill.api.BuildCtx.evalWatch(scriptFile)
+
     Option.when(os.isFile(scriptFile)) {
-      parseHeaderData(scriptFile).flatMap(parsedHeaderData =>
+      mill.internal.Util.parseHeaderData(scriptFile).flatMap(parsedHeaderData =>
         moduleFor(
           scriptFile,
           parsedHeaderData.`extends`.headOption,
           parsedHeaderData.moduleDeps,
           parsedHeaderData.compileModuleDeps,
           parsedHeaderData.runModuleDeps,
-          resolveModuleDep
+          resolveModuleDep,
+          parsedHeaderData
         )
       )
     }
@@ -151,8 +163,6 @@ object ScriptModuleInit
       scriptFileString: String,
       resolveModuleDep: String => Option[mill.Module]
   ) = {
-    mill.api.BuildCtx.workspaceRoot
-
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
       resolveScriptModule(scriptFileString, resolveModuleDep).toSeq
     }

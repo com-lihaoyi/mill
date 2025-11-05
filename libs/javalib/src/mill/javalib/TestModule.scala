@@ -10,17 +10,10 @@ import mill.api.Task
 import mill.api.TaskCtx
 import mill.api.DefaultTaskModule
 import mill.javalib.bsp.BspModule
-import mill.util.Jvm
 import mill.api.JsonFormatters.given
 import mill.constants.EnvVars
-import mill.javalib.testrunner.{
-  DiscoverTestsMain,
-  Framework,
-  TestArgs,
-  TestResult,
-  TestRunner,
-  TestRunnerUtils
-}
+import mill.javalib.api.internal.ZincDiscoverTests
+import mill.javalib.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
 
 import java.nio.file.Path
 
@@ -67,27 +60,17 @@ trait TestModule
    * Test classes (often called test suites) discovered by the configured [[testFramework]].
    */
   def discoveredTestClasses: T[Seq[String]] = Task {
-    val classes = if (javaHome().isDefined) {
-      Jvm.callProcess(
-        mainClass = "mill.javalib.testrunner.DiscoverTestsMain",
-        classPath = jvmWorker().scalalibClasspath().map(_.path).toVector,
-        mainArgs =
-          runClasspath().flatMap(p => Seq("--runCp", p.path.toString())) ++
-            testClasspath().flatMap(p => Seq("--testCp", p.path.toString())) ++
-            Seq("--framework", testFramework()),
-        javaHome = javaHome().map(_.path),
-        stdin = os.Inherit,
-        stdout = os.Pipe,
-        cwd = Task.dest
-      ).out.lines()
-    } else {
-      DiscoverTestsMain.main0(
+    val worker = jvmWorker().internalWorker()
+    val discoveredTests = worker.apply(
+      ZincDiscoverTests(
         runClasspath().map(_.path),
         testClasspath().map(_.path),
         testFramework()
-      )
-    }
-    classes.sorted
+      ),
+      javaHome().map(_.path)
+    )
+
+    discoveredTests.sorted
   }
 
   /**
@@ -266,7 +249,8 @@ trait TestModule
         javaHome().map(_.path),
         testParallelism(),
         testLogLevel(),
-        propagateEnv()
+        propagateEnv(),
+        jvmWorker().internalWorker()
       )
       testModuleUtil.runTests()
     }
@@ -407,46 +391,15 @@ object TestModule {
      * override this method.
      */
     override def discoveredTestClasses: T[Seq[String]] = Task {
-      Jvm.withClassLoader(
-        classPath = runClasspath().map(_.path).toVector,
-        sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.internal.TestReporter")
-      ) { classLoader =>
-        val builderClass: Class[?] =
-          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
-        val builder = builderClass.getConstructor().newInstance()
-
-        classesDir().foreach { path =>
-          builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
-            builder,
-            path.wrapped.toFile
-          )
-        }
-
-        builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
-          builder,
-          testClasspath().map(_.path.toURL).toArray
-        )
-        builderClass.getMethod("withClassLoader", classOf[ClassLoader]).invoke(builder, classLoader)
-
-        val testCollector = builderClass.getMethod("build").invoke(builder)
-        val testCollectorClass =
-          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector")
-
-        val result = testCollectorClass.getMethod("collectTests").invoke(testCollector)
-        val resultClass =
-          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Result")
-
-        val items = resultClass.getMethod(
-          "getDiscoveredTests"
-        ).invoke(result).asInstanceOf[java.util.List[?]]
-        val itemClass =
-          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Item")
-
-        import scala.jdk.CollectionConverters._
-        items.asScala.map { item =>
-          itemClass.getMethod("getFullyQualifiedClassName").invoke(item).asInstanceOf[String]
-        }.toSeq
-      }
+      val worker = jvmWorker().internalWorker()
+      worker.apply(
+        mill.javalib.api.internal.ZincDiscoverJunit5Tests(
+          runClasspath().map(_.path),
+          testClasspath().map(_.path),
+          classesDir()
+        ),
+        javaHome().map(_.path)
+      )
     }
   }
 

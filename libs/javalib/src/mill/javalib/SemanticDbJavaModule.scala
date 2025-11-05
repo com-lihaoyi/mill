@@ -122,27 +122,28 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 
     Task.log.debug(s"effective javac options: ${javacOpts}")
 
-    val jOpts = JavaCompilerOptions(javacOpts)
+    val jOpts = JavaCompilerOptions.split(javacOpts)
 
-    jvmWorker().internalWorker()
-      .compileJava(
-        ZincCompileJava(
-          upstreamCompileOutput = upstreamSemanticDbDatas().map(_.compilationResult),
-          sources = allSourceFiles().map(_.path),
-          compileClasspath =
-            (compileClasspathTask(
-              CompileFor.SemanticDb
-            )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(
-              _.path
-            ),
-          javacOptions = jOpts.compiler,
-          incrementalCompilation = zincIncrementalCompilation()
-        ),
-        javaHome = javaHome().map(_.path),
-        javaRuntimeOptions = jOpts.runtime,
-        reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
-      )
+    val worker = jvmWorker().internalWorker()
+
+    worker.apply(
+      ZincCompileJava(
+        upstreamCompileOutput = upstreamSemanticDbDatas().map(_.compilationResult),
+        sources = allSourceFiles().map(_.path),
+        compileClasspath =
+          (compileClasspathTask(
+            CompileFor.SemanticDb
+          )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(
+            _.path
+          ),
+        javacOptions = jOpts.compiler,
+        incrementalCompilation = zincIncrementalCompilation()
+      ),
+      javaHome = javaHome().map(_.path),
+      javaRuntimeOptions = jOpts.runtime,
+      reporter = Task.reporter.apply(hashCode),
+      reportCachedProblems = zincReportCachedProblems()
+    )
       .map { compilationResult =>
         val semanticDbFiles = BuildCtx.withFilesystemCheckerDisabled {
           SemanticDbJavaModule.copySemanticdbFiles(

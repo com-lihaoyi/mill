@@ -3,11 +3,12 @@ package mill.javalib
 import mainargs.Flag
 import mill.*
 import mill.api.{PathRef, Task, *}
+import mill.api.daemon.internal.internal
 import mill.javalib.CoursierModule.Resolver
 import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
-import mill.javalib.api.internal.JvmWorkerApi as InternalJvmWorkerApi
+import mill.javalib.api.internal.InternalJvmWorkerApi as InternalJvmWorkerApi
 import mill.javalib.api.{JvmWorkerApi, JvmWorkerUtil, Versions}
-import mill.javalib.internal.{JvmWorkerArgs, JvmWorkerFactoryApi, ZincCompilerBridgeProvider}
+import mill.javalib.internal.{JvmWorkerArgs, ZincCompilerBridgeProvider}
 
 /**
  * A default implementation of [[JvmWorkerModule]]
@@ -49,30 +50,23 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
   def worker: Worker[JvmWorkerApi] = internalWorker
+  def internalWorkerClassLoader = Task.Worker {
+    mill.util.Jvm.createClassLoader(classpath().map(_.path), getClass.getClassLoader)
+  }
 
-  private[mill] def internalWorker: Worker[InternalJvmWorkerApi] = Task.Worker {
+  @internal def internalWorker: Worker[InternalJvmWorkerApi] = Task.Worker {
     val jobs = Task.ctx().jobs
 
-    val cl = mill.util.Jvm.createClassLoader(
-      classpath().map(_.path),
-      getClass.getClassLoader
-    )
-
-    val factory =
-      cl.loadClass("mill.javalib.worker.JvmWorkerFactory").getConstructor().newInstance()
-        .asInstanceOf[JvmWorkerFactoryApi]
+    val cl = internalWorkerClassLoader()
 
     val ctx = Task.ctx()
     val zincCompilerBridge = ZincCompilerBridgeProvider(
       workspace = ctx.dest,
       logInfo = ctx.log.info,
       acquire = (scalaVersion, scalaOrganization) =>
-        scalaCompilerBridgeJarV2(
-          scalaVersion = scalaVersion,
-          scalaOrganization = scalaOrganization,
-          defaultResolver()
-        ).map(_.path)
+        scalaCompilerBridgeJarV2(scalaVersion, scalaOrganization, defaultResolver()).map(_.path)
     )
+
     val args = JvmWorkerArgs(
       zincCompilerBridge,
       classPath = classpath().map(_.path),
@@ -80,7 +74,11 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       zincLogDebug = zincLogDebug(),
       close0 = () => cl.close()
     )
-    factory.make(args)
+
+    cl.loadClass("mill.javalib.worker.JvmWorkerImpl")
+      .getConstructor(classOf[JvmWorkerArgs])
+      .newInstance(args)
+      .asInstanceOf[InternalJvmWorkerApi]
   }
 
   private[mill] def scalaCompilerBridgeJarV2(

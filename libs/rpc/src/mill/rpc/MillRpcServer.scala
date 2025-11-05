@@ -6,11 +6,21 @@ import upickle.{Reader, Writer}
 
 import scala.util.control.NonFatal
 
+/** Default implementation for the [[MillRpcServer]]. */
 trait MillRpcServer[
-    Initialize,
-    ClientToServer <: MillRpcMessage,
-    ServerToClient <: MillRpcMessage
-] {
+    Initialize: Reader,
+    ClientToServer <: MillRpcChannel.Message: Reader,
+    ServerToClient <: MillRpcChannel.Message: Writer
+](serverName: String, wireTransport: MillRpcWireTransport, writeToLocalLog: String => Unit) {
+  @volatile private var initializedOnClientMessage = Option.empty[MillRpcChannel[ClientToServer]]
+
+  private val clientLogger =
+    RpcLogger.create(message => sendToClient(MillRpcServerToClient.Log(message)))
+
+  val clientStdout: RpcConsole =
+    RpcConsole.create(msg => sendToClient(MillRpcServerToClient.Stdout(msg)))
+  val clientStderr: RpcConsole =
+    RpcConsole.create(msg => sendToClient(MillRpcServerToClient.Stderr(msg)))
 
   /**
    * @param initialize First initialization message the client sends when it connects.
@@ -23,58 +33,6 @@ trait MillRpcServer[
       clientStderr: RpcConsole,
       serverToClient: MillRpcChannel[ServerToClient]
   ): MillRpcChannel[ClientToServer]
-
-  /** Starts listening for messages, blocking the thread. */
-  def run(): Unit
-}
-object MillRpcServer {
-  def create[
-      Initialize: Reader,
-      ClientToServer <: MillRpcMessage: Reader,
-      ServerToClient <: MillRpcMessage: Writer
-  ](
-      serverName: String,
-      wireTransport: MillRpcWireTransport,
-      writeToLocalLog: String => Unit
-  )(initializer: (
-      Initialize,
-      Logger.Actions,
-      RpcConsole,
-      RpcConsole,
-      MillRpcChannel[ServerToClient]
-  ) => MillRpcChannel[ClientToServer]): MillRpcServer[Initialize, ClientToServer, ServerToClient] =
-    new MillRpcServerImpl[Initialize, ClientToServer, ServerToClient](
-      serverName,
-      wireTransport,
-      writeToLocalLog
-    ) {
-      override def initialize(
-          initialize: Initialize,
-          log: Logger.Actions,
-          clientStdout: RpcConsole,
-          clientStderr: RpcConsole,
-          serverToClient: MillRpcChannel[ServerToClient]
-      ): MillRpcChannel[ClientToServer] =
-        initializer(initialize, log, clientStdout, clientStderr, serverToClient)
-    }
-}
-
-/** Default implementation for the [[MillRpcServer]]. */
-trait MillRpcServerImpl[
-    Initialize: Reader,
-    ClientToServer <: MillRpcMessage: Reader,
-    ServerToClient <: MillRpcMessage: Writer
-](serverName: String, wireTransport: MillRpcWireTransport, writeToLocalLog: String => Unit)
-    extends MillRpcServer[Initialize, ClientToServer, ServerToClient] {
-  @volatile private var initializedOnClientMessage = Option.empty[MillRpcChannel[ClientToServer]]
-
-  private val clientLogger =
-    RpcLogger.create(message => sendToClient(MillRpcServerToClient.Log(message)))
-
-  val clientStdout: RpcConsole =
-    RpcConsole.create(msg => sendToClient(MillRpcServerToClient.Stdout(msg)))
-  val clientStderr: RpcConsole =
-    RpcConsole.create(msg => sendToClient(MillRpcServerToClient.Stderr(msg)))
 
   def run(): Unit = {
     logLocal("Initializing Mill RPC server... Waiting for the `initialize` message.")
@@ -99,64 +57,49 @@ trait MillRpcServerImpl[
     while (continue) {
       readAndTryToParse[MillRpcClientToServer[ClientToServer]]() match {
         case None => continue = false
-        case Some(MillRpcClientToServer.Ask(requestId, message)) =>
-          continue = onAsk(requestId)(requestId => onClientMessage(requestId, message))
-        case Some(MillRpcClientToServer.Response(requestId, data)) =>
-          val msg =
-            s"Received response, however we weren't expecting any, (request id = $requestId), " +
-              s"ignoring: ${pprint.apply(data)}"
-          logLocal(msg)
-          clientLogger.warn(msg)
+        case Some(MillRpcClientToServer.Ask(message)) =>
+          continue = onAsk()(() => onClientMessage(message))
       }
     }
   }
 
-  private def onAsk[Response: Writer](requestId: MillRpcRequestId)(
-      run: MillRpcRequestId => Response
+  private def onAsk[Response: Writer]()(
+      run: () => Response
   ): Boolean = {
     val result =
-      try Right(run(requestId))
+      try Right(run())
       catch {
         case _: InterruptedException => return false
         case NonFatal(e) => Left(RpcThrowable(e))
       }
 
-    sendToClient(MillRpcServerToClient.Response(requestId, result))
+    sendToClient(MillRpcServerToClient.Response(result))
     true
   }
 
   private def waitForResponse[R: Reader](
-      clientToServer: MillRpcChannel[ClientToServer],
-      awaitingResponseTo: MillRpcRequestId
+      clientToServer: MillRpcChannel[ClientToServer]
   ): R = {
     var responseReceived = Option.empty[R]
 
     while (responseReceived.isEmpty) {
       val clientToServerMsg = readAndTryToParse[MillRpcClientToServer[R]]().getOrElse(
         throw new InterruptedException(
-          s"Transport wire broken while waiting for response to request $awaitingResponseTo."
+          s"Transport wire broken while waiting for response to request."
         )
       )
 
       clientToServerMsg match {
-        case MillRpcClientToServer.Ask(requestId, message) =>
+        case MillRpcClientToServer.Ask(message) =>
           val askMessage = message.asInstanceOf[ClientToServer]
-          onAsk(requestId)(requestId => clientToServer(requestId, askMessage))(using
+          onAsk()(() => clientToServer(askMessage))(using
             askMessage.responseRw
           )
 
-        case MillRpcClientToServer.Response(requestId, data) =>
-          if (requestId == awaitingResponseTo) {
-            data match {
-              case Left(err) => throw err
-              case Right(response) => responseReceived = Some(response)
-            }
-          } else {
-            val msg =
-              s"Received response with the unknown wrong request id ($requestId), while we are expecting " +
-                s"response for request id ($awaitingResponseTo), ignoring: ${pprint.apply(data)}"
-            logLocal(msg)
-            clientLogger.warn(msg)
+        case MillRpcClientToServer.Response(data) =>
+          data match {
+            case Left(err) => throw err
+            case Right(response) => responseReceived = Some(response)
           }
       }
     }
@@ -176,21 +119,14 @@ trait MillRpcServerImpl[
   }
 
   private def createServerToClientChannel(): MillRpcChannel[ServerToClient] = {
-    @volatile var lastClientRequestId = Option.empty[MillRpcRequestId]
+    (msg: ServerToClient) =>
+      {
+        val clientToServer = initializedOnClientMessage.getOrElse(throw new IllegalStateException(
+          "Client to server channel should have been initialized, this is a bug in the RPC implementation."
+        ))
 
-    (clientRequestId: MillRpcRequestId, msg: ServerToClient) => {
-      val clientToServer = initializedOnClientMessage.getOrElse(throw new IllegalStateException(
-        "Client to server channel should have been initialized, this is a bug in the RPC implementation."
-      ))
-
-      val requestId = (lastClientRequestId match {
-        case None => clientRequestId
-        case Some(last) if last.requestFinished == clientRequestId => last
-        case Some(_) => clientRequestId
-      }).requestStartedFromServer
-      lastClientRequestId = Some(requestId)
-      sendToClient(MillRpcServerToClient.Ask(requestId, msg))
-      waitForResponse[msg.Response](clientToServer, requestId)
-    }
+        sendToClient(MillRpcServerToClient.Ask(msg))
+        waitForResponse[msg.Response](clientToServer)
+      }
   }
 }

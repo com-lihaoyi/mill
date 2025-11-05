@@ -5,6 +5,7 @@ import scalalib.*
 import publish.*
 import mill.api.ModuleRef
 import mill.util.Jvm
+import mill.testkit.Chunk
 //import de.tobiasroeser.mill.vcs.version.VcsVersion
 import millbuild.*
 import mill.api.BuildCtx
@@ -268,9 +269,14 @@ object `package` extends MillJavaModule with DistModule {
     build.example.exampleModules.map(_.moduleDir)
   }
 
-  def examplePathRefs: Task[Seq[PathRef]] = Task.Sources(
-    build.example.exampleModules.map(_.moduleDir)*
-  )
+  def examplePathRefs: Task[Seq[PathRef]] =
+    Task.traverse(build.example.exampleModules)(_.testRepoSourceRoot)
+
+  def exampleRendered: Task[Seq[PathRef]] =
+    Task.traverse(build.example.exampleModules)(_.rendered)
+
+  def exampleParsed: Task[Seq[Seq[Chunk]]] =
+    Task.traverse(build.example.exampleModules)(_.parsed)
 
   def exampleArtifactNames = Task {
     for (path <- examplePaths()) yield {
@@ -281,9 +287,17 @@ object `package` extends MillJavaModule with DistModule {
   }
 
   def exampleZips: T[Seq[PathRef]] = Task {
-    examplePathRefs().zip(exampleArtifactNames()).map {
-      case (pr, exampleStr) =>
+    examplePathRefs().zip(exampleArtifactNames()).zip(exampleRendered()).zip(exampleParsed()).map {
+      case (((pr, exampleStr), rendered), parsed) =>
         os.copy(pr.path, Task.dest / exampleStr, createFolders = true)
+
+        // When the `build.mill` contains no Scala or Yaml chunks, it purely serves
+        // as the doc-site content and isn't used in the build. So we don't need to include it
+        // and cna instead just render the readme.adoc file for people to read
+        if (!parsed.exists(c => c.isInstanceOf[Chunk.Scala] || c.isInstanceOf[Chunk.Yaml])) {
+          os.remove.all(Task.dest / exampleStr / "build.mill")
+          os.copy(rendered.path, Task.dest / exampleStr / "readme.adoc")
+        }
         val ignoreErrorsOnCI = Task.dest / exampleStr / "ignoreErrorsOnCI"
         if (os.exists(ignoreErrorsOnCI)) os.remove(ignoreErrorsOnCI)
         val buildMill = Task.dest / exampleStr / "build.mill"

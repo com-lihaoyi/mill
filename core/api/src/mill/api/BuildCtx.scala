@@ -55,6 +55,11 @@ object BuildCtx {
     watchedValues.append(watchable)
     p
   }
+  def evalWatch(p: os.Path): os.Path = withFilesystemCheckerDisabled {
+    val watchable = Watchable.Path(p.toNIO, false, PathRef(p).sig)
+    evalWatchedValues.append(watchable)
+    p
+  }
 
   def watch0(w: Watchable): Unit = watchedValues.append(w)
 

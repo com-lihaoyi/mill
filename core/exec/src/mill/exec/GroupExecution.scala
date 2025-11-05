@@ -96,11 +96,11 @@ trait GroupExecution {
           .iterator
           .collect { case namedTask: Task.Named[_] =>
             CodeSigUtils.codeSigForTask(
-              namedTask,
-              classToTransitiveClasses,
-              allTransitiveClassMethods,
-              codeSignatures,
-              constructorHashSignatures
+              namedTask = namedTask,
+              classToTransitiveClasses = classToTransitiveClasses,
+              allTransitiveClassMethods = allTransitiveClassMethods,
+              codeSignatures = codeSignatures,
+              constructorHashSignatures = constructorHashSignatures
             )
           }
           .flatten
@@ -134,7 +134,7 @@ trait GroupExecution {
                 }
 
                 // Write build header override JSON to meta `.json` file to support `show`
-                writeCacheJson(paths.meta, jsonData, resultData.hashCode, inputsHash)
+                writeCacheJson(paths.meta, jsonData, resultData.##, inputsHash)
                 (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
               } catch {
                 case e: upickle.core.TraceVisitor.TraceException =>
@@ -515,20 +515,20 @@ trait GroupExecution {
           try {
             logger.debug(s"Closing previous worker: $labelled")
             GroupExecution.wrap(
-              workspace,
-              deps,
-              outPath,
-              paths,
-              upstreamPathRefs,
-              exclusive,
-              multiLogger,
-              logger,
-              exclusiveSystemStreams,
-              counterMsg,
-              destCreator,
-              getEvaluator().asInstanceOf[Evaluator],
-              terminal,
-              rootModule.getClass.getClassLoader
+              workspace = workspace,
+              deps = deps,
+              outPath = outPath,
+              paths = paths,
+              upstreamPathRefs = upstreamPathRefs,
+              exclusive = exclusive,
+              multiLogger = multiLogger,
+              logger = logger,
+              exclusiveSystemStreams = exclusiveSystemStreams,
+              counterMsg = counterMsg,
+              destCreator = destCreator,
+              evaluator = getEvaluator().asInstanceOf[Evaluator],
+              terminal = terminal,
+              classLoader = rootModule.getClass.getClassLoader
             ) {
               obsolete.close()
             }

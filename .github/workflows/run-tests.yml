@@ -158,7 +158,7 @@ jobs:
             setup-android: true
 
           - java-version: 17
-            millargs: "'example.thirdparty[androidtodo].packaged.daemon'"
+            millargs: "'example.thirdparty[android-compose-samples].packaged.daemon'"
             setup-android: true
 
           - java-version: 24
@@ -215,6 +215,9 @@ jobs:
 
           - java-version: 17
             millargs: '"example.scalalib.{basic,publishing}.__.packaged.daemon"'
+
+          - java-version: 17
+            millargs: '"dist.scripts.test"' # run this on both windows and mac to exercise bootstrap scripts
 
           - java-version: 17
             millargs: "'integration.failure.__.packaged.nodaemon'"
