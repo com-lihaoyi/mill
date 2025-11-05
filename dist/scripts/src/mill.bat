@@ -237,10 +237,11 @@ if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
     rem there seems to be no way to generate a unique temporary file path (on native Windows)
     if defined MILL_OUTPUT_DIR (
         set MILL_TEMP_DOWNLOAD_FILE=%MILL_OUTPUT_DIR%\mill-temp-download
+        if not exist "%MILL_OUTPUT_DIR%" mkdir "%MILL_OUTPUT_DIR%"
     ) else (
         set MILL_TEMP_DOWNLOAD_FILE=out\mill-bootstrap-download
+        if not exist "out" mkdir "out"
     )
-    for %%F in ("%MILL_TEMP_DOWNLOAD_FILE%") do if not exist "%%~dpF" mkdir "%%~dpF"
 
     echo Downloading mill !MILL_VERSION! from !MILL_DOWNLOAD_URL! ... 1>&2
 
