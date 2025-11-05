@@ -519,18 +519,18 @@ trait AndroidModule extends JavaModule { outer =>
     val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
     val worker = jvmWorker().internalWorker()
     worker.apply(
-        ZincCompileJava(
-          upstreamCompileOutput = upstreamCompileOutput(),
-          sources = androidLibsRClasses().map(_.path),
-          compileClasspath = Seq.empty,
-          javacOptions = jOpts.compiler,
-          incrementalCompilation = true
-        ),
-        javaHome = javaHome().map(_.path),
-        javaRuntimeOptions = jOpts.runtime,
-        reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
-      )
+      ZincCompileJava(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = androidLibsRClasses().map(_.path),
+        compileClasspath = Seq.empty,
+        javacOptions = jOpts.compiler,
+        incrementalCompilation = true
+      ),
+      javaHome = javaHome().map(_.path),
+      javaRuntimeOptions = jOpts.runtime,
+      reporter = Task.reporter.apply(hashCode),
+      reportCachedProblems = zincReportCachedProblems()
+    )
   }
 
   def androidLibRClasspath: T[Seq[PathRef]] = Task {

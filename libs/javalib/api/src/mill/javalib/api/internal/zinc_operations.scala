@@ -5,7 +5,7 @@ import mill.javalib.api.CompilationResult
 import mill.api.JsonFormatters.*
 import mill.api.daemon.Result
 
-sealed trait ZincOperation extends mill.rpc.MillRpcMessage derives upickle.ReadWriter{}
+sealed trait ZincOperation extends mill.rpc.MillRpcMessage derives upickle.ReadWriter {}
 
 /** Compiles Java-only sources. */
 case class ZincCompileJava(
@@ -14,7 +14,7 @@ case class ZincCompileJava(
     compileClasspath: Seq[os.Path],
     javacOptions: JavaCompilerOptions,
     incrementalCompilation: Boolean
-) extends ZincOperation{
+) extends ZincOperation {
   type Response = Result[CompilationResult]
 }
 
@@ -48,7 +48,7 @@ case class ZincScaladocJar(
 }
 
 case class ZincDiscoverTests(runCp: Seq[os.Path], testCp: Seq[os.Path], framework: String)
-  extends ZincOperation{
+    extends ZincOperation {
   type Response = Seq[String]
 }
 case class ZincGetTestTasks(
@@ -57,10 +57,10 @@ case class ZincGetTestTasks(
     framework: String,
     selectors: Seq[String],
     args: Seq[String]
-) extends ZincOperation{type Response = Seq[String]}
+) extends ZincOperation { type Response = Seq[String] }
 
 case class ZincDiscoverJunit5Tests(
     runCp: Seq[os.Path],
     testCp: Seq[os.Path],
     classesDir: Option[os.Path]
-) extends ZincOperation{type Response = Seq[String]}
+) extends ZincOperation { type Response = Seq[String] }

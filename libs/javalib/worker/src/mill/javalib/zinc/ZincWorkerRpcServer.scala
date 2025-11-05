@@ -82,7 +82,7 @@ class ZincWorkerRpcServer(
               reporter = reporterAsOption(reporterMode),
               reportCachedProblems = reporterMode.reportCachedProblems,
               ctx,
-              makeDeps(),
+              makeDeps()
             ).asInstanceOf[input.Response]
           }
         }
@@ -112,9 +112,12 @@ object ZincWorkerRpcServer {
     case class Reporter(reportCachedProblems: Boolean, maxErrors: Int) extends ReporterMode
   }
 
-  case class Request(op: ZincOperation, reporterMode: ReporterMode, ctx: ZincWorker.InvocationContext)
-    extends MillRpcMessage
-    derives upickle.ReadWriter {
+  case class Request(
+      op: ZincOperation,
+      reporterMode: ReporterMode,
+      ctx: ZincWorker.InvocationContext
+  ) extends MillRpcMessage
+      derives upickle.ReadWriter {
     type Response = op.Response
   }
   sealed trait ServerToClient extends MillRpcMessage derives ReadWriter

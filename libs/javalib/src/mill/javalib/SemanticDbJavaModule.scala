@@ -144,19 +144,19 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
       reporter = Task.reporter.apply(hashCode),
       reportCachedProblems = zincReportCachedProblems()
     )
-    .map { compilationResult =>
-      val semanticDbFiles = BuildCtx.withFilesystemCheckerDisabled {
-        SemanticDbJavaModule.copySemanticdbFiles(
-          compilationResult.classes.path,
-          BuildCtx.workspaceRoot,
-          Task.dest / "data",
-          SemanticDbJavaModule.workerClasspath().map(_.path),
-          allSourceFiles().map(_.path)
-        )
-      }
+      .map { compilationResult =>
+        val semanticDbFiles = BuildCtx.withFilesystemCheckerDisabled {
+          SemanticDbJavaModule.copySemanticdbFiles(
+            compilationResult.classes.path,
+            BuildCtx.workspaceRoot,
+            Task.dest / "data",
+            SemanticDbJavaModule.workerClasspath().map(_.path),
+            allSourceFiles().map(_.path)
+          )
+        }
 
-      SemanticDbJavaModule.SemanticDbData(compilationResult, semanticDbFiles)
-    }
+        SemanticDbJavaModule.SemanticDbData(compilationResult, semanticDbFiles)
+      }
   }
 
   def semanticDbData: T[PathRef] = Task {

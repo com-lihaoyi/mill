@@ -283,24 +283,24 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     val worker = jvmWorker().internalWorker()
 
     worker.apply(
-        ZincCompileMixed(
-          upstreamCompileOutput = upstreamCompileOutput(),
-          sources = allSourceFiles().map(_.path),
-          compileClasspath = compileClasspath().map(_.path),
-          javacOptions = jOpts.compiler,
-          scalaVersion = sv,
-          scalaOrganization = scalaOrganization(),
-          scalacOptions = allScalacOptions(),
-          compilerClasspath = scalaCompilerClasspath(),
-          scalacPluginClasspath = scalacPluginClasspath(),
-          incrementalCompilation = zincIncrementalCompilation(),
-          auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
-        ),
-        javaHome = javaHome().map(_.path),
-        javaRuntimeOptions = jOpts.runtime,
-        reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
-      )
+      ZincCompileMixed(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = allSourceFiles().map(_.path),
+        compileClasspath = compileClasspath().map(_.path),
+        javacOptions = jOpts.compiler,
+        scalaVersion = sv,
+        scalaOrganization = scalaOrganization(),
+        scalacOptions = allScalacOptions(),
+        compilerClasspath = scalaCompilerClasspath(),
+        scalacPluginClasspath = scalacPluginClasspath(),
+        incrementalCompilation = zincIncrementalCompilation(),
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+      ),
+      javaHome = javaHome().map(_.path),
+      javaRuntimeOptions = jOpts.runtime,
+      reporter = Task.reporter.apply(hashCode),
+      reportCachedProblems = zincReportCachedProblems()
+    )
   }
 
   override def docSources: T[Seq[PathRef]] = Task {
@@ -329,15 +329,15 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       } else {
         val worker = jvmWorker().internalWorker()
         worker.apply(
-            ZincScaladocJar(
-              scalaVersion(),
-              scalaOrganization(),
-              scalaDocClasspath(),
-              scalacPluginClasspath(),
-              options ++ compileCp ++ scalaDocOptions() ++ files.map(_.toString())
-            ),
-            javaHome = javaHome().map(_.path)
-          ) match {
+          ZincScaladocJar(
+            scalaVersion(),
+            scalaOrganization(),
+            scalaDocClasspath(),
+            scalacPluginClasspath(),
+            options ++ compileCp ++ scalaDocOptions() ++ files.map(_.toString())
+          ),
+          javaHome = javaHome().map(_.path)
+        ) match {
           case true => PathRef(javadocDir)
           case false => Task.fail("scaladoc generation failed")
         }
@@ -623,27 +623,27 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
       val worker = jvmWorker().internalWorker()
       worker.apply(
-          ZincCompileMixed(
-            upstreamCompileOutput = upstreamSemanticDbDatas().map(_.compilationResult),
-            sources = allSourceFiles().map(_.path),
-            compileClasspath =
-              (compileClasspathTask(
-                CompileFor.SemanticDb
-              )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
-            javacOptions = jOpts.compiler,
-            scalaVersion = sv,
-            scalaOrganization = scalaOrganization(),
-            scalacOptions = scalacOptions,
-            compilerClasspath = scalaCompilerClasspath(),
-            scalacPluginClasspath = semanticDbPluginClasspath(),
-            incrementalCompilation = zincIncrementalCompilation(),
-            auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
-          ),
-          javaHome = javaHome().map(_.path),
-          javaRuntimeOptions = jOpts.runtime,
-          reporter = Task.reporter.apply(hashCode),
-          reportCachedProblems = zincReportCachedProblems()
-        )
+        ZincCompileMixed(
+          upstreamCompileOutput = upstreamSemanticDbDatas().map(_.compilationResult),
+          sources = allSourceFiles().map(_.path),
+          compileClasspath =
+            (compileClasspathTask(
+              CompileFor.SemanticDb
+            )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
+          javacOptions = jOpts.compiler,
+          scalaVersion = sv,
+          scalaOrganization = scalaOrganization(),
+          scalacOptions = scalacOptions,
+          compilerClasspath = scalaCompilerClasspath(),
+          scalacPluginClasspath = semanticDbPluginClasspath(),
+          incrementalCompilation = zincIncrementalCompilation(),
+          auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+        ),
+        javaHome = javaHome().map(_.path),
+        javaRuntimeOptions = jOpts.runtime,
+        reporter = Task.reporter.apply(hashCode),
+        reportCachedProblems = zincReportCachedProblems()
+      )
         .map { compilationResult =>
           val semanticDbFiles = BuildCtx.withFilesystemCheckerDisabled {
             SemanticDbJavaModule.copySemanticdbFiles(

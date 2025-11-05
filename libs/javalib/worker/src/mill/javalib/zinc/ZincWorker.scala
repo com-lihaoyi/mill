@@ -284,10 +284,12 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       deps: ZincWorker.InvocationDependencies
   ): ZincApi = new ZincApi {
 
-    override def apply(op: ZincOperation, 
-                       reporter: Option[CompileProblemReporter], 
-                       reportCachedProblems: Boolean) = {
-      
+    override def apply(
+        op: ZincOperation,
+        reporter: Option[CompileProblemReporter],
+        reportCachedProblems: Boolean
+    ) = {
+
       self.apply(op, reporter, reportCachedProblems, ctx, deps)
     }
   }
@@ -560,12 +562,14 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       }
     } finally doubleLock.close()
   }
-  
-  def apply(op: ZincOperation ,
-            reporter: Option[CompileProblemReporter],
-            reportCachedProblems: Boolean,
-            ctx: ZincWorker.InvocationContext,
-            deps: ZincWorker.InvocationDependencies): op.Response = {
+
+  def apply(
+      op: ZincOperation,
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean,
+      ctx: ZincWorker.InvocationContext,
+      deps: ZincWorker.InvocationDependencies
+  ): op.Response = {
     op match {
       case msg: ZincCompileJava =>
         compileJava(

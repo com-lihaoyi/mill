@@ -104,7 +104,8 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       ),
       javaHome = javaHome,
       javaRuntimeOptions = JavaRuntimeOptions(Nil),
-      None, false
+      None,
+      false
     )
   }
 }

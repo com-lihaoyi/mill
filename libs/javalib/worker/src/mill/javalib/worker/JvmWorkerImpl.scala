@@ -4,7 +4,6 @@ import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.client.lock.{DoubleLock, Locks, MemoryLock}
-import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.*
 import mill.javalib.internal.JvmWorkerArgs
 import mill.javalib.zinc.{ZincApi, ZincWorker}
@@ -95,7 +94,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
         key: SubprocessCacheKey,
         init: SubprocessCacheInitialize
     ): SubprocessCacheValue = {
-      import init.log
 
       val workerDir = init.taskDest / "zinc-worker" / key.sha256
       val daemonDir = workerDir / "daemon"

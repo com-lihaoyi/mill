@@ -3,7 +3,6 @@ import mill.api.*
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.constants.DaemonFiles
-import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.*
 import mill.javalib.internal.{RpcCompileProblemReporterMessage, ZincCompilerBridgeProvider}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
@@ -181,7 +180,11 @@ class SubprocessZincApi(
       reportCachedProblems: Boolean
   ): op.Response = {
     withRpcClient(serverRpcToClientHandler(reporter, log, cacheKey)) { rpcClient =>
-      val res = rpcClient(ZincWorkerRpcServer.Request(op, toReporterMode(reporter, reportCachedProblems), ctx))
+      val res = rpcClient(ZincWorkerRpcServer.Request(
+        op,
+        toReporterMode(reporter, reportCachedProblems),
+        ctx
+      ))
       res.asInstanceOf[op.Response]
     }
   }
