@@ -8,7 +8,7 @@ import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.*
 import mill.javalib.internal.JvmWorkerArgs
 import mill.javalib.zinc.{ZincApi, ZincWorker}
-import mill.util.{CachedFactoryWithInitData, Jvm, RequestId, RequestIdFactory}
+import mill.util.{CachedFactoryWithInitData, Jvm}
 import sbt.internal.util.ConsoleOut
 
 import java.time.LocalDateTime
@@ -17,16 +17,14 @@ import java.time.LocalDateTime
 class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable {
   import args.*
 
-  private val requestIds = RequestIdFactory()
-
-  private def fileLog(s: String)(using requestId: RequestId): Unit =
+  private def fileLog(s: String): Unit =
     os.write.append(
       compilerBridge.workspace / "jvm-worker.log",
-      s"[${LocalDateTime.now()}|$requestId] $s\n",
+      s"[${LocalDateTime.now()}] $s\n",
       createFolders = true
     )
 
-  private def fileAndDebugLog(log: Logger.Actions, s: String)(using requestId: RequestId): Unit = {
+  private def fileAndDebugLog(log: Logger.Actions, s: String): Unit = {
     fileLog(s)
     log.debug(s)
   }
@@ -41,7 +39,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
-    given RequestId = requestIds.next()
     zincApi(javaHome, javaRuntimeOptions).compileJava(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
   }
 
@@ -52,7 +49,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
-    given RequestId = requestIds.next()
     zincApi(javaHome, javaRuntimeOptions).compileMixed(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
   }
 
@@ -60,8 +56,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       op: ZincScaladocJar,
       javaHome: Option[os.Path]
   )(using ctx: JvmWorkerApi.Ctx): Boolean = {
-    given RequestId = requestIds.next()
-    fileLog(pprint.apply(op).render)
     zincApi(javaHome, JavaRuntimeOptions(Seq.empty)).scaladocJar(op)
   }
 
@@ -69,8 +63,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       op: mill.javalib.api.internal.ZincDiscoverTests,
       javaHome: Option[os.Path]
   )(using ctx: JvmWorkerApi.Ctx): Seq[String] = {
-    given RequestId = requestIds.next()
-
     zincApi(javaHome, JavaRuntimeOptions(Seq.empty)).discoverTests(op)
   }
 
@@ -80,8 +72,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
   )(using
       ctx: JvmWorkerApi.Ctx
   ): Seq[String] = {
-    given RequestId = requestIds.next()
-
     zincApi(javaHome, JavaRuntimeOptions(Seq.empty)).getTestTasks(op)
   }
 
@@ -89,7 +79,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       op: mill.javalib.api.internal.ZincDiscoverJunit5Tests,
       javaHome: Option[os.Path]
   )(using ctx: JvmWorkerApi.Ctx): Seq[String] = {
-    given RequestId = requestIds.next()
     zincApi(javaHome, JavaRuntimeOptions(Seq.empty)).discoverJunit5Tests(op)
   }
 
@@ -108,7 +97,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       javaRuntimeOptions: JavaRuntimeOptions
   )(using
       ctx: JvmWorkerApi.Ctx,
-      requestId: RequestId
   ): ZincApi = {
     val log = ctx.log
     val zincCtx = ZincWorker.InvocationContext(
@@ -161,7 +149,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
         init: SubprocessCacheInitialize
     ): SubprocessCacheValue = {
       import init.log
-      given RequestId = init.requestId
 
       val workerDir = init.taskDest / "zinc-worker" / key.sha256
       val daemonDir = workerDir / "daemon"

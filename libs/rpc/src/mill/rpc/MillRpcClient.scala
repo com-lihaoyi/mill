@@ -27,14 +27,7 @@ object MillRpcClient {
       stderr: RpcConsole.Message => Unit = RpcConsole.stderrHandler
   )(serverMessageHandler: MillRpcChannel[ServerToClient])
       : MillRpcClient[ClientToServer, ServerToClient] = {
-    var currentRequestId = MillRpcRequestId.initialForClient
     @volatile var currentServerMessageHandler = serverMessageHandler
-
-    def withRequestId[A](id: MillRpcRequestId)(f: MillRpcRequestId => A): A = {
-      currentRequestId = id
-      try f(id)
-      finally currentRequestId = currentRequestId.requestFinished
-    }
 
     def logWarn(msg: String): Unit = log.warn(s"[RPC:${wireTransport.name}] $msg")
     def logDebug(msg: String): Unit = log.debug(s"[RPC:${wireTransport.name}] $msg")
@@ -47,7 +40,7 @@ object MillRpcClient {
       case RpcLogger.Message.Ticker(msg) => log.ticker(s"[RPC-SERVER:${wireTransport.name}] $msg")
     }
 
-    def awaitForResponse[A: Reader](requestId: MillRpcRequestId): A = {
+    def awaitForResponse[A: Reader]: A = {
       // When we send a request, server can send another request back at us, to get more data which is needed to
       // fulfill our request.
       var responseReceived = Option.empty[A]
@@ -59,10 +52,10 @@ object MillRpcClient {
             throw new IllegalStateException(
               s"RPC wire has broken (${wireTransport.name}). The server probably crashed."
             )
-          case Some(MillRpcServerToClient.Ask(id, dataJson)) =>
+          case Some(MillRpcServerToClient.Ask(dataJson)) =>
             val data = upickle.read[ServerToClient](dataJson)
-            handleServerMessage(id, data)
-          case Some(MillRpcServerToClient.Response(`requestId`, either)) =>
+            handleServerMessage(data)
+          case Some(MillRpcServerToClient.Response(either)) =>
             either match {
               case Left(err) =>
                 throw err
@@ -70,10 +63,6 @@ object MillRpcClient {
                 val response = upickle.read[A](responseJson)
                 responseReceived = Some(response)
             }
-          case Some(MillRpcServerToClient.Response(reqId, either)) =>
-            logWarn(
-              s"Received response with the unknown wrong request id ($reqId), ignoring: ${pprint.apply(either)}"
-            )
           case Some(MillRpcServerToClient.Log(msg)) => handleServerLog(msg)
           case Some(MillRpcServerToClient.Stdout(msg)) => stdout(msg)
           case Some(MillRpcServerToClient.Stderr(msg)) => stderr(msg)
@@ -86,22 +75,18 @@ object MillRpcClient {
       }
     }
 
-    def handleServerMessage(requestId: MillRpcRequestId, msg: ServerToClient): Unit = {
-      withRequestId(requestId) { requestId =>
-        val response =
-          Try(currentServerMessageHandler(requestId, msg)).toEither.left.map(RpcThrowable.apply)
-        wireTransport.writeSerialized(MillRpcClientToServer.Response(requestId, response), logDebug)
-      }
+    def handleServerMessage(msg: ServerToClient): Unit = {
+      val response =
+        Try(currentServerMessageHandler(msg)).toEither.left.map(RpcThrowable.apply)
+      wireTransport.writeSerialized(MillRpcClientToServer.Response(response), logDebug)
     }
 
     wireTransport.writeSerialized(initialize, logDebug)
 
     new {
       override def apply(msg: ClientToServer): msg.Response = {
-        withRequestId(currentRequestId.requestStartedFromClient) { requestId =>
-          wireTransport.writeSerialized(MillRpcClientToServer.Ask(requestId, msg), logDebug)
-          awaitForResponse[msg.Response](requestId)(using msg.responseRw)
-        }
+        wireTransport.writeSerialized(MillRpcClientToServer.Ask(msg), logDebug)
+        awaitForResponse[msg.Response](using msg.responseRw)
       }
 
       override def withServerToClientHandler(handler: MillRpcChannel[ServerToClient]): Unit = {

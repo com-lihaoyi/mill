@@ -99,64 +99,49 @@ trait MillRpcServerImpl[
     while (continue) {
       readAndTryToParse[MillRpcClientToServer[ClientToServer]]() match {
         case None => continue = false
-        case Some(MillRpcClientToServer.Ask(requestId, message)) =>
-          continue = onAsk(requestId)(requestId => onClientMessage(requestId, message))
-        case Some(MillRpcClientToServer.Response(requestId, data)) =>
-          val msg =
-            s"Received response, however we weren't expecting any, (request id = $requestId), " +
-              s"ignoring: ${pprint.apply(data)}"
-          logLocal(msg)
-          clientLogger.warn(msg)
+        case Some(MillRpcClientToServer.Ask(message)) =>
+          continue = onAsk()(() => onClientMessage(message))
       }
     }
   }
 
-  private def onAsk[Response: Writer](requestId: MillRpcRequestId)(
-      run: MillRpcRequestId => Response
+  private def onAsk[Response: Writer]()(
+      run: () => Response
   ): Boolean = {
     val result =
-      try Right(run(requestId))
+      try Right(run())
       catch {
         case _: InterruptedException => return false
         case NonFatal(e) => Left(RpcThrowable(e))
       }
 
-    sendToClient(MillRpcServerToClient.Response(requestId, result))
+    sendToClient(MillRpcServerToClient.Response(result))
     true
   }
 
   private def waitForResponse[R: Reader](
       clientToServer: MillRpcChannel[ClientToServer],
-      awaitingResponseTo: MillRpcRequestId
   ): R = {
     var responseReceived = Option.empty[R]
 
     while (responseReceived.isEmpty) {
       val clientToServerMsg = readAndTryToParse[MillRpcClientToServer[R]]().getOrElse(
         throw new InterruptedException(
-          s"Transport wire broken while waiting for response to request $awaitingResponseTo."
+          s"Transport wire broken while waiting for response to request."
         )
       )
 
       clientToServerMsg match {
-        case MillRpcClientToServer.Ask(requestId, message) =>
+        case MillRpcClientToServer.Ask(message) =>
           val askMessage = message.asInstanceOf[ClientToServer]
-          onAsk(requestId)(requestId => clientToServer(requestId, askMessage))(using
+          onAsk()(() => clientToServer(askMessage))(using
             askMessage.responseRw
           )
 
-        case MillRpcClientToServer.Response(requestId, data) =>
-          if (requestId == awaitingResponseTo) {
-            data match {
-              case Left(err) => throw err
-              case Right(response) => responseReceived = Some(response)
-            }
-          } else {
-            val msg =
-              s"Received response with the unknown wrong request id ($requestId), while we are expecting " +
-                s"response for request id ($awaitingResponseTo), ignoring: ${pprint.apply(data)}"
-            logLocal(msg)
-            clientLogger.warn(msg)
+        case MillRpcClientToServer.Response(data) =>
+          data match {
+            case Left(err) => throw err
+            case Right(response) => responseReceived = Some(response)
           }
       }
     }
@@ -176,21 +161,13 @@ trait MillRpcServerImpl[
   }
 
   private def createServerToClientChannel(): MillRpcChannel[ServerToClient] = {
-    @volatile var lastClientRequestId = Option.empty[MillRpcRequestId]
-
-    (clientRequestId: MillRpcRequestId, msg: ServerToClient) => {
+    (msg: ServerToClient) => {
       val clientToServer = initializedOnClientMessage.getOrElse(throw new IllegalStateException(
         "Client to server channel should have been initialized, this is a bug in the RPC implementation."
       ))
 
-      val requestId = (lastClientRequestId match {
-        case None => clientRequestId
-        case Some(last) if last.requestFinished == clientRequestId => last
-        case Some(_) => clientRequestId
-      }).requestStartedFromServer
-      lastClientRequestId = Some(requestId)
-      sendToClient(MillRpcServerToClient.Ask(requestId, msg))
-      waitForResponse[msg.Response](clientToServer, requestId)
+      sendToClient(MillRpcServerToClient.Ask(msg))
+      waitForResponse[msg.Response](clientToServer)
     }
   }
 }

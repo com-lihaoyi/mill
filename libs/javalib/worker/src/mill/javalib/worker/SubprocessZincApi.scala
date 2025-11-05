@@ -9,7 +9,7 @@ import mill.javalib.internal.{RpcCompileProblemReporterMessage, ZincCompilerBrid
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
-import mill.util.{CachedFactoryWithInitData, HexFormat, RequestId}
+import mill.util.{CachedFactoryWithInitData, HexFormat}
 
 import java.io.*
 import java.nio.file.FileSystemException
@@ -29,7 +29,6 @@ private case class SubprocessCacheKey(
 private case class SubprocessCacheInitialize(
                                               taskDest: os.Path,
                                               log: Logger,
-                                              requestId: RequestId
                                             )
 private case class SubprocessCacheValue(
                                          port: Int,
@@ -72,7 +71,7 @@ class SubprocessZincApi(
                                  SubprocessCacheValue
                                ],
                                compilerBridge: ZincCompilerBridgeProvider
-                             )(using requestId: RequestId) extends ZincApi {
+                             ) extends ZincApi {
   val cacheKey = SubprocessCacheKey(javaHome, runtimeOptions)
 
   def makeClientLogger() = new Logger.Actions {
@@ -89,7 +88,7 @@ class SubprocessZincApi(
   : R = {
     subprocessCache.withValue(
       cacheKey,
-      SubprocessCacheInitialize(compilerBridge.workspace, log, requestId)
+      SubprocessCacheInitialize(compilerBridge.workspace, log)
     ) { case SubprocessCacheValue(port, daemonDir, _) =>
       Using.Manager { use =>
         val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), port)
@@ -164,7 +163,7 @@ class SubprocessZincApi(
       }
     }
 
-    (_, input) => {
+    (input) => {
       input match {
         case msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge =>
           acquireZincCompilerBridge(msg).asInstanceOf[input.Response]

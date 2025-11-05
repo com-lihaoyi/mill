@@ -46,13 +46,12 @@ class ZincWorkerRpcServer(
         override def flush(): Unit = clientStderr.flush()
       })
 
-      def makeCompilerBridge(clientRequestId: MillRpcRequestId) =
+      def makeCompilerBridge() =
         ZincCompilerBridgeProvider(
           workspace = initialize.compilerBridgeWorkspace,
           logInfo = log.info,
           acquire = (scalaVersion, scalaOrganization) =>
             serverToClient(
-              clientRequestId,
               ServerToClient.AcquireZincCompilerBridge(
                 scalaVersion = scalaVersion,
                 scalaOrganization = scalaOrganization
@@ -60,47 +59,44 @@ class ZincWorkerRpcServer(
             )
         )
 
-      def makeDeps(clientRequestId: MillRpcRequestId) = {
-        val compilerBridge = makeCompilerBridge(clientRequestId)
-        ZincWorker.InvocationDependencies(log, consoleOut, compilerBridge)
+      def makeDeps() = {
+        ZincWorker.InvocationDependencies(log, consoleOut, makeCompilerBridge())
       }
 
-      def reporter(clientRequestId: MillRpcRequestId, maxErrors: Int) = RpcCompileProblemReporter(
+      def reporter(maxErrors: Int) = RpcCompileProblemReporter(
         maxErrors = maxErrors,
         send = msg =>
           serverToClient(
-            clientRequestId,
-            ServerToClient.ReportCompilationProblem(clientRequestId, msg)
+            ServerToClient.ReportCompilationProblem(msg)
           )
       )
 
       def reporterAsOption(
-          clientRequestId: MillRpcRequestId,
           mode: ReporterMode
       ): Option[CompileProblemReporter] = mode match {
         case ReporterMode.NoReporter => None
         case r: ReporterMode.Reporter =>
-          Some(reporter(clientRequestId = clientRequestId, maxErrors = r.maxErrors))
+          Some(reporter(maxErrors = r.maxErrors))
       }
 
       new MillRpcChannel[ClientToServer] {
-        override def apply(requestId: MillRpcRequestId, input: ClientToServer): input.Response =
+        override def apply(input: ClientToServer): input.Response =
           setIdle.doWork {
             input match {
               case msg: ClientToServer.CompileJava =>
                 worker.compileJava(
                   op = msg.op,
-                  reporter = reporterAsOption(requestId, msg.reporterMode),
+                  reporter = reporterAsOption(msg.reporterMode),
                   reportCachedProblems = msg.reporterMode.reportCachedProblems,
-                  msg.ctx, makeDeps(requestId)).asInstanceOf[input.Response]
+                  msg.ctx, makeDeps()).asInstanceOf[input.Response]
               case msg: ClientToServer.CompileMixed =>
                 worker.compileMixed(
                   msg.op,
-                  reporter = reporterAsOption(requestId, msg.reporterMode),
+                  reporter = reporterAsOption(msg.reporterMode),
                   reportCachedProblems = msg.reporterMode.reportCachedProblems,
-                  msg.ctx, makeDeps(requestId)).asInstanceOf[input.Response]
+                  msg.ctx, makeDeps()).asInstanceOf[input.Response]
               case msg: ClientToServer.ScaladocJar =>
-                worker.scaladocJar(msg.op, makeCompilerBridge(requestId)).asInstanceOf[input.Response]
+                worker.scaladocJar(msg.op, makeCompilerBridge()).asInstanceOf[input.Response]
               case msg: ClientToServer.DiscoverTests =>
                 mill.javalib.testrunner.DiscoverTestsMain(msg.value).asInstanceOf[input.Response]
               case msg: ClientToServer.GetTestTasks =>
@@ -190,7 +186,6 @@ object ZincWorkerRpcServer {
      * @param compilationRequestId request id for the message requesting the compilation.
      */
     case class ReportCompilationProblem(
-        compilationRequestId: MillRpcRequestId,
         problem: RpcCompileProblemReporterMessage
     ) extends ServerToClient, MillRpcMessage.NoResponse
   }
