@@ -285,7 +285,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   def api(using
       ctx: ZincWorker.InvocationContext,
       deps: ZincWorker.InvocationDependencies
-  ): ZincApi = new {
+  ): ZincApi = new ZincApi {
     override def compileJava(
         op: ZincCompileJava,
         reporter: Option[CompileProblemReporter],
