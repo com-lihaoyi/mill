@@ -240,7 +240,7 @@ if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
     ) else (
         set MILL_TEMP_DOWNLOAD_FILE=out\mill-bootstrap-download
     )
-    if not exist "%MILL_TEMP_DOWNLOAD_FILE%\.." mkdir "%MILL_TEMP_DOWNLOAD_FILE%\.."
+    for %%F in ("%MILL_TEMP_DOWNLOAD_FILE%") do if not exist "%%~dpF" mkdir "%%~dpF"
 
     echo Downloading mill !MILL_VERSION! from !MILL_DOWNLOAD_URL! ... 1>&2
 

@@ -133,7 +133,7 @@ if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
   esac
 
   MILL_TEMP_DOWNLOAD_FILE="${MILL_OUTPUT_DIR:-out}/mill-temp-download"
-  mkdir -p "${MILL_TEMP_DOWNLOAD_FILE}/.."
+  mkdir -p "$(dirname "${MILL_TEMP_DOWNLOAD_FILE}")"
 
   if [ "$MILL_DOWNLOAD_FROM_MAVEN" = "1" ] ; then
     MILL_DOWNLOAD_URL="{{{ mill-maven-url }}}/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.${MILL_DOWNLOAD_EXT}"
