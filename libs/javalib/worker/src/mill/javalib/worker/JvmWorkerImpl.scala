@@ -85,7 +85,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
     result.result
   }
 
-  def discoverTests(
+  override def discoverTests(
       op: mill.javalib.api.internal.ZincDiscoverTests,
       javaHome: Option[os.Path]
   )(using ctx: JvmWorkerApi.Ctx): Seq[String] = {
@@ -93,18 +93,21 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
 
     val zinc = zincApi(javaHome, JavaRuntimeOptions(Seq.empty))
     val result = Timed(zinc.discoverTests(op))
-    fileLog(s"Scaladoc took ${result.durationPretty}")
+    fileLog(s"discoverTests took ${result.durationPretty}")
     result.result
   }
 
-  def getTestTasks(op: mill.javalib.api.internal.ZincGetTestTasks, javaHome: Option[os.Path])(using
+  override def getTestTasks(
+      op: mill.javalib.api.internal.ZincGetTestTasks,
+      javaHome: Option[os.Path]
+  )(using
       ctx: JvmWorkerApi.Ctx
   ): Seq[String] = {
     given RequestId = requestIds.next()
 
     val zinc = zincApi(javaHome, JavaRuntimeOptions(Seq.empty))
     val result = Timed(zinc.getTestTasks(op))
-    fileLog(s"Scaladoc took ${result.durationPretty}")
+    fileLog(s"getTestTasks took ${result.durationPretty}")
     result.result
   }
 
