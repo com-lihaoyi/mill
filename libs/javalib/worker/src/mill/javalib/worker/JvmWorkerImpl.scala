@@ -11,8 +11,6 @@ import mill.javalib.zinc.{ZincApi, ZincWorker}
 import mill.util.{CachedFactoryWithInitData, Jvm}
 import sbt.internal.util.ConsoleOut
 
-import java.time.LocalDateTime
-
 @internal
 class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable {
   import args.*
