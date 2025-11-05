@@ -1,6 +1,7 @@
 package mill.testkit
 
 import mill.constants.Util.isWindows
+import mill.testkit.Chunk
 import utest.*
 
 import scala.util.control.NonFatal
@@ -236,7 +237,9 @@ class ExampleTester(
     val parsed = ExampleParser(workspaceSourcePath)
     val ignoreErrors = System.getenv("CI") != null &&
       os.exists(workspaceSourcePath / "ignoreErrorsOnCI")
-    val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
+    val usageComment = parsed.collect { case Chunk.Example(lines) =>
+      lines.mkString("\n")
+    }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
     try {
