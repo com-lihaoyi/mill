@@ -22,6 +22,8 @@ object androidSdkModule0 extends AndroidSdkModule {
 // Actual android application
 object app extends AndroidAppKotlinModule {
 
+  object release extends AndroidKotlinReleaseModule
+
   def kotlinVersion = "2.0.21"
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidCompileSdk = 35

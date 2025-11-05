@@ -228,6 +228,8 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     override def kotlinVersion: T[String] = outer.kotlinVersion()
     override def androidEnableCompose: T[Boolean] = outer.androidEnableCompose()
     override def generatedSources: T[Seq[PathRef]] = outer.generatedSources()
+    override def androidCompiledModuleResources: T[Seq[PathRef]] =
+      outer.androidCompiledModuleResources()
   }
 
   trait AndroidKotlinTestModule extends KotlinTests, AndroidTestModule {

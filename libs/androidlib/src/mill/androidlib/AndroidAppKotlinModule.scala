@@ -333,11 +333,11 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
 
   }
 
-  trait AndroidAppKotlinVariantModule extends AndroidAppVariantModule, AndroidKotlinVariantModule,
-        AndroidAppKotlinModule {
+  trait AndroidAppKotlinVariantModule extends AndroidKotlinVariantModule, AndroidAppKotlinModule {
     override def sources: T[Seq[PathRef]] = outer.sources
+    override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer.resolutionParams())
   }
 
-  trait AndroidKotlinReleaseModule extends AndroidAppKotlinVariantModule {}
+  trait AndroidKotlinReleaseModule extends AndroidReleaseModule, AndroidAppKotlinVariantModule
 
 }

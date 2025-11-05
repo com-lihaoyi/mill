@@ -806,6 +806,8 @@ trait AndroidModule extends JavaModule { outer =>
 
     override def mvnDeps: T[Seq[Dep]] = outer.mvnDeps()
 
+    override def runMvnDeps: T[Seq[Dep]] = outer.runMvnDeps()
+
     override def compileMvnDeps: T[Seq[Dep]] = outer.compileMvnDeps()
 
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
