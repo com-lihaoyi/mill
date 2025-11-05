@@ -23,9 +23,7 @@ object SbtBuildGenMain {
       @mainargs.arg(doc = "disable generating meta-build files")
       noMeta: mainargs.Flag,
       @mainargs.arg(doc = "path to sbt executable")
-      customSbt: Option[String],
-      @mainargs.arg(doc = "JDK to use to run sbt")
-      sbtJvmId: String = "system"
+      customSbt: Option[String]
   ): Unit = {
     println("converting sbt build")
 
@@ -36,22 +34,26 @@ object SbtBuildGenMain {
       os.proc(
         sbtCmd,
         "-java-home",
-        Jvm.resolveJavaHome(sbtJvmId).get,
+        Jvm.resolveJavaHome("system").get,
         s"-DmillInitExportDir=$exportDir",
+        // Fail-fast if incompatible.
+        "millInitCheckExport",
         // Run task with cross-build prefix to export data for all cross Scala versions.
         "+millInitExportBuild"
       ).call(stdout = os.Inherit)
     } catch {
-      case e: os.SubprocessException => throw RuntimeException(
+      case e: os.SubprocessException =>
+        val checkErrors = os.list(exportDir).map(os.read(_))
+        val message = if (checkErrors.isEmpty)
           "The sbt command to run the `millInitExportBuild` sbt task has failed, " +
-            s"please check out the following solutions and try again:\n" +
-            s"1. check whether your existing sbt build works properly;\n" +
-            s"2. make sure there are no other sbt processes running;\n" +
-            s"3. clear your build output and cache;\n" +
+            "please check out the following solutions and try again:\n" +
+            "1. check whether your existing sbt build works properly;\n" +
+            "2. make sure there are no other sbt processes running;\n" +
+            "3. clear your build output and cache;\n" +
             s"4. update the project's sbt version to the latest or our tested version v$sbtVersion;\n" +
-            "5. check whether you have the appropriate Java version.\n",
-          e
-        )
+            "5. check whether you have the appropriate Java version.\n"
+        else checkErrors.mkString("The sbt build cannot be converted because:\n- ", "\n- ", "")
+        throw RuntimeException(message, e)
     }
 
     val exportedBuild = os.list.stream(exportDir)

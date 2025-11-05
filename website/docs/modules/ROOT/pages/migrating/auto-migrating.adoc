@@ -81,6 +81,19 @@ The conversion
 
 * configures multiple, compile and test, resource directories
 
+== Pre-requisites
+
+1. xref:cli/installation-ide.adoc[Install] Mill.
+2. Ensure that JAVA_HOME references the JDK used to build your project.
+
+=== Builds that use a legacy JDK
+
+Mill requires at least JDK 11.
+If your build uses an older JDK, you will have to migrate the build to a newer one first.
+
+This does not mean the compile output version has to change.
+JVM compatibility is maintained provided the `--release` or `-target` compiler option is set to the old version.
+
 === Command line arguments
 
 The conversion and its output (the generated Mill build files) can be customized using

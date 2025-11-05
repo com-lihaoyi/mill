@@ -1,7 +1,6 @@
 package mill.main.maven
 
 import mill.main.buildgen.ModuleConfig
-import org.apache.maven.artifact.versioning.VersionRange
 import org.apache.maven.model.{ConfigurationContainer, Model, Plugin}
 import org.codehaus.plexus.util.xml.Xpp3Dom
 
@@ -41,24 +40,6 @@ class Plugins(model: Model) {
       opts0 ++ opts("encoding") ++ values(dom, "compilerArgs")
     }
 
-  def javaVersion: Option[Int] =
-    mavenCompilerPlugin
-      .flatMap(configDom)
-      .flatMap(value(_, "jdkToolchain", "version"))
-      .orElse(mavenToolchainsPlugin
-        .flatMap(configDom)
-        .flatMap(value(_, "toolchains", "jdk", "version")))
-      .orElse(mavenEnforcerPlugin
-        .flatMap(_.getExecutions.asScala.find(_.getGoals.contains("enforce")))
-        .flatMap(configDom)
-        .flatMap(value(_, "rules", "requireJavaVersion", "version")))
-      .flatMap { spec =>
-        val range = VersionRange.createFromVersionSpec(spec)
-        Option(range.getRecommendedVersion)
-          .orElse(range.getRestrictions.asScala.headOption.flatMap(r => Option(r.getLowerBound)))
-          .map(v => if (v.getMajorVersion == 1) v.getMinorVersion else v.getMajorVersion)
-      }
-
   def skipDeploy: Boolean =
     mavenDeployPlugin.flatMap(configDom).flatMap(value(_, "skip")).fold(false)(_.toBoolean)
 
@@ -73,18 +54,6 @@ class Plugins(model: Model) {
    */
   def mavenDeployPlugin: Option[Plugin] =
     findPlugin("org.apache.maven.plugins", "maven-deploy-plugin")
-
-  /**
-   * @see [[https://maven.apache.org/enforcer/maven-enforcer-plugin/index.html]]
-   */
-  def mavenEnforcerPlugin: Option[Plugin] =
-    findPlugin("org.apache.maven.plugins", "maven-enforcer-plugin")
-
-  /**
-   * @see [[https://maven.apache.org/plugins/maven-toolchains-plugin/index.html]]
-   */
-  def mavenToolchainsPlugin: Option[Plugin] =
-    findPlugin("org.apache.maven.plugins", "maven-toolchains-plugin")
 
   def findPlugin(groupId: String, artifactId: String): Option[Plugin] =
     model.getBuild.getPlugins.asScala

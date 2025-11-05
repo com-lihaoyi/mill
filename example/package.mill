@@ -13,6 +13,7 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.api.Cross
 import mill.api.BuildCtx
+import java.io.File.pathSeparator
 
 object `package` extends Module {
   def exampleModules: Seq[ExampleCrossModule] = moduleInternal
@@ -65,8 +66,8 @@ object `package` extends Module {
   }
 
   object migrating extends Module {
-    object javalib extends Cross[ExampleCrossModule](build.listCross)
-    object scalalib extends Cross[ExampleCrossModule](build.listCross)
+    object javalib extends Cross[ExampleCrossModuleMigrating](build.listCross)
+    object scalalib extends Cross[ExampleCrossModuleMigrating](build.listCross)
   }
   object javascriptlib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listCross)
@@ -120,6 +121,26 @@ object `package` extends Module {
     object jvmcode extends Cross[ExampleCrossModule](build.listCross)
     object python extends Cross[ExampleCrossModule](build.listCross)
     object typescript extends Cross[ExampleCrossModule](build.listCross)
+  }
+
+  trait ExampleCrossModuleMigrating extends ExampleCrossModule {
+    def forkEnvJvmIdFile = Task.Source(".env-jvm-version")
+    def forkEnvJvmId = Task {
+      val file = forkEnvJvmIdFile().path
+      if (os.exists(file)) BuildCtx.withFilesystemCheckerDisabled {
+        os.read(file)
+      }
+      else "zulu:11"
+    }
+    def forkEnv = Task {
+      val javaHome = Jvm.resolveJavaHome(forkEnvJvmId()).get
+      val javaExe = Jvm.javaExe(Some(javaHome))
+      Map(
+        "MILL_INTEGRATION_PROPAGATE_JAVA_HOME" -> "false",
+        "JAVA_HOME" -> javaHome.toString,
+        "PATH" -> s"$javaExe$pathSeparator${System.getenv("PATH")}"
+      )
+    }
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {

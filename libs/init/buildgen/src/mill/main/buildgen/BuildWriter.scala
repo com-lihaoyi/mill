@@ -8,7 +8,7 @@ import mill.main.buildgen.ModuleConfig.*
 import pprint.Util.literalize
 
 import scala.collection.mutable
-import scala.math.Ordered.orderingToOrdered
+import scala.math.Ordering.Implicits.seqOrdering
 import scala.reflect.TypeTest
 
 class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue") {
@@ -46,18 +46,16 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
       println(s"writing Mill meta-build file to $depsSrcFile")
       os.write(os.pwd / depsSrcFile, renderDepsObject(rootModuleName, depsObjectName))
     }
-
-    println(
-      s"NOTE: It is recommended to set `mill-jvm-version` in the header section of the root $rootBuildFile file."
-    )
   }
 
   private def renderRootPackage(pkg: PackageSpec) = {
     import build.*
-    val header = Seq("mill-version: " + millVersion) ++
-      Option.when(millJvmOpts.nonEmpty) {
-        "mill-jvm-opts: " + millJvmOpts.map(literalize(_)).mkString("[", ", ", "]")
-      }
+    val header = Seq(
+      "mill-version: " + millVersion,
+      "mill-jvm-version: " + millJvmVersion
+    ) ++ Option.when(millJvmOpts.nonEmpty) {
+      "mill-jvm-opts: " + millJvmOpts.map(literalize(_)).mkString("[", ", ", "]")
+    }
     s"""${renderLines(header.map("//| " + _))}
        |${renderPackage(pkg)}
        |""".stripMargin
@@ -172,7 +170,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
           case t: T => (k, t)
         }
       )
-    renderLines(configs.map {
+    renderLines(configs.sorted(using BuildWriter.configPriority).map {
       case config: CoursierModule => renderCoursierModule(config, crossConfig)
       case config: JavaHomeModule => renderJavaHomeModule(config, crossConfig)
       case config: RunModule => renderRunModule(config, crossConfig)
@@ -603,5 +601,21 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
         }
       }
     }
+  }
+}
+object BuildWriter {
+
+  private val configPriority: Ordering[ModuleConfig] = Ordering.by {
+    case _: ScalaJSModule => 0
+    case _: ScalaNativeModule => 100
+    case _: ScalaModule => 200
+    case _: JavaModule => 300
+    case _: ErrorProneModule => 400
+    case _: SbtPlatformModule => 500
+    case _: JavaHomeModule => 600
+    case _: PublishModule => 700
+    case _: RunModule => 800
+    case _: TestModule => 900
+    case _: CoursierModule => 1000
   }
 }

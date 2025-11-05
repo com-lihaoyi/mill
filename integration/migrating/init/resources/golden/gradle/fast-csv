@@ -10,7 +10,7 @@ Module dependencies of lib.test:
 }
 {
   "example.jvmId": "zulu:24",
-  "lib.jvmId": "zulu:17"
+  "lib.jvmId": "zulu:24"
 }
 {
   "example.mvnDeps": [
@@ -19,7 +19,7 @@ Module dependencies of lib.test:
   "lib.mvnDeps": [],
   "lib.test.mvnDeps": [
     "org.assertj:assertj-core:3.27.3",
-    "org.junit.jupiter:junit-jupiter:5.13.1"
+    "org.junit.jupiter:junit-jupiter:6.0.0"
   ]
 }
 {
@@ -86,7 +86,7 @@ null
     }
   ]
 }
-"4.0.0"
+"4.1.0"
 null
 {}
 {

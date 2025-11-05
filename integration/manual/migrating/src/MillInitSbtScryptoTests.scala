@@ -4,10 +4,14 @@ import utest.*
 
 object MillInitSbtScryptoTests extends MillInitTestSuite {
   def tests = Tests {
-    test - checkImport(
+    test("upgraded") - checkImport(
       "https://github.com/input-output-hk/scrypto.git",
       "v3.1.0",
-      failingTasks = Seq("js[2.13.16].compile")
+      passingTasks = Seq("jvm[_].test"),
+      failingTasks = Seq(
+        // requires support for ScalaJSBundlerPlugin
+        "js[_].compile"
+      )
     )
   }
 }

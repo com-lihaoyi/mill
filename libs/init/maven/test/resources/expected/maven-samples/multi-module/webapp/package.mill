@@ -16,8 +16,6 @@ object `package` extends MavenSamplesBaseModule {
 
   def artifactName = "webapp"
 
-  def jvmId = "zulu:11"
-
   def pomPackagingType = "war"
 
   def pomParentProject = Some(

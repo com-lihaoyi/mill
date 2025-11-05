@@ -1,4 +1,5 @@
 //| mill-version: SNAPSHOT
+//| mill-jvm-version: zulu:21
 package build
 
 import mill.javalib.*
@@ -6,7 +7,7 @@ import mill.javalib.errorprone.*
 import mill.javalib.publish.*
 import millbuild.*
 
-object `package` extends MavenModule with ErrorProneModule with PublishModule {
+object `package` extends MavenModule with PublishModule with ErrorProneModule {
 
   def javacOptions = super.javacOptions() ++ Seq("-source", "8", "-target", "8")
 

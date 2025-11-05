@@ -1,5 +1,6 @@
 package mill.main.buildgen
 
+import mill.main.buildgen.BuildInfo.millJvmVersion
 import mill.util.BuildInfo.millVersion
 
 /**
@@ -10,6 +11,7 @@ case class BuildSpec(
     packages: Seq[PackageSpec],
     metaBuild: Option[BuildSpec.MetaSpec] = None,
     millVersion: String = millVersion,
+    millJvmVersion: String = millJvmVersion,
     millJvmOpts: Seq[String] = Nil
 ) {
 

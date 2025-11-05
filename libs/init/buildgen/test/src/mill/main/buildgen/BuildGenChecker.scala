@@ -4,28 +4,40 @@ import mill.api.Discover
 import mill.init.Util
 import mill.scalalib.scalafmt.ScalafmtModule
 import mill.testkit.{TestRootModule, UnitTester}
+import mill.util.Jvm
 import mill.util.TokenReaders.*
 import mill.{PathRef, T}
 import utest.framework.TestPath
 
+import java.io.File.pathSeparator
 import java.nio.file.FileSystems
 
-class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
+class BuildGenChecker(mainAssembly: os.Path, sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
 
   def check(
-      generate: => Unit,
       sourceRel: os.SubPath,
       expectedRel: os.SubPath,
+      mainArgs: Seq[String] = Nil,
+      envJvmId: String = "zulu:11",
       updateSnapshots: Boolean = false // pass true to update test data on disk
   )(using
       tp: TestPath
   ): Boolean = {
-    // prep
+    // prepare workspace
     val testRoot = os.pwd / tp.value
     os.copy.over(sourceRoot / sourceRel, testRoot, createFolders = true, replaceExisting = true)
 
-    os.dynamicPwd.withValue(testRoot)(generate)
+    // generate build files
+    val javaHome = Jvm.resolveJavaHome(envJvmId).get
+    val javaExe = Jvm.javaExe(Some(javaHome))
+    val mainEnv = Map(
+      "JAVA_HOME" -> javaHome.toString,
+      "PATH" -> s"$javaExe$pathSeparator${System.getenv("PATH")}"
+    )
+    os.proc(javaExe, "-jar", mainAssembly, mainArgs)
+      .call(cwd = testRoot, env = mainEnv, stdin = os.Inherit, stdout = os.Inherit)
 
+    // format and check build files
     val buildFiles = Util.buildFiles(testRoot)
     object module extends TestRootModule with ScalafmtModule {
       override def filesToFormat(sources: Seq[PathRef]): Seq[PathRef] = buildFiles.map(PathRef(_))
@@ -74,6 +86,12 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
 }
 object BuildGenChecker {
 
-  def apply(sourceRoot: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))): BuildGenChecker =
-    new BuildGenChecker(sourceRoot, os.temp(Util.scalafmtConfig))
+  def apply(
+      mainAssembly: os.Path = os.Path(sys.env("TEST_MAIN_ASSEMBLY")),
+      sourceRoot: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
+  ): BuildGenChecker = new BuildGenChecker(
+    mainAssembly = mainAssembly,
+    sourceRoot = sourceRoot,
+    scalafmtConfigFile = os.temp(Util.scalafmtConfig)
+  )
 }

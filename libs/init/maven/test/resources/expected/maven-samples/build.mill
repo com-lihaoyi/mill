@@ -1,4 +1,5 @@
 //| mill-version: SNAPSHOT
+//| mill-jvm-version: zulu:21
 package build
 
 import mill.javalib.*

@@ -10,6 +10,8 @@ import scala.concurrent.duration.DurationInt
 object UtestExampleTestSuite extends TestSuite {
   val workspaceSourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
   val daemonMode: Boolean = sys.env("MILL_INTEGRATION_DAEMON_MODE").toBoolean
+  val propagateJavaHome: Boolean =
+    sys.env.getOrElse("MILL_INTEGRATION_PROPAGATE_JAVA_HOME", "true").toBoolean
 
   val millExecutable: os.Path = os.Path(System.getenv("MILL_INTEGRATION_LAUNCHER"), os.pwd)
   val tests: Tests = Tests {
@@ -24,7 +26,8 @@ object UtestExampleTestSuite extends TestSuite {
           ExampleTester.run(
             daemonMode,
             workspaceSourcePath,
-            millExecutable
+            millExecutable,
+            propagateJavaHome = propagateJavaHome
           )
         }
 

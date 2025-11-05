@@ -1,4 +1,5 @@
 //| mill-version: SNAPSHOT
+//| mill-jvm-version: zulu:21
 package build
 
 import mill.*
@@ -15,16 +16,12 @@ object `package` extends Module {
 
     object js extends Cross[JsModule]("2.12.20", "2.13.14", "3.7.1")
     trait JsModule
-        extends ScalaJSModule
+        extends PublishModule
+        with ScalaJSModule
         with SbtPlatformModule
-        with PublishModule
         with CrossSbtPlatformModule {
 
       def scalaJSVersion = "1.16.0"
-
-      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
-
-      def artifactName = "dummy"
 
       def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
         (scalaVersion() match {
@@ -38,6 +35,12 @@ object `package` extends Module {
           case "3.7.1" => Seq("-Wunused")
           case _       => Nil
         })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "dummy"
+
+      def jvmId = "zulu:11"
 
       def pomSettings = PomSettings(
         "dummy",
@@ -54,13 +57,9 @@ object `package` extends Module {
 
     object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
     trait JvmModule
-        extends SbtPlatformModule
-        with PublishModule
+        extends PublishModule
+        with SbtPlatformModule
         with CrossSbtPlatformModule {
-
-      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
-
-      def artifactName = "dummy"
 
       def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
         (scalaVersion() match {
@@ -74,6 +73,12 @@ object `package` extends Module {
           case "3.7.1" => Seq("-Wunused")
           case _       => Nil
         })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "dummy"
+
+      def jvmId = "zulu:11"
 
       def pomSettings = PomSettings(
         "dummy",
@@ -90,16 +95,12 @@ object `package` extends Module {
 
     object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
     trait NativeModule
-        extends ScalaNativeModule
+        extends PublishModule
+        with ScalaNativeModule
         with SbtPlatformModule
-        with PublishModule
         with CrossSbtPlatformModule {
 
       def scalaNativeVersion = "0.5.4"
-
-      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
-
-      def artifactName = "dummy"
 
       def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
         (scalaVersion() match {
@@ -113,6 +114,12 @@ object `package` extends Module {
           case "3.7.1" => Seq("-Wunused")
           case _       => Nil
         })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "dummy"
+
+      def jvmId = "zulu:11"
 
       def pomSettings = PomSettings(
         "dummy",
@@ -133,16 +140,12 @@ object `package` extends Module {
 
     object js extends Cross[JsModule]("2.12.20", "2.13.14", "3.7.1")
     trait JsModule
-        extends ScalaJSModule
+        extends PublishModule
+        with ScalaJSModule
         with SbtPlatformModule
-        with PublishModule
         with CrossSbtPlatformModule {
 
       def scalaJSVersion = "1.16.0"
-
-      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
-
-      def artifactName = "full"
 
       def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
         (scalaVersion() match {
@@ -156,6 +159,12 @@ object `package` extends Module {
           case "3.7.1" => Seq("-Wunused")
           case _       => Nil
         })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "full"
+
+      def jvmId = "zulu:11"
 
       def pomSettings = PomSettings(
         "full",
@@ -172,15 +181,9 @@ object `package` extends Module {
 
     object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
     trait JvmModule
-        extends SbtPlatformModule
-        with PublishModule
+        extends PublishModule
+        with SbtPlatformModule
         with CrossSbtPlatformModule {
-
-      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
-
-      def moduleDeps = super.moduleDeps ++ Seq(build.`jvm-util`())
-
-      def artifactName = "full"
 
       def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
         (scalaVersion() match {
@@ -194,6 +197,14 @@ object `package` extends Module {
           case "3.7.1" => Seq("-Wunused")
           case _       => Nil
         })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def moduleDeps = super.moduleDeps ++ Seq(build.`jvm-util`())
+
+      def artifactName = "full"
+
+      def jvmId = "zulu:11"
 
       def pomSettings = PomSettings(
         "full",
@@ -210,16 +221,12 @@ object `package` extends Module {
 
     object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
     trait NativeModule
-        extends ScalaNativeModule
+        extends PublishModule
+        with ScalaNativeModule
         with SbtPlatformModule
-        with PublishModule
         with CrossSbtPlatformModule {
 
       def scalaNativeVersion = "0.5.4"
-
-      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
-
-      def artifactName = "full"
 
       def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
         (scalaVersion() match {
@@ -233,6 +240,12 @@ object `package` extends Module {
           case "3.7.1" => Seq("-Wunused")
           case _       => Nil
         })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "full"
+
+      def jvmId = "zulu:11"
 
       def pomSettings = PomSettings(
         "full",
@@ -252,10 +265,6 @@ object `package` extends Module {
   object `jvm-util` extends Cross[JvmUtilModule]("2.12.20", "2.13.14", "3.7.1")
   trait JvmUtilModule extends PublishModule with CrossSbtModule {
 
-    def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
-
-    def artifactName = "jvmutil"
-
     def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
       (scalaVersion() match {
         case "2.12.20" => Seq(
@@ -267,6 +276,12 @@ object `package` extends Module {
         case "3.7.1"   => Seq("-Wunused")
         case _         => Nil
       })
+
+    def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+    def artifactName = "jvmutil"
+
+    def jvmId = "zulu:11"
 
     def pomSettings = PomSettings(
       "jvmUtil",
@@ -285,16 +300,12 @@ object `package` extends Module {
 
     object js extends Cross[JsModule]("2.12.20", "2.13.14", "3.7.1")
     trait JsModule
-        extends ScalaJSModule
+        extends PublishModule
+        with ScalaJSModule
         with SbtPlatformModule
-        with PublishModule
         with CrossSbtPlatformModule {
 
       def scalaJSVersion = "1.16.0"
-
-      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
-
-      def artifactName = "pure"
 
       def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
         (scalaVersion() match {
@@ -308,6 +319,12 @@ object `package` extends Module {
           case "3.7.1" => Seq("-Wunused")
           case _       => Nil
         })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "pure"
+
+      def jvmId = "zulu:11"
 
       def pomSettings = PomSettings(
         "pure",
@@ -324,13 +341,9 @@ object `package` extends Module {
 
     object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
     trait JvmModule
-        extends SbtPlatformModule
-        with PublishModule
+        extends PublishModule
+        with SbtPlatformModule
         with CrossSbtPlatformModule {
-
-      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
-
-      def artifactName = "pure"
 
       def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
         (scalaVersion() match {
@@ -344,6 +357,12 @@ object `package` extends Module {
           case "3.7.1" => Seq("-Wunused")
           case _       => Nil
         })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "pure"
+
+      def jvmId = "zulu:11"
 
       def pomSettings = PomSettings(
         "pure",
@@ -360,16 +379,12 @@ object `package` extends Module {
 
     object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
     trait NativeModule
-        extends ScalaNativeModule
+        extends PublishModule
+        with ScalaNativeModule
         with SbtPlatformModule
-        with PublishModule
         with CrossSbtPlatformModule {
 
       def scalaNativeVersion = "0.5.4"
-
-      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
-
-      def artifactName = "pure"
 
       def scalacOptions = super.scalacOptions() ++ Seq("-deprecation") ++
         (scalaVersion() match {
@@ -383,6 +398,12 @@ object `package` extends Module {
           case "3.7.1" => Seq("-Wunused")
           case _       => Nil
         })
+
+      def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.lihaoyi::upickle::4.3.0")
+
+      def artifactName = "pure"
+
+      def jvmId = "zulu:11"
 
       def pomSettings = PomSettings(
         "pure",

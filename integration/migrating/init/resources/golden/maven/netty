@@ -39,6 +39,7 @@ Module dependencies of buffer:
   varhandle-stub (compile)
 Module dependencies of buffer.test:
   buffer
+  testsuite-common
   jfr-stub (compile,runtime)
   varhandle-stub (compile,runtime)
 Module dependencies of codec:
@@ -71,6 +72,7 @@ Module dependencies of codec-compression:
 Module dependencies of codec-compression.test:
   codec-compression
   transport
+  testsuite-common
 Module dependencies of codec-dns:
   common
   buffer
@@ -79,6 +81,7 @@ Module dependencies of codec-dns:
 Module dependencies of codec-dns.test:
   codec-dns
   transport
+  testsuite-common
 Module dependencies of codec-haproxy:
   buffer
   transport
@@ -86,6 +89,7 @@ Module dependencies of codec-haproxy:
 Module dependencies of codec-haproxy.test:
   codec-haproxy
   transport
+  testsuite-common
 Module dependencies of codec-http:
   common
   buffer
@@ -96,6 +100,7 @@ Module dependencies of codec-http:
 Module dependencies of codec-http.test:
   codec-http
   transport
+  testsuite-common
 Module dependencies of codec-http2:
   common
   buffer
@@ -108,6 +113,7 @@ Module dependencies of codec-http2.test:
   codec-http2
   pkitesting
   transport
+  testsuite-common
 Module dependencies of codec-http3:
   common
   buffer
@@ -118,6 +124,7 @@ Module dependencies of codec-http3:
   codec-native-quic (runtime)
 Module dependencies of codec-http3.test:
   codec-http3
+  testsuite-common
 Module dependencies of codec-marshalling:
   common
   buffer
@@ -126,6 +133,7 @@ Module dependencies of codec-marshalling:
 Module dependencies of codec-marshalling.test:
   codec-marshalling
   transport
+  testsuite-common
 Module dependencies of codec-memcache:
   common
   buffer
@@ -134,6 +142,7 @@ Module dependencies of codec-memcache:
 Module dependencies of codec-memcache.test:
   codec-memcache
   transport
+  testsuite-common
 Module dependencies of codec-mqtt:
   common
   buffer
@@ -142,6 +151,7 @@ Module dependencies of codec-mqtt:
 Module dependencies of codec-mqtt.test:
   codec-mqtt
   transport
+  testsuite-common
 Module dependencies of codec-native-quic:
   codec-classes-quic
 Module dependencies of codec-native-quic.test:
@@ -156,6 +166,7 @@ Module dependencies of codec-protobuf:
 Module dependencies of codec-protobuf.test:
   codec-protobuf
   transport
+  testsuite-common
 Module dependencies of codec-redis:
   common
   buffer
@@ -164,6 +175,7 @@ Module dependencies of codec-redis:
 Module dependencies of codec-redis.test:
   codec-redis
   transport
+  testsuite-common
 Module dependencies of codec-smtp:
   common
   buffer
@@ -172,6 +184,7 @@ Module dependencies of codec-smtp:
 Module dependencies of codec-smtp.test:
   codec-smtp
   transport
+  testsuite-common
 Module dependencies of codec-socks:
   common
   buffer
@@ -180,6 +193,7 @@ Module dependencies of codec-socks:
 Module dependencies of codec-socks.test:
   codec-socks
   transport
+  testsuite-common
 Module dependencies of codec-stomp:
   common
   buffer
@@ -188,6 +202,7 @@ Module dependencies of codec-stomp:
 Module dependencies of codec-stomp.test:
   codec-stomp
   transport
+  testsuite-common
 Module dependencies of codec-xml:
   buffer
   transport
@@ -195,6 +210,7 @@ Module dependencies of codec-xml:
 Module dependencies of codec-xml.test:
   codec-xml
   transport
+  testsuite-common
 Module dependencies of common:
   jfr-stub (compile)
   varhandle-stub (compile)
@@ -238,6 +254,7 @@ Module dependencies of handler:
 Module dependencies of handler.test:
   handler
   transport
+  testsuite-common
 Module dependencies of handler-proxy:
   common
   buffer
@@ -250,6 +267,7 @@ Module dependencies of handler-proxy.test:
   handler-proxy
   transport
   pkitesting
+  testsuite-common
 Module dependencies of handler-ssl-ocsp:
   codec-http
   transport
@@ -257,6 +275,7 @@ Module dependencies of handler-ssl-ocsp:
 Module dependencies of handler-ssl-ocsp.test:
   handler-ssl-ocsp
   pkitesting
+  testsuite-common
 Module dependencies of jfr-stub:
 Module dependencies of microbench:
   handler
@@ -278,6 +297,7 @@ Module dependencies of resolver:
   common
 Module dependencies of resolver.test:
   resolver
+  testsuite-common
 Module dependencies of resolver-dns:
   common
   buffer
@@ -289,6 +309,7 @@ Module dependencies of resolver-dns:
 Module dependencies of resolver-dns.test:
   resolver-dns
   transport
+  testsuite-common
 Module dependencies of resolver-dns-classes-macos:
   common
   resolver-dns
@@ -312,6 +333,8 @@ Module dependencies of testsuite-autobahn:
   buffer
   transport
   codec-http
+Module dependencies of testsuite-common:
+  common
 Module dependencies of testsuite-http2:
   common
   buffer
@@ -413,6 +436,7 @@ Module dependencies of transport:
   resolver
 Module dependencies of transport.test:
   transport
+  testsuite-common
 Module dependencies of transport-blockhound-tests:
   transport
   handler
@@ -425,16 +449,22 @@ Module dependencies of transport-classes-epoll:
   buffer
   transport
   transport-native-unix-common
+Module dependencies of transport-classes-epoll.test:
+  transport-classes-epoll
 Module dependencies of transport-classes-io_uring:
   common
   buffer
   transport
   transport-native-unix-common
+Module dependencies of transport-classes-io_uring.test:
+  transport-classes-io_uring
 Module dependencies of transport-classes-kqueue:
   common
   buffer
   transport
   transport-native-unix-common
+Module dependencies of transport-classes-kqueue.test:
+  transport-classes-kqueue
 Module dependencies of transport-native-epoll:
   common
   buffer
@@ -635,6 +665,9 @@ Module dependencies of varhandle-stub:
   "testsuite-autobahn.repositories": [
     "https://oss.sonatype.org/content/repositories/snapshots"
   ],
+  "testsuite-common.repositories": [
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  ],
   "testsuite-http2.repositories": [
     "https://oss.sonatype.org/content/repositories/snapshots"
   ],
@@ -676,12 +709,15 @@ Module dependencies of varhandle-stub:
   "transport-classes-epoll.repositories": [
     "https://oss.sonatype.org/content/repositories/snapshots"
   ],
+  "transport-classes-epoll.test.repositories": [],
   "transport-classes-io_uring.repositories": [
     "https://oss.sonatype.org/content/repositories/snapshots"
   ],
+  "transport-classes-io_uring.test.repositories": [],
   "transport-classes-kqueue.repositories": [
     "https://oss.sonatype.org/content/repositories/snapshots"
   ],
+  "transport-classes-kqueue.test.repositories": [],
   "transport-native-epoll.repositories": [
     "https://oss.sonatype.org/content/repositories/snapshots"
   ],
@@ -718,7 +754,7 @@ Module dependencies of varhandle-stub:
 }
 {
   "all.jvmId": "zulu:11",
-  "bom.jvmId": "",
+  "bom.jvmId": "zulu:11",
   "buffer.jvmId": "zulu:11",
   "codec.jvmId": "zulu:11",
   "codec-base.jvmId": "zulu:11",
@@ -755,6 +791,7 @@ Module dependencies of varhandle-stub:
   "resolver-dns-native-macos.jvmId": "zulu:11",
   "testsuite.jvmId": "zulu:11",
   "testsuite-autobahn.jvmId": "zulu:11",
+  "testsuite-common.jvmId": "zulu:11",
   "testsuite-http2.jvmId": "zulu:11",
   "testsuite-jpms.jvmId": "zulu:11",
   "testsuite-karaf.jvmId": "zulu:11",
@@ -834,7 +871,7 @@ Module dependencies of varhandle-stub:
   ],
   "codec-dns.mvnDeps": [],
   "codec-dns.test.mvnDeps": [
-    "org.apache.directory.server:apacheds-protocol-dns:1.5.7",
+    "org.apache.directory.server:apacheds-protocol-dns:2.0.0.AM27",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
@@ -880,7 +917,7 @@ Module dependencies of varhandle-stub:
   "codec-http2.test.mvnDeps": [
     "org.mockito:mockito-core:3.6.28",
     "org.bouncycastle:bcpkix-jdk18on:1.80",
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}",
+    "io.netty:netty-tcnative:2.0.74.Final;classifier=${os.detected.classifier}",
     "com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
     "com.aayushatharva.brotli4j:native-linux-aarch64:1.16.0",
     "com.aayushatharva.brotli4j:native-linux-riscv64:1.16.0",
@@ -938,7 +975,7 @@ Module dependencies of varhandle-stub:
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-native-quic.mvnDeps": [
-    "io.netty:netty-jni-util:0.0.9.Final;classifier=sources"
+    "io.netty:netty-jni-util:0.0.10.Final;classifier=sources"
   ],
   "codec-native-quic.test.mvnDeps": [
     "org.bouncycastle:bcpkix-jdk18on:1.80",
@@ -1013,7 +1050,7 @@ Module dependencies of varhandle-stub:
     "commons-logging:commons-logging:1.3.4",
     "org.apache.logging.log4j:log4j-1.2-api:2.23.1;exclude=com.sun.jdmk:jmxtools;exclude=com.sun.jmx:jmxri;exclude=javax.jms:jms;exclude=javax.mail:mail",
     "org.apache.logging.log4j:log4j-api:2.23.1",
-    "io.projectreactor.tools:blockhound:1.0.13.RELEASE"
+    "io.projectreactor.tools:blockhound:1.0.14.RELEASE"
   ],
   "common.test.mvnDeps": [
     "org.apache.logging.log4j:log4j-core:2.23.1",
@@ -1033,7 +1070,7 @@ Module dependencies of varhandle-stub:
     "com.sun.activation:javax.activation:1.2.0"
   ],
   "handler.mvnDeps": [
-    "io.netty:netty-tcnative-classes:2.0.73.Final",
+    "io.netty:netty-tcnative-classes:2.0.74.Final",
     "org.bouncycastle:bcpkix-jdk18on:1.80",
     "org.bouncycastle:bctls-jdk18on:1.80",
     "org.conscrypt:conscrypt-openjdk-uber:2.5.2"
@@ -1085,7 +1122,8 @@ Module dependencies of varhandle-stub:
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
-    "org.assertj:assertj-core:3.18.0"
+    "org.assertj:assertj-core:3.18.0",
+    "org.bouncycastle:bctls-jdk18on:1.80"
   ],
   "resolver.mvnDeps": [],
   "resolver.test.mvnDeps": [
@@ -1097,8 +1135,7 @@ Module dependencies of varhandle-stub:
   ],
   "resolver-dns.mvnDeps": [],
   "resolver-dns.test.mvnDeps": [
-    "org.apache.directory.server:apacheds-protocol-dns:1.5.7;exclude=commons-lang:commons-lang",
-    "commons-lang:commons-lang:2.6",
+    "org.apache.directory.server:apacheds-protocol-dns:2.0.0.AM27",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
@@ -1125,10 +1162,14 @@ Module dependencies of varhandle-stub:
     "org.bouncycastle:bcpkix-jdk18on:1.80"
   ],
   "testsuite-autobahn.mvnDeps": [],
+  "testsuite-common.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1"
+  ],
   "testsuite-http2.mvnDeps": [],
   "testsuite-jpms.mvnDeps": [
-    "io.netty:netty-tcnative-classes:2.0.73.Final",
-    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final;classifier=${os.detected.name}-${os.detected.arch}",
+    "io.netty:netty-tcnative-classes:2.0.74.Final",
+    "io.netty:netty-tcnative-boringssl-static:2.0.74.Final;classifier=${os.detected.name}-${os.detected.arch}",
     "org.bouncycastle:bcpkix-jdk18on:1.80",
     "org.bouncycastle:bcprov-jdk18on:1.80"
   ],
@@ -1161,7 +1202,7 @@ Module dependencies of varhandle-stub:
     "org.apache.felix:org.apache.felix.configadmin:1.9.14"
   ],
   "testsuite-shading.mvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}"
+    "io.netty:netty-tcnative:2.0.74.Final;classifier=${os.detected.classifier}"
   ],
   "testsuite-shading.test.mvnDeps": [
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
@@ -1182,20 +1223,35 @@ Module dependencies of varhandle-stub:
     "org.bouncycastle:bcpkix-jdk18on:1.80"
   ],
   "transport-blockhound-tests.test.mvnDeps": [
-    "io.projectreactor.tools:blockhound:1.0.13.RELEASE",
+    "io.projectreactor.tools:blockhound:1.0.14.RELEASE",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "transport-classes-epoll.mvnDeps": [],
+  "transport-classes-epoll.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1"
+  ],
   "transport-classes-io_uring.mvnDeps": [],
+  "transport-classes-io_uring.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1"
+  ],
   "transport-classes-kqueue.mvnDeps": [],
+  "transport-classes-kqueue.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.junit.jupiter:junit-jupiter-params:5.12.1"
+  ],
   "transport-native-epoll.mvnDeps": [
     "org.bouncycastle:bcpkix-jdk18on:1.80"
   ],
   "transport-native-epoll.test.mvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}",
+    "io.netty:netty-tcnative:2.0.74.Final;classifier=${os.detected.classifier}",
     "io.github.artsok:rerunner-jupiter:2.1.6",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
@@ -1205,7 +1261,7 @@ Module dependencies of varhandle-stub:
   "transport-native-io_uring.mvnDeps": [],
   "transport-native-io_uring.test.mvnDeps": [
     "org.bouncycastle:bcpkix-jdk18on:1.80",
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}",
+    "io.netty:netty-tcnative:2.0.74.Final;classifier=${os.detected.classifier}",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
@@ -1215,14 +1271,14 @@ Module dependencies of varhandle-stub:
     "org.bouncycastle:bcpkix-jdk18on:1.80"
   ],
   "transport-native-kqueue.test.mvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}",
+    "io.netty:netty-tcnative:2.0.74.Final;classifier=${os.detected.classifier}",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "transport-native-unix-common.mvnDeps": [
-    "io.netty:netty-jni-util:0.0.9.Final;classifier=sources"
+    "io.netty:netty-jni-util:0.0.10.Final;classifier=sources"
   ],
   "transport-native-unix-common.test.mvnDeps": [
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
@@ -1353,6 +1409,7 @@ Module dependencies of varhandle-stub:
   "resolver-dns-native-macos.test.compileMvnDeps": [],
   "testsuite.compileMvnDeps": [],
   "testsuite-autobahn.compileMvnDeps": [],
+  "testsuite-common.compileMvnDeps": [],
   "testsuite-http2.compileMvnDeps": [],
   "testsuite-jpms.compileMvnDeps": [],
   "testsuite-jpms.test.compileMvnDeps": [],
@@ -1370,8 +1427,11 @@ Module dependencies of varhandle-stub:
   "transport-blockhound-tests.compileMvnDeps": [],
   "transport-blockhound-tests.test.compileMvnDeps": [],
   "transport-classes-epoll.compileMvnDeps": [],
+  "transport-classes-epoll.test.compileMvnDeps": [],
   "transport-classes-io_uring.compileMvnDeps": [],
+  "transport-classes-io_uring.test.compileMvnDeps": [],
   "transport-classes-kqueue.compileMvnDeps": [],
+  "transport-classes-kqueue.test.compileMvnDeps": [],
   "transport-native-epoll.compileMvnDeps": [],
   "transport-native-epoll.test.compileMvnDeps": [],
   "transport-native-io_uring.compileMvnDeps": [],
@@ -1444,7 +1504,7 @@ Module dependencies of varhandle-stub:
   ],
   "dev-tools.runMvnDeps": [],
   "example.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}",
+    "io.netty:netty-tcnative:2.0.74.Final;classifier=${os.detected.classifier}",
     "com.jcraft:jzlib:1.1.3",
     "ch.qos.logback:logback-classic:1.3.14",
     "com.aayushatharva.brotli4j:brotli4j:1.16.0",
@@ -1457,7 +1517,7 @@ Module dependencies of varhandle-stub:
     "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0"
   ],
   "handler.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}"
+    "io.netty:netty-tcnative:2.0.74.Final;classifier=${os.detected.classifier}"
   ],
   "handler.test.runMvnDeps": [],
   "handler-proxy.runMvnDeps": [],
@@ -1468,7 +1528,7 @@ Module dependencies of varhandle-stub:
   ],
   "jfr-stub.runMvnDeps": [],
   "microbench.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}"
+    "io.netty:netty-tcnative:2.0.74.Final;classifier=${os.detected.classifier}"
   ],
   "pkitesting.runMvnDeps": [],
   "pkitesting.test.runMvnDeps": [],
@@ -1481,9 +1541,10 @@ Module dependencies of varhandle-stub:
   "resolver-dns-native-macos.test.runMvnDeps": [],
   "runMvnDeps": [],
   "testsuite.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}"
+    "io.netty:netty-tcnative:2.0.74.Final;classifier=${os.detected.classifier}"
   ],
   "testsuite-autobahn.runMvnDeps": [],
+  "testsuite-common.runMvnDeps": [],
   "testsuite-http2.runMvnDeps": [],
   "testsuite-jpms.runMvnDeps": [],
   "testsuite-jpms.test.runMvnDeps": [],
@@ -1501,12 +1562,15 @@ Module dependencies of varhandle-stub:
   "transport.runMvnDeps": [],
   "transport.test.runMvnDeps": [],
   "transport-blockhound-tests.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}"
+    "io.netty:netty-tcnative:2.0.74.Final;classifier=${os.detected.classifier}"
   ],
   "transport-blockhound-tests.test.runMvnDeps": [],
   "transport-classes-epoll.runMvnDeps": [],
+  "transport-classes-epoll.test.runMvnDeps": [],
   "transport-classes-io_uring.runMvnDeps": [],
+  "transport-classes-io_uring.test.runMvnDeps": [],
   "transport-classes-kqueue.runMvnDeps": [],
+  "transport-classes-kqueue.test.runMvnDeps": [],
   "transport-native-epoll.runMvnDeps": [],
   "transport-native-epoll.test.runMvnDeps": [],
   "transport-native-io_uring.runMvnDeps": [],
@@ -1588,6 +1652,7 @@ Module dependencies of varhandle-stub:
   "resolver-dns-native-macos.test.bomMvnDeps": [],
   "testsuite.bomMvnDeps": [],
   "testsuite-autobahn.bomMvnDeps": [],
+  "testsuite-common.bomMvnDeps": [],
   "testsuite-http2.bomMvnDeps": [],
   "testsuite-jpms.bomMvnDeps": [],
   "testsuite-jpms.test.bomMvnDeps": [],
@@ -1605,8 +1670,11 @@ Module dependencies of varhandle-stub:
   "transport-blockhound-tests.bomMvnDeps": [],
   "transport-blockhound-tests.test.bomMvnDeps": [],
   "transport-classes-epoll.bomMvnDeps": [],
+  "transport-classes-epoll.test.bomMvnDeps": [],
   "transport-classes-io_uring.bomMvnDeps": [],
+  "transport-classes-io_uring.test.bomMvnDeps": [],
   "transport-classes-kqueue.bomMvnDeps": [],
+  "transport-classes-kqueue.test.bomMvnDeps": [],
   "transport-native-epoll.bomMvnDeps": [],
   "transport-native-epoll.test.bomMvnDeps": [],
   "transport-native-io_uring.bomMvnDeps": [],
@@ -2003,6 +2071,12 @@ Module dependencies of varhandle-stub:
     "-target",
     "1.8"
   ],
+  "testsuite-common.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
   "testsuite-http2.javacOptions": [
     "-source",
     "1.8",
@@ -2101,11 +2175,27 @@ Module dependencies of varhandle-stub:
     "-target",
     "1.8"
   ],
+  "transport-classes-epoll.test.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
   "transport-classes-io_uring.javacOptions": [
     "--release",
     "9"
   ],
+  "transport-classes-io_uring.test.javacOptions": [
+    "--release",
+    "9"
+  ],
   "transport-classes-kqueue.javacOptions": [
+    "-source",
+    "1.8",
+    "-target",
+    "1.8"
+  ],
+  "transport-classes-kqueue.test.javacOptions": [
     "-source",
     "1.8",
     "-target",
@@ -2206,7 +2296,7 @@ Module dependencies of varhandle-stub:
   "all.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "bom.pomParentProject": {
     "group": "org.sonatype.oss",
@@ -2216,147 +2306,147 @@ Module dependencies of varhandle-stub:
   "buffer.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-base.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-classes-quic.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-compression.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-dns.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-haproxy.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-http.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-http2.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-http3.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-marshalling.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-memcache.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-mqtt.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-native-quic.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-protobuf.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-redis.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-smtp.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-socks.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-stomp.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "codec-xml.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "common.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "dev-tools.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "example.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "handler.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "handler-proxy.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "handler-ssl-ocsp.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "jfr-stub.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "microbench.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "pkitesting.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "pomParentProject": {
     "group": "org.sonatype.oss",
@@ -2366,92 +2456,92 @@ Module dependencies of varhandle-stub:
   "resolver.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "resolver-dns.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "resolver-dns-classes-macos.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "resolver-dns-native-macos.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "testsuite.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "transport.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "transport-classes-epoll.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "transport-classes-io_uring.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "transport-classes-kqueue.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "transport-native-epoll.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "transport-native-io_uring.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "transport-native-kqueue.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "transport-native-unix-common.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "transport-native-unix-common-tests.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "transport-rxtx.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "transport-sctp.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "transport-udt.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   },
   "varhandle-stub.pomParentProject": {
     "group": "io.netty",
     "id": "netty-parent",
-    "version": "4.2.6.Final"
+    "version": "4.2.7.Final"
   }
 }
 {
@@ -2477,7 +2567,7 @@ Module dependencies of varhandle-stub:
       "browsableRepository": "https://github.com/netty/netty",
       "connection": "scm:git:git://github.com/netty/netty.git",
       "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
+      "tag": "netty-4.2.7.Final"
     },
     "developers": [
       {
@@ -2735,7 +2825,7 @@ Module dependencies of varhandle-stub:
       "browsableRepository": "https://github.com/netty/netty",
       "connection": "scm:git:git://github.com/netty/netty.git",
       "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
+      "tag": "netty-4.2.7.Final"
     },
     "developers": [
       {
@@ -2893,56 +2983,56 @@ Module dependencies of varhandle-stub:
   }
 }
 {
-  "all.publishVersion": "4.2.6.Final",
-  "bom.publishVersion": "4.2.6.Final",
-  "buffer.publishVersion": "4.2.6.Final",
-  "codec.publishVersion": "4.2.6.Final",
-  "codec-base.publishVersion": "4.2.6.Final",
-  "codec-classes-quic.publishVersion": "4.2.6.Final",
-  "codec-compression.publishVersion": "4.2.6.Final",
-  "codec-dns.publishVersion": "4.2.6.Final",
-  "codec-haproxy.publishVersion": "4.2.6.Final",
-  "codec-http.publishVersion": "4.2.6.Final",
-  "codec-http2.publishVersion": "4.2.6.Final",
-  "codec-http3.publishVersion": "4.2.6.Final",
-  "codec-marshalling.publishVersion": "4.2.6.Final",
-  "codec-memcache.publishVersion": "4.2.6.Final",
-  "codec-mqtt.publishVersion": "4.2.6.Final",
-  "codec-native-quic.publishVersion": "4.2.6.Final",
-  "codec-protobuf.publishVersion": "4.2.6.Final",
-  "codec-redis.publishVersion": "4.2.6.Final",
-  "codec-smtp.publishVersion": "4.2.6.Final",
-  "codec-socks.publishVersion": "4.2.6.Final",
-  "codec-stomp.publishVersion": "4.2.6.Final",
-  "codec-xml.publishVersion": "4.2.6.Final",
-  "common.publishVersion": "4.2.6.Final",
-  "dev-tools.publishVersion": "4.2.6.Final",
-  "example.publishVersion": "4.2.6.Final",
-  "handler.publishVersion": "4.2.6.Final",
-  "handler-proxy.publishVersion": "4.2.6.Final",
-  "handler-ssl-ocsp.publishVersion": "4.2.6.Final",
-  "jfr-stub.publishVersion": "4.2.6.Final",
-  "microbench.publishVersion": "4.2.6.Final",
-  "pkitesting.publishVersion": "4.2.6.Final",
-  "publishVersion": "4.2.6.Final",
-  "resolver.publishVersion": "4.2.6.Final",
-  "resolver-dns.publishVersion": "4.2.6.Final",
-  "resolver-dns-classes-macos.publishVersion": "4.2.6.Final",
-  "resolver-dns-native-macos.publishVersion": "4.2.6.Final",
-  "testsuite.publishVersion": "4.2.6.Final",
-  "transport.publishVersion": "4.2.6.Final",
-  "transport-classes-epoll.publishVersion": "4.2.6.Final",
-  "transport-classes-io_uring.publishVersion": "4.2.6.Final",
-  "transport-classes-kqueue.publishVersion": "4.2.6.Final",
-  "transport-native-epoll.publishVersion": "4.2.6.Final",
-  "transport-native-io_uring.publishVersion": "4.2.6.Final",
-  "transport-native-kqueue.publishVersion": "4.2.6.Final",
-  "transport-native-unix-common.publishVersion": "4.2.6.Final",
-  "transport-native-unix-common-tests.publishVersion": "4.2.6.Final",
-  "transport-rxtx.publishVersion": "4.2.6.Final",
-  "transport-sctp.publishVersion": "4.2.6.Final",
-  "transport-udt.publishVersion": "4.2.6.Final",
-  "varhandle-stub.publishVersion": "4.2.6.Final"
+  "all.publishVersion": "4.2.7.Final",
+  "bom.publishVersion": "4.2.7.Final",
+  "buffer.publishVersion": "4.2.7.Final",
+  "codec.publishVersion": "4.2.7.Final",
+  "codec-base.publishVersion": "4.2.7.Final",
+  "codec-classes-quic.publishVersion": "4.2.7.Final",
+  "codec-compression.publishVersion": "4.2.7.Final",
+  "codec-dns.publishVersion": "4.2.7.Final",
+  "codec-haproxy.publishVersion": "4.2.7.Final",
+  "codec-http.publishVersion": "4.2.7.Final",
+  "codec-http2.publishVersion": "4.2.7.Final",
+  "codec-http3.publishVersion": "4.2.7.Final",
+  "codec-marshalling.publishVersion": "4.2.7.Final",
+  "codec-memcache.publishVersion": "4.2.7.Final",
+  "codec-mqtt.publishVersion": "4.2.7.Final",
+  "codec-native-quic.publishVersion": "4.2.7.Final",
+  "codec-protobuf.publishVersion": "4.2.7.Final",
+  "codec-redis.publishVersion": "4.2.7.Final",
+  "codec-smtp.publishVersion": "4.2.7.Final",
+  "codec-socks.publishVersion": "4.2.7.Final",
+  "codec-stomp.publishVersion": "4.2.7.Final",
+  "codec-xml.publishVersion": "4.2.7.Final",
+  "common.publishVersion": "4.2.7.Final",
+  "dev-tools.publishVersion": "4.2.7.Final",
+  "example.publishVersion": "4.2.7.Final",
+  "handler.publishVersion": "4.2.7.Final",
+  "handler-proxy.publishVersion": "4.2.7.Final",
+  "handler-ssl-ocsp.publishVersion": "4.2.7.Final",
+  "jfr-stub.publishVersion": "4.2.7.Final",
+  "microbench.publishVersion": "4.2.7.Final",
+  "pkitesting.publishVersion": "4.2.7.Final",
+  "publishVersion": "4.2.7.Final",
+  "resolver.publishVersion": "4.2.7.Final",
+  "resolver-dns.publishVersion": "4.2.7.Final",
+  "resolver-dns-classes-macos.publishVersion": "4.2.7.Final",
+  "resolver-dns-native-macos.publishVersion": "4.2.7.Final",
+  "testsuite.publishVersion": "4.2.7.Final",
+  "transport.publishVersion": "4.2.7.Final",
+  "transport-classes-epoll.publishVersion": "4.2.7.Final",
+  "transport-classes-io_uring.publishVersion": "4.2.7.Final",
+  "transport-classes-kqueue.publishVersion": "4.2.7.Final",
+  "transport-native-epoll.publishVersion": "4.2.7.Final",
+  "transport-native-io_uring.publishVersion": "4.2.7.Final",
+  "transport-native-kqueue.publishVersion": "4.2.7.Final",
+  "transport-native-unix-common.publishVersion": "4.2.7.Final",
+  "transport-native-unix-common-tests.publishVersion": "4.2.7.Final",
+  "transport-rxtx.publishVersion": "4.2.7.Final",
+  "transport-sctp.publishVersion": "4.2.7.Final",
+  "transport-udt.publishVersion": "4.2.7.Final",
+  "varhandle-stub.publishVersion": "4.2.7.Final"
 }
 {
   "all.versionScheme": null,
@@ -3089,6 +3179,9 @@ Module dependencies of varhandle-stub:
   "testsuite-shading.test.testParallelism": false,
   "transport.test.testParallelism": false,
   "transport-blockhound-tests.test.testParallelism": false,
+  "transport-classes-epoll.test.testParallelism": false,
+  "transport-classes-io_uring.test.testParallelism": false,
+  "transport-classes-kqueue.test.testParallelism": false,
   "transport-native-epoll.test.testParallelism": false,
   "transport-native-io_uring.test.testParallelism": false,
   "transport-native-kqueue.test.testParallelism": false,
@@ -3128,6 +3221,9 @@ Module dependencies of varhandle-stub:
   "testsuite-shading.test.testSandboxWorkingDir": false,
   "transport.test.testSandboxWorkingDir": false,
   "transport-blockhound-tests.test.testSandboxWorkingDir": false,
+  "transport-classes-epoll.test.testSandboxWorkingDir": false,
+  "transport-classes-io_uring.test.testSandboxWorkingDir": false,
+  "transport-classes-kqueue.test.testSandboxWorkingDir": false,
   "transport-native-epoll.test.testSandboxWorkingDir": false,
   "transport-native-io_uring.test.testSandboxWorkingDir": false,
   "transport-native-kqueue.test.testSandboxWorkingDir": false,

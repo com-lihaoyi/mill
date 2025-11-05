@@ -1,4 +1,5 @@
 //| mill-version: SNAPSHOT
+//| mill-jvm-version: zulu:21
 package build
 
 import mill.javalib.*
@@ -7,6 +8,8 @@ import mill.javalib.publish.*
 object `package` extends MavenModule with PublishModule {
 
   def artifactName = "parent"
+
+  def jvmId = "zulu:11"
 
   def pomPackagingType = "pom"
 
