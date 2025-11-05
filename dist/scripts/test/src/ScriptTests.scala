@@ -347,13 +347,11 @@ object ScriptTests extends TestSuite {
         )
 
         val Seq(downloadUrl, downloadDest) = res.out.lines()
-        println("downloadUrl: " + downloadUrl)
-        println("downloadDest: " + downloadDest)
+
         assert(downloadUrl == versionPaths.downloadUrl)
         if (!scala.util.Properties.isWin) assert(downloadDest == versionPaths.macLinuxDownloadPath)
         else assert(downloadDest == versionPaths.windowsDownloadPath)
       }
     }
   }
-
 }
