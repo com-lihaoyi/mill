@@ -29,7 +29,6 @@ object MillRpcClient {
       : MillRpcClient[ClientToServer, ServerToClient] = {
     @volatile var currentServerMessageHandler = serverMessageHandler
 
-    
     def logDebug(msg: String): Unit = log.debug(s"[RPC:${wireTransport.name}] $msg")
 
     def handleServerLog(msg: RpcLogger.Message): Unit = msg match {
