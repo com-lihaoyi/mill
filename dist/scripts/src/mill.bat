@@ -93,7 +93,7 @@ rem without bat file extension, cmd doesn't seem to be able to run it
 
 set "MILL_NATIVE_SUFFIX=-native"
 set "MILL_JVM_SUFFIX=-jvm"
-set "MILL_EXT=.bat"
+set "MILL_DOWNLOAD_EXT=.bat"
 set "ARTIFACT_SUFFIX="
 REM Check if MILL_VERSION contains MILL_NATIVE_SUFFIX
 echo !MILL_VERSION! | findstr /C:"%MILL_NATIVE_SUFFIX%" >nul
@@ -103,7 +103,7 @@ if !errorlevel! equ 0 (
     REM https://github.com/oracle/graal/issues/9215
     IF /I NOT "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
         set "ARTIFACT_SUFFIX=-native-windows-amd64"
-        set "MILL_EXT=.exe"
+        set "MILL_DOWNLOAD_EXT=.exe"
     ) else (
         rem no-op
     )
@@ -131,7 +131,7 @@ if !errorlevel! equ 0 (
         if "!SKIP_VERSION!"=="false" (
             IF /I NOT "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
                 set "ARTIFACT_SUFFIX=-native-windows-amd64"
-                set "MILL_EXT=.exe"
+                set "MILL_DOWNLOAD_EXT=.exe"
             )
         ) else (
             rem no-op
@@ -139,7 +139,7 @@ if !errorlevel! equ 0 (
     )
 )
 
-set MILL=%MILL_FINAL_DOWNLOAD_FOLDER%\!MILL_VERSION!!MILL_EXT!
+set MILL=%MILL_FINAL_DOWNLOAD_FOLDER%\!MILL_VERSION!!MILL_DOWNLOAD_EXT!
 
 set MILL_RESOLVE_DOWNLOAD=
 
