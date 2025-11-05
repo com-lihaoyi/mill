@@ -47,3 +47,9 @@ case class ZincGetTestTasks(
     selectors: Seq[String],
     args: Seq[String]
 ) derives upickle.ReadWriter
+
+case class ZincDiscoverJunit5Tests(
+    runCp: Seq[os.Path],
+    testCp: Seq[os.Path],
+    classesDir: Option[os.Path]
+) derives upickle.ReadWriter

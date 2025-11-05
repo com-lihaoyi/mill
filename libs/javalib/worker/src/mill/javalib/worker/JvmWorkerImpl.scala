@@ -111,6 +111,18 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
     result.result
   }
 
+  override def discoverJunit5Tests(
+      op: mill.javalib.api.internal.ZincDiscoverJunit5Tests,
+      javaHome: Option[os.Path]
+  )(using ctx: JvmWorkerApi.Ctx): Seq[String] = {
+    given RequestId = requestIds.next()
+
+    val zinc = zincApi(javaHome, JavaRuntimeOptions(Seq.empty))
+    val result = Timed(zinc.discoverJunit5Tests(op))
+    fileLog(s"discoverJunit5Tests took ${result.durationPretty}")
+    result.result
+  }
+
   override def close(): Unit = {
     zincLocalWorker.close()
     subprocessCache.close()
@@ -447,6 +459,13 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       override def getTestTasks(op: mill.javalib.api.internal.ZincGetTestTasks): Seq[String] = {
         withRpcClient(serverRpcToClientHandler(reporter = None, log, cacheKey)) { rpcClient =>
           val msg = ZincWorkerRpcServer.ClientToServer.GetTestTasks(op)
+          rpcClient(msg)
+        }
+      }
+
+      override def discoverJunit5Tests(op: mill.javalib.api.internal.ZincDiscoverJunit5Tests): Seq[String] = {
+        withRpcClient(serverRpcToClientHandler(reporter = None, log, cacheKey)) { rpcClient =>
+          val msg = ZincWorkerRpcServer.ClientToServer.DiscoverJunit5Tests(op)
           rpcClient(msg)
         }
       }

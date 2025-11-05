@@ -30,4 +30,6 @@ trait ZincApi {
   def discoverTests(value: mill.javalib.api.internal.ZincDiscoverTests): Seq[String]
 
   def getTestTasks(value: mill.javalib.api.internal.ZincGetTestTasks): Seq[String]
+
+  def discoverJunit5Tests(value: mill.javalib.api.internal.ZincDiscoverJunit5Tests): Seq[String]
 }
