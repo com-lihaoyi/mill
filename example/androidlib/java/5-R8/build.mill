@@ -64,7 +64,7 @@ object app extends AndroidR8AppModule { // <2>
     )
   }
 
-  object release extends AndroidR8ReleaseModule
+  object release extends AndroidReleaseModule, AndroidR8ReleaseModule
 
   /**
    * Configuration for ReleaseKey

@@ -813,6 +813,8 @@ trait AndroidModule extends JavaModule { outer =>
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
 
     override def bomMvnDeps: T[Seq[Dep]] = outer.bomMvnDeps()
+
+    override def repositoriesTask: Task[Seq[Repository]] = Task.Anon(outer.repositoriesTask())
   }
 
   trait AndroidTestModule extends JavaTests, AndroidModule {
