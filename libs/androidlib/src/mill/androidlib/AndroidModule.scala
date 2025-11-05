@@ -245,6 +245,10 @@ trait AndroidModule extends JavaModule { outer =>
 
   override def checkGradleModules: T[Boolean] = true
   override def resolutionParams: Task[ResolutionParams] = Task.Anon {
+    val buildTypeAttr = if (androidIsDebug())
+      "debug"
+    else
+      "release"
     super.resolutionParams().addVariantAttributes(
       "org.jetbrains.kotlin.platform.type" ->
         VariantMatcher.AnyOf(Seq(
@@ -258,6 +262,14 @@ trait AndroidModule extends JavaModule { outer =>
           VariantMatcher.Equals("android"),
           VariantMatcher.Equals("common"),
           VariantMatcher.Equals("standard-jvm")
+        )),
+      "com.android.build.api.attributes.BuildTypeAttr" ->
+        VariantMatcher.AnyOf(Seq(
+          VariantMatcher.Equals(buildTypeAttr)
+        )),
+      "com.android.build.api.attributes.VariantAttr" ->
+        VariantMatcher.AnyOf(Seq(
+          VariantMatcher.Equals(buildTypeAttr)
         ))
     )
   }
