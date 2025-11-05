@@ -17,18 +17,6 @@ import java.time.LocalDateTime
 class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable {
   import args.*
 
-  private def fileLog(s: String): Unit =
-    os.write.append(
-      compilerBridge.workspace / "jvm-worker.log",
-      s"[${LocalDateTime.now()}] $s\n",
-      createFolders = true
-    )
-
-  private def fileAndDebugLog(log: Logger.Actions, s: String): Unit = {
-    fileLog(s)
-    log.debug(s)
-  }
-
   /** The local Zinc instance which is used when we do not want to override Java home or runtime options. */
   private val zincLocalWorker = ZincWorker(jobs = jobs)
 
@@ -176,15 +164,11 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
         )
       }
 
-      fileAndDebugLog(log, s"Checking if $mainClass is already running for $key")
-      fileAndDebugLog(log, "Acquiring the launcher lock: " + locks.launcherLock)
-
       val launched = ServerLauncher.launchOrConnectToServer(
         locks,
         daemonDir.toNIO,
         10 * 1000,
         () => {
-          fileAndDebugLog(log, s"Starting JVM subprocess for $mainClass for $key")
           val process = Jvm.spawnProcess(
             mainClass = mainClass,
             mainArgs = Seq(daemonDir.toString, jobs.toString),
@@ -205,7 +189,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
                |$processDied
                |""".stripMargin
           ),
-        fileAndDebugLog(log, _),
         false // openSocket
       )
 
