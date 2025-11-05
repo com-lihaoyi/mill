@@ -6,11 +6,21 @@ import upickle.{Reader, Writer}
 
 import scala.util.control.NonFatal
 
+/** Default implementation for the [[MillRpcServer]]. */
 trait MillRpcServer[
-    Initialize,
-    ClientToServer <: MillRpcMessage,
-    ServerToClient <: MillRpcMessage
-] {
+    Initialize: Reader,
+    ClientToServer <: MillRpcChannel.Message: Reader,
+    ServerToClient <: MillRpcChannel.Message: Writer
+](serverName: String, wireTransport: MillRpcWireTransport, writeToLocalLog: String => Unit) {
+  @volatile private var initializedOnClientMessage = Option.empty[MillRpcChannel[ClientToServer]]
+
+  private val clientLogger =
+    RpcLogger.create(message => sendToClient(MillRpcServerToClient.Log(message)))
+
+  val clientStdout: RpcConsole =
+    RpcConsole.create(msg => sendToClient(MillRpcServerToClient.Stdout(msg)))
+  val clientStderr: RpcConsole =
+    RpcConsole.create(msg => sendToClient(MillRpcServerToClient.Stderr(msg)))
 
   /**
    * @param initialize First initialization message the client sends when it connects.
@@ -23,58 +33,6 @@ trait MillRpcServer[
       clientStderr: RpcConsole,
       serverToClient: MillRpcChannel[ServerToClient]
   ): MillRpcChannel[ClientToServer]
-
-  /** Starts listening for messages, blocking the thread. */
-  def run(): Unit
-}
-object MillRpcServer {
-  def create[
-      Initialize: Reader,
-      ClientToServer <: MillRpcMessage: Reader,
-      ServerToClient <: MillRpcMessage: Writer
-  ](
-      serverName: String,
-      wireTransport: MillRpcWireTransport,
-      writeToLocalLog: String => Unit
-  )(initializer: (
-      Initialize,
-      Logger.Actions,
-      RpcConsole,
-      RpcConsole,
-      MillRpcChannel[ServerToClient]
-  ) => MillRpcChannel[ClientToServer]): MillRpcServer[Initialize, ClientToServer, ServerToClient] =
-    new MillRpcServerImpl[Initialize, ClientToServer, ServerToClient](
-      serverName,
-      wireTransport,
-      writeToLocalLog
-    ) {
-      override def initialize(
-          initialize: Initialize,
-          log: Logger.Actions,
-          clientStdout: RpcConsole,
-          clientStderr: RpcConsole,
-          serverToClient: MillRpcChannel[ServerToClient]
-      ): MillRpcChannel[ClientToServer] =
-        initializer(initialize, log, clientStdout, clientStderr, serverToClient)
-    }
-}
-
-/** Default implementation for the [[MillRpcServer]]. */
-trait MillRpcServerImpl[
-    Initialize: Reader,
-    ClientToServer <: MillRpcMessage: Reader,
-    ServerToClient <: MillRpcMessage: Writer
-](serverName: String, wireTransport: MillRpcWireTransport, writeToLocalLog: String => Unit)
-    extends MillRpcServer[Initialize, ClientToServer, ServerToClient] {
-  @volatile private var initializedOnClientMessage = Option.empty[MillRpcChannel[ClientToServer]]
-
-  private val clientLogger =
-    RpcLogger.create(message => sendToClient(MillRpcServerToClient.Log(message)))
-
-  val clientStdout: RpcConsole =
-    RpcConsole.create(msg => sendToClient(MillRpcServerToClient.Stdout(msg)))
-  val clientStderr: RpcConsole =
-    RpcConsole.create(msg => sendToClient(MillRpcServerToClient.Stderr(msg)))
 
   def run(): Unit = {
     logLocal("Initializing Mill RPC server... Waiting for the `initialize` message.")

@@ -7,8 +7,10 @@ import upickle.{Reader, Writer}
 import scala.util.Try
 
 /** Connects and communicates with [[MillRpcServer]]. */
-trait MillRpcClient[ClientToServer <: MillRpcMessage, ServerToClient <: MillRpcMessage]
-    extends AutoCloseable {
+trait MillRpcClient[
+    ClientToServer <: MillRpcChannel.Message,
+    ServerToClient <: MillRpcChannel.Message
+] extends AutoCloseable {
   def apply(input: ClientToServer): input.Response
 
   /** Exchanges the [[ServerToClient]] message handler. */
@@ -17,8 +19,8 @@ trait MillRpcClient[ClientToServer <: MillRpcMessage, ServerToClient <: MillRpcM
 object MillRpcClient {
   def create[
       Initialize: Writer,
-      ClientToServer <: MillRpcMessage: Writer,
-      ServerToClient <: MillRpcMessage: Reader
+      ClientToServer <: MillRpcChannel.Message: Writer,
+      ServerToClient <: MillRpcChannel.Message: Reader
   ](
       initialize: Initialize,
       wireTransport: MillRpcWireTransport,

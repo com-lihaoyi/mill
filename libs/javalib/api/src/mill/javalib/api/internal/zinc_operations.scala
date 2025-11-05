@@ -5,7 +5,7 @@ import mill.javalib.api.CompilationResult
 import mill.api.JsonFormatters.*
 import mill.api.daemon.Result
 
-sealed trait ZincOperation extends mill.rpc.MillRpcMessage derives upickle.ReadWriter {}
+sealed trait ZincOperation extends mill.rpc.MillRpcChannel.Message derives upickle.ReadWriter {}
 
 /** Compiles Java-only sources. */
 case class ZincCompileJava(
