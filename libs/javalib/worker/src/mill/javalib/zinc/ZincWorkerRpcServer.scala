@@ -46,29 +46,12 @@ class ZincWorkerRpcServer(
         override def flush(): Unit = clientStderr.flush()
       })
 
-      def makeCompilerBridge() =
-        ZincCompilerBridgeProvider(
-          workspace = initialize.compilerBridgeWorkspace,
-          logInfo = log.info,
-          acquire = (scalaVersion, scalaOrganization) =>
-            serverToClient(
-              ServerToClient.AcquireZincCompilerBridge(
-                scalaVersion = scalaVersion,
-                scalaOrganization = scalaOrganization
-              )
-            )
-        )
-
-      def makeDeps() = ZincWorker.InvocationDependencies(log, consoleOut, makeCompilerBridge())
-
       def reporter(maxErrors: Int) = RpcCompileProblemReporter(
         maxErrors = maxErrors,
         send = msg => serverToClient(ServerToClient.ReportCompilationProblem(msg))
       )
 
-      def reporterAsOption(
-          mode: ReporterMode
-      ): Option[CompileProblemReporter] = mode match {
+      def reporterAsOption(mode: ReporterMode): Option[CompileProblemReporter] = mode match {
         case ReporterMode.NoReporter => None
         case r: ReporterMode.Reporter => Some(reporter(maxErrors = r.maxErrors))
       }
@@ -82,7 +65,18 @@ class ZincWorkerRpcServer(
               reporter = reporterAsOption(reporterMode),
               reportCachedProblems = reporterMode.reportCachedProblems,
               ctx,
-              makeDeps()
+              ZincWorker.InvocationDependencies(
+                log,
+                consoleOut,
+                ZincCompilerBridgeProvider(
+                  workspace = initialize.compilerBridgeWorkspace,
+                  logInfo = log.info,
+                  acquire = (scalaVersion, scalaOrganization) =>
+                    serverToClient(
+                      ServerToClient.AcquireZincCompilerBridge(scalaVersion, scalaOrganization)
+                    )
+                )
+              )
             ).asInstanceOf[input.Response]
           }
         }
@@ -97,29 +91,22 @@ object ZincWorkerRpcServer {
   /**
    * @param compilerBridgeWorkspace The workspace to use for the compiler bridge.
    */
-  case class Initialize(
-      compilerBridgeWorkspace: os.Path
-  ) derives ReadWriter
+  case class Initialize(compilerBridgeWorkspace: os.Path) derives ReadWriter
 
-  sealed trait ReporterMode derives ReadWriter {
-    def reportCachedProblems: Boolean
-  }
-  object ReporterMode {
-    case object NoReporter extends ReporterMode {
-      override def reportCachedProblems: Boolean = false
-    }
-
-    case class Reporter(reportCachedProblems: Boolean, maxErrors: Int) extends ReporterMode
+  enum ReporterMode(val reportCachedProblems: Boolean) derives ReadWriter {
+    case NoReporter extends ReporterMode(false)
+    case Reporter(reportCachedProblems0: Boolean, maxErrors: Int)
+      extends ReporterMode(reportCachedProblems0)
   }
 
   case class Request(
       op: ZincOperation,
       reporterMode: ReporterMode,
       ctx: ZincWorker.InvocationContext
-  ) extends MillRpcMessage
-      derives upickle.ReadWriter {
+  ) extends MillRpcMessage derives upickle.ReadWriter {
     type Response = op.Response
   }
+
   sealed trait ServerToClient extends MillRpcMessage derives ReadWriter
   object ServerToClient {
     case class AcquireZincCompilerBridge(scalaVersion: String, scalaOrganization: String)
@@ -127,12 +114,8 @@ object ZincWorkerRpcServer {
       override type Response = ZincCompilerBridgeProvider.AcquireResult[os.Path]
     }
 
-    /**
-     * @param compilationRequestId request id for the message requesting the compilation.
-     */
-    case class ReportCompilationProblem(
-        problem: RpcCompileProblemReporterMessage
-    ) extends ServerToClient, MillRpcMessage {
+    case class ReportCompilationProblem(problem: RpcCompileProblemReporterMessage)
+      extends ServerToClient, MillRpcMessage {
       type Response = Unit
     }
   }

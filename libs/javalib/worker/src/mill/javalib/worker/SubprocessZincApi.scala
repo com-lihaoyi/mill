@@ -114,8 +114,7 @@ class SubprocessZincApi(
               op,
               reporter match {
                 case None => ReporterMode.NoReporter
-                case Some(reporter) =>
-                  ReporterMode.Reporter(reportCachedProblems, reporter.maxErrors)
+                case Some(r) => ReporterMode.Reporter(reportCachedProblems, r.maxErrors)
               },
               ctx
             )).asInstanceOf[op.Response]
