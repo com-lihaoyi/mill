@@ -24,29 +24,23 @@ object `endless-tunnel` extends mill.api.Module {
 
     override def androidNativeLibName: T[String] = "libgame"
 
+    override def androidVirtualDeviceIdentifier: String = "cpp-test"
+
+    override def androidCMakeExtraArgs: T[Seq[String]] =
+      super.androidCMakeExtraArgs() ++ Seq("-DANDROID_STL=c++_static")
+
+    object release extends AndroidReleaseModule, AndroidNativeAppVariantModule
+
     /**
      * Configuration for ReleaseKey
      * WARNING: Replace these default values with secure and private credentials before using in production.
      * Never use these defaults in a production environment as they are not secure.
      * This is just for testing purposes.
      */
-    def androidReleaseKeyAlias: T[Option[String]] = Task {
-      Some("releaseKey")
-    }
-
-    def androidReleaseKeyPass: T[Option[String]] = Task {
-      Some("MillBuildTool")
-    }
-
-    def androidReleaseKeyStorePass: T[Option[String]] = Task {
-      Some("MillBuildTool")
-    }
-
-    override def androidVirtualDeviceIdentifier: String = "cpp-test"
-
-    override def androidCMakeExtraArgs: T[Seq[String]] =
-      super.androidCMakeExtraArgs() ++ Seq("-DANDROID_STL=c++_static")
-
+    def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+    def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+    def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+    def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
   }
 }
 

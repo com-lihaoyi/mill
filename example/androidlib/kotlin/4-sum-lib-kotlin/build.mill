@@ -40,17 +40,6 @@ object lib extends AndroidLibKotlinModule, PublishModule {
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
-  /**
-   * Configuration for ReleaseKey
-   * WARNING: Replace these default values with secure and private credentials before using in production.
-   * Never use these defaults in a production environment as they are not secure.
-   * This is just for testing purposes.
-   */
-  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
-
   object test extends AndroidLibKotlinTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
   }
@@ -80,6 +69,19 @@ object app extends AndroidAppKotlinModule {
   object test extends AndroidAppKotlinTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
   }
+
+  object release extends AndroidKotlinReleaseModule
+
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
+  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 }
 
 //// SNIPPET:END

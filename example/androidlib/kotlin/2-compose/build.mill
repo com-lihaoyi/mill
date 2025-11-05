@@ -22,8 +22,6 @@ object androidSdkModule0 extends AndroidSdkModule {
 // Actual android application
 object app extends AndroidAppKotlinModule {
 
-  object release extends AndroidKotlinReleaseModule
-
   def kotlinVersion = "2.0.21"
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidCompileSdk = 35
@@ -54,12 +52,13 @@ object app extends AndroidAppKotlinModule {
     mvn"androidx.customview:customview-poolingcontainer:1.0.0",
     mvn"androidx.tracing:tracing:1.2.0"
   )
+
+  object release extends AndroidKotlinReleaseModule
+
   def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
-
-  object release extends AndroidKotlinReleaseModule
 
 }
 

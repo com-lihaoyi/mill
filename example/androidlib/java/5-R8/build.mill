@@ -31,17 +31,6 @@ object app extends AndroidR8AppModule { // <2>
   def androidApplicationId = "com.helloworld.app"
   def androidApplicationNamespace = "com.helloworld.app"
 
-  /**
-   * Configuration for ReleaseKey
-   * WARNING: Replace these default values with secure and private credentials before using in production.
-   * Never use these defaults in a production environment as they are not secure.
-   * This is just for testing purposes.
-   */
-  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
-
   override def androidVirtualDeviceIdentifier: String = "java-test"
 
   def androidProjectProguardFiles = Task.Sources(
@@ -77,6 +66,16 @@ object app extends AndroidR8AppModule { // <2>
 
   object release extends AndroidR8ReleaseModule
 
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
+  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 }
 
 // <1> Create and configure an Android SDK module to manage Android SDK paths and tools.

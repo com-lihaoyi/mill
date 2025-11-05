@@ -26,6 +26,8 @@ object bundle extends AndroidAppBundle {
   def androidApplicationId = "com.helloworld.app"
   def androidApplicationNamespace = "com.helloworld.app"
 
+  object release extends AndroidReleaseModule
+
   def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }

@@ -889,6 +889,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
   trait AndroidAppVariantModule extends AndroidVariantModule, AndroidAppModule {
     override def androidApplicationId: String = outer.androidApplicationId
     override def androidApplicationNamespace: String = outer.androidApplicationNamespace
+
+    override def androidVirtualDeviceIdentifier: String = outer.androidVirtualDeviceIdentifier
   }
 
   trait AndroidReleaseModule extends AndroidAppVariantModule, AndroidAppModule {

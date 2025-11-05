@@ -4,7 +4,7 @@ import mill.T
 import mill.api.{PathRef, Task}
 
 @mill.api.experimental
-trait AndroidNativeAppModule extends AndroidAppModule {
+trait AndroidNativeAppModule extends AndroidAppModule { outer =>
 
   def androidNativeSource: T[PathRef] = Task.Source {
     moduleDir / "src/main/cpp"
@@ -123,7 +123,19 @@ trait AndroidNativeAppModule extends AndroidAppModule {
    */
   override def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
     super.androidPackageableExtraFiles() ++ androidPackageableNativeLibs()
+  }
 
+  trait AndroidNativeAppVariantModule extends AndroidAppVariantModule, AndroidNativeAppModule {
+
+    override def androidNativeSource: T[PathRef] = outer.androidNativeSource()
+
+    override def androidExternalNativeLibs: T[Seq[PathRef]] = outer.androidExternalNativeLibs()
+
+    override def androidNativeLibName: T[String] = outer.androidNativeLibName()
+
+    override def androidCMakeExtraArgs: T[Seq[String]] = outer.androidCMakeExtraArgs()
+
+    override def androidCompileNative: T[PathRef] = outer.androidCompileNative()
   }
 
 }

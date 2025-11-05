@@ -448,8 +448,18 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
     }
   }
 
-  trait AndroidR8ReleaseModule extends AndroidReleaseModule, AndroidR8AppModule {
+  trait AndroidR8VariantModule extends AndroidVariantModule, AndroidR8AppModule {
     override def androidProguard: T[PathRef] = outer.androidProguard()
+
+    override def androidProjectProguardFiles: T[Seq[PathRef]] = outer.androidProjectProguardFiles()
+
+    override def androidDefaultProguardFileNames: Task[Seq[String]] =
+      Task.Anon(outer.androidDefaultProguardFileNames())
+  }
+
+  trait AndroidR8ReleaseModule extends AndroidR8VariantModule {
+    override def androidReleaseSettings: T[AndroidBuildTypeSettings] =
+      outer.androidReleaseSettings()
   }
 
 }

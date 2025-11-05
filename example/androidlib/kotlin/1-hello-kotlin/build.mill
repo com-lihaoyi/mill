@@ -28,16 +28,6 @@ object app extends AndroidAppKotlinModule {
   def androidApplicationId = "com.helloworld.app"
   def androidApplicationNamespace = "com.helloworld.app"
 
-  /**
-   * Configuration for ReleaseKey
-   * WARNING: Replace these default values with secure and private credentials before using in production.
-   * Never use these defaults in a production environment as they are not secure.
-   * This is just for testing purposes.
-   */
-  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
   override def androidVirtualDeviceIdentifier: String = "kotlin-test"
   override def androidEmulatorPort: String = "5556"
 
@@ -65,6 +55,19 @@ object app extends AndroidAppKotlinModule {
       mvn"junit:junit:4.13.2"
     )
   }
+
+  object release extends AndroidKotlinReleaseModule
+
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
+  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 }
 
 //// SNIPPET:END
