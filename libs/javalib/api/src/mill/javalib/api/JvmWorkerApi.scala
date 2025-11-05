@@ -47,4 +47,14 @@ trait JvmWorkerApi {
       javaHome: Option[os.Path],
       args: Seq[String]
   )(using ctx: JvmWorkerApi.Ctx): Boolean
+
+  def discoverTests(
+      value: mill.javalib.api.internal.ZincDiscoverTests,
+      javaHome: Option[os.Path]
+  )(using ctx: JvmWorkerApi.Ctx): Seq[String] = Nil
+
+  def getTestTasks(
+      value: mill.javalib.api.internal.ZincGetTestTasks,
+      javaHome: Option[os.Path]
+  )(using ctx: JvmWorkerApi.Ctx): Seq[String] = Nil
 }

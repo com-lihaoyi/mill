@@ -33,9 +33,7 @@ import java.util.Optional
 import scala.collection.mutable
 
 /** @param jobs number of parallel jobs */
-class ZincWorker(
-    jobs: Int
-) extends AutoCloseable { self =>
+class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
   private val compilerBridgeLocks: mutable.Map[String, MemoryLock] = mutable.Map.empty
 
@@ -304,6 +302,12 @@ class ZincWorker(
 
     override def scaladocJar(op: ZincScaladocJar): Boolean =
       self.scaladocJar(op, deps.compilerBridge)
+
+    override def discoverTests(op: mill.javalib.api.internal.ZincDiscoverTests): Seq[String] =
+      mill.javalib.testrunner.DiscoverTestsMain(op)
+
+    override def getTestTasks(op: mill.javalib.api.internal.ZincGetTestTasks): Seq[String] =
+      mill.javalib.testrunner.GetTestTasksMain(op)
   }
 
   def close(): Unit = {

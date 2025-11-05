@@ -98,6 +98,10 @@ class ZincWorkerRpcServer(
                   compileMixed(requestId, msg).asInstanceOf[input.Response]
                 case msg: ClientToServer.ScaladocJar =>
                   docJar(requestId, msg).asInstanceOf[input.Response]
+                case msg: ClientToServer.DiscoverTests =>
+                  mill.javalib.testrunner.DiscoverTestsMain(msg.value).asInstanceOf[input.Response]
+                case msg: ClientToServer.GetTestTasks =>
+                  mill.javalib.testrunner.GetTestTasksMain(msg.value).asInstanceOf[input.Response]
               }
             }
             writeToLocalLog(s"$requestId with data $input processed in ${result.durationPretty}")
@@ -182,6 +186,18 @@ object ZincWorkerRpcServer {
     ) extends ClientToServer {
       override type Response = Boolean
     }
+
+    case class DiscoverTests(
+        value: mill.javalib.api.internal.ZincDiscoverTests
+    ) extends ClientToServer {
+      override type Response = Seq[String]
+    }
+    case class GetTestTasks(
+        value: mill.javalib.api.internal.ZincGetTestTasks
+    ) extends ClientToServer {
+      override type Response = Seq[String]
+    }
+
   }
 
   sealed trait ServerToClient extends MillRpcMessage derives ReadWriter
