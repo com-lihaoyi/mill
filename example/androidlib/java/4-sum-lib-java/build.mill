@@ -40,16 +40,6 @@ object lib extends AndroidLibModule, PublishModule {
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
-  /**
-   * Configuration for ReleaseKey
-   * WARNING: Replace these default values with secure and private credentials before using in production.
-   * Never use these defaults in a production environment as they are not secure.
-   * This is just for testing purposes.
-   */
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
-
   object test extends AndroidLibTests, TestModule.Junit4 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"junit:junit:4.13.2"

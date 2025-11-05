@@ -46,14 +46,14 @@ object app extends AndroidAppModule {
     )
   }
 
-  object release extends AndroidReleaseModule
-
   /**
    * Configuration for ReleaseKey
    * WARNING: Replace these default values with secure and private credentials before using in production.
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
+  object release extends AndroidReleaseModule
+
   def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }

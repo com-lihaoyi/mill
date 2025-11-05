@@ -53,6 +53,12 @@ object app extends AndroidAppKotlinModule {
     mvn"androidx.tracing:tracing:1.2.0"
   )
 
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
   object release extends AndroidKotlinReleaseModule
 
   def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
