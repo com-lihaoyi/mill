@@ -43,7 +43,7 @@ trait ErrorProneModule extends JavaModule {
       "-XDcompilePolicy=simple",
       "-processorpath",
       processorPath,
-      (Seq("-Xplugin:ErrorProne") ++ errorProneOptions().toStringSeq).mkString(" ")
+      (Seq("-Xplugin:ErrorProne") ++ errorProneOptions()).mkString(" ")
     )
     val java17Options: Seq[String] = Option.when(scala.util.Properties.isJavaAtLeast(16))(Seq(
       "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
@@ -66,7 +66,7 @@ trait ErrorProneModule extends JavaModule {
    *
    * Those are documented as "flags" at https://errorprone.info/docs/flags
    */
-  def errorProneOptions: T[Opts] = Task { Opts() }
+  def errorProneOptions: T[Seq[String]] = Task { Seq() }
 
   /**
    * Appends the [[errorProneJavacEnableOptions]] to the Java compiler options.
