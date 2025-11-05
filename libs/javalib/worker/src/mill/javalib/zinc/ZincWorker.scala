@@ -278,22 +278,6 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     }
   }
 
-  /** Constructs a [[ZincApi]] given the invocation context and dependencies. */
-  def api(
-      ctx: ZincWorker.InvocationContext,
-      deps: ZincWorker.InvocationDependencies
-  ): ZincApi = new ZincApi {
-
-    override def apply(
-        op: ZincOperation,
-        reporter: Option[CompileProblemReporter],
-        reportCachedProblems: Boolean
-    ) = {
-
-      self.apply(op, reporter, reportCachedProblems, ctx, deps)
-    }
-  }
-
   def close(): Unit = {
     scalaCompilerCache.close()
     javaOnlyCompilerCache.close()

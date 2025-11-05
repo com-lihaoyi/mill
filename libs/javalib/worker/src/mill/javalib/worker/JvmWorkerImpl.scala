@@ -159,13 +159,21 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
   }
 
   /** Gives you API for the [[zincLocalWorker]] instance. */
-  private def localZincApi(zincCtx: ZincWorker.InvocationContext, log: Logger): ZincApi = {
-    val zincDeps = ZincWorker.InvocationDependencies(
+  private def localZincApi(ctx: ZincWorker.InvocationContext, log: Logger): ZincApi = {
+    val deps = ZincWorker.InvocationDependencies(
       log = log,
       consoleOut = ConsoleOut.printStreamOut(log.streams.err),
       compilerBridge
     )
 
-    zincLocalWorker.api(zincCtx, zincDeps)
+    new ZincApi {
+      def apply(
+        op: ZincOperation,
+        reporter: Option[CompileProblemReporter],
+        reportCachedProblems: Boolean
+      ): op.Response = {
+        zincLocalWorker.apply(op, reporter, reportCachedProblems, ctx, deps)
+      }
+    }
   }
 }
