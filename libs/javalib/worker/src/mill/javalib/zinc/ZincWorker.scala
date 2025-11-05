@@ -189,7 +189,8 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         reportCachedProblems = reportCachedProblems,
         incrementalCompilation = incrementalCompilation,
         auxiliaryClassFileExtensions = Seq.empty,
-        ctx = ctx, deps = deps
+        ctx = ctx,
+        deps = deps
       )
     }
   }
@@ -222,7 +223,8 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         reportCachedProblems = reportCachedProblems,
         incrementalCompilation = incrementalCompilation,
         auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
-        ctx = ctx, deps = deps
+        ctx = ctx,
+        deps = deps
       )
     }
   }

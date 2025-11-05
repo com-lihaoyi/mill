@@ -120,7 +120,7 @@ trait MillRpcServerImpl[
   }
 
   private def waitForResponse[R: Reader](
-      clientToServer: MillRpcChannel[ClientToServer],
+      clientToServer: MillRpcChannel[ClientToServer]
   ): R = {
     var responseReceived = Option.empty[R]
 
@@ -161,13 +161,14 @@ trait MillRpcServerImpl[
   }
 
   private def createServerToClientChannel(): MillRpcChannel[ServerToClient] = {
-    (msg: ServerToClient) => {
-      val clientToServer = initializedOnClientMessage.getOrElse(throw new IllegalStateException(
-        "Client to server channel should have been initialized, this is a bug in the RPC implementation."
-      ))
+    (msg: ServerToClient) =>
+      {
+        val clientToServer = initializedOnClientMessage.getOrElse(throw new IllegalStateException(
+          "Client to server channel should have been initialized, this is a bug in the RPC implementation."
+        ))
 
-      sendToClient(MillRpcServerToClient.Ask(msg))
-      waitForResponse[msg.Response](clientToServer)
-    }
+        sendToClient(MillRpcServerToClient.Ask(msg))
+        waitForResponse[msg.Response](clientToServer)
+      }
   }
 }

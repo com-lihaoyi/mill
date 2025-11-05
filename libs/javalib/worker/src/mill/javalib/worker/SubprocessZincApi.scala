@@ -16,9 +16,9 @@ import java.nio.file.FileSystemException
 import java.security.MessageDigest
 import scala.util.Using
 private case class SubprocessCacheKey(
-                                       javaHome: Option[os.Path],
-                                       runtimeOptions: JavaRuntimeOptions
-                                     ) {
+    javaHome: Option[os.Path],
+    runtimeOptions: JavaRuntimeOptions
+) {
   def debugStr = s"javaHome=$javaHome, runtimeOptions=$runtimeOptions"
 
   def sha256: String = {
@@ -27,14 +27,14 @@ private case class SubprocessCacheKey(
   }
 }
 private case class SubprocessCacheInitialize(
-                                              taskDest: os.Path,
-                                              log: Logger,
-                                            )
+    taskDest: os.Path,
+    log: Logger
+)
 private case class SubprocessCacheValue(
-                                         port: Int,
-                                         daemonDir: os.Path,
-                                         launchedServer: LaunchedServer
-                                       ) {
+    port: Int,
+    daemonDir: os.Path,
+    launchedServer: LaunchedServer
+) {
   def isRunning(): Boolean =
     launchedServer.isAlive
 
@@ -56,22 +56,23 @@ private case class SubprocessCacheValue(
     }
   }
 }
+
 /**
  * Spawns a [[ZincApi]] subprocess with the specified java version and runtime options and returns a [[ZincApi]]
  * instance for it.
  */
 class SubprocessZincApi(
-                               javaHome: Option[os.Path],
-                               runtimeOptions: JavaRuntimeOptions,
-                               ctx: ZincWorker.InvocationContext,
-                               log: Logger,
-                               subprocessCache: CachedFactoryWithInitData[
-                                 SubprocessCacheKey,
-                                 SubprocessCacheInitialize,
-                                 SubprocessCacheValue
-                               ],
-                               compilerBridge: ZincCompilerBridgeProvider
-                             ) extends ZincApi {
+    javaHome: Option[os.Path],
+    runtimeOptions: JavaRuntimeOptions,
+    ctx: ZincWorker.InvocationContext,
+    log: Logger,
+    subprocessCache: CachedFactoryWithInitData[
+      SubprocessCacheKey,
+      SubprocessCacheInitialize,
+      SubprocessCacheValue
+    ],
+    compilerBridge: ZincCompilerBridgeProvider
+) extends ZincApi {
   val cacheKey = SubprocessCacheKey(javaHome, runtimeOptions)
 
   def makeClientLogger() = new Logger.Actions {
@@ -83,9 +84,9 @@ class SubprocessZincApi(
   }
 
   def withRpcClient[R](
-                        handler: MillRpcChannel[ZincWorkerRpcServer.ServerToClient]
-                      )(f: MillRpcClient[ZincWorkerRpcServer.ClientToServer, ZincWorkerRpcServer.ServerToClient] => R)
-  : R = {
+      handler: MillRpcChannel[ZincWorkerRpcServer.ServerToClient]
+  )(f: MillRpcClient[ZincWorkerRpcServer.ClientToServer, ZincWorkerRpcServer.ServerToClient] => R)
+      : R = {
     subprocessCache.withValue(
       cacheKey,
       SubprocessCacheInitialize(compilerBridge.workspace, log)
@@ -124,35 +125,36 @@ class SubprocessZincApi(
       }.get
     }
   }
+
   /** Handles messages sent from the Zinc RPC server. */
   private def serverRpcToClientHandler(
-                                        reporter: Option[CompileProblemReporter],
-                                        log: Logger,
-                                        cacheKey: SubprocessCacheKey
-                                      )
-  : MillRpcChannel[ZincWorkerRpcServer.ServerToClient] = {
+      reporter: Option[CompileProblemReporter],
+      log: Logger,
+      cacheKey: SubprocessCacheKey
+  )
+      : MillRpcChannel[ZincWorkerRpcServer.ServerToClient] = {
     def acquireZincCompilerBridge(
-                                   msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge
-                                 ): msg.Response =
+        msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge
+    ): msg.Response =
       compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization)
 
     def reportCompilationProblem(
-                                  msg: ZincWorkerRpcServer.ServerToClient.ReportCompilationProblem
-                                ): msg.Response = {
+        msg: ZincWorkerRpcServer.ServerToClient.ReportCompilationProblem
+    ): msg.Response = {
       reporter match {
         case Some(reporter) => msg.problem match {
-          case RpcCompileProblemReporterMessage.Start => reporter.start()
-          case RpcCompileProblemReporterMessage.LogError(problem) => reporter.logError(problem)
-          case RpcCompileProblemReporterMessage.LogWarning(problem) =>
-            reporter.logWarning(problem)
-          case RpcCompileProblemReporterMessage.LogInfo(problem) => reporter.logInfo(problem)
-          case RpcCompileProblemReporterMessage.FileVisited(file) =>
-            reporter.fileVisited(file.toNIO)
-          case RpcCompileProblemReporterMessage.PrintSummary => reporter.printSummary()
-          case RpcCompileProblemReporterMessage.Finish => reporter.finish()
-          case RpcCompileProblemReporterMessage.NotifyProgress(progress, total) =>
-            reporter.notifyProgress(progress = progress, total = total)
-        }
+            case RpcCompileProblemReporterMessage.Start => reporter.start()
+            case RpcCompileProblemReporterMessage.LogError(problem) => reporter.logError(problem)
+            case RpcCompileProblemReporterMessage.LogWarning(problem) =>
+              reporter.logWarning(problem)
+            case RpcCompileProblemReporterMessage.LogInfo(problem) => reporter.logInfo(problem)
+            case RpcCompileProblemReporterMessage.FileVisited(file) =>
+              reporter.fileVisited(file.toNIO)
+            case RpcCompileProblemReporterMessage.PrintSummary => reporter.printSummary()
+            case RpcCompileProblemReporterMessage.Finish => reporter.finish()
+            case RpcCompileProblemReporterMessage.NotifyProgress(progress, total) =>
+              reporter.notifyProgress(progress = progress, total = total)
+          }
 
         case None =>
           log.warn(
@@ -174,10 +176,10 @@ class SubprocessZincApi(
   }
 
   override def compileJava(
-                            op: ZincCompileJava,
-                            reporter: Option[CompileProblemReporter],
-                            reportCachedProblems: Boolean
-                          ): Result[CompilationResult] = {
+      op: ZincCompileJava,
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean
+  ): Result[CompilationResult] = {
     withRpcClient(serverRpcToClientHandler(reporter, log, cacheKey)) { rpcClient =>
       val msg = ZincWorkerRpcServer.ClientToServer.CompileJava(
         op,
@@ -189,10 +191,10 @@ class SubprocessZincApi(
   }
 
   override def compileMixed(
-                             op: ZincCompileMixed,
-                             reporter: Option[CompileProblemReporter],
-                             reportCachedProblems: Boolean
-                           ): Result[CompilationResult] = {
+      op: ZincCompileMixed,
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean
+  ): Result[CompilationResult] = {
     withRpcClient(serverRpcToClientHandler(reporter, log, cacheKey)) { rpcClient =>
       val msg = ZincWorkerRpcServer.ClientToServer.CompileMixed(
         op,
@@ -225,7 +227,7 @@ class SubprocessZincApi(
   }
 
   override def discoverJunit5Tests(op: mill.javalib.api.internal.ZincDiscoverJunit5Tests)
-  : Seq[String] = {
+      : Seq[String] = {
     withRpcClient(serverRpcToClientHandler(reporter = None, log, cacheKey)) { rpcClient =>
       val msg = ZincWorkerRpcServer.ClientToServer.DiscoverJunit5Tests(op)
       rpcClient(msg)
@@ -233,9 +235,9 @@ class SubprocessZincApi(
   }
 
   private def toReporterMode(
-                              reporter: Option[CompileProblemReporter],
-                              reportCachedProblems: Boolean
-                            ): ReporterMode = reporter match {
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean
+  ): ReporterMode = reporter match {
     case None => ReporterMode.NoReporter
     case Some(reporter) =>
       ReporterMode.Reporter(
@@ -244,4 +246,3 @@ class SubprocessZincApi(
       )
   }
 }
-

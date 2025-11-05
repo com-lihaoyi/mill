@@ -4,7 +4,6 @@ import pprint.{TPrint, TPrintColors}
 import upickle.{Reader, Writer}
 
 import java.io.{BufferedReader, PrintStream}
-import java.util.concurrent.BlockingQueue
 import scala.annotation.tailrec
 class MillRpcWireTransport(
     val name: String,
@@ -31,10 +30,10 @@ class MillRpcWireTransport(
 
   /** Helper that reads a message from the wire and tries to parse it, logging along the way. */
   @tailrec final def readAndTryToParse[A: Reader](
-                                                   typeName: String,
-                                                   log: String => Unit,
-                                                   firstInvocation: Boolean = true
-                                                 ): Option[A] = {
+      typeName: String,
+      log: String => Unit,
+      firstInvocation: Boolean = true
+  ): Option[A] = {
     // Only log on the first invocation, not when we get a heartbeat
     if (firstInvocation) log(s"Trying to read $typeName")
 
@@ -60,4 +59,3 @@ class MillRpcWireTransport(
     write(upickle.write(message))
   }
 }
-

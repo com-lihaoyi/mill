@@ -39,7 +39,10 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
-    zincApi(javaHome, javaRuntimeOptions).compileJava(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
+    zincApi(
+      javaHome,
+      javaRuntimeOptions
+    ).compileJava(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
   }
 
   override def compileMixed(
@@ -49,7 +52,10 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
-    zincApi(javaHome, javaRuntimeOptions).compileMixed(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
+    zincApi(
+      javaHome,
+      javaRuntimeOptions
+    ).compileMixed(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
   }
 
   def scaladocJar(
@@ -96,7 +102,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       javaHome: Option[os.Path],
       javaRuntimeOptions: JavaRuntimeOptions
   )(using
-      ctx: JvmWorkerApi.Ctx,
+      ctx: JvmWorkerApi.Ctx
   ): ZincApi = {
     val log = ctx.log
     val zincCtx = ZincWorker.InvocationContext(

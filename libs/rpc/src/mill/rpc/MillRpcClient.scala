@@ -29,7 +29,7 @@ object MillRpcClient {
       : MillRpcClient[ClientToServer, ServerToClient] = {
     @volatile var currentServerMessageHandler = serverMessageHandler
 
-    def logWarn(msg: String): Unit = log.warn(s"[RPC:${wireTransport.name}] $msg")
+    
     def logDebug(msg: String): Unit = log.debug(s"[RPC:${wireTransport.name}] $msg")
 
     def handleServerLog(msg: RpcLogger.Message): Unit = msg match {
@@ -80,7 +80,7 @@ object MillRpcClient {
 
     wireTransport.writeSerialized(initialize, logDebug)
 
-    new MillRpcClient[ClientToServer, ServerToClient]{
+    new MillRpcClient[ClientToServer, ServerToClient] {
       override def apply(msg: ClientToServer): msg.Response = {
         wireTransport.writeSerialized(MillRpcClientToServer.Ask(msg), logDebug)
         awaitForResponse[msg.Response](using msg.responseRw)

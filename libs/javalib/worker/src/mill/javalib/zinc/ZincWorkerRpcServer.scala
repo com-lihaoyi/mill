@@ -85,13 +85,17 @@ class ZincWorkerRpcServer(
                   op = msg.op,
                   reporter = reporterAsOption(msg.reporterMode),
                   reportCachedProblems = msg.reporterMode.reportCachedProblems,
-                  msg.ctx, makeDeps()).asInstanceOf[input.Response]
+                  msg.ctx,
+                  makeDeps()
+                ).asInstanceOf[input.Response]
               case msg: ClientToServer.CompileMixed =>
                 worker.compileMixed(
                   msg.op,
                   reporter = reporterAsOption(msg.reporterMode),
                   reportCachedProblems = msg.reporterMode.reportCachedProblems,
-                  msg.ctx, makeDeps()).asInstanceOf[input.Response]
+                  msg.ctx,
+                  makeDeps()
+                ).asInstanceOf[input.Response]
               case msg: ClientToServer.ScaladocJar =>
                 worker.scaladocJar(msg.op, makeCompilerBridge()).asInstanceOf[input.Response]
               case msg: ClientToServer.DiscoverTests =>
