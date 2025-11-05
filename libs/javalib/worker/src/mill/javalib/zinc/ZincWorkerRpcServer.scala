@@ -65,10 +65,7 @@ class ZincWorkerRpcServer(
 
       def reporter(maxErrors: Int) = RpcCompileProblemReporter(
         maxErrors = maxErrors,
-        send = msg =>
-          serverToClient(
-            ServerToClient.ReportCompilationProblem(msg)
-          )
+        send = msg => serverToClient(ServerToClient.ReportCompilationProblem(msg))
       )
 
       def reporterAsOption(
