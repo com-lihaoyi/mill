@@ -309,7 +309,8 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     override def getTestTasks(op: mill.javalib.api.internal.ZincGetTestTasks): Seq[String] =
       mill.javalib.testrunner.GetTestTasksMain(op)
 
-    override def discoverJunit5Tests(op: mill.javalib.api.internal.ZincDiscoverJunit5Tests): Seq[String] =
+    override def discoverJunit5Tests(op: mill.javalib.api.internal.ZincDiscoverJunit5Tests)
+        : Seq[String] =
       mill.javalib.testrunner.DiscoverJunit5TestsMain(op)
   }
 

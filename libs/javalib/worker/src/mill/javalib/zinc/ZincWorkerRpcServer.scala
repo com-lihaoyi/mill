@@ -103,7 +103,9 @@ class ZincWorkerRpcServer(
                 case msg: ClientToServer.GetTestTasks =>
                   mill.javalib.testrunner.GetTestTasksMain(msg.value).asInstanceOf[input.Response]
                 case msg: ClientToServer.DiscoverJunit5Tests =>
-                  mill.javalib.testrunner.DiscoverJunit5TestsMain(msg.value).asInstanceOf[input.Response]
+                  mill.javalib.testrunner.DiscoverJunit5TestsMain(
+                    msg.value
+                  ).asInstanceOf[input.Response]
               }
             }
             writeToLocalLog(s"$requestId with data $input processed in ${result.durationPretty}")

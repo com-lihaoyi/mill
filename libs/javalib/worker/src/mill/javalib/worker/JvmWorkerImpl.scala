@@ -463,7 +463,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
         }
       }
 
-      override def discoverJunit5Tests(op: mill.javalib.api.internal.ZincDiscoverJunit5Tests): Seq[String] = {
+      override def discoverJunit5Tests(op: mill.javalib.api.internal.ZincDiscoverJunit5Tests)
+          : Seq[String] = {
         withRpcClient(serverRpcToClientHandler(reporter = None, log, cacheKey)) { rpcClient =>
           val msg = ZincWorkerRpcServer.ClientToServer.DiscoverJunit5Tests(op)
           rpcClient(msg)
