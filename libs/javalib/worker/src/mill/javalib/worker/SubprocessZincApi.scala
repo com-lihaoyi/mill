@@ -1,22 +1,19 @@
 package mill.javalib.worker
 import mill.api.*
-import mill.api.daemon.internal.{CompileProblemReporter, internal}
+import mill.api.daemon.internal.CompileProblemReporter
 import mill.client.{LaunchedServer, ServerLauncher}
-import mill.client.lock.{DoubleLock, Locks, MemoryLock}
 import mill.constants.DaemonFiles
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.*
-import mill.javalib.internal.{JvmWorkerArgs, RpcCompileProblemReporterMessage}
+import mill.javalib.internal.{RpcCompileProblemReporterMessage, ZincCompilerBridgeProvider}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
-import mill.util.{CachedFactoryWithInitData, HexFormat, Jvm, RequestId, RequestIdFactory, Timed}
-import sbt.internal.util.ConsoleOut
+import mill.util.{CachedFactoryWithInitData, HexFormat, RequestId}
 
 import java.io.*
 import java.nio.file.FileSystemException
 import java.security.MessageDigest
-import java.time.LocalDateTime
 import scala.util.Using
 private case class SubprocessCacheKey(
                                        javaHome: Option[os.Path],
@@ -69,40 +66,21 @@ class SubprocessZincApi(
                                runtimeOptions: JavaRuntimeOptions,
                                ctx: ZincWorker.InvocationContext,
                                log: Logger,
-                       fileLog: String => Unit,
                                subprocessCache: CachedFactoryWithInitData[
                                  SubprocessCacheKey,
                                  SubprocessCacheInitialize,
                                  SubprocessCacheValue
-                               ]
+                               ],
+                               compilerBridge: ZincCompilerBridgeProvider
                              )(using requestId: RequestId) extends ZincApi {
   val cacheKey = SubprocessCacheKey(javaHome, runtimeOptions)
 
   def makeClientLogger() = new Logger.Actions {
-    override def info(s: String): Unit = {
-      fileLog(s"[LOGGER:INFO] $s")
-      log.info(s)
-    }
-
-    override def debug(s: String): Unit = {
-      fileLog(s"[LOGGER:DEBUG] $s")
-      log.debug(s)
-    }
-
-    override def warn(s: String): Unit = {
-      fileLog(s"[LOGGER:WARN] $s")
-      log.warn(s)
-    }
-
-    override def error(s: String): Unit = {
-      fileLog(s"[LOGGER:ERROR] $s")
-      log.error(s)
-    }
-
-    override def ticker(s: String): Unit = {
-      fileLog(s"[LOGGER:TICKER] $s")
-      log.ticker(s)
-    }
+    override def info(s: String): Unit = log.info(s)
+    override def debug(s: String): Unit = log.debug(s)
+    override def warn(s: String): Unit = log.warn(s)
+    override def error(s: String): Unit = log.error(s)
+    override def ticker(s: String): Unit = log.ticker(s)
   }
 
   def withRpcClient[R](
@@ -114,7 +92,6 @@ class SubprocessZincApi(
       SubprocessCacheInitialize(compilerBridge.workspace, log, requestId)
     ) { case SubprocessCacheValue(port, daemonDir, _) =>
       Using.Manager { use =>
-        fileAndDebugLog(log, s"Connecting to $daemonDir on port $port")
         val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), port)
         val debugName =
           s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}"
@@ -135,20 +112,14 @@ class SubprocessZincApi(
 
             val init =
               ZincWorkerRpcServer.Initialize(compilerBridgeWorkspace = compilerBridge.workspace)
-            fileAndDebugLog(
-              log,
-              s"Connected to $daemonDir on port $port, sending init: ${pprint(init)}"
-            )
+
             val client = MillRpcClient.create[
               ZincWorkerRpcServer.Initialize,
               ZincWorkerRpcServer.ClientToServer,
               ZincWorkerRpcServer.ServerToClient
             ](init, wireTransport, makeClientLogger())(handler)
 
-            fileAndDebugLog(log, "Running command.")
-            val result = Timed(f(client))
-            fileAndDebugLog(log, s"Command finished in ${result.durationPretty}")
-            result.result
+            f(client)
           }
         )
       }.get

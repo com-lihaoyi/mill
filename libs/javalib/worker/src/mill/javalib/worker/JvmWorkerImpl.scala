@@ -4,21 +4,14 @@ import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.client.lock.{DoubleLock, Locks, MemoryLock}
-import mill.constants.DaemonFiles
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.*
-import mill.javalib.internal.{JvmWorkerArgs, RpcCompileProblemReporterMessage}
-import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
-import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
-import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
-import mill.util.{CachedFactoryWithInitData, HexFormat, Jvm, RequestId, RequestIdFactory, Timed}
+import mill.javalib.internal.JvmWorkerArgs
+import mill.javalib.zinc.{ZincApi, ZincWorker}
+import mill.util.{CachedFactoryWithInitData, Jvm, RequestId, RequestIdFactory}
 import sbt.internal.util.ConsoleOut
 
-import java.io.*
-import java.nio.file.FileSystemException
-import java.security.MessageDigest
 import java.time.LocalDateTime
-import scala.util.Using
 
 @internal
 class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable {
@@ -49,12 +42,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       reportCachedProblems: Boolean
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
     given RequestId = requestIds.next()
-    fileLog(pprint.apply(op).render)
-    val zinc = zincApi(javaHome, javaRuntimeOptions)
-    val result =
-      Timed(zinc.compileJava(op, reporter = reporter, reportCachedProblems = reportCachedProblems))
-    fileLog(s"Compilation took ${result.durationPretty}")
-    result.result
+    zincApi(javaHome, javaRuntimeOptions).compileJava(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
   }
 
   override def compileMixed(
@@ -65,12 +53,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       reportCachedProblems: Boolean
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
     given RequestId = requestIds.next()
-    fileLog(pprint.apply(op).render)
-    val zinc = zincApi(javaHome, javaRuntimeOptions)
-    val result =
-      Timed(zinc.compileMixed(op, reporter = reporter, reportCachedProblems = reportCachedProblems))
-    fileLog(s"Compilation took ${result.durationPretty}")
-    result.result
+    zincApi(javaHome, javaRuntimeOptions).compileMixed(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
   }
 
   def scaladocJar(
@@ -79,10 +62,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
   )(using ctx: JvmWorkerApi.Ctx): Boolean = {
     given RequestId = requestIds.next()
     fileLog(pprint.apply(op).render)
-    val zinc = zincApi(javaHome, JavaRuntimeOptions(Seq.empty))
-    val result = Timed(zinc.scaladocJar(op))
-    fileLog(s"Scaladoc took ${result.durationPretty}")
-    result.result
+    zincApi(javaHome, JavaRuntimeOptions(Seq.empty)).scaladocJar(op)
   }
 
   override def discoverTests(
@@ -91,10 +71,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
   )(using ctx: JvmWorkerApi.Ctx): Seq[String] = {
     given RequestId = requestIds.next()
 
-    val zinc = zincApi(javaHome, JavaRuntimeOptions(Seq.empty))
-    val result = Timed(zinc.discoverTests(op))
-    fileLog(s"discoverTests took ${result.durationPretty}")
-    result.result
+    zincApi(javaHome, JavaRuntimeOptions(Seq.empty)).discoverTests(op)
   }
 
   override def getTestTasks(
@@ -105,10 +82,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
   ): Seq[String] = {
     given RequestId = requestIds.next()
 
-    val zinc = zincApi(javaHome, JavaRuntimeOptions(Seq.empty))
-    val result = Timed(zinc.getTestTasks(op))
-    fileLog(s"getTestTasks took ${result.durationPretty}")
-    result.result
+    zincApi(javaHome, JavaRuntimeOptions(Seq.empty)).getTestTasks(op)
   }
 
   override def discoverJunit5Tests(
@@ -116,11 +90,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       javaHome: Option[os.Path]
   )(using ctx: JvmWorkerApi.Ctx): Seq[String] = {
     given RequestId = requestIds.next()
-
-    val zinc = zincApi(javaHome, JavaRuntimeOptions(Seq.empty))
-    val result = Timed(zinc.discoverJunit5Tests(op))
-    fileLog(s"discoverJunit5Tests took ${result.durationPretty}")
-    result.result
+    zincApi(javaHome, JavaRuntimeOptions(Seq.empty)).discoverJunit5Tests(op)
   }
 
   override def close(): Unit = {
@@ -149,22 +119,17 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       zincLogDebug = zincLogDebug
     )
 
-    if (javaRuntimeOptions.options.isEmpty && javaHome.isEmpty) {
-      fileLog("Using local Zinc instance")
-      localZincApi(zincCtx, log)
-    } else {
-      fileLog(
-        s"""Using remote Zinc instance:
-           |  javaHome: $javaHome
-           |  javaRuntimeOptions: $javaRuntimeOptions
-           |""".stripMargin
-      )
-      val result = Timed(new SubprocessZincApi(javaHome, javaRuntimeOptions, zincCtx, log, fileLog, subprocessCache))
-      fileLog(s"Remote Zinc instance acquired in ${result.durationPretty}")
-      result.result
-    }
+    if (javaRuntimeOptions.options.isEmpty && javaHome.isEmpty) localZincApi(zincCtx, log)
+    else new SubprocessZincApi(
+      javaHome,
+      javaRuntimeOptions,
+      zincCtx,
+      log,
+      subprocessCache,
+      compilerBridge
+    )
   }
-  
+
   private val subprocessCache = new CachedFactoryWithInitData[
     SubprocessCacheKey,
     SubprocessCacheInitialize,
@@ -183,7 +148,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       memoryLocksByDaemonDir.synchronized {
         memoryLocksByDaemonDir.get(daemonDir) match {
           case Some(lock) => lock
-
           case None =>
             val lock = MemoryLock()
             memoryLocksByDaemonDir = memoryLocksByDaemonDir.updated(daemonDir, lock)
@@ -222,24 +186,20 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       fileAndDebugLog(log, s"Checking if $mainClass is already running for $key")
       fileAndDebugLog(log, "Acquiring the launcher lock: " + locks.launcherLock)
 
-      val launched = Timed(ServerLauncher.launchOrConnectToServer(
+      val launched = ServerLauncher.launchOrConnectToServer(
         locks,
         daemonDir.toNIO,
         10 * 1000,
         () => {
           fileAndDebugLog(log, s"Starting JVM subprocess for $mainClass for $key")
-          val process = Timed(Jvm.spawnProcess(
+          val process = Jvm.spawnProcess(
             mainClass = mainClass,
             mainArgs = Seq(daemonDir.toString, jobs.toString),
             javaHome = key.javaHome,
             jvmArgs = key.runtimeOptions.options,
             classPath = classPath
-          ))
-          fileAndDebugLog(
-            log,
-            s"Starting JVM subprocess for $mainClass for $key took ${process.durationPretty}"
           )
-          LaunchedServer.OsProcess(process.result.wrapped.toHandle)
+          LaunchedServer.OsProcess(process.wrapped.toHandle)
         },
         processDied =>
           throw IllegalStateException(
@@ -254,14 +214,9 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
           ),
         fileAndDebugLog(log, _),
         false // openSocket
-      ))
-
-      fileAndDebugLog(
-        log,
-        s"Ensuring that server is running for $key took ${launched.durationPretty}"
       )
 
-      SubprocessCacheValue(launched.result.port, daemonDir, launched.result.launchedServer)
+      SubprocessCacheValue(launched.port, daemonDir, launched.launchedServer)
     }
 
     override def teardown(key: SubprocessCacheKey, value: SubprocessCacheValue): Unit = {
