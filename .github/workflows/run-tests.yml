@@ -217,6 +217,9 @@ jobs:
             millargs: '"example.scalalib.{basic,publishing}.__.packaged.daemon"'
 
           - java-version: 17
+            millargs: '"dist.scripts.test"' # run this on both windows and mac to exercise bootstrap scripts
+
+          - java-version: 17
             millargs: "'integration.failure.__.packaged.nodaemon'"
 
           - java-version: 17

@@ -1,37 +1,5 @@
 @echo off
 
-rem This is a wrapper script, that automatically selects or downloads Mill from Maven Central or GitHub release pages.
-rem
-rem This script determines the Mill version to use by trying these sources
-rem   - env-variable `MILL_VERSION`
-rem   - local file `.mill-version`
-rem   - local file `.config/mill-version`
-rem   - `mill-version` from YAML frontmatter of current buildfile
-rem   - if accessible, find the latest stable version available on Maven Central ({{{ mill-maven-url }}})
-rem   - env-variable `DEFAULT_MILL_VERSION`
-rem
-rem If a version has the suffix '-native' a native binary will be used.
-rem If a version has the suffix '-jvm' an executable jar file will be used, requiring an already installed Java runtime.
-rem If no such suffix is found, the script will pick a default based on version and platform.
-rem
-rem Once a version was determined, it tries to use either
-rem    - a system-installed mill, if found and it's version matches
-rem    - an already downloaded version under {{{ mill-download-cache-win }}}
-rem
-rem If no working mill version was found on the system,
-rem this script downloads a binary file from Maven Central or Github Pages (this is version dependent)
-rem into a cache location ({{{ mill-download-cache-win }}}).
-rem
-rem Mill Project URL: {{{ mill-repo-url }}}
-rem Script Version: {{{ mill-version }}}
-rem
-rem If you want to improve this script, please also contribute your changes back!
-rem This script was generated from: {{{ template-file }}}
-rem
-rem Licensed under the Apache License, Version 2.0
-
-rem setlocal seems to be unavailable on Windows 95/98/ME
-rem but I don't think we need to support them in 2019
 setlocal enabledelayedexpansion
 
 if [!DEFAULT_MILL_VERSION!]==[] ( set "DEFAULT_MILL_VERSION={{{ mill-version }}}" )
@@ -65,9 +33,24 @@ if [!MILL_VERSION!]==[] (
     if exist .config\mill-version (
       set /p MILL_VERSION=<.config\mill-version
     ) else (
+      rem Determine which config file to use for version extraction
+      set "MILL_VERSION_CONFIG_FILE="
+      set "MILL_VERSION_SEARCH_PATTERN="
+
       if exist build.mill.yaml (
+        set "MILL_VERSION_CONFIG_FILE=build.mill.yaml"
+        set "MILL_VERSION_SEARCH_PATTERN=mill-version:"
+      ) else (
+        if not "%MILL_BUILD_SCRIPT%"=="" (
+          set "MILL_VERSION_CONFIG_FILE=%MILL_BUILD_SCRIPT%"
+          set "MILL_VERSION_SEARCH_PATTERN=//\|.*mill-version"
+        )
+      )
+
+      rem Process the config file if found
+      if not "!MILL_VERSION_CONFIG_FILE!"=="" (
         rem Find the line and process it
-        for /f "tokens=*" %%a in ('findstr /R /C:"mill-version:" "build.mill.yaml"') do (
+        for /f "tokens=*" %%a in ('findstr /R /C:"!MILL_VERSION_SEARCH_PATTERN!" "!MILL_VERSION_CONFIG_FILE!"') do (
             set "line=%%a"
 
             rem --- 1. Replicate sed 's/.*://' ---
@@ -85,7 +68,7 @@ if [!MILL_VERSION!]==[] (
             set "line=!line:'=!"
             set "line=!line:"=!"
 
-            rem --- 4. NEW: Replicate sed's trim/space removal ---
+            rem --- 4. Replicate sed's trim/space removal ---
             rem Remove all space characters from the result. This is more robust.
             set "MILL_VERSION=!line: =!"
 
@@ -95,58 +78,21 @@ if [!MILL_VERSION!]==[] (
 
         :version_found
         rem no-op
-      ) else (
-        if not "%MILL_BUILD_SCRIPT%"=="" (
-          rem Find the line and process it
-          for /f "tokens=*" %%a in ('findstr /R /C:"//\|.*mill-version" "%MILL_BUILD_SCRIPT%"') do (
-              set "line=%%a"
-
-              rem --- 1. Replicate sed 's/.*://' ---
-              rem This removes everything up to and including the first colon
-              set "line=!line:*:=!"
-
-              rem --- 2. Replicate sed 's/#.*//' ---
-              rem Split on '#' and keep the first part
-              for /f "tokens=1 delims=#" %%b in ("!line!") do (
-                  set "line=%%b"
-              )
-
-              rem --- 3. Replicate sed 's/['"]//g' ---
-              rem Remove all quotes
-              set "line=!line:'=!"
-              set "line=!line:"=!"
-
-              rem --- 4. NEW: Replicate sed's trim/space removal ---
-              rem Remove all space characters from the result. This is more robust.
-              set "MILL_VERSION=!line: =!"
-
-              rem We found the version, so we can exit the loop
-              goto :version_found
-          )
-
-          :version_found
-          rem no-op
-        ) else (
-          rem no-op
-        )
       )
     )
   )
 )
 
 if [!MILL_VERSION!]==[] (
-    echo No mill version specified. >&2
-    echo You should provide a version via a '//^| mill-version: ' comment or a '.mill-version' file. >&2
     set MILL_VERSION=%DEFAULT_MILL_VERSION%
 )
 
-if [!MILL_DOWNLOAD_PATH!]==[] set MILL_DOWNLOAD_PATH=%USERPROFILE%\.mill\download
+if [!MILL_DOWNLOAD_PATH!]==[] set MILL_DOWNLOAD_PATH=%USERPROFILE%\.cache\mill\download
 
 rem without bat file extension, cmd doesn't seem to be able to run it
 
 set "MILL_NATIVE_SUFFIX=-native"
 set "MILL_JVM_SUFFIX=-jvm"
-set "FULL_MILL_VERSION=%MILL_VERSION%"
 set "MILL_EXT=.bat"
 set "ARTIFACT_SUFFIX="
 REM Check if MILL_VERSION contains MILL_NATIVE_SUFFIX
@@ -193,7 +139,7 @@ if !errorlevel! equ 0 (
     )
 )
 
-set MILL=%MILL_DOWNLOAD_PATH%\!FULL_MILL_VERSION!!MILL_EXT!
+set MILL=%MILL_DOWNLOAD_PATH%\!MILL_VERSION!!MILL_EXT!
 
 set MILL_RESOLVE_DOWNLOAD=
 
