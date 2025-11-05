@@ -119,16 +119,16 @@ if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
   esac
   case $MILL_VERSION in
     0.12.0 | 0.12.1 | 0.12.2 | 0.12.3 | 0.12.4 | 0.12.5 | 0.12.6 | 0.12.7 | 0.12.8 | 0.12.9 | 0.12.10 | 0.12.11 )
-      DOWNLOAD_EXT="jar"
+      MILL_DOWNLOAD_EXT="jar"
       ;;
     0.12.* )
-      DOWNLOAD_EXT="exe"
+      MILL_DOWNLOAD_EXT="exe"
       ;;
     0.* )
-      DOWNLOAD_EXT="jar"
+      MILL_DOWNLOAD_EXT="jar"
       ;;
     *)
-      DOWNLOAD_EXT="exe"
+      MILL_DOWNLOAD_EXT="exe"
       ;;
   esac
 
@@ -136,7 +136,7 @@ if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
   mkdir -p "${MILL_TEMP_DOWNLOAD_FILE}/.."
 
   if [ "$MILL_DOWNLOAD_FROM_MAVEN" = "1" ] ; then
-    MILL_DOWNLOAD_URL="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.${DOWNLOAD_EXT}"
+    MILL_DOWNLOAD_URL="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.${MILL_DOWNLOAD_EXT}"
   else
     MILL_VERSION_TAG=$(echo "$MILL_VERSION" | sed -E 's/([^-]+)(-M[0-9]+)?(-.*)?/\1\2/')
     MILL_DOWNLOAD_URL="${GITHUB_RELEASE_CDN}${MILL_REPO_URL}/releases/download/${MILL_VERSION_TAG}/${MILL_VERSION}${MILL_DOWNLOAD_SUFFIX}"
