@@ -73,8 +73,12 @@ private[mill] object Cacher {
 
       val thisSel = This(owner.owner).asExprOf[Cacher]
       '{ $thisSel.cachedTask[T](${ t })(using $enclosingCtx) }
-    } else if (sys.env.contains("MILL_ENABLE_STATIC_CHECKS")) report.errorAndAbort(errorMessage, Position.ofMacroExpansion)
-    // Use a runtime exception to prevent false error highlighting in IntelliJ
-    else '{  throw new Exception(${ Expr(errorMessage) }) }
+    } else if (
+      sys.env.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS) ||
+      sys.props.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS)
+    ) {
+      report.errorAndAbort(errorMessage, Position.ofMacroExpansion)
+      // Use a runtime exception to prevent false error highlighting in IntelliJ
+    } else '{ throw new Exception(${ Expr(errorMessage) }) }
   }
 }

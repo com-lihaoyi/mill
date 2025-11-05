@@ -173,8 +173,13 @@ trait LowPriCtx {
 object LowPriCtx {
   def dummyInfoImpl(using quotes: Quotes): Expr[ModuleCtx] = {
     import quotes.reflect.*
-    def errorMessage = "Modules and Tasks can only be defined within a mill Module (in `build.mill` or `package.mill` files)"
-    if (sys.env.contains("MILL_ENABLE_STATIC_CHECKS")) report.errorAndAbort(errorMessage)
-    else '{ throw new Exception(${ Expr(errorMessage) }) }
+    def errorMessage =
+      "Modules and Tasks can only be defined within a mill Module (in `build.mill` or `package.mill` files)"
+    if (
+      sys.env.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS) ||
+      sys.props.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS)
+    ) {
+      report.errorAndAbort(errorMessage)
+    } else '{ throw new Exception(${ Expr(errorMessage) }) }
   }
 }
