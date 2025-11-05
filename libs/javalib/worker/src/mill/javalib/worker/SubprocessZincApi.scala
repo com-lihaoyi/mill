@@ -40,7 +40,7 @@ class SubprocessZincApi(
 
   /** Handles messages sent from the Zinc RPC server. */
   private def serverRpcToClientHandler(
-      reporter: Option[CompileProblemReporter],
+      reporter: Option[CompileProblemReporter]
   ): MillRpcChannel[ZincWorkerRpcServer.ServerToClient] = {
     input =>
       input match {
@@ -114,7 +114,8 @@ class SubprocessZincApi(
               op,
               reporter match {
                 case None => ReporterMode.NoReporter
-                case Some(reporter) => ReporterMode.Reporter(reportCachedProblems, reporter.maxErrors)
+                case Some(reporter) =>
+                  ReporterMode.Reporter(reportCachedProblems, reporter.maxErrors)
               },
               ctx
             )).asInstanceOf[op.Response]

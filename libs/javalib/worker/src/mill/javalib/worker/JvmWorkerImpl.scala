@@ -64,9 +64,9 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
     override def maxCacheSize: Int = jobs
 
     override def cacheEntryStillValid(
-                                       key: SubprocessZincApi.Key,
-                                       initData: => SubprocessZincApi.Initialize,
-                                       value: SubprocessZincApi.Value
+        key: SubprocessZincApi.Key,
+        initData: => SubprocessZincApi.Initialize,
+        value: SubprocessZincApi.Value
     ): Boolean = value.launchedServer.isAlive
 
     private var memoryLocksByDaemonDir = Map.empty[os.Path, MemoryLock]
@@ -82,7 +82,10 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       }
     }
 
-    override def setup(key: SubprocessZincApi.Key, init: SubprocessZincApi.Initialize): SubprocessZincApi.Value = {
+    override def setup(
+        key: SubprocessZincApi.Key,
+        init: SubprocessZincApi.Initialize
+    ): SubprocessZincApi.Value = {
 
       val workerDir = init.taskDest / "zinc-worker" / key.hashCode.toString
       val daemonDir = workerDir / "daemon"
@@ -165,9 +168,9 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
 
     new ZincApi {
       def apply(
-        op: ZincOperation,
-        reporter: Option[CompileProblemReporter],
-        reportCachedProblems: Boolean
+          op: ZincOperation,
+          reporter: Option[CompileProblemReporter],
+          reportCachedProblems: Boolean
       ): op.Response = {
         zincLocalWorker.apply(op, reporter, reportCachedProblems, ctx, deps)
       }

@@ -7,7 +7,7 @@ import mill.javalib.CoursierModule.Resolver
 import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.javalib.api.internal.InternalJvmWorkerApi as InternalJvmWorkerApi
 import mill.javalib.api.{JvmWorkerApi, JvmWorkerUtil, Versions}
-import mill.javalib.internal.{JvmWorkerArgs, JvmWorkerFactoryApi, ZincCompilerBridgeProvider}
+import mill.javalib.internal.{JvmWorkerArgs, ZincCompilerBridgeProvider}
 
 /**
  * A default implementation of [[JvmWorkerModule]]
@@ -49,7 +49,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
   def worker: Worker[JvmWorkerApi] = internalWorker
-  def internalWorkerClassLoader = Task.Worker{
+  def internalWorkerClassLoader = Task.Worker {
     mill.util.Jvm.createClassLoader(classpath().map(_.path), getClass.getClassLoader)
   }
 
