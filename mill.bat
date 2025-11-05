@@ -1,40 +1,8 @@
 @echo off
 
-rem This is a wrapper script, that automatically selects or downloads Mill from Maven Central or GitHub release pages.
-rem
-rem This script determines the Mill version to use by trying these sources
-rem   - env-variable `MILL_VERSION`
-rem   - local file `.mill-version`
-rem   - local file `.config/mill-version`
-rem   - `mill-version` from YAML fronmatter of current buildfile
-rem   - if accessible, find the latest stable version available on Maven Central (https://repo1.maven.org/maven2)
-rem   - env-variable `DEFAULT_MILL_VERSION`
-rem
-rem If a version has the suffix '-native' a native binary will be used.
-rem If a version has the suffix '-jvm' an executable jar file will be used, requiring an already installed Java runtime.
-rem If no such suffix is found, the script will pick a default based on version and platform.
-rem
-rem Once a version was determined, it tries to use either
-rem    - a system-installed mill, if found and it's version matches
-rem    - an already downloaded version under %USERPROFILE%\.mill\download
-rem
-rem If no working mill version was found on the system,
-rem this script downloads a binary file from Maven Central or Github Pages (this is version dependent)
-rem into a cache location (%USERPROFILE%\.mill\download).
-rem
-rem Mill Project URL: https://github.com/com-lihaoyi/mill
-rem Script Version: 1.0.0-M1-21-7b6fae-DIRTY892b63e8
-rem
-rem If you want to improve this script, please also contribute your changes back!
-rem This script was generated from: dist/scripts/src/mill.bat
-rem
-rem Licensed under the Apache License, Version 2.0
-
-rem setlocal seems to be unavailable on Windows 95/98/ME
-rem but I don't think we need to support them in 2019
 setlocal enabledelayedexpansion
 
-if [!DEFAULT_MILL_VERSION!]==[] ( set "DEFAULT_MILL_VERSION=0.12.10" )
+if [!DEFAULT_MILL_VERSION!]==[] ( set "DEFAULT_MILL_VERSION=SNAPSHOT" )
 
 if [!MILL_GITHUB_RELEASE_CDN!]==[] ( set "MILL_GITHUB_RELEASE_CDN=" )
 
@@ -65,26 +33,66 @@ if [!MILL_VERSION!]==[] (
     if exist .config\mill-version (
       set /p MILL_VERSION=<.config\mill-version
     ) else (
-      if not "%MILL_BUILD_SCRIPT%"=="" (
-        for /f "tokens=1-2*" %%a in ('findstr /C:"//| mill-version:" %MILL_BUILD_SCRIPT%') do (
-          set "MILL_VERSION=%%c"
-        )
+      rem Determine which config file to use for version extraction
+      set "MILL_VERSION_CONFIG_FILE="
+      set "MILL_VERSION_SEARCH_PATTERN="
+
+      if exist build.mill.yaml (
+        set "MILL_VERSION_CONFIG_FILE=build.mill.yaml"
+        set "MILL_VERSION_SEARCH_PATTERN=mill-version:"
       ) else (
+        if not "%MILL_BUILD_SCRIPT%"=="" (
+          set "MILL_VERSION_CONFIG_FILE=%MILL_BUILD_SCRIPT%"
+          set "MILL_VERSION_SEARCH_PATTERN=//\|.*mill-version"
+        )
+      )
+
+      rem Process the config file if found
+      if not "!MILL_VERSION_CONFIG_FILE!"=="" (
+        rem Find the line and process it
+        for /f "tokens=*" %%a in ('findstr /R /C:"!MILL_VERSION_SEARCH_PATTERN!" "!MILL_VERSION_CONFIG_FILE!"') do (
+            set "line=%%a"
+
+            rem --- 1. Replicate sed 's/.*://' ---
+            rem This removes everything up to and including the first colon
+            set "line=!line:*:=!"
+
+            rem --- 2. Replicate sed 's/#.*//' ---
+            rem Split on '#' and keep the first part
+            for /f "tokens=1 delims=#" %%b in ("!line!") do (
+                set "line=%%b"
+            )
+
+            rem --- 3. Replicate sed 's/['"]//g' ---
+            rem Remove all quotes
+            set "line=!line:'=!"
+            set "line=!line:"=!"
+
+            rem --- 4. Replicate sed's trim/space removal ---
+            rem Remove all space characters from the result. This is more robust.
+            set "MILL_VERSION=!line: =!"
+
+            rem We found the version, so we can exit the loop
+            goto :version_found
+        )
+
+        :version_found
         rem no-op
       )
     )
   )
 )
 
-if [!MILL_VERSION!]==[] set MILL_VERSION=%DEFAULT_MILL_VERSION%
+if [!MILL_VERSION!]==[] (
+    set MILL_VERSION=%DEFAULT_MILL_VERSION%
+)
 
-if [!MILL_DOWNLOAD_PATH!]==[] set MILL_DOWNLOAD_PATH=%USERPROFILE%\.mill\download
+if [!MILL_DOWNLOAD_PATH!]==[] set MILL_DOWNLOAD_PATH=%USERPROFILE%\.cache\mill\download
 
 rem without bat file extension, cmd doesn't seem to be able to run it
 
 set "MILL_NATIVE_SUFFIX=-native"
 set "MILL_JVM_SUFFIX=-jvm"
-set "FULL_MILL_VERSION=%MILL_VERSION%"
 set "MILL_EXT=.bat"
 set "ARTIFACT_SUFFIX="
 REM Check if MILL_VERSION contains MILL_NATIVE_SUFFIX
@@ -131,7 +139,7 @@ if !errorlevel! equ 0 (
     )
 )
 
-set MILL=%MILL_DOWNLOAD_PATH%\!FULL_MILL_VERSION!!MILL_EXT!
+set MILL=%MILL_DOWNLOAD_PATH%\!MILL_VERSION!!MILL_EXT!
 
 set MILL_RESOLVE_DOWNLOAD=
 
@@ -230,23 +238,9 @@ if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
     set MILL_DOWNLOAD_FILE=%MILL%.tmp
 
     echo Downloading mill !MILL_VERSION! from !MILL_DOWNLOAD_URL! ... 1>&2
-
     if not exist "%MILL_DOWNLOAD_PATH%" mkdir "%MILL_DOWNLOAD_PATH%"
-    rem curl is bundled with recent Windows 10
-    rem but I don't think we can expect all the users to have it in 2019
-    where /Q curl
-    if !ERRORLEVEL! EQU 0 (
-        curl -f -L "!MILL_DOWNLOAD_URL!" -o "!MILL_DOWNLOAD_FILE!"
-    ) else (
-        rem bitsadmin seems to be available on Windows 7
-        rem without /dynamic, github returns 403
-        rem bitsadmin is sometimes needlessly slow but it looks better with /priority foreground
-        bitsadmin /transfer millDownloadJob /dynamic /priority foreground "!MILL_DOWNLOAD_URL!" "!MILL_DOWNLOAD_FILE!"
-    )
-    if not exist "!MILL_DOWNLOAD_FILE!" (
-        echo Could not download mill !MILL_VERSION! 1>&2
-        exit /b 1
-    )
+
+    curl -f -L "!MILL_DOWNLOAD_URL!" -o "!MILL_DOWNLOAD_FILE!"
 
     move /y "!MILL_DOWNLOAD_FILE!" "%MILL%"
 
