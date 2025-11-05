@@ -14,7 +14,13 @@ import mill.util.Jvm
 import mill.api.JsonFormatters.given
 import mill.constants.EnvVars
 import mill.javalib.api.internal.ZincDiscoverTests
-import mill.javalib.testrunner.{DiscoverTestsMain, Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
+import mill.javalib.testrunner.{
+  Framework,
+  TestArgs,
+  TestResult,
+  TestRunner,
+  TestRunnerUtils
+}
 
 import java.nio.file.Path
 

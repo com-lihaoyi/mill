@@ -18,7 +18,7 @@ import mill.api.Logger
 import java.util.concurrent.ConcurrentHashMap
 import mill.api.BuildCtx
 import mill.javalib.api.internal.ZincGetTestTasks
-import mill.javalib.testrunner.{GetTestTasksMain, TestArgs, TestResult, TestRunnerUtils}
+import mill.javalib.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import os.Path
 
 import scala.annotation.unused
