@@ -64,7 +64,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
       if (daemonMode) {
         checkClassloaders(tester)(
           Map(
-            "mill.javalib.JvmWorkerModule#internalWorker cl" -> 1,
+            "mill.javalib.JvmWorkerModule#internalWorkerClassLoader" -> 1,
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
             "mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader" -> 1
           ).toSeq.sorted
@@ -91,7 +91,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           checkClassloaders(tester)(
             Map(
               "mill.kotlinlib.KotlinWorkerManager" -> 1,
-              "mill.javalib.JvmWorkerModule#internalWorker cl" -> 2,
+              "mill.javalib.JvmWorkerModule#internalWorkerClassLoader" -> 2,
               "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
               "mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader" -> 2
             ).toSeq.sorted
@@ -120,7 +120,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           checkClassloaders(tester)(
             Map(
               "mill.kotlinlib.KotlinWorkerManager" -> 1,
-              "mill.javalib.JvmWorkerModule#internalWorker cl" -> 2,
+              "mill.javalib.JvmWorkerModule#internalWorkerClassLoader" -> 2,
               "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
               "mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader" -> 2
             ).toSeq.sorted
@@ -148,7 +148,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         checkClassloaders(tester)(
           List(
             ("mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl", 1),
-            ("mill.javalib.JvmWorkerModule#internalWorker cl", 1)
+            ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 1)
           )
         )
         checkThreads(tester)(
@@ -173,7 +173,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           checkClassloaders(tester)(
             List(
               ("mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl", 1),
-              ("mill.javalib.JvmWorkerModule#internalWorker cl", 2),
+              ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
               ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
               ("mill.kotlinlib.KotlinWorkerManager", 1)
             )
@@ -203,7 +203,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           checkClassloaders(tester)(
             List(
               ("mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl", 1),
-              ("mill.javalib.JvmWorkerModule#internalWorker cl", 2),
+              ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
               ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
               ("mill.kotlinlib.KotlinWorkerManager", 1)
             )
@@ -235,7 +235,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           checkClassloaders(tester)(
             List(
               ("mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl", 1),
-              ("mill.javalib.JvmWorkerModule#internalWorker cl", 2),
+              ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
               ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
               ("mill.kotlinlib.KotlinWorkerManager", 1)
             )
@@ -264,7 +264,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           List(
             ("leaked classloader", 1),
             ("mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl", 1),
-            ("mill.javalib.JvmWorkerModule#internalWorker cl", 2),
+            ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
             ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
             ("mill.kotlinlib.KotlinWorkerManager", 1)
           )
