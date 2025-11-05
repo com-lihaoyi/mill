@@ -189,6 +189,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
                |$processDied
                |""".stripMargin
           ),
+        _ => (),
         false // openSocket
       )
 
