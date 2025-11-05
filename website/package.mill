@@ -307,7 +307,7 @@ object `package` extends mill.Module {
 
   val versionLabels =
     Settings.docTags.map { v =>
-      (v, v, v, v.split('.').dropRight(1).mkString(".") + ".x", false)
+      (v, v, v, v.split('.').dropRight(1).mkString(".") + ".x", v.startsWith("1."))
     }.dropRight(1) ++
       // Set the latest stable branch as the "master" docs that people default to
       Seq(

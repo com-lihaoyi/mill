@@ -254,18 +254,22 @@ object MillMain0 {
                           _ => _ => None,
                         extraEnv: Seq[(String, String)] = Nil,
                         metaLevelOverride: Option[Int] = None
-                    ) = MillDaemonServer.withOutLock(
-                      config.noBuildLock.value,
-                      config.noWaitForBuildLock.value,
-                      out,
-                      millActiveCommandMessage,
-                      streams,
-                      outLock
+                    ): Watching.Result[RunnerState] = MillDaemonServer.withOutLock(
+                      noBuildLock = config.noBuildLock.value,
+                      noWaitForBuildLock = config.noWaitForBuildLock.value,
+                      out = out,
+                      millActiveCommandMessage = millActiveCommandMessage,
+                      streams = streams,
+                      outLock = outLock
                     ) {
                       def proceed(logger: Logger): Watching.Result[RunnerState] = {
                         // Enter key pressed, removing mill-selective-execution.json to
                         // ensure all tasks re-run even though no inputs may have changed
-
+                        //
+                        // Do this by removing the file rather than disabling selective execution,
+                        // because we still want to generate the selective execution metadata json
+                        // for subsequent runs that may use it
+                        if (skipSelectiveExecution) os.remove(out / OutFiles.millSelectiveExecution)
                         mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                           mill.api.FilesystemCheckerEnabled.withValue(
                             !config.noFilesystemChecker.value
@@ -290,7 +294,6 @@ object MillMain0 {
                                 selectiveExecution = config.watch.value,
                                 offline = config.offline.value,
                                 reporter = reporter,
-                                skipSelectiveExecution = skipSelectiveExecution,
                                 enableTicker = enableTicker
                               ).evaluate()
                             }
@@ -303,10 +306,10 @@ object MillMain0 {
                           proceed(logger)
                         case None =>
                           Using.resource(getLogger(
-                            streams,
-                            config,
+                            streams = streams,
+                            config = config,
                             enableTicker = enableTicker,
-                            daemonDir,
+                            daemonDir = daemonDir,
                             colored = colored,
                             colors = colors,
                             out = out
@@ -319,10 +322,10 @@ object MillMain0 {
                     if (config.jshell.value) {
                       val bootstrapped = runMillBootstrap(
                         skipSelectiveExecution = false,
-                        Some(stateCache),
-                        Seq("jshell") ++ config.leftoverArgs.value,
-                        streams,
-                        "jshell",
+                        prevState = Some(stateCache),
+                        tasksAndParams = Seq("jshell") ++ config.leftoverArgs.value,
+                        streams = streams,
+                        millActiveCommandMessage = "jshell",
                         metaLevelOverride = Some(1)
                       )
 
@@ -330,10 +333,10 @@ object MillMain0 {
                     } else if (config.repl.value) {
                       val bootstrapped = runMillBootstrap(
                         skipSelectiveExecution = false,
-                        Some(stateCache),
-                        Seq("console") ++ config.leftoverArgs.value,
-                        streams,
-                        "repl",
+                        prevState = Some(stateCache),
+                        tasksAndParams = Seq("console") ++ config.leftoverArgs.value,
+                        streams = streams,
+                        millActiveCommandMessage = "repl",
                         metaLevelOverride = Some(1)
                       )
 
@@ -361,11 +364,11 @@ object MillMain0 {
                       val watchLogger = new PrefixLogger(bspLogger, Seq("watch"))
                       while (keepGoing) {
                         val watchRes = runMillBootstrap(
-                          false,
-                          prevRunnerStateOpt,
-                          Seq("version"),
-                          initCommandLogger.streams,
-                          "BSP:initialize",
+                          skipSelectiveExecution = false,
+                          prevState = prevRunnerStateOpt,
+                          tasksAndParams = Seq("version"),
+                          streams = initCommandLogger.streams,
+                          millActiveCommandMessage = "BSP:initialize",
                           loggerOpt = Some(initCommandLogger),
                           reporter = ev => {
                             val bspIdByModule = mill.bsp.worker.BspEvaluators(
@@ -388,7 +391,7 @@ object MillMain0 {
                         prevRunnerStateOpt = Some(watchRes.result)
 
                         val sessionResultFuture = bspServerHandle.startSession(
-                          watchRes.result.frames.flatMap(_.evaluator),
+                          evaluators = watchRes.result.frames.flatMap(_.evaluator),
                           errored = watchRes.error.nonEmpty,
                           watched = watchRes.watched
                         )
@@ -494,11 +497,11 @@ object MillMain0 {
                           (skipSelectiveExecution: Boolean, prevState: Option[RunnerState]) => {
                             adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
                             runMillBootstrap(
-                              skipSelectiveExecution,
-                              prevState,
-                              config.leftoverArgs.value,
-                              streams,
-                              config.leftoverArgs.value.mkString(" ")
+                              skipSelectiveExecution = skipSelectiveExecution,
+                              prevState = prevState,
+                              tasksAndParams = config.leftoverArgs.value,
+                              streams = streams,
+                              millActiveCommandMessage = config.leftoverArgs.value.mkString(" ")
                             )
                           }
                       )

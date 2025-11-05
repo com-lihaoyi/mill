@@ -170,7 +170,15 @@ private[mill] case class Execution(
               .toMap
 
             futures(terminal) = Future.successful(
-              Some(GroupExecution.Results(taskResults, group.toSeq, false, -1, -1, false, Nil))
+              Some(GroupExecution.Results(
+                newResults = taskResults,
+                newEvaluated = group.toSeq,
+                cached = false,
+                inputsHash = -1,
+                previousInputsHash = -1,
+                valueHashChanged = false,
+                serializedPaths = Nil
+              ))
             )
           } else {
             futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
@@ -296,11 +304,11 @@ private[mill] case class Execution(
       val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
       ExecutionLogs.logInvalidationTree(
-        interGroupDeps,
-        indexToTerminal,
-        outPath,
-        uncached,
-        changedValueHash
+        interGroupDeps = interGroupDeps,
+        indexToTerminal = indexToTerminal,
+        outPath = outPath,
+        uncached = uncached,
+        changedValueHash = changedValueHash
       )
 
       val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal

@@ -64,7 +64,7 @@ object SonatypeHelpers {
         Seq(s"<${fromUser.args.size} user provided args @ ${fromUser.file}:${fromUser.line}>")
     }
     def mkCommand(args: Seq[String]) = "gpg" +: args :+ fileName
-    val logCommand = mkCommand(logArgs)
+    mkCommand(logArgs)
     val command = mkCommand(args.asCommandArgs)
 
     os.call(

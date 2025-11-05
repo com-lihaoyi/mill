@@ -59,7 +59,6 @@ class MillBuildBootstrap(
     selectiveExecution: Boolean,
     offline: Boolean,
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
-    skipSelectiveExecution: Boolean,
     enableTicker: Boolean
 ) { outer =>
   import MillBuildBootstrap.*
@@ -103,18 +102,37 @@ class MillBuildBootstrap(
           lazy val state = evaluateRec(depth + 1)
           if (currentRootContainsBuildFile) state
           else {
+            val rootFileNamesStr = rootBuildFileNames.asScala.mkString(", ")
             val msg =
-              s"No build file (${rootBuildFileNames.asScala.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
+              s"No build file ($rootFileNamesStr) found in $projectRoot. Are you in a Mill project directory?"
+
             state match {
-              case RunnerState(bootstrapModuleOpt, frames, Some(error), None) =>
+              case RunnerState(
+                    bootstrapModuleOpt,
+                    frames,
+                    Some(error),
+                    None,
+                    bootstrapEvalWatched
+                  ) =>
                 // Add a potential clue (missing build.mill) to the underlying error message
-                RunnerState(bootstrapModuleOpt, frames, Some(msg + "\n" + error))
+                RunnerState(
+                  bootstrapModuleOpt,
+                  frames,
+                  Some(msg + "\n" + error),
+                  bootstrapEvalWatched = bootstrapEvalWatched
+                )
               case state => state
             }
           }
         } else {
           val (useDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
 
+          val bootstrapEvalWatched0 = PathRef(projectRoot / foundRootBuildFileName)
+          val bootstrapEvalWatched = Watchable.Path(
+            bootstrapEvalWatched0.path.toNIO,
+            bootstrapEvalWatched0.quick,
+            bootstrapEvalWatched0.sig
+          )
           val headerData =
             if (!os.exists(projectRoot / foundRootBuildFileName)) ""
             else mill.constants.Util.readBuildHeader(
@@ -125,36 +143,63 @@ class MillBuildBootstrap(
           val state =
             if (currentRootContainsBuildFile) evaluateRec(depth + 1)
             else {
-              val parsedHeaderData = mill.internal.Util.parsedHeaderData(headerData)
-              val metaBuildData =
-                if (
-                  foundRootBuildFileName.endsWith(".yaml") || foundRootBuildFileName.endsWith(
-                    ".yml"
+              mill.internal.Util.parseYaml(foundRootBuildFileName, headerData) match {
+                case Result.Failure(msg) =>
+                  RunnerState(
+                    None,
+                    Nil,
+                    Some(msg),
+                    Some(foundRootBuildFileName),
+                    Seq(bootstrapEvalWatched)
                   )
-                ) {
-                  // For YAML files, extract the mill-build key if it exists, otherwise use empty map
-                  parsedHeaderData.get("mill-build") match {
-                    case Some(millBuildValue: ujson.Obj) => millBuildValue.obj.toMap
-                    case _ => Map.empty[String, ujson.Value]
+                case Result.Success(parsedHeaderData) =>
+                  val metaBuildData =
+                    if (
+                      foundRootBuildFileName.endsWith(".yaml") || foundRootBuildFileName.endsWith(
+                        ".yml"
+                      )
+                    ) {
+                      // For YAML files, extract the mill-build key if it exists, otherwise use empty map
+                      parsedHeaderData.obj.get("mill-build") match {
+                        case Some(millBuildValue: ujson.Obj) => millBuildValue
+                        case _ => ujson.Obj()
+                      }
+                    } else {
+                      // For non-YAML files (build.mill), use the entire parsed header data
+                      parsedHeaderData
+                    }
+                  mill.api.ExecResult.catchWrapException {
+                    new MillBuildRootModule.BootstrapModule()(
+                      using
+                      new RootModule.Info(
+                        currentRoot,
+                        output,
+                        projectRoot,
+                        upickle.read[Map[
+                          String,
+                          ujson.Value
+                        ]](metaBuildData)
+                      )
+                    )
+                  } match {
+                    case Result.Success(bootstrapModule) =>
+                      RunnerState(
+                        Some(bootstrapModule),
+                        Nil,
+                        None,
+                        Some(foundRootBuildFileName),
+                        Seq(bootstrapEvalWatched)
+                      )
+                    case Result.Failure(msg) =>
+                      RunnerState(
+                        None,
+                        Nil,
+                        Some(msg),
+                        Some(foundRootBuildFileName),
+                        Seq(bootstrapEvalWatched)
+                      )
                   }
-                } else {
-                  // For non-YAML files (build.mill), use the entire parsed header data
-                  parsedHeaderData
-                }
-              val bootstrapModule =
-                new MillBuildRootModule.BootstrapModule()(
-                  using
-                  new RootModule.Info(
-                    currentRoot,
-                    output,
-                    projectRoot,
-                    upickle.read[Map[
-                      String,
-                      ujson.Value
-                    ]](metaBuildData)
-                  )
-                )
-              RunnerState(Some(bootstrapModule), Nil, None, Some(foundRootBuildFileName))
+              }
             }
 
           state
@@ -554,7 +599,8 @@ object MillBuildBootstrap {
     )
 
     evalTaskResult match {
-      case Result.Failure(msg) => (Result.Failure(msg), Nil, moduleWatchedValues)
+      case Result.Failure(msg) =>
+        (Result.Failure(msg), evalWatchedValues.toSeq, moduleWatchedValues)
       case Result.Success(res: EvaluatorApi.Result[Any]) =>
         res.values match {
           case Result.Failure(msg) =>

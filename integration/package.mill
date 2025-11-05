@@ -53,6 +53,7 @@ object `package` extends mill.Module {
     def testExclusive = false
 
     trait ModeModule extends MillBaseTestsModule {
+      override def enableBsp = false
       override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
         val useSharedOut = moduleSegments.parts.contains("local")
         localOutFolder().withValue(()) { sharedOutFolder =>
