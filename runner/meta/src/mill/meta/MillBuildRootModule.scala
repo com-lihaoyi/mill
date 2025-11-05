@@ -288,42 +288,41 @@ trait MillBuildRootModule()(using
     }
 
     // copied from `ScalaModule`
-    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
-    jvmWorker()
-      .internalWorker()
-      .compileMixed(
-        ZincCompileMixed(
-          upstreamCompileOutput = upstreamCompileOutput(),
-          sources = Seq.from(allSourceFiles().map(_.path)),
-          compileClasspath = compileClasspath().map(_.path),
-          javacOptions = jOpts.compiler,
-          scalaVersion = scalaVersion(),
-          scalaOrganization = scalaOrganization(),
-          scalacOptions = allScalacOptions(),
-          compilerClasspath = scalaCompilerClasspath(),
-          scalacPluginClasspath = scalacPluginClasspath(),
-          incrementalCompilation = zincIncrementalCompilation(),
-          auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
-        ),
-        javaHome = javaHome().map(_.path),
-        javaRuntimeOptions = jOpts.runtime,
-        reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
-      ).map {
-        res =>
-          // Perform the line-number updating in a copy of the classfiles, because
-          // mangling the original class files messes up zinc incremental compilation
-          val transformedClasses = Task.dest / "transformed-classes"
-          os.remove.all(transformedClasses)
-          os.copy(res.classes.path, transformedClasses)
+    val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
+    val worker = jvmWorker().internalWorker()
+    worker.apply(
+      ZincCompileMixed(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = Seq.from(allSourceFiles().map(_.path)),
+        compileClasspath = compileClasspath().map(_.path),
+        javacOptions = jOpts.compiler,
+        scalaVersion = scalaVersion(),
+        scalaOrganization = scalaOrganization(),
+        scalacOptions = allScalacOptions(),
+        compilerClasspath = scalaCompilerClasspath(),
+        scalacPluginClasspath = scalacPluginClasspath(),
+        incrementalCompilation = zincIncrementalCompilation(),
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+      ),
+      javaHome = javaHome().map(_.path),
+      javaRuntimeOptions = jOpts.runtime,
+      reporter = Task.reporter.apply(hashCode),
+      reportCachedProblems = zincReportCachedProblems()
+    ).map {
+      res =>
+        // Perform the line-number updating in a copy of the classfiles, because
+        // mangling the original class files messes up zinc incremental compilation
+        val transformedClasses = Task.dest / "transformed-classes"
+        os.remove.all(transformedClasses)
+        os.copy(res.classes.path, transformedClasses)
 
-          MillBuildRootModule.updateLineNumbers(
-            transformedClasses,
-            generatedScriptSources().wrapped.head.path
-          )
+        MillBuildRootModule.updateLineNumbers(
+          transformedClasses,
+          generatedScriptSources().wrapped.head.path
+        )
 
-          res.copy(classes = PathRef(transformedClasses))
-      }
+        res.copy(classes = PathRef(transformedClasses))
+    }
   }
 
   def millDiscover: Discover

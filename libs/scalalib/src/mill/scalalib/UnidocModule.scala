@@ -104,7 +104,8 @@ trait UnidocModule extends ScalaModule {
           |""".stripMargin
     )
 
-    jvmWorker().internalWorker().scaladocJar(
+    val worker = jvmWorker().internalWorker()
+    worker.apply(
       ZincScaladocJar(
         scalaVersion(),
         scalaOrganization(),

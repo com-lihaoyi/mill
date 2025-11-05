@@ -48,7 +48,7 @@ final class TestModuleUtil(
     testParallelism: Boolean,
     testLogLevel: TestReporter.LogLevel,
     propagateEnv: Boolean = true,
-    jvmWorker: mill.javalib.api.JvmWorkerApi
+    jvmWorker: mill.javalib.api.internal.InternalJvmWorkerApi
 )(using ctx: mill.api.TaskCtx) {
 
   private val (jvmArgs, props) = TestModuleUtil.loadArgsAndProps(useArgsFile, forkArgs)
@@ -80,7 +80,7 @@ final class TestModuleUtil(
         // test group requires spawning a JVM which can take 1+ seconds to realize there are no
         // tests to run and shut down
 
-        val discoveredTests = jvmWorker.getTestTasks(
+        val discoveredTests = jvmWorker.apply(
           ZincGetTestTasks(
             (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
             testClasspath.map(_.path),

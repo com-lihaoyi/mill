@@ -60,7 +60,8 @@ trait TestModule
    * Test classes (often called test suites) discovered by the configured [[testFramework]].
    */
   def discoveredTestClasses: T[Seq[String]] = Task {
-    val discoveredTests = jvmWorker().worker().discoverTests(
+    val worker = jvmWorker().internalWorker()
+    val discoveredTests = worker.apply(
       ZincDiscoverTests(
         runClasspath().map(_.path),
         testClasspath().map(_.path),
@@ -68,6 +69,7 @@ trait TestModule
       ),
       javaHome().map(_.path)
     )
+
     discoveredTests.sorted
   }
 
@@ -248,7 +250,7 @@ trait TestModule
         testParallelism(),
         testLogLevel(),
         propagateEnv(),
-        jvmWorker().worker()
+        jvmWorker().internalWorker()
       )
       testModuleUtil.runTests()
     }
@@ -389,7 +391,8 @@ object TestModule {
      * override this method.
      */
     override def discoveredTestClasses: T[Seq[String]] = Task {
-      jvmWorker().worker().discoverJunit5Tests(
+      val worker = jvmWorker().internalWorker()
+      worker.apply(
         mill.javalib.api.internal.ZincDiscoverJunit5Tests(
           runClasspath().map(_.path),
           testClasspath().map(_.path),

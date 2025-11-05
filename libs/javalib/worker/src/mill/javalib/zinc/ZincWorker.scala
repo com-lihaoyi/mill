@@ -5,12 +5,7 @@ import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}
 import mill.client.lock.*
-import mill.javalib.api.internal.{
-  JavaCompilerOptions,
-  ZincCompileJava,
-  ZincCompileMixed,
-  ZincScaladocJar
-}
+import mill.javalib.api.internal.*
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mill.javalib.internal.ZincCompilerBridgeProvider
 import mill.javalib.internal.ZincCompilerBridgeProvider.AcquireResult
@@ -170,8 +165,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   def compileJava(
       op: ZincCompileJava,
       reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
-  )(using
+      reportCachedProblems: Boolean,
       ctx: ZincWorker.InvocationContext,
       deps: ZincWorker.InvocationDependencies
   ): Result[CompilationResult] = {
@@ -189,7 +183,9 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         reporter = reporter,
         reportCachedProblems = reportCachedProblems,
         incrementalCompilation = incrementalCompilation,
-        auxiliaryClassFileExtensions = Seq.empty
+        auxiliaryClassFileExtensions = Seq.empty,
+        ctx = ctx,
+        deps = deps
       )
     }
   }
@@ -197,8 +193,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   def compileMixed(
       op: ZincCompileMixed,
       reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
-  )(using
+      reportCachedProblems: Boolean,
       ctx: ZincWorker.InvocationContext,
       deps: ZincWorker.InvocationDependencies
   ): Result[CompilationResult] = {
@@ -222,7 +217,9 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         reporter = reporter,
         reportCachedProblems = reportCachedProblems,
         incrementalCompilation = incrementalCompilation,
-        auxiliaryClassFileExtensions = auxiliaryClassFileExtensions
+        auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
+        ctx = ctx,
+        deps = deps
       )
     }
   }
@@ -238,7 +235,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       scalaOrganization,
       compilerClasspath,
       scalacPluginClasspath,
-      JavaCompilerOptions.empty,
+      Nil,
       compilerBridge
     ) { compilers =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
@@ -281,39 +278,6 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     }
   }
 
-  /** Constructs a [[ZincApi]] given the invocation context and dependencies. */
-  def api(using
-      ctx: ZincWorker.InvocationContext,
-      deps: ZincWorker.InvocationDependencies
-  ): ZincApi = new {
-    override def compileJava(
-        op: ZincCompileJava,
-        reporter: Option[CompileProblemReporter],
-        reportCachedProblems: Boolean
-    ): Result[CompilationResult] =
-      self.compileJava(op, reporter, reportCachedProblems)
-
-    override def compileMixed(
-        op: ZincCompileMixed,
-        reporter: Option[CompileProblemReporter],
-        reportCachedProblems: Boolean
-    ): Result[CompilationResult] =
-      self.compileMixed(op, reporter, reportCachedProblems)
-
-    override def scaladocJar(op: ZincScaladocJar): Boolean =
-      self.scaladocJar(op, deps.compilerBridge)
-
-    override def discoverTests(op: mill.javalib.api.internal.ZincDiscoverTests): Seq[String] =
-      mill.javalib.testrunner.DiscoverTestsMain(op)
-
-    override def getTestTasks(op: mill.javalib.api.internal.ZincGetTestTasks): Seq[String] =
-      mill.javalib.testrunner.GetTestTasksMain(op)
-
-    override def discoverJunit5Tests(op: mill.javalib.api.internal.ZincDiscoverJunit5Tests)
-        : Seq[String] =
-      mill.javalib.testrunner.DiscoverJunit5TestsMain(op)
-  }
-
   def close(): Unit = {
     scalaCompilerCache.close()
     javaOnlyCompilerCache.close()
@@ -325,7 +289,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
-      javacOptions: JavaCompilerOptions,
+      javacOptions: Seq[String],
       compilerBridge: ZincCompilerBridgeProvider
   )(f: Compilers => T) = {
     val cacheKey = ScalaCompilerCacheKey(
@@ -344,15 +308,14 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
       compileClasspath: Seq[os.Path],
-      javacOptions: JavaCompilerOptions,
+      javacOptions: Seq[String],
       scalacOptions: Seq[String],
       compilers: Compilers,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
-      zincCache: os.SubPath = os.sub / "zinc"
-  )(using
+      zincCache: os.SubPath = os.sub / "zinc",
       ctx: ZincWorker.InvocationContext,
       deps: ZincWorker.InvocationDependencies
   ): Result[CompilationResult] = {
@@ -364,7 +327,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     if (ctx.logDebugEnabled) {
       deps.log.debug(
         s"""Compiling:
-           |  javacOptions: ${javacOptions.options.map("'" + _ + "'").mkString(" ")}
+           |  javacOptions: ${javacOptions.map("'" + _ + "'").mkString(" ")}
            |  scalacOptions: ${scalacOptions.map("'" + _ + "'").mkString(" ")}
            |  sources: ${sources.map("'" + _ + "'").mkString(" ")}
            |  classpath: ${compileClasspath.map("'" + _ + "'").mkString(" ")}
@@ -460,7 +423,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       classesDirectory = classesDir.toNIO,
       earlyJarPath = None,
       scalacOptions = finalScalacOptions.toArray,
-      javacOptions = javacOptions.options.toArray,
+      javacOptions = javacOptions.toArray,
       maxErrors = maxErrors,
       sourcePositionMappers = Array(),
       order = CompileOrder.Mixed,
@@ -583,6 +546,35 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       }
     } finally doubleLock.close()
   }
+
+  def apply(
+      op: ZincOperation,
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean,
+      ctx: ZincWorker.InvocationContext,
+      deps: ZincWorker.InvocationDependencies
+  ): op.Response = {
+    op match {
+      case msg: ZincCompileJava =>
+        compileJava(msg, reporter, reportCachedProblems, ctx, deps).asInstanceOf[op.Response]
+
+      case msg: ZincCompileMixed =>
+        compileMixed(msg, reporter, reportCachedProblems, ctx, deps).asInstanceOf[op.Response]
+
+      case msg: ZincScaladocJar =>
+        scaladocJar(msg, deps.compilerBridge).asInstanceOf[op.Response]
+
+      case msg: ZincDiscoverTests =>
+        mill.javalib.testrunner.DiscoverTestsMain(msg).asInstanceOf[op.Response]
+
+      case msg: ZincGetTestTasks =>
+        mill.javalib.testrunner.GetTestTasksMain(msg).asInstanceOf[op.Response]
+
+      case msg: ZincDiscoverJunit5Tests =>
+        mill.javalib.testrunner.DiscoverJunit5TestsMain(msg).asInstanceOf[op.Response]
+    }
+
+  }
 }
 object ZincWorker {
 
@@ -612,14 +604,14 @@ object ZincWorker {
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
       scalaOrganization: String,
-      javacOptions: JavaCompilerOptions
+      javacOptions: Seq[String]
   ) {
     val combinedCompilerClasspath: Seq[PathRef] = compilerClasspath ++ scalacPluginClasspath
   }
 
   private case class ScalaCompilerCached(classLoader: URLClassLoader, compilers: Compilers)
 
-  private case class JavaCompilerCacheKey(javacOptions: JavaCompilerOptions)
+  private case class JavaCompilerCacheKey(javacOptions: Seq[String])
 
   private def getLocalOrCreateJavaTools(): JavaTools = {
     val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork())
