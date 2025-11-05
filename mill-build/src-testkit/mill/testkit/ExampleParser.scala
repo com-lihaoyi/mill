@@ -71,7 +71,8 @@ object ExampleParser {
     }.map {
       case Chunk.Yaml(lines) => Chunk.Yaml(lines.mkString("\n").trim.linesIterator.toVector)
       case Chunk.Example(lines) => Chunk.Example(lines.mkString("\n").trim.linesIterator.toVector)
-      case Chunk.See(path, lines) => Chunk.See(path, lines.mkString("\n").trim.linesIterator.toVector)
+      case Chunk.See(path, lines) =>
+        Chunk.See(path, lines.mkString("\n").trim.linesIterator.toVector)
       case Chunk.Scala(lines) => Chunk.Scala(lines.mkString("\n").trim.linesIterator.toVector)
       case Chunk.Comment(lines) => Chunk.Comment(lines.mkString("\n").trim.linesIterator.toVector)
     }.toSeq
