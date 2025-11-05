@@ -57,23 +57,25 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             _,
             id,
             _,
-            (
-              _,
-              forkArgs,
-              forkWorkingDir,
-              forkEnv,
-              _,
-              Some(testEnvVars)
-            )
-          ) =>
+            res
+//            (
+//              _,
+//              forkArgs,
+//              forkWorkingDir,
+//              forkEnv,
+//              _,
+//              Some(testEnvVars)
+//            )
+          ) if res.testEnvVars.isDefined =>
+        val testEnvVars = res.testEnvVars.get
         val fullMainArgs: List[String] =
           List(testEnvVars.testRunnerClasspathArg, testEnvVars.argsFile)
         val item = new JvmEnvironmentItem(
           id,
           testEnvVars.classpath.map(sanitizeUri).asJava,
-          forkArgs.asJava,
-          forkWorkingDir.toString(),
-          forkEnv.asJava
+          res.forkArgs.toStringSeq.asJava,
+          res.forkWorkingDir.toString(),
+          res.forkEnv.view.mapValues(_.toString()).toMap.asJava
         )
         item.setMainClasses(List(testEnvVars.mainClass).map(new JvmMainClass(
           _,
@@ -107,9 +109,9 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         val item = new JvmEnvironmentItem(
           id,
           classpath.asJava,
-          res.forkArgs.asJava,
+          res.forkArgs.toStringSeq.asJava,
           res.forkWorkingDir.toString(),
-          res.forkEnv.asJava
+          res.forkEnv.view.mapValues(_.toString()).toMap.asJava
         )
 
         val classes = res.mainClass.toList ++ res.localMainClasses

@@ -3,12 +3,11 @@ package mill.kotlinlib.js
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mainargs.arg
-import mill.api.PathRef
-import mill.api.Result
+import mill.api.{PathRef, Result, Task}
+import mill.api.opt.*
 import mill.api.Task.Command
-import mill.api.Task
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
-import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
+import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager, KotlincOptions}
 import mill.javalib.Lib
 import mill.javalib.api.CompilationResult
 import mill.util.Jvm
@@ -176,7 +175,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * The actual Kotlin compile task (used by [[compile]] and [[kotlincHelp]]).
    */
   protected override def kotlinCompileTask(
-      extraKotlinArgs: Seq[String] = Seq.empty[String]
+      extraKotlinArgs: Opts = Opts()
   ): Task[CompilationResult] = Task.Anon {
     KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
       kotlinWorker =>
@@ -196,7 +195,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           destinationRoot = Task.dest,
           artifactId = artifactId(),
           explicitApi = kotlinExplicitApi(),
-          extraKotlinArgs = allKotlincOptions() ++ extraKotlinArgs,
+          extraKotlinArgs = (allKotlincOptions() ++ extraKotlinArgs).toStringSeq,
           worker = kotlinWorker,
           useBtApi = kotlincUseBtApi()
         )
@@ -227,7 +226,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           destinationRoot = Task.dest,
           artifactId = artifactId(),
           explicitApi = kotlinExplicitApi(),
-          extraKotlinArgs = allKotlincOptions(),
+          extraKotlinArgs = allKotlincOptions().toStringSeq,
           worker = kotlinWorker,
           useBtApi = kotlincUseBtApi()
         )
@@ -512,14 +511,12 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     // endregion
 
-    override def kotlincOptions: T[Seq[String]] = Task {
-      super.kotlincOptions().map { item =>
-        if (item.startsWith("-Xfriend-paths=")) {
-          // JVM -> JS option name
-          item.replace("-Xfriend-paths=", "-Xfriend-modules=")
-        } else {
-          item
-        }
+    override def kotlincOptions: T[Opts] = Task {
+      super.kotlincOptions().mapGroup { optGroup =>
+        // JVM -> JS option name
+        val head = optGroup.head.mapStartString(_.replace("-Xfriend-paths=", "-Xfriend-modules="))
+        val tail = optGroup.value.tail
+        OptGroup((head +: tail)*)
       }
     }
 

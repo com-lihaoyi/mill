@@ -1,6 +1,7 @@
 package mill.javalib.errorprone
 
 import mill.api.PathRef
+import mill.api.opt.*
 import mill.javalib.{Dep, DepSyntax, JavaModule}
 import mill.{T, Task}
 
@@ -37,15 +38,16 @@ trait ErrorProneModule extends JavaModule {
   /**
    * Options used to enable and configure the `error-prone` plugin in the Java compiler.
    */
-  def errorProneJavacEnableOptions: T[Seq[String]] = Task {
-    val processorPath = errorProneClasspath().map(_.path).mkString(File.pathSeparator)
-    val enableOpts = Seq(
+  def errorProneJavacEnableOptions: T[Opts] = Task {
+    val processorPath: Seq[os.Path] = errorProneClasspath().map(_.path)
+
+    val enableOpts: Opts = Opts(
       "-XDcompilePolicy=simple",
       "-processorpath",
       processorPath,
-      (Seq("-Xplugin:ErrorProne") ++ errorProneOptions()).mkString(" ")
+      (Seq("-Xplugin:ErrorProne") ++ errorProneOptions().toStringSeq).mkString(" ")
     )
-    val java17Options = Option.when(scala.util.Properties.isJavaAtLeast(16))(Seq(
+    val java17Options: Seq[String] = Option.when(scala.util.Properties.isJavaAtLeast(16))(Seq(
       "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
       "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
       "--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
@@ -57,7 +59,8 @@ trait ErrorProneModule extends JavaModule {
       "--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
       "--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"
     ).map(o => s"-J${o}")).toSeq.flatten
-    java17Options ++ enableOpts
+
+    Opts(java17Options) ++ enableOpts
   }
 
   /**
@@ -65,12 +68,12 @@ trait ErrorProneModule extends JavaModule {
    *
    * Those are documented as "flags" at https://errorprone.info/docs/flags
    */
-  def errorProneOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  def errorProneOptions: T[Opts] = Task { Opts() }
 
   /**
    * Appends the [[errorProneJavacEnableOptions]] to the Java compiler options.
    */
-  override def mandatoryJavacOptions: T[Seq[String]] = Task {
+  override def mandatoryJavacOptions: T[Opts] = Task {
     super.mandatoryJavacOptions() ++ errorProneJavacEnableOptions()
   }
 }

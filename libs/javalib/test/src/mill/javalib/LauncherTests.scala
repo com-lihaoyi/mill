@@ -1,5 +1,6 @@
 package mill.javalib
 
+import mill.api.opt.Opts
 import mill.api.{Discover, PathRef}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
@@ -11,7 +12,7 @@ object LauncherTests extends TestSuite {
   object HelloJava extends TestRootModule with JavaModule {
     def jvmId = s"temurin:$customJavaVersion"
 
-    def javacOptions = Seq("-target", "1.8", "-source", "1.8")
+    def javacOptions = Opts(JavacOptions.`-target`, "1.8", JavacOptions.`-source`, "1.8")
 
     lazy val millDiscover = Discover[this.type]
   }

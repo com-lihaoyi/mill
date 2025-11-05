@@ -8,6 +8,7 @@ import mill.*
 import mill.api.ExecResult
 import mill.api.Discover
 import mill.api.ExecutionPaths
+import mill.api.opt.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
@@ -75,7 +76,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldFatalWarnings extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalacOptions = Task { Seq("-Ywarn-unused", "-Xfatal-warnings") }
+      override def scalacOptions = Task { Opts(ScalacOptions.`-Ywarn-unused`, ScalacOptions.`-Xfatal-warnings`) }
     }
     lazy val millDiscover = Discover[this.type]
   }
@@ -108,14 +109,14 @@ object HelloWorldTests extends TestSuite {
   }
 
   def compileClassfiles: Seq[os.RelPath] = Seq(
-    os.rel / "Main.class",
-    os.rel / "Main$.class",
-    os.rel / "Main0.class",
-    os.rel / "Main0$.class",
-    os.rel / "Main$delayedInit$body.class",
-    os.rel / "Person.class",
-    os.rel / "Person$.class"
-  )
+    "Main.class",
+    "Main$.class",
+    "Main0.class",
+    "Main0$.class",
+    "Main$delayedInit$body.class",
+    "Person.class",
+    "Person$.class"
+  ).map(os.rel / _)
 
   def tests: Tests = Tests {
     test("scalaVersion") {
@@ -151,7 +152,7 @@ object HelloWorldTests extends TestSuite {
         val Right(result) = eval.apply(HelloWorldFatalWarnings.core.scalacOptions): @unchecked
 
         assert(
-          result.value == Seq("-Ywarn-unused", "-Xfatal-warnings"),
+          result.value.toStringSeq == Seq("-Ywarn-unused", "-Xfatal-warnings"),
           result.evalCount > 0
         )
       }

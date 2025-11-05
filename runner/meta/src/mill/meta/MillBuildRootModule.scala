@@ -1,13 +1,12 @@
 package mill.meta
 
 import java.nio.file.Path
-import mill.api.BuildCtx
+import mill.api.{BuildCtx, Discover, PathRef, Result, Task}
 import mill.*
-import mill.api.Result
+import mill.api.opt.*
 import mill.api.daemon.internal.internal
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.constants.OutFiles.*
-import mill.api.{Discover, PathRef, Task}
 import mill.api.internal.RootModule
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.javalib.api.{CompilationResult, Versions}
@@ -255,11 +254,11 @@ trait MillBuildRootModule()(using
       .exclude("com.lihaoyi" -> "sourcecode_3")
   )
 
-  override def scalacOptions: T[Seq[String]] = Task {
+  override def scalacOptions: T[Opts] = Task {
     super.scalacOptions() ++
       // This warning comes up for package names with dashes in them like "package build.`foo-bar`",
       // but Mill generally handles these fine, so no need to warn the user
-      Seq("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent")
+      Opts("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent")
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
@@ -288,7 +287,7 @@ trait MillBuildRootModule()(using
     }
 
     // copied from `ScalaModule`
-    val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
+    val jOpts = JavaCompilerOptions.split(javacOptions().toStringSeq ++ mandatoryJavacOptions().toStringSeq)
     val worker = jvmWorker().internalWorker()
     worker.apply(
       ZincCompileMixed(
@@ -298,7 +297,7 @@ trait MillBuildRootModule()(using
         javacOptions = jOpts.compiler,
         scalaVersion = scalaVersion(),
         scalaOrganization = scalaOrganization(),
-        scalacOptions = allScalacOptions(),
+        scalacOptions = allScalacOptions().toStringSeq,
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
         incrementalCompilation = zincIncrementalCompilation(),

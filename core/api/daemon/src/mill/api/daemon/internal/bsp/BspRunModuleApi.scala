@@ -1,6 +1,6 @@
 package mill.api.daemon.internal.bsp
 
-import mill.api.daemon.internal.{ModuleApi, TaskApi}
+import mill.api.daemon.internal.{ModuleApi, OptApi, OptsApi, TaskApi}
 
 import java.nio.file.Path
 
@@ -10,18 +10,18 @@ trait BspRunModuleApi extends ModuleApi {
 
   private[mill] def bspJvmRunEnvironment: TaskApi[(
       runClasspath: Seq[Path],
-      forkArgs: Seq[String],
+      forkArgs: OptsApi,
       forkWorkingDir: Path,
-      forkEnv: Map[String, String],
+      forkEnv: Map[String, OptApi],
       mainClass: Option[String],
       localMainClasses: Seq[String]
   )]
 
   private[mill] def bspJvmTestEnvironment: TaskApi[(
       runClasspath: Seq[Path],
-      forkArgs: Seq[String],
+      forkArgs: OptsApi,
       forkWorkingDir: Path,
-      forkEnv: Map[String, String],
+      forkEnv: Map[String, OptApi],
       mainClass: Option[String],
       testEnvVars: Option[(
           mainClass: String,

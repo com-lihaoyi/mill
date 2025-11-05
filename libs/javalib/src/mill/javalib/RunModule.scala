@@ -2,14 +2,13 @@ package mill.javalib
 
 import java.lang.reflect.Modifier
 import scala.util.control.NonFatal
-import mill.api.BuildCtx
+import mill.api.{BuildCtx, ModuleCtx, ModuleRef, PathRef, Result, Task, TaskCtx}
+import mill.api.opt.*
 import mainargs.arg
-import mill.api.Result
 import mill.api.daemon.internal.RunModuleApi
 import mill.api.daemon.internal.bsp.BspRunModuleApi
 import mill.constants.DaemonFiles
 import mill.api.JsonFormatters.pathReadWrite
-import mill.api.{ModuleCtx, ModuleRef, PathRef, Task, TaskCtx}
 import mill.javalib.bsp.BspRunModule
 import mill.javalib.classgraph.ClassgraphWorkerModule
 import mill.util.Jvm
@@ -36,21 +35,21 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * Any command-line parameters you want to pass to the forked JVM.
    */
-  def forkArgs: T[Seq[String]] = Task { Seq.empty[String] }
+  def forkArgs: T[Opts] = Task { Opts() }
 
   /**
    * Any environment variables you want to pass to the forked JVM.
    */
-  def forkEnv: T[Map[String, String]] = Task { Map.empty[String, String] }
+  def forkEnv: T[Map[String, Opt]] = Task { Map.empty[String, Opt] }
 
   /**
    * Environment variables to pass to the forked JVM.
    *
    * Includes [[forkEnv]] and the variables defined by Mill itself.
    */
-  def allForkEnv: T[Map[String, String]] = Task {
+  def allForkEnv: T[Map[String, Opt]] = Task {
     forkEnv() ++ Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> BuildCtx.workspaceRoot.toString
+      EnvVars.MILL_WORKSPACE_ROOT -> Opt(BuildCtx.workspaceRoot)
     )
   }
 
@@ -171,8 +170,8 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
     new RunModule.RunnerImpl(
       finalMainClassOpt(),
       runClasspath().map(_.path),
-      forkArgs(),
-      allForkEnv(),
+      forkArgs().toStringSeq,
+      allForkEnv().view.mapValues(_.toString()).toMap,
       runUseArgsFile(),
       javaHome().map(_.path),
       propagateEnv()
@@ -247,7 +246,7 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
         Seq(classpathJar)
       }
 
-    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs(), Task.dest)
+    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs().toStringSeq, Task.dest)
   }
 
   /**

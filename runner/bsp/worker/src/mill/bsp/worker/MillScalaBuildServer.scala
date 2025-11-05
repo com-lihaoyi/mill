@@ -41,13 +41,13 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
             _,
             id,
             _,
-            (allScalacOptions, compileClasspath, classesPathTask)
+            res
           ) =>
         new ScalacOptionsItem(
           id,
-          allScalacOptions.asJava,
-          compileClasspath(ev).asJava,
-          sanitizeUri(classesPathTask(ev))
+          res.scalacOptionsTask.toStringSeq.asJava,
+          res.compileClasspathTask(ev).asJava,
+          sanitizeUri(res.classPathTask(ev))
         )
 
     } { values =>
@@ -67,7 +67,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
         val mainClasses = res.classes
         // val mainMain = m.mainClass().orElse(if(mainClasses.size == 1) mainClasses.headOption else None)
         val items = mainClasses.map { mc =>
-          val scalaMc = new ScalaMainClass(mc, Seq().asJava, res.forkArgs.asJava)
+          val scalaMc = new ScalaMainClass(mc, Seq().asJava, res.forkArgs.toStringSeq.asJava)
           scalaMc.setEnvironmentVariables(res.forkEnv.map(e => s"${e._1}=${e._2}").toSeq.asJava)
           scalaMc
         }

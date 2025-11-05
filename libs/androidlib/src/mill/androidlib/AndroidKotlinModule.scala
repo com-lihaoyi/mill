@@ -2,15 +2,11 @@ package mill.androidlib
 
 import mill.*
 import mill.api.{ModuleRef, PathRef, Result}
+import mill.api.opt.*
 import mill.javalib.{CoursierModule, Dep}
-import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
+import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlincOptions}
 import mill.{T, Task}
-import mill.androidlib.databinding.{
-  AndroidDataBindingWorker,
-  GenerateBindingSourcesArgs,
-  ProcessResourcesArgs,
-  AndroidDataBindingWorkerModule
-}
+import mill.androidlib.databinding.{AndroidDataBindingWorker, AndroidDataBindingWorkerModule, GenerateBindingSourcesArgs, ProcessResourcesArgs}
 import mill.util.Jvm
 
 // TODO expose Compose configuration options
@@ -185,21 +181,26 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
    * If this module has any module dependencies, we need to tell the kotlin compiler to
    * handle the compiled output as a friend path so top level declarations are visible.
    */
-  def kotlincFriendPaths: T[Option[String]] = Task {
+  def kotlincFriendPaths: T[Opts] = Task {
     val compiledCodePaths = Task.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon {
         Seq(m.compile().classes.path)
       }
     )().flatten
 
-    val friendlyPathFlag: Option[String] =
-      compiledCodePaths.headOption.map(_ => s"-Xfriend-paths=${compiledCodePaths.mkString(",")}")
-
-    friendlyPathFlag
+    Opts(
+      OptGroup.when(compiledCodePaths.nonEmpty)(
+        Opt.mkPath(
+          compiledCodePaths,
+          prefix = KotlincOptions.`-Xfriend-paths`,
+          sep = KotlincOptions.friendPathSeparator
+        )
+      )
+    )
   }
 
-  override def kotlincOptions: T[Seq[String]] = Task {
-    super.kotlincOptions() ++ kotlincFriendPaths().toSeq
+  override def kotlincOptions: T[Opts] = Task {
+    super.kotlincOptions() ++ kotlincFriendPaths()
   }
 
   def kspDependencyResolver: Task[CoursierModule.Resolver] = Task.Anon {

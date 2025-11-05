@@ -358,8 +358,8 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     new NativeRunner(
       mainClassDefault = finalMainClassOpt(),
       nativeExe = nativeLink(),
-      forkArgsDefault = forkArgs(),
-      forkEnvDefault = allForkEnv(),
+      forkArgsDefault = forkArgs().toStringSeq,
+      forkEnvDefault = allForkEnv().view.mapValues(_.toString()).toMap,
       propagateEnvDefault = propagateEnv()
     )
   }
@@ -368,8 +368,8 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     new NativeRunner(
       mainClassDefault = Right(mainClass),
       nativeExe = nativeLinkOtherMain(mainClass)(),
-      forkArgsDefault = forkArgs(),
-      forkEnvDefault = allForkEnv(),
+      forkArgsDefault = forkArgs().toStringSeq,
+      forkEnvDefault = allForkEnv().view.mapValues(_.toString()).toMap,
       propagateEnvDefault = propagateEnv()
     )
   }
@@ -460,7 +460,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
 
     val (close, framework) = withScalaNativeBridge.apply().apply(_.getFramework(
       nativeLink().path.toIO,
-      allForkEnv(),
+      allForkEnv().view.mapValues(_.toString()).toMap,
       toWorkerApi(logLevel()),
       testFramework()
     ))

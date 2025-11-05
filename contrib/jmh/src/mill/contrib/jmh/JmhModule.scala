@@ -77,7 +77,7 @@ trait JmhModule extends JavaModule {
   def generateBenchmarkSources =
     Task {
       val dest = Task.ctx().dest
-      val forkedArgs = forkArgs().toSeq
+      val forkedArgs = forkArgs().toStringSeq
       val sourcesDir = dest / "jmh_sources"
       val resourcesDir = dest / "jmh_resources"
 

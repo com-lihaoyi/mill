@@ -5,6 +5,7 @@ import mill.scalalib.HelloWorldTests.*
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.*
 import utest.*
+import mill.api.opt.*
 
 object ScalaFlagsTests extends TestSuite {
 
@@ -12,8 +13,8 @@ object ScalaFlagsTests extends TestSuite {
     object core extends ScalaModule {
       def scalaVersion = scala212Version
 
-      override def scalacOptions = super.scalacOptions() ++ Seq(
-        "-Ypartial-unification"
+      override def scalacOptions = super.scalacOptions() ++ Opts(
+        ScalacOptions.`-Ypartial-unification`
       )
     }
 

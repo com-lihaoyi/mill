@@ -1,6 +1,7 @@
 package mill.scalalib
 
 import mill.api.Discover
+import mill.api.opt.Opts
 import mill.util.TokenReaders.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
@@ -103,7 +104,7 @@ object CrossVersionTests extends TestSuite {
     object sandwitch213 extends ScalaModule {
       override def scalaVersion = "2.13.6"
       override def moduleDeps = Seq(sandwitch3)
-      override def scalacOptions = Seq("-Ytasty-reader")
+      override def scalacOptions = Opts("-Ytasty-reader")
       val tree =
         """├─ sandwitch3
           |│  ├─ com.lihaoyi:upickle_3:1.4.0

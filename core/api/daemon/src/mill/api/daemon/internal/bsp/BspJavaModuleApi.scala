@@ -1,6 +1,6 @@
 package mill.api.daemon.internal.bsp
 
-import mill.api.daemon.internal.{EvaluatorApi, ModuleApi, TaskApi}
+import mill.api.daemon.internal.{EvaluatorApi, ModuleApi, OptApi, OptsApi, TaskApi}
 
 import java.nio.file.Path
 
@@ -34,7 +34,7 @@ trait BspJavaModuleApi extends ModuleApi {
   )
       : TaskApi[EvaluatorApi => (
           classesPath: Path,
-          javacOptions: Seq[String],
+          javacOptions: OptsApi,
           classpath: Seq[String]
       )]
 
@@ -42,13 +42,17 @@ trait BspJavaModuleApi extends ModuleApi {
       needsToMergeResourcesIntoCompileDest: Boolean,
       enableJvmCompileClasspathProvider: Boolean,
       clientWantsSemanticDb: Boolean
-  ): TaskApi[(Seq[String], EvaluatorApi => Seq[String], EvaluatorApi => java.nio.file.Path)]
+  ): TaskApi[(
+      scalacOptionsTask: OptsApi,
+      compileClasspathTask: EvaluatorApi => Seq[String],
+      classPathTask: EvaluatorApi => java.nio.file.Path
+  )]
 
   private[mill] def bspBuildTargetScalaMainClasses
       : TaskApi[(
           classes: Seq[String],
-          forkArgs: Seq[String],
-          forkEnv: Map[String, String]
+          forkArgs: OptsApi,
+          forkEnv: Map[String, OptApi]
       )]
 
   private[mill] def bspLoggingTest: TaskApi[Unit]

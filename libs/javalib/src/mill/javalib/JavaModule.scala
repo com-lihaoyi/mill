@@ -7,19 +7,13 @@ import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
-import mill.api.{MillException, Result}
+import mill.api.{DefaultTaskModule, MillException, ModuleRef, PathRef, Result, Segment, Task, TaskCtx}
+import mill.api.opt.*
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
-import mill.api.daemon.internal.bsp.{
-  BspBuildTarget,
-  BspJavaModuleApi,
-  BspModuleApi,
-  BspUri,
-  JvmBuildTarget
-}
+import mill.api.daemon.internal.bsp.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, JvmBuildTarget}
 import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
-import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 import mill.javalib.bsp.{BspJavaModule, BspModule}
@@ -263,12 +257,12 @@ trait JavaModule
   /**
    * Options to pass to the java compiler
    */
-  override def javacOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  override def javacOptions: T[Opts] = Task { Opts() }
 
   /**
    * Additional options for the java compiler derived from other module settings.
    */
-  override def mandatoryJavacOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  override def mandatoryJavacOptions: T[Opts] = Task { Opts() }
 
   /**
    *  The direct dependencies of this module.
@@ -863,7 +857,7 @@ trait JavaModule
     val jOpts = JavaCompilerOptions.split(Seq(
       "-s",
       compileGenSources.toString
-    ) ++ javacOptions() ++ mandatoryJavacOptions())
+    ) ++ javacOptions().toStringSeq ++ mandatoryJavacOptions().toStringSeq)
 
     val worker = jvmWorker().internalWorker()
 
@@ -1105,7 +1099,7 @@ trait JavaModule
    * You should not set the `-d` setting for specifying the target directory,
    * as that is done in the [[docJar]] task.
    */
-  def javadocOptions: T[Seq[String]] = Task { Seq[String]() }
+  def javadocOptions: T[Opts] = Task { Opts() }
 
   /**
    * Directories to be processed by the API documentation tool.
@@ -1150,7 +1144,7 @@ trait JavaModule
           classPath.mkString(java.io.File.pathSeparator)
         )
 
-      val options = javadocOptions() ++
+      val options = javadocOptions().toStringSeq ++
         Seq("-d", javadocDir.toString) ++
         cpOptions ++
         files.map(_.toString)
@@ -1228,7 +1222,7 @@ trait JavaModule
       val cmd = Seq(Jvm.jdkTool("jshell", javaHome().map(_.path))) ++ jshellArgs
       os.call(
         cmd = cmd,
-        env = allForkEnv(),
+        env = allForkEnv().view.mapValues(_.toString).toMap,
         cwd = forkWorkingDir(),
         stdin = os.Inherit,
         stdout = os.Inherit

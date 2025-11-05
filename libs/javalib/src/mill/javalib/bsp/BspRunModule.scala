@@ -1,11 +1,11 @@
 package mill.javalib.bsp
 
 import java.nio.file.Path
-
 import mill.api.daemon.internal.bsp.BspRunModuleApi
 import mill.api.daemon.internal.internal
 import mill.api.{Discover, ExternalModule, ModuleCtx}
 import mill.api.JsonFormatters.given
+import mill.api.opt.*
 import mill.javalib.{JavaModule, RunModule, TestModule}
 import mill.{Args, Task}
 
@@ -33,9 +33,9 @@ private[mill] object BspRunModule extends ExternalModule {
 
       override private[mill] def bspJvmRunEnvironment: Task.Simple[(
           runClasspath: Seq[Path],
-          forkArgs: Seq[String],
+          forkArgs: Opts,
           forkWorkingDir: Path,
-          forkEnv: Map[String, String],
+          forkEnv: Map[String, Opt],
           mainClass: Option[String],
           localMainClasses: Seq[String]
       )] =
@@ -52,9 +52,9 @@ private[mill] object BspRunModule extends ExternalModule {
 
       override private[mill] def bspJvmTestEnvironment: Task.Simple[(
           runClasspath: Seq[Path],
-          forkArgs: Seq[String],
+          forkArgs: Opts,
           forkWorkingDir: Path,
-          forkEnv: Map[String, String],
+          forkEnv: Map[String, Opt],
           mainClass: Option[String],
           testEnvVars: Option[(
               mainClass: String,
