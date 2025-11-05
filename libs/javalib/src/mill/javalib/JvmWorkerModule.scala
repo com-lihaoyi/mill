@@ -3,6 +3,7 @@ package mill.javalib
 import mainargs.Flag
 import mill.*
 import mill.api.{PathRef, Task, *}
+import mill.api.daemon.internal.internal
 import mill.javalib.CoursierModule.Resolver
 import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.javalib.api.internal.InternalJvmWorkerApi as InternalJvmWorkerApi
@@ -53,7 +54,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     mill.util.Jvm.createClassLoader(classpath().map(_.path), getClass.getClassLoader)
   }
 
-  private[mill] def internalWorker: Worker[InternalJvmWorkerApi] = Task.Worker {
+  @internal def internalWorker: Worker[InternalJvmWorkerApi] = Task.Worker {
     val jobs = Task.ctx().jobs
 
     val cl = internalWorkerClassLoader()

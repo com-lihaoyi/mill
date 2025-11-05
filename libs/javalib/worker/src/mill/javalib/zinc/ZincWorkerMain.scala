@@ -67,8 +67,7 @@ object ZincWorkerMain {
       Using.Manager { use =>
         val stdin = use(BufferedReader(InputStreamReader(connectionData.clientToServer)))
         val stdout = use(PrintStream(connectionData.serverToClient))
-        val transport =
-          MillRpcWireTransport(serverName, stdin, stdout, writeSynchronizer)
+        val transport = MillRpcWireTransport(serverName, stdin, stdout, writeSynchronizer)
         val server = ZincWorkerRpcServer(worker, serverName, transport, setIdle, serverLog)
 
         // Make sure stdout and stderr is sent to the client
