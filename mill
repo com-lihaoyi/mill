@@ -132,7 +132,7 @@ if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
       ;;
   esac
 
-  MILL_DOWNLOAD_FILE=$(mktemp mill-temp-download.XXXXXX)
+  MILL_DOWNLOAD_FILE="${MILL_OUTPUT_DIR:-out}/mill-bootstrap-download"
 
   if [ "$MILL_DOWNLOAD_FROM_MAVEN" = "1" ] ; then
     MILL_DOWNLOAD_URL="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.${DOWNLOAD_EXT}"
@@ -150,11 +150,11 @@ if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
   fi
 
   echo "Downloading mill ${MILL_VERSION} from ${MILL_DOWNLOAD_URL} ..." 1>&2
-  mkdir -p "${MILL_DOWNLOAD_PATH}"
   curl -f -L -o "${MILL_DOWNLOAD_FILE}" "${MILL_DOWNLOAD_URL}"
 
   chmod +x "${MILL_DOWNLOAD_FILE}"
 
+  mkdir -p "${MILL_DOWNLOAD_PATH}"
   mv "${MILL_DOWNLOAD_FILE}" "${MILL}"
 
   unset MILL_DOWNLOAD_FILE
