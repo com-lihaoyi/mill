@@ -35,7 +35,7 @@ class OptsTests extends TestSuite {
     // some files as ArgGroup
     OptGroup(sources2*),
     // Mixed ArgGroup
-    OptGroup(opt"--extra", opt"-Xplugin=${plugin1}") ++ OptGroup(sources1*)
+    OptGroup("--extra", opt"-Xplugin=${plugin1}") ++ OptGroup(sources1*)
   )
 
   val expectedOpts1 = Opts(
