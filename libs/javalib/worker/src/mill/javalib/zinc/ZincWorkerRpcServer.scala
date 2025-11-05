@@ -102,6 +102,10 @@ class ZincWorkerRpcServer(
                   mill.javalib.testrunner.DiscoverTestsMain(msg.value).asInstanceOf[input.Response]
                 case msg: ClientToServer.GetTestTasks =>
                   mill.javalib.testrunner.GetTestTasksMain(msg.value).asInstanceOf[input.Response]
+                case msg: ClientToServer.DiscoverJunit5Tests =>
+                  mill.javalib.testrunner.DiscoverJunit5TestsMain(
+                    msg.value
+                  ).asInstanceOf[input.Response]
               }
             }
             writeToLocalLog(s"$requestId with data $input processed in ${result.durationPretty}")
@@ -194,6 +198,11 @@ object ZincWorkerRpcServer {
     }
     case class GetTestTasks(
         value: mill.javalib.api.internal.ZincGetTestTasks
+    ) extends ClientToServer {
+      override type Response = Seq[String]
+    }
+    case class DiscoverJunit5Tests(
+        value: mill.javalib.api.internal.ZincDiscoverJunit5Tests
     ) extends ClientToServer {
       override type Response = Seq[String]
     }
