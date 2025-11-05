@@ -556,27 +556,20 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   ): op.Response = {
     op match {
       case msg: ZincCompileJava =>
-        compileJava(
-          op = msg,
-          reporter = reporter,
-          reportCachedProblems = reportCachedProblems,
-          ctx,
-          deps
-        ).asInstanceOf[op.Response]
+        compileJava(msg, reporter, reportCachedProblems, ctx, deps).asInstanceOf[op.Response]
+
       case msg: ZincCompileMixed =>
-        compileMixed(
-          msg,
-          reporter = reporter,
-          reportCachedProblems = reportCachedProblems,
-          ctx,
-          deps
-        ).asInstanceOf[op.Response]
+        compileMixed(msg, reporter, reportCachedProblems, ctx, deps).asInstanceOf[op.Response]
+
       case msg: ZincScaladocJar =>
         scaladocJar(msg, deps.compilerBridge).asInstanceOf[op.Response]
+
       case msg: ZincDiscoverTests =>
         mill.javalib.testrunner.DiscoverTestsMain(msg).asInstanceOf[op.Response]
+
       case msg: ZincGetTestTasks =>
         mill.javalib.testrunner.GetTestTasksMain(msg).asInstanceOf[op.Response]
+
       case msg: ZincDiscoverJunit5Tests =>
         mill.javalib.testrunner.DiscoverJunit5TestsMain(msg).asInstanceOf[op.Response]
     }
