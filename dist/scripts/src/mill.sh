@@ -46,7 +46,7 @@ if [ -z "${MILL_VERSION}" ] ; then
   fi
 fi
 
-if [ -z "${MILL_VERSION}" ] ; then MILL_VERSION="${DEFAULT_MILL_VERSION}"
+if [ -z "${MILL_VERSION}" ] ; then MILL_VERSION="${DEFAULT_MILL_VERSION}"; fi
 
 MILL_USER_CACHE_DIR="${XDG_CACHE_HOME:-${HOME}/.cache}/mill"
 
@@ -105,16 +105,16 @@ MILL="${MILL_DOWNLOAD_PATH}/$MILL_VERSION$ARTIFACT_SUFFIX"
 if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
   case $MILL_VERSION in
     0.0.* | 0.1.* | 0.2.* | 0.3.* | 0.4.* )
-      DOWNLOAD_SUFFIX=""
-      DOWNLOAD_FROM_MAVEN=0
+      MILL_DOWNLOAD_SUFFIX=""
+      MILL_DOWNLOAD_FROM_MAVEN=0
       ;;
     0.5.* | 0.6.* | 0.7.* | 0.8.* | 0.9.* | 0.10.* | 0.11.0-M* )
-      DOWNLOAD_SUFFIX="-assembly"
-      DOWNLOAD_FROM_MAVEN=0
+      MILL_DOWNLOAD_SUFFIX="-assembly"
+      MILL_DOWNLOAD_FROM_MAVEN=0
       ;;
     *)
-      DOWNLOAD_SUFFIX="-assembly"
-      DOWNLOAD_FROM_MAVEN=1
+      MILL_DOWNLOAD_SUFFIX="-assembly"
+      MILL_DOWNLOAD_FROM_MAVEN=1
       ;;
   esac
   case $MILL_VERSION in
@@ -132,29 +132,33 @@ if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
       ;;
   esac
 
-  DOWNLOAD_FILE=$(mktemp mill.XXXXXX)
-  if [ "$DOWNLOAD_FROM_MAVEN" = "1" ] ; then
-    DOWNLOAD_URL="{{{ mill-maven-url }}}/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.${DOWNLOAD_EXT}"
+  MILL_DOWNLOAD_FILE=$(mktemp mill-temp-download.XXXXXX)
+
+  if [ "$MILL_DOWNLOAD_FROM_MAVEN" = "1" ] ; then
+    MILL_DOWNLOAD_URL="{{{ mill-maven-url }}}/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.${DOWNLOAD_EXT}"
   else
     MILL_VERSION_TAG=$(echo "$MILL_VERSION" | sed -E 's/([^-]+)(-M[0-9]+)?(-.*)?/\1\2/')
-    DOWNLOAD_URL="${GITHUB_RELEASE_CDN}${MILL_REPO_URL}/releases/download/${MILL_VERSION_TAG}/${MILL_VERSION}${DOWNLOAD_SUFFIX}"
+    MILL_DOWNLOAD_URL="${GITHUB_RELEASE_CDN}${MILL_REPO_URL}/releases/download/${MILL_VERSION_TAG}/${MILL_VERSION}${MILL_DOWNLOAD_SUFFIX}"
     unset MILL_VERSION_TAG
   fi
 
+
   if [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
-    echo $DOWNLOAD_URL
+    echo $MILL_DOWNLOAD_URL
     echo $MILL
     exit 0
   fi
-  # TODO: handle command not found
-  echo "Downloading mill ${MILL_VERSION} from ${DOWNLOAD_URL} ..." 1>&2
-  curl -f -L -o "${DOWNLOAD_FILE}" "${DOWNLOAD_URL}"
-  chmod +x "${DOWNLOAD_FILE}"
-  mkdir -p "${MILL_DOWNLOAD_PATH}"
-  mv "${DOWNLOAD_FILE}" "${MILL}"
 
-  unset DOWNLOAD_FILE
-  unset DOWNLOAD_SUFFIX
+  echo "Downloading mill ${MILL_VERSION} from ${MILL_DOWNLOAD_URL} ..." 1>&2
+  mkdir -p "${MILL_DOWNLOAD_PATH}"
+  curl -f -L -o "${MILL_DOWNLOAD_FILE}" "${MILL_DOWNLOAD_URL}"
+
+  chmod +x "${MILL_DOWNLOAD_FILE}"
+
+  mv "${MILL_DOWNLOAD_FILE}" "${MILL}"
+
+  unset MILL_DOWNLOAD_FILE
+  unset MILL_DOWNLOAD_SUFFIX
 fi
 
 MILL_FIRST_ARG=""
