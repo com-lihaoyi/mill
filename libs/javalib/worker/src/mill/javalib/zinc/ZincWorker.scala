@@ -5,12 +5,7 @@ import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}
 import mill.client.lock.*
-import mill.javalib.api.internal.{
-  JavaCompilerOptions,
-  ZincCompileJava,
-  ZincCompileMixed,
-  ZincScaladocJar
-}
+import mill.javalib.api.internal.*
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mill.javalib.internal.ZincCompilerBridgeProvider
 import mill.javalib.internal.ZincCompilerBridgeProvider.AcquireResult
@@ -288,32 +283,13 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       ctx: ZincWorker.InvocationContext,
       deps: ZincWorker.InvocationDependencies
   ): ZincApi = new ZincApi {
-    override def compileJava(
-        op: ZincCompileJava,
-        reporter: Option[CompileProblemReporter],
-        reportCachedProblems: Boolean
-    ): Result[CompilationResult] =
-      self.compileJava(op, reporter, reportCachedProblems, ctx, deps)
 
-    override def compileMixed(
-        op: ZincCompileMixed,
-        reporter: Option[CompileProblemReporter],
-        reportCachedProblems: Boolean
-    ): Result[CompilationResult] =
-      self.compileMixed(op, reporter, reportCachedProblems, ctx, deps)
-
-    override def scaladocJar(op: ZincScaladocJar): Boolean =
-      self.scaladocJar(op, deps.compilerBridge)
-
-    override def discoverTests(op: mill.javalib.api.internal.ZincDiscoverTests): Seq[String] =
-      mill.javalib.testrunner.DiscoverTestsMain(op)
-
-    override def getTestTasks(op: mill.javalib.api.internal.ZincGetTestTasks): Seq[String] =
-      mill.javalib.testrunner.GetTestTasksMain(op)
-
-    override def discoverJunit5Tests(op: mill.javalib.api.internal.ZincDiscoverJunit5Tests)
-        : Seq[String] =
-      mill.javalib.testrunner.DiscoverJunit5TestsMain(op)
+    override def apply(op: ZincOperation, 
+                       reporter: Option[CompileProblemReporter], 
+                       reportCachedProblems: Boolean) = {
+      
+      self.apply(op, reporter, reportCachedProblems, ctx, deps)
+    }
   }
 
   def close(): Unit = {
@@ -583,6 +559,40 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         }
       }
     } finally doubleLock.close()
+  }
+  
+  def apply(op: ZincOperation ,
+            reporter: Option[CompileProblemReporter],
+            reportCachedProblems: Boolean,
+            ctx: ZincWorker.InvocationContext,
+            deps: ZincWorker.InvocationDependencies): op.Response = {
+    op match {
+      case msg: ZincCompileJava =>
+        compileJava(
+          op = msg,
+          reporter = reporter,
+          reportCachedProblems = reportCachedProblems,
+          ctx,
+          deps
+        ).asInstanceOf[op.Response]
+      case msg: ZincCompileMixed =>
+        compileMixed(
+          msg,
+          reporter = reporter,
+          reportCachedProblems = reportCachedProblems,
+          ctx,
+          deps
+        ).asInstanceOf[op.Response]
+      case msg: ZincScaladocJar =>
+        scaladocJar(msg, deps.compilerBridge).asInstanceOf[op.Response]
+      case msg: ZincDiscoverTests =>
+        mill.javalib.testrunner.DiscoverTestsMain(msg).asInstanceOf[op.Response]
+      case msg: ZincGetTestTasks =>
+        mill.javalib.testrunner.GetTestTasksMain(msg).asInstanceOf[op.Response]
+      case msg: ZincDiscoverJunit5Tests =>
+        mill.javalib.testrunner.DiscoverJunit5TestsMain(msg).asInstanceOf[op.Response]
+    }
+
   }
 }
 object ZincWorker {

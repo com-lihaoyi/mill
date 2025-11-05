@@ -85,7 +85,7 @@ class SubprocessZincApi(
 
   def withRpcClient[R](
       handler: MillRpcChannel[ZincWorkerRpcServer.ServerToClient]
-  )(f: MillRpcClient[ZincWorkerRpcServer.ClientToServer, ZincWorkerRpcServer.ServerToClient] => R)
+  )(f: MillRpcClient[ZincWorkerRpcServer.Request, ZincWorkerRpcServer.ServerToClient] => R)
       : R = {
     subprocessCache.withValue(
       cacheKey,
@@ -115,7 +115,7 @@ class SubprocessZincApi(
 
             val client = MillRpcClient.create[
               ZincWorkerRpcServer.Initialize,
-              ZincWorkerRpcServer.ClientToServer,
+              ZincWorkerRpcServer.Request,
               ZincWorkerRpcServer.ServerToClient
             ](init, wireTransport, makeClientLogger())(handler)
 
@@ -165,7 +165,7 @@ class SubprocessZincApi(
       }
     }
 
-    (input) => {
+    input => {
       input match {
         case msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge =>
           acquireZincCompilerBridge(msg).asInstanceOf[input.Response]
@@ -175,62 +175,14 @@ class SubprocessZincApi(
     }
   }
 
-  override def compileJava(
-      op: ZincCompileJava,
+  override def apply(
+      op: ZincOperation,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
-  ): Result[CompilationResult] = {
+  ): op.Response = {
     withRpcClient(serverRpcToClientHandler(reporter, log, cacheKey)) { rpcClient =>
-      val msg = ZincWorkerRpcServer.ClientToServer.CompileJava(
-        op,
-        reporterMode = toReporterMode(reporter, reportCachedProblems),
-        ctx = ctx
-      )
-      rpcClient(msg)
-    }
-  }
-
-  override def compileMixed(
-      op: ZincCompileMixed,
-      reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
-  ): Result[CompilationResult] = {
-    withRpcClient(serverRpcToClientHandler(reporter, log, cacheKey)) { rpcClient =>
-      val msg = ZincWorkerRpcServer.ClientToServer.CompileMixed(
-        op,
-        reporterMode = toReporterMode(reporter, reportCachedProblems),
-        ctx = ctx
-      )
-      rpcClient(msg)
-    }
-  }
-
-  override def scaladocJar(op: ZincScaladocJar): Boolean = {
-    withRpcClient(serverRpcToClientHandler(reporter = None, log, cacheKey)) { rpcClient =>
-      val msg = ZincWorkerRpcServer.ClientToServer.ScaladocJar(op)
-      rpcClient(msg)
-    }
-  }
-
-  override def discoverTests(op: mill.javalib.api.internal.ZincDiscoverTests): Seq[String] = {
-    withRpcClient(serverRpcToClientHandler(reporter = None, log, cacheKey)) { rpcClient =>
-      val msg = ZincWorkerRpcServer.ClientToServer.DiscoverTests(op)
-      rpcClient(msg)
-    }
-  }
-
-  override def getTestTasks(op: mill.javalib.api.internal.ZincGetTestTasks): Seq[String] = {
-    withRpcClient(serverRpcToClientHandler(reporter = None, log, cacheKey)) { rpcClient =>
-      val msg = ZincWorkerRpcServer.ClientToServer.GetTestTasks(op)
-      rpcClient(msg)
-    }
-  }
-
-  override def discoverJunit5Tests(op: mill.javalib.api.internal.ZincDiscoverJunit5Tests)
-      : Seq[String] = {
-    withRpcClient(serverRpcToClientHandler(reporter = None, log, cacheKey)) { rpcClient =>
-      val msg = ZincWorkerRpcServer.ClientToServer.DiscoverJunit5Tests(op)
-      rpcClient(msg)
+      val res = rpcClient(ZincWorkerRpcServer.Request(op, toReporterMode(reporter, reportCachedProblems), ctx))
+      res.asInstanceOf[op.Response]
     }
   }
 

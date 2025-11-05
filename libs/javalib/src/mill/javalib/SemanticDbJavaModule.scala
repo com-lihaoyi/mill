@@ -124,38 +124,39 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 
     val jOpts = JavaCompilerOptions(javacOpts)
 
-    jvmWorker().internalWorker()
-      .compileJava(
-        ZincCompileJava(
-          upstreamCompileOutput = upstreamSemanticDbDatas().map(_.compilationResult),
-          sources = allSourceFiles().map(_.path),
-          compileClasspath =
-            (compileClasspathTask(
-              CompileFor.SemanticDb
-            )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(
-              _.path
-            ),
-          javacOptions = jOpts.compiler,
-          incrementalCompilation = zincIncrementalCompilation()
-        ),
-        javaHome = javaHome().map(_.path),
-        javaRuntimeOptions = jOpts.runtime,
-        reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
-      )
-      .map { compilationResult =>
-        val semanticDbFiles = BuildCtx.withFilesystemCheckerDisabled {
-          SemanticDbJavaModule.copySemanticdbFiles(
-            compilationResult.classes.path,
-            BuildCtx.workspaceRoot,
-            Task.dest / "data",
-            SemanticDbJavaModule.workerClasspath().map(_.path),
-            allSourceFiles().map(_.path)
-          )
-        }
+    val worker = jvmWorker().internalWorker()
 
-        SemanticDbJavaModule.SemanticDbData(compilationResult, semanticDbFiles)
+    worker.apply(
+      ZincCompileJava(
+        upstreamCompileOutput = upstreamSemanticDbDatas().map(_.compilationResult),
+        sources = allSourceFiles().map(_.path),
+        compileClasspath =
+          (compileClasspathTask(
+            CompileFor.SemanticDb
+          )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(
+            _.path
+          ),
+        javacOptions = jOpts.compiler,
+        incrementalCompilation = zincIncrementalCompilation()
+      ),
+      javaHome = javaHome().map(_.path),
+      javaRuntimeOptions = jOpts.runtime,
+      reporter = Task.reporter.apply(hashCode),
+      reportCachedProblems = zincReportCachedProblems()
+    )
+    .map { compilationResult =>
+      val semanticDbFiles = BuildCtx.withFilesystemCheckerDisabled {
+        SemanticDbJavaModule.copySemanticdbFiles(
+          compilationResult.classes.path,
+          BuildCtx.workspaceRoot,
+          Task.dest / "data",
+          SemanticDbJavaModule.workerClasspath().map(_.path),
+          allSourceFiles().map(_.path)
+        )
       }
+
+      SemanticDbJavaModule.SemanticDbData(compilationResult, semanticDbFiles)
+    }
   }
 
   def semanticDbData: T[PathRef] = Task {

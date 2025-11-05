@@ -289,9 +289,8 @@ trait MillBuildRootModule()(using
 
     // copied from `ScalaModule`
     val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
-    jvmWorker()
-      .internalWorker()
-      .compileMixed(
+    val worker = jvmWorker().internalWorker()
+    worker.apply(
         ZincCompileMixed(
           upstreamCompileOutput = upstreamCompileOutput(),
           sources = Seq.from(allSourceFiles().map(_.path)),

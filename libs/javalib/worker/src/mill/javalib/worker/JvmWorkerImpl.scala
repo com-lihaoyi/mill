@@ -18,60 +18,15 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
   /** The local Zinc instance which is used when we do not want to override Java home or runtime options. */
   private val zincLocalWorker = ZincWorker(jobs = jobs)
 
-  override def compileJava(
-      op: ZincCompileJava,
+  override def apply(
+      op: ZincOperation,
       javaHome: Option[os.Path],
       javaRuntimeOptions: JavaRuntimeOptions,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
-  )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
-    zincApi(
-      javaHome,
-      javaRuntimeOptions
-    ).compileJava(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
-  }
-
-  override def compileMixed(
-      op: ZincCompileMixed,
-      javaHome: Option[os.Path],
-      javaRuntimeOptions: JavaRuntimeOptions,
-      reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
-  )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
-    zincApi(
-      javaHome,
-      javaRuntimeOptions
-    ).compileMixed(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
-  }
-
-  def scaladocJar(
-      op: ZincScaladocJar,
-      javaHome: Option[os.Path]
-  )(using ctx: JvmWorkerApi.Ctx): Boolean = {
-    zincApi(javaHome, JavaRuntimeOptions(Seq.empty)).scaladocJar(op)
-  }
-
-  override def discoverTests(
-      op: mill.javalib.api.internal.ZincDiscoverTests,
-      javaHome: Option[os.Path]
-  )(using ctx: JvmWorkerApi.Ctx): Seq[String] = {
-    zincApi(javaHome, JavaRuntimeOptions(Seq.empty)).discoverTests(op)
-  }
-
-  override def getTestTasks(
-      op: mill.javalib.api.internal.ZincGetTestTasks,
-      javaHome: Option[os.Path]
-  )(using
-      ctx: JvmWorkerApi.Ctx
-  ): Seq[String] = {
-    zincApi(javaHome, JavaRuntimeOptions(Seq.empty)).getTestTasks(op)
-  }
-
-  override def discoverJunit5Tests(
-      op: mill.javalib.api.internal.ZincDiscoverJunit5Tests,
-      javaHome: Option[os.Path]
-  )(using ctx: JvmWorkerApi.Ctx): Seq[String] = {
-    zincApi(javaHome, JavaRuntimeOptions(Seq.empty)).discoverJunit5Tests(op)
+  )(using ctx: JvmWorkerApi.Ctx): op.Response = {
+    zincApi(javaHome, javaRuntimeOptions)
+      .apply(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
   }
 
   override def close(): Unit = {

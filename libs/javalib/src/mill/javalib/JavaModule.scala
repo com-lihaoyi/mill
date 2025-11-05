@@ -865,21 +865,21 @@ trait JavaModule
       compileGenSources.toString
     ) ++ javacOptions() ++ mandatoryJavacOptions())
 
-    jvmWorker()
-      .internalWorker()
-      .compileJava(
-        ZincCompileJava(
-          upstreamCompileOutput = upstreamCompileOutput(),
-          sources = allSourceFiles().map(_.path),
-          compileClasspath = compileClasspath().map(_.path),
-          javacOptions = jOpts.compiler,
-          incrementalCompilation = zincIncrementalCompilation()
-        ),
-        javaHome = javaHome().map(_.path),
-        javaRuntimeOptions = jOpts.runtime,
-        reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
-      )
+    val worker = jvmWorker().internalWorker()
+
+    worker.apply(
+      ZincCompileJava(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = allSourceFiles().map(_.path),
+        compileClasspath = compileClasspath().map(_.path),
+        javacOptions = jOpts.compiler,
+        incrementalCompilation = zincIncrementalCompilation()
+      ),
+      javaHome = javaHome().map(_.path),
+      javaRuntimeOptions = jOpts.runtime,
+      reporter = Task.reporter.apply(hashCode),
+      reportCachedProblems = zincReportCachedProblems()
+    )
   }
 
   /** Resolves paths relative to the `out` folder. */

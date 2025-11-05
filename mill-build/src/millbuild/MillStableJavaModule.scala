@@ -13,7 +13,11 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources"),
     ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources$"),
     // private class
-    ProblemFilter.exclude[Problem]("mill.api.internal.Resolved*")
+    ProblemFilter.exclude[Problem]("mill.api.internal.Resolved*"),
+    ProblemFilter.exclude[Problem]("mill.util.RequestId*"),
+    ProblemFilter.exclude[Problem]("mill.util.Timed*"),
+    // internal stuff
+    ProblemFilter.exclude[Problem]("mill.javalib.api.internal.*")
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions

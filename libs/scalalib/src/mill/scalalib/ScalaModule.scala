@@ -280,9 +280,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
     val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
 
-    jvmWorker()
-      .internalWorker()
-      .compileMixed(
+    val worker = jvmWorker().internalWorker()
+
+    worker.apply(
         ZincCompileMixed(
           upstreamCompileOutput = upstreamCompileOutput(),
           sources = allSourceFiles().map(_.path),
@@ -327,9 +327,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       if (files.isEmpty) {
         PathRef(javadocDir)
       } else {
-        jvmWorker()
-          .internalWorker()
-          .scaladocJar(
+        val worker = jvmWorker().internalWorker()
+        worker.apply(
             ZincScaladocJar(
               scalaVersion(),
               scalaOrganization(),
@@ -622,8 +621,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
       val jOpts = JavaCompilerOptions(javacOpts)
 
-      jvmWorker().internalWorker()
-        .compileMixed(
+      val worker = jvmWorker().internalWorker()
+      worker.apply(
           ZincCompileMixed(
             upstreamCompileOutput = upstreamSemanticDbDatas().map(_.compilationResult),
             sources = allSourceFiles().map(_.path),

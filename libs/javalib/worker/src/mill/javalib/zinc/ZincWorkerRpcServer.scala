@@ -1,11 +1,11 @@
 package mill.javalib.zinc
 
 import mill.api.JsonFormatters.*
-import mill.api.daemon.{Logger, Result}
+import mill.api.daemon.Logger
 import mill.api.daemon.internal.CompileProblemReporter
-import mill.javalib.api.CompilationResult
-import mill.javalib.api.internal.{ZincCompileJava, ZincCompileMixed, ZincScaladocJar}
+import mill.javalib.api.internal.*
 import mill.javalib.internal.{RpcCompileProblemReporterMessage, ZincCompilerBridgeProvider}
+import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.rpc.*
 import mill.server.Server
 import org.apache.logging.log4j.core.util.NullOutputStream
@@ -22,7 +22,7 @@ class ZincWorkerRpcServer(
     writeToLocalLog: String => Unit
 ) extends MillRpcServerImpl[
       ZincWorkerRpcServer.Initialize,
-      ZincWorkerRpcServer.ClientToServer,
+      ZincWorkerRpcServer.Request,
       ZincWorkerRpcServer.ServerToClient
     ](serverName, transport, writeToLocalLog) {
   import ZincWorkerRpcServer.*
@@ -33,7 +33,7 @@ class ZincWorkerRpcServer(
       clientStdout: RpcConsole,
       clientStderr: RpcConsole,
       serverToClient: MillRpcChannel[ServerToClient]
-  ): MillRpcChannel[ClientToServer] = setIdle.doWork {
+  ): MillRpcChannel[ZincWorkerRpcServer.Request] = setIdle.doWork {
     val result = {
       // This is an ugly hack. `ConsoleOut` is sealed, but we need to provide a way to send these logs to the Mill server
       // over RPC, so we hijack `PrintStream` by overriding the methods that `ConsoleOut` uses.
@@ -59,9 +59,7 @@ class ZincWorkerRpcServer(
             )
         )
 
-      def makeDeps() = {
-        ZincWorker.InvocationDependencies(log, consoleOut, makeCompilerBridge())
-      }
+      def makeDeps() = ZincWorker.InvocationDependencies(log, consoleOut, makeCompilerBridge())
 
       def reporter(maxErrors: Int) = RpcCompileProblemReporter(
         maxErrors = maxErrors,
@@ -72,42 +70,22 @@ class ZincWorkerRpcServer(
           mode: ReporterMode
       ): Option[CompileProblemReporter] = mode match {
         case ReporterMode.NoReporter => None
-        case r: ReporterMode.Reporter =>
-          Some(reporter(maxErrors = r.maxErrors))
+        case r: ReporterMode.Reporter => Some(reporter(maxErrors = r.maxErrors))
       }
 
-      new MillRpcChannel[ClientToServer] {
-        override def apply(input: ClientToServer): input.Response =
+      new MillRpcChannel[ZincWorkerRpcServer.Request] {
+        override def apply(input: ZincWorkerRpcServer.Request): input.Response = {
+          val ZincWorkerRpcServer.Request(op, reporterMode, ctx) = input
           setIdle.doWork {
-            input match {
-              case msg: ClientToServer.CompileJava =>
-                worker.compileJava(
-                  op = msg.op,
-                  reporter = reporterAsOption(msg.reporterMode),
-                  reportCachedProblems = msg.reporterMode.reportCachedProblems,
-                  msg.ctx,
-                  makeDeps()
-                ).asInstanceOf[input.Response]
-              case msg: ClientToServer.CompileMixed =>
-                worker.compileMixed(
-                  msg.op,
-                  reporter = reporterAsOption(msg.reporterMode),
-                  reportCachedProblems = msg.reporterMode.reportCachedProblems,
-                  msg.ctx,
-                  makeDeps()
-                ).asInstanceOf[input.Response]
-              case msg: ClientToServer.ScaladocJar =>
-                worker.scaladocJar(msg.op, makeCompilerBridge()).asInstanceOf[input.Response]
-              case msg: ClientToServer.DiscoverTests =>
-                mill.javalib.testrunner.DiscoverTestsMain(msg.value).asInstanceOf[input.Response]
-              case msg: ClientToServer.GetTestTasks =>
-                mill.javalib.testrunner.GetTestTasksMain(msg.value).asInstanceOf[input.Response]
-              case msg: ClientToServer.DiscoverJunit5Tests =>
-                mill.javalib.testrunner.DiscoverJunit5TestsMain(
-                  msg.value
-                ).asInstanceOf[input.Response]
-            }
+            worker.apply(
+              op = op,
+              reporter = reporterAsOption(reporterMode),
+              reportCachedProblems = reporterMode.reportCachedProblems,
+              ctx,
+              makeDeps(),
+            ).asInstanceOf[input.Response]
           }
+        }
       }
     }
 
@@ -134,48 +112,11 @@ object ZincWorkerRpcServer {
     case class Reporter(reportCachedProblems: Boolean, maxErrors: Int) extends ReporterMode
   }
 
-  sealed trait ClientToServer extends MillRpcMessage derives ReadWriter
-  object ClientToServer {
-    case class CompileJava(
-        op: ZincCompileJava,
-        reporterMode: ReporterMode,
-        ctx: ZincWorker.InvocationContext
-    ) extends ClientToServer {
-      override type Response = Result[CompilationResult]
-    }
-
-    case class CompileMixed(
-        op: ZincCompileMixed,
-        reporterMode: ReporterMode,
-        ctx: ZincWorker.InvocationContext
-    ) extends ClientToServer {
-      override type Response = Result[CompilationResult]
-    }
-
-    case class ScaladocJar(
-        op: ZincScaladocJar
-    ) extends ClientToServer {
-      override type Response = Boolean
-    }
-
-    case class DiscoverTests(
-        value: mill.javalib.api.internal.ZincDiscoverTests
-    ) extends ClientToServer {
-      override type Response = Seq[String]
-    }
-    case class GetTestTasks(
-        value: mill.javalib.api.internal.ZincGetTestTasks
-    ) extends ClientToServer {
-      override type Response = Seq[String]
-    }
-    case class DiscoverJunit5Tests(
-        value: mill.javalib.api.internal.ZincDiscoverJunit5Tests
-    ) extends ClientToServer {
-      override type Response = Seq[String]
-    }
-
+  case class Request(op: ZincOperation, reporterMode: ReporterMode, ctx: ZincWorker.InvocationContext)
+    extends MillRpcMessage
+    derives upickle.ReadWriter {
+    type Response = op.Response
   }
-
   sealed trait ServerToClient extends MillRpcMessage derives ReadWriter
   object ServerToClient {
     case class AcquireZincCompilerBridge(scalaVersion: String, scalaOrganization: String)
@@ -188,6 +129,8 @@ object ZincWorkerRpcServer {
      */
     case class ReportCompilationProblem(
         problem: RpcCompileProblemReporterMessage
-    ) extends ServerToClient, MillRpcMessage.NoResponse
+    ) extends ServerToClient, MillRpcMessage {
+      type Response = Unit
+    }
   }
 }

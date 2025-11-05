@@ -436,7 +436,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       reportOldProblems: Boolean
   )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
     val jOpts = JavaCompilerOptions(javacOptions)
-    worker.compileJava(
+    worker.apply(
       ZincCompileJava(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = javaSourceFiles,
