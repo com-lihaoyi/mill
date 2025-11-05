@@ -17,7 +17,8 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.util.RequestId*"),
     ProblemFilter.exclude[Problem]("mill.util.Timed*"),
     // internal stuff
-    ProblemFilter.exclude[Problem]("mill.javalib.api.internal.*")
+    ProblemFilter.exclude[Problem]("mill.javalib.api.internal.*"),
+    ProblemFilter.exclude[Problem]("mill.javalib.internal.*")
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
