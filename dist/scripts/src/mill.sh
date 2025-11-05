@@ -50,7 +50,7 @@ if [ -z "${MILL_VERSION}" ] ; then MILL_VERSION="${DEFAULT_MILL_VERSION}"; fi
 
 MILL_USER_CACHE_DIR="${XDG_CACHE_HOME:-${HOME}/.cache}/mill"
 
-if [ -z "${MILL_DOWNLOAD_PATH}" ] ; then MILL_DOWNLOAD_PATH="${MILL_USER_CACHE_DIR}/download"; fi
+if [ -z "${MILL_FINAL_DOWNLOAD_FOLDER}" ] ; then MILL_FINAL_DOWNLOAD_FOLDER="${MILL_USER_CACHE_DIR}/download"; fi
 
 MILL_NATIVE_SUFFIX="-native"
 MILL_JVM_SUFFIX="-jvm"
@@ -99,7 +99,7 @@ case "$MILL_VERSION" in
   ;;
 esac
 
-MILL="${MILL_DOWNLOAD_PATH}/$MILL_VERSION$ARTIFACT_SUFFIX"
+MILL="${MILL_FINAL_DOWNLOAD_FOLDER}/$MILL_VERSION$ARTIFACT_SUFFIX"
 
 # If not already downloaded, download it
 if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
@@ -132,8 +132,8 @@ if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
       ;;
   esac
 
-  MILL_DOWNLOAD_FILE="${MILL_OUTPUT_DIR:-out}/mill-bootstrap-download"
-  mkdir -p MILL_DOWNLOAD_FILE/..
+  MILL_TEMP_DOWNLOAD_FILE="${MILL_OUTPUT_DIR:-out}/mill-temp-download"
+  mkdir -p "${MILL_TEMP_DOWNLOAD_FILE}/.."
 
   if [ "$MILL_DOWNLOAD_FROM_MAVEN" = "1" ] ; then
     MILL_DOWNLOAD_URL="{{{ mill-maven-url }}}/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.${DOWNLOAD_EXT}"
@@ -151,14 +151,14 @@ if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
   fi
 
   echo "Downloading mill ${MILL_VERSION} from ${MILL_DOWNLOAD_URL} ..." 1>&2
-  curl -f -L -o "${MILL_DOWNLOAD_FILE}" "${MILL_DOWNLOAD_URL}"
+  curl -f -L -o "${MILL_TEMP_DOWNLOAD_FILE}" "${MILL_DOWNLOAD_URL}"
 
-  chmod +x "${MILL_DOWNLOAD_FILE}"
+  chmod +x "${MILL_TEMP_DOWNLOAD_FILE}"
 
-  mkdir -p "${MILL_DOWNLOAD_PATH}"
-  mv "${MILL_DOWNLOAD_FILE}" "${MILL}"
+  mkdir -p "${MILL_FINAL_DOWNLOAD_FOLDER}"
+  mv "${MILL_TEMP_DOWNLOAD_FILE}" "${MILL}"
 
-  unset MILL_DOWNLOAD_FILE
+  unset MILL_TEMP_DOWNLOAD_FILE
   unset MILL_DOWNLOAD_SUFFIX
 fi
 
@@ -169,7 +169,7 @@ if [ "$1" = "--bsp" ] || [ "${1#"-i"}" != "$1" ] || [ "$1" = "--interactive" ] |
   shift
 fi
 
-unset MILL_DOWNLOAD_PATH
+unset MILL_FINAL_DOWNLOAD_FOLDER
 unset MILL_OLD_DOWNLOAD_PATH
 unset OLD_MILL
 unset MILL_VERSION

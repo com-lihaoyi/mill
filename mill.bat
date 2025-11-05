@@ -87,7 +87,7 @@ if [!MILL_VERSION!]==[] (
     set MILL_VERSION=%DEFAULT_MILL_VERSION%
 )
 
-if [!MILL_DOWNLOAD_PATH!]==[] set MILL_DOWNLOAD_PATH=%USERPROFILE%\.cache\mill\download
+if [!MILL_FINAL_DOWNLOAD_FOLDER!]==[] set MILL_FINAL_DOWNLOAD_FOLDER=%USERPROFILE%\.cache\mill\download
 
 rem without bat file extension, cmd doesn't seem to be able to run it
 
@@ -139,7 +139,7 @@ if !errorlevel! equ 0 (
     )
 )
 
-set MILL=%MILL_DOWNLOAD_PATH%\!MILL_VERSION!!MILL_EXT!
+set MILL=%MILL_FINAL_DOWNLOAD_FOLDER%\!MILL_VERSION!!MILL_EXT!
 
 set MILL_RESOLVE_DOWNLOAD=
 
@@ -236,24 +236,24 @@ if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
 
     rem there seems to be no way to generate a unique temporary file path (on native Windows)
     if defined MILL_OUTPUT_DIR (
-        set MILL_DOWNLOAD_FILE=%MILL_OUTPUT_DIR%\mill-bootstrap-download
+        set MILL_TEMP_DOWNLOAD_FILE=%MILL_OUTPUT_DIR%\mill-temp-download
     ) else (
-        set MILL_DOWNLOAD_FILE=out\mill-bootstrap-download
+        set MILL_TEMP_DOWNLOAD_FILE=out\mill-bootstrap-download
     )
-    if not exist "%MILL_DOWNLOAD_PATH%\.." mkdir "%MILL_DOWNLOAD_PATH%\.."
+    if not exist "%MILL_TEMP_DOWNLOAD_FILE%\.." mkdir "%MILL_TEMP_DOWNLOAD_FILE%\.."
 
     echo Downloading mill !MILL_VERSION! from !MILL_DOWNLOAD_URL! ... 1>&2
 
-    curl -f -L "!MILL_DOWNLOAD_URL!" -o "!MILL_DOWNLOAD_FILE!"
+    curl -f -L "!MILL_DOWNLOAD_URL!" -o "!MILL_TEMP_DOWNLOAD_FILE!"
 
-    if not exist "%MILL_DOWNLOAD_PATH%" mkdir "%MILL_DOWNLOAD_PATH%"
-    move /y "!MILL_DOWNLOAD_FILE!" "%MILL%"
+    if not exist "%MILL_FINAL_DOWNLOAD_FOLDER%" mkdir "%MILL_FINAL_DOWNLOAD_FOLDER%"
+    move /y "!MILL_TEMP_DOWNLOAD_FILE!" "%MILL%"
 
-    set MILL_DOWNLOAD_FILE=
+    set MILL_TEMP_DOWNLOAD_FILE=
     set MILL_DOWNLOAD_SUFFIX=
 )
 
-set MILL_DOWNLOAD_PATH=
+set MILL_FINAL_DOWNLOAD_FOLDER=
 set MILL_VERSION=
 set MILL_REPO_URL=
 
