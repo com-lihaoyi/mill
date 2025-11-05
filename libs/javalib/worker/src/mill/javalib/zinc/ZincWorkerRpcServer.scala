@@ -8,7 +8,6 @@ import mill.javalib.api.internal.{ZincCompileJava, ZincCompileMixed, ZincScalado
 import mill.javalib.internal.{RpcCompileProblemReporterMessage, ZincCompilerBridgeProvider}
 import mill.rpc.*
 import mill.server.Server
-import mill.util.Timed
 import org.apache.logging.log4j.core.util.NullOutputStream
 import sbt.internal.util.ConsoleOut
 import upickle.ReadWriter
@@ -35,18 +34,15 @@ class ZincWorkerRpcServer(
       clientStderr: RpcConsole,
       serverToClient: MillRpcChannel[ServerToClient]
   ): MillRpcChannel[ClientToServer] = setIdle.doWork {
-    val result = Timed {
+    val result = {
       // This is an ugly hack. `ConsoleOut` is sealed, but we need to provide a way to send these logs to the Mill server
       // over RPC, so we hijack `PrintStream` by overriding the methods that `ConsoleOut` uses.
       //
       // This is obviously extra fragile, but I couldn't find a better way to do it.
       val consoleOut = ConsoleOut.printStreamOut(new PrintStream(NullOutputStream.getInstance()) {
         override def print(s: String): Unit = clientStderr.print(s)
-
         override def println(s: String): Unit = print(s + "\n")
-
         override def println(): Unit = print("\n")
-
         override def flush(): Unit = clientStderr.flush()
       })
 
@@ -90,61 +86,35 @@ class ZincWorkerRpcServer(
       new MillRpcChannel[ClientToServer] {
         override def apply(requestId: MillRpcRequestId, input: ClientToServer): input.Response =
           setIdle.doWork {
-            val result = Timed {
-              input match {
-                case msg: ClientToServer.CompileJava =>
-                  compileJava(requestId, msg).asInstanceOf[input.Response]
-                case msg: ClientToServer.CompileMixed =>
-                  compileMixed(requestId, msg).asInstanceOf[input.Response]
-                case msg: ClientToServer.ScaladocJar =>
-                  docJar(requestId, msg).asInstanceOf[input.Response]
-                case msg: ClientToServer.DiscoverTests =>
-                  mill.javalib.testrunner.DiscoverTestsMain(msg.value).asInstanceOf[input.Response]
-                case msg: ClientToServer.GetTestTasks =>
-                  mill.javalib.testrunner.GetTestTasksMain(msg.value).asInstanceOf[input.Response]
-                case msg: ClientToServer.DiscoverJunit5Tests =>
-                  mill.javalib.testrunner.DiscoverJunit5TestsMain(
-                    msg.value
-                  ).asInstanceOf[input.Response]
-              }
+            input match {
+              case msg: ClientToServer.CompileJava =>
+                worker.compileJava(
+                  op = msg.op,
+                  reporter = reporterAsOption(requestId, msg.reporterMode),
+                  reportCachedProblems = msg.reporterMode.reportCachedProblems,
+                  msg.ctx, makeDeps(requestId)).asInstanceOf[input.Response]
+              case msg: ClientToServer.CompileMixed =>
+                worker.compileMixed(
+                  msg.op,
+                  reporter = reporterAsOption(requestId, msg.reporterMode),
+                  reportCachedProblems = msg.reporterMode.reportCachedProblems,
+                  msg.ctx, makeDeps(requestId)).asInstanceOf[input.Response]
+              case msg: ClientToServer.ScaladocJar =>
+                worker.scaladocJar(msg.op, makeCompilerBridge(requestId)).asInstanceOf[input.Response]
+              case msg: ClientToServer.DiscoverTests =>
+                mill.javalib.testrunner.DiscoverTestsMain(msg.value).asInstanceOf[input.Response]
+              case msg: ClientToServer.GetTestTasks =>
+                mill.javalib.testrunner.GetTestTasksMain(msg.value).asInstanceOf[input.Response]
+              case msg: ClientToServer.DiscoverJunit5Tests =>
+                mill.javalib.testrunner.DiscoverJunit5TestsMain(
+                  msg.value
+                ).asInstanceOf[input.Response]
             }
-            writeToLocalLog(s"$requestId with data $input processed in ${result.durationPretty}")
-            result.result
           }
-
-        private def compileJava(
-            clientRequestId: MillRpcRequestId,
-            msg: ClientToServer.CompileJava
-        ): msg.Response = {
-          worker.compileJava(
-            op = msg.op,
-            reporter = reporterAsOption(clientRequestId, msg.reporterMode),
-            reportCachedProblems = msg.reporterMode.reportCachedProblems
-          )(using msg.ctx, makeDeps(clientRequestId))
-        }
-
-        private def compileMixed(
-            clientRequestId: MillRpcRequestId,
-            msg: ClientToServer.CompileMixed
-        ): msg.Response = {
-          worker.compileMixed(
-            msg.op,
-            reporter = reporterAsOption(clientRequestId, msg.reporterMode),
-            reportCachedProblems = msg.reporterMode.reportCachedProblems
-          )(using msg.ctx, makeDeps(clientRequestId))
-        }
-
-        private def docJar(
-            clientRequestId: MillRpcRequestId,
-            msg: ClientToServer.ScaladocJar
-        ): msg.Response = {
-          val compilerBridge = makeCompilerBridge(clientRequestId)
-          worker.scaladocJar(msg.op, compilerBridge)
-        }
       }
     }
-    writeToLocalLog(s"Initialized in ${result.durationPretty}.")
-    result.result
+
+    result
   }
 }
 object ZincWorkerRpcServer {

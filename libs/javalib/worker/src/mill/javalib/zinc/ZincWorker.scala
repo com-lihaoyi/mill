@@ -170,8 +170,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   def compileJava(
       op: ZincCompileJava,
       reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
-  )(using
+      reportCachedProblems: Boolean,
       ctx: ZincWorker.InvocationContext,
       deps: ZincWorker.InvocationDependencies
   ): Result[CompilationResult] = {
@@ -189,7 +188,8 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         reporter = reporter,
         reportCachedProblems = reportCachedProblems,
         incrementalCompilation = incrementalCompilation,
-        auxiliaryClassFileExtensions = Seq.empty
+        auxiliaryClassFileExtensions = Seq.empty,
+        ctx = ctx, deps = deps
       )
     }
   }
@@ -197,8 +197,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   def compileMixed(
       op: ZincCompileMixed,
       reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
-  )(using
+      reportCachedProblems: Boolean,
       ctx: ZincWorker.InvocationContext,
       deps: ZincWorker.InvocationDependencies
   ): Result[CompilationResult] = {
@@ -222,7 +221,8 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         reporter = reporter,
         reportCachedProblems = reportCachedProblems,
         incrementalCompilation = incrementalCompilation,
-        auxiliaryClassFileExtensions = auxiliaryClassFileExtensions
+        auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
+        ctx = ctx, deps = deps
       )
     }
   }
@@ -282,7 +282,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   }
 
   /** Constructs a [[ZincApi]] given the invocation context and dependencies. */
-  def api(using
+  def api(
       ctx: ZincWorker.InvocationContext,
       deps: ZincWorker.InvocationDependencies
   ): ZincApi = new ZincApi {
@@ -291,14 +291,14 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         reporter: Option[CompileProblemReporter],
         reportCachedProblems: Boolean
     ): Result[CompilationResult] =
-      self.compileJava(op, reporter, reportCachedProblems)
+      self.compileJava(op, reporter, reportCachedProblems, ctx, deps)
 
     override def compileMixed(
         op: ZincCompileMixed,
         reporter: Option[CompileProblemReporter],
         reportCachedProblems: Boolean
     ): Result[CompilationResult] =
-      self.compileMixed(op, reporter, reportCachedProblems)
+      self.compileMixed(op, reporter, reportCachedProblems, ctx, deps)
 
     override def scaladocJar(op: ZincScaladocJar): Boolean =
       self.scaladocJar(op, deps.compilerBridge)
@@ -351,8 +351,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
-      zincCache: os.SubPath = os.sub / "zinc"
-  )(using
+      zincCache: os.SubPath = os.sub / "zinc",
       ctx: ZincWorker.InvocationContext,
       deps: ZincWorker.InvocationDependencies
   ): Result[CompilationResult] = {

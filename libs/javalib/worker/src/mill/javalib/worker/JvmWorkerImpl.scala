@@ -232,6 +232,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       compilerBridge
     )
 
-    zincLocalWorker.api(using zincCtx, zincDeps)
+    zincLocalWorker.api(zincCtx, zincDeps)
   }
 }
