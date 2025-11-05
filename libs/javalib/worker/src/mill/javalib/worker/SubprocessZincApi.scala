@@ -22,13 +22,13 @@ class SubprocessZincApi(
     ctx: ZincWorker.InvocationContext,
     log: Logger,
     subprocessCache: CachedFactoryWithInitData[
-      SubprocessCacheKey,
-      SubprocessCacheInitialize,
-      SubprocessCacheValue
+      SubprocessZincApi.Key,
+      SubprocessZincApi.Initialize,
+      SubprocessZincApi.Value
     ],
     compilerBridge: ZincCompilerBridgeProvider
 ) extends ZincApi {
-  val cacheKey = SubprocessCacheKey(javaHome, runtimeOptions)
+  val cacheKey = SubprocessZincApi.Key(javaHome, runtimeOptions)
 
   def makeClientLogger() = new Logger.Actions {
     override def info(s: String): Unit = log.info(s)
@@ -41,8 +41,6 @@ class SubprocessZincApi(
   /** Handles messages sent from the Zinc RPC server. */
   private def serverRpcToClientHandler(
       reporter: Option[CompileProblemReporter],
-      log: Logger,
-      cacheKey: SubprocessCacheKey
   ): MillRpcChannel[ZincWorkerRpcServer.ServerToClient] = {
     input =>
       input match {
@@ -82,8 +80,8 @@ class SubprocessZincApi(
   ): op.Response = {
     subprocessCache.withValue(
       cacheKey,
-      SubprocessCacheInitialize(compilerBridge.workspace, log)
-    ) { case SubprocessCacheValue(port, daemonDir, _) =>
+      SubprocessZincApi.Initialize(compilerBridge.workspace, log)
+    ) { case SubprocessZincApi.Value(port, daemonDir, _) =>
       Using.Manager { use =>
         val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), port)
         val debugName =
@@ -110,7 +108,7 @@ class SubprocessZincApi(
               ZincWorkerRpcServer.Initialize,
               ZincWorkerRpcServer.Request,
               ZincWorkerRpcServer.ServerToClient
-            ](init, wireTransport, makeClientLogger())(serverRpcToClientHandler(reporter, log, cacheKey))
+            ](init, wireTransport, makeClientLogger())(serverRpcToClientHandler(reporter))
 
             client.apply(ZincWorkerRpcServer.Request(
               op,
@@ -126,7 +124,9 @@ class SubprocessZincApi(
     }
   }
 }
+object SubprocessZincApi {
 
-case class SubprocessCacheKey(javaHome: Option[os.Path], runtimeOptions: Seq[String])
-case class SubprocessCacheInitialize(taskDest: os.Path, log: Logger)
-case class SubprocessCacheValue(port: Int, daemonDir: os.Path, launchedServer: LaunchedServer)
+  case class Key(javaHome: Option[os.Path], runtimeOptions: Seq[String])
+  case class Initialize(taskDest: os.Path, log: Logger)
+  case class Value(port: Int, daemonDir: os.Path, launchedServer: LaunchedServer)
+}

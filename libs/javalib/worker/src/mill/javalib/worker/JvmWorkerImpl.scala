@@ -57,16 +57,16 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
   }
 
   private val subprocessCache = new CachedFactoryWithInitData[
-    SubprocessCacheKey,
-    SubprocessCacheInitialize,
-    SubprocessCacheValue
+    SubprocessZincApi.Key,
+    SubprocessZincApi.Initialize,
+    SubprocessZincApi.Value
   ] {
     override def maxCacheSize: Int = jobs
 
     override def cacheEntryStillValid(
-        key: SubprocessCacheKey,
-        initData: => SubprocessCacheInitialize,
-        value: SubprocessCacheValue
+                                       key: SubprocessZincApi.Key,
+                                       initData: => SubprocessZincApi.Initialize,
+                                       value: SubprocessZincApi.Value
     ): Boolean = value.launchedServer.isAlive
 
     private var memoryLocksByDaemonDir = Map.empty[os.Path, MemoryLock]
@@ -82,10 +82,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       }
     }
 
-    override def setup(
-        key: SubprocessCacheKey,
-        init: SubprocessCacheInitialize
-    ): SubprocessCacheValue = {
+    override def setup(key: SubprocessZincApi.Key, init: SubprocessZincApi.Initialize): SubprocessZincApi.Value = {
 
       val workerDir = init.taskDest / "zinc-worker" / key.hashCode.toString
       val daemonDir = workerDir / "daemon"
@@ -136,14 +133,14 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         false // openSocket
       )
 
-      SubprocessCacheValue(launched.port, daemonDir, launched.launchedServer)
+      SubprocessZincApi.Value(launched.port, daemonDir, launched.launchedServer)
     }
 
-    override def teardown(key: SubprocessCacheKey, value: SubprocessCacheValue): Unit = {
+    override def teardown(key: SubprocessZincApi.Key, value: SubprocessZincApi.Value): Unit = {
       os.remove(value.daemonDir / DaemonFiles.processId)
       while (value.launchedServer.isAlive) Thread.sleep(1)
 
-      // On Windows it takes some time until the file handles are released, so we have 
+      // On Windows it takes some time until the file handles are released, so we have
       // to wait for that as well.
       if (scala.util.Properties.isWin) {
         val daemonLock = value.daemonDir / DaemonFiles.daemonLock
