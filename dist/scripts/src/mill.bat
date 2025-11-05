@@ -93,6 +93,7 @@ rem without bat file extension, cmd doesn't seem to be able to run it
 
 set "MILL_NATIVE_SUFFIX=-native"
 set "MILL_JVM_SUFFIX=-jvm"
+set "MILL_FULL_VERSION=%MILL_VERSION%"
 set "MILL_DOWNLOAD_EXT=.bat"
 set "ARTIFACT_SUFFIX="
 REM Check if MILL_VERSION contains MILL_NATIVE_SUFFIX
@@ -139,7 +140,7 @@ if !errorlevel! equ 0 (
     )
 )
 
-set MILL=%MILL_FINAL_DOWNLOAD_FOLDER%\!FULL_MILL_VERSION!!MILL_DOWNLOAD_EXT!
+set MILL=%MILL_FINAL_DOWNLOAD_FOLDER%\!MILL_FULL_VERSION!!MILL_DOWNLOAD_EXT!
 
 set MILL_RESOLVE_DOWNLOAD=
 
