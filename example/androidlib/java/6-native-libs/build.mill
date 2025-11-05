@@ -54,13 +54,12 @@ object app extends AndroidNativeAppModule { // <1>
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  object release extends AndroidReleaseModule, AndroidNativeAppVariantModule
-
-  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
-
+  object release extends AndroidReleaseModule, AndroidNativeAppVariantModule {
+    def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+    def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+    def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+    def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+  }
 }
 
 // <1> You need to extend AndroidNativeLibs trait to use native libraries in the app.

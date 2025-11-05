@@ -76,12 +76,12 @@ object app extends AndroidAppKotlinModule {
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  object release extends AndroidKotlinReleaseModule
-
-  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+  object release extends AndroidKotlinReleaseModule {
+    def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+    def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+    def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+    def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+  }
 }
 
 //// SNIPPET:END

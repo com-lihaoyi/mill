@@ -894,16 +894,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   trait AndroidReleaseModule extends AndroidAppVariantModule, AndroidAppModule {
-    override def androidReleaseKeyAlias: T[Option[String]] = outer.androidReleaseKeyAlias()
-
-    override def androidReleaseKeyName: Option[String] = outer.androidReleaseKeyName
-
-    override def androidReleaseKeyPass: T[Option[String]] = outer.androidReleaseKeyPass()
-
-    override def androidReleaseKeyStorePass: T[Option[String]] = outer.androidReleaseKeyStorePass()
-
-    override def androidReleaseKeyPath: T[Seq[PathRef]] = outer.androidReleaseKeyPath()
-
     override def androidIsDebug: T[Boolean] = Task { false }
   }
 
