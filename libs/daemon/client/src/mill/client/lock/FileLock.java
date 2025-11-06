@@ -1,6 +1,5 @@
 package mill.client.lock;
 
-import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 
@@ -10,13 +9,17 @@ public class FileLock extends Lock {
   private FileChannel chan;
   private final String path;
 
-  public void initialize() throws Exception {
-    raf = new RandomAccessFile(path, "rw");
-    chan = raf.getChannel();
+  // Sometimes thread interruption causing these files or channels to be
+  // closed unexpectedly, so if that happens just re-open them before use
+  public void initializeIfNeeded() throws Exception {
+    if (chan == null || !chan.isOpen()) {
+      raf = new RandomAccessFile(path, "rw");
+      chan = raf.getChannel();
+    }
   }
   public FileLock(String path) throws Exception {
     this.path = path;
-    initialize();
+    initializeIfNeeded();
   }
 
   @Override
@@ -26,19 +29,19 @@ public class FileLock extends Lock {
 
   @Override
   public Locked lock() throws Exception {
-    if (!chan.isOpen()) initialize();
+    initializeIfNeeded();
     return new FileLocked(chan.lock());
   }
 
   @Override
   public TryLocked tryLock() throws Exception {
-    if (!chan.isOpen()) initialize();
+    initializeIfNeeded();
     return new FileTryLocked(chan.tryLock());
   }
 
   @Override
   public boolean probe() throws Exception {
-    if (!chan.isOpen()) initialize();
+    initializeIfNeeded();
     var l = chan.tryLock();
     if (l == null) return false;
     else {
