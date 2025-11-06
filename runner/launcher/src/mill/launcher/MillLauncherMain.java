@@ -125,9 +125,12 @@ public class MillLauncherMain {
         for (int i = 0; i < maxRetries && exitCode == ClientUtil.ServerExitPleaseRetry(); i++) {
           exitCode = launcher.run(daemonDir, javaHome, log);
         }
+        if (exitCode == ClientUtil.ServerExitPleaseRetry()){
+          System.err.println("Max launcher retries exceeded (" + maxRetries + "), exiting");
+        }
         System.exit(exitCode);
       } catch (Exception e) {
-        System.err.println("Mill client failed with unknown exception.");
+        System.err.println("Mill launcher failed with unknown exception.");
         System.err.println();
 
         System.err.println("Exception:");
