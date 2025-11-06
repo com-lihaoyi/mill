@@ -7,15 +7,6 @@ import java.nio.file.Path;
 import java.util.*;
 
 public class ClientUtil {
-  // use methods instead of constants to avoid inlining by compiler
-  public static int ExitClientCodeCannotReadFromExitCodeFile() {
-    return 1;
-  }
-
-  public static int ExitServerCodeWhenIdle() {
-    return 0;
-  }
-
   public static int ExitServerCodeWhenVersionMismatch() {
     return 101;
   }

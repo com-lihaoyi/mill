@@ -18,5 +18,5 @@ def main(startArticle: String, depth: Int) = {
     seen = seen ++ current
   }
 
-  pprint.log(seen)
+  pprint.log(seen, height = Int.MaxValue)
 }
