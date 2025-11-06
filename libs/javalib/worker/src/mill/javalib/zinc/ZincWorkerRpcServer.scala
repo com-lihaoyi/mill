@@ -4,7 +4,7 @@ import mill.api.JsonFormatters.*
 import mill.api.daemon.Logger
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.internal.*
-import mill.javalib.internal.{RpcCompileProblemReporterMessage, ZincCompilerBridgeProvider}
+import mill.javalib.internal.{RpcProblemMessage, ZincCompilerBridgeProvider}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.rpc.*
 import mill.server.Server
@@ -45,14 +45,11 @@ class ZincWorkerRpcServer(
       override def flush(): Unit = clientStderr.flush()
     })
 
-    def reporter(maxErrors: Int) = RpcCompileProblemReporter(
-      maxErrors = maxErrors,
-      send = msg => serverToClient(ServerToClient.ReportCompilationProblem(msg))
-    )
-
     def reporterAsOption(mode: ReporterMode): Option[CompileProblemReporter] = mode match {
       case ReporterMode.NoReporter => None
-      case r: ReporterMode.Reporter => Some(reporter(maxErrors = r.maxErrors))
+      case r: ReporterMode.Reporter =>
+        def send(msg: RpcProblemMessage) = serverToClient(ServerToClient.ReportProblem(msg))
+        Some(RpcCompileProblemReporter(r.maxErrors, send))
     }
 
     new MillRpcChannel[ZincWorkerRpcServer.Request] {
@@ -96,11 +93,8 @@ object ZincWorkerRpcServer {
         extends ReporterMode(reportCachedProblems0)
   }
 
-  case class Request(
-      op: ZincOp,
-      reporterMode: ReporterMode,
-      ctx: ZincWorker.LocalConfig
-  ) extends MillRpcChannel.Message derives upickle.ReadWriter {
+  case class Request(op: ZincOp, reporterMode: ReporterMode, ctx: ZincWorker.LocalConfig)
+      extends MillRpcChannel.Message derives upickle.ReadWriter {
     type Response = op.Response
   }
 
@@ -111,7 +105,7 @@ object ZincWorkerRpcServer {
       override type Response = ZincCompilerBridgeProvider.AcquireResult[os.Path]
     }
 
-    case class ReportCompilationProblem(problem: RpcCompileProblemReporterMessage)
+    case class ReportProblem(problem: RpcProblemMessage)
         extends ServerToClient, MillRpcChannel.Message {
       type Response = Unit
     }
