@@ -245,7 +245,7 @@ abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.
       @volatile var done = false
       @volatile var idle = false
       @volatile var writingExceptionLog = false
-      
+
       val t = StartThread(connectionHandlerThreadName(clientSocket)) {
         var result: Option[HandleConnectionData] = None
         try {
@@ -256,7 +256,7 @@ abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.
                 stopServer("connection handler", reason, exitCode, Some(data)),
             setIdle = idle = _,
             data = data
-          )
+          ))
         } catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
           case e: Throwable =>

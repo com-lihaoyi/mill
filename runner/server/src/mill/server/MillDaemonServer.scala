@@ -3,12 +3,8 @@ package mill.server
 import mill.api.daemon.SystemStreams
 import mill.client.*
 import mill.client.lock.{Lock, Locks}
-<<<<<<< HEAD
 import mill.constants.{OutFiles, ProxyStream}
 import mill.server.MillDaemonServer.DaemonServerData
-=======
-import mill.constants.OutFiles
->>>>>>> main
 import mill.server.Server.ConnectionData
 
 import java.io.*
@@ -158,7 +154,7 @@ abstract class MillDaemonServer[State](
     System.out.flush()
     System.err.flush()
 
-    if (!data.exists(_.writtenExitCode.getAndSet() == true)) {
+    if (!data.exists(_.writtenExitCode.getAndSet(true) == true)) {
       ProxyStream.sendEnd(connectionData.serverToClient, result.getOrElse(1))
     }
   }
