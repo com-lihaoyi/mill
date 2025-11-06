@@ -236,7 +236,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
         renderModuleDep
       ),
       renderMemberAsSeq("runModuleDeps", runModuleDeps, cross(_.runModuleDeps), renderModuleDep),
-      renderTaskAsSeq("javacOptions", javacOptions, cross(_.javacOptions), literalize(_)),
+      renderTaskAsOpts("javacOptions", javacOptions, cross(_.javacOptions), literalize(_)),
       renderTask("artifactName", artifactName, cross(_.artifactName), literalize(_))
     )
   }
@@ -287,7 +287,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
         cross(_.errorProneOptions),
         literalize(_)
       ),
-      renderTaskAsSeq(
+      renderTaskAsOpts(
         "errorProneJavacEnableOptions",
         errorProneJavacEnableOptions,
         cross(_.errorProneJavacEnableOptions),
@@ -302,7 +302,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     import config.*
     renderBlocks(
       renderTask("scalaVersion", scalaVersion, cross(_.scalaVersion), literalize(_)),
-      renderTaskAsSeq("scalacOptions", scalacOptions, cross(_.scalacOptions), literalize(_)),
+      renderTaskAsOpts("scalacOptions", scalacOptions, cross(_.scalacOptions), literalize(_)),
       renderTaskAsSeq(
         "scalacPluginMvnDeps",
         scalacPluginMvnDeps,
@@ -586,6 +586,36 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
     if (value.isEmpty && crossValues0.isEmpty) ""
     else {
       def renderSeq(value: Seq[A]) = value.map(renderValue).mkString("Seq(", ", ", ")")
+      s"def $name = super.$name()" + {
+        if (value.isEmpty) "" else " ++ " + renderSeq(value)
+      } + {
+        if (crossValues0.isEmpty) ""
+        else {
+          val crossCases = crossValues0.groupMap(_._2)(_._1).toSeq.sortBy(_._2).map {
+            (value, crosses) =>
+              val matchValues = crosses.sorted.map(literalize(_)).mkString(" | ")
+              s"case $matchValues => ${renderSeq(value)}"
+          }
+          s""" ++ ($renderCrossValueInTask match {
+             |  ${renderLines(crossCases)}
+             |  case _ => Nil
+             |})""".stripMargin
+        }
+      }
+    }
+  }
+
+  private def renderTaskAsOpts[A](
+      name: String,
+      value: Seq[A],
+      crossValues: Seq[(String, Seq[A])],
+      renderValue: A => String
+  ) = {
+    val crossValues0 = crossValues.filter(_._2.nonEmpty)
+    if (value.isEmpty && crossValues0.isEmpty) ""
+    else {
+      def renderSeq(value: Seq[A]) = value.map(renderValue).mkString("Opts(", ", ", ")")
+
       s"def $name = super.$name()" + {
         if (value.isEmpty) "" else " ++ " + renderSeq(value)
       } + {
