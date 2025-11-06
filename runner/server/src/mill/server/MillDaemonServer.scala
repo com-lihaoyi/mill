@@ -166,6 +166,8 @@ abstract class MillDaemonServer[State](
 
   def systemExit(exitCode: Int): Nothing = sys.exit(exitCode)
 
+  def exitCodeServerTerminated: Int = 111
+
   def main0(
       args: Array[String],
       stateCache: State,

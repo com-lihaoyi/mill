@@ -60,6 +60,9 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
 
   def systemExit(exitCode: Handled): Nothing
 
+  /** Exit code to send to other clients when server is terminated while handling a request */
+  def exitCodeServerTerminated: Handled
+
   def connectionHandlerThreadName(socket: Socket): String =
     s"ConnectionHandler(${getClass.getName}, ${socket.getInetAddress}:${socket.getPort})"
 
@@ -149,13 +152,12 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
           // complete, to allow other client connections to be processed in parallel
           StartThread(s"HandleRunThread-${sock.toString}") {
             try {
-              connectionTracker.increment()
-              runSocketHandler(sock, initialSystemProperties, closeServer(_))
+              runSocketHandler(sock, initialSystemProperties, closeServer(_), connectionTracker)
             } catch {
               case e: Throwable =>
                 serverLog(s"${sock.toString} error: $e\n${e.getStackTrace.mkString("\n")}")
             } finally {
-              connectionTracker.decrement()
+              connectionTracker.decrement(sock)
               sock.close()
             }
           }
@@ -169,7 +171,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
   def runSocketHandler(
       clientSocket: Socket,
       initialSystemProperties: Map[String, String],
-      closeServer0: Option[Handled] => Unit
+      closeServer0: Option[Handled] => Unit,
+      connectionTracker: Server.ConnectionTracker
   ): Unit = {
     val connectionData = ConnectionData(
       clientSocket.toString,
@@ -194,6 +197,12 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     }
 
     val data = prepareConnection(connectionData, closeServer(_, _, None))
+
+    // Register this connection with the tracker, providing a callback to close it
+    connectionTracker.increment(
+      clientSocket,
+      () => endConnection(connectionData, Some(data), Some(exitCodeServerTerminated))
+    )
 
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
     // detect client-side connection closing, so instead we send a no-op heartbeat
@@ -246,6 +255,11 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
 
       if (!idle) {
         serverLog("client interrupted while server was executing command")
+        // Close all other connected clients with exitCodeServerTerminated so they can retry
+        connectionTracker.closeOtherConnections(clientSocket)
+        // Gracefully close the current client connection
+        endConnection(connectionData, Some(data), None)
+        // Shut down the server
         closeServer0(None)
       }
 
@@ -263,23 +277,37 @@ object Server {
       acceptTimeoutMillisOpt: Option[Long],
       serverSocket: ServerSocket
   ) {
-    private var activeConnections = 0
     private var inactiveTimestampOpt: Option[Long] = None
+    private var connections = Map.empty[Socket, () => Unit]
 
     def wrap(block: => Unit): Unit = synchronized {
       if (!serverSocket.isClosed) block
     }
 
-    def increment(): Unit = wrap {
-      activeConnections += 1
-      serverLog(s"$activeConnections active connections")
+    def closeOtherConnections(currentSocket: Socket): Unit = synchronized {
+      val others = connections.filterKeys(_ != currentSocket)
+      serverLog(s"closing ${others.size} other connection(s)")
+      others.foreach { case (sock, closeCallback) =>
+        try {
+          closeCallback()
+          serverLog(s"closed connection ${sock.toString}")
+        } catch {
+          case NonFatal(e) =>
+            serverLog(s"error closing connection ${sock.toString}: $e")
+        }
+      }
+    }
+
+    def increment(socket: Socket, closeCallback: () => Unit): Unit = wrap {
+      connections += (socket -> closeCallback)
+      serverLog(s"${connections.size} active connections")
       inactiveTimestampOpt = None
     }
 
-    def decrement(): Unit = wrap {
-      activeConnections -= 1
-      serverLog(s"$activeConnections active connections")
-      if (activeConnections == 0) inactiveTimestampOpt = Some(System.currentTimeMillis())
+    def decrement(socket: Socket): Unit = wrap {
+      connections -= socket
+      serverLog(s"${connections.size} active connections")
+      if (connections.isEmpty) inactiveTimestampOpt = Some(System.currentTimeMillis())
     }
 
     def closeIfTimedOut(): Unit = wrap {
