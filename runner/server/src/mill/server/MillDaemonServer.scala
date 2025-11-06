@@ -33,8 +33,9 @@ abstract class MillDaemonServer[State](
       testLogEvenWhenServerIdWrong = testLogEvenWhenServerIdWrong,
       bufferSize = 4 * 1024
     )) {
+
   def outLock: mill.client.lock.Lock
-  def out: os.Path
+  def outFolder: os.Path
 
   private var stateCache: State = initialStateCache
 
@@ -89,7 +90,7 @@ abstract class MillDaemonServer[State](
       MillDaemonServer.withOutLock(
         noBuildLock = false,
         noWaitForBuildLock = false,
-        out = out,
+        out = outFolder,
         millActiveCommandMessage = "checking server mill version and java version",
         streams = new mill.api.daemon.SystemStreams(
           new PrintStream(mill.api.daemon.DummyOutputStream),

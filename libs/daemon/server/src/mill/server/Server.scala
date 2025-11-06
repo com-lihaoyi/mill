@@ -19,7 +19,7 @@ import scala.util.control.NonFatal
  * Implementation of a server that binds to a random port, informs a client of the port, and accepts a client
  * connections.
  */
-abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.Args) {
+abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
   import args.*
 
   val processId: Long = Server.computeProcessId()
@@ -44,26 +44,26 @@ abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.
   def prepareConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer
-  ): PrepareConnectionData
+  ): PrepareResult
 
   def handleConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer,
       setIdle: Server.SetIdle,
-      data: PrepareConnectionData
-  ): HandleConnectionData
+      data: PrepareResult
+  ): HandleResult
 
   def endConnection(
       connectionData: ConnectionData,
-      data: Option[PrepareConnectionData],
-      result: Option[HandleConnectionData]
+      data: Option[PrepareResult],
+      result: Option[HandleResult]
   ): Unit
 
   def connectionHandlerThreadName(socket: Socket): String =
     s"ConnectionHandler($handlerName, ${socket.getInetAddress}:${socket.getPort})"
 
   /** Returns true if the client is still alive. Invoked from another thread. */
-  def checkIfClientAlive(connectionData: ConnectionData, data: PrepareConnectionData): Boolean
+  def checkIfClientAlive(connectionData: ConnectionData, data: PrepareResult): Boolean
 
   def run(): Unit = {
     serverLog(s"running server in $daemonDir")
@@ -208,7 +208,7 @@ abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.
         from: String,
         reason: String,
         exitCode: Int,
-        data: Option[PrepareConnectionData]
+        data: Option[PrepareResult]
     ): Nothing = {
       serverLog(s"$from invoked `stopServer` (reason: $reason), exitCode $exitCode")
       endConnection(connectionData, data, None)
@@ -246,10 +246,9 @@ abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.
     try {
       @volatile var done = false
       @volatile var idle = false
-      
 
       val t = StartThread(connectionHandlerThreadName(clientSocket)) {
-        var result: Option[HandleConnectionData] = None
+        var result: Option[HandleResult] = None
         try {
           result = Some(handleConnection(
             connectionData,

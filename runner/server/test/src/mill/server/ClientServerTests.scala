@@ -35,7 +35,7 @@ object ClientServerTests extends TestSuite {
 
     override def outLock = mill.client.lock.Lock.memory()
 
-    override def out = os.temp.dir()
+    override def outFolder = os.temp.dir()
 
     def initialStateCache = None
 
