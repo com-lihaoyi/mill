@@ -59,15 +59,15 @@ private[mill] class PromptLogger(
 
   private object runningState extends RunningState(
         enableTicker,
-        () => promptUpdaterThread.interrupt(),
+        () => promptUpdaterThread.foreach(_.interrupt()),
         clearOnPause = () => streamManager.refreshPrompt(),
         synchronizer = this
       )
 
   if (enableTicker) refreshPrompt()
 
-  val promptUpdaterThread = new Thread(
-    () => {
+  val promptUpdaterThread = Option.when(enableTicker && autoUpdate) {
+    mill.api.daemon.StartThread("prompt-logger-updater-thread") {
       var lastUpdate = System.currentTimeMillis()
       while (!runningState.stopped) {
         try Thread.sleep(promptUpdateIntervalMillis)
@@ -88,16 +88,13 @@ private[mill] class PromptLogger(
           }
         }
       }
-    },
-    "prompt-logger-updater-thread"
-  )
+    }
+  }
 
   def refreshPrompt(ending: Boolean = false): Unit = synchronized {
     val updated = promptLineState.updatePrompt(ending)
     if (updated || ending) streamManager.refreshPrompt()
   }
-
-  if (enableTicker && autoUpdate) promptUpdaterThread.start()
 
   def info(s: String): Unit = streams.err.println(s)
 
@@ -213,7 +210,7 @@ private[mill] class PromptLogger(
 
     // Needs to be outside the lock so we don't deadlock with `promptUpdaterThread`
     // trying to take the lock one last time to check running/paused status before exiting
-    promptUpdaterThread.join()
+    promptUpdaterThread.foreach(_.join())
     prompt.endChromeProfileEntry()
     chromeProfileLogger.close()
   }
