@@ -30,7 +30,7 @@ object ZincWorkerMain {
     }
   }
 
-  private class ZincWorkerTcpServer(daemonDir: os.Path, jobs: Int) extends Server(Server.Args(
+  private class ZincWorkerTcpServer(daemonDir: os.Path, jobs: Int) extends Server[WriteSynchronizer, Unit](Server.Args(
         daemonDir,
         acceptTimeout = None, // The worker kills the process when it needs to.
         Locks.files(daemonDir.toString),
@@ -47,8 +47,6 @@ object ZincWorkerMain {
     private val worker = ZincWorker(jobs = jobs)
 
     class WriteSynchronizer
-
-    override type PrepareConnectionData = WriteSynchronizer
 
     override def prepareConnection(
         connectionData: ConnectionData,
@@ -83,9 +81,10 @@ object ZincWorkerMain {
       }.get
     }
 
-    override def writeExitCode(
+    override def endConnection(
         connectionData: ConnectionData,
-        writeSynchronizer: WriteSynchronizer
+        writeSynchronizer: WriteSynchronizer,
+        result: Option[Unit]
     ): Unit = {}
 
     override def checkIfClientAlive(

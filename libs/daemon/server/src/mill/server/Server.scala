@@ -19,7 +19,7 @@ import scala.util.control.NonFatal
  * Implementation of a server that binds to a random port, informs a client of the port, and accepts a client
  * connections.
  */
-abstract class Server(args: Server.Args) {
+abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.Args) {
   import args.*
 
   val processId: Long = Server.computeProcessId()
@@ -41,28 +41,21 @@ abstract class Server(args: Server.Args) {
   def serverLog(s: String): Unit =
     serverLog0(s"pid:$processId ${timestampStr()} [t${Thread.currentThread().getId}] $s")
 
-  type PrepareConnectionData
-
-  /**
-   * Invoked before a thread that runs [[handleConnection]] is spawned.
-   */
   def prepareConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer
   ): PrepareConnectionData
 
-  /**
-   * Handle a single client connection in a separate thread.
-   */
   def handleConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer,
       setIdle: Server.SetIdle,
       data: PrepareConnectionData
-  ): Unit
+  ): HandleConnectionData
 
-  /** Invoked in [[handleConnection]] results in an exception. */
-  def writeExitCode(connectionData: ConnectionData, data: PrepareConnectionData): Unit
+  def endConnection(connectionData: ConnectionData, 
+                    data: PrepareConnectionData,
+                    result: Option[HandleConnectionData]): Unit
 
   def connectionHandlerThreadName(socket: Socket): String =
     s"ConnectionHandler($handlerName, ${socket.getInetAddress}:${socket.getPort})"
@@ -229,7 +222,7 @@ abstract class Server(args: Server.Args) {
         data: Option[PrepareConnectionData]
     ): Nothing = {
       serverLog(s"$from invoked `stopServer` (reason: $reason), exitCode $exitCode")
-      onStopServer(from, reason, exitCode, connectionData, data)
+      endConnection(connectionData, data, None)
       systemExit0(reason, exitCode)
     }
 
@@ -265,15 +258,18 @@ abstract class Server(args: Server.Args) {
       @volatile var done = false
       @volatile var idle = false
       @volatile var writingExceptionLog = false
+      
       val t = StartThread(connectionHandlerThreadName(clientSocket)) {
+        var result: Option[HandleConnectionData] = None
         try {
-          handleConnection(
+          result = Some(handleConnection(
             connectionData,
             stopServer =
               (reason, exitCode) =>
                 stopServer("connection handler", reason, exitCode, Some(data)),
             setIdle = idle = _,
             data = data
+          )
           )
         } catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
@@ -285,8 +281,8 @@ abstract class Server(args: Server.Args) {
             writingExceptionLog = true
             serverLog(msg)
 
-            writeExitCode(connectionData, data)
         } finally {
+          endConnection(connectionData, data, result)
           done = true
           idle = true
         }
@@ -321,7 +317,7 @@ abstract class Server(args: Server.Args) {
         case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
         // ignore this error and do nothing; seems benign
       }
-    } finally writeExitCode(connectionData, data)
+    } finally endConnection(connectionData, data, None)
   }
 }
 object Server {

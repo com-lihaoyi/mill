@@ -4,6 +4,7 @@ import mill.api.daemon.SystemStreams
 import mill.client.*
 import mill.client.lock.{Lock, Locks}
 import mill.constants.{OutFiles, ProxyStream}
+import mill.server.MillDaemonServer.DaemonServerData
 import mill.server.Server.ConnectionData
 
 import java.io.*
@@ -25,7 +26,7 @@ abstract class MillDaemonServer[State](
     acceptTimeout: FiniteDuration,
     locks: Locks,
     testLogEvenWhenServerIdWrong: Boolean = false
-) extends Server(Server.Args(
+) extends Server[DaemonServerData, Int](Server.Args(
       daemonDir = daemonDir,
       acceptTimeout = Some(acceptTimeout),
       locks = locks,
@@ -46,15 +47,6 @@ abstract class MillDaemonServer[State](
   override def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
 
-  override type PrepareConnectionData = DaemonServerData
-
-  case class DaemonServerData(
-      stdout: PrintStream,
-      stderr: PrintStream,
-      writtenExitCode: AtomicBoolean,
-      customData: ClientInitData
-  )
-
   def writeExitCode(
       serverToClient: BufferedOutputStream,
       exitCode: Int,
@@ -65,22 +57,10 @@ abstract class MillDaemonServer[State](
 
   override def checkIfClientAlive(
       connectionData: ConnectionData,
-      data: PrepareConnectionData
+      data: DaemonServerData
   ): Boolean = {
     ProxyStream.sendHeartbeat(connectionData.serverToClient)
     true
-  }
-
-  override def onStopServer(
-      from: String,
-      reason: String,
-      exitCode: Int,
-      connectionData: ConnectionData,
-      data: Option[PrepareConnectionData]
-  ): Unit = {
-    // Notify the client that the server is shutting down with the given exit code
-    val writtenExitCode = data.fold(new AtomicBoolean(false))(_.writtenExitCode)
-    writeExitCode(connectionData.serverToClient, exitCode, writtenExitCode)
   }
 
   /**
@@ -89,7 +69,7 @@ abstract class MillDaemonServer[State](
   override final def prepareConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer
-  ): PrepareConnectionData = {
+  ): DaemonServerData = {
     val stdout =
       new PrintStream(
         new ProxyStream.Output(connectionData.serverToClient, ProxyStream.OUT),
@@ -154,8 +134,8 @@ abstract class MillDaemonServer[State](
       connectionData: ConnectionData,
       stopServer: Server.StopServer,
       setIdle: Server.SetIdle,
-      data: PrepareConnectionData
-  ): Unit = {
+      data: DaemonServerData
+  ): Int = {
     val (result, newStateCache) = main0(
       data.customData.args,
       stateCache,
@@ -172,9 +152,23 @@ abstract class MillDaemonServer[State](
     val exitCode = if (result) 0 else 1
 
     serverLog(s"connection handler finished, sending exitCode $exitCode to client")
-    writeExitCode(connectionData.serverToClient, exitCode, data.writtenExitCode)
+    exitCode
   }
 
+
+  override def endConnection(connectionData: ConnectionData,
+                             data: Option[DaemonServerData],
+                             result: Option[Int]): Unit = {
+    // flush before closing the socket
+    System.out.flush()
+    System.err.flush()
+
+    writeExitCode(
+      connectionData.serverToClient,
+      result.getOrElse(1),
+      data.fold(new AtomicBoolean(false)(_.writtenExitCode)
+      )
+  }
   def main0(
       args: Array[String],
       stateCache: State,
@@ -187,17 +181,15 @@ abstract class MillDaemonServer[State](
       stopServer: Server.StopServer
   ): (Boolean, State)
 
-  override def writeExitCode(connectionData: ConnectionData, data: DaemonServerData): Unit = {
-    // flush before closing the socket
-    System.out.flush()
-    System.err.flush()
-
-    writeExitCode(connectionData.serverToClient, 1, data.writtenExitCode)
-  }
 }
 
 object MillDaemonServer {
-
+  case class DaemonServerData(
+                               stdout: PrintStream,
+                               stderr: PrintStream,
+                               writtenExitCode: AtomicBoolean,
+                               customData: ClientInitData
+                             )
   def withOutLock[T](
       noBuildLock: Boolean,
       noWaitForBuildLock: Boolean,
