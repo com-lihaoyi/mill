@@ -158,6 +158,8 @@ abstract class MillDaemonServer[State](
 
     if (!data.exists(_.writtenExitCode.getAndSet(true) == true)) {
       ProxyStream.sendEnd(connectionData.serverToClient, result.getOrElse(1))
+      connectionData.serverToClient.flush()
+      connectionData.serverToClient.close()
     }
   }
 

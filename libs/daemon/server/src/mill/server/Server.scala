@@ -192,8 +192,14 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     val connectionData =
       ConnectionData(socketInfo, clientToServer, serverToClient, initialSystemProperties)
 
+    val connExitCodeVar = new java.util.concurrent.atomic.AtomicReference[Option[Handled]](None)
+
     def closeServer(reason: String, exitCode: Handled, data: Option[Prepared]) = {
-      serverLog(s"`systemExit` invoked ($reason), shutting down with exit code $exitCode")
+      serverLog(
+        s"`systemExit` invoked ($reason), ending connection and " + 
+          s"shutting down server with exit code $exitCode"
+      )
+      
       endConnection(connectionData, data, Some(exitCode))
       closeServer0(Some(exitCode))
     }
@@ -222,13 +228,26 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       result
     }
 
+
     try {
       @volatile var done = false
       @volatile var idle = false
 
       StartThread(connectionHandlerThreadName(clientSocket)) {
-        try handleConnection(connectionData, closeServer(_, _, Some(data)), idle = _, data)
-        catch {
+
+        try {
+          connExitCodeVar.compareAndSet(
+            None,
+            Some(handleConnection(
+              connectionData,
+              stopServer =
+                (reason, exitCode) =>
+                  closeServer(s"connection handler $reason", exitCode, Some(data)),
+              setIdle = idle = _,
+              data = data
+            ))
+          )
+        } catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
           case e: Throwable =>
             serverLog(
@@ -253,7 +272,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       }
 
       serverLog(s"done=$done, idle=$idle, lastClientAlive=$lastClientAlive")
-    } finally endConnection(connectionData, Some(data), None)
+    } finally endConnection(connectionData, Some(data), connExitCodeVar.get())
   }
 }
 
