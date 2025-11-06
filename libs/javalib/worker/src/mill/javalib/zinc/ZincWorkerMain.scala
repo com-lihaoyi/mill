@@ -49,12 +49,12 @@ object ZincWorkerMain {
 
     override def prepareConnection(
         connectionData: ConnectionData,
-        stopServer: Server.StopServer
+        stopServer: Server.StopServer0[Unit]
     ): Object = new Object
 
     override def handleConnection(
         connectionData: ConnectionData,
-        stopServer: Server.StopServer,
+        stopServer: Server.StopServer0[Unit],
         setIdle: Server.SetIdle,
         writeSynchronizer: Object
     ) = {
@@ -86,7 +86,7 @@ object ZincWorkerMain {
         result: Option[Unit]
     ): Unit = {}
 
-    def systemExit(exitCode: Int): Nothing = ???
+    def systemExit(exitCode: Unit): Nothing = ???
     
     override def checkIfClientAlive(
         connectionData: ConnectionData,

@@ -19,7 +19,7 @@ import scala.util.control.NonFatal
  * Implementation of a server that binds to a random port, informs a client of the port, and accepts a client
  * connections.
  */
-abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
+abstract class Server[Prepared, Handled](args: Server.Args) {
   import args.*
 
   val processId: Long = Server.computeProcessId()
@@ -41,29 +41,29 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
 
   def prepareConnection(
       connectionData: ConnectionData,
-      stopServer: Server.StopServer
-  ): PrepareResult
+      stopServer: Server.StopServer0[Handled]
+  ): Prepared
 
   def handleConnection(
-      connectionData: ConnectionData,
-      stopServer: Server.StopServer,
-      setIdle: Server.SetIdle,
-      data: PrepareResult
-  ): HandleResult
+                        connectionData: ConnectionData,
+                        stopServer: Server.StopServer0[Handled],
+                        setIdle: Server.SetIdle,
+                        data: Prepared
+  ): Handled
 
   def endConnection(
-      connectionData: ConnectionData,
-      data: Option[PrepareResult],
-      result: Option[HandleResult]
+                     connectionData: ConnectionData,
+                     data: Option[Prepared],
+                     result: Option[Handled]
   ): Unit
 
-  def systemExit(exitCode: Int): Nothing
+  def systemExit(exitCode: Handled): Nothing
 
   def connectionHandlerThreadName(socket: Socket): String =
     s"ConnectionHandler(${getClass.getName}, ${socket.getInetAddress}:${socket.getPort})"
 
   /** Returns true if the client is still alive. Invoked from another thread. */
-  def checkIfClientAlive(connectionData: ConnectionData, data: PrepareResult): Boolean
+  def checkIfClientAlive(connectionData: ConnectionData, data: Prepared): Boolean
 
   def run(): Unit = {
     serverLog(s"running server in $daemonDir")
@@ -77,8 +77,6 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
       os.remove(socketPortFile)
       serverLog(s"removed $socketPortFile")
     }
-
-
 
     try {
       Server.tryLockBlock(
@@ -197,8 +195,8 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
     val connectionData =
       ConnectionData(socketInfo, clientToServer, serverToClient, initialSystemProperties)
 
-    def stopServerCloseLocks(reason: String, exitCode: HandleResult, data: Option[PrepareResult]) = {
-      endConnection(connectionData, data, Some(exitCode.asInstanceOf[HandleResult]))
+    def stopServerCloseLocks(reason: String, exitCode: Handled, data: Option[Prepared]) = {
+      endConnection(connectionData, data, Some(exitCode.asInstanceOf[Handled]))
 
       serverSocketClose()
       serverLog(s"`systemExit` invoked ($reason), shutting down with exit code $exitCode")
@@ -238,7 +236,7 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
       @volatile var idle = false
 
       StartThread(connectionHandlerThreadName(clientSocket)) {
-        var result: Option[HandleResult] = None
+        var result: Option[Handled] = None
 
         try {
           result = Some(handleConnection(
@@ -346,9 +344,10 @@ object Server {
   }
 
   /** Immediately stops the server with the given exit code. */
-  @FunctionalInterface trait StopServer {
-    def apply(reason: String, exitCode: Int): Nothing
+  @FunctionalInterface trait StopServer0[Handle] {
+    def apply(reason: String, exitCode: Handle): Nothing
   }
+  type StopServer = StopServer0[Int]
 
   /** Controls whether the server is considered idle. */
   @FunctionalInterface trait SetIdle {
