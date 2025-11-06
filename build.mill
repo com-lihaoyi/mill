@@ -69,7 +69,7 @@ def millDownloadUrlCurrent = Task {
 def millBinPlatform: T[String] = Task {
   val tag = millLastTag()
   tag match {
-    case s"$_-M$_" | s"$_-RC$_" => tag
+    case s"$_.0.0-M$_" | s"$_.0.0-RC$_" => tag
     case tag => tag.split('.').head
   }
 }
