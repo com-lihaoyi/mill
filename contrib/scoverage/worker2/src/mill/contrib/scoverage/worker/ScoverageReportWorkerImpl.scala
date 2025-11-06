@@ -1,14 +1,9 @@
 package mill.contrib.scoverage.worker
 
-import _root_.scoverage.reporter.{
-  CoberturaXmlWriter,
-  CoverageAggregator,
-  ScoverageHtmlWriter,
-  ScoverageXmlWriter
-}
+import _root_.scoverage.reporter.{CoberturaXmlWriter, CoverageAggregator, ScoverageHtmlWriter, ScoverageXmlWriter}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.{Ctx, ReportType}
-import scoverage.domain.Coverage
+import scoverage.domain.{Coverage, DoubleFormat}
 
 import java.lang
 import java.nio.file.Path
@@ -46,8 +41,6 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi2 {
       ctx: Ctx
   ): Unit = {
     try {
-      ctx.log.info(s"Processing coverage data for ${dataDirs.size} data locations")
-
       // Attempt to aggregate coverage data
       val aggregatedCoverage = CoverageAggregator.aggregate(
         dataDirs.map(_.toFile).toIndexedSeq,
@@ -82,13 +75,13 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi2 {
   ): Unit = {
     // Check statement coverage
     val statementError =
-      Option.when(currentCoverages.statementCoverage < statementCoverageMin)(
-        s"This project's statement coverage (${currentCoverages.statementCoverage}) did not meet the minimum desired by the project. ($statementCoverageMin)"
+      Option.when(currentCoverages.statementCoverage < statementCoverageMin / 100)(
+        s"This project's statement coverage (${currentCoverages.statementCoverageFormatted}) did not meet the minimum desired by the project. ($statementCoverageMin)"
       )
 
     // Check branch coverage
-    val branchError = Option.when(currentCoverages.branchCoverage < branchCoverageMin)(
-      s"This project's branch coverage (${currentCoverages.branchCoverage}) did not meet the minimum desired by the project. ($branchCoverageMin)"
+    val branchError = Option.when(currentCoverages.branchCoverage < branchCoverageMin / 100)(
+      s"This project's branch coverage (${currentCoverages.branchCoverageFormatted}) did not meet the minimum desired by the project. ($branchCoverageMin)"
     )
 
     // Collect all errors
@@ -100,7 +93,12 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi2 {
         s"Coverage minimums violated:\n${errors.mkString("\n")}"
       )
     } else {
-      ctx.log.info(s"Statement coverage: ${currentCoverages.statementCoverageFormatted}%")
+      ctx.log.info(s"Coverage Minimums Met. Minimums set: {Statements: ${DoubleFormat.twoFractionDigits(
+        statementCoverageMin
+      )}% Branches: ${DoubleFormat.twoFractionDigits(
+        branchCoverageMin
+      )}%}")
+      ctx.log.info(s"Statement coverage.: ${currentCoverages.statementCoverageFormatted}%")
       ctx.log.info(s"Branch coverage....: ${currentCoverages.branchCoverageFormatted}%")
     }
   }

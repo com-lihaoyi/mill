@@ -5,6 +5,7 @@ import mill.*
 import mill.api.{BuildCtx, PathRef, Result}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
 import mill.javalib.api.JvmWorkerUtil
+import mill.javalib.testrunner.TestResult
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 import mill.util.BuildInfo
 
@@ -58,8 +59,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
    */
   def scoverageVersion: T[String]
 
-  def branchCoverageMin: T[Option[Double]] = Task { None }
-  def statementCoverageMin: T[Option[Double]] = Task { None }
+  def branchCoverageMin: Option[Double] = None
+  def statementCoverageMin: Option[Double] = None
 
   private def isScala3: Task[Boolean] = Task.Anon { JvmWorkerUtil.isScala3(outer.scalaVersion()) }
 
@@ -209,9 +210,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def xmlCoberturaReport(): Command[Unit] = Task.Command { doReport(ReportType.XmlCobertura)() }
     def consoleReport(): Command[Unit] = Task.Command { doReport(ReportType.Console)() }
     def validateCoverageMinimums(): Command[Unit] = Task.Command {
-      Task.log.info("Validating the coverage minimums")
-      List(statementCoverageMin(), branchCoverageMin()).exists(_.isDefined) match {
-        case true => validateCoverageMin(statementCoverageMin(), branchCoverageMin())
+      List(statementCoverageMin, branchCoverageMin).exists(_.isDefined) match {
+        case true => validateCoverageMin(statementCoverageMin, branchCoverageMin)()
         case _ => Task.fail(
             "Either statementCoverageMin or branchCoverageMin must be set in order to call the validateCoverageMinimums task."
           )

@@ -14,8 +14,8 @@ object `package` extends ScoverageModule {
     mvn"com.lihaoyi::mainargs:0.7.7"
   )
 
-  def statementCoverageMin = Some(0.10)
-  def branchCoverageMin = Some(0.90)
+  def statementCoverageMin = Some(10.00)
+  def branchCoverageMin = Some(90.00)
 
   object test extends ScoverageTests /*with TestModule.Utest */ {
     def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
@@ -57,6 +57,9 @@ scoverage.validateCoverageMinimums
 
 > ./mill scoverage.validateCoverageMinimums
 ...
+Coverage Minimums Met. Minimums set: {Statements: 10.00% Branches: 90.00%}
+Statement coverage.: 10.53%
+Branch coverage....: 100.00%
 
 > ./mill scoverage.consoleReport
 ...
