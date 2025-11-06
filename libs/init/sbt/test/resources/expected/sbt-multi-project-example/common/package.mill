@@ -18,7 +18,7 @@ object `package` extends SbtMultiProjectExampleBaseModule {
 
   def artifactName = "common"
 
-  def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
+  def scalacOptions = super.scalacOptions() ++ Opts("-encoding", "utf8")
 
   def pomSettings = PomSettings(
     "This is the common module.",

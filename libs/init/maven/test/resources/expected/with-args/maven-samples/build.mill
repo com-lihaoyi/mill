@@ -24,7 +24,7 @@ object `package` extends MavenModule with PublishModule {
   object `multi-module` extends MavenModule with PublishModule {
 
     def javacOptions = super.javacOptions() ++
-      Seq("-source", "1.6", "-target", "1.6")
+      Opts("-source", "1.6", "-target", "1.6")
 
     def artifactName = "multi-module-parent"
 
@@ -56,7 +56,7 @@ object `package` extends MavenModule with PublishModule {
     object server extends MavenModule with PublishModule {
 
       def javacOptions = super.javacOptions() ++
-        Seq("-source", "1.6", "-target", "1.6")
+        Opts("-source", "1.6", "-target", "1.6")
 
       def artifactName = "server"
 
@@ -108,7 +108,7 @@ object `package` extends MavenModule with PublishModule {
       def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
 
       def javacOptions = super.javacOptions() ++
-        Seq("-source", "1.6", "-target", "1.6")
+        Opts("-source", "1.6", "-target", "1.6")
 
       def artifactName = "webapp"
 
@@ -145,7 +145,7 @@ object `package` extends MavenModule with PublishModule {
     )
 
     def javacOptions = super.javacOptions() ++
-      Seq("-source", "1.6", "-target", "1.6")
+      Opts("-source", "1.6", "-target", "1.6")
 
     def artifactName = "single-module-project"
 

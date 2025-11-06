@@ -9,7 +9,7 @@ object `package` extends MavenModule {
   def mvnDeps = super.mvnDeps() ++ Seq(Deps.guava)
 
   def javacOptions = super.javacOptions() ++
-    Seq("-source", "11", "-target", "11")
+    Opts("-source", "11", "-target", "11")
 
   def jvmId = "zulu:11"
 

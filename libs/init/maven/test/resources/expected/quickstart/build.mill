@@ -8,12 +8,13 @@ import millbuild.*
 
 object `package` extends MavenModule with ErrorProneModule with PublishModule {
 
-  def javacOptions = super.javacOptions() ++ Seq("-source", "8", "-target", "8")
+  def javacOptions = super.javacOptions() ++
+    Opts("-source", "8", "-target", "8")
 
   def artifactName = "maven-3-9-11"
 
   def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
-    Seq("-XDshould-stop=ifError=FLOW")
+    Opts("-XDshould-stop=ifError=FLOW")
 
   def jvmId = "zulu:11"
 
@@ -34,7 +35,7 @@ object `package` extends MavenModule with ErrorProneModule with PublishModule {
       Seq(Deps.junitJupiterApi, Deps.junitJupiterParams)
 
     def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
-      Seq("-XDshould-stop=ifError=FLOW")
+      Opts("-XDshould-stop=ifError=FLOW")
 
     def forkWorkingDir = moduleDir
 

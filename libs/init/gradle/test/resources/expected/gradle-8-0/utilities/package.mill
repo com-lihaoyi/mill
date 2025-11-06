@@ -11,6 +11,6 @@ object `package` extends ErrorProneModule with ProjectBaseModule {
   def errorProneVersion = "2.28.0"
 
   def errorProneJavacEnableOptions = super.errorProneJavacEnableOptions() ++
-    Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
+    Opts("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
 }

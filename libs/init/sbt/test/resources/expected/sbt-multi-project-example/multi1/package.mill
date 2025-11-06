@@ -22,7 +22,7 @@ object `package` extends SbtMultiProjectExampleBaseModule {
 
   def artifactName = "multi1"
 
-  def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8", "-V")
+  def scalacOptions = super.scalacOptions() ++ Opts("-encoding", "utf8", "-V")
 
   def pomSettings = PomSettings(
     "This is an sbt sample project for testing Mill's init command.",

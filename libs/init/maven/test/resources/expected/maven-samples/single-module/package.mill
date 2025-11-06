@@ -9,7 +9,7 @@ object `package` extends MavenSamplesBaseModule {
   def mvnDeps = super.mvnDeps() ++ Seq(Deps.servletApi, Deps.jspApi)
 
   def javacOptions = super.javacOptions() ++
-    Seq("-source", "1.6", "-target", "1.6")
+    Opts("-source", "1.6", "-target", "1.6")
 
   def artifactName = "single-module-project"
 

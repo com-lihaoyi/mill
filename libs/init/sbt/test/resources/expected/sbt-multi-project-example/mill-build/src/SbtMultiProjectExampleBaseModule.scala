@@ -8,7 +8,7 @@ trait SbtMultiProjectExampleBaseModule extends PublishModule with SbtModule {
 
   def scalaVersion = "2.12.3"
 
-  def scalacOptions = super.scalacOptions() ++ Seq(
+  def scalacOptions = super.scalacOptions() ++ Opts(
     "-unchecked",
     "-feature",
     "-language:existentials",
