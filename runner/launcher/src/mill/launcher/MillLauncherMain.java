@@ -121,7 +121,7 @@ public class MillLauncherMain {
         // Retry if server requests it. This can happen when:
         // - There's a version mismatch between client and server
         // - The server was terminated while this client was waiting
-        int maxRetries = 3;
+        int maxRetries = 10;
         for (int i = 0; i < maxRetries && exitCode == ClientUtil.ServerExitPleaseRetry(); i++) {
           exitCode = launcher.run(daemonDir, javaHome, log);
         }
