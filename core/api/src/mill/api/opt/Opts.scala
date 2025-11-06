@@ -5,8 +5,7 @@ import mill.api.daemon.internal.OptsApi
 import scala.annotation.targetName
 import scala.language.implicitConversions
 
-case class Opts private (override val value: Seq[OptGroup]) extends OptsApi
-    derives upickle.ReadWriter {
+case class Opts private (override val value: Seq[OptGroup]) extends OptsApi {
   require(value.forall(!_.isEmpty))
 
   def toStringSeq: Seq[String] = value.flatMap(_.toStringSeq)
@@ -46,4 +45,10 @@ object Opts {
     }
     new Opts(groups.filter(!_.isEmpty))
   }
+
+  given jsonReadWriter: upickle.ReadWriter[Opts] =
+    upickle.readwriter[Seq[OptGroup]].bimap(
+      _.value,
+      Opts(_*)
+    )
 }

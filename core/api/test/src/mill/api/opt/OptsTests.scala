@@ -92,6 +92,14 @@ class OptsTests extends TestSuite {
       assert(Opts("arg1").toStringSeq == Seq("arg1"))
       assert(opts1 == expectedOpts1)
     }
+    test("toString") {
+      val a = Opts(Opt("-arg", "1")).toString()
+      assertGoldenLiteral(a, "Opts((-arg1))")
+      val b = Opts(OptGroup("-arg", "1")).toString()
+      assertGoldenLiteral(b, "Opts((-arg, 1))")
+
+      assert(a != b)
+    }
     test("toStringSeq") {
       val str = opts1.toStringSeq
       assert(str == expectedSeq1)
@@ -99,14 +107,17 @@ class OptsTests extends TestSuite {
     test("jsonify") {
       test("without-mapping") {
         val json = upickle.write(opts1)
+
+//        pprint.log(upickle.write(opts1, indent = 4))
+//        pprint.log(opts1)
+//        pprint.log(opts1.toString)
+
         assertGoldenLiteral(
           json,
-          "{\"value\":[{\"value\":[[[\"-deprecation\",null]]]},{\"value\":[[[\"-verbose\",null]]]},{\"value\":[[[\"--release\",null]],[[\"17\",null]]]},{\"value\":[[[\"-Xplugin=\",null],[null,\"/tmp/opts-test/.cache/plugin1\"]]]},{\"value\":[[[\"-Xplugin:\",null],[null,\"/tmp/opts-test/.cache/plugin1\"]]]},{\"value\":[[[null,\"/tmp/opts-test/work/src1\"]]]},{\"value\":[[[null,\"/tmp/opts-test/work/src2\"]]]},{\"value\":[[[null,\"/tmp/opts-test/work/src3\"]],[[null,\"/tmp/opts-test/work/src4\"]]]},{\"value\":[[[\"--extra\",null]],[[\"-Xplugin=\",null],[null,\"/tmp/opts-test/.cache/plugin1\"]],[[null,\"/tmp/opts-test/work/src1\"]],[[null,\"/tmp/opts-test/work/src2\"]]]}]}"
+          "[[\"-deprecation\"],[\"-verbose\"],[\"--release\",\"17\"],[[\"-Xplugin=\",{\"path\":\"/tmp/opts-test/.cache/plugin1\"}]],[[\"-Xplugin:\",{\"path\":\"/tmp/opts-test/.cache/plugin1\"}]],[[{\"path\":\"/tmp/opts-test/work/src1\"}]],[[{\"path\":\"/tmp/opts-test/work/src2\"}]],[[{\"path\":\"/tmp/opts-test/work/src3\"}],[{\"path\":\"/tmp/opts-test/work/src4\"}]],[\"--extra\",[\"-Xplugin=\",{\"path\":\"/tmp/opts-test/.cache/plugin1\"}],[{\"path\":\"/tmp/opts-test/work/src1\"}],[{\"path\":\"/tmp/opts-test/work/src2\"}]]]"
         )
-//        pprint.log(upickle.write(opts1, indent = 4))
-        pprint.log(opts1)
-        pprint.log(opts1.toString)
-        assert(json.split("\\Q$HOME\\E").size == 1)
+
+        assert(json.split("\\Q$HOME\\E").size == 1 + 0)
         val back = upickle.read[Opts](json)
         assert(opts1 == back)
       }

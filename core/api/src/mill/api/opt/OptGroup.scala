@@ -8,11 +8,13 @@ import scala.language.implicitConversions
 /**
  * A set of options, which are used together
  */
-case class OptGroup private (value: Seq[Opt]) extends OptGroupApi
-    derives upickle.ReadWriter {
+case class OptGroup private (value: Seq[Opt]) extends OptGroupApi {
+
   override def toString(): String = value.mkString("(", ", ", ")")
 
   def isEmpty: Boolean = value.isEmpty
+
+  def size: Int = value.size
 
   def containsPaths: Boolean = value.exists(_.containsPaths)
 
@@ -63,5 +65,11 @@ object OptGroup {
 
 //  implicit def ArrayToOptGroup[T](s: Array[T])(using f: T => OptGroup): OptGroup =
 //    OptGroup(s.flatMap(f(_).value))
+
+  given jsonReadWriter: upickle.ReadWriter[OptGroup] =
+    upickle.readwriter[Seq[Opt]].bimap(
+      _.value,
+      OptGroup(_*)
+    )
 
 }

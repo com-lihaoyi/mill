@@ -64,20 +64,39 @@ object Opt {
 
   def mkPlatformPath(paths: Seq[os.Path]): Opt = mkPath(paths, sep = java.io.File.pathSeparator)
 
+//  given jsonReadWriter: upickle.ReadWriter[Opt] =
+//    upickle.readwriter[Seq[(Option[String], Option[os.Path])]].bimap(
+//      _.value.map {
+//        case path: os.Path => (None, Some(path))
+//        case str: String => (Some(str), None)
+//      },
+//      seq =>
+//        Opt(seq.map {
+//          case (Some(str), _) => str
+//          case (_, Some(path)) => path
+//        }*)
+//    )
+
   given jsonReadWriter: upickle.ReadWriter[Opt] =
-    upickle.readwriter[Seq[(Option[String], Option[os.Path])]].bimap(
-      _.value.map {
-        case path: os.Path => (None, Some(path))
-        case str: String => (Some(str), None)
-      },
-      seq =>
-        Opt(seq.map {
-          case (Some(str), _) => str
-          case (_, Some(path)) => path
-        }*)
+    upickle.readwriter[ujson.Value].bimap(
+      opt =>
+        if (!opt.containsPaths) ujson.Str(opt.toString())
+        else opt.value.map {
+          case str: String => ujson.Str(str)
+          case path: os.Path => ujson.Obj("path" -> upickle.transform(path).to[ujson.Value])
+        },
+      {
+        case ujson.Str(opt) => Opt(opt)
+        case arr: ujson.Arr =>
+          val elems = arr.value.map {
+            case ujson.Str(opt) => opt
+            case ujson.Obj(map) => upickle.read[os.Path](map("path"))
+          }
+          Opt(elems.toSeq*)
+      }
     )
 
-//  given stringToOpt: Conversion[String, Opt] = (value: String) => Opt(value)
+  //  given stringToOpt: Conversion[String, Opt] = (value: String) => Opt(value)
 //  given osPathToOpt: Conversion[os.Path, Opt] = (value: os.Path) => Opt(value)
 
 //  implicit def IterableToOpt[T](s: Iterable[T])(using f: T => Opt): Opt =
