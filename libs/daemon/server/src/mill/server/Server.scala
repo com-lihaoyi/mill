@@ -221,7 +221,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       @volatile var done = false
       @volatile var idle = false
 
-      StartThread(connectionHandlerThreadName(clientSocket)) {
+      val runThread = StartThread(connectionHandlerThreadName(clientSocket)) {
         try {
           val connResult =
             handleConnection(connectionData, closeServer(_, _, Some(data)), idle = _, data)
@@ -242,6 +242,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       }
 
       while (!done && checkClientAlive()) Thread.sleep(1)
+      runThread.interrupt()
 
       if (!idle) {
         serverLog("client interrupted while server was executing command")

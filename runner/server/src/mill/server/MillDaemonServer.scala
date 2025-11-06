@@ -217,6 +217,7 @@ object MillDaemonServer {
         }
       } { _ =>
         setIdle(false)
+        if (Thread.interrupted()) throw new InterruptedException()
         os.write.over(out / OutFiles.millActiveCommand, millActiveCommandMessage)
         try t
         finally os.remove.all(out / OutFiles.millActiveCommand)
