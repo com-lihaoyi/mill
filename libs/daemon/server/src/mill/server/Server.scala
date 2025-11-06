@@ -23,11 +23,7 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
   import args.*
 
   val processId: Long = Server.computeProcessId()
-  private val acceptTimeoutMillis = acceptTimeout.map(_.toMillis)
-  private val handlerName = getClass.getName
-
-  private def timestampStr(): String =
-    LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+  val acceptTimeoutMillisOpt = acceptTimeout.map(_.toMillis)
 
   def serverLog0(s: String): Unit = {
     if (os.exists(daemonDir) || testLogEvenWhenServerIdWrong) {
@@ -38,8 +34,10 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
     }
   }
 
-  def serverLog(s: String): Unit =
-    serverLog0(s"pid:$processId ${timestampStr()} [t${Thread.currentThread().getId}] $s")
+  def serverLog(s: String): Unit = {
+    val timestampStr = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+    serverLog0(s"pid:$processId $timestampStr [t${Thread.currentThread().getId}] $s")
+  }
 
   def prepareConnection(
       connectionData: ConnectionData,
@@ -60,7 +58,7 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
   ): Unit
 
   def connectionHandlerThreadName(socket: Socket): String =
-    s"ConnectionHandler($handlerName, ${socket.getInetAddress}:${socket.getPort})"
+    s"ConnectionHandler(${getClass.getName}, ${socket.getInetAddress}:${socket.getPort})"
 
   /** Returns true if the client is still alive. Invoked from another thread. */
   def checkIfClientAlive(connectionData: ConnectionData, data: PrepareResult): Boolean
@@ -102,7 +100,7 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
         )
 
         val connectionTracker =
-          new Server.ConnectionTracker(serverLog, acceptTimeoutMillis, serverSocket)
+          new Server.ConnectionTracker(serverLog, acceptTimeoutMillisOpt, serverSocket)
 
         try {
           os.write.over(socketPortFile, serverSocket.getLocalPort.toString)
@@ -188,7 +186,7 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
    * @param initialSystemProperties [[scala.sys.SystemProperties]] that have been obtained at the start of the server process
    * @param serverSocketClose       closes the server socket
    */
-  private def runForSocket(
+  def runForSocket(
       systemExit0: Server.StopServer,
       clientSocket: Socket,
       socketInfo: Server.SocketInfo,
@@ -285,22 +283,6 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
       }
 
       serverLog(s"done=$done, idle=$idle, lastClientAlive=$lastClientAlive")
-
-      t.interrupt()
-
-      // Try to give thread a moment to stop before we kill it for real
-      //
-      // We only give it 5ms because it's supposed to be idle at this point and this should
-      // only interrupt the `Thread.sleep` it's sitting on.
-      Thread.sleep(5)
-      // noinspection ScalaDeprecation
-      try t.stop()
-      catch {
-        case _: UnsupportedOperationException =>
-        // nothing we can do about, removed in Java 20
-        case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
-        // ignore this error and do nothing; seems benign
-      }
     } finally endConnection(connectionData, Some(data), None)
   }
 }
