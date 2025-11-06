@@ -264,7 +264,6 @@ abstract class Server(args: Server.Args) {
     try {
       @volatile var done = false
       @volatile var idle = false
-      @volatile var writingExceptionLog = false
       val t = StartThread(connectionHandlerThreadName(clientSocket)) {
         try {
           handleConnection(
@@ -282,7 +281,6 @@ abstract class Server(args: Server.Args) {
               s"""connection handler for $socketInfo error: $e
                  |connection handler stack trace: ${e.getStackTrace.mkString("\n")}
                  |""".stripMargin
-            writingExceptionLog = true
             serverLog(msg)
 
             writeExitCode(connectionData, data)
@@ -303,9 +301,6 @@ abstract class Server(args: Server.Args) {
       }
 
       serverLog(s"done=$done, idle=$idle, lastClientAlive=$lastClientAlive")
-
-      // Wait until exception log writer finishes.
-      while (writingExceptionLog) Thread.sleep(1)
 
       t.interrupt()
       // Try to give thread a moment to stop before we kill it for real
