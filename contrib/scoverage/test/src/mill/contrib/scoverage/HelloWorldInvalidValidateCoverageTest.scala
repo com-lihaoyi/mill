@@ -60,7 +60,12 @@ trait HelloWorldInvalidValidateCoverageTest extends utest.TestSuite {
   }
 }
 
-object HelloWorldInvalidValidateCoverageTest extends HelloWorldInvalidValidateCoverageTest {
-  override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_VERSION", ???)
-  override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE_VERSION", ???)
+object HelloWorldStatementMinCoverageTest_2_13 extends HelloWorldInvalidValidateCoverageTest {
+  override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+  override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE2_VERSION", ???)
+}
+
+object HelloWorldStatementMinCoverageTest_3_2 extends HelloWorldInvalidValidateCoverageTest {
+  override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_3_2_VERSION", ???)
+  override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE2_VERSION", ???)
 }
