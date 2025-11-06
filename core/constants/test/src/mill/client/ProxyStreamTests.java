@@ -70,21 +70,22 @@ public class ProxyStreamTests {
         new TeeOutputStream(destOut, destCombined),
         new TeeOutputStream(destErr, destCombined));
 
-    mill.api.daemon.StartThread("test0-thread"){
-      try {
-        for (int i = 0; i < repeats; i++) {
-          srcOut.write(outData);
-          srcErr.write(errData);
-        }
+    new Thread(() -> {
+          try {
+            for (int i = 0; i < repeats; i++) {
+              srcOut.write(outData);
+              srcErr.write(errData);
+            }
 
-        if (gracefulEnd) ProxyStream.sendEnd(pipedOutputStream, 0);
-        else {
-          pipedOutputStream.close();
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
+            if (gracefulEnd) ProxyStream.sendEnd(pipedOutputStream, 0);
+            else {
+              pipedOutputStream.close();
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        })
+        .start();
 
     Thread pumperThread = new Thread(pumper);
 
