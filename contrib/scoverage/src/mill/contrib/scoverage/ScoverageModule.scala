@@ -5,7 +5,6 @@ import mill.*
 import mill.api.{BuildCtx, PathRef, Result}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
 import mill.javalib.api.JvmWorkerUtil
-import mill.javalib.testrunner.TestResult
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 import mill.util.BuildInfo
 

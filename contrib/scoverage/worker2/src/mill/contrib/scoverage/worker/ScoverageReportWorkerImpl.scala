@@ -1,6 +1,11 @@
 package mill.contrib.scoverage.worker
 
-import _root_.scoverage.reporter.{CoberturaXmlWriter, CoverageAggregator, ScoverageHtmlWriter, ScoverageXmlWriter}
+import _root_.scoverage.reporter.{
+  CoberturaXmlWriter,
+  CoverageAggregator,
+  ScoverageHtmlWriter,
+  ScoverageXmlWriter
+}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.{Ctx, ReportType}
 import scoverage.domain.{Coverage, DoubleFormat}
@@ -93,11 +98,13 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi2 {
         s"Coverage minimums violated:\n${errors.mkString("\n")}"
       )
     } else {
-      ctx.log.info(s"Coverage Minimums Met. Minimums set: {Statements: ${DoubleFormat.twoFractionDigits(
-        statementCoverageMin
-      )}% Branches: ${DoubleFormat.twoFractionDigits(
-        branchCoverageMin
-      )}%}")
+      ctx.log.info(
+        s"Coverage Minimums Met. Minimums set: {Statements: ${DoubleFormat.twoFractionDigits(
+            statementCoverageMin
+          )}% Branches: ${DoubleFormat.twoFractionDigits(
+            branchCoverageMin
+          )}%}"
+      )
       ctx.log.info(s"Statement coverage.: ${currentCoverages.statementCoverageFormatted}%")
       ctx.log.info(s"Branch coverage....: ${currentCoverages.branchCoverageFormatted}%")
     }
