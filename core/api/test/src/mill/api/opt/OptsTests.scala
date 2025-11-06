@@ -49,8 +49,7 @@ class OptsTests extends TestSuite {
     Opt("-Xplugin:", plugin1),
     Opt(srcDir1),
     Opt(srcDir2),
-    Opt(srcDir3),
-    Opt(srcDir4),
+    OptGroup(Opt(srcDir3), Opt(srcDir4)),
     OptGroup(
       Opt("--extra"),
       Opt("-Xplugin=", plugin1),
@@ -79,7 +78,18 @@ class OptsTests extends TestSuite {
     sources1.map(_.toString())
 
   override def tests: Tests = Tests {
+    test("OptGroup.isEmpty") {
+      val emptyGroup = OptGroup()
+      assert(emptyGroup.isEmpty)
+      assert(emptyGroup.toStringSeq.isEmpty)
+    }
+    test("Opts.isEmpty") {
+      val empty = Opts()
+      assert(empty.isEmpty)
+      assert(empty.toStringSeq.isEmpty)
+    }
     test("structure") {
+      assert(Opts("arg1").toStringSeq == Seq("arg1"))
       assert(opts1 == expectedOpts1)
     }
     test("toStringSeq") {
@@ -91,8 +101,11 @@ class OptsTests extends TestSuite {
         val json = upickle.write(opts1)
         assertGoldenLiteral(
           json,
-          "{\"value\":[{\"value\":[[[\"-deprecation\",null]],[[\"-verbose\",null]],[[\"--release\",null]],[[\"17\",null]],[[\"-Xplugin=\",null],[null,\"/tmp/opts-test/.cache/plugin1\"]],[[\"-Xplugin:\",null],[null,\"/tmp/opts-test/.cache/plugin1\"]],[[null,\"/tmp/opts-test/work/src1\"]],[[null,\"/tmp/opts-test/work/src2\"]],[[null,\"/tmp/opts-test/work/src3\"]],[[null,\"/tmp/opts-test/work/src4\"]],[[\"--extra\",null]],[[\"-Xplugin=\",null],[null,\"/tmp/opts-test/.cache/plugin1\"]],[[null,\"/tmp/opts-test/work/src1\"]],[[null,\"/tmp/opts-test/work/src2\"]]]}]}"
+          "{\"value\":[{\"value\":[[[\"-deprecation\",null]]]},{\"value\":[[[\"-verbose\",null]]]},{\"value\":[[[\"--release\",null]],[[\"17\",null]]]},{\"value\":[[[\"-Xplugin=\",null],[null,\"/tmp/opts-test/.cache/plugin1\"]]]},{\"value\":[[[\"-Xplugin:\",null],[null,\"/tmp/opts-test/.cache/plugin1\"]]]},{\"value\":[[[null,\"/tmp/opts-test/work/src1\"]]]},{\"value\":[[[null,\"/tmp/opts-test/work/src2\"]]]},{\"value\":[[[null,\"/tmp/opts-test/work/src3\"]],[[null,\"/tmp/opts-test/work/src4\"]]]},{\"value\":[[[\"--extra\",null]],[[\"-Xplugin=\",null],[null,\"/tmp/opts-test/.cache/plugin1\"]],[[null,\"/tmp/opts-test/work/src1\"]],[[null,\"/tmp/opts-test/work/src2\"]]]}]}"
         )
+//        pprint.log(upickle.write(opts1, indent = 4))
+        pprint.log(opts1)
+        pprint.log(opts1.toString)
         assert(json.split("\\Q$HOME\\E").size == 1)
         val back = upickle.read[Opts](json)
         assert(opts1 == back)

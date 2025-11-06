@@ -48,14 +48,14 @@ object OptGroup {
 //    (tuple: (OptTypes, OptTypes)) =>
 //      OptGroup(Opt(tuple._1), Opt(tuple._2))
 
-  implicit def StringToOptGroup(s: String): OptGroup = OptGroup(Seq(Opt(s)))
-
-  implicit def OsPathToOptGroup(p: os.Path): OptGroup = OptGroup(Seq(Opt(p)))
-
-  implicit def OptToOptGroup(o: Opt): OptGroup = OptGroup(Seq(o))
-
-  implicit def IterableToOptGroup[T](s: Iterable[T])(using f: T => OptGroup): OptGroup =
-    OptGroup(s.toSeq.flatMap(f(_).value))
+//  implicit def StringToOptGroup(s: String): OptGroup = OptGroup(Seq(Opt(s)))
+//
+//  implicit def OsPathToOptGroup(p: os.Path): OptGroup = OptGroup(Seq(Opt(p)))
+//
+//  implicit def OptToOptGroup(o: Opt): OptGroup = OptGroup(Seq(o))
+//
+//  implicit def IterableToOptGroup[T](s: Iterable[T])(using f: T => OptGroup): OptGroup =
+//    OptGroup(s.toSeq.flatMap(f(_).value))
 
 //  implicit def ArrayToOptGroup[T](s: Array[T])(using f: T => OptGroup): OptGroup =
 //    OptGroup(s.flatMap(f(_).value))
