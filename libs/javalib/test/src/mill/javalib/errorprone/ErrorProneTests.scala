@@ -42,7 +42,7 @@ object ErrorProneTests extends TestSuite {
         }
       }
       test("compileWarn") {
-        UnitTester(errorProneCustom, testModuleSourcesPath, debugEnabled = true).scoped { eval =>
+        UnitTester(errorProneCustom, testModuleSourcesPath).scoped { eval =>
           val Right(opts) = eval(errorProneCustom.mandatoryJavacOptions): @unchecked
           assert(opts.value.exists(_.contains("-XepAllErrorsAsWarnings")))
           val res = eval(errorProneCustom.compile)

@@ -2,7 +2,7 @@ package mill.scalalib
 import mill.*
 import mill.api.BuildCtx
 import mill.javalib.api.JvmWorkerUtil
-import mill.javalib.api.internal.ZincScaladocJar
+import mill.javalib.api.internal.ZincOp
 
 /**
  * Mix this in to any [[ScalaModule]] to provide a [[unidocSite]] task that
@@ -104,8 +104,9 @@ trait UnidocModule extends ScalaModule {
           |""".stripMargin
     )
 
-    jvmWorker().internalWorker().scaladocJar(
-      ZincScaladocJar(
+    val worker = jvmWorker().internalWorker()
+    worker.apply(
+      ZincOp.ScaladocJar(
         scalaVersion(),
         scalaOrganization(),
         scalaDocClasspath(),

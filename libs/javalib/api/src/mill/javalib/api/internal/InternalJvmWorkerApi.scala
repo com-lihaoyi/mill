@@ -5,33 +5,19 @@ import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
 import mill.javalib.api.JvmWorkerApi.Ctx
+import mill.javalib.api.internal.ZincOp
 import os.Path
 
-trait JvmWorkerApi extends PublicJvmWorkerApi {
+trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
 
   /** Compile a Java-only project. */
-  def compileJava(
-      op: ZincCompileJava,
+  def apply(
+      op: ZincOp,
       javaHome: Option[os.Path],
-      javaRuntimeOptions: JavaRuntimeOptions,
-      reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
-  )(using context: JvmWorkerApi.Ctx): Result[CompilationResult]
-
-  /** Compile a mixed Scala/Java or Scala-only project. */
-  def compileMixed(
-      op: ZincCompileMixed,
-      javaHome: Option[os.Path],
-      javaRuntimeOptions: JavaRuntimeOptions,
-      reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
-  )(using context: JvmWorkerApi.Ctx): Result[CompilationResult]
-
-  /** Compiles a Scaladoc jar. */
-  def scaladocJar(
-      op: ZincScaladocJar,
-      javaHome: Option[os.Path]
-  )(using context: JvmWorkerApi.Ctx): Boolean
+      javaRuntimeOptions: Seq[String] = Nil,
+      reporter: Option[CompileProblemReporter] = None,
+      reportCachedProblems: Boolean = false
+  )(using context: InternalJvmWorkerApi.Ctx): op.Response
 
   // public API forwarder
   override def compileJava(
@@ -44,9 +30,9 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
   )(using ctx: Ctx): Result[CompilationResult] = {
-    val jOpts = JavaCompilerOptions(javacOptions)
-    compileJava(
-      ZincCompileJava(
+    val jOpts = JavaCompilerOptions.split(javacOptions)
+    apply(
+      ZincOp.CompileJava(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
         compileClasspath = compileClasspath,
@@ -77,9 +63,9 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String]
   )(using ctx: Ctx): Result[CompilationResult] = {
-    val jOpts = JavaCompilerOptions(javacOptions)
-    compileMixed(
-      ZincCompileMixed(
+    val jOpts = JavaCompilerOptions.split(javacOptions)
+    apply(
+      ZincOp.CompileMixed(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
         compileClasspath = compileClasspath,
@@ -108,18 +94,21 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       javaHome: Option[Path],
       args: Seq[String]
   )(using ctx: Ctx): Boolean = {
-    scaladocJar(
-      ZincScaladocJar(
+    apply(
+      ZincOp.ScaladocJar(
         scalaVersion = scalaVersion,
         scalaOrganization = scalaOrganization,
         compilerClasspath = compilerClasspath,
         scalacPluginClasspath = scalacPluginClasspath,
         args = args
       ),
-      javaHome = javaHome
+      javaHome = javaHome,
+      javaRuntimeOptions = Nil,
+      None,
+      false
     )
   }
 }
-object JvmWorkerApi {
+object InternalJvmWorkerApi {
   type Ctx = PublicJvmWorkerApi.Ctx
 }
