@@ -92,7 +92,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
         serverLog("server file locked")
         val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
 
-        def closeServer() = {
+        def closeServer(exitCodeOpt: Option[Handled]) = {
           // Explicitly release process lock to indicate this server will not be
           // taking any more requests, and a new server should be spawned if necessary.
           // Otherwise, launchers may continue trying to connect to the server and
@@ -102,6 +102,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
           // Explicitly close serverSocket before exiting otherwise it can keep the
           // server alive 500-1000ms before letting it exit properly
           serverSocket.close()
+
+          for(exitCode <- exitCodeOpt) systemExit(exitCode)
         }
         Server.watchProcessIdFile(
           daemonDir / DaemonFiles.processId,
@@ -109,7 +111,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
           running = () => !serverSocket.isClosed,
           exit = msg => {
             serverLog(s"watchProcessIdFile: $msg")
-            closeServer()
+            closeServer(None)
           }
         )
 
@@ -144,7 +146,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
                     sock,
                     socketInfo,
                     initialSystemProperties,
-                    () => closeServer()
+                    exitCodeOpt => closeServer(exitCodeOpt)
                   )
                 } catch {
                   case e: Throwable =>
@@ -162,7 +164,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
             }
           }
 
-        } finally closeServer()
+        } finally closeServer(None)
       }
     } catch {
       case e: Throwable =>
@@ -178,13 +180,13 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
    * Handles the necessary plumbing for a single client connection.
    *
    * @param initialSystemProperties [[scala.sys.SystemProperties]] that have been obtained at the start of the server process
-   * @param serverSocketClose       closes the server socket
+   * @param closeServer0       closes the server socket
    */
   def runForSocket(
-      clientSocket: Socket,
-      socketInfo: Server.SocketInfo,
-      initialSystemProperties: Map[String, String],
-      serverSocketClose: () => Unit
+                    clientSocket: Socket,
+                    socketInfo: Server.SocketInfo,
+                    initialSystemProperties: Map[String, String],
+                    closeServer0: Option[Handled] => Unit
   ): Unit = {
     // According to https://pzemtsov.github.io/2015/01/19/on-the-benefits-of-stream-buffering-in-Java.html it seems that
     // buffering on the application level is still beneficial due to syscall overhead, even if kernel has its own
@@ -196,11 +198,10 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       ConnectionData(socketInfo, clientToServer, serverToClient, initialSystemProperties)
 
     def stopServerCloseLocks(reason: String, exitCode: Handled, data: Option[Prepared]) = {
-      endConnection(connectionData, data, Some(exitCode.asInstanceOf[Handled]))
+      endConnection(connectionData, data, Some(exitCode))
 
-      serverSocketClose()
       serverLog(s"`systemExit` invoked ($reason), shutting down with exit code $exitCode")
-      systemExit(exitCode)
+      closeServer0(Some(exitCode))
     }
 
     val data = prepareConnection(
@@ -270,7 +271,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
 
       if (!idle) {
         serverLog("client interrupted while server was executing command")
-        serverSocketClose()
+        closeServer0(None)
       }
 
       serverLog(s"done=$done, idle=$idle, lastClientAlive=$lastClientAlive")
@@ -345,7 +346,7 @@ object Server {
 
   /** Immediately stops the server with the given exit code. */
   @FunctionalInterface trait StopServer0[Handle] {
-    def apply(reason: String, exitCode: Handle): Nothing
+    def apply(reason: String, exitCode: Handle): Unit
   }
   type StopServer = StopServer0[Int]
 
