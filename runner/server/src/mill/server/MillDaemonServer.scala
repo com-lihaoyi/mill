@@ -113,7 +113,7 @@ abstract class MillDaemonServer[State](
 
         stopServer(
           s"version mismatch (millVersionChanged=$millVersionChanged, javaVersionChanged=$javaVersionChanged)",
-          ClientUtil.ExitServerCodeWhenVersionMismatch()
+          ClientUtil.ServerExitPleaseRetry()
         )
       }
     }
@@ -166,7 +166,7 @@ abstract class MillDaemonServer[State](
 
   def systemExit(exitCode: Int): Nothing = sys.exit(exitCode)
 
-  def exitCodeServerTerminated: Int = 111
+  def exitCodeServerTerminated: Int = ClientUtil.ServerExitPleaseRetry()
 
   def main0(
       args: Array[String],

@@ -7,7 +7,12 @@ import java.nio.file.Path;
 import java.util.*;
 
 public class ClientUtil {
-  public static int ExitServerCodeWhenVersionMismatch() {
+  /**
+   * Exit code indicating the server shut down and the client should retry.
+   * This can happen due to version mismatch or when the server is terminated
+   * while the client is waiting.
+   */
+  public static int ServerExitPleaseRetry() {
     return 101;
   }
 
