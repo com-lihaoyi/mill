@@ -7,7 +7,7 @@ import mill.server.Server.ConnectionData
 import sun.misc.{Signal, SignalHandler}
 
 import java.io.{BufferedInputStream, BufferedOutputStream}
-import java.net.{InetAddress, ServerSocket, Socket, SocketAddress, SocketException}
+import java.net.{InetAddress, ServerSocket, Socket, SocketException}
 import java.nio.channels.ClosedByInterruptException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -97,7 +97,10 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     } finally serverLog("exiting server")
   }
 
-  def runLocked(initialSystemProperties: Map[String, String], socketPortFile: os.Path): Option[Handled] = {
+  def runLocked(
+      initialSystemProperties: Map[String, String],
+      socketPortFile: os.Path
+  ): Option[Handled] = {
     serverLog("server file locked")
     val serverSocket = new ServerSocket(0, 0, InetAddress.getByName(null))
     val exitCodeVar = new AtomicReference[Option[Handled]](None)
@@ -141,10 +144,13 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
 
         for (sock <- socketOpt) {
           serverLog(s"handling run for ${sock.toString}")
+          // Kicks off a separate thread to handle this particular client server
+          // connection. Returns immediately without waiting for the thread to
+          // complete, to allow other client connections to be processed in parallel
           StartThread(s"HandleRunThread-${sock.toString}") {
             try {
               connectionTracker.increment()
-              spawnThreadForSocket(sock, initialSystemProperties, closeServer(_))
+              runSocketHandler(sock, initialSystemProperties, closeServer(_))
             } catch {
               case e: Throwable =>
                 serverLog(s"${sock.toString} error: $e\n${e.getStackTrace.mkString("\n")}")
@@ -160,12 +166,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     exitCodeVar.get()
   }
 
-  /**
-   * Kicks off a separate thread to handle this particular client server connection. Returns
-   * immediately without waiting for the thread to complete, to allow other client connections
-   * to be processed in parallel
-   */
-  def spawnThreadForSocket(
+  def runSocketHandler(
       clientSocket: Socket,
       initialSystemProperties: Map[String, String],
       closeServer0: Option[Handled] => Unit
@@ -173,7 +174,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     val connectionData = ConnectionData(
       clientSocket.toString,
       // According to https://pzemtsov.github.io/2015/01/19/on-the-benefits-of-stream-buffering-in-Java.html
-      // it seems that buffering on the application level is still beneficial due to syscall 
+      // it seems that buffering on the application level is still beneficial due to syscall
       // overhead, even if kernel has its own socket buffers.
       BufferedInputStream(clientSocket.getInputStream, bufferSize),
       BufferedOutputStream(clientSocket.getOutputStream, bufferSize),
