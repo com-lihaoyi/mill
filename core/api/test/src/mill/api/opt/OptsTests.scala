@@ -5,7 +5,7 @@ import mill.api.opt.*
 
 class OptsTests extends TestSuite {
 
-  val homeDir = os.home
+  val homeDir = os.root / "tmp/opts-test"
   val workDir = homeDir / "work"
   val outDir = workDir / "out"
 
@@ -91,7 +91,7 @@ class OptsTests extends TestSuite {
         val json = upickle.write(opts1)
         assertGoldenLiteral(
           json,
-          "{\"value\":[{\"value\":[[[\"-deprecation\",null]],[[\"-verbose\",null]],[[\"--release\",null]],[[\"17\",null]],[[\"-Xplugin=\",null],[null,\"/home/lefou/.cache/plugin1\"]],[[\"-Xplugin:\",null],[null,\"/home/lefou/.cache/plugin1\"]],[[null,\"/home/lefou/work/src1\"]],[[null,\"/home/lefou/work/src2\"]],[[null,\"/home/lefou/work/src3\"]],[[null,\"/home/lefou/work/src4\"]],[[\"--extra\",null]],[[\"-Xplugin=\",null],[null,\"/home/lefou/.cache/plugin1\"]],[[null,\"/home/lefou/work/src1\"]],[[null,\"/home/lefou/work/src2\"]]]}]}"
+          "{\"value\":[{\"value\":[[[\"-deprecation\",null]],[[\"-verbose\",null]],[[\"--release\",null]],[[\"17\",null]],[[\"-Xplugin=\",null],[null,\"/tmp/opts-test/.cache/plugin1\"]],[[\"-Xplugin:\",null],[null,\"/tmp/opts-test/.cache/plugin1\"]],[[null,\"/tmp/opts-test/work/src1\"]],[[null,\"/tmp/opts-test/work/src2\"]],[[null,\"/tmp/opts-test/work/src3\"]],[[null,\"/tmp/opts-test/work/src4\"]],[[\"--extra\",null]],[[\"-Xplugin=\",null],[null,\"/tmp/opts-test/.cache/plugin1\"]],[[null,\"/tmp/opts-test/work/src1\"]],[[null,\"/tmp/opts-test/work/src2\"]]]}]}"
         )
         assert(json.split("\\Q$HOME\\E").size == 1)
         val back = upickle.read[Opts](json)
