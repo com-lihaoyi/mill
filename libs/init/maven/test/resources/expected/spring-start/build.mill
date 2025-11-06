@@ -1,6 +1,8 @@
 //| mill-version: SNAPSHOT
 package build
 
+import mill.api.*
+import mill.api.opts.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import millbuild.*

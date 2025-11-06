@@ -1,5 +1,7 @@
 package build.nested.nested
 
+import mill.api.*
+import mill.api.opts.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import mill.scalalib.*

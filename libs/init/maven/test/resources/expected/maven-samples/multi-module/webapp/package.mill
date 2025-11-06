@@ -1,5 +1,7 @@
 package build.`multi-module`.webapp
 
+import mill.api.*
+import mill.api.opts.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import millbuild.*
