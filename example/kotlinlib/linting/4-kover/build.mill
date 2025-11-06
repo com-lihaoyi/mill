@@ -2,12 +2,13 @@ package build
 
 import mill.*, kotlinlib.*
 import kotlinlib.kover.KoverModule
+import mill.api.opt.*
 
 object `package` extends KotlinModule, KoverModule {
 
   trait KotestTests extends TestModule.Junit5 {
-    override def forkArgs: T[Seq[String]] = Task {
-      super.forkArgs() ++ Seq("-Dkotest.framework.classpath.scanning.autoscan.disable=true")
+    override def forkArgs: T[Opts] = Task {
+      super.forkArgs() ++ Opts("-Dkotest.framework.classpath.scanning.autoscan.disable=true")
 
     }
     override def mvnDeps = super.mvnDeps() ++ Seq(

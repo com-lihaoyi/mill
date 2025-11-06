@@ -1,13 +1,15 @@
 //// SNIPPET:BUILD
 package build
+
 import mill.*, javalib.*
+import mill.api.opt.*
 
 object foo extends JavaModule {
   object test extends JavaTests, TestModule.Junit4 {
     def otherFiles = Task.Source("other-files")
 
     def forkEnv = super.forkEnv() ++ Map(
-      "OTHER_FILES_DIR" -> otherFiles().path.toString
+      "OTHER_FILES_DIR" -> Opt(otherFiles().path)
     )
   }
 }

@@ -1,5 +1,7 @@
 package build
+
 import mill.*, javalib.*
+import mill.api.opt.*
 
 object `package` extends MicronautModule {
   def micronautVersion = "4.4.3"
@@ -50,9 +52,11 @@ trait MicronautModule extends MavenModule {
     )
   }
 
-  def javacOptions = Seq(
-    "-processorpath",
-    processors().map(_.path).mkString(":"),
+  def javacOptions = Opts(
+    OptGroup(
+      "-processorpath",
+      Opt.mkPath(processors().map(_.path), ":")
+    ),
     "-parameters",
     "-Amicronaut.processing.incremental=true",
     "-Amicronaut.processing.group=example.micronaut",

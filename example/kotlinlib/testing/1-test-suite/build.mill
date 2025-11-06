@@ -1,6 +1,8 @@
 //// SNIPPET:BUILD1
 package build
+
 import mill.*, kotlinlib.*
+import mill.api.opt.*
 
 object foo extends KotlinModule {
 
@@ -15,7 +17,7 @@ object foo extends KotlinModule {
     )
 
     // This is needed because of the "mockito-kotlin"
-    def kotlincOptions = super.kotlincOptions() ++ Seq("-jvm-target", "11")
+    def kotlincOptions = super.kotlincOptions() ++ Opts("-jvm-target", "11")
   }
 }
 
@@ -40,7 +42,7 @@ object bar extends KotlinModule {
     )
 
     // This is needed because of the "mockito-kotlin"
-    def kotlincOptions = super.kotlincOptions() ++ Seq("-jvm-target", "11")
+    def kotlincOptions = super.kotlincOptions() ++ Opts("-jvm-target", "11")
   }
 }
 

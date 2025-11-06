@@ -1,5 +1,7 @@
 package build
+
 import mill.*, scalalib.*
+import mill.api.opt.*
 
 object foo extends ScalaModule {
   def scalaVersion = "2.12.20"
@@ -14,7 +16,7 @@ object foo extends ScalaModule {
     def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
     def testFramework = "utest.runner.Framework"
 
-    def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+    def forkArgs = Opts("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
   }
 
 }

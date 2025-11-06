@@ -1,12 +1,14 @@
 //// SNIPPET:BUILD
 package build
+
 import mill.*, scalalib.*
+import mill.api.opt.*
 
 object `package` extends ScalaModule {
   def scalaVersion = "3.7.1"
-  def scalacOptions = Seq("-Ydelambdafy:inline")
-  def forkArgs = Seq("-Xmx4g", "-Dmy.jvm.property=hello")
-  def forkEnv = Map("MY_ENV_VAR" -> "WORLD")
+  def scalacOptions = Opts("-Ydelambdafy:inline")
+  def forkArgs = Opts("-Xmx4g", "-Dmy.jvm.property=hello")
+  def forkEnv = Map("MY_ENV_VAR" -> opt"WORLD")
 }
 
 // You can pass flags to the Scala compiler via `scalacOptions`.

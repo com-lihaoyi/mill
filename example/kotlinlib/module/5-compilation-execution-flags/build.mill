@@ -1,13 +1,15 @@
 //// SNIPPET:BUILD
 package build
+
 import mill.*, kotlinlib.*
+import mill.api.opt.*
 
 object `package` extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  def forkArgs = Seq("-Xmx4g", "-Dmy.jvm.property=hello")
-  def forkEnv = Map("MY_ENV_VAR" -> "WORLD")
+  def forkArgs = Opts("-Xmx4g", "-Dmy.jvm.property=hello")
+  def forkEnv = Map("MY_ENV_VAR" -> opt"WORLD")
 
   def kotlincOptions = super.kotlincOptions() ++ Seq("-Werror")
 }
