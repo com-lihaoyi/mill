@@ -64,7 +64,7 @@ class ZincWorkerRpcServer(
             reporter = reporterAsOption(reporterMode),
             reportCachedProblems = reporterMode.reportCachedProblems,
             ctx,
-            ZincWorker.InvocationDependencies(
+            ZincWorker.ProcessConfig(
               log,
               consoleOut,
               ZincCompilerBridgeProvider(
@@ -97,9 +97,9 @@ object ZincWorkerRpcServer {
   }
 
   case class Request(
-                      op: ZincOp,
-                      reporterMode: ReporterMode,
-                      ctx: ZincWorker.InvocationContext
+      op: ZincOp,
+      reporterMode: ReporterMode,
+      ctx: ZincWorker.LocalConfig
   ) extends MillRpcChannel.Message derives upickle.ReadWriter {
     type Response = op.Response
   }

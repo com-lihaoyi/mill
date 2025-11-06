@@ -31,8 +31,7 @@ object ZincWorkerMain {
 
   private class ZincWorkerTcpServer(daemonDir: os.Path, jobs: Int) extends Server(Server.Args(
         daemonDir,
-        // The worker kills the process when it needs to.
-        acceptTimeout = None,
+        acceptTimeout = None, // The worker kills the process when it needs to.
         Locks.files(daemonDir.toString),
         bufferSize = 4 * 1024
       )) {

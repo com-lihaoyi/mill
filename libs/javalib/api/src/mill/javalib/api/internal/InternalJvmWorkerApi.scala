@@ -12,11 +12,11 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
 
   /** Compile a Java-only project. */
   def apply(
-             op: ZincOp,
-             javaHome: Option[os.Path],
-             javaRuntimeOptions: Seq[String] = Nil,
-             reporter: Option[CompileProblemReporter] = None,
-             reportCachedProblems: Boolean = false
+      op: ZincOp,
+      javaHome: Option[os.Path],
+      javaRuntimeOptions: Seq[String] = Nil,
+      reporter: Option[CompileProblemReporter] = None,
+      reportCachedProblems: Boolean = false
   )(using context: InternalJvmWorkerApi.Ctx): op.Response
 
   // public API forwarder
