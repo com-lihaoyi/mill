@@ -101,6 +101,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
   private def renderBaseModuleImports(baseModule: ModuleSpec) = {
     val wildcards = mutable.SortedSet.empty[String]
     import baseModule.*
+    wildcards += "mill.api" += "mill.api.opts"
     wildcards ++= configs.flatMap(imports)
     renderLines(wildcards.map(s => s"import $s.*"))
   }

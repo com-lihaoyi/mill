@@ -10,6 +10,7 @@ import upickle.default.{ReadWriter, macroRW}
  * to configure tasks/members like `mvnDeps`/`moduleDeps`.
  */
 sealed trait ModuleConfig
+
 object ModuleConfig {
   case class Artifact(group: String, id: String, version: String)
   object Artifact {
