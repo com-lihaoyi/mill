@@ -173,8 +173,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     val connectionData = ConnectionData(
       clientSocket.toString,
       // According to https://pzemtsov.github.io/2015/01/19/on-the-benefits-of-stream-buffering-in-Java.html
-      // it seems that buffering on the application level is still beneficial due to syscall overhead,
-      // even if kernel has its own socket buffers.
+      // it seems that buffering on the application level is still beneficial due to syscall 
+      // overhead, even if kernel has its own socket buffers.
       BufferedInputStream(clientSocket.getInputStream, bufferSize),
       BufferedOutputStream(clientSocket.getOutputStream, bufferSize),
       initialSystemProperties
