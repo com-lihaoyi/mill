@@ -129,13 +129,13 @@ abstract class MillDaemonServer[State](
       data: DaemonServerData
   ): Int = {
     val (result, newStateCache) = main0(
-      data.customData.args,
+      data.clientData.args,
       stateCache,
-      data.customData.interactive,
+      data.clientData.interactive,
       new SystemStreams(data.stdout, data.stderr, connectionData.clientToServer),
-      data.customData.env.asScala.toMap,
+      data.clientData.env.asScala.toMap,
       setIdle(_),
-      data.customData.userSpecifiedProperties.asScala.toMap,
+      data.clientData.userSpecifiedProperties.asScala.toMap,
       connectionData.initialSystemProperties,
       stopServer = stopServer
     )
@@ -184,7 +184,7 @@ object MillDaemonServer {
       stdout: PrintStream,
       stderr: PrintStream,
       writtenExitCode: AtomicBoolean,
-      customData: ClientInitData
+      clientData: ClientInitData
   )
   def withOutLock[T](
       noBuildLock: Boolean,

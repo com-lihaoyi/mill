@@ -17,8 +17,8 @@ import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
- * Implementation of a server that binds to a random port, informs a client of the port, and accepts a client
- * connections.
+ * Implementation of a server that binds to a random port, informs a client of the port,
+ * and accepts a client connections.
  */
 abstract class Server[Prepared, Handled](args: Server.Args) {
   import args.*
