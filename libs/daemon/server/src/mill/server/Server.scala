@@ -241,9 +241,6 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
         }
       }
 
-      // We cannot simply use Lock#await here, because the filesystem doesn't
-      // realize the launcherLock/daemonLock are held by different threads in the
-      // two processes and gives a spurious deadlock error
       while (!done && checkClientAlive()) Thread.sleep(1)
 
       if (!idle) {
