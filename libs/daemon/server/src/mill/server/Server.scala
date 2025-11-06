@@ -247,6 +247,7 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
 
       StartThread(connectionHandlerThreadName(clientSocket)) {
         var result: Option[HandleResult] = None
+
         try {
           result = Some(handleConnection(
             connectionData,
@@ -286,8 +287,8 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
     } finally endConnection(connectionData, Some(data), None)
   }
 }
-object Server {
 
+object Server {
   // Wrapper object to encapsulate `activeConnections` and `inactiveTimestampOpt`,
   // ensuring they get incremented and decremented together across multiple threads
   // and never get out of sync
