@@ -245,7 +245,7 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
       @volatile var done = false
       @volatile var idle = false
 
-      val t = StartThread(connectionHandlerThreadName(clientSocket)) {
+      StartThread(connectionHandlerThreadName(clientSocket)) {
         var result: Option[HandleResult] = None
         try {
           result = Some(handleConnection(
@@ -387,13 +387,11 @@ object Server {
   def checkProcessIdFile(processIdFile: os.Path, processId: String): Option[String] = {
     Try(os.read(processIdFile)) match {
       case scala.util.Failure(_) => Some(s"processId file missing: $processIdFile")
-
       case scala.util.Success(s) =>
         Option.when(s != processId) {
           s"processId file ($processIdFile) contents $s does not match processId $processId"
         }
     }
-
   }
 
   /** Runs a thread that invokes `exit` if the contents of `processIdFile` do not match `processId`. */
@@ -459,5 +457,4 @@ object Server {
       serverToClient: BufferedOutputStream,
       initialSystemProperties: Map[String, String]
   )
-
 }
