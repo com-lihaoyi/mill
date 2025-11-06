@@ -87,7 +87,7 @@ object ZincWorkerMain {
     ): Unit = {}
 
     def systemExit(exitCode: Unit): Nothing = ???
-    
+
     override def checkIfClientAlive(
         connectionData: ConnectionData,
         writeSynchronizer: Object

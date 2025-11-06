@@ -45,16 +45,16 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
   ): Prepared
 
   def handleConnection(
-                        connectionData: ConnectionData,
-                        stopServer: Server.StopServer0[Handled],
-                        setIdle: Server.SetIdle,
-                        data: Prepared
+      connectionData: ConnectionData,
+      stopServer: Server.StopServer0[Handled],
+      setIdle: Server.SetIdle,
+      data: Prepared
   ): Handled
 
   def endConnection(
-                     connectionData: ConnectionData,
-                     data: Option[Prepared],
-                     result: Option[Handled]
+      connectionData: ConnectionData,
+      data: Option[Prepared],
+      result: Option[Handled]
   ): Unit
 
   def systemExit(exitCode: Handled): Nothing
@@ -103,7 +103,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
           // server alive 500-1000ms before letting it exit properly
           serverSocket.close()
 
-          for(exitCode <- exitCodeOpt) systemExit(exitCode)
+          for (exitCode <- exitCodeOpt) systemExit(exitCode)
         }
         Server.watchProcessIdFile(
           daemonDir / DaemonFiles.processId,
@@ -183,10 +183,10 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
    * @param closeServer0       closes the server socket
    */
   def runForSocket(
-                    clientSocket: Socket,
-                    socketInfo: Server.SocketInfo,
-                    initialSystemProperties: Map[String, String],
-                    closeServer0: Option[Handled] => Unit
+      clientSocket: Socket,
+      socketInfo: Server.SocketInfo,
+      initialSystemProperties: Map[String, String],
+      closeServer0: Option[Handled] => Unit
   ): Unit = {
     // According to https://pzemtsov.github.io/2015/01/19/on-the-benefits-of-stream-buffering-in-Java.html it seems that
     // buffering on the application level is still beneficial due to syscall overhead, even if kernel has its own
@@ -207,7 +207,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     val data = prepareConnection(
       connectionData,
       stopServer =
-        (reason, exitCode) => stopServerCloseLocks(s"pre-connection handler: $reason", exitCode, None)
+        (reason, exitCode) =>
+          stopServerCloseLocks(s"pre-connection handler: $reason", exitCode, None)
     )
 
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these

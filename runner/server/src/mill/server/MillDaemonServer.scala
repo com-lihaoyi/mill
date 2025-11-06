@@ -58,7 +58,7 @@ abstract class MillDaemonServer[State](
   /**
    * Invoked before a thread that runs [[handleConnection]] is spawned.
    */
-  override final def prepareConnection(
+  override def prepareConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer
   ): DaemonServerData = {
@@ -122,7 +122,7 @@ abstract class MillDaemonServer[State](
     DaemonServerData(stdout, stderr, AtomicBoolean(false), initData)
   }
 
-  override final def handleConnection(
+  override def handleConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer,
       setIdle: Server.SetIdle,
@@ -162,7 +162,7 @@ abstract class MillDaemonServer[State](
   }
 
   def systemExit(exitCode: Int): Nothing = sys.exit(exitCode)
-  
+
   def main0(
       args: Array[String],
       stateCache: State,
