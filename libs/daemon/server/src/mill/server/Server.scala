@@ -257,7 +257,6 @@ abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.
             setIdle = idle = _,
             data = data
           )
-          )
         } catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
           case e: Throwable =>

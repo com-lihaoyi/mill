@@ -46,8 +46,6 @@ object ZincWorkerMain {
      */
     private val worker = ZincWorker(jobs = jobs)
 
-
-
     override def prepareConnection(
         connectionData: ConnectionData,
         stopServer: Server.StopServer

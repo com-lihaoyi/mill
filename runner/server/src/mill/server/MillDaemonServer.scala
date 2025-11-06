@@ -3,8 +3,12 @@ package mill.server
 import mill.api.daemon.SystemStreams
 import mill.client.*
 import mill.client.lock.{Lock, Locks}
+<<<<<<< HEAD
 import mill.constants.{OutFiles, ProxyStream}
 import mill.server.MillDaemonServer.DaemonServerData
+=======
+import mill.constants.OutFiles
+>>>>>>> main
 import mill.server.Server.ConnectionData
 
 import java.io.*
@@ -46,14 +50,6 @@ abstract class MillDaemonServer[State](
 
   override def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
-
-  def writeExitCode(
-      serverToClient: BufferedOutputStream,
-      exitCode: Int,
-      guard: AtomicBoolean
-  ): Unit = {
-    if (!guard.getAndSet(true)) ProxyStream.sendEnd(serverToClient, exitCode)
-  }
 
   override def checkIfClientAlive(
       connectionData: ConnectionData,
@@ -155,7 +151,6 @@ abstract class MillDaemonServer[State](
     exitCode
   }
 
-
   override def endConnection(connectionData: ConnectionData,
                              data: Option[DaemonServerData],
                              result: Option[Int]): Unit = {
@@ -163,11 +158,9 @@ abstract class MillDaemonServer[State](
     System.out.flush()
     System.err.flush()
 
-    writeExitCode(
-      connectionData.serverToClient,
-      result.getOrElse(1),
-      data.fold(new AtomicBoolean(false))(_.writtenExitCode)
-    )
+    if (!data.exists(_.writtenExitCode.getAndSet() == true)) {
+      ProxyStream.sendEnd(connectionData.serverToClient, result.getOrElse(1))
+    }
   }
   def main0(
       args: Array[String],
