@@ -21,19 +21,17 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
   private val zincLocalWorker = ZincWorker(jobs = jobs)
 
   override def apply(
-      op: ZincOperation,
-      javaHome: Option[os.Path],
-      javaRuntimeOptions: Seq[String],
-      reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
+                      op: ZincOp,
+                      javaHome: Option[os.Path],
+                      javaRuntimeOptions: Seq[String],
+                      reporter: Option[CompileProblemReporter],
+                      reportCachedProblems: Boolean
   )(using ctx: InternalJvmWorkerApi.Ctx): op.Response = {
     val log = ctx.log
     val zincCtx = ZincWorker.InvocationContext(
-      env = ctx.env,
       dest = ctx.dest,
       logDebugEnabled = log.debugEnabled,
       logPromptColored = log.prompt.colored,
-      zincLogDebug = zincLogDebug
     )
 
     val zincApi =
@@ -168,9 +166,9 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
 
     new ZincApi {
       def apply(
-          op: ZincOperation,
-          reporter: Option[CompileProblemReporter],
-          reportCachedProblems: Boolean
+                 op: ZincOp,
+                 reporter: Option[CompileProblemReporter],
+                 reportCachedProblems: Boolean
       ): op.Response = {
         zincLocalWorker.apply(op, reporter, reportCachedProblems, ctx, deps)
       }

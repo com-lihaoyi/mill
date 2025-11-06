@@ -11,7 +11,7 @@ import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTar
 import mill.api.daemon.internal.{ScalaModuleApi, ScalaPlatform, internal}
 import mill.javalib.dependency.versions.{ValidVersion, Version}
 import mill.javalib.{CompileFor, SemanticDbJavaModule}
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileMixed, ZincScaladocJar}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
 // this import requires scala-reflect library to be on the classpath
 // it was duplicated to scala3-compiler, but is that too powerful to add as a dependency?
@@ -283,7 +283,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     val worker = jvmWorker().internalWorker()
 
     worker.apply(
-      ZincCompileMixed(
+      ZincOp.CompileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
@@ -329,7 +329,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       } else {
         val worker = jvmWorker().internalWorker()
         worker.apply(
-          ZincScaladocJar(
+          ZincOp.ScaladocJar(
             scalaVersion(),
             scalaOrganization(),
             scalaDocClasspath(),
@@ -623,7 +623,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
       val worker = jvmWorker().internalWorker()
       worker.apply(
-        ZincCompileMixed(
+        ZincOp.CompileMixed(
           upstreamCompileOutput = upstreamSemanticDbDatas().map(_.compilationResult),
           sources = allSourceFiles().map(_.path),
           compileClasspath =

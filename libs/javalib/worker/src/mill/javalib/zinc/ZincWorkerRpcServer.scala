@@ -97,9 +97,9 @@ object ZincWorkerRpcServer {
   }
 
   case class Request(
-      op: ZincOperation,
-      reporterMode: ReporterMode,
-      ctx: ZincWorker.InvocationContext
+                      op: ZincOp,
+                      reporterMode: ReporterMode,
+                      ctx: ZincWorker.InvocationContext
   ) extends MillRpcChannel.Message derives upickle.ReadWriter {
     type Response = op.Response
   }

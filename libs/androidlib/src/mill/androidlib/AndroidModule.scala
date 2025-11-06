@@ -9,7 +9,7 @@ import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import mill.javalib.api.CompilationResult
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
 import scala.collection.immutable
 import scala.xml.*
@@ -519,7 +519,7 @@ trait AndroidModule extends JavaModule { outer =>
     val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
     val worker = jvmWorker().internalWorker()
     worker.apply(
-      ZincCompileJava(
+      ZincOp.CompileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = androidLibsRClasses().map(_.path),
         compileClasspath = Seq.empty,
@@ -732,7 +732,7 @@ trait AndroidModule extends JavaModule { outer =>
     val worker = jvmWorker().internalWorker()
     val classesDest = worker
       .apply(
-        ZincCompileJava(
+        ZincOp.CompileJava(
           upstreamCompileOutput = upstreamCompileOutput(),
           sources = sources.map(_.path),
           compileClasspath = androidTransitiveLibRClasspath().map(_.path),

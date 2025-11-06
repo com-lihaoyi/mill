@@ -163,7 +163,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   }
 
   def compileJava(
-      op: ZincCompileJava,
+      op: ZincOp.CompileJava,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       ctx: ZincWorker.InvocationContext,
@@ -191,7 +191,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   }
 
   def compileMixed(
-      op: ZincCompileMixed,
+      op: ZincOp.CompileMixed,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       ctx: ZincWorker.InvocationContext,
@@ -225,7 +225,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   }
 
   def scaladocJar(
-      op: ZincScaladocJar,
+      op: ZincOp.ScaladocJar,
       compilerBridge: ZincCompilerBridgeProvider
   ): Boolean = {
     import op.*
@@ -346,7 +346,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       suppressedMessage = _ => None
     )
     val loggerId = Thread.currentThread().getId.toString
-    val zincLogLevel = if (ctx.zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
+    val zincLogLevel = if (ctx.logDebugEnabled) sbt.util.Level.Debug else sbt.util.Level.Info
     val logger = SbtLoggerUtils.createLogger(loggerId, consoleAppender, zincLogLevel)
 
     val maxErrors = reporter.map(_.maxErrors).getOrElse(CompileProblemReporter.defaultMaxErrors)
@@ -548,29 +548,29 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   }
 
   def apply(
-      op: ZincOperation,
-      reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean,
-      ctx: ZincWorker.InvocationContext,
-      deps: ZincWorker.InvocationDependencies
+             op: ZincOp,
+             reporter: Option[CompileProblemReporter],
+             reportCachedProblems: Boolean,
+             ctx: ZincWorker.InvocationContext,
+             deps: ZincWorker.InvocationDependencies
   ): op.Response = {
     op match {
-      case msg: ZincCompileJava =>
+      case msg: ZincOp.CompileJava =>
         compileJava(msg, reporter, reportCachedProblems, ctx, deps).asInstanceOf[op.Response]
 
-      case msg: ZincCompileMixed =>
+      case msg: ZincOp.CompileMixed =>
         compileMixed(msg, reporter, reportCachedProblems, ctx, deps).asInstanceOf[op.Response]
 
-      case msg: ZincScaladocJar =>
+      case msg: ZincOp.ScaladocJar =>
         scaladocJar(msg, deps.compilerBridge).asInstanceOf[op.Response]
 
-      case msg: ZincDiscoverTests =>
+      case msg: ZincOp.DiscoverTests =>
         mill.javalib.testrunner.DiscoverTestsMain(msg).asInstanceOf[op.Response]
 
-      case msg: ZincGetTestTasks =>
+      case msg: ZincOp.GetTestTasks =>
         mill.javalib.testrunner.GetTestTasksMain(msg).asInstanceOf[op.Response]
 
-      case msg: ZincDiscoverJunit5Tests =>
+      case msg: ZincOp.DiscoverJunit5Tests =>
         mill.javalib.testrunner.DiscoverJunit5TestsMain(msg).asInstanceOf[op.Response]
     }
 
@@ -592,11 +592,9 @@ object ZincWorker {
 
   /** The invocation context, always comes from the Mill's process. */
   case class InvocationContext(
-      env: Map[String, String],
       dest: os.Path,
       logDebugEnabled: Boolean,
       logPromptColored: Boolean,
-      zincLogDebug: Boolean
   ) derives upickle.ReadWriter
 
   private case class ScalaCompilerCacheKey(

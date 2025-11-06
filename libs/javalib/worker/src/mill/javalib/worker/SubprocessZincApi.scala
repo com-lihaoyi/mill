@@ -74,9 +74,9 @@ class SubprocessZincApi(
   }
 
   override def apply(
-      op: ZincOperation,
-      reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
+                      op: ZincOp,
+                      reporter: Option[CompileProblemReporter],
+                      reportCachedProblems: Boolean
   ): op.Response = {
     subprocessCache.withValue(
       cacheKey,
