@@ -37,7 +37,7 @@ object ClientServerTests extends TestSuite {
 
     override def out = os.temp.dir()
 
-    def stateCache0 = None
+    def initialStateCache = None
 
     override def serverLog0(s: String) = {
       println(s)

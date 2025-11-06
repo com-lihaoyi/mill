@@ -3,11 +3,12 @@ package mill.server
 import mill.api.daemon.SystemStreams
 import mill.client.*
 import mill.client.lock.{Lock, Locks}
-import mill.constants.OutFiles
+import mill.constants.{OutFiles, ProxyStream}
 import mill.server.Server.ConnectionData
 
 import java.io.*
 import java.net.Socket
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters.*
 import scala.util.Using
@@ -24,7 +25,7 @@ abstract class MillDaemonServer[State](
     acceptTimeout: FiniteDuration,
     locks: Locks,
     testLogEvenWhenServerIdWrong: Boolean = false
-) extends ProxyStreamServer(Server.Args(
+) extends Server(Server.Args(
       daemonDir = daemonDir,
       acceptTimeout = Some(acceptTimeout),
       locks = locks,
@@ -34,10 +35,10 @@ abstract class MillDaemonServer[State](
   def outLock: mill.client.lock.Lock
   def out: os.Path
 
-  private var stateCache: State = stateCache0
+  private var stateCache: State = initialStateCache
 
   /** Initial state. */
-  def stateCache0: State
+  def initialStateCache: State
 
   private var lastMillVersion = Option.empty[String]
   private var lastJavaVersion = Option.empty[String]
@@ -45,17 +46,64 @@ abstract class MillDaemonServer[State](
   override def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
 
-  override type PrepareConnectionCustomData = ClientInitData
+  override type PrepareConnectionData = DaemonServerData
 
-  override def prepareConnection(
-      socketInfo: Server.SocketInfo,
-      stdin: BufferedInputStream,
+  case class DaemonServerData(
+      stdout: PrintStream,
       stderr: PrintStream,
+      writtenExitCode: AtomicBoolean,
+      customData: ClientInitData
+  )
+
+  def writeExitCode(
+      serverToClient: BufferedOutputStream,
+      exitCode: Int,
+      guard: AtomicBoolean
+  ): Unit = {
+    if (!guard.getAndSet(true)) ProxyStream.sendEnd(serverToClient, exitCode)
+  }
+
+  override def checkIfClientAlive(
+      connectionData: ConnectionData,
+      data: PrepareConnectionData
+  ): Boolean = {
+    ProxyStream.sendHeartbeat(connectionData.serverToClient)
+    true
+  }
+
+  override def onStopServer(
+      from: String,
+      reason: String,
+      exitCode: Int,
+      connectionData: ConnectionData,
+      data: Option[PrepareConnectionData]
+  ): Unit = {
+    // Notify the client that the server is shutting down with the given exit code
+    val writtenExitCode = data.fold(new AtomicBoolean(false))(_.writtenExitCode)
+    writeExitCode(connectionData.serverToClient, exitCode, writtenExitCode)
+  }
+
+  /**
+   * Invoked before a thread that runs [[handleConnection]] is spawned.
+   */
+  override final def prepareConnection(
+      connectionData: ConnectionData,
       stopServer: Server.StopServer
-  ): ClientInitData = {
-    serverLog(s"preHandleConnection $socketInfo")
+  ): PrepareConnectionData = {
+    val stdout =
+      new PrintStream(
+        new ProxyStream.Output(connectionData.serverToClient, ProxyStream.OUT),
+        true
+      )
+    val stderr =
+      new PrintStream(
+        new ProxyStream.Output(connectionData.serverToClient, ProxyStream.ERR),
+        true
+      )
+
+    serverLog(s"preHandleConnection ${connectionData.socketInfo}")
     serverLog("reading client init data")
-    val initData = ClientInitData.read(stdin)
+    val initData = ClientInitData.read(connectionData.clientToServer)
     serverLog(s"read client init data: $initData")
     import initData.*
 
@@ -99,33 +147,32 @@ abstract class MillDaemonServer[State](
     lastMillVersion = Some(clientMillVersion)
     lastJavaVersion = Some(clientJavaVersion)
 
-    initData
+    DaemonServerData(stdout, stderr, AtomicBoolean(false), initData)
   }
 
-  override def handleConnection(
-      stdin: BufferedInputStream,
-      stdout: PrintStream,
-      stderr: PrintStream,
+  override final def handleConnection(
+      connectionData: ConnectionData,
       stopServer: Server.StopServer,
       setIdle: Server.SetIdle,
-      initialSystemProperties: Map[String, String],
-      data: ClientInitData
-  ) = {
+      data: PrepareConnectionData
+  ): Unit = {
     val (result, newStateCache) = main0(
-      data.args,
+      data.customData.args,
       stateCache,
-      data.interactive,
-      new SystemStreams(stdout, stderr, stdin),
-      data.env.asScala.toMap,
+      data.customData.interactive,
+      new SystemStreams(data.stdout, data.stderr, connectionData.clientToServer),
+      data.customData.env.asScala.toMap,
       setIdle(_),
-      data.userSpecifiedProperties.asScala.toMap,
-      initialSystemProperties,
+      data.customData.userSpecifiedProperties.asScala.toMap,
+      connectionData.initialSystemProperties,
       stopServer = stopServer
     )
 
     stateCache = newStateCache
     val exitCode = if (result) 0 else 1
-    exitCode
+
+    serverLog(s"connection handler finished, sending exitCode $exitCode to client")
+    writeExitCode(connectionData.serverToClient, exitCode, data.writtenExitCode)
   }
 
   def main0(
@@ -140,12 +187,12 @@ abstract class MillDaemonServer[State](
       stopServer: Server.StopServer
   ): (Boolean, State)
 
-  override def writeExitCode(connectionData: ConnectionData, data: ProxyStreamServerData): Unit = {
+  override def writeExitCode(connectionData: ConnectionData, data: DaemonServerData): Unit = {
     // flush before closing the socket
     System.out.flush()
     System.err.flush()
 
-    super.writeExitCode(connectionData, data)
+    writeExitCode(connectionData.serverToClient, 1, data.writtenExitCode)
   }
 }
 

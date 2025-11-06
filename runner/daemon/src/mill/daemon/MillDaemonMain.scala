@@ -75,7 +75,7 @@ class MillDaemonMain(
       locks
     ) {
 
-  def stateCache0 = RunnerState.empty
+  def initialStateCache = RunnerState.empty
 
   val out: os.Path = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
 
