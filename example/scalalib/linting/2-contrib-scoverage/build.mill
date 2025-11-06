@@ -15,6 +15,7 @@ object `package` extends ScoverageModule {
   )
 
   def statementCoverageMin = Some(0.10)
+  def branchCoverageMin = Some(0.90)
 
   object test extends ScoverageTests /*with TestModule.Utest */ {
     def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
