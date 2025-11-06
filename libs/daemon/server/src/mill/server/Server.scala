@@ -196,10 +196,10 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
 
     def closeServer(reason: String, exitCode: Handled, data: Option[Prepared]) = {
       serverLog(
-        s"`systemExit` invoked ($reason), ending connection and " + 
+        s"`systemExit` invoked ($reason), ending connection and " +
           s"shutting down server with exit code $exitCode"
       )
-      
+
       endConnection(connectionData, data, Some(exitCode))
       closeServer0(Some(exitCode))
     }
@@ -227,7 +227,6 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       lastClientAlive = result
       result
     }
-
 
     try {
       @volatile var done = false

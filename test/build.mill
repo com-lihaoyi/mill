@@ -1,9 +1,0 @@
-import mill.*
-
-def foo() = Task.Command{
-  ()
-}
-def bar() = Task.Command{
-  ???
-  ()
-}

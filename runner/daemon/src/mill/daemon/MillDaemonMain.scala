@@ -36,11 +36,10 @@ object MillDaemonMain {
     val args =
       Args(getClass.getName, args0).fold(err => throw IllegalArgumentException(err), identity)
 
-    if (Properties.isWin)
-      // temporarily disabling FFM use by coursier, which has issues with the way
-      // Mill manages class loaders, throwing things like
-      // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
-      sys.props("coursier.windows.disable-ffm") = "true"
+    // temporarily disabling FFM use by coursier, which has issues with the way
+    // Mill manages class loaders, throwing things like
+    // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
+    if (Properties.isWin) sys.props("coursier.windows.disable-ffm") = "true"
 
     coursier.Resolve.proxySetup() // Take into account proxy-related Java properties
 
@@ -61,6 +60,7 @@ object MillDaemonMain {
     }
   }
 }
+
 class MillDaemonMain(
     daemonDir: os.Path,
     acceptTimeout: FiniteDuration,
