@@ -32,7 +32,9 @@ object Opts {
 //    case s: Iterable[Opt] => s.map(OptGroup(_))
 //  })
 
-  def apply(opts: (String | os.Path | Opt | IterableOnce[(String | os.Path | Opt)] | OptGroup | Opts)*): Opts = {
+  def apply(
+      opts: (String | os.Path | Opt | IterableOnce[(String | os.Path | Opt)] | OptGroup | Opts)*
+  ): Opts = {
     val groups = opts.flatMap {
       // Seq of OptGroup
       case s: String => Seq(OptGroup(s))
