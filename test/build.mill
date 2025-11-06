@@ -1,0 +1,5 @@
+import mill.*
+def foo(exitCode: Int, reason: String) = Task.Command {
+  Task.ctx().systemExitWithReason(reason, exitCode)
+  println("hello")
+}

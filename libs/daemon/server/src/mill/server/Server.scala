@@ -65,11 +65,12 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
   /** Returns true if the client is still alive. Invoked from another thread. */
   def checkIfClientAlive(connectionData: ConnectionData, data: Prepared): Boolean
 
-  def run(): Unit = {
+  def run(): Option[Handled] = {
     serverLog(s"running server in $daemonDir")
     serverLog(s"acceptTimeout=$acceptTimeout")
     val initialSystemProperties = sys.props.toMap
     val socketPortFile = daemonDir / DaemonFiles.socketPort
+    val exitCodeVar = new java.util.concurrent.atomic.AtomicReference[Option[Handled]](None)
 
     def removeSocketPortFile(): Unit = {
       // Make sure no one would read the old socket port file
@@ -93,18 +94,12 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
         val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
 
         def closeServer(exitCodeOpt: Option[Handled]) = {
-          // Explicitly release process lock to indicate this server will not be
-          // taking any more requests, and a new server should be spawned if necessary.
-          // Otherwise, launchers may continue trying to connect to the server and
-          // failing since the socket is closed.
-          locked.close()
-
-          // Explicitly close serverSocket before exiting otherwise it can keep the
-          // server alive 500-1000ms before letting it exit properly
+          // Don't System.exit immediately, but instead store the exit code and let `def run`
+          // return normally and have its exit code used in `System.exit` later if necessary
+          exitCodeVar.compareAndSet(None, exitCodeOpt)
           serverSocket.close()
-
-          for (exitCode <- exitCodeOpt) systemExit(exitCode)
         }
+
         Server.watchProcessIdFile(
           daemonDir / DaemonFiles.processId,
           processId,
@@ -171,9 +166,9 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
         serverLog("server loop error: " + e)
         serverLog("server loop stack trace: " + e.getStackTrace.mkString("\n"))
         throw e
-    } finally {
-      serverLog("exiting server")
-    }
+    } finally serverLog("exiting server")
+
+    exitCodeVar.get()
   }
 
   /**
@@ -197,19 +192,13 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     val connectionData =
       ConnectionData(socketInfo, clientToServer, serverToClient, initialSystemProperties)
 
-    def stopServerCloseLocks(reason: String, exitCode: Handled, data: Option[Prepared]) = {
-      endConnection(connectionData, data, Some(exitCode))
-
+    def closeServer(reason: String, exitCode: Handled, data: Option[Prepared]) = {
       serverLog(s"`systemExit` invoked ($reason), shutting down with exit code $exitCode")
+      endConnection(connectionData, data, Some(exitCode))
       closeServer0(Some(exitCode))
     }
 
-    val data = prepareConnection(
-      connectionData,
-      stopServer =
-        (reason, exitCode) =>
-          stopServerCloseLocks(s"pre-connection handler: $reason", exitCode, None)
-    )
+    val data = prepareConnection(connectionData, closeServer(_, _, None))
 
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
     // detect client-side connection closing, so instead we send a no-op heartbeat
@@ -238,18 +227,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       @volatile var idle = false
 
       StartThread(connectionHandlerThreadName(clientSocket)) {
-        var result: Option[Handled] = None
-
-        try {
-          result = Some(handleConnection(
-            connectionData,
-            stopServer =
-              (reason, exitCode) =>
-                stopServerCloseLocks(s"connection handler $reason", exitCode, Some(data)),
-            setIdle = idle = _,
-            data = data
-          ))
-        } catch {
+        try handleConnection(connectionData, closeServer(_, _, Some(data)), idle = _, data)
+        catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
           case e: Throwable =>
             serverLog(
@@ -257,9 +236,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
                  |connection handler stack trace: ${e.getStackTrace.mkString("\n")}
                  |""".stripMargin
             )
-
         } finally {
-          endConnection(connectionData, Some(data), result)
           done = true
           idle = true
         }

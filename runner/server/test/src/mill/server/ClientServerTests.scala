@@ -30,8 +30,7 @@ object ClientServerTests extends TestSuite {
         1000.millis,
         locks,
         testLogEvenWhenServerIdWrong
-      )
-      with Runnable {
+      ) {
 
     override def outLock = mill.client.lock.Lock.memory()
 
@@ -45,9 +44,10 @@ object ClientServerTests extends TestSuite {
     }
 
     @volatile var runCompleted = false
-    override def run() = {
-      super.run()
+    override def run(): Option[Int] = {
+      val exitCode = super.run()
       runCompleted = true
+      exitCode
     }
     def main0(
         args: Array[String],
@@ -111,13 +111,14 @@ object ClientServerTests extends TestSuite {
           nextServerId += 1
           // Use a negative process ID to indicate we're not a real process.
           val processId = -nextServerId
-          val t = Thread(EchoServer(
+          val server = EchoServer(
             processId,
             os.Path(daemonDir, os.pwd),
             locks,
             testLogEvenWhenServerIdWrong,
             commandSleepMillis = commandSleepMillis
-          ))
+          )
+          val t = Thread(() => { server.run(); () })
           t.start()
           LaunchedServer.NewThread(t, () => { /* do nothing */ })
         }
