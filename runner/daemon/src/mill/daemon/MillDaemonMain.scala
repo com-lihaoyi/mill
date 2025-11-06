@@ -30,7 +30,6 @@ object MillDaemonMain {
   }
 
   def main(args0: Array[String]): Unit = {
-
     // Set by an integration test
     if (System.getenv("MILL_DAEMON_CRASH") == "true")
       sys.error("Mill daemon early crash requested")
@@ -44,8 +43,7 @@ object MillDaemonMain {
       // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
       sys.props("coursier.windows.disable-ffm") = "true"
 
-    // Take into account proxy-related Java properties
-    coursier.Resolve.proxySetup()
+    coursier.Resolve.proxySetup() // Take into account proxy-related Java properties
 
     mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
       Server.overrideSigIntHandling()
@@ -60,7 +58,7 @@ object MillDaemonMain {
         outMode = args.outMode
       ).run()
 
-      System.exit(ClientUtil.ExitServerCodeWhenIdle())
+      System.exit(0)
     }
   }
 }
