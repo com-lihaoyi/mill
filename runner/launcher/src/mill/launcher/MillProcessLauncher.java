@@ -252,6 +252,9 @@ public class MillProcessLauncher {
     String serverTimeout = millServerTimeout();
     if (serverTimeout != null) vmOptions.add("-Dmill.server_timeout=" + serverTimeout);
 
+    // Set UTF-8 encoding to fix Unicode character display issues on Windows
+    vmOptions.add("-Dfile.encoding=UTF-8");
+
     // extra opts
     vmOptions.addAll(millJvmOpts(outMode));
 
