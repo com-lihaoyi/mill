@@ -54,13 +54,12 @@ class ZincWorkerRpcServer(
 
     new MillRpcChannel[ZincWorkerRpcServer.Request] {
       override def apply(input: ZincWorkerRpcServer.Request): input.Response = {
-        val ZincWorkerRpcServer.Request(op, reporterMode, ctx) = input
         setIdle.doWork {
           worker.apply(
-            op = op,
-            reporter = reporterAsOption(reporterMode),
-            reportCachedProblems = reporterMode.reportCachedProblems,
-            ctx,
+            op = input.op,
+            reporter = reporterAsOption(input.reporterMode),
+            reportCachedProblems = input.reporterMode.reportCachedProblems,
+            input.ctx,
             ZincWorker.ProcessConfig(
               log,
               consoleOut,
