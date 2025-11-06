@@ -260,7 +260,8 @@ object MillMain0 {
                       out = out,
                       millActiveCommandMessage = millActiveCommandMessage,
                       streams = streams,
-                      outLock = outLock
+                      outLock = outLock,
+                      setIdle = setIdle
                     ) {
                       def proceed(logger: Logger): Watching.Result[RunnerState] = {
                         // Enter key pressed, removing mill-selective-execution.json to

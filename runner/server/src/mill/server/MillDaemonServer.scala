@@ -97,7 +97,8 @@ abstract class MillDaemonServer[State](
           new PrintStream(mill.api.daemon.DummyOutputStream),
           mill.api.daemon.DummyInputStream
         ),
-        outLock = outLock
+        outLock = outLock,
+        setIdle = _ => ()
       ) {
         if (millVersionChanged) {
           stderr.println(
@@ -192,7 +193,8 @@ object MillDaemonServer {
       out: os.Path,
       millActiveCommandMessage: String,
       streams: SystemStreams,
-      outLock: Lock
+      outLock: Lock,
+      setIdle: Boolean => Unit
   )(t: => T): T = {
     if (noBuildLock) t
     else {
@@ -204,6 +206,7 @@ object MillDaemonServer {
 
       def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
 
+      setIdle(true)
       Using.resource {
         val tryLocked = outLock.tryLock()
         if (tryLocked.isLocked) tryLocked
@@ -213,6 +216,7 @@ object MillDaemonServer {
           outLock.lock()
         }
       } { _ =>
+        setIdle(false)
         os.write.over(out / OutFiles.millActiveCommand, millActiveCommandMessage)
         try t
         finally os.remove.all(out / OutFiles.millActiveCommand)
