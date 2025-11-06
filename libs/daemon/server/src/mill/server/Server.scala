@@ -11,6 +11,7 @@ import java.net.{InetAddress, ServerSocket, Socket, SocketAddress, SocketExcepti
 import java.nio.channels.ClosedByInterruptException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -62,7 +63,6 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
   def connectionHandlerThreadName(socket: Socket): String =
     s"ConnectionHandler(${getClass.getName}, ${socket.getInetAddress}:${socket.getPort})"
 
-  /** Returns true if the client is still alive. Invoked from another thread. */
   def checkIfClientAlive(connectionData: ConnectionData, data: Prepared): Boolean
 
   def run(): Option[Handled] = {
@@ -70,7 +70,6 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     serverLog(s"acceptTimeout=$acceptTimeout")
     val initialSystemProperties = sys.props.toMap
     val socketPortFile = daemonDir / DaemonFiles.socketPort
-    val exitCodeVar = new java.util.concurrent.atomic.AtomicReference[Option[Handled]](None)
 
     def removeSocketPortFile(): Unit = {
       // Make sure no one would read the old socket port file
@@ -86,80 +85,9 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
           removeSocketPortFile()
           serverLog("releasing daemonLock")
         },
-        afterClose = () => {
-          serverLog("daemonLock released")
-        }
+        afterClose = () => serverLog("daemonLock released")
       ) { locked =>
-        serverLog("server file locked")
-        val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
-
-        def closeServer(exitCodeOpt: Option[Handled]) = {
-          // Don't System.exit immediately, but instead store the exit code and let `def run`
-          // return normally and have its exit code used in `System.exit` later if necessary
-          exitCodeVar.compareAndSet(None, exitCodeOpt)
-          serverSocket.close()
-        }
-
-        Server.watchProcessIdFile(
-          daemonDir / DaemonFiles.processId,
-          processId,
-          running = () => !serverSocket.isClosed,
-          exit = msg => {
-            serverLog(s"watchProcessIdFile: $msg")
-            closeServer(None)
-          }
-        )
-
-        val connectionTracker =
-          new Server.ConnectionTracker(serverLog, acceptTimeoutMillisOpt, serverSocket)
-
-        try {
-          os.write.over(socketPortFile, serverSocket.getLocalPort.toString)
-          serverLog("listening on port " + serverSocket.getLocalPort)
-
-          StartThread("MillServerTimeoutThread") {
-            while (!serverSocket.isClosed) {
-              Thread.sleep(1)
-              connectionTracker.closeIfTimedOut()
-            }
-          }
-
-          while (!serverSocket.isClosed) {
-            val socketOpt =
-              try Some(serverSocket.accept())
-              catch {
-                case _: java.net.SocketException => None
-              }
-
-            for (sock <- socketOpt) {
-              val socketInfo = Server.SocketInfo(sock)
-              serverLog(s"handling run for $socketInfo")
-              StartThread(s"HandleRunThread-$socketInfo") {
-                try {
-                  connectionTracker.increment()
-                  runForSocket(
-                    sock,
-                    socketInfo,
-                    initialSystemProperties,
-                    exitCodeOpt => closeServer(exitCodeOpt)
-                  )
-                } catch {
-                  case e: Throwable =>
-                    serverLog(
-                      s"""$socketInfo error: $e
-                         |
-                         |${e.getStackTrace.mkString("\n")}
-                         |""".stripMargin
-                    )
-                } finally {
-                  connectionTracker.decrement()
-                  sock.close()
-                }
-              }
-            }
-          }
-
-        } finally closeServer(None)
+        runLocked(initialSystemProperties, socketPortFile)
       }
     } catch {
       case e: Throwable =>
@@ -167,30 +95,90 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
         serverLog("server loop stack trace: " + e.getStackTrace.mkString("\n"))
         throw e
     } finally serverLog("exiting server")
+  }
+
+  def runLocked(initialSystemProperties: Map[String, String], socketPortFile: os.Path): Option[Handled] = {
+    serverLog("server file locked")
+    val serverSocket = new ServerSocket(0, 0, InetAddress.getByName(null))
+    val exitCodeVar = new AtomicReference[Option[Handled]](None)
+    def closeServer(exitCodeOpt: Option[Handled]) = {
+      // Don't System.exit immediately, but instead store the exit code for later and close the
+      // `serverSocket` so the methods return normally with a single exit point
+      exitCodeVar.compareAndSet(None, exitCodeOpt)
+      serverSocket.close()
+    }
+
+    Server.watchProcessIdFile(
+      daemonDir / DaemonFiles.processId,
+      processId,
+      running = () => !serverSocket.isClosed,
+      exit = msg => {
+        serverLog(s"watchProcessIdFile: $msg")
+        closeServer(None)
+      }
+    )
+
+    val connectionTracker =
+      new Server.ConnectionTracker(serverLog, acceptTimeoutMillisOpt, serverSocket)
+
+    try {
+      os.write.over(socketPortFile, serverSocket.getLocalPort.toString)
+      serverLog("listening on port " + serverSocket.getLocalPort)
+
+      StartThread("MillServerTimeoutThread") {
+        while (!serverSocket.isClosed) {
+          Thread.sleep(1)
+          connectionTracker.closeIfTimedOut()
+        }
+      }
+
+      while (!serverSocket.isClosed) {
+        val socketOpt =
+          try Some(serverSocket.accept())
+          catch {
+            case _: SocketException => None
+          }
+
+        for (sock <- socketOpt) {
+          serverLog(s"handling run for ${sock.toString}")
+          StartThread(s"HandleRunThread-${sock.toString}") {
+            try {
+              connectionTracker.increment()
+              spawnThreadForSocket(sock, initialSystemProperties, closeServer(_))
+            } catch {
+              case e: Throwable =>
+                serverLog(s"${sock.toString} error: $e\n${e.getStackTrace.mkString("\n")}")
+            } finally {
+              connectionTracker.decrement()
+              sock.close()
+            }
+          }
+        }
+      }
+    } finally closeServer(None)
 
     exitCodeVar.get()
   }
 
   /**
-   * Handles the necessary plumbing for a single client connection.
-   *
-   * @param initialSystemProperties [[scala.sys.SystemProperties]] that have been obtained at the start of the server process
-   * @param closeServer0       closes the server socket
+   * Kicks off a separate thread to handle this particular client server connection. Returns
+   * immediately without waiting for the thread to complete, to allow other client connections
+   * to be processed in parallel
    */
-  def runForSocket(
+  def spawnThreadForSocket(
       clientSocket: Socket,
-      socketInfo: Server.SocketInfo,
       initialSystemProperties: Map[String, String],
       closeServer0: Option[Handled] => Unit
   ): Unit = {
-    // According to https://pzemtsov.github.io/2015/01/19/on-the-benefits-of-stream-buffering-in-Java.html it seems that
-    // buffering on the application level is still beneficial due to syscall overhead, even if kernel has its own
-    // socket buffers.
-    val clientToServer = BufferedInputStream(clientSocket.getInputStream, bufferSize)
-    val serverToClient = BufferedOutputStream(clientSocket.getOutputStream, bufferSize)
-
-    val connectionData =
-      ConnectionData(socketInfo, clientToServer, serverToClient, initialSystemProperties)
+    val connectionData = CoginnectionData(
+      clientSocket.toString,
+      // According to https://pzemtsov.github.io/2015/01/19/on-the-benefits-of-stream-buffering-in-Java.html
+      // it seems that buffering on the application level is still beneficial due to syscall overhead,
+      // even if kernel has its own socket buffers.
+      BufferedInputStream(clientSocket.getInputStream, bufferSize),
+      BufferedOutputStream(clientSocket.getOutputStream, bufferSize),
+      initialSystemProperties
+    )
 
     val connExitCodeVar = new java.util.concurrent.atomic.AtomicReference[Option[Handled]](None)
 
@@ -233,24 +221,16 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       @volatile var idle = false
 
       StartThread(connectionHandlerThreadName(clientSocket)) {
-
         try {
-          connExitCodeVar.compareAndSet(
-            None,
-            Some(handleConnection(
-              connectionData,
-              stopServer =
-                (reason, exitCode) =>
-                  closeServer(s"connection handler $reason", exitCode, Some(data)),
-              setIdle = idle = _,
-              data = data
-            ))
-          )
+          val connResult =
+            handleConnection(connectionData, closeServer(_, _, Some(data)), idle = _, data)
+
+          connExitCodeVar.compareAndSet(None, Some(connResult))
         } catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
           case e: Throwable =>
             serverLog(
-              s"""connection handler for $socketInfo error: $e
+              s"""connection handler for $clientSocket error: $e
                  |connection handler stack trace: ${e.getStackTrace.mkString("\n")}
                  |""".stripMargin
             )
@@ -327,18 +307,6 @@ object Server {
       bufferSize: Int,
       testLogEvenWhenServerIdWrong: Boolean = false
   )
-
-  /**
-   * @param remote the address of the client
-   * @param local the address of the server
-   */
-  case class SocketInfo(remote: SocketAddress, local: SocketAddress) {
-    override def toString: String = s"SocketInfo(remote=$remote, local=$local)"
-  }
-  object SocketInfo {
-    def apply(socket: Socket): SocketInfo =
-      apply(socket.getRemoteSocketAddress, socket.getLocalSocketAddress)
-  }
 
   /** Immediately stops the server with the given exit code. */
   @FunctionalInterface trait StopServer0[Handle] {
@@ -441,7 +409,7 @@ object Server {
   }
 
   case class ConnectionData(
-      socketInfo: Server.SocketInfo,
+      socketName: String,
       clientToServer: BufferedInputStream,
       serverToClient: BufferedOutputStream,
       initialSystemProperties: Map[String, String]

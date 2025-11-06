@@ -58,9 +58,8 @@ object ZincWorkerMain {
         setIdle: Server.SetIdle,
         writeSynchronizer: Object
     ) = {
-      import connectionData.socketInfo
 
-      val serverName = s"$className{${socketInfo.remote} -> ${socketInfo.local}}"
+      val serverName = s"$className{${connectionData.socketName}}"
       Using.Manager { use =>
         val stdin = use(BufferedReader(InputStreamReader(connectionData.clientToServer)))
         val stdout = use(PrintStream(connectionData.serverToClient))

@@ -73,7 +73,7 @@ abstract class MillDaemonServer[State](
         true
       )
 
-    serverLog(s"preHandleConnection ${connectionData.socketInfo}")
+    serverLog(s"preHandleConnection ${connectionData.socketName}")
     serverLog("reading client init data")
     val initData = ClientInitData.read(connectionData.clientToServer)
     serverLog(s"read client init data: $initData")
