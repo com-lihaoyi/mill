@@ -166,8 +166,8 @@ abstract class MillDaemonServer[State](
     writeExitCode(
       connectionData.serverToClient,
       result.getOrElse(1),
-      data.fold(new AtomicBoolean(false)(_.writtenExitCode)
-      )
+      data.fold(new AtomicBoolean(false))(_.writtenExitCode)
+    )
   }
   def main0(
       args: Array[String],

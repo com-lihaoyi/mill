@@ -30,7 +30,7 @@ object ZincWorkerMain {
     }
   }
 
-  private class ZincWorkerTcpServer(daemonDir: os.Path, jobs: Int) extends Server[WriteSynchronizer, Unit](Server.Args(
+  private class ZincWorkerTcpServer(daemonDir: os.Path, jobs: Int) extends Server[Object, Unit](Server.Args(
         daemonDir,
         acceptTimeout = None, // The worker kills the process when it needs to.
         Locks.files(daemonDir.toString),
@@ -46,18 +46,18 @@ object ZincWorkerMain {
      */
     private val worker = ZincWorker(jobs = jobs)
 
-    class WriteSynchronizer
+
 
     override def prepareConnection(
         connectionData: ConnectionData,
         stopServer: Server.StopServer
-    ): WriteSynchronizer = new WriteSynchronizer
+    ): Object = new Object
 
     override def handleConnection(
         connectionData: ConnectionData,
         stopServer: Server.StopServer,
         setIdle: Server.SetIdle,
-        writeSynchronizer: WriteSynchronizer
+        writeSynchronizer: Object
     ) = {
       import connectionData.socketInfo
 
@@ -83,13 +83,13 @@ object ZincWorkerMain {
 
     override def endConnection(
         connectionData: ConnectionData,
-        writeSynchronizer: WriteSynchronizer,
+        writeSynchronizer: Option[Object],
         result: Option[Unit]
     ): Unit = {}
 
     override def checkIfClientAlive(
         connectionData: ConnectionData,
-        writeSynchronizer: WriteSynchronizer
+        writeSynchronizer: Object
     ): Boolean = {
       writeSynchronizer.synchronized {
         connectionData.serverToClient.write('\n'.toInt)
@@ -97,13 +97,5 @@ object ZincWorkerMain {
         true
       }
     }
-
-    override def onStopServer(
-        from: String,
-        reason: String,
-        exitCode: Int,
-        connectionData: ConnectionData,
-        data: Option[PrepareConnectionData]
-    ): Unit = {}
   }
 }

@@ -54,7 +54,7 @@ abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.
   ): HandleConnectionData
 
   def endConnection(connectionData: ConnectionData, 
-                    data: PrepareConnectionData,
+                    data: Option[PrepareConnectionData],
                     result: Option[HandleConnectionData]): Unit
 
   def connectionHandlerThreadName(socket: Socket): String =
@@ -62,19 +62,6 @@ abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.
 
   /** Returns true if the client is still alive. Invoked from another thread. */
   def checkIfClientAlive(connectionData: ConnectionData, data: PrepareConnectionData): Boolean
-
-  /**
-   * Invoked when the server is stopped.
-   *
-   * @param data will be [[None]] if [[prepareConnection]] haven't been invoked yet.
-   */
-  def onStopServer(
-      from: String,
-      reason: String,
-      exitCode: Int,
-      connectionData: ConnectionData,
-      data: Option[PrepareConnectionData]
-  ): Unit
 
   def run(): Unit = {
     serverLog(s"running server in $daemonDir")
@@ -282,7 +269,7 @@ abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.
             serverLog(msg)
 
         } finally {
-          endConnection(connectionData, data, result)
+          endConnection(connectionData, Some(data), result)
           done = true
           idle = true
         }
@@ -317,7 +304,7 @@ abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.
         case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
         // ignore this error and do nothing; seems benign
       }
-    } finally endConnection(connectionData, data, None)
+    } finally endConnection(connectionData, Some(data), None)
   }
 }
 object Server {
