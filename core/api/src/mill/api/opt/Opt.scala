@@ -11,14 +11,14 @@ case class Opt private (value: Seq[Opt.OptTypes]) extends OptApi {
 
   def map(conv: Opt.OptTypes => Opt.OptTypes): Opt = Opt(value.map(conv)*)
 
-  private def startStrings: Seq[String] =
-    value.takeWhile(_.isInstanceOf[String]).collect { case s: String => s }
+  private def startString: String =
+    value.takeWhile(_.isInstanceOf[String]).collect { case s: String => s }.mkString("")
 
-  def startsWith(prefix: String): Boolean = startStrings.mkString("").startsWith(prefix)
+  def startsWith(prefix: String): Boolean = startString.startsWith(prefix)
 
   def mapStartString(rep: String => String): Opt = {
     val rest = value.dropWhile(_.isInstanceOf[String])
-    Opt((rep(startStrings.mkString("")) +: rest)*)
+    Opt.apply((rep(startString) +: rest)*)
   }
 
   def containsPaths: Boolean = value.exists {

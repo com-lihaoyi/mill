@@ -17,6 +17,7 @@ case class OptGroup private (value: Seq[Opt]) extends OptGroupApi
   def containsPaths: Boolean = value.exists(_.containsPaths)
 
   def head: Opt = value.head
+  def headOption: Option[Opt] = value.headOption
 
   def toStringSeq: Seq[String] = value.map(_.toString())
 
@@ -28,18 +29,21 @@ case class OptGroup private (value: Seq[Opt]) extends OptGroupApi
 
 object OptGroup {
   @targetName("applyVarAar")
-  def apply(opts: (String | os.Path | Opt | Seq[(String | os.Path | Opt)])*): OptGroup =
-    new OptGroup(opts.flatMap {
+  def apply(opts: (String | os.Path | Opt | Seq[(String | os.Path | Opt)])*): OptGroup = {
+    val opts0 = opts.flatMap {
       case s: String => Seq(Opt(s))
       case p: os.Path => Seq(Opt(p))
       case o: Opt => Seq(o)
-      case o: Seq[(String | os.Path | Opt)] => o.map {
+      case o: Seq[(String | os.Path | Opt)] =>
+        o.map {
           case s: String => Opt(s)
           case p: os.Path => Opt(p)
           case o: Opt => o
         }
-    })
-//  @targetName("applyIterable")
+    }
+    new OptGroup(opts0)
+  }
+  //  @targetName("applyIterable")
 //  def apply[T](opts: T*)(using f: T => Opt): OptGroup = new OptGroup(opts.map(f(_)))
 
   def when(cond: Boolean)(value: Opt*): OptGroup = if (cond) OptGroup(value*) else OptGroup()
