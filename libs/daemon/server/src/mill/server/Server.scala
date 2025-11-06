@@ -2,6 +2,7 @@ package mill.server
 
 import mill.client.lock.{Lock, Locks, TryLocked}
 import mill.constants.{DaemonFiles, SocketUtil}
+import mill.server.Server.ConnectionData
 import sun.misc.{Signal, SignalHandler}
 
 import java.io.{BufferedInputStream, BufferedOutputStream}
@@ -39,68 +40,46 @@ abstract class Server(args: Server.Args) {
   def serverLog(s: String): Unit =
     serverLog0(s"pid:$processId ${timestampStr()} [t${Thread.currentThread().getId}] $s")
 
-  protected type PreHandleConnectionData
-
-  protected case class ConnectionData(
-      socketInfo: Server.SocketInfo,
-      clientToServer: BufferedInputStream,
-      serverToClient: BufferedOutputStream,
-      initialSystemProperties: Map[String, String]
-  )
+  type PrepareConnectionData
 
   /**
    * Invoked before a thread that runs [[handleConnection]] is spawned.
    */
-  protected def preHandleConnection(
+  def prepareConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer
-  ): PreHandleConnectionData
+  ): PrepareConnectionData
 
   /**
    * Handle a single client connection in a separate thread.
    */
-  protected def handleConnection(
+  def handleConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer,
       setIdle: Server.SetIdle,
-      data: PreHandleConnectionData
+      data: PrepareConnectionData
   ): Unit
 
   /** Invoked in [[handleConnection]] results in an exception. */
-  protected def onExceptionInHandleConnection(
-      connectionData: ConnectionData,
-      stopServer: Server.StopServer,
-      data: PreHandleConnectionData,
-      exception: Throwable
-  ): Unit
+  def writeExitCode(connectionData: ConnectionData, data: PrepareConnectionData): Unit
 
-  protected def beforeSocketClose(
-      connectionData: ConnectionData,
-      stopServer: Server.StopServer,
-      data: PreHandleConnectionData
-  ): Unit
-
-  protected def connectionHandlerThreadName(socket: Socket): String =
+  def connectionHandlerThreadName(socket: Socket): String =
     s"ConnectionHandler($handlerName, ${socket.getInetAddress}:${socket.getPort})"
 
   /** Returns true if the client is still alive. Invoked from another thread. */
-  protected def checkIfClientAlive(
-      connectionData: ConnectionData,
-      stopServer: Server.StopServer,
-      data: PreHandleConnectionData
-  ): Boolean
+  def checkIfClientAlive(connectionData: ConnectionData, data: PrepareConnectionData): Boolean
 
   /**
    * Invoked when the server is stopped.
    *
-   * @param data will be [[None]] if [[preHandleConnection]] haven't been invoked yet.
+   * @param data will be [[None]] if [[prepareConnection]] haven't been invoked yet.
    */
-  protected def onStopServer(
+  def onStopServer(
       from: String,
       reason: String,
       exitCode: Int,
       connectionData: ConnectionData,
-      data: Option[PreHandleConnectionData]
+      data: Option[PrepareConnectionData]
   ): Unit
 
   def run(): Unit = {
@@ -295,14 +274,14 @@ abstract class Server(args: Server.Args) {
         from: String,
         reason: String,
         exitCode: Int,
-        data: Option[PreHandleConnectionData]
+        data: Option[PrepareConnectionData]
     ): Nothing = {
       serverLog(s"$from invoked `stopServer` (reason: $reason), exitCode $exitCode")
       onStopServer(from, reason, exitCode, connectionData, data)
       systemExit0(reason, exitCode)
     }
 
-    val data = preHandleConnection(
+    val data = prepareConnection(
       connectionData,
       stopServer =
         (reason, exitCode) => stopServer("pre-connection handler", reason, exitCode, data = None)
@@ -312,11 +291,10 @@ abstract class Server(args: Server.Args) {
     // detect client-side connection closing, so instead we send a no-op heartbeat
     // message to see if the socket can receive data.
     @volatile var lastClientAlive = true
-    val stopServerFromCheckClientAlive: Server.StopServer = (reason, exitCode) =>
-      stopServer("checkClientAlive", reason, exitCode, Some(data))
+
     def checkClientAlive() = {
       val result =
-        try checkIfClientAlive(connectionData, stopServerFromCheckClientAlive, data)
+        try checkIfClientAlive(connectionData, data)
         catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) =>
             serverLog(s"client has closed connection")
@@ -354,25 +332,9 @@ abstract class Server(args: Server.Args) {
                    |connection handler stack trace: ${e.getStackTrace.mkString("\n")}
                    |""".stripMargin
               writingExceptionLog = true
-              try serverLog(msg)
-              catch {
-                // If we get interrupted while writing the exception log, there is not much we can do, so just print
-                // it to stderr
-                case _: ClosedByInterruptException =>
-                  Console.err.println(
-                    s"Interrupted while writing to server log, writing to stderr instead:\n${
-                        msg.linesIterator.map(s => s"    $s").mkString("\n")
-                      }"
-                  )
-              } finally writingExceptionLog = false
-              onExceptionInHandleConnection(
-                connectionData,
-                stopServer =
-                  (reason, exitCode) =>
-                    stopServer("onExceptionInHandleConnection", reason, exitCode, Some(data)),
-                data = data,
-                exception = e
-              )
+              serverLog(msg)
+
+              writeExitCode(connectionData, data)
           } finally {
             done = true
             idle = true
@@ -410,14 +372,7 @@ abstract class Server(args: Server.Args) {
         case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
         // ignore this error and do nothing; seems benign
       }
-    } finally {
-      beforeSocketClose(
-        connectionData,
-        stopServer =
-          (reason, exitCode) => stopServer("beforeSocketClose", reason, exitCode, Some(data)),
-        data
-      )
-    }
+    } finally writeExitCode(connectionData, data)
   }
 }
 object Server {
@@ -551,4 +506,12 @@ object Server {
     try block(autoCloseable)
     finally autoCloseable.close()
   }
+
+  case class ConnectionData(
+      socketInfo: Server.SocketInfo,
+      clientToServer: BufferedInputStream,
+      serverToClient: BufferedOutputStream,
+      initialSystemProperties: Map[String, String]
+  )
+
 }

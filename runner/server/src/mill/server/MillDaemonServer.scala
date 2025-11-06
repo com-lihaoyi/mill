@@ -4,6 +4,7 @@ import mill.api.daemon.SystemStreams
 import mill.client.*
 import mill.client.lock.{Lock, Locks}
 import mill.constants.OutFiles
+import mill.server.Server.ConnectionData
 
 import java.io.*
 import java.net.Socket
@@ -41,18 +42,16 @@ abstract class MillDaemonServer[State](
   private var lastMillVersion = Option.empty[String]
   private var lastJavaVersion = Option.empty[String]
 
-  override protected def connectionHandlerThreadName(socket: Socket): String =
+  override def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
 
-  override protected type PreHandleConnectionCustomData = ClientInitData
+  override type PrepareConnectionCustomData = ClientInitData
 
-  override protected def preHandleConnection(
+  override def prepareConnection(
       socketInfo: Server.SocketInfo,
       stdin: BufferedInputStream,
-      stdout: PrintStream,
       stderr: PrintStream,
-      stopServer: Server.StopServer,
-      initialSystemProperties: Map[String, String]
+      stopServer: Server.StopServer
   ): ClientInitData = {
     serverLog(s"preHandleConnection $socketInfo")
     serverLog("reading client init data")
@@ -103,8 +102,7 @@ abstract class MillDaemonServer[State](
     initData
   }
 
-  override protected def handleConnection(
-      socketInfo: Server.SocketInfo,
+  override def handleConnection(
       stdin: BufferedInputStream,
       stdout: PrintStream,
       stderr: PrintStream,
@@ -142,16 +140,12 @@ abstract class MillDaemonServer[State](
       stopServer: Server.StopServer
   ): (Boolean, State)
 
-  override protected def beforeSocketClose(
-      connectionData: ConnectionData,
-      stopServer: Server.StopServer,
-      data: ProxyStreamServerData
-  ): Unit = {
+  override def writeExitCode(connectionData: ConnectionData, data: ProxyStreamServerData): Unit = {
     // flush before closing the socket
     System.out.flush()
     System.err.flush()
 
-    super.beforeSocketClose(connectionData, stopServer, data)
+    super.writeExitCode(connectionData, data)
   }
 }
 

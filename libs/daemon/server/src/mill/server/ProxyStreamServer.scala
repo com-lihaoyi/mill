@@ -1,70 +1,61 @@
 package mill.server
 
 import mill.constants.ProxyStream
+import mill.server.Server.ConnectionData
 
 import java.io.{BufferedInputStream, BufferedOutputStream, PrintStream}
 import java.util.concurrent.atomic.AtomicBoolean
-import scala.util.control.NonFatal
 
 /** [[Server]] that incorporates [[ProxyStream]] functionality. */
 abstract class ProxyStreamServer(args: Server.Args) extends Server(args) { self =>
 
-  /** Replaces [[PreHandleConnectionData]] in this class. */
-  protected type PreHandleConnectionCustomData
+  /** Replaces [[PrepareConnectionData]] in this class. */
+  type PrepareConnectionCustomData
 
-  override protected type PreHandleConnectionData = ProxyStreamServerData
+  override type PrepareConnectionData = ProxyStreamServerData
 
   case class ProxyStreamServerData(
       stdout: PrintStream,
       stderr: PrintStream,
       writtenExitCode: AtomicBoolean,
-      customData: PreHandleConnectionCustomData
-  ) {
-    def writeExitCode(serverToClient: BufferedOutputStream, exitCode: Int): Unit = {
-      self.writeExitCode(serverToClient, exitCode, writtenExitCode)
-    }
-  }
+      customData: PrepareConnectionCustomData
+  )
 
-  private def writeExitCode(
+  def writeExitCode(
       serverToClient: BufferedOutputStream,
       exitCode: Int,
       guard: AtomicBoolean
   ): Unit = {
-    if (!guard.getAndSet(true)) {
-      ProxyStream.sendEnd(serverToClient, exitCode)
-    }
+    if (!guard.getAndSet(true)) ProxyStream.sendEnd(serverToClient, exitCode)
   }
 
-  override protected def checkIfClientAlive(
+  override def checkIfClientAlive(
       connectionData: ConnectionData,
-      stopServer: Server.StopServer,
-      data: PreHandleConnectionData
+      data: PrepareConnectionData
   ): Boolean = {
     ProxyStream.sendHeartbeat(connectionData.serverToClient)
     true
   }
 
-  override protected def onStopServer(
+  override def onStopServer(
       from: String,
       reason: String,
       exitCode: Int,
       connectionData: ConnectionData,
-      data: Option[PreHandleConnectionData]
+      data: Option[PrepareConnectionData]
   ): Unit = {
     // Notify the client that the server is shutting down with the given exit code
-    data match {
-      case Some(data) => data.writeExitCode(connectionData.serverToClient, exitCode)
-      case None => writeExitCode(connectionData.serverToClient, exitCode, new AtomicBoolean(false))
-    }
+    val writtenExitCode = data.fold(new AtomicBoolean(false))(_.writtenExitCode)
+    writeExitCode(connectionData.serverToClient, exitCode, writtenExitCode)
   }
 
   /**
    * Invoked before a thread that runs [[handleConnection]] is spawned.
    */
-  override final protected def preHandleConnection(
+  override final def prepareConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer
-  ): PreHandleConnectionData = {
+  ): PrepareConnectionData = {
     val stdout =
       new PrintStream(
         new ProxyStream.Output(connectionData.serverToClient, ProxyStream.OUT),
@@ -76,13 +67,11 @@ abstract class ProxyStreamServer(args: Server.Args) extends Server(args) { self 
         true
       )
 
-    val customData = preHandleConnection(
+    val customData = prepareConnection(
       connectionData.socketInfo,
       connectionData.clientToServer,
-      stdout,
       stderr,
-      stopServer,
-      connectionData.initialSystemProperties
+      stopServer
     )
 
     ProxyStreamServerData(
@@ -96,39 +85,35 @@ abstract class ProxyStreamServer(args: Server.Args) extends Server(args) { self 
   /**
    * Invoked before a thread that runs [[handleConnection]] is spawned.
    */
-  protected def preHandleConnection(
+  def prepareConnection(
       socketInfo: Server.SocketInfo,
       stdin: BufferedInputStream,
-      stdout: PrintStream,
       stderr: PrintStream,
-      stopServer: Server.StopServer,
-      initialSystemProperties: Map[String, String]
-  ): PreHandleConnectionCustomData
+      stopServer: Server.StopServer
+  ): PrepareConnectionCustomData
 
   /**
    * Handle a single client connection in a separate thread.
    *
    * @return the exit code to return to the client
    */
-  protected def handleConnection(
-      socketInfo: Server.SocketInfo,
+  def handleConnection(
       stdin: BufferedInputStream,
       stdout: PrintStream,
       stderr: PrintStream,
       stopServer: Server.StopServer,
       setIdle: Server.SetIdle,
       initialSystemProperties: Map[String, String],
-      data: PreHandleConnectionCustomData
+      data: PrepareConnectionCustomData
   ): Int
 
-  override final protected def handleConnection(
+  override final def handleConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer,
       setIdle: Server.SetIdle,
-      data: PreHandleConnectionData
+      data: PrepareConnectionData
   ): Unit = {
     val exitCode = handleConnection(
-      connectionData.socketInfo,
       connectionData.clientToServer,
       data.stdout,
       data.stderr,
@@ -139,30 +124,10 @@ abstract class ProxyStreamServer(args: Server.Args) extends Server(args) { self 
     )
 
     serverLog(s"connection handler finished, sending exitCode $exitCode to client")
-    data.writeExitCode(connectionData.serverToClient, exitCode)
+    writeExitCode(connectionData.serverToClient, exitCode, data.writtenExitCode)
   }
 
-  override protected def onExceptionInHandleConnection(
-      connectionData: ConnectionData,
-      stopServer: Server.StopServer,
-      data: ProxyStreamServerData,
-      exception: Throwable
-  ): Unit = {
-    data.writeExitCode(connectionData.serverToClient, 1)
-  }
-
-  override protected def beforeSocketClose(
-      connectionData: ConnectionData,
-      stopServer: Server.StopServer,
-      data: ProxyStreamServerData
-  ): Unit = {
-    // Send a termination if it has not already happened
-    try data.writeExitCode(connectionData.serverToClient, 1)
-    catch {
-      case NonFatal(err) =>
-        serverLog(
-          s"error sending exit code 1, client seems to be dead: $err\n\n${err.getStackTrace.mkString("\n")}"
-        )
-    }
+  override def writeExitCode(connectionData: ConnectionData, data: ProxyStreamServerData): Unit = {
+    writeExitCode(connectionData.serverToClient, 1, data.writtenExitCode)
   }
 }

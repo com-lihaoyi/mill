@@ -5,6 +5,7 @@ import mill.api.daemon.{DummyInputStream, SystemStreams}
 import mill.client.lock.Locks
 import mill.rpc.MillRpcWireTransport
 import mill.server.Server
+import mill.server.Server.ConnectionData
 import pprint.{TPrint, TPrintColors}
 
 import java.io.{BufferedReader, InputStreamReader, PrintStream}
@@ -45,16 +46,16 @@ object ZincWorkerMain {
      */
     private val worker = ZincWorker(jobs = jobs)
 
-    protected class WriteSynchronizer
+    class WriteSynchronizer
 
-    override protected type PreHandleConnectionData = WriteSynchronizer
+    override type PrepareConnectionData = WriteSynchronizer
 
-    override protected def preHandleConnection(
+    override def prepareConnection(
         connectionData: ConnectionData,
         stopServer: Server.StopServer
     ): WriteSynchronizer = new WriteSynchronizer
 
-    override protected def handleConnection(
+    override def handleConnection(
         connectionData: ConnectionData,
         stopServer: Server.StopServer,
         setIdle: Server.SetIdle,
@@ -82,22 +83,13 @@ object ZincWorkerMain {
       }.get
     }
 
-    override protected def onExceptionInHandleConnection(
+    override def writeExitCode(
         connectionData: ConnectionData,
-        stopServer: Server.StopServer,
-        writeSynchronizer: WriteSynchronizer,
-        exception: Throwable
-    ): Unit = {}
-
-    override protected def beforeSocketClose(
-        connectionData: ConnectionData,
-        stopServer: Server.StopServer,
         writeSynchronizer: WriteSynchronizer
     ): Unit = {}
 
-    override protected def checkIfClientAlive(
+    override def checkIfClientAlive(
         connectionData: ConnectionData,
-        stopServer: Server.StopServer,
         writeSynchronizer: WriteSynchronizer
     ): Boolean = {
       writeSynchronizer.synchronized {
@@ -107,12 +99,12 @@ object ZincWorkerMain {
       }
     }
 
-    override protected def onStopServer(
+    override def onStopServer(
         from: String,
         reason: String,
         exitCode: Int,
         connectionData: ConnectionData,
-        data: Option[PreHandleConnectionData]
+        data: Option[PrepareConnectionData]
     ): Unit = {}
   }
 }
