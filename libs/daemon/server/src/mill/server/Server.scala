@@ -260,12 +260,11 @@ abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.
         } catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
           case e: Throwable =>
-            val msg =
+            serverLog(
               s"""connection handler for $socketInfo error: $e
                  |connection handler stack trace: ${e.getStackTrace.mkString("\n")}
                  |""".stripMargin
-            writingExceptionLog = true
-            serverLog(msg)
+            )
 
         } finally {
           endConnection(connectionData, Some(data), result)
@@ -286,10 +285,8 @@ abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.
 
       serverLog(s"done=$done, idle=$idle, lastClientAlive=$lastClientAlive")
 
-      // Wait until exception log writer finishes.
-      while (writingExceptionLog) Thread.sleep(1)
-
       t.interrupt()
+
       // Try to give thread a moment to stop before we kill it for real
       //
       // We only give it 5ms because it's supposed to be idle at this point and this should
