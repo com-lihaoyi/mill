@@ -1,11 +1,13 @@
 package mill.server
 
+import mill.api.daemon.StartThread
 import mill.client.lock.{Lock, Locks, TryLocked}
 import mill.constants.{DaemonFiles, SocketUtil}
+import mill.server.Server.ConnectionData
 import sun.misc.{Signal, SignalHandler}
 
 import java.io.{BufferedInputStream, BufferedOutputStream}
-import java.net.{InetAddress, Socket, SocketAddress, SocketException}
+import java.net.{InetAddress, ServerSocket, Socket, SocketAddress, SocketException}
 import java.nio.channels.ClosedByInterruptException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -39,68 +41,46 @@ abstract class Server(args: Server.Args) {
   def serverLog(s: String): Unit =
     serverLog0(s"pid:$processId ${timestampStr()} [t${Thread.currentThread().getId}] $s")
 
-  protected type PreHandleConnectionData
-
-  protected case class ConnectionData(
-      socketInfo: Server.SocketInfo,
-      clientToServer: BufferedInputStream,
-      serverToClient: BufferedOutputStream,
-      initialSystemProperties: Map[String, String]
-  )
+  type PrepareConnectionData
 
   /**
    * Invoked before a thread that runs [[handleConnection]] is spawned.
    */
-  protected def preHandleConnection(
+  def prepareConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer
-  ): PreHandleConnectionData
+  ): PrepareConnectionData
 
   /**
    * Handle a single client connection in a separate thread.
    */
-  protected def handleConnection(
+  def handleConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer,
       setIdle: Server.SetIdle,
-      data: PreHandleConnectionData
+      data: PrepareConnectionData
   ): Unit
 
   /** Invoked in [[handleConnection]] results in an exception. */
-  protected def onExceptionInHandleConnection(
-      connectionData: ConnectionData,
-      stopServer: Server.StopServer,
-      data: PreHandleConnectionData,
-      exception: Throwable
-  ): Unit
+  def writeExitCode(connectionData: ConnectionData, data: PrepareConnectionData): Unit
 
-  protected def beforeSocketClose(
-      connectionData: ConnectionData,
-      stopServer: Server.StopServer,
-      data: PreHandleConnectionData
-  ): Unit
-
-  protected def connectionHandlerThreadName(socket: Socket): String =
+  def connectionHandlerThreadName(socket: Socket): String =
     s"ConnectionHandler($handlerName, ${socket.getInetAddress}:${socket.getPort})"
 
   /** Returns true if the client is still alive. Invoked from another thread. */
-  protected def checkIfClientAlive(
-      connectionData: ConnectionData,
-      stopServer: Server.StopServer,
-      data: PreHandleConnectionData
-  ): Boolean
+  def checkIfClientAlive(connectionData: ConnectionData, data: PrepareConnectionData): Boolean
 
   /**
    * Invoked when the server is stopped.
    *
-   * @param data will be [[None]] if [[preHandleConnection]] haven't been invoked yet.
+   * @param data will be [[None]] if [[prepareConnection]] haven't been invoked yet.
    */
-  protected def onStopServer(
+  def onStopServer(
       from: String,
       reason: String,
       exitCode: Int,
       connectionData: ConnectionData,
-      data: Option[PreHandleConnectionData]
+      data: Option[PrepareConnectionData]
   ): Unit
 
   def run(): Unit = {
@@ -139,49 +119,8 @@ abstract class Server(args: Server.Args) {
           }
         )
 
-        // Wrapper object to encapsulate `activeConnections` and `inactiveTimestampOpt`,
-        // ensuring they get incremented and decremented together across multiple threads
-        // and never get out of sync
-        object connectionTracker {
-          private var activeConnections = 0
-          private var inactiveTimestampOpt: Option[Long] = None
-
-          def wrap(t: => Unit): Unit = synchronized {
-            if (!serverSocket.isClosed) {
-              t
-            }
-          }
-
-          def increment(): Unit = wrap {
-            activeConnections += 1
-            serverLog(s"$activeConnections active connections")
-            inactiveTimestampOpt = None
-          }
-
-          def decrement(): Unit = wrap {
-            activeConnections -= 1
-            serverLog(s"$activeConnections active connections")
-            if (activeConnections == 0) {
-              inactiveTimestampOpt = Some(System.currentTimeMillis())
-            }
-          }
-
-          def closeIfTimedOut(): Unit = wrap {
-            // Explicit matching as we're doing this every 1ms.
-            acceptTimeoutMillis match {
-              case None => // Do nothing
-              case Some(acceptTimeoutMillis) =>
-                inactiveTimestampOpt match {
-                  case None => // Do nothing
-                  case Some(inactiveTimestamp) =>
-                    if (System.currentTimeMillis() - inactiveTimestamp > acceptTimeoutMillis) {
-                      serverLog(s"shutting down due inactivity")
-                      serverSocket.close()
-                    }
-                }
-            }
-          }
-        }
+        val connectionTracker =
+          new Server.ConnectionTracker(serverLog, acceptTimeoutMillis, serverSocket)
 
         try {
           os.write.over(socketPortFile, serverSocket.getLocalPort.toString)
@@ -206,16 +145,12 @@ abstract class Server(args: Server.Args) {
             sys.exit(exitCode)
           }
 
-          val timeoutThread = new Thread(
-            () => {
-              while (!serverSocket.isClosed) {
-                Thread.sleep(1)
-                connectionTracker.closeIfTimedOut()
-              }
-            },
-            "MillServerTimeoutThread"
-          )
-          timeoutThread.start()
+          StartThread("MillServerTimeoutThread") {
+            while (!serverSocket.isClosed) {
+              Thread.sleep(1)
+              connectionTracker.closeIfTimedOut()
+            }
+          }
 
           while (!serverSocket.isClosed) {
             val socketOpt =
@@ -224,36 +159,32 @@ abstract class Server(args: Server.Args) {
                 case _: java.net.SocketException => None
               }
 
-            socketOpt match {
-              case Some(sock) =>
-                val socketInfo = Server.SocketInfo(sock)
-                serverLog(s"handling run for $socketInfo")
-                new Thread(
-                  () =>
-                    try {
-                      connectionTracker.increment()
-                      runForSocket(
-                        systemExit,
-                        sock,
-                        socketInfo,
-                        initialSystemProperties,
-                        () => serverSocket.close()
-                      )
-                    } catch {
-                      case e: Throwable =>
-                        serverLog(
-                          s"""$socketInfo error: $e
-                             |
-                             |${e.getStackTrace.mkString("\n")}
-                             |""".stripMargin
-                        )
-                    } finally {
-                      connectionTracker.decrement()
-                      sock.close()
-                    },
-                  s"HandleRunThread-$socketInfo"
-                ).start()
-              case None =>
+            for (sock <- socketOpt) {
+              val socketInfo = Server.SocketInfo(sock)
+              serverLog(s"handling run for $socketInfo")
+              StartThread(s"HandleRunThread-$socketInfo") {
+                try {
+                  connectionTracker.increment()
+                  runForSocket(
+                    systemExit,
+                    sock,
+                    socketInfo,
+                    initialSystemProperties,
+                    () => serverSocket.close()
+                  )
+                } catch {
+                  case e: Throwable =>
+                    serverLog(
+                      s"""$socketInfo error: $e
+                         |
+                         |${e.getStackTrace.mkString("\n")}
+                         |""".stripMargin
+                    )
+                } finally {
+                  connectionTracker.decrement()
+                  sock.close()
+                }
+              }
             }
           }
 
@@ -295,14 +226,14 @@ abstract class Server(args: Server.Args) {
         from: String,
         reason: String,
         exitCode: Int,
-        data: Option[PreHandleConnectionData]
+        data: Option[PrepareConnectionData]
     ): Nothing = {
       serverLog(s"$from invoked `stopServer` (reason: $reason), exitCode $exitCode")
       onStopServer(from, reason, exitCode, connectionData, data)
       systemExit0(reason, exitCode)
     }
 
-    val data = preHandleConnection(
+    val data = prepareConnection(
       connectionData,
       stopServer =
         (reason, exitCode) => stopServer("pre-connection handler", reason, exitCode, data = None)
@@ -312,11 +243,10 @@ abstract class Server(args: Server.Args) {
     // detect client-side connection closing, so instead we send a no-op heartbeat
     // message to see if the socket can receive data.
     @volatile var lastClientAlive = true
-    val stopServerFromCheckClientAlive: Server.StopServer = (reason, exitCode) =>
-      stopServer("checkClientAlive", reason, exitCode, Some(data))
+
     def checkClientAlive() = {
       val result =
-        try checkIfClientAlive(connectionData, stopServerFromCheckClientAlive, data)
+        try checkIfClientAlive(connectionData, data)
         catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) =>
             serverLog(s"client has closed connection")
@@ -335,51 +265,32 @@ abstract class Server(args: Server.Args) {
       @volatile var done = false
       @volatile var idle = false
       @volatile var writingExceptionLog = false
-      val t = new Thread(
-        () =>
-          try {
-            handleConnection(
-              connectionData,
-              stopServer =
-                (reason, exitCode) =>
-                  stopServer("connection handler", reason, exitCode, Some(data)),
-              setIdle = idle = _,
-              data = data
-            )
-          } catch {
-            case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
-            case e: Throwable =>
-              val msg =
-                s"""connection handler for $socketInfo error: $e
-                   |connection handler stack trace: ${e.getStackTrace.mkString("\n")}
-                   |""".stripMargin
-              writingExceptionLog = true
-              try serverLog(msg)
-              catch {
-                // If we get interrupted while writing the exception log, there is not much we can do, so just print
-                // it to stderr
-                case _: ClosedByInterruptException =>
-                  Console.err.println(
-                    s"Interrupted while writing to server log, writing to stderr instead:\n${
-                        msg.linesIterator.map(s => s"    $s").mkString("\n")
-                      }"
-                  )
-              } finally writingExceptionLog = false
-              onExceptionInHandleConnection(
-                connectionData,
-                stopServer =
-                  (reason, exitCode) =>
-                    stopServer("onExceptionInHandleConnection", reason, exitCode, Some(data)),
-                data = data,
-                exception = e
-              )
-          } finally {
-            done = true
-            idle = true
-          },
-        connectionHandlerThreadName(clientSocket)
-      )
-      t.start()
+      val t = StartThread(connectionHandlerThreadName(clientSocket)) {
+        try {
+          handleConnection(
+            connectionData,
+            stopServer =
+              (reason, exitCode) =>
+                stopServer("connection handler", reason, exitCode, Some(data)),
+            setIdle = idle = _,
+            data = data
+          )
+        } catch {
+          case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
+          case e: Throwable =>
+            val msg =
+              s"""connection handler for $socketInfo error: $e
+                 |connection handler stack trace: ${e.getStackTrace.mkString("\n")}
+                 |""".stripMargin
+            writingExceptionLog = true
+            serverLog(msg)
+
+            writeExitCode(connectionData, data)
+        } finally {
+          done = true
+          idle = true
+        }
+      }
 
       // We cannot simply use Lock#await here, because the filesystem doesn't
       // realize the launcherLock/daemonLock are held by different threads in the
@@ -410,17 +321,49 @@ abstract class Server(args: Server.Args) {
         case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
         // ignore this error and do nothing; seems benign
       }
-    } finally {
-      beforeSocketClose(
-        connectionData,
-        stopServer =
-          (reason, exitCode) => stopServer("beforeSocketClose", reason, exitCode, Some(data)),
-        data
-      )
-    }
+    } finally writeExitCode(connectionData, data)
   }
 }
 object Server {
+
+  // Wrapper object to encapsulate `activeConnections` and `inactiveTimestampOpt`,
+  // ensuring they get incremented and decremented together across multiple threads
+  // and never get out of sync
+  case class ConnectionTracker(
+      serverLog: String => Unit,
+      acceptTimeoutMillisOpt: Option[Long],
+      serverSocket: ServerSocket
+  ) {
+    private var activeConnections = 0
+    private var inactiveTimestampOpt: Option[Long] = None
+
+    def wrap(block: => Unit): Unit = synchronized {
+      if (!serverSocket.isClosed) block
+    }
+
+    def increment(): Unit = wrap {
+      activeConnections += 1
+      serverLog(s"$activeConnections active connections")
+      inactiveTimestampOpt = None
+    }
+
+    def decrement(): Unit = wrap {
+      activeConnections -= 1
+      serverLog(s"$activeConnections active connections")
+      if (activeConnections == 0) inactiveTimestampOpt = Some(System.currentTimeMillis())
+    }
+
+    def closeIfTimedOut(): Unit = wrap {
+      for {
+        acceptTimeoutMillis <- acceptTimeoutMillisOpt
+        inactiveTimestamp <- inactiveTimestampOpt
+        if System.currentTimeMillis() - inactiveTimestamp > acceptTimeoutMillis
+      } {
+        serverLog(s"shutting down due inactivity")
+        serverSocket.close()
+      }
+    }
+  }
 
   /**
    * @param daemonDir directory used for exchanging pre-TCP data with a client
@@ -502,18 +445,14 @@ object Server {
 
     os.write.over(processIdFile, processIdStr, createFolders = true)
 
-    val processIdThread = new Thread(
-      () =>
-        while (running()) {
-          checkProcessIdFile(processIdFile, processIdStr) match {
-            case None => Thread.sleep(100)
-            case Some(msg) => exit(msg)
-          }
-        },
-      "Process ID Checker Thread"
-    )
-    processIdThread.setDaemon(true)
-    processIdThread.start()
+    StartThread("Process ID Checker Thread", daemon = true) {
+      while (running()) {
+        checkProcessIdFile(processIdFile, processIdStr) match {
+          case None => Thread.sleep(100)
+          case Some(msg) => exit(msg)
+        }
+      }
+    }
   }
 
   def tryLockBlock[T](
@@ -551,4 +490,12 @@ object Server {
     try block(autoCloseable)
     finally autoCloseable.close()
   }
+
+  case class ConnectionData(
+      socketInfo: Server.SocketInfo,
+      clientToServer: BufferedInputStream,
+      serverToClient: BufferedOutputStream,
+      initialSystemProperties: Map[String, String]
+  )
+
 }

@@ -44,13 +44,10 @@ case class Retry(
         if (timeoutMillis == -1) t(retryCount)
         else {
           val result = Promise[T]
-          val thread = new Thread(
-            { () =>
-              result.complete(scala.util.Try(t(retryCount)))
-            }: Runnable,
-            "RetryThread"
-          )
-          thread.start()
+          mill.api.daemon.StartThread("RetryThread") {
+            result.complete(scala.util.Try(t(retryCount)))
+          }
+
           Await.result(result.future, Duration.apply(timeoutMillis, TimeUnit.MILLISECONDS))
         }
       } catch {

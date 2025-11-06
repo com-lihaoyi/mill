@@ -19,7 +19,7 @@ import scala.util.Using
 class SubprocessZincApi(
     javaHome: Option[os.Path],
     runtimeOptions: Seq[String],
-    ctx: ZincWorker.InvocationContext,
+    ctx: ZincWorker.LocalConfig,
     log: Logger,
     subprocessCache: CachedFactoryWithInitData[
       SubprocessZincApi.Key,
@@ -74,7 +74,7 @@ class SubprocessZincApi(
   }
 
   override def apply(
-      op: ZincOperation,
+      op: ZincOp,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   ): op.Response = {

@@ -5,14 +5,14 @@ import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
 import mill.javalib.api.JvmWorkerApi.Ctx
-import mill.javalib.api.internal.ZincOperation
+import mill.javalib.api.internal.ZincOp
 import os.Path
 
 trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
 
   /** Compile a Java-only project. */
   def apply(
-      op: ZincOperation,
+      op: ZincOp,
       javaHome: Option[os.Path],
       javaRuntimeOptions: Seq[String] = Nil,
       reporter: Option[CompileProblemReporter] = None,
@@ -32,7 +32,7 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
   )(using ctx: Ctx): Result[CompilationResult] = {
     val jOpts = JavaCompilerOptions.split(javacOptions)
     apply(
-      ZincCompileJava(
+      ZincOp.CompileJava(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
         compileClasspath = compileClasspath,
@@ -65,7 +65,7 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
   )(using ctx: Ctx): Result[CompilationResult] = {
     val jOpts = JavaCompilerOptions.split(javacOptions)
     apply(
-      ZincCompileMixed(
+      ZincOp.CompileMixed(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
         compileClasspath = compileClasspath,
@@ -95,7 +95,7 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
       args: Seq[String]
   )(using ctx: Ctx): Boolean = {
     apply(
-      ZincScaladocJar(
+      ZincOp.ScaladocJar(
         scalaVersion = scalaVersion,
         scalaOrganization = scalaOrganization,
         compilerClasspath = compilerClasspath,
