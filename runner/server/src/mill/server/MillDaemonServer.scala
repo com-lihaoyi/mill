@@ -38,7 +38,6 @@ abstract class MillDaemonServer[State](
 
   private var stateCache: State = initialStateCache
 
-  /** Initial state. */
   def initialStateCache: State
 
   private var lastMillVersion = Option.empty[String]
@@ -147,9 +146,11 @@ abstract class MillDaemonServer[State](
     exitCode
   }
 
-  override def endConnection(connectionData: ConnectionData,
-                             data: Option[DaemonServerData],
-                             result: Option[Int]): Unit = {
+  override def endConnection(
+      connectionData: ConnectionData,
+      data: Option[DaemonServerData],
+      result: Option[Int]
+  ): Unit = {
     // flush before closing the socket
     System.out.flush()
     System.err.flush()
@@ -174,11 +175,11 @@ abstract class MillDaemonServer[State](
 
 object MillDaemonServer {
   case class DaemonServerData(
-                               stdout: PrintStream,
-                               stderr: PrintStream,
-                               writtenExitCode: AtomicBoolean,
-                               customData: ClientInitData
-                             )
+      stdout: PrintStream,
+      stderr: PrintStream,
+      writtenExitCode: AtomicBoolean,
+      customData: ClientInitData
+  )
   def withOutLock[T](
       noBuildLock: Boolean,
       noWaitForBuildLock: Boolean,

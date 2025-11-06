@@ -53,9 +53,11 @@ abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.
       data: PrepareConnectionData
   ): HandleConnectionData
 
-  def endConnection(connectionData: ConnectionData, 
-                    data: Option[PrepareConnectionData],
-                    result: Option[HandleConnectionData]): Unit
+  def endConnection(
+      connectionData: ConnectionData,
+      data: Option[PrepareConnectionData],
+      result: Option[HandleConnectionData]
+  ): Unit
 
   def connectionHandlerThreadName(socket: Socket): String =
     s"ConnectionHandler($handlerName, ${socket.getInetAddress}:${socket.getPort})"
@@ -244,7 +246,7 @@ abstract class Server[PrepareConnectionData, HandleConnectionData](args: Server.
     try {
       @volatile var done = false
       @volatile var idle = false
-      @volatile var writingExceptionLog = false
+      
 
       val t = StartThread(connectionHandlerThreadName(clientSocket)) {
         var result: Option[HandleConnectionData] = None
