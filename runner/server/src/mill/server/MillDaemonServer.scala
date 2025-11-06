@@ -160,6 +160,9 @@ abstract class MillDaemonServer[State](
       ProxyStream.sendEnd(connectionData.serverToClient, result.getOrElse(1))
     }
   }
+
+  def systemExit(exitCode: Int): Nothing = sys.exit(exitCode)
+  
   def main0(
       args: Array[String],
       stateCache: State,

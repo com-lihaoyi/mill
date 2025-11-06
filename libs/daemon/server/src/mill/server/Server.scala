@@ -57,6 +57,8 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
       result: Option[HandleResult]
   ): Unit
 
+  def systemExit(exitCode: Int): Nothing
+
   def connectionHandlerThreadName(socket: Socket): String =
     s"ConnectionHandler(${getClass.getName}, ${socket.getInetAddress}:${socket.getPort})"
 
@@ -76,6 +78,8 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
       serverLog(s"removed $socketPortFile")
     }
 
+
+
     try {
       Server.tryLockBlock(
         locks.daemonLock,
@@ -89,13 +93,25 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
       ) { locked =>
         serverLog("server file locked")
         val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
+
+        def closeServer() = {
+          // Explicitly release process lock to indicate this server will not be
+          // taking any more requests, and a new server should be spawned if necessary.
+          // Otherwise, launchers may continue trying to connect to the server and
+          // failing since the socket is closed.
+          locked.close()
+
+          // Explicitly close serverSocket before exiting otherwise it can keep the
+          // server alive 500-1000ms before letting it exit properly
+          serverSocket.close()
+        }
         Server.watchProcessIdFile(
           daemonDir / DaemonFiles.processId,
           processId,
           running = () => !serverSocket.isClosed,
           exit = msg => {
             serverLog(s"watchProcessIdFile: $msg")
-            serverSocket.close()
+            closeServer()
           }
         )
 
@@ -105,25 +121,6 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
         try {
           os.write.over(socketPortFile, serverSocket.getLocalPort.toString)
           serverLog("listening on port " + serverSocket.getLocalPort)
-
-          def systemExit(reason: String, exitCode: Int) = {
-            serverLog(
-              s"`systemExit` invoked (reason: $reason), shutting down with exit code $exitCode"
-            )
-
-            // Explicitly close serverSocket before exiting otherwise it can keep the
-            // server alive 500-1000ms before letting it exit properly
-            serverSocket.close()
-            serverLog("serverSocket closed")
-
-            // Explicitly release process lock to indicate this server will not be
-            // taking any more requests, and a new server should be spawned if necessary.
-            // Otherwise, launchers may continue trying to connect to the server and
-            // failing since the socket is closed.
-            locked.close()
-
-            sys.exit(exitCode)
-          }
 
           StartThread("MillServerTimeoutThread") {
             while (!serverSocket.isClosed) {
@@ -146,11 +143,10 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
                 try {
                   connectionTracker.increment()
                   runForSocket(
-                    systemExit,
                     sock,
                     socketInfo,
                     initialSystemProperties,
-                    () => serverSocket.close()
+                    () => closeServer()
                   )
                 } catch {
                   case e: Throwable =>
@@ -168,7 +164,7 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
             }
           }
 
-        } finally serverSocket.close()
+        } finally closeServer()
       }
     } catch {
       case e: Throwable =>
@@ -187,7 +183,6 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
    * @param serverSocketClose       closes the server socket
    */
   def runForSocket(
-      systemExit0: Server.StopServer,
       clientSocket: Socket,
       socketInfo: Server.SocketInfo,
       initialSystemProperties: Map[String, String],
@@ -202,21 +197,18 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
     val connectionData =
       ConnectionData(socketInfo, clientToServer, serverToClient, initialSystemProperties)
 
-    def stopServer(
-        from: String,
-        reason: String,
-        exitCode: Int,
-        data: Option[PrepareResult]
-    ): Nothing = {
-      serverLog(s"$from invoked `stopServer` (reason: $reason), exitCode $exitCode")
-      endConnection(connectionData, data, None)
-      systemExit0(reason, exitCode)
+    def stopServerCloseLocks(reason: String, exitCode: HandleResult, data: Option[PrepareResult]) = {
+      endConnection(connectionData, data, Some(exitCode.asInstanceOf[HandleResult]))
+
+      serverSocketClose()
+      serverLog(s"`systemExit` invoked ($reason), shutting down with exit code $exitCode")
+      systemExit(exitCode)
     }
 
     val data = prepareConnection(
       connectionData,
       stopServer =
-        (reason, exitCode) => stopServer("pre-connection handler", reason, exitCode, data = None)
+        (reason, exitCode) => stopServerCloseLocks(s"pre-connection handler: $reason", exitCode, None)
     )
 
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
@@ -253,7 +245,7 @@ abstract class Server[PrepareResult, HandleResult](args: Server.Args) {
             connectionData,
             stopServer =
               (reason, exitCode) =>
-                stopServer("connection handler", reason, exitCode, Some(data)),
+                stopServerCloseLocks(s"connection handler $reason", exitCode, Some(data)),
             setIdle = idle = _,
             data = data
           ))
