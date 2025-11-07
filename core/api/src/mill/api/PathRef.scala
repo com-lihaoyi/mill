@@ -221,37 +221,38 @@ object PathRef {
   /**
    * Default JSON formatter for [[PathRef]].
    */
-  implicit def jsonFormatter: upickle.ReadWriter[PathRef] = upickle.readwriter[String].bimap[PathRef](
-    p => {
-      storeSerializedPaths(p)
-      p.toStringPrefix + MappedRoots.encodeKnownRootsInPath(p.path)
-    },
-    {
-      case s"$prefix:$valid0:$hex:$pathVal" if prefix == "ref" || prefix == "qref" =>
+  implicit def jsonFormatter: upickle.ReadWriter[PathRef] =
+    upickle.readwriter[String].bimap[PathRef](
+      p => {
+        storeSerializedPaths(p)
+        p.toStringPrefix + MappedRoots.encodeKnownRootsInPath(p.path)
+      },
+      {
+        case s"$prefix:$valid0:$hex:$pathVal" if prefix == "ref" || prefix == "qref" =>
 
-        val path = os.Path(MappedRoots.decodeKnownRootsInPath(pathVal))
-        val quick = prefix match {
-          case "qref" => true
-          case "ref" => false
-        }
-        val validOrig = valid0 match {
-          case "v0" => Revalidate.Never
-          case "v1" => Revalidate.Once
-          case "vn" => Revalidate.Always
-        }
-        // Parsing to a long and casting to an int is the only way to make
-        // round-trip handling of negative numbers work =(
-        val sig = java.lang.Long.parseLong(hex, 16).toInt
-        val pr = PathRef(path, quick, sig, revalidate = validOrig)
-        validatedPaths.value.revalidateIfNeededOrThrow(pr)
-        storeSerializedPaths(pr)
-        pr
-      case s =>
-        mill.api.BuildCtx.withFilesystemCheckerDisabled(
-          PathRef(os.Path(MappedRoots.decodeKnownRootsInPath(s), currentOverrideModulePath.value))
-        )
-    }
-  )
+          val path = os.Path(MappedRoots.decodeKnownRootsInPath(pathVal))
+          val quick = prefix match {
+            case "qref" => true
+            case "ref" => false
+          }
+          val validOrig = valid0 match {
+            case "v0" => Revalidate.Never
+            case "v1" => Revalidate.Once
+            case "vn" => Revalidate.Always
+          }
+          // Parsing to a long and casting to an int is the only way to make
+          // round-trip handling of negative numbers work =(
+          val sig = java.lang.Long.parseLong(hex, 16).toInt
+          val pr = PathRef(path, quick, sig, revalidate = validOrig)
+          validatedPaths.value.revalidateIfNeededOrThrow(pr)
+          storeSerializedPaths(pr)
+          pr
+        case s =>
+          mill.api.BuildCtx.withFilesystemCheckerDisabled(
+            PathRef(os.Path(MappedRoots.decodeKnownRootsInPath(s), currentOverrideModulePath.value))
+          )
+      }
+    )
   private[mill] val currentOverrideModulePath = DynamicVariable[os.Path](null)
 
   // scalafix:off; we want to hide the unapply method
