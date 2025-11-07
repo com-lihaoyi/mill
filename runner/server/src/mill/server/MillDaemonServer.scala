@@ -162,7 +162,8 @@ abstract class MillDaemonServer[State](
         ProxyStream.sendEnd(connectionData.serverToClient, result.getOrElse(1))
         connectionData.serverToClient.flush()
         connectionData.serverToClient.close()
-      } catch { case e: Exception =>
+      } catch {
+        case _: Exception =>
         // Sometimes the client may have died or gone away on its own, in that case
         // just catch and swallow the exception so we don't blow up the server thread.
       }

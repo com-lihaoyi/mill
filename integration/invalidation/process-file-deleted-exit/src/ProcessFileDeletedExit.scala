@@ -43,9 +43,7 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
         }
       }
 
-      assertEventually {
-        !spawned.process.isAlive()
-      }
+      assertEventually(!spawned.process.isAlive())
     }
   }
 }

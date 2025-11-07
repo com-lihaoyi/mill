@@ -62,7 +62,7 @@ object IntegrationTester {
       val process: os.SubProcess,
       private val chunks: collection.mutable.Buffer[Either[geny.Bytes, geny.Bytes]]
   ) {
-    
+
     // These implementations are not very efficient since they re-process the chunks every
     // time they are called, but for integration testing purposes that is probably fine
     def stdout: geny.ByteData = chunks.synchronized {
