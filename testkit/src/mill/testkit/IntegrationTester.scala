@@ -55,30 +55,25 @@ object IntegrationTester {
 
   /**
    * A spawned subprocess with automatic stdout/stderr capture.
-   * Each line printed to stdout/stderr is captured in the respective buffer and also printed to console.
+   * Each line printed to stdout/stderr is captured in the buffer and also printed to console.
+   * The buffer preserves ordering, with Left representing stdout and Right representing stderr.
    */
   class SpawnedProcess(
       val process: os.SubProcess,
-      private val stdoutBuffer: collection.mutable.Buffer[String],
-      private val stderrBuffer: collection.mutable.Buffer[String]
+      private val chunks: collection.mutable.Buffer[Either[geny.Bytes, geny.Bytes]]
   ) {
-    /** Get a snapshot of stdout lines captured so far */
-    def stdout: Seq[String] = stdoutBuffer.synchronized { stdoutBuffer.toSeq }
+    
+    // These implementations are not very efficient since they re-process the chunks every
+    // time they are called, but for integration testing purposes that is probably fine
+    def stdout: geny.ByteData = chunks.synchronized {
+      geny.ByteData.Chunks(chunks.collect { case Left(bytes) => bytes }.toSeq)
+    }
 
-    /** Get a snapshot of stderr lines captured so far */
-    def stderr: Seq[String] = stderrBuffer.synchronized { stderrBuffer.toSeq }
+    def stderr: geny.ByteData = chunks.synchronized {
+      geny.ByteData.Chunks(chunks.collect { case Right(bytes) => bytes }.toSeq)
+    }
 
-    /** Get stdout as a single string */
-    def stdoutString: String = stdoutBuffer.synchronized { stdoutBuffer.mkString("\n") }
-
-    /** Get stderr as a single string */
-    def stderrString: String = stderrBuffer.synchronized { stderrBuffer.mkString("\n") }
-
-    /** Clear the stdout buffer */
-    def clearStdout(): Unit = stdoutBuffer.synchronized { stdoutBuffer.clear() }
-
-    /** Clear the stderr buffer */
-    def clearStderr(): Unit = stderrBuffer.synchronized { stderrBuffer.clear() }
+    def clear(): Unit = chunks.synchronized { chunks.clear() }
   }
 
   /** An [[Impl.eval]] that is prepared for execution but haven't been executed yet. Run it with [[run]]. */
@@ -208,20 +203,19 @@ object IntegrationTester {
         propagateEnv: Boolean = true,
         timeoutGracePeriod: Long = 100
     ): IntegrationTester.SpawnedProcess = {
-      val stdoutBuffer = collection.mutable.Buffer.empty[String]
-      val stderrBuffer = collection.mutable.Buffer.empty[String]
+      val chunks = collection.mutable.Buffer.empty[Either[geny.Bytes, geny.Bytes]]
 
       val actualStdout = Option(stdout).getOrElse(
-        os.ProcessOutput.Readlines { line =>
-          println(line)
-          stdoutBuffer.synchronized { stdoutBuffer += line }
+        os.ProcessOutput.ReadBytes { (arr, n) =>
+          System.out.write(arr, 0, n)
+          chunks.synchronized { chunks += Left(new geny.Bytes(arr.take(n))) }
         }
       )
 
       val actualStderr = Option(stderr).getOrElse(
-        os.ProcessOutput.Readlines { line =>
-          System.err.println(line)
-          stderrBuffer.synchronized { stderrBuffer += line }
+        os.ProcessOutput.ReadBytes { (arr, n) =>
+          System.err.write(arr, 0, n)
+          chunks.synchronized { chunks += Right(new geny.Bytes(arr.take(n))) }
         }
       )
 
@@ -239,7 +233,7 @@ object IntegrationTester {
         timeoutGracePeriod = timeoutGracePeriod
       ).spawn()
 
-      new IntegrationTester.SpawnedProcess(process, stdoutBuffer, stderrBuffer)
+      new IntegrationTester.SpawnedProcess(process, chunks)
     }
 
     /**

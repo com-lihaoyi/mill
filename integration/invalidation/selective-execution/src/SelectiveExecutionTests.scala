@@ -193,32 +193,32 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
           val spawned = spawn(("--watch", "{foo.fooCommand,bar.barCommand}"))
 
           assertEventually {
-            val output = spawned.stdoutString
+            val output = spawned.stdout.text()
             output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
 
           // Make sure editing each individual input results in the corresponding downstream
           // command being re-run, and watches on both are maintained even if in a prior run
           // one set of tasks was ignored.
-          spawned.clearStdout()
+          spawned.clear()
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
           assertEventually {
-            val output = spawned.stdoutString
+            val output = spawned.stdout.text()
             !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
 
           // Test for a bug where modifying the sources 2nd time would run tasks from both modules.
-          spawned.clearStdout()
+          spawned.clear()
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
           assertEventually {
-            val output = spawned.stdoutString
+            val output = spawned.stdout.text()
             !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
 
-          spawned.clearStdout()
+          spawned.clear()
           modifyFile(workspacePath / "foo/foo.txt", _ + "!")
           assertEventually {
-            val output = spawned.stdoutString
+            val output = spawned.stdout.text()
             output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
           }
         }
@@ -227,21 +227,19 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
         integrationTest { tester =>
           import tester._
           val spawned = spawn(("--watch", "show", "{foo.fooCommand,bar.barCommand}"))
-          def allOutput = (spawned.stdout ++ spawned.stderr).mkString("\n")
+          def allOutput = spawned.stdout.text() + spawned.stderr.text()
 
           assertEventually {
             allOutput.contains("Computing fooCommand") && allOutput.contains("Computing barCommand")
           }
 
-          spawned.clearStdout()
-          spawned.clearStderr()
+          spawned.clear()
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
           assertEventually {
             !allOutput.contains("Computing fooCommand") && allOutput.contains("Computing barCommand")
           }
 
-          spawned.clearStdout()
-          spawned.clearStderr()
+          spawned.clear()
           modifyFile(workspacePath / "foo/foo.txt", _ + "!")
           assertEventually {
             allOutput.contains("Computing fooCommand") && !allOutput.contains("Computing barCommand")
@@ -256,26 +254,26 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
           val spawned = spawn(("--watch", "{foo.fooCommand,bar.barCommand}"))
 
           assertEventually {
-            val output = spawned.stdoutString
+            val output = spawned.stdout.text()
             output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
 
           // Check method body code changes correctly trigger downstream evaluation
-          spawned.clearStdout()
+          spawned.clear()
           modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
           assertEventually {
-            val output = spawned.stdoutString
+            val output = spawned.stdout.text()
             !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
 
           // Check module body code changes correctly trigger downstream evaluation
-          spawned.clearStdout()
+          spawned.clear()
           modifyFile(
             workspacePath / "build.mill",
             _.replace("object foo extends Module {", "object foo extends Module { println(123)")
           )
           assertEventually {
-            val output = spawned.stdoutString
+            val output = spawned.stdout.text()
             output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
           }
         }
