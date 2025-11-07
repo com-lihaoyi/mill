@@ -3,7 +3,7 @@ import mill.api.*
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.javalib.api.internal.*
-import mill.javalib.internal.{RpcCompileProblemReporterMessage, ZincCompilerBridgeProvider}
+import mill.javalib.internal.{RpcProblemMessage, ZincCompilerBridgeProvider}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
@@ -19,7 +19,7 @@ import scala.util.Using
 class SubprocessZincApi(
     javaHome: Option[os.Path],
     runtimeOptions: Seq[String],
-    ctx: ZincWorker.InvocationContext,
+    ctx: ZincWorker.LocalConfig,
     log: Logger,
     subprocessCache: CachedFactoryWithInitData[
       SubprocessZincApi.Key,
@@ -47,22 +47,22 @@ class SubprocessZincApi(
         case msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge =>
           compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization)
             .asInstanceOf[input.Response]
-        case msg: ZincWorkerRpcServer.ServerToClient.ReportCompilationProblem =>
+        case msg: ZincWorkerRpcServer.ServerToClient.ReportProblem =>
           val res =
             reporter match {
               case Some(reporter) => msg.problem match {
-                  case RpcCompileProblemReporterMessage.Start => reporter.start()
-                  case RpcCompileProblemReporterMessage.LogError(problem) =>
+                  case RpcProblemMessage.Start => reporter.start()
+                  case RpcProblemMessage.LogError(problem) =>
                     reporter.logError(problem)
-                  case RpcCompileProblemReporterMessage.LogWarning(problem) =>
+                  case RpcProblemMessage.LogWarning(problem) =>
                     reporter.logWarning(problem)
-                  case RpcCompileProblemReporterMessage.LogInfo(problem) =>
+                  case RpcProblemMessage.LogInfo(problem) =>
                     reporter.logInfo(problem)
-                  case RpcCompileProblemReporterMessage.FileVisited(file) =>
+                  case RpcProblemMessage.FileVisited(file) =>
                     reporter.fileVisited(file.toNIO)
-                  case RpcCompileProblemReporterMessage.PrintSummary => reporter.printSummary()
-                  case RpcCompileProblemReporterMessage.Finish => reporter.finish()
-                  case RpcCompileProblemReporterMessage.NotifyProgress(progress, total) =>
+                  case RpcProblemMessage.PrintSummary => reporter.printSummary()
+                  case RpcProblemMessage.Finish => reporter.finish()
+                  case RpcProblemMessage.NotifyProgress(progress, total) =>
                     reporter.notifyProgress(progress = progress, total = total)
                 }
 
@@ -74,7 +74,7 @@ class SubprocessZincApi(
   }
 
   override def apply(
-      op: ZincOperation,
+      op: ZincOp,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   ): op.Response = {

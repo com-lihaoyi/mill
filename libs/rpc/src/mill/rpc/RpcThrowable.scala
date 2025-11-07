@@ -20,6 +20,7 @@ case class RpcThrowable(
     }
   }
 }
+
 object RpcThrowable {
   def apply(t: Throwable): RpcThrowable = apply(
     t.getClass.getCanonicalName,
@@ -49,6 +50,7 @@ case class RpcStackTraceElement(
       lineNumber
     )
 }
+
 object RpcStackTraceElement {
   def apply(e: StackTraceElement): RpcStackTraceElement = apply(
     classLoaderName = e.getClassLoaderName,

@@ -17,7 +17,7 @@ import mill.api.Logger
 
 import java.util.concurrent.ConcurrentHashMap
 import mill.api.BuildCtx
-import mill.javalib.api.internal.ZincGetTestTasks
+import mill.javalib.api.internal.ZincOp
 import mill.javalib.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import os.Path
 
@@ -81,7 +81,7 @@ final class TestModuleUtil(
         // tests to run and shut down
 
         val discoveredTests = jvmWorker.apply(
-          ZincGetTestTasks(
+          ZincOp.GetTestTasks(
             (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
             testClasspath.map(_.path),
             testFramework,

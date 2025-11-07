@@ -14,7 +14,7 @@ import mill.javalib.api.{CompilationResult, Versions}
 import mill.util.{BuildInfo, MainRootModule}
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.JsonFormatters.given
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileMixed}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 
@@ -291,7 +291,7 @@ trait MillBuildRootModule()(using
     val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
     val worker = jvmWorker().internalWorker()
     worker.apply(
-      ZincCompileMixed(
+      ZincOp.CompileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = Seq.from(allSourceFiles().map(_.path)),
         compileClasspath = compileClasspath().map(_.path),

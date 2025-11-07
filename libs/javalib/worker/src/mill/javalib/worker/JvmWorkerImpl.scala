@@ -21,19 +21,17 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
   private val zincLocalWorker = ZincWorker(jobs = jobs)
 
   override def apply(
-      op: ZincOperation,
+      op: ZincOp,
       javaHome: Option[os.Path],
       javaRuntimeOptions: Seq[String],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   )(using ctx: InternalJvmWorkerApi.Ctx): op.Response = {
     val log = ctx.log
-    val zincCtx = ZincWorker.InvocationContext(
-      env = ctx.env,
+    val zincCtx = ZincWorker.LocalConfig(
       dest = ctx.dest,
       logDebugEnabled = log.debugEnabled,
-      logPromptColored = log.prompt.colored,
-      zincLogDebug = zincLogDebug
+      logPromptColored = log.prompt.colored
     )
 
     val zincApi =
@@ -159,8 +157,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
   }
 
   /** Gives you API for the [[zincLocalWorker]] instance. */
-  private def localZincApi(ctx: ZincWorker.InvocationContext, log: Logger): ZincApi = {
-    val deps = ZincWorker.InvocationDependencies(
+  private def localZincApi(ctx: ZincWorker.LocalConfig, log: Logger): ZincApi = {
+    val deps = ZincWorker.ProcessConfig(
       log = log,
       consoleOut = ConsoleOut.printStreamOut(log.streams.err),
       compilerBridge
@@ -168,7 +166,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
 
     new ZincApi {
       def apply(
-          op: ZincOperation,
+          op: ZincOp,
           reporter: Option[CompileProblemReporter],
           reportCachedProblems: Boolean
       ): op.Response = {

@@ -4,7 +4,7 @@ import mill.api.daemon.internal.internal
 
 @internal object DiscoverJunit5TestsMain {
 
-  def apply(args0: mill.javalib.api.internal.ZincDiscoverJunit5Tests): Seq[String] = {
+  def apply(args0: mill.javalib.api.internal.ZincOp.DiscoverJunit5Tests): Seq[String] = {
     import args0.*
     mill.util.Jvm.withClassLoader(
       classPath = runCp,

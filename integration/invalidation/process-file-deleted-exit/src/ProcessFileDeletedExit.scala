@@ -3,8 +3,6 @@ package mill.integration
 import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
 import utest._
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import utest.asserts.{RetryMax, RetryInterval}
 
@@ -22,20 +20,12 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
       assert(!os.exists(workspacePath / "out/mill-daemon"))
       assert(!os.exists(workspacePath / "out/mill-no-daemon"))
 
-      @volatile var watchTerminated = false
-      Future {
-        eval(
-          ("--watch", "foo"),
-          stdout = os.ProcessOutput.Readlines { println(_) },
-          stderr = os.ProcessOutput.Readlines { println(_) }
-        )
-        watchTerminated = true
-      }
+      val spawned = spawn(("--watch", "foo"))
 
       if (tester.daemonMode) assertEventually { os.exists(workspacePath / "out/mill-daemon") }
       else assertEventually { os.exists(workspacePath / "out/mill-no-daemon") }
 
-      assert(watchTerminated == false)
+      assert(spawned.process.isAlive())
 
       val processRoot =
         if (tester.daemonMode) workspacePath / "out/mill-daemon"
@@ -53,9 +43,7 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
         }
       }
 
-      assertEventually {
-        watchTerminated == true
-      }
+      assertEventually(!spawned.process.isAlive())
     }
   }
 }

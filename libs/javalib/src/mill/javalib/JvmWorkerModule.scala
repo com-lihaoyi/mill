@@ -170,9 +170,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   }
 
   override def prepareOffline(all: Flag): Command[Seq[PathRef]] = Task.Command {
-    (
-      super.prepareOffline(all)() ++ classpath()
-    ).distinct
+    (super.prepareOffline(all)() ++ classpath()).distinct
   }
 
   // noinspection ScalaUnusedSymbol - Task.Command

@@ -77,9 +77,7 @@ trait MillRpcServer[
     true
   }
 
-  private def waitForResponse[R: Reader](
-      clientToServer: MillRpcChannel[ClientToServer]
-  ): R = {
+  private def waitForResponse[R: Reader](clientToServer: MillRpcChannel[ClientToServer]): R = {
     var responseReceived = Option.empty[R]
 
     while (responseReceived.isEmpty) {
@@ -92,9 +90,7 @@ trait MillRpcServer[
       clientToServerMsg match {
         case MillRpcClientToServer.Ask(message) =>
           val askMessage = message.asInstanceOf[ClientToServer]
-          onAsk()(() => clientToServer(askMessage))(using
-            askMessage.responseRw
-          )
+          onAsk()(() => clientToServer(askMessage))(using askMessage.responseRw)
 
         case MillRpcClientToServer.Response(data) =>
           data match {
@@ -104,7 +100,7 @@ trait MillRpcServer[
       }
     }
 
-    responseReceived.getOrElse(throw new IllegalStateException("This should never happen."))
+    responseReceived.get
   }
 
   private def readAndTryToParse[A: Reader]()(using typeName: TPrint[A]): Option[A] =
@@ -120,13 +116,12 @@ trait MillRpcServer[
 
   private def createServerToClientChannel(): MillRpcChannel[ServerToClient] = {
     (msg: ServerToClient) =>
-      {
-        val clientToServer = initializedOnClientMessage.getOrElse(throw new IllegalStateException(
-          "Client to server channel should have been initialized, this is a bug in the RPC implementation."
-        ))
+      val clientToServer = initializedOnClientMessage.getOrElse(throw new IllegalStateException(
+        "Client to server channel should have been initialized"
+      ))
 
-        sendToClient(MillRpcServerToClient.Ask(msg))
-        waitForResponse[msg.Response](clientToServer)
-      }
+      sendToClient(MillRpcServerToClient.Ask(msg))
+      waitForResponse[msg.Response](clientToServer)
+
   }
 }
