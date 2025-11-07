@@ -2,7 +2,6 @@ package mill.api
 
 import mill.api.DummyOutputStream
 import mill.api.daemon.internal.PathRefApi
-import upickle.ReadWriter as RW
 
 import java.nio.file as jnio
 import java.security.{DigestOutputStream, MessageDigest}
@@ -222,7 +221,7 @@ object PathRef {
   /**
    * Default JSON formatter for [[PathRef]].
    */
-  implicit def jsonFormatter: RW[PathRef] = upickle.readwriter[String].bimap[PathRef](
+  implicit def jsonFormatter: upickle.ReadWriter[PathRef] = upickle.readwriter[String].bimap[PathRef](
     p => {
       storeSerializedPaths(p)
       p.toStringPrefix + MappedRoots.encodeKnownRootsInPath(p.path)
