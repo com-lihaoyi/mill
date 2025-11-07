@@ -352,6 +352,41 @@ node5 -> node0;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="exitCodeServerTerminated-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillDaemonServer.html#exitCodeServerTerminated-0" t="n" class="documentableName ">exitCodeServerTerminated</a>: <span data-unresolved-link="" t="t">Int</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Exit code to send to other clients when server is terminated while handling a request</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Exit code to send to other clients when server is terminated while handling a request</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/runner/server/src/mill/server/MillDaemonServer.scala" target="_blank">MillDaemonServer.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="handleConnection-997" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -543,12 +578,12 @@ node5 -> node0;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="runSocketHandler-425" data-f-inherited="Server">
+        <div class="documentableElement" id="runSocketHandler-fffff087" data-f-inherited="Server">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillDaemonServer.html#runSocketHandler-425" t="n" class="documentableName ">runSocketHandler</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">clientSocket</span>: <span data-unresolved-link="" t="t">Socket</span>, <span t="k"></span><span data-unresolved-link="" t="n">initialSystemProperties</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">closeServer0</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Int</span>]<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Unit</span>): <span data-unresolved-link="" t="t">Unit</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillDaemonServer.html#runSocketHandler-fffff087" t="n" class="documentableName ">runSocketHandler</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">clientSocket</span>: <span data-unresolved-link="" t="t">Socket</span>, <span t="k"></span><span data-unresolved-link="" t="n">initialSystemProperties</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">closeServer0</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Int</span>]<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Unit</span>, <span t="k"></span><span data-unresolved-link="" t="n">connectionTracker</span>: <a href="Server$$ConnectionTracker.html" t="t">ConnectionTracker</a>): <span data-unresolved-link="" t="t">Unit</span>
            </div>
           </div>
          </div>
@@ -565,7 +600,7 @@ node5 -> node0;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="Server.html#runSocketHandler-425">Server</a>
+               <a href="Server.html#runSocketHandler-fffff087">Server</a>
               </dd>
               <dt class="body-small">
                Source
