@@ -190,44 +190,35 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
       test("changed-inputs") - retry(1) {
         integrationTest { tester =>
           import tester._
-          @volatile var output0 = List.empty[String]
+          val spawned = spawn(("--watch", "{foo.fooCommand,bar.barCommand}"))
 
-          def output = output0.mkString("\n")
-
-          spawn(
-            ("--watch", "{foo.fooCommand,bar.barCommand}"),
-            stdout = os.ProcessOutput.Readlines { line =>
-              println("stdout " + line)
-              output0 = output0 :+ line
-            },
-            stderr = os.ProcessOutput.Readlines { line =>
-              println("stderr " + line)
-            }
-          )
-
-          assertEventually(
+          assertEventually {
+            val output = spawned.stdoutString
             output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-          )
+          }
 
           // Make sure editing each individual input results in the corresponding downstream
           // command being re-run, and watches on both are maintained even if in a prior run
           // one set of tasks was ignored.
-          output0 = Nil
+          spawned.clearStdout()
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
           assertEventually {
+            val output = spawned.stdoutString
             !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
 
           // Test for a bug where modifying the sources 2nd time would run tasks from both modules.
-          output0 = Nil
+          spawned.clearStdout()
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
           assertEventually {
+            val output = spawned.stdoutString
             !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
 
-          output0 = Nil
+          spawned.clearStdout()
           modifyFile(workspacePath / "foo/foo.txt", _ + "!")
           assertEventually {
+            val output = spawned.stdoutString
             output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
           }
         }
@@ -235,28 +226,25 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
       test("show-changed-inputs") - retry(1) {
         integrationTest { tester =>
           import tester._
-          @volatile var output0 = List.empty[String]
-          def output = output0.mkString("\n")
-          spawn(
-            ("--watch", "show", "{foo.fooCommand,bar.barCommand}"),
-            stderr = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
-            stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line)
-          )
+          val spawned = spawn(("--watch", "show", "{foo.fooCommand,bar.barCommand}"))
+          def allOutput = (spawned.stdout ++ spawned.stderr).mkString("\n")
 
           assertEventually {
-            output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+            allOutput.contains("Computing fooCommand") && allOutput.contains("Computing barCommand")
           }
-          output0 = Nil
+
+          spawned.clearStdout()
+          spawned.clearStderr()
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
-
           assertEventually {
-            !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+            !allOutput.contains("Computing fooCommand") && allOutput.contains("Computing barCommand")
           }
 
-          output0 = Nil
+          spawned.clearStdout()
+          spawned.clearStderr()
           modifyFile(workspacePath / "foo/foo.txt", _ + "!")
           assertEventually {
-            output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
+            allOutput.contains("Computing fooCommand") && !allOutput.contains("Computing barCommand")
           }
         }
       }
@@ -265,34 +253,29 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
         integrationTest { tester =>
           import tester._
 
-          @volatile var output0 = List.empty[String]
-          def output = output0.mkString("\n")
-          spawn(
-            ("--watch", "{foo.fooCommand,bar.barCommand}"),
-            stdout = os.ProcessOutput.Readlines { line => output0 = output0 :+ line },
-            stderr = os.ProcessOutput.Readlines { line => System.err.println(line) }
-          )
+          val spawned = spawn(("--watch", "{foo.fooCommand,bar.barCommand}"))
 
           assertEventually {
+            val output = spawned.stdoutString
             output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
-          output0 = Nil
 
           // Check method body code changes correctly trigger downstream evaluation
+          spawned.clearStdout()
           modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
-
           assertEventually {
+            val output = spawned.stdoutString
             !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
-          output0 = Nil
 
           // Check module body code changes correctly trigger downstream evaluation
+          spawned.clearStdout()
           modifyFile(
             workspacePath / "build.mill",
             _.replace("object foo extends Module {", "object foo extends Module { println(123)")
           )
-
           assertEventually {
+            val output = spawned.stdoutString
             output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
           }
         }

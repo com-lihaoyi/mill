@@ -12,93 +12,49 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("interrupt-blocked") - integrationTest { tester =>
       import tester.*
-      @volatile var output1 = List.empty[String]
-      @volatile var output2 = List.empty[String]
-      val pipe1 = new mill.internal.PipeStreams()
-      val pipe2 = new mill.internal.PipeStreams()
       assert(tester.daemonMode)
-      spawn(
-        ("waitForExists", "--fileName", "file1.txt"),
-        stdout = os.ProcessOutput.Readlines { line =>
-          println("thread 1 OUT " + line)
-          output1 = output1 :+ line
-        },
-        stderr = os.ProcessOutput.Readlines { line =>
-          println("thread 1 ERR " + line)
-          output1 = output1 :+ line
-        },
-        stdin = pipe1.input
-      )
+      val launcher1 = spawn(("waitForExists", "--fileName", "file1.txt"))
 
-      assertEventually(output1.contains("Waiting on file1.txt"))
-      val launcher2 = spawn(
-        ("runNow", "--text", "i am cow"),
-        stdout = os.ProcessOutput.Readlines { line =>
-          println("thread 2 OUT " + line)
-          output2 = output2 :+ line
-        },
-        stderr = os.ProcessOutput.Readlines { line =>
-          println("thread 2 ERR " + line)
-          output2 = output2 :+ line
-        },
-        stdin = pipe2.input
-      )
+      def allOutput1 = (launcher1.stdout ++ launcher1.stderr).mkString("\n")
+
+      assertEventually(allOutput1.contains("Waiting on file1.txt"))
+      val launcher2 = spawn(("runNow", "--text", "i am cow"))
+
+      def allOutput2 = (launcher2.stdout ++ launcher2.stderr).mkString("\n")
 
       assertEventually(
-        output2.contains(
+        allOutput2.contains(
           "Another Mill process is running 'waitForExists --fileName file1.txt', waiting for it to be done..."
         )
       )
-      launcher2.destroy(recursive = false)
-      assertEventually(!launcher2.isAlive())
+      launcher2.process.destroy(recursive = false)
+      assertEventually(!launcher2.process.isAlive())
       os.write(workspacePath / "file1.txt", "Hello world")
-      assertEventually(output1.contains("Found file1.txt containing Hello world"))
-      assert(!output2.contains("Hello i am cow"))
+      assertEventually(allOutput1.contains("Found file1.txt containing Hello world"))
+      assert(!allOutput2.contains("Hello i am cow"))
     }
 
     test("interrupt-active") - integrationTest { tester =>
       import tester.*
-      @volatile var output1 = List.empty[String]
-      @volatile var output2 = List.empty[String]
-      val pipe1 = new mill.internal.PipeStreams()
-      val pipe2 = new mill.internal.PipeStreams()
       assert(tester.daemonMode)
-      val launcher1 = spawn(
-        ("waitForExists", "--fileName", "file1.txt"),
-        stdout = os.ProcessOutput.Readlines { line =>
-          println("thread 1 OUT " + line)
-          output1 = output1 :+ line
-        },
-        stderr = os.ProcessOutput.Readlines { line =>
-          println("thread 1 ERR " + line)
-          output1 = output1 :+ line
-        },
-        stdin = pipe1.input
-      )
+      val launcher1 = spawn(("waitForExists", "--fileName", "file1.txt"))
 
-      assertEventually(output1.contains("Waiting on file1.txt"))
-      spawn(
-        ("runNow", "--text", "i am cow"),
-        stdout = os.ProcessOutput.Readlines { line =>
-          println("thread 2 OUT " + line)
-          output2 = output2 :+ line
-        },
-        stderr = os.ProcessOutput.Readlines { line =>
-          println("thread 2 ERR " + line)
-          output2 = output2 :+ line
-        },
-        stdin = pipe2.input
-      )
+      def allOutput1 = (launcher1.stdout ++ launcher1.stderr).mkString("\n")
+
+      assertEventually(allOutput1.contains("Waiting on file1.txt"))
+      val launcher2 = spawn(("runNow", "--text", "i am cow"))
+
+      def allOutput2 = (launcher2.stdout ++ launcher2.stderr).mkString("\n")
 
       assertEventually(
-        output2.contains(
+        allOutput2.contains(
           "Another Mill process is running 'waitForExists --fileName file1.txt', waiting for it to be done..."
         )
       )
-      launcher1.destroy(recursive = false)
-      assertEventually(!launcher1.isAlive())
-      assert(!output1.exists(_.contains("Found")))
-      assertEventually(output2.contains("Hello i am cow"))
+      launcher1.process.destroy(recursive = false)
+      assertEventually(!launcher1.process.isAlive())
+      assert(!(launcher1.stdout ++ launcher1.stderr).exists(_.contains("Found")))
+      assertEventually(allOutput2.contains("Hello i am cow"))
     }
   }
 }

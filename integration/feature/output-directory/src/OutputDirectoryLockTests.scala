@@ -16,9 +16,7 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       val signalFile = workspacePath / "do-wait"
       // Kick off blocking task in background
       spawn(
-        ("show", "blockWhileExists", "--path", signalFile),
-        stdout = os.Inherit,
-        stderr = os.Inherit
+        ("show", "blockWhileExists", "--path", signalFile)
       )
 
       // Wait for blocking task to write signal file, to indicate it has begun
@@ -42,31 +40,27 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       )
 
       // By default, we wait until the background blocking task completes
-      val waitingLogFile = workspacePath / "waitingLogFile"
-      val waitingOutFile = workspacePath / "waitingOutFile"
       val waitingCompleteFile = workspacePath / "waitingCompleteFile"
       val spawnedWaitingRes = spawn(
-        ("show", "writeMarker", "--path", waitingCompleteFile),
-        stderr = waitingLogFile,
-        stdout = waitingOutFile
+        ("show", "writeMarker", "--path", waitingCompleteFile)
       )
 
       // Ensure we see the waiting message
       assertEventually {
-        os.read(waitingLogFile)
+        spawnedWaitingRes.stderrString
           .contains(
             s"Another Mill process is running 'show blockWhileExists --path $signalFile', waiting for it to be done..."
           )
       }
 
       // Even after task starts waiting on blocking task, it is not complete
-      assert(spawnedWaitingRes.isAlive())
+      assert(spawnedWaitingRes.process.isAlive())
       assert(!os.exists(waitingCompleteFile))
       // Terminate blocking task, make sure waiting task now completes
       os.remove(signalFile)
-      spawnedWaitingRes.waitFor()
+      spawnedWaitingRes.process.waitFor()
       assert(os.exists(waitingCompleteFile))
-      assert(os.read(waitingOutFile).trim == "\"Write marker done\"")
+      assert(spawnedWaitingRes.stdoutString.trim == "\"Write marker done\"")
     }
   }
 }

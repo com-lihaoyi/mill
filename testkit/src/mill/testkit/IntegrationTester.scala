@@ -53,6 +53,34 @@ object IntegrationTester {
     }
   }
 
+  /**
+   * A spawned subprocess with automatic stdout/stderr capture.
+   * Each line printed to stdout/stderr is captured in the respective buffer and also printed to console.
+   */
+  class SpawnedProcess(
+      val process: os.SubProcess,
+      private val stdoutBuffer: collection.mutable.Buffer[String],
+      private val stderrBuffer: collection.mutable.Buffer[String]
+  ) {
+    /** Get a snapshot of stdout lines captured so far */
+    def stdout: Seq[String] = stdoutBuffer.synchronized { stdoutBuffer.toSeq }
+
+    /** Get a snapshot of stderr lines captured so far */
+    def stderr: Seq[String] = stderrBuffer.synchronized { stderrBuffer.toSeq }
+
+    /** Get stdout as a single string */
+    def stdoutString: String = stdoutBuffer.synchronized { stdoutBuffer.mkString("\n") }
+
+    /** Get stderr as a single string */
+    def stderrString: String = stderrBuffer.synchronized { stderrBuffer.mkString("\n") }
+
+    /** Clear the stdout buffer */
+    def clearStdout(): Unit = stdoutBuffer.synchronized { stdoutBuffer.clear() }
+
+    /** Clear the stderr buffer */
+    def clearStderr(): Unit = stderrBuffer.synchronized { stderrBuffer.clear() }
+  }
+
   /** An [[Impl.eval]] that is prepared for execution but haven't been executed yet. Run it with [[run]]. */
   case class PreparedEval(
       cmd: os.Shellable,
@@ -163,34 +191,55 @@ object IntegrationTester {
     }
 
     /**
-     * Spawns a Mill command as a subprocess. Convenience method for `proc(...).spawn()`.
+     * Spawns a Mill command as a subprocess with automatic stdout/stderr capture.
      *
-     * Returns an `os.SubProcess` that can be used to interact with the running process.
+     * Returns a `SpawnedProcess` that wraps the subprocess and captures all output.
+     * Each line printed to stdout/stderr is both captured in buffers and printed to console.
+     * If `stdout` or `stderr` are specified, they will be used instead of the automatic capture.
      */
     def spawn(
         cmd: os.Shellable,
         env: Map[String, String] = Map.empty,
         cwd: os.Path = workspacePath,
         stdin: os.ProcessInput = os.Pipe,
-        stdout: os.ProcessOutput = os.Pipe,
-        stderr: os.ProcessOutput = os.Pipe,
+        stdout: os.ProcessOutput = null,
+        stderr: os.ProcessOutput = null,
         mergeErrIntoOut: Boolean = false,
         propagateEnv: Boolean = true,
         timeoutGracePeriod: Long = 100
-    ): os.SubProcess = {
-      proc(
+    ): IntegrationTester.SpawnedProcess = {
+      val stdoutBuffer = collection.mutable.Buffer.empty[String]
+      val stderrBuffer = collection.mutable.Buffer.empty[String]
+
+      val actualStdout = Option(stdout).getOrElse(
+        os.ProcessOutput.Readlines { line =>
+          println(line)
+          stdoutBuffer.synchronized { stdoutBuffer += line }
+        }
+      )
+
+      val actualStderr = Option(stderr).getOrElse(
+        os.ProcessOutput.Readlines { line =>
+          System.err.println(line)
+          stderrBuffer.synchronized { stderrBuffer += line }
+        }
+      )
+
+      val process = proc(
         cmd = cmd,
         env = env,
         cwd = cwd,
         stdin = stdin,
-        stdout = stdout,
-        stderr = stderr,
+        stdout = actualStdout,
+        stderr = actualStderr,
         mergeErrIntoOut = mergeErrIntoOut,
         timeout = -1,
         check = false,
         propagateEnv = propagateEnv,
         timeoutGracePeriod = timeoutGracePeriod
       ).spawn()
+
+      new IntegrationTester.SpawnedProcess(process, stdoutBuffer, stderrBuffer)
     }
 
     /**
