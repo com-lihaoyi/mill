@@ -1,7 +1,7 @@
+
 // === HTML Web Scraper
-// Below is another web crawler, but instead of interacting with Wikipedia via a JSON API
-// it scrapes the website's HTML pages using JSoup. JSoup is not bundled with Mill, but
-// can be included easily via `mvnDeps` header declaration:
+// Below is crawler that scrapes Wikipedia's 's HTML pages using JSoup.
+// JSoup is not bundled with Mill, but can be included easily via `mvnDeps` header declaration:
 //// SNIPPET:SCRAPER
 /** See Also: HtmlScraper.scala */
 

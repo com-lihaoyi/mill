@@ -6,7 +6,6 @@ public class HtmlScraper {
   static List<String> fetchLinks(String title) throws Exception {
     var url = "https://en.wikipedia.org/wiki/" + title;
     var doc = Jsoup.connect(url).header("User-Agent", "My Scraper").get();
-
     var links = new ArrayList<String>();
     for (var a : doc.select("main p a")) {
       var href = a.attr("href");
@@ -17,7 +16,6 @@ public class HtmlScraper {
 
   public static void main(String[] args) throws Exception {
     if (args.length < 2) throw new Exception("WikiCrawler.java <start> <depth>");
-
     var seen = new HashSet<>(Set.of(args[0]));
     var current = new HashSet<>(Set.of(args[0]));
     for (int i = 0; i < Integer.parseInt(args[1]); i++) {
@@ -32,4 +30,3 @@ public class HtmlScraper {
     for (String s : seen) System.out.println(s);
   }
 }
-
