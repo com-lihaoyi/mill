@@ -572,6 +572,56 @@ trait AndroidModule extends JavaModule { outer =>
   def androidNamespace: String
 
   /**
+   * The package name where the BuildInfo.java file will be generated.
+   * Defaults to [[androidNamespace]].
+   */
+  def androidBuildInfoPackageName: String = androidNamespace
+
+  /**
+   * The members to include in the generated BuildConfig.java file.
+   */
+  def androidBuildConfigMembers: T[Seq[String]] = Task {
+    val buildType = if (androidIsDebug()) "debug" else "release"
+    Seq(
+      s"boolean DEBUG = ${androidIsDebug()};",
+      s"String BUILD_TYPE = \"$buildType\";",
+      s"int VERSION_CODE = ${androidVersionCode()};",
+      s"String VERSION_NAME = \"${androidVersionName()}\";"
+    )
+  }
+
+  /**
+   * Generates a BuildConfig.java file in the [[androidBuildInfoPackageName]] package
+   * * This is a basic implementation of AGP's build config feature!
+   */
+  def generatedBuildConfig: T[PathRef] = Task {
+    // add public static final prefix
+    val parsedMembers: Seq[String] = androidBuildConfigMembers().map { member =>
+      s"public static final $member"
+    }
+    val content: String =
+      s"""
+         |package $androidBuildInfoPackageName;
+         |public final class BuildConfig {
+         |  ${parsedMembers.mkString("\n  ")}
+         |}
+          """.stripMargin
+
+    val destination = Task.dest / "source" / os.SubPath(androidBuildInfoPackageName.replace(
+      ".",
+      "/"
+    )) / "BuildConfig.java"
+
+    os.write(destination, content, createFolders = true)
+
+    PathRef(destination)
+  }
+
+  override def generatedSources: T[Seq[PathRef]] = Task {
+    super.generatedSources() ++ Seq(generatedBuildConfig())
+  }
+
+  /**
    * Gets the extracted android resources from the dependencies using [[androidLibraryResources]]
    * and compiles them into flata files using aapt2. This allows for the resources to be linked
    * using overlay.

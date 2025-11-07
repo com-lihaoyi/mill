@@ -119,6 +119,12 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   def androidLintArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
+  override def androidBuildConfigMembers: T[Seq[String]] = Task {
+    super.androidBuildConfigMembers() ++ Seq(
+      s"""String APPLICATION_ID = "${androidApplicationId}""""
+    )
+  }
+
   @internal
   override def bspCompileClasspath(
       needsToMergeResourcesIntoCompileDest: Boolean
