@@ -1,7 +1,5 @@
 package mill.integration
 import mill.testkit.UtestIntegrationTestSuite
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 import utest._
@@ -196,19 +194,17 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
 
           def output = output0.mkString("\n")
 
-          Future {
-            eval(
-              ("--watch", "{foo.fooCommand,bar.barCommand}"),
-              check = true,
-              stdout = os.ProcessOutput.Readlines { line =>
-                println("stdout " + line)
-                output0 = output0 :+ line
-              },
-              stderr = os.ProcessOutput.Readlines { line =>
-                println("stderr " + line)
-              }
-            )
-          }
+          prepEval(
+            ("--watch", "{foo.fooCommand,bar.barCommand}"),
+            check = true,
+            stdout = os.ProcessOutput.Readlines { line =>
+              println("stdout " + line)
+              output0 = output0 :+ line
+            },
+            stderr = os.ProcessOutput.Readlines { line =>
+              println("stderr " + line)
+            }
+          ).spawn()
 
           assertEventually(
             output.contains("Computing fooCommand") && output.contains("Computing barCommand")
@@ -242,14 +238,12 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
           import tester._
           @volatile var output0 = List.empty[String]
           def output = output0.mkString("\n")
-          Future {
-            eval(
-              ("--watch", "show", "{foo.fooCommand,bar.barCommand}"),
-              check = true,
-              stderr = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
-              stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line)
-            )
-          }
+          prepEval(
+            ("--watch", "show", "{foo.fooCommand,bar.barCommand}"),
+            check = true,
+            stderr = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
+            stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line)
+          ).spawn()
 
           assertEventually {
             output.contains("Computing fooCommand") && output.contains("Computing barCommand")
@@ -275,14 +269,12 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
 
           @volatile var output0 = List.empty[String]
           def output = output0.mkString("\n")
-          Future {
-            eval(
-              ("--watch", "{foo.fooCommand,bar.barCommand}"),
-              check = true,
-              stdout = os.ProcessOutput.Readlines { line => output0 = output0 :+ line },
-              stderr = os.ProcessOutput.Readlines { line => System.err.println(line) }
-            )
-          }
+          prepEval(
+            ("--watch", "{foo.fooCommand,bar.barCommand}"),
+            check = true,
+            stdout = os.ProcessOutput.Readlines { line => output0 = output0 :+ line },
+            stderr = os.ProcessOutput.Readlines { line => System.err.println(line) }
+          ).spawn()
 
           assertEventually {
             output.contains("Computing fooCommand") && output.contains("Computing barCommand")
