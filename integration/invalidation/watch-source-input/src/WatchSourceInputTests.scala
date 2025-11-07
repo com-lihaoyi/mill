@@ -4,12 +4,6 @@ import mill.constants.Util
 import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
 import utest._
 
-import scala.collection.mutable
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.SECONDS
-import scala.concurrent.ExecutionContext.Implicits.global
-
 /**
  * Test to make sure that `--watch` works in the following cases:
  *
@@ -33,30 +27,48 @@ trait WatchTests extends UtestIntegrationTestSuite {
     }
   }
 
-  def testBase(preppedEval: IntegrationTester.PreparedEval, show: Boolean)(f: (
-      expectedOut: mutable.Buffer[String],
-      expectedErr: mutable.Buffer[String],
-      expectedShows: mutable.Buffer[String]
-  ) => IntegrationTester.EvalResult): Unit = withTestClues(preppedEval.clues*) {
-    val expectedOut = mutable.Buffer.empty[String]
-    // Most of these are normal `println`s, so they go to `stdout` by
-    // default unless you use `show` in which case they go to `stderr`.
-    val expectedErr = if (show) mutable.Buffer.empty[String] else expectedOut
-    val expectedShows0 = mutable.Buffer.empty[String]
-    val res = f(expectedOut, expectedErr, expectedShows0)
-    val (shows, out) = res.out.linesIterator.toVector.partition(_.startsWith("\""))
-    val err = res.err.linesIterator.toVector.filter(s =>
+  def testBase(
+      spawned: IntegrationTester.SpawnedProcess
+  )(f: IntegrationTester.SpawnedProcess => Unit): Unit = {
+    f(spawned)
+    spawned.process.waitFor()
+  }
+
+  def assertLines(
+      spawned: IntegrationTester.SpawnedProcess,
+      show: Boolean,
+      expectedOut: Seq[String],
+      expectedErr: Seq[String],
+      expectedShows: Seq[String]
+  ): Unit = {
+    val outLines = spawned.out.lines().toVector
+    val errLines = spawned.err.lines().toVector
+
+    // When show is true, the quoted outputs are in stdout, and "Running" messages are in stderr
+    // When show is false, everything goes to stdout
+    val (shows, out) =
+      if (show) outLines.partition(_.startsWith("\""))
+      else (Vector.empty[String], outLines)
+
+    val err = errLines.filter(s =>
       s.startsWith("Setting up ") || s.startsWith("Running ")
     )
 
-    assert(out == expectedOut)
+    // When show is false, both expectedOut and expectedErr go to stdout
+    // When show is true, expectedOut goes to stdout and expectedErr goes to stderr
+    val actualExpectedOut = if (show) expectedOut else expectedOut ++ expectedErr
+    val actualExpectedErr = if (show) expectedErr else Seq.empty
+
+    assert(out == actualExpectedOut)
 
     // If show is not enabled, we don't expect any of our custom prints to go to stderr
-    if (show) assert(err == expectedErr)
+    if (show) assert(err == actualExpectedErr)
     else assert(err.isEmpty)
 
-    val expectedShows = expectedShows0.map('"' + _ + '"')
-    if (show) assert(shows == expectedShows)
+    val expectedShowsQuoted = expectedShows.map('"' + _ + '"')
+    if (show) assert(shows == expectedShowsQuoted)
+
+    spawned.clear()
   }
 }
 
@@ -65,70 +77,88 @@ object WatchSourceTests extends WatchTests {
     def testWatchSource(tester: IntegrationTester, show: Boolean): Unit = {
       import tester.*
       val showArgs = if (show) Seq("show") else Nil
-      val preppedEval = proc(("--watch", showArgs, "qux"), timeout = maxDurationMillis)
+      val spawned = spawn(("--watch", showArgs, "qux"))
 
-      testBase(preppedEval, show) { (expectedOut, expectedErr, expectedShows) =>
-        val evalResult = Future { preppedEval.run() }
-
+      testBase(spawned) { spawned =>
         awaitCompletionMarker(tester, "initialized0")
         awaitCompletionMarker(tester, "quxRan0")
-        expectedOut.append(
-          "Setting up build.mill"
-        )
-        expectedErr.append(
-          "Running qux foo contents initial-foo1 initial-foo2",
-          "Running qux bar contents initial-bar"
-        )
-        expectedShows.append(
-          "Running qux foo contents initial-foo1 initial-foo2 Running qux bar contents initial-bar"
+        assertLines(
+          spawned,
+          show,
+          expectedOut = Seq("Setting up build.mill"),
+          expectedErr = Seq(
+            "Running qux foo contents initial-foo1 initial-foo2",
+            "Running qux bar contents initial-bar"
+          ),
+          expectedShows = Seq(
+            "Running qux foo contents initial-foo1 initial-foo2 Running qux bar contents initial-bar"
+          )
         )
 
         os.write.over(workspacePath / "foo1.txt", "edited-foo1")
         awaitCompletionMarker(tester, "quxRan1")
-        expectedErr.append(
-          "Running qux foo contents edited-foo1 initial-foo2",
-          "Running qux bar contents initial-bar"
-        )
-        expectedShows.append(
-          "Running qux foo contents edited-foo1 initial-foo2 Running qux bar contents initial-bar"
+        assertLines(
+          spawned,
+          show,
+          expectedOut = Seq(),
+          expectedErr = Seq(
+            "Running qux foo contents edited-foo1 initial-foo2",
+            "Running qux bar contents initial-bar"
+          ),
+          expectedShows = Seq(
+            "Running qux foo contents edited-foo1 initial-foo2 Running qux bar contents initial-bar"
+          )
         )
 
         os.write.over(workspacePath / "foo2.txt", "edited-foo2")
         awaitCompletionMarker(tester, "quxRan2")
-        expectedErr.append(
-          "Running qux foo contents edited-foo1 edited-foo2",
-          "Running qux bar contents initial-bar"
-        )
-        expectedShows.append(
-          "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents initial-bar"
+        assertLines(
+          spawned,
+          show,
+          expectedOut = Seq(),
+          expectedErr = Seq(
+            "Running qux foo contents edited-foo1 edited-foo2",
+            "Running qux bar contents initial-bar"
+          ),
+          expectedShows = Seq(
+            "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents initial-bar"
+          )
         )
 
         os.write.over(workspacePath / "bar.txt", "edited-bar")
         awaitCompletionMarker(tester, "quxRan3")
-        expectedErr.append(
-          "Running qux foo contents edited-foo1 edited-foo2",
-          "Running qux bar contents edited-bar"
-        )
-        expectedShows.append(
-          "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
+        assertLines(
+          spawned,
+          show,
+          expectedOut = Seq(),
+          expectedErr = Seq(
+            "Running qux foo contents edited-foo1 edited-foo2",
+            "Running qux bar contents edited-bar"
+          ),
+          expectedShows = Seq(
+            "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
+          )
         )
 
         os.write.append(workspacePath / "build.mill", "\ndef unrelated = true")
         awaitCompletionMarker(tester, "initialized1")
-        expectedOut.append(
-          "Setting up build.mill"
-          // These tasks do not re-evaluate, because the change to the build
-          // file was unrelated to them and does not affect their transitive callgraph
-          //        "Running qux foo contents edited-foo1 edited-foo2",
-          //        "Running qux bar contents edited-bar"
+        assertLines(
+          spawned,
+          show,
+          expectedOut = Seq("Setting up build.mill"),
+          expectedErr = Seq(),
+          expectedShows = Seq()
         )
 
-        if (show) expectedOut.append("{}")
         os.write.over(workspacePath / "watchValue.txt", "exit")
         awaitCompletionMarker(tester, "initialized2")
-        expectedOut.append("Setting up build.mill")
-
-        Await.result(evalResult, Duration.apply(maxDurationMillis, SECONDS))
+        assertLines(
+          spawned,
+          show,
+          expectedOut = if (show) Seq("{}", "Setting up build.mill") else Seq("Setting up build.mill"),
+          expectedErr = Seq(),
+          expectedShows = Seq()
+        )
       }
     }
 
@@ -159,36 +189,48 @@ object WatchInputTests extends WatchTests {
     def testWatchInput(tester: IntegrationTester, show: Boolean) = {
       val showArgs = if (show) Seq("show") else Nil
       import tester.*
-      val preppedEval = proc(("--watch", showArgs, "lol"), timeout = maxDurationMillis)
+      val spawned = spawn(("--watch", showArgs, "lol"))
 
-      testBase(preppedEval, show) { (expectedOut, expectedErr, expectedShows) =>
-        val evalResult = Future { preppedEval.run() }
-
+      testBase(spawned) { spawned =>
         awaitCompletionMarker(tester, "initialized0")
         awaitCompletionMarker(tester, "lolRan0")
-        expectedOut.append(
-          "Setting up build.mill"
+        assertLines(
+          spawned,
+          show,
+          expectedOut = Seq("Setting up build.mill"),
+          expectedErr = Seq("Running lol baz contents initial-baz"),
+          expectedShows = Seq("Running lol baz contents initial-baz")
         )
-        expectedErr.append(
-          "Running lol baz contents initial-baz"
-        )
-        expectedShows.append("Running lol baz contents initial-baz")
 
         os.write.over(workspacePath / "baz.txt", "edited-baz")
         awaitCompletionMarker(tester, "lolRan1")
-        expectedErr.append("Running lol baz contents edited-baz")
-        expectedShows.append("Running lol baz contents edited-baz")
+        assertLines(
+          spawned,
+          show,
+          expectedOut = Seq(),
+          expectedErr = Seq("Running lol baz contents edited-baz"),
+          expectedShows = Seq("Running lol baz contents edited-baz")
+        )
 
         os.write.over(workspacePath / "watchValue.txt", "edited-watchValue")
         awaitCompletionMarker(tester, "initialized1")
-        expectedOut.append("Setting up build.mill")
+        assertLines(
+          spawned,
+          show,
+          expectedOut = Seq("Setting up build.mill"),
+          expectedErr = Seq(),
+          expectedShows = Seq()
+        )
 
         os.write.over(workspacePath / "watchValue.txt", "exit")
         awaitCompletionMarker(tester, "initialized2")
-        if (show) expectedOut.append("{}")
-        expectedOut.append("Setting up build.mill")
-
-        Await.result(evalResult, Duration.apply(maxDurationMillis, SECONDS))
+        assertLines(
+          spawned,
+          show,
+          expectedOut = if (show) Seq("{}", "Setting up build.mill") else Seq("Setting up build.mill"),
+          expectedErr = Seq(),
+          expectedShows = Seq()
+        )
       }
     }
 
