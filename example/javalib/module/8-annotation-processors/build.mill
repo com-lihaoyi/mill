@@ -1,6 +1,8 @@
 package build
+
 import mill.*, javalib.*
 import java.io.File
+import mill.api.opt.*
 
 object foo extends JavaModule {
   def compileMvnDeps = Seq(mvn"org.projectlombok:lombok:1.18.34")
@@ -40,9 +42,9 @@ object bar extends JavaModule {
     defaultResolver().classpath(Seq(mvn"org.projectlombok:lombok:1.18.34"))
   }
 
-  def javacOptions = Seq(
+  def javacOptions = Opts(
     "-processorpath",
-    processors().map(_.path).mkString(File.pathSeparator)
+    Opt.mkPath(processors().map(_.path), sep = File.pathSeparator)
   )
 
   object test extends JavaTests, TestModule.Junit4

@@ -1,6 +1,8 @@
 //// SNIPPET:BUILD
 package build
+
 import mill.*, javalib.*
+import mill.api.opt.*
 import mill.api.ModuleRef
 
 object foo extends JavaModule, NativeImageModule {
@@ -10,7 +12,7 @@ object foo extends JavaModule, NativeImageModule {
     mvn"org.slf4j:slf4j-nop:2.0.7"
   )
 
-  def nativeImageOptions = Seq(
+  def nativeImageOptions = Opts(
     "--no-fallback",
     "-H:IncludeResourceBundles=net.sourceforge.argparse4j.internal.ArgumentParserImpl",
     "-Os"

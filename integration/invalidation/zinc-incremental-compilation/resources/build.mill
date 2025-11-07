@@ -2,12 +2,13 @@ package build
 // Issue https://github.com/com-lihaoyi/mill/issues/1901
 import mill._
 import mill.scalalib._
+import mill.api.opt.*
 
 object app extends SbtModule {
 
   def scalaVersion = "2.13.16"
 
-  def scalacOptions = Seq("-Vclasspath")
+  def scalacOptions = Opts("-Vclasspath")
 
   def mvnDeps = Seq(
     mvn"io.getquill::quill-sql:3.18.0"

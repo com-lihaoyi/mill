@@ -15,13 +15,16 @@
 // shown below:
 
 package build
+
 import mill.*, scalalib.*
+import mill.api.opt.*
+
 
 object `package` extends ScalaModule {
   def scalaVersion = "2.13.16"
   def compileMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.18")
   def scalacPluginMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.18")
-  def scalacOptions = Seq("-P:acyclic:force")
+  def scalacOptions = Opts("-P:acyclic:force")
 }
 
 /** See Also: src/Foo.scala */

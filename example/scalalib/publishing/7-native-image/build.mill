@@ -1,6 +1,8 @@
 //// SNIPPET:BUILD
 package build
+
 import mill.*, scalalib.*
+import mill.api.opt.*
 import mill.api.ModuleRef
 
 object foo extends ScalaModule, NativeImageModule {
@@ -8,7 +10,7 @@ object foo extends ScalaModule, NativeImageModule {
 
   def jvmId = "graalvm-community:17.0.7"
 
-  def nativeImageOptions = Seq("--no-fallback")
+  def nativeImageOptions = Opts("--no-fallback")
 }
 
 //// SNIPPET:END

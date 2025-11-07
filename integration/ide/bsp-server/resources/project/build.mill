@@ -1,6 +1,7 @@
 package build
 
-import mill._
+import mill.*
+import mill.api.opt.*
 
 // testing a simple Java module
 object `hello-java` extends scalalib.JavaModule {
@@ -94,7 +95,7 @@ object delayed extends scalalib.ScalaModule {
 
 object diag extends scalalib.ScalaModule {
   def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
-  def scalacOptions = Seq("-deprecation")
+  def scalacOptions = Opts("-deprecation")
 
   @deprecated("deprecated", "0.0.1")
   def thing = 2
@@ -103,7 +104,7 @@ object diag extends scalalib.ScalaModule {
 
   object many extends scalalib.ScalaModule {
     def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
-    def scalacOptions = Seq("-deprecation")
+    def scalacOptions = Opts("-deprecation")
   }
 }
 

@@ -1,4 +1,5 @@
 package build
+
 import mill.*, javalib.*
 import mill.api.ModuleRef
 import mill.api.opt.*
@@ -40,7 +41,7 @@ object libraries {
 
 trait MockitoModule extends MavenModule {
   def jvmId = "temurin:11.0.24"
-  def javacOptions = Seq("-encoding", "UTF-8")
+  def javacOptions = Opts("-encoding", "UTF-8")
   def testModuleDeps: Seq[JavaModule] = Nil
   def testMvnDeps: T[Seq[Dep]] = Seq()
   def testRuntimeMvnDeps: T[Seq[Dep]] = Seq()

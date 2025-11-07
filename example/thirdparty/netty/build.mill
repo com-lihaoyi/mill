@@ -6,6 +6,7 @@ package build
 
 import mill.*, javalib.*
 import mill.api.BuildCtx
+import mill.api.opt.*
 
 // TODO:
 //   testsuite-shading
@@ -15,7 +16,7 @@ import mill.api.BuildCtx
 def isOSX = System.getProperty("os.name").toLowerCase.contains("mac")
 
 trait NettyBaseModule extends MavenModule {
-  def javacOptions = Seq("-source", "1.8", "-target", "1.8")
+  def javacOptions = Opts("-source", "1.8", "-target", "1.8")
 }
 trait NettyBaseTestSuiteModule extends NettyBaseModule, TestModule.Junit5 {
   def testSandboxWorkingDir = false

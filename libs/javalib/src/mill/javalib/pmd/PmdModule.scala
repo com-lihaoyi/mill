@@ -3,6 +3,7 @@ package mill.javalib.pmd
 import mill.*
 import mill.api.{Discover, ExternalModule, TaskCtx}
 import mill.api.daemon.experimental
+import mill.api.opt.*
 import mill.javalib.api.Versions
 import mill.javalib.{CoursierModule, Dep, DepSyntax, OfflineSupportModule}
 import mill.util.{Jvm, Version}
@@ -51,8 +52,8 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       )
 
       val args =
-        if (isPmd6OrOlder(this.pmdVersion())) pmdOptions() ++ baseArgs
-        else pmdOptions() ++ (Seq("check") ++ baseArgs)
+        if (isPmd6OrOlder(this.pmdVersion())) pmdOptions().toStringSeq ++ baseArgs
+        else pmdOptions().toStringSeq ++ (Seq("check") ++ baseArgs)
       val mainCls =
         if (isPmd6OrOlder(this.pmdVersion())) "net.sourceforge.pmd.PMD"
         else "net.sourceforge.pmd.cli.PmdCli"
@@ -148,9 +149,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
   def pmdRulesets: T[Seq[PathRef]] = Task.Sources(moduleDir / "pmd-ruleset.xml")
 
   /** Additional arguments for PMD. */
-  def pmdOptions: T[Seq[String]] = Task {
-    Seq.empty[String]
-  }
+  def pmdOptions: T[Opts] = Task { Opts() }
 
   /** User language of the JVM running PMD. */
   def pmdLanguage: T[Option[String]] = Task.Input {

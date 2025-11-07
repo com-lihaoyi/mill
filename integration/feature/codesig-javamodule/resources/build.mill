@@ -1,8 +1,10 @@
 package build
+
 import mill._, javalib._
+import mill.api.opt.*
 
 object foo extends JavaModule {
-  def javacOptions = Seq("-source", "11", "-target", "11")
+  def javacOptions = Opts("-source", "11", "-target", "11")
   def sources = Task {
     println("Foo generating sources...")
     os.write(

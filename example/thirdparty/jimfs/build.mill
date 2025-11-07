@@ -1,5 +1,7 @@
 package build
+
 import mill.*, javalib.*, publish.*
+import mill.api.opt.*
 
 def sharedCompileMvnDeps = Task {
   Seq(
@@ -26,7 +28,7 @@ object jimfs extends PublishModule, MavenModule {
     mvn"com.google.guava:guava:31.1-android"
   )
 
-  def javacOptions = Seq("-processor", "com.google.auto.service.processor.AutoServiceProcessor")
+  def javacOptions = Opts("-processor", "com.google.auto.service.processor.AutoServiceProcessor")
 
   object test extends MavenTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"

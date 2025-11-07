@@ -1,7 +1,8 @@
 package mill.javalib.checkstyle
 
 import mill._
-import mill.api.{PathRef}
+import mill.api.PathRef
+import mill.api.opt.*
 import mill.javalib.{DepSyntax, JavaModule}
 import mill.util.Jvm
 import mill.api.BuildCtx
@@ -27,7 +28,7 @@ trait CheckstyleModule extends JavaModule {
   protected def checkstyle0(stdout: Boolean, leftover: mainargs.Leftover[String]) = Task.Anon {
 
     val output = checkstyleOutput().path
-    val args = checkstyleOptions() ++
+    val args = checkstyleOptions().toStringSeq ++
       Seq("-c", checkstyleConfig().path.toString()) ++
       Seq("-f", checkstyleFormat()) ++
       (if (stdout) Seq.empty else Seq("-o", output.toString())) ++
@@ -106,8 +107,8 @@ trait CheckstyleModule extends JavaModule {
   /**
    * Additional arguments for Checkstyle.
    */
-  def checkstyleOptions: T[Seq[String]] = Task {
-    Seq.empty[String]
+  def checkstyleOptions: T[Opts] = Task {
+    Opts()
   }
 
   /**
