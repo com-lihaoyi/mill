@@ -1,0 +1,12 @@
+import mill.*
+
+def waitForExists(fileName: os.Path) = Task.Command{
+  val relativeFileName = fileName.relativeTo(mill.api.BuildCtx.workspaceRoot)
+  println("Waiting on " + relativeFileName)
+  while(!os.exists(fileName)) Thread.sleep(1)
+  println("Found " + relativeFileName + " containing " + os.read(fileName))
+}
+
+def runNow(text: String) = Task.Command{
+  println("Hello " + text)
+}

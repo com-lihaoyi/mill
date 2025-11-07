@@ -62,7 +62,8 @@ object IntegrationTester {
       check: Boolean,
       propagateEnv: Boolean = true,
       shutdownGracePeriod: Long = 100,
-      run: () => EvalResult
+      run: () => EvalResult,
+      spawn: () => os.SubProcess
   ) {
 
     /** Clues to use for with [[withTestClues]]. */
@@ -136,6 +137,17 @@ object IntegrationTester {
           fansi.Str(res0.err.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim
         )
       }
+      def spawn() = os.spawn(
+        cmd = shellable,
+        env = callEnv,
+        cwd = cwd,
+        stdin = stdin,
+        stdout = stdout,
+        stderr = stderr,
+        mergeErrIntoOut = mergeErrIntoOut,
+        propagateEnv = propagateEnv,
+        shutdownGracePeriod = timeoutGracePeriod
+      )
 
       PreparedEval(
         cmd = shellable,
@@ -145,7 +157,8 @@ object IntegrationTester {
         check = check,
         propagateEnv = propagateEnv,
         shutdownGracePeriod = timeoutGracePeriod,
-        run = run
+        run = run,
+        spawn = spawn
       )
     }
 
