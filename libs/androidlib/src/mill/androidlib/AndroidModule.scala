@@ -572,6 +572,14 @@ trait AndroidModule extends JavaModule { outer =>
   def androidNamespace: String
 
   /**
+   * If true, a BuildConfig.java file will be generated.
+   * Defaults to true.
+   *
+   * [[https://developer.android.com/reference/tools/gradle-api/7.4/com/android/build/api/dsl/BuildFeatures#buildConfig()]]
+   */
+  def enableBuildConfig: Boolean = true
+
+  /**
    * The package name where the BuildInfo.java file will be generated.
    * Defaults to [[androidNamespace]].
    */
@@ -595,7 +603,7 @@ trait AndroidModule extends JavaModule { outer =>
    * Generates a BuildConfig.java file in the [[androidBuildInfoPackageName]] package
    * This is a basic implementation of AGP's build config feature!
    */
-  def generatedBuildConfig: T[PathRef] = Task {
+  def generatedBuildConfigSources: T[Seq[PathRef]] = Task {
     val parsedMembers: Seq[String] = androidBuildConfigMembers().map { member =>
       s"public static final $member;"
     }
@@ -614,11 +622,15 @@ trait AndroidModule extends JavaModule { outer =>
 
     os.write(destination, content, createFolders = true)
 
-    PathRef(destination)
+    Seq(PathRef(destination))
   }
 
-  override def generatedSources: T[Seq[PathRef]] = Task {
-    super.generatedSources() ++ Seq(generatedBuildConfig())
+  override def generatedSources: T[Seq[PathRef]] = if enableBuildConfig then
+    Task {
+      super.generatedSources() ++ generatedBuildConfigSources()
+    }
+  else {
+    super.generatedSources()
   }
 
   /**
