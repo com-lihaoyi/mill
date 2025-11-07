@@ -41,30 +41,23 @@ trait WatchTests extends UtestIntegrationTestSuite {
       expectedErr: Seq[String],
       expectedShows: Seq[String]
   ): Unit = {
-    val outLines = spawned.out.lines().toVector
-    val errLines = spawned.err.lines().toVector
+    val outLines = spawned.out.lines()
+    val errLines = spawned.err.lines()
 
-    // When show is true, the quoted outputs are in stdout, and "Running" messages are in stderr
-    // When show is false, everything goes to stdout
     val (shows, out) =
       if (show) outLines.partition(_.startsWith("\""))
       else (Vector.empty[String], outLines)
 
     val err = errLines.filter(s => s.startsWith("Setting up ") || s.startsWith("Running "))
 
-    // When show is false, both expectedOut and expectedErr go to stdout
-    // When show is true, expectedOut goes to stdout and expectedErr goes to stderr
-    val actualExpectedOut = if (show) expectedOut else expectedOut ++ expectedErr
-    val actualExpectedErr = if (show) expectedErr else Seq.empty
-
-    assert(out == actualExpectedOut)
-
-    // If show is not enabled, we don't expect any of our custom prints to go to stderr
-    if (show) assert(err == actualExpectedErr)
-    else assert(err.isEmpty)
-
-    val expectedShowsQuoted = expectedShows.map('"' + _ + '"')
-    if (show) assert(shows == expectedShowsQuoted)
+    if (show) {
+      assert(out == expectedOut)
+      assert(err == expectedErr)
+      assert(shows == expectedShows.map('"' + _ + '"'))
+    } else {
+      assert(out == expectedOut ++ expectedErr)
+      assert(err.isEmpty)
+    }
 
     spawned.clear()
   }
