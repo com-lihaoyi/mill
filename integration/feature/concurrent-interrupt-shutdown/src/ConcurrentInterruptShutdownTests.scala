@@ -15,19 +15,19 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       assert(tester.daemonMode)
       val launcher1 = spawn(("waitForExists", "--fileName", "file1.txt"))
 
-      assertEventually(launcher1.stdout.text().contains("Waiting on file1.txt"))
+      assertEventually(launcher1.out.text().contains("Waiting on file1.txt"))
       val launcher2 = spawn(("runNow", "--text", "i am cow"))
 
       assertEventually(
-        launcher2.stderr.text().contains(
+        launcher2.err.text().contains(
           "Another Mill process is running 'waitForExists --fileName file1.txt', waiting for it to be done..."
         )
       )
       launcher2.process.destroy(recursive = false)
       assertEventually(!launcher2.process.isAlive())
       os.write(workspacePath / "file1.txt", "Hello world")
-      assertEventually(launcher1.stdout.text().contains("Found file1.txt containing Hello world"))
-      assert(!launcher1.stdout.text().contains("Hello i am cow"))
+      assertEventually(launcher1.out.text().contains("Found file1.txt containing Hello world"))
+      assert(!launcher1.out.text().contains("Hello i am cow"))
     }
 
     test("interrupt-active") - integrationTest { tester =>
@@ -35,18 +35,18 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       assert(tester.daemonMode)
       val launcher1 = spawn(("waitForExists", "--fileName", "file1.txt"))
 
-      assertEventually(launcher1.stdout.text().contains("Waiting on file1.txt"))
+      assertEventually(launcher1.out.text().contains("Waiting on file1.txt"))
       val launcher2 = spawn(("runNow", "--text", "i am cow"))
 
       assertEventually(
-        launcher2.stderr.text().contains(
+        launcher2.err.text().contains(
           "Another Mill process is running 'waitForExists --fileName file1.txt', waiting for it to be done..."
         )
       )
       launcher1.process.destroy(recursive = false)
       assertEventually(!launcher1.process.isAlive())
-      assert(!(launcher1.stdout.text() + launcher1.stderr.text()).contains("Found"))
-      assertEventually(launcher2.stdout.text().contains("Hello i am cow"))
+      assert(!(launcher1.out.text() + launcher1.err.text()).contains("Found"))
+      assertEventually(launcher2.out.text().contains("Hello i am cow"))
     }
   }
 }

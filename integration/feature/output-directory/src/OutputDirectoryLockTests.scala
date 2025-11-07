@@ -47,7 +47,7 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
 
       // Ensure we see the waiting message
       assertEventually {
-        spawnedWaitingRes.stderr.text()
+        spawnedWaitingRes.err.text()
           .contains(
             s"Another Mill process is running 'show blockWhileExists --path $signalFile', waiting for it to be done..."
           )
@@ -60,7 +60,7 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       os.remove(signalFile)
       spawnedWaitingRes.process.waitFor()
       assert(os.exists(waitingCompleteFile))
-      assert(spawnedWaitingRes.stdout.trim() == "\"Write marker done\"")
+      assert(spawnedWaitingRes.out.trim() == "\"Write marker done\"")
     }
   }
 }

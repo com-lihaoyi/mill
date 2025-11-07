@@ -65,11 +65,11 @@ object IntegrationTester {
 
     // These implementations are not very efficient since they re-process the chunks every
     // time they are called, but for integration testing purposes that is probably fine
-    def stdout: geny.ByteData = chunks.synchronized {
+    def out: geny.ByteData = chunks.synchronized {
       geny.ByteData.Chunks(chunks.collect { case Left(bytes) => bytes }.toSeq)
     }
 
-    def stderr: geny.ByteData = chunks.synchronized {
+    def err: geny.ByteData = chunks.synchronized {
       geny.ByteData.Chunks(chunks.collect { case Right(bytes) => bytes }.toSeq)
     }
 
