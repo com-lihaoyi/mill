@@ -593,7 +593,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
       androidSdkModule().emulatorExe().path.toString(),
       "-delay-adb",
       "-port",
-      androidEmulatorPort
+      androidEmulatorPort,
+      "-no-metrics"
     ) ++ settings ++ Seq("-avd", androidVirtualDeviceIdentifier)
 
     Task.log.debug(s"Starting emulator with command ${command.mkString(" ")}")
