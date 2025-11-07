@@ -22,7 +22,7 @@ import mill.*
 import java.io.File
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
 /**
  * Core configuration required to compile a single Kotlin module
@@ -439,7 +439,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
     val jOpts = JavaCompilerOptions.split(javacOptions)
     worker.apply(
-      ZincCompileJava(
+      ZincOp.CompileJava(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = javaSourceFiles,
         compileClasspath = compileCp,

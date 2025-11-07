@@ -22,31 +22,28 @@ private[mill] class JsonArrayLogger[T: upickle.Writer](outPath: os.Path, indent:
   // the main execution, but keep the size bounded so if the logging falls behind the
   // main thread will get blocked until logging can catch up
   val buffer = new ArrayBlockingQueue[Option[T]](100)
-  val writeThread = new Thread(
-    () =>
-      // Make sure all writes to `traceStream` are synchronized, as we
-      // have two threads writing to it (one while active, one on close()
-      traceStream.synchronized {
-        while ({
-          buffer.take() match {
-            case Some(v) =>
-              if (used) traceStream.println(",")
-              else traceStream.println("[")
-              used = true
-              val indented = upickle.write(v, indent = indent)
-                .linesIterator
-                .map(indentStr + _)
-                .mkString("\n")
+  val writeThread = mill.api.daemon.StartThread("JsonArrayLogger " + outPath.last) {
+    // Make sure all writes to `traceStream` are synchronized, as we
+    // have two threads writing to it (one while active, one on close()
+    traceStream.synchronized {
+      while ({
+        buffer.take() match {
+          case Some(v) =>
+            if (used) traceStream.println(",")
+            else traceStream.println("[")
+            used = true
+            val indented = upickle.write(v, indent = indent)
+              .linesIterator
+              .map(indentStr + _)
+              .mkString("\n")
 
-              traceStream.print(indented)
-              true
-            case None => false
-          }
-        }) ()
-      },
-    "JsonArrayLogger " + outPath.last
-  )
-  writeThread.start()
+            traceStream.print(indented)
+            true
+          case None => false
+        }
+      }) ()
+    }
+  }
 
   def log(t: T): Unit = synchronized {
     // Somehow in BSP mode we sometimes get logs coming in after close, just ignore them

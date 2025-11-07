@@ -9,7 +9,7 @@ import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 import mill.javalib.bsp.BspModule
 import mill.api.JsonFormatters.given
 import mill.constants.EnvVars
-import mill.javalib.api.internal.ZincDiscoverTests
+import mill.javalib.api.internal.ZincOp
 import mill.javalib.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
 
 import java.nio.file.Path
@@ -59,7 +59,7 @@ trait TestModule
   def discoveredTestClasses: T[Seq[String]] = Task {
     val worker = jvmWorker().internalWorker()
     val discoveredTests = worker.apply(
-      ZincDiscoverTests(
+      ZincOp.DiscoverTests(
         runClasspath().map(_.path),
         testClasspath().map(_.path),
         testFramework()
@@ -390,7 +390,7 @@ object TestModule {
     override def discoveredTestClasses: T[Seq[String]] = Task {
       val worker = jvmWorker().internalWorker()
       worker.apply(
-        mill.javalib.api.internal.ZincDiscoverJunit5Tests(
+        mill.javalib.api.internal.ZincOp.DiscoverJunit5Tests(
           runClasspath().map(_.path),
           testClasspath().map(_.path),
           classesDir()

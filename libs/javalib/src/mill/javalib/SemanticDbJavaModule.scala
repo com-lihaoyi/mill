@@ -11,7 +11,7 @@ import mill.{T, Task}
 
 import scala.jdk.CollectionConverters.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
 @experimental
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
@@ -128,7 +128,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     val worker = jvmWorker().internalWorker()
 
     worker.apply(
-      ZincCompileJava(
+      ZincOp.CompileJava(
         upstreamCompileOutput = upstreamSemanticDbDatas().map(_.compilationResult),
         sources = allSourceFiles().map(_.path),
         compileClasspath =

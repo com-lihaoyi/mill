@@ -5,6 +5,7 @@ import mill.api.daemon.{DummyInputStream, SystemStreams}
 import mill.client.lock.Locks
 import mill.rpc.MillRpcWireTransport
 import mill.server.Server
+import mill.server.Server.ConnectionData
 import pprint.{TPrint, TPrintColors}
 
 import java.io.{BufferedReader, InputStreamReader, PrintStream}
@@ -29,10 +30,10 @@ object ZincWorkerMain {
     }
   }
 
-  private class ZincWorkerTcpServer(daemonDir: os.Path, jobs: Int) extends Server(Server.Args(
+  private class ZincWorkerTcpServer(daemonDir: os.Path, jobs: Int)
+      extends Server[Object, Unit](Server.Args(
         daemonDir,
-        // The worker kills the process when it needs to.
-        acceptTimeout = None,
+        acceptTimeout = None, // The worker kills the process when it needs to.
         Locks.files(daemonDir.toString),
         bufferSize = 4 * 1024
       )) {
@@ -46,29 +47,23 @@ object ZincWorkerMain {
      */
     private val worker = ZincWorker(jobs = jobs)
 
-    protected class WriteSynchronizer
-
-    override protected type PreHandleConnectionData = WriteSynchronizer
-
-    override protected def preHandleConnection(
+    override def prepareConnection(
         connectionData: ConnectionData,
-        stopServer: Server.StopServer
-    ): WriteSynchronizer = new WriteSynchronizer
+        stopServer: Server.StopServer0[Unit]
+    ): Object = new Object
 
-    override protected def handleConnection(
+    override def handleConnection(
         connectionData: ConnectionData,
-        stopServer: Server.StopServer,
+        stopServer: Server.StopServer0[Unit],
         setIdle: Server.SetIdle,
-        writeSynchronizer: WriteSynchronizer
+        writeSynchronizer: Object
     ) = {
-      import connectionData.socketInfo
 
-      val serverName = s"$className{${socketInfo.remote} -> ${socketInfo.local}}"
+      val serverName = s"$className{${connectionData.socketName}}"
       Using.Manager { use =>
         val stdin = use(BufferedReader(InputStreamReader(connectionData.clientToServer)))
         val stdout = use(PrintStream(connectionData.serverToClient))
-        val transport =
-          MillRpcWireTransport(serverName, stdin, stdout, writeSynchronizer)
+        val transport = MillRpcWireTransport(serverName, stdin, stdout, writeSynchronizer)
         val server = ZincWorkerRpcServer(worker, serverName, transport, setIdle, serverLog)
 
         // Make sure stdout and stderr is sent to the client
@@ -84,23 +79,19 @@ object ZincWorkerMain {
       }.get
     }
 
-    override protected def onExceptionInHandleConnection(
+    override def endConnection(
         connectionData: ConnectionData,
-        stopServer: Server.StopServer,
-        writeSynchronizer: WriteSynchronizer,
-        exception: Throwable
+        writeSynchronizer: Option[Object],
+        result: Option[Unit]
     ): Unit = {}
 
-    override protected def beforeSocketClose(
-        connectionData: ConnectionData,
-        stopServer: Server.StopServer,
-        writeSynchronizer: WriteSynchronizer
-    ): Unit = {}
+    def systemExit(exitCode: Unit): Nothing = ???
 
-    override protected def checkIfClientAlive(
+    def exitCodeServerTerminated: Unit = ()
+
+    override def checkIfClientAlive(
         connectionData: ConnectionData,
-        stopServer: Server.StopServer,
-        writeSynchronizer: WriteSynchronizer
+        writeSynchronizer: Object
     ): Boolean = {
       writeSynchronizer.synchronized {
         connectionData.serverToClient.write('\n'.toInt)
@@ -108,13 +99,5 @@ object ZincWorkerMain {
         true
       }
     }
-
-    override protected def onStopServer(
-        from: String,
-        reason: String,
-        exitCode: Int,
-        connectionData: ConnectionData,
-        data: Option[PreHandleConnectionData]
-    ): Unit = {}
   }
 }
