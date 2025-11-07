@@ -20,16 +20,12 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
       assert(!os.exists(workspacePath / "out/mill-daemon"))
       assert(!os.exists(workspacePath / "out/mill-no-daemon"))
 
-      val spawned = prepEval(
-        ("--watch", "foo"),
-        stdout = os.ProcessOutput.Readlines { println(_) },
-        stderr = os.ProcessOutput.Readlines { println(_) }
-      ).spawn()
+      val spawned = spawn(("--watch", "foo"))
 
       if (tester.daemonMode) assertEventually { os.exists(workspacePath / "out/mill-daemon") }
       else assertEventually { os.exists(workspacePath / "out/mill-no-daemon") }
 
-      assert(spawned.isAlive())
+      assert(spawned.process.isAlive())
 
       val processRoot =
         if (tester.daemonMode) workspacePath / "out/mill-daemon"
@@ -47,9 +43,7 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
         }
       }
 
-      assertEventually {
-        !spawned.isAlive()
-      }
+      assertEventually(!spawned.process.isAlive())
     }
   }
 }
