@@ -6,7 +6,7 @@ import utest._
 import utest.asserts._
 
 object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
-  implicit val retryMax: RetryMax = RetryMax(15000.millis)
+  implicit val retryMax: RetryMax = RetryMax(10000.millis)
   implicit val retryInterval: RetryInterval = RetryInterval(50.millis)
   // Ensure that you can quickly cycle through startup and shutdown without failures.
   val tests: Tests = Tests {
@@ -56,7 +56,7 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       assert(!output2.contains("Hello i am cow"))
     }
 
-    test("interrupt-blocked") - integrationTest { tester =>
+    test("interrupt-active") - integrationTest { tester =>
       import tester.*
       @volatile var output1 = List.empty[String]
       @volatile var output2 = List.empty[String]
