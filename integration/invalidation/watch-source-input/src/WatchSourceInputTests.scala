@@ -5,6 +5,10 @@ import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
 import utest._
 
 import scala.collection.mutable
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.SECONDS
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Test to make sure that `--watch` works in the following cases:
@@ -64,7 +68,7 @@ object WatchSourceTests extends WatchTests {
       val preppedEval = prepEval(("--watch", showArgs, "qux"), timeout = maxDurationMillis)
 
       testBase(preppedEval, show) { (expectedOut, expectedErr, expectedShows) =>
-        val spawned = preppedEval.spawn()
+        val evalResult = Future { preppedEval.run() }
 
         awaitCompletionMarker(tester, "initialized0")
         awaitCompletionMarker(tester, "quxRan0")
@@ -124,8 +128,7 @@ object WatchSourceTests extends WatchTests {
         awaitCompletionMarker(tester, "initialized2")
         expectedOut.append("Setting up build.mill")
 
-        spawned.waitFor()
-        IntegrationTester.EvalResult(spawned.exitCode(), "", "")
+        Await.result(evalResult, Duration.apply(maxDurationMillis, SECONDS))
       }
     }
 
@@ -159,7 +162,7 @@ object WatchInputTests extends WatchTests {
       val preppedEval = prepEval(("--watch", showArgs, "lol"), timeout = maxDurationMillis)
 
       testBase(preppedEval, show) { (expectedOut, expectedErr, expectedShows) =>
-        val spawned = preppedEval.spawn()
+        val evalResult = Future { preppedEval.run() }
 
         awaitCompletionMarker(tester, "initialized0")
         awaitCompletionMarker(tester, "lolRan0")
@@ -185,8 +188,7 @@ object WatchInputTests extends WatchTests {
         if (show) expectedOut.append("{}")
         expectedOut.append("Setting up build.mill")
 
-        spawned.waitFor()
-        IntegrationTester.EvalResult(spawned.exitCode(), "", "")
+        Await.result(evalResult, Duration.apply(maxDurationMillis, SECONDS))
       }
     }
 
