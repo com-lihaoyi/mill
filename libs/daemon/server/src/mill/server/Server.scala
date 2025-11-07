@@ -23,7 +23,6 @@ import scala.util.control.NonFatal
 abstract class Server[Prepared, Handled](args: Server.Args) {
   import args.*
 
-  mill.constants.DebugLog.println(s"mill.server.Server")
   val processId: Long = Server.computeProcessId()
   val acceptTimeoutMillisOpt = acceptTimeout.map(_.toMillis)
 
@@ -175,7 +174,6 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       closeServer0: Option[Handled] => Unit,
       connectionTracker: Server.ConnectionTracker
   ): Unit = {
-    mill.constants.DebugLog.println(s"runSocketHandler")
     val connectionData = ConnectionData(
       clientSocket.toString,
       // According to https://pzemtsov.github.io/2015/01/19/on-the-benefits-of-stream-buffering-in-Java.html

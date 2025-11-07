@@ -1,7 +1,7 @@
 //// SNIPPET:CRAWLER
 //
-// For example, below is
-// a simple script using https://github.com/Kotlin/kotlinx.serialization[KotlinX-Serialization],
+// Below is another web crawler, but instead of crawling Wikipedia's HTML pages using JSoup,
+// it uses https://github.com/Kotlin/kotlinx.serialization[KotlinX-Serialization],
 // https://github.com/Kong/unirest-java[Unirest-Java], and https://github.com/ajalt/clikt[Clikt], to write a
 // program that crawls wikipedia and saves the crawl results to a file:
 
