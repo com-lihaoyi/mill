@@ -603,7 +603,7 @@ trait AndroidModule extends JavaModule { outer =>
    * Generates a BuildConfig.java file in the [[androidBuildInfoPackageName]] package
    * This is a basic implementation of AGP's build config feature!
    */
-  def generatedBuildConfigSources: T[Seq[PathRef]] = Task {
+  def androidGeneratedBuildConfigSources: T[Seq[PathRef]] = Task {
     val parsedMembers: Seq[String] = androidBuildConfigMembers().map { member =>
       s"public static final $member;"
     }
@@ -627,7 +627,7 @@ trait AndroidModule extends JavaModule { outer =>
 
   override def generatedSources: T[Seq[PathRef]] = if enableBuildConfig then
     Task {
-      super.generatedSources() ++ generatedBuildConfigSources()
+      super.generatedSources() ++ androidGeneratedBuildConfigSources()
     }
   else {
     super.generatedSources()
