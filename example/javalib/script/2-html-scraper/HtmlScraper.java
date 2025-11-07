@@ -1,10 +1,9 @@
 //| mvnDeps: [org.jsoup:jsoup:1.7.2]
 import org.jsoup.Jsoup;
-import java.io.IOException;
 import java.util.*;
 
 public class HtmlScraper {
-  static List<String> fetchLinks(String title) throws IOException {
+  static List<String> fetchLinks(String title) throws Exception {
     var url = "https://en.wikipedia.org/wiki/" + title;
     var doc = Jsoup.connect(url).header("User-Agent", "My Scraper").get();
 
