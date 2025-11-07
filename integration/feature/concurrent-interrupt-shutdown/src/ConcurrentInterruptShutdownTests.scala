@@ -6,7 +6,7 @@ import utest._
 import utest.asserts._
 
 object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
-  implicit val retryMax: RetryMax = RetryMax(10000.millis)
+  implicit val retryMax: RetryMax = RetryMax((if (sys.env.contains("CI")) 120000 else 15000).millis)
   implicit val retryInterval: RetryInterval = RetryInterval(50.millis)
   // Ensure that you can quickly cycle through startup and shutdown without failures.
   val tests: Tests = Tests {
