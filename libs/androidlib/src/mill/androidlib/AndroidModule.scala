@@ -579,25 +579,25 @@ trait AndroidModule extends JavaModule { outer =>
 
   /**
    * The members to include in the generated BuildConfig.java file.
+   * Format is "type NAME = value"
    */
   def androidBuildConfigMembers: T[Seq[String]] = Task {
     val buildType = if (androidIsDebug()) "debug" else "release"
     Seq(
-      s"boolean DEBUG = ${androidIsDebug()};",
-      s"String BUILD_TYPE = \"$buildType\";",
-      s"int VERSION_CODE = ${androidVersionCode()};",
-      s"String VERSION_NAME = \"${androidVersionName()}\";"
+      s"boolean DEBUG = ${androidIsDebug()}",
+      s"""String BUILD_TYPE = "$buildType"""",
+      s"int VERSION_CODE = ${androidVersionCode()}",
+      s"""String VERSION_NAME = "${androidVersionName()}""""
     )
   }
 
   /**
    * Generates a BuildConfig.java file in the [[androidBuildInfoPackageName]] package
-   * * This is a basic implementation of AGP's build config feature!
+   * This is a basic implementation of AGP's build config feature!
    */
   def generatedBuildConfig: T[PathRef] = Task {
-    // add public static final prefix
     val parsedMembers: Seq[String] = androidBuildConfigMembers().map { member =>
-      s"public static final $member"
+      s"public static final $member;"
     }
     val content: String =
       s"""
