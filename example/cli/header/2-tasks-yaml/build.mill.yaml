@@ -1,2 +1,2 @@
 mill-build:
-  scalacOptions: ["-verbose"]
+  scalacOptions: [["-verbose"]]
