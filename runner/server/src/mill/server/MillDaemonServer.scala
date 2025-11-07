@@ -158,9 +158,14 @@ abstract class MillDaemonServer[State](
     System.err.flush()
 
     if (!data.exists(_.writtenExitCode.getAndSet(true) == true)) {
-      ProxyStream.sendEnd(connectionData.serverToClient, result.getOrElse(1))
-      connectionData.serverToClient.flush()
-      connectionData.serverToClient.close()
+      try {
+        ProxyStream.sendEnd(connectionData.serverToClient, result.getOrElse(1))
+        connectionData.serverToClient.flush()
+        connectionData.serverToClient.close()
+      } catch { case e: Exception =>
+        // Sometimes the client may have died or gone away on its own, in that case
+        // just catch and swallow the exception so we don't blow up the server thread.
+      }
     }
   }
 

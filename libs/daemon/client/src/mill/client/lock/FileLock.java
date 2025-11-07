@@ -17,6 +17,7 @@ public class FileLock extends Lock {
       chan = raf.getChannel();
     }
   }
+
   public FileLock(String path) throws Exception {
     this.path = path;
     initializeIfNeeded();

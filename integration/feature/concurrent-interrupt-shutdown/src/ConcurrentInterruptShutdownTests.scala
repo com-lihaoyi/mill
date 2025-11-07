@@ -17,7 +17,7 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       val pipe1 = new mill.internal.PipeStreams()
       val pipe2 = new mill.internal.PipeStreams()
       assert(tester.daemonMode)
-      val launcher1 = prepEval(
+      prepEval(
         ("waitForExists", "--fileName", "file1.txt"),
         stdout = os.ProcessOutput.Readlines { line =>
           println("thread 1 OUT " + line)
@@ -77,7 +77,7 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       ).spawn()
 
       assertEventually(output1.contains("Waiting on file1.txt"))
-      val launcher2 = prepEval(
+      prepEval(
         ("runNow", "--text", "i am cow"),
         stdout = os.ProcessOutput.Readlines { line =>
           println("thread 2 OUT " + line)

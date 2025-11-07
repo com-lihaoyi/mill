@@ -125,7 +125,7 @@ public class MillLauncherMain {
         for (int i = 0; i < maxRetries && exitCode == ClientUtil.ServerExitPleaseRetry(); i++) {
           exitCode = launcher.run(daemonDir, javaHome, log);
         }
-        if (exitCode == ClientUtil.ServerExitPleaseRetry()){
+        if (exitCode == ClientUtil.ServerExitPleaseRetry()) {
           System.err.println("Max launcher retries exceeded (" + maxRetries + "), exiting");
         }
         System.exit(exitCode);
