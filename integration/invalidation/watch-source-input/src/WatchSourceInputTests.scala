@@ -65,7 +65,7 @@ object WatchSourceTests extends WatchTests {
     def testWatchSource(tester: IntegrationTester, show: Boolean): Unit = {
       import tester.*
       val showArgs = if (show) Seq("show") else Nil
-      val preppedEval = prepEval(("--watch", showArgs, "qux"), timeout = maxDurationMillis)
+      val preppedEval = proc(("--watch", showArgs, "qux"), timeout = maxDurationMillis)
 
       testBase(preppedEval, show) { (expectedOut, expectedErr, expectedShows) =>
         val evalResult = Future { preppedEval.run() }
@@ -159,7 +159,7 @@ object WatchInputTests extends WatchTests {
     def testWatchInput(tester: IntegrationTester, show: Boolean) = {
       val showArgs = if (show) Seq("show") else Nil
       import tester.*
-      val preppedEval = prepEval(("--watch", showArgs, "lol"), timeout = maxDurationMillis)
+      val preppedEval = proc(("--watch", showArgs, "lol"), timeout = maxDurationMillis)
 
       testBase(preppedEval, show) { (expectedOut, expectedErr, expectedShows) =>
         val evalResult = Future { preppedEval.run() }

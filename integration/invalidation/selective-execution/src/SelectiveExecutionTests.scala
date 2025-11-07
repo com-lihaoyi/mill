@@ -194,9 +194,8 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
 
           def output = output0.mkString("\n")
 
-          prepEval(
+          spawn(
             ("--watch", "{foo.fooCommand,bar.barCommand}"),
-            check = true,
             stdout = os.ProcessOutput.Readlines { line =>
               println("stdout " + line)
               output0 = output0 :+ line
@@ -204,7 +203,7 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
             stderr = os.ProcessOutput.Readlines { line =>
               println("stderr " + line)
             }
-          ).spawn()
+          )
 
           assertEventually(
             output.contains("Computing fooCommand") && output.contains("Computing barCommand")
@@ -238,12 +237,11 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
           import tester._
           @volatile var output0 = List.empty[String]
           def output = output0.mkString("\n")
-          prepEval(
+          spawn(
             ("--watch", "show", "{foo.fooCommand,bar.barCommand}"),
-            check = true,
             stderr = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
             stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line)
-          ).spawn()
+          )
 
           assertEventually {
             output.contains("Computing fooCommand") && output.contains("Computing barCommand")
@@ -269,12 +267,11 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
 
           @volatile var output0 = List.empty[String]
           def output = output0.mkString("\n")
-          prepEval(
+          spawn(
             ("--watch", "{foo.fooCommand,bar.barCommand}"),
-            check = true,
             stdout = os.ProcessOutput.Readlines { line => output0 = output0 :+ line },
             stderr = os.ProcessOutput.Readlines { line => System.err.println(line) }
-          ).spawn()
+          )
 
           assertEventually {
             output.contains("Computing fooCommand") && output.contains("Computing barCommand")

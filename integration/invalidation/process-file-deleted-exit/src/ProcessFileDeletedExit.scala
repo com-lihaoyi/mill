@@ -20,11 +20,11 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
       assert(!os.exists(workspacePath / "out/mill-daemon"))
       assert(!os.exists(workspacePath / "out/mill-no-daemon"))
 
-      val spawned = prepEval(
+      val spawned = spawn(
         ("--watch", "foo"),
         stdout = os.ProcessOutput.Readlines { println(_) },
         stderr = os.ProcessOutput.Readlines { println(_) }
-      ).spawn()
+      )
 
       if (tester.daemonMode) assertEventually { os.exists(workspacePath / "out/mill-daemon") }
       else assertEventually { os.exists(workspacePath / "out/mill-no-daemon") }

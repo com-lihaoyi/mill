@@ -15,12 +15,11 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       import tester._
       val signalFile = workspacePath / "do-wait"
       // Kick off blocking task in background
-      prepEval(
+      spawn(
         ("show", "blockWhileExists", "--path", signalFile),
-        check = true,
         stdout = os.Inherit,
         stderr = os.Inherit
-      ).spawn()
+      )
 
       // Wait for blocking task to write signal file, to indicate it has begun
       assertEventually { os.exists(signalFile) }
@@ -46,12 +45,11 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       val waitingLogFile = workspacePath / "waitingLogFile"
       val waitingOutFile = workspacePath / "waitingOutFile"
       val waitingCompleteFile = workspacePath / "waitingCompleteFile"
-      val spawnedWaitingRes = prepEval(
+      val spawnedWaitingRes = spawn(
         ("show", "writeMarker", "--path", waitingCompleteFile),
         stderr = waitingLogFile,
-        stdout = waitingOutFile,
-        check = true
-      ).spawn()
+        stdout = waitingOutFile
+      )
 
       // Ensure we see the waiting message
       assertEventually {

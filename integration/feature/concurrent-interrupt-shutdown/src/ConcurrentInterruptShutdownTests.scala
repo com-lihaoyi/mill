@@ -17,7 +17,7 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       val pipe1 = new mill.internal.PipeStreams()
       val pipe2 = new mill.internal.PipeStreams()
       assert(tester.daemonMode)
-      prepEval(
+      spawn(
         ("waitForExists", "--fileName", "file1.txt"),
         stdout = os.ProcessOutput.Readlines { line =>
           println("thread 1 OUT " + line)
@@ -28,10 +28,10 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
           output1 = output1 :+ line
         },
         stdin = pipe1.input
-      ).spawn()
+      )
 
       assertEventually(output1.contains("Waiting on file1.txt"))
-      val launcher2 = prepEval(
+      val launcher2 = spawn(
         ("runNow", "--text", "i am cow"),
         stdout = os.ProcessOutput.Readlines { line =>
           println("thread 2 OUT " + line)
@@ -42,7 +42,7 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
           output2 = output2 :+ line
         },
         stdin = pipe2.input
-      ).spawn()
+      )
 
       assertEventually(
         output2.contains(
@@ -63,7 +63,7 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       val pipe1 = new mill.internal.PipeStreams()
       val pipe2 = new mill.internal.PipeStreams()
       assert(tester.daemonMode)
-      val launcher1 = prepEval(
+      val launcher1 = spawn(
         ("waitForExists", "--fileName", "file1.txt"),
         stdout = os.ProcessOutput.Readlines { line =>
           println("thread 1 OUT " + line)
@@ -74,10 +74,10 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
           output1 = output1 :+ line
         },
         stdin = pipe1.input
-      ).spawn()
+      )
 
       assertEventually(output1.contains("Waiting on file1.txt"))
-      prepEval(
+      spawn(
         ("runNow", "--text", "i am cow"),
         stdout = os.ProcessOutput.Readlines { line =>
           println("thread 2 OUT " + line)
@@ -88,7 +88,7 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
           output2 = output2 :+ line
         },
         stdin = pipe2.input
-      ).spawn()
+      )
 
       assertEventually(
         output2.contains(

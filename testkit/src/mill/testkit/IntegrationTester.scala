@@ -90,11 +90,11 @@ object IntegrationTester {
     def debugLog = false
 
     /**
-     * Prepares to evaluate a Mill command. Run it with [[IntegrationTester.PreparedEval.run]].
+     * Prepares to evaluate a Mill command. Run it with [[IntegrationTester.PreparedEval.run]] or spawn it with [[IntegrationTester.PreparedEval.spawn]].
      *
      * Useful when you need the [[IntegrationTester.PreparedEval.clues]].
      */
-    def prepEval(
+    def proc(
         cmd: os.Shellable,
         env: Map[String, String] = Map.empty,
         cwd: os.Path = workspacePath,
@@ -163,6 +163,37 @@ object IntegrationTester {
     }
 
     /**
+     * Spawns a Mill command as a subprocess. Convenience method for `proc(...).spawn()`.
+     *
+     * Returns an `os.SubProcess` that can be used to interact with the running process.
+     */
+    def spawn(
+        cmd: os.Shellable,
+        env: Map[String, String] = Map.empty,
+        cwd: os.Path = workspacePath,
+        stdin: os.ProcessInput = os.Pipe,
+        stdout: os.ProcessOutput = os.Pipe,
+        stderr: os.ProcessOutput = os.Pipe,
+        mergeErrIntoOut: Boolean = false,
+        propagateEnv: Boolean = true,
+        timeoutGracePeriod: Long = 100
+    ): os.SubProcess = {
+      proc(
+        cmd = cmd,
+        env = env,
+        cwd = cwd,
+        stdin = stdin,
+        stdout = stdout,
+        stderr = stderr,
+        mergeErrIntoOut = mergeErrIntoOut,
+        timeout = -1,
+        check = false,
+        propagateEnv = propagateEnv,
+        timeoutGracePeriod = timeoutGracePeriod
+      ).spawn()
+    }
+
+    /**
      * Evaluates a Mill command. Essentially the same as `os.call`, except it
      * provides the Mill executable and some test flags and environment variables
      * for you, and wraps the output in a [[IntegrationTester.EvalResult]] for
@@ -181,7 +212,7 @@ object IntegrationTester {
         propagateEnv: Boolean = true,
         timeoutGracePeriod: Long = 100
     ): IntegrationTester.EvalResult = {
-      prepEval(
+      proc(
         cmd = cmd,
         env = env,
         cwd = cwd,
