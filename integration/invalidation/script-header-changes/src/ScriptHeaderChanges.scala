@@ -73,6 +73,15 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
       val res9 = tester.eval(("show", "./Foo.java:mvnDeps"))
       assert(res9.out.contains("\"org.thymeleaf:thymeleaf:3.1.1.RELEASE\""))
       assert(res9.isSuccess)
+
+      tester.modifyFile(
+        tester.workspacePath / "Foo.java",
+        _.replace("//| mvnDeps: [org.thymeleaf:thymeleaf:3.1.1.RELEASE]", "")
+      )
+
+      val res10 = tester.eval(("show", "./Foo.java:mvnDeps"))
+      assert(!res10.out.contains("\"org.thymeleaf:thymeleaf:3.1.1.RELEASE\""))
+      assert(res10.isSuccess)
     }
   }
 }

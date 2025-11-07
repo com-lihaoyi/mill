@@ -1,4 +1,3 @@
-
 // === JSON API Client
 //// SNIPPET:CRAWLER
 // Below is another web crawler, but instead of crawling Wikipedia's HTML pages using JSoup,
