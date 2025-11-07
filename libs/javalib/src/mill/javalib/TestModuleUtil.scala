@@ -1,6 +1,6 @@
 package mill.javalib
 
-import mill.api.{BuildCtx, Logger, MappedRoots, PathRef, Result, TaskCtx}
+import mill.api.{Logger, MappedRoots, PathRef, Result, TaskCtx}
 import mill.api.daemon.internal.TestReporter
 import mill.util.Jvm
 import mill.api.internal.Util
