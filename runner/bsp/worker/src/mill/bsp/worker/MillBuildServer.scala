@@ -867,7 +867,8 @@ private class MillBuildServer(
               out = out,
               millActiveCommandMessage = s"IDE:$name",
               streams = logger.streams,
-              outLock = outLock
+              outLock = outLock,
+              setIdle = _ => ()
             ) {
               for (evaluator <- bspEvaluatorsOpt())
                 if (evaluator.watched.forall(WatchSig.haveNotChanged)) {

@@ -30,7 +30,8 @@ object ZincWorkerMain {
     }
   }
 
-  private class ZincWorkerTcpServer(daemonDir: os.Path, jobs: Int) extends Server(Server.Args(
+  private class ZincWorkerTcpServer(daemonDir: os.Path, jobs: Int)
+      extends Server[Object, Unit](Server.Args(
         daemonDir,
         acceptTimeout = None, // The worker kills the process when it needs to.
         Locks.files(daemonDir.toString),
@@ -46,24 +47,19 @@ object ZincWorkerMain {
      */
     private val worker = ZincWorker(jobs = jobs)
 
-    class WriteSynchronizer
-
-    override type PrepareConnectionData = WriteSynchronizer
-
     override def prepareConnection(
         connectionData: ConnectionData,
-        stopServer: Server.StopServer
-    ): WriteSynchronizer = new WriteSynchronizer
+        stopServer: Server.StopServer0[Unit]
+    ): Object = new Object
 
     override def handleConnection(
         connectionData: ConnectionData,
-        stopServer: Server.StopServer,
+        stopServer: Server.StopServer0[Unit],
         setIdle: Server.SetIdle,
-        writeSynchronizer: WriteSynchronizer
+        writeSynchronizer: Object
     ) = {
-      import connectionData.socketInfo
 
-      val serverName = s"$className{${socketInfo.remote} -> ${socketInfo.local}}"
+      val serverName = s"$className{${connectionData.socketName}}"
       Using.Manager { use =>
         val stdin = use(BufferedReader(InputStreamReader(connectionData.clientToServer)))
         val stdout = use(PrintStream(connectionData.serverToClient))
@@ -83,14 +79,19 @@ object ZincWorkerMain {
       }.get
     }
 
-    override def writeExitCode(
+    override def endConnection(
         connectionData: ConnectionData,
-        writeSynchronizer: WriteSynchronizer
+        writeSynchronizer: Option[Object],
+        result: Option[Unit]
     ): Unit = {}
+
+    def systemExit(exitCode: Unit): Nothing = ???
+
+    def exitCodeServerTerminated: Unit = ()
 
     override def checkIfClientAlive(
         connectionData: ConnectionData,
-        writeSynchronizer: WriteSynchronizer
+        writeSynchronizer: Object
     ): Boolean = {
       writeSynchronizer.synchronized {
         connectionData.serverToClient.write('\n'.toInt)
@@ -98,13 +99,5 @@ object ZincWorkerMain {
         true
       }
     }
-
-    override def onStopServer(
-        from: String,
-        reason: String,
-        exitCode: Int,
-        connectionData: ConnectionData,
-        data: Option[PrepareConnectionData]
-    ): Unit = {}
   }
 }

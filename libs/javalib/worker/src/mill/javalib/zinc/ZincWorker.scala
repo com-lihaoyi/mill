@@ -450,10 +450,8 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     val previousScalaColor = sys.props(scalaColorProp)
     try {
       sys.props(scalaColorProp) = if (ctx.logPromptColored) "true" else "false"
-      val newResult = incrementalCompiler.compile(
-        in = inputs,
-        logger = logger
-      )
+
+      val newResult = incrementalCompiler.compile(in = inputs, logger = logger)
 
       if (reportCachedProblems) newReporter.logOldProblems(newResult.analysis())
 

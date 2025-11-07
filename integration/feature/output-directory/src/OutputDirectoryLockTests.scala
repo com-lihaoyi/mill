@@ -4,18 +4,10 @@ import mill.testkit.UtestIntegrationTestSuite
 import utest._
 import utest.asserts.{RetryInterval, RetryMax}
 
-import java.util.concurrent.Executors
-import scala.concurrent.duration.{Duration, DurationInt}
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration.DurationInt
 
 object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
 
-  private val pool = Executors.newCachedThreadPool()
-  private implicit val ec: ExecutionContext = ExecutionContext.fromExecutorService(pool)
-
-  override def utestAfterAll(): Unit = {
-    pool.shutdown()
-  }
   implicit val retryMax: RetryMax = RetryMax(60000.millis)
   implicit val retryInterval: RetryInterval = RetryInterval(50.millis)
   def tests: Tests = Tests {
@@ -23,14 +15,9 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       import tester._
       val signalFile = workspacePath / "do-wait"
       // Kick off blocking task in background
-      Future {
-        eval(
-          ("show", "blockWhileExists", "--path", signalFile),
-          check = true,
-          stdout = os.Inherit,
-          stderr = os.Inherit
-        )
-      }
+      spawn(
+        ("show", "blockWhileExists", "--path", signalFile)
+      )
 
       // Wait for blocking task to write signal file, to indicate it has begun
       assertEventually { os.exists(signalFile) }
@@ -53,32 +40,27 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       )
 
       // By default, we wait until the background blocking task completes
-      val waitingLogFile = workspacePath / "waitingLogFile"
       val waitingCompleteFile = workspacePath / "waitingCompleteFile"
-      val futureWaitingRes = Future {
-        eval(
-          ("show", "writeMarker", "--path", waitingCompleteFile),
-          stderr = waitingLogFile,
-          check = true
-        )
-      }
+      val spawnedWaitingRes = spawn(
+        ("show", "writeMarker", "--path", waitingCompleteFile)
+      )
 
       // Ensure we see the waiting message
       assertEventually {
-        os.read(waitingLogFile)
+        spawnedWaitingRes.err.text()
           .contains(
             s"Another Mill process is running 'show blockWhileExists --path $signalFile', waiting for it to be done..."
           )
       }
 
       // Even after task starts waiting on blocking task, it is not complete
-      assert(!futureWaitingRes.isCompleted)
+      assert(spawnedWaitingRes.process.isAlive())
       assert(!os.exists(waitingCompleteFile))
       // Terminate blocking task, make sure waiting task now completes
       os.remove(signalFile)
-      val waitingRes = Await.result(futureWaitingRes, Duration.Inf)
+      spawnedWaitingRes.process.waitFor()
       assert(os.exists(waitingCompleteFile))
-      assert(waitingRes.out == "\"Write marker done\"")
+      assert(spawnedWaitingRes.out.trim() == "\"Write marker done\"")
     }
   }
 }
