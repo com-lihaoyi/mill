@@ -147,12 +147,11 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
         stderr = os.Inherit
       )
       modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
-      val cached1 =
-        eval(
-          ("selective.run", "{foo.fooCommand,bar.barCommand}"),
-          check = true,
-          stderr = os.Inherit
-        )
+      val cached1 = eval(
+        ("selective.run", "{foo.fooCommand,bar.barCommand}"),
+        check = true,
+        stderr = os.Inherit
+      )
 
       assert(!cached1.out.contains("Computing fooCommand"))
       assert(cached1.out.contains("Computing barCommand"))
@@ -167,12 +166,11 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
         workspacePath / "build.mill",
         _.replace("object foo extends Module {", "object foo extends Module { println(123)")
       )
-      val cached2 =
-        eval(
-          ("selective.run", "{foo.fooCommand,bar.barCommand}"),
-          check = true,
-          stderr = os.Inherit
-        )
+      val cached2 = eval(
+        ("selective.run", "{foo.fooCommand,bar.barCommand}"),
+        check = true,
+        stderr = os.Inherit
+      )
 
       assert(cached2.out.contains("Computing fooCommand"))
       assert(!cached2.out.contains("Computing barCommand"))
@@ -193,9 +191,8 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
           val spawned = spawn(("--watch", "{foo.fooCommand,bar.barCommand}"))
 
           assertEventually {
-            spawned.out.text().contains(
-              "Computing fooCommand"
-            ) && spawned.out.text().contains("Computing barCommand")
+            spawned.out.text().contains("Computing fooCommand") &&
+            spawned.out.text().contains("Computing barCommand")
           }
 
           // Make sure editing each individual input results in the corresponding downstream
@@ -204,26 +201,23 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
           spawned.clear()
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
           assertEventually {
-            !spawned.out.text().contains(
-              "Computing fooCommand"
-            ) && spawned.out.text().contains("Computing barCommand")
+            !spawned.out.text().contains("Computing fooCommand") &&
+            spawned.out.text().contains("Computing barCommand")
           }
 
           // Test for a bug where modifying the sources 2nd time would run tasks from both modules.
           spawned.clear()
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
           assertEventually {
-            !spawned.out.text().contains(
-              "Computing fooCommand"
-            ) && spawned.out.text().contains("Computing barCommand")
+            !spawned.out.text().contains("Computing fooCommand") &&
+            spawned.out.text().contains("Computing barCommand")
           }
 
           spawned.clear()
           modifyFile(workspacePath / "foo/foo.txt", _ + "!")
           assertEventually {
-            spawned.out.text().contains(
-              "Computing fooCommand"
-            ) && !spawned.out.text().contains("Computing barCommand")
+            spawned.out.text().contains("Computing fooCommand") &&
+            !spawned.out.text().contains("Computing barCommand")
           }
         }
       }
@@ -233,25 +227,22 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
           val spawned = spawn(("--watch", "show", "{foo.fooCommand,bar.barCommand}"))
 
           assertEventually {
-            spawned.out.text().contains(
-              "Computing fooCommand"
-            ) && spawned.out.text().contains("Computing barCommand")
+            spawned.err.text().contains("Computing fooCommand") &&
+            spawned.err.text().contains("Computing barCommand")
           }
 
           spawned.clear()
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
           assertEventually {
-            !spawned.out.text().contains(
-              "Computing fooCommand"
-            ) && spawned.out.text().contains("Computing barCommand")
+            !spawned.err.text().contains("Computing fooCommand") &&
+            spawned.err.text().contains("Computing barCommand")
           }
 
           spawned.clear()
           modifyFile(workspacePath / "foo/foo.txt", _ + "!")
           assertEventually {
-            spawned.out.text().contains(
-              "Computing fooCommand"
-            ) && !spawned.out.text().contains("Computing barCommand")
+            spawned.err.text().contains("Computing fooCommand") &&
+            !spawned.err.text().contains("Computing barCommand")
           }
         }
       }
@@ -272,9 +263,8 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
           spawned.clear()
           modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
           assertEventually {
-            !spawned.out.text().contains(
-              "Computing fooCommand"
-            ) && spawned.out.text().contains("Computing barCommand")
+            !spawned.out.text().contains("Computing fooCommand") &&
+            spawned.out.text().contains("Computing barCommand")
           }
 
           // Check module body code changes correctly trigger downstream evaluation
@@ -284,9 +274,8 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
             _.replace("object foo extends Module {", "object foo extends Module { println(123)")
           )
           assertEventually {
-            spawned.out.text().contains(
-              "Computing fooCommand"
-            ) && !spawned.out.text().contains("Computing barCommand")
+            spawned.out.text().contains("Computing fooCommand") &&
+            !spawned.out.text().contains("Computing barCommand")
           }
         }
       }

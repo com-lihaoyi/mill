@@ -58,7 +58,7 @@ object IntegrationTester {
    * Each line printed to stdout/stderr is captured in the buffer and also printed to console.
    * The buffer preserves ordering, with Left representing stdout and Right representing stderr.
    */
-  class SpawnedProcess(
+  case class SpawnedProcess(
       val process: os.SubProcess,
       private val chunks: collection.mutable.Buffer[Either[geny.Bytes, geny.Bytes]]
   ) {

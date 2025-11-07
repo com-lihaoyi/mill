@@ -155,7 +155,8 @@ object WatchSourceTests extends WatchTests {
         assertLines(
           spawned,
           show,
-          expectedOut = if (show) Seq("{}", "Setting up build.mill") else Seq("Setting up build.mill"),
+          expectedOut =
+            if (show) Seq("{}", "Setting up build.mill") else Seq("Setting up build.mill"),
           expectedErr = Seq(),
           expectedShows = Seq()
         )
@@ -167,16 +168,12 @@ object WatchSourceTests extends WatchTests {
       // Make sure we clean up the workspace between retries
       test("noshow") - retry(1) {
         integrationTest { tester =>
-          if (!Util.isWindows) {
-            testWatchSource(tester, false)
-          }
+          if (!Util.isWindows) testWatchSource(tester, false)
         }
       }
       test("show") - retry(1) {
         integrationTest { tester =>
-          if (!Util.isWindows) {
-            testWatchSource(tester, true)
-          }
+          if (!Util.isWindows) testWatchSource(tester, true)
         }
       }
     }
@@ -227,7 +224,8 @@ object WatchInputTests extends WatchTests {
         assertLines(
           spawned,
           show,
-          expectedOut = if (show) Seq("{}", "Setting up build.mill") else Seq("Setting up build.mill"),
+          expectedOut =
+            if (show) Seq("{}", "Setting up build.mill") else Seq("Setting up build.mill"),
           expectedErr = Seq(),
           expectedShows = Seq()
         )
@@ -239,16 +237,12 @@ object WatchInputTests extends WatchTests {
       // Make sure we clean up the workspace between retries
       test("noshow") - retry(1) {
         integrationTest { tester =>
-          if (!Util.isWindows) {
-            testWatchInput(tester, false)
-          }
+          if (!Util.isWindows) testWatchInput(tester, false)
         }
       }
       test("show") - retry(1) {
         integrationTest { tester =>
-          if (!Util.isWindows) {
-            testWatchInput(tester, true)
-          }
+          if (!Util.isWindows) testWatchInput(tester, true)
         }
       }
     }
