@@ -242,7 +242,7 @@ trait GroupExecution {
                   newEvaluated = newEvaluated.toSeq,
                   cached = if (labelled.isInstanceOf[Task.Input[?]]) null else false,
                   inputsHash = inputsHash,
-                  previousInputsHash = cached.map(_.inputHash).getOrElse(-1),
+                  previousInputsHash = cached.map(_.inputsHash).getOrElse(-1),
                   valueHashChanged = !cached.map(_.valueHash).contains(valueHash),
                   serializedPaths = serializedPaths
                 )
@@ -453,7 +453,11 @@ trait GroupExecution {
       inputsHash: Int,
       labelled: Task.Named[?],
       paths: ExecutionPaths
-  ): Option[(inputHash: Int, valOpt: Option[(Val, Seq[PathRef])], valueHash: Int)] = {
+  ): Option[(
+      inputsHash: Int,
+      valOpt: Option[(Val, Seq[PathRef])],
+      valueHash: Int
+  )] = {
     for {
       cached <-
         try Some(upickle.read[Cached](paths.meta.toIO, trace = false))
@@ -461,8 +465,8 @@ trait GroupExecution {
           case NonFatal(_) => None
         }
     } yield (
-      cached.inputsHash,
-      for {
+      inputsHash = cached.inputsHash,
+      valOpt = for {
         _ <- Option.when(cached.inputsHash == inputsHash)(())
         reader <- labelled.readWriterOpt
         (parsed, serializedPaths) <-
@@ -478,7 +482,7 @@ trait GroupExecution {
             case NonFatal(_) => None
           }
       } yield (Val(parsed), serializedPaths),
-      cached.valueHash
+      valueHash = cached.valueHash
     )
   }
 
