@@ -97,7 +97,8 @@ abstract class MillDaemonServer[State](
           new PrintStream(mill.api.daemon.DummyOutputStream),
           mill.api.daemon.DummyInputStream
         ),
-        outLock = outLock
+        outLock = outLock,
+        setIdle = _ => ()
       ) {
         if (millVersionChanged) {
           stderr.println(
@@ -112,7 +113,7 @@ abstract class MillDaemonServer[State](
 
         stopServer(
           s"version mismatch (millVersionChanged=$millVersionChanged, javaVersionChanged=$javaVersionChanged)",
-          ClientUtil.ExitServerCodeWhenVersionMismatch()
+          ClientUtil.ServerExitPleaseRetry()
         )
       }
     }
@@ -157,13 +158,21 @@ abstract class MillDaemonServer[State](
     System.err.flush()
 
     if (!data.exists(_.writtenExitCode.getAndSet(true) == true)) {
-      ProxyStream.sendEnd(connectionData.serverToClient, result.getOrElse(1))
-      connectionData.serverToClient.flush()
-      connectionData.serverToClient.close()
+      try {
+        ProxyStream.sendEnd(connectionData.serverToClient, result.getOrElse(1))
+        connectionData.serverToClient.flush()
+        connectionData.serverToClient.close()
+      } catch {
+        case _: Exception =>
+        // Sometimes the client may have died or gone away on its own, in that case
+        // just catch and swallow the exception so we don't blow up the server thread.
+      }
     }
   }
 
   def systemExit(exitCode: Int): Nothing = sys.exit(exitCode)
+
+  def exitCodeServerTerminated: Int = ClientUtil.ServerExitPleaseRetry()
 
   def main0(
       args: Array[String],
@@ -192,7 +201,8 @@ object MillDaemonServer {
       out: os.Path,
       millActiveCommandMessage: String,
       streams: SystemStreams,
-      outLock: Lock
+      outLock: Lock,
+      setIdle: Boolean => Unit
   )(t: => T): T = {
     if (noBuildLock) t
     else {
@@ -204,6 +214,7 @@ object MillDaemonServer {
 
       def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
 
+      setIdle(true)
       Using.resource {
         val tryLocked = outLock.tryLock()
         if (tryLocked.isLocked) tryLocked
@@ -213,6 +224,8 @@ object MillDaemonServer {
           outLock.lock()
         }
       } { _ =>
+        setIdle(false)
+        if (Thread.interrupted()) throw new InterruptedException()
         os.write.over(out / OutFiles.millActiveCommand, millActiveCommandMessage)
         try t
         finally os.remove.all(out / OutFiles.millActiveCommand)
