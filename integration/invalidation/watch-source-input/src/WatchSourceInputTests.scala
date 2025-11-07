@@ -50,9 +50,7 @@ trait WatchTests extends UtestIntegrationTestSuite {
       if (show) outLines.partition(_.startsWith("\""))
       else (Vector.empty[String], outLines)
 
-    val err = errLines.filter(s =>
-      s.startsWith("Setting up ") || s.startsWith("Running ")
-    )
+    val err = errLines.filter(s => s.startsWith("Setting up ") || s.startsWith("Running "))
 
     // When show is false, both expectedOut and expectedErr go to stdout
     // When show is true, expectedOut goes to stdout and expectedErr goes to stderr
