@@ -11,7 +11,7 @@ object `package` extends KotlinModule {
   def forkArgs = Opts("-Xmx4g", "-Dmy.jvm.property=hello")
   def forkEnv = Map("MY_ENV_VAR" -> opt"WORLD")
 
-  def kotlincOptions = super.kotlincOptions() ++ Opt("-Werror")
+  def kotlincOptions = super.kotlincOptions() ++ Opts("-Werror")
 }
 
 // You can pass flags to the Kotlin compiler via `kotlincOptions`.
