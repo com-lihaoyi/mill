@@ -55,7 +55,7 @@ trait MicronautModule extends MavenModule {
   def javacOptions = Opts(
     OptGroup(
       "-processorpath",
-      Opt.mkPath(processors().map(_.path), ":")
+      Opt.mkPath(processors().map(_.path), sep = ":")
     ),
     "-parameters",
     "-Amicronaut.processing.incremental=true",

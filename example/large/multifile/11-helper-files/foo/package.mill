@@ -1,8 +1,11 @@
 package build.foo
+
 import mill.*, scalalib.*
+import mill.api.opt.*
+
 object `package` extends build.MyModule {
   def forkEnv = Map(
-    "MY_SCALA_VERSION" -> build.myScalaVersion,
-    "MY_PROJECT_VERSION" -> myProjectVersion
+    "MY_SCALA_VERSION" -> Opt(build.myScalaVersion),
+    "MY_PROJECT_VERSION" -> Opt(myProjectVersion)
   )
 }

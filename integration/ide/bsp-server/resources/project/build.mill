@@ -59,7 +59,7 @@ object app extends scalalib.JavaModule {
     mvn"com.mysql:mysql-connector-j:9.1.0"
   )
 
-  def forkEnv = Map("MY_ENV_VAR" -> "my-value")
+  def forkEnv = Map("MY_ENV_VAR" -> opt"my-value")
 
   object test extends JavaTests {
     def testFramework = "com.novocode.junit.JUnitFramework"
