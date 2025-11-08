@@ -121,6 +121,15 @@ class OptsTests extends TestSuite {
         val back = upickle.read[Opts](json)
         assert(opts1 == back)
       }
+      test("read-flat-opt-sequences") {
+        val flatOpts = Seq("opt1", "opt2")
+        val expected = Opts("opt1", "opt2")
+        assert(flatOpts == expected.toStringSeq)
+
+        val json = upickle.write(flatOpts)
+        val back = upickle.read[Opts](json)
+        assert(back == expected)
+      }
 //      test("with-mapping-home") {
 //        val json = upickle.write(opts1)
 //        assertGoldenLiteral(

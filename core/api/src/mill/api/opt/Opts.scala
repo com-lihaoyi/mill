@@ -46,9 +46,30 @@ object Opts {
     new Opts(groups.filter(!_.isEmpty))
   }
 
+//  given jsonReadWriter: upickle.ReadWriter[Opts] =
+//    upickle.readwriter[Seq[OptGroup]].bimap(
+//      _.value,
+//      Opts(_*)
+//    )
+
   given jsonReadWriter: upickle.ReadWriter[Opts] =
-    upickle.readwriter[Seq[OptGroup]].bimap(
-      _.value,
-      Opts(_*)
+    upickle.readwriter[ujson.Value].bimap(
+      { opts =>
+        // We always serialize as a seq of groups
+        upickle.transform(opts.value).to[ujson.Value]
+      },
+      {
+        case arr: ujson.Arr =>
+          Opts(
+            arr.value.map {
+              // The default case, a seq of groups
+              case e: ujson.Str => OptGroup(upickle.read[Opt](e))
+              // special case, a flat Opt, so we can also read simple ["opt1", "opt2"] arrays
+              // which is what we want to use in YAML build files
+              case g => upickle.read[OptGroup](g)
+            }.toSeq*
+          )
+      }
     )
+
 }
