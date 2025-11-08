@@ -20,7 +20,7 @@ object `package` extends ScalaNativeModule {
   def nativeIncrementalCompilation: T[Boolean] = true
 
   // Set nativeLinkingOptions path to a directory named `target`.
-  def nativeLinkingOptions = Opts(opt"-L${moduleDir}/target")
+  def nativeLinkingOptions = Opts(opt"-L${moduleDir / "target"}")
 
   // Set nativeWorkdir directory to `newDir`
   def nativeWorkdir = Task.dest / "newDir"

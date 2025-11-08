@@ -7,6 +7,7 @@ import mill.api.{CrossVersion, Result, TaskCtx}
 import mill.api.daemon.internal.bsp.ScalaBuildTarget
 import mill.javalib.api.JvmWorkerUtil
 import mill.api.daemon.internal.{ScalaNativeModuleApi, ScalaPlatform, internal}
+import mill.api.opt.*
 import mill.javalib.RunModule
 import mill.javalib.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
@@ -177,13 +178,13 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   def nativeTarget: T[Option[String]] = Task { None }
 
   // Options that are passed to clang during compilation
-  def nativeCompileOptions = Task {
-    withScalaNativeBridge.apply().apply(_.discoverCompileOptions())
+  def nativeCompileOptions: T[Opts] = Task {
+    Opts(withScalaNativeBridge.apply().apply(_.discoverCompileOptions()))
   }
 
   // Options that are passed to clang during linking
-  def nativeLinkingOptions = Task {
-    withScalaNativeBridge.apply().apply(_.discoverLinkingOptions())
+  def nativeLinkingOptions: T[Opts] = Task {
+    Opts(withScalaNativeBridge.apply().apply(_.discoverLinkingOptions()))
   }
 
   // Whether to link `@stub` methods, or ignore them
@@ -245,8 +246,8 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
       nativeClang().path.toIO,
       nativeClangPP().path.toIO,
       nativeTarget(),
-      nativeCompileOptions(),
-      nativeLinkingOptions(),
+      nativeCompileOptions().toStringSeq,
+      nativeLinkingOptions().toStringSeq,
       nativeGC(),
       nativeLinkStubs(),
       nativeLTO().value,
