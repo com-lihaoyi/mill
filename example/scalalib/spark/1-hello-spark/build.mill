@@ -10,7 +10,7 @@ object foo extends ScalaModule {
     mvn"org.apache.spark::spark-sql:3.5.4"
   )
 
-  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+  def forkArgs = Opts("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
 
   object test extends ScalaTests {
     def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")

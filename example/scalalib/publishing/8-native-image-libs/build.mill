@@ -10,7 +10,7 @@ object foo extends ScalaModule, NativeImageModule {
 
   def nativeImageOptions = Opts("--no-fallback", "-Os")
 
-  def mvnDeps = Opts(
+  def mvnDeps = Seq(
     mvn"com.lihaoyi::scalatags:0.13.1",
     mvn"com.lihaoyi::mainargs:0.7.7"
   )
