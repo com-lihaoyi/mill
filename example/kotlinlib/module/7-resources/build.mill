@@ -11,7 +11,7 @@ object foo extends KotlinModule {
   object test extends KotlinTests, TestModule.Junit5 {
     def otherFiles = Task.Source("other-files")
 
-    def forkEnv = super.forkEnv() ++ Opt(
+    def forkEnv = super.forkEnv() ++ Map(
       "OTHER_FILES_DIR" -> Opt(otherFiles().path)
     )
 
