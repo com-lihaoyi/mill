@@ -58,6 +58,10 @@ trait InitModule extends Module {
             println(s"Unpacking example...")
             val unpackPath = os.unzip(downloaded, Task.dest)
             val extractedPath = Task.dest / extractedDirName
+
+            // Remove any existing bootstrap script since the example will come with one
+            os.remove(BuildCtx.workspaceRoot / "mill")
+
             val conflicting = for {
               p <- os.walk(extractedPath)
               rel = p.relativeTo(extractedPath)
@@ -75,8 +79,6 @@ trait InitModule extends Module {
               println(p.relativeTo(extractedPath))
             }
 
-            // Remove any existing bootstrap script since the example will come with one
-            os.remove(BuildCtx.workspaceRoot / "mill")
             os.copy.apply(extractedPath, BuildCtx.workspaceRoot, mergeFolders = true)
 
             // Make sure the `./mill` launcher is executable
