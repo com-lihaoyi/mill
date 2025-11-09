@@ -19,19 +19,19 @@ object `package` extends KotlinModule {
 
   trait HelloTests extends KotlinTests, TestModule.Junit5 {
     def mainClass = Some("com.example.TodomvcApplicationKt")
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }
 
   object test extends HelloTests {
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"com.h2database:h2:2.3.230"
     )
   }
 
   object integration extends HelloTests {
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"org.testcontainers:testcontainers:1.18.0",
       mvn"org.testcontainers:junit-jupiter:1.18.0",
       mvn"org.testcontainers:postgresql:1.18.0",
