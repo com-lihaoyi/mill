@@ -1022,7 +1022,7 @@ node31 -> node0;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillBuildRootModule.html#generatedScriptSources-0" t="n" class="documentableName ">generatedScriptSources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[(wrapped: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], support: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>])]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillBuildRootModule.html#generatedScriptSources-0" t="n" class="documentableName ">generatedScriptSources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[(wrapped: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], support: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], resources: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>])]
            </div>
           </div>
          </div>
@@ -1296,6 +1296,49 @@ node31 -> node0;
               <dd class="body-medium">
                <div>
                 <a href="../javalib/JavaModule.html">JavaModule</a>
+               </div>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/runner/meta/src/mill/meta/MillBuildRootModule.scala" target="_blank">MillBuildRootModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="resources-0" data-f-keywords="override">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="MillBuildRootModule.html#resources-0" t="n" class="documentableName ">resources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The folders where the resource files for this module live. If you need resources to be seen by the compiler, use <a href="MillBuildRootModule.html#compileResources-0">compileResources</a>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The folders where the resource files for this module live. If you need resources to be seen by the compiler, use <a href="MillBuildRootModule.html#compileResources-0">compileResources</a>.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="../javalib/JavaModule.html">JavaModule</a> -&gt; <a href="../javalib/TestModule$$JavaModuleBase.html">JavaModuleBase</a>
                </div>
               </dd>
               <dt class="body-small">
@@ -5638,47 +5681,6 @@ node31 -> node0;
               </dt>
               <dd class="body-medium">
                <a href="../javalib/JavaModule.html#resolvedRunMvnDeps-0">JavaModule</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/JavaModule.scala" target="_blank">JavaModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="resources-0" data-f-inherited="JavaModule">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillBuildRootModule.html#resources-0" t="n" class="documentableName ">resources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>The folders where the resource files for this module live. If you need resources to be seen by the compiler, use <a href="../javalib/JavaModule.html#compileResources-0">compileResources</a>.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>The folders where the resource files for this module live. If you need resources to be seen by the compiler, use <a href="../javalib/JavaModule.html#compileResources-0">compileResources</a>.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="../javalib/JavaModule.html#resources-0">JavaModule</a>
               </dd>
               <dt class="body-small">
                Source

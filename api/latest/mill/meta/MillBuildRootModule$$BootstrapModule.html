@@ -7,7 +7,7 @@
 </div>
 <div class="main-signature mono-small-block">
  <div class="signature">
-  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="MillBuildRootModule$$BootstrapModule.html" t="n" class="documentableName ">BootstrapModule</a>(<span t="k"></span>)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">rootModuleInfo</span>: <a href="../api/internal/RootModule$$Info.html" t="t">Info</a>)<span t="k"> extends </span><a href="../util/MainRootModule.html" t="t">MainRootModule</a><span t="k">, </span></span><span class="signature-long"><a href="MillBuildRootModule.html" t="t">MillBuildRootModule</a></span>
+  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="MillBuildRootModule$$BootstrapModule.html" t="n" class="documentableName ">BootstrapModule</a>(<span t="k"></span><span t="k">val </span><span data-unresolved-link="" t="n">moduleBuildOverrides</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Value</span>])(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">rootModuleInfo</span>: <a href="../api/internal/RootModule$$Info.html" t="t">Info</a>)<span t="k"> extends </span><a href="../util/MainRootModule.html" t="t">MainRootModule</a><span t="k">, </span></span><span class="signature-long"><a href="MillBuildRootModule.html" t="t">MillBuildRootModule</a></span>
  </div>
 </div>
 <div class="cover">
@@ -1830,50 +1830,6 @@ node38 -> node36;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="buildOverrides-0" data-f-keywords="override" data-f-inherited="RootModule">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="MillBuildRootModule$$BootstrapModule.html#buildOverrides-0" t="n" class="documentableName ">buildOverrides</a>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Value</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Definition Classes
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <a href="../api/internal/RootModule.html#buildOverrides-0">RootModule</a> -&gt; <a href="../api/ModuleCtx$$Wrapper.html">Wrapper</a>
-               </div>
-              </dd>
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="../api/internal/RootModule.html#buildOverrides-0">RootModule</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/api/src/mill/api/internal/RootModule.scala" target="_blank">RootModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="checkGradleModules-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -3431,7 +3387,7 @@ node38 -> node36;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillBuildRootModule$$BootstrapModule.html#generatedScriptSources-0" t="n" class="documentableName ">generatedScriptSources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[(wrapped: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], support: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>])]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillBuildRootModule$$BootstrapModule.html#generatedScriptSources-0" t="n" class="documentableName ">generatedScriptSources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[(wrapped: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], support: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>], resources: <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>])]
            </div>
           </div>
          </div>
@@ -5790,12 +5746,12 @@ node38 -> node36;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="resources-0" data-f-inherited="JavaModule">
+        <div class="documentableElement" id="resources-0" data-f-keywords="override" data-f-inherited="MillBuildRootModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillBuildRootModule$$BootstrapModule.html#resources-0" t="n" class="documentableName ">resources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="MillBuildRootModule$$BootstrapModule.html#resources-0" t="n" class="documentableName ">resources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
            </div>
           </div>
          </div>
@@ -5805,25 +5761,33 @@ node38 -> node36;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The folders where the resource files for this module live. If you need resources to be seen by the compiler, use <a href="../javalib/JavaModule.html#compileResources-0">compileResources</a>.</p>
+             <p>The folders where the resource files for this module live. If you need resources to be seen by the compiler, use <a href="MillBuildRootModule.html#compileResources-0">compileResources</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The folders where the resource files for this module live. If you need resources to be seen by the compiler, use <a href="../javalib/JavaModule.html#compileResources-0">compileResources</a>.</p>
+              <p>The folders where the resource files for this module live. If you need resources to be seen by the compiler, use <a href="MillBuildRootModule.html#compileResources-0">compileResources</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="MillBuildRootModule.html#resources-0">MillBuildRootModule</a> -&gt; <a href="../javalib/JavaModule.html">JavaModule</a> -&gt; <a href="../javalib/TestModule$$JavaModuleBase.html">JavaModuleBase</a>
+               </div>
+              </dd>
+              <dt class="body-small">
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="../javalib/JavaModule.html#resources-0">JavaModule</a>
+               <a href="MillBuildRootModule.html#resources-0">MillBuildRootModule</a>
               </dd>
               <dt class="body-small">
                Source
               </dt>
               <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/JavaModule.scala" target="_blank">JavaModule.scala</a>
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/runner/meta/src/mill/meta/MillBuildRootModule.scala" target="_blank">MillBuildRootModule.scala</a>
               </dd>
              </dl>
             </div>
@@ -8838,6 +8802,36 @@ node38 -> node36;
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">lazy override </span></span><span class="kind"><span t="k">val </span></span><a href="MillBuildRootModule$$BootstrapModule.html#millDiscover-0" t="n" class="documentableName ">millDiscover</a>: <a href="../api/Discover.html" t="t">Discover</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/runner/meta/src/mill/meta/MillBuildRootModule.scala" target="_blank">MillBuildRootModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="moduleBuildOverrides-0" data-f-keywords="override">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">val </span></span><a href="MillBuildRootModule$$BootstrapModule.html#moduleBuildOverrides-0" t="n" class="documentableName ">moduleBuildOverrides</a>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Value</span>]
            </div>
           </div>
          </div>
