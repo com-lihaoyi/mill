@@ -29,6 +29,9 @@ class TailManager(daemonDir: os.Path) extends AutoCloseable {
     tailerRefreshIntervalMillis
   )
 
+  stdoutTailer.setDaemon(true)
+  stderrTailer.setDaemon(true)
+
   stdoutTailer.start()
   stderrTailer.start()
 
