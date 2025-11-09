@@ -227,7 +227,7 @@ object SelectiveExecutionImpl {
         .toMap
 
       val inputHashes = results.map {
-        case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.hashCode)
+        case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.##)
       }
       SelectiveExecution.Metadata.Computed(
         new SelectiveExecution.Metadata(
