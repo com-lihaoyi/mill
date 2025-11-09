@@ -26,8 +26,6 @@ abstract class RootModule()(using
   // Provided for IDEs to think that one is available and not show errors in
   // build.mill/package.mill even though they can't see the codegen
   def millDiscover: Discover = sys.error("RootModule#millDiscover must be overridden")
-
-  override def buildOverrides: Map[String, ujson.Value] = baseModuleInfo.buildOverrides
 }
 
 @internal
@@ -35,8 +33,7 @@ object RootModule {
   class Info(
       val projectRoot: os.Path,
       val output: os.Path,
-      val topLevelProjectRoot: os.Path,
-      @com.lihaoyi.unroll val buildOverrides: Map[String, ujson.Value] = Map()
+      val topLevelProjectRoot: os.Path
   ) {
 
     def this(
@@ -46,8 +43,7 @@ object RootModule {
     ) = this(
       os.Path(projectRoot0),
       os.Path(output0),
-      os.Path(topLevelProjectRoot0),
-      Map()
+      os.Path(topLevelProjectRoot0)
     )
 
     implicit val millMiscInfo: Info = this

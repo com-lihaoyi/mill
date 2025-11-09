@@ -169,16 +169,14 @@ class MillBuildBootstrap(
                       parsedHeaderData
                     }
                   mill.api.ExecResult.catchWrapException {
-                    new MillBuildRootModule.BootstrapModule()(
+                    new MillBuildRootModule.BootstrapModule(
+                      upickle.read[Map[String, ujson.Value]](metaBuildData)
+                    )(
                       using
                       new RootModule.Info(
                         currentRoot,
                         output,
-                        projectRoot,
-                        upickle.read[Map[
-                          String,
-                          ujson.Value
-                        ]](metaBuildData)
+                        projectRoot
                       )
                     )
                   } match {
