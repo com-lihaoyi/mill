@@ -103,6 +103,10 @@ trait MillBuildRootModule()(using
     generatedScriptSources().support
   }
 
+  override def resources: T[Seq[PathRef]] = Task {
+    super.resources() ++ generatedScriptSources().resources
+  }
+
   /**
    * Additional script files, we generate, since not all Mill source
    * files (`*.mill` can be fed to the compiler as-is.
@@ -110,9 +114,11 @@ trait MillBuildRootModule()(using
    * The `wrapped` files aren't supposed to appear under [[generatedSources]] and [[allSources]],
    * since they are derived from [[sources]] and would confuse any further tooling like IDEs.
    */
-  def generatedScriptSources: T[(wrapped: Seq[PathRef], support: Seq[PathRef])] = Task {
+  def generatedScriptSources
+      : T[(wrapped: Seq[PathRef], support: Seq[PathRef], resources: Seq[PathRef])] = Task {
     val wrapped = Task.dest / "wrapped"
     val support = Task.dest / "support"
+    val resources = Task.dest / "resources"
 
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Task.fail(parsed.errors.mkString("\n"))
@@ -122,11 +128,16 @@ trait MillBuildRootModule()(using
         parsed.seenScripts,
         wrapped,
         support,
+        resources,
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.output,
         MillScalaParser.current.value
       )
-      (wrapped = Seq(PathRef(wrapped)), support = Seq(PathRef(support)))
+      (
+        wrapped = Seq(PathRef(wrapped)),
+        support = Seq(PathRef(support)),
+        resources = Seq(PathRef(resources))
+      )
     }
   }
 
@@ -329,7 +340,7 @@ trait MillBuildRootModule()(using
 
   for (scriptSourcesPath <- scriptSourcesPaths.headOption) {
     mill.internal.Util.validateBuildHeaderKeys(
-      buildOverrides.keySet,
+      moduleBuildOverrides.keySet,
       millDiscover.allTaskNames,
       scriptSourcesPath.subRelativeTo(BuildCtx.workspaceRoot)
     )
@@ -372,7 +383,7 @@ object MillBuildRootModule {
     }
   }
 
-  class BootstrapModule()(using
+  class BootstrapModule(override val moduleBuildOverrides: Map[String, ujson.Value])(using
       rootModuleInfo: RootModule.Info
   ) extends MainRootModule() with MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]

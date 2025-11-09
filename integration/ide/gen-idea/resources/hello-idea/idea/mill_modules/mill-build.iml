@@ -7,6 +7,7 @@
             <sourceFolder url="file://$MODULE_DIR$/../../build.mill" isTestSource="false"/>
             <sourceFolder url="file://$MODULE_DIR$/../../mill-build/src" isTestSource="false"/>
             <sourceFolder url="file://$MODULE_DIR$/../../mill-build/resources" type="java-resource"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../out/mill-build/generatedScriptSources.dest/resources" type="java-resource"/>
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>

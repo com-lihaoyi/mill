@@ -120,9 +120,9 @@ trait GroupExecution {
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
         labelled.ctx.segments.last.value match {
           // apply build override
-          case single if labelled.ctx.enclosingModule.buildOverrides.contains(single) =>
+          case single if labelled.ctx.enclosingModule.moduleBuildOverrides.contains(single) =>
 
-            val jsonData = labelled.ctx.enclosingModule.buildOverrides(single)
+            val jsonData = labelled.ctx.enclosingModule.moduleBuildOverrides(single)
             val (execRes, serializedPaths) =
               try {
                 val (resultData, serializedPaths) = PathRef.withSerializedPaths {
