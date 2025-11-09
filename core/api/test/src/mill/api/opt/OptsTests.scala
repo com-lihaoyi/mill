@@ -35,7 +35,8 @@ class OptsTests extends TestSuite {
     // some files as ArgGroup
     OptGroup(sources2*),
     // Mixed ArgGroup
-    OptGroup("--extra", opt"-Xplugin=${plugin1}") ++ OptGroup(sources1*)
+    OptGroup("--extra", opt"-Xplugin=${plugin1}") ++ OptGroup(sources1*),
+    Opt.mkPath(sources1, sep = ":", prefix = "-special-files=")
   )
 
   val expectedOpts1 = Opts(
@@ -55,6 +56,9 @@ class OptsTests extends TestSuite {
       Opt("-Xplugin=", plugin1),
       Opt(srcDir1),
       Opt(srcDir2)
+    ),
+    OptGroup(
+      Opt.mkPath(sources1, sep = ":", prefix = "-special-files=")
     )
   )
 
@@ -114,7 +118,7 @@ class OptsTests extends TestSuite {
 
         assertGoldenLiteral(
           json,
-          "[[\"-deprecation\"],[\"-verbose\"],[\"--release\",\"17\"],[[\"-Xplugin=\",{\"path\":\"/tmp/opts-test/.cache/plugin1\"}]],[[\"-Xplugin:\",{\"path\":\"/tmp/opts-test/.cache/plugin1\"}]],[[{\"path\":\"/tmp/opts-test/work/src1\"}]],[[{\"path\":\"/tmp/opts-test/work/src2\"}]],[[{\"path\":\"/tmp/opts-test/work/src3\"}],[{\"path\":\"/tmp/opts-test/work/src4\"}]],[\"--extra\",[\"-Xplugin=\",{\"path\":\"/tmp/opts-test/.cache/plugin1\"}],[{\"path\":\"/tmp/opts-test/work/src1\"}],[{\"path\":\"/tmp/opts-test/work/src2\"}]]]"
+          "[[\"-deprecation\"],[\"-verbose\"],[\"--release\",\"17\"],[[\"-Xplugin=\",{\"path\":\"/tmp/opts-test/.cache/plugin1\"}]],[[\"-Xplugin:\",{\"path\":\"/tmp/opts-test/.cache/plugin1\"}]],[[{\"path\":\"/tmp/opts-test/work/src1\"}]],[[{\"path\":\"/tmp/opts-test/work/src2\"}]],[[{\"path\":\"/tmp/opts-test/work/src3\"}],[{\"path\":\"/tmp/opts-test/work/src4\"}]],[\"--extra\",[\"-Xplugin=\",{\"path\":\"/tmp/opts-test/.cache/plugin1\"}],[{\"path\":\"/tmp/opts-test/work/src1\"}],[{\"path\":\"/tmp/opts-test/work/src2\"}]],[[\"-special-files=\",{\"path\":\"/tmp/opts-test/work/src1\"},\":\",{\"path\":\"/tmp/opts-test/work/src2\"}]]]"
         )
 
         assert(json.split("\\Q$HOME\\E").size == 1 + 0)
