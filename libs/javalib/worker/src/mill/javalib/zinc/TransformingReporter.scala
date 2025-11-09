@@ -132,7 +132,7 @@ private object TransformingReporter {
           val pre = snippetLine.toString
           val rest0 = " " * pre.length
           val rest = pre +: Vector.fill(lines.size - 1)(rest0)
-          rest.lazyZip(lines).map((pre, line) => shade(s"$pre │") + line).mkString
+          rest.lazyZip(lines).map((pre, line) => shade(s"$pre |") + line).mkString
         } else {
           initial
         }

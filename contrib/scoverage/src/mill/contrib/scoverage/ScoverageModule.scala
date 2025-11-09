@@ -5,9 +5,9 @@ import mill.*
 import mill.api.{BuildCtx, PathRef, Result}
 import mill.api.opt.*
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
-import mill.util.BuildInfo
 import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
+import mill.util.BuildInfo
 
 /**
  * Adds tasks to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
@@ -46,6 +46,8 @@ import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
  * - mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
  * - mill foo.scoverage.xmlReport    # uses the metrics collected by a previous test run to generate a coverage report in xml format
  *
+ * - mill foo.scoverage.validateCoverageMinimums # This allows for you to use the metrics collected by a previous test run to validate if the coverage minimums have been set. To use this, define the functions `branchCoverageMin` and/or `statementCoverageMin` in the ScoverageModule.
+ *
  * The measurement data by default is available at `out/foo/scoverage/dataDir.dest/`,
  * the html report is saved in `out/foo/scoverage/htmlReport.dest/`,
  * and the xml report is saved in `out/foo/scoverage/xmlReport.dest/`.
@@ -56,6 +58,9 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
    * The Scoverage version to use.
    */
   def scoverageVersion: T[String]
+
+  def branchCoverageMin: Option[Double] = None
+  def statementCoverageMin: Option[Double] = None
 
   private def isScala3: Task[Boolean] = Task.Anon { JvmWorkerUtil.isScala3(outer.scalaVersion()) }
 
@@ -137,6 +142,21 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
         .report(reportType, allSources().map(_.path), Seq(data().path), BuildCtx.workspaceRoot)
     }
 
+    def validateCoverageMin(
+        statementCoverageMin: Option[Double],
+        branchCoverageMin: Option[Double]
+    ): Task[Unit] = Task.Anon {
+      ScoverageReportWorker
+        .scoverageReportWorker()
+        .bridge(scoverageToolsClasspath())
+        .validateCoverageMinimums(
+          Seq(data().path),
+          BuildCtx.workspaceRoot,
+          statementCoverageMin.getOrElse(0.0),
+          branchCoverageMin.getOrElse(0.0)
+        )
+    }
+
     /**
      * The persistent data dir used to store scoverage coverage data.
      * Use to store coverage data at compile-time and by the various report tasks.
@@ -189,6 +209,14 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def xmlReport(): Command[Unit] = Task.Command { doReport(ReportType.Xml)() }
     def xmlCoberturaReport(): Command[Unit] = Task.Command { doReport(ReportType.XmlCobertura)() }
     def consoleReport(): Command[Unit] = Task.Command { doReport(ReportType.Console)() }
+    def validateCoverageMinimums(): Command[Unit] = Task.Command {
+      List(statementCoverageMin, branchCoverageMin).exists(_.isDefined) match {
+        case true => validateCoverageMin(statementCoverageMin, branchCoverageMin)()
+        case _ => Task.fail(
+            "Either statementCoverageMin or branchCoverageMin must be set in order to call the validateCoverageMinimums task."
+          )
+      }
+    }
 
     override def skipIdea = true
   }

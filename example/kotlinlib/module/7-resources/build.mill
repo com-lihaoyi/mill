@@ -15,7 +15,7 @@ object foo extends KotlinModule {
       "OTHER_FILES_DIR" -> Opt(otherFiles().path)
     )
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
   }

@@ -40,11 +40,11 @@ object JetLagged extends mill.api.Module {
       "17"
     )
 
-    def bomMvnDeps = super.mvnDeps() ++ Seq(
+    def bomMvnDeps = Seq(
       mvn"androidx.compose:compose-bom:2025.05.00"
     )
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"com.google.accompanist:accompanist-adaptive:0.37.3",
       mvn"androidx.appcompat:appcompat:1.7.0",
       mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2",
@@ -93,7 +93,7 @@ object JetLagged extends mill.api.Module {
 
     object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule {
 
-      def bomMvnDeps = super.mvnDeps() ++ Seq(
+      def bomMvnDeps = Seq(
         mvn"androidx.compose:compose-bom:2025.05.00"
       )
 
@@ -105,7 +105,7 @@ object JetLagged extends mill.api.Module {
         true
       }
 
-      def mvnDeps = super.mvnDeps() ++ Seq(
+      def mvnDeps = Seq(
         mvn"junit:junit:4.13.2",
         mvn"androidx.test:core:1.6.1",
         mvn"androidx.test:runner:1.6.1",
@@ -147,11 +147,11 @@ object JetNews extends mill.api.Module {
       "17"
     )
 
-    def bomMvnDeps = super.mvnDeps() ++ Seq(
+    def bomMvnDeps = Seq(
       mvn"androidx.compose:compose-bom:2025.05.00"
     )
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"com.google.accompanist:accompanist-adaptive:0.37.3",
       mvn"androidx.appcompat:appcompat:1.7.0",
       mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2",
@@ -203,7 +203,7 @@ object JetNews extends mill.api.Module {
 
     object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule {
 
-      def bomMvnDeps = super.mvnDeps() ++ Seq(
+      def bomMvnDeps = Seq(
         mvn"androidx.compose:compose-bom:2025.05.00"
       )
 
@@ -215,7 +215,7 @@ object JetNews extends mill.api.Module {
         true
       }
 
-      def mvnDeps = super.mvnDeps() ++ Seq(
+      def mvnDeps = Seq(
         mvn"junit:junit:4.13.2",
         mvn"androidx.test:core:1.6.1",
         mvn"androidx.test:runner:1.6.1",
@@ -240,7 +240,7 @@ object Jetchat extends mill.api.Module {
 
     override def androidApplicationId: String = "com.example.compose.jetchat"
 
-    override def bomMvnDeps = super.mvnDeps() ++ Seq(
+    override def bomMvnDeps = Seq(
       mvn"androidx.compose:compose-bom:2025.08.00"
     )
 
@@ -266,7 +266,7 @@ object Jetchat extends mill.api.Module {
       true
     }
 
-    override def mvnDeps = super.mvnDeps() ++ Seq(
+    override def mvnDeps = Seq(
       mvn"androidx.glance:glance-appwidget:1.1.1",
       mvn"androidx.glance:glance-material3:1.1.1",
       mvn"org.jetbrains.kotlin:kotlin-stdlib-jdk8:${build.Versions.kotlinVersion}",
@@ -297,7 +297,7 @@ object Jetchat extends mill.api.Module {
     def androidMinSdk = Versions.androidMinSdk
 
     object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule {
-      override def bomMvnDeps = super.mvnDeps() ++ Seq(
+      override def bomMvnDeps = Seq(
         mvn"androidx.compose:compose-bom:2025.08.00"
       )
 
@@ -309,7 +309,7 @@ object Jetchat extends mill.api.Module {
         true
       }
 
-      def mvnDeps = super.mvnDeps() ++ Seq(
+      def mvnDeps = Seq(
         mvn"junit:junit:4.13.2",
         mvn"androidx.test:core:1.6.1",
         mvn"androidx.test:runner:1.6.1",
