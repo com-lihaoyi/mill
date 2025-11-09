@@ -46,10 +46,12 @@ trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
     OverrideMapping.computeLinearization(this.getClass)
 
   private[mill] def buildOverrides: Map[String, ujson.Value] = {
-    val filePath = os.sub / moduleNestedCtx.segments.parts / "build-overrides.json"
     val buildOverridesTextOpt =
-      try Some(os.read(os.resource(getClass.getClassLoader) / filePath))
-      catch{case _: Exception => None}
+      try {
+        val subPath = os.sub / moduleNestedCtx.segments.parts / "build-overrides.json"
+        Some(os.read(os.resource(using getClass.getClassLoader) / subPath))
+      } catch { case _: Exception => None }
+
     buildOverridesTextOpt.fold(Map())(upickle.read[Map[String, ujson.Value]](_))
   }
 }
