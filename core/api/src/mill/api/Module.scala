@@ -52,7 +52,7 @@ object Module {
    * Trait that provides automatic loading of build overrides from resources.
    * Used by code-generated modules from build.mill.yaml/package.mill.yaml files.
    */
-  trait LoadBuildOverrides extends Module {
+  @internal trait LoadBuildOverrides extends Module {
     override def buildOverrides: Map[String, ujson.Value] = {
       val filePath = os.sub / moduleNestedCtx.segments.parts / "build-overrides.json"
       upickle.read[Map[
