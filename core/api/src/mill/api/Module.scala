@@ -55,7 +55,10 @@ object Module {
   trait LoadBuildOverrides extends Module {
     override def buildOverrides: Map[String, ujson.Value] = {
       val filePath = os.sub / moduleNestedCtx.segments.parts / "build-overrides.json"
-      upickle.read[Map[String, ujson.Value]](os.read(os.resource(getClass.getClassLoader) / filePath))
+      upickle.read[Map[
+        String,
+        ujson.Value
+      ]](os.read(os.resource(getClass.getClassLoader) / filePath))
     }
   }
 
