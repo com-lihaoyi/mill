@@ -79,7 +79,8 @@ class OptsTests extends TestSuite {
       "--extra",
       s"-Xplugin=${plugin1.toString()}"
     ) ++
-    sources1.map(_.toString())
+    sources1.map(_.toString()) ++
+    Seq(sources1.mkString("-special-files=", ":", ""))
 
   override def tests: Tests = Tests {
     test("OptGroup.isEmpty") {
