@@ -142,9 +142,8 @@ object CodeGen {
           createFolders = true
         )
 
-        def buildOverridesSnippet(path: Seq[String]): String = {
-          val folderPath = path.mkString("/")
-          s"override def buildOverrides = _root_.mill.api.Module.loadBuildOverrides(getClass, ${literalize(folderPath)})"
+        def buildOverridesSnippet(): String = {
+          s"override def buildOverrides = _root_.mill.api.Module.loadBuildOverrides(getClass)"
         }
 
         def renderTemplate(
@@ -176,7 +175,7 @@ object CodeGen {
               s"override def runModuleDeps = Seq(${data.runModuleDeps.map("build." + _).mkString(", ")})"
 
           val buildOverridesSnippetText =
-            if (includeBuildOverrides) buildOverridesSnippet(path)
+            if (includeBuildOverrides) buildOverridesSnippet()
             else ""
 
           val extendsSnippet =
@@ -196,7 +195,7 @@ object CodeGen {
         // For root modules, put buildOverrides in the object to avoid diamond inheritance
         // For subfolder modules, put it in the trait
         val objectBuildOverrides =
-          if (segments.isEmpty) buildOverridesSnippet(segments)
+          if (segments.isEmpty) buildOverridesSnippet()
           else ""
 
         os.write.over(

@@ -49,8 +49,8 @@ trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
 object Module {
 
   @internal
-  def loadBuildOverrides(cls: Class[?], folderPath: String): Map[String, ujson.Value] = {
-    val filePath = os.SubPath(folderPath) / "build-overrides.json"
+  def loadBuildOverrides(cls: Class[?])(implicit ctx: ModuleCtx.Nested): Map[String, ujson.Value] = {
+    val filePath = os.sub / ctx.segments.parts / "build-overrides.json"
     upickle.read[Map[String, ujson.Value]](os.read(os.resource(cls.getClassLoader) / filePath))
   }
 
