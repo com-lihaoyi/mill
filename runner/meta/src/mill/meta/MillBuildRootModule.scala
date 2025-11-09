@@ -340,7 +340,7 @@ trait MillBuildRootModule()(using
 
   for (scriptSourcesPath <- scriptSourcesPaths.headOption) {
     mill.internal.Util.validateBuildHeaderKeys(
-      buildOverrides.keySet,
+      moduleBuildOverrides.keySet,
       millDiscover.allTaskNames,
       scriptSourcesPath.subRelativeTo(BuildCtx.workspaceRoot)
     )
@@ -383,8 +383,8 @@ object MillBuildRootModule {
     }
   }
 
-  class BootstrapModule(override val buildOverrides: Map[String, ujson.Value])(using
-      rootModuleInfo: RootModule.Info
+  class BootstrapModule(override val moduleBuildOverrides: Map[String, ujson.Value])(using
+                                                                                     rootModuleInfo: RootModule.Info
   ) extends MainRootModule() with MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]
   }

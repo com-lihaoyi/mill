@@ -45,7 +45,7 @@ trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
   private[mill] val moduleLinearized: Seq[Class[?]] =
     OverrideMapping.computeLinearization(this.getClass)
 
-  private[mill] def buildOverrides: Map[String, ujson.Value] = {
+  private[mill] def moduleBuildOverrides: Map[String, ujson.Value] = {
     val buildOverridesTextOpt =
       try {
         val subPath = os.sub / moduleNestedCtx.segments.parts / "build-overrides.json"
