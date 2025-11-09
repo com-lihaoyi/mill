@@ -46,7 +46,7 @@ trait MockitoModule extends MavenModule {
   def testMvnDeps: T[Seq[Dep]] = Seq()
   def testRuntimeMvnDeps: T[Seq[Dep]] = Seq()
   def testFramework = "com.novocode.junit.JUnitFramework"
-  def testForkArgs: T[Opts] = Seq()
+  def testForkArgs: T[Opts] = Opts()
 
   def testFilteredSources: T[Seq[os.Path]] = Task { Seq() }
 

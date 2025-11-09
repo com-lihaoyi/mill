@@ -3,6 +3,7 @@ package build
 import mill.*, kotlinlib.*, kotlinlib.js.*
 import mill.scalalib.CoursierModule
 import mill.api.Result
+import mill.api.opt.*
 import mill.javalib.testrunner.TestResult
 import mill.javalib.api.CompilationResult
 import mill.kotlinlib.kover.KoverModule
@@ -113,7 +114,7 @@ object `package` extends Module {
 
     def kotlinExplicitApi: T[Boolean] = true
 
-    protected def commonSourcesArg(sources: Seq[PathRef], commonSourcesDirName: String): String = {
+    protected def commonSourcesArg(sources: Seq[PathRef], commonSourcesDirName: String): Opt = {
       val files =
         sources
           .flatMap(pr => os.walk(pr.path))
@@ -123,7 +124,7 @@ object `package` extends Module {
       // This is allowed with `-Xcommon-sources` flag, but probably will be prohibited in the future.
       // Ideally, it should be in the [[KotlinModule]] directly, but this implies [[KotlinModule]] should know where
       // common sources are, making some assumptions about layout.
-      s"-Xcommon-sources=${files.mkString(",")}"
+      Opt.mkPath(files, sep = ",", prefix = "-Xcommon-sources=")
     }
 
     trait ArrowPlatformModule extends KotlinMavenModule, PlatformKotlinModule { outer =>
@@ -148,7 +149,7 @@ object `package` extends Module {
 
       override def kotlincOptions =
         super.kotlincOptions() ++
-          Seq("-Xexpect-actual-classes", commonSourcesArg(sources(), "commonMain"))
+          Opts("-Xexpect-actual-classes", commonSourcesArg(sources(), "commonMain"))
 
       trait ArrowPlatformTests extends KotlinMavenTests {
 
@@ -252,7 +253,7 @@ object `package` extends Module {
               libraries.coroutinesTestJvm,
               libraries.kotestAssertionsCoreJvm
             )
-            def kotlincOptions = super.kotlincOptions() ++ Seq("-Xcontext-receivers")
+            def kotlincOptions = super.kotlincOptions() ++ Opts("-Xcontext-receivers")
           }
         }
         object js extends ArrowPlatformJsModule {
@@ -354,7 +355,7 @@ object `package` extends Module {
         object jvm extends ArrowPlatformJvmModule {
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-atomic`.jvm, `arrow-annotations`.jvm)
           def mvnDeps = super.mvnDeps() ++ Seq(libraries.kotlinxSerializationCoreJvm)
-          def kotlincOptions = super.kotlincOptions() ++ Seq("-Xcontext-receivers")
+          def kotlincOptions = super.kotlincOptions() ++ Opts("-Xcontext-receivers")
           object test extends ArrowPlatformJvmTests {
             def moduleDeps = super.moduleDeps ++ Seq(fx.`arrow-fx-coroutines`.jvm)
 
@@ -521,7 +522,7 @@ object `package` extends Module {
             def testTimeout = 60_000L
           }
         }
-        val additionalKotlincOptions = Seq("-Xconsistent-data-class-copy-visibility")
+        val additionalKotlincOptions = Opts("-Xconsistent-data-class-copy-visibility")
 
       }
     }
@@ -569,7 +570,7 @@ object `package` extends Module {
           def moduleDeps = super.moduleDeps ++ Seq(core.`arrow-core`.jvm)
           object test extends ArrowPlatformJvmTests {
             def kotlincOptions =
-              super.kotlincOptions() ++ Seq(commonSourcesArg(jvm.test.sources(), "commonTest"))
+              super.kotlincOptions() ++ Opts(commonSourcesArg(jvm.test.sources(), "commonTest"))
             def mvnDeps = super.mvnDeps() ++ Seq(
               libraries.kotlinTestJunit5,
               libraries.coroutinesTestJvm,
@@ -582,7 +583,7 @@ object `package` extends Module {
           def moduleDeps = super.moduleDeps ++ Seq(core.`arrow-core`.js)
           object test extends ArrowPlatformJsTests {
             def kotlincOptions =
-              super.kotlincOptions() ++ Seq(commonSourcesArg(js.test.sources(), "commonTest"))
+              super.kotlincOptions() ++ Opts(commonSourcesArg(js.test.sources(), "commonTest"))
             def mvnDeps = super.mvnDeps() ++ Seq(
               libraries.coroutinesTestJs,
               libraries.kotestAssertionsCoreJs,

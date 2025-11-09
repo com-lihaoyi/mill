@@ -54,7 +54,7 @@ trait NettyBaseTestSuiteModule extends NettyBaseModule, TestModule.Junit5 {
     mvn"org.bouncycastle:bctls-jdk15on:1.69"
   )
 
-  def forkArgs = Seq(
+  def forkArgs = Opts(
     "-DnativeImage.handlerMetadataGroupId=io.netty",
     "-Dio.netty.bootstrap.extensions=serviceload",
     "-XX:+AllowRedefinitionToAddDeleteMethods",
@@ -82,7 +82,7 @@ trait NettyModule extends NettyBaseModule {
     def moduleDeps = super.moduleDeps ++ testModuleDeps
     def mvnDeps = super.mvnDeps() ++ testMvnDeps()
     def forkWorkingDir = NettyModule.this.moduleDir
-    def forkArgs = super.forkArgs() ++ Seq(
+    def forkArgs = super.forkArgs() ++ Opts(
       "-Dnativeimage.handlerMetadataArtifactId=netty-" + NettyModule.this.moduleSegments.last.value
     )
 
