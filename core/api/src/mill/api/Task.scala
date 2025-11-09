@@ -669,7 +669,7 @@ object Task {
       if (!(TypeRepr.of[T] <:< TypeRepr.of[AutoCloseable])) {
         report.warning(
           s"Task.Worker body type ${TypeRepr.of[T].show} does not extend AutoCloseable. " +
-          "Workers should implement AutoCloseable to properly clean up resources when invalidated."
+            "Workers should implement AutoCloseable to properly clean up resources when invalidated."
         )
       }
 
