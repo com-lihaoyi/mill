@@ -16,7 +16,7 @@ object dagger extends KspModule {
 
 //  override def kotlincUseBtApi = false
 
-  def mvnDeps = super.mvnDeps() ++ Seq(
+  def mvnDeps = Seq(
     mvn"com.google.dagger:dagger:2.57"
   )
 
@@ -28,7 +28,7 @@ object dagger extends KspModule {
 
     def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"com.google.dagger:dagger-compiler:2.57",
       mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )

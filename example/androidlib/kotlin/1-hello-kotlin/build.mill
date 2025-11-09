@@ -58,7 +58,7 @@ object app extends AndroidAppKotlinModule {
       false
     }
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"androidx.test.ext:junit:1.2.1",
       mvn"androidx.test:runner:1.6.2",
       mvn"androidx.test.espresso:espresso-core:3.5.1",
