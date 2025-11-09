@@ -95,12 +95,10 @@ object CodeGen {
               |import _root_.mill.util.TokenReaders.given
               |""".stripMargin
 
-        // Helper to generate resource file path for build overrides
         def buildOverridesResourcePath(path: Seq[String]): String =
           if (path.isEmpty) "build-overrides.json"
           else s"${path.mkString("/")}/build-overrides.json"
 
-        // Helper to process data.rest entries, handling both regular properties and nested objects
         def processDataRest[T](data: HeaderData)(
             onProperty: String => T,
             onNestedObject: (String, HeaderData) => T
@@ -112,24 +110,19 @@ object CodeGen {
             }
         }
 
-        // Write build overrides to resource files - one per module
         def writeBuildOverrides(data: HeaderData, path: Seq[String]): Unit = {
-          // Write the current module's build overrides
           val buildOverridesJson = upickle.write(data.rest)
           val resourcePath = resourceDest / os.RelPath(buildOverridesResourcePath(path))
           os.write.over(resourcePath, buildOverridesJson, createFolders = true)
 
-          // Recursively write build overrides for nested object modules
           processDataRest(data)(
             onProperty = _ => (),
             onNestedObject = (k, nestedData) => writeBuildOverrides(nestedData, path :+ k)
           )
         }
 
-        // Write build overrides for all modules (root and subfolders)
-        writeBuildOverrides(parsedHeaderData, segments.toSeq)
+        writeBuildOverrides(parsedHeaderData, segments)
 
-        // Generate MillMiscInfo
         val miscInfoWithResource = {
           val header = if (pkg.isBlank()) "" else s"package $pkg"
           val miscInfoBody = if (segments.isEmpty) {
