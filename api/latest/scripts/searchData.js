@@ -1635,6 +1635,8 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/exec/GroupExecution.html#failFast-0","e":false,"i":"","n":"failFast","t":"failFast: Boolean","d":"mill.exec.GroupExecution","k":"def","x":""},
 {"l":"mill/exec/GroupExecution.html#getEvaluator-0","e":false,"i":"","n":"getEvaluator","t":"getEvaluator: () => EvaluatorApi","d":"mill.exec.GroupExecution","k":"def","x":""},
 {"l":"mill/exec/GroupExecution.html#getValueHash-fffff10e","e":false,"i":"","n":"getValueHash","t":"getValueHash(v: Val, task: Task[_], inputsHash: Int): Int","d":"mill.exec.GroupExecution","k":"def","x":""},
+{"l":"mill/exec/GroupExecution.html#invalidateAllHashes-0","e":false,"i":"","n":"invalidateAllHashes","t":"invalidateAllHashes: Int","d":"mill.exec.GroupExecution","k":"val","x":""},
+{"l":"mill/exec/GroupExecution.html#javaHomeHash-0","e":false,"i":"","n":"javaHomeHash","t":"javaHomeHash: Int","d":"mill.exec.GroupExecution","k":"val","x":""},
 {"l":"mill/exec/GroupExecution.html#offline-0","e":false,"i":"","n":"offline","t":"offline: Boolean","d":"mill.exec.GroupExecution","k":"def","x":""},
 {"l":"mill/exec/GroupExecution.html#outPath-0","e":false,"i":"","n":"outPath","t":"outPath: Path","d":"mill.exec.GroupExecution","k":"def","x":""},
 {"l":"mill/exec/GroupExecution.html#resolveLogger-263","e":false,"i":"","n":"resolveLogger","t":"resolveLogger(logPath: Option[Path], logger: Logger): (Logger, Option[AutoCloseable])","d":"mill.exec.GroupExecution","k":"def","x":""},
