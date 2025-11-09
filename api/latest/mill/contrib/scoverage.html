@@ -96,6 +96,8 @@
                 <p>mill foo.scoverage.htmlReport # uses the metrics collected by a previous test run to generate a coverage report in html format</p></li>
                <li>
                 <p>mill foo.scoverage.xmlReport # uses the metrics collected by a previous test run to generate a coverage report in xml format</p></li>
+               <li>
+                <p>mill foo.scoverage.validateCoverageMinimums # This allows for you to use the metrics collected by a previous test run to validate if the coverage minimums have been set. To use this, define the functions <code>branchCoverageMin</code> and/or <code>statementCoverageMin</code> in the ScoverageModule.</p></li>
               </ul>
               <p>The measurement data by default is available at <code>out/foo/scoverage/dataDir.dest/</code>, the html report is saved in <code>out/foo/scoverage/htmlReport.dest/</code>, and the xml report is saved in <code>out/foo/scoverage/xmlReport.dest/</code>.</p>
              </div>

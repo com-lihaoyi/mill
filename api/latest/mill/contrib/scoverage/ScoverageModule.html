@@ -41,6 +41,8 @@
     <p>mill foo.scoverage.htmlReport # uses the metrics collected by a previous test run to generate a coverage report in html format</p></li>
    <li>
     <p>mill foo.scoverage.xmlReport # uses the metrics collected by a previous test run to generate a coverage report in xml format</p></li>
+   <li>
+    <p>mill foo.scoverage.validateCoverageMinimums # This allows for you to use the metrics collected by a previous test run to validate if the coverage minimums have been set. To use this, define the functions <code>branchCoverageMin</code> and/or <code>statementCoverageMin</code> in the ScoverageModule.</p></li>
   </ul>
   <p>The measurement data by default is available at <code>out/foo/scoverage/dataDir.dest/</code>, the html report is saved in <code>out/foo/scoverage/htmlReport.dest/</code>, and the xml report is saved in <code>out/foo/scoverage/xmlReport.dest/</code>.</p>
  </div>
@@ -1066,6 +1068,36 @@ node31 -> node0;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Concrete methods</h4>
         </div>
+        <div class="documentableElement" id="branchCoverageMin-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScoverageModule.html#branchCoverageMin-0" t="n" class="documentableName ">branchCoverageMin</a>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Double</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/contrib/scoverage/src/mill/contrib/scoverage/ScoverageModule.scala" target="_blank">ScoverageModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="scoverageClasspath-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -1192,6 +1224,36 @@ node31 -> node0;
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScoverageModule.html#scoverageToolsClasspath-0" t="n" class="documentableName ">scoverageToolsClasspath</a>: <a href="../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../api/PathRef.html" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/contrib/scoverage/src/mill/contrib/scoverage/ScoverageModule.scala" target="_blank">ScoverageModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="statementCoverageMin-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScoverageModule.html#statementCoverageMin-0" t="n" class="documentableName ">statementCoverageMin</a>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Double</span>]
            </div>
           </div>
          </div>

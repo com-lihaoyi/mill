@@ -128,6 +128,91 @@ node4 -> node1;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="validateCoverageMinimums-fffff604" data-f-keywords="override">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="ScoverageReportWorkerImpl.html#validateCoverageMinimums-fffff604" t="n" class="documentableName ">validateCoverageMinimums</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dataDirs</span>: <span data-unresolved-link="" t="t">Array</span>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">sourceRoot</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">statementCoverageMin</span>: <span data-unresolved-link="" t="t">Double</span>, <span t="k"></span><span data-unresolved-link="" t="n">branchCoverageMin</span>: <span data-unresolved-link="" t="t">Double</span>, <span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <span data-unresolved-link="" t="t">Ctx</span>): <span data-unresolved-link="" t="t">Unit</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Validates whether the project's code coverage meets specified minimum thresholds for both statement and branch coverage.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Validates whether the project's code coverage meets specified minimum thresholds for both statement and branch coverage.</p>
+              <p>This method processes coverage data from specified directories to ensure that both statement and branch coverage meet or exceed the provided thresholds. It aggregates coverage metrics using Scoverage's CoverageAggregator and checks each metric against its respective minimum.</p>
+              <p>If either coverage threshold is not met, a RuntimeException is thrown with detailed error messages indicating which thresholds were violated.</p>
+              <p>If no coverage data is found in the specified directories, a warning is logged but no exception is thrown.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               branchCoverageMin
+              </dt>
+              <dd class="body-medium">
+               <p>The minimum acceptable percentage for branch coverage. If not met, an exception is thrown.</p>
+              </dd>
+              <dt class="body-small">
+               ctx
+              </dt>
+              <dd class="body-medium">
+               <p>A context object providing logging and destination directory information for the worker's operations.</p>
+              </dd>
+              <dt class="body-small">
+               dataDirs
+              </dt>
+              <dd class="body-medium">
+               <p>Array of paths pointing to directories containing Scoverage coverage data.</p>
+              </dd>
+              <dt class="body-small">
+               sourceRoot
+              </dt>
+              <dd class="body-medium">
+               <p>The root directory from which relative paths are determined, typically the project's workspace root.</p>
+              </dd>
+              <dt class="body-small">
+               sources
+              </dt>
+              <dd class="body-medium">
+               <p>Array of paths representing the source files or directories being analyzed.</p>
+              </dd>
+              <dt class="body-small">
+               statementCoverageMin
+              </dt>
+              <dd class="body-medium">
+               <p>The minimum acceptable percentage for statement coverage. If not met, an exception is thrown.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <span data-unresolved-link="">ScoverageReportWorkerApi2</span>
+               </div>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/contrib/scoverage/worker2/src/mill/contrib/scoverage/worker/ScoverageReportWorkerImpl.scala" target="_blank">ScoverageReportWorkerImpl.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
        </div>
       </section>
      </div>

@@ -756,7 +756,8 @@ modules introduce a few new tasks and changes the behavior of an existing one.</
 &gt; mill foo.test                           # tests your project and collects metrics on code coverage
 &gt; mill foo.scoverage.htmlReport           # uses the metrics collected by a previous test run to generate a coverage report in html format
 &gt; mill foo.scoverage.xmlReport            # uses the metrics collected by a previous test run to generate a coverage report in xml format
-&gt; mill foo.scoverage.xmlCoberturaReport   # uses the metrics collected by a previous test run to generate a coverage report in Cobertura's xml format</code></pre>
+&gt; mill foo.scoverage.xmlCoberturaReport   # uses the metrics collected by a previous test run to generate a coverage report in Cobertura's xml format
+&gt; mill foo.scoverage.validateCoverageMinimums # This allows for you to use the metrics collected by a previous test run to validate if the coverage minimums have been set. To use this, define the functions `branchCoverageMin` and/or `statementCoverageMin` in the ScoverageModule.</code></pre>
 </div>
 </div>
 <div class="paragraph">
