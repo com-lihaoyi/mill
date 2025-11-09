@@ -726,7 +726,7 @@ that utilizes Hilt for dependency injection, based on the official
 <h2 id="_android_mill_setup_for_building_the_todo_app"><a class="anchor" href="#_android_mill_setup_for_building_the_todo_app"></a>Android Mill Setup for building the TODO App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-23-ccedca/mill-dist-1.1.0-RC1-23-ccedca-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/thirdparty/androidtodo">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-24-bce574/mill-dist-1.1.0-RC1-24-bce574-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/thirdparty/androidtodo">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -805,7 +805,7 @@ object Versions {
     mvn&quot;androidx.compose:compose-bom:2024.12.01&quot;
   )
 
-  def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+  def mvnDeps: T[Seq[Dep]] = Seq(
     mvn&quot;androidx.core:core-ktx:1.15.0&quot;,
     mvn&quot;androidx.annotation:annotation:1.9.1&quot;,
     mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0&quot;,
@@ -869,7 +869,7 @@ object Versions {
       mvn&quot;androidx.compose.ui:ui-test-junit4&quot;
     )
 
-    def mvnDeps = super.mvnDeps() ++ composeDeps ++ Seq(
+    def mvnDeps = composeDeps ++ Seq(
       mvn&quot;junit:junit:4.13.2&quot;,
       mvn&quot;androidx.arch.core:core-testing:2.2.0&quot;,
       mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0&quot;,
@@ -918,7 +918,7 @@ object Versions {
       mvn&quot;androidx.compose.ui:ui-test-junit4&quot;
     )
 
-    def mvnDeps = super.mvnDeps() ++ composeDeps ++ Seq(
+    def mvnDeps = composeDeps ++ Seq(
       // Dependencies for Android unit tests
       mvn&quot;junit:junit:4.13.2&quot;,
       mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0&quot;,
@@ -971,7 +971,7 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
     mvn&quot;com.google.dagger:hilt-android-compiler:2.56&quot;
   )
 
-  def mvnDeps = super.mvnDeps() ++ Seq(
+  def mvnDeps = Seq(
     mvn&quot;junit:junit:4.13.2&quot;,
     mvn&quot;androidx.arch.core:core-testing:2.2.0&quot;,
     mvn&quot;org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0&quot;,

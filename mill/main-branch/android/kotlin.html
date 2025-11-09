@@ -755,7 +755,7 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-23-ccedca/mill-dist-1.1.0-RC1-23-ccedca-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-24-bce574/mill-dist-1.1.0-RC1-24-bce574-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -818,7 +818,7 @@ import coursier.maven.MavenRepository</code></pre>
       false
     }
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn&quot;androidx.test.ext:junit:1.2.1&quot;,
       mvn&quot;androidx.test:runner:1.6.2&quot;,
       mvn&quot;androidx.test.espresso:espresso-core:3.5.1&quot;,
