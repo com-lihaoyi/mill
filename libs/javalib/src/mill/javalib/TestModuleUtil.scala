@@ -69,30 +69,21 @@ final class TestModuleUtil(
     val filteredClassLists0 = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
 
     /** This is filtered by the test framework. */
-    val filteredClassLists =
-      if (filteredClassLists0.size == 1 && !testParallelism) filteredClassLists0
-      else {
-        // If test grouping is enabled and multiple test groups are detected, we need to
-        // run test discovery via the test framework's own argument parsing and filtering
-        // logic once before we potentially fork off multiple test groups that will
-        // each do the same thing and then run tests. This duplication is necessary so we can
-        // skip test groups that we know will be empty, which is important because even an empty
-        // test group requires spawning a JVM which can take 1+ seconds to realize there are no
-        // tests to run and shut down
+    val filteredClassLists = {
+      val discoveredTests = jvmWorker.apply(
+        ZincOp.GetTestTasks(
+          (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
+          testClasspath.map(_.path),
+          testFramework,
+          selectors,
+          args
+        ),
+        javaHome
+      ).toSet
 
-        val discoveredTests = jvmWorker.apply(
-          ZincOp.GetTestTasks(
-            (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
-            testClasspath.map(_.path),
-            testFramework,
-            selectors,
-            args
-          ),
-          javaHome
-        ).toSet
+      filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
+    }
 
-        filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
-      }
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
     val result = runTestQueueScheduler(filteredClassLists)
