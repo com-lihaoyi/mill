@@ -95,10 +95,6 @@ object CodeGen {
               |import _root_.mill.util.TokenReaders.given
               |""".stripMargin
 
-        def buildOverridesResourcePath(path: Seq[String]): String =
-          if (path.isEmpty) "build-overrides.json"
-          else s"${path.mkString("/")}/build-overrides.json"
-
         def processDataRest[T](data: HeaderData)(
             onProperty: String => T,
             onNestedObject: (String, HeaderData) => T
@@ -112,7 +108,7 @@ object CodeGen {
 
         def writeBuildOverrides(data: HeaderData, path: Seq[String]): Unit = {
           val buildOverridesJson = upickle.write(data.rest)
-          val resourcePath = resourceDest / os.RelPath(buildOverridesResourcePath(path))
+          val resourcePath = resourceDest / path / "build-overrides.json"
           os.write.over(resourcePath, buildOverridesJson, createFolders = true)
 
           processDataRest(data)(
