@@ -97,7 +97,8 @@ object CodeGen {
 
         // Helper to generate resource file path for build overrides
         def buildOverridesResourcePath(path: Seq[String]): String =
-          if (path.isEmpty) "build-overrides.json" else s"${path.mkString("/")}/build-overrides.json"
+          if (path.isEmpty) "build-overrides.json"
+          else s"${path.mkString("/")}/build-overrides.json"
 
         // Write build overrides to resource files - one per module
         def writeBuildOverrides(data: HeaderData, path: Seq[String]): Unit = {
@@ -137,7 +138,11 @@ object CodeGen {
               |$miscInfoBody
               |""".stripMargin
         }
-        os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfoWithResource, createFolders = true)
+        os.write.over(
+          supportDestDir / "MillMiscInfo.scala",
+          miscInfoWithResource,
+          createFolders = true
+        )
 
         def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
           val extendsConfig = data.`extends`
@@ -448,12 +453,13 @@ object CodeGen {
       millTopLevelProjectRoot: os.Path,
       output: os.Path
   ): String = {
-    val constructorCall = s"""|object MillMiscInfo
-                              |    extends mill.api.internal.RootModule.Info(
-                              |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
-                              |  output0 = ${literalize(output.toString)},
-                              |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}
-                              |)""".stripMargin
+    val constructorCall =
+      s"""|object MillMiscInfo
+          |    extends mill.api.internal.RootModule.Info(
+          |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
+          |  output0 = ${literalize(output.toString)},
+          |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}
+          |)""".stripMargin
 
     s"""|@_root_.scala.annotation.nowarn
         |$constructorCall

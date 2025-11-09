@@ -308,7 +308,7 @@ object Task {
       li.ctx,
       li.writer,
       None
-    ){
+    ) {
       override def readWriterOpt = Some(upickle.ReadWriter.join(li.reader, li.writer))
     }
   }

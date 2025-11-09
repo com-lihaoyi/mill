@@ -61,9 +61,9 @@ object Module {
     )
     path.foldLeft(Option(allOverrides): Option[Map[String, ujson.Value]]) {
       case (Some(map), key) => map.get(key).flatMap {
-        case obj: ujson.Obj => Some(obj.value.toMap)
-        case _ => None
-      }
+          case obj: ujson.Obj => Some(obj.value.toMap)
+          case _ => None
+        }
       case (None, _) => None
     }.getOrElse(Map())
   }

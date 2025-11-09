@@ -114,7 +114,8 @@ trait MillBuildRootModule()(using
    * The `wrapped` files aren't supposed to appear under [[generatedSources]] and [[allSources]],
    * since they are derived from [[sources]] and would confuse any further tooling like IDEs.
    */
-  def generatedScriptSources: T[(wrapped: Seq[PathRef], support: Seq[PathRef], resources: Seq[PathRef])] = Task {
+  def generatedScriptSources
+      : T[(wrapped: Seq[PathRef], support: Seq[PathRef], resources: Seq[PathRef])] = Task {
     val wrapped = Task.dest / "wrapped"
     val support = Task.dest / "support"
     val resources = Task.dest / "resources"
@@ -132,7 +133,11 @@ trait MillBuildRootModule()(using
         rootModuleInfo.output,
         MillScalaParser.current.value
       )
-      (wrapped = Seq(PathRef(wrapped)), support = Seq(PathRef(support)), resources = Seq(PathRef(resources)))
+      (
+        wrapped = Seq(PathRef(wrapped)),
+        support = Seq(PathRef(support)),
+        resources = Seq(PathRef(resources))
+      )
     }
   }
 
