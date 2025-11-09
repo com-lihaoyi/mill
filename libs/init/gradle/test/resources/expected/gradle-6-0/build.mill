@@ -2,7 +2,7 @@
 package build
 
 import mill.api.*
-import mill.api.opts.*
+import mill.api.opt.*
 import mill.javalib.*
 import millbuild.*
 

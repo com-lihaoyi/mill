@@ -1,7 +1,7 @@
 package millbuild
 
 import mill.api.*
-import mill.api.opts.*
+import mill.api.opt.*
 import mill.javalib.*
 
 trait ProjectBaseModule extends MavenModule {

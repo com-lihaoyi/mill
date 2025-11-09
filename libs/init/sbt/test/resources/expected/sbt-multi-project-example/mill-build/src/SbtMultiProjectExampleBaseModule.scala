@@ -1,7 +1,7 @@
 package millbuild
 
 import mill.api.*
-import mill.api.opts.*
+import mill.api.opt.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import mill.scalalib.*
