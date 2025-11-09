@@ -384,7 +384,7 @@ object MillBuildRootModule {
   }
 
   class BootstrapModule(override val moduleBuildOverrides: Map[String, ujson.Value])(using
-                                                                                     rootModuleInfo: RootModule.Info
+      rootModuleInfo: RootModule.Info
   ) extends MainRootModule() with MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]
   }
