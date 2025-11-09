@@ -53,10 +53,17 @@ object Opts {
 //    )
 
   given jsonReadWriter: upickle.ReadWriter[Opts] =
-    upickle.readwriter[ujson.Value].bimap(
+    upickle.readwriter[ujson.Arr].bimap(
       { opts =>
         // We always serialize as a seq of groups
-        upickle.transform(opts.value).to[ujson.Value]
+        opts.value.map { group =>
+          if(group.size == 1 && !group.head.containsPaths) {
+            ujson.Str(group.head.toString())
+          }
+          else
+            upickle.transform(group).to[ujson.Value]
+        }
+//        upickle.transform(opts.value).to[ujson.Value]
       },
       {
         case arr: ujson.Arr =>
