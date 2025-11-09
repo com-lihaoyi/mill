@@ -42,37 +42,13 @@ object RootModule {
     def this(
         projectRoot0: String,
         output0: String,
-        topLevelProjectRoot0: String,
-        headerData: String
+        topLevelProjectRoot0: String
     ) = this(
       os.Path(projectRoot0),
       os.Path(output0),
       os.Path(topLevelProjectRoot0),
-      upickle.read[Map[String, ujson.Value]](headerData)
+      Map()
     )
-
-    def this(
-        projectRoot0: String,
-        output0: String,
-        topLevelProjectRoot0: String,
-        headerDataResource: String,
-        fromResource: Boolean
-    ) = {
-      this(
-        os.Path(projectRoot0),
-        os.Path(output0),
-        os.Path(topLevelProjectRoot0),
-        upickle.read[Map[String, ujson.Value]](
-          os.read(os.resource(getClass.getClassLoader) / headerDataResource)
-        )
-      )
-    }
-
-    def this(
-        projectRoot0: String,
-        output0: String,
-        topLevelProjectRoot0: String
-    ) = this(projectRoot0, output0, topLevelProjectRoot0, "{}")
 
     implicit val millMiscInfo: Info = this
   }

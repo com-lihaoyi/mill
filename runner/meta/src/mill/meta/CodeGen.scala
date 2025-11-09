@@ -95,33 +95,51 @@ object CodeGen {
               |import _root_.mill.util.TokenReaders.given
               |""".stripMargin
 
-        // Write build overrides to a resource file
-        if (segments.isEmpty) {
-          val buildOverridesJson = upickle.write(parsedHeaderData.rest)
-          val resourceFileName = "build-overrides.json"
-          val resourcePath = resourceDest / resourceFileName
+        // Helper to generate resource file path for build overrides
+        def buildOverridesResourcePath(path: Seq[String]): String =
+          if (path.isEmpty) "build-overrides.json" else s"${path.mkString("/")}/build-overrides.json"
+
+        // Write build overrides to resource files - one per module
+        def writeBuildOverrides(data: HeaderData, path: Seq[String]): Unit = {
+          // Write the current module's build overrides
+          val buildOverridesJson = upickle.write(data.rest)
+          val resourcePath = resourceDest / os.RelPath(buildOverridesResourcePath(path))
           os.write.over(resourcePath, buildOverridesJson, createFolders = true)
 
-          // Generate MillMiscInfo with resource file path
-          val miscInfoWithResource = {
-            val header = if (pkg.isBlank()) "" else s"package $pkg"
-            s"""|$generatedFileHeader
-                |$header
-                |
-                |${rootMiscInfo(
-                    scriptFolderPath,
-                    millTopLevelProjectRoot,
-                    output,
-                    Some(resourceFileName)
-                  )}
-                |""".stripMargin
+          // Recursively write build overrides for nested object modules
+          for {
+            (kString, v) <- data.rest
+            if !kString.startsWith("mill-")
+          } {
+            kString.split(" +") match {
+              case Array("object", k) =>
+                val nestedData = upickle.read[HeaderData](v)
+                writeBuildOverrides(nestedData, path :+ k)
+              case _ => // regular property, already included in this module's JSON
+            }
           }
-          os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfoWithResource, createFolders = true)
-        } else {
-          os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
         }
 
-        def renderTemplate(prefix: String, data: HeaderData): String = {
+        // Write build overrides for all modules (root and subfolders)
+        writeBuildOverrides(parsedHeaderData, segments.toSeq)
+
+        // Generate MillMiscInfo
+        val miscInfoWithResource = {
+          val header = if (pkg.isBlank()) "" else s"package $pkg"
+          val miscInfoBody = if (segments.isEmpty) {
+            rootMiscInfo(scriptFolderPath, millTopLevelProjectRoot, output)
+          } else {
+            subfolderMiscInfo(scriptFolderPath, segments)
+          }
+          s"""|$generatedFileHeader
+              |$header
+              |
+              |$miscInfoBody
+              |""".stripMargin
+        }
+        os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfoWithResource, createFolders = true)
+
+        def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
           val extendsConfig = data.`extends`
           val definitions =
             for {
@@ -130,7 +148,7 @@ object CodeGen {
             } yield kString.split(" +") match {
               case Array(k) => s"override def $k = Task.Literal()"
               case Array("object", k) =>
-                renderTemplate(s"object $k", upickle.read[HeaderData](v))
+                renderTemplate(s"object $k", upickle.read[HeaderData](v), path :+ k)
             }
 
           val moduleDepsSnippet =
@@ -148,6 +166,11 @@ object CodeGen {
             else
               s"override def runModuleDeps = Seq(${data.runModuleDeps.map("build." + _).mkString(", ")})"
 
+          val buildOverridesSnippet = {
+            val resourcePath = buildOverridesResourcePath(path)
+            s"override def buildOverrides: Map[String, ujson.Value] = _root_.upickle.default.read[Map[String, ujson.Value]](_root_.os.read(_root_.os.resource(getClass.getClassLoader) / ${literalize(resourcePath)}))"
+          }
+
           val extendsSnippet =
             if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}"
             else ""
@@ -156,6 +179,7 @@ object CodeGen {
              |  $moduleDepsSnippet
              |  $compileModuleDepsSnippet
              |  $runModuleDepsSnippet
+             |  $buildOverridesSnippet
              |  ${definitions.mkString("\n  ")}
              |}
              |""".stripMargin
@@ -172,7 +196,7 @@ object CodeGen {
              |  ${if (segments.isEmpty) millDiscover(segments.nonEmpty) else ""}
              |  $childAliases
              |}
-             |${renderTemplate("trait package_", parsedHeaderData)}
+             |${renderTemplate("trait package_", parsedHeaderData, segments.toSeq)}
              |""".stripMargin,
           createFolders = true
         )
@@ -422,27 +446,14 @@ object CodeGen {
   def rootMiscInfo(
       scriptFolderPath: os.Path,
       millTopLevelProjectRoot: os.Path,
-      output: os.Path,
-      buildOverridesResource: Option[String] = None
+      output: os.Path
   ): String = {
-    val constructorCall = buildOverridesResource match {
-      case Some(resourceFile) =>
-        s"""|object MillMiscInfo
-            |    extends mill.api.internal.RootModule.Info(
-            |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
-            |  output0 = ${literalize(output.toString)},
-            |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)},
-            |  headerDataResource = ${literalize(resourceFile)},
-            |  fromResource = true
-            |)""".stripMargin
-      case None =>
-        s"""|object MillMiscInfo
-            |    extends mill.api.internal.RootModule.Info(
-            |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
-            |  output0 = ${literalize(output.toString)},
-            |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}
-            |)""".stripMargin
-    }
+    val constructorCall = s"""|object MillMiscInfo
+                              |    extends mill.api.internal.RootModule.Info(
+                              |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
+                              |  output0 = ${literalize(output.toString)},
+                              |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}
+                              |)""".stripMargin
 
     s"""|@_root_.scala.annotation.nowarn
         |$constructorCall
