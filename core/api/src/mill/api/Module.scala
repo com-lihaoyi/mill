@@ -48,10 +48,15 @@ trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
 
 object Module {
 
-  @internal
-  def loadBuildOverrides(cls: Class[?])(implicit ctx: ModuleCtx.Nested): Map[String, ujson.Value] = {
-    val filePath = os.sub / ctx.segments.parts / "build-overrides.json"
-    upickle.read[Map[String, ujson.Value]](os.read(os.resource(cls.getClassLoader) / filePath))
+  /**
+   * Trait that provides automatic loading of build overrides from resources.
+   * Used by code-generated modules from build.mill.yaml/package.mill.yaml files.
+   */
+  trait LoadBuildOverrides extends Module {
+    override def buildOverrides: Map[String, ujson.Value] = {
+      val filePath = os.sub / moduleNestedCtx.segments.parts / "build-overrides.json"
+      upickle.read[Map[String, ujson.Value]](os.read(os.resource(getClass.getClassLoader) / filePath))
+    }
   }
 
   /**

@@ -142,10 +142,6 @@ object CodeGen {
           createFolders = true
         )
 
-        def buildOverridesSnippet(): String = {
-          s"override def buildOverrides = _root_.mill.api.Module.loadBuildOverrides(getClass)"
-        }
-
         def renderTemplate(
             prefix: String,
             data: HeaderData,
@@ -174,28 +170,29 @@ object CodeGen {
             else
               s"override def runModuleDeps = Seq(${data.runModuleDeps.map("build." + _).mkString(", ")})"
 
-          val buildOverridesSnippetText =
-            if (includeBuildOverrides) buildOverridesSnippet()
-            else ""
+          // Add LoadBuildOverrides trait to extends clause for subfolder modules
+          val loadBuildOverridesExtends =
+            if (includeBuildOverrides) Seq("_root_.mill.api.Module.LoadBuildOverrides")
+            else Seq.empty
 
+          val allExtends = extendsConfig ++ loadBuildOverridesExtends
           val extendsSnippet =
-            if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}"
+            if (allExtends.nonEmpty) s" extends ${allExtends.mkString(", ")}"
             else ""
 
           s"""$prefix$extendsSnippet {
              |  $moduleDepsSnippet
              |  $compileModuleDepsSnippet
              |  $runModuleDepsSnippet
-             |  $buildOverridesSnippetText
              |  ${definitions.mkString("\n  ")}
              |}
              |""".stripMargin
         }
 
-        // For root modules, put buildOverrides in the object to avoid diamond inheritance
-        // For subfolder modules, put it in the trait
+        // For root modules, extend LoadBuildOverrides in the object to avoid diamond inheritance
+        // For subfolder modules, extend it in the trait
         val objectBuildOverrides =
-          if (segments.isEmpty) buildOverridesSnippet()
+          if (segments.isEmpty) ", _root_.mill.api.Module.LoadBuildOverrides"
           else ""
 
         os.write.over(
@@ -205,9 +202,8 @@ object CodeGen {
              |$aliasImports
              |$prelude
              |//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
-             |object package_ extends $newParent, package_{
+             |object package_ extends $newParent, package_$objectBuildOverrides {
              |  ${if (segments.isEmpty) millDiscover(segments.nonEmpty) else ""}
-             |  $objectBuildOverrides
              |  $childAliases
              |}
              |${renderTemplate("trait package_", parsedHeaderData, segments, segments.nonEmpty)}
