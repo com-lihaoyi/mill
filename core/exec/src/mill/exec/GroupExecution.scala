@@ -485,7 +485,7 @@ trait GroupExecution {
   }
 
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
-    (if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.##) + invalidateAllHashes
+    if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.## + invalidateAllHashes
   }
   private def loadUpToDateWorker(
       logger: Logger,
