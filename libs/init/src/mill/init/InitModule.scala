@@ -60,7 +60,8 @@ trait InitModule extends Module {
             val extractedPath = Task.dest / extractedDirName
 
             // Remove any existing bootstrap script since the example will come with one
-            os.remove(BuildCtx.workspaceRoot / "mill")
+            os.remove.all(BuildCtx.workspaceRoot / "mill")
+            os.remove.all(BuildCtx.workspaceRoot / "mill.bat")
 
             val conflicting = for {
               p <- os.walk(extractedPath)
