@@ -661,7 +661,18 @@ object Task {
     )(t: Expr[Result[T]])(
         ctx: Expr[mill.api.ModuleCtx]
     ): Expr[Worker[T]] = {
+      import quotes.reflect.*
+
       assertTaskShapeOwner("Task.Worker", 0)
+
+      // Warn if T does not extend AutoCloseable
+      if (!(TypeRepr.of[T] <:< TypeRepr.of[AutoCloseable])) {
+        report.warning(
+          s"Task.Worker body type ${TypeRepr.of[T].show} does not extend AutoCloseable. " +
+            "Workers should implement AutoCloseable to properly clean up resources when invalidated."
+        )
+      }
+
       val expr = appImpl[Worker, T](
         (in, ev) => '{ new Worker[T]($in, $ev, $ctx, ${ taskIsPrivate() }) },
         t
