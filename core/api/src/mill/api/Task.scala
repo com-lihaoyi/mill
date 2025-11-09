@@ -289,9 +289,9 @@ object Task {
     ): Simple[T] = ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
-  // The extra `(x: T) = null` parameter list is necessary to make type inference work
+  // The extra `(x: T = null)` parameter list is necessary to make type inference work
   // right, ensuring that `T` is fully inferred before implicit resolution starts
-  def Literal[T]()(using
+  def Stub[T]()(using
       x: T = null.asInstanceOf[T]
   )(using li: LiteralImplicit[T]): Task.Simple[T] = {
     assert(li.ctx != null, "Unable to resolve context")

@@ -151,7 +151,7 @@ object CodeGen {
               (kString, v) <- data.rest
               if !kString.startsWith("mill-")
             } yield kString.split(" +") match {
-              case Array(k) => s"override def $k = Task.Literal()"
+              case Array(k) => s"override def $k = Task.Stub()"
               case Array("object", k) =>
                 renderTemplate(s"object $k", upickle.read[HeaderData](v), path :+ k)
             }
