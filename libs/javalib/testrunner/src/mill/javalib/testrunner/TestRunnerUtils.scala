@@ -392,7 +392,7 @@ import scala.math.Ordering.Implicits.*
     val framework = frameworkInstances(cl)
     val ( /*runner*/ _, tasksArr) =
       getTestTasks(framework, args, classFilter, cl, testClassfilePath)
-    tasksArr.flatten.map(_.taskDef().fullyQualifiedName())
+    tasksArr.flatten.map(_.taskDef()).filter(_ != null).map(_.fullyQualifiedName())
   }
 
   def matchesGlob(glob: String): String => Boolean =
