@@ -1,10 +1,11 @@
 package build
 
 import mill._, scalalib._
+import mill.api.opt.*
 import scalatags.Text.all._
 
 object foo extends JavaModule {
   def forkEnv = Map(
-    "snippet" -> frag(h1("hello"), p("world"), p(constant.Constant.scalatagsVersion)).render
+    "snippet" -> Opt(frag(h1("hello"), p("world"), p(constant.Constant.scalatagsVersion)).render)
   )
 }

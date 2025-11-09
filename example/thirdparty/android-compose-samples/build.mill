@@ -35,7 +35,7 @@ object JetLagged extends mill.api.Module {
 
     override def androidApplicationId = "com.example.jetlagged"
 
-    override def kotlincOptions = super.kotlincOptions() ++ Seq(
+    override def kotlincOptions = super.kotlincOptions() ++ Opts(
       "-jvm-target",
       "17"
     )
@@ -142,7 +142,7 @@ object JetNews extends mill.api.Module {
 
     override def androidApplicationId = "com.example.jetnews"
 
-    override def kotlincOptions = super.kotlincOptions() ++ Seq(
+    override def kotlincOptions = super.kotlincOptions() ++ Opts(
       "-jvm-target",
       "17"
     )
