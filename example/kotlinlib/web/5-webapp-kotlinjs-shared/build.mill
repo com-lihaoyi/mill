@@ -41,7 +41,7 @@ object `package` extends AppKotlinModule {
   }
 
   object test extends KotlinTests, TestModule.Junit5 {
-    override def mvnDeps = super.mvnDeps() ++ Seq(
+    override def mvnDeps = Seq(
       mvn"io.kotest:kotest-runner-junit5:5.9.1",
       mvn"io.ktor:ktor-server-test-host:$ktorVersion"
     )
@@ -56,7 +56,7 @@ object `package` extends AppKotlinModule {
     }
 
     object jvm extends SharedModule {
-      override def mvnDeps = super.mvnDeps() ++ Seq(
+      override def mvnDeps = Seq(
         mvn"org.jetbrains.kotlinx:kotlinx-html:$kotlinHtmlVersion",
         mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion"
       )
