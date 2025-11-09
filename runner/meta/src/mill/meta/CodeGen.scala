@@ -100,6 +100,18 @@ object CodeGen {
           if (path.isEmpty) "build-overrides.json"
           else s"${path.mkString("/")}/build-overrides.json"
 
+        // Helper to process data.rest entries, handling both regular properties and nested objects
+        def processDataRest[T](data: HeaderData)(
+            onProperty: String => T,
+            onNestedObject: (String, HeaderData) => T
+        ): Seq[T] = {
+          for ((kString, v) <- data.rest.toSeq if !kString.startsWith("mill-"))
+            yield kString.split(" +") match {
+              case Array(k) => onProperty(k)
+              case Array("object", k) => onNestedObject(k, upickle.read[HeaderData](v))
+            }
+        }
+
         // Write build overrides to resource files - one per module
         def writeBuildOverrides(data: HeaderData, path: Seq[String]): Unit = {
           // Write the current module's build overrides
@@ -108,17 +120,10 @@ object CodeGen {
           os.write.over(resourcePath, buildOverridesJson, createFolders = true)
 
           // Recursively write build overrides for nested object modules
-          for {
-            (kString, v) <- data.rest
-            if !kString.startsWith("mill-")
-          } {
-            kString.split(" +") match {
-              case Array("object", k) =>
-                val nestedData = upickle.read[HeaderData](v)
-                writeBuildOverrides(nestedData, path :+ k)
-              case _ => // regular property, already included in this module's JSON
-            }
-          }
+          processDataRest(data)(
+            onProperty = _ => (),
+            onNestedObject = (k, nestedData) => writeBuildOverrides(nestedData, path :+ k)
+          )
         }
 
         // Write build overrides for all modules (root and subfolders)
@@ -144,17 +149,23 @@ object CodeGen {
           createFolders = true
         )
 
-        def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
+        def buildOverridesSnippet(path: Seq[String]): String = {
+          val folderPath = path.mkString("/")
+          s"override def buildOverrides = _root_.mill.api.Module.loadBuildOverrides(getClass, ${literalize(folderPath)})"
+        }
+
+        def renderTemplate(
+            prefix: String,
+            data: HeaderData,
+            path: Seq[String],
+            includeBuildOverrides: Boolean
+        ): String = {
           val extendsConfig = data.`extends`
-          val definitions =
-            for {
-              (kString, v) <- data.rest
-              if !kString.startsWith("mill-")
-            } yield kString.split(" +") match {
-              case Array(k) => s"override def $k = Task.Stub()"
-              case Array("object", k) =>
-                renderTemplate(s"object $k", upickle.read[HeaderData](v), path :+ k)
-            }
+          val definitions = processDataRest(data)(
+            onProperty = k => s"override def $k = Task.Stub()",
+            onNestedObject = (k, nestedData) =>
+              renderTemplate(s"object $k", nestedData, path :+ k, includeBuildOverrides = true)
+          )
 
           val moduleDepsSnippet =
             if (data.moduleDeps.isEmpty) ""
@@ -171,10 +182,9 @@ object CodeGen {
             else
               s"override def runModuleDeps = Seq(${data.runModuleDeps.map("build." + _).mkString(", ")})"
 
-          val buildOverridesSnippet = {
-            val resourcePath = buildOverridesResourcePath(path)
-            s"override def buildOverrides: Map[String, ujson.Value] = _root_.upickle.default.read[Map[String, ujson.Value]](_root_.os.read(_root_.os.resource(getClass.getClassLoader) / ${literalize(resourcePath)}))"
-          }
+          val buildOverridesSnippetText =
+            if (includeBuildOverrides) buildOverridesSnippet(path)
+            else ""
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}"
@@ -184,11 +194,17 @@ object CodeGen {
              |  $moduleDepsSnippet
              |  $compileModuleDepsSnippet
              |  $runModuleDepsSnippet
-             |  $buildOverridesSnippet
+             |  $buildOverridesSnippetText
              |  ${definitions.mkString("\n  ")}
              |}
              |""".stripMargin
         }
+
+        // For root modules, put buildOverrides in the object to avoid diamond inheritance
+        // For subfolder modules, put it in the trait
+        val objectBuildOverrides =
+          if (segments.isEmpty) buildOverridesSnippet(segments)
+          else ""
 
         os.write.over(
           (wrappedDestFile / os.up) / wrappedDestFile.baseName,
@@ -199,9 +215,10 @@ object CodeGen {
              |//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
              |object package_ extends $newParent, package_{
              |  ${if (segments.isEmpty) millDiscover(segments.nonEmpty) else ""}
+             |  $objectBuildOverrides
              |  $childAliases
              |}
-             |${renderTemplate("trait package_", parsedHeaderData, segments.toSeq)}
+             |${renderTemplate("trait package_", parsedHeaderData, segments, segments.nonEmpty)}
              |""".stripMargin,
           createFolders = true
         )
@@ -453,16 +470,13 @@ object CodeGen {
       millTopLevelProjectRoot: os.Path,
       output: os.Path
   ): String = {
-    val constructorCall =
-      s"""|object MillMiscInfo
-          |    extends mill.api.internal.RootModule.Info(
-          |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
-          |  output0 = ${literalize(output.toString)},
-          |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}
-          |)""".stripMargin
-
     s"""|@_root_.scala.annotation.nowarn
-        |$constructorCall
+        |object MillMiscInfo
+        |    extends mill.api.internal.RootModule.Info(
+        |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
+        |  output0 = ${literalize(output.toString)},
+        |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}
+        |)
         |""".stripMargin
   }
 

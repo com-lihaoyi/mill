@@ -2,8 +2,13 @@ package mill.api
 
 import mill.api.Logger
 import mill.api.Result
-import mill.api.daemon.internal.CompileProblemReporter
-import mill.api.daemon.internal.{NamedTaskApi, TaskApi, TestReporter}
+import mill.api.daemon.internal.{
+  CompileProblemReporter,
+  NamedTaskApi,
+  TaskApi,
+  TestReporter,
+  internal
+}
 import mill.api.internal.Applicative.Applyable
 import mill.api.internal.{Applicative, Cacher, NamedParameterOnlyDummy}
 import upickle.ReadWriter
@@ -291,7 +296,7 @@ object Task {
 
   // The extra `(x: T = null)` parameter list is necessary to make type inference work
   // right, ensuring that `T` is fully inferred before implicit resolution starts
-  def Stub[T]()(using
+  @internal def Stub[T]()(using
       x: T = null.asInstanceOf[T]
   )(using li: LiteralImplicit[T]): Task.Simple[T] = {
     assert(li.ctx != null, "Unable to resolve context")

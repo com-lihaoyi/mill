@@ -48,24 +48,10 @@ trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
 
 object Module {
 
-  /**
-   * Helper method to load build overrides from a resource file.
-   * Used by code-generated modules to read configuration from build.mill.yaml/package.mill.yaml files.
-   *
-   * @param path The path to navigate within the JSON structure for nested modules (e.g., Seq("test"))
-   * @return A map of build overrides for this module
-   */
-  def loadBuildOverrides(path: Seq[String] = Seq()): Map[String, ujson.Value] = {
-    val allOverrides = upickle.read[Map[String, ujson.Value]](
-      os.read(os.resource(getClass.getClassLoader) / "build-overrides.json")
-    )
-    path.foldLeft(Option(allOverrides): Option[Map[String, ujson.Value]]) {
-      case (Some(map), key) => map.get(key).flatMap {
-          case obj: ujson.Obj => Some(obj.value.toMap)
-          case _ => None
-        }
-      case (None, _) => None
-    }.getOrElse(Map())
+  @internal
+  def loadBuildOverrides(cls: Class[?], folderPath: String): Map[String, ujson.Value] = {
+    val filePath = os.SubPath(folderPath) / "build-overrides.json"
+    upickle.read[Map[String, ujson.Value]](os.read(os.resource(cls.getClassLoader) / filePath))
   }
 
   /**
