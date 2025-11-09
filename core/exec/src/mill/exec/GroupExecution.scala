@@ -68,6 +68,11 @@ trait GroupExecution {
     rec(json)
   }
 
+  // the JVM running this code currently
+  val javaHomeHash = sys.props("java.home").hashCode
+
+  val invalidateAllHashes = classLoaderSigHash + javaHomeHash
+
   // those result which are inputs but not contained in this terminal group
   def executeGroupCached(
       terminal: Task[?],
@@ -105,14 +110,11 @@ trait GroupExecution {
           }
           .flatten
       )
-      // the JVM running this code currently
-      val javaHomeHash = sys.props("java.home").hashCode
 
-      externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash + javaHomeHash
+      externalInputsHash + sideHashes + scriptsHash + invalidateAllHashes
     }
 
     terminal match {
-
       case labelled: Task.Named[_] =>
         val out = if (!labelled.ctx.external) outPath else externalOutPath
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
@@ -483,7 +485,7 @@ trait GroupExecution {
   }
 
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
-    if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.##
+    (if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.##) + invalidateAllHashes
   }
   private def loadUpToDateWorker(
       logger: Logger,
