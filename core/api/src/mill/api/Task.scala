@@ -291,7 +291,7 @@ object Task {
 
   // The extra `(x: T) = null` parameter list is necessary to make type inference work
   // right, ensuring that `T` is fully inferred before implicit resolution starts
-  def Literal[T](s: String)(using
+  def Literal[T]()(using
       x: T = null.asInstanceOf[T]
   )(using li: LiteralImplicit[T]): Task.Simple[T] = {
     assert(li.ctx != null, "Unable to resolve context")
@@ -302,12 +302,15 @@ object Task {
         PathRef
           .currentOverrideModulePath
           .withValue(li.ctx.enclosingModule.moduleCtx.millSourcePath) {
-            Result.Success(upickle.default.read[T](s)(using li.reader))
+            // Return null which will be overridden by buildOverrides
+            Result.Success(null.asInstanceOf[T])
           },
       li.ctx,
       li.writer,
       None
-    )
+    ){
+      override def readWriterOpt = Some(upickle.ReadWriter.join(li.reader, li.writer))
+    }
   }
 
   class LiteralImplicit[T](

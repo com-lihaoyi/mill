@@ -20,6 +20,7 @@ object CodeGen {
       allScriptCode: Map[os.Path, String],
       wrappedDest: os.Path,
       supportDest: os.Path,
+      resourceDest: os.Path,
       millTopLevelProjectRoot: os.Path,
       output: os.Path,
       parser: MillScalaParser
@@ -94,7 +95,31 @@ object CodeGen {
               |import _root_.mill.util.TokenReaders.given
               |""".stripMargin
 
-        os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
+        // Write build overrides to a resource file
+        if (segments.isEmpty) {
+          val buildOverridesJson = upickle.write(parsedHeaderData.rest)
+          val resourceFileName = "build-overrides.json"
+          val resourcePath = resourceDest / resourceFileName
+          os.write.over(resourcePath, buildOverridesJson, createFolders = true)
+
+          // Generate MillMiscInfo with resource file path
+          val miscInfoWithResource = {
+            val header = if (pkg.isBlank()) "" else s"package $pkg"
+            s"""|$generatedFileHeader
+                |$header
+                |
+                |${rootMiscInfo(
+                    scriptFolderPath,
+                    millTopLevelProjectRoot,
+                    output,
+                    Some(resourceFileName)
+                  )}
+                |""".stripMargin
+          }
+          os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfoWithResource, createFolders = true)
+        } else {
+          os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
+        }
 
         def renderTemplate(prefix: String, data: HeaderData): String = {
           val extendsConfig = data.`extends`
@@ -103,7 +128,7 @@ object CodeGen {
               (kString, v) <- data.rest
               if !kString.startsWith("mill-")
             } yield kString.split(" +") match {
-              case Array(k) => s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
+              case Array(k) => s"override def $k = Task.Literal()"
               case Array("object", k) =>
                 renderTemplate(s"object $k", upickle.read[HeaderData](v))
             }
@@ -397,15 +422,30 @@ object CodeGen {
   def rootMiscInfo(
       scriptFolderPath: os.Path,
       millTopLevelProjectRoot: os.Path,
-      output: os.Path
+      output: os.Path,
+      buildOverridesResource: Option[String] = None
   ): String = {
+    val constructorCall = buildOverridesResource match {
+      case Some(resourceFile) =>
+        s"""|object MillMiscInfo
+            |    extends mill.api.internal.RootModule.Info(
+            |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
+            |  output0 = ${literalize(output.toString)},
+            |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)},
+            |  headerDataResource = ${literalize(resourceFile)},
+            |  fromResource = true
+            |)""".stripMargin
+      case None =>
+        s"""|object MillMiscInfo
+            |    extends mill.api.internal.RootModule.Info(
+            |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
+            |  output0 = ${literalize(output.toString)},
+            |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}
+            |)""".stripMargin
+    }
+
     s"""|@_root_.scala.annotation.nowarn
-        |object MillMiscInfo 
-        |    extends mill.api.internal.RootModule.Info(
-        |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
-        |  output0 = ${literalize(output.toString)},
-        |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}
-        |)
+        |$constructorCall
         |""".stripMargin
   }
 
