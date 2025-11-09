@@ -1,12 +1,14 @@
 //// SNIPPET:BUILD
 package build
+
 import mill.*, kotlinlib.*
+import mill.api.opt.*
 import mill.api.ModuleRef
 
 object foo extends KotlinModule, NativeImageModule {
   def kotlinVersion = "1.9.24"
 
-  def nativeImageOptions = Seq(
+  def nativeImageOptions = Opts(
     "--no-fallback",
     "-Os",
     "--initialize-at-build-time=com.github.ajalt.mordant.internal.nativeimage.NativeImagePosixMppImpls"

@@ -13,6 +13,6 @@ sources: ["./src", "./custom-src"]
 resources: ["./resources", "./custom-resources"]
 
 # Configure java compiler and runtime options and env vars
-javacOptions: ["-deprecation"]
-forkArgs: ["-Dmy.custom.property=my-prop-value"]
+javacOptions: [["-deprecation"]]
+forkArgs: [["-Dmy.custom.property=my-prop-value"]]
 forkEnv: { "MY_CUSTOM_ENV": "my-env-value" }

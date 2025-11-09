@@ -3,6 +3,8 @@
 package build
 
 import mill.*
+import mill.api.*
+import mill.api.opt.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import mill.scalalib.*
@@ -12,7 +14,7 @@ object `package`
     extends Cross[CrossVersionModule]("2.12.18", "2.13.12", "3.3.1")
 trait CrossVersionModule extends PublishModule with CrossSbtModule {
 
-  def javacOptions = super.javacOptions() ++ Seq("--release", "8")
+  def javacOptions = super.javacOptions() ++ Opts("--release", "8")
 
   def artifactName = "my-cross-project"
 

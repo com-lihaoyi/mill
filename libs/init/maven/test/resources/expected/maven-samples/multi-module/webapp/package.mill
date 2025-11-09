@@ -1,5 +1,7 @@
 package build.`multi-module`.webapp
 
+import mill.api.*
+import mill.api.opt.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import millbuild.*
@@ -12,7 +14,7 @@ object `package` extends MavenSamplesBaseModule {
   def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
 
   def javacOptions = super.javacOptions() ++
-    Seq("-source", "1.6", "-target", "1.6")
+    Opts("-source", "1.6", "-target", "1.6")
 
   def artifactName = "webapp"
 

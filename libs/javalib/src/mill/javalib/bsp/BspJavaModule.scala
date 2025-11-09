@@ -1,11 +1,11 @@
 package mill.javalib.bsp
 
 import java.nio.file.Path
-
 import mill.api.daemon.internal.bsp.BspJavaModuleApi
 import mill.Task
-import mill.api.daemon.internal.{EvaluatorApi, TaskApi, internal}
+import mill.api.daemon.internal.{EvaluatorApi, OptsApi, TaskApi, internal}
 import mill.api.ModuleCtx
+import mill.api.opt.*
 import mill.javalib.{JavaModule, SemanticDbJavaModule}
 import mill.api.JsonFormatters.given
 
@@ -30,7 +30,7 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
       clientWantsSemanticDb: Boolean
   ): Task[EvaluatorApi => (
       classesPath: Path,
-      javacOptions: Seq[String],
+      javacOptions: OptsApi,
       classpath: Seq[String]
   )] = {
     val classesPathTask = jm match {
@@ -105,13 +105,17 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
     jm.resources().map(_.path.toNIO)
   }
 
-  def scalacOptionsTask = Task.Anon(Seq.empty[String])
+  def scalacOptionsTask: Task[Opts] = Task.Anon(Opts())
 
   override private[mill] def bspBuildTargetScalacOptions(
       needsToMergeResourcesIntoCompileDest: Boolean,
       enableJvmCompileClasspathProvider: Boolean,
       clientWantsSemanticDb: Boolean
-  ): Task[(Seq[String], EvaluatorApi => Seq[String], EvaluatorApi => java.nio.file.Path)] = {
+  ): Task[(
+      scalacOptionsTask: Opts,
+      compileClasspathTask: EvaluatorApi => Seq[String],
+      classPathTask: EvaluatorApi => java.nio.file.Path
+  )] = {
 
     val compileClasspathTask: Task[EvaluatorApi => Seq[String]] =
       if (enableJvmCompileClasspathProvider) {
@@ -144,8 +148,8 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
   override private[mill] def bspBuildTargetScalaMainClasses
       : Task.Simple[(
           classes: Seq[String],
-          forkArgs: Seq[String],
-          forkEnv: Map[String, String]
+          forkArgs: Opts,
+          forkEnv: Map[String, Opt]
       )] =
     Task {
       (jm.allLocalMainClasses(), jm.forkArgs(), jm.allForkEnv())

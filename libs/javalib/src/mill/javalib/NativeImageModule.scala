@@ -2,6 +2,7 @@ package mill.javalib
 
 import mill.*
 import mill.constants.Util
+import mill.api.opt.*
 
 import scala.util.Properties
 
@@ -32,7 +33,7 @@ trait NativeImageModule extends WithJvmWorkerModule {
     val executeableName = "native-executable"
     val command = Seq.newBuilder[String]
       .+=(nativeImageTool().path.toString)
-      .++=(nativeImageOptions())
+      .++=(nativeImageOptions().toStringSeq)
       .+=("-cp")
       .+=(nativeImageClasspath().iterator.map(_.path).mkString(java.io.File.pathSeparator))
       .+=(finalMainClass())
@@ -57,7 +58,7 @@ trait NativeImageModule extends WithJvmWorkerModule {
   /**
    * Additional options for the `native-image` Tool.
    */
-  def nativeImageOptions: T[Seq[String]] = Seq()
+  def nativeImageOptions: T[Opts] = Opts()
 
   /**
    * Path to the [[https://www.graalvm.org/latest/reference-manual/native-image/ `native-image` Tool]].

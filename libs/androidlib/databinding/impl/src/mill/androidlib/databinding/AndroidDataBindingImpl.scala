@@ -83,7 +83,7 @@ class AndroidDataBindingImpl extends AndroidDataBindingWorker {
 
     private def toFile(canonicalName: String): File = {
       val asPath = canonicalName.replace('.', '/')
-      os.Path(s"base/${asPath}.java").toIO
+      os.Path(s"${base}/${asPath}.java").toIO
     }
 
     override def deleteFile(canonicalName: String): Unit = {

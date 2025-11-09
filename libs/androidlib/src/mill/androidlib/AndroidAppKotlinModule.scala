@@ -2,6 +2,7 @@ package mill.androidlib
 
 import coursier.params.ResolutionParams
 import mill.api.{ModuleRef, PathRef, Task}
+import mill.api.opt.*
 import mill.kotlinlib.{Dep, DepSyntax}
 import mill.javalib.TestModule.Junit5
 import mill.javalib.{JavaModule, TestModule}
@@ -293,7 +294,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
       PathRef(diffImageDir)
     }
 
-    override def forkArgs: T[Seq[String]] = super.forkArgs() ++ testJvmArgs()
+    override def forkArgs: T[Opts] = super.forkArgs() ++ testJvmArgs()
     override def runClasspath: T[Seq[PathRef]] =
       super.runClasspath() ++ androidPreviewScreenshotTestEngineClasspath() ++ compileClasspath()
 
@@ -315,18 +316,18 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
     As defined in
     [[https://android.googlesource.com/platform/tools/base/+/61923408e5f7dc20f0840844597f9dde17453a0f/preview/screenshot/screenshot-test-gradle-plugin/src/main/java/com/android/compose/screenshot/tasks/PreviewScreenshotValidationTask.kt?#84]]
      */
-    private def testJvmArgs: T[Seq[String]] = Task {
+    private def testJvmArgs: T[Opts] = Task {
       val params = Map(
-        "previews-discovered" -> androidDiscoveredPreviews().previewsDiscoveredJsonFile.path.toString(),
-        "referenceImageDirPath" -> screenshotResults().path.toString(),
-        "diffImageDirPath" -> diffImageDirPath().path.toString,
-        "renderResultsFilePath" -> androidScreenshotGeneratedResults().path.toString,
-        "renderTaskOutputDir" -> screenshotResults().path.toString(),
-        "resultsDirPath" -> androidScreenshotTestResultDir().path.toString(),
+        "previews-discovered" -> androidDiscoveredPreviews().previewsDiscoveredJsonFile.path,
+        "referenceImageDirPath" -> screenshotResults().path,
+        "diffImageDirPath" -> diffImageDirPath().path,
+        "renderResultsFilePath" -> androidScreenshotGeneratedResults().path,
+        "renderTaskOutputDir" -> screenshotResults().path,
+        "resultsDirPath" -> androidScreenshotTestResultDir().path,
         "threshold" -> androidScreenshotTestDiffThreshold.toString
       )
 
-      params.map { case (k, v) => s"$JvmTestArg$k=$v" }.toSeq
+      Opts(params.map { case (k, v) => opt"$JvmTestArg$k=$v" })
     }
 
     private val JvmTestArg = "-Dcom.android.tools.preview.screenshot.junit.engine."

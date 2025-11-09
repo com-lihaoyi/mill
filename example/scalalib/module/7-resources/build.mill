@@ -1,6 +1,8 @@
 //// SNIPPET:BUILD
 package build
+
 import mill.*, scalalib.*
+import mill.api.opt.*
 
 object foo extends ScalaModule {
   def scalaVersion = "3.7.1"
@@ -15,7 +17,7 @@ object foo extends ScalaModule {
     def otherFiles = Task.Source("other-files")
 
     def forkEnv = super.forkEnv() ++ Map(
-      "OTHER_FILES_DIR" -> otherFiles().path.toString
+      "OTHER_FILES_DIR" -> Opt(otherFiles().path)
     )
   }
 }

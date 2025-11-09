@@ -1,12 +1,14 @@
 //// SNIPPET:BUILD
 package build
+
 import mill.*, scalalib.*
+import mill.api.opt.*
 import mill.api.ModuleRef
 
 object foo extends ScalaModule, NativeImageModule {
   def scalaVersion = "3.7.1"
 
-  def nativeImageOptions = Seq("--no-fallback", "-Os")
+  def nativeImageOptions = Opts("--no-fallback", "-Os")
 
   def mvnDeps = Seq(
     mvn"com.lihaoyi::scalatags:0.13.1",
