@@ -59,6 +59,6 @@ object `package` extends KotlinMavenModule {
 > ./mill clean runBackground
 
 > ./mill show assembly
-.../out/assembly.dest/out.jar...
+...$MILL_OUT/assembly.dest/out.jar...
 
 */

@@ -7,12 +7,12 @@ import mill.api.daemon.internal.{
   PathRefApi,
   RootModuleApi
 }
-import mill.api.{Logger, Result, SystemStreams, Val}
+import mill.api.{BuildCtx, Logger, MappedRoots, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.{millBuild, millRunnerState}
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
-import mill.api.{BuildCtx, PathRef, SelectMode}
+import mill.constants.PathVars
 import mill.internal.PrefixLogger
 import mill.meta.MillBuildRootModule
 import mill.meta.CliImports
@@ -70,11 +70,13 @@ class MillBuildBootstrap(
     val runnerState = evaluateRec(0)
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
-      os.write.over(
-        recOut(output, depth) / millRunnerState,
-        upickle.write(frame.loggedData, indent = 4),
-        createFolders = true
-      )
+      MappedRoots.withMillDefaults(outPath = output) {
+        os.write.over(
+          recOut(output, depth) / millRunnerState,
+          upickle.write(frame.loggedData, indent = 4),
+          createFolders = true
+        )
+      }
     }
 
     Watching.Result(
@@ -85,6 +87,10 @@ class MillBuildBootstrap(
   }
 
   def evaluateRec(depth: Int): RunnerState = {
+
+    // We need relocatable PathRef for meta-builds for a stable classpathSig
+    MappedRoots.requireMappedPaths(PathVars.WORKSPACE, PathVars.HOME, PathVars.MILL_OUT)
+
     logger.withChromeProfile(s"meta-level $depth") {
       // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
       val currentRoot = recRoot(projectRoot, depth)
@@ -251,24 +257,25 @@ class MillBuildBootstrap(
             case Result.Success((buildFileApi)) =>
 
               Using.resource(makeEvaluator(
-                projectRoot,
-                output,
-                keepGoing,
-                env,
-                logger,
-                ec,
-                allowPositionalCommandArgs,
-                systemExit,
-                streams0,
-                selectiveExecution,
-                offline,
-                newWorkerCache,
-                nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
-                buildFileApi.rootModule,
+                projectRoot = projectRoot,
+                output = output,
+                keepGoing = keepGoing,
+                env = env,
+                logger = logger,
+                ec = ec,
+                allowPositionalCommandArgs = allowPositionalCommandArgs,
+                systemExit = systemExit,
+                streams0 = streams0,
+                selectiveExecution = selectiveExecution,
+                offline = offline,
+                workerCache = newWorkerCache,
+                codeSignatures =
+                  nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
+                rootModule = buildFileApi.rootModule,
                 // We want to use the grandparent buildHash, rather than the parent
                 // buildHash, because the parent build changes are instead detected
                 // by analyzing the scriptImportGraph in a more fine-grained manner.
-                nestedState
+                millClassloaderSigHash = nestedState
                   .frames
                   .dropRight(1)
                   .headOption
@@ -276,13 +283,13 @@ class MillBuildBootstrap(
                   .getOrElse(millBootClasspathPathRefs)
                   .map(p => (os.Path(p.javaPath), p.sig))
                   .hashCode(),
-                nestedState
+                millClassloaderIdentityHash = nestedState
                   .frames
                   .headOption
                   .flatMap(_.classLoaderOpt)
                   .map(_.hashCode())
                   .getOrElse(0),
-                depth,
+                depth = depth,
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker
               )) { evaluator =>

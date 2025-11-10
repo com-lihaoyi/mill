@@ -5,6 +5,7 @@ import upickle.{Reader, Writer}
 
 import java.io.{BufferedReader, PrintStream}
 import scala.annotation.tailrec
+
 class MillRpcWireTransport(
     val name: String,
     serverToClient: BufferedReader,
