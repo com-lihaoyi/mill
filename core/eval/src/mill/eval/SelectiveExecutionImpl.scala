@@ -58,8 +58,12 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
       computeHashCodeSignatures(transitiveNamed, oldHashes.codeSignatures),
       computeHashCodeSignatures(transitiveNamed, newHashes.codeSignatures)
     )
+    val changedBuildOverrides = diffMap(
+      oldHashes.buildOverrideSignatures,
+      newHashes.buildOverrideSignatures
+    )
 
-    val changedRootTasks = (changedInputNames ++ changedCodeNames)
+    val changedRootTasks = (changedInputNames ++ changedCodeNames ++ changedBuildOverrides)
       .flatMap(namesToTasks.get(_): Option[Task[?]])
 
     val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.inputs)
@@ -232,7 +236,8 @@ object SelectiveExecutionImpl {
       SelectiveExecution.Metadata.Computed(
         new SelectiveExecution.Metadata(
           inputHashes,
-          evaluator.codeSignatures
+          evaluator.codeSignatures,
+          SelectiveExecution.computerBuildOverrideSignatures(transitiveNamed)
         ),
         results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
       )
