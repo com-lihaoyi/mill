@@ -237,7 +237,6 @@ final class EvaluatorImpl private[mill] (
       .flatten
       .toSeq
 
-
     maybeNewMetadata.foreach { newMetadata =>
       val allInputHashes = newMetadata.inputHashes
       this.selective.saveMetadata(
