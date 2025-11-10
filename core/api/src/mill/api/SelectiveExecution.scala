@@ -41,7 +41,7 @@ object SelectiveExecution {
       .distinct
       .flatMap(m =>
         m.moduleBuildOverrides.map { case (k, v) =>
-          ((m.moduleCtx.segments ++ Segment.Label(k)).render, v.hashCode)
+          ((m.moduleSegments ++ Segment.Label(k)).render, v.hashCode)
         }
       )
       .toMap
