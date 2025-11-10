@@ -237,7 +237,7 @@ object SelectiveExecutionImpl {
         new SelectiveExecution.Metadata(
           inputHashes,
           evaluator.codeSignatures,
-          SelectiveExecution.computerBuildOverrideSignatures(transitiveNamed)
+          SelectiveExecution.getBuildOverrideSignatures(transitiveNamed)
         ),
         results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
       )

@@ -254,7 +254,9 @@ final class EvaluatorImpl private[mill] (
         SelectiveExecution.Metadata(
           allInputHashes,
           codeSignatures,
-          SelectiveExecution.computerBuildOverrideSignatures(tasks.collect{case n: Task.Named[_] => n})
+          SelectiveExecution.getBuildOverrideSignatures(tasks.collect { case n: Task.Named[_] =>
+            n
+          })
         )
       )
     }
