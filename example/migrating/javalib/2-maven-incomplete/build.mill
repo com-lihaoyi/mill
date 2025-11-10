@@ -1,7 +1,5 @@
 /** Usage
 
-> rm build.mill # remove any existing build file
-
 > git init .
 > git remote add -f origin https://github.com/dhatim/fastexcel.git
 > git checkout 0.18.4
