@@ -6,7 +6,7 @@
     <title>Kotlin Web Project Examples :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/kotlinlib/web-examples.html" />
     <link rel="prev" href="publishing.html" />
-    <link rel="next" href="spring-boot.html" />
+    <link rel="next" href="../android/android-initial-setup.html" />
     <meta name="generator" content="Antora 3.1.12" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -173,7 +173,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
+    <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -226,10 +226,6 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
-  </li>
 </ul>
   </li>
 
@@ -268,10 +264,6 @@
 
   <li class="nav-item is-current-page is-active" data-depth="2">
     <a class="nav-link" href="web-examples.html">Kotlin Web Project Examples</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="spring-boot.html">Spring Framework / Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -725,7 +717,7 @@ It covers setting up a basic backend server with a variety of server frameworks<
 <h2 id="_ktor_hello_world_app"><a class="anchor" href="#_ktor_hello_world_app"></a>Ktor Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-34-c6b494/mill-dist-1.1.0-RC1-34-c6b494-example-kotlinlib-web-1-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/kotlinlib/web/1-hello-ktor">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-35-3b2e68/mill-dist-1.1.0-RC1-35-3b2e68-example-kotlinlib-web-1-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/kotlinlib/web/1-hello-ktor">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -751,7 +743,7 @@ object `package` extends KotlinModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/com/example/HelloKtor.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-34-c6b494/mill-dist-1.1.0-RC1-34-c6b494-example-kotlinlib-web-1-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/kotlinlib/web/1-hello-ktor/src/com/example/HelloKtor.kt">browse</a>)</div>
+<div class="title">src/com/example/HelloKtor.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-35-3b2e68/mill-dist-1.1.0-RC1-35-3b2e68-example-kotlinlib-web-1-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/kotlinlib/web/1-hello-ktor/src/com/example/HelloKtor.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package com.example
 
@@ -829,7 +821,7 @@ Test com.example.HelloKtorTest HelloKtorTest finished, took...
 <a href="https://todomvc.com/">TodoMVC</a> example app using Kotlin and Ktor.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-34-c6b494/mill-dist-1.1.0-RC1-34-c6b494-example-kotlinlib-web-2-todo-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/kotlinlib/web/2-todo-ktor">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-35-3b2e68/mill-dist-1.1.0-RC1-35-3b2e68-example-kotlinlib-web-2-todo-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/kotlinlib/web/2-todo-ktor">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -920,7 +912,7 @@ fully developing Kotlin/JS support, see the following ticket:</p>
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-34-c6b494/mill-dist-1.1.0-RC1-34-c6b494-example-kotlinlib-web-3-hello-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/kotlinlib/web/3-hello-kotlinjs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-35-3b2e68/mill-dist-1.1.0-RC1-35-3b2e68-example-kotlinlib-web-3-hello-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/kotlinlib/web/3-hello-kotlinjs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*, kotlinlib.js.*
@@ -974,7 +966,7 @@ we replace the <code>main.js</code> client side code with the Javascript output 
 <code>ClientApp.kt</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-34-c6b494/mill-dist-1.1.0-RC1-34-c6b494-example-kotlinlib-web-4-webapp-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/kotlinlib/web/4-webapp-kotlinjs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-35-3b2e68/mill-dist-1.1.0-RC1-35-3b2e68-example-kotlinlib-web-4-webapp-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/kotlinlib/web/4-webapp-kotlinjs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1061,7 +1053,7 @@ page updates, it sends HTML for the initial load and JSON for page updates
 which is then rendered into HTML on the client.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-34-c6b494/mill-dist-1.1.0-RC1-34-c6b494-example-kotlinlib-web-5-webapp-kotlinjs-shared.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/kotlinlib/web/5-webapp-kotlinjs-shared">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-35-3b2e68/mill-dist-1.1.0-RC1-35-3b2e68-example-kotlinlib-web-5-webapp-kotlinjs-shared.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/kotlinlib/web/5-webapp-kotlinjs-shared">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*, kotlinlib.js.*
@@ -1175,22 +1167,263 @@ is beyond the scope of this example.</p>
 <div class="sect1">
 <h2 id="_spring_boot_hello_world_app"><a class="anchor" href="#_spring_boot_hello_world_app"></a>Spring Boot Hello World App</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-35-3b2e68/mill-dist-1.1.0-RC1-35-3b2e68-example-kotlinlib-web-6-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/kotlinlib/web/6-hello-spring-boot">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, kotlinlib.*
+
+object `package` extends KotlinModule {
+
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  def mainClass = Some(&quot;com.example.HelloSpringBootKt&quot;)
+
+  def mvnDeps = Seq(
+    mvn&quot;org.springframework.boot:spring-boot-starter-web:2.5.6&quot;,
+    mvn&quot;org.springframework.boot:spring-boot-starter-actuator:2.5.6&quot;
+  )
+
+  object test extends KotlinTests, TestModule.Junit5 {
+    def mvnDeps = Seq(
+      mvn&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
+    )
+  }
+}</code></pre>
+</div>
+</div>
 <div class="paragraph">
-<p>This section was moved to the <a href="spring-boot.html#_spring_boot_hello_world_app" class="xref page">Spring Boot page</a>.</p>
+<p>This example demonstrates how to set up a simple Spring Boot webserver,
+able to handle a single HTTP request at <code>/</code> and reply with a single response.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
+...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
+
+&gt; ./mill runBackground
+
+&gt; curl http://localhost:8095
+...&lt;h1&gt;Hello, World!&lt;/h1&gt;...
+
+&gt; ./mill clean runBackground</code></pre>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_spring_boot_todomvc_app"><a class="anchor" href="#_spring_boot_todomvc_app"></a>Spring Boot TodoMvc App</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-35-3b2e68/mill-dist-1.1.0-RC1-35-3b2e68-example-kotlinlib-web-7-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/kotlinlib/web/7-todo-spring-boot">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, kotlinlib.*
+
+object `package` extends KotlinModule {
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  def mainClass = Some(&quot;com.example.TodomvcApplicationKt&quot;)
+  def mvnDeps = Seq(
+    mvn&quot;org.springframework.boot:spring-boot-starter-data-jpa:2.5.4&quot;,
+    mvn&quot;org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4&quot;,
+    mvn&quot;org.springframework.boot:spring-boot-starter-validation:2.5.4&quot;,
+    mvn&quot;org.springframework.boot:spring-boot-starter-web:2.5.4&quot;,
+    mvn&quot;org.jetbrains.kotlin:kotlin-reflect:2.0.21&quot;,
+    mvn&quot;javax.xml.bind:jaxb-api:2.3.1&quot;,
+    mvn&quot;org.webjars:webjars-locator:0.41&quot;,
+    mvn&quot;org.webjars.npm:todomvc-common:1.0.5&quot;,
+    mvn&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;
+  )
+
+  trait HelloTests extends KotlinTests, TestModule.Junit5 {
+    def mainClass = Some(&quot;com.example.TodomvcApplicationKt&quot;)
+    def mvnDeps = Seq(
+      mvn&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
+    )
+  }
+
+  object test extends HelloTests {
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;com.h2database:h2:2.3.230&quot;
+    )
+  }
+
+  object integration extends HelloTests {
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;org.testcontainers:testcontainers:1.18.0&quot;,
+      mvn&quot;org.testcontainers:junit-jupiter:1.18.0&quot;,
+      mvn&quot;org.testcontainers:postgresql:1.18.0&quot;,
+      mvn&quot;org.postgresql:postgresql:42.6.0&quot;
+    )
+  }
+}</code></pre>
+</div>
+</div>
 <div class="paragraph">
-<p>This section was moved to the <a href="spring-boot.html#_spring_boot_todomvc_app" class="xref page">Spring Boot page</a>.</p>
+<p>This is a larger example using Spring Boot, implementing the well known
+<a href="https://todomvc.com/">TodoMVC</a> example app. Apart from running a webserver,
+this example also demonstrates:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Serving HTML templates using Thymeleaf</p>
+</li>
+<li>
+<p>Serving static Javascript and CSS using Webjars</p>
+</li>
+<li>
+<p>Querying a SQL database using JPA and H2</p>
+</li>
+<li>
+<p>Unit testing using a H2 in-memory database</p>
+</li>
+<li>
+<p>Integration testing using Testcontainers Postgres in Docker</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
+...com.example.TodomvcTests#homePageLoads() finished...
+...com.example.TodomvcTests#addNewTodoItem() finished...
+
+&gt; ./mill integration
+...com.example.TodomvcIntegrationTests#homePageLoads() finished...
+...com.example.TodomvcIntegrationTests#addNewTodoItem() finished...
+
+&gt; ./mill test.runBackground
+
+&gt; curl http://localhost:8099
+...&lt;h1&gt;todos&lt;/h1&gt;...
+
+&gt; ./mill clean runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_micronaut_app"><a class="anchor" href="#_micronaut_app"></a>Micronaut App</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-35-3b2e68/mill-dist-1.1.0-RC1-35-3b2e68-example-kotlinlib-web-8-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/kotlinlib/web/8-hello-micronaut">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import coursier.{MavenRepository, Repository}
+
+import mill.*
+import kotlinlib.*
+import kotlinlib.ksp.KspModule
+
+object micronaut extends MicronautModule {
+
+  def mvnDeps: Task.Simple[Seq[Dep]] = Seq(
+    mvn&quot;io.micronaut:micronaut-http-server-netty&quot;,
+    mvn&quot;io.micronaut.serde:micronaut-serde-jackson&quot;,
+    mvn&quot;io.micronaut:micronaut-jackson-databind&quot;,
+    mvn&quot;io.micronaut:micronaut-http-validation&quot;,
+    mvn&quot;ch.qos.logback:logback-classic&quot;,
+    mvn&quot;io.micronaut.kotlin:micronaut-kotlin-runtime&quot;,
+    mvn&quot;io.micronaut.data:micronaut-data-processor&quot;
+  )
+
+  object test extends MicronautTests, TestModule.Junit5 {
+
+    def mvnDeps = Seq(
+      mvn&quot;io.micronaut:micronaut-http-client&quot;,
+      mvn&quot;io.micronaut.test:micronaut-test-junit5&quot;
+    )
+
+  }
+
+}
+
+trait MicronautModule extends KspModule { outer =&gt;
+  def kspVersion: T[String] = &quot;2.0.2&quot;
+  def kotlinVersion = &quot;2.2.0&quot;
+  def kspJvmTarget: T[String] = &quot;11&quot;
+
+  def bomMvnDeps: T[Seq[Dep]] = Seq(
+    mvn&quot;io.micronaut.platform:micronaut-platform:4.9.2&quot;
+  )
+
+  def kotlinSymbolProcessors = Seq(
+    mvn&quot;io.micronaut:micronaut-inject-kotlin:4.9.9&quot;
+  )
+
+  override def kspProcessorOptions: T[Map[String, String]] = Task {
+    super.kspProcessorOptions() ++ Map(
+      &quot;micronaut.processing.module&quot; -&gt; moduleSegments.render,
+      &quot;micronaut.processing.incremental&quot; -&gt; &quot;true&quot;
+    )
+  }
+
+  override def resources: T[Seq[PathRef]] = Task {
+    super.resources() ++ Seq(generatedSourcesWithKsp().resources)
+  }
+
+  override def runClasspath: T[Seq[PathRef]] = Task {
+    super.runClasspath() ++ Seq(generatedSourcesWithKsp().classes)
+  }
+
+  trait MicronautTests extends MicronautModule, KspTests {
+
+    override def resources: T[Seq[PathRef]] = Task {
+      super[KspTests].resources() ++ Seq(generatedSourcesWithKsp().resources)
+    }
+
+    def kotlinSymbolProcessors = Seq(
+      mvn&quot;io.micronaut:micronaut-inject-kotlin-test:4.9.9&quot;
+    )
+
+    override def runClasspath: T[Seq[PathRef]] = Task {
+      super.runClasspath() ++ Seq(
+        generatedSourcesWithKsp().classes,
+        outer.generatedSourcesWithKsp().classes
+      )
+    }
+
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show micronaut.test
+...
+{
+  &quot;msg&quot;: &quot; &quot;,
+  &quot;results&quot;: [
+    {
+      &quot;fullyQualifiedName&quot;: &quot;example.micronaut.HelloControllerTest&quot;,
+      &quot;selector&quot;: &quot;testHello()&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
+    },
+    {
+      &quot;fullyQualifiedName&quot;: &quot;example.micronaut.FnrSearchServiceTest&quot;,
+      &quot;selector&quot;: &quot;testItWorks()&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
+    }
+  ]
+}
+...
+
+&gt; ./mill show clean</code></pre>
+</div>
 </div>
 </div>
 </div>
 <nav class="pagination">
   <span class="prev"><a href="publishing.html">Kotlin Packaging &amp; Publishing</a></span>
-  <span class="next"><a href="spring-boot.html">Spring Framework / Spring Boot Projects</a></span>
+  <span class="next"><a href="../android/android-initial-setup.html">Android Initial Setup</a></span>
 </nav>
 </article>
   </div>
