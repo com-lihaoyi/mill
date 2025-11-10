@@ -204,17 +204,8 @@ final class EvaluatorImpl private[mill] (
       serialCommandExec = serialCommandExec
     )
 
-    val scriptHeaderWatches =
-      tasks
-        .collect { case n: mill.api.Task.Named[_] =>
-          n.ctx.enclosingModule.moduleBuildOverridePaths
-        }
-        .flatten
-        .map(PathRef(_))
-        .map(p => Watchable.Path(p.path.toNIO, p.quick, p.sig))
-
     @scala.annotation.nowarn("msg=cannot be checked at runtime")
-    val evalWatches = (evaluated.transitiveResults.iterator ++ selectiveResults)
+    val watched = (evaluated.transitiveResults.iterator ++ selectiveResults)
       .collect {
         case (_: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
           ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
@@ -246,11 +237,17 @@ final class EvaluatorImpl private[mill] (
       .flatten
       .toSeq
 
-    val watched = evalWatches ++ scriptHeaderWatches
-
     maybeNewMetadata.foreach { newMetadata =>
       val allInputHashes = newMetadata.inputHashes
-      this.selective.saveMetadata(SelectiveExecution.Metadata(allInputHashes, codeSignatures))
+      this.selective.saveMetadata(
+        SelectiveExecution.Metadata(
+          allInputHashes,
+          codeSignatures,
+          SelectiveExecution.getBuildOverrideSignatures(tasks.collect { case n: Task.Named[_] =>
+            n
+          })
+        )
+      )
     }
 
     val errorStr = ExecutionResultsApi.formatFailing(evaluated)
