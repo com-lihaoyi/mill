@@ -12,6 +12,7 @@ import mill.javalib.*
 import os.{Path, RelPath, zip}
 import os.RelPath.stringRelPathValidated
 import upickle.*
+import mainargs.Flag
 
 import scala.concurrent.duration.*
 import scala.jdk.OptionConverters.RichOptional
@@ -572,10 +573,15 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   /**
    * Starts the android emulator and waits until it is booted
-   *
+   * @param excludeDefaultArgs Whether to exclude the default arguments for starting the emulator.
+   *                           If set, needs to come first before extraArgs.
+   * @param extraArgs Additional arguments to pass to the emulator
    * @return The log line that indicates the emulator is ready
    */
-  def startAndroidEmulator(): Command[String] = Task.Command(exclusive = true) {
+  def startAndroidEmulator(
+      excludeDefaultArgs: Flag,
+      extraArgs: String*
+  ): Command[String] = Task.Command(exclusive = true) {
     val ciSettings = Seq(
       "-no-snapshot-save",
       "-no-window",
@@ -589,13 +595,20 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val settings = if (sys.env.getOrElse("GITHUB_ACTIONS", "false") == "true")
       ciSettings
     else Seq.empty[String]
-    val command = Seq(
-      androidSdkModule().emulatorExe().path.toString(),
+
+    val defaultArgs = Seq(
       "-delay-adb",
       "-port",
       androidEmulatorPort,
-      "-no-metrics"
-    ) ++ settings ++ Seq("-avd", androidVirtualDeviceIdentifier)
+      "-no-metrics",
+      "-avd",
+      androidVirtualDeviceIdentifier
+    )
+
+    val command = Seq(
+      androidSdkModule().emulatorExe().path.toString()
+    ) ++
+      Option.when(!excludeDefaultArgs.value)(defaultArgs).toSeq.flatten ++ extraArgs ++ settings
 
     Task.log.debug(s"Starting emulator with command ${command.mkString(" ")}")
 
