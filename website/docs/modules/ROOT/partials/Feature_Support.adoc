@@ -43,7 +43,7 @@
 
 *Web Frameworks*
 
-* xref:javalib/web-examples.adoc#_spring_boot_todomvc_app[Spring Boot], xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut]
+* xref:javalib/spring-boot.adoc[Spring Boot], xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut]
 * xref:kotlinlib/web-examples.adoc#_ktor_todomvc_app[Ktor], xref:kotlinlib/web-examples.adoc#_ktor_webapp_kotlinjs_client[Kotlin.js]
 * xref:scalalib/web-examples.adoc#_todomvc_http4s_web_app[Http4s], xref:scalalib/web-examples.adoc#_scala_js_webserver_integration[Scala.js]
 

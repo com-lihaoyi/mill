@@ -26,7 +26,6 @@
 ** xref:scalalib/web-examples.adoc[]
 ** xref:scalalib/native-examples.adoc[]
 ** xref:scalalib/spark.adoc[]
-** xref:scalalib/spring-boot.adoc[]
 * xref:kotlinlib/intro.adoc[]
 ** xref:kotlinlib/config.adoc[]
 ** xref:kotlinlib/script.adoc[]
@@ -37,7 +36,6 @@
 ** xref:kotlinlib/publishing.adoc[]
 // ** xref:kotlinlib/build-examples.adoc[]
 ** xref:kotlinlib/web-examples.adoc[]
-** xref:kotlinlib/spring-boot.adoc[]
 []
 * Experimental Platform Support
 ** Building Android Apps
