@@ -165,6 +165,10 @@ object CodeGen {
             else
               s"override def runModuleDeps = Seq(${data.runModuleDeps.map("build." + _).mkString(", ")})"
 
+          val buildOverridePathsSnippet =
+            if (path.isEmpty) s"override def moduleBuildOverridePaths = Seq(os.Path(${literalize(scriptPath.toString)}))"
+            else ""
+
           val extendsSnippet =
             if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}"
             else ""
@@ -173,6 +177,7 @@ object CodeGen {
              |  $moduleDepsSnippet
              |  $compileModuleDepsSnippet
              |  $runModuleDepsSnippet
+             |  $buildOverridePathsSnippet
              |  ${definitions.mkString("\n  ")}
              |}
              |""".stripMargin
