@@ -4,13 +4,6 @@
 
 // This page contains examples of providing Mill as a build tool for Spring Boot applications, adapting the official Spring Boot documentation in increasing complexity.
 
-
-== Spring Boot Web with Initializr
-
-include::partial$example/springboot/java/1-web-initializr.adoc[]
-
-
-[#_spring_boot_hello_world_app]
 == Spring Boot Hello World App
 
 include::partial$example/javalib/springboot/1-hello-spring-boot.adoc[]
@@ -25,10 +18,9 @@ include::partial$example/javalib/springboot/2-todo-spring-boot.adoc[]
 
 include::partial$example/javalib/springboot/3-web-initializr.adoc[]
 
-== Spring Boot Websockets with Spring Reactive Web
+== Spring Reactive Web, Websocket example with Initializr
 
-include::partial$example/springboot/java/2-web-socket-initializr.adoc[]
-
+include::partial$example/javalib/springboot/4-web-socket-initializr.adoc[]
 
 // Include this header in the entry page for the language-specific Spring Framework / Spring Boot page
 
