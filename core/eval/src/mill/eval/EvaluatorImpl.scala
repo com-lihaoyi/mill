@@ -25,7 +25,8 @@ final class EvaluatorImpl private[mill] (
     private[mill] val allowPositionalCommandArgs: Boolean,
     private[mill] val selectiveExecution: Boolean = false,
     private val execution: Execution,
-    scriptModuleResolver: (String, String => Option[Module]) => Seq[Result[ExternalModule]]
+    scriptModuleResolver: (String, String => Option[Module]) => Seq[Result[ExternalModule]],
+    private[mill] val buildOverrides: Map[String, ujson.Value]
 ) extends Evaluator {
 
   private[mill] def workspace = execution.workspace
@@ -42,7 +43,8 @@ final class EvaluatorImpl private[mill] (
     allowPositionalCommandArgs,
     selectiveExecution,
     execution.withBaseLogger(newBaseLogger),
-    scriptModuleResolver
+    scriptModuleResolver,
+    buildOverrides
   )
 
   override private[mill] def resolveScriptModuleDep(s: String): Option[mill.Module] = {
@@ -243,9 +245,10 @@ final class EvaluatorImpl private[mill] (
         SelectiveExecution.Metadata(
           allInputHashes,
           codeSignatures,
-          SelectiveExecution.getBuildOverrideSignatures(tasks.collect { case n: Task.Named[_] =>
-            n
-          })
+          SelectiveExecution.getBuildOverrideSignatures(
+            tasks.collect { case n: Task.Named[_] => n},
+            buildOverrides
+          )
         )
       )
     }

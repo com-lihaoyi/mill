@@ -136,14 +136,16 @@ class UnitTester(
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
-    enableTicker = false
+    enableTicker = false,
+    buildOverrides = Map()
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
     allowPositionalCommandArgs = false,
     selectiveExecution = false,
     execution = execution,
-    scriptModuleResolver = (_, _) => Nil
+    scriptModuleResolver = (_, _) => Nil,
+    buildOverrides = Map()
   )
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {

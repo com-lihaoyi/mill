@@ -42,7 +42,8 @@ case class RunnerState(
     // Any watches that take place during bootstrap module instantiation. Necessary because
     // if bootstrap instantiation fails, there are no `frames` to hold `evalWatches`, so we
     // need to track them separately
-    bootstrapEvalWatched: Seq[Watchable] = Nil
+    bootstrapEvalWatched: Seq[Watchable] = Nil,
+    buildOverrides: Map[String, ujson.Value] = Map()
 ) {
   def add(
       frame: RunnerState.Frame = RunnerState.Frame.empty,
@@ -57,7 +58,7 @@ case class RunnerState(
 
 object RunnerState {
 
-  def empty: RunnerState = RunnerState(None, Nil, None)
+  def empty: RunnerState = RunnerState(None, Nil, None, buildOverrides = Map())
 
   @internal
   case class Frame(

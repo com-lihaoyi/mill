@@ -18,7 +18,7 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   override def env = delegate.env
   override def effectiveThreadCount = delegate.effectiveThreadCount
   override def offline: Boolean = delegate.offline
-
+  override def buildOverrides: Map[String, ujson.Value] = delegate.buildOverrides
   def withBaseLogger(newBaseLogger: Logger): Evaluator = delegate.withBaseLogger(newBaseLogger)
 
   def resolveSegments(

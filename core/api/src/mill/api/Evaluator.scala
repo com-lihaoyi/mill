@@ -32,7 +32,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
   private[mill] def offline: Boolean
-
+  private[mill] def buildOverrides: Map[String, ujson.Value]
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 
   def resolveSegments(

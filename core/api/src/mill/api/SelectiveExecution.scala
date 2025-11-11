@@ -36,11 +36,12 @@ private[mill] trait SelectiveExecution {
   ): SelectiveExecution.Metadata.Computed
 }
 object SelectiveExecution {
-  def getBuildOverrideSignatures(tasks: Seq[Task.Named[_]]) =
+  def getBuildOverrideSignatures(tasks: Seq[Task.Named[_]],
+                                 buildOverrides: Map[String, ujson.Value]) =
     tasks.map { case n: Task.Named[_] => n.ctx.enclosingModule }
       .distinct
       .flatMap(m =>
-        m.moduleBuildOverrides.map { case (k, v) =>
+        buildOverrides.map { case (k, v) =>
           ((m.moduleSegments ++ Segment.Label(k)).render, v.hashCode)
         }
       )

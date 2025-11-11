@@ -112,14 +112,16 @@ class MillBuildBootstrap(
                     frames,
                     Some(error),
                     None,
-                    bootstrapEvalWatched
+                    bootstrapEvalWatched,
+                    buildOverrides
                   ) =>
                 // Add a potential clue (missing build.mill) to the underlying error message
                 RunnerState(
                   bootstrapModuleOpt,
                   frames,
                   Some(msg + "\n" + error),
-                  bootstrapEvalWatched = bootstrapEvalWatched
+                  bootstrapEvalWatched = bootstrapEvalWatched,
+                  buildOverrides = Map()
                 )
               case state => state
             }
@@ -150,28 +152,27 @@ class MillBuildBootstrap(
                     Nil,
                     Some(msg),
                     Some(foundRootBuildFileName),
-                    Seq(bootstrapEvalWatched)
+                    Seq(bootstrapEvalWatched),
+                    Map()
                   )
-                case Result.Success(parsedHeaderData) =>
-                  val metaBuildData =
+                case Result.Success(buildOverrides0) =>
+                  val buildOverrides =
                     if (
-                      foundRootBuildFileName.endsWith(".yaml") || foundRootBuildFileName.endsWith(
-                        ".yml"
-                      )
+                      foundRootBuildFileName.endsWith(".yaml") ||
+                        foundRootBuildFileName.endsWith(".yml")
                     ) {
                       // For YAML files, extract the mill-build key if it exists, otherwise use empty map
-                      parsedHeaderData.obj.get("mill-build") match {
+                      buildOverrides0.obj.get("mill-build") match {
                         case Some(millBuildValue: ujson.Obj) => millBuildValue
                         case _ => ujson.Obj()
                       }
                     } else {
                       // For non-YAML files (build.mill), use the entire parsed header data
-                      parsedHeaderData
+                      buildOverrides0
                     }
+
                   mill.api.ExecResult.catchWrapException {
-                    new MillBuildRootModule.BootstrapModule(
-                      upickle.read[Map[String, ujson.Value]](metaBuildData)
-                    )(
+                    new MillBuildRootModule.BootstrapModule()(
                       using
                       new RootModule.Info(
                         currentRoot,
@@ -186,7 +187,8 @@ class MillBuildBootstrap(
                         Nil,
                         None,
                         Some(foundRootBuildFileName),
-                        Seq(bootstrapEvalWatched)
+                        Seq(bootstrapEvalWatched),
+                        upickle.read[Map[String, ujson.Value]](buildOverrides)
                       )
                     case Result.Failure(msg) =>
                       RunnerState(
@@ -194,7 +196,8 @@ class MillBuildBootstrap(
                         Nil,
                         Some(msg),
                         Some(foundRootBuildFileName),
-                        Seq(bootstrapEvalWatched)
+                        Seq(bootstrapEvalWatched),
+                        Map()
                       )
                   }
               }
