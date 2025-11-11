@@ -62,10 +62,15 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
       oldHashes.buildOverrideSignatures,
       newHashes.buildOverrideSignatures
     )
+    pprint.log(oldHashes.buildOverrideSignatures)
+    pprint.log(newHashes.buildOverrideSignatures)
 
     val changedRootTasks = (changedInputNames ++ changedCodeNames ++ changedBuildOverrides)
       .flatMap(namesToTasks.get(_): Option[Task[?]])
 
+    pprint.log(changedInputNames)
+    pprint.log(changedCodeNames)
+    pprint.log(changedBuildOverrides)
     val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.inputs)
     val downstreamEdgeMap = SpanningForest.reverseEdges(allNodes.map(t => (t, t.inputs)))
 
@@ -78,6 +83,7 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
   }
 
   def saveMetadata(metadata: SelectiveExecution.Metadata): Unit = {
+    pprint.log(metadata.buildOverrideSignatures)
     os.write.over(
       evaluator.outPath / OutFiles.millSelectiveExecution,
       upickle.write(metadata, indent = 2)
@@ -212,7 +218,7 @@ object SelectiveExecutionImpl {
     ): SelectiveExecution.Metadata.Computed = {
       val allBuildOverrides =
         evaluator.buildOverrides ++
-          transitiveNamed.flatMap(_.ctx.enclosingModule.moduleBuildOverrides)
+          transitiveNamed.flatMap(_.ctx.enclosingModule.moduleLoadBuildOverrides)
 
       val results: Map[Task.Named[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: Task.Input[_] =>
@@ -250,7 +256,7 @@ object SelectiveExecutionImpl {
         new SelectiveExecution.Metadata(
           inputHashes,
           evaluator.codeSignatures,
-          SelectiveExecution.getBuildOverrideSignatures(transitiveNamed, allBuildOverrides)
+          allBuildOverrides.map{case (k, v) => (k, v.##)}
         ),
         results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
       )

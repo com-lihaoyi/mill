@@ -120,7 +120,7 @@ trait GroupExecution {
       case labelled: Task.Named[_] =>
         val out = if (!labelled.ctx.external) outPath else externalOutPath
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
-        val moduleBuildOverride = labelled.ctx.enclosingModule.moduleBuildOverrides
+        val moduleBuildOverride = labelled.ctx.enclosingModule.moduleLoadBuildOverrides
         buildOverrides.get(labelled.ctx.segments.render)
           .orElse(moduleBuildOverride.get(labelled.ctx.segments.render)) match {
 

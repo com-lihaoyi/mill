@@ -15,13 +15,13 @@ trait ScriptModule extends ExternalModule {
 
   override def moduleSegments: Segments = Segments.labels(s"./$relativeScriptFilePath")
 
-  private[mill] override def moduleBuildOverrides = scriptConfig
+  private[mill] override def moduleLoadBuildOverrides = scriptConfig
     .headerData
     .rest
     .map{case (k, v) => ((moduleSegments ++ mill.api.Segment.Label(k)).render, v)}
 
 //  mill.internal.Util.validateBuildHeaderKeys(
-//    moduleBuildOverrides.keySet,
+//    moduleLoadBuildOverrides.keySet,
 //    millDiscover.allTaskNames,
 //    relativeScriptFilePath
 //  )

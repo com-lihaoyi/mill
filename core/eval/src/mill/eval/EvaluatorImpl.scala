@@ -240,16 +240,17 @@ final class EvaluatorImpl private[mill] (
       .toSeq
 
     maybeNewMetadata.foreach { newMetadata =>
-      val allInputHashes = newMetadata.inputHashes
+      val scriptBuildOverrides = evaluated
+        .transitiveResults
+        .keys
+        .collect{case n: Task.Named[_] => n.ctx.enclosingModule.moduleLoadBuildOverrides}
+        .flatten
+
+      val allBuildOverrides = (buildOverrides ++ scriptBuildOverrides).map { case (k, v) => (k, v.##) }
+
+      pprint.log(allBuildOverrides)
       this.selective.saveMetadata(
-        SelectiveExecution.Metadata(
-          allInputHashes,
-          codeSignatures,
-          SelectiveExecution.getBuildOverrideSignatures(
-            tasks.collect { case n: Task.Named[_] => n},
-            buildOverrides
-          )
-        )
+        SelectiveExecution.Metadata(newMetadata.inputHashes, codeSignatures, allBuildOverrides)
       )
     }
 

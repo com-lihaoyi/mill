@@ -347,7 +347,7 @@ trait MillBuildRootModule()(using
 
   for (scriptSourcesPath <- scriptSourcesPaths.headOption) {
     mill.internal.Util.validateBuildHeaderKeys(
-      moduleBuildOverrides.keySet,
+      moduleLoadBuildOverrides.keySet,
       millDiscover.allTaskNames,
       scriptSourcesPath.subRelativeTo(BuildCtx.workspaceRoot)
     )
