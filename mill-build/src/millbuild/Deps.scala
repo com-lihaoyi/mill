@@ -8,10 +8,10 @@ object Deps {
   // The Scala version to use
   // When updating, run "Publish Bridges" Github Actions for the new version
   // and then add to it `bridgeScalaVersions`
-  val scalaVersion = "3.7.3"
-  val scala2Version = "2.13.15"
+  val scalaVersion = "3.7.4"
+  val scala2Version = "2.13.17"
   // The Scala 2.12.x version to use for some workers
-  val workerScalaVersion212 = "2.12.20"
+  val workerScalaVersion212 = "2.12.21"
   val sbtScalaVersion212 = workerScalaVersion212
 
   val testScala213Version = "2.13.16"
@@ -43,7 +43,7 @@ object Deps {
   }
 
   object Scalanative_0_5 {
-    val scalanativeVersion = "0.5.8"
+    val scalanativeVersion = "0.5.9"
     val scalanativeTools = mvn"org.scala-native::tools:${scalanativeVersion}"
     val scalanativeUtil = mvn"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = mvn"org.scala-native::nir:${scalanativeVersion}"
@@ -82,8 +82,8 @@ object Deps {
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = mvn"com.lihaoyi:::acyclic:0.3.18"
-  val ammoniteVersion = "3.0.2"
-  val asmTree = mvn"org.ow2.asm:asm-tree:9.8"
+  val ammoniteVersion = "3.0.4"
+  val asmTree = mvn"org.ow2.asm:asm-tree:9.9"
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.181"
@@ -150,7 +150,8 @@ object Deps {
   val unrollAnnotation = mvn"com.lihaoyi::unroll-annotation:0.2.0"
   val unrollPlugin = mvn"com.lihaoyi::unroll-plugin:0.2.0"
   // can't use newer versions, as these need higher Java versions
-  val testng = mvn"org.testng:testng:7.5.1"
+  val testng_lowerBound = mvn"org.testng:testng:7.5.1"
+  val testng = mvn"org.testng:testng:7.11.0"
   val sbtTestInterface = mvn"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = {
     if (JvmWorkerUtil.isScala3(scalaVersion)) mvn"org.scala-lang:scala3-compiler_3:${scalaVersion}"
@@ -161,7 +162,7 @@ object Deps {
     if (JvmWorkerUtil.isScala3(scalaVersion))
       mvn"org.scala-lang:scala-reflect:${Deps.scala2Version}"
     else mvn"org.scala-lang:scala-reflect:${scalaVersion}"
-  val scoverage2Version = "2.3.0"
+  val scoverage2Version = "2.4.1"
   val scalacScoverage2Plugin = mvn"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = mvn"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = mvn"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -171,11 +172,11 @@ object Deps {
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.9"
+  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.14.1"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
   val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
-  val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
+  val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.7"
   val upickle = mvn"com.lihaoyi::upickle:4.4.1"
   val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.4.1"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
