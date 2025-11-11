@@ -287,7 +287,8 @@ class MillBuildBootstrap(
                   .getOrElse(0),
                 depth,
                 actualBuildFileName = nestedState.buildFile,
-                enableTicker = enableTicker
+                enableTicker = enableTicker,
+                buildOverrides = nestedState.buildOverrides
               )) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
@@ -469,7 +470,8 @@ object MillBuildBootstrap {
       millClassloaderIdentityHash: Int,
       depth: Int,
       actualBuildFileName: Option[String] = None,
-      enableTicker: Boolean
+      enableTicker: Boolean,
+      buildOverrides: Map[String, ujson.Value]
   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
@@ -507,9 +509,11 @@ object MillBuildBootstrap {
         streams0,
         () => evaluator,
         offline,
-        enableTicker
+        buildOverrides,
+        enableTicker,
       ),
-      scriptInitCls.getField("MODULE$").get(null)
+      scriptInitCls.getField("MODULE$").get(null),
+      buildOverrides
     ).asInstanceOf[EvaluatorApi]
 
     evaluator
