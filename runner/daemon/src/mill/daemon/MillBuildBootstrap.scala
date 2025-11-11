@@ -249,8 +249,6 @@ class MillBuildBootstrap(
             case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
             case Result.Success((buildFileApi)) =>
 
-              pprint.log(depth)
-              pprint.log(nestedState.buildOverrides)
               Using.resource(makeEvaluator(
                 projectRoot,
                 output,

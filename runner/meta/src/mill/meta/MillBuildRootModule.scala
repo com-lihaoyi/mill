@@ -153,7 +153,6 @@ trait MillBuildRootModule()(using
       }
       .toMap
 
-
     Tuple4(runClasspath(), compile().classes, codeSignatures(), buildOverrides)
   }
 
